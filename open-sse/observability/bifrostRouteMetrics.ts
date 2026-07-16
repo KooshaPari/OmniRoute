@@ -7,11 +7,20 @@
  * eviction.
  */
 
-const MAX_KEY_CAPACITY = 512;
-const MAX_SAMPLES_PER_KEY = 64;
+import {
+  BIFROST_ROUTE_METRICS_MAX_KEY_CAPACITY,
+  BIFROST_ROUTE_METRICS_MAX_SAMPLES_PER_KEY,
+  loadBifrostRouteMetricSamples,
+  persistBifrostRouteMetricSamples,
+  type BifrostRouteMetricKeySamples,
+} from "@/lib/db/bifrostRouteMetrics";
+
+const MAX_KEY_CAPACITY = BIFROST_ROUTE_METRICS_MAX_KEY_CAPACITY;
+const MAX_SAMPLES_PER_KEY = BIFROST_ROUTE_METRICS_MAX_SAMPLES_PER_KEY;
 const DEFAULT_MIN_SAMPLES_FOR_RELIABILITY = 4;
 const BIFROST_METRICS_PROJECTION_WINDOW_MS = 15 * 60 * 1000;
 const MIN_PROJECTION_WINDOW_MS = 1_000;
+const BIFROST_METRICS_PERSIST_DEBOUNCE_MS = 250;
 
 export interface BifrostRouteOutcomeInput {
   provider: string;
@@ -89,6 +98,128 @@ const metricsMap = new Map<string, OutcomeRing>();
 
 const DEFAULT_PROVIDER = "unknown-provider";
 const DEFAULT_MODEL = "unknown-model";
+
+const pendingPersistenceKeys = new Set<string>();
+let persistenceTimer: ReturnType<typeof setTimeout> | null = null;
+let isPersisting = false;
+
+function queuePersistence(key?: string): void {
+  if (typeof key === "string") {
+    pendingPersistenceKeys.add(key);
+  }
+
+  if (isPersisting) return;
+  if (persistenceTimer !== null) return;
+  if (pendingPersistenceKeys.size === 0) return;
+  persistenceTimer = setTimeout(() => {
+    persistenceTimer = null;
+    void flushBifrostRouteMetricsPersistence();
+  }, BIFROST_METRICS_PERSIST_DEBOUNCE_MS);
+  persistenceTimer.unref?.();
+}
+
+function clearPersistenceStateForTests(): void {
+  if (persistenceTimer !== null) {
+    clearTimeout(persistenceTimer);
+    persistenceTimer = null;
+  }
+  pendingPersistenceKeys.clear();
+}
+
+async function flushBifrostRouteMetricsPersistence(): Promise<void> {
+  if (isPersisting || pendingPersistenceKeys.size === 0) return;
+  isPersisting = true;
+
+  const keysToPersist = Array.from(pendingPersistenceKeys);
+  pendingPersistenceKeys.clear();
+
+  const samplesByKey: BifrostRouteMetricKeySamples[] = [];
+  for (const key of keysToPersist) {
+    const state = metricsMap.get(key);
+    if (!state) continue;
+
+    const [provider, model] = key.split("\u0000");
+    if (!provider || !model) continue;
+
+    const orderedSamples = getOrderedSamples(state);
+    if (orderedSamples.length === 0) continue;
+
+    samplesByKey.push({
+      provider,
+      model,
+      samples: orderedSamples.map((sample) => ({
+        provider,
+        model,
+        timestampMs: sample.timestampMs,
+        status: sample.status,
+        latencyMs: sample.latencyMs,
+        ok: sample.ok,
+        error: sample.error,
+        ttftMs: sample.ttftMs,
+        outputTokens: sample.outputTokens,
+        generationDurationMs: sample.generationDurationMs,
+      })),
+    });
+  }
+
+  if (samplesByKey.length > 0) {
+    try {
+      persistBifrostRouteMetricSamples(samplesByKey, {
+        maxKeys: MAX_KEY_CAPACITY,
+        maxSamplesPerKey: MAX_SAMPLES_PER_KEY,
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(
+        "[BifrostRouteMetrics] Unable to persist route metrics; continuing with in-memory projection only.",
+        message
+      );
+      for (const key of keysToPersist) {
+        pendingPersistenceKeys.add(key);
+      }
+    }
+  }
+
+  isPersisting = false;
+  if (pendingPersistenceKeys.size > 0) {
+    queuePersistence();
+  }
+}
+
+function hydrateBifrostRouteMetricsFromDb(): void {
+  clearPersistenceStateForTests();
+  metricsMap.clear();
+
+  try {
+    const persisted = loadBifrostRouteMetricSamples({
+      maxKeys: MAX_KEY_CAPACITY,
+      maxSamplesPerKey: MAX_SAMPLES_PER_KEY,
+    });
+    for (const item of persisted) {
+      const orderedSamples = [...item.samples].sort((a, b) => a.timestampMs - b.timestampMs);
+      const key = normalizeKey(item.provider, item.model);
+      const samples = orderedSamples.filter((sample): sample is OutcomeSample => sample !== null);
+      if (samples.length === 0) continue;
+
+      metricsMap.set(key, {
+        provider: item.provider,
+        model: item.model,
+        samples,
+        writeIndex: Math.max(0, Math.min(samples.length, MAX_SAMPLES_PER_KEY)) % MAX_SAMPLES_PER_KEY,
+        updatedAtMs: item.updatedAtMs,
+      });
+    }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(
+      "[BifrostRouteMetrics] Startup persistence hydration failed; continuing from in-memory state.",
+      message
+    );
+    metricsMap.clear();
+  }
+}
+
+hydrateBifrostRouteMetricsFromDb();
 
 function normalizeKey(provider: string, model: string): string {
   return `${provider}\u0000${model}`;
@@ -443,6 +574,7 @@ export function recordBifrostRouteOutcome(input: BifrostRouteOutcomeInput): void
   const state = getOrCreateState(provider, model);
   writeSample(state, sample);
   state.updatedAtMs = sample.timestampMs;
+  queuePersistence(normalizeKey(provider, model));
 }
 
 export function getBifrostRouteMetrics(
@@ -494,5 +626,18 @@ export function getAllBifrostRouteMetrics(): BifrostRouteOutcomeStats[] {
 }
 
 export function resetBifrostRouteMetricsForTest(): void {
+  clearPersistenceStateForTests();
   metricsMap.clear();
+}
+
+export async function flushBifrostRouteMetricsPersistenceForTest(): Promise<void> {
+  if (persistenceTimer !== null) {
+    clearTimeout(persistenceTimer);
+    persistenceTimer = null;
+  }
+  await flushBifrostRouteMetricsPersistence();
+}
+
+export function hydrateBifrostRouteMetricsFromStorageForTest(): void {
+  hydrateBifrostRouteMetricsFromDb();
 }
