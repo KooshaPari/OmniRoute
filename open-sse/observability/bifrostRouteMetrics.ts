@@ -665,6 +665,15 @@ export function resetBifrostRouteMetricsForTest(): void {
 }
 
 export async function flushBifrostRouteMetricsPersistenceForTest(): Promise<void> {
+  await flushBifrostRouteMetricsPersistenceForShutdown();
+}
+
+/**
+ * Shutdown lifecycle hook: cancel any pending debounce timeout and flush immediately.
+ * This is intentionally idempotent and reuses existing persistence batching/error
+ * behavior; it only changes when flush is triggered.
+ */
+export async function flushBifrostRouteMetricsPersistenceForShutdown(): Promise<void> {
   if (persistenceTimer !== null) {
     clearTimeout(persistenceTimer);
     persistenceTimer = null;

@@ -178,4 +178,35 @@ describe("bifrostRouteMetrics DB persistence", () => {
     assert.equal(persisted[0].samples[0].status, 200);
     assert.equal(persisted[0].samples[0].latencyMs, 95);
   });
+
+  it("flushes pending shutdown metrics via lifecycle hook without waiting for debounce", async () => {
+    const now = makeTimestamp();
+
+    metrics.recordBifrostRouteOutcome({
+      provider: "anthropic",
+      model: "claude-3-7-20250226",
+      status: 200,
+      latencyMs: 120,
+      ttftMs: 25,
+      outputTokens: 180,
+      generationDurationMs: 500,
+      timestampMs: now,
+    });
+
+    await metrics.flushBifrostRouteMetricsPersistenceForShutdown();
+
+    await metrics.flushBifrostRouteMetricsPersistenceForShutdown();
+
+    const persisted = db.loadBifrostRouteMetricSamples();
+    assert.equal(persisted.length, 1);
+    assert.equal(persisted[0].samples.length, 1);
+    assert.equal(persisted[0].provider, "anthropic");
+    assert.equal(persisted[0].model, "claude-3-7-20250226");
+    assert.equal(persisted[0].samples[0].latencyMs, 120);
+
+    await metrics.flushBifrostRouteMetricsPersistenceForShutdown();
+    const persistedAfterSecondFlush = db.loadBifrostRouteMetricSamples();
+    assert.equal(persistedAfterSecondFlush.length, 1);
+    assert.equal(persistedAfterSecondFlush[0].samples.length, 1);
+  });
 });
