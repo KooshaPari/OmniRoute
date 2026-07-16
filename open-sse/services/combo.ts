@@ -300,9 +300,6 @@ function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[
   if (scored.length === 0) return targets;
 
   scored.sort((a, b) => {
-    const latencyDiff = a.e2eLatencyMs - b.e2eLatencyMs;
-    if (latencyDiff !== 0) return latencyDiff;
-
     const healthDiff = b.health - a.health;
     if (healthDiff !== 0) return healthDiff;
 
@@ -311,6 +308,9 @@ function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[
 
     const stabilityDiff = b.stability - a.stability;
     if (stabilityDiff !== 0) return stabilityDiff;
+
+    const latencyDiff = a.e2eLatencyMs - b.e2eLatencyMs;
+    if (latencyDiff !== 0) return latencyDiff;
 
     if (a.avgTtftMs !== undefined && b.avgTtftMs !== undefined) {
       const ttftDiff = a.avgTtftMs - b.avgTtftMs;
