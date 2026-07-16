@@ -71,6 +71,43 @@ describe("bifrostRouteMetrics DB persistence", () => {
     assert.ok(projected?.avgTtftMs !== null);
   });
 
+  it("persists and hydrates connection-aware keys independently", async () => {
+    const now = makeTimestamp();
+    metrics.recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o-mini",
+      connectionId: "connection-a",
+      status: 200,
+      latencyMs: 80,
+      timestampMs: now - 1_000,
+    });
+    metrics.recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o-mini",
+      connectionId: "connection-b",
+      status: 500,
+      latencyMs: 160,
+      timestampMs: now,
+    });
+    await metrics.flushBifrostRouteMetricsPersistenceForTest();
+    const persisted = db.loadBifrostRouteMetricSamples();
+    assert.equal(persisted.length, 2);
+    assert.deepEqual(persisted.map((entry) => entry.connectionId).sort(), [
+      "connection-a",
+      "connection-b",
+    ]);
+    metrics.resetBifrostRouteMetricsForTest();
+    metrics.hydrateBifrostRouteMetricsFromStorageForTest();
+    assert.equal(
+      metrics.getBifrostRouteMetrics("openai", "gpt-4o-mini", "connection-a")?.successCount,
+      1
+    );
+    assert.equal(
+      metrics.getBifrostRouteMetrics("openai", "gpt-4o-mini", "connection-b")?.failureCount,
+      1
+    );
+  });
+
   it("keeps stale rows ineligible under freshness rules and allows fresh rows", async () => {
     const now = makeTimestamp();
 
@@ -80,14 +117,14 @@ describe("bifrostRouteMetrics DB persistence", () => {
         model: "stale-only",
         status: 200,
         latencyMs: 100 + i * 5,
-        timestampMs: now - (16 * 60 * 1000) - (i * 1000),
+        timestampMs: now - 16 * 60 * 1000 - i * 1000,
       });
       metrics.recordBifrostRouteOutcome({
         provider: "openai",
         model: "fresh",
         status: 200,
         latencyMs: 120 + i * 5,
-        timestampMs: now - (5 * 60 * 1000) - (i * 1000),
+        timestampMs: now - 5 * 60 * 1000 - i * 1000,
       });
     }
 

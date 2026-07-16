@@ -18,6 +18,7 @@ export const BIFROST_ROUTE_METRICS_MAX_SAMPLES_PER_KEY = 64;
 export interface BifrostRouteMetricSample {
   provider: string;
   model: string;
+  connectionId?: string | null;
   timestampMs: number;
   status: number | null;
   latencyMs: number;
@@ -31,11 +32,11 @@ export interface BifrostRouteMetricSample {
 export interface BifrostRouteMetricKeySamples {
   provider: string;
   model: string;
+  connectionId?: string | null;
   samples: BifrostRouteMetricSample[];
 }
 
-export interface BifrostRouteMetricKeySamplesWithUpdatedAt
-  extends BifrostRouteMetricKeySamples {
+export interface BifrostRouteMetricKeySamplesWithUpdatedAt extends BifrostRouteMetricKeySamples {
   updatedAtMs: number;
 }
 
@@ -77,6 +78,11 @@ function normalizeKeys(value: string): string {
   return normalizeString(value);
 }
 
+function normalizeConnectionId(value: unknown): string | null {
+  const normalized = normalizeString(value);
+  return normalized.length > 0 ? normalized : null;
+}
+
 function normalizeMs(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value)
     ? Math.max(0, Math.floor(value))
@@ -89,8 +95,7 @@ function normalizeTimestamp(value: unknown): number | null {
 }
 
 function normalizeMax(value: number | undefined, fallback: number): number {
-  const parsed =
-    typeof value === "number" && Number.isFinite(value) ? Math.floor(value) : fallback;
+  const parsed = typeof value === "number" && Number.isFinite(value) ? Math.floor(value) : fallback;
   return Math.max(1, parsed);
 }
 
@@ -108,6 +113,7 @@ function hasTable(db: ReturnType<typeof getDbInstance>, tableName: string): bool
 function parseSampleRow(row: Record<string, unknown>): BifrostRouteMetricSample | null {
   const provider = normalizeString(row.provider);
   const model = normalizeString(row.model);
+  const connectionId = normalizeConnectionId(row.connectionId ?? row.connection_id);
   const timestampMs = normalizeTimestamp(row.timestampMs ?? row.timestamp_ms);
   const status = normalizeStatus(row.status);
   const latencyMs = normalizeLatency(row.latencyMs ?? row.latency_ms);
@@ -119,18 +125,14 @@ function parseSampleRow(row: Record<string, unknown>): BifrostRouteMetricSample 
     row.generationDurationMs ?? row.generation_duration_ms
   );
 
-  if (
-    !provider ||
-    !model ||
-    timestampMs === null ||
-    latencyMs === null
-  ) {
+  if (!provider || !model || timestampMs === null || latencyMs === null) {
     return null;
   }
 
   return {
     provider,
     model,
+    connectionId,
     timestampMs,
     status,
     latencyMs,
@@ -150,14 +152,16 @@ function clampSamples(
   return maxSamples <= 0 ? [] : sorted.slice(-maxSamples);
 }
 
-function normalizeLoadPersistedRows(rows: Record<string, unknown>[]): BifrostRouteMetricKeySamplesWithUpdatedAt[] {
+function normalizeLoadPersistedRows(
+  rows: Record<string, unknown>[]
+): BifrostRouteMetricKeySamplesWithUpdatedAt[] {
   const groupedSamples = new Map<string, BifrostRouteMetricSample[]>();
   const keyOrder: string[] = [];
 
   for (const row of rows) {
     const sample = parseSampleRow(row);
     if (!sample) continue;
-    const key = `${sample.provider}\u0000${sample.model}`;
+    const key = `${sample.provider}\u0000${sample.model}\u0000${sample.connectionId ?? ""}`;
     const existing = groupedSamples.get(key);
     if (!existing) keyOrder.push(key);
     const current = existing ?? [];
@@ -174,11 +178,12 @@ function normalizeLoadPersistedRows(rows: Record<string, unknown>[]): BifrostRou
     if (!samples) continue;
     const last = samples.at(-1);
     if (!last) continue;
-    const [provider, model] = key.split("\u0000");
+    const [provider, model, connectionId] = key.split("\u0000");
     if (!provider || !model) continue;
     output.push({
       provider,
       model,
+      connectionId: connectionId || null,
       samples,
       updatedAtMs: last.timestampMs,
     });
@@ -202,7 +207,7 @@ function pruneExcessSamplesPerKey(
            SELECT
              id,
              ROW_NUMBER() OVER (
-               PARTITION BY provider, model
+               PARTITION BY provider, model, connection_id
                ORDER BY timestamp_ms DESC, id DESC
              ) AS row_number
            FROM bifrost_route_metrics
@@ -216,29 +221,21 @@ function pruneExcessSamplesPerKey(
   return pruneResult.changes ?? 0;
 }
 
-function pruneExcessKeys(
-  db: ReturnType<typeof getDbInstance>,
-  maxKeys: number
-): number {
+function pruneExcessKeys(db: ReturnType<typeof getDbInstance>, maxKeys: number): number {
   if (maxKeys <= 0) return 0;
 
   const pruneResult = db
     .prepare(
       `
       DELETE FROM bifrost_route_metrics
-       WHERE (provider, model) IN (
-         SELECT provider, model
-           FROM (
-             SELECT
-               provider,
-               model,
-               ROW_NUMBER() OVER (
-                 ORDER BY MAX(timestamp_ms) DESC, provider, model
-               ) AS key_rank
-             FROM bifrost_route_metrics
-             GROUP BY provider, model
-           )
-          WHERE key_rank > ?
+       WHERE id IN (
+         SELECT id FROM (
+           SELECT id, ROW_NUMBER() OVER (
+             ORDER BY MAX(timestamp_ms) DESC, provider, model, connection_id
+           ) AS key_rank
+           FROM bifrost_route_metrics
+           GROUP BY provider, model, connection_id
+         ) WHERE key_rank > ?
        )
       `
     )
@@ -251,6 +248,7 @@ function makeSampleId(sample: BifrostRouteMetricSample): string {
   const canonical = JSON.stringify({
     provider: sample.provider,
     model: sample.model,
+    connectionId: sample.connectionId,
     status: sample.status,
     timestampMs: sample.timestampMs,
     latencyMs: sample.latencyMs,
@@ -263,10 +261,13 @@ function makeSampleId(sample: BifrostRouteMetricSample): string {
   return createHash("sha256").update(canonical).digest("hex");
 }
 
-function normalizeSampleForDb(sample: BifrostRouteMetricSample): BifrostRouteMetricSampleRow | null {
+function normalizeSampleForDb(
+  sample: BifrostRouteMetricSample
+): BifrostRouteMetricSampleRow | null {
   const mapped: BifrostRouteMetricSample = {
     provider: normalizeKeys(sample.provider),
     model: normalizeKeys(sample.model),
+    connectionId: normalizeConnectionId(sample.connectionId),
     timestampMs: sample.timestampMs,
     status: normalizeStatus(sample.status),
     latencyMs: normalizeLatency(sample.latencyMs),
@@ -297,33 +298,36 @@ function filterValidRows(
   for (const row of rows) {
     const provider = normalizeKeys(row?.provider);
     const model = normalizeKeys(row?.model);
+    const connectionId = normalizeConnectionId(row?.connectionId);
     if (!provider || !model) continue;
 
     const samples = clampSamples(
       (row.samples ?? [])
-      .map((sample) => normalizeSampleForDb(sample as BifrostRouteMetricSample))
-      .filter((sample): sample is BifrostRouteMetricSampleRow => sample !== null)
-      .map((sample) => ({
-        provider,
-        model,
-        timestampMs: sample.timestampMs,
-        status: sample.status,
-        latencyMs: sample.latencyMs,
-        ok: sample.ok,
-        error: sample.error,
-        ttftMs: sample.ttftMs,
-        outputTokens: sample.outputTokens,
-        generationDurationMs: sample.generationDurationMs,
-      }))
-      .filter((sample) => sample.provider === provider && sample.model === model),
+        .map((sample) => normalizeSampleForDb(sample as BifrostRouteMetricSample))
+        .filter((sample): sample is BifrostRouteMetricSampleRow => sample !== null)
+        .map((sample) => ({
+          provider,
+          model,
+          connectionId,
+          timestampMs: sample.timestampMs,
+          status: sample.status,
+          latencyMs: sample.latencyMs,
+          ok: sample.ok,
+          error: sample.error,
+          ttftMs: sample.ttftMs,
+          outputTokens: sample.outputTokens,
+          generationDurationMs: sample.generationDurationMs,
+        }))
+        .filter((sample) => sample.provider === provider && sample.model === model),
       maxSamplesPerKey
     );
 
     if (samples.length === 0) continue;
 
-    grouped.set(`${provider}\u0000${model}`, {
+    grouped.set(`${provider}\u0000${model}\u0000${connectionId ?? ""}`, {
       provider,
       model,
+      connectionId,
       samples,
     });
   }
@@ -340,9 +344,9 @@ function persistSampleRows(
   const insertStmt = db.prepare(
     `
     INSERT INTO bifrost_route_metrics
-      (provider, model, sample_id, timestamp_ms, status, latency_ms, ok, error,
+      (provider, model, connection_id, sample_id, timestamp_ms, status, latency_ms, ok, error,
        ttft_ms, output_tokens, generation_duration_ms)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(sample_id) DO NOTHING
     `
   );
@@ -354,6 +358,7 @@ function persistSampleRows(
         insertStmt.run(
           sample.provider,
           sample.model,
+          sample.connectionId,
           sampleId,
           sample.timestampMs,
           sample.status,
@@ -395,10 +400,10 @@ export function loadBifrostRouteMetricSamples(
     const rows = db
       .prepare(
         `
-        SELECT provider, model, timestamp_ms, status, latency_ms, ok, error,
+        SELECT provider, model, connection_id, timestamp_ms, status, latency_ms, ok, error,
                ttft_ms, output_tokens, generation_duration_ms
           FROM bifrost_route_metrics
-         ORDER BY provider, model, timestamp_ms ASC
+         ORDER BY provider, model, connection_id, timestamp_ms ASC
       `
       )
       .all() as Record<string, unknown>[];
@@ -441,10 +446,5 @@ export function persistBifrostRouteMetricSamples(
   const dbReady = hasTable(db, "bifrost_route_metrics");
   if (!dbReady) return;
 
-  persistSampleRows(
-    db,
-    grouped,
-    maxSamplesPerKey,
-    maxKeys
-  );
+  persistSampleRows(db, grouped, maxSamplesPerKey, maxKeys);
 }
