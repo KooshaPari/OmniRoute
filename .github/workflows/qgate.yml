@@ -27,7 +27,7 @@ permissions:
 
 jobs:
   qgate:
-    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
+    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
     continue-on-error: true   # remove once coverage ≥60%
 
     runs-on: ubuntu-latest # GitHub-hosted; usage may be billed

@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   capture:
-    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
+    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
     name: Capture anonymous home smoke
     runs-on: ubuntu-latest
     timeout-minutes: 15
