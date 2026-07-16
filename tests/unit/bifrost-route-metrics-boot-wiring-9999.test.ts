@@ -15,7 +15,7 @@ test("startup wiring invokes bifrost route metric storage hydration", () => {
   const code = stripComments(readFileSync(BOOT_PATH, "utf8"));
   assert.match(
     code,
-    /initializeBifrostRouteMetricsFromStorage\s*\(\s*\{\s*force:\s*true\s*\}\s*\)/,
-    "instrumentation-node.ts must call initializeBifrostRouteMetricsFromStorage({ force: true }) during startup."
+    /initializeBifrostRouteMetricsFromStorage\s*\(\s*\)/,
+    "instrumentation-node.ts must call initializeBifrostRouteMetricsFromStorage() during startup."
   );
 });

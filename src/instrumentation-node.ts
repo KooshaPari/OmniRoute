@@ -392,7 +392,7 @@ export async function registerNodejs(): Promise<void> {
   try {
     const { initializeBifrostRouteMetricsFromStorage } =
       await import("@/open-sse/observability/bifrostRouteMetrics.ts");
-    initializeBifrostRouteMetricsFromStorage({ force: true });
+    initializeBifrostRouteMetricsFromStorage();
     console.log("[STARTUP] Bifrost route metrics hydration initialized");
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
