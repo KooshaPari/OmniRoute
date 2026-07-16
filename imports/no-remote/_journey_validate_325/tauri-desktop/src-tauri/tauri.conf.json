@@ -1,0 +1,33 @@
+{
+  "$schema": "../frontend/node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "OmniRoute",
+  "version": "0.1.0",
+  "identifier": "com.omniroute.desktop",
+  "build": {
+    "beforeDevCommand": "cd ../frontend && bun run dev -- --host 127.0.0.1",
+    "beforeBuildCommand": "cd ../frontend && bun run build",
+    "devUrl": "http://127.0.0.1:5173",
+    "frontendDist": "../frontend/build"
+  },
+  "app": {
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' http://localhost:20128 http://127.0.0.1:20128; style-src 'self' 'unsafe-inline'"
+    },
+    "windows": [
+      {
+        "label": "main",
+        "title": "OmniRoute",
+        "width": 1040,
+        "height": 720,
+        "minWidth": 780,
+        "minHeight": 560,
+        "resizable": true,
+        "center": true
+      }
+    ]
+  },
+  "bundle": {
+    "active": false,
+    "targets": "all"
+  }
+}

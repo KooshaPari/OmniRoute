@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArgisMonitor — Unified AI Router (formerly OmniRoute)</title>
+  <meta name="description" content="ArgisMonitor is a fork of diegosouzapw/OmniRoute, maintained as part of the Phenotype. initiative. 160+ providers, MCP/A2A, desktop, PWA." />
+  <link rel="icon" type="image/svg+xml" href="/public/og-image.svg" />
+  <meta property="og:title" content="ArgisMonitor — Unified AI Router" />
+  <meta property="og:description" content="Unified AI router with 160+ providers. Forked from OmniRoute, AI-DD, HITL-less." />
+  <meta property="og:image" content="/public/og-image.svg" />
+  <meta property="og:url" content="https://argismonitor.phenotype.space" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --fg: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --warn: #d29922;
+      --ok: #3fb950;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    main { max-width: 980px; margin: 0 auto; padding: 64px 24px; }
+    h1 { font-size: clamp(2rem, 5vw, 3.5rem); margin: 0 0 12px; line-height: 1.1; }
+    h2 { font-size: 1.6rem; margin: 48px 0 16px; }
+    p.lead { font-size: 1.2rem; color: var(--muted); margin: 0 0 32px; }
+    .pill {
+      display: inline-block;
+      background: rgba(88,166,255,0.12);
+      color: var(--accent);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    pre {
+      background: #161b22;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      border: 1px solid #30363d;
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.95em; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .install { display: flex; flex-direction: column; gap: 8px; }
+    .install h3 { margin: 0 0 4px; font-size: 1rem; color: var(--muted); font-weight: 500; }
+    .grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 24px; }
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .card h3 { margin: 0 0 8px; font-size: 1.1rem; }
+    .notice {
+      background: rgba(210,153,34,0.08);
+      border-left: 3px solid var(--warn);
+      padding: 16px 20px;
+      border-radius: 4px;
+      margin: 24px 0;
+    }
+    footer {
+      margin-top: 64px;
+      padding-top: 32px;
+      border-top: 1px solid #30363d;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <main>
+    <span class="pill">formerly OmniRoute</span>
+    <h1>ArgisMonitor</h1>
+    <p class="lead">Unified AI router with 160+ providers. RTK + Caveman compression, auto fallback, MCP/A2A, desktop, PWA, OpenAI-compatible APIs.</p>
+
+    <div class="install">
+      <h3>npm</h3>
+      <pre><code>npm install -g argismonitor</code></pre>
+
+      <h3>Homebrew</h3>
+      <pre><code>brew install KooshaPari/tap/argismonitor</code></pre>
+
+      <h3>Chocolatey (Windows)</h3>
+      <pre><code>choco install argismonitor</code></pre>
+
+      <h3>winget (Windows)</h3>
+      <pre><code>winget install --id=KooshaPari.ArgisMonitor -e</code></pre>
+
+      <h3>POSIX one-liner</h3>
+      <pre><code>curl -fsSL https://argismonitor.phenotype.space/install.sh | bash</code></pre>
+
+      <h3>PowerShell one-liner</h3>
+      <pre><code>iwr -useb https://argismonitor.phenotype.space/install.ps1 | iex</code></pre>
+    </div>
+
+    <div class="notice">
+      <strong>Fork notice.</strong>
+      ArgisMonitor is a fork of
+      <a href="https://github.com/diegosouzapw/OmniRoute" target="_blank" rel="noopener">diegosouzapw/OmniRoute</a>
+      distributed under the same MIT terms.
+      See <a href="/docs/FORK.html">FORK.md</a> for provenance, AI-DD / HITL-less disclosure, and a complete diff vs upstream.
+      Legacy <code>omniroute</code> binary still works during the deprecation window — see
+      <a href="/docs/RENAMES-STRATEGY.html">migration notes</a>.
+    </div>
+
+    <h2>Why ArgisMonitor</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>160+ providers, one API</h3>
+        <p>OpenAI, Anthropic, Gemini, Bedrock, Vertex, Mistral, OpenRouter, Kiro, Cursor, Qoder, Antigravity — all behind a single OpenAI-compatible endpoint.</p>
+      </div>
+      <div class="card">
+        <h3>RTK + Caveman compression</h3>
+        <p>Dramatic token reduction with no quality loss for tool-use payloads. See <code>docs/compression/</code>.</p>
+      </div>
+      <div class="card">
+        <h3>AI-DD / HITL-less</h3>
+        <p>Designed from the ground up for AI-driven development without a human-in-the-loop review gate. See <a href="/docs/FORK.html">FORK.md § 2</a>.</p>
+      </div>
+      <div class="card">
+        <h3>MCP / A2A native</h3>
+        <p>Built-in Model Context Protocol server, Agent-to-Agent messaging, and OpenAI-compatible HTTP transport. Interop with Claude Code, Codex, OpenCode.</p>
+      </div>
+      <div class="card">
+        <h3>Multi-surface delivery</h3>
+        <p>CLI, Electron desktop, Tauri desktop, PWA, SvelteKit dashboard, MCP server — same code, every target.</p>
+      </div>
+      <div class="card">
+        <h3>Phenotype. integration</h3>
+        <p>Lives in the Argis &amp; Helios family. <a href="https://phenotype.space" target="_blank" rel="noopener">phenotype.space</a> hosts the docs; <a href="https://pheno.studio" target="_blank" rel="noopener">pheno.studio</a> hosts the dev/internal surface.</p>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer-links">
+        <a href="/docs/index.html">Docs</a>
+        <a href="/docs/FORK.html">Fork notice</a>
+        <a href="/docs/RENAMES-STRATEGY.html">Migration</a>
+        <a href="https://github.com/KooshaPari/ArgisMonitor" target="_blank" rel="noopener">Source</a>
+        <a href="https://github.com/KooshaPari/ArgisMonitor/issues" target="_blank" rel="noopener">Issues</a>
+        <a href="/dashboards/">QA / OTel</a>
+      </div>
+      <p style="margin-top: 16px;">
+        © 2026 KooshaPari / Phenotype. — MIT License.
+        Originally forked from <a href="https://github.com/diegosouzapw/OmniRoute" target="_blank" rel="noopener">diegosouzapw/OmniRoute</a>.
+      </p>
+    </footer>
+  </main>
+</body>
+</html>

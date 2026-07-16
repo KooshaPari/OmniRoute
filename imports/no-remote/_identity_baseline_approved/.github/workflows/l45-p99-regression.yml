@@ -1,0 +1,10 @@
+name: l45-p99-regression
+on:
+  schedule: [{cron: '0 3 * * 1'}]
+  workflow_dispatch: {}
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "P99 latency regression detection — compare current vs baseline"

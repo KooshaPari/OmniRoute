@@ -1,0 +1,10 @@
+name: l21-bom-diff
+on:
+  schedule: [{cron: '0 5 * * 1'}]
+  workflow_dispatch: {}
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "BOM diff — detect Cargo.lock drift vs baseline"

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "name": "argismonitor-landing",
+  "alias": ["argismonitor.phenotype.space"],
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "buildCommand": "vite build",
+  "outputDirectory": "dist",
+  "framework": null,
+  "rewrites": [
+    { "source": "/docs/FORK",                    "destination": "/docs/FORK.html" },
+    { "source": "/docs/NOTICE",                  "destination": "/docs/NOTICE.html" },
+    { "source": "/docs/RENAMES-STRATEGY",        "destination": "/docs/RENAMES-STRATEGY.html" },
+    { "source": "/docs/UPDATE-STRATEGY",         "destination": "/docs/UPDATE-STRATEGY.html" },
+    { "source": "/docs/PUBLISHING",              "destination": "/docs/PUBLISHING.html" },
+    { "source": "/docs",                         "destination": "/docs/index.html" },
+    { "source": "/dashboards",                   "destination": "https://argismonitor.pheno.studio/dashboards" },
+    { "source": "/dashboards/(.*)",              "destination": "https://argismonitor.pheno.studio/dashboards/$1" },
+    { "source": "/sdk",                          "destination": "https://argismonitor.pheno.studio/sdk" },
+    { "source": "/install.sh",                   "destination": "/install.sh" },
+    { "source": "/install.ps1",                  "destination": "/install.ps1" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options",          "value": "DENY" },
+        { "key": "X-Content-Type-Options",   "value": "nosniff" },
+        { "key": "Referrer-Policy",          "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy",       "value": "interest-cohort=()" }
+      ]
+    },
+    {
+      "source": "/docs/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }
+      ]
+    }
+  ],
+  "github": {
+    "silent": false,
+    "deploymentEnabled": {
+      "main": true
+    }
+  }
+}

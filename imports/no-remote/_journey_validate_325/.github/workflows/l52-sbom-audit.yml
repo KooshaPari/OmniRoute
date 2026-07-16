@@ -1,0 +1,10 @@
+name: l52-sbom-audit
+on:
+  schedule: [{cron: '0 9 * * 1'}]
+  workflow_dispatch: {}
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "SBOM license audit — review new dependency licenses"

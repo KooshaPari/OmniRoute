@@ -1,0 +1,19 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "app.title": "argismonitor v4",
+  "app.tagline": "Svelte 5 + SvelteKit 2 + Hono 4 + Tauri 2",
+  "nav.dashboard": "Dashboard", "nav.providers": "Provider",
+  "nav.combos": "Combo", "nav.keys": "Chiavi API", "nav.usage": "Utilizzo",
+  "nav.health": "Salute", "nav.security": "Sicurezza", "nav.settings": "Impostazioni",
+  "nav.skills": "Competenze", "nav.a2a": "A2A", "nav.mcp": "MCP",
+  "nav.cost": "Costo", "nav.billing": "Fatturazione", "nav.logs": "Log",
+  "nav.memory": "Memoria", "nav.cache": "Cache", "nav.batch": "Lotto",
+  "nav.webhooks": "Webhook", "nav.audit": "Audit",
+  "common.loading": "Caricamento…", "common.error": "Errore", "common.save": "Salva",
+  "common.cancel": "Annulla", "common.delete": "Elimina", "common.revoke": "Revoca",
+  "common.create": "Crea", "common.search": "Cerca", "common.filter": "Filtra",
+  "common.refresh": "Aggiorna", "common.connected": "Connesso",
+  "common.disconnected": "Disconnesso",
+  "auth.signin": "Accedi", "auth.signout": "Esci",
+  "auth.email": "Email", "auth.password": "Password"
+}

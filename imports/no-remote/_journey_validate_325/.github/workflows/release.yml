@@ -1,0 +1,63 @@
+name: argismonitor-release
+on:
+  push:
+    tags:
+      - 'v*'         # git tag push: v0.1.0, v4.0.0, etc
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'git ref to release (e.g. origin/feat/v4-svelte-hono-monorepo, v0.1.0, HEAD)'
+        required: false
+        default: 'origin/feat/v4-svelte-hono-monorepo'
+      slot:
+        description: 'deploy slot (dev / staging / prod)'
+        required: false
+        default: 'dev'
+      rollout:
+        description: 'cutover rollout percent (0 / 1 / 10 / 50 / 100)'
+        required: false
+        default: '0'
+
+jobs:
+  release:
+    name: Release ${{ github.ref_name || inputs.ref }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          repository: KooshaPari/OmniRoute
+          path: OmniRoute
+          token: ${{ secrets.OMNI_BOT_TOKEN }}
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - name: Build v4 monorepo
+        run: |
+          cd OmniRoute
+          git checkout ${{ github.ref_name || inputs.ref }}
+          bun install
+          cd apps/web && bun run build
+          cd ../bff && bun run build
+          cd ../../backend-rust && cargo build --release -p omniroute-server
+      - name: Configure proccompose
+        working-directory: OmniRoute
+        env:
+          PHENO_BIN: ${{ secrets.PHENO_BIN }}
+          WORKOS_API_KEY: ${{ secrets.WORKOS_API_KEY }}
+          WORKOS_CLIENT_ID: ${{ secrets.WORKOS_CLIENT_ID }}
+          DESKTOP_HOST: ${{ secrets.DESKTOP_HOST }}
+        run: |
+          mkdir -p $HOME/.argismonitor
+          # Deploy the build artifacts to the desktop via proccompose
+          proccompose deploy ${{ github.ref_name || inputs.ref }} || exit 1
+      - name: Cutover
+        working-directory: OmniRoute
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          proccompose cutover ${{ inputs.rollout || 1 }}

@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "slug": "anonymous-home-smoke",
+  "title": "Anonymous visitor opens the v4 home surface",
+  "persona": "A first-time visitor evaluating a local OmniRoute v4 checkout",
+  "purpose": "Prove that the public root route renders the stable v4 heading without credentials or external services.",
+  "preconditions": [
+    "Dependencies are installed from the repository lockfile.",
+    "The existing Playwright web server command can build apps/web and start apps/bff plus the web preview on localhost.",
+    "No provider credentials are configured."
+  ],
+  "fixture": {
+    "kind": "repository",
+    "network": "local-only",
+    "secrets": false
+  },
+  "viewport": {
+    "width": 1280,
+    "height": 800,
+    "deviceScaleFactor": 1
+  },
+  "steps": [
+    {
+      "id": "open-home",
+      "action": "goto",
+      "target": "/",
+      "assertions": [
+        "The first h1 contains the exact text 'Welcome to OmniRoute v4'.",
+        "The document has no horizontal overflow at the declared viewport."
+      ]
+    }
+  ],
+  "accessibility": {
+    "keyboardOnly": true,
+    "reducedMotion": true,
+    "checks": [
+      "document-title",
+      "heading-order",
+      "landmarks",
+      "focus-visible",
+      "accessible-names",
+      "contrast",
+      "no-horizontal-overflow"
+    ]
+  },
+  "redaction": {
+    "denyPatterns": [
+      "(?i)(api[-_ ]?key|authorization|token|secret|cookie)\\s*[:=]\\s*\\S+",
+      "(?i)bearer\\s+\\S+"
+    ],
+    "maskSelectors": [
+      "input[type='password']",
+      "[data-sensitive='true']"
+    ],
+    "reviewRequired": true
+  },
+  "evidence": {
+    "captureStatus": "blocked",
+    "artifacts": [
+      {
+        "kind": "screenshot",
+        "path": "journey-evidence/anonymous-home-smoke/home.png"
+      },
+      {
+        "kind": "trace",
+        "path": "journey-evidence/anonymous-home-smoke/trace.zip"
+      },
+      {
+        "kind": "accessibility-report",
+        "path": "journey-evidence/anonymous-home-smoke/accessibility.json"
+      }
+    ],
+    "retentionDays": 14,
+    "blocker": "Current Playwright configuration disables its webServer in CI, and no dedicated journey job currently starts the v4 BFF/web preview. Artifact capture must not be claimed until that service lifecycle is proven stable in CI."
+  },
+  "provenance": {
+    "baseBranch": "main",
+    "testFile": "tests/e2e/smoke.spec.ts",
+    "testTitle": "home page renders",
+    "command": "bunx playwright test tests/e2e/smoke.spec.ts --project=chromium --grep \"home page renders\""
+  }
+}

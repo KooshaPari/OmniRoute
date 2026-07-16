@@ -1,0 +1,4 @@
+{
+  "categories": { "correctness": "error", "suspicious": "error", "perf": "warn" },
+  "ignore": ["**/node_modules/**", "**/dist/**", "**/.svelte-kit/**", "**/build/**"]
+}
