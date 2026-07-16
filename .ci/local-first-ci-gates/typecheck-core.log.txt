@@ -1,9 +1,9 @@
 command: bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json
-startedAt: 2026-07-16T00:05:35.427Z
-finishedAt: 2026-07-16T00:05:37.037Z
+startedAt: 2026-07-16T02:55:22.792Z
+finishedAt: 2026-07-16T02:55:25.426Z
 exitCode: 2
 signal: none
-gitSha: 8888c99dc0e6f4155f5e68164dc9edc232744ade
+gitSha: adfb7458f4f8a538cbe797c61be8e275c9c6c065
 stdout:
 [96mopen-sse/config/anthropicHeaders.ts[0m:[93m29[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
@@ -50,19 +50,34 @@ stdout:
 [7m44[0m >>>>>>> Stashed changes
 [7m  [0m [91m~~~~~~~[0m
 
-[96mopen-sse/config/embeddingRegistry.ts[0m:[93m130[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/config/embeddingRegistry.ts[0m:[93m69[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m130[0m <<<<<<< Updated upstream
+[7m69[0m <<<<<<< Updated upstream
+[7m  [0m [91m~~~~~~~[0m
+
+[96mopen-sse/config/embeddingRegistry.ts[0m:[93m70[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m70[0m =======
+[7m  [0m [91m~~~~~~~[0m
+
+[96mopen-sse/config/embeddingRegistry.ts[0m:[93m93[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m93[0m >>>>>>> Stashed changes
+[7m  [0m [91m~~~~~~~[0m
+
+[96mopen-sse/config/embeddingRegistry.ts[0m:[93m155[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m155[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/config/embeddingRegistry.ts[0m:[93m142[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/config/embeddingRegistry.ts[0m:[93m167[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m142[0m =======
+[7m167[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/config/embeddingRegistry.ts[0m:[93m143[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/config/embeddingRegistry.ts[0m:[93m168[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m143[0m >>>>>>> Stashed changes
+[7m168[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
 [96mopen-sse/config/glmProvider.ts[0m:[93m43[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
@@ -80,19 +95,34 @@ stdout:
 [7m56[0m >>>>>>> Stashed changes
 [7m  [0m [91m~~~~~~~[0m
 
-[96mopen-sse/config/imageRegistry.ts[0m:[93m449[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/config/imageRegistry.ts[0m:[93m463[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m449[0m <<<<<<< Updated upstream
+[7m463[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/config/imageRegistry.ts[0m:[93m527[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/config/imageRegistry.ts[0m:[93m541[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m527[0m =======
+[7m541[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/config/imageRegistry.ts[0m:[93m528[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/config/imageRegistry.ts[0m:[93m542[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m528[0m >>>>>>> Stashed changes
+[7m542[0m =======
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/config/imageRegistry.ts[0m:[93m543[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m543[0m >>>>>>> Stashed changes
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/config/imageRegistry.ts[0m:[93m544[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m544[0m =======
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/config/imageRegistry.ts[0m:[93m545[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m545[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
 [96mopen-sse/config/providerHeaderProfiles.ts[0m:[93m14[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
@@ -1062,27 +1092,42 @@ stdout:
 
 [96mopen-sse/executors/index.ts[0m:[93m146[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m146[0m =======
+[7m146[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
 [96mopen-sse/executors/index.ts[0m:[93m147[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m147[0m >>>>>>> Stashed changes
+[7m147[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/executors/index.ts[0m:[93m184[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/executors/index.ts[0m:[93m148[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m184[0m <<<<<<< Updated upstream
+[7m148[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/executors/index.ts[0m:[93m206[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/executors/index.ts[0m:[93m149[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m206[0m =======
+[7m149[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/executors/index.ts[0m:[93m208[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/executors/index.ts[0m:[93m151[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m208[0m >>>>>>> Stashed changes
+[7m151[0m >>>>>>> Stashed changes
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/executors/index.ts[0m:[93m188[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m188[0m <<<<<<< Updated upstream
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/executors/index.ts[0m:[93m210[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m210[0m =======
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/executors/index.ts[0m:[93m212[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m212[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
 [96mopen-sse/executors/kiro.ts[0m:[93m46[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
@@ -2482,12 +2527,27 @@ stdout:
 
 [96mopen-sse/handlers/imageGeneration.ts[0m:[93m427[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m427[0m =======
+[7m427[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
 [96mopen-sse/handlers/imageGeneration.ts[0m:[93m428[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m428[0m >>>>>>> Stashed changes
+[7m428[0m =======
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/handlers/imageGeneration.ts[0m:[93m429[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m429[0m >>>>>>> Stashed changes
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/handlers/imageGeneration.ts[0m:[93m430[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m430[0m =======
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/handlers/imageGeneration.ts[0m:[93m431[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m431[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
 [96mopen-sse/handlers/responseSanitizer.ts[0m:[93m45[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
@@ -2932,132 +2992,177 @@ stdout:
 
 [96mopen-sse/services/accountFallback.ts[0m:[93m38[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m38[0m =======
+[7m38[0m <<<<<<< Updated upstream
 [7m  [0m [91m~~~~~~~[0m
 
 [96mopen-sse/services/accountFallback.ts[0m:[93m39[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m39[0m >>>>>>> Stashed changes
+[7m39[0m =======
 [7m  [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m44[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m40[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m44[0m <<<<<<< Updated upstream
+[7m40[0m >>>>>>> Stashed changes
+[7m  [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/accountFallback.ts[0m:[93m41[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m41[0m =======
+[7m  [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/accountFallback.ts[0m:[93m42[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m42[0m >>>>>>> Stashed changes
 [7m  [0m [91m~~~~~~~[0m
 
 [96mopen-sse/services/accountFallback.ts[0m:[93m47[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m47[0m =======
+[7m47[0m <<<<<<< Updated upstream
 [7m  [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m48[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m50[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m48[0m >>>>>>> Stashed changes
+[7m50[0m =======
 [7m  [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m107[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m51[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m107[0m <<<<<<< Updated upstream
+[7m51[0m >>>>>>> Stashed changes
+[7m  [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/accountFallback.ts[0m:[93m110[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m110[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m115[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m118[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m115[0m =======
+[7m118[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m116[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m119[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m116[0m >>>>>>> Stashed changes
-[7m   [0m [91m~~~~~~~[0m
-
-[96mopen-sse/services/accountFallback.ts[0m:[93m206[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
-
-[7m206[0m <<<<<<< Updated upstream
+[7m119[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
 [96mopen-sse/services/accountFallback.ts[0m:[93m209[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m209[0m =======
+[7m209[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m210[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m212[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m210[0m >>>>>>> Stashed changes
+[7m212[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m259[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m213[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m259[0m <<<<<<< Updated upstream
+[7m213[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m266[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m262[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m266[0m =======
+[7m262[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m268[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m269[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m268[0m >>>>>>> Stashed changes
+[7m269[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m712[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m271[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m712[0m <<<<<<< Updated upstream
+[7m271[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
 [96mopen-sse/services/accountFallback.ts[0m:[93m715[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m715[0m =======
+[7m715[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m725[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m716[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m725[0m >>>>>>> Stashed changes
+[7m716[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m728[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m719[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m728[0m <<<<<<< Updated upstream
+[7m719[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m743[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m729[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m743[0m =======
+[7m729[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m750[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m730[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m750[0m >>>>>>> Stashed changes
+[7m730[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m906[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m733[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m906[0m <<<<<<< Updated upstream
+[7m733[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m952[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m736[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m952[0m =======
+[7m736[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m961[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m737[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m961[0m >>>>>>> Stashed changes
+[7m737[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m1098[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m738[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m1098[0m <<<<<<< Updated upstream
+[7m738[0m =======
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/accountFallback.ts[0m:[93m739[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m739[0m >>>>>>> Stashed changes
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/accountFallback.ts[0m:[93m754[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m754[0m =======
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/accountFallback.ts[0m:[93m761[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m761[0m >>>>>>> Stashed changes
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/accountFallback.ts[0m:[93m917[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m917[0m <<<<<<< Updated upstream
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/accountFallback.ts[0m:[93m963[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m963[0m =======
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/accountFallback.ts[0m:[93m972[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m972[0m >>>>>>> Stashed changes
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/accountFallback.ts[0m:[93m1109[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m1109[0m <<<<<<< Updated upstream
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m1156[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m1167[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m1156[0m =======
+[7m1167[0m =======
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/accountFallback.ts[0m:[93m1157[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/accountFallback.ts[0m:[93m1168[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m1157[0m >>>>>>> Stashed changes
+[7m1168[0m >>>>>>> Stashed changes
 [7m    [0m [91m~~~~~~~[0m
 
 [96mopen-sse/services/antigravityHeaders.ts[0m:[93m19[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
@@ -3290,34 +3395,34 @@ stdout:
 [7m103[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/claudeCodeCompatible.ts[0m:[93m253[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/claudeCodeCompatible.ts[0m:[93m252[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m253[0m <<<<<<< Updated upstream
+[7m252[0m <<<<<<< Updated upstream
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/claudeCodeCompatible.ts[0m:[93m255[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m255[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
 [96mopen-sse/services/claudeCodeCompatible.ts[0m:[93m256[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m256[0m =======
+[7m256[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/claudeCodeCompatible.ts[0m:[93m257[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/claudeCodeCompatible.ts[0m:[93m957[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m257[0m >>>>>>> Stashed changes
+[7m957[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/claudeCodeCompatible.ts[0m:[93m958[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/claudeCodeCompatible.ts[0m:[93m973[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m958[0m <<<<<<< Updated upstream
+[7m973[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/claudeCodeCompatible.ts[0m:[93m974[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/claudeCodeCompatible.ts[0m:[93m980[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m974[0m =======
-[7m   [0m [91m~~~~~~~[0m
-
-[96mopen-sse/services/claudeCodeCompatible.ts[0m:[93m981[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
-
-[7m981[0m >>>>>>> Stashed changes
+[7m980[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
 [96mopen-sse/services/codexQuotaFetcher.ts[0m:[93m33[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
@@ -3355,194 +3460,239 @@ stdout:
 [7m15[0m <<<<<<< Updated upstream
 [7m  [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m45[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m16[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m45[0m =======
+[7m16[0m <<<<<<< Updated upstream
 [7m  [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m50[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m17[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m50[0m >>>>>>> Stashed changes
+[7m17[0m =======
 [7m  [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m59[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m18[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m59[0m <<<<<<< Updated upstream
+[7m18[0m >>>>>>> Stashed changes
 [7m  [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m64[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m48[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m64[0m =======
+[7m48[0m <<<<<<< Updated upstream
 [7m  [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m73[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m49[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m73[0m >>>>>>> Stashed changes
+[7m49[0m =======
 [7m  [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m91[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m54[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m91[0m <<<<<<< Updated upstream
+[7m54[0m >>>>>>> Stashed changes
 [7m  [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m202[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m55[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m202[0m =======
+[7m55[0m =======
+[7m  [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/combo.ts[0m:[93m56[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m56[0m >>>>>>> Stashed changes
+[7m  [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/combo.ts[0m:[93m65[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m65[0m <<<<<<< Updated upstream
+[7m  [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/combo.ts[0m:[93m70[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m70[0m =======
+[7m  [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/combo.ts[0m:[93m79[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m79[0m >>>>>>> Stashed changes
+[7m  [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/combo.ts[0m:[93m97[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m97[0m <<<<<<< Updated upstream
+[7m  [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/combo.ts[0m:[93m208[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m208[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m229[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m235[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m229[0m >>>>>>> Stashed changes
+[7m235[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m240[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m246[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m240[0m <<<<<<< Updated upstream
+[7m246[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m242[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m248[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m242[0m =======
+[7m248[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m243[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m249[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m243[0m >>>>>>> Stashed changes
+[7m249[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m913[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m919[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m913[0m <<<<<<< Updated upstream
+[7m919[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m980[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m986[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m980[0m =======
+[7m986[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m982[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m988[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m982[0m >>>>>>> Stashed changes
+[7m988[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m997[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1003[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m997[0m <<<<<<< Updated upstream
-[7m   [0m [91m~~~~~~~[0m
-
-[96mopen-sse/services/combo.ts[0m:[93m1060[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
-
-[7m1060[0m =======
+[7m1003[0m <<<<<<< Updated upstream
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m1061[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1066[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m1061[0m >>>>>>> Stashed changes
+[7m1066[0m =======
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m1343[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1067[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m1343[0m <<<<<<< Updated upstream
+[7m1067[0m >>>>>>> Stashed changes
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m1367[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1349[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m1367[0m =======
+[7m1349[0m <<<<<<< Updated upstream
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m1547[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1373[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m1547[0m >>>>>>> Stashed changes
+[7m1373[0m <<<<<<< Updated upstream
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m1619[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1374[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m1619[0m <<<<<<< Updated upstream
+[7m1374[0m =======
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m1630[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1554[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m1630[0m =======
+[7m1554[0m >>>>>>> Stashed changes
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m1655[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1555[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m1655[0m >>>>>>> Stashed changes
+[7m1555[0m =======
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m1666[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1556[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m1666[0m <<<<<<< Updated upstream
+[7m1556[0m >>>>>>> Stashed changes
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m1705[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1628[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m1705[0m =======
+[7m1628[0m <<<<<<< Updated upstream
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m1710[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1639[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m1710[0m >>>>>>> Stashed changes
+[7m1639[0m =======
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m1906[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1664[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m1906[0m <<<<<<< Updated upstream
+[7m1664[0m >>>>>>> Stashed changes
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m2081[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1675[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m2081[0m =======
+[7m1675[0m <<<<<<< Updated upstream
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m2088[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1714[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m2088[0m >>>>>>> Stashed changes
+[7m1714[0m =======
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m2092[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1719[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m2092[0m <<<<<<< Updated upstream
+[7m1719[0m >>>>>>> Stashed changes
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m2678[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m1915[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m2678[0m =======
+[7m1915[0m <<<<<<< Updated upstream
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m2679[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m2090[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m2679[0m >>>>>>> Stashed changes
+[7m2090[0m =======
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m3112[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m2097[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m3112[0m <<<<<<< Updated upstream
+[7m2097[0m >>>>>>> Stashed changes
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m3154[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m2101[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m3154[0m =======
+[7m2101[0m <<<<<<< Updated upstream
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m3156[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m2687[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m3156[0m >>>>>>> Stashed changes
+[7m2687[0m =======
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m3239[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m2688[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m3239[0m <<<<<<< Updated upstream
+[7m2688[0m >>>>>>> Stashed changes
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m3260[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m3121[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m3260[0m =======
+[7m3121[0m <<<<<<< Updated upstream
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/combo.ts[0m:[93m3261[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/combo.ts[0m:[93m3163[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m3261[0m >>>>>>> Stashed changes
+[7m3163[0m =======
+[7m    [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/combo.ts[0m:[93m3165[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m3165[0m >>>>>>> Stashed changes
+[7m    [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/combo.ts[0m:[93m3248[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m3248[0m <<<<<<< Updated upstream
+[7m    [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/combo.ts[0m:[93m3269[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m3269[0m =======
+[7m    [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/combo.ts[0m:[93m3270[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m3270[0m >>>>>>> Stashed changes
 [7m    [0m [91m~~~~~~~[0m
 
 [96mopen-sse/services/comboConfig.ts[0m:[93m8[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
@@ -3820,14 +3970,29 @@ stdout:
 [7m352[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/model.ts[0m:[93m382[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/model.ts[0m:[93m353[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m382[0m =======
+[7m353[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96mopen-sse/services/model.ts[0m:[93m386[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/services/model.ts[0m:[93m356[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m386[0m >>>>>>> Stashed changes
+[7m356[0m =======
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/model.ts[0m:[93m366[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m366[0m >>>>>>> Stashed changes
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/model.ts[0m:[93m394[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m394[0m =======
+[7m   [0m [91m~~~~~~~[0m
+
+[96mopen-sse/services/model.ts[0m:[93m398[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m398[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
 [96mopen-sse/services/modelFamilyFallback.ts[0m:[93m75[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
@@ -5847,42 +6012,57 @@ stdout:
 
 [96msrc/lib/db/providers.ts[0m:[93m318[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m318[0m =======
+[7m318[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96msrc/lib/db/providers.ts[0m:[93m326[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96msrc/lib/db/providers.ts[0m:[93m319[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m326[0m >>>>>>> Stashed changes
+[7m319[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
-[96msrc/lib/db/providers.ts[0m:[93m402[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96msrc/lib/db/providers.ts[0m:[93m327[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m402[0m <<<<<<< Updated upstream
+[7m327[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
-[96msrc/lib/db/providers.ts[0m:[93m408[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96msrc/lib/db/providers.ts[0m:[93m328[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m408[0m =======
+[7m328[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
-[96msrc/lib/db/providers.ts[0m:[93m409[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96msrc/lib/db/providers.ts[0m:[93m329[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m409[0m >>>>>>> Stashed changes
+[7m329[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
-[96msrc/lib/db/providers.ts[0m:[93m675[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96msrc/lib/db/providers.ts[0m:[93m405[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m675[0m <<<<<<< Updated upstream
+[7m405[0m <<<<<<< Updated upstream
 [7m   [0m [91m~~~~~~~[0m
 
-[96msrc/lib/db/providers.ts[0m:[93m755[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96msrc/lib/db/providers.ts[0m:[93m411[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m755[0m =======
+[7m411[0m =======
 [7m   [0m [91m~~~~~~~[0m
 
-[96msrc/lib/db/providers.ts[0m:[93m943[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96msrc/lib/db/providers.ts[0m:[93m412[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m943[0m >>>>>>> Stashed changes
+[7m412[0m >>>>>>> Stashed changes
+[7m   [0m [91m~~~~~~~[0m
+
+[96msrc/lib/db/providers.ts[0m:[93m678[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m678[0m <<<<<<< Updated upstream
+[7m   [0m [91m~~~~~~~[0m
+
+[96msrc/lib/db/providers.ts[0m:[93m758[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m758[0m =======
+[7m   [0m [91m~~~~~~~[0m
+
+[96msrc/lib/db/providers.ts[0m:[93m946[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m946[0m >>>>>>> Stashed changes
 [7m   [0m [91m~~~~~~~[0m
 
 [96msrc/lib/db/proxies.ts[0m:[93m4[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
@@ -8171,15 +8351,15 @@ stdout:
 [7m  [0m [91m~~~~~~~[0m
 
 
-Found 1630 errors in 117 files.
+Found 1666 errors in 117 files.
 
 Errors  Files
      3  open-sse/config/anthropicHeaders.ts[90m:29[0m
      3  open-sse/config/audioRegistry.ts[90m:106[0m
      3  open-sse/config/constants.ts[90m:20[0m
-     3  open-sse/config/embeddingRegistry.ts[90m:130[0m
+     6  open-sse/config/embeddingRegistry.ts[90m:69[0m
      3  open-sse/config/glmProvider.ts[90m:43[0m
-     3  open-sse/config/imageRegistry.ts[90m:449[0m
+     6  open-sse/config/imageRegistry.ts[90m:463[0m
      6  open-sse/config/providerHeaderProfiles.ts[90m:14[0m
     15  open-sse/executors/antigravity.ts[90m:24[0m
     30  open-sse/executors/base.ts[90m:2[0m
@@ -8191,12 +8371,12 @@ Errors  Files
     39  open-sse/executors/default.ts[90m:1[0m
      3  open-sse/executors/github.ts[90m:97[0m
     10  open-sse/executors/grok-web.ts[90m:22[0m
-     9  open-sse/executors/index.ts[90m:22[0m
+    12  open-sse/executors/index.ts[90m:22[0m
     39  open-sse/executors/kiro.ts[90m:46[0m
     12  open-sse/executors/opencode.ts[90m:4[0m
     35  open-sse/executors/perplexity-web.ts[90m:10[0m
    189  open-sse/handlers/chatCore.ts[90m:1[0m
-     6  open-sse/handlers/imageGeneration.ts[90m:33[0m
+     9  open-sse/handlers/imageGeneration.ts[90m:33[0m
     27  open-sse/handlers/responseSanitizer.ts[90m:45[0m
      3  open-sse/handlers/responsesHandler.ts[90m:70[0m
      3  open-sse/handlers/responseTranslator.ts[90m:2[0m
@@ -8204,7 +8384,7 @@ Errors  Files
      9  open-sse/mcp-server/schemas/tools.ts[90m:13[0m
     36  open-sse/mcp-server/server.ts[90m:36[0m
      6  open-sse/mcp-server/tools/compressionTools.ts[90m:168[0m
-    27  open-sse/services/accountFallback.ts[90m:26[0m
+    36  open-sse/services/accountFallback.ts[90m:26[0m
      3  open-sse/services/antigravityHeaders.ts[90m:19[0m
      3  open-sse/services/antigravityHeaderScrub.ts[90m:59[0m
      6  open-sse/services/autoCombo/__tests__/autoCombo.test.ts[90m:88[0m
@@ -8213,11 +8393,11 @@ Errors  Files
      3  open-sse/services/chatgptTlsClient.ts[90m:31[0m
     15  open-sse/services/claudeCodeCompatible.ts[90m:32[0m
      6  open-sse/services/codexQuotaFetcher.ts[90m:33[0m
-    39  open-sse/services/combo.ts[90m:15[0m
+    48  open-sse/services/combo.ts[90m:15[0m
      6  open-sse/services/comboConfig.ts[90m:8[0m
     21  open-sse/services/compression/strategySelector.ts[90m:1[0m
     21  open-sse/services/compression/types.ts[90m:11[0m
-     9  open-sse/services/model.ts[90m:73[0m
+    12  open-sse/services/model.ts[90m:73[0m
      3  open-sse/services/modelFamilyFallback.ts[90m:75[0m
      3  open-sse/services/qoderCli.ts[90m:396[0m
     15  open-sse/services/rateLimitManager.ts[90m:105[0m
@@ -8258,7 +8438,7 @@ Errors  Files
      2  src/lib/db/encryption.ts[90m:282[0m
      9  src/lib/db/migrationRunner.ts[90m:20[0m
      3  src/lib/db/models.ts[90m:31[0m
-    15  src/lib/db/providers.ts[90m:11[0m
+    18  src/lib/db/providers.ts[90m:11[0m
      6  src/lib/db/proxies.ts[90m:4[0m
     12  src/lib/db/settings.ts[90m:11[0m
     12  src/lib/localDb.ts[90m:83[0m
