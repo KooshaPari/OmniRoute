@@ -130,6 +130,30 @@ function seedProjectedOutcomes(
   }
 }
 
+function seedProjectedOutcomesWithStreamingSignals(
+  provider: string,
+  model: string,
+  outcomes: Array<{
+    status: number;
+    latencyMs: number;
+    ttftMs?: number;
+    outputTokens?: number;
+    generationDurationMs?: number;
+  }>
+) {
+  for (const outcome of outcomes) {
+    recordBifrostRouteOutcome({
+      provider,
+      model,
+      status: outcome.status,
+      latencyMs: outcome.latencyMs,
+      ttftMs: outcome.ttftMs,
+      outputTokens: outcome.outputTokens,
+      generationDurationMs: outcome.generationDurationMs,
+    });
+  }
+}
+
 function getComboTargetExecutionKey(comboName: string, index: number, stepInput: any) {
   const step = normalizeComboStep(stepInput, { comboName, index });
   if (!step) throw new Error(`Failed to normalize combo step for ${comboName}#${index}`);
@@ -910,6 +934,80 @@ test("handleComboChat performance strategy preserves stable order for tie-scorin
   });
 
   assert.deepEqual(calls, ["openai/perf-tie-a", "anthropic/perf-tie-b"]);
+});
+
+test("handleComboChat performance strategy uses ttft as an additional ordering signal", async () => {
+  seedProjectedOutcomesWithStreamingSignals("openai", "perf-ttft-fast", [
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 200, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 200, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 200, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 200, generationDurationMs: 1000 },
+  ]);
+  seedProjectedOutcomesWithStreamingSignals("anthropic", "perf-ttft-slow", [
+    { status: 200, latencyMs: 30, ttftMs: 90, outputTokens: 200, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 90, outputTokens: 200, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 90, outputTokens: 200, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 90, outputTokens: 200, generationDurationMs: 1000 },
+  ]);
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-ttft-order",
+      strategy: "performance",
+      models: ["anthropic/perf-ttft-slow", "openai/perf-ttft-fast"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["openai/perf-ttft-fast", "anthropic/perf-ttft-slow"]);
+});
+
+test("handleComboChat performance strategy uses tps as an additional ordering signal", async () => {
+  seedProjectedOutcomesWithStreamingSignals("openai", "perf-tps-high", [
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 3000, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 3000, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 3000, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 3000, generationDurationMs: 1000 },
+  ]);
+  seedProjectedOutcomesWithStreamingSignals("google", "perf-tps-low", [
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 500, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 500, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 500, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 500, generationDurationMs: 1000 },
+  ]);
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-tps-order",
+      strategy: "performance",
+      models: ["google/perf-tps-low", "openai/perf-tps-high"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["openai/perf-tps-high", "google/perf-tps-low"]);
 });
 
 test("handleComboChat performance strategy preserves fallback execution order after reorder", async () => {

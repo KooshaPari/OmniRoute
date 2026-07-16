@@ -244,6 +244,10 @@ function calculateTargetContextAffinity(
   return 0.1;
 }
 
+function isFiniteProjectionValue(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
 function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[]): ResolvedComboTarget[] {
   const scored: Array<{
     target: ResolvedComboTarget;
@@ -252,6 +256,8 @@ function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[
     health: number;
     failureRate: number;
     stability: number;
+    avgTtftMs?: number;
+    avgTokensPerSecond?: number;
   }> = [];
   const noComparable: ResolvedComboTarget[] = [];
 
@@ -266,10 +272,10 @@ function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[
     if (
       projection?.health === undefined ||
       projection.stability === undefined ||
-      Number.isNaN(projection.e2eLatencyMs) ||
-      Number.isNaN(projection.health) ||
-      Number.isNaN(projection.failureRate) ||
-      Number.isNaN(projection.stability)
+      !isFiniteProjectionValue(projection.e2eLatencyMs) ||
+      !isFiniteProjectionValue(projection.health) ||
+      !isFiniteProjectionValue(projection.failureRate) ||
+      !isFiniteProjectionValue(projection.stability)
     ) {
       noComparable.push(target);
       return;
@@ -282,6 +288,12 @@ function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[
       health: projection.health,
       failureRate: projection.failureRate,
       stability: projection.stability,
+      avgTtftMs: isFiniteProjectionValue(projection.avgTtftMs)
+        ? projection.avgTtftMs
+        : undefined,
+      avgTokensPerSecond: isFiniteProjectionValue(projection.avgTokensPerSecond)
+        ? projection.avgTokensPerSecond
+        : undefined,
     });
   });
 
@@ -299,6 +311,16 @@ function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[
 
     const stabilityDiff = b.stability - a.stability;
     if (stabilityDiff !== 0) return stabilityDiff;
+
+    if (a.avgTtftMs !== undefined && b.avgTtftMs !== undefined) {
+      const ttftDiff = a.avgTtftMs - b.avgTtftMs;
+      if (ttftDiff !== 0) return ttftDiff;
+    }
+
+    if (a.avgTokensPerSecond !== undefined && b.avgTokensPerSecond !== undefined) {
+      const tpsDiff = b.avgTokensPerSecond - a.avgTokensPerSecond;
+      if (tpsDiff !== 0) return tpsDiff;
+    }
 
     return a.originalIndex - b.originalIndex;
   });
