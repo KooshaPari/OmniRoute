@@ -13,7 +13,6 @@ export type TosVerdict = "ok" | "caution" | "ambiguous" | "avoid" | "unknown";
 
 export const FREE_TIER_BUDGETS: Record<string, number> = {
   mistral: 1_000_000_000,
-  longcat: 150_000_000,
   "cloudflare-ai": 122_000_000,
   gemini: 60_000_000,
   doubao: 60_000_000,
@@ -22,7 +21,6 @@ export const FREE_TIER_BUDGETS: Record<string, number> = {
   "ollama-cloud": 20_000_000,
   "github-models": 18_000_000,
   groq: 15_000_000,
-  inclusionai: 15_000_000,
   bluesminds: 7_200_000,
   sambanova: 6_000_000,
   "arcee-ai": 4_800_000,
@@ -43,7 +41,6 @@ export const FREE_TIER_BUDGETS: Record<string, number> = {
 export const FREE_TIER_TOS: Record<string, TosVerdict> = {
   opencode: "avoid",
   "duckduckgo-web": "avoid",
-  "gemini-cli": "avoid",
   agy: "avoid",
   kiro: "avoid",
   "amazon-q": "avoid",
@@ -83,9 +80,7 @@ function billions(n: number): string {
  * ~1.54B). This per-provider aggregator is retained only for reference; the
  * `FREE_TIER_TOS` map below is still used as the ToS source of truth.
  */
-export function computeFreeTierTotals(
-  opts: { excludeTosAvoid?: boolean } = {}
-): FreeTierTotals {
+export function computeFreeTierTotals(opts: { excludeTosAvoid?: boolean } = {}): FreeTierTotals {
   const byProvider = Object.entries(FREE_TIER_BUDGETS)
     .map(([id, monthlyTokens]) => ({
       id,

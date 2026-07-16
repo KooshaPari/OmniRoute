@@ -1,6 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseRetryAfterHeader, detectTestKind } from "@/lib/api/modelTestRunner.ts";
+import {
+  parseRetryAfterHeader,
+  detectTestKind,
+  extractProviderErrorMessage,
+  resolveModelTestTimeoutMs,
+} from "@/lib/api/modelTestRunner.ts";
 
 // ---------------------------------------------------------------------------
 // parseRetryAfterHeader — Retry-After is either delta-seconds or an HTTP-date.
@@ -85,4 +90,30 @@ test("detectTestKind detects rerank by id and by metadata, and rerank wins over 
   const both = detectTestKind("vendor/rerank-embedding-hybrid", null);
   assert.equal(both.isRerank, true);
   assert.equal(both.isEmbedding, false);
+});
+
+test("extractProviderErrorMessage includes upstream details when generic error is unhelpful", () => {
+  const body = {
+    error: { message: "HuggingChat returned HTTP 500" },
+    upstream_details: {
+      message: "Model is temporarily overloaded",
+      status: "error",
+    },
+  };
+
+  assert.equal(
+    extractProviderErrorMessage(body, "Internal Server Error"),
+    "HuggingChat returned HTTP 500: Model is temporarily overloaded"
+  );
+});
+
+test("resolveModelTestTimeoutMs extends Dola Pro model checks", () => {
+  assert.equal(resolveModelTestTimeoutMs("doubao-web", "dola-pro", 10_000), 90_000);
+  assert.equal(resolveModelTestTimeoutMs("doubao-web", "doubao-web/dola-pro", 10_000), 90_000);
+  assert.equal(resolveModelTestTimeoutMs("DOUBAO-WEB", "dola-pro", 120_000), 120_000);
+});
+
+test("resolveModelTestTimeoutMs leaves ordinary models unchanged", () => {
+  assert.equal(resolveModelTestTimeoutMs("doubao-web", "dola-speed", 10_000), 10_000);
+  assert.equal(resolveModelTestTimeoutMs("openai", "dola-pro", 10_000), 10_000);
 });

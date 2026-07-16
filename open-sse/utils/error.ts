@@ -1,4 +1,5 @@
 import { CORS_HEADERS } from "./cors.ts";
+import { unwrapClinepassEnvelope } from "./clinepassEnvelope.ts";
 import { getDefaultErrorMessage, getErrorInfo } from "../config/errorConfig.ts";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
@@ -120,6 +121,88 @@ export function buildErrorBody(
 }
 
 /**
+ * Sanitized auto-combo diagnostic trace surfaced on a combo terminal failure.
+ * Contains ONLY provider/model ids, enumerated reason codes, and counts — never
+ * keys, tokens, cookies, credentials, or upstream bodies. Fields are length- and
+ * count-capped so the projection is safe to place in HTTP headers too. (QA P0:
+ * "Add a sanitized combo diagnostic trace … candidate pool count, excluded
+ * provider/model reasons, selected attempt order, terminal failure summary.")
+ */
+export interface ComboExclusion {
+  provider: string;
+  model?: string;
+  reason: string;
+}
+export interface ComboDiagnostics {
+  poolSize: number;
+  attempted: number;
+  excluded: ComboExclusion[];
+  attemptOrder: Array<{ provider: string; model: string }>;
+  terminalReason: string;
+}
+
+function clampDiagStr(v: unknown, max = 128): string {
+  return typeof v === "string" ? v.slice(0, max).replace(/[\r\n]+/g, " ") : "";
+}
+
+/**
+ * Whitelist projection — guarantees only id/reason string primitives + integer
+ * counts can escape, regardless of what the caller assembled. This is the secret
+ * containment boundary for the diagnostic trace.
+ */
+export function sanitizeComboDiagnostics(d: ComboDiagnostics): ComboDiagnostics {
+  return {
+    poolSize: Number.isFinite(d?.poolSize) ? d.poolSize : 0,
+    attempted: Number.isFinite(d?.attempted) ? d.attempted : 0,
+    excluded: (d?.excluded ?? []).slice(0, 64).map((e) => ({
+      provider: clampDiagStr(e?.provider, 64),
+      ...(e?.model ? { model: clampDiagStr(e.model, 96) } : {}),
+      reason: clampDiagStr(e?.reason, 64),
+    })),
+    attemptOrder: (d?.attemptOrder ?? [])
+      .slice(0, 64)
+      .map((a) => ({ provider: clampDiagStr(a?.provider, 64), model: clampDiagStr(a?.model, 96) })),
+    terminalReason: clampDiagStr(d?.terminalReason, 200),
+  };
+}
+
+/**
+ * errorResponse variant that attaches a sanitized combo diagnostic trace as BOTH
+ * `x-omniroute-combo-*` headers and a `diagnostics` field in the OpenAI-shaped
+ * error body (extra field — backward-compatible with standard error parsers).
+ * `opts.code`/`opts.type` override the status-derived defaults (e.g. to preserve
+ * the `ALL_ACCOUNTS_INACTIVE` code on the 503 terminal path).
+ */
+export function errorResponseWithComboDiagnostics(
+  statusCode: number,
+  message: string,
+  diagnostics: ComboDiagnostics,
+  opts: { code?: string; type?: string } = {}
+): Response {
+  const safe = sanitizeComboDiagnostics(diagnostics);
+  const body = buildErrorBody(statusCode, message) as ErrorResponseBody & {
+    diagnostics?: ComboDiagnostics;
+  };
+  if (opts.code) body.error.code = opts.code;
+  if (opts.type) body.error.type = opts.type;
+  body.diagnostics = safe;
+  const excludedHeader = safe.excluded
+    .map((e) => `${e.provider}${e.model ? `/${e.model}` : ""}:${e.reason}`)
+    .join(",")
+    .slice(0, 900);
+  return new Response(JSON.stringify(body), {
+    status: statusCode,
+    headers: {
+      "Content-Type": "application/json",
+      "x-omniroute-combo-pool-size": String(safe.poolSize),
+      "x-omniroute-combo-attempted": String(safe.attempted),
+      "x-omniroute-combo-excluded": excludedHeader,
+      "x-omniroute-combo-terminal-reason": safe.terminalReason.slice(0, 200),
+    },
+  });
+}
+
+/**
  * Create error Response object (for non-streaming)
  * @param {number} statusCode - HTTP status code
  * @param {string} message - Error message
@@ -230,7 +313,14 @@ export async function parseUpstreamError(response: Response, provider: string | 
       const parsed = JSON.parse(text);
       // Handle array responses (e.g., from some Gemini APIs)
       const json = (Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : parsed) || {};
-      message = json.error?.message || json.message || json.error || text;
+      // ClinePass wraps upstream errors in a {success:false, error} envelope.
+      // Extract the upstream error string (an upstream JSON field, not a local
+      // stack) — still routed through sanitizeErrorMessage/buildErrorBody by
+      // every consumer below (Rule #12).
+      const { error: clinepassEnvError } = unwrapClinepassEnvelope(json, provider);
+      message = clinepassEnvError
+        ? clinepassEnvError.message
+        : json.error?.message || json.message || json.error || text;
       errorCode = json.error?.code || json.code;
       errorType = json.error?.type || json.type;
     } catch {
@@ -400,11 +490,23 @@ export function providerCircuitOpenResponse(
 export function buildModelCooldownBody({
   model,
   retryAfterSec,
+  retryAfterAt,
+  credentialsCoolingCount,
 }: {
   model?: string | null;
   retryAfterSec: number;
+  retryAfterAt?: string | null;
+  credentialsCoolingCount?: number | null;
 }): ModelCooldownErrorPayload {
   const resolvedModel = typeof model === "string" && model.trim().length > 0 ? model.trim() : null;
+  const resolvedRetryAfterAt =
+    typeof retryAfterAt === "string" && retryAfterAt.length > 0 ? retryAfterAt : null;
+  const resolvedCoolingCount =
+    typeof credentialsCoolingCount === "number" &&
+    Number.isFinite(credentialsCoolingCount) &&
+    credentialsCoolingCount > 0
+      ? Math.floor(credentialsCoolingCount)
+      : null;
 
   return {
     error: {
@@ -415,6 +517,8 @@ export function buildModelCooldownBody({
       code: "model_cooldown",
       ...(resolvedModel ? { model: resolvedModel } : {}),
       reset_seconds: Math.max(Math.ceil(retryAfterSec), 1),
+      ...(resolvedRetryAfterAt ? { retry_after: resolvedRetryAfterAt } : {}),
+      ...(resolvedCoolingCount ? { credentials_cooling: resolvedCoolingCount } : {}),
     },
   };
 }
@@ -422,16 +526,28 @@ export function buildModelCooldownBody({
 export function modelCooldownResponse({
   model,
   retryAfter,
+  retryAfterAt,
+  credentialsCoolingCount,
 }: {
   model?: string | null;
   retryAfter?: string | number | Date | null;
+  retryAfterAt?: string | null;
+  credentialsCoolingCount?: number | null;
 }) {
   const retryAfterSec = normalizeRetryAfterSeconds(retryAfter);
+  const resolvedRetryAfterAt =
+    typeof retryAfterAt === "string" && retryAfterAt.length > 0
+      ? retryAfterAt
+      : typeof retryAfter === "string" && retryAfter.length > 0
+        ? retryAfter
+        : null;
   return new Response(
     JSON.stringify(
       buildModelCooldownBody({
         model,
         retryAfterSec,
+        retryAfterAt: resolvedRetryAfterAt,
+        credentialsCoolingCount,
       })
     ),
     {
@@ -487,7 +603,7 @@ export function normalizeCookie(raw: string): string {
  * @returns {string} Formatted error message
  */
 export function formatProviderError(
-  error: { code?: string | number; message?: string } | Error,
+  error: { code?: string | number; message?: string; cause?: unknown } | Error,
   provider: string,
   model: string,
   statusCode?: string | number | null
@@ -495,5 +611,13 @@ export function formatProviderError(
   const providerCode = "code" in error ? error.code : undefined;
   const code = statusCode || providerCode || "FETCH_FAILED";
   const message = error.message || "Unknown error";
-  return `[${code}]: ${message}`;
+  // Expose low-level cause (e.g. UND_ERR_SOCKET, ECONNRESET, ETIMEDOUT) for diagnosing fetch failures
+  const cause = (error as { cause?: unknown }).cause;
+  const causeObj =
+    cause && typeof cause === "object" ? (cause as Record<string, unknown>) : undefined;
+  const causeCode = typeof causeObj?.code === "string" ? causeObj.code : undefined;
+  const causeMsg = typeof causeObj?.message === "string" ? causeObj.message : undefined;
+  const causeStr =
+    causeCode || causeMsg ? ` (cause: ${[causeCode, causeMsg].filter(Boolean).join(": ")})` : "";
+  return `[${code}]: ${message}${causeStr}`;
 }

@@ -6,6 +6,7 @@
  */
 
 import { MAX_TIMER_TIMEOUT_MS } from "../../src/shared/utils/runtimeTimeouts.ts";
+import type { ResponseValidationConfig } from "./combo/responseValidation.ts";
 
 /**
  * Maximum number of concurrent pre-screen checks (provider profile + availability)
@@ -63,6 +64,9 @@ const DEFAULT_COMBO_CONFIG = {
   resetAwareTieBandPercent: 5,
   resetAwareExhaustionGuardPercent: 10,
   failoverBeforeRetry: true,
+  // Feature 4985: configurable response-body validation predicate (per-combo). When set,
+  // a 200 OK whose body fails the predicate fails over to the next target.
+  responseValidation: undefined as ResponseValidationConfig | undefined,
   maxSetRetries: 0,
   setRetryDelayMs: 2000,
   // Zero-latency optimizations are opt-in because some modes can race targets or
@@ -100,6 +104,16 @@ const DEFAULT_COMBO_CONFIG = {
     latencyWeight: 0.15,
     cacheTtlMs: 60000,
   },
+  // Context window requirements for combo target filtering/sorting (undefined by
+  // default — declared here so resolveComboSetupConfig's inferred return type
+  // includes the key; combo.ts reads config.contextRequirements).
+  contextRequirements: undefined as
+    | {
+        minContextWindow?: number;
+        preferLargeContext?: boolean;
+        contextFilterMode?: "strict" | "lenient";
+      }
+    | undefined,
 };
 
 const LEGACY_COMBO_RESILIENCE_KEYS = new Set([

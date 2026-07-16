@@ -18,6 +18,15 @@ test("raw HTTP guard rejects high-risk unsupported methods before Next.js handle
     { label: "logout QUERY", method: "QUERY", url: "/api/auth/logout", allow: "POST" },
     { label: "keys QUERY", method: "QUERY", url: "/api/keys", allow: "GET, POST" },
     {
+      // dast-smoke 2026-07-06: schemathesis's unsupported-methods check demands
+      // 405 (method-first) for QUERY /api/keys/{id}/devices — the auth layer was
+      // answering 401 first because the path had no HIGH_RISK rule.
+      label: "key devices QUERY",
+      method: "QUERY",
+      url: "/api/keys/0/devices",
+      allow: "GET",
+    },
+    {
       label: "key detail QUERY",
       method: "QUERY",
       url: "/api/keys/0",
@@ -72,6 +81,33 @@ test("raw HTTP guard allows documented methods through", () => {
     maybeHandleDisallowedMethod({ method: "QUERY", url: "/api/health/ping" }, response),
     false
   );
+});
+
+test("raw HTTP guard rejects undici-unsupported methods (TRACE/TRACK/CONNECT) on ANY path", () => {
+  // Regression guard (release v3.8.44 dast-smoke): TRACE reached Next's
+  // middleware adapter, which throws `TypeError: 'TRACE' HTTP method is
+  // unsupported.` while constructing the fetch Request — an unhandled 500 on
+  // EVERY route. The guard must answer a clean 405 before Next sees it.
+  for (const method of ["TRACE", "TRACK", "CONNECT"]) {
+    for (const url of ["/api/keys/0/devices", "/dashboard", "/v1/chat/completions"]) {
+      const headers: Record<string, string> = {};
+      const response = {
+        statusCode: 0,
+        setHeader(name: string, value: string) {
+          headers[name] = value;
+        },
+        body: "",
+        end(payload?: string) {
+          this.body = payload || "";
+        },
+      };
+      const handled = maybeHandleDisallowedMethod({ method, url }, response);
+      assert.equal(handled, true, `${method} ${url} must be handled by the guard`);
+      assert.equal(response.statusCode, 405, `${method} ${url} must yield 405`);
+      assert.ok(headers.Allow, `${method} ${url} must set an Allow header`);
+      assert.match(response.body, /METHOD_NOT_ALLOWED/);
+    }
+  }
 });
 
 test("OpenAPI documents high-risk route auth and setup responses", () => {

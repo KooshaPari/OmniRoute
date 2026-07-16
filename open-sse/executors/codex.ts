@@ -17,7 +17,7 @@ import {
   CODEX_CHAT_DEFAULT_INSTRUCTIONS,
   CODEX_DEFAULT_INSTRUCTIONS,
 } from "../config/codexInstructions.ts";
-import { PROVIDERS } from "../config/constants.ts";
+import { HTTP_STATUS, PROVIDERS } from "../config/constants.ts";
 import {
   getCodexClientVersion,
   getCodexUserAgent,
@@ -34,8 +34,21 @@ import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer
 import { normalizeCodexVerbosity } from "../services/codexVerbosity.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
+import { errorResponse } from "../utils/error.ts";
+import { normalizeCodexResponsesInput } from "../utils/responsesInputNormalization.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
+// Quota parsing/scheduling extracted to a pure leaf; re-exported for external
+// importers (handlers/chatCore/codexQuota.ts + tests).
+export {
+  type CodexQuotaSnapshot,
+  parseCodexQuotaHeaders,
+  getCodexResetTime,
+  getCodexDualWindowCooldownMs,
+} from "./codex/quota.ts";
+import { isCodexFreePlan, normalizeCodexTools } from "./codex/tools.ts";
+// Re-exported for external importers (tests + provider services).
+export { isCodexFreePlan, normalizeCodexTools } from "./codex/tools.ts";
 
 // ─── wreq-js lazy loader ───────────────────────────────────────────────────
 // wreq-js is a Rust-native module that requires platform-specific .node binaries.
@@ -52,11 +65,7 @@ type WreqWebSocket = {
   onclose: (() => void) | null;
 };
 type WebsocketFn = (url: string, opts?: Record<string, unknown>) => Promise<WreqWebSocket>;
-type ResponsesMessageInput = {
-  role?: unknown;
-  phase?: unknown;
-  content?: unknown;
-};
+type ResponsesMessageInput = { role?: unknown; phase?: unknown; content?: unknown };
 
 let _websocketFn: WebsocketFn | null = null;
 let _wreqChecked = false;
@@ -107,122 +116,12 @@ function codexWebSocketUnavailableResponse(): Response {
 // Ref: sub2api PR #1129 (feat(openai): split codex spark rate limiting from codex)
 export { getCodexModelScope, getCodexRateLimitKey, type CodexQuotaScope };
 
-/**
- * T03: Parsed quota snapshot from Codex response headers.
- * Codex includes per-account usage windows that allow precise reset scheduling.
- * Ref: sub2api PR #357 (feat(oauth): persist usage snapshots and window cooldown)
- */
-export interface CodexQuotaSnapshot {
-  usage5h: number; // tokens used in 5h window
-  limit5h: number; // token limit for 5h window
-  resetAt5h: string | null; // ISO timestamp when 5h window resets
-  usage7d: number; // tokens used in 7d window
-  limit7d: number; // token limit for 7d window
-  resetAt7d: string | null; // ISO timestamp when 7d window resets
-}
-
-/**
- * T03: Parse Codex-specific quota headers from a provider response.
- * Returns null if none of the relevant headers are present.
- *
- * Extracts:
- *   x-codex-5h-usage / x-codex-5h-limit / x-codex-5h-reset-at
- *   x-codex-7d-usage / x-codex-7d-limit / x-codex-7d-reset-at
- */
-export function parseCodexQuotaHeaders(headers: Record<string, string>): CodexQuotaSnapshot | null {
-  const usage5h = headers["x-codex-5h-usage"] ?? null;
-  const limit5h = headers["x-codex-5h-limit"] ?? null;
-  const resetAt5h = headers["x-codex-5h-reset-at"] ?? null;
-  const usage7d = headers["x-codex-7d-usage"] ?? null;
-  const limit7d = headers["x-codex-7d-limit"] ?? null;
-  const resetAt7d = headers["x-codex-7d-reset-at"] ?? null;
-
-  // Return null if none of the quota headers are present (not a quota-aware response)
-  if (!usage5h && !limit5h && !resetAt5h && !usage7d && !limit7d && !resetAt7d) {
-    return null;
-  }
-
-  return {
-    usage5h: usage5h ? parseFloat(usage5h) : 0,
-    limit5h: limit5h ? parseFloat(limit5h) : Infinity,
-    resetAt5h: resetAt5h ?? null,
-    usage7d: usage7d ? parseFloat(usage7d) : 0,
-    limit7d: limit7d ? parseFloat(limit7d) : Infinity,
-    resetAt7d: resetAt7d ?? null,
-  };
-}
-
-/**
- * T03: Get the soonest quota reset time from a CodexQuotaSnapshot.
- * 7d window takes priority (wider window, harder limit) but we use whichever
- * is further in the future to avoid releasing the block too early.
- *
- * @returns Unix timestamp (ms) of the soonest effective reset, or null
- */
-export function getCodexResetTime(quota: CodexQuotaSnapshot): number | null {
-  const times: number[] = [];
-  if (quota.resetAt7d) {
-    const t = new Date(quota.resetAt7d).getTime();
-    if (!isNaN(t) && t > Date.now()) times.push(t);
-  }
-  if (quota.resetAt5h) {
-    const t = new Date(quota.resetAt5h).getTime();
-    if (!isNaN(t) && t > Date.now()) times.push(t);
-  }
-  if (times.length === 0) return null;
-  return Math.max(...times); // Use furthest-out reset to avoid premature unblock
-}
-
-/**
- * T03 (Item 3): Compute the minimum-necessary cooldown based on which window
- * is actually exhausted. Prevents over-blocking the account:
- *
- * - If 7d window >= threshold: cooldown until 7d reset (weekly window exhausted)
- * - If 5h window >= threshold: cooldown until 5h reset only (short-term limit)
- * - Otherwise: 0 (account is healthy, no cooldown needed)
- *
- * Called after parsing quota headers from a successful/429 response to
- * mark the account accordingly without overly long cooldowns.
- *
- * @param quota - Parsed quota snapshot from response headers
- * @param threshold - Fraction (0-1) that triggers cooldown (default: 0.95)
- * @returns Cooldown duration in milliseconds (0 = no cooldown needed)
- */
-export function getCodexDualWindowCooldownMs(
-  quota: CodexQuotaSnapshot,
-  threshold = 0.95
-): { cooldownMs: number; window: "7d" | "5h" | "none" } {
-  const now = Date.now();
-
-  // Compute per-window usage ratios (0..1)
-  const ratio7d =
-    quota.limit7d > 0 && Number.isFinite(quota.limit7d) ? quota.usage7d / quota.limit7d : 0;
-  const ratio5h =
-    quota.limit5h > 0 && Number.isFinite(quota.limit5h) ? quota.usage5h / quota.limit5h : 0;
-
-  // 7d window takes priority — if the weekly budget is near-exhausted,
-  // we must wait until the weekly reset (not just 5h).
-  if (ratio7d >= threshold && quota.resetAt7d) {
-    const resetTime = new Date(quota.resetAt7d).getTime();
-    if (resetTime > now) {
-      return { cooldownMs: resetTime - now, window: "7d" };
-    }
-  }
-
-  // 5h window (primary short-term rate limit)
-  if (ratio5h >= threshold && quota.resetAt5h) {
-    const resetTime = new Date(quota.resetAt5h).getTime();
-    if (resetTime > now) {
-      return { cooldownMs: resetTime - now, window: "5h" };
-    }
-  }
-
-  return { cooldownMs: 0, window: "none" };
-}
-
 // Ordered list of effort levels from lowest to highest
-const EFFORT_ORDER = ["none", "low", "medium", "high", "xhigh"] as const;
+const EFFORT_ORDER = ["none", "low", "medium", "high", "xhigh", "max", "ultra"] as const;
 type EffortLevel = (typeof EFFORT_ORDER)[number];
+const STANDARD_EFFORT_SUFFIXES = ["none", "low", "medium", "high", "xhigh"] as const;
+const GPT_5_6_MAX_ALIAS_MODELS = new Set(["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"]);
+const GPT_5_6_ULTRA_ALIAS_MODELS = new Set(["gpt-5.6-sol", "gpt-5.6-terra"]);
 const CODEX_FAST_WIRE_VALUE = "priority";
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 
@@ -231,7 +130,17 @@ function splitCodexReasoningSuffix(model: unknown): {
   effort: EffortLevel | null;
 } {
   const modelId = typeof model === "string" ? model : "";
-  for (const level of EFFORT_ORDER) {
+  const gpt56AliasMatch = /^(gpt-5\.6-(?:sol|terra|luna))-(max|ultra)$/.exec(modelId);
+  if (gpt56AliasMatch) {
+    const [, baseModel, alias] = gpt56AliasMatch;
+    const supportedModels =
+      alias === "ultra" ? GPT_5_6_ULTRA_ALIAS_MODELS : GPT_5_6_MAX_ALIAS_MODELS;
+    if (supportedModels.has(baseModel)) {
+      return { baseModel, effort: alias as EffortLevel };
+    }
+  }
+
+  for (const level of STANDARD_EFFORT_SUFFIXES) {
     if (modelId.endsWith(`-${level}`)) {
       return {
         baseModel: modelId.slice(0, -`-${level}`.length),
@@ -296,7 +205,7 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
  *      server-generated prefix (rs_, fc_, resp_, msg_) — so the content is
  *      preserved but the backend won't try to look it up
  */
-function stripStoredItemReferences(body: Record<string, unknown>): void {
+export function stripStoredItemReferences(body: Record<string, unknown>): void {
   if (Array.isArray(body.input) && body.input.length === 0) {
     body.input = [
       {
@@ -325,6 +234,19 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
       typeof item === "object" &&
       !Array.isArray(item) &&
       (item as Record<string, unknown>).type === "item_reference"
+    ) {
+      strippedCount++;
+      return false;
+    }
+
+    // Reasoning blobs (encrypted_content) are unusable with store=false since
+    // previous_response_id is deleted — strip them to avoid wasting context
+    // tokens (O(n^2) growth across agentic turns).
+    if (
+      item &&
+      typeof item === "object" &&
+      !Array.isArray(item) &&
+      (item as Record<string, unknown>).type === "reasoning"
     ) {
       strippedCount++;
       return false;
@@ -391,168 +313,6 @@ function repairMissingCodexFunctionCallOutputs(body: Record<string, unknown>): v
   }
 }
 
-// Responses-API hosted tool types that OpenAI/Codex executes server-side.
-// These arrive shaped as `{ type, ...params }` with no `function` object and no `name` —
-// e.g. Codex CLI injects `{ type: "image_generation", output_format: "png" }` or
-// `{ type: "namespace", name: "mcp__atlassian__", tools: [...] }` for MCP tool groups.
-// Keep them through `normalizeCodexTools` so upstream can execute them.
-const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
-  "tool_search",
-  "image_generation",
-  "web_search",
-  "web_search_preview",
-  "file_search",
-  "computer",
-  "computer_use_preview",
-  "code_interpreter",
-  "mcp",
-  "local_shell",
-]);
-
-// #2980: a free-plan Codex account (workspacePlanType === "free", from the OAuth
-// id_token) cannot run the server-side `image_generation` hosted tool. The Codex
-// CLI injects it into every Responses request regardless of plan, so it must be
-// dropped for free-plan accounts (mirrors CLIProxyAPI's isCodexFreePlanAuth).
-export function isCodexFreePlan(providerSpecificData: unknown): boolean {
-  if (!providerSpecificData || typeof providerSpecificData !== "object") return false;
-  const plan = (providerSpecificData as { workspacePlanType?: unknown }).workspacePlanType;
-  return typeof plan === "string" && plan.trim().toLowerCase() === "free";
-}
-
-export function normalizeCodexTools(
-  body: Record<string, unknown>,
-  options?: { dropImageGeneration?: boolean; preserveCustomTools?: boolean }
-): void {
-  if (!Array.isArray(body.tools)) return;
-
-  const validToolNames = new Set<string>();
-  body.tools = body.tools.filter((toolValue) => {
-    if (!toolValue || typeof toolValue !== "object" || Array.isArray(toolValue)) {
-      return false;
-    }
-
-    const tool = toolValue as Record<string, unknown>;
-    const toolType = typeof tool.type === "string" ? tool.type : "";
-
-    // Preserve namespace tools (MCP tool groups used by Codex/OpenAI Responses API).
-    // Codex API supports them natively; register sub-tool names for tool_choice validation.
-    if (toolType === "namespace") {
-      if (Array.isArray(tool.tools)) {
-        for (const st of tool.tools as unknown[]) {
-          if (st && typeof st === "object" && !Array.isArray(st)) {
-            const subTool = st as Record<string, unknown>;
-            const name = typeof subTool.name === "string" ? subTool.name.trim().slice(0, 128) : "";
-            if (name) validToolNames.add(name);
-          }
-        }
-      }
-      return true;
-    }
-
-    // Native Codex clients send Responses API custom tools such as apply_patch as:
-    // { type: "custom", name, format }. Preserve those only on native passthrough;
-    // translated/non-native requests can still contain provider-specific "custom"
-    // shapes that the Codex backend would reject.
-    if (toolType === "custom" && options?.preserveCustomTools === true) {
-      const name = typeof tool.name === "string" ? tool.name.trim().slice(0, 128) : "";
-      if (!name) return false;
-      tool.name = name;
-      validToolNames.add(name);
-      return true;
-    }
-
-    if (toolType !== "function") {
-      const hasFunctionObject = tool.function && typeof tool.function === "object";
-      const hasName = typeof tool.name === "string";
-      if (!toolType || hasFunctionObject || hasName) {
-        return false;
-      }
-      if (CODEX_HOSTED_TOOL_TYPES.has(toolType)) {
-        // #2980: drop the CLI-injected image_generation tool for free-plan
-        // accounts, which can't run it server-side (upstream 400 otherwise).
-        if (toolType === "image_generation" && options?.dropImageGeneration === true) {
-          return false;
-        }
-        return true;
-      }
-      console.debug(`[Codex] dropping unknown hosted tool type: ${toolType}`);
-      return false;
-    }
-
-    const rawName =
-      typeof tool.name === "string"
-        ? tool.name
-        : tool.function &&
-            typeof tool.function === "object" &&
-            !Array.isArray(tool.function) &&
-            typeof (tool.function as Record<string, unknown>).name === "string"
-          ? ((tool.function as Record<string, unknown>).name as string)
-          : "";
-    const name = rawName.trim();
-    if (!name) {
-      return false;
-    }
-
-    // Codex Responses API requires function tools in flat Responses format:
-    // { type: "function", name, description, parameters }
-    // Some clients/translators send Chat Completions shape:
-    // { type: "function", function: { name, description, parameters } }
-    // which upstream rejects with "Missing required parameter: tools[0].name".
-    // Flatten the nested `function` wrapper into top-level fields (#1914).
-    const functionObject =
-      tool.function && typeof tool.function === "object" && !Array.isArray(tool.function)
-        ? (tool.function as Record<string, unknown>)
-        : null;
-    const description =
-      typeof tool.description === "string"
-        ? tool.description
-        : typeof functionObject?.description === "string"
-          ? functionObject.description
-          : "";
-    const parameters =
-      tool.parameters && typeof tool.parameters === "object" && !Array.isArray(tool.parameters)
-        ? tool.parameters
-        : functionObject?.parameters &&
-            typeof functionObject.parameters === "object" &&
-            !Array.isArray(functionObject.parameters)
-          ? functionObject.parameters
-          : { type: "object", properties: {} };
-    const strict =
-      typeof tool.strict === "boolean"
-        ? tool.strict
-        : typeof functionObject?.strict === "boolean"
-          ? functionObject.strict
-          : undefined;
-
-    // Rewrite in-place to Responses format
-    for (const key of Object.keys(tool)) {
-      delete tool[key];
-    }
-    tool.type = "function";
-    tool.name = name.slice(0, 128);
-    if (description) tool.description = description;
-    tool.parameters = parameters;
-    if (strict !== undefined) tool.strict = strict;
-
-    validToolNames.add(name);
-    return true;
-  });
-
-  if (
-    body.tool_choice &&
-    typeof body.tool_choice === "object" &&
-    !Array.isArray(body.tool_choice)
-  ) {
-    const toolChoice = body.tool_choice as Record<string, unknown>;
-    if (toolChoice.type === "function") {
-      const rawName = typeof toolChoice.name === "string" ? toolChoice.name.trim() : "";
-      if (!rawName || !validToolNames.has(rawName)) {
-        delete body.tool_choice;
-      }
-    }
-  }
-}
-
 function getResponsesSubpath(endpointPath: unknown): string | null {
   let normalizedEndpoint = String(endpointPath || "");
   while (normalizedEndpoint.endsWith("/") && normalizedEndpoint.length > 0) {
@@ -591,12 +351,14 @@ function normalizeServiceTierValue(value: unknown): string | undefined {
 
 /**
  * Maximum reasoning effort allowed per Codex model.
- * Models not listed here default to "xhigh" (unrestricted).
+ * Models not listed here retain the legacy xhigh cap.
  * Update this table when Codex releases new models with different caps.
  */
 const MAX_EFFORT_BY_MODEL: Record<string, EffortLevel> = {
+  "gpt-5.6-sol": "ultra",
+  "gpt-5.6-terra": "ultra",
+  "gpt-5.6-luna": "max",
   "gpt-5.3-codex": "xhigh",
-  "gpt-5.2-codex": "xhigh",
   "gpt-5.1-codex-max": "xhigh",
   "gpt-5-mini": "high",
   "gpt-5.1-mini": "high",
@@ -624,7 +386,6 @@ const CODEX_DEFAULT_REASONING_SUMMARY = "auto";
 function normalizeEffortValue(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
   const normalized = value.trim().toLowerCase();
-  if (normalized === "max") return "xhigh";
   return normalized || undefined;
 }
 
@@ -754,6 +515,195 @@ function toCodexResponseFailedEvent(parsed: Record<string, unknown>): Record<str
   };
 }
 
+// Env-gated kill-switch: drop ALL non-standard `codex.*` SSE events (notably
+// `codex.rate_limits`) from the Responses stream. These events are NOT part of
+// the OpenAI Responses API — strict clients (e.g. the OpenAI SDK's
+// `responses.stream()`) choke on the unknown event type / empty data field and
+// tear the stream down, surfacing as "Invalid state: Controller is already
+// closed". Opt-in so the default still forwards them for clients that want them.
+function codexDropNonstandardEvents(): boolean {
+  const v = process.env.OMNIROUTE_CODEX_DROP_NONSTANDARD_EVENTS;
+  return v === "true" || v === "1" || v === "yes";
+}
+
+// SSE block filter for the HTTP Responses path (super.execute). The HTTP
+// transport forwards the upstream stream verbatim — including the non-standard
+// `event: codex.rate_limits` frame (no data line) — so the WS-only filter in
+// encodeResponseSseEvent never runs for it. When the kill-switch is on, strip
+// every `codex.*` event block from the byte stream before it reaches the client.
+// Exported for unit testing (#4715). Strips `codex.*` SSE event blocks from a
+// streaming Response when the OMNIROUTE_CODEX_DROP_NONSTANDARD_EVENTS kill-switch is on.
+export function filterNonstandardCodexSse(response: Response): Response {
+  const contentType = response.headers.get("content-type") || "";
+  if (!response.body || !contentType.includes("text/event-stream")) {
+    return response;
+  }
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+  let buffer = "";
+  const dropBlock = (block: string): boolean => {
+    const match = /^event:\s*(.+)$/m.exec(block);
+    return !!match && match[1].trim().startsWith("codex.");
+  };
+  const transform = new TransformStream<Uint8Array, Uint8Array>({
+    transform(chunk, controller) {
+      buffer += decoder.decode(chunk, { stream: true });
+      let sep: number;
+      while ((sep = buffer.indexOf("\n\n")) !== -1) {
+        const block = buffer.slice(0, sep + 2);
+        buffer = buffer.slice(sep + 2);
+        if (!dropBlock(block)) controller.enqueue(encoder.encode(block));
+      }
+    },
+    flush(controller) {
+      if (buffer && !dropBlock(buffer)) controller.enqueue(encoder.encode(buffer));
+    },
+  });
+  return new Response(response.body.pipeThrough(transform), {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
+
+// ─── Sub-bug #3 of upstream decolua/9router#2452 (@ryanngit) ─────────────────
+// Codex sometimes answers with HTTP 200 and a text/event-stream body whose
+// payload carries a transient "model at capacity" / overloaded error mid-stream,
+// e.g. { "error": { "message": "Selected model is at capacity..." } },
+// server_is_overloaded, or service_unavailable_error. Left as a 200, this looks
+// like a successful response to every caller — no retry, no circuit breaker, no
+// combo/account fallback engages (open-sse/services/accountFallback.ts never
+// sees a failure status). Peek the first few SSE bytes; when a transient-error
+// signature is found, convert the response into a real 503 so account rotation
+// kicks in. Otherwise re-assemble the stream from the peeked prefix + the
+// remaining upstream body so the passthrough stays byte-identical.
+const CODEX_SSE_TRANSIENT_ERROR_PATTERNS = [
+  "selected model is at capacity",
+  "server_is_overloaded",
+  "service_unavailable_error",
+] as const;
+// A capacity/overloaded rejection is delivered as the very first SSE event, so a
+// small peek window is enough — this bounds how much of a legitimate response we
+// buffer before giving up and passing the stream through unchanged.
+const CODEX_SSE_PEEK_MAX_BYTES = 8192;
+
+/**
+ * Best-effort extraction of the human-readable error message from a peeked SSE
+ * chunk, so the resulting 503 body carries something more useful than the raw
+ * pattern that matched. Falls back to the matched pattern when no structured
+ * `data:` payload could be parsed.
+ */
+function extractCodexSseErrorMessage(text: string, fallback: string): string {
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.startsWith("data:")) continue;
+    const data = line.slice("data:".length).trim();
+    if (!data || data === "[DONE]") continue;
+    try {
+      const parsed = JSON.parse(data) as Record<string, unknown>;
+      const directError = parsed.error as Record<string, unknown> | undefined;
+      const nestedError = (parsed.response as Record<string, unknown> | undefined)?.error as
+        Record<string, unknown> | undefined;
+      const message =
+        (typeof directError?.message === "string" && directError.message) ||
+        (typeof nestedError?.message === "string" && nestedError.message) ||
+        (typeof parsed.message === "string" && parsed.message);
+      if (message) return message;
+    } catch {
+      // Non-JSON SSE data line — keep scanning subsequent lines.
+    }
+  }
+  return fallback;
+}
+
+type CodexSseTransientErrorPeek =
+  | { matched: string; message: string; replacementBody: null }
+  | { matched: null; message: null; replacementBody: ReadableStream<Uint8Array> | null };
+
+/**
+ * Peek the first bytes of a Codex SSE response body looking for a transient
+ * error embedded in an otherwise 200-OK stream. Exported for unit testing.
+ */
+export async function peekCodexSseTransientError(
+  response: Response
+): Promise<CodexSseTransientErrorPeek> {
+  const contentType = response.headers.get("content-type") || "";
+  if (!response.ok || !response.body || !contentType.includes("text/event-stream")) {
+    return { matched: null, message: null, replacementBody: null };
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  const chunks: Uint8Array[] = [];
+  let text = "";
+  let matched: string | null = null;
+
+  try {
+    while (text.length < CODEX_SSE_PEEK_MAX_BYTES) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      text += decoder.decode(value, { stream: true });
+      const lower = text.toLowerCase();
+      const hit = CODEX_SSE_TRANSIENT_ERROR_PATTERNS.find((pattern) => lower.includes(pattern));
+      if (hit) {
+        matched = hit;
+        break;
+      }
+      // A real content/completion event this early means the response is
+      // healthy — stop peeking so we do not needlessly buffer a long stream.
+      if (
+        lower.includes('"type":"response.output_text.delta"') ||
+        lower.includes('"type":"response.completed"')
+      ) {
+        break;
+      }
+    }
+  } catch (err) {
+    console.warn(
+      `[codex] peekCodexSseTransientError: read error, passing stream through: ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    );
+  }
+
+  if (matched) {
+    try {
+      await reader.cancel();
+    } catch {
+      // Upstream socket may already be closing; nothing to clean up.
+    }
+    return { matched, message: extractCodexSseErrorMessage(text, matched), replacementBody: null };
+  }
+
+  reader.releaseLock();
+
+  // Re-assemble the stream: peeked prefix chunks, then continue draining the
+  // same underlying body so bytes downstream of the peek window are untouched.
+  const upstreamReader = response.body.getReader();
+  const replacementBody = new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (const chunk of chunks) controller.enqueue(chunk);
+    },
+    async pull(controller) {
+      const { done, value } = await upstreamReader.read();
+      if (done) {
+        controller.close();
+        return;
+      }
+      controller.enqueue(value);
+    },
+    cancel(reason) {
+      try {
+        upstreamReader.cancel(reason).catch(() => {});
+      } catch {
+        // noop — upstream socket may already be closing.
+      }
+    },
+  });
+
+  return { matched: null, message: null, replacementBody };
+}
+
 export function encodeResponseSseEvent(raw: string): { sse: string; terminal: boolean } {
   let eventType = "message";
   let payload = raw;
@@ -773,6 +723,27 @@ export function encodeResponseSseEvent(raw: string): { sse: string; terminal: bo
   } catch {
     console.warn("[codex] SSE payload parse failed, using raw payload");
     // Keep message as the generic SSE event for non-JSON upstream payloads.
+  }
+
+  // Env-gated: drop non-standard `codex.*` events (notably `codex.rate_limits`)
+  // before they reach the client. They are NOT part of the OpenAI Responses API
+  // and break strict consumers: the OpenAI SDK's responses.stream() chokes on
+  // the unknown event type / empty data and tears the stream down, surfacing as
+  // "Invalid state: Controller is already closed". The earlier empty-payload
+  // check below never caught codex.rate_limits — over WS the frame carries a
+  // non-empty JSON payload (`{"type":"codex.rate_limits", ...}`), so
+  // `!payload.trim()` is false. Match by event type instead. Opt-in via
+  // OMNIROUTE_CODEX_DROP_NONSTANDARD_EVENTS (the HTTP transport is handled
+  // separately by filterNonstandardCodexSse, since super.execute forwards the
+  // upstream stream verbatim and never runs this function).
+  if (eventType.startsWith("codex.") && codexDropNonstandardEvents()) {
+    return { sse: "", terminal };
+  }
+
+  // Drop frames whose raw payload is empty (defensive; non-JSON / blank upstream
+  // chunks). Frames that carry a payload are preserved.
+  if (!payload.trim()) {
+    return { sse: "", terminal };
   }
 
   return { sse: `event: ${eventType}\ndata: ${payload}\n\n`, terminal };
@@ -840,7 +811,34 @@ export class CodexExecutor extends BaseExecutor {
     const nextInput = { ...input, credentials };
 
     if (!isCodexResponsesWebSocketRequired(nextInput.model, nextInput.credentials)) {
-      return super.execute(nextInput);
+      const httpResult = await super.execute(nextInput);
+      if (codexDropNonstandardEvents()) {
+        const resp = (httpResult as { response?: Response }).response;
+        if (resp?.body) {
+          (httpResult as { response: Response }).response = filterNonstandardCodexSse(resp);
+        }
+      }
+      const resp = (httpResult as { response?: Response }).response;
+      if (resp) {
+        const peek = await peekCodexSseTransientError(resp);
+        if (peek.matched) {
+          input.log?.warn?.(
+            "RETRY",
+            `CODEX | 200-OK SSE carried transient error "${peek.matched}" — converting to 503 for account fallback`
+          );
+          (httpResult as { response: Response }).response = errorResponse(
+            HTTP_STATUS.SERVICE_UNAVAILABLE,
+            peek.message
+          );
+        } else if (peek.replacementBody) {
+          (httpResult as { response: Response }).response = new Response(peek.replacementBody, {
+            status: resp.status,
+            statusText: resp.statusText,
+            headers: resp.headers,
+          });
+        }
+      }
+      return httpResult;
     }
 
     const url = CODEX_RESPONSES_WS_URL;
@@ -973,15 +971,19 @@ export class CodexExecutor extends BaseExecutor {
                 : Buffer.from(event.data as Buffer).toString("utf8");
             const sseEvent = encodeResponseSseEvent(raw);
             if (closed) return;
-            try {
-              controller.enqueue(encoder.encode(sseEvent.sse));
-            } catch {
-              finishStream({
-                reason: "downstream_closed",
-                emitDone: false,
-                closeController: false,
-              });
-              return;
+            // Filtered events (codex.* / empty payload) return an empty `sse` —
+            // skip them so no empty frame reaches the client.
+            if (sseEvent.sse) {
+              try {
+                controller.enqueue(encoder.encode(sseEvent.sse));
+              } catch {
+                finishStream({
+                  reason: "downstream_closed",
+                  emitDone: false,
+                  closeController: false,
+                });
+                return;
+              }
             }
             if (sseEvent.terminal) {
               finishStream({ reason: "terminal_event" });
@@ -1066,9 +1068,7 @@ export class CodexExecutor extends BaseExecutor {
       headers["chatgpt-account-id"] = workspaceId;
     }
     const clientIdentity = credentials?.providerSpecificData?.codexClientIdentity as
-      | CodexClientIdentity
-      | null
-      | undefined;
+      CodexClientIdentity | null | undefined;
 
     // Originator header — identifies the client type to the Codex backend.
     // Ref: openai/codex login/src/auth/default_client.rs DEFAULT_ORIGINATOR = "codex_cli_rs"
@@ -1175,6 +1175,7 @@ export class CodexExecutor extends BaseExecutor {
       delete body.stream;
       delete body.stream_options;
       delete body.client_metadata;
+      delete body.include;
     } else {
       body.stream = true;
     }
@@ -1230,6 +1231,8 @@ export class CodexExecutor extends BaseExecutor {
         content: [{ type: "input_text", text: typeof p === "string" ? p : JSON.stringify(p) }],
       }));
     }
+
+    normalizeCodexResponsesInput(body);
 
     if (Array.isArray(body.input)) {
       body.input = sanitizeResponsesInputItems(body.input, false, {
@@ -1301,7 +1304,10 @@ export class CodexExecutor extends BaseExecutor {
     // Cursor may include custom tools (e.g. ApplyPatch) that work locally but are
     // invalid upstream, and translation bugs can leave orphaned/empty tool_choice names.
     normalizeCodexTools(body, {
-      dropImageGeneration: isCodexFreePlan(credentials?.providerSpecificData),
+      // gpt-5.3-codex-spark (and other Spark-scope models) reject image_generation
+      // upstream even on paid-plan accounts, so drop it independent of plan (#6651).
+      dropImageGeneration:
+        isCodexFreePlan(credentials?.providerSpecificData) || getCodexModelScope(model) === "spark",
       preserveCustomTools: nativeCodexPassthrough,
     });
 
@@ -1340,12 +1346,17 @@ export class CodexExecutor extends BaseExecutor {
       modelEffort || explicitReasoning || requestReasoningEffort || fallbackReasoningEffort;
 
     if (rawEffort) {
+      const clampedEffort = clampEffort(cleanModel, rawEffort);
       body.reasoning = {
         ...(reasoningRecord || {}),
-        effort: clampEffort(cleanModel, rawEffort),
+        // Ultra coordinates delegation in Codex clients; the upstream wire effort is Max.
+        effort: clampedEffort === "ultra" ? "max" : clampedEffort,
       };
     }
     ensureCodexReasoningSummary(body);
+    if (isCompactRequest) {
+      delete body.include;
+    }
     delete body.reasoning_effort;
 
     // Remove unsupported token limit parameters BEFORE the passthrough return.
@@ -1386,9 +1397,7 @@ export class CodexExecutor extends BaseExecutor {
       applyCodexClientMetadata(
         body,
         credentials?.providerSpecificData?.codexClientIdentity as
-          | CodexClientIdentity
-          | null
-          | undefined
+          CodexClientIdentity | null | undefined
       );
     }
 

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Token Usage Tracking - Extract, normalize, estimate and log token usage
  */
@@ -237,7 +236,7 @@ export function filterUsageForFormat(usage, targetFormat) {
   let fields = formatFields[targetFormat];
 
   // Use same fields for similar formats
-  if (targetFormat === FORMATS.GEMINI_CLI || targetFormat === FORMATS.ANTIGRAVITY) {
+  if (targetFormat === FORMATS.ANTIGRAVITY) {
     fields = formatFields[FORMATS.GEMINI];
   } else if (targetFormat === FORMATS.OPENAI_RESPONSE) {
     fields = formatFields[FORMATS.OPENAI_RESPONSES];
@@ -254,7 +253,7 @@ export function filterUsageForFormat(usage, targetFormat) {
 export function normalizeUsage(usage) {
   if (!usage || typeof usage !== "object" || Array.isArray(usage)) return null;
 
-  const normalized = {};
+  const normalized: Record<string, number> = {};
   const assignNumber = (key, value) => {
     if (value === undefined || value === null) return;
     const numeric = Number(value);
@@ -270,6 +269,16 @@ export function normalizeUsage(usage) {
   assignNumber("cache_creation_input_tokens", usage?.cache_creation_input_tokens);
   assignNumber("cached_tokens", usage?.cached_tokens);
   assignNumber("reasoning_tokens", usage?.reasoning_tokens);
+  // xAI's exact provider-reported cost (port of decolua/9router#2453, capability A —
+  // @ryanngit). Ticks → USD conversion happens in costCalculator.ts, not here.
+  const exactCostTicks = usage?.cost_in_usd_ticks;
+  if (
+    typeof exactCostTicks === "number" &&
+    Number.isFinite(exactCostTicks) &&
+    exactCostTicks >= 0
+  ) {
+    normalized.cost_in_usd_ticks = exactCostTicks;
+  }
 
   if (Object.keys(normalized).length === 0) return null;
   return normalized;
@@ -388,17 +397,35 @@ export function extractUsage(chunk) {
         chunk.usage.completion_tokens_details?.reasoning_tokens ??
         chunk.usage.output_tokens_details?.reasoning_tokens ??
         chunk.usage.reasoning_tokens,
+      // xAI's exact provider-reported cost (port of decolua/9router#2453, capability A).
+      cost_in_usd_ticks: chunk.usage.cost_in_usd_ticks,
     });
   }
 
   // Gemini format (Antigravity)
-  if (chunk.usageMetadata && typeof chunk.usageMetadata === "object") {
+  // Antigravity wraps usageMetadata inside a `response` envelope:
+  // { response: { usageMetadata: {...} } } — fall back to it so AG-shaped
+  // chunks do not silently drop token usage.
+  const usageMeta = chunk.usageMetadata || chunk.response?.usageMetadata;
+  if (usageMeta && typeof usageMeta === "object") {
     return normalizeUsage({
-      prompt_tokens: chunk.usageMetadata?.promptTokenCount || 0,
-      completion_tokens: chunk.usageMetadata?.candidatesTokenCount || 0,
-      total_tokens: chunk.usageMetadata?.totalTokenCount,
-      cached_tokens: chunk.usageMetadata?.cachedContentTokenCount,
-      reasoning_tokens: chunk.usageMetadata?.thoughtsTokenCount,
+      prompt_tokens: usageMeta.promptTokenCount || 0,
+      completion_tokens: usageMeta.candidatesTokenCount || 0,
+      total_tokens: usageMeta.totalTokenCount,
+      cached_tokens: usageMeta.cachedContentTokenCount,
+      reasoning_tokens: usageMeta.thoughtsTokenCount,
+    });
+  }
+
+  // Ollama NDJSON format (raw from provider, before translation)
+  // Ollama sends: { "model": "...", "done": true, "prompt_eval_count": N, "eval_count": M }
+  if (chunk.done === true && typeof chunk.prompt_eval_count === "number") {
+    const promptEvalCount = chunk.prompt_eval_count || 0;
+    const evalCount = chunk.eval_count || 0;
+    return normalizeUsage({
+      prompt_tokens: promptEvalCount,
+      completion_tokens: evalCount,
+      total_tokens: promptEvalCount + evalCount,
     });
   }
 

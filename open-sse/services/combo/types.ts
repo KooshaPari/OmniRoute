@@ -46,6 +46,8 @@ export type SingleModelTarget =
       allowRateLimitedConnection?: boolean;
       effectiveComboStrategy?: string | null;
       modelAbortSignal?: AbortSignal | null;
+      /** True when this target was selected via context-cache session pinning. */
+      modelPinned?: boolean;
     })
   | { modelAbortSignal: AbortSignal };
 
@@ -63,6 +65,13 @@ export type IsModelAvailable = (
 export type ComboRelayOptions = {
   sessionId?: string | null;
   config?: Record<string, unknown> | null;
+  bypassProviderQuotaPolicy?: boolean;
+  /** Per-request X-OmniRoute-Mode value (auto-combo preset / mode-pack name) — #6024/#6025. */
+  mode?: string | null;
+  /** Per-request X-OmniRoute-Budget value (hard cost ceiling in USD) — #6023. */
+  budgetCap?: number | null;
+  /** Per-request X-OmniRoute-Budget-Fallback value ("cheapest" | "strict") — #3470. */
+  budgetFallback?: "cheapest" | "strict" | null;
   [key: string]: unknown;
 };
 
@@ -117,6 +126,18 @@ export type AutoProviderCandidate = ProviderCandidate & {
   quotaCutoffBlocked?: boolean;
   /** Diagnostic reason for quotaCutoffBlocked. */
   quotaCutoffReason?: string;
+  /**
+   * #4540: True when this candidate's connection is in a terminal/transient
+   * unavailable status (credits_exhausted / rate_limited / banned / expired /
+   * future-dated unavailable) but the quota-preflight HARD cutoff is OFF (default).
+   * In that case the candidate is NOT hard-blocked — instead its auto-combo score
+   * is multiplied by STATUS_SOFT_DEPRIORITIZE_FACTOR so an exhausted provider ranks
+   * strictly below an otherwise-identical healthy one, without emitting a misleading
+   * "below quota cutoff" 429. Set by buildAutoCandidates from the connection testStatus.
+   */
+  statusPenalty?: boolean;
+  /** Diagnostic reason for statusPenalty (the connection testStatus that triggered it). */
+  statusPenaltyReason?: string;
 };
 
 export type ResolvedComboTarget = {
@@ -132,6 +153,14 @@ export type ResolvedComboTarget = {
   label: string | null;
   failoverBeforeRetry?: unknown;
   trafficType?: "production" | "shadow";
+  /**
+   * Fingerprint-based account pin resolved from a combo builder composite
+   * connectionId (`${rowId}|fp|${fingerprint}`, see
+   * `expandTargetsByFingerprints` in `./fingerprintExpansion.ts`, #6696).
+   * Set only for fingerprint-provider targets (mimocode/mcode/opencode) that
+   * were pinned to one specific account.
+   */
+  pinnedFingerprint?: string;
 };
 
 export type ShadowRoutingConfig = {

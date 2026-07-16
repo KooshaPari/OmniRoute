@@ -7,6 +7,7 @@ const HIGH_RISK_METHOD_RULES = [
   [/^\/api\/auth\/logout\/?$/, ["POST"]],
   [/^\/api\/keys\/?$/, ["GET", "POST"]],
   [/^\/api\/keys\/[^/]+\/?$/, ["GET", "PATCH", "DELETE"]],
+  [/^\/api\/keys\/[^/]+\/devices\/?$/, ["GET"]],
 ];
 
 let installed = false;
@@ -32,9 +33,30 @@ function getAllowHeader(pathname) {
   return methods ? methods.join(", ") : null;
 }
 
+// Methods undici/fetch cannot represent: Next's middleware adapter throws
+// `TypeError: 'TRACE' HTTP method is unsupported.` while building the Request,
+// which surfaces as an unhandled 500 on EVERY route (caught by the dast-smoke
+// Schemathesis negative tests). Reject them up-front with a clean 405.
+const UNSUPPORTED_METHODS = new Set(["TRACE", "TRACK", "CONNECT"]);
+
 function maybeHandleDisallowedMethod(req, res) {
   const method = typeof req?.method === "string" ? req.method.toUpperCase() : "";
   const pathname = getPathname(req);
+  if (UNSUPPORTED_METHODS.has(method)) {
+    res.statusCode = 405;
+    res.setHeader("Allow", getAllowHeader(pathname) || "GET, POST, OPTIONS");
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.end(
+      JSON.stringify({
+        error: {
+          code: "METHOD_NOT_ALLOWED",
+          message: `${method} is not allowed`,
+        },
+      })
+    );
+    return true;
+  }
   const methods = getAllowedMethods(pathname);
   if (!methods || method === "OPTIONS" || methods.includes(method)) return false;
 

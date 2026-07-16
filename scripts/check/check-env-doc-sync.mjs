@@ -51,6 +51,9 @@ const IGNORE_FROM_CODE = new Set([
   "CI",
   "GITHUB_ACTIONS",
   "RUNNER_OS",
+  // Quality-gate harness knobs (optional cache/report paths for CI scripts — not product config).
+  "ESLINT_RESULTS_JSON",
+  "COMPLEXITY_ESLINT_REPORT",
   // Agent environment / system execution paths.
   "PROJECT_ROOT",
   "ARTIFACTS_DIR",
@@ -93,6 +96,11 @@ const IGNORE_FROM_CODE = new Set([
   "PR_BODY",
   // CLI machine-id token opt-out (server-side flag; not user-configurable via .env).
   "OMNIROUTE_DISABLE_CLI_TOKEN",
+  // Gated combo live-smoke harness (scripts/test/_vpsClient.mjs) — override the VPS HTTP
+  // smoke target host/key. Test/CI-only signals with safe defaults
+  // ("http://192.168.0.15:20128" / null), never OmniRoute runtime config (#5151).
+  "COMBO_LIVE_BASE_URL",
+  "COMBO_LIVE_API_KEY",
   // update-notifier opt-out for the CLI binary.
   "OMNIROUTE_NO_UPDATE_NOTIFIER",
   // Headless CLI execution flag for Electron.
@@ -140,6 +148,9 @@ const IGNORE_FROM_CODE = new Set([
   // write-build-sha.mjs to stamp dist/BUILD_SHA — injected by the build, never
   // configured by users in .env.
   "OMNIROUTE_BUILD_SHA",
+  // Listener-owned self-fetch transport signal. The HTTP/HTTPS launchers set
+  // this before application imports; it is not user-configurable product env.
+  "OMNIROUTE_INTERNAL_SCHEME",
   // Source typo / placeholder.
   "OMNIROUT",
   // Static config alias path (the canonical var is OMNIROUTE_PAYLOAD_RULES_PATH).

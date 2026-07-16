@@ -323,7 +323,8 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
     name: "Hermes",
     icon: "terminal",
     color: "#8B5CF6",
-    description: "Nous Research Hermes — generic OpenAI-compatible setup (use hermes-agent for full agent)",
+    description:
+      "Nous Research Hermes — generic OpenAI-compatible setup (use hermes-agent for full agent)",
     docsUrl: "/docs?section=cli-tools&tool=hermes",
     configType: "guide",
     category: "code",
@@ -583,38 +584,6 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
     defaultCommand: "forge",
   },
 
-  // ── Code entries — gemini-cli ─────────────────────────────────────────────
-  "gemini-cli": {
-    id: "gemini-cli",
-    name: "Google Gemini CLI",
-    icon: "terminal",
-    color: "#4285F4",
-    description: "Google Gemini CLI — OpenAI-compatible base URL via GEMINI_API_BASE_URL env",
-    docsUrl: "https://github.com/google-gemini/gemini-cli",
-    configType: "guide",
-    category: "code",
-    vendor: "Google",
-    acpSpawnable: true,
-    baseUrlSupport: "partial",
-    defaultCommand: "gemini",
-    guideSteps: [
-      {
-        step: 1,
-        title: "Install Gemini CLI",
-        desc: "npm install -g @google/gemini-cli",
-      },
-      { step: 2, title: "API Key", type: "apiKeySelector" },
-      { step: 3, title: "Base URL", value: "{{baseUrl}}", copyable: true },
-      { step: 4, title: "Select Model", type: "modelSelector" },
-    ],
-    codeBlock: {
-      language: "bash",
-      code: `export GEMINI_API_KEY="{{apiKey}}"
-export GEMINI_API_BASE_URL="{{baseUrl}}"
-gemini --model "{{model}}"`,
-    },
-  },
-
   // ── Code entries — cursor-cli ─────────────────────────────────────────────
   "cursor-cli": {
     id: "cursor-cli",
@@ -676,7 +645,13 @@ gemini --model "{{model}}"`,
     defaultCommand: "jcode",
   },
 
-  /** ★ Added by plan 14 (CLI Pages Redesign) — 2026-05-27 */
+  /**
+   * ★ Added by plan 14 (CLI Pages Redesign) — 2026-05-27
+   * Kept as a legacy/dual entry after CodeWhale (see below) took over as the
+   * actively-maintained successor. Existing users who still have DeepSeek
+   * TUI installed keep a working dashboard card; new users are steered to
+   * "codewhale" instead.
+   */
   "deepseek-tui": {
     id: "deepseek-tui",
     name: "DeepSeek TUI",
@@ -690,6 +665,29 @@ gemini --model "{{model}}"`,
     acpSpawnable: false,
     baseUrlSupport: "full",
     defaultCommand: "deepseek-tui",
+  },
+
+  /**
+   * ★ Added 2026-07-02 (dual-entry, see deepseek-tui above). CodeWhale is
+   * the actively-maintained successor to DeepSeek TUI — same author, new
+   * name. Config lives under ~/.codewhale/config.toml; the settings route
+   * also keeps ~/.deepseek/config.toml (legacy) in sync for upgrading
+   * users. Reference: https://github.com/Hmbown/CodeWhale
+   */
+  codewhale: {
+    id: "codewhale",
+    name: "CodeWhale",
+    icon: "terminal",
+    color: "#4F46E5",
+    description:
+      "CodeWhale — Rust-based coding agent CLI with OPENAI_BASE_URL support (successor to DeepSeek TUI)",
+    docsUrl: "https://github.com/Hmbown/CodeWhale",
+    configType: "custom",
+    category: "code",
+    vendor: "OSS (Hmbown)",
+    acpSpawnable: false,
+    baseUrlSupport: "full",
+    defaultCommand: "codewhale",
   },
 
   /** ★ Added by plan 14 (CLI Pages Redesign) — 2026-05-27 */
@@ -722,6 +720,22 @@ gemini --model "{{model}}"`,
     acpSpawnable: false,
     baseUrlSupport: "full",
     defaultCommand: "pi",
+  },
+
+  /** Added — ported from upstream decolua/9router#1233 (dashboard catalog entry for Crush). */
+  crush: {
+    id: "crush",
+    name: "Crush",
+    icon: "terminal",
+    color: "#FB923C",
+    description: "Crush coding agent CLI — terminal AI agent by Charm (charmbracelet/crush)",
+    docsUrl: "https://github.com/charmbracelet/crush",
+    configType: "custom",
+    category: "code",
+    vendor: "OSS (Charm)",
+    acpSpawnable: false,
+    baseUrlSupport: "full",
+    defaultCommand: "crush",
   },
 
   // ── Agent entries ─────────────────────────────────────────────────────────
@@ -780,6 +794,59 @@ OPENAI_API_KEY: "{{apiKey}}"`,
       language: "bash",
       code: `interpreter --api_base "{{baseUrl}}" --api_key "{{apiKey}}" --model "{{model}}"`,
     },
+  },
+
+  omp: {
+    id: "omp",
+    name: "Oh My Pi",
+    image: "/providers/omp.png",
+    color: "#111111",
+    docsUrl: "https://github.com/can1357/oh-my-pi",
+    description: "Oh My Pi terminal coding agent via OmniRoute",
+    configType: "custom",
+    category: "agent",
+    vendor: "OSS",
+    acpSpawnable: true,
+    baseUrlSupport: "full",
+    defaultCommand: "omp",
+    notes: [
+      {
+        type: "info",
+        text: "Oh My Pi reads custom OpenAI-compatible providers from ~/.omp/agent/models.yml. OmniRoute adds itself as a provider with auto-discovery — models appear automatically in omp's /model menu.",
+      },
+      {
+        type: "warning",
+        text: "Config path: Linux/macOS ~/.omp/agent/models.yml • Windows %USERPROFILE%\\.omp\\.omp\\agent\\models.yml",
+      },
+    ],
+  },
+
+  letta: {
+    id: "letta",
+    name: "Letta CLI",
+    image: "/providers/letta.png",
+    color: "#FF6B35",
+    description: "Letta CLI — AI agent with persistent memory and tool use",
+    configType: "custom",
+    category: "agent",
+    vendor: "Letta",
+    acpSpawnable: false,
+    baseUrlSupport: "full",
+    docsUrl: "https://docs.letta.com",
+    notes: [
+      {
+        type: "info",
+        text: "Letta CLI uses pi-ai which sends OpenAI-compatible requests. OmniRoute configures it as an OpenAI provider with custom base URL.",
+      },
+      {
+        type: "info",
+        text: "CLI (Local Mode): OmniRoute auto-configures ~/.letta/lc-local-backend/providers/auth.json. Use 'letta --info' to check if local mode is enabled.",
+      },
+      {
+        type: "warning",
+        text: "Local mode config path: ~/.letta/lc-local-backend/providers/auth.json (CLI only)",
+      },
+    ],
   },
 
   /** ★ Added by plan 14 (CLI Pages Redesign) — 2026-05-27 */
@@ -846,29 +913,3 @@ export function listCliTools(): CliToolEntry[] {
 export function getCliTool(id: string): CliToolEntry | undefined {
   return CLI_TOOLS[id];
 }
-
-// ─── Provider model mapping helper ───────────────────────────────────────────
-
-// Get all provider models for mapping dropdown
-export const getProviderModelsForMapping = (providers: Array<{
-  id: string;
-  isActive: boolean;
-  testStatus: string;
-  provider: string;
-  name: string;
-  models?: string[];
-}>) => {
-  const result: Array<{ connectionId: string; provider: string; name: string; models: string[] }> =
-    [];
-  providers.forEach((conn) => {
-    if (conn.isActive && (conn.testStatus === "active" || conn.testStatus === "success")) {
-      result.push({
-        connectionId: conn.id,
-        provider: conn.provider,
-        name: conn.name,
-        models: conn.models || [],
-      });
-    }
-  });
-  return result;
-};

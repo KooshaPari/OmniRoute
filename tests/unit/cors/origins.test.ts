@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { NextResponse } from "next/server";
 import {
   applyCorsHeaders,
+  getCorsStatus,
   resolveAllowedOrigin,
   setRuntimeAllowedOrigins,
   STATIC_CORS_HEADERS,
@@ -128,6 +129,51 @@ describe("cors/origins.applyCorsHeaders", () => {
     assert.match(res.headers.get("Vary") || "", /Origin/);
   });
 
+  it("CLIENT_API: echoes arbitrary Origin (+Vary) when no allowlist matches (relaxForTokenAuth)", () => {
+    // Token-authenticated /v1/* surface (issue #5242): no allowlist, arbitrary
+    // origin → echo it back so browser/Electron renderers can read the body.
+    const res = NextResponse.json({ ok: true });
+    const req = new Request("https://server.example.com/api/v1/models", {
+      headers: { Origin: "http://localhost" },
+    });
+    applyCorsHeaders(res, req, true);
+    assert.equal(res.headers.get("Access-Control-Allow-Origin"), "http://localhost");
+    assert.match(res.headers.get("Vary") || "", /Origin/);
+    // Never paired with Allow-Credentials on the token-auth surface.
+    assert.equal(res.headers.get("Access-Control-Allow-Credentials"), null);
+  });
+
+  it("CLIENT_API: returns '*' when no Origin header is present (relaxForTokenAuth)", () => {
+    const res = NextResponse.json({ ok: true });
+    const req = new Request("https://server.example.com/api/v1/models");
+    applyCorsHeaders(res, req, true);
+    assert.equal(res.headers.get("Access-Control-Allow-Origin"), "*");
+    assert.equal(res.headers.get("Access-Control-Allow-Credentials"), null);
+  });
+
+  it("MANAGEMENT: stays fail-closed for arbitrary Origin with no allowlist (relax off)", () => {
+    const res = NextResponse.json({ ok: true });
+    const req = new Request("https://server.example.com/api/keys", {
+      headers: { Origin: "http://localhost" },
+    });
+    // Default (relaxForTokenAuth = false) — same as MANAGEMENT routes.
+    applyCorsHeaders(res, req);
+    assert.equal(res.headers.get("Access-Control-Allow-Origin"), null);
+    applyCorsHeaders(res, req, false);
+    assert.equal(res.headers.get("Access-Control-Allow-Origin"), null);
+  });
+
+  it("relaxForTokenAuth still honors an explicit allowlist match exactly (no wildcard)", () => {
+    process.env.CORS_ALLOWED_ORIGINS = "https://app.example.com";
+    const res = NextResponse.json({ ok: true });
+    const req = new Request("https://server.example.com/api/v1/models", {
+      headers: { Origin: "https://app.example.com" },
+    });
+    applyCorsHeaders(res, req, true);
+    assert.equal(res.headers.get("Access-Control-Allow-Origin"), "https://app.example.com");
+    assert.match(res.headers.get("Vary") || "", /Origin/);
+  });
+
   it("reflects requested headers from Access-Control-Request-Headers preflight", () => {
     process.env.CORS_ALLOWED_ORIGINS = "https://app.example.com";
     const res = NextResponse.json({ ok: true });
@@ -140,6 +186,48 @@ describe("cors/origins.applyCorsHeaders", () => {
     });
     applyCorsHeaders(res, req);
     assert.equal(res.headers.get("Access-Control-Allow-Headers"), "x-custom-header, authorization");
+  });
+});
+
+describe("cors/origins.getCorsStatus", () => {
+  let envSnap: Record<string, string | undefined>;
+
+  beforeEach(() => {
+    envSnap = snapshotEnv();
+    for (const key of ENV_KEYS) delete process.env[key];
+    setRuntimeAllowedOrigins("");
+  });
+
+  afterEach(() => {
+    restoreEnv(envSnap);
+    setRuntimeAllowedOrigins("");
+  });
+
+  it("default (no env, no runtime) → allowAll false, empty origins", () => {
+    assert.deepEqual(getCorsStatus(), { allowAll: false, allowedOrigins: [] });
+  });
+
+  it("CORS_ALLOW_ALL=true → allowAll true", () => {
+    process.env.CORS_ALLOW_ALL = "true";
+    assert.equal(getCorsStatus().allowAll, true);
+  });
+
+  it("legacy CORS_ORIGIN=* → allowAll true", () => {
+    process.env.CORS_ORIGIN = "*";
+    assert.equal(getCorsStatus().allowAll, true);
+  });
+
+  it("merges env + runtime allowlists, normalized, sorted, deduped", () => {
+    process.env.CORS_ALLOWED_ORIGINS = "https://Env.Example.com/, https://shared.example.com";
+    setRuntimeAllowedOrigins("https://runtime.example.com, https://shared.example.com/");
+    assert.deepEqual(getCorsStatus(), {
+      allowAll: false,
+      allowedOrigins: [
+        "https://env.example.com",
+        "https://runtime.example.com",
+        "https://shared.example.com",
+      ],
+    });
   });
 });
 

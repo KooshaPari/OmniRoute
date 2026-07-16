@@ -22,7 +22,7 @@ import ImportProgressModal from "./ImportProgressModal";
 import { AdaptaTutorialModal } from "./AdaptaTutorialModal";
 import { ImportCodexAuthModal, ApplyCodexAuthModal } from "./modals/ImportCodexAuthModal";
 import { ImportClaudeAuthModal, ApplyClaudeAuthModal } from "./modals/ImportClaudeAuthModal";
-import { ImportGeminiAuthModal, ApplyGeminiAuthModal } from "./modals/ImportGeminiAuthModal";
+import ImportGrokCliAuthModal from "./modals/ImportGrokCliAuthModal";
 import { type ConnectionRowConnection } from "./ConnectionRow";
 import { type BatchTestResults } from "../hooks/useProviderConnections";
 import { type ImportProgress } from "../hooks/useModelImportHandlers";
@@ -31,6 +31,7 @@ import type { ProviderMessageTranslator } from "../providerPageHelpers";
 interface ProviderInfo {
   name: string;
   riskNoticeVariant?: string;
+  website?: string;
   [key: string]: unknown;
 }
 
@@ -49,6 +50,7 @@ interface ProviderModalsPanelProps {
   isCommandCode: boolean;
   isUpstreamProxyProvider: boolean;
   subscriptionRisk: boolean;
+  existingConnectionCount?: number;
   // Risk notice
   showRiskNoticeModal: boolean;
   handleConfirmRiskNotice: () => void;
@@ -116,13 +118,9 @@ interface ProviderModalsPanelProps {
   handleApplyClaudeAuthLocal: (id: string) => Promise<void>;
   importClaudeModalOpen: boolean;
   setImportClaudeModalOpen: (open: boolean) => void;
-  // Gemini auth
-  applyGeminiModalConnectionId: string | null;
-  setApplyGeminiModalConnectionId: (id: string | null) => void;
-  applyingGeminiAuthId: string | null;
-  handleApplyGeminiAuthLocal: (id: string) => Promise<void>;
-  importGeminiModalOpen: boolean;
-  setImportGeminiModalOpen: (open: boolean) => void;
+  // Grok Build auth
+  importGrokCliModalOpen: boolean;
+  setImportGrokCliModalOpen: (open: boolean) => void;
   // Batch test results
   batchTestResults: BatchTestResults | null;
   setBatchTestResults: (r: BatchTestResults | null) => void;
@@ -149,6 +147,7 @@ export default function ProviderModalsPanel({
   isCcCompatible,
   isUpstreamProxyProvider,
   subscriptionRisk,
+  existingConnectionCount,
   showRiskNoticeModal,
   handleConfirmRiskNotice,
   handleCancelRiskNotice,
@@ -203,12 +202,8 @@ export default function ProviderModalsPanel({
   handleApplyClaudeAuthLocal,
   importClaudeModalOpen,
   setImportClaudeModalOpen,
-  applyGeminiModalConnectionId,
-  setApplyGeminiModalConnectionId,
-  applyingGeminiAuthId,
-  handleApplyGeminiAuthLocal,
-  importGeminiModalOpen,
-  setImportGeminiModalOpen,
+  importGrokCliModalOpen,
+  setImportGrokCliModalOpen,
   batchTestResults,
   setBatchTestResults,
   emailsVisible,
@@ -285,7 +280,9 @@ export default function ProviderModalsPanel({
           isOpen={showAddApiKeyModal}
           provider={providerId}
           providerName={providerInfo.name}
+          providerWebsite={providerInfo.website}
           initialBaseUrl={siliconFlowInitialBaseUrl}
+          existingConnectionCount={existingConnectionCount}
           isCompatible={isCompatible}
           isAnthropic={isAnthropicProtocolCompatible}
           isCcCompatible={isCcCompatible}
@@ -320,6 +317,7 @@ export default function ProviderModalsPanel({
           isOpen={showEditModal}
           connection={selectedConnection}
           providerId={providerId}
+          providerWebsite={providerInfo.website}
           onSave={handleUpdateConnection}
           onResyncModels={(id) => handleCompatibleImportWithProgress(id, "sync")}
           onClose={() => setShowEditModal(false)}
@@ -376,21 +374,12 @@ export default function ProviderModalsPanel({
           }}
         />
       )}
-      {providerId === "gemini-cli" && applyGeminiModalConnectionId && (
-        <ApplyGeminiAuthModal
-          key={applyGeminiModalConnectionId}
-          connectionId={applyGeminiModalConnectionId}
-          inProgress={!!applyingGeminiAuthId}
-          onConfirm={handleApplyGeminiAuthLocal}
-          onClose={() => setApplyGeminiModalConnectionId(null)}
-        />
-      )}
-      {providerId === "gemini-cli" && importGeminiModalOpen && (
-        <ImportGeminiAuthModal
-          key="import-gemini-modal"
-          onClose={() => setImportGeminiModalOpen(false)}
+      {providerId === "grok-cli" && importGrokCliModalOpen && (
+        <ImportGrokCliAuthModal
+          key="import-grok-cli-modal"
+          onClose={() => setImportGrokCliModalOpen(false)}
           onSuccess={() => {
-            setImportGeminiModalOpen(false);
+            setImportGrokCliModalOpen(false);
             void fetchConnections();
           }}
         />

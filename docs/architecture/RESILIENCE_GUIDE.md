@@ -1,7 +1,7 @@
 ---
 title: "Resilience Guide"
-version: 3.8.31
-lastUpdated: 2026-06-20
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Resilience Guide
@@ -81,7 +81,7 @@ OmniRoute has three distinct but related resilience mechanisms. Each has a diffe
 
 **Terminal states (NOT cooldowns):**
 
-- `banned`
+- `banned` — set by banned-keyword / account-ban detection (see [BAN_DETECTION](../security/BAN_DETECTION.md))
 - `expired`
 - `credits_exhausted`
 
@@ -124,18 +124,18 @@ opt-in feature with its own settings card and a self-healing recovery path.
 **Settings card:** Settings → Model Lockout
 (`src/app/(dashboard)/dashboard/settings/components/ModelLockoutCard.tsx`).
 This is **distinct** from the read-only `ModelCooldownsCard` above (which only
-*lists* active lockouts) — the new card *configures the parameters*. Defaults
+_lists_ active lockouts) — the new card _configures the parameters_. Defaults
 live in `DEFAULT_MODEL_LOCKOUT_SETTINGS`
 (`src/lib/resilience/modelLockoutSettings.ts`):
 
-| Setting                 | Default                          | Meaning                                                          |
-| ----------------------- | -------------------------------- | --------------------------------------------------------------- |
-| `enabled`               | `false`                          | Master toggle — model lockout is **off by default**.            |
-| `errorCodes`            | `[403, 404, 429, 502, 503, 504]` | Upstream statuses that count as a model-scoped failure.         |
-| `baseCooldownMs`        | `120_000` (120 s)                | Initial lockout duration for the first failure.                 |
-| `maxCooldownMs`         | `1_800_000` (30 min)             | Cap on the escalated cooldown.                                  |
-| `maxBackoffSteps`       | `10`                             | Max exponential-backoff escalation steps.                       |
-| `useExponentialBackoff` | `true`                           | Whether repeated failures escalate the cooldown exponentially.  |
+| Setting                 | Default                          | Meaning                                                        |
+| ----------------------- | -------------------------------- | -------------------------------------------------------------- |
+| `enabled`               | `false`                          | Master toggle — model lockout is **off by default**.           |
+| `errorCodes`            | `[403, 404, 429, 502, 503, 504]` | Upstream statuses that count as a model-scoped failure.        |
+| `baseCooldownMs`        | `120_000` (120 s)                | Initial lockout duration for the first failure.                |
+| `maxCooldownMs`         | `1_800_000` (30 min)             | Cap on the escalated cooldown.                                 |
+| `maxBackoffSteps`       | `10`                             | Max exponential-backoff escalation steps.                      |
+| `useExponentialBackoff` | `true`                           | Whether repeated failures escalate the cooldown exponentially. |
 
 Settings persist through the normal settings store and validate via the
 resilience settings schema; the card clamps `baseCooldownMs`/`maxCooldownMs`
@@ -154,14 +154,54 @@ either path can re-enable a model.
 
 **State:** lockouts are held **in-memory** (per-process `Map`s of
 `ModelLockoutEntry` keyed by `provider:connectionId:model`), not persisted to
-the DB — they are lost on restart. The *settings* are persisted; the active
-lockout *state* is ephemeral.
+the DB — they are lost on restart. The _settings_ are persisted; the active
+lockout _state_ is ephemeral.
+
+---
+
+## 4. Quota-Share Concurrency Control (v3.8.36)
+
+Subscription accounts (GLM, MiniMax, etc.) often accept only ~1–3 concurrent
+requests; exceeding that triggers 429s and cooldowns. This is acute under
+**quota-share** (`qtSd/…`) combos, where several API keys share one upstream
+account. Three layers keep a shared account from being flooded.
+
+### Per-connection concurrency cap (`max_concurrent`)
+
+Each provider connection can declare a `max_concurrent` ceiling
+(`provider_connections.max_concurrent`, set in the connection modal / API / DB).
+Leave it empty for no limit. This is the single knob that drives the serialization
+layer below — set it to the account's real concurrency (e.g. GLM ~1, MiniMax ~2).
+
+### Quota-share request serialization
+
+When a quota-share dispatch targets a connection that declares a positive
+`max_concurrent`, concurrent requests to that **account** are serialized through a
+per-connection semaphore (key `qsconn:<connectionId>`): excess requests **wait in
+the queue** instead of flooding the account. It is **fail-open** — a saturated
+queue or timeout proceeds without a slot rather than ever rejecting a dispatchable
+request. Toggle in **Settings → Resilience → Quota-share per-connection
+concurrency** (`resilienceSettings.quotaShareConcurrencyLimit.enabled`, default
+on). Without a `max_concurrent` cap the behavior is unchanged.
+
+> The quota-share routing gate (`selectQuotaShareTarget`, DRR + P2C) is itself
+> fail-open and only _deprioritizes_ an at-cap connection — with a
+> single-connection pool it cannot hard-limit, so this semaphore is what actually
+> contains the flood.
+
+### Combo cooldown-aware retry
+
+For quota-share combos only, a request that would crystallize a 429 for a SHORT
+transient cooldown waits it out and re-dispatches instead of returning the 429.
+Bounded by `comboCooldownWait` (`enabled`, `maxWaitMs` 5s, `maxAttempts` 2,
+`budgetMs` 8s) in **Settings → Resilience**. It never waits on `quota_exhausted`
+(locked until midnight) or auth/not-found reasons.
 
 ---
 
 ## Other Resilience Features
 
-- **14 routing strategies** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, strict-random, auto, lkgp, context-optimized) — see [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
+- **18 routing strategies** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, fusion, pipeline) — see [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
 - **Reset-aware routing** (v3.8.0) — prioritizes connections by quota reset time.
 - **Background mode degradation** — Responses API `background: true` degraded to sync with warning.
 - **Dynamic tool limit detection** — backs off providers when tool count limits hit.
@@ -185,19 +225,19 @@ Provider-specific stealth (JA3/JA4, CCH, obfuscation) is separately documented �
 
 ---
 
-## Resilience testing (Fase 8 · Bloco C)
+## Resilience testing (Phase 8 · Block C)
 
-Além dos unit tests da lógica de resiliência, três testes exercitam o runtime sob
-estresse/falha real (todos integração/nightly — nenhum bloqueia PR):
+Beyond unit tests for resilience logic, three tests exercise the runtime under
+real stress/failure conditions (all integration/nightly — none block PRs):
 
-| Teste | O quê | Rodar |
-|---|---|---|
-| Chaos | Fake-upstream node injeta latência/reset/timeout/503 reais; valida que o circuit breaker abre/recupera e `checkFallbackError` classifica 503 como fallback recuperável. | `RUN_CHAOS_INT=1 npm run test:chaos` |
-| Heap-growth | ~500 streams por `createSSEStream` sob `--expose-gc`; falha se o heap crescer além do teto (guarda OOM #3069). | `npm run test:heap` |
-| k6 soak | Carga sustentada contra `/api/monitoring/health`; thresholds p95/erro. | `k6 run tests/load/k6-soak.js` (nightly) |
+| Test        | What                                                                                                                                                                          | Run                                      |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| Chaos       | Fake-upstream node injects real latency/reset/timeout/503; validates that the circuit breaker opens/recovers and `checkFallbackError` classifies 503 as recoverable fallback. | `RUN_CHAOS_INT=1 npm run test:chaos`     |
+| Heap-growth | ~500 streams per `createSSEStream` under `--expose-gc`; fails if the heap grows beyond the ceiling (OOM guard #3069).                                                         | `npm run test:heap`                      |
+| k6 soak     | Sustained load against `/api/monitoring/health`; p95/error thresholds.                                                                                                        | `k6 run tests/load/k6-soak.js` (nightly) |
 
-Orquestrados por `.github/workflows/nightly-resilience.yml` (cron + dispatch). No
-`test:integration` default, chaos e heap se auto-skipam (sem `RUN_CHAOS_INT`/`--expose-gc`).
+Orchestrated by `.github/workflows/nightly-resilience.yml` (cron + dispatch). In the
+default `test:integration`, chaos and heap self-skip (without `RUN_CHAOS_INT`/`--expose-gc`).
 
 ---
 
@@ -205,4 +245,4 @@ Orquestrados por `.github/workflows/nightly-resilience.yml` (cron + dispatch). N
 
 - [Architecture Guide](./ARCHITECTURE.md) — System architecture and internals
 - [User Guide](../guides/USER_GUIDE.md) — Providers, combos, CLI integration
-- [Auto-Combo Engine](../routing/AUTO-COMBO.md) — 6-factor scoring, mode packs
+- [Auto-Combo Engine](../routing/AUTO-COMBO.md) — 12-factor scoring, mode packs

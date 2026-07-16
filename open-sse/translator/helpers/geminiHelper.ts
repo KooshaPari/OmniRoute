@@ -1,5 +1,7 @@
 // Gemini helper functions for translator
 
+import { safeParseJSON } from "./jsonUtil.ts";
+
 type JsonRecord = Record<string, unknown>;
 
 // Unsupported JSON Schema constraints that should be removed for Antigravity.
@@ -10,7 +12,14 @@ export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
   "maxLength",
   "exclusiveMinimum",
   "exclusiveMaximum",
-  "pattern",
+  // `multipleOf` is not part of the Gemini/antigravity OpenAPI 3.0 schema subset;
+  // leaving it in function_declarations triggers a hard upstream 400
+  // ("Unknown name \"multipleOf\""). `minimum`/`maximum` ARE accepted and kept.
+  "multipleOf",
+  // NOTE: `pattern` is intentionally NOT in this set. Antigravity (Gemini-derived
+  // surface) accepts `pattern` on string constraints, and glob/grep/file-search
+  // tools depend on it to express their argument regex. Removing it produced
+  // upstream 400s and wrong-tool semantics (decolua/9router#1368).
   "minItems",
   "maxItems",
   "format",
@@ -90,6 +99,15 @@ export const DEFAULT_SAFETY_SETTINGS = [
   { category: "HARM_CATEGORY_CIVIC_INTEGRITY", threshold: "OFF" },
 ];
 
+function normalizeAudioMimeType(format: unknown): string {
+  const normalized =
+    typeof format === "string" && format.trim() ? format.trim().toLowerCase() : "wav";
+  if (normalized === "mp3") {
+    return "audio/mpeg";
+  }
+  return `audio/${normalized}`;
+}
+
 // Convert OpenAI content to Gemini parts
 export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
   const parts: JsonRecord[] = [];
@@ -102,19 +120,11 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
       if (rec.type === "text") {
         parts.push({ text: rec.text });
       } else if (rec.type === "input_audio" || rec.type === "audio") {
-        // OpenAI Chat Completions audio input shape (ports decolua/9router#912 + #913):
-        // { type:"input_audio", input_audio:{data,format} } — some clients use the
-        // { type:"audio", audio:{data,format} } shape — -> Gemini
-        // `inlineData: { mimeType: "audio/<format>", data }`. mp3 normalizes to the
-        // canonical `audio/mpeg`; a leading `data:<mime>;base64,` prefix is stripped so
-        // Gemini receives raw base64.
         const audio = toRecord(rec.input_audio || rec.audio);
         if (typeof audio.data === "string" && audio.data) {
-          const format = typeof audio.format === "string" && audio.format ? audio.format : "wav";
-          const mimeType = format === "mp3" ? "audio/mpeg" : `audio/${format}`;
           parts.push({
             inlineData: {
-              mimeType,
+              mimeType: normalizeAudioMimeType(audio.format),
               data: audio.data.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, ""),
             },
           });
@@ -162,17 +172,35 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
 
         // 3. Handle raw data strings (e.g. {"type": "file", "data": "JVBER...", "mime_type": "..."}).
         //    Also accept the Responses-API shape {"type":"input_file","file_data":"JVBER...","filename":...}
-        //    so PDFs sent as `input_file` reach Gemini instead of being silently dropped (#2515).
+        //    AND the OpenAI Chat Completions shape
+        //    {"type":"file","file":{"filename":...,"file_data":"data:<mime>;base64,..."}} so PDFs and
+        //    videos reach Gemini instead of being silently dropped (#2515). Gemini reads
+        //    application/pdf and video/* natively via inlineData, exactly like images.
         const file = toRecord(rec.file);
         const doc = toRecord(rec.document);
-        const rawDataStr = rec.data || rec.file_data || file?.data || doc?.data;
-        const mimeTypeFallback =
-          rec.mime_type || rec.media_type || file?.mime_type || doc?.mime_type || "application/pdf";
+        const rawDataStr =
+          rec.data || rec.file_data || file?.data || file?.file_data || doc?.data || doc?.file_data;
         if (typeof rawDataStr === "string" && !rawDataStr.startsWith("http")) {
+          // Prefer the mime embedded in the data: URI (e.g. application/pdf, video/mp4) so
+          // documents and videos are not mislabeled as the fallback; the fallback applies
+          // only to bare base64 that carries no data: prefix.
+          let mimeType =
+            rec.mime_type ||
+            rec.media_type ||
+            file?.mime_type ||
+            doc?.mime_type ||
+            "application/pdf";
+          if (rawDataStr.startsWith("data:")) {
+            const commaIndex = rawDataStr.indexOf(",");
+            if (commaIndex !== -1) {
+              const parsedMime = rawDataStr.substring(5, commaIndex).split(";")[0];
+              if (parsedMime) mimeType = parsedMime;
+            }
+          }
           const rawData = rawDataStr.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, "");
           parts.push({
             inlineData: {
-              mimeType: String(mimeTypeFallback),
+              mimeType: String(mimeType),
               data: rawData,
             },
           });
@@ -239,14 +267,9 @@ export function extractTextContent(content: unknown): string {
   return "";
 }
 
-// Try parse JSON safely
+// Try parse JSON safely (null fallback on parse error; re-export keeps legacy API).
 export function tryParseJSON(str: unknown): unknown {
-  if (typeof str !== "string") return str;
-  try {
-    return JSON.parse(str);
-  } catch {
-    return null;
-  }
+  return safeParseJSON(str, null);
 }
 
 // Generate request ID

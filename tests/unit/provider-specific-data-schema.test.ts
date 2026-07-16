@@ -51,6 +51,7 @@ test("provider schemas accept boolean CC-compatible request defaults", () => {
       requestDefaults: {
         context1m: true,
         redactThinking: true,
+        summarizeThinking: true,
       },
     },
   });
@@ -59,6 +60,7 @@ test("provider schemas accept boolean CC-compatible request defaults", () => {
       requestDefaults: {
         context1m: false,
         redactThinking: false,
+        summarizeThinking: false,
       },
     },
   });
@@ -76,6 +78,7 @@ test("provider schemas reject non-boolean CC-compatible request defaults", () =>
       requestDefaults: {
         context1m: "yes",
         redactThinking: "yes",
+        summarizeThinking: "yes",
       },
     },
   });
@@ -84,6 +87,7 @@ test("provider schemas reject non-boolean CC-compatible request defaults", () =>
       requestDefaults: {
         context1m: 1,
         redactThinking: 1,
+        summarizeThinking: 1,
       },
     },
   });
@@ -111,6 +115,22 @@ test("provider schemas accept Codex default priority and flex service tiers", ()
     assert.equal(created.success, true, serviceTier);
     assert.equal(updated.success, true, serviceTier);
   }
+});
+
+test("provider schemas accept max but reject ultra as a server-side Codex default", () => {
+  const max = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      requestDefaults: { reasoningEffort: "max" },
+    },
+  });
+  const ultra = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      requestDefaults: { reasoningEffort: "ultra" },
+    },
+  });
+
+  assert.equal(max.success, true);
+  assert.equal(ultra.success, false);
 });
 
 test("provider schemas reject unknown Codex service tiers", () => {
@@ -209,6 +229,46 @@ test("provider schemas reject malformed quota scraping provider-specific values"
   const updated = updateProviderConnectionSchema.safeParse({
     providerSpecificData: {
       ollamaCloudUsageCookie: 123,
+    },
+  });
+
+  assert.equal(created.success, false);
+  assert.equal(updated.success, false);
+});
+
+test("provider schemas accept GLM team quota provider-specific strings", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "glm-cn",
+    apiKey: "id.secret",
+    name: "GLM CN Team",
+    providerSpecificData: {
+      glmOrganizationId: "org-team",
+      glmProjectId: "proj_team",
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      glmOrganizationId: "org-team",
+      glmProjectId: "proj_team",
+    },
+  });
+
+  assert.equal(created.success, true);
+  assert.equal(updated.success, true);
+});
+
+test("provider schemas reject incomplete GLM team quota provider-specific values", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "glm-cn",
+    apiKey: "id.secret",
+    name: "GLM CN Team",
+    providerSpecificData: {
+      glmOrganizationId: "org-only",
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      glmProjectId: 123,
     },
   });
 

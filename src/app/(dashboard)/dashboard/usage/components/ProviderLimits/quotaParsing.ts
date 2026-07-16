@@ -2,6 +2,24 @@ import { getModelsByProviderId } from "@omniroute/open-sse/config/providerModels
 import { safePercentage } from "@/shared/utils/formatting";
 
 const GLM_QUOTA_ORDER: Record<string, number> = { session: 0, weekly: 1, mcp_monthly: 2 };
+const CODEX_QUOTA_ORDER: Record<string, number> = {
+  session: 0,
+  weekly: 1,
+  gpt_5_3_codex_spark_session: 2,
+  gpt_5_3_codex_spark_weekly: 3,
+  banked_reset_credits: 4,
+};
+const GLM_FAMILY_PROVIDERS = ["glm", "glm-cn", "glmt", "opencode-go"];
+
+/**
+ * Providers whose quotas already get a deterministic fixed-window order from
+ * sortGlmOrder()/sortCodexOrder() below. Display layers (e.g. QuotaCardExpanded)
+ * must not re-sort these by remaining percentage, or they undo this order (#6687).
+ */
+export function hasFixedQuotaOrder(providerId: string | undefined): boolean {
+  const id = String(providerId || "").toLowerCase();
+  return id === "codex" || GLM_FAMILY_PROVIDERS.includes(id);
+}
 
 function quotaEntries(data: any): Array<[string, any]> {
   return data?.quotas && typeof data.quotas === "object" ? Object.entries(data.quotas) : [];
@@ -110,27 +128,69 @@ function parseAntigravity(data: any) {
     .filter(Boolean);
 }
 
+function buildBankedResetCreditsQuota(count: number) {
+  return {
+    name: "banked_reset_credits",
+    used: 0,
+    total: 0,
+    remaining: count,
+    resetAt: null,
+    unlimited: false,
+    isResetCredits: true,
+    remainingPercentage: 100,
+    creditCount: count,
+  };
+}
+
 function parseCodex(data: any) {
-  return quotaEntries(data).map(([quotaType, quota]) =>
+  const quotas = quotaEntries(data).map(([quotaType, quota]) =>
     normalizeQuotaEntry(quotaType, quota, {
       displayName: quota?.displayName,
       isPercentageOnly: true,
     })
   );
+
+  const bankedResetCredits = Number(data?.bankedResetCredits);
+  if (Number.isFinite(bankedResetCredits) && bankedResetCredits > 0) {
+    quotas.push(buildBankedResetCreditsQuota(bankedResetCredits));
+  }
+
+  return quotas;
 }
 
+function buildClaudeExtraUsageQuota(extraUsage: any) {
+  const monthlyLimit = Number(extraUsage?.monthly_limit ?? 0);
+  const usedCredits = Number(extraUsage?.used_credits ?? 0);
+  const utilization = Number(extraUsage?.utilization ?? 0);
+  const remainingPercentage = Number.isFinite(utilization)
+    ? Math.max(0, 100 - utilization)
+    : undefined;
+  const remaining = Number.isFinite(monthlyLimit) ? Math.max(0, monthlyLimit - usedCredits) : 0;
+
+  return buildCreditsQuota("extra_usage", remaining, remainingPercentage ?? 100, {
+    used: Number.isFinite(usedCredits) ? usedCredits : 0,
+    total: Number.isFinite(monthlyLimit) ? monthlyLimit : 0,
+    currency: extraUsage?.currency,
+  });
+}
+
+// #6806: some Claude plans (e.g. "default_raven_enterprise") return no
+// five_hour/seven_day utilization windows at all — only a credit-billing
+// extraUsage block — so quotas can be {} while extraUsage still holds real,
+// actionable usage data. Fold it in instead of falling back to "No quota data".
 function parseClaude(data: any) {
   if (data?.message)
     return [{ name: "error", used: 0, total: 0, resetAt: null, message: data.message }];
-  return quotaEntries(data).map(([name, quota]) =>
+
+  const quotas = quotaEntries(data).map(([name, quota]) =>
     normalizeQuotaEntry(name, quota, { isPercentageOnly: true })
   );
-}
 
-function parseGeminiCli(data: any) {
-  return quotaEntries(data).map(([modelKey, quota]) =>
-    normalizeQuotaEntry(modelKey, quota, { modelKey })
-  );
+  if (data?.extraUsage?.is_enabled) {
+    quotas.push(buildClaudeExtraUsageQuota(data.extraUsage));
+  }
+
+  return quotas;
 }
 
 function parseDeepseekQuota(quotaKey: string, quota: any) {
@@ -153,7 +213,6 @@ function parseProviderQuotas(providerId: string, data: any) {
   if (providerId === "antigravity" || providerId === "agy") return parseAntigravity(data);
   if (providerId === "codex") return parseCodex(data);
   if (providerId === "claude") return parseClaude(data);
-  if (providerId === "gemini-cli") return parseGeminiCli(data);
   if (providerId === "deepseek") return parseDeepseek(data);
   return parseGeneric(data);
 }
@@ -169,8 +228,13 @@ function sortProviderModelOrder(provider: string, quotas: any[]) {
 }
 
 function sortGlmOrder(providerId: string, quotas: any[]) {
-  if (!["glm", "glm-cn", "glmt", "opencode-go"].includes(providerId)) return;
+  if (!GLM_FAMILY_PROVIDERS.includes(providerId)) return;
   quotas.sort((a, b) => (GLM_QUOTA_ORDER[a.name] ?? 99) - (GLM_QUOTA_ORDER[b.name] ?? 99));
+}
+
+function sortCodexOrder(providerId: string, quotas: any[]) {
+  if (providerId !== "codex") return;
+  quotas.sort((a, b) => (CODEX_QUOTA_ORDER[a.name] ?? 99) - (CODEX_QUOTA_ORDER[b.name] ?? 99));
 }
 
 export function parseQuotaData(provider: string | undefined, data: any) {
@@ -181,6 +245,7 @@ export function parseQuotaData(provider: string | undefined, data: any) {
     const normalizedQuotas = parseProviderQuotas(providerId, data);
     sortProviderModelOrder(provider, normalizedQuotas);
     sortGlmOrder(providerId, normalizedQuotas);
+    sortCodexOrder(providerId, normalizedQuotas);
     return normalizedQuotas;
   } catch (error) {
     console.error(`Error parsing quota data for ${provider}:`, error);

@@ -10,6 +10,7 @@ import {
   IMAGE_ONLY_PROVIDER_IDS,
   VIDEO_PROVIDER_IDS,
 } from "@/shared/constants/providers";
+import { partitionNoAuthEntriesByBlocked } from "@/shared/utils/noAuthProviders";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
@@ -19,14 +20,17 @@ import { useTranslations } from "next-intl";
 import {
   buildStaticProviderEntries,
   buildCompatibleProviderGroups,
+  connectionMatchesProviderCard,
   filterConfiguredProviderEntries,
   shouldFilterProviderEntriesForDisplayMode,
   shouldShowFirstProviderHint,
   upsertProviderNodeById,
+  loadProviderPageData,
 } from "./providerPageUtils";
 import type { ProviderEntry } from "./providerPageUtils";
 import {
   readProviderDisplayModePreference,
+  shouldSyncProviderDisplayMode,
   writeProviderDisplayModePreference,
   type ProviderDisplayMode,
 } from "./providerPageStorage";
@@ -37,6 +41,7 @@ import {
 } from "@/lib/providers/codexFastTier";
 import AddCompatibleProviderModal from "./components/AddCompatibleProviderModal";
 import { CategoryDot } from "./components/CategoryDot";
+import NoAuthProvidersSection from "./components/NoAuthProvidersSection";
 import ProviderCard from "./components/ProviderCard";
 import ProviderCountBadge from "./components/ProviderCountBadge";
 import ProviderSummaryCard from "./components/ProviderSummaryCard";
@@ -231,26 +236,16 @@ export default function ProvidersPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [connectionsRes, nodesRes, expirationsRes, settingsRes] = await Promise.all([
-          fetch("/api/providers"),
-          fetch("/api/provider-nodes"),
-          fetch("/api/providers/expiration"),
-          fetch("/api/settings", { cache: "no-store" }),
-        ]);
-        const connectionsData = await connectionsRes.json();
-        const nodesData = await nodesRes.json();
-        const expirationsData = await expirationsRes.json();
-        const settingsData = settingsRes.ok ? await settingsRes.json() : null;
-        if (connectionsRes.ok) setConnections(connectionsData.connections || []);
-        if (nodesRes.ok) {
-          setProviderNodes(nodesData.nodes || []);
-          setCcCompatibleProviderEnabled(nodesData.ccCompatibleProviderEnabled === true);
-        }
-        if (expirationsRes.ok && expirationsData) setExpirations(expirationsData);
-        if (settingsData && Array.isArray(settingsData.blockedProviders)) {
-          setBlockedProviders(settingsData.blockedProviders);
-        }
-        setCodexGlobalServiceMode(getCodexGlobalServiceMode(settingsData));
+        // Each request is time-bounded (see loadProviderPageData); a single
+        // stalled connection can no longer wedge `loading` on `true` and freeze
+        // the page on its skeleton forever.
+        const data = await loadProviderPageData();
+        setConnections(data.connections);
+        setProviderNodes(data.providerNodes);
+        setCcCompatibleProviderEnabled(data.ccCompatibleProviderEnabled);
+        if (data.expirations) setExpirations(data.expirations);
+        if (data.blockedProviders) setBlockedProviders(data.blockedProviders);
+        setCodexGlobalServiceMode(getCodexGlobalServiceMode(data.settings));
       } catch (error) {
         console.log("Error fetching data:", error);
       } finally {
@@ -261,21 +256,21 @@ export default function ProvidersPage() {
   }, []);
 
   useEffect(() => {
-    if (!displayModePreferenceReady) return;
+    if (!shouldSyncProviderDisplayMode(displayModePreferenceReady, loading)) return;
 
     const storedDisplayMode =
       connections.length === 0 && providerDisplayMode === "configured"
         ? "all"
         : providerDisplayMode;
     writeProviderDisplayModePreference(storedDisplayMode);
-  }, [connections.length, displayModePreferenceReady, providerDisplayMode]);
+  }, [connections.length, displayModePreferenceReady, providerDisplayMode, loading]);
 
   useEffect(() => {
-    if (!displayModePreferenceReady) return;
+    if (!shouldSyncProviderDisplayMode(displayModePreferenceReady, loading)) return;
     if (connections.length === 0 && providerDisplayMode === "configured") {
       setProviderDisplayMode("all");
     }
-  }, [connections.length, displayModePreferenceReady, providerDisplayMode]);
+  }, [connections.length, displayModePreferenceReady, providerDisplayMode, loading]);
 
   const fetchOauthEnvRepairStatus = useCallback(async () => {
     try {
@@ -323,11 +318,9 @@ export default function ProvidersPage() {
   };
 
   const getProviderStats = (providerId, authType) => {
-    const providerConnections = connections.filter((c) => {
-      if (c.provider !== providerId) return false;
-      if (authType === "free") return true;
-      return c.authType === authType;
-    });
+    const providerConnections = connections.filter((c) =>
+      connectionMatchesProviderCard(c, providerId, authType)
+    );
 
     // Helper: check if connection is effectively active (cooldown expired)
     const getEffectiveStatus = (conn) => {
@@ -390,8 +383,7 @@ export default function ProvidersPage() {
     // Count API keys in "warning" state across all connections
     const warning = providerConnections.reduce((warnCount, conn) => {
       const health = (conn as any).providerSpecificData?.apiKeyHealth as
-        | Record<string, { status: string }>
-        | undefined;
+        Record<string, { status: string }> | undefined;
       if (!health) return warnCount;
       return warnCount + Object.values(health).filter((h) => h.status === "warning").length;
     }, 0);
@@ -411,18 +403,14 @@ export default function ProvidersPage() {
 
   // Toggle all connections for a provider on/off
   const handleToggleProvider = async (providerId: string, authType: string, newActive: boolean) => {
-    const providerConns = connections.filter((c) => {
-      if (c.provider !== providerId) return false;
-      if (authType === "free") return true;
-      return c.authType === authType;
-    });
+    // Mirror getProviderStats: dual-auth providers (qoder, …) toggle BOTH their
+    // oauth and apikey/PAT connections from the single OAuth card.
+    const matchesToggle = (c: { provider: string; authType?: string }) =>
+      connectionMatchesProviderCard(c, providerId, authType as "oauth" | "free" | "apikey");
+    const providerConns = connections.filter(matchesToggle);
     // Optimistically update UI
     setConnections((prev) =>
-      prev.map((c) =>
-        c.provider === providerId && (authType === "free" || c.authType === authType)
-          ? { ...c, isActive: newActive }
-          : c
-      )
+      prev.map((c) => (matchesToggle(c) ? { ...c, isActive: newActive } : c))
     );
     // Fire API calls in parallel
     await Promise.allSettled(
@@ -512,12 +500,14 @@ export default function ProvidersPage() {
     activeServiceKind
   );
 
-  const blockedProviderSet = useMemo(() => new Set(blockedProviders), [blockedProviders]);
   const rawNoAuthEntriesAll = buildStaticProviderEntries("no-auth", getProviderStats);
-  const noAuthEntriesAll = rawNoAuthEntriesAll.filter(({ providerId, provider }) => {
-    const alias = typeof provider.alias === "string" ? provider.alias : null;
-    return !blockedProviderSet.has(providerId) && !(alias && blockedProviderSet.has(alias));
-  });
+  // Partition rather than drop: blocked no-auth providers stay surfaced on the page
+  // (rendered with a "Disabled" badge + Enable button) instead of silently vanishing,
+  // which left users unable to find/restore a disabled no-auth provider (#5166/#5183).
+  // `noAuthEntriesAll` keeps only the visible (non-blocked) entries, so every downstream
+  // aggregate/count/model list that consumes it is unchanged.
+  const { visible: noAuthEntriesAll, blocked: blockedNoAuthEntries } =
+    partitionNoAuthEntriesByBlocked(rawNoAuthEntriesAll, blockedProviders);
   const noAuthEntries = filterConfiguredProviderEntries(
     noAuthEntriesAll,
     effectiveShowConfiguredOnly,
@@ -952,7 +942,9 @@ export default function ProvidersPage() {
                       }`}
                       title={t("testAllCompatible")}
                     >
-                      <span className={`material-symbols-outlined text-[14px]${testingMode === "compatible" ? " animate-spin" : ""}`}>
+                      <span
+                        className={`material-symbols-outlined text-[14px]${testingMode === "compatible" ? " animate-spin" : ""}`}
+                      >
                         play_arrow
                       </span>
                       {testingMode === "compatible" ? t("testing") : t("testAll")}
@@ -1047,7 +1039,9 @@ export default function ProvidersPage() {
                     title={t("testAllOAuth")}
                     aria-label={t("testAllOAuth")}
                   >
-                    <span className={`material-symbols-outlined text-[14px]${testingMode === "oauth" ? " animate-spin" : ""}`}>
+                    <span
+                      className={`material-symbols-outlined text-[14px]${testingMode === "oauth" ? " animate-spin" : ""}`}
+                    >
                       play_arrow
                     </span>
                     {testingMode === "oauth" ? t("testing") : t("testAll")}
@@ -1097,7 +1091,9 @@ export default function ProvidersPage() {
                   title={t("testAll")}
                   aria-label={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "ide" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "ide" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "ide" ? t("testing") : t("testAll")}
@@ -1154,7 +1150,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "web-cookie" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "web-cookie" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "web-cookie" ? t("testing") : t("testAll")}
@@ -1198,7 +1196,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "free" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "free" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "free" ? t("testing") : t("testAll")}
@@ -1243,7 +1243,9 @@ export default function ProvidersPage() {
                   title={t("testAllApiKey")}
                   aria-label={t("testAllApiKey")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "apikey" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "apikey" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "apikey" ? t("testing") : t("testAll")}
@@ -1277,45 +1279,21 @@ export default function ProvidersPage() {
           )}
 
           {/* No Auth Providers */}
-          {showSection("noauth") && !showFreeOnly && noAuthEntriesAll.length > 0 && (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-                  {t("noAuthProviders")}{" "}
-                  <span className="size-2.5 rounded-full bg-stone-500" title={t("noAuthLabel")} />
-                  <ProviderCountBadge {...countConfigured(noAuthEntriesAll)} />
-                </h2>
-                <button
-                  onClick={() => handleBatchTest("no-auth")}
-                  disabled={!!testingMode}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                    testingMode === "no-auth"
-                      ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
-                      : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
-                  }`}
-                  title={t("testAll")}
-                >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "no-auth" ? " animate-spin" : ""}`}>
-                    play_arrow
-                  </span>
-                  {testingMode === "no-auth" ? t("testing") : t("testAll")}
-                </button>
-              </div>
-              <p className="text-sm text-text-muted -mt-2">{t("noAuthProvidersDesc")}</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
-                {noAuthEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
-                  <ProviderCard
-                    key={providerId}
-                    providerId={providerId}
-                    provider={provider}
-                    stats={stats}
-                    authType="no-auth"
-                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+          {showSection("noauth") &&
+            !showFreeOnly &&
+            (noAuthEntriesAll.length > 0 || blockedNoAuthEntries.length > 0) && (
+              <NoAuthProvidersSection
+                visibleEntries={noAuthEntries}
+                count={countConfigured(noAuthEntriesAll)}
+                blockedEntries={blockedNoAuthEntries}
+                blockedProviders={blockedProviders}
+                onBlockedChange={setBlockedProviders}
+                onError={(msg) => notify.error(msg)}
+                testingMode={testingMode}
+                onBatchTest={handleBatchTest}
+                onToggleProvider={handleToggleProvider}
+              />
+            )}
 
           {/* Upstream Proxy Providers */}
           {showSection("proxy") && upstreamProxyEntries.length > 0 && (
@@ -1339,7 +1317,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "upstream-proxy" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "upstream-proxy" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "upstream-proxy" ? t("testing") : t("testAll")}
@@ -1482,7 +1462,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "cloud-agent" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "cloud-agent" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "cloud-agent" ? t("testing") : t("testAll")}
@@ -1530,7 +1512,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "local" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "local" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "local" ? t("testing") : t("testAll")}
@@ -1574,7 +1558,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "search" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "search" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "search" ? t("testing") : t("testAll")}
@@ -1684,7 +1670,9 @@ export default function ProvidersPage() {
                   }`}
                   title={t("testAll")}
                 >
-                  <span className={`material-symbols-outlined text-[14px]${testingMode === "audio" ? " animate-spin" : ""}`}>
+                  <span
+                    className={`material-symbols-outlined text-[14px]${testingMode === "audio" ? " animate-spin" : ""}`}
+                  >
                     play_arrow
                   </span>
                   {testingMode === "audio" ? t("testing") : t("testAll")}

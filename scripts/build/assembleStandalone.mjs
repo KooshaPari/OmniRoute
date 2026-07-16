@@ -22,6 +22,7 @@
  * scripts/dev/standalone-server-ws.mjs -> outDir/server-ws    Y               Y           -    SHARED (extra module)
  * scripts/dev/peer-stamp.mjs -> outDir/peer-stamp.mjs         Y               Y           -    SHARED (extra module)
  * scripts/dev/responses-ws-proxy.mjs -> outDir/responses-ws-  Y               Y           -    SHARED (extra module)
+ * scripts/dev/head-response-guard.cjs -> outDir/head-respons  Y               Y           -    SHARED (extra module)
  * scripts/build/runtime-env.mjs -> outDir/build/runtime-env   Y               -           -    SHARED (extra module)
  * scripts/build/bootstrap-env.mjs -> outDir/build/bootstrap-  Y               -           -    SHARED (extra module)
  * scripts/dev/healthcheck.mjs -> outDir/healthcheck.mjs       Y               -           -    SHARED (extra module)
@@ -140,6 +141,11 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["http-method-guard.cjs"],
   },
   {
+    label: "HEAD response guard (server-ws.mjs dependency)",
+    src: ["scripts", "dev", "head-response-guard.cjs"],
+    dest: ["head-response-guard.cjs"],
+  },
+  {
     label: "responses-ws-proxy (server-ws.mjs dependency)",
     src: ["scripts", "dev", "responses-ws-proxy.mjs"],
     dest: ["responses-ws-proxy.mjs"],
@@ -148,6 +154,12 @@ const EXTRA_MODULE_ENTRIES = [
     label: "webdav-handler (server-ws.mjs dependency)",
     src: ["scripts", "dev", "webdav-handler.mjs"],
     dest: ["webdav-handler.mjs"],
+  },
+  {
+    // #5242: opt-in HTTPS/TLS resolver (server-ws.mjs dependency).
+    label: "tls-options (server-ws.mjs dependency)",
+    src: ["scripts", "dev", "tls-options.mjs"],
+    dest: ["tls-options.mjs"],
   },
   {
     label: "runtime-env script",
