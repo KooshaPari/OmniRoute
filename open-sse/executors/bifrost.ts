@@ -401,6 +401,7 @@ export class BifrostBackendExecutor extends BaseExecutor {
     // traces stay unified via the injected `traceparent`.
     const startTime = Date.now();
     let response: Response;
+    const shouldRecordRouteOutcome = !input.stream;
     try {
       const { result } = await withBifrostSpan(
         {
@@ -426,14 +427,16 @@ export class BifrostBackendExecutor extends BaseExecutor {
       // Fetch threw (network error, abort, timeout). Record a failed
       // observation and re-throw. The dispatcher will handle the error.
       const latencyMs = Date.now() - startTime;
-      recordBifrostRouteOutcome({
-        provider: this.provider,
-        model,
-        status: null,
-        latencyMs,
-        ok: false,
-        error: err,
-      });
+      if (shouldRecordRouteOutcome) {
+        recordBifrostRouteOutcome({
+          provider: this.provider,
+          model,
+          status: null,
+          latencyMs,
+          ok: false,
+          error: err,
+        });
+      }
       if (!isKillSwitchDisabled()) {
         recordObservation({
           timestamp: Date.now(),
@@ -455,13 +458,15 @@ export class BifrostBackendExecutor extends BaseExecutor {
     // fields are optional — callers that have them can wire them in via
     // input.killSwitchCost if/when that field is added.
     const latencyMs = Date.now() - startTime;
-    recordBifrostRouteOutcome({
-      provider: this.provider,
-      model,
-      status: response.status,
-      latencyMs,
-      ok: response.ok,
-    });
+    if (shouldRecordRouteOutcome) {
+      recordBifrostRouteOutcome({
+        provider: this.provider,
+        model,
+        status: response.status,
+        latencyMs,
+        ok: response.ok,
+      });
+    }
     if (!isKillSwitchDisabled()) {
       const cost = (input as { killSwitchCost?: { costUsd?: number; legacyCostUsd?: number } })
         .killSwitchCost;
