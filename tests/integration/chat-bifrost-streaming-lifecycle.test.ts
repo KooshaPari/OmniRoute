@@ -91,6 +91,21 @@ function createBifrostStreamingResponse({
   });
 }
 
+function createBifrostStreamReadinessFailureResponse() {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode(": keepalive\n\n"));
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    status: 200,
+    headers: { "Content-Type": "text/event-stream" },
+  });
+}
+
 async function readSse(response: Response): Promise<string> {
   const reader = (response.body as ReadableStream<Uint8Array>).getReader();
   const decoder = new TextDecoder();
@@ -148,4 +163,40 @@ test("Bifrost streaming lifecycle records exactly one successful outcome sample"
     stats?.avgTokensPerSecond === null || stats?.avgTokensPerSecond >= 0,
     "avgTokensPerSecond should be present or explicitly unavailable"
   );
+});
+
+test("Bifrost stream readiness failures record one failed outcome sample", async () => {
+  const connection = await h.seedConnection("openai", {
+    apiKey: "sk-openai-bifrost-readiness-failure",
+  });
+  const apiKey = await h.seedApiKey();
+  const headers = { "x-omniroute-connection": connection.id };
+
+  globalThis.fetch = (async () => createBifrostStreamReadinessFailureResponse()) as typeof fetch;
+
+  const response = await h.handleChat(
+    h.buildRequest({
+      authKey: apiKey.key,
+      headers,
+      body: {
+        model: "openai/gpt-4.1",
+        stream: true,
+        messages: [{ role: "user", content: "this should fail readiness" }],
+      },
+    })
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 502);
+  assert.equal(body.error.code, "STREAM_EARLY_EOF");
+
+  const target = resolveBifrostStreamRouteTarget("openai", "gpt-4.1");
+  const stats = getBifrostRouteMetrics(target.provider, target.model);
+  assert.ok(stats);
+  assert.equal(stats?.sampleCount, 1);
+  assert.equal(stats?.successCount, 0);
+  assert.equal(stats?.failureCount, 1);
+  assert.equal(stats?.lastStatus, 502);
+  assert.equal(typeof stats?.lastError, "string");
+  assert.match(stats?.lastError, /Stream ended before producing a non-ping SSE event/);
 });

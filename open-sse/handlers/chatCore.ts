@@ -4119,6 +4119,23 @@ export async function handleChatCore({
       claudeCacheMeta: claudePromptCacheLogMeta,
       cacheSource: "upstream",
     });
+    if (shouldRecordBifrostStreamOutcome && bifrostStreamRouteTarget) {
+      const payload = computeBifrostStreamOutcomeRecord({
+        shouldRecordViaBifrost: true,
+        provider: bifrostStreamRouteTarget.provider,
+        model: bifrostStreamRouteTarget.model,
+        status: failureResponse.status,
+        startTime,
+        streamUsage: undefined,
+      });
+      if (payload) {
+        recordBifrostRouteOutcome({
+          ...payload,
+          status: payload.status,
+          error: reason,
+        });
+      }
+    }
     persistFailureUsage(failureResponse.status, streamReadiness.code);
     // Do NOT call onStreamFailure — a stream stall is an upstream issue,
     // not an account/quota failure. Marking the account unavailable here
