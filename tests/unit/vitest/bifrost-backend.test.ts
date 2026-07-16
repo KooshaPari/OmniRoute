@@ -613,8 +613,27 @@ describe("BifrostBackendExecutor route outcome metrics integration", () => {
     expect(stats?.lastError).toBeNull();
   });
 
-  it("does not record a route metric when Bifrost returns HTTP 400", async () => {
-    const mockFetch = vi.fn().mockResolvedValue(new Response("{}", { status: 400 }));
+  it.each([400, 401, 402, 403])(
+    "does not record a route metric when Bifrost returns HTTP %i",
+    async (status) => {
+      const mockFetch = vi.fn().mockResolvedValue(new Response("{}", { status }));
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      const exec = new BifrostBackendExecutor("openai", {});
+      const result = await exec.execute({
+        model: "gpt-4o",
+        body: { model: "gpt-4o", messages: [] },
+        stream: false,
+        credentials: { apiKey: "sk-test" },
+      });
+
+      expect(result.response.status).toBe(status);
+      expect(getBifrostRouteMetrics("openai", "gpt-4o")).toBeNull();
+    }
+  );
+
+  it("records one failure metric when Bifrost returns HTTP 404", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(new Response("{}", { status: 404 }));
     globalThis.fetch = mockFetch as unknown as typeof fetch;
 
     const exec = new BifrostBackendExecutor("openai", {});
@@ -625,8 +644,11 @@ describe("BifrostBackendExecutor route outcome metrics integration", () => {
       credentials: { apiKey: "sk-test" },
     });
 
-    expect(result.response.status).toBe(400);
-    expect(getBifrostRouteMetrics("openai", "gpt-4o")).toBeNull();
+    expect(result.response.status).toBe(404);
+    const stats = getBifrostRouteMetrics("openai", "gpt-4o");
+    expect(stats?.sampleCount).toBe(1);
+    expect(stats?.failureCount).toBe(1);
+    expect(stats?.lastStatus).toBe(404);
   });
 
   it("records one failure metric when Bifrost returns HTTP 503", async () => {
