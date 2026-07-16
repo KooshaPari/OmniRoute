@@ -147,6 +147,19 @@ function limitSamplesToKeyCapacity(samples: OutcomeSample[]): OutcomeSample[] {
   return sorted.slice(-MAX_SAMPLES_PER_KEY);
 }
 
+function orderSamplesByTimestamp(samples: Array<OutcomeSample | null>): OutcomeSample[] {
+  const normalized = samples
+    .map((sample, index) => (sample === null ? null : { ...sample, __index: index }))
+    .filter((entry): entry is OutcomeSample & { __index: number } => entry !== null);
+  normalized.sort(
+    (a, b) =>
+      a.timestampMs - b.timestampMs ||
+      a.__index - b.__index
+  );
+
+  return normalized.map(({ __index: _idx, ...sample }) => sample);
+}
+
 function capturePendingPersistenceSnapshot(key: string, state: OutcomeRing): void {
   const current = pendingPersistenceSnapshots.get(key);
   const merged = limitSamplesToKeyCapacity(
@@ -247,7 +260,7 @@ function hydrateBifrostRouteMetricsFromDb(): boolean {
       maxSamplesPerKey: MAX_SAMPLES_PER_KEY,
     });
     for (const item of persisted) {
-      const orderedSamples = [...item.samples].sort((a, b) => a.timestampMs - b.timestampMs);
+      const orderedSamples = orderSamplesByTimestamp(item.samples);
       const key = normalizeKey(item.provider, item.model);
       const samples = orderedSamples.filter((sample): sample is OutcomeSample => sample !== null);
       if (samples.length === 0) continue;
@@ -257,7 +270,7 @@ function hydrateBifrostRouteMetricsFromDb(): boolean {
         model: item.model,
         samples,
         writeIndex:
-          Math.max(0, Math.min(samples.length, MAX_SAMPLES_PER_KEY)) % MAX_SAMPLES_PER_KEY,
+          samples.length >= MAX_SAMPLES_PER_KEY ? 0 : samples.length,
         updatedAtMs: item.updatedAtMs,
       });
     }
@@ -413,6 +426,7 @@ function getOrCreateState(provider: string, model: string): OutcomeRing {
 function writeSample(state: OutcomeRing, sample: OutcomeSample): void {
   if (state.samples.length < MAX_SAMPLES_PER_KEY) {
     state.samples.push(sample);
+    state.writeIndex = state.samples.length % MAX_SAMPLES_PER_KEY;
   } else {
     state.samples[state.writeIndex] = sample;
     state.writeIndex = (state.writeIndex + 1) % MAX_SAMPLES_PER_KEY;
