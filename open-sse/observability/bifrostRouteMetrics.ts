@@ -577,7 +577,9 @@ function buildFreshStatsFromState(
   const projectionWindowMs = normalizeProjectionWindowMs(options.projectionWindowMs);
   const cutoffMs = now - projectionWindowMs;
   const orderedSamples = getOrderedSamples(state);
-  const freshSamples = orderedSamples.filter((sample) => sample.timestampMs >= cutoffMs);
+  const freshSamples = orderedSamples.filter(
+    (sample) => sample.timestampMs >= cutoffMs && sample.timestampMs <= now
+  );
 
   if (freshSamples.length === 0) return null;
 
