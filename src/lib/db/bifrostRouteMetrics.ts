@@ -228,14 +228,19 @@ function pruneExcessKeys(db: ReturnType<typeof getDbInstance>, maxKeys: number):
     .prepare(
       `
       DELETE FROM bifrost_route_metrics
-       WHERE id IN (
-         SELECT id FROM (
-           SELECT id, ROW_NUMBER() OVER (
+       WHERE EXISTS (
+         SELECT 1
+           FROM (
+             SELECT provider, model, connection_id, ROW_NUMBER() OVER (
              ORDER BY MAX(timestamp_ms) DESC, provider, model, connection_id
-           ) AS key_rank
-           FROM bifrost_route_metrics
-           GROUP BY provider, model, connection_id
-         ) WHERE key_rank > ?
+             ) AS key_rank
+               FROM bifrost_route_metrics
+              GROUP BY provider, model, connection_id
+           ) AS ranked_keys
+          WHERE ranked_keys.key_rank > ?
+            AND ranked_keys.provider = bifrost_route_metrics.provider
+            AND ranked_keys.model = bifrost_route_metrics.model
+            AND ranked_keys.connection_id IS bifrost_route_metrics.connection_id
        )
       `
     )
