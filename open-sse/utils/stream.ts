@@ -1861,7 +1861,9 @@ export function createSSEStream(options: StreamOptions = {}) {
               clientPayloadCollector.push(clientPayload);
             }
 
-            setTtftOnce();
+            if (isDataChunkForTtft(output) && !failurePayload) {
+              setTtftOnce();
+            }
             reqLogger?.appendConvertedChunk?.(output);
             controller.enqueue(encoder.encode(output));
             if (failurePayload) {
@@ -2301,7 +2303,6 @@ export function createSSEStream(options: StreamOptions = {}) {
                 };
                 flushOutput = `data: ${JSON.stringify(syntheticChunk)}\n\n`;
               }
-              setTtftOnce();
               reqLogger?.appendConvertedChunk?.(flushOutput);
               controller.enqueue(encoder.encode(flushOutput));
               passthroughAccumulatedContent = appendBoundedText(

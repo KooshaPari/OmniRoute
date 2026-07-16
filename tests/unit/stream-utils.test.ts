@@ -202,6 +202,27 @@ test("createSSEStream passthrough leaves ttft unset when no upstream payload was
   assert.match(text, /data: \[DONE\]/);
 });
 
+test("createSSEStream passthrough leaves ttft unset for synthetic terminal-only output", async () => {
+  let onCompletePayload = null;
+  const text = await readTransformed(
+    ["event: keepalive\ndata: {}\n\n", "data: [DONE]\n\n"],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
+      provider: "openai",
+      model: "gpt-4.1-mini",
+      body: { input: "hello" },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.equal(onCompletePayload.status, 200);
+  assert.equal(onCompletePayload.ttft, null);
+  assert.equal(text.includes("data: [DONE]"), true);
+});
+
 test("createSSEStream passthrough preserves upstream payload order", async () => {
   const payloadOne = {
     id: "chatcmpl_order_test",
