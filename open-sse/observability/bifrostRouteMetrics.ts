@@ -20,6 +20,9 @@ export interface BifrostRouteOutcomeInput {
   error?: unknown;
   /** Optional explicit success override when status is unavailable. */
   ok?: boolean;
+  ttftMs?: number;
+  outputTokens?: number;
+  generationDurationMs?: number;
   /** Test override for deterministic assertions. */
   timestampMs?: number;
 }
@@ -33,6 +36,8 @@ export interface BifrostRouteOutcomeStats {
   successRate: number;
   avgLatencyMs: number;
   p95LatencyMs: number;
+  avgTtftMs: number | null;
+  avgTokensPerSecond: number | null;
   lastStatus: number | null;
   lastError: string | null;
   updatedAtMs: number;
@@ -42,6 +47,8 @@ export interface BifrostRouteProjectedOutcome {
   provider: string;
   model: string;
   e2eLatencyMs: number;
+  avgTtftMs: number | null;
+  avgTokensPerSecond: number | null;
   health: number | undefined;
   failureRate: number;
   stability: number | undefined;
@@ -61,6 +68,9 @@ interface OutcomeSample {
   latencyMs: number;
   ok: boolean;
   error: string | null;
+  ttftMs: number | null;
+  outputTokens: number | null;
+  generationDurationMs: number | null;
 }
 
 interface OutcomeRing {
@@ -119,17 +129,34 @@ function buildStats(state: OutcomeRing): BifrostRouteOutcomeStats {
   let failureCount = 0;
   let latencySum = 0;
   const latencies: number[] = [];
+  let ttftSum = 0;
+  let validTtftSamples = 0;
+  let outputTokenSum = 0;
+  let generationDurationMsSum = 0;
 
   for (const sample of ordered) {
     if (sample.ok) successCount += 1;
     else failureCount += 1;
     latencySum += sample.latencyMs;
     latencies.push(sample.latencyMs);
+    if (sample.ttftMs !== null) {
+      ttftSum += sample.ttftMs;
+      validTtftSamples += 1;
+    }
+    if (sample.outputTokens !== null && sample.generationDurationMs !== null) {
+      outputTokenSum += sample.outputTokens;
+      generationDurationMsSum += sample.generationDurationMs;
+    }
   }
 
   const sampleCount = ordered.length;
   const avgLatencyMs = sampleCount > 0 ? Math.round(latencySum / sampleCount) : 0;
   const sample = ordered.at(-1);
+  const avgTtftMs = validTtftSamples > 0 ? ttftSum / validTtftSamples : null;
+  const avgTokensPerSecond =
+    generationDurationMsSum > 0
+      ? (outputTokenSum / generationDurationMsSum) * 1000
+      : null;
 
   return {
     provider: state.provider,
@@ -140,6 +167,8 @@ function buildStats(state: OutcomeRing): BifrostRouteOutcomeStats {
     successRate: sampleCount > 0 ? successCount / sampleCount : 0,
     avgLatencyMs,
     p95LatencyMs: computeP95(latencies),
+    avgTtftMs,
+    avgTokensPerSecond,
     lastStatus: sample?.status ?? null,
     lastError: sample?.error ?? null,
     updatedAtMs: state.updatedAtMs,
@@ -194,6 +223,23 @@ function ensureMs(value: number, fallback: number): number {
   return Math.max(0, Math.floor(value));
 }
 
+function normalizePositiveMs(value: number | undefined, fallback: number | null): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  const normalized = Math.floor(value);
+  if (!Number.isFinite(normalized) || normalized <= 0) return fallback;
+  return normalized;
+}
+
+function normalizeNonNegativeCount(
+  value: number | undefined,
+  fallback: number | null
+): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  const normalized = Math.floor(value);
+  if (!Number.isFinite(normalized) || normalized < 0) return fallback;
+  return normalized;
+}
+
 function nowMs(): number {
   return Date.now();
 }
@@ -231,6 +277,8 @@ function isValidStats(stats: MetricProjectionInput): stats is BifrostRouteOutcom
   if (!Number.isFinite(stats.updatedAtMs) || stats.updatedAtMs < 0) return false;
   if (!Number.isFinite(stats.successRate)) return false;
   if (!Number.isFinite(stats.avgLatencyMs) || !Number.isFinite(stats.p95LatencyMs)) return false;
+  if (stats.avgTtftMs !== null && !Number.isFinite(stats.avgTtftMs)) return false;
+  if (stats.avgTokensPerSecond !== null && !Number.isFinite(stats.avgTokensPerSecond)) return false;
   return true;
 }
 
@@ -253,6 +301,8 @@ export function projectBifrostRouteMetrics(
       provider: stats.provider,
       model: stats.model,
       e2eLatencyMs,
+      avgTtftMs: stats.avgTtftMs,
+      avgTokensPerSecond: stats.avgTokensPerSecond,
       health: undefined,
       failureRate,
       stability: undefined,
@@ -265,6 +315,8 @@ export function projectBifrostRouteMetrics(
     provider: stats.provider,
     model: stats.model,
     e2eLatencyMs,
+    avgTtftMs: stats.avgTtftMs,
+    avgTokensPerSecond: stats.avgTokensPerSecond,
     health: successRate,
     failureRate,
     stability: computeStabilityFromLatency(stats.avgLatencyMs, stats.p95LatencyMs),
@@ -290,6 +342,9 @@ export function recordBifrostRouteOutcome(input: BifrostRouteOutcomeInput): void
     latencyMs,
     ok,
     error: !ok ? normalizeError(input.error) : null,
+    ttftMs: normalizePositiveMs(input.ttftMs, null),
+    outputTokens: normalizeNonNegativeCount(input.outputTokens, null),
+    generationDurationMs: normalizePositiveMs(input.generationDurationMs, null),
   };
 
   const state = getOrCreateState(provider, model);

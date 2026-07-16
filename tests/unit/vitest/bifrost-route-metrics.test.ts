@@ -255,4 +255,127 @@ describe("bifrostRouteMetrics", () => {
     expect(unstable?.health).toBeCloseTo(1);
     expect(unstable?.stability).toBeLessThan(0.05);
   });
+
+  it("computes avgTtftMs and avgTokensPerSecond from bounded valid samples", () => {
+    recordBifrostRouteOutcome({
+      provider: "gemini",
+      model: "gemini-2.0-flash-tts",
+      status: 200,
+      latencyMs: 120,
+      ttftMs: 40,
+      outputTokens: 180,
+      generationDurationMs: 360,
+      timestampMs: makeTimestamp(1),
+    });
+    recordBifrostRouteOutcome({
+      provider: "gemini",
+      model: "gemini-2.0-flash-tts",
+      status: 200,
+      latencyMs: 160,
+      ttftMs: 60,
+      outputTokens: 220,
+      generationDurationMs: 440,
+      timestampMs: makeTimestamp(2),
+    });
+    recordBifrostRouteOutcome({
+      provider: "gemini",
+      model: "gemini-2.0-flash-tts",
+      status: 200,
+      latencyMs: 200,
+      ttftMs: 50,
+      outputTokens: 150,
+      generationDurationMs: 300,
+      timestampMs: makeTimestamp(3),
+    });
+
+    const metrics = getProjectedBifrostRouteMetrics("gemini", "gemini-2.0-flash-tts");
+
+    expect(metrics).not.toBeNull();
+    expect(metrics?.avgTtftMs).toBeCloseTo(50);
+    expect(metrics?.avgTokensPerSecond).toBeCloseTo((180 + 220 + 150) / (360 + 440 + 300) * 1000);
+  });
+
+  it("computes averages using partial telemetry and ignores missing fields", () => {
+    recordBifrostRouteOutcome({
+      provider: "anthropic",
+      model: "claude-3.5-partial",
+      status: 200,
+      latencyMs: 100,
+      ttftMs: 30,
+      timestampMs: makeTimestamp(1),
+    });
+    recordBifrostRouteOutcome({
+      provider: "anthropic",
+      model: "claude-3.5-partial",
+      status: 200,
+      latencyMs: 120,
+      outputTokens: 75,
+      generationDurationMs: 250,
+      timestampMs: makeTimestamp(2),
+    });
+    recordBifrostRouteOutcome({
+      provider: "anthropic",
+      model: "claude-3.5-partial",
+      status: 200,
+      latencyMs: 140,
+      ttftMs: 50,
+      outputTokens: 40,
+      timestampMs: makeTimestamp(3),
+    });
+
+    const metrics = getProjectedBifrostRouteMetrics("anthropic", "claude-3.5-partial");
+
+    expect(metrics).not.toBeNull();
+    expect(metrics?.avgTtftMs).toBeCloseTo((30 + 50) / 2);
+    expect(metrics?.avgTokensPerSecond).toBeCloseTo((75 / 250) * 1000);
+  });
+
+  it("returns null TTFT/TPS when valid duration token telemetry is unavailable", () => {
+    recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o-noisy",
+      status: 200,
+      latencyMs: 100,
+      ttftMs: Number.NaN,
+      outputTokens: Number.NaN,
+      generationDurationMs: 250,
+      timestampMs: makeTimestamp(1),
+    });
+    recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o-noisy",
+      status: 200,
+      latencyMs: 110,
+      ttftMs: Number.NaN,
+      outputTokens: 250,
+      generationDurationMs: -100,
+      timestampMs: makeTimestamp(1),
+    });
+    recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o-noisy",
+      status: 200,
+      latencyMs: 120,
+      ttftMs: -1,
+      outputTokens: Number.POSITIVE_INFINITY,
+      generationDurationMs: 250,
+      timestampMs: makeTimestamp(2),
+    });
+    recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o-noisy",
+      status: 200,
+      latencyMs: 120,
+      ttftMs: -10,
+      outputTokens: 40,
+      generationDurationMs: 0,
+      timestampMs: makeTimestamp(3),
+    });
+
+    const metrics = getProjectedBifrostRouteMetrics("openai", "gpt-4o-noisy");
+
+    expect(metrics).not.toBeNull();
+    expect(metrics?.avgTtftMs).toBeNull();
+    expect(metrics?.avgTokensPerSecond).toBeNull();
+  });
 });
