@@ -429,6 +429,7 @@ export class BifrostBackendExecutor extends BaseExecutor {
       recordBifrostRouteOutcome({
         provider: this.provider,
         model,
+        connectionId: input.credentials?.connectionId,
         status: null,
         latencyMs,
         ok: false,
@@ -467,6 +468,7 @@ export class BifrostBackendExecutor extends BaseExecutor {
       recordBifrostRouteOutcome({
         provider: this.provider,
         model,
+        connectionId: input.credentials?.connectionId,
         status: response.status,
         latencyMs,
         ok: response.ok,

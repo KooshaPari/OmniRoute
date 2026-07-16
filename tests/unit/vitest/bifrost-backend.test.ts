@@ -591,7 +591,7 @@ describe("BifrostBackendExecutor route outcome metrics integration", () => {
     resetBifrostRouteMetricsForTest();
   });
 
-  it("records a success metric for completed Bifrost responses", async () => {
+  it("attributes a completed non-stream Bifrost outcome to the selected connection", async () => {
     const mockFetch = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
     globalThis.fetch = mockFetch as unknown as typeof fetch;
 
@@ -600,17 +600,33 @@ describe("BifrostBackendExecutor route outcome metrics integration", () => {
       model: "gpt-4o",
       body: { model: "gpt-4o", messages: [] },
       stream: false,
-      credentials: { apiKey: "sk-test" },
+      credentials: { apiKey: "sk-test", connectionId: "connection-selected" },
     });
 
     expect(result.response.status).toBe(200);
-    const stats = getBifrostRouteMetrics("openai", "gpt-4o");
+    const stats = getBifrostRouteMetrics("openai", "gpt-4o", "connection-selected");
     expect(stats).not.toBeNull();
     expect(stats?.sampleCount).toBe(1);
     expect(stats?.successCount).toBe(1);
     expect(stats?.failureCount).toBe(0);
     expect(stats?.lastStatus).toBe(200);
     expect(stats?.lastError).toBeNull();
+    expect(getBifrostRouteMetrics("openai", "gpt-4o")).toBeNull();
+  });
+
+  it("keeps non-stream Bifrost outcomes in the legacy bucket without a connection", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+    const exec = new BifrostBackendExecutor("openai", {});
+    await exec.execute({
+      model: "gpt-4o",
+      body: { model: "gpt-4o", messages: [] },
+      stream: false,
+      credentials: { apiKey: "sk-test" },
+    });
+
+    expect(getBifrostRouteMetrics("openai", "gpt-4o")?.sampleCount).toBe(1);
   });
 
   it.each([400, 401, 402, 403])(
