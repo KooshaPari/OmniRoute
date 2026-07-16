@@ -47,38 +47,45 @@ function normalizeServiceModelId(tool: string, rawModelId: string): string {
   return rawModelId.includes("/") ? rawModelId : `${tool}/${rawModelId}`;
 }
 
+function isValidServiceModelEntry(entry: ServiceModel): boolean {
+  if (typeof entry !== "object" || entry === null) return false;
+  if (typeof entry.id !== "string" || !entry.id.trim()) return false;
+  if (entry.available === false) return false;
+  return true;
+}
+
+function toProviderPluginModel(tool: string, model: ServiceModel): ProviderPluginModel {
+  const id = normalizeServiceModelId(tool, model.id);
+  return {
+    id,
+    name: typeof model.name === "string" ? model.name : id,
+    contextLength:
+      typeof model.contextLength === "number" && Number.isFinite(model.contextLength)
+        ? model.contextLength
+        : undefined,
+    maxOutputTokens:
+      typeof model.maxOutputTokens === "number" && Number.isFinite(model.maxOutputTokens)
+        ? model.maxOutputTokens
+        : undefined,
+    supportsReasoning: Boolean(model.supportsReasoning),
+    supportsVision: Boolean(model.supportsVision),
+    unsupportedParams:
+      Array.isArray(model.unsupportedParams) && model.unsupportedParams.length > 0
+        ? model.unsupportedParams
+        : undefined,
+    targetFormat: typeof model.targetFormat === "string" ? model.targetFormat : undefined,
+  };
+}
+
 function pickServiceModels(tool: string, reader: (toolName: string) => ServiceModel[]): ProviderPluginModel[] {
-  const models = reader(tool).filter((entry) => {
-    if (typeof entry !== "object" || entry === null) return false;
-    if (typeof entry.id !== "string" || !entry.id.trim()) return false;
-    if (entry.available === false) return false;
-    return true;
-  });
+  const models = reader(tool).filter(isValidServiceModelEntry);
 
   const unique = new Map<string, ProviderPluginModel>();
   for (const model of models) {
-    const id = normalizeServiceModelId(tool, model.id);
-    if (unique.has(id)) continue;
-
-    unique.set(id, {
-      id,
-      name: typeof model.name === "string" ? model.name : id,
-      contextLength:
-        typeof model.contextLength === "number" && Number.isFinite(model.contextLength)
-          ? model.contextLength
-          : undefined,
-      maxOutputTokens:
-        typeof model.maxOutputTokens === "number" && Number.isFinite(model.maxOutputTokens)
-          ? model.maxOutputTokens
-          : undefined,
-      supportsReasoning: Boolean(model.supportsReasoning),
-      supportsVision: Boolean(model.supportsVision),
-      unsupportedParams:
-        Array.isArray(model.unsupportedParams) && model.unsupportedParams.length > 0
-          ? model.unsupportedParams
-          : undefined,
-      targetFormat: typeof model.targetFormat === "string" ? model.targetFormat : undefined,
-    });
+    const pluginModel = toProviderPluginModel(tool, model);
+    if (!unique.has(pluginModel.id)) {
+      unique.set(pluginModel.id, pluginModel);
+    }
   }
 
   return [...unique.values()];
