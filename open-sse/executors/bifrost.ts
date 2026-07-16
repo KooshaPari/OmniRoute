@@ -58,6 +58,7 @@ import {
   BIFROST_KILLSWITCH_ACTIVE,
 } from "../services/bifrostKillSwitch.ts";
 import { withBifrostSpan } from "../observability/bifrostSpan.ts";
+import { recordBifrostRouteOutcome } from "../observability/bifrostRouteMetrics.ts";
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 8080;
@@ -424,11 +425,20 @@ export class BifrostBackendExecutor extends BaseExecutor {
     } catch (err) {
       // Fetch threw (network error, abort, timeout). Record a failed
       // observation and re-throw. The dispatcher will handle the error.
+      const latencyMs = Date.now() - startTime;
+      recordBifrostRouteOutcome({
+        provider: this.provider,
+        model,
+        status: null,
+        latencyMs,
+        ok: false,
+        error: err,
+      });
       if (!isKillSwitchDisabled()) {
         recordObservation({
           timestamp: Date.now(),
           provider: this.provider,
-          latencyMs: Date.now() - startTime,
+          latencyMs,
           ok: false,
         });
       }
@@ -444,13 +454,21 @@ export class BifrostBackendExecutor extends BaseExecutor {
     // Record a successful (2xx) or failed (non-2xx) observation. Cost
     // fields are optional — callers that have them can wire them in via
     // input.killSwitchCost if/when that field is added.
+    const latencyMs = Date.now() - startTime;
+    recordBifrostRouteOutcome({
+      provider: this.provider,
+      model,
+      status: response.status,
+      latencyMs,
+      ok: response.ok,
+    });
     if (!isKillSwitchDisabled()) {
       const cost = (input as { killSwitchCost?: { costUsd?: number; legacyCostUsd?: number } })
         .killSwitchCost;
       recordObservation({
         timestamp: Date.now(),
         provider: this.provider,
-        latencyMs: Date.now() - startTime,
+        latencyMs,
         ok: response.ok,
         costUsd: cost?.costUsd,
         legacyCostUsd: cost?.legacyCostUsd,
