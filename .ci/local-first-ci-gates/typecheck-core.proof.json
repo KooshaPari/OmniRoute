@@ -5,11 +5,11 @@
   "command": "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json",
   "exitCode": 2,
   "signal": null,
-  "generatedAt": "2026-07-16T00:04:10.650Z",
-  "gitSha": "755a9a1dc756b5807c7a2bf67d02f6443f553598",
+  "generatedAt": "2026-07-16T00:04:16.394Z",
+  "gitSha": "1b3aa2551d24b2dd5800f69dfa5764650378b5f5",
   "log": {
     "path": ".ci/local-first-ci-gates/typecheck-core.log.txt",
-    "sha256": "a550d77f707683a988bf0b333d063004619a8de5dbe25175fcda9fc096785ef5",
+    "sha256": "9e23134ce7a593475123bbcda5c6add56bdb7565c362aa7b0b018ba2a89d5e77",
     "bytes": 328731
   }
 }
