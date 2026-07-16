@@ -37,10 +37,11 @@ interface ToolLatencyStat {
 interface BifrostRouteMetric {
   provider: string;
   model: string;
+  e2eLatencyMs: number;
+  health: number | undefined;
+  failureRate: number;
+  stability: number | undefined;
   sampleCount: number;
-  successRate: number;
-  avgLatencyMs: number;
-  p95LatencyMs: number;
   avgTtftMs: number | null;
   avgTokensPerSecond: number | null;
   updatedAtMs: number;
@@ -74,17 +75,9 @@ function successRate(successful: number, total: number): string {
   return `${((successful / total) * 100).toFixed(1)}%`;
 }
 
-function formatPercent(value: number | null): string {
+function formatPercent(value: number | null | undefined): string {
   if (value == null || !Number.isFinite(value)) return "—";
   return `${(value * 100).toFixed(1)}%`;
-}
-
-function getStability(metric: BifrostRouteMetric): number | null {
-  if (metric.avgLatencyMs <= 0 || !Number.isFinite(metric.p95LatencyMs)) return null;
-  return Math.max(
-    0,
-    Math.min(1, 1 - Math.abs(metric.p95LatencyMs - metric.avgLatencyMs) / metric.avgLatencyMs)
-  );
 }
 
 export default function ProviderStatsPage() {
@@ -132,8 +125,6 @@ export default function ProviderStatsPage() {
 
     await Promise.all([providerStatsRequest, fetchPerformanceMetrics()]);
   }, [fetchPerformanceMetrics]);
-
-  const insufficientMetricSamples = (metric: BifrostRouteMetric) => metric.sampleCount < 4;
 
   useEffect(() => {
     fetchData();
@@ -347,9 +338,6 @@ export default function ProviderStatsPage() {
                   .slice()
                   .sort((a, b) => b.updatedAtMs - a.updatedAtMs)
                   .map((metric) => {
-                    const insufficientSamples = insufficientMetricSamples(metric);
-                    const health = insufficientSamples ? null : metric.successRate;
-                    const stability = insufficientSamples ? null : getStability(metric);
                     return (
                       <tr
                         key={`${metric.provider}-${metric.model}`}
@@ -362,25 +350,29 @@ export default function ProviderStatsPage() {
                           <p className="font-mono text-text-muted mt-0.5">{metric.model}</p>
                         </td>
                         <td className="py-2 px-2 text-right tabular-nums text-text-main">
-                          {formatLatency(metric.p95LatencyMs)}
+                          {formatLatency(metric.e2eLatencyMs)}
                         </td>
                         <td className="py-2 px-2 text-right tabular-nums">
-                          {health === null ? (
-                            <span className="text-text-muted">Need 4 samples</span>
+                          {metric.health === undefined ? (
+                            <span className="text-text-muted">—</span>
                           ) : (
-                            <span className={health >= 0.99 ? "text-green-500" : "text-amber-500"}>
-                              {formatPercent(health)}
+                            <span
+                              className={
+                                metric.health >= 0.99 ? "text-green-500" : "text-amber-500"
+                              }
+                            >
+                              {formatPercent(metric.health)}
                             </span>
                           )}
                         </td>
                         <td className="py-2 px-2 text-right tabular-nums text-text-main">
-                          {formatPercent(1 - metric.successRate)}
+                          {formatPercent(metric.failureRate)}
                         </td>
                         <td className="py-2 px-2 text-right tabular-nums">
-                          {stability === null ? (
-                            <span className="text-text-muted">Need 4 samples</span>
+                          {metric.stability === undefined ? (
+                            <span className="text-text-muted">—</span>
                           ) : (
-                            formatPercent(stability)
+                            formatPercent(metric.stability)
                           )}
                         </td>
                         <td className="py-2 px-2 text-right tabular-nums text-text-main">
@@ -392,11 +384,7 @@ export default function ProviderStatsPage() {
                             : `${metric.avgTokensPerSecond.toFixed(1)}/s`}
                         </td>
                         <td className="py-2 px-2 text-right tabular-nums">
-                          <span
-                            className={insufficientSamples ? "text-amber-500" : "text-text-main"}
-                          >
-                            {metric.sampleCount}
-                          </span>
+                          <span className="text-text-main">{metric.sampleCount}</span>
                         </td>
                         <td className="py-2 px-2 text-right tabular-nums text-text-muted whitespace-nowrap">
                           {new Date(metric.updatedAtMs).toLocaleTimeString()}

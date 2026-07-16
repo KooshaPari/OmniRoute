@@ -47,19 +47,27 @@ test("GET rejects unauthenticated requests", async () => {
   assert.equal(response.status, 401);
 });
 
-test("GET returns aggregate metrics to an authenticated management session", async () => {
-  metrics.recordBifrostRouteOutcome({
-    provider: "openai",
-    model: "gpt-4o-mini",
-    latencyMs: 120,
-    status: 200,
-    timestampMs: 1_700_000_000_000,
-  });
+test("GET returns projected metrics to an authenticated management session", async () => {
+  const timestampMs = Date.now();
+  for (const [status, latencyMs] of [
+    [200, 100],
+    [500, 120],
+    [200, 140],
+    [200, 160],
+  ]) {
+    metrics.recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o-mini",
+      latencyMs,
+      status,
+      timestampMs,
+    });
+  }
 
   const response = await route.GET(
     await makeManagementSessionRequest("http://localhost/api/observability/bifrost-route-metrics")
   );
 
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { metrics: metrics.getAllBifrostRouteMetrics() });
+  assert.deepEqual(await response.json(), { metrics: metrics.getAllProjectedBifrostRouteMetrics() });
 });
