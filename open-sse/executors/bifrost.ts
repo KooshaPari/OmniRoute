@@ -86,6 +86,7 @@ function isBifrostEnabled(): boolean {
 }
 
 /**
+<<<<<<< Updated upstream
  * Escape hatch: BIFROST_KILLSWITCH_DISABLED=true bypasses the kill switch
  * entirely. Useful for operators who need Bifrost to keep serving even
  * when the kill switch is tripped, or for testing the kill-switch path
@@ -130,6 +131,8 @@ export class BifrostNoFallbackError extends Error {
 }
 
 /**
+=======
+>>>>>>> Stashed changes
  * Whether the executor must consult the local `bifrost_models` cache before
  * dispatching and throw if the requested model is missing. Off by default
  * (zero overhead in the steady state). Set `BIFROST_MODEL_CACHE_REQUIRED=1`
