@@ -1127,6 +1127,43 @@ test("handleComboChat performance strategy preserves stable order for tie-scorin
   assert.deepEqual(calls, ["openai/perf-tie-a", "anthropic/perf-tie-b"]);
 });
 
+test("handleComboChat performance strategy ranks faster targets ahead of slightly more stable targets", async () => {
+  seedProjectedOutcomes("openai", "perf-fast-less-stable", [
+    { status: 200, latencyMs: 10 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 10 },
+    { status: 200, latencyMs: 20 },
+  ]);
+  seedProjectedOutcomes("anthropic", "perf-slow-stable", [
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+  ]);
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-latency-before-stability",
+      strategy: "performance",
+      models: ["anthropic/perf-slow-stable", "openai/perf-fast-less-stable"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["openai/perf-fast-less-stable", "anthropic/perf-slow-stable"]);
+});
+
 test("handleComboChat performance strategy uses ttft as an additional ordering signal", async () => {
   seedProjectedOutcomesWithStreamingSignals("openai", "perf-ttft-fast", [
     { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 200, generationDurationMs: 1000 },
