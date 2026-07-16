@@ -7,7 +7,7 @@ on:
     branches: [main]
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -16,3 +16,4 @@ jobs:
       - run: cargo fmt --all --check
       - run: cargo clippy --all -- -D warnings
       - run: cargo deny check
+

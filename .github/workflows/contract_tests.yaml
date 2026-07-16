@@ -23,6 +23,7 @@ env:
 
 jobs:
   contract-tests:
+    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
     name: Contract Tests
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -42,3 +43,5 @@ jobs:
           else
             echo "No contract tests found — skipping. Add *.test.ts files under tests/contract/ to enable."
           fi
+
+

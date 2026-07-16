@@ -5,13 +5,14 @@
 # Jobs:
 #   1. budget-check   — runs tools/latency-budget-to-ci/budget.py against synthetic trace
 #   2. budget-regression — compares current p99 vs main baseline, fails on >10% regression
+#   3. latency-budget-result — reports whether paid evidence ran and aggregates its results
 #
 # Refs: docs/latency-budgets/REST-endpoints.md, docs/PERF_BUDGETS.md
 
 name: latency-budget
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-hosted-v2
   cancel-in-progress: true
 
 on:
@@ -30,7 +31,21 @@ env:
   BASELINE_BRANCH: origin/main
 
 jobs:
+  control:
+    name: Plan latency evidence
+    runs-on: ubuntu-latest
+    outputs:
+      authorized: ${{ steps.plan.outputs.authorized }}
+    steps:
+      - name: Determine whether paid evidence is authorized
+        id: plan
+        env:
+          PAID_EVIDENCE_AUTHORIZED: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception') }}
+        run: echo "authorized=$PAID_EVIDENCE_AUTHORIZED" >> "$GITHUB_OUTPUT"
+
   budget-check:
+    needs: control
+    if: ${{ needs.control.outputs.authorized == 'true' }}
     name: REST endpoint budget check
     runs-on: ubuntu-latest
     steps:
@@ -104,8 +119,9 @@ jobs:
 
   budget-regression:
     name: REST endpoint latency regression
+    needs: control
+    if: ${{ needs.control.outputs.authorized == 'true' }}
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
         with:
@@ -174,17 +190,32 @@ jobs:
 
   # Summary job to aggregate results for branch protection
   latency-budget-result:
+    if: ${{ always() }}
     name: Latency budget result
     runs-on: ubuntu-latest
-    needs: [budget-check, budget-regression]
-    if: always()
+    needs: [control, budget-check, budget-regression]
     steps:
-      - name: Check budget-check result
+      - name: Report latency evidence status
         run: |
           echo "budget-check: ${{ needs.budget-check.result }}"
           echo "budget-regression: ${{ needs.budget-regression.result }}"
-          if [ "${{ needs.budget-check.result }}" = "failure" ] || [ "${{ needs.budget-regression.result }}" = "failure" ]; then
-            echo "::error::Latency budget gates failed"
+
+          if [ "${{ needs.control.result }}" != "success" ]; then
+            echo "::error::Latency evidence authorization control did not complete successfully"
             exit 1
           fi
-          echo "All latency budget gates passed"
+
+          if [ "${{ needs.control.outputs.authorized }}" != "true" ]; then
+            if [ "${{ needs.budget-check.result }}" != "skipped" ] || [ "${{ needs.budget-regression.result }}" != "skipped" ]; then
+              echo "::error::Unlabeled PR unexpectedly ran paid latency evidence"
+              exit 1
+            fi
+            echo "::notice::Latency evidence not run; add the ci-billing-exception label to authorize paid latency jobs."
+            exit 0
+          fi
+
+          if [ "${{ needs.budget-check.result }}" != "success" ] || [ "${{ needs.budget-regression.result }}" != "success" ]; then
+            echo "::error::Latency evidence did not complete successfully"
+            exit 1
+          fi
+          echo "All latency budget gates passed with latency evidence"

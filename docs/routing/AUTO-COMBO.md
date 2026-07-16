@@ -150,27 +150,28 @@ Notes:
 
 ## All Routing Strategies
 
-OmniRoute's combo engine supports **17 routing strategies** (declared in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). The Auto Combo engine itself is exposed under the `auto` strategy; the others are available for persisted combos.
+OmniRoute's combo engine supports **18 routing strategies** (declared in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). The Auto Combo engine itself is exposed under the `auto` strategy; the others are available for persisted combos.
 
-| Strategy            | Description                                                                                  |
-| :------------------ | :------------------------------------------------------------------------------------------- |
-| `priority`          | First-target ordered list with explicit priority                                             |
-| `weighted`          | Weighted random by per-target weight                                                         |
-| `round-robin`       | Cycle through targets in order                                                               |
-| `context-relay`     | Hand off context across targets (long conversations)                                         |
-| `fill-first`        | Fill each target's quota before moving to next                                               |
-| `p2c`               | Power-of-2-choices random load balancing                                                     |
-| `random`            | Uniform random selection                                                                     |
-| `least-used`        | Pick target with lowest current load                                                         |
-| `cost-optimized`    | Minimize $ per request given catalog pricing                                                 |
-| `reset-aware` ⭐    | Prioritize by quota reset time — short reset windows ranked higher                           |
-| `reset-window`      | Prefer targets whose quota window resets soonest                                             |
-| `headroom`          | Pick the target with the most remaining quota headroom                                       |
-| `strict-random`     | Random without deduplication of repeats                                                      |
-| `auto`              | Use Auto Combo scoring (9-factor) — **recommended**                                          |
-| `lkgp`              | Last-Known-Good Path (sticky route to last successful target)                                |
-| `context-optimized` | Pick target with best fit for current context size                                           |
-| `fusion` 🧬         | Fan out to a panel of models in parallel, then synthesize one answer via a judge (see below) |
+| Strategy            | Description                                                                                                       |
+| :------------------ | :---------------------------------------------------------------------------------------------------------------- |
+| `priority`          | First-target ordered list with explicit priority                                                                  |
+| `weighted`          | Weighted random by per-target weight                                                                              |
+| `round-robin`       | Cycle through targets in order                                                                                    |
+| `context-relay`     | Hand off context across targets (long conversations)                                                              |
+| `fill-first`        | Fill each target's quota before moving to next                                                                    |
+| `p2c`               | Power-of-2-choices random load balancing                                                                          |
+| `random`            | Uniform random selection                                                                                          |
+| `least-used`        | Pick target with lowest current load                                                                              |
+| `cost-optimized`    | Minimize $ per request given catalog pricing                                                                      |
+| `reset-aware` ⭐    | Prioritize by quota reset time — short reset windows ranked higher                                                |
+| `reset-window`      | Prefer targets whose quota window resets soonest                                                                  |
+| `headroom`          | Pick the target with the most remaining quota headroom                                                            |
+| `strict-random`     | Random without deduplication of repeats                                                                           |
+| `auto`              | Use Auto Combo scoring (9-factor) — **recommended**                                                               |
+| `lkgp`              | Last-Known-Good Path (sticky route to last successful target)                                                     |
+| `context-optimized` | Pick target with best fit for current context size                                                                |
+| `performance`       | Reliability-first provider-model ordering from fresh Bifrost telemetry; keep configured order when data is sparse |
+| `fusion` 🧬         | Fan out to a panel of models in parallel, then synthesize one answer via a judge (see below)                      |
 
 ⭐ = New in v3.8.0 · 🧬 = New in v3.8.36
 
@@ -577,11 +578,11 @@ See `docs/marketing/TIERS.md` for tier definitions and provider classification.
 
 ### Deterministic routing-decision matrix (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` proves the routing **decision** of all 17
+`tests/integration/combo-matrix/*.test.ts` proves the routing **decision** of all 18
 public strategies end-to-end through the real combo pipeline with a mocked upstream.
 Coverage includes:
 
-- All 17 `ROUTING_STRATEGY_VALUES` strategies (ordered, weighted, cost, context, fusion, …).
+- All 18 `ROUTING_STRATEGY_VALUES` strategies (ordered, weighted, cost, context, performance, fusion, …).
 - `quota-share` (internal) end-to-end: DRR fairness + saturation deprioritization via the
   real `selectQuotaShareTarget` seam (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -615,5 +616,5 @@ intentionally excluded from CI because they require live credentials and VPS acc
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefix parser + 6 variants                                         |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Builds in-memory `AutoComboConfig` from live connections                   |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Test hook for mocking provider registry                                    |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (17 strategies)                                  |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (18 strategies)                                  |
 | `src/sse/handlers/chat.ts`                                | Integration: auto-prefix short-circuit                                     |
