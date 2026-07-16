@@ -17,6 +17,8 @@ import type {
   RouteRequest,
   RouteResult,
   ProviderName,
+  ProviderRuntimeMetrics,
+  RoutingMode,
 } from "../../domain/router/port.ts";
 import { DEFAULT_ROUTER_CONFIG } from "../../domain/router/port.ts";
 
@@ -252,16 +254,78 @@ export class BifrostAdapter implements RouterPort {
   // -------------------------------------------------------------------------
 
   private _resolveProviderPriority(req: RouteRequest): ProviderName[] {
+    const mode = this.routerConfig.routingMode ?? "priority";
+    const withOverride = this._providerOrderWithTierOverride(req);
+
+    if (mode === "priority") {
+      return withOverride;
+    }
+
+    const hasTierOverride = req.fitnessTier && this.routerConfig.tierOverrides && this.routerConfig.tierOverrides[req.fitnessTier];
+
+    if (!hasTierOverride) {
+      return this._sortByMetrics(withOverride, mode);
+    }
+
+    const [overrideProvider, ...rest] = withOverride;
+    return [overrideProvider, ...this._sortByMetrics(rest, mode)];
+  }
+
+  private _providerOrderWithTierOverride(req: RouteRequest): ProviderName[] {
     if (req.fitnessTier && this.routerConfig.tierOverrides) {
       const override = this.routerConfig.tierOverrides[req.fitnessTier];
       if (override) {
         // Put tier-preferred provider first, rest follow
-        const rest = this.routerConfig.providerPriority.filter(
-          (p) => p !== override
-        );
+        const rest = this.routerConfig.providerPriority.filter((p) => p !== override);
         return [override, ...rest];
       }
     }
     return [...this.routerConfig.providerPriority];
+  }
+
+  private _sortByMetrics(
+    providers: ProviderName[],
+    mode: Exclude<RoutingMode, "priority">,
+  ): ProviderName[] {
+    const scored = providers.map((provider, index) => {
+      const metric = this._getMetric(provider, mode);
+      return { provider, index, metric };
+    });
+
+    return scored
+      .sort((a, b) => {
+        const aValid = typeof a.metric === "number" && Number.isFinite(a.metric);
+        const bValid = typeof b.metric === "number" && Number.isFinite(b.metric);
+
+        if (!aValid && !bValid) {
+          return a.index - b.index;
+        }
+
+        if (!aValid) {
+          return 1;
+        }
+
+        if (!bValid) {
+          return -1;
+        }
+
+        if (a.metric === b.metric) {
+          return a.index - b.index;
+        }
+
+        return mode === "latency" ? a.metric - b.metric : b.metric - a.metric;
+      })
+      .map((entry) => entry.provider);
+  }
+
+  private _getMetric(
+    provider: ProviderName,
+    mode: Exclude<RoutingMode, "priority">,
+  ): number | undefined {
+    const metrics = this.routerConfig.providerMetrics?.[provider] ?? {};
+    if (mode === "latency") {
+      return metrics.latencyMs;
+    }
+    return metrics.reliability;
   }
 }

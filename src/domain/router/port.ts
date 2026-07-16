@@ -27,6 +27,15 @@ export type ProviderName =
 
 export type FitnessTier = "best-reasoning" | "cheapest" | "moderate" | "balanced";
 
+export type RoutingMode = "priority" | "latency" | "reliability";
+
+export interface ProviderRuntimeMetrics {
+  /** Lower latency values rank better in latency mode. */
+  latencyMs?: number;
+  /** Higher reliability values rank better in reliability mode. */
+  reliability?: number;
+}
+
 export interface RouteRequest {
   /** Canonical model string (e.g. "gpt-4o", "claude-opus-4-5"). */
   model: string;
@@ -101,6 +110,10 @@ export interface RouterPort {
 export interface RouterConfig {
   /** Ordered list of providers to try. First healthy one wins. */
   providerPriority: ProviderName[];
+  /** Runtime provider ordering strategy. */
+  routingMode?: RoutingMode;
+  /** Optional injected metrics for runtime routing decisions. */
+  providerMetrics?: Partial<Record<ProviderName, ProviderRuntimeMetrics>>;
   /** Map of fitnessTier → preferred provider (overrides priority list). */
   tierOverrides?: Partial<Record<FitnessTier, ProviderName>>;
   /** Default request timeout in milliseconds. */
@@ -111,6 +124,7 @@ export interface RouterConfig {
 
 export const DEFAULT_ROUTER_CONFIG: RouterConfig = {
   providerPriority: ["openai", "anthropic", "groq"],
+  routingMode: "priority",
   timeoutMs: 30_000,
   enableFallback: true,
 };

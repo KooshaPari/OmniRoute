@@ -260,6 +260,155 @@ test("BifrostAdapter: fallback — first 500, second succeeds → usedFallback=t
   });
 });
 
+test("BifrostAdapter: latency mode uses provided metrics ordering", async () => {
+  const adapter = new BifrostAdapter({
+    baseUrl: "http://bifrost-test",
+    router: {
+      providerPriority: ["openai", "anthropic", "groq"],
+      routingMode: "latency",
+      providerMetrics: {
+        openai: { latencyMs: 200 },
+        anthropic: { latencyMs: 120 },
+        groq: { latencyMs: 180 },
+      },
+      enableFallback: false,
+    },
+  });
+
+  let firstProvider: string | null = null;
+  await withFetch(async (_url, init) => {
+    firstProvider = (init?.headers as Record<string, string>)?.["x-provider"] ?? null;
+    return jsonResponse(FAKE_BIFROST_RESPONSE, 200, { "x-provider": firstProvider ?? "" });
+  }, async () => {
+    const result = await adapter.route(makeReq());
+    assert.equal(result.ok, true);
+    assert.equal(firstProvider, "anthropic");
+  });
+});
+
+test("BifrostAdapter: reliability mode uses provided metrics ordering", async () => {
+  const adapter = new BifrostAdapter({
+    baseUrl: "http://bifrost-test",
+    router: {
+      providerPriority: ["openai", "anthropic", "groq"],
+      routingMode: "reliability",
+      providerMetrics: {
+        openai: { reliability: 0.8 },
+        anthropic: { reliability: 0.92 },
+        groq: { reliability: 0.9 },
+      },
+      enableFallback: false,
+    },
+  });
+
+  let firstProvider: string | null = null;
+  await withFetch(async (_url, init) => {
+    firstProvider = (init?.headers as Record<string, string>)?.["x-provider"] ?? null;
+    return jsonResponse(FAKE_BIFROST_RESPONSE, 200, { "x-provider": firstProvider ?? "" });
+  }, async () => {
+    const result = await adapter.route(makeReq());
+    assert.equal(result.ok, true);
+    assert.equal(firstProvider, "anthropic");
+  });
+});
+
+test("BifrostAdapter: ties and missing metrics keep source order, missing go last", async () => {
+  const adapter = new BifrostAdapter({
+    baseUrl: "http://bifrost-test",
+    router: {
+      providerPriority: ["openai", "anthropic", "groq", "bedrock"],
+      routingMode: "latency",
+      providerMetrics: {
+        openai: { latencyMs: 120 },
+        anthropic: { latencyMs: NaN },
+        groq: { latencyMs: 120 },
+      },
+    },
+  });
+
+  const callOrder: string[] = [];
+  await withFetch(async (_url, init) => {
+    const provider = (init?.headers as Record<string, string>)?.["x-provider"] ?? "";
+    callOrder.push(provider);
+    if (provider === "openai" || provider === "groq") {
+      return new Response("retry", { status: 500 });
+    }
+    if (provider === "anthropic") {
+      return new Response("retry", { status: 500 });
+    }
+    return jsonResponse(FAKE_BIFROST_RESPONSE, 200, { "x-provider": provider });
+  }, async () => {
+    const result = await adapter.route(makeReq());
+    assert.equal(result.ok, true);
+    assert.deepEqual(callOrder, ["openai", "groq", "anthropic", "bedrock"]);
+  });
+});
+
+test("BifrostAdapter: fitness-tier override stays first before metric sort", async () => {
+  const adapter = new BifrostAdapter({
+    baseUrl: "http://bifrost-test",
+    router: {
+      providerPriority: ["openai", "anthropic", "groq"],
+      routingMode: "latency",
+      providerMetrics: {
+        openai: { latencyMs: 100 },
+        anthropic: { latencyMs: 500 },
+        groq: { latencyMs: 120 },
+      },
+      tierOverrides: { "best-reasoning": "anthropic" },
+    },
+  });
+
+  const callOrder: string[] = [];
+  await withFetch(async (_url, init) => {
+    const provider = (init?.headers as Record<string, string>)?.["x-provider"] ?? "";
+    callOrder.push(provider);
+    if (callOrder.length === 1) {
+      return new Response("retry", { status: 500 });
+    }
+    return jsonResponse(FAKE_BIFROST_RESPONSE, 200, { "x-provider": provider });
+  }, async () => {
+    const result = await adapter.route(makeReq({ fitnessTier: "best-reasoning" }));
+    assert.equal(result.ok, true);
+    assert.deepEqual(callOrder[0], "anthropic");
+    assert.deepEqual(callOrder[1], "openai");
+  });
+});
+
+test("BifrostAdapter: fallback follows sorted runtime ordering", async () => {
+  const adapter = new BifrostAdapter({
+    baseUrl: "http://bifrost-test",
+    router: {
+      providerPriority: ["openai", "anthropic", "groq"],
+      routingMode: "latency",
+      providerMetrics: {
+        openai: { latencyMs: 180 },
+        anthropic: { latencyMs: 70 },
+        groq: { latencyMs: 90 },
+      },
+      enableFallback: true,
+    },
+  });
+
+  const callOrder: string[] = [];
+  await withFetch(async (_url, init) => {
+    const provider = (init?.headers as Record<string, string>)?.["x-provider"] ?? "";
+    callOrder.push(provider);
+    if (provider === "anthropic") {
+      return new Response("retry", { status: 500 });
+    }
+    return jsonResponse(FAKE_BIFROST_RESPONSE, 200, { "x-provider": provider });
+  }, async () => {
+    const result = await adapter.route(makeReq());
+    assert.equal(result.ok, true);
+    if (result.ok) {
+      assert.equal(result.value.provider, "groq");
+      assert.equal(result.value.usedFallback, true);
+    }
+    assert.deepEqual(callOrder, ["anthropic", "groq"]);
+  });
+});
+
 test("BifrostAdapter: fitnessTier override reorders providers", async () => {
   const adapter = new BifrostAdapter({
     baseUrl: "http://bifrost-test",
