@@ -5,16 +5,16 @@
   "command": "bun run integrity:manifest:write",
   "exitCode": 0,
   "signal": null,
-  "generatedAt": "2026-07-16T07:00:43.375Z",
+  "generatedAt": "2026-07-16T07:13:25.316Z",
   "input": {
     "algorithm": "sha256",
-    "hash": "e1ee5b21d9b7bde167c054926b2b7ca6c47d2a34a64540fc4cac71420bcb6422",
-    "fileCount": 8448,
-    "sourceTreeSha256": "9ccd59c6683bb04bbec97c98ba3ba53a1264a7acdc2db1803239697c7cd75f4d"
+    "hash": "b24ae3be479e6c36922cdc589468a836bf37dfb67e7634acefa6f09ee7e4ed31",
+    "fileCount": 8451,
+    "sourceTreeSha256": "b04cff3368d0016e9cf2f0befa87c8cee8c4e458f1dbe047eaa4dc0c44b0060b"
   },
   "log": {
     "path": ".ci/local-first-ci-gates/integrity-manifest.log.txt",
-    "sha256": "89f7556d1116e9d4c0021d45b9609c5cbd4670116e8df95e1b8ffef49a4616df",
+    "sha256": "c0acd06e66b3a3333ae966b85334303f34eaea8900fa938bc6baf2e57fed0928",
     "bytes": 425
   }
 }

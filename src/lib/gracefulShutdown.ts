@@ -96,13 +96,20 @@ async function waitForDrain(): Promise<void> {
  */
 async function cleanup(): Promise<void> {
   try {
-    const [{ closeAuditDb }, { closeDbInstance }, { flushSpendBatchWriter }, { closeLogRotation }] =
-      await Promise.all([
-        import("@omniroute/open-sse/mcp-server/audit.ts"),
-        import("@/lib/db/core"),
-        import("@/lib/spend/batchWriter"),
-        import("@/lib/logRotation"),
-      ]);
+    const [
+      { closeAuditDb },
+      { closeDbInstance },
+      { flushSpendBatchWriter },
+      { closeLogRotation },
+      { flushBifrostRouteMetricsPersistenceForShutdown },
+    ] = await Promise.all([
+      import("@omniroute/open-sse/mcp-server/audit.ts"),
+      import("@/lib/db/core"),
+      import("@/lib/spend/batchWriter"),
+      import("@/lib/logRotation"),
+      import("@/open-sse/observability/bifrostRouteMetrics.ts"),
+    ]);
+    await flushBifrostRouteMetricsPersistenceForShutdown();
     const flushResult = await flushSpendBatchWriter();
     if (flushResult.flushedEntries > 0) {
       console.log(

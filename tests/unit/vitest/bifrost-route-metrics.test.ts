@@ -216,6 +216,40 @@ describe("bifrostRouteMetrics", () => {
     expect(metrics).toBeNull();
   });
 
+  it("excludes future samples while retaining current samples in the freshness window", () => {
+    const nowMs = 1_700_000_000_000;
+
+    for (let idx = 0; idx < 4; idx += 1) {
+      recordBifrostRouteOutcome({
+        provider: "openai",
+        model: "gpt-future-only",
+        status: 200,
+        latencyMs: 100,
+        timestampMs: nowMs + 60_000,
+      });
+      recordBifrostRouteOutcome({
+        provider: "openai",
+        model: "gpt-current",
+        status: 200,
+        latencyMs: 100,
+        timestampMs: nowMs,
+      });
+    }
+
+    expect(
+      getProjectedBifrostRouteMetrics("openai", "gpt-future-only", {
+        projectionWindowMs: 30_000,
+        nowMs,
+      })
+    ).toBeNull();
+    expect(
+      getProjectedBifrostRouteMetrics("openai", "gpt-current", {
+        projectionWindowMs: 30_000,
+        nowMs,
+      })?.sampleCount
+    ).toBe(4);
+  });
+
   it("prefers fresh samples and ignores stale samples when projecting metrics", () => {
     const nowMs = 1_700_000_000_000;
 
