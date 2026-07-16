@@ -1,0 +1,8 @@
+[workspace]
+members = ["crates/*"]
+exclude = [
+  "apps/desktop/src-tauri",
+  "backend-rust",
+  "omniroute-rs",
+]
+resolver = "2"

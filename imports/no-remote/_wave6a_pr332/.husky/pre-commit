@@ -1,0 +1,30 @@
+#!/usr/bin/env sh
+# .husky/pre-commit — DEBT-002 fix (2026-06-25)
+#
+# Previously this hook ran `npx lint-staged` against a non-existent root
+# package.json, blocking every commit. The fix path documented in
+# .husky/pre-push was: "Move to lefthook + cargo make at the repo root."
+#
+# This shim delegates the actual work to lefthook (configured in
+# lefthook.yml at the repo root). If lefthook is not installed, we fall
+# back to the lightweight on-disk checks directly so contributors without
+# `bunx lefthook install` set up still get a sane gate.
+
+if command -v bunx >/dev/null 2>&1 && bunx --no-install lefthook --version >/dev/null 2>&1; then
+  echo "→ lefthook pre-commit (DEBT-002 fixed)"
+  bunx lefthook run pre-commit
+  exit $?
+fi
+
+if command -v lefthook >/dev/null 2>&1; then
+  echo "→ lefthook pre-commit (DEBT-002 fixed, via PATH)"
+  lefthook run pre-commit
+  exit $?
+fi
+
+echo "⚠️  lefthook not installed — falling back to lightweight checks"
+echo "   For full coverage run: bunx lefthook install"
+
+# Lightweight fallback so commits still gate on the most basic invariants.
+bun scripts/check/check-docs-sync.mjs
+bun scripts/check/check-t11-any-budget.mjs

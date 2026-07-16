@@ -1,0 +1,13 @@
+{
+  "title": "Architecture",
+  "pages": [
+    "ARCHITECTURE",
+    "AUTHZ_GUIDE",
+    "CODEBASE_DOCUMENTATION",
+    "NATIVE_ROUTER_BACKEND_MIGRATION_PLAN",
+    "REPOSITORY_MAP",
+    "ROUTER_BACKENDS",
+    "RESILIENCE_GUIDE",
+    "QUALITY_GATES"
+  ]
+}

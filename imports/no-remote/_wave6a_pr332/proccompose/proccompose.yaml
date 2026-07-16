@@ -1,0 +1,175 @@
+# proccompose - argismonitor v4 process composition.
+# Declares the full set of services + cross-host wiring for the v4
+# deployment, the Tailscale Funnel exposure, and the Vercel env update.
+# One file; one CLI; one command to deploy + serve + cutover.
+#
+# Usage:
+#   proccompose up                 # bring up the whole stack
+#   proccompose down               # tear down desktop services
+#   proccompose status             # health snapshot across all services
+#   proccompose cutover <pct>      # flip OMNI_WEB_STACK_ROLLOUT
+#   proccompose url                # print the current BFF URL
+#   proccompose logs <service>     # tail a service's log
+#   proccompose validate            # dry-run - check the file against the
+#                                 # current state of the world
+
+version: "1"
+project: argismonitor
+
+# Shared config
+config:
+  desktop_host: desk
+  # Multi-slot orchestration: dev (always-on), staging (mirror of prod),
+  # prod (the one the world sees). Each slot has its own release
+  # history on the desktop and its own Vercel env.
+  slots:
+    dev:
+      v4_ref: origin/feat/v4-svelte-hono-monorepo
+      rollout_initial: 100
+      vercel_projects: [argismonitor-homepage, argismonitor-app, argismonitor-docs]
+      port_offset: 0
+    staging:
+      v4_ref: origin/feat/v4-svelte-hono-monorepo
+      rollout_initial: 100
+      vercel_projects: [argismonitor-homepage-staging, argismonitor-app-staging, argismonitor-docs-staging]
+      port_offset: 100
+    prod:
+      v4_ref: origin/feat/v4-svelte-hono-monorepo
+      rollout_initial: 0   # start at 0, increment via proccompose cutover
+      vercel_projects: [argismonitor-homepage, argismonitor-app, argismonitor-docs]
+      port_offset: 200                       # SSH alias from pheno-compute-layer
+  data_dir: ~/.argismonitor
+  gateway_socket: /var/run/argismonitor/gateway.sock
+  bff_port: 4322
+  web_port: 4321
+  nextjs_port: 20128
+  v4_ref: origin/feat/v4-svelte-hono-monorepo
+
+# Services that run on the desktop (Tailscale SSH target)
+hosts:
+  desktop:
+    ssh_target: desk                       # via pheno / OpenSSH
+    address_resolver: tailscale status --self --json | jq -r .Self.DNSName
+
+# Services
+services:
+  bff:
+    host: desktop
+    description: "argismonitor BFF (Hono + tRPC + kbridge client + feature flag)"
+    build:
+      workdir: ~/argismonitor-monorepo/apps/bff
+      cmd: bun install && bun run build
+    run:
+      workdir: ~/argismonitor-monorepo/apps/bff
+      env:
+        DATA_DIR: $config.data_dir
+        PORT: $config.bff_port
+        OMNIROUTE_GATEWAY_SOCKET: $config.gateway_socket
+      cmd: bun run src/server.ts
+      log: $config.data_dir/bff.log
+      supervisor:
+        type: launchd
+        plist: ~/Library/LaunchAgents/online.phenotype.argismonitor.bff.plist
+        keep_alive: true
+        run_at_load: true
+
+  kbridge:
+    host: desktop
+    description: "argismonitor Rust gateway daemon (Unix-socket + MessagePack-RPC)"
+    build:
+      workdir: ~/argismonitor-monorepo/backend-rust
+      cmd: cargo build --release -p omniroute-server
+    run:
+      workdir: ~/argismonitor-monorepo/backend-rust
+      env:
+        OMNIRoute_GATEWAY_SOCKET: $config.gateway_socket
+      cmd: ./target/release/omniroute-server --port $config.nextjs_port --data-dir $config.data_dir --kbridge-socket $config.gateway_socket
+      log: $config.data_dir/gateway.log
+      supervisor:
+        type: launchd
+        plist: ~/Library/LaunchAgents/online.phenotype.argismonitor.gateway.plist
+        keep_alive: true
+        run_at_load: true
+
+  nextjs_legacy:
+    host: desktop
+    description: "Legacy Next.js upstream (only for the Phase 3 cutover redirect)"
+    build:
+      workdir: ~/OmniRoute-b10
+      cmd: bun install && bun run build
+    run:
+      workdir: ~/OmniRoute-b10
+      env:
+        PORT: $config.nextjs_port
+      cmd: bun run start
+      log: $config.data_dir/nextjs.log
+
+  tailscale_funnel:
+    host: desktop
+    description: "Expose the BFF over Tailscale Funnel so Vercel frontends can reach it"
+    run:
+      workdir: ~
+      cmd: tailscale funnel --bg --bg-local-allow-multiple-clients $config.bff_port
+      depends_on: [bff]
+    provides: url
+
+# Frontend services that run on Vercel
+vercel_projects:
+  - name: argismonitor-homepage
+    env:
+      OMNI_BFF_URL: $services.tailscale_funnel.url:$config.bff_port
+      NEXTJS_UPSTREAM: $services.tailscale_funnel.url:$config.nextjs_port
+      OMNI_WEB_STACK: svelte
+      OMNI_WEB_STACK_ROLLOUT: 0   # start at 0, increment via proccompose cutover
+  - name: argismonitor-app
+    env:
+      OMNI_BFF_URL: $services.tailscale_funnel.url:$config.bff_port
+      NEXTJS_UPSTREAM: $services.tailscale_funnel.url:$config.nextjs_port
+      OMNI_WEB_STACK: svelte
+      OMNI_WEB_STACK_ROLLOUT: 0
+  - name: argismonitor-docs
+    env:
+      OMNI_BFF_URL: $services.tailscale_funnel.url:$config.bff_port
+      NEXTJS_UPSTREAM: $services.tailscale_funnel.url:$config.nextjs_port
+      OMNI_WEB_STACK: svelte
+      OMNI_WEB_STACK_ROLLOUT: 0
+
+# Cutover phases - increment OMNI_WEB_STACK_ROLLOUT through these
+# Each phase is a time-bounded window; proccompose cutover <pct> updates
+# the env on all matching Vercel projects.
+cutover:
+  - pct: 1
+    duration_hours: 4
+    success_criteria:
+      - error_rate < 0.005
+      - p95_latency_ms < 500
+  - pct: 10
+    duration_hours: 24
+    success_criteria:
+      - error_rate < 0.005
+      - p95_latency_ms < 500
+  - pct: 50
+    duration_hours: 48
+    success_criteria:
+      - error_rate < 0.005
+      - p95_latency_ms < 500
+  - pct: 100
+    duration_hours: 72
+    success_criteria:
+      - error_rate < 0.005
+      - p95_latency_ms < 500
+
+# Observability - what to monitor and what to alert on
+monitor:
+  health_endpoints:
+    - bff: http://$services.tailscale_funnel.url:$config.bff_port/healthz
+    - kbridge: $services.bff.url:$config.bff_port/api/dashboard/health/stream
+    - nextjs: http://$services.tailscale_funnel.url:$config.nextjs_port/healthz
+  slo:
+    p50_latency_ms: 150
+    p95_latency_ms: 500
+    p99_latency_ms: 1500
+    error_rate_max: 0.005
+  alert:
+    on_breach: console + slack_webhook
+    slo_breach_message: "argismonitor SLO breach: $service at $value (limit $limit)"

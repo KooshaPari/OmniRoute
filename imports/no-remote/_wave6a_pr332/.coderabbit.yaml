@@ -1,0 +1,28 @@
+review:
+  enabled: true
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+  review_status: true
+  path_filters:
+    - "src/**/*"
+    - "tests/**/*"
+    - "open-sse/**/*"
+    - "electron/**/*"
+    - ".github/**/*"
+  path_instructions:
+    - path: "src/**/*"
+      instructions: "Review for TypeScript best practices, Zod schema validation, and Next.js App Router patterns."
+    - path: "tests/**/*"
+      instructions: "Review for test coverage, Playwright selector stability, and assertion quality."
+    - path: ".github/**/*"
+      instructions: "Review for SHA-pinned actions, permissions blocks, and timeout-minutes."
+  auto_reply:
+    enabled: true
+  knowledge_base:
+    learnings:
+      - path: "CLAUDE.md"
+        scope: "project"
+      - path: "AGENTS.md"
+        scope: "project"

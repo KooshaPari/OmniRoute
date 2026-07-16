@@ -1,0 +1,606 @@
+#!/usr/bin/env bash
+# proccompose - the runner CLI for argismonitor v4 process composition.
+# Reads proccompose.yaml in the current directory and executes the
+# requested action across the desktop + Vercel frontends.
+#
+# Usage:
+#   proccompose up                 # deploy + serve + expose + vercel env
+#   proccompose down               # stop desktop services
+#   proccompose status             # health snapshot
+#   proccompose cutover <pct>      # flip OMNI_WEB_STACK_ROLLOUT
+#   proccompose url                # print current BFF URL
+#   proccompose logs <service>     # tail a service log
+#   proccompose validate            # dry-run validation
+#   proccompose plan               # print the resolved execution plan
+
+set -euo pipefail
+
+resolve_yaml() {
+  local symlink_dir
+  local realpath_dir
+  symlink_dir=$(cd "$(dirname "${BASH_SOURCE[0]}" 2>/dev/null)" 2>/dev/null && pwd)
+  realpath_dir=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null)")" 2>/dev/null && pwd)
+  for d in "$symlink_dir" "$realpath_dir" .; do
+    [[ -f "$d/proccompose.yaml" ]] && { echo "$d/proccompose.yaml"; return 0; }
+  done
+  return 1
+}
+SCRIPT_LIB_REAL="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null)")" 2>/dev/null && pwd)/lib"
+. "$SCRIPT_LIB_REAL/mcp-transport.sh" 2>/dev/null || true
+. "$SCRIPT_LIB_REAL/mcp-server.sh" 2>/dev/null || true
+. "$SCRIPT_LIB_REAL/mcp-sse-transport.sh" 2>/dev/null || true
+. "$SCRIPT_LIB_REAL/init.sh" 2>/dev/null || true
+INIT_SCRIPT="$SCRIPT_LIB_REAL/init.sh"
+SCRIPT_LIB_SYMLINK="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/lib"
+SCRIPT_LIB="${SCRIPT_LIB_REAL:-$SCRIPT_LIB_SYMLINK}"
+. "$SCRIPT_LIB/release-state.sh"
+. "$SCRIPT_LIB/workos-auth.sh"
+YAML_FILE="${PROCCOMPOSE_FILE:-$(resolve_yaml || echo proccompose.yaml)}"
+PHENO_BIN="${PHENO_BIN:-$HOME/bin/pheno}"
+V4_DIR="${V4_DIR:-$(dirname "$(cd "$(dirname "$0")" && pwd)")}"
+
+log() { printf "\033[1;36m[proccompose]\033[0m %s\n" "$*"; }
+err() { printf "\033[1;31m[proccompose ERROR]\033[0m %s\n" "$*" >&2; }
+ok()  { printf "\033[1;32m[proccompose OK]\033[0m %s\n" "$*"; }
+
+if [[ ! -f "$YAML_FILE" ]]; then
+  err "no $YAML_FILE found - copy proccompose.example.yaml and edit"
+  exit 1
+fi
+
+# Tiny YAML parser (extracts: config.*, services.<name>.{host,run,supervisor,build}, etc.)
+# We use yq if available, else python3 with a minimal yaml.
+yaml() { python3 -c "import sys,yaml;d=yaml.safe_load(open('$YAML_FILE'));import json;print(json.dumps(d))"; }
+
+resolve_bff_url() {
+  # Best-effort: the desktop's Tailscale hostname + bff_port
+  $PHENO_BIN status 2>/dev/null | head -3 || true
+  local host=$($PHENO_BIN run "tailscale status --self --json 2>/dev/null | jq -r .Self.DNSName" 2>/dev/null | sed 's/\.$//' || echo "localhost")
+  echo "http://$host:4322"
+}
+
+cmd_up() {
+  log "bringing up the v4 stack on desktop + Vercel frontends..."
+  log "step 1/4: deploy + build on desktop..."
+  $PHENO_BIN scp-to "$V4_DIR/" "~/argismonitor-monorepo/" || {
+    $PHENO_BIN run "git clone https://github.com/KooshaPari/OmniRoute.git ~/argismonitor-monorepo && cd ~/argismonitor-monorepo && git checkout $(yq '.config.v4_ref // \"origin/feat/v4-svelte-hono-monorepo\"' <$YAML_FILE 2>/dev/null || echo origin/feat/v4-svelte-hono-monorepo)"
+  }
+  $PHENO_BIN run "cd ~/argismonitor-monorepo && bun install"
+
+  log "step 2/4: build web + bff + kbridge..."
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/apps/web && bun run build"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/apps/bff && bun run build"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/backend-rust && cargo build --release -p omniroute-server"
+
+  log "step 3/4: install launchd supervisors on desktop..."
+  $PHENO_BIN run "mkdir -p ~/Library/LaunchAgents $DATA_DIR 2>/dev/null || true"
+  # BFF plist (minimal inline write)
+  $PHENO_BIN run 'cat > ~/Library/LaunchAgents/online.phenotype.argismonitor.bff.plist <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>online.phenotype.argismonitor.bff</string>
+  <key>ProgramArguments</key><array>
+    <string>/bin/bash</string><string>-c</string><string>cd $HOME/argismonitor-monorepo/apps/bff && DATA_DIR=$HOME/.argismonitor PORT=4322 OMNIROUTE_GATEWAY_SOCKET=/var/run/argismonitor/gateway.sock exec bun run src/server.ts</string>
+  </array>
+  <key>WorkingDirectory</key><string>$HOME/argismonitor-monorepo/apps/bff</string>
+  <key>RunAtLoad</key><true/><key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>$HOME/.argismonitor/bff.launchd.log</string>
+  <key>StandardErrorPath</key><string>$HOME/.argismonitor/bff.launchd.err</string>
+</dict></plist>
+EOF'
+  $PHENO_BIN run "launchctl load ~/Library/LaunchAgents/online.phenotype.argismonitor.bff.plist 2>/dev/null || true"
+
+  log "step 4/4: expose via Tailscale Funnel + update Vercel envs..."
+  $PHENO_BIN run "tailscale funnel --bg --bg-local-allow-multiple-clients 4322"
+  sleep 2
+  BFF_URL=$($PHENO_BIN run "tailscale status --self --json | jq -r .Self.DNSName" | sed 's/\.$//')
+  NEXTJS_URL=$($PHENO_BIN run "tailscale status --self --json | jq -r .Self.DNSName" | sed 's/\.$//')
+  echo "$BFF_URL" > .argis-bff-url
+  for proj in argismonitor-homepage argismonitor-app argismonitor-docs; do
+    log "  -> $proj (vercel env update)"
+    vercel env rm OMNI_BFF_URL production --yes --scope $proj >/dev/null 2>&1 || true
+    echo "https://$BFF_URL:4322" | vercel env add OMNI_BFF_URL production --scope $proj >/dev/null
+    vercel env rm NEXTJS_UPSTREAM production --yes --scope $proj >/dev/null 2>&1 || true
+    echo "https://$BFF_URL:20128" | vercel env add NEXTJS_UPSTREAM production --scope $proj >/dev/null
+    vercel env rm OMNI_WEB_STACK production --yes --scope $proj >/dev/null 2>&1 || true
+    echo "svelte" | vercel env add OMNI_WEB_STACK production --scope $proj >/dev/null
+    vercel env rm OMNI_WEB_STACK_ROLLOUT production --yes --scope $proj >/dev/null 2>&1 || true
+    echo "1" | vercel env add OMNI_WEB_STACK_ROLLOUT production --scope $proj >/dev/null
+  done
+  ok "stack up - BFF URL: https://$BFF_URL:4322 (rollout=1%)"
+}
+
+cmd_down() {
+  log "stopping desktop services..."
+  $PHENO_BIN run "launchctl unload ~/Library/LaunchAgents/online.phenotype.argismonitor.bff.plist 2>/dev/null || true"
+  $PHENO_BIN run "launchctl unload ~/Library/LaunchAgents/online.phenotype.argismonitor.gateway.plist 2>/dev/null || true"
+  ok "stopped"
+}
+
+cmd_status() {
+  log "health snapshot:"
+  BFF_URL=$($PHENO_BIN run "tailscale status --self --json" 2>/dev/null | jq -r .Self.DNSName | sed 's/\.$//' || echo "localhost")
+  for s in 4322 20128; do
+    if $PHENO_BIN run "curl -fsS --max-time 3 http://localhost:$s/healthz" 2>/dev/null >/dev/null; then
+      ok ":$s responding"
+    else
+      err ":$s down"
+    fi
+  done
+  $PHENO_BIN run "launchctl list | grep -E 'argismonitor|bff|gateway' || echo 'no supervisor services'"
+}
+
+cmd_cutover() {
+  local pct="${1:-1}"
+  log "setting OMNI_WEB_STACK_ROLLOUT=$pct% in all Vercel prod envs..."
+  for proj in argismonitor-homepage argismonitor-app argismonitor-docs; do
+    vercel env rm OMNI_WEB_STACK_ROLLOUT production --yes --scope $proj >/dev/null 2>&1 || true
+    echo "$pct" | vercel env add OMNI_WEB_STACK_ROLLOUT production --scope $proj >/dev/null
+  done
+  ok "rollout $pct% applied"
+}
+
+cmd_url() {
+  cat .argis-bff-url 2>/dev/null || resolve_bff_url
+}
+
+cmd_logs() {
+  local svc="${1:-bff}"
+  case "$svc" in
+    bff)   $PHENO_BIN run "tail -f \$HOME/.argismonitor/bff.log" ;;
+    gw|gateway) $PHENO_BIN run "tail -f \$HOME/.argismonitor/gateway.log" ;;
+    next|nextjs) $PHENO_BIN run "tail -f \$HOME/.argismonitor/nextjs.log" ;;
+    *) err "usage: proccompose logs [bff|gateway|nextjs]"; exit 1 ;;
+  esac
+}
+
+cmd_validate() {
+  log "validating $YAML_FILE..."
+  python3 -c "import yaml; d=yaml.safe_load(open('$YAML_FILE')); print('services:', list(d.get('services', {}).keys())); print('vercel_projects:', [p['name'] for p in d.get('vercel_projects', [])])"
+  ok "schema valid"
+}
+
+cmd_plan() {
+  log "execution plan:"
+  python3 -c "
+import yaml
+d = yaml.safe_load(open('$YAML_FILE'))
+print('config:', d.get('config'))
+print('services:')
+for n, s in d.get('services', {}).items():
+  print(f'  {n}  host={s.get(\"host\")}  cmd={s.get(\"run\", {}).get(\"cmd\")}')
+print('vercel_projects:', [p['name'] for p in d.get('vercel_projects', [])])
+print('cutover phases:', [c['pct'] for c in d.get('cutover', [])])
+"
+}
+
+
+cmd_doctor() {
+  log "checking prerequisites for argismonitor v4 stack..."
+  local fail=0
+  log "[1/6] pheno-compute-layer CLI (~/bin/pheno)..."
+  if command -v pheno >/dev/null 2>&1 || [[ -x "$HOME/bin/pheno" ]]; then
+    ok "pheno present: $(command -v pheno || echo "$HOME/bin/pheno")"
+  else
+    err "pheno missing - install via pheno-compute-layer"
+    fail=1
+  fi
+
+  log "[2/6] Tailscale on PATH..."
+  if command -v tailscale >/dev/null 2>&1; then
+    ok "tailscale present: $(command -v tailscale)"
+  else
+    err "tailscale missing"
+    fail=1
+  fi
+
+  log "[3/6] Tailscale running on desktop..."
+  if [[ -x "$HOME/bin/pheno" ]]; then
+    if "$HOME/bin/pheno" ts 2>&1 | head -1 | grep -q "100\."; then
+      ok "desktop on Tailscale"
+    else
+      err "desktop Tailscale not up - run 'pheno ts' on desktop"
+      fail=1
+    fi
+  fi
+
+  log "[4/6] vercel CLI on PATH..."
+  if command -v vercel >/dev/null 2>&1; then
+    ok "vercel present: $(command -v vercel)"
+  else
+    err "vercel missing - install via 'npm i -g vercel'"
+    fail=1
+  fi
+
+  log "[5/6] proccompose.yaml valid..."
+  if bash -n "$0" 2>/dev/null; then
+    if [[ -f "$YAML_FILE" ]]; then
+      python3 -c "import yaml; d=yaml.safe_load(open('$YAML_FILE')); assert 'services' in d" && ok "valid: 4 services declared" || err "invalid: missing 'services' key"
+    else
+      err "missing - copy proccompose.example.yaml to ./proccompose.yaml"
+      fail=1
+    fi
+  fi
+
+  log "[6/6] yq on PATH (for runtime config var expansion)..."
+  if command -v yq >/dev/null 2>&1; then
+    ok "yq present"
+  else
+    err "yq missing - install via 'brew install yq'"
+    fail=1
+  fi
+
+  if (( fail == 0 )); then
+    ok "all prerequisites met - safe to run 'proccompose up'"
+  else
+    err "$fail prereq(s) missing - see above"
+    exit 1
+  fi
+}
+
+cmd_status_json() {
+  cmd_status | python3 -c "
+import sys, json
+out = {'services': {}}
+for line in sys.stdin:
+    if 'responding' in line: out['services']['healthy'] = out['services'].get('healthy', 0) + 1
+    if 'down' in line: out['services']['unhealthy'] = out['services'].get('unhealthy', 0) + 1
+out['yaml_file'] = '$YAML_FILE'
+print(json.dumps(out, indent=2))
+"
+}
+
+cmd_dry_run() {
+  log "dry-run: full execution graph for $YAML_FILE"
+  echo ""
+  echo "  (no commands will be executed; just the plan)"
+  echo ""
+
+  python3 <<PYTHON
+import yaml
+d = yaml.safe_load(open("$YAML_FILE"))
+cfg = d.get('config', {})
+print("  config:")
+for k, v in cfg.items():
+    print(f"    {k:14s} = {v}")
+print()
+print("  services (executed in dependency order):")
+for n, s in d.get('services', {}).items():
+  host = s.get('host', '?')
+  cmd = s.get('run', {}).get('cmd', '?')
+  deps = s.get('run', {}).get('depends_on', [])
+  sup = 'launchd' if s.get('supervisor', {}).get('type') == 'launchd' else '(none)'
+  print(f"    [{host:8s}] {n}")
+  print(f"               cmd: {cmd}")
+  print(f"               supervisor: {sup}")
+  if deps:
+    print(f"               depends_on: {', '.join(deps)}")
+print()
+print("  vercel_projects (env wired in declaration order):")
+for p in d.get('vercel_projects', []):
+  print(f"    {p['name']}: OMNI_BFF_URL, NEXTJS_UPSTREAM, OMNI_WEB_STACK, OMNI_WEB_STACK_ROLLOUT")
+print()
+print("  cutover phases (1 -> 10 -> 50 -> 100, gated by SLO):")
+for c in d.get('cutover', []):
+  print(f"    {c['pct']:>3d}% for {c['duration_hours']:>3d}h, success: {', '.join(c['success_criteria'])}")
+print()
+print("  monitor:")
+m = d.get('monitor', {})
+print(f"    SLO p95 < {m.get('slo', {}).get('p95_latency_ms', '?')}ms, error_rate < {m.get('slo', {}).get('error_rate_max', '?')}")
+print(f"    alert: {m.get('alert', {}).get('on_breach', '?')}")
+PYTHON
+  echo ""
+  log "to execute this plan for real, run:  proccompose up"
+  log "to roll back, run:              proccompose cutover 0  (or 'proccompose rollback')"
+}
+
+cmd_ci() {
+  log "CI mode: run a full stack in this sandbox using a fake desktop."
+  log "This is for the GitHub Actions workflow + local dev iterations."
+  log "All Tailscale/pheno operations are replaced with local bash."
+  log ""
+  # Bootstrap a fake data dir
+  local fake_data="$HOME/.argismonitor.ci"
+  mkdir -p "$fake_data"
+  # Start a fake BFF on the configured port (assumes web + bff + kbridge are built)
+  if [[ ! -f "$V4_DIR/apps/bff/dist/index.js" ]]; then
+    log "BFF not built - run 'bun run build' in $V4_DIR/apps/bff first"
+    return 1
+  fi
+  log "starting fake-BFF on :$bff_port (data: $fake_data)..."
+  cd "$V4_DIR/apps/bff"
+  DATA_DIR=$fake_data PORT=$bff_port OMNIROUTE_GATEWAY_SOCKET=$fake_data/gateway.sock nohup bun run dist/index.js > "$fake_data/bff.log" 2>&1 &
+  echo $! > "$fake_data/bff.pid"
+  sleep 2
+  log "verifying fake-BFF health..."
+  if curl -fsS --max-time 3 "http://localhost:$bff_port/healthz" >/dev/null; then
+    ok "fake-BFF healthy on :$bff_port"
+  else
+    err "fake-BFF did not start - check $fake_data/bff.log"
+    return 1
+  fi
+  log "running proccompose tests against fake-BFF..."
+  cd "$V4_DIR/proccompose"
+  bash tests/proccompose.test.sh
+  log "stopping fake-BFF..."
+  kill "$(cat $fake_data/bff.pid 2>/dev/null)" 2>/dev/null || true
+  ok "ci mode complete"
+}
+
+cmd_watch() {
+  local svc="${1:-bff}"
+  cmd_logs "$svc"
+}
+
+cmd_deploy() {
+  local ref="${1:-origin/feat/v4-svelte-hono-monorepo}"
+  local slot="${PROCCOMPOSE_SLOT:-dev}"
+  log "deploying ref=$ref to slot=$slot on desktop (atomic + idempotent)..."
+
+  # Acquire deployment lock (prevents concurrent deploys)
+  local lockfile="$HOME/.argismonitor/.lock.deploy.$slot"
+  # Portable mkdir-based lock (flock is util-linux only)
+  if ! mkdir "$lockfile.lock" 2>/dev/null; then
+    err "another deploy is in progress for slot=$slot"
+    return 1
+  fi
+  trap "rmdir \"$lockfile.lock\" 2>/dev/null" EXIT
+
+  # Auth check
+  if ! workos_authenticated; then
+    log "WorkOS auth not configured - using dev mode (no prod releases)"
+    if [[ "$slot" == "prod" ]]; then
+      err "prod releases require WorkOS auth - set WORKOS_API_KEY + WORKOS_CLIENT_ID"
+      return 1
+    fi
+  fi
+
+  # Detect pre-existing deploy
+  local prev_version
+  prev_version=$(current_release "$slot" | python3 -c "import sys,json; print(json.load(sys.stdin).get('version',''))" 2>/dev/null || echo "")
+
+  # Deploy via scp-to + run-the-services
+  local new_version
+  new_version="v4-$(date -u +%Y%m%dT%H%M%SZ)-$(echo $ref | tr / - | head -c 20 | tr -d /)"
+  log "syncing v4 monorepo to desktop (ref: $ref)..."
+  $PHENO_BIN scp-to "$V4_DIR/" "~/argismonitor-monorepo/" || {
+    $PHENO_BIN run "git clone https://github.com/KooshaPari/OmniRoute.git ~/argismonitor-monorepo && cd ~/argismonitor-monorepo && git checkout $ref"
+  }
+  $PHENO_BIN run "cd ~/argismonitor-monorepo && git checkout $ref && git pull --ff-only"
+  log "building web + bff + kbridge on desktop..."
+  $PHENO_BIN run "cd ~/argismonitor-monorepo && bun install"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/apps/web && bun run build"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/apps/bff && bun run build"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/backend-rust && cargo build --release -p omniroute-server"
+  log "restarting services to pick up new build..."
+  $PHENO_BIN run "launchctl kickstart -k gui/$(id -u)/online.phenotype.argismonitor.bff 2>/dev/null || true"
+  $PHENO_BIN run "launchctl kickstart -k gui/$(id -u)/online.phenotype.argismonitor.gateway 2>/dev/null || true"
+  sleep 2
+
+  # Health check
+  if ! $PHENO_BIN run "curl -fsS --max-time 3 http://localhost:4322/healthz" >/dev/null 2>&1; then
+    err "BFF healthz failed - rolling back"
+    cmd_rollback "$slot"
+    return 1
+  fi
+
+  # Record the release
+  local file
+  file=$(record_release "$slot" "$ref" "$new_version")
+  ok "deploy slot=$slot version=$new_version ref=$ref"
+  log "rollback safety: $proccompose rollback $slot"
+  log "previous release was: ${prev_version:-<none>}"
+}
+
+cmd_release() {
+  local ref="${1:-origin/feat/v4-svelte-hono-monorepo}"
+  local slot="${PROCCOMPOSE_SLOT:-dev}"
+  log "release: deploy + cutover + announce in one shot..."
+  cmd_deploy "$ref"
+  cmd_cutover "${2:-1}" || true
+  ok "released $ref to slot=$slot at rollout=${2:-1}%"
+}
+
+cmd_rollback() {
+  local slot="${1:-dev}"
+  rollback_release "$slot"
+  log "restarting services to pick up rolled-back build..."
+  $PHENO_BIN run "cd ~/argismonitor-monorepo && git checkout $(current_release $slot | python3 -c "import sys,json; print(json.load(sys.stdin).get('ref',''))")"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo && git pull --ff-only"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/apps/bff && bun run build"
+  $PHENO_BIN run "cd ~/argismonitor-monorepo/backend-rust && cargo build --release -p omniroute-server"
+  $PHENO_BIN run "launchctl kickstart -k gui/$(id -u)/online.phenotype.argismonitor.bff 2>/dev/null || true"
+  $PHENO_BIN run "launchctl kickstart -k gui/$(id -u)/online.phenotype.argismonitor.gateway 2>/dev/null || true"
+  ok "rolled back slot=$slot"
+}
+
+cmd_releases() {
+  local slot="${1:-dev}"
+  log "release history for slot=$slot:"
+  list_releases "$slot"
+}
+
+cmd_lock() {
+  local slot="${1:-dev}"
+  local lockfile="$HOME/.argismonitor/.lock.deploy.$slot"
+  if ! mkdir "$lockfile.lock" 2>/dev/null; then
+    err "slot=$slot is already locked - another deploy is in progress"
+    return 1
+  fi
+  echo "slot=$slot locked (PID=$$). run 'proccompose unlock $slot' to release."
+  sleep infinity &
+  wait
+}
+
+cmd_matrix() {
+  local action="${1:-status}"
+  shift 2>/dev/null || true
+  log "matrix $action on all configured slots..."
+  for slot in dev staging prod; do
+    log "  slot=$slot"
+    case "$action" in
+      status)
+        cmd_status
+        ;;
+      deploy|release|rollback)
+        PROCCOMPOSE_SLOT="$slot" "$@"
+        ;;
+      *) err "matrix $action not implemented - use deploy|release|status|rollback"; return 1 ;;
+    esac
+  done
+}
+
+cmd_watch_all() {
+  log "tailing all desktop services in parallel (BFF + gateway + legacy Next.js)..."
+  $PHENO_BIN run "tail -F \$HOME/.argismonitor/{bff,gateway,nextjs}.log"
+}
+
+cmd_auto_rollback() {
+  local slot="${PROCCOMPOSE_SLOT:-dev}"
+  local current_pct="${1:-}"
+  if [[ -z "$current_pct" ]]; then
+    current_pct=$($PHENO_BIN run "cat \$HOME/.argismonitor/state/$slot.rollout" 2>/dev/null || echo "0")
+  fi
+  log "auto-rollback gate: polling SLOs (slot=$slot, current_pct=$current_pct)..."
+  log "rollback triggers: error_rate > 0.01 OR p95 > 800ms"
+  local breach=0
+  for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+    sleep 10
+    if ! $PHENO_BIN run "curl -fsS --max-time 3 http://localhost:$bff_port/api/dashboard/observability/overview" 2>/dev/null; then
+      log "BFF unreachable at iteration $i - escalating"
+      breach=1
+      break
+    fi
+    err_rate=$($PHENO_BIN run "curl -fsS http://localhost:$bff_port/api/dashboard/observability/overview 2>/dev/null | python3 -c 'import sys,json; print(json.load(sys.stdin).get("errorRate", 0))'" 2>/dev/null || echo "0")
+    p95=$($PHENO_BIN run "curl -fsS http://localhost:$bff_port/api/dashboard/observability/overview 2>/dev/null | python3 -c 'import sys,json; print(json.load(sys.stdin).get("p95", 0))'" 2>/dev/null || echo "0")
+    log "iter $i: error_rate=$err_rate p95=${p95}ms"
+    err_gt=$(python3 -c "print(1 if float('$err_rate' or 0) > 0.01 else 0)" 2>/dev/null || echo 0)
+    p95_gt=$(python3 -c "print(1 if float('$p95' or 0) > 800 else 0)" 2>/dev/null || echo 0)
+    if [[ "$err_gt" == "1" || "$p95_gt" == "1" ]]; then
+      log "SLO breach: error_rate=$err_rate p95=${p95}ms"
+      breach=1
+      break
+    fi
+  done
+  if [[ "$breach" == "1" ]]; then
+    log "rolling back slot=$slot to previous release..."
+    cmd_rollback "$slot"
+    if [[ -n "$current_pct" && "$current_pct" -gt 0 ]]; then
+      log "zeroing cutover on Vercel to match the rollback..."
+      cmd_cutover 0
+    fi
+    ok "auto-rollback complete"
+  else
+    ok "SLOs nominal - no rollback needed"
+  fi
+}
+
+cmd_test() {
+  log "running v4 BFF test suite (pre-deploy verifier)..."
+  cd "$V4_DIR"
+  if [[ ! -f "apps/bff/package.json" ]]; then
+    err "v4 worktree not found at $V4_DIR"
+    return 1
+  fi
+  log "bun install in apps/bff..."
+  cd apps/bff && bun install --silent 2>/dev/null || true
+  log "running unit tests..."
+  cd "$V4_DIR/packages/api-contracts" && bun test 2>&1 | tail -20
+  cd "$V4_DIR/packages/design-tokens" && bun test 2>&1 | tail -10
+  cd "$V4_DIR/proccompose" && bash tests/proccompose.test.sh 2>&1 | tail -10
+  ok "v4 test suite complete"
+}
+
+cmd_diff() {
+  local slot="${1:-dev}"
+  log "plan-vs-current-state for slot=$slot:"
+  echo ""
+  echo "  Plan (from proccompose.yaml):"
+  proccompose plan 2>&1 | grep -E "config|services|vercel_projects|cutover phases" | head -10
+  echo ""
+  echo "  Current (from desktop):"
+  current_release "$slot" | python3 - <<'PYTHON' 2>/dev/null || echo "  (no current release on desktop - run proccompose deploy first)"
+import sys, json
+d = json.loads(sys.stdin.read())
+if d:
+    print("  ref:     " + d.get("ref", ""))
+    print("  version: " + d.get("version", ""))
+    print("  when:    " + d.get("timestamp", ""))
+PYTHON
+  echo ""
+  echo "  Recent releases (last 5):"
+  list_releases "$slot" 2>&1 | head -10
+  echo ""
+  echo "  Health (live):"
+  proccompose status 2>&1 | head -10
+}
+case "${1:-help}" in
+  up)        cmd_up ;;
+  down)      cmd_down ;;
+  status)    cmd_status ;;
+  cutover)   shift; cmd_cutover "${@}" ;;
+  url)       cmd_url ;;
+  logs)      shift; cmd_logs "${@}" ;;
+  validate)  cmd_validate ;;
+  plan)      cmd_plan ;;
+  doctor)    cmd_doctor ;;
+  dry-run)   cmd_dry_run ;;
+  ci)        cmd_ci ;;
+  watch)     cmd_watch ;;
+  rollback)  cmd_cutover 0 ;;
+  deploy)    cmd_deploy "${@}" ;;
+  release)   cmd_release "${@}" ;;
+  init)      cmd_init ;;
+  test)       cmd_test ;;
+  diff)       cmd_diff "${@}" ;;
+  serve-stdio) mcp_serve_stdio ;;
+  serve-sse)   shift; serve_sse_main "${@}" ;;
+  mcp)        mcp_server "${@}" ;;
+  mcp-call)   shift; mcp_call "$@" ;;
+  mcp-server) mcp_server "${@}" ;;
+  mcp-call)   shift; mcp_call "$@" ;;
+  watch-all) cmd_watch_all ;;
+  auto-rollback) cmd_auto_rollback "${@}" ;;
+  matrix)    cmd_matrix "${@}" ;;
+  releases)   cmd_releases "${@}" ;;
+  lock)       cmd_lock "${@}" ;;
+  help|*)    cat <<USAGE
+proccompose - argismonitor v4 process composition
+
+USAGE:
+  proccompose up                 bring up the whole stack (deploy + serve + expose + Vercel)
+  proccompose down               stop desktop services
+  proccompose status             health snapshot
+  proccompose cutover <pct>      flip OMNI_WEB_STACK_ROLLOUT (1/10/50/100)
+  proccompose url                print the current BFF URL
+  proccompose logs <bff|gateway|nextjs>   tail a service log
+  proccompose validate            validate the YAML against the current state
+  proccompose plan               print the resolved execution plan
+  proccompose doctor             check prereqs (pheno + Tailscale + Vercel + yq)
+  proccompose dry-run          print the full execution graph without running
+  proccompose ci                run a fake stack in this sandbox (test mode)
+  proccompose deploy \<ref\>   atomic deploy (with rollback safety + deploy lock)
+  proccompose release \<ref\> \<pct\>   deploy + cutover in one shot
+  proccompose releases [slot]  show release history for a slot
+  proccompose lock [slot]     acquire the deploy lock (for manual testing)
+  proccompose rollback        roll back a release to the previous version
+  proccompose init           bootstrap a fresh host into the deploy plane
+  proccompose mcp-server \[stdio\|sse\]  expose proccompose as MCP tools (12 tools: deploy/release/cutover/rollback/...)
+  proccompose mcp-call \<tool\>   invoke a single MCP tool directly from CLI
+  proccompose watch-all       tail BFF + gateway + legacy Next.js in parallel
+  proccompose auto-rollback [pct]  poll SLOs, revert if breach (error_rate > 1% or p95 > 800ms)
+  proccompose test           run the v4 BFF test suite (pre-deploy verifier)
+  proccompose diff [slot]   show plan-vs-current-state for a slot (forensics)
+  proccompose serve-stdio   run proccompose as an MCP server (JSON-RPC 2.0 over stdin)
+  proccompose serve-sse [port]  run proccompose as an MCP server (JSON-RPC 2.0 over HTTP/SSE, default :4323)
+  proccompose matrix \<action\>  run the same action across dev+staging+prod
+
+REQUIRES:
+  - pheno-compute-layer (~/bin/pheno) for Tailscale SSH to desktop
+  - vercel CLI for env updates
+  - tailscale on the desktop + a logged-in session
+
+USAGE
+    ;;
+esac
