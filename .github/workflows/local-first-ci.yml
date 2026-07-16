@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: local-first-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: local-first-ci-${{ github.workflow }}-${{ github.event.pull_request.head.sha || github.sha }}
   cancel-in-progress: true
 
 jobs:
