@@ -1,44 +1,44 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-16T09:59:11.118Z",
+  "generatedAt": "2026-07-16T10:30:47.558Z",
   "gateResults": [
     {
       "name": "typecheck-core",
       "status": "passed",
       "command": "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json",
       "proofPath": ".ci/local-first-ci-gates/typecheck-core.proof.json",
-      "proofHash": "c643f9e22d5f26467dff0fcc05306d1937c3af1595853708f389cc4f9691afb8",
-      "executedAt": "2026-07-16T09:51:50.984Z"
+      "proofHash": "ead4625175354f505b81e1ffbecf8d1079091694d08fc2003a54584e3c6abe27",
+      "executedAt": "2026-07-16T10:30:26.384Z"
     },
     {
       "name": "integrity-manifest",
       "status": "passed",
       "command": "bun run integrity:manifest:write",
       "proofPath": ".ci/local-first-ci-gates/integrity-manifest.proof.json",
-      "proofHash": "75b90bed0aab9da58c353c4e378a81af05d5d82221fd0ae8d58d55970acc6eb1",
-      "executedAt": "2026-07-16T09:49:13.095Z"
+      "proofHash": "ff63dce2ee18fd7b25b550fe348100509ec51b2f9f1d9a53da458294caccdc5f",
+      "executedAt": "2026-07-16T10:30:31.771Z"
     },
     {
       "name": "t11-any-budget-push",
       "status": "passed",
       "command": "bun scripts/check/check-t11-any-budget.mjs",
       "proofPath": ".ci/local-first-ci-gates/t11-any-budget-push.proof.json",
-      "proofHash": "9dc8d38ab11c850b5e412c059f1542670b23f6eff1a63c86fa2ba9b0834cfb25",
-      "executedAt": "2026-07-16T09:49:23.938Z"
+      "proofHash": "fb97fd5c295505a8a3cb3830b5c7f60d761bd01258cde884fa2de186713eedd9",
+      "executedAt": "2026-07-16T10:30:34.634Z"
     },
     {
       "name": "cycles-push",
       "status": "passed",
       "command": "bun scripts/check/check-cycles.mjs",
       "proofPath": ".ci/local-first-ci-gates/cycles-push.proof.json",
-      "proofHash": "748c31183cb5a4de936e6d1eae077d5fd522806362806d6b3a6f4bf119f1ff3f",
-      "executedAt": "2026-07-16T09:49:21.308Z"
+      "proofHash": "e667244189ed8fd01650a53a253d055c869fe1069bf95709c6f6b73c14956189",
+      "executedAt": "2026-07-16T10:30:38.436Z"
     }
   ],
   "content": {
     "algorithm": "sha256",
-    "hash": "59a15486a1e36443b1fdce5066e7fc46de566b1bf497e0fa132ad4cd11c2b139",
-    "fileCount": 8456,
+    "hash": "ec6c2cf0c5db6f0f96cb9f7352f0b5bca0854e1cf4b089741d4e4016fc59d7d6",
+    "fileCount": 8455,
     "trackedFiles": [
       ".coderabbit.yaml",
       ".devcontainer/devcontainer.json",
@@ -2796,8 +2796,6 @@
       "scripts/check/lib/allowlist.mjs",
       "scripts/check/local-first-ci-attestation.mjs",
       "scripts/check/local-first-ci-attestation.test.mjs",
-      "scripts/check/local-first-ci-mode.mjs",
-      "scripts/check/local-first-ci-mode.test.mjs",
       "scripts/check/test-report-summary.mjs",
       "scripts/check/verify-integrity-manifest.mjs",
       "scripts/ci/should-promote-latest.sh",
@@ -8457,6 +8455,7 @@
       "tests/unit/webshare-sync.test.ts",
       "tests/unit/wildcard-router.test.ts",
       "tests/unit/windsurf-devin-executors.test.ts",
+      "tests/unit/workflow-expressions.test.ts",
       "tests/unit/xai-translators.test.ts",
       "tests/unit/xiaomi-mimo-provider.test.ts",
       "tests/unit/xiaomi-mimo-selftrack-usage.test.ts",
@@ -8497,6 +8496,6 @@
       "worklogs/2026-06-25-L5-119-b9-dispatcher-fallback.md",
       "worklogs/L5-209-v48-envelope-expansion-2026-06-30.json"
     ],
-    "sourceTreeSha256": "ab6fa536e274ac4a742d58215d0e45aee883bff4e7402323156d6d6b96337772"
+    "sourceTreeSha256": "a19a8f4c1b86e1c2912a58f476fc7c686d1f7a18a854363a9d200f214b6649af"
   }
 }
