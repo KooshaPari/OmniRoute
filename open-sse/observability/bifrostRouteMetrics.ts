@@ -100,6 +100,14 @@ const DEFAULT_PROVIDER = "unknown-provider";
 const DEFAULT_MODEL = "unknown-model";
 
 const pendingPersistenceKeys = new Set<string>();
+const pendingPersistenceSnapshots = new Map<
+  string,
+  {
+    provider: string;
+    model: string;
+    samples: OutcomeSample[];
+  }
+> ();
 let persistenceTimer: ReturnType<typeof setTimeout> | null = null;
 let isPersisting = false;
 let hydrationState: "not_attempted" | "attempted" | "hydrated" = "not_attempted";
@@ -130,6 +138,35 @@ function clearPersistenceStateForTests(): void {
     persistenceTimer = null;
   }
   pendingPersistenceKeys.clear();
+  pendingPersistenceSnapshots.clear();
+}
+
+function limitSamplesToKeyCapacity(samples: OutcomeSample[]): OutcomeSample[] {
+  if (samples.length <= MAX_SAMPLES_PER_KEY) return samples;
+  const sorted = [...samples].sort((a, b) => a.timestampMs - b.timestampMs);
+  return sorted.slice(-MAX_SAMPLES_PER_KEY);
+}
+
+function capturePendingPersistenceSnapshot(key: string, state: OutcomeRing): void {
+  const current = pendingPersistenceSnapshots.get(key);
+  const merged = limitSamplesToKeyCapacity(
+    current ? [...current.samples, ...getOrderedSamples(state)] : getOrderedSamples(state)
+  );
+  pendingPersistenceSnapshots.set(key, {
+    provider: state.provider,
+    model: state.model,
+    samples: merged,
+  });
+}
+
+function getPendingPersistenceSamples(key: string, state: OutcomeRing | null): OutcomeSample[] {
+  const snapshot = pendingPersistenceSnapshots.get(key);
+  const merged =
+    snapshot === undefined || !state
+      ? snapshot?.samples ?? []
+      : [...snapshot.samples, ...getOrderedSamples(state)];
+
+  return limitSamplesToKeyCapacity(merged);
 }
 
 async function flushBifrostRouteMetricsPersistence(): Promise<void> {
@@ -138,16 +175,15 @@ async function flushBifrostRouteMetricsPersistence(): Promise<void> {
 
   const keysToPersist = Array.from(pendingPersistenceKeys);
   pendingPersistenceKeys.clear();
+  const keysWithPersistenceData = new Set<string>();
 
   const samplesByKey: BifrostRouteMetricKeySamples[] = [];
   for (const key of keysToPersist) {
-    const state = metricsMap.get(key);
-    if (!state) continue;
-
     const [provider, model] = key.split("\u0000");
     if (!provider || !model) continue;
+    const state = metricsMap.get(key) ?? null;
 
-    const orderedSamples = getOrderedSamples(state);
+    const orderedSamples = getPendingPersistenceSamples(key, state);
     if (orderedSamples.length === 0) continue;
 
     samplesByKey.push({
@@ -166,6 +202,7 @@ async function flushBifrostRouteMetricsPersistence(): Promise<void> {
         generationDurationMs: sample.generationDurationMs,
       })),
     });
+    keysWithPersistenceData.add(key);
   }
 
   if (samplesByKey.length > 0) {
@@ -183,6 +220,14 @@ async function flushBifrostRouteMetricsPersistence(): Promise<void> {
       for (const key of keysToPersist) {
         pendingPersistenceKeys.add(key);
       }
+      isPersisting = false;
+      if (pendingPersistenceKeys.size > 0) {
+        queuePersistence();
+      }
+      return;
+    }
+    for (const key of keysWithPersistenceData) {
+      pendingPersistenceSnapshots.delete(key);
     }
   }
 
@@ -192,7 +237,7 @@ async function flushBifrostRouteMetricsPersistence(): Promise<void> {
   }
 }
 
-function hydrateBifrostRouteMetricsFromDb(): void {
+function hydrateBifrostRouteMetricsFromDb(): boolean {
   clearPersistenceStateForTests();
   metricsMap.clear();
 
@@ -223,7 +268,10 @@ function hydrateBifrostRouteMetricsFromDb(): void {
       message
     );
     metricsMap.clear();
+    return false;
   }
+
+  return true;
 }
 
 export function initializeBifrostRouteMetricsFromStorage(
@@ -238,17 +286,9 @@ export function initializeBifrostRouteMetricsFromStorage(
   }
 
   hydrationAttempts += 1;
-  try {
-    hydrateBifrostRouteMetricsFromDb();
-    hydrationState = "hydrated";
-  } catch (error: unknown) {
-    hydrationState = "attempted";
-    const message = error instanceof Error ? error.message : String(error);
-    console.warn(
-      "[BifrostRouteMetrics] Startup persistence hydration failed; continuing from in-memory state.",
-      message
-    );
-  }
+  const hydrated = hydrateBifrostRouteMetricsFromDb();
+  hydrationState = hydrated ? "hydrated" : "attempted";
+  if (!hydrated) return;
 }
 
 function normalizeKey(provider: string, model: string): string {
@@ -360,6 +400,10 @@ function getOrCreateState(provider: string, model: string): OutcomeRing {
   while (metricsMap.size > MAX_KEY_CAPACITY) {
     const oldest = metricsMap.keys().next().value;
     if (oldest === undefined) break;
+    const evictedState = metricsMap.get(oldest);
+    if (evictedState !== undefined && pendingPersistenceKeys.has(oldest)) {
+      capturePendingPersistenceSnapshot(oldest, evictedState);
+    }
     metricsMap.delete(oldest);
   }
 
