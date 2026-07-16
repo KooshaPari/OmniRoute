@@ -1,44 +1,44 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-16T09:59:11.118Z",
+  "generatedAt": "2026-07-16T20:41:32.295Z",
   "gateResults": [
     {
       "name": "typecheck-core",
       "status": "passed",
       "command": "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json",
       "proofPath": ".ci/local-first-ci-gates/typecheck-core.proof.json",
-      "proofHash": "c643f9e22d5f26467dff0fcc05306d1937c3af1595853708f389cc4f9691afb8",
-      "executedAt": "2026-07-16T09:51:50.984Z"
+      "proofHash": "1e2566658a0a373e38469d3a440f9f02bd446c9cd6be80678188ae2c15c6c775",
+      "executedAt": "2026-07-16T20:39:31.594Z"
     },
     {
       "name": "integrity-manifest",
       "status": "passed",
       "command": "bun run integrity:manifest:write",
       "proofPath": ".ci/local-first-ci-gates/integrity-manifest.proof.json",
-      "proofHash": "75b90bed0aab9da58c353c4e378a81af05d5d82221fd0ae8d58d55970acc6eb1",
-      "executedAt": "2026-07-16T09:49:13.095Z"
+      "proofHash": "33d1cde0e17292937c42c98e9c7c592848f70d2f35b604600926a378455b10df",
+      "executedAt": "2026-07-16T20:39:52.045Z"
     },
     {
       "name": "t11-any-budget-push",
       "status": "passed",
       "command": "bun scripts/check/check-t11-any-budget.mjs",
       "proofPath": ".ci/local-first-ci-gates/t11-any-budget-push.proof.json",
-      "proofHash": "9dc8d38ab11c850b5e412c059f1542670b23f6eff1a63c86fa2ba9b0834cfb25",
-      "executedAt": "2026-07-16T09:49:23.938Z"
+      "proofHash": "93b2b3cb778b530dedf20c220659491429f34fa7ce005b0fc5bb7db5a8fb7fce",
+      "executedAt": "2026-07-16T20:40:27.157Z"
     },
     {
       "name": "cycles-push",
       "status": "passed",
       "command": "bun scripts/check/check-cycles.mjs",
       "proofPath": ".ci/local-first-ci-gates/cycles-push.proof.json",
-      "proofHash": "748c31183cb5a4de936e6d1eae077d5fd522806362806d6b3a6f4bf119f1ff3f",
-      "executedAt": "2026-07-16T09:49:21.308Z"
+      "proofHash": "ddb05ba1bd51078ec388f50299dec45f01758edd3092839aceb7b6a5afa5c22e",
+      "executedAt": "2026-07-16T20:41:10.350Z"
     }
   ],
   "content": {
     "algorithm": "sha256",
-    "hash": "59a15486a1e36443b1fdce5066e7fc46de566b1bf497e0fa132ad4cd11c2b139",
-    "fileCount": 8456,
+    "hash": "6458642f431bbca0c33bb97fca99042fee523535f69b6ef45434d6ea6bc3ab2e",
+    "fileCount": 8457,
     "trackedFiles": [
       ".coderabbit.yaml",
       ".devcontainer/devcontainer.json",
@@ -8295,6 +8295,7 @@
       "tests/unit/ui/provider-breaker-health-hook.test.tsx",
       "tests/unit/ui/provider-plan-config.test.tsx",
       "tests/unit/ui/provider-quota-widget-auto-refresh-label-4611.test.tsx",
+      "tests/unit/ui/provider-stats-bifrost-connections.test.tsx",
       "tests/unit/ui/providerCascadeNode.test.tsx",
       "tests/unit/ui/qdrant-config-card.test.tsx",
       "tests/unit/ui/quantumLockBadge.test.tsx",
@@ -8497,6 +8498,6 @@
       "worklogs/2026-06-25-L5-119-b9-dispatcher-fallback.md",
       "worklogs/L5-209-v48-envelope-expansion-2026-06-30.json"
     ],
-    "sourceTreeSha256": "ab6fa536e274ac4a742d58215d0e45aee883bff4e7402323156d6d6b96337772"
+    "sourceTreeSha256": "db8f4cf3fc96d22e55df7a137af2cd4e0ea67869c67b8c9852f25e935d32f7a6"
   }
 }

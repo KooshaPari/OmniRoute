@@ -1,10 +1,10 @@
 command: bun scripts/check/check-t11-any-budget.mjs
-startedAt: 2026-07-16T09:49:20.464Z
-finishedAt: 2026-07-16T09:49:23.927Z
+startedAt: 2026-07-16T20:40:21.026Z
+finishedAt: 2026-07-16T20:40:27.148Z
 exitCode: 0
 signal: none
-inputSha256: 59a15486a1e36443b1fdce5066e7fc46de566b1bf497e0fa132ad4cd11c2b139
-sourceTreeSha256: ab6fa536e274ac4a742d58215d0e45aee883bff4e7402323156d6d6b96337772
+inputSha256: 6458642f431bbca0c33bb97fca99042fee523535f69b6ef45434d6ea6bc3ab2e
+sourceTreeSha256: db8f4cf3fc96d22e55df7a137af2cd4e0ea67869c67b8c9852f25e935d32f7a6
 stdout:
 [t11:any-budget] OK - src/app/api/settings/proxy/test/route.ts (explicit any: 0, budget: 0)
 [t11:any-budget] OK - src/shared/components/OAuthModal.tsx (explicit any: 0, budget: 0)
