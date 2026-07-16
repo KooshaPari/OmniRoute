@@ -39,8 +39,8 @@ jobs:
   # Job 1 — Lock the release branch when a Release is published.
   # ─────────────────────────────────────────────────────────────────────────
   lock-branch:
-    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
-    runs-on: [self-hosted, linux, x64]
+    if: ${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-24.04
     steps:
       - name: Lock release/<tag> branch
         env:
@@ -96,8 +96,8 @@ jobs:
   # (PAT missing, race window, workflow bug) and pages the operator.
   # ─────────────────────────────────────────────────────────────────────────
   guard-no-push-after-release:
-    if: github.event_name == 'push'
-    runs-on: [self-hosted, linux, x64]
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-24.04
     steps:
       - name: Reject push if matching release tag exists
         env:
@@ -123,4 +123,5 @@ jobs:
           fi
 
           echo "✅ No release tag for ${TAG} yet — push is OK."
+
 

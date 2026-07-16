@@ -97,6 +97,7 @@ export * from "./db/compressionRunTelemetry";
 export * from "./db/modelContextOverrides";
 export * from "./db/bifrostModels";
 export * from "./db/bifrostShadow";
+export * from "./db/bifrostRouteMetrics";
 export * from "./db/costTracking";
 export * from "./db/providerHealthHistory";
 export * from "./db/routingDecisions";

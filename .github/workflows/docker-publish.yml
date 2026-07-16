@@ -33,8 +33,8 @@ jobs:
     name: Resolve Docker release metadata
     # This workflow publishes the upstream Docker Hub image. Forks publish
     # their own GHCR image through build-fork.yml instead.
-    if: github.repository == 'diegosouzapw/omniroute'
-    runs-on: [self-hosted, linux, x64]
+    if: github.repository == 'diegosouzapw/omniroute' && github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception"))
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version.outputs.version }}
       promote_latest: ${{ steps.version.outputs.promote_latest }}
@@ -123,17 +123,17 @@ jobs:
   build:
     name: Build Docker (${{ matrix.platform }})
     needs: prepare
-    if: needs.prepare.outputs.skip != 'true'
+    if: needs.prepare.outputs.skip != 'true' && github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception"))
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: linux/amd64
-            runner: [self-hosted, linux, x64]
+            runner: ubuntu-24.04
             arch: amd64
           - platform: linux/arm64
-            runner: [self-hosted, linux, arm64]
+            runner: ubuntu-24.04
             arch: arm64
     env:
       IMAGE_NAME: diegosouzapw/omniroute
@@ -200,8 +200,8 @@ jobs:
     needs:
       - prepare
       - build
-    if: needs.prepare.outputs.skip != 'true'
-    runs-on: [self-hosted, linux, x64]
+    if: needs.prepare.outputs.skip != 'true' && github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception"))
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
@@ -298,4 +298,5 @@ jobs:
           repository: diegosouzapw/omniroute
           short-description: "OmniRoute — Unified AI proxy. Route any LLM through one endpoint."
           readme-filepath: ./README.md
+
 

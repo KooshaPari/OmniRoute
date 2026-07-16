@@ -332,9 +332,8 @@ export async function registerNodejs(): Promise<void> {
     // without this the dashboard mode (auto/custom/adaptive) silently reverts to
     // the passthrough default on every restart. Previously this was only wired into
     // the unused `server-init.ts`, so it never ran in production.
-    const { hydrateThinkingBudgetConfig } = await import(
-      "@omniroute/open-sse/services/thinkingBudget.ts"
-    );
+    const { hydrateThinkingBudgetConfig } =
+      await import("@omniroute/open-sse/services/thinkingBudget.ts");
     if (hydrateThinkingBudgetConfig(settings)) {
       console.log("[STARTUP] Thinking-Budget config restored from settings");
     }
@@ -389,6 +388,19 @@ export async function registerNodejs(): Promise<void> {
   }
 
   await import("@/lib/db/core").then(({ ensureDbInitialized }) => ensureDbInitialized());
+
+  try {
+    const { initializeBifrostRouteMetricsFromStorage } =
+      await import("@/open-sse/observability/bifrostRouteMetrics.ts");
+    initializeBifrostRouteMetricsFromStorage();
+    console.log("[STARTUP] Bifrost route metrics hydration initialized");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(
+      "[STARTUP] Could not initialize bifrost route metrics hydration (non-fatal):",
+      msg
+    );
+  }
 
   // Storage-configured scheduled VACUUM (#4437): registers the timer from
   // Settings > System & Storage and persists lastVacuumAt for the UI.

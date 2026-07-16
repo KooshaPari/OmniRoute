@@ -4,7 +4,7 @@ on:
   workflow_dispatch: {}
 jobs:
   graph:
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - run: echo "Layer-7 service adjacency graph — refresh topology map"

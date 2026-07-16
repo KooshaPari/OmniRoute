@@ -22,7 +22,7 @@ permissions:
 jobs:
   stryker-nobail:
     name: Stryker disableBail (batch ${{ matrix.batch.name }})
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:

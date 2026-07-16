@@ -10,7 +10,7 @@ permissions:
 jobs:
   stryker:
     name: Stryker mutation (batch ${{ matrix.batch.name }} — advisory)
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     # Mutation testing is expensive. History of the budget:
     #   - Full 8-module set TIMED OUT at the 180min cap (run 27705123780 = exactly 180min).
     #     The two god-files chatCore.ts/combo.ts dominated ~2/3 of the mutants and were
@@ -145,7 +145,7 @@ jobs:
     name: Mutation score ratchet (blocking)
     needs: stryker
     if: always()
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6

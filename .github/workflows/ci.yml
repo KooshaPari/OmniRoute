@@ -5,7 +5,6 @@ on:
     branches: [main, feat/**, phase-*]
   pull_request:
     branches: [main, feat/**, phase-*]
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -13,6 +12,7 @@ concurrency:
 jobs:
   bun-version-parity:
     name: Bun version parity
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -24,6 +24,7 @@ jobs:
 
   lint:
     name: Lint (oxlint)
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -42,6 +43,7 @@ jobs:
 
   typecheck:
     name: Typecheck
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -61,6 +63,7 @@ jobs:
 
   typecheck-ts7-parity:
     name: Typecheck (TypeScript 7 parity)
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     runs-on: ubuntu-latest
     continue-on-error: true
     timeout-minutes: 5
@@ -80,6 +83,7 @@ jobs:
 
   test:
     name: Unit + component tests
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -101,6 +105,7 @@ jobs:
 
   build-web:
     name: Build web (SvelteKit)
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -119,6 +124,7 @@ jobs:
 
   build-bff:
     name: Build BFF (Hono)
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -137,6 +143,7 @@ jobs:
 
   build-desktop:
     name: Cargo check (Tauri 2)
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     runs-on: macos-latest
     timeout-minutes: 15
     steps:
@@ -156,6 +163,7 @@ jobs:
 
   build-desktop-linux:
     name: Cargo check (Tauri 2, Linux)
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -176,6 +184,7 @@ jobs:
 
   build-desktop-windows:
     name: Cargo check (Tauri 2, Windows)
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
@@ -198,7 +207,7 @@ jobs:
     # Root Size Limit plugins are intentionally not installed by the v4
     # package-local setup. Enable only while the legacy root validation stack
     # is provisioned; #319 tracks its migration to v4.
-    if: vars.ENABLE_LEGACY_ROOT_VALIDATION == 'true'
+    if: vars.ENABLE_LEGACY_ROOT_VALIDATION == 'true' && github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception"))
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [build-web, build-bff]
@@ -221,7 +230,7 @@ jobs:
     name: Legacy E2E (Playwright)
     # Root Playwright config and fixtures require the legacy root install.
     # #319 owns their package-local replacement.
-    if: vars.ENABLE_LEGACY_ROOT_VALIDATION == 'true'
+    if: vars.ENABLE_LEGACY_ROOT_VALIDATION == 'true' && github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception"))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [build-web, build-bff]
@@ -245,7 +254,7 @@ jobs:
     name: Legacy a11y (axe-core)
     # Root axe fixtures require the legacy root install. Keep this explicit
     # rather than reporting a dependency-resolution failure as a test result.
-    if: vars.ENABLE_LEGACY_ROOT_VALIDATION == 'true'
+    if: vars.ENABLE_LEGACY_ROOT_VALIDATION == 'true' && github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception"))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [build-web, build-bff]
@@ -269,6 +278,7 @@ jobs:
 
   lighthouse:
     name: Lighthouse CI
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [build-web]
@@ -291,10 +301,10 @@ jobs:
 
   release-macos:
     name: Release macOS (sign + notarize)
+    if: startsWith(github.ref, 'refs/tags/v') && github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception"))
     runs-on: macos-latest
     timeout-minutes: 30
     needs: [build-web, build-bff, build-desktop, a11y]
-    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -329,10 +339,10 @@ jobs:
 
   release-windows:
     name: Release Windows (Azure Trusted Signing)
+    if: startsWith(github.ref, 'refs/tags/v') && github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception"))
     runs-on: windows-latest
     timeout-minutes: 30
     needs: [build-web, build-bff, build-desktop, a11y]
-    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -351,10 +361,10 @@ jobs:
 
   release-linux:
     name: Release Linux (.deb, .rpm, AppImage, Tauri updater)
+    if: startsWith(github.ref, 'refs/tags/v') && github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception"))
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [build-web, build-bff, build-desktop, a11y]
-    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -367,4 +377,3 @@ jobs:
       - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           files: apps/desktop/src-tauri/target/release/bundle/{deb,rpm,appimage}/*
-

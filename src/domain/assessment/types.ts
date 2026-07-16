@@ -82,7 +82,9 @@ export interface ModelAssessment {
   /** Consecutive failed probes */
   consecutiveFails: number;
   /** Total probes executed */
-  probeCount: number;
+  probeCount?: number;
+  /** Optional legacy sample counter retained in external snapshots. */
+  sampleCount?: number;
   /** ISO timestamp of creation */
   createdAt: string;
   /** ISO timestamp of last update */

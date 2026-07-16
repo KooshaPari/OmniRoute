@@ -1,0 +1,12 @@
+command: bun run integrity:manifest:write
+startedAt: 2026-07-15T05:57:51.022Z
+finishedAt: 2026-07-15T05:57:52.113Z
+exitCode: 0
+signal: none
+gitSha: 4dfa1cc807141067798704c91285f17a1de04a9b
+stdout:
+Wrote ci\integrity-manifest.sha256 (213 files).
+
+stderr:
+$ node scripts/check/verify-integrity-manifest.mjs --write
+

@@ -10,7 +10,7 @@ permissions:
 jobs:
   promptfoo-guard:
     name: promptfoo — injection guard (block mode, no secret)
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -44,7 +44,7 @@ jobs:
 
   garak:
     name: garak probes (skip without provider secret)
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-24.04
     # NOTE: the `secrets` context is NOT available in a job-level `if:` — referencing
     # it there makes GitHub reject the file on push (startup_failure on every push).
     # Map the secret into a job-level env and gate each step on a presence check, so

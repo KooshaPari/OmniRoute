@@ -1,0 +1,25 @@
+name: Local-First CI Attestation
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-manifest:
+    name: Verify local-first manifest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'pull_request' && (contains(github.event.pull_request.labels.*.name, 'local-first-ci') || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception'))) }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - name: Verify local-first CI attestation manifest
+        run: node scripts/check/local-first-ci-attestation.mjs

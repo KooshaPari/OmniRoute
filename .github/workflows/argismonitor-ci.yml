@@ -12,6 +12,7 @@ on:
 
 jobs:
   v4-build-test:
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     name: Build + test v4 stack
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -43,4 +44,5 @@ jobs:
           cd proccompose
           mkdir -p $HOME/.argismonitor.ci
           bff_port=$bff_port proccompose ci
+
 

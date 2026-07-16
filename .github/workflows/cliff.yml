@@ -16,7 +16,8 @@ permissions:
 
 jobs:
   cliff:
-    runs-on: [self-hosted, linux, x64]
+    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -67,3 +68,4 @@ jobs:
             --title "$TITLE" \
             --body "$BODY" \
             --label "documentation,automated,changelog"
+

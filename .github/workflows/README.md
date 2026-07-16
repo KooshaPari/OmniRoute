@@ -1,10 +1,18 @@
-# GitHub Actions Runner Policy
+# GitHub Actions Runner & CI Billing Policy
 
-All workflows in this repository must use self-hosted runners only.
+OmniRoute GitHub Actions workflows now run on GitHub-hosted Ubuntu runners only.
 
-Required labels:
-- Linux: `[self-hosted, linux, x64]`
-- Windows: `[self-hosted, windows, x64]`
-- macOS arm64: `[self-hosted, macos, arm64]`
+Allowed `runs-on` label:
+- `ubuntu-24.04`
 
-Any hosted label (e.g. `ubuntu-*`, `windows-*`, `macos-*`) is prohibited in executable jobs.
+Disallowed in executable jobs:
+- self-hosted runners
+- Windows runners
+- macOS runners
+- Containerized execution (`container:` jobs), Podman, and WSL
+
+Local-first enforcement:
+- `.github/workflows/local-first-ci.yml` validates the committed local manifest on `push` and on labeled PRs.
+- `pre-push` writes gate proof artifacts to `.ci/local-first-ci-gates/` (one `*.proof.json` and one `*.log.txt` per gate) and hashes those proofs into `.ci/local-first-ci-manifest.json`.
+- CI-heavy workflows must include the `ci-billing-exception` label to run on pull requests; by default they are not eligible for PR billing.
+- Add `local-first-ci` on PRs to enforce local manifest verification (`.ci/local-first-ci-manifest.json`) policy.

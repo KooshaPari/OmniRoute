@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "name": "cycles-push",
+  "status": "passed",
+  "command": "bun scripts/check/check-cycles.mjs",
+  "exitCode": 0,
+  "signal": null,
+  "generatedAt": "2026-07-15T20:48:58.473Z",
+  "gitSha": "fd4a52a24d46e4f927b4cdf44770e8aac8c7e1d2",
+  "log": {
+    "path": ".ci/local-first-ci-gates/cycles-push.log.txt",
+    "sha256": "3b56cc6849ad0743ebfbbc7af696c51307a2c036429cff1091f1efecee22fcf1",
+    "bytes": 359
+  }
+}

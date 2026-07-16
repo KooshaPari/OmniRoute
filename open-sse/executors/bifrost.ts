@@ -58,6 +58,7 @@ import {
   BIFROST_KILLSWITCH_ACTIVE,
 } from "../services/bifrostKillSwitch.ts";
 import { withBifrostSpan } from "../observability/bifrostSpan.ts";
+import { recordBifrostRouteOutcome } from "../observability/bifrostRouteMetrics.ts";
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 8080;
@@ -392,14 +393,14 @@ export class BifrostBackendExecutor extends BaseExecutor {
     );
 
     // ── execute + record observation (B9.1) ──────────────────────
-    // We measure latency around the fetch and always record an
-    // observation. `ok` is true on 2xx and false on any other status or
-    // thrown error. The kill switch uses these to auto-trip when
-    // thresholds (p99 latency, error rate, cost ratio) are exceeded. The
-    // fetch itself is wrapped in a Bifrost OTel span (B10) so Tier-1/Tier-2
-    // traces stay unified via the injected `traceparent`.
+    // For streaming requests, successful route outcomes are recorded by
+    // chatCore's stream completion callback; only transport failures are
+    // recorded here so they are not lost when `execute` rejects before the
+    // stream pipeline starts. Non-streaming requests keep full observation
+    // recording here.
     const startTime = Date.now();
     let response: Response;
+    const shouldRecordRouteOutcome = !input.stream;
     try {
       const { result } = await withBifrostSpan(
         {
@@ -424,11 +425,20 @@ export class BifrostBackendExecutor extends BaseExecutor {
     } catch (err) {
       // Fetch threw (network error, abort, timeout). Record a failed
       // observation and re-throw. The dispatcher will handle the error.
+      const latencyMs = Date.now() - startTime;
+      recordBifrostRouteOutcome({
+        provider: this.provider,
+        model,
+        status: null,
+        latencyMs,
+        ok: false,
+        error: err,
+      });
       if (!isKillSwitchDisabled()) {
         recordObservation({
           timestamp: Date.now(),
           provider: this.provider,
-          latencyMs: Date.now() - startTime,
+          latencyMs,
           ok: false,
         });
       }
@@ -444,13 +454,23 @@ export class BifrostBackendExecutor extends BaseExecutor {
     // Record a successful (2xx) or failed (non-2xx) observation. Cost
     // fields are optional — callers that have them can wire them in via
     // input.killSwitchCost if/when that field is added.
+    const latencyMs = Date.now() - startTime;
+    if (shouldRecordRouteOutcome) {
+      recordBifrostRouteOutcome({
+        provider: this.provider,
+        model,
+        status: response.status,
+        latencyMs,
+        ok: response.ok,
+      });
+    }
     if (!isKillSwitchDisabled()) {
       const cost = (input as { killSwitchCost?: { costUsd?: number; legacyCostUsd?: number } })
         .killSwitchCost;
       recordObservation({
         timestamp: Date.now(),
         provider: this.provider,
-        latencyMs: Date.now() - startTime,
+        latencyMs,
         ok: response.ok,
         costUsd: cost?.costUsd,
         legacyCostUsd: cost?.legacyCostUsd,
