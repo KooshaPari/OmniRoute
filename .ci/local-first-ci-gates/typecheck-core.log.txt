@@ -1,9 +1,9 @@
 command: bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json
-startedAt: 2026-07-16T02:55:22.792Z
-finishedAt: 2026-07-16T02:55:25.426Z
+startedAt: 2026-07-16T03:11:55.009Z
+finishedAt: 2026-07-16T03:12:09.122Z
 exitCode: 2
 signal: none
-gitSha: adfb7458f4f8a538cbe797c61be8e275c9c6c065
+gitSha: af77a91b893ecd08f1e9247dad2023da8e244e10
 stdout:
 [96mopen-sse/config/anthropicHeaders.ts[0m:[93m29[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
