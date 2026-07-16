@@ -5,6 +5,7 @@ import { applyBifrostModelOverride, resolveBifrostProviderId } from "../../execu
 export interface BifrostStreamOutcomeRecord {
   provider: string;
   model: string;
+  connectionId?: string | null;
   status: number;
   latencyMs: number;
   ttftMs?: number;
@@ -55,6 +56,7 @@ export function buildBifrostStreamOutcomePayload({
   shouldRecord,
   provider,
   model,
+  connectionId,
   status,
   startTime,
   ttft,
@@ -64,6 +66,7 @@ export function buildBifrostStreamOutcomePayload({
   shouldRecord: boolean;
   provider: string;
   model: string;
+  connectionId?: string | null;
   status: number;
   startTime: number;
   ttft?: number | null;
@@ -82,6 +85,7 @@ export function buildBifrostStreamOutcomePayload({
   return {
     provider,
     model,
+    connectionId,
     status: normalizedStatus,
     latencyMs: Math.max(0, nowMs - startTime),
     ttftMs: normalizedTtft ?? undefined,

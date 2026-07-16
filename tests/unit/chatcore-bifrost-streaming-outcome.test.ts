@@ -31,6 +31,7 @@ test("Bifrost streaming payload records TTFT, output tokens, and generation dura
     shouldRecord: true,
     provider: target.provider,
     model: target.model,
+    connectionId: "connection-selected",
     status: 200,
     startTime: 1000,
     ttft: 120,
@@ -44,11 +45,35 @@ test("Bifrost streaming payload records TTFT, output tokens, and generation dura
   assert.ok(payload);
   assert.equal(payload.provider, target.provider);
   assert.equal(payload.model, target.model);
+  assert.equal(payload.connectionId, "connection-selected");
   assert.equal(payload.status, 200);
   assert.equal(payload.ttftMs, 120);
   assert.equal(payload.outputTokens, 12);
   assert.equal(payload.latencyMs, 1500);
   assert.equal(payload.generationDurationMs, 1380);
+  recordBifrostRouteOutcome(payload);
+  assert.equal(
+    getBifrostRouteMetrics(target.provider, target.model, "connection-selected")?.sampleCount,
+    1
+  );
+  assert.equal(getBifrostRouteMetrics(target.provider, target.model), null);
+});
+
+test("Bifrost streaming payload preserves the legacy metrics bucket without a connection", () => {
+  const target = resolveBifrostStreamRouteTarget("openai", "gpt-4o");
+  const payload = buildBifrostStreamOutcomePayload({
+    shouldRecord: true,
+    provider: target.provider,
+    model: target.model,
+    status: 200,
+    startTime: 1000,
+    now: () => 1500,
+  });
+
+  assert.ok(payload);
+  assert.equal(payload.connectionId, undefined);
+  recordBifrostRouteOutcome(payload);
+  assert.equal(getBifrostRouteMetrics(target.provider, target.model)?.sampleCount, 1);
 });
 
 test("Bifrost streaming payload omits generationDuration when TTFT is not positive", () => {
