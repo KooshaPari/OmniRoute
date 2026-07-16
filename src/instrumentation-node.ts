@@ -56,6 +56,12 @@ function isOtelOptIn(): boolean {
   return true;
 }
 
+function getOtelModuleId(packageName: string): string {
+  // Keep this computed: OTel SDK packages are optional, and literal dynamic
+  // imports make Turbopack resolve them during route compilation.
+  return ["@opentelemetry", packageName].join("/");
+}
+
 /** B10 — Idempotency latch for `initOtel`. Survives across calls in the same process. */
 let __otelInitAttempted = false;
 /** B10 — Result of the first `initOtel` call (or `null` if not yet attempted). */
@@ -109,11 +115,11 @@ export async function initOtel(): Promise<boolean> {
       { resourceFromAttributes },
       { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION },
     ] = await Promise.all([
-      import("@opentelemetry/sdk-node"),
-      import("@opentelemetry/exporter-trace-otlp-http"),
-      import("@opentelemetry/resources"),
-      import("@opentelemetry/resources"),
-      import("@opentelemetry/semantic-conventions"),
+      import(getOtelModuleId("sdk-node")),
+      import(getOtelModuleId("exporter-trace-otlp-http")),
+      import(getOtelModuleId("resources")),
+      import(getOtelModuleId("resources")),
+      import(getOtelModuleId("semantic-conventions")),
     ]);
 
     const serviceName = process.env.OTEL_SERVICE_NAME?.trim() || "omniroute";
