@@ -25,6 +25,7 @@ test("captures anonymous v4 home journey evidence", async ({ page, context }) =>
   });
 
   await context.tracing.start({ screenshots: true, snapshots: true, sources: true });
+  await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "light" });
   await page.goto("/", { waitUntil: "networkidle" });
 
   const heading = page.locator("h1").first();
