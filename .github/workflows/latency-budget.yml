@@ -12,7 +12,7 @@
 name: latency-budget
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-hosted-v2
   cancel-in-progress: true
 
 on:
