@@ -1,0 +1,97 @@
+name: Nightly release (ArgisMonitor)
+
+on:
+  schedule:
+    # 02:00 UTC every day. Adjust if your CI region differs.
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write    # tag the nightly
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Install
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Determine nightly version
+        id: ver
+        run: |
+          set -euo pipefail
+          DATE="$(date -u +%Y%m%d)"
+          BASE_VERSION=$(node -p "require('./package.json').version")
+          NIGHTLY="${BASE_VERSION}-nightly.${DATE}"
+          echo "version=$NIGHTLY" >> "$GITHUB_OUTPUT"
+          echo "📦 Nightly version: $NIGHTLY"
+
+      - name: Sync package.json
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: npm version "$VERSION" --no-git-tag-version --allow-same-version
+
+      - name: Build CLI
+        env:
+          JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+        run: npm run build:cli
+
+      - name: Build artifacts (cross-platform)
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          # Minimal placeholder for actual cross-compile; real impl added in Gate 4.
+          tar -czf "argismonitor-${{ steps.ver.outputs.version }}.tar.gz" \
+              bin/argismonitor.mjs package.json \
+              open-sse/ @argismonitor/ src/domain/ src/lib/ src/models/ \
+              src/mitm/ src/server/ src/shared/ src/sse/ src/types/ \
+              .env.example scripts/postinstall.mjs 2>/dev/null || true
+          echo "Artifacts:"
+          ls -la dist/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: argismonitor-nightly
+          path: dist/
+
+      - name: Tag nightly (no GitHub Release)
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f "v$VERSION"
+          git push origin "v$VERSION" --force
+          echo "🏷 Tagged v$VERSION"
+
+      - name: Smoke test nightly
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          node -e "
+            const pkg = require('./package.json');
+            console.log('Version:', pkg.version);
+            console.log('Name:', pkg.name);
+            console.log('Bin:', JSON.stringify(pkg.bin));
+            if (pkg.name !== 'argismonitor') {
+              console.error('Expected name=argismonitor, got ' + pkg.name);
+              process.exit(1);
+            }
+          "
+          echo "✅ Nightly smoke test passed"

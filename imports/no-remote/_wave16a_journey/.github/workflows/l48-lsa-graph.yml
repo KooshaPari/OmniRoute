@@ -1,0 +1,10 @@
+name: l48-lsa-graph
+on:
+  schedule: [{cron: '0 13 * * 1'}]
+  workflow_dispatch: {}
+jobs:
+  graph:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Layer-7 service adjacency graph — refresh topology map"

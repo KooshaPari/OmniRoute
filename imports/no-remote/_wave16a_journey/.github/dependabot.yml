@@ -1,0 +1,29 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "npm"
+    directory: "/electron"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Note: a `npm` entry for `/desktop-electrobun` is intentionally NOT enabled.
+  # That sub-package is a Bun project (it pulls in `@types/bun` and uses
+  # electrobun, which targets the Bun runtime) and it does not commit a
+  # `package-lock.json`. The org `.gitignore` excludes `bun.lock`, so there is
+  # no dependabot-supported lockfile to diff against. The root `npm` entry
+  # does not walk into this directory because it is not registered as a yarn
+  # workspace (only `open-sse` is). Re-enable here once either a
+  # `package-lock.json` is committed, or a dependabot-supported lockfile for
+  # Bun is added.

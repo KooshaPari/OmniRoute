@@ -1,0 +1,69 @@
+name: Update CHANGELOG (git-cliff)
+
+on:
+  push:
+    tags: ['v[0-9]+*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Tag version (e.g. v3.8.45) — leaves CHANGELOG.md with a [unreleased] section if blank"
+        required: false
+        type: string
+
+permissions:
+  contents: write   # required to push the regenerated CHANGELOG.md back to main
+  pull-requests: write
+
+jobs:
+  cliff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Install git-cliff
+        run: |
+          # Pin to a known-good release; renovate keeps this current.
+          curl -fsSL https://github.com/orhun/git-cliff/releases/download/v2.9.4/git-cliff-2.9.4-x86_64-unknown-linux-musl.tar.gz \
+            | tar -xz -C /tmp
+          sudo mv /tmp/git-cliff-2.9.4/git-cliff /usr/local/bin/
+          git cliff --version
+
+      - name: Generate CHANGELOG.md
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [ -n "$VERSION" ]; then
+            git cliff --tag "$VERSION" --output CHANGELOG.md
+          else
+            git cliff --unreleased --tag "unreleased" --output CHANGELOG.md
+          fi
+
+      - name: Open PR with regenerated CHANGELOG
+        env:
+          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          BRANCH="docs/cliff-$(date +%s)"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "No CHANGELOG changes — exiting."
+            exit 0
+          fi
+          git commit -m "docs(changelog): regenerate for ${VERSION:-unreleased}"
+          git push origin "$BRANCH"
+          TITLE="docs(changelog): regenerate for ${VERSION:-unreleased}"
+          BODY="Automated changelog regeneration via git-cliff. See cliff.toml for the parser config."
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "$TITLE" \
+            --body "$BODY" \
+            --label "documentation,automated,changelog"

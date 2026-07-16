@@ -1,0 +1,92 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "_comment": "Auto-updater disabled (empty pubkey) until CERT-PROVISIONING.md is run. The updater silently no-ops.",
+  "productName": "argismonitor",
+  "version": "0.1.0",
+  "identifier": "online.phenotype.argismonitor",
+  "build": {
+    "frontendDist": "http://localhost:4321",
+    "devUrl": "http://localhost:4321"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "argismonitor",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' ipc: http://ipc.localhost ws://localhost:4321 http://localhost:20128 unix:/var/run/argismonitor/bff.sock"
+    },
+    "trayIcon": {
+      "iconPath": "icons/tray.png",
+      "iconAsTemplate": true
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": ["icons/32x32.png", "icons/128x128.png"],
+    "category": "DeveloperTool",
+    "shortDescription": "argismonitor desktop",
+    "longDescription": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A.",
+    "publisher": "Phenotype Contributors",
+    "copyright": "MIT License",
+    "homepage": "https://argismonitor.online",
+    "category": "DeveloperTool",
+    "shortDescription": "argismonitor - unified AI router",
+    "longDescription": "Unified AI router with 160+ providers, auto fallback, MCP/A2A, OpenAI-compatible API, web + native desktop.",
+    "resources": ["images/*", "binaries/*"],
+    "externalBin": [],
+    "publisher": "Phenotype",
+    "category": "DeveloperTool",
+    "createUpdaterArtifact": "all",
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": "10.15",
+      "exceptionDomain": "localhost",
+      "signingIdentity": null,
+      "entitlements": null,
+      "providerShortName": null
+    },
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "http://timestamp.digicert.com",
+      "wix": null,
+      "nsis": {
+        "installerIcon": "icons/icon.ico",
+        "installMode": "perMachine",
+        "languages": ["en", "zh-CN", "ja", "ko", "de", "fr", "es"]
+      }
+    },
+    "linux": {
+      "deb": {
+        "depends": ["libwebkit2gtk-4.1-0", "libgtk-3-0"]
+      },
+      "appimage": {
+        "bundleMediaFramework": false,
+        "files": {}
+      },
+      "rpm": {
+        "depends": ["webkit2gtk4.1", "gtk3"]
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "dialog": true,
+      "endpoints": [
+        "https://github.com/KooshaPari/OmniRoute/releases/latest/download/{{target}}/{{current_version}}"
+      ],
+      "pubkey": "",
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}
