@@ -29,6 +29,9 @@ const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
 const { getComboMetrics, recordComboRequest, resetAllComboMetrics } =
   await import("../../open-sse/services/comboMetrics.ts");
 const { resetEvalRoutingCache } = await import("../../open-sse/services/evalRouting.ts");
+const { recordBifrostRouteOutcome, resetBifrostRouteMetricsForTest } = await import(
+  "../../open-sse/observability/bifrostRouteMetrics.ts"
+);
 const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
 const { acquire: acquireSemaphore, resetAll: resetAllSemaphores } =
   await import("../../open-sse/services/rateLimitSemaphore.ts");
@@ -112,6 +115,45 @@ function capabilityEntry(limitContext: unknown, overrides: Record<string, unknow
   };
 }
 
+function seedProjectedOutcomes(
+  provider: string,
+  model: string,
+  outcomes: Array<{ status: number; latencyMs: number }>
+) {
+  for (const outcome of outcomes) {
+    recordBifrostRouteOutcome({
+      provider,
+      model,
+      status: outcome.status,
+      latencyMs: outcome.latencyMs,
+    });
+  }
+}
+
+function seedProjectedOutcomesWithStreamingSignals(
+  provider: string,
+  model: string,
+  outcomes: Array<{
+    status: number;
+    latencyMs: number;
+    ttftMs?: number;
+    outputTokens?: number;
+    generationDurationMs?: number;
+  }>
+) {
+  for (const outcome of outcomes) {
+    recordBifrostRouteOutcome({
+      provider,
+      model,
+      status: outcome.status,
+      latencyMs: outcome.latencyMs,
+      ttftMs: outcome.ttftMs,
+      outputTokens: outcome.outputTokens,
+      generationDurationMs: outcome.generationDurationMs,
+    });
+  }
+}
+
 function getComboTargetExecutionKey(comboName: string, index: number, stepInput: any) {
   const step = normalizeComboStep(stepInput, { comboName, index });
   if (!step) throw new Error(`Failed to normalize combo step for ${comboName}#${index}`);
@@ -147,6 +189,7 @@ async function resetStorage() {
 test.beforeEach(async () => {
   resetAllComboMetrics();
   resetEvalRoutingCache();
+  resetBifrostRouteMetricsForTest();
   resetAllCircuitBreakers();
   resetAllSemaphores();
   _resetAllDecks();
@@ -704,6 +747,548 @@ test("handleComboChat least-used strategy prefers the model with fewer recorded 
   });
 
   assert.equal(calls[0], "model-c");
+});
+
+test("handleComboChat performance strategy reorders targets using projected Bifrost metrics", async () => {
+  seedProjectedOutcomes("google", "perf-fast", [
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+  ]);
+  seedProjectedOutcomes("openai", "perf-slow", [
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+  ]);
+  seedProjectedOutcomes("anthropic", "perf-unstable", [
+    { status: 200, latencyMs: 20 },
+    { status: 500, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+  ]);
+
+  const calls: any[] = [];
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-metric-order",
+      strategy: "performance",
+      models: ["openai/perf-slow", "anthropic/perf-unstable", "google/perf-fast"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["google/perf-fast", "openai/perf-slow", "anthropic/perf-unstable"]);
+  assert.equal(result.status, 500);
+});
+
+test("handleComboChat performance strategy uses Bifrost alias telemetry", async () => {
+  seedProjectedOutcomes("anthropic", "perf-bridge-fast", [
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+  ]);
+  seedProjectedOutcomes("openai", "perf-bridge-slow", [
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+  ]);
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-bifrost-alias-order",
+      strategy: "performance",
+      models: ["openai/perf-bridge-slow", "claude/perf-bridge-fast"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["claude/perf-bridge-fast", "openai/perf-bridge-slow"]);
+});
+
+test("handleComboChat performance strategy ranks a slower healthy target before a faster unhealthy target", async () => {
+  seedProjectedOutcomes("openai", "perf-healthy-slower", [
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+  ]);
+  seedProjectedOutcomes("anthropic", "perf-unhealthy-faster", [
+    { status: 200, latencyMs: 10 },
+    { status: 500, latencyMs: 10 },
+    { status: 500, latencyMs: 10 },
+    { status: 500, latencyMs: 10 },
+  ]);
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-health-before-latency",
+      strategy: "performance",
+      models: ["anthropic/perf-unhealthy-faster", "openai/perf-healthy-slower"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["openai/perf-healthy-slower", "anthropic/perf-unhealthy-faster"]);
+});
+
+test("handleComboChat performance strategy honors model aliases before order", async () => {
+  seedProjectedOutcomes("github", "claude-opus-4-5-20251101", [
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+  ]);
+  seedProjectedOutcomes("github", "claude-opus-4-7", [
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+  ]);
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-alias-order",
+      strategy: "performance",
+      models: ["github/claude-opus-4-7", "github/claude-4.5-opus"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["github/claude-4.5-opus", "github/claude-opus-4-7"]);
+});
+
+test("handleComboChat performance strategy keeps original relative order when no projected metrics exist", async () => {
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-no-metrics-order",
+      strategy: "performance",
+      models: [
+        "openai/perf-no-metrics-a",
+        "anthropic/perf-no-metrics-b",
+        "google/perf-no-metrics-c",
+      ],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, [
+    "openai/perf-no-metrics-a",
+    "anthropic/perf-no-metrics-b",
+    "google/perf-no-metrics-c",
+  ]);
+});
+
+test("handleComboChat performance strategy does not let low-sample targets outrank evidenced targets", async () => {
+  seedProjectedOutcomes("openai", "perf-backed", [
+    { status: 200, latencyMs: 40 },
+    { status: 200, latencyMs: 40 },
+    { status: 200, latencyMs: 40 },
+    { status: 200, latencyMs: 40 },
+  ]);
+  seedProjectedOutcomes("anthropic", "perf-lowsample", [{ status: 200, latencyMs: 10 }]);
+
+  const calls: any[] = [];
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-low-sample-fallback",
+      strategy: "performance",
+      models: ["anthropic/perf-lowsample", "openai/perf-backed", "google/perf-unknown"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, [
+    "openai/perf-backed",
+    "anthropic/perf-lowsample",
+    "google/perf-unknown",
+  ]);
+  assert.equal(result.status, 500);
+});
+
+test("handleComboChat performance strategy ignores stale-only metric projection and keeps order for non-fresh targets", async () => {
+  recordBifrostRouteOutcome({
+    provider: "openai",
+    model: "perf-stale-only",
+    status: 200,
+    latencyMs: 10,
+    timestampMs: 1,
+  });
+  recordBifrostRouteOutcome({
+    provider: "anthropic",
+    model: "perf-stale-only-fallback",
+    status: 200,
+    latencyMs: 5,
+    timestampMs: 2,
+  });
+  recordBifrostRouteOutcome({
+    provider: "google",
+    model: "perf-fresh",
+    status: 200,
+    latencyMs: 75,
+  });
+  recordBifrostRouteOutcome({
+    provider: "google",
+    model: "perf-fresh",
+    status: 200,
+    latencyMs: 75,
+  });
+  recordBifrostRouteOutcome({
+    provider: "google",
+    model: "perf-fresh",
+    status: 200,
+    latencyMs: 75,
+  });
+  recordBifrostRouteOutcome({
+    provider: "google",
+    model: "perf-fresh",
+    status: 200,
+    latencyMs: 75,
+  });
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-stale-only-fallback",
+      strategy: "performance",
+      models: [
+        "openai/perf-stale-only",
+        "anthropic/perf-stale-only-fallback",
+        "google/perf-fresh",
+      ],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, [
+    "google/perf-fresh",
+    "openai/perf-stale-only",
+    "anthropic/perf-stale-only-fallback",
+  ]);
+});
+
+test("handleComboChat performance strategy preserves original ordering when all projections are stale", async () => {
+  recordBifrostRouteOutcome({
+    provider: "google",
+    model: "perf-stale-old-1",
+    status: 200,
+    latencyMs: 15,
+    timestampMs: 1,
+  });
+  recordBifrostRouteOutcome({
+    provider: "openai",
+    model: "perf-stale-old-2",
+    status: 200,
+    latencyMs: 20,
+    timestampMs: 2,
+  });
+  recordBifrostRouteOutcome({
+    provider: "anthropic",
+    model: "perf-stale-old-3",
+    status: 200,
+    latencyMs: 10,
+    timestampMs: 3,
+  });
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-stale-only-order-regression",
+      strategy: "performance",
+      models: ["google/perf-stale-old-1", "openai/perf-stale-old-2", "anthropic/perf-stale-old-3"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["google/perf-stale-old-1", "openai/perf-stale-old-2", "anthropic/perf-stale-old-3"]);
+});
+
+test("handleComboChat performance strategy preserves stable order for tie-scoring projections", async () => {
+  seedProjectedOutcomes("openai", "perf-tie-a", [
+    { status: 200, latencyMs: 50 },
+    { status: 200, latencyMs: 50 },
+    { status: 200, latencyMs: 50 },
+    { status: 200, latencyMs: 50 },
+  ]);
+  seedProjectedOutcomes("anthropic", "perf-tie-b", [
+    { status: 200, latencyMs: 50 },
+    { status: 200, latencyMs: 50 },
+    { status: 200, latencyMs: 50 },
+    { status: 200, latencyMs: 50 },
+  ]);
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-tie-order",
+      strategy: "performance",
+      models: ["openai/perf-tie-a", "anthropic/perf-tie-b"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["openai/perf-tie-a", "anthropic/perf-tie-b"]);
+});
+
+test("handleComboChat performance strategy ranks faster targets ahead of slightly more stable targets", async () => {
+  seedProjectedOutcomes("openai", "perf-fast-less-stable", [
+    { status: 200, latencyMs: 10 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 10 },
+    { status: 200, latencyMs: 20 },
+  ]);
+  seedProjectedOutcomes("anthropic", "perf-slow-stable", [
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+  ]);
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-latency-before-stability",
+      strategy: "performance",
+      models: ["anthropic/perf-slow-stable", "openai/perf-fast-less-stable"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["openai/perf-fast-less-stable", "anthropic/perf-slow-stable"]);
+});
+
+test("handleComboChat performance strategy uses ttft as an additional ordering signal", async () => {
+  seedProjectedOutcomesWithStreamingSignals("openai", "perf-ttft-fast", [
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 200, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 200, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 200, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 200, generationDurationMs: 1000 },
+  ]);
+  seedProjectedOutcomesWithStreamingSignals("anthropic", "perf-ttft-slow", [
+    { status: 200, latencyMs: 30, ttftMs: 90, outputTokens: 200, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 90, outputTokens: 200, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 90, outputTokens: 200, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 90, outputTokens: 200, generationDurationMs: 1000 },
+  ]);
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-ttft-order",
+      strategy: "performance",
+      models: ["anthropic/perf-ttft-slow", "openai/perf-ttft-fast"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["openai/perf-ttft-fast", "anthropic/perf-ttft-slow"]);
+});
+
+test("handleComboChat performance strategy uses tps as an additional ordering signal", async () => {
+  seedProjectedOutcomesWithStreamingSignals("openai", "perf-tps-high", [
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 3000, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 3000, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 3000, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 3000, generationDurationMs: 1000 },
+  ]);
+  seedProjectedOutcomesWithStreamingSignals("google", "perf-tps-low", [
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 500, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 500, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 500, generationDurationMs: 1000 },
+    { status: 200, latencyMs: 30, ttftMs: 20, outputTokens: 500, generationDurationMs: 1000 },
+  ]);
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-tps-order",
+      strategy: "performance",
+      models: ["google/perf-tps-low", "openai/perf-tps-high"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["openai/perf-tps-high", "google/perf-tps-low"]);
+});
+
+test("handleComboChat performance strategy preserves fallback execution order after reorder", async () => {
+  seedProjectedOutcomes("google", "perf-fail-first", [
+    { status: 200, latencyMs: 25 },
+    { status: 200, latencyMs: 25 },
+    { status: 200, latencyMs: 25 },
+    { status: 200, latencyMs: 25 },
+  ]);
+  seedProjectedOutcomes("openai", "perf-fallback-second", [
+    { status: 200, latencyMs: 40 },
+    { status: 200, latencyMs: 40 },
+    { status: 200, latencyMs: 40 },
+    { status: 200, latencyMs: 40 },
+  ]);
+  seedProjectedOutcomes("anthropic", "perf-fallback-third", [
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+  ]);
+
+  const calls: any[] = [];
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-fallback",
+      strategy: "performance",
+      models: [
+        "anthropic/perf-fallback-third",
+        "openai/perf-fallback-second",
+        "google/perf-fail-first",
+      ],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      if (modelStr === "google/perf-fail-first") {
+        return errorResponse(500, "forced first-fail");
+      }
+      return okResponse({ choices: [{ message: { content: "fallback success" } }] });
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  const payload = (await result.json()) as any;
+  assert.equal(result.status, 200);
+  assert.equal(payload.choices[0].message.content, "fallback success");
+  assert.deepEqual(calls, ["google/perf-fail-first", "openai/perf-fallback-second"]);
 });
 
 test("handleComboChat skips unavailable models and falls through to the next active target", async () => {

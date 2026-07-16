@@ -22,7 +22,8 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -42,3 +43,5 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           include-hidden-files: false
+
+

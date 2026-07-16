@@ -16,10 +16,11 @@ permissions:
 
 jobs:
   cliff:
-    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -67,3 +68,4 @@ jobs:
             --title "$TITLE" \
             --body "$BODY" \
             --label "documentation,automated,changelog"
+

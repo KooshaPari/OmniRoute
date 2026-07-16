@@ -25,8 +25,9 @@ concurrency:
 
 jobs:
   artifacts:
+    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
     name: Build dry-run artifacts
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 12
     env:
       RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
@@ -83,3 +84,5 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           include-hidden-files: false
+
+

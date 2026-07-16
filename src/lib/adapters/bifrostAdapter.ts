@@ -17,8 +17,28 @@ import type {
   RouteRequest,
   RouteResult,
   ProviderName,
+  ProviderRuntimeMetrics,
+  PerformanceRoutingMetrics,
+  PerformanceWeights,
+  RoutingMode,
 } from "../../domain/router/port.ts";
-import { DEFAULT_ROUTER_CONFIG } from "../../domain/router/port.ts";
+import { DEFAULT_PERFORMANCE_WEIGHTS, DEFAULT_ROUTER_CONFIG } from "../../domain/router/port.ts";
+
+type PerformanceMetricKey = keyof PerformanceRoutingMetrics;
+
+interface WeightedPerformanceMetric {
+  key: PerformanceMetricKey;
+  higherIsBetter: boolean;
+}
+
+const PERFORMANCE_METRICS: WeightedPerformanceMetric[] = [
+  { key: "ttftMs", higherIsBetter: false },
+  { key: "tps", higherIsBetter: true },
+  { key: "e2eLatencyMs", higherIsBetter: false },
+  { key: "health", higherIsBetter: true },
+  { key: "failureRate", higherIsBetter: false },
+  { key: "stability", higherIsBetter: true },
+];
 
 // ---------------------------------------------------------------------------
 // Config / env resolution
@@ -252,16 +272,235 @@ export class BifrostAdapter implements RouterPort {
   // -------------------------------------------------------------------------
 
   private _resolveProviderPriority(req: RouteRequest): ProviderName[] {
+    const mode = this.routerConfig.routingMode ?? "priority";
+    const withOverride = this._providerOrderWithTierOverride(req);
+
+    if (mode === "priority") {
+      return withOverride;
+    }
+
+    const hasTierOverride = req.fitnessTier && this.routerConfig.tierOverrides && this.routerConfig.tierOverrides[req.fitnessTier];
+
+    if (!hasTierOverride) {
+      return this._sortByMetrics(withOverride, mode, req.model);
+    }
+
+    const [overrideProvider, ...rest] = withOverride;
+    return [overrideProvider, ...this._sortByMetrics(rest, mode, req.model)];
+  }
+
+  private _providerOrderWithTierOverride(req: RouteRequest): ProviderName[] {
     if (req.fitnessTier && this.routerConfig.tierOverrides) {
       const override = this.routerConfig.tierOverrides[req.fitnessTier];
       if (override) {
         // Put tier-preferred provider first, rest follow
-        const rest = this.routerConfig.providerPriority.filter(
-          (p) => p !== override
-        );
+        const rest = this.routerConfig.providerPriority.filter((p) => p !== override);
         return [override, ...rest];
       }
     }
     return [...this.routerConfig.providerPriority];
+  }
+
+  private _sortByMetrics(
+    providers: ProviderName[],
+    mode: Exclude<RoutingMode, "priority">,
+    model?: string,
+  ): ProviderName[] {
+    if (mode === "performance") {
+      return this._sortByPerformanceMetrics(providers, model);
+    }
+
+    const scored = providers.map((provider, index) => {
+      const metric = this._getMetric(provider, mode);
+      return { provider, index, metric };
+    });
+
+    return scored
+      .sort((a, b) => {
+        const aValid = typeof a.metric === "number" && Number.isFinite(a.metric);
+        const bValid = typeof b.metric === "number" && Number.isFinite(b.metric);
+
+        if (!aValid && !bValid) {
+          return a.index - b.index;
+        }
+
+        if (!aValid) {
+          return 1;
+        }
+
+        if (!bValid) {
+          return -1;
+        }
+
+        if (a.metric === b.metric) {
+          return a.index - b.index;
+        }
+
+        return mode === "latency" ? a.metric - b.metric : b.metric - a.metric;
+      })
+      .map((entry) => entry.provider);
+  }
+
+  private _getMetric(
+    provider: ProviderName,
+    mode: Exclude<RoutingMode, "priority">,
+    model?: string,
+  ): number | undefined {
+    const metrics = this.routerConfig.providerMetrics?.[provider] ?? {};
+    if (mode === "latency") {
+      return metrics.latencyMs;
+    }
+    if (mode === "performance") {
+      if (!model) {
+        return undefined;
+      }
+      const modelMetrics = metrics.modelMetrics?.[model];
+      return undefined;
+    }
+    return metrics.reliability;
+  }
+
+  private _resolvePerformanceWeights(): PerformanceWeights {
+    const configured = this.routerConfig.performanceWeights ?? {};
+    const resolved: Record<keyof PerformanceWeights, number> = {} as Record<
+      keyof PerformanceWeights,
+      number
+    >;
+
+    for (const key of Object.keys(DEFAULT_PERFORMANCE_WEIGHTS) as Array<keyof PerformanceWeights>) {
+      if (Object.prototype.hasOwnProperty.call(configured, key)) {
+        const rawValue = Number(configured[key]);
+        resolved[key] = Number.isFinite(rawValue) && rawValue >= 0 ? rawValue : 0;
+      } else {
+        resolved[key] = DEFAULT_PERFORMANCE_WEIGHTS[key];
+      }
+    }
+
+    const positiveWeightTotal = Object.values(resolved).reduce(
+      (sum, value) => (value > 0 ? sum + value : sum),
+      0,
+    );
+
+    if (!Number.isFinite(positiveWeightTotal) || positiveWeightTotal <= 0) {
+      return resolved;
+    }
+
+    return Object.entries(resolved).reduce(
+      (acc, [key, value]) => {
+        const metricKey = key as keyof PerformanceWeights;
+        acc[metricKey] = value > 0 ? value / positiveWeightTotal : 0;
+        return acc;
+      },
+      { ...resolved } as PerformanceWeights,
+    );
+  }
+
+  private _getPerformanceMetric(
+    provider: ProviderName,
+    metric: PerformanceMetricKey,
+    model: string,
+  ): number | undefined {
+    const metrics = this.routerConfig.providerMetrics?.[provider];
+    if (!metrics) {
+      return undefined;
+    }
+
+    const modelMetrics = metrics.modelMetrics?.[model];
+    const modelValue = modelMetrics?.[metric];
+    if (typeof modelValue === "number" && Number.isFinite(modelValue)) {
+      return modelValue;
+    }
+
+    const providerValue = metrics[metric];
+    if (typeof providerValue === "number" && Number.isFinite(providerValue)) {
+      return providerValue;
+    }
+
+    return undefined;
+  }
+
+  private _sortByPerformanceMetrics(
+    providers: ProviderName[],
+    model?: string,
+  ): ProviderName[] {
+    if (!model || providers.length === 0) {
+      return [...providers];
+    }
+
+    const weights = this._resolvePerformanceWeights();
+    const finiteMetricProviders = new Map<PerformanceMetricKey, Array<number>>();
+    PERFORMANCE_METRICS.forEach((entry) => {
+      finiteMetricProviders.set(
+        entry.key,
+        providers
+          .map((provider) => this._getPerformanceMetric(provider, entry.key, model))
+          .filter((value): value is number => typeof value === "number" && Number.isFinite(value)),
+      );
+    });
+
+    const entries = providers.map((provider, index) => {
+      let score = 0;
+      let hasFiniteContribution = false;
+
+      for (const metric of PERFORMANCE_METRICS) {
+        const weight = weights[metric.key];
+        if (!Number.isFinite(weight) || weight <= 0) {
+          continue;
+        }
+
+        const values = finiteMetricProviders.get(metric.key) ?? [];
+        if (values.length < 2) {
+          continue;
+        }
+
+        const value = this._getPerformanceMetric(provider, metric.key, model);
+        if (!Number.isFinite(value)) {
+          continue;
+        }
+
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        let normalized = 0.5;
+        if (Number.isFinite(min) && Number.isFinite(max) && max !== min) {
+          normalized = metric.higherIsBetter
+            ? (value - min) / (max - min)
+            : (max - value) / (max - min);
+        }
+
+        score += normalized * weight;
+        hasFiniteContribution = true;
+      }
+
+      return {
+        provider,
+        index,
+        score: hasFiniteContribution ? score : undefined,
+      };
+    });
+
+    return entries
+      .sort((a, b) => {
+        const aHasScore = typeof a.score === "number";
+        const bHasScore = typeof b.score === "number";
+
+        if (!aHasScore && !bHasScore) {
+          return a.index - b.index;
+        }
+
+        if (!aHasScore) {
+          return 1;
+        }
+
+        if (!bHasScore) {
+          return -1;
+        }
+
+        if (a.score === b.score) {
+          return a.index - b.index;
+        }
+
+        return b.score - a.score;
+      })
+      .map((entry) => entry.provider);
   }
 }
