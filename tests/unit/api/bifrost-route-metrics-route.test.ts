@@ -69,5 +69,45 @@ test("GET returns projected metrics to an authenticated management session", asy
   );
 
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { metrics: metrics.getAllProjectedBifrostRouteMetrics() });
+  assert.deepEqual(await response.json(), {
+    metrics: metrics.getAllProjectedBifrostRouteMetrics(),
+  });
+});
+
+test("GET preserves connection identity for otherwise identical provider-model metrics", async () => {
+  const timestampMs = Date.now();
+  metrics.recordBifrostRouteOutcome({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    connectionId: "connection-a",
+    latencyMs: 100,
+    status: 200,
+    timestampMs,
+  });
+  metrics.recordBifrostRouteOutcome({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    connectionId: "connection-b",
+    latencyMs: 120,
+    status: 200,
+    timestampMs,
+  });
+  metrics.recordBifrostRouteOutcome({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    latencyMs: 140,
+    status: 200,
+    timestampMs,
+  });
+
+  const response = await route.GET(
+    await makeManagementSessionRequest("http://localhost/api/observability/bifrost-route-metrics")
+  );
+  const body = (await response.json()) as { metrics: Array<{ connectionId?: string | null }> };
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    body.metrics.map((metric) => metric.connectionId ?? null).sort(),
+    ["connection-a", "connection-b", null].sort()
+  );
 });

@@ -71,6 +71,115 @@ describe("bifrostRouteMetrics DB persistence", () => {
     assert.ok(projected?.avgTtftMs !== null);
   });
 
+  it("persists and hydrates connection-aware keys independently", async () => {
+    const now = makeTimestamp();
+    metrics.recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o-mini",
+      connectionId: "connection-a",
+      status: 200,
+      latencyMs: 80,
+      timestampMs: now - 1_000,
+    });
+    metrics.recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o-mini",
+      connectionId: "connection-b",
+      status: 500,
+      latencyMs: 160,
+      timestampMs: now,
+    });
+    await metrics.flushBifrostRouteMetricsPersistenceForTest();
+    const persisted = db.loadBifrostRouteMetricSamples();
+    assert.equal(persisted.length, 2);
+    assert.deepEqual(persisted.map((entry) => entry.connectionId).sort(), [
+      "connection-a",
+      "connection-b",
+    ]);
+    metrics.resetBifrostRouteMetricsForTest();
+    metrics.hydrateBifrostRouteMetricsFromStorageForTest();
+    assert.equal(
+      metrics.getBifrostRouteMetrics("openai", "gpt-4o-mini", "connection-a")?.successCount,
+      1
+    );
+    assert.equal(
+      metrics.getBifrostRouteMetrics("openai", "gpt-4o-mini", "connection-b")?.failureCount,
+      1
+    );
+  });
+
+  it("prunes every sample in the oldest legacy NULL identity bucket", () => {
+    const now = makeTimestamp();
+    db.persistBifrostRouteMetricSamples(
+      [
+        {
+          provider: "openai",
+          model: "gpt-4o-mini",
+          samples: [
+            {
+              provider: "openai",
+              model: "gpt-4o-mini",
+              timestampMs: now - 3_000,
+              status: 200,
+              latencyMs: 100,
+              ok: true,
+              error: null,
+              ttftMs: null,
+              outputTokens: null,
+              generationDurationMs: null,
+            },
+            {
+              provider: "openai",
+              model: "gpt-4o-mini",
+              timestampMs: now - 2_000,
+              status: 200,
+              latencyMs: 110,
+              ok: true,
+              error: null,
+              ttftMs: null,
+              outputTokens: null,
+              generationDurationMs: null,
+            },
+          ],
+        },
+        {
+          provider: "openai",
+          model: "gpt-4o-mini",
+          connectionId: "newer-connection",
+          samples: [
+            {
+              provider: "openai",
+              model: "gpt-4o-mini",
+              connectionId: "newer-connection",
+              timestampMs: now - 1_000,
+              status: 200,
+              latencyMs: 120,
+              ok: true,
+              error: null,
+              ttftMs: null,
+              outputTokens: null,
+              generationDurationMs: null,
+            },
+          ],
+        },
+      ],
+      { maxKeys: 1, maxSamplesPerKey: 64 }
+    );
+
+    const persisted = db.loadBifrostRouteMetricSamples({ maxKeys: 10 });
+    assert.deepEqual(
+      persisted.map((entry) => entry.connectionId),
+      ["newer-connection"]
+    );
+    assert.equal(persisted[0].samples.length, 1);
+
+    const rawRows = core
+      .getDbInstance()
+      .prepare("SELECT connection_id FROM bifrost_route_metrics ORDER BY id")
+      .all() as { connection_id: string | null }[];
+    assert.deepEqual(rawRows, [{ connection_id: "newer-connection" }]);
+  });
+
   it("keeps stale rows ineligible under freshness rules and allows fresh rows", async () => {
     const now = makeTimestamp();
 
@@ -80,14 +189,14 @@ describe("bifrostRouteMetrics DB persistence", () => {
         model: "stale-only",
         status: 200,
         latencyMs: 100 + i * 5,
-        timestampMs: now - (16 * 60 * 1000) - (i * 1000),
+        timestampMs: now - 16 * 60 * 1000 - i * 1000,
       });
       metrics.recordBifrostRouteOutcome({
         provider: "openai",
         model: "fresh",
         status: 200,
         latencyMs: 120 + i * 5,
-        timestampMs: now - (5 * 60 * 1000) - (i * 1000),
+        timestampMs: now - 5 * 60 * 1000 - i * 1000,
       });
     }
 
