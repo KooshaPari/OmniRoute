@@ -1,9 +1,9 @@
 command: bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json
-startedAt: 2026-07-15T23:56:56.772Z
-finishedAt: 2026-07-15T23:56:57.984Z
+startedAt: 2026-07-15T23:57:01.879Z
+finishedAt: 2026-07-15T23:57:03.068Z
 exitCode: 2
 signal: none
-gitSha: 0264b437bc0ad560f76c129bda658db1174e6d42
+gitSha: 6d75de6a8113c7254c907009e209334a95164148
 stdout:
 [96mopen-sse/config/anthropicHeaders.ts[0m:[93m29[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
@@ -2405,44 +2405,59 @@ stdout:
 [7m5917[0m <<<<<<< Updated upstream
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/handlers/chatCore.ts[0m:[93m5929[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/handlers/chatCore.ts[0m:[93m5918[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m5929[0m =======
+[7m5918[0m <<<<<<< Updated upstream
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/handlers/chatCore.ts[0m:[93m5955[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/handlers/chatCore.ts[0m:[93m5920[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m5955[0m >>>>>>> Stashed changes
+[7m5920[0m =======
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/handlers/chatCore.ts[0m:[93m6014[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/handlers/chatCore.ts[0m:[93m5922[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m6014[0m <<<<<<< Updated upstream
+[7m5922[0m >>>>>>> Stashed changes
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/handlers/chatCore.ts[0m:[93m6025[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/handlers/chatCore.ts[0m:[93m5933[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m6025[0m =======
+[7m5933[0m =======
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/handlers/chatCore.ts[0m:[93m6027[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/handlers/chatCore.ts[0m:[93m5959[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m6027[0m >>>>>>> Stashed changes
+[7m5959[0m >>>>>>> Stashed changes
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/handlers/chatCore.ts[0m:[93m6045[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/handlers/chatCore.ts[0m:[93m6018[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m6045[0m <<<<<<< Updated upstream
+[7m6018[0m <<<<<<< Updated upstream
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/handlers/chatCore.ts[0m:[93m6062[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/handlers/chatCore.ts[0m:[93m6029[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m6062[0m =======
+[7m6029[0m =======
 [7m    [0m [91m~~~~~~~[0m
 
-[96mopen-sse/handlers/chatCore.ts[0m:[93m6075[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+[96mopen-sse/handlers/chatCore.ts[0m:[93m6031[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
 
-[7m6075[0m >>>>>>> Stashed changes
+[7m6031[0m >>>>>>> Stashed changes
+[7m    [0m [91m~~~~~~~[0m
+
+[96mopen-sse/handlers/chatCore.ts[0m:[93m6049[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m6049[0m <<<<<<< Updated upstream
+[7m    [0m [91m~~~~~~~[0m
+
+[96mopen-sse/handlers/chatCore.ts[0m:[93m6066[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m6066[0m =======
+[7m    [0m [91m~~~~~~~[0m
+
+[96mopen-sse/handlers/chatCore.ts[0m:[93m6079[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
+
+[7m6079[0m >>>>>>> Stashed changes
 [7m    [0m [91m~~~~~~~[0m
 
 [96mopen-sse/handlers/imageGeneration.ts[0m:[93m33[0m:[93m1[0m - [91merror[0m[90m TS1185: [0mMerge conflict marker encountered.
@@ -8156,7 +8171,7 @@ stdout:
 [7m  [0m [91m~~~~~~~[0m
 
 
-Found 1627 errors in 117 files.
+Found 1630 errors in 117 files.
 
 Errors  Files
      3  open-sse/config/anthropicHeaders.ts[90m:29[0m
@@ -8180,7 +8195,7 @@ Errors  Files
     39  open-sse/executors/kiro.ts[90m:46[0m
     12  open-sse/executors/opencode.ts[90m:4[0m
     35  open-sse/executors/perplexity-web.ts[90m:10[0m
-   186  open-sse/handlers/chatCore.ts[90m:1[0m
+   189  open-sse/handlers/chatCore.ts[90m:1[0m
      6  open-sse/handlers/imageGeneration.ts[90m:33[0m
     27  open-sse/handlers/responseSanitizer.ts[90m:45[0m
      3  open-sse/handlers/responsesHandler.ts[90m:70[0m

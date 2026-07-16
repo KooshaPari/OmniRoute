@@ -250,7 +250,7 @@ export function getWebSessionCredentialRequirement(
     WEB_SESSION_CREDENTIAL_REQUIREMENTS[
       providerId as keyof typeof WEB_SESSION_CREDENTIAL_REQUIREMENTS
     ] ?? null
-  );
+  ) as WebSessionCredentialRequirement | null;
 }
 
 export function requiresWebSessionCredential(providerId: unknown): boolean {

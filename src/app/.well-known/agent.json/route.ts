@@ -137,6 +137,16 @@ export async function GET() {
           "Create a scoped key for a desktop client session",
         ],
       },
+      {
+        id: "mint-virtual-key",
+        name: "Mint Virtual Key",
+        description: "Mints scoped virtual keys for controlled provider access",
+        tags: ["auth", "virtual-key", "provider", "security"],
+        examples: [
+          "Mint a virtual key for this provider",
+          "Create a scoped key for agent access",
+        ],
+      },
     ],
     authentication: {
       schemes: ["api-key"],

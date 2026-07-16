@@ -81,6 +81,8 @@ export const COLLECTORS = [
   // Node native runner — test:system
   { glob: "tests/e2e/system-failover.test.ts", sources: ["package.json"] },
   // vitest.mcp.config.ts — test:vitest
+  { glob: "open-sse/executors/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "open-sse/handlers/**/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "open-sse/mcp-server/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   {
     glob: "open-sse/executors/__tests__/{hasActiveClaudeThinking,mergeAbortSignals,reasoningEffortMaps,stripVersionedToolModelPrefix,userAgentHeader}.test.ts",
@@ -94,8 +96,22 @@ export const COLLECTORS = [
     glob: "open-sse/services/__tests__/{antigravity-quota-family,thinkingBudget}.test.ts",
     sources: ["vitest.mcp.config.ts"],
   },
+<<<<<<< Updated upstream
   { glob: "open-sse/translator/helpers/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/lib/db/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+=======
+  { glob: "open-sse/services/__tests__/budgetForecast.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "open-sse/services/__tests__/thinkingBudget.test.ts", sources: ["vitest.mcp.config.ts"] },
+  {
+    glob: "open-sse/translator/helpers/__tests__/geminiHelper.test.ts",
+    sources: ["vitest.mcp.config.ts"],
+  },
+  {
+    glob: "src/app/api/compression/replay/__tests__/**/*.test.ts",
+    sources: ["vitest.mcp.config.ts"],
+  },
+  { glob: "src/lib/db/__tests__/providerHealthHistory.test.ts", sources: ["vitest.mcp.config.ts"] },
+>>>>>>> Stashed changes
   { glob: "src/lib/resilience/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "tests/unit/autoCombo/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "tests/unit/vitest/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
@@ -105,6 +121,9 @@ export const COLLECTORS = [
   { glob: "src/shared/hooks/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/shared/utils/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/app/(dashboard)/**/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/shared/utils/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "tests/e2e/selfHealing.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "tests/unit/transformer/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   // vitest.config.ts via test:vitest:ui (roda com path-filter `tests/unit/ui`, então o
   // conjunto EFETIVO é a interseção do include `tests/unit/**/*.test.tsx` com o filtro)
   {
