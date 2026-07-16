@@ -5,16 +5,16 @@
   "command": "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json",
   "exitCode": 0,
   "signal": null,
-  "generatedAt": "2026-07-16T21:57:16.844Z",
+  "generatedAt": "2026-07-16T22:11:28.308Z",
   "input": {
     "algorithm": "sha256",
-    "hash": "e2dc8320787533980717ebd52032b4bb4c139916f46be152b549765b25c78a5d",
-    "fileCount": 8458,
-    "sourceTreeSha256": "1e78c7d45eed10eaa17ec65783e4629d588b6099d978605a5972ece31d52c079"
+    "hash": "4eebb77395344fd1fb74d78960b4d8a998b89a342cedd116add6fdc008de968c",
+    "fileCount": 8461,
+    "sourceTreeSha256": "5f890fc7377e2346df734962bea2015d5e73ff62166cd58574b776f296db8afa"
   },
   "log": {
     "path": ".ci/local-first-ci-gates/typecheck-core.log.txt",
-    "sha256": "7d1d0be3cf4859df461ab329b38a028bf9081b209df46e7f67bf68b9fee73f44",
+    "sha256": "0ef1795c8af1077a27f2372e156cedc178fbc2d1c19fc7dd005dd3286df46a8a",
     "bytes": 377
   }
 }

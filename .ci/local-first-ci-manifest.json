@@ -1,44 +1,44 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-16T21:58:04.189Z",
+  "generatedAt": "2026-07-16T22:11:31.289Z",
   "gateResults": [
     {
       "name": "typecheck-core",
       "status": "passed",
       "command": "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json",
       "proofPath": ".ci/local-first-ci-gates/typecheck-core.proof.json",
-      "proofHash": "23aa40e09bfc08289e6d3bd27097155f86bcc3b452a7cc53a8a855b425069eae",
-      "executedAt": "2026-07-16T21:57:16.844Z"
+      "proofHash": "90a3eed674fb2a6d85bd1b3032df6ed2f4001e558c2c2e9a0f6d4d35280c795b",
+      "executedAt": "2026-07-16T22:11:28.308Z"
     },
     {
       "name": "integrity-manifest",
       "status": "passed",
       "command": "bun run integrity:manifest:write",
       "proofPath": ".ci/local-first-ci-gates/integrity-manifest.proof.json",
-      "proofHash": "5c9bf785248bf5d1efc619c2b4f58d00e1dbe199fb40dc2771e0f83bab180c4d",
-      "executedAt": "2026-07-16T21:56:58.091Z"
+      "proofHash": "5dc76479fd8caf02cf9cf54108bc046dfbb908d3a06bd23d0a9ce8e4c488dbe2",
+      "executedAt": "2026-07-16T22:11:26.033Z"
     },
     {
       "name": "t11-any-budget-push",
       "status": "passed",
       "command": "bun scripts/check/check-t11-any-budget.mjs",
       "proofPath": ".ci/local-first-ci-gates/t11-any-budget-push.proof.json",
-      "proofHash": "aabc32674bac3aa427af304853cc418805276fbbba4c863363ac2c5d4bf8bbe1",
-      "executedAt": "2026-07-16T21:57:34.808Z"
+      "proofHash": "a525f5cc8fc1c9567f2a8bd0469cee446c299eeb3f45df390e7882d9ac7f5b06",
+      "executedAt": "2026-07-16T22:11:29.346Z"
     },
     {
       "name": "cycles-push",
       "status": "passed",
       "command": "bun scripts/check/check-cycles.mjs",
       "proofPath": ".ci/local-first-ci-gates/cycles-push.proof.json",
-      "proofHash": "d50915e811971f86bdbc64b823bde6a7841b252d8ac7faee466da924e596a012",
-      "executedAt": "2026-07-16T21:57:55.012Z"
+      "proofHash": "1266877ed9396f5e9a6ec548e731a029e93ca7b6cd36b9340cf1894dad5a9d9a",
+      "executedAt": "2026-07-16T22:11:30.464Z"
     }
   ],
   "content": {
     "algorithm": "sha256",
-    "hash": "e2dc8320787533980717ebd52032b4bb4c139916f46be152b549765b25c78a5d",
-    "fileCount": 8458,
+    "hash": "4eebb77395344fd1fb74d78960b4d8a998b89a342cedd116add6fdc008de968c",
+    "fileCount": 8461,
     "trackedFiles": [
       ".coderabbit.yaml",
       ".devcontainer/devcontainer.json",
@@ -304,6 +304,7 @@
       "apps/web/package.json",
       "apps/web/postcss.config.mjs",
       "apps/web/project.inlang/settings.json",
+      "apps/web/scripts/check/verify-ssr-i18n.mjs",
       "apps/web/src/app.css",
       "apps/web/src/app.html",
       "apps/web/src/hooks.server.ts",
@@ -343,7 +344,7 @@
       "apps/web/src/lib/i18n/hr.json",
       "apps/web/src/lib/i18n/hu.json",
       "apps/web/src/lib/i18n/id.json",
-      "apps/web/src/lib/i18n/index.ts",
+      "apps/web/src/lib/i18n/index.svelte.ts",
       "apps/web/src/lib/i18n/index.ts.bak",
       "apps/web/src/lib/i18n/is.json",
       "apps/web/src/lib/i18n/it.json",
@@ -415,6 +416,7 @@
       "apps/web/src/routes/dashboard/webhooks/+page.svelte",
       "apps/web/src/routes/login/+page.svelte",
       "apps/web/svelte.config.js",
+      "apps/web/tests/unit/i18n/runtime.test.ts",
       "apps/web/tsconfig.json",
       "apps/web/vite.config.ts",
       "assets/brand/README.md",
@@ -2794,6 +2796,7 @@
       "scripts/check/check-workflows.mjs",
       "scripts/check/compression-budget-baseline.json",
       "scripts/check/lib/allowlist.mjs",
+      "scripts/check/local-first-ci-artifact.mjs",
       "scripts/check/local-first-ci-attestation.mjs",
       "scripts/check/local-first-ci-attestation.test.mjs",
       "scripts/check/local-first-ci-mode.mjs",
@@ -8499,6 +8502,6 @@
       "worklogs/2026-06-25-L5-119-b9-dispatcher-fallback.md",
       "worklogs/L5-209-v48-envelope-expansion-2026-06-30.json"
     ],
-    "sourceTreeSha256": "1e78c7d45eed10eaa17ec65783e4629d588b6099d978605a5972ece31d52c079"
+    "sourceTreeSha256": "5f890fc7377e2346df734962bea2015d5e73ff62166cd58574b776f296db8afa"
   }
 }

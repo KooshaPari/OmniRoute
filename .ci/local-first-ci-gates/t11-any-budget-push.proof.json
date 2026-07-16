@@ -5,16 +5,16 @@
   "command": "bun scripts/check/check-t11-any-budget.mjs",
   "exitCode": 0,
   "signal": null,
-  "generatedAt": "2026-07-16T21:57:34.808Z",
+  "generatedAt": "2026-07-16T22:11:29.346Z",
   "input": {
     "algorithm": "sha256",
-    "hash": "e2dc8320787533980717ebd52032b4bb4c139916f46be152b549765b25c78a5d",
-    "fileCount": 8458,
-    "sourceTreeSha256": "1e78c7d45eed10eaa17ec65783e4629d588b6099d978605a5972ece31d52c079"
+    "hash": "4eebb77395344fd1fb74d78960b4d8a998b89a342cedd116add6fdc008de968c",
+    "fileCount": 8461,
+    "sourceTreeSha256": "5f890fc7377e2346df734962bea2015d5e73ff62166cd58574b776f296db8afa"
   },
   "log": {
     "path": ".ci/local-first-ci-gates/t11-any-budget-push.log.txt",
-    "sha256": "4091a372d67acfda7e99f31b736f0622d47a2b5ddbe2bd1cc5bb1112f903e402",
+    "sha256": "8ee4259332372782772e1ae6ca490c7d7ecb118b4caaf1a630571f49b7c08db5",
     "bytes": 7693
   }
 }
