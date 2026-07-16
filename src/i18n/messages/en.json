@@ -2389,6 +2389,8 @@
     "randomDesc": "Uniform random selection, then fallback to remaining models",
     "leastUsedDesc": "Picks the model with fewest requests, balancing load over time",
     "costOptimizedDesc": "Routes to the cheapest model first based on pricing",
+    "performance": "Performance",
+    "performanceDesc": "Reliability-first routing from fresh Bifrost provider-model telemetry, with stable fallback when data is sparse",
     "resetAware": "Reset-Aware RR",
     "resetAwareDesc": "Balances remaining quota against 5h and weekly resets, then round-robins similar scores",
     "strictRandom": "Strict Random",
@@ -2501,6 +2503,11 @@
         "when": "Use when you need to optimize context window usage across models.",
         "avoid": "Avoid when models have similar context lengths or tasks are simple.",
         "example": "Example: Distribute long conversations across models with larger context windows."
+      },
+      "performance": {
+        "when": "Use when fresh Bifrost provider-model telemetry should favor reliable targets.",
+        "avoid": "Avoid when you need account-aware scoring or no provider-model telemetry is available.",
+        "example": "Example: Keep the configured target order as the stable fallback while telemetry is sparse."
       }
     },
     "advancedHelp": {
@@ -2694,6 +2701,13 @@
         "tip2": "Monitor context utilization to avoid token waste.",
         "tip3": "Best for conversational AI requiring extensive context retention.",
         "title": "Context Optimization"
+      },
+      "performance": {
+        "description": "Reliability-first routing uses fresh Bifrost provider-model telemetry and preserves stable fallback order when data is sparse.",
+        "tip1": "Use it when reliable provider-model behavior matters more than account-level allocation.",
+        "tip2": "Keep a deliberate target order so sparse telemetry has a stable fallback.",
+        "tip3": "Review Bifrost telemetry coverage before relying on performance ordering.",
+        "title": "Reliability-First Performance"
       },
       "context-relay": {
         "description": "Best when account rotation is expected and the next account must inherit a simplified task summary.",
