@@ -4,7 +4,7 @@
   import { initWebVitals } from '$lib/observability/web-vitals';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import { t, getLocale, setLocale, supportedLanguages } from '$lib/i18n';
+  import { t, getLocale, setLocale, supportedLanguages } from '$lib/i18n/index.svelte';
 
   let { children } = $props();
 
