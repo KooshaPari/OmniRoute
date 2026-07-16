@@ -14,9 +14,8 @@ import {
   applyConfiguredPayloadRules,
   resolvePayloadRuleProtocols,
 } from "../../services/payloadRules.ts";
-import { getEffectiveToolLimit } from "../../services/toolLimitDetector.ts";
+import { getEffectiveToolLimit, getKnownToolLimit } from "../../services/toolLimitDetector.ts";
 import { providerSupportsCaching } from "../../utils/cacheControlPolicy.ts";
-import { MAX_TOOLS_LIMIT } from "../../config/constants.ts";
 import { FORMATS } from "../../translator/formats.ts";
 
 type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
@@ -39,18 +38,38 @@ function buildAppliedRulesSummary(
     .join(", ");
 }
 
-function truncateToolList(bodyToSend: Body, provider: string | null | undefined, log?: LoggerLike): Body {
+function truncateToolList(
+  bodyToSend: Body,
+  provider: string | null | undefined,
+  bypassDefaultToolLimit: boolean,
+  log?: LoggerLike
+): Body {
+  if (!Array.isArray(bodyToSend.tools)) return bodyToSend;
+
+  const knownLimit = getKnownToolLimit(provider);
+  if (knownLimit !== null) {
+    if (bodyToSend.tools.length > knownLimit) {
+      const originalCount = bodyToSend.tools.length;
+      const truncatedTools = bodyToSend.tools.slice(0, knownLimit);
+      bodyToSend = { ...bodyToSend, tools: truncatedTools };
+      log?.debug?.(
+        "TOOL_LIMIT",
+        `Truncated ${originalCount} tools to ${knownLimit} for ${provider}`
+      );
+    }
+    return bodyToSend;
+  }
+
+  if (bypassDefaultToolLimit === true) return bodyToSend;
+
   const effectiveToolLimit = getEffectiveToolLimit(provider);
-  if (
-    effectiveToolLimit < MAX_TOOLS_LIMIT &&
-    Array.isArray(bodyToSend.tools) &&
-    bodyToSend.tools.length > effectiveToolLimit
-  ) {
+  if (bodyToSend.tools.length > effectiveToolLimit) {
+    const originalCount = bodyToSend.tools.length;
     const truncatedTools = bodyToSend.tools.slice(0, effectiveToolLimit);
     bodyToSend = { ...bodyToSend, tools: truncatedTools };
     log?.debug?.(
       "TOOL_LIMIT",
-      `Truncated ${(bodyToSend.tools as unknown[]).length} tools to ${effectiveToolLimit} for ${provider}`
+      `Truncated ${originalCount} tools to ${effectiveToolLimit} for ${provider}`
     );
   }
   return bodyToSend;
@@ -64,8 +83,7 @@ function backfillQwenOAuthUser(
   credentials: CredentialsLike,
   log?: LoggerLike
 ): Body {
-  const hasValidQwenUser =
-    typeof bodyToSend.user === "string" && bodyToSend.user.trim().length > 0;
+  const hasValidQwenUser = typeof bodyToSend.user === "string" && bodyToSend.user.trim().length > 0;
   const isQwenOAuthRequest =
     provider === "qwen" &&
     !credentials?.apiKey &&
@@ -106,9 +124,18 @@ export async function prepareUpstreamBody(opts: {
   provider: string | null | undefined;
   targetFormat: string;
   credentials: CredentialsLike;
+  bypassDefaultToolLimit?: boolean;
   log?: LoggerLike;
 }): Promise<Body> {
-  const { translatedBody, modelToCall, provider, targetFormat, credentials, log } = opts;
+  const {
+    translatedBody,
+    modelToCall,
+    provider,
+    targetFormat,
+    credentials,
+    bypassDefaultToolLimit = false,
+    log,
+  } = opts;
 
   let bodyToSend: Body =
     translatedBody.model === modelToCall
@@ -133,7 +160,7 @@ export async function prepareUpstreamBody(opts: {
     );
   }
 
-  bodyToSend = truncateToolList(bodyToSend, provider, log);
+  bodyToSend = truncateToolList(bodyToSend, provider, bypassDefaultToolLimit ?? false, log);
   bodyToSend = backfillQwenOAuthUser(bodyToSend, provider, credentials, log);
   bodyToSend = await injectPromptCacheKey(bodyToSend, provider, targetFormat);
 

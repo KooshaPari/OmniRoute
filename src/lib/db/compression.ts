@@ -28,6 +28,10 @@ import {
   type RtkConfig,
   type UltraConfig,
 } from "@omniroute/open-sse/services/compression/types.ts";
+import {
+  isPreserveSystemPromptMode,
+  normalizePreserveSystemPromptMode,
+} from "@omniroute/open-sse/services/compression/preserveSystemPromptMode.ts";
 import { maybePrewarmUltraSlmOnConfig } from "@omniroute/open-sse/services/compression/ultra.ts";
 
 const NAMESPACE = "compression";
@@ -39,6 +43,7 @@ const COMPRESSION_MODES = new Set<CompressionMode>([
   "ultra",
   "rtk",
   "stacked",
+  "omniglyph",
 ]);
 
 type JsonRecord = Record<string, unknown>;
@@ -255,8 +260,9 @@ function normalizeContextEditingConfig(value: unknown): ContextEditingConfig {
 }
 
 // Engines allowed in the global stackedPipeline setting. MUST stay in sync with the
-// compression-combo KNOWN_ENGINE_IDS (src/lib/db/compressionCombos.ts) — otherwise the
-// global setting silently strips engines the combo path accepts (B-PIPELINE-DIVERGENCE).
+// compression-combo KNOWN_ENGINE_IDS (src/lib/db/compressionCombos.ts) and with
+// stackedPipelineStepSchema / ENGINE_CATALOG — otherwise the global setting silently
+// strips engines the combo path accepts (B-PIPELINE-DIVERGENCE / #6747).
 const STACKED_PIPELINE_ENGINE_IDS = new Set([
   "lite",
   "caveman",
@@ -267,6 +273,8 @@ const STACKED_PIPELINE_ENGINE_IDS = new Set([
   "session-dedup",
   "ccr",
   "llmlingua",
+  "relevance",
+  "omniglyph",
 ]);
 
 export function normalizeStackedPipeline(value: unknown): CompressionPipelineStep[] {
@@ -413,6 +421,7 @@ const SINGLE_MODE_ENGINE: Partial<Record<CompressionMode, string>> = {
   aggressive: "aggressive",
   ultra: "ultra",
   rtk: "rtk",
+  omniglyph: "omniglyph",
 };
 
 function normalizeEngineToggle(value: unknown): EngineToggle | null {
@@ -550,6 +559,11 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
   // we derive the engines map from the legacy fields below so behavior is preserved.
   let storedEngines: Record<string, EngineToggle> | null = null;
 
+  // Tracks whether an authoritative `preserveSystemPromptMode` row was persisted. When absent
+  // (legacy install that only stored the `preserveSystemPrompt` boolean) the mode is derived
+  // from that boolean below so it keeps its old behaviour instead of inheriting the new default.
+  let sawPreserveSystemPromptModeRow = false;
+
   for (const row of rows) {
     const record = toRecord(row);
     const key = typeof record.key === "string" ? record.key : null;
@@ -586,6 +600,13 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         break;
       case "preserveSystemPrompt":
         config.preserveSystemPrompt = parsed !== false;
+        break;
+      case "preserveSystemPromptMode":
+        // T05/C5 — authoritative intent; ignore unknown tokens (keep the default mode).
+        if (isPreserveSystemPromptMode(parsed)) {
+          config.preserveSystemPromptMode = parsed;
+          sawPreserveSystemPromptModeRow = true;
+        }
         break;
       case "mcpDescriptionCompressionEnabled":
         config.mcpDescriptionCompressionEnabled = parsed !== false;
@@ -638,8 +659,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         storedEngines = parseStoredEnginesMap(parsed);
         break;
       case "activeComboId":
-        config.activeComboId =
-          typeof parsed === "string" && parsed.trim() ? parsed.trim() : null;
+        config.activeComboId = typeof parsed === "string" && parsed.trim() ? parsed.trim() : null;
         break;
       case "ultraEngine":
         // Phase 4 (B): SLM tier selector. Only the two known values; anything else
@@ -650,6 +670,18 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         config.ultraSlmPrewarm = parsed === true;
         break;
     }
+  }
+
+  // T05/C5 back-compat: a legacy install persisted only the `preserveSystemPrompt` boolean and no
+  // `preserveSystemPromptMode` row. The DEFAULT spread above seeds the new `always` mode, which would
+  // otherwise shadow that boolean (an explicit mode wins in normalizePreserveSystemPromptMode) and
+  // silently flip `preserveSystemPrompt=false` installs from "compress unless cached" to "always
+  // preserve". When no mode row was stored, derive the authoritative mode from the boolean instead.
+  if (!sawPreserveSystemPromptModeRow) {
+    config.preserveSystemPromptMode = normalizePreserveSystemPromptMode({
+      preserveSystemPrompt: config.preserveSystemPrompt,
+      preserveSystemPromptMode: undefined,
+    });
   }
 
   // Engines map: prefer the stored row; otherwise derive from the legacy fields (migration 102

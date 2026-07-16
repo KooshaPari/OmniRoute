@@ -13,7 +13,7 @@ function isHttpUrl(value: string): boolean {
   }
 }
 
-const CODEX_REASONING_EFFORT_VALUES = new Set(["none", "low", "medium", "high", "xhigh"]);
+const CODEX_REASONING_EFFORT_VALUES = new Set(["none", "low", "medium", "high", "xhigh", "max"]);
 const REQUEST_DEFAULT_SERVICE_TIER_VALUES = new Set(["default", "priority", "fast", "flex"]);
 
 export function validateProviderSpecificData(
@@ -131,7 +131,7 @@ export function validateProviderSpecificData(
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
-            "providerSpecificData.requestDefaults.reasoningEffort must be one of none, low, medium, high, xhigh",
+            "providerSpecificData.requestDefaults.reasoningEffort must be one of none, low, medium, high, xhigh, max",
           path: ["requestDefaults", "reasoningEffort"],
         });
       }
@@ -151,7 +151,7 @@ export function validateProviderSpecificData(
         });
       }
 
-      for (const booleanKey of ["context1m", "redactThinking"] as const) {
+      for (const booleanKey of ["context1m", "redactThinking", "summarizeThinking"] as const) {
         const value = requestDefaultsRecord[booleanKey];
         if (value === undefined || value === null || typeof value === "boolean") continue;
         ctx.addIssue({
@@ -221,6 +221,50 @@ export function validateProviderSpecificData(
         path: [key],
       });
     }
+  }
+
+  for (const key of [
+    "glmOrganizationId",
+    "bigmodelOrganization",
+    "glmOrganization",
+    "glmProjectId",
+    "bigmodelProject",
+    "glmProject",
+  ] as const) {
+    const value = data[key];
+    if (value !== undefined && value !== null && typeof value !== "string") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be a string`,
+        path: [key],
+      });
+    }
+    if (typeof value === "string" && value.length > 200) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be at most 200 characters`,
+        path: [key],
+      });
+    }
+  }
+
+  const glmOrganizationId =
+    (typeof data.glmOrganizationId === "string" && data.glmOrganizationId.trim()) ||
+    (typeof data.bigmodelOrganization === "string" && data.bigmodelOrganization.trim()) ||
+    (typeof data.glmOrganization === "string" && data.glmOrganization.trim()) ||
+    "";
+  const glmProjectId =
+    (typeof data.glmProjectId === "string" && data.glmProjectId.trim()) ||
+    (typeof data.bigmodelProject === "string" && data.bigmodelProject.trim()) ||
+    (typeof data.glmProject === "string" && data.glmProject.trim()) ||
+    "";
+  if (Boolean(glmOrganizationId) !== Boolean(glmProjectId)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        "providerSpecificData.glmOrganizationId and glmProjectId must both be set for GLM team plan quota",
+      path: glmOrganizationId ? ["glmProjectId"] : ["glmOrganizationId"],
+    });
   }
 
   const groupTag = data.tag;

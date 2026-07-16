@@ -2,7 +2,8 @@
 import { errorResponse } from "../../utils/error.ts";
 import { recordComboRequest } from "../comboMetrics.ts";
 import { resolveDelayMs } from "./comboPredicates.ts";
-import { validateResponseQuality } from "./validateQuality.ts";
+import { validateResponseQuality, releaseQualityClone } from "./validateQuality.ts";
+import type { ResponseValidationConfig } from "./responseValidation.ts";
 import type {
   ComboCollectionLike,
   ComboLike,
@@ -227,7 +228,19 @@ export async function executeRuntimeUnitCombo(args: {
           });
           return { response, unit };
         }
-        const quality = await validateResponseQuality(response, clientRequestedStream, args.log);
+        let unitClone: Response;
+        try {
+          unitClone = response.clone();
+        } catch {
+          unitClone = response;
+        }
+        const quality = await validateResponseQuality(
+          unitClone,
+          clientRequestedStream,
+          args.log,
+          args.config.responseValidation as ResponseValidationConfig | undefined
+        );
+        releaseQualityClone(unitClone, response, quality);
         if (quality.valid) {
           recordComboRequest(args.combo.name, unit.modelStr, {
             success: true,
@@ -236,7 +249,7 @@ export async function executeRuntimeUnitCombo(args: {
             strategy: effectiveStrategy,
             target: { executionKey: unit.executionKey, stepId: unit.stepId, label: unit.label },
           });
-          return { response: quality.clonedResponse ?? response, unit };
+          return { response, unit };
         }
       }
       if (![408, 429, 500, 502, 503, 504].includes(response.status)) break;

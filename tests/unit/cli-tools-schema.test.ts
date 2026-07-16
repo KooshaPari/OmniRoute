@@ -1,16 +1,48 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-test("CLI_TOOLS registry contains all expected tools (plan 14 — 29 total)", async () => {
+test("CLI_TOOLS registry contains all expected tools (plan 14 — 32 total + crush + codewhale + omp + letta)", async () => {
   const { CLI_TOOLS } = await import("../../src/shared/constants/cliTools.ts");
   // windsurf and amp removed per plan 14 D17 (MITM backlog plan 11)
-  // 10 new entries added: roo, jcode, deepseek-tui, smelt, pi, aider, forge,
-  //   gemini-cli, cursor-cli, goose, interpreter, warp, agent-deck (+ hermes-agent already existed)
+  // New entries added: roo, jcode, deepseek-tui, smelt, pi, aider, forge,
+  //   cursor-cli, goose, interpreter, warp, agent-deck (+ hermes-agent already existed)
+  // crush added — ported from upstream decolua/9router#1233
+  // codewhale added 2026-07-02 as a dual entry alongside deepseek-tui
+  //   (CodeWhale is the actively-maintained successor to DeepSeek TUI).
+  // omp + letta added by #6318 (agent-category CLI integrations).
   const expected = [
-    "claude", "codex", "droid", "openclaw", "cursor", "cline", "kilo", "continue",
-    "antigravity", "copilot", "opencode", "hermes", "hermes-agent", "kiro", "qwen", "custom",
-    "aider", "forge", "gemini-cli", "cursor-cli", "roo", "jcode", "deepseek-tui", "smelt", "pi",
-    "goose", "interpreter", "warp", "agent-deck",
+    "claude",
+    "codex",
+    "droid",
+    "openclaw",
+    "cursor",
+    "cline",
+    "kilo",
+    "continue",
+    "antigravity",
+    "copilot",
+    "opencode",
+    "hermes",
+    "hermes-agent",
+    "kiro",
+    "qwen",
+    "custom",
+    "aider",
+    "forge",
+    "cursor-cli",
+    "roo",
+    "jcode",
+    "deepseek-tui",
+    "codewhale",
+    "smelt",
+    "pi",
+    "goose",
+    "interpreter",
+    "warp",
+    "omp",
+    "letta",
+    "agent-deck",
+    "crush",
   ];
   for (const id of expected) {
     assert.ok(id in CLI_TOOLS, `Missing tool: ${id}`);
@@ -52,4 +84,9 @@ test("getCliTool returns correct tool by id", async () => {
 
   const missing = getCliTool("nonexistent");
   assert.equal(missing, undefined);
+});
+
+test("CLI tools registry does not export provider model mapping helper", async () => {
+  const registry = await import("../../src/shared/constants/cliTools.ts");
+  assert.equal("getProviderModelsForMapping" in registry, false);
 });

@@ -15,7 +15,11 @@ import { useState } from "react";
 import { Button } from "@/shared/components";
 import { matchesModelCatalogQuery } from "@/shared/utils/modelCatalogSearch";
 import { isFreeModel, sortModelsFreeFirst } from "@/shared/utils/freeModels";
-import { providerText, type ProviderMessageTranslator } from "../providerPageHelpers";
+import {
+  getDisplayModelAlias,
+  providerText,
+  type ProviderMessageTranslator,
+} from "../providerPageHelpers";
 import ModelRow, { ModelVisibilityToolbar } from "./ModelRow";
 import PassthroughModelsSection from "./PassthroughModelsSection";
 import CompatibleModelsSection from "./CompatibleModelsSection";
@@ -86,11 +90,7 @@ export interface ProviderModelsSectionProps {
   setAutoHideFailed: (v: boolean) => void;
   setVisibilityFilter: (v: "all" | "visible" | "hidden") => void;
   saveModelCompatFlags: (modelId: string, patch: ModelCompatSavePatch) => Promise<void>;
-  handleToggleModelHidden: (
-    providerKey: string,
-    modelId: string,
-    hidden: boolean
-  ) => Promise<void>;
+  handleToggleModelHidden: (providerKey: string, modelId: string, hidden: boolean) => Promise<void>;
   handleBulkToggleModelHidden: (
     providerKey: string,
     modelIds: string[],
@@ -187,8 +187,7 @@ export default function ProviderModelsSection({
     </button>
   );
 
-  const clearAllButton = (modelMeta.customModels.length > 0 ||
-    providerAliasEntries.length > 0) && (
+  const clearAllButton = (modelMeta.customModels.length > 0 || providerAliasEntries.length > 0) && (
     <button
       onClick={handleClearAllModels}
       disabled={clearingModels}
@@ -251,11 +250,9 @@ export default function ProviderModelsSection({
           onModelsChanged={fetchProviderModelMeta}
           allowImport={compatibleSupportsModelImport}
           isModelHidden={effectiveModelHidden}
-          onToggleHidden={(modelId, hidden) =>
-            handleToggleModelHidden(providerStorageAlias, modelId, hidden)
-          }
+          onToggleHidden={(modelId, hidden) => handleToggleModelHidden(providerId, modelId, hidden)}
           onBulkToggleHidden={(modelIds, hidden) =>
-            handleBulkToggleModelHidden(providerStorageAlias, modelIds, hidden)
+            handleBulkToggleModelHidden(providerId, modelIds, hidden)
           }
           bulkTogglePending={bulkVisibilityAction !== null}
           togglingModelId={togglingModelId}
@@ -309,6 +306,7 @@ export default function ProviderModelsSection({
         <PassthroughModelsSection
           providerAlias={providerAlias}
           modelAliases={modelAliases}
+          catalogModels={models}
           availableModels={syncedAvailableModels}
           customModels={modelMeta.customModels}
           description={passthroughDescription}
@@ -325,11 +323,9 @@ export default function ProviderModelsSection({
           saveModelCompatFlags={saveModelCompatFlags}
           compatSavingModelId={compatSavingModelId}
           isModelHidden={effectiveModelHidden}
-          onToggleHidden={(modelId, hidden) =>
-            handleToggleModelHidden(providerStorageAlias, modelId, hidden)
-          }
+          onToggleHidden={(modelId, hidden) => handleToggleModelHidden(providerId, modelId, hidden)}
           onBulkToggleHidden={(modelIds, hidden) =>
-            handleBulkToggleModelHidden(providerStorageAlias, modelIds, hidden)
+            handleBulkToggleModelHidden(providerId, modelIds, hidden)
           }
           bulkTogglePending={bulkVisibilityAction !== null}
           togglingModelId={togglingModelId}
@@ -372,6 +368,19 @@ export default function ProviderModelsSection({
       </div>
     );
   }
+
+  const aliasByModelId = Object.entries(modelAliases).reduce<Record<string, string>>(
+    (acc, [alias, fullModel]) => {
+      const prefix = `${providerDisplayAlias}/`;
+      if (fullModel.startsWith(prefix)) {
+        const modelId = fullModel.slice(prefix.length);
+        const displayAlias = getDisplayModelAlias(modelId, alias);
+        if (displayAlias) acc[modelId] = displayAlias;
+      }
+      return acc;
+    },
+    {}
+  );
 
   const modelsWithVisibility = models.map((model) => ({
     ...model,
@@ -451,8 +460,13 @@ export default function ProviderModelsSection({
               model={model}
               fullModel={`${providerDisplayAlias}/${model.id}`}
               provider={providerId}
+              alias={aliasByModelId[model.id]}
               copied={copied}
               onCopy={onCopy}
+              onSetAlias={(a) => onSetAlias(model.id, a, providerDisplayAlias)}
+              onDeleteAlias={
+                aliasByModelId[model.id] ? () => onDeleteAlias(aliasByModelId[model.id]) : undefined
+              }
               t={t}
               showDeveloperToggle
               effectiveModelNormalize={effectiveModelNormalize}

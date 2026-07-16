@@ -17,6 +17,35 @@ import {
 import { setNoLog } from "../compliance/noLog";
 import { resolveModelAlias } from "@omniroute/open-sse/services/modelDeprecation.ts";
 import { getSyncedAvailableModelsByConnection, getCustomModels, getModelIsHidden } from "./models";
+import {
+  CLAUDE_CODE_PROVIDER_PREFIXES,
+  preferClaudeCodeForUnprefixedClaudeModels,
+  stripExtendedContextSuffix,
+  isPotentialUnprefixedClaudeCodeModel,
+  addModelCandidate,
+  modelPatternMatches,
+  hasClaudeCodeWildcardPermission,
+  matchesWildcardPattern,
+} from "./apiKeys/modelPermissions";
+import {
+  parseAllowedModels,
+  parseAllowedCombos,
+  parseNoLog,
+  parseAutoResolve,
+  parseDisableNonPublicModels,
+  parseAllowUsageCommand,
+  parseIsActive,
+  parseAccessSchedule,
+  parseRateLimits,
+  parseAllowedConnections,
+  parseAllowedQuotas,
+  parseStringList,
+  parseNullableTimestamp,
+  parseIsBanned,
+  parseStreamDefaultMode,
+  parseChaosModeEnabled,
+} from "./apiKeys/rowParsers";
+import type { AccessSchedule, RateLimitRule } from "./apiKeys/types";
 
 // ──────────────── Performance Optimizations ────────────────
 
@@ -30,18 +59,8 @@ interface CacheEntry<TValue> {
   value: TValue;
 }
 
-export interface RateLimitRule {
-  limit: number;
-  window: number;
-}
-
-export interface AccessSchedule {
-  enabled: boolean;
-  from: string;
-  until: string;
-  days: number[];
-  tz: string;
-}
+// Re-exported for the historical public surface (moved to ./apiKeys/types).
+export type { AccessSchedule, RateLimitRule } from "./apiKeys/types";
 
 interface ApiKeyMetadata {
   id: string;
@@ -77,6 +96,7 @@ interface ApiKeyMetadata {
   usageLimitEnabled: boolean;
   dailyUsageLimitUsd: number | null;
   weeklyUsageLimitUsd: number | null;
+  chaosModeEnabled: boolean;
 }
 
 interface ApiKeyRow extends JsonRecord {
@@ -116,6 +136,8 @@ interface ApiKeyRow extends JsonRecord {
   dailyUsageLimitUsd?: unknown;
   weekly_usage_limit_usd?: unknown;
   weeklyUsageLimitUsd?: unknown;
+  chaos_mode_enabled?: unknown;
+  chaosModeEnabled?: unknown;
 }
 
 interface StatementLike<TRow = unknown> {
@@ -162,6 +184,7 @@ interface ApiKeyView extends JsonRecord {
   usageLimitEnabled?: boolean;
   dailyUsageLimitUsd?: number | null;
   weeklyUsageLimitUsd?: number | null;
+  chaosModeEnabled?: boolean;
 }
 
 // LRU cache for API key validation (valid keys only)
@@ -171,8 +194,6 @@ const _lastUsedUpdateCache = new Map<string, number>();
 const CACHE_TTL = 60 * 1000; // 1 minute TTL
 const LAST_USED_UPDATE_TTL = 5 * 60 * 1000;
 const MAX_CACHE_SIZE = 1000;
-const CLAUDE_CODE_PROVIDER_PREFIXES = new Set(["cc", "claude"]);
-const CLAUDE_CODE_SHORT_ALIASES = new Set(["sonnet", "opus", "haiku", "fable"]);
 
 // Wildcard scope matching is now handled by `matchesWildcardPattern`
 // (deterministic, no RegExp from dynamic strings).
@@ -221,7 +242,7 @@ async function deleteRedisAuthCacheEntry(keyHash: unknown): Promise<void> {
   try {
     const { getRedisClient, isRedisConfigured } = await import("@/shared/utils/rateLimiter");
     if (!isRedisConfigured()) return;
-    const redis = getRedisClient();
+    const redis = await getRedisClient();
     await redis.del(`auth:api_key:${keyHash}`);
   } catch {
     // Redis is an optimization for auth caching; SQLite remains authoritative.
@@ -269,39 +290,6 @@ function evictIfNeeded<TKey, TValue>(cache: Map<TKey, TValue>) {
   }
 }
 
-function isTruthyEnvFlag(value: string | undefined): boolean {
-  return typeof value === "string" && /^(1|true|yes|on)$/i.test(value.trim());
-}
-
-async function preferClaudeCodeForUnprefixedClaudeModels(): Promise<boolean> {
-  try {
-    const { getCachedSettings } = await import("./readCache");
-    const settings = await getCachedSettings();
-    if (typeof settings.preferClaudeCodeForUnprefixedClaudeModels === "boolean") {
-      return settings.preferClaudeCodeForUnprefixedClaudeModels;
-    }
-  } catch {
-    // Standalone DB usage may not have the settings cache ready.
-  }
-  return isTruthyEnvFlag(process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS);
-}
-
-function stripExtendedContextSuffix(modelId: string): string {
-  return modelId.endsWith("[1m]") ? modelId.slice(0, -4) : modelId;
-}
-
-function isPotentialUnprefixedClaudeCodeModel(modelId: string): boolean {
-  const clean = stripExtendedContextSuffix(modelId.trim());
-  return /^claude-/i.test(clean) || CLAUDE_CODE_SHORT_ALIASES.has(clean.toLowerCase());
-}
-
-function addModelCandidate(candidates: Set<string>, modelId: string): void {
-  const clean = modelId.trim();
-  if (!clean) return;
-  candidates.add(clean);
-  candidates.add(stripExtendedContextSuffix(clean));
-}
-
 async function getModelPermissionCandidates(modelId: string): Promise<string[]> {
   const candidates = new Set<string>();
   addModelCandidate(candidates, modelId);
@@ -332,34 +320,6 @@ async function getModelPermissionCandidates(modelId: string): Promise<string[]> 
   return Array.from(candidates);
 }
 
-function modelPatternMatches(pattern: string, candidates: string[]): boolean {
-  for (const candidate of candidates) {
-    if (pattern === candidate) return true;
-    if (pattern.endsWith("/*")) {
-      const prefix = pattern.slice(0, -2);
-      if (candidate.startsWith(prefix + "/") || candidate.startsWith(prefix)) {
-        return true;
-      }
-    }
-    if (pattern.includes("*") && matchesWildcardPattern(pattern, candidate)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function hasClaudeCodeWildcardPermission(
-  allowedModels: string[] | undefined,
-  candidates: string[]
-): boolean {
-  if (!allowedModels || allowedModels.length === 0) return false;
-  return allowedModels.some(
-    (pattern) =>
-      (pattern === "cc/*" || pattern === "claude/*") &&
-      candidates.some((candidate) => modelPatternMatches(pattern, [candidate]))
-  );
-}
-
 async function getPublishedModelLookupTarget(
   modelId: string
 ): Promise<{ providerId: string; modelId: string } | null> {
@@ -385,60 +345,6 @@ async function getPublishedModelLookupTarget(
   }
 
   return null;
-}
-
-/**
- * Match an API-key wildcard scope pattern against a model id without
- * compiling a RegExp from string concatenation (avoid ReDoS exposure on
- * operator-supplied patterns and silence the Semgrep `js/regex-injection`
- * advisory for `new RegExp(<dynamic>)`).
- *
- * Supported pattern syntax (only what real scopes use):
- *   - literal segments
- *   - `*` matches any run of characters, but does NOT cross `/`
- *
- * Walks the pattern token-by-token: each `*` consumes the longest possible
- * run within the current path segment, then the next literal anchor must
- * appear before the segment boundary. Worst-case complexity is O(n*m)
- * where n = pattern length, m = candidate length — there is no nested
- * backtracking that could explode adversarially.
- */
-function matchesWildcardPattern(pattern: string, candidate: string): boolean {
-  const pSegs = pattern.split("/");
-  const cSegs = candidate.split("/");
-  if (pSegs.length !== cSegs.length) return false;
-  for (let i = 0; i < pSegs.length; i++) {
-    if (!segmentMatchesWildcard(pSegs[i], cSegs[i])) return false;
-  }
-  return true;
-}
-
-function segmentMatchesWildcard(pattern: string, segment: string): boolean {
-  if (pattern === segment) return true;
-  if (!pattern.includes("*")) return false;
-  const parts = pattern.split("*");
-  // Anchor first literal to the start.
-  let cursor = 0;
-  const first = parts[0];
-  if (first) {
-    if (!segment.startsWith(first)) return false;
-    cursor = first.length;
-  }
-  // Anchor last literal to the end.
-  const last = parts[parts.length - 1];
-  const endLimit = segment.length - last.length;
-  if (last) {
-    if (!segment.endsWith(last)) return false;
-  }
-  // Each middle literal must appear in order between cursor and endLimit.
-  for (let i = 1; i < parts.length - 1; i++) {
-    const piece = parts[i];
-    if (!piece) continue;
-    const idx = segment.indexOf(piece, cursor);
-    if (idx === -1 || idx + piece.length > endLimit) return false;
-    cursor = idx + piece.length;
-  }
-  return cursor <= endLimit;
 }
 
 function ensureApiKeyColumn(
@@ -492,7 +398,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models, allow_usage_command, usage_limit_enabled, daily_usage_limit_usd, weekly_usage_limit_usd, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models, allow_usage_command, usage_limit_enabled, daily_usage_limit_usd, weekly_usage_limit_usd, chaos_mode_enabled, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -545,12 +451,93 @@ export async function getApiKeys() {
       (camelRow as JsonRecord).disableNonPublicModels
     );
     camelRow.allowUsageCommand = parseAllowUsageCommand((camelRow as JsonRecord).allowUsageCommand);
+    camelRow.chaosModeEnabled = parseChaosModeEnabled((camelRow as JsonRecord).chaosModeEnabled);
     Object.assign(camelRow, parseApiKeyUsageLimitFields(camelRow));
     if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
       setNoLog(camelRow.id, camelRow.noLog === true);
     }
     return camelRow;
   });
+}
+
+/**
+ * Select an API key for internal OmniRoute operations (combo health checks,
+ * cloud-sync verify pings, etc.).
+ *
+ * Naive selection of `getApiKeys()[0]` is unsafe because the first row is
+ * whatever happened to be inserted first — usually a regular `self:usage`
+ * key with a restricted model allowlist. Internal probes that reuse that
+ * key to call `/v1/chat/completions` then hit
+ *   Model "X" is not allowed for this API key
+ * from `shared/utils/apiKeyPolicy.ts` even when the upstream combo path is
+ * healthy. Likewise, cloud-sync verify pings flip to "disconnected"
+ * because the arbitrary key is rejected upstream.
+ *
+ * Selection rules (first match wins):
+ *   1. Active, non-revoked key whose `scopes` includes "manage"
+ *      (management keys are by policy not subject to model allowlists).
+ *   2. Active, non-revoked key with empty allowedModels (allow-all).
+ *   3. Active, non-revoked key with the most recent `lastUsedAt`.
+ *   4. First active, non-revoked key (legacy fallback — preserves prior
+ *      behavior when no key matches the better rules above).
+ *
+ * The selector is deliberately conservative: it never promotes a revoked,
+ * inactive, or banned key, and it never widens a key's allowedModels.
+ */
+export async function pickApiKeyForInternalUse(
+  purpose:
+    | "combo-health-check"
+    | "cloud-sync-verify"
+    | "internal-probe" = "internal-probe"
+): Promise<string | null> {
+  try {
+    const keys = (await getApiKeys()) as Array<{
+      key?: string;
+      isActive?: boolean;
+      revokedAt?: string | null;
+      isBanned?: boolean;
+      scopes?: string[];
+      allowedModels?: string[];
+      lastUsedAt?: string | number | null;
+    }>;
+
+    const isUsable = (k: (typeof keys)[number]) =>
+      Boolean(k.key) && k.isActive !== false && !k.revokedAt && k.isBanned !== true;
+
+    // 1. Management-scoped key (preferred for any internal probe).
+    const manageKey = keys.find(
+      (k) =>
+        isUsable(k) && Array.isArray(k.scopes) && k.scopes.includes("manage"),
+    );
+    if (manageKey?.key) return manageKey.key;
+
+    // 2. Allow-all key (empty allowedModels means no model restrictions).
+    const allowAllKey = keys.find(
+      (k) =>
+        isUsable(k) &&
+        Array.isArray(k.allowedModels) &&
+        k.allowedModels.length === 0,
+    );
+    if (allowAllKey?.key) return allowAllKey.key;
+
+    // 3. Most recently used (proxy for "the user actually wants this one
+    //    working right now").
+    const byRecency = [...keys]
+      .filter(isUsable)
+      .sort((a, b) => {
+        const aT = typeof a.lastUsedAt === "number" ? a.lastUsedAt : 0;
+        const bT = typeof b.lastUsedAt === "number" ? b.lastUsedAt : 0;
+        return bT - aT;
+      });
+    if (byRecency[0]?.key) return byRecency[0].key;
+
+    // 4. Legacy fallback: first active key. Keeps the function working
+    //    for setups with no managed/allow-all/recently-used key.
+    const firstActive = keys.find(isUsable);
+    return firstActive?.key ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getApiKeyById(id: string) {
@@ -577,161 +564,12 @@ export async function getApiKeyById(id: string) {
     (camelRow as JsonRecord).disableNonPublicModels
   );
   camelRow.allowUsageCommand = parseAllowUsageCommand((camelRow as JsonRecord).allowUsageCommand);
+  camelRow.chaosModeEnabled = parseChaosModeEnabled((camelRow as JsonRecord).chaosModeEnabled);
   Object.assign(camelRow, parseApiKeyUsageLimitFields(camelRow));
   if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
   return camelRow;
-}
-
-/**
- * Helper function to safely parse allowed_models JSON
- */
-function parseAllowedModels(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function parseAllowedCombos(value: unknown): string[] {
-  return parseStringList(value);
-}
-
-function parseNoLog(value: unknown): boolean {
-  return value === true || value === 1 || value === "1";
-}
-
-function parseAutoResolve(value: unknown): boolean {
-  return value === true || value === 1 || value === "1";
-}
-
-function parseDisableNonPublicModels(value: unknown): boolean {
-  return value === true || value === 1 || value === "1";
-}
-
-function parseAllowUsageCommand(value: unknown): boolean {
-  return value === true || value === 1 || value === "1";
-}
-
-function parseIsActive(value: unknown): boolean {
-  // DEFAULT 1 — active unless explicitly set to 0
-  if (value === 0 || value === "0" || value === false) return false;
-  return true;
-}
-
-function parseAccessSchedule(value: unknown): AccessSchedule | null {
-  if (!value || typeof value !== "string" || value.trim() === "") return null;
-  try {
-    const parsed: unknown = JSON.parse(value);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
-    const obj = parsed as Record<string, unknown>;
-    if (
-      typeof obj["enabled"] !== "boolean" ||
-      typeof obj["from"] !== "string" ||
-      typeof obj["until"] !== "string" ||
-      !Array.isArray(obj["days"]) ||
-      typeof obj["tz"] !== "string"
-    ) {
-      return null;
-    }
-    const days = (obj["days"] as unknown[]).filter(
-      (d): d is number => typeof d === "number" && Number.isInteger(d) && d >= 0 && d <= 6
-    );
-    return {
-      enabled: obj["enabled"],
-      from: obj["from"],
-      until: obj["until"],
-      days,
-      tz: obj["tz"],
-    };
-  } catch {
-    return null;
-  }
-}
-
-function parseRateLimits(value: unknown): RateLimitRule[] | null {
-  if (!value || typeof value !== "string" || value.trim() === "") return null;
-  try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) return null;
-    return parsed.filter(
-      (rule: RateLimitRule) =>
-        typeof rule === "object" &&
-        rule !== null &&
-        typeof rule.limit === "number" &&
-        typeof rule.window === "number"
-    ) as RateLimitRule[];
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Helper function to safely parse allowed_connections JSON
- */
-function parseAllowedConnections(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Helper function to safely parse allowed_quotas JSON
- */
-function parseAllowedQuotas(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") {
-    return [];
-  }
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function parseStringList(value: unknown): string[] {
-  if (!value || typeof value !== "string" || value.trim() === "") return [];
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function parseNullableTimestamp(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed === "" ? null : trimmed;
-}
-
-function parseIsBanned(value: unknown): boolean {
-  return value === 1 || value === "1" || value === true;
-}
-
-function parseStreamDefaultMode(value: unknown): "legacy" | "json" {
-  return value === "json" ? "json" : "legacy";
 }
 
 async function hashKey(key: string): Promise<string> {
@@ -853,6 +691,7 @@ export async function updateApiKeyPermissions(
         usageLimitEnabled?: boolean;
         dailyUsageLimitUsd?: number | null;
         weeklyUsageLimitUsd?: number | null;
+        chaosModeEnabled?: boolean;
       }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
@@ -891,6 +730,7 @@ export async function updateApiKeyPermissions(
           dailyUsageLimitUsd: (update as { dailyUsageLimitUsd?: number | null }).dailyUsageLimitUsd,
           weeklyUsageLimitUsd: (update as { weeklyUsageLimitUsd?: number | null })
             .weeklyUsageLimitUsd,
+          chaosModeEnabled: (update as { chaosModeEnabled?: boolean }).chaosModeEnabled,
         };
 
   if (
@@ -917,6 +757,7 @@ export async function updateApiKeyPermissions(
     (normalized as Record<string, unknown>).streamDefaultMode === undefined &&
     normalized.disableNonPublicModels === undefined &&
     normalized.allowUsageCommand === undefined &&
+    normalized.chaosModeEnabled === undefined &&
     !hasUsageLimitUpdate(normalized as Record<string, unknown>)
   ) {
     return false;
@@ -950,6 +791,7 @@ export async function updateApiKeyPermissions(
     usageLimitEnabled?: number;
     dailyUsageLimitUsd?: number | null;
     weeklyUsageLimitUsd?: number | null;
+    chaosModeEnabled?: number;
   } = { id };
 
   if (normalized.name !== undefined) {
@@ -1051,6 +893,11 @@ export async function updateApiKeyPermissions(
   if (normalized.allowUsageCommand !== undefined) {
     updates.push("allow_usage_command = @allowUsageCommand");
     params.allowUsageCommand = normalized.allowUsageCommand ? 1 : 0;
+  }
+
+  if (normalized.chaosModeEnabled !== undefined) {
+    updates.push("chaos_mode_enabled = @chaosModeEnabled");
+    params.chaosModeEnabled = normalized.chaosModeEnabled ? 1 : 0;
   }
 
   appendUsageLimitUpdates(normalized as Record<string, unknown>, updates, params);
@@ -1295,7 +1142,7 @@ export async function validateApiKey(key: string | null | undefined) {
     try {
       const { getRedisClient, isRedisConfigured } = await import("@/shared/utils/rateLimiter");
       if (isRedisConfigured()) {
-        const redis = getRedisClient();
+        const redis = await getRedisClient();
         const redisKey = `auth:api_key:${hashedKey}`;
         const redisData = await redis.get(redisKey);
         if (redisData) {
@@ -1348,7 +1195,7 @@ export async function validateApiKey(key: string | null | undefined) {
     try {
       const { getRedisClient, isRedisConfigured } = await import("@/shared/utils/rateLimiter");
       if (isRedisConfigured()) {
-        const redis = getRedisClient();
+        const redis = await getRedisClient();
         const redisKey = `auth:api_key:${hashedKey}`;
         await redis.set(
           redisKey,
@@ -1439,6 +1286,7 @@ export async function getApiKeyMetadata(
       usageLimitEnabled: false,
       dailyUsageLimitUsd: null,
       weeklyUsageLimitUsd: null,
+      chaosModeEnabled: false,
     };
   }
 
@@ -1511,6 +1359,9 @@ export async function getApiKeyMetadata(
     ),
     allowUsageCommand: parseAllowUsageCommand(
       (record as JsonRecord).allow_usage_command ?? (record as JsonRecord).allowUsageCommand
+    ),
+    chaosModeEnabled: parseChaosModeEnabled(
+      (record as JsonRecord).chaos_mode_enabled ?? (record as JsonRecord).chaosModeEnabled
     ),
     ...parseApiKeyUsageLimitFields(record as JsonRecord),
   };

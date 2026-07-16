@@ -28,6 +28,12 @@
 
 const ENCODER = new TextEncoder();
 const KEEPALIVE_FRAME = ENCODER.encode(": omniroute-keepalive\n\n");
+// Anthropic Messages-format keepalive: a REAL `ping` SSE event, not a comment.
+// Anthropic clients (Claude Code, the Anthropic SDK) reset their stream/first-token
+// watchdog on real SSE events but ignore SSE comments (`: ...`), so on a slow first
+// token the comment frame lets the client abort and retry the stream. Anthropic's own
+// API emits `event: ping` for exactly this reason; the /v1/messages route mirrors it.
+export const ANTHROPIC_PING_FRAME = ENCODER.encode('event: ping\ndata: {"type":"ping"}\n\n');
 const ERROR_FRAME = ENCODER.encode(
   `event: error\ndata: ${JSON.stringify({
     error: { message: "Upstream stream failed before completion.", type: "stream_error" },
@@ -41,6 +47,15 @@ export type EarlyStreamKeepaliveOptions = {
   intervalMs?: number;
   /** Client request signal — propagated so a client disconnect cancels the upstream read. */
   signal?: AbortSignal | null;
+  /**
+   * Frame emitted on each keepalive tick. Defaults to an SSE comment
+   * (`: omniroute-keepalive`). Anthropic-format routes (/v1/messages) must pass
+   * `ANTHROPIC_PING_FRAME` instead, because Anthropic clients ignore SSE comments
+   * for their stream watchdog and only a real `event: ping` keeps them from aborting.
+   */
+  keepaliveFrame?: Uint8Array;
+  /** Extra headers to include in the keepalive response (e.g. X-Correlation-Id). */
+  extraHeaders?: Record<string, string>;
 };
 
 type SettledHandler = { ok: true; response: Response } | { ok: false; error: unknown };
@@ -52,6 +67,8 @@ export async function withEarlyStreamKeepalive(
   const thresholdMs = Math.max(0, options.thresholdMs ?? 2_000);
   const intervalMs = Math.max(250, options.intervalMs ?? 2_500);
   const signal = options.signal ?? null;
+  const keepaliveFrame = options.keepaliveFrame ?? KEEPALIVE_FRAME;
+  const extraHeaders = options.extraHeaders ?? {};
 
   // Settle into a tagged result so neither race branch leaves an unhandled
   // rejection when the threshold timer wins.
@@ -88,7 +105,7 @@ export async function withEarlyStreamKeepalive(
       const interval = setInterval(() => {
         if (stopped) return;
         try {
-          controller.enqueue(KEEPALIVE_FRAME);
+          controller.enqueue(keepaliveFrame);
         } catch {
           stopped = true;
           clearInterval(interval);
@@ -98,8 +115,11 @@ export async function withEarlyStreamKeepalive(
         interval.unref?.();
       }
       // First keepalive immediately on commit so the client sees a byte right away.
+      // Use the configured frame (e.g. ANTHROPIC_PING_FRAME) — an SSE comment here
+      // would be ignored by Anthropic clients' watchdog on a sub-interval gap,
+      // defeating the keepalive for exactly the case it targets.
       try {
-        controller.enqueue(KEEPALIVE_FRAME);
+        controller.enqueue(keepaliveFrame);
       } catch {
         /* consumer already gone */
       }
@@ -137,10 +157,25 @@ export async function withEarlyStreamKeepalive(
           if (response.body && isSse) {
             // Real SSE stream — forward it verbatim.
             upstreamReader = response.body.getReader();
-            while (true) {
-              const { done, value } = await upstreamReader.read();
-              if (done) break;
-              if (value) controller.enqueue(value);
+            let bytesForwarded = 0;
+            try {
+              while (true) {
+                const { done, value } = await upstreamReader.read();
+                if (done) break;
+                if (value) {
+                  controller.enqueue(value);
+                  bytesForwarded += value.byteLength;
+                }
+              }
+            } catch (readErr) {
+              // Upstream stream failed mid-flight. Only emit an error frame if
+              // NO content was forwarded yet — otherwise the client already
+              // received partial content and a late error frame would corrupt
+              // the SSE stream. Silently close instead; the client will see
+              // the stream end naturally.
+              if (bytesForwarded === 0) {
+                controller.enqueue(ERROR_FRAME);
+              }
             }
           } else {
             // Non-SSE response (e.g. a JSON error) reached us after we already
@@ -187,6 +222,7 @@ export async function withEarlyStreamKeepalive(
       "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
+      ...extraHeaders,
     },
   });
 }

@@ -5,6 +5,11 @@ export const clineProvider: RegistryEntry = {
   alias: "cl",
   format: "openai",
   executor: "openai",
+  // Cline's API only implements streaming (streamText). A non-streaming request
+  // returns "generateText is not implemented" / an empty body, so force upstream
+  // streaming and let chatCore convert the SSE back to JSON for stream:false
+  // clients (e.g. the model-test button, non-streaming API callers).
+  forceStream: true,
   baseUrl: "https://api.cline.bot/api/v1/chat/completions",
   authType: "oauth",
   authHeader: "Authorization",
@@ -27,6 +32,14 @@ export const clineProvider: RegistryEntry = {
     { id: "openai/gpt-5.5", name: "GPT-5.5" },
     { id: "deepseek/deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
     { id: "deepseek/deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
+    // #3321 — free OpenRouter-served models Cline exposes; were missing from the picker.
+    { id: "minimax/minimax-m3", name: "MiniMax M3", contextLength: 1048576, supportsVision: true },
+    {
+      id: "nvidia/nemotron-3-ultra-550b-a55b",
+      name: "Nemotron 3 Ultra 550B",
+      contextLength: 1048576,
+      supportsReasoning: true,
+    },
   ],
   passthroughModels: true,
 };

@@ -10,10 +10,12 @@ import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { AI_PROVIDERS, NOAUTH_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
+import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import { useIsElectron, useOpenExternal } from "@/shared/hooks/useElectron";
 import { HomeProviderTopologySection } from "./HomeProviderTopologySection";
+import { shouldShowProviderTopologyOnHome } from "./homeAppearance";
 
 const ProviderQuotaWidget = dynamic(() => import("../home/ProviderQuotaWidget"), { ssr: false });
 import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
@@ -110,6 +112,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [baseUrl, setBaseUrl] = useState("/v1");
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [providerMetrics, setProviderMetrics] = useState<Record<string, ProviderMetricSummary>>({});
+  const [providerTopology, setProviderTopology] = useState({ lastProvider: "", errorProvider: "" });
   const [providerNodes, setProviderNodes] = useState<
     Array<{ id?: string; prefix?: string; name?: string }>
   >([]);
@@ -160,13 +163,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   // Electron internal auto-updater state and listeners
   const [electronUpdateStatus, setElectronUpdateStatus] = useState<{
     status:
-      | "idle"
-      | "checking"
-      | "available"
-      | "not-available"
-      | "downloading"
-      | "downloaded"
-      | "error";
+      "idle" | "checking" | "available" | "not-available" | "downloading" | "downloaded" | "error";
     version?: string;
     percent?: number;
     message?: string;
@@ -218,9 +215,15 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           if (typeof data.showQuickStartOnHome === "boolean") {
             setShowQuickStartOnHome(data.showQuickStartOnHome);
           }
-          if (typeof data.showProviderTopologyOnHome === "boolean") {
-            setShowProviderTopologyOnHome(data.showProviderTopologyOnHome);
-          }
+          // #4596 regression fix: the topology card defaults ON (matches the
+          // AppearanceTab toggle's `!== false`). Honoring only an explicit boolean
+          // left the card hidden whenever the setting was never persisted
+          // (undefined), silently removing it for most installs. The live-WS
+          // connection is still gated by `appearanceSettingsLoaded` in the data
+          // effect, so it is never opened before settings load.
+          setShowProviderTopologyOnHome(
+            shouldShowProviderTopologyOnHome(data.showProviderTopologyOnHome)
+          );
           if (typeof data.autoRefreshProviderQuota === "boolean") {
             setAutoRefreshProviderQuota(data.autoRefreshProviderQuota);
           }
@@ -302,6 +305,10 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           const data = await metricsRes.json();
           if (!cancelled) {
             setProviderMetrics(data.metrics || {});
+            setProviderTopology({
+              lastProvider: normalizeProviderId(data.topology?.lastProvider),
+              errorProvider: normalizeProviderId(data.topology?.errorProvider),
+            });
           }
         }
       } catch (error) {
@@ -492,28 +499,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     return Array.from(byProvider.values());
   }, [providerStats, providerMetrics, providerNodes]);
 
-  const { lastProvider, errorProvider } = useMemo(() => {
-    let recentProvider = "";
-    let recentTimestamp = 0;
-    let recentErrorProvider = "";
-    let recentErrorTimestamp = 0;
-
-    for (const [provider, metrics] of Object.entries(providerMetrics)) {
-      const requestTimestamp = metrics.lastRequestAt ? Date.parse(metrics.lastRequestAt) : 0;
-      if (Number.isFinite(requestTimestamp) && requestTimestamp > recentTimestamp) {
-        recentProvider = normalizeProviderId(provider);
-        recentTimestamp = requestTimestamp;
-      }
-
-      const errorTimestamp = metrics.lastErrorAt ? Date.parse(metrics.lastErrorAt) : 0;
-      if (Number.isFinite(errorTimestamp) && errorTimestamp > recentErrorTimestamp) {
-        recentErrorProvider = normalizeProviderId(provider);
-        recentErrorTimestamp = errorTimestamp;
-      }
-    }
-
-    return { lastProvider: recentProvider, errorProvider: recentErrorProvider };
-  }, [providerMetrics]);
+  const { lastProvider, errorProvider } = providerTopology;
 
   const pollBackgroundUpdate = useCallback(
     async ({
@@ -678,7 +664,11 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       if (contentType.includes("application/json")) {
         const data = await res.json();
         if (!res.ok || !data.success) {
-          notify.error(data.error || "Failed to start update.");
+          // #5991: the error envelope is `{ error: { code, message, correlation_id } }`.
+          // Passing the raw object to notify.error() rendered it as a React child →
+          // "Minified React error #31" crash ("Internal Server Error" screen), e.g. on
+          // the 403 from the loopback-only /api/system/version. Extract the string.
+          notify.error(extractApiErrorMessage(data, "Failed to start update."));
           setUpdating(false);
           setUpdatePhase("idle");
           return;
@@ -835,7 +825,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                         error
                       </span>
                     ) : (
-                      <span className="material-symbols-outlined text-yellow-500 text-[18px]">
+                      <span className="material-symbols-outlined text-amber-500 text-[18px]">
                         warning
                       </span>
                     )}
@@ -1102,7 +1092,10 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                   <p className="text-text-muted mt-0.5">
                     {t.rich("step1Desc", {
                       endpoint: (chunks) => (
-                        <Link href="/dashboard/endpoint" className="text-primary hover:underline">
+                        <Link
+                          href="/dashboard/api-manager"
+                          className="text-primary hover:underline"
+                        >
                           {chunks}
                         </Link>
                       ),

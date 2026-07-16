@@ -30,12 +30,9 @@
 
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
-import {
-  getRelayTokenByHash,
-  checkRateLimit,
-  recordRelayUsage,
-} from "@/lib/db/relayProxies";
+import { getRelayTokenByHash, checkRateLimit, recordRelayUsage } from "@/lib/db/relayProxies";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { getProviderPluginManifestHeader } from "@omniroute/open-sse/config/providerPluginManifestUrl.ts";
 import { z } from "zod";
 import {
   checkIpRateLimit,
@@ -44,6 +41,7 @@ import {
   hashToken,
   sanitizeForensicHeader,
 } from "../relaySecurity";
+import { finalizeReadableStream } from "../streamFinalizer";
 
 // Minimal request-shape validation (Rule #7). `.passthrough()` keeps every other
 // OpenAI chat-completion field intact (temperature, tools, response_format, …) —
@@ -74,44 +72,6 @@ type RelayUsageRecorder = (status: "success" | "error", statusCode: number) => v
 
 export async function OPTIONS() {
   return handleCorsOptions();
-}
-
-function finalizeReadableStream(
-  body: ReadableStream<Uint8Array>,
-  onFinalize: (error?: unknown) => void
-): ReadableStream<Uint8Array> {
-  const reader = body.getReader();
-  let finalized = false;
-
-  const finalizeOnce = (error?: unknown) => {
-    if (finalized) return;
-    finalized = true;
-    onFinalize(error);
-  };
-
-  return new ReadableStream<Uint8Array>({
-    async pull(controller) {
-      try {
-        const { done, value } = await reader.read();
-        if (done) {
-          finalizeOnce();
-          controller.close();
-          return;
-        }
-        controller.enqueue(value);
-      } catch (error) {
-        finalizeOnce(error);
-        controller.error(error);
-      }
-    },
-    async cancel(reason) {
-      try {
-        await reader.cancel(reason);
-      } finally {
-        finalizeOnce(reason);
-      }
-    },
-  });
 }
 
 export async function POST(request: Request) {
@@ -216,7 +176,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const rateCheck = checkRateLimit(token.id);
+    const rateCheck = checkRateLimit(token.id, token);
     if (!rateCheck.allowed) {
       recordRelayUsage(token.id, {
         requestId: request.headers.get("x-request-id") || undefined,
@@ -249,7 +209,9 @@ export async function POST(request: Request) {
     const parsed = BifrostRequestSchema.safeParse(rawBody);
     if (!parsed.success) {
       return new Response(
-        JSON.stringify(buildErrorBody(400, parsed.error.issues[0]?.message || "Invalid request body")),
+        JSON.stringify(
+          buildErrorBody(400, parsed.error.issues[0]?.message || "Invalid request body")
+        ),
         { status: 400, headers: JSON_CORS_HEADERS }
       );
     }
@@ -296,6 +258,7 @@ export async function POST(request: Request) {
       "Content-Type": "application/json",
       "x-relay-token-id": token.id,
       "x-relay-client-ip": clientIp,
+      ...getProviderPluginManifestHeader(new URL(request.url).origin),
     };
     if (BIFROST_API_KEY) {
       upstreamHeaders["Authorization"] = `Bearer ${BIFROST_API_KEY}`;

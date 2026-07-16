@@ -102,9 +102,9 @@ const LITELLM_PRICING_URL =
 const LITELLM_PROVIDER_MAP: Record<string, string[]> = {
   openai: ["openai", "cx"],
   anthropic: ["anthropic", "cc"],
-  vertex_ai: ["gemini", "gemini-cli"],
+  vertex_ai: ["gemini"],
   "vertex_ai-anthropic_models": ["anthropic"],
-  google: ["gemini", "gemini-cli"],
+  google: ["gemini"],
   deepseek: ["if"],
   groq: ["groq"],
   together_ai: ["openrouter"],
@@ -113,9 +113,9 @@ const LITELLM_PROVIDER_MAP: Record<string, string[]> = {
   cerebras: ["cerebras"],
   nvidia_nim: ["nvidia"],
   siliconflow: ["siliconflow"],
-  "vertex_ai-language_models": ["gemini", "gemini-cli"],
+  "vertex_ai-language_models": ["gemini"],
   "vertex_ai-mistral_models": ["mistral"],
-  gemini: ["gemini", "gemini-cli"],
+  gemini: ["gemini"],
   bedrock_converse: ["kiro"],
   cloudflare: ["cloudflare-ai"],
   stability: ["stability-ai"],
@@ -285,6 +285,51 @@ export function clearSyncedPricing(): void {
   invalidateDbCache("pricing");
 }
 
+// ─── DB: Sync status namespace ───────────────────────────
+//
+// Persisted separately from `pricing_synced` because Next.js standalone
+// builds load this module from independent webpack chunks (e.g. the
+// instrumentation hook vs an API route handler) — each gets its OWN
+// top-level module state. Module-level vars (`lastSyncTime`,
+// `lastSyncModelCount`) are therefore invisible across those instances;
+// persisting them to the DB lets any instance read the real status.
+
+const SYNC_STATUS_NAMESPACE = "pricing_sync_status";
+const SYNC_STATUS_KEY = "last_sync";
+
+function readPersistedSyncStatus(): { lastSyncTime: string; lastSyncModelCount: number } | null {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+    .get(SYNC_STATUS_NAMESPACE, SYNC_STATUS_KEY);
+  const record = toRecord(row);
+  const rawValue = typeof record.value === "string" ? record.value : null;
+  if (!rawValue) return null;
+  try {
+    const parsed = JSON.parse(rawValue) as { lastSyncTime?: string; lastSyncModelCount?: number };
+    if (typeof parsed.lastSyncTime !== "string") return null;
+    return {
+      lastSyncTime: parsed.lastSyncTime,
+      lastSyncModelCount:
+        typeof parsed.lastSyncModelCount === "number" ? parsed.lastSyncModelCount : 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writePersistedSyncStatus(lastSync: string, modelCount: number): void {
+  const db = getDbInstance();
+  db.prepare(
+    "INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?) " +
+      "ON CONFLICT(namespace, key) DO UPDATE SET value = excluded.value"
+  ).run(
+    SYNC_STATUS_NAMESPACE,
+    SYNC_STATUS_KEY,
+    JSON.stringify({ lastSyncTime: lastSync, lastSyncModelCount: modelCount })
+  );
+}
+
 // ─── Main sync function ─────────────────────────────────
 
 /**
@@ -341,6 +386,7 @@ export async function syncPricingFromSources(opts?: {
       saveSyncedPricing(aggregated);
       lastSyncTime = new Date().toISOString();
       lastSyncModelCount = modelCount;
+      writePersistedSyncStatus(lastSyncTime, modelCount);
     }
 
     return {
@@ -429,14 +475,21 @@ export function stopPeriodicSync(): void {
  */
 export function getSyncStatus(): SyncStatus {
   const enabled = process.env.PRICING_SYNC_ENABLED === "true";
+  // `lastSyncTime`/`lastSyncModelCount` are only reliably populated on the
+  // module instance that performed the sync (see note above
+  // writePersistedSyncStatus) — fall back to the persisted DB record so
+  // status reads from a different module instance still see it.
+  const persisted = lastSyncTime === null ? readPersistedSyncStatus() : null;
+  const effectiveLastSync = lastSyncTime ?? persisted?.lastSyncTime ?? null;
+  const effectiveModelCount =
+    lastSyncTime !== null ? lastSyncModelCount : (persisted?.lastSyncModelCount ?? 0);
   return {
     enabled,
-    lastSync: lastSyncTime,
-    lastSyncModelCount,
-    nextSync:
-      syncTimer && lastSyncTime
-        ? new Date(new Date(lastSyncTime).getTime() + activeSyncIntervalMs).toISOString()
-        : null,
+    lastSync: effectiveLastSync,
+    lastSyncModelCount: effectiveModelCount,
+    nextSync: effectiveLastSync
+      ? new Date(new Date(effectiveLastSync).getTime() + activeSyncIntervalMs).toISOString()
+      : null,
     intervalMs: activeSyncIntervalMs,
     sources: SYNC_SOURCES,
   };

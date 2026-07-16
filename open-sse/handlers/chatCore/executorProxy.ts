@@ -10,8 +10,10 @@
  */
 
 import { getExecutor } from "../../executors/index.ts";
+import { isCliproxyapiDeepModeEnabled } from "../../executors/cliproxyapi.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { getUpstreamProxyConfigCached } from "./comboContextCache.ts";
+import { wrapExecutorWithCliproxyapiModelMapping } from "./cliproxyModelMapping.ts";
 
 type LoggerLike =
   | {
@@ -22,18 +24,44 @@ type LoggerLike =
   | null
   | undefined;
 
-export async function resolveExecutorWithProxy(prov: string, log?: LoggerLike) {
+export async function resolveExecutorWithProxy(
+  prov: string,
+  log?: LoggerLike,
+  providerSpecificData?: Record<string, unknown> | null
+) {
+  // Per-connection routing override (#6339): the resolved connection can opt itself
+  // into the CLIProxyAPI passthrough executor via providerSpecificData.cliproxyapiMode
+  // === "claude-native" (UI toggle). This takes precedence over the provider-level
+  // upstream_proxy_config mode — one connection can deep-route while the provider's
+  // default (and its other connections) stay native. Backward-compatible: connections
+  // without the flag fall through to the existing per-provider behaviour untouched.
+  if (isCliproxyapiDeepModeEnabled(providerSpecificData)) {
+    log?.info?.(
+      "UPSTREAM_PROXY",
+      `${prov} routed through CLIProxyAPI (per-connection claude-native override)`
+    );
+    return getExecutor("cliproxyapi");
+  }
+
   const cfg = await getUpstreamProxyConfigCached(prov);
   if (!cfg.enabled || cfg.mode === "native") return getExecutor(prov);
 
   if (cfg.mode === "cliproxyapi") {
     log?.info?.("UPSTREAM_PROXY", `${prov} routed through CLIProxyAPI (passthrough)`);
-    return getExecutor("cliproxyapi");
+    return wrapExecutorWithCliproxyapiModelMapping(
+      getExecutor("cliproxyapi"),
+      cfg.cliproxyapiModelMapping
+    );
   }
 
-  // mode === "fallback": try native first, retry via CLIProxyAPI on specific failures
+  // mode === "fallback": try native first, retry via CLIProxyAPI on specific failures.
+  // The model mapping applies only to the CLIProxyAPI retry leg (proxyExec) — the
+  // native leg must keep seeing the original, unmapped model.
   const nativeExec = getExecutor(prov);
-  const proxyExec = getExecutor("cliproxyapi");
+  const proxyExec = wrapExecutorWithCliproxyapiModelMapping(
+    getExecutor("cliproxyapi"),
+    cfg.cliproxyapiModelMapping
+  );
 
   // Read custom fallback codes from settings. Default: 5xx + 429 + network errors.
   let fallbackCodes: number[] = [429, 500, 502, 503, 504];

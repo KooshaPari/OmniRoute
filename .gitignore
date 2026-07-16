@@ -161,6 +161,8 @@ typescript
 
 # Superpowers plans/specs (internal tooling, not project code)
 docs/superpowers/
+# Superpowers visual-companion brainstorm mockups (ephemeral)
+.superpowers/
 
 # TIA test-impact map — generated at runtime in CI (build-test-impact-map.mjs), never committed (~21MB)
 config/quality/test-impact-map.json
@@ -227,3 +229,16 @@ docs/prompts/AGENT-OWNERSHIP-PROTOCOL.md
 docs/prompts/AGENT-OWNERSHIP-PROTOCOL.omniroute-mim.md
 docs/prompts/AGENT-OWNERSHIP-PROTOCOL.omniroute-mid.md
 omniroute.md
+
+# mise configuration
+mise.toml
+_artifacts/
+.claude-flow/
+
+# ESLint file cache (npm run lint --cache / complexity ratchets)
+.eslintcache
+.eslintcache-complexity
+
+
+# CI/local quality artifacts (eslint-results.json, etc.)
+.artifacts/

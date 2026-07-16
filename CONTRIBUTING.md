@@ -160,19 +160,31 @@ npm run test:protocols:e2e
 # Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Coverage gate: 75% statements/lines/functions, 70% branches
+# Coverage gate: 60% statements/lines/functions/branches
 npm run test:coverage
 npm run coverage:report
 
 # Lint + format check
 npm run lint
 npm run check
+
+# Gated real-upstream combo smoke (requires VPS access + real provider credits)
+# Hits REAL providers — costs a little. NEVER runs in CI. Skips cleanly without the gate.
+# Needs: ssh root@192.168.0.15 access (sources a read-only DB snapshot from the VPS).
+RUN_COMBO_LIVE=1 npm run test:combo:live
+
+# Phase-3 VPS live smoke — plain Node ESM scripts, hit the live .15 server directly.
+# Requires: ssh root@192.168.0.15 access (combos created/torn down via SSH sqlite).
+# Hits REAL providers (small cost). Creates/deletes only __live_test__* combos. NEVER runs in CI.
+# REQUIRE_API_KEY=false on .15 so no API key needed, but honors COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY if set.
+npm run test:combo:live:vps              # 7 HTTP scenarios (priority/round-robin/weighted/cost/fusion/auto + health)
+npm run test:combo:live:vps:failover     # adds a real cross-provider failover scenario (8 total)
 ```
 
 Coverage notes:
 
 - `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
-- Pull requests must keep the coverage gate at **75%+** statements/lines/functions and **70%+** branches
+- Pull requests must keep the coverage gate at **60%+** statements/lines/functions/branches
 - If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
 - `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
 - `npm run test:coverage:legacy` preserves the older metric for historical comparison
@@ -184,7 +196,7 @@ Before opening or merging a PR:
 
 - Run `npm run test:unit`
 - Run `npm run test:coverage`
-- Ensure the coverage gate stays at **75%+** statements/lines/functions, **70%+** branches
+- Ensure the coverage gate stays at **60%+** statements/lines/functions/branches
 - Include the changed or added test files in the PR description when production code changed
 - Check the SonarQube result on the PR when the project secrets are configured in CI
 
@@ -329,7 +341,7 @@ Write unit tests in `tests/unit/` covering at minimum:
 - [ ] Error responses route through `buildErrorBody()` / `sanitizeErrorMessage()` — no raw stack traces in response bodies (see [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
 - [ ] Shell commands (`exec` / `spawn`) pass runtime values via `env`, not via string interpolation
 - [ ] All inputs validated with Zod schemas
-- [ ] CHANGELOG updated (if user-facing change)
+- [ ] Changelog **fragment** added under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` for user-facing changes (see [`changelog.d/README.md`](./changelog.d/README.md)) — do **not** edit `CHANGELOG.md` directly; fragments are aggregated at release time and never conflict between PRs
 - [ ] Documentation updated (if applicable)
 - [ ] No new CodeQL / Secret-Scanning alerts opened, or each one dismissed with technical justification referencing the relevant `docs/security/` doc
 - [ ] Routes that spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) classified as `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — see [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)

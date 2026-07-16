@@ -11,6 +11,7 @@ import {
 import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
 import { updateProviderNodeSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { validateProviderNodeBaseUrl } from "../urlGuard";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -55,7 +56,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { name, prefix, apiType, baseUrl, chatPath, modelsPath, customHeaders } =
+    const { name, prefix, apiType, baseUrl, chatPath, modelsPath, customHeaders, iconUrl } =
       validation.data;
     const node: any = await getProviderNodeById(id);
 
@@ -84,6 +85,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         ? sanitizeClaudeCodeCompatibleBaseUrl(sanitizedBaseUrl)
         : sanitizeAnthropicBaseUrl(sanitizedBaseUrl);
     }
+    const baseUrlError = validateProviderNodeBaseUrl(sanitizedBaseUrl);
+    if (baseUrlError) return baseUrlError;
 
     const updates: Record<string, unknown> = {
       name: name.trim(),
@@ -91,6 +94,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       baseUrl: sanitizedBaseUrl,
       chatPath: chatPath || null,
       modelsPath: isClaudeCodeCompatibleProvider(id) ? null : modelsPath || null,
+      // #2166: explicit null (not omission) so an empty submission clears a
+      // previously stored custom icon.
+      iconUrl: iconUrl?.trim() || null,
       customHeaders: customHeaders || null,
     };
 

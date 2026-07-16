@@ -3,6 +3,7 @@ import {
   buildGeminiThoughtSignatureKey,
   storeGeminiThoughtSignature,
 } from "../services/geminiThoughtSignatureStore.ts";
+import { normalizeOpenAICompatibleFinishReasonString } from "../utils/finishReason.ts";
 import { containsTextualToolCallMarker } from "../utils/textualToolCall.ts";
 
 type JsonRecord = Record<string, unknown>;
@@ -298,11 +299,7 @@ export function translateNonStreamingResponse(
   }
 
   // Handle Gemini/Antigravity format
-  else if (
-    targetFormat === FORMATS.GEMINI ||
-    targetFormat === FORMATS.ANTIGRAVITY ||
-    targetFormat === FORMATS.GEMINI_CLI
-  ) {
+  else if (targetFormat === FORMATS.GEMINI || targetFormat === FORMATS.ANTIGRAVITY) {
     const root = toRecord(responseBody);
     const response = toRecord(root.response ?? root);
     const candidates = Array.isArray(response.candidates) ? response.candidates : [];
@@ -423,16 +420,10 @@ export function translateNonStreamingResponse(
                 message.content = "";
               }
 
-              let finishReason = toString(candidate.finishReason, "stop").toLowerCase();
-              if (finishReason === "max_tokens") {
-                finishReason = "length";
-              } else if (
-                finishReason === "safety" ||
-                finishReason === "recitation" ||
-                finishReason === "blocklist"
-              ) {
-                finishReason = "content_filter";
-              } else if (finishReason === "stop" && toolCalls.length > 0) {
+              let finishReason = normalizeOpenAICompatibleFinishReasonString(
+                toString(candidate.finishReason, "stop")
+              );
+              if (finishReason === "stop" && toolCalls.length > 0) {
                 finishReason = "tool_calls";
               }
 
@@ -570,6 +561,31 @@ export function translateNonStreamingResponse(
 }
 
 /**
+ * Resolve reasoning/thinking text off a non-streaming OpenAI-format message object.
+ * Checks DeepSeek-style `reasoning_content`, then the OpenRouter/StepFun aliases
+ * `reasoning` and `reasoning_details[]` (array of { text | content }), mirroring the
+ * streaming translator's fallback chain in open-sse/translator/response/openai-to-claude.ts.
+ */
+function resolveReasoningText(messageObj: JsonRecord): string {
+  if (messageObj.reasoning_content) {
+    return toString(messageObj.reasoning_content);
+  }
+  if (typeof messageObj.reasoning === "string" && messageObj.reasoning) {
+    return messageObj.reasoning;
+  }
+  if (Array.isArray(messageObj.reasoning_details)) {
+    const parts: string[] = [];
+    for (const detail of messageObj.reasoning_details) {
+      const detailObj = toRecord(detail);
+      const text = detailObj.text ?? detailObj.content;
+      if (typeof text === "string" && text) parts.push(text);
+    }
+    return parts.join("");
+  }
+  return "";
+}
+
+/**
  * Helper to convert an OpenAI chat.completion JSON object to Claude format for non-streaming.
  */
 function convertOpenAINonStreamingToClaude(openaiResponse: JsonRecord): JsonRecord {
@@ -587,11 +603,12 @@ function convertOpenAINonStreamingToClaude(openaiResponse: JsonRecord): JsonReco
 
   let hasTextOrReasoning = false;
 
-  if (messageObj.reasoning_content) {
+  const reasoningText = resolveReasoningText(messageObj);
+  if (reasoningText) {
     hasTextOrReasoning = true;
     content.push({
       type: "thinking",
-      thinking: toString(messageObj.reasoning_content),
+      thinking: reasoningText,
     });
   }
 

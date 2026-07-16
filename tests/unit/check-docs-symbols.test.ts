@@ -85,10 +85,7 @@ test("extracts an /api path from inline code and strips trailing prose punctuati
 
 test("keeps balanced [param] / {param} segments intact", () => {
   const md = "DELETE | `/api/shadow/[id]` | and `/api/tools/agent-bridge/agents/{id}/state`";
-  assert.deepEqual(extract(md), [
-    "/api/shadow/[id]",
-    "/api/tools/agent-bridge/agents/{id}/state",
-  ]);
+  assert.deepEqual(extract(md), ["/api/shadow/[id]", "/api/tools/agent-bridge/agents/{id}/state"]);
 });
 
 test("does NOT capture a source-file path tail (src/lib/api/..., @/app/api/...)", () => {
@@ -159,15 +156,18 @@ test("collectRouteFiles finds the real route tree (non-empty, all route.ts)", ()
   for (const f of files) assert.match(f, /route\.tsx?$/);
 });
 
-test("KNOWN_STALE_DOC_REFS is a frozen, documented allowlist (non-empty)", () => {
-  assert.ok(allowlist.size > 0);
+test("KNOWN_STALE_DOC_REFS is a frozen, documented allowlist (/api/ paths; may be empty)", () => {
+  // The allowlist legitimately empties once every previously-stale ref is fixed — v3.8.46
+  // removed the last two entries (/api/chat, /api/settings/tunnels) because the gate's
+  // stale-enforcement flagged them as no longer suppressing a live miss. The structural
+  // invariant is only that any present entry is an /api/ path (not a minimum count).
   for (const p of allowlist) assert.match(p, /^\/api\//);
 });
 
-// NOTE: the gate currently exits 1 due to 2 pre-existing failures in
-// docs/research/compression/ that are NOT in the allowlist (intentional — those docs
-// reference planned routes not yet implemented). The integration smoke is skipped to
-// avoid false failures from those pre-existing issues.
+// NOTE: the compression research docs that used to live in docs/research/compression/
+// moved to the isolated, gitignored _tasks/research/compression/ repo, so the gate no
+// longer scans them. The integration smoke stays skipped to keep this unit suite hermetic
+// (it asserts the pure helpers, not the live filesystem walk).
 
 // --- stale-allowlist enforcement (6A.3) ---
 
@@ -186,7 +186,8 @@ test("stale-enforcement: all current KNOWN_STALE_DOC_REFS entries look like /api
   // Structural invariant: every allowlist entry must be an /api/ path, not a file path
   // or a prose snippet.  Live staleness is enforced at gate runtime by assertNoStale().
   const al = allowlist as Set<string>;
-  assert.ok(al.size > 0, "KNOWN_STALE_DOC_REFS should be non-empty");
+  // May be empty once all stale refs are fixed (v3.8.46); the invariant is structural —
+  // any present entry is an /api/ path — not a minimum count.
   for (const entry of al) {
     assert.match(entry, /^\/api\//, `every allowlist entry must start with /api/: ${entry}`);
   }

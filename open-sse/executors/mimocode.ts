@@ -12,13 +12,21 @@
  *
  * Only the "mimo-auto" model is supported (1M context, 128K output).
  * Supports multiple accounts: N fingerprints → N JWTs → round-robin with cooldown.
- * On 429, account enters cooldown (exponential backoff). On 401/403, JWT is re-bootstrapped.
+ * On 429 — or a 400 carrying MiMoCode's rate-limit text — account enters cooldown
+ * (exponential backoff) and the next account is tried. On 401/403, JWT is
+ * re-bootstrapped. Any other 400 is a genuinely malformed request (#2101): it fails
+ * fast on the current account instead of being retried identically on every
+ * account, which would waste N round-trips, cooldown every account, and hide the
+ * real upstream diagnostic behind a generic "all accounts exhausted" error (#4976).
  */
 
 import * as crypto from "node:crypto";
 import * as os from "node:os";
 import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "./base.ts";
-import { runWithProxyContext } from "../utils/proxyFetch.ts";
+import { createProxyDispatcher } from "../utils/proxyDispatcher.ts";
+import { RATE_LIMIT_TEXT_PATTERNS } from "../services/accountFallback.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
+import { fetch as undiciFetch, type Dispatcher } from "undici";
 
 const BOOTSTRAP_PATH = "/api/free-ai/bootstrap";
 const CHAT_PATH = "/api/free-ai/openai/chat";
@@ -66,9 +74,9 @@ function injectSystemMarker(body: Record<string, unknown>): Record<string, unkno
 }
 
 const USER_AGENTS = [
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
 ];
 
 // ── Account State ──────────────────────────────────────────────────────────
@@ -91,8 +99,6 @@ interface AccountState {
   expiresAt: number;
   cooldownUntil: number;
   consecutiveFails: number;
-  /** Resolved proxy config for this account (null = direct). */
-  proxy: AccountProxyConfig["proxy"];
 }
 
 function parseJwtExp(jwt: string): number {
@@ -149,7 +155,8 @@ const bootstrapInflight = new Map<string, Promise<{ jwt: string; expiresAt: numb
 async function bootstrapJwt(
   baseUrl: string,
   fingerprint: string,
-  signal?: AbortSignal | null
+  signal?: AbortSignal | null,
+  dispatcher?: Dispatcher
 ): Promise<{ jwt: string; expiresAt: number }> {
   const existing = bootstrapInflight.get(fingerprint);
   if (existing) return existing;
@@ -162,12 +169,20 @@ async function bootstrapJwt(
 
   const promise = (async () => {
     try {
-      const resp = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ client: fingerprint }),
-        signal: controller.signal,
-      });
+      const resp = dispatcher
+        ? await undiciFetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ client: fingerprint }),
+            signal: controller.signal,
+            dispatcher,
+          })
+        : await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ client: fingerprint }),
+            signal: controller.signal,
+          });
       if (!resp.ok) {
         const body = await resp.text().catch(() => "");
         throw new Error(`Bootstrap failed: ${resp.status} ${body.slice(0, 200)}`);
@@ -199,6 +214,7 @@ export class MimocodeExecutor extends BaseExecutor {
   private accounts: AccountState[] = [];
   private nextAccountIdx = 0;
   private baseUrl: string;
+  private proxyUrlMap = new Map<string, string>();
   private static encoder = new TextEncoder();
 
   constructor() {
@@ -210,12 +226,67 @@ export class MimocodeExecutor extends BaseExecutor {
       expiresAt: 0,
       cooldownUntil: 0,
       consecutiveFails: 0,
+      // #3837/#5521 backward compat: default the per-account proxy to null (not undefined),
+      // mirroring the syncAccountsFromCredentials() account builder, so an executor with no
+      // accountProxies config still exposes `acct.proxy === null` on every account.
       proxy: null,
     });
   }
 
+  private getProxyDispatcher(fingerprint: string): Dispatcher | undefined {
+    const proxyUrl = this.proxyUrlMap.get(fingerprint);
+    if (!proxyUrl) return undefined;
+    return createProxyDispatcher(proxyUrl);
+  }
+
+  private fetchWithProxy(url: string, init: RequestInit, fingerprint: string): Promise<Response> {
+    const dispatcher = this.getProxyDispatcher(fingerprint);
+    if (dispatcher) {
+      // undici fetch returns undici.Response which is structurally compatible with
+      // the global Response but nominally different — same pattern as proxyFetch.ts
+      const undiciFn = undiciFetch as unknown as (
+        url: string,
+        init: RequestInit & { dispatcher?: unknown }
+      ) => Promise<Response>;
+      return undiciFn(url, { ...init, dispatcher });
+    }
+    return fetch(url, init);
+  }
+
   private syncAccountsFromCredentials(credentials: ProviderCredentials): void {
-    const fingerprints = credentials?.providerSpecificData?.fingerprints;
+    const psd = credentials?.providerSpecificData;
+    const fingerprints = psd?.fingerprints;
+
+    const accountProxies = psd?.accountProxies as AccountProxyConfig[] | undefined;
+
+    // #5521: build the per-fingerprint proxy URL map that getProxyDispatcher() consumes
+    // to route each account's traffic through its own SOCKS5/HTTP dispatcher.
+    if (Array.isArray(accountProxies)) {
+      for (const entry of accountProxies) {
+        if (entry?.fingerprint && entry?.proxy?.host) {
+          const {
+            type = "socks5",
+            host,
+            port,
+            username,
+            password,
+          } = entry.proxy as {
+            type?: string;
+            host: string;
+            port?: number;
+            username?: string;
+            password?: string;
+          };
+          const resolvedPort = port ?? (type === "socks5" ? 1080 : 8080);
+          const auth = username
+            ? `${encodeURIComponent(username)}:${password ? encodeURIComponent(password) : ""}@`
+            : "";
+          this.proxyUrlMap.set(entry.fingerprint, `${type}://${auth}${host}:${resolvedPort}`);
+        }
+      }
+    }
+
+    // #3837: register any newly-advertised fingerprints as accounts.
     if (Array.isArray(fingerprints)) {
       const existing = new Set(this.accounts.map((a) => a.fingerprint));
       for (const fp of fingerprints) {
@@ -233,12 +304,10 @@ export class MimocodeExecutor extends BaseExecutor {
       }
     }
 
-    const accountProxies = credentials?.providerSpecificData
-      ?.accountProxies as AccountProxyConfig[] | undefined;
+    // #3837: resolve each account's structured proxy config from accountProxies.
     const proxyMap = Array.isArray(accountProxies)
       ? new Map(accountProxies.map((ap) => [ap.fingerprint, ap.proxy] as const))
       : null;
-
     for (const acct of this.accounts) {
       if (proxyMap) {
         const entry = proxyMap.get(acct.fingerprint);
@@ -254,10 +323,8 @@ export class MimocodeExecutor extends BaseExecutor {
     signal?: AbortSignal | null
   ): Promise<string> {
     if (isAccountReady(account)) return account.jwt;
-    const proxy = account.proxy;
-    const result = await runWithProxyContext(proxy, () =>
-      bootstrapJwt(this.baseUrl, account.fingerprint, signal)
-    );
+    const dispatcher = this.getProxyDispatcher(account.fingerprint);
+    const result = await bootstrapJwt(this.baseUrl, account.fingerprint, signal, dispatcher);
     account.jwt = result.jwt;
     account.expiresAt = result.expiresAt;
     return account.jwt;
@@ -288,6 +355,127 @@ export class MimocodeExecutor extends BaseExecutor {
 
   private markSuccess(account: AccountState): void {
     account.consecutiveFails = 0;
+  }
+
+  /**
+   * POST the request with the account's JWT; on auth failure (401/403), re-bootstrap
+   * the account's JWT and retry once. Mutates `headers`' Authorization in place.
+   */
+  private async fetchWithAuthRetry(
+    url: string,
+    headers: Record<string, string>,
+    reqBody: unknown,
+    signal: AbortSignal | null | undefined,
+    account: AccountState,
+    log: ExecuteInput["log"]
+  ): Promise<Response> {
+    const jwt = await this.getJwtForAccount(account, signal);
+    headers["Authorization"] = `Bearer ${jwt}`;
+
+    const resp = await this.fetchWithProxy(
+      url,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(reqBody),
+        signal: signal ?? undefined,
+      },
+      account.fingerprint
+    );
+    if (resp.status !== 401 && resp.status !== 403) return resp;
+
+    // On auth failure, re-bootstrap this account and retry once
+    log?.warn?.(
+      "MIMOCODE",
+      `Auth failed (${resp.status}) on account ${account.fingerprint.slice(0, 8)}…`
+    );
+    account.jwt = "";
+    account.expiresAt = 0;
+    account.consecutiveFails = 0;
+    const freshJwt = await this.getJwtForAccount(account, signal);
+    headers["Authorization"] = `Bearer ${freshJwt}`;
+    return this.fetchWithProxy(
+      url,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(reqBody),
+        signal: signal ?? undefined,
+      },
+      account.fingerprint
+    );
+  }
+
+  /**
+   * Gate 429/400 statuses before the success path: a 429 — or a 400 carrying
+   * MiMoCode's rate-limit text — puts the account on cooldown and rotates; any other
+   * 400 fails fast with the sanitized upstream error (#2101/#4976, see
+   * handleBadRequest). Returns "rotate", a fail-fast Response, or null to proceed.
+   */
+  private async gateRetryableStatus(
+    resp: Response,
+    account: AccountState,
+    log: ExecuteInput["log"]
+  ): Promise<"rotate" | Response | null> {
+    if (resp.status === 429) {
+      this.markCooldown(account);
+      log?.warn?.(
+        "MIMOCODE",
+        `Rate limited on account ${account.fingerprint.slice(0, 8)}, trying next…`
+      );
+      return "rotate";
+    }
+    if (resp.status !== 400) return null;
+    return (await this.handleBadRequest(resp, account, log)) ?? "rotate";
+  }
+
+  /**
+   * Classify a 400 response body (#2101/#4976).
+   *
+   * #4976: MiMoCode signals throttling via a non-standard 400 whose body carries
+   * rate-limit semantics (e.g. "Detected high-frequency non-compliant requests from
+   * you.") instead of a 429 — same RATE_LIMIT_TEXT_PATTERNS as accountFallback.ts's
+   * checkFallbackError(), so the two call sites never disagree on what counts as
+   * throttling. That case puts the account on cooldown and returns `null` (rotate).
+   *
+   * #2101: any other 400 is a genuinely malformed request that fails identically on
+   * every account — rotating would waste N round-trips, cooldown every account (a
+   * provider-wide outage for parallel requests), and hide the real diagnostic behind
+   * a generic exhaustion error. That case returns a fail-fast 400 Response carrying
+   * the sanitized upstream message, without touching cooldown/success state.
+   */
+  private async handleBadRequest(
+    resp: Response,
+    account: AccountState,
+    log: ExecuteInput["log"]
+  ): Promise<Response | null> {
+    const bodyText = await resp.text().catch(() => "");
+
+    if (RATE_LIMIT_TEXT_PATTERNS.some((p) => p.test(bodyText))) {
+      this.markCooldown(account);
+      log?.warn?.(
+        "MIMOCODE",
+        `Rate-limit-style 400 on account ${account.fingerprint.slice(0, 8)}, trying next…`
+      );
+      return null;
+    }
+
+    log?.warn?.(
+      "MIMOCODE",
+      `Malformed request (400) on account ${account.fingerprint.slice(0, 8)}, not retrying`
+    );
+    let upstreamMessage = bodyText;
+    try {
+      const parsed = JSON.parse(bodyText) as { error?: { message?: string } };
+      if (parsed?.error?.message) upstreamMessage = parsed.error.message;
+    } catch {
+      /* body wasn't JSON — use raw text */
+    }
+    const errorBody = buildErrorBody(400, sanitizeErrorMessage(upstreamMessage || "Bad request"));
+    return new Response(MimocodeExecutor.encoder.encode(JSON.stringify(errorBody)), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   buildUrl(
@@ -336,9 +524,9 @@ export class MimocodeExecutor extends BaseExecutor {
       this.syncAccountsFromCredentials(_credentials);
       const account = this.accounts[0];
       const jwt = await this.getJwtForAccount(account, _signal);
-      const proxy = account.proxy;
-      const resp = await runWithProxyContext(proxy, () =>
-        fetch(this.buildUrl("mimo-auto", false), {
+      const resp = await this.fetchWithProxy(
+        this.buildUrl("mimo-auto", false),
+        {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -353,7 +541,8 @@ export class MimocodeExecutor extends BaseExecutor {
             })
           ),
           signal: _signal ?? undefined,
-        })
+        },
+        account.fingerprint
       );
       return resp.status === 200;
     } catch {
@@ -396,48 +585,19 @@ export class MimocodeExecutor extends BaseExecutor {
     for (let attempt = 0; attempt < this.accounts.length; attempt++) {
       const account = this.pickAccount();
       try {
-        const jwt = await this.getJwtForAccount(account, signal);
         const headers = this.buildHeaders(input.credentials, stream);
-        headers["Authorization"] = `Bearer ${jwt}`;
-        const proxy = account.proxy;
+        const resp = await this.fetchWithAuthRetry(url, headers, reqBody, signal, account, log);
 
-        let resp = await runWithProxyContext(proxy, () =>
-          fetch(url, {
-            method: "POST",
-            headers,
-            body: JSON.stringify(reqBody),
-            signal: signal ?? undefined,
-          })
-        );
-
-        // On auth failure, re-bootstrap this account and retry once
-        if (resp.status === 401 || resp.status === 403) {
-          log?.warn?.(
-            "MIMOCODE",
-            `Auth failed (${resp.status}) on account ${account.fingerprint.slice(0, 8)}…`
-          );
-          account.jwt = "";
-          account.expiresAt = 0;
-          account.consecutiveFails = 0;
-          const freshJwt = await this.getJwtForAccount(account, signal);
-          headers["Authorization"] = `Bearer ${freshJwt}`;
-          resp = await runWithProxyContext(proxy, () =>
-            fetch(url, {
-              method: "POST",
-              headers,
-              body: JSON.stringify(reqBody),
-              signal: signal ?? undefined,
-            })
-          );
-        }
-
-        if (resp.status === 429) {
-          this.markCooldown(account);
-          log?.warn?.(
-            "MIMOCODE",
-            `Rate limited on account ${account.fingerprint.slice(0, 8)}, trying next…`
-          );
-          continue;
+        // 429/400 gating (#2101/#4976): cooldown+rotate, fail fast, or proceed.
+        const gate = await this.gateRetryableStatus(resp, account, log);
+        if (gate === "rotate") continue;
+        if (gate) {
+          return {
+            response: gate,
+            url,
+            headers: this.buildHeaders(input.credentials, stream),
+            transformedBody: reqBody,
+          };
         }
 
         this.markSuccess(account);

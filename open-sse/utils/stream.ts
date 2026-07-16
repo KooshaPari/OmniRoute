@@ -8,7 +8,6 @@ import {
   logUsage,
   addBufferToUsage,
   filterUsageForFormat,
-  COLORS,
 } from "./usageTracking.ts";
 import {
   parseSSELine,
@@ -31,9 +30,15 @@ import {
   OMIT_STREAMING_CHUNK_MARKER,
   sanitizeStreamingChunk,
 } from "../handlers/responseSanitizer.ts";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import {
+  shouldDropResponsesCommentaryEvent,
+  createTranslateCommentaryFilter,
+} from "./responsesCommentaryDrop.ts";
 import { buildErrorBody } from "./error.ts";
 import { parseTextualToolCallCandidate, isValidToolCallHeaderPrefix } from "./textualToolCall.ts";
 import { recordToolLatency } from "../services/toolLatencyTracker.ts";
+import { extractToolSchemaMap } from "../translator/response/openai-responses/toolSchemas.ts";
 import {
   generateSessionId,
   markToolFinish,
@@ -47,6 +52,12 @@ import {
   stripResponsesLifecycleEcho,
 } from "./responsesStreamHelpers.ts";
 import { processBufferedPassthroughLine } from "./passthroughTailProcessor.ts";
+import {
+  getAnyReasoningValue,
+  getReadableReasoningValue,
+  getUnsupportedReasoningValue,
+  hasUnsupportedReasoningSignal,
+} from "./reasoningFields.ts";
 
 /**
  * Race a response body read against a timeout.
@@ -65,10 +76,10 @@ export function withBodyTimeout<T>(
       reject(err);
     }, timeoutMs);
   });
-  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer)) as Promise<T>;
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
-export { COLORS, formatSSE };
+export { formatSSE };
 export { backfillResponsesCompletedOutput, stripResponsesLifecycleEcho };
 
 type JsonRecord = Record<string, unknown>;
@@ -111,6 +122,14 @@ type StreamOptions = {
   sourceFormat?: string;
   clientResponseFormat?: string | null;
   copilotCompatibleReasoning?: boolean;
+  /** Suppress the `</think>` close marker for clients that render it verbatim (#5245). */
+  suppressThinkClose?: boolean;
+  /**
+   * Drop internal commentary-phase output items from Responses API passthrough
+   * streams before forwarding (#6199). When omitted, falls back to the
+   * `RESPONSES_PASSTHROUGH_DROP_COMMENTARY` feature flag (default on).
+   */
+  dropResponsesCommentary?: boolean;
   provider?: string | null;
   reqLogger?: StreamLogger | null;
   toolNameMap?: unknown;
@@ -129,8 +148,14 @@ type TranslateState = ReturnType<typeof initState> & {
   usage?: unknown;
   finishReason?: unknown;
   copilotCompatibleReasoning?: boolean;
+  /** Suppress the `</think>` close marker for clients that render it verbatim (#5245). */
+  suppressThinkClose?: boolean;
   /** Accumulated message content for call log response body */
   accumulatedContent?: string;
+  /** Accumulated reasoning content (separate from content) */
+  accumulatedReasoning?: string;
+  /** #6951 — per-tool JSON Schema (from request `tools[]`), keyed by tool name. */
+  toolSchemas?: Map<string, Record<string, unknown>> | null;
   upstreamError?: {
     status: number;
     type: string;
@@ -601,6 +626,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     sourceFormat,
     clientResponseFormat = null,
     copilotCompatibleReasoning = false,
+    suppressThinkClose = false,
     provider = null,
     reqLogger = null,
     toolNameMap = null,
@@ -610,8 +636,15 @@ export function createSSEStream(options: StreamOptions = {}) {
     body = null,
     onComplete = null,
     onFailure = null,
+    dropResponsesCommentary,
   } = options;
   const signatureNamespace = connectionId;
+
+  // Drop internal commentary-phase Responses output before forwarding (#6199).
+  // Explicit option wins; otherwise read the feature flag (default on). Resolved
+  // once per stream — never on the hot per-chunk path.
+  const shouldDropResponsesCommentary =
+    dropResponsesCommentary ?? isFeatureFlagEnabled("RESPONSES_PASSTHROUGH_DROP_COMMENTARY");
 
   const clientExpectsResponsesStream =
     (mode === STREAM_MODE.PASSTHROUGH
@@ -654,7 +687,10 @@ export function createSSEStream(options: StreamOptions = {}) {
           toolNameMap,
           signatureNamespace,
           copilotCompatibleReasoning,
+          suppressThinkClose,
           accumulatedContent: "",
+          accumulatedReasoning: "",
+          toolSchemas: extractToolSchemaMap(body),
         }
       : null;
 
@@ -672,6 +708,25 @@ export function createSSEStream(options: StreamOptions = {}) {
   let passthroughResponsesId: string | null = null;
   let passthroughResponsesCurrentFunctionCallKey: string | null = null;
   const passthroughResponsesReasoningSummarySeen = new Set<string>();
+  // #6199 — commentary-phase items announced via `response.output_item.added` are
+  // internal. Their `response.output_text.delta`/`response.output_text.done`/
+  // `response.output_item.done` events do not carry the `phase`, so we remember the
+  // item id + output_index here and drop every matching follow-up event.
+  const passthroughResponsesCommentaryItemIds = new Set<string>();
+  const passthroughResponsesCommentaryIndexes = new Set<number>();
+  const dropCommentary = createTranslateCommentaryFilter(targetFormat);
+  // #5786 — highest Responses-API `sequence_number` already forwarded on this stream.
+  // The Responses API guarantees a strictly increasing sequence_number, so any event at
+  // or below this watermark is an upstream reconnect/retry replay and must be dropped —
+  // otherwise the replayed deltas glue duplicated text into the client stream. Applies to
+  // both translate mode (openai-responses → claude/openai) and Responses passthrough.
+  let lastSeenResponsesSequenceNumber = -1;
+  const isDuplicateResponsesSequence = (value: unknown): boolean => {
+    if (typeof value !== "number" || !Number.isFinite(value)) return false;
+    if (value <= lastSeenResponsesSequenceNumber) return true;
+    lastSeenResponsesSequenceNumber = value;
+    return false;
+  };
   const streamStartedAt = Date.now();
 
   let lastToolCallChunkTime: number | null = null;
@@ -1173,6 +1228,18 @@ export function createSSEStream(options: StreamOptions = {}) {
                 })
               : null;
 
+            // #5786 — drop replayed Responses-API events (a re-sent event carrying an
+            // already-seen sequence_number) so their deltas are not forwarded twice.
+            if (
+              parsedPassthroughData &&
+              typeof parsedPassthroughData.type === "string" &&
+              parsedPassthroughData.type.startsWith("response.") &&
+              isDuplicateResponsesSequence(parsedPassthroughData.sequence_number)
+            ) {
+              clearPendingPassthroughEvent();
+              continue;
+            }
+
             if (trimmed.startsWith("data:")) {
               const providerPayload = parsedPassthroughData ?? parseSSELine(trimmed);
               if (providerPayload) {
@@ -1251,6 +1318,21 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed.type === "error");
 
                 if (isResponsesSSE) {
+                  // #6199/#6561 — statefully drop internal commentary-phase output (see
+                  // ./responsesCommentaryDrop.ts) and clear the buffered `event:` line
+                  // for the same frame, or it flushes alone as an event-only SSE frame.
+                  if (
+                    shouldDropResponsesCommentary &&
+                    shouldDropResponsesCommentaryEvent(
+                      parsed as JsonRecord,
+                      passthroughResponsesCommentaryItemIds,
+                      passthroughResponsesCommentaryIndexes
+                    )
+                  ) {
+                    clearPendingPassthroughEvent();
+                    continue;
+                  }
+
                   const responsesIdsNormalized = normalizeResponsesSseIds(parsed as JsonRecord);
                   const parsedResponse =
                     parsed.response &&
@@ -1592,11 +1674,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                     : false;
                   const hadNonStringTopLevelId =
                     parsed?.id != null && typeof parsed.id !== "string";
-                  const hadReasoningAlias = !!(
-                    parsed.choices?.[0]?.delta?.reasoning &&
-                    typeof parsed.choices[0].delta.reasoning === "string" &&
-                    !parsed.choices[0].delta.reasoning_content
-                  );
+                  const rawDelta = parsed.choices?.[0]?.delta;
+                  const hadReasoningAlias = hasUnsupportedReasoningSignal(rawDelta);
 
                   parsed = sanitizeStreamingChunk(parsed);
                   if (
@@ -1699,7 +1778,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     }
                   }
 
-                  const content = delta?.content || delta?.reasoning_content;
+                  const content = delta?.content;
                   if (typeof content === "string") {
                     totalContentLength += content.length;
 
@@ -1720,6 +1799,10 @@ export function createSSEStream(options: StreamOptions = {}) {
                       }
                     }
                   }
+                  const reasoningDelta = getReadableReasoningValue(delta);
+                  if (reasoningDelta) {
+                    totalContentLength += reasoningDelta.length;
+                  }
                   {
                     const guarded = applyTextualToolCallStreamingGuard(
                       parsed as Record<string, unknown>
@@ -1727,10 +1810,10 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed = guarded.parsed as typeof parsed;
                     textualToolCallConverted = guarded.textualToolCallConverted;
                   }
-                  if (typeof delta?.reasoning_content === "string")
+                  if (reasoningDelta)
                     passthroughAccumulatedReasoning = appendBoundedText(
                       passthroughAccumulatedReasoning,
-                      delta.reasoning_content
+                      reasoningDelta
                     );
 
                   const extracted = extractUsage(parsed);
@@ -1791,7 +1874,12 @@ export function createSSEStream(options: StreamOptions = {}) {
                 }
 
                 clientPayload = parsed;
-              } catch {}
+              } catch {
+                // Skip non-JSON data lines silently — don't forward garbage to clients.
+                // Upstream providers sometimes return plain-text errors (HTML, rate-limit
+                // messages) in the SSE stream that would break downstream JSON decoders.
+                continue;
+              }
             }
 
             if (!injectedUsage) {
@@ -1841,6 +1929,19 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           const parsed = parseSSELine(trimmed);
           if (!parsed) continue;
+
+          // #5786 — drop replayed Responses-API events (identical/lower sequence_number
+          // re-sent on an upstream reconnect) so their deltas are not glued twice into
+          // the translated client stream.
+          if (
+            targetFormat === FORMATS.OPENAI_RESPONSES &&
+            isDuplicateResponsesSequence((parsed as JsonRecord).sequence_number)
+          ) {
+            continue;
+          }
+
+          if (shouldDropResponsesCommentary && dropCommentary(parsed as JsonRecord)) continue;
+
           providerPayloadCollector.push(parsed);
 
           if (parsed && parsed.done) {
@@ -1894,26 +1995,27 @@ export function createSSEStream(options: StreamOptions = {}) {
               }
             }
           }
-          if (parsed.choices?.[0]?.delta?.reasoning_content) {
-            const r = parsed.choices[0].delta.reasoning_content;
-            if (typeof r === "string") {
-              totalContentLength += r.length;
-              if (state?.accumulatedContent !== undefined)
-                state.accumulatedContent = appendBoundedText(state.accumulatedContent, r);
-            }
+          const openAiDelta = parsed.choices?.[0]?.delta;
+          const openAiReasoning = getReadableReasoningValue(openAiDelta);
+          if (openAiReasoning) {
+            totalContentLength += openAiReasoning.length;
+            if (state?.accumulatedReasoning !== undefined)
+              state.accumulatedReasoning = appendBoundedText(
+                state.accumulatedReasoning,
+                openAiReasoning
+              );
           }
-          // Normalize `reasoning` alias → `reasoning_content` (NVIDIA kimi-k2.5 etc.)
-          if (
-            parsed.choices?.[0]?.delta?.reasoning &&
-            !parsed.choices?.[0]?.delta?.reasoning_content
-          ) {
-            const r = parsed.choices[0].delta.reasoning;
-            if (typeof r === "string") {
+          // Mirror only client-unsupported reasoning aliases into `reasoning_content`.
+          if (!openAiReasoning) {
+            const delta = openAiDelta;
+            const r = getUnsupportedReasoningValue(delta);
+            if (typeof r === "string" && r.length > 0) {
               parsed.choices[0].delta.reasoning_content = r;
-              delete parsed.choices[0].delta.reasoning;
+              delete parsed.choices[0].delta.thinking;
+              delete parsed.choices[0].delta.thought;
               totalContentLength += r.length;
-              if (state?.accumulatedContent !== undefined)
-                state.accumulatedContent = appendBoundedText(state.accumulatedContent, r);
+              if (state?.accumulatedReasoning !== undefined)
+                state.accumulatedReasoning = appendBoundedText(state.accumulatedReasoning, r);
             }
           }
 
@@ -1921,9 +2023,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           // Cloud Code API wraps in { response: { candidates: [...] } }, so unwrap.
           // Only applies to Gemini-family formats — skip for OpenAI, Claude, etc.
           const isGeminiFormat =
-            targetFormat === FORMATS.GEMINI ||
-            targetFormat === FORMATS.GEMINI_CLI ||
-            targetFormat === FORMATS.ANTIGRAVITY;
+            targetFormat === FORMATS.GEMINI || targetFormat === FORMATS.ANTIGRAVITY;
           const geminiChunk = isGeminiFormat ? unwrapGeminiChunk(parsed) : parsed;
           if (geminiChunk.candidates?.[0]?.content?.parts) {
             for (const part of geminiChunk.candidates[0].content.parts) {
@@ -1957,7 +2057,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           const translateHasContent =
             typeof parsed.delta?.text === "string" ||
             typeof parsed.choices?.[0]?.delta?.content === "string" ||
-            typeof parsed.choices?.[0]?.delta?.reasoning_content === "string";
+            Boolean(getAnyReasoningValue(parsed.choices?.[0]?.delta));
           if (translateHasContent && !contentAfterToolSeen) {
             const toolTs = toolFinishTime || pendingToolFinishTime;
             const lastChunkTs = lastToolCallChunkTime;
@@ -2152,8 +2252,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     if (Array.isArray(flushedParsed.choices)) {
                       for (const choice of flushedParsed.choices as JsonRecord[]) {
                         const tcs = (choice as JsonRecord | undefined)?.delta as
-                          | JsonRecord
-                          | undefined;
+                          JsonRecord | undefined;
                         if (Array.isArray(tcs?.tool_calls)) {
                           for (const tc of tcs.tool_calls as JsonRecord[]) {
                             if (tc?.id != null && typeof tc.id !== "string") {
@@ -2404,6 +2503,24 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           if (state?.upstreamError) {
             const err = state.upstreamError;
+
+            // Flush pending translation events BEFORE erroring the stream.
+            // This lets the openai-responses translator emit a proper
+            // `response.completed` with `status: "failed"` and close any
+            // open items (reasoning, tool calls, etc.), instead of silently
+            // aborting the stream and leaving partial items dangling.
+            try {
+              const flushed = translateResponse(targetFormat, sourceFormat, null, state);
+              if (flushed?.length > 0) {
+                for (const item of flushed) {
+                  emitTranslatedClientItem(controller, item);
+                }
+              }
+            } catch {
+              // Swallow flush errors — the controller.error below is the
+              // terminal signal for the client.
+            }
+
             let failureHandled = false;
             if (onFailure) {
               try {
@@ -2527,17 +2644,15 @@ export function createSSEStream(options: StreamOptions = {}) {
               let content = (state?.accumulatedContent ?? "").trim() || "";
               const normalizedToolCalls: ToolCall[] = state?.toolCalls?.size
                 ? [...state.toolCalls.values()]
-                    .map(
-                      (tc: Record<string, unknown>): ToolCall => ({
-                        id: tc.id != null ? String(tc.id) : null,
-                        index: (tc.index as number) ?? (tc.blockIndex as number) ?? 0,
-                        type: (tc.type as string) ?? "function",
-                        function: (tc.function as ToolCall["function"]) ?? {
-                          name: (tc.name as string) ?? "",
-                          arguments: "",
-                        },
-                      })
-                    )
+                    .map((tc: Record<string, unknown>): ToolCall => ({
+                      id: tc.id != null ? String(tc.id) : null,
+                      index: (tc.index as number) ?? (tc.blockIndex as number) ?? 0,
+                      type: (tc.type as string) ?? "function",
+                      function: (tc.function as ToolCall["function"]) ?? {
+                        name: (tc.name as string) ?? "",
+                        arguments: "",
+                      },
+                    }))
                     .sort((a, b) => a.index - b.index)
                 : [];
               const textualToolCall = parseTextualToolCallFromContent(content);
@@ -2555,10 +2670,14 @@ export function createSSEStream(options: StreamOptions = {}) {
               } else if (containsMalformedTextualToolCall(content, allowedToolNames)) {
                 content = "";
               }
+              const reasoning = (state?.accumulatedReasoning ?? "").trim();
               const message: Record<string, unknown> = {
                 role: "assistant",
                 content: content || null,
               };
+              if (reasoning) {
+                message.reasoning_content = reasoning;
+              }
               const hasToolCalls = normalizedToolCalls.length > 0;
               if (hasToolCalls) {
                 message.tool_calls = normalizedToolCalls;
@@ -2625,7 +2744,8 @@ export function createSSETransformStreamWithLogger(
   onComplete: ((payload: StreamCompletePayload) => void) | null = null,
   apiKeyInfo: unknown = null,
   onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
-  copilotCompatibleReasoning = false
+  copilotCompatibleReasoning = false,
+  suppressThinkClose = false
 ) {
   return createSSEStream({
     mode: STREAM_MODE.TRANSLATE,
@@ -2641,6 +2761,7 @@ export function createSSETransformStreamWithLogger(
     onComplete,
     onFailure,
     copilotCompatibleReasoning,
+    suppressThinkClose,
   });
 }
 
@@ -2670,3 +2791,5 @@ export function createPassthroughStreamWithLogger(
     clientResponseFormat,
   });
 }
+
+export { COLORS } from "./usageTracking.ts";
