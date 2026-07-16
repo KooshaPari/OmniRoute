@@ -265,7 +265,39 @@ function hasEligibleBifrostProjection(
   );
 }
 
-function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[]): ResolvedComboTarget[] {
+function getTargetBifrostProjection(
+  canonicalProvider: string,
+  canonicalModel: string,
+  connectionId: string | null
+) {
+  const bifrostProvider = resolveBifrostProviderId(canonicalProvider) ?? canonicalProvider;
+  const bifrostModel = applyBifrostModelOverride(canonicalProvider, canonicalModel);
+  const projectionKeys = [
+    [canonicalProvider, canonicalModel],
+    [bifrostProvider, bifrostModel],
+  ] as const;
+
+  // Connection-scoped evidence is the most representative signal for a resolved
+  // target. Retain the provider/model bucket as a legacy fallback when that
+  // connection has no fresh, reliable projection.
+  if (connectionId) {
+    for (const [provider, model] of projectionKeys) {
+      const projection = getProjectedBifrostRouteMetrics(provider, model, {}, connectionId);
+      if (hasEligibleBifrostProjection(projection)) return projection;
+    }
+  }
+
+  for (const [provider, model] of projectionKeys) {
+    const projection = getProjectedBifrostRouteMetrics(provider, model);
+    if (hasEligibleBifrostProjection(projection)) return projection;
+  }
+
+  return null;
+}
+
+function orderTargetsByProjectedBifrostPerformance(
+  targets: ResolvedComboTarget[]
+): ResolvedComboTarget[] {
   const scored: Array<{
     target: ResolvedComboTarget;
     originalIndex: number;
@@ -284,15 +316,12 @@ function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[
     const canonical = resolveCanonicalProviderModel(target.provider || parsed.provider, model);
     const canonicalProvider = canonical.provider || parsed.provider || "unknown";
     const canonicalModel = canonical.model || model;
-    let projection = getProjectedBifrostRouteMetrics(canonicalProvider, canonicalModel);
-    if (!hasEligibleBifrostProjection(projection)) {
-      projection = getProjectedBifrostRouteMetrics(
-        resolveBifrostProviderId(canonicalProvider) ?? canonicalProvider,
-        applyBifrostModelOverride(canonicalProvider, canonicalModel)
-      );
-    }
-
-    if (!hasEligibleBifrostProjection(projection)) {
+    const projection = getTargetBifrostProjection(
+      canonicalProvider,
+      canonicalModel,
+      target.connectionId
+    );
+    if (!projection) {
       noComparable.push(target);
       return;
     }
