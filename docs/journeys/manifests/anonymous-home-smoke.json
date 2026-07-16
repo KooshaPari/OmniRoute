@@ -25,7 +25,7 @@
       "action": "goto",
       "target": "/",
       "assertions": [
-        "The first h1 contains the exact text 'Welcome to OmniRoute v4'.",
+        "The first h1 contains the exact text 'Welcome to argismonitor v4'.",
         "The document has no horizontal overflow at the declared viewport."
       ]
     }
@@ -67,16 +67,16 @@
       },
       {
         "kind": "accessibility-report",
-        "path": "journey-evidence/anonymous-home-smoke/accessibility.json"
+        "path": "journey-evidence/anonymous-home-smoke/accessibility-smoke.json"
       }
     ],
     "retentionDays": 14,
-    "blocker": "Current Playwright configuration disables its webServer in CI, and no dedicated journey job currently starts the v4 BFF/web preview. Artifact capture must not be claimed until that service lifecycle is proven stable in CI."
+    "blocker": "The dedicated v4 journey evidence workflow is available, but no current-provenance artifact has been verified. Capture must remain blocked until a run from this manifest's source revision produces a screenshot, trace, accessibility report, and service logs that pass redaction review."
   },
   "provenance": {
     "baseBranch": "main",
-    "testFile": "tests/e2e/smoke.spec.ts",
-    "testTitle": "home page renders",
-    "command": "bunx playwright test tests/e2e/smoke.spec.ts --project=chromium --grep \"home page renders\""
+    "testFile": "tests/e2e/journey-evidence-smoke.spec.ts",
+    "testTitle": "captures anonymous v4 home journey evidence",
+    "command": "bunx playwright test tests/e2e/journey-evidence-smoke.spec.ts --project=chromium --workers=1 --retries=0"
   }
 }

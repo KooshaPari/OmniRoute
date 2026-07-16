@@ -28,7 +28,7 @@ test("captures anonymous v4 home journey evidence", async ({ page, context }) =>
   await page.goto("/", { waitUntil: "networkidle" });
 
   const heading = page.locator("h1").first();
-  await expect(heading).toContainText("Welcome to OmniRoute v4");
+  await expect(heading).toContainText("Welcome to argismonitor v4");
   await expect(page.locator("body")).not.toContainText(forbiddenText);
 
   await page.locator("input[type='password'], [data-sensitive='true']").evaluateAll((nodes) => {
