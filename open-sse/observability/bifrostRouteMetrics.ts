@@ -107,7 +107,7 @@ const pendingPersistenceSnapshots = new Map<
     model: string;
     samples: OutcomeSample[];
   }
-> ();
+>();
 let persistenceTimer: ReturnType<typeof setTimeout> | null = null;
 let isPersisting = false;
 let hydrationState: "not_attempted" | "attempted" | "hydrated" = "not_attempted";
@@ -151,11 +151,7 @@ function orderSamplesByTimestamp(samples: Array<OutcomeSample | null>): OutcomeS
   const normalized = samples
     .map((sample, index) => (sample === null ? null : { ...sample, __index: index }))
     .filter((entry): entry is OutcomeSample & { __index: number } => entry !== null);
-  normalized.sort(
-    (a, b) =>
-      a.timestampMs - b.timestampMs ||
-      a.__index - b.__index
-  );
+  normalized.sort((a, b) => a.timestampMs - b.timestampMs || a.__index - b.__index);
 
   return normalized.map(({ __index: _idx, ...sample }) => sample);
 }
@@ -176,7 +172,7 @@ function getPendingPersistenceSamples(key: string, state: OutcomeRing | null): O
   const snapshot = pendingPersistenceSnapshots.get(key);
   const merged =
     snapshot === undefined || !state
-      ? snapshot?.samples ?? []
+      ? (snapshot?.samples ?? [])
       : [...snapshot.samples, ...getOrderedSamples(state)];
 
   return limitSamplesToKeyCapacity(merged);
@@ -269,8 +265,7 @@ function hydrateBifrostRouteMetricsFromDb(): boolean {
         provider: item.provider,
         model: item.model,
         samples,
-        writeIndex:
-          samples.length >= MAX_SAMPLES_PER_KEY ? 0 : samples.length,
+        writeIndex: samples.length >= MAX_SAMPLES_PER_KEY ? 0 : samples.length,
         updatedAtMs: item.updatedAtMs,
       });
     }

@@ -28,8 +28,7 @@ function persistSamplesForModel(
           provider,
           model,
           timestampMs: entry.timestampMs,
-          status:
-            typeof entry.status === "number" ? entry.status : null,
+          status: typeof entry.status === "number" ? entry.status : null,
           latencyMs: entry.latencyMs,
           ok:
             entry.status === undefined || entry.status === null
@@ -102,34 +101,30 @@ test("explicit startup-style hydration restores persisted samples and is idempot
   assert.equal(metrics.getBifrostRouteMetrics("openai", "gpt-4o-mini")?.sampleCount, 3);
 });
 
-test("hydrated partial ring evicts oldest retained sample after first post-hydration overflow", async () => {
+test("hydrated partial ring evicts oldest retained sample after first post-hydration overflow", () => {
   const db = core.getDbInstance();
   db.prepare("DELETE FROM bifrost_route_metrics").run();
 
   const provider = "openai";
   const model = "gpt-4o-partial-overflow";
 
-  persistSamplesForModel(
-    provider,
-    model,
-    [
-      {
-        status: 200,
-        latencyMs: 100,
-        timestampMs: makeTimestamp(10),
-      },
-      {
-        status: 200,
-        latencyMs: 200,
-        timestampMs: makeTimestamp(20),
-      },
-      {
-        status: 200,
-        latencyMs: 300,
-        timestampMs: makeTimestamp(30),
-      },
-    ]
-  );
+  persistSamplesForModel(provider, model, [
+    {
+      status: 200,
+      latencyMs: 100,
+      timestampMs: makeTimestamp(10),
+    },
+    {
+      status: 200,
+      latencyMs: 200,
+      timestampMs: makeTimestamp(20),
+    },
+    {
+      status: 200,
+      latencyMs: 300,
+      timestampMs: makeTimestamp(30),
+    },
+  ]);
 
   metrics.resetBifrostRouteMetricsForTest();
   metrics.resetBifrostRouteMetricsHydrationStateForTest();
@@ -150,10 +145,19 @@ test("hydrated partial ring evicts oldest retained sample after first post-hydra
   const partialState = metrics.getBifrostRouteMetrics(provider, model);
   assert.notEqual(partialState, null);
   assert.equal(partialState?.sampleCount, MAX_SAMPLES_PER_KEY);
-  assert.equal(partialState?.avgLatencyMs, 1006);
+  const expectedAverage = Math.round(
+    (200 +
+      300 +
+      Array.from({ length: MAX_SAMPLES_PER_KEY - 2 }, (_, idx) => 1_000 + idx).reduce(
+        (sum, latencyMs) => sum + latencyMs,
+        0
+      )) /
+      MAX_SAMPLES_PER_KEY
+  );
+  assert.equal(partialState?.avgLatencyMs, expectedAverage);
 });
 
-test("hydrated full ring evicts oldest sample first on next post-hydration write", async () => {
+test("hydrated full ring evicts oldest sample first on next post-hydration write", () => {
   const db = core.getDbInstance();
   db.prepare("DELETE FROM bifrost_route_metrics").run();
 
