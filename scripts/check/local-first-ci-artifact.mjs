@@ -35,7 +35,9 @@ for (const path of evidenceFiles) {
   checksums.push(`${sha256(content)}  ${artifactPath}`);
 }
 
-const manifest = JSON.parse(await readFile(resolve(evidenceRoot, "local-first-ci-manifest.json"), "utf8"));
+const manifest = JSON.parse(
+  await readFile(resolve(evidenceRoot, "local-first-ci-manifest.json"), "utf8")
+);
 const provenance = {
   schemaVersion: 1,
   artifact: `local-first-ci-${sha}`,
@@ -59,5 +61,11 @@ if (!/^[0-9a-f]{64}$/u.test(provenance.filesystemSha256 || "")) {
 }
 
 await writeFile(resolve(outputRoot, "checksums.sha256"), `${checksums.join("\n")}\n`, "utf8");
-await writeFile(resolve(outputRoot, "provenance.json"), `${JSON.stringify(provenance, null, 2)}\n`, "utf8");
-console.log(`Prepared ${basename(outputRoot)} for ${sha} with ${evidenceFiles.length} evidence files.`);
+await writeFile(
+  resolve(outputRoot, "provenance.json"),
+  `${JSON.stringify(provenance, null, 2)}\n`,
+  "utf8"
+);
+console.log(
+  `Prepared ${basename(outputRoot)} for ${sha} with ${evidenceFiles.length} evidence files.`
+);
