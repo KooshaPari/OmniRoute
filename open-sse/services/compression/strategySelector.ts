@@ -3,7 +3,6 @@ import type {
   CompressionMode,
   CompressionPipelineStep,
   CompressionResult,
-  CompressionStats,
 } from "./types.ts";
 import { applyHardBudget } from "./hardBudget.ts";
 import { type FidelityGateConfig } from "./fidelityGate.ts";
@@ -14,9 +13,24 @@ import { cavemanCompress } from "./caveman.ts";
 import { compressAggressive } from "./aggressive.ts";
 import { ultraCompress, ultraCompressHeuristic } from "./ultra.ts";
 import { createCompressionStats } from "./stats.ts";
-import { guardPipelineInflation } from "./pipelineGuards.ts";
+import { applyStackedInflationGuard } from "./pipelineGuards.ts";
+import {
+  resolvePipelineBreakerConfig,
+  canRunEngine,
+  recordEngineFailure,
+  recordEngineSuccess,
+  type PipelineCircuitBreakerConfig,
+} from "./pipelineEngineBreaker.ts";
+import {
+  type BailoutConfig,
+  type StackAccumulator,
+  createStackAccumulator,
+  decideStep,
+  mergeStackStep,
+} from "./stackedStepCore.ts";
 import { registerBuiltinCompressionEngines } from "./engines/index.ts";
 import { getCompressionEngine, getEngineEntry } from "./engines/registry.ts";
+import { applyOmniglyphSingleMode } from "./engines/omniglyphSingleMode.ts";
 import { applyRtkCompression } from "./engines/rtk/index.ts";
 import { adaptBodyForCompression } from "./bodyAdapter.ts";
 import {
@@ -308,6 +322,10 @@ function runCompression(
       config: { ...(options?.config?.rtkConfig ?? {}), enabled: true },
     });
   }
+  if (mode === "omniglyph") {
+    // omniglyph is async-only — use applyCompressionAsync. Safe no-op here.
+    return { body, compressed: false, stats: null };
+  }
   const adapter = adaptBodyForCompression(body);
   const compressionBody = adapter.body;
   if (mode === "lite") {
@@ -427,6 +445,8 @@ export async function applyCompressionAsync(
   options?: {
     model?: string;
     supportsVision?: boolean | null;
+    /** Direct-to-provider vs. aggregator transport (gates transport-sensitive engines like omniglyph). */
+    providerTransport?: "direct" | "aggregator";
     config?: CompressionConfig;
     principalId?: string;
     onEngineStep?: (step: StackedCompressionStep) => void;
@@ -444,6 +464,8 @@ async function runCompressionAsync(
   options?: {
     model?: string;
     supportsVision?: boolean | null;
+    /** Direct-to-provider vs. aggregator transport (gates transport-sensitive engines like omniglyph). */
+    providerTransport?: "direct" | "aggregator";
     config?: CompressionConfig;
     principalId?: string;
     onEngineStep?: (step: StackedCompressionStep) => void;
@@ -476,6 +498,8 @@ async function runCompressionAsync(
     memoStore(key, result);
     return memoLookup(key)!;
   }
+  // Single-mode omniglyph (async-only) — resolution lives in engines/omniglyphSingleMode.ts.
+  if (mode === "omniglyph") return applyOmniglyphSingleMode(body, options);
   if (mode === "stacked") {
     const adapter = adaptBodyForCompression(body);
     const result = await applyStackedCompressionAsync(
@@ -603,18 +627,6 @@ function normalizePipelineStep(step: CompressionPipelineStep | string): Compress
   return { engine: "caveman" };
 }
 
-/**
- * TV1 — Opt-in bail-out configuration for the stacked pipeline.
- * When enabled: a step that throws is silently skipped (verbatim kept);
- * a step whose gain is below minGainPercent is also skipped.
- * DEFAULT = disabled — behaviour is byte-identical to pre-TV1 when absent.
- */
-interface BailoutConfig {
-  enabled: boolean;
-  /** Minimum savings percent required to advance currentBody. Default: 10. */
-  minGainPercent?: number;
-}
-
 /** Per-engine progress emitted mid-pipeline by the stacked loops (F3.3 live streaming). */
 export interface StackedCompressionStep {
   stepIndex: number;
@@ -630,10 +642,14 @@ export interface StackedCompressionStep {
 interface StackOptions {
   model?: string;
   supportsVision?: boolean | null;
+  /** Direct-to-provider vs. aggregator transport (gates transport-sensitive engines like omniglyph). */
+  providerTransport?: "direct" | "aggregator";
   config?: CompressionConfig;
   compressionComboId?: string | null;
   /** TV1 bail-out discipline (opt-in, default disabled). */
   bailout?: BailoutConfig;
+  /** T02 per-engine circuit-breaker (opt-in, default disabled). Falls back to config + env. */
+  circuitBreaker?: Partial<PipelineCircuitBreakerConfig>;
   /** Opt-in per-step fidelity gate (default disabled). */
   fidelityGate?: FidelityGateConfig;
   /** Risk-gate mask/restore wrapper (opt-in, default off). Read via resolveRiskGate. */
@@ -666,38 +682,32 @@ function reportEngineStep(
   });
 }
 
-/** Accumulates per-step telemetry across a stacked run (shared sync/async). */
-export interface StackAccumulator {
-  techniques: Set<string>;
-  rules: Set<string>;
-  breakdown: NonNullable<CompressionStats["engineBreakdown"]>;
-  rtkRawOutputPointers: NonNullable<CompressionStats["rtkRawOutputPointers"]>;
-  validationWarnings: Set<string>;
-  validationErrors: Set<string>;
-  fallbackApplied: boolean;
-}
-
-function createStackAccumulator(): StackAccumulator {
-  return {
-    techniques: new Set<string>(),
-    rules: new Set<string>(),
-    breakdown: [],
-    rtkRawOutputPointers: [],
-    validationWarnings: new Set<string>(),
-    validationErrors: new Set<string>(),
-    fallbackApplied: false,
-  };
-}
-
+/**
+ * #6463: When callers dispatch mode="stacked" WITHOUT pre-deriving the pipeline from the
+ * per-engine toggle map (e.g. /api/compression/preview, external routes that only forward
+ * the persisted config), the stacked loop must not silently fall back to the built-in
+ * [rtk, caveman] default while ignoring the operator's toggled engines. This resolver
+ * honors the explicit pipeline first, then the engines-derived pipeline, and only
+ * falls back to the historical default when neither source produced steps.
+ */
 function resolveStackSteps(
-  pipeline?: Array<CompressionPipelineStep | string>
+  pipeline?: Array<CompressionPipelineStep | string>,
+  config?: CompressionConfig
 ): CompressionPipelineStep[] {
-  return pipeline && pipeline.length > 0
-    ? pipeline.map(normalizePipelineStep)
-    : [
-        { engine: "rtk", intensity: "standard" },
-        { engine: "caveman", intensity: "full" },
-      ];
+  if (pipeline && pipeline.length > 0) return pipeline.map(normalizePipelineStep);
+
+  const engines = config?.engines;
+  if (engines && Object.values(engines).some((e) => e?.enabled === true)) {
+    const derived = deriveDefaultPlan(engines, true);
+    if (derived.mode === "stacked" && derived.stackedPipeline.length > 0) {
+      return derived.stackedPipeline as CompressionPipelineStep[];
+    }
+  }
+
+  return [
+    { engine: "rtk", intensity: "standard" },
+    { engine: "caveman", intensity: "full" },
+  ];
 }
 
 function buildStepOptions(
@@ -713,43 +723,6 @@ function buildStepOptions(
       ...(step.intensity ? { intensity: step.intensity } : {}),
     },
   };
-}
-
-/**
- * TV1 — Pure helper that decides whether a completed step should advance
- * `currentBody`. Called only when bailout is ENABLED; the sync/async loops
- * bypass this entirely on the default-off path (zero cost, zero behaviour change).
- *
- * Returns `{ advance: true }` when the step should be accepted, or
- * `{ advance: false }` when it should be skipped (verbatim kept).
- */
-function decideStep(result: CompressionResult, bailout: BailoutConfig): { advance: boolean } {
-  if (!result.compressed) return { advance: false };
-  // Clamp: a negative minGainPercent would mean "always advance" (invalid state).
-  const minGain = Math.max(0, bailout.minGainPercent ?? 10);
-  const gain = result.stats?.savingsPercent ?? 0;
-  if (gain < minGain) return { advance: false };
-  return { advance: true };
-}
-
-/** Folds one engine result into the accumulator (telemetry + breakdown entry). */
-function mergeStackStep(acc: StackAccumulator, engineId: string, result: CompressionResult): void {
-  if (!result.stats) return;
-  result.stats.techniquesUsed.forEach((technique) => acc.techniques.add(technique));
-  result.stats.rulesApplied?.forEach((rule) => acc.rules.add(rule));
-  result.stats.rtkRawOutputPointers?.forEach((pointer) => acc.rtkRawOutputPointers.push(pointer));
-  result.stats.validationWarnings?.forEach((warning) => acc.validationWarnings.add(warning));
-  result.stats.validationErrors?.forEach((error) => acc.validationErrors.add(error));
-  acc.fallbackApplied = acc.fallbackApplied || result.stats.fallbackApplied === true;
-  acc.breakdown.push({
-    engine: engineId,
-    originalTokens: result.stats.originalTokens,
-    compressedTokens: result.stats.compressedTokens,
-    savingsPercent: result.stats.savingsPercent,
-    techniquesUsed: result.stats.techniquesUsed,
-    ...(result.stats.rulesApplied ? { rulesApplied: result.stats.rulesApplied } : {}),
-    ...(result.stats.durationMs !== undefined ? { durationMs: result.stats.durationMs } : {}),
-  });
 }
 
 function finalizeStackedResult(
@@ -789,30 +762,56 @@ function finalizeStackedResult(
     });
   }
 
-  // T02 / H1: honest aggregate inflation guard. If the fully-stacked body did not actually shrink
-  // (its token count is >= the original), discard it and return the verbatim original — safe by
-  // construction, since the original request body is always a valid payload.
-  const inflation = guardPipelineInflation({
-    originalBody,
-    compressedBody: currentBody,
-    originalTokens: stats.originalTokens,
-    compressedTokens: stats.compressedTokens,
-  });
-  if (inflation.inflated) {
-    const inflatedTokens = stats.compressedTokens;
-    const warnings = new Set(stats.validationWarnings ?? []);
-    warnings.add(
-      `pipeline-inflation-guard: stacked output (${inflatedTokens} tok) did not shrink input ` +
-        `(${stats.originalTokens} tok); reverted to original`
-    );
-    stats.validationWarnings = Array.from(warnings);
-    stats.fallbackApplied = true;
-    stats.compressedTokens = stats.originalTokens;
-    stats.savingsPercent = 0;
-    return { body: inflation.body, compressed: false, stats };
-  }
+  // T02 / H1 / #6480: honest aggregate inflation guard, gated on the loop-level `compressed`
+  // flag so a pipeline where nothing ever advanced isn't mislabeled as a reverted fallback.
+  // See `applyStackedInflationGuard` in `pipelineGuards.ts` for the full rationale.
+  return applyStackedInflationGuard(originalBody, currentBody, compressed, stats);
+}
 
-  return { body: currentBody, compressed, stats };
+// ── Shared per-step helpers (used by the sync + async stacked loops; keep them in lockstep) ──
+
+interface StepCommitCtx {
+  bailout?: BailoutConfig;
+  breakerOn: boolean;
+  breaker: PipelineCircuitBreakerConfig;
+  fidelityGate?: FidelityGateConfig;
+}
+
+/** Failure path: record the breaker failure (when on) + keep the verbatim body, surfacing it in telemetry. */
+function recordStepFailure(
+  acc: StackAccumulator,
+  engineId: string,
+  err: unknown,
+  ctx: StepCommitCtx
+): void {
+  if (ctx.breakerOn) recordEngineFailure(engineId, ctx.breaker);
+  acc.validationErrors.add(
+    `${engineId}: bailed out — ${err instanceof Error ? err.message : String(err)}`
+  );
+  acc.fallbackApplied = true;
+}
+
+/**
+ * Success path: record the breaker success (when on), merge telemetry, and decide whether to
+ * advance `currentBody`. Advance rule: TV1 bail-out uses min-gain (`decideStep`); otherwise the
+ * legacy `result.compressed`. Returns the (possibly unchanged) body + whether it advanced.
+ */
+function commitStepResult(
+  acc: StackAccumulator,
+  step: CompressionPipelineStep,
+  result: CompressionResult,
+  currentBody: Record<string, unknown>,
+  ctx: StepCommitCtx
+): { body: Record<string, unknown>; advanced: boolean } {
+  if (ctx.breakerOn) recordEngineSuccess(step.engine, ctx.breaker);
+  mergeStackStep(acc, step.engine, result);
+  const advance = ctx.bailout?.enabled
+    ? decideStep(result, ctx.bailout).advance
+    : result.compressed;
+  if (advance && gateAdvance(result, currentBody, ctx.fidelityGate, acc, step.engine)) {
+    return { body: result.body, advanced: true };
+  }
+  return { body: currentBody, advanced: false };
 }
 
 export function applyStackedCompression(
@@ -830,7 +829,7 @@ function runStackedCompression(
   pipeline?: Array<CompressionPipelineStep | string>,
   options?: StackOptions
 ): CompressionResult {
-  const steps = resolveStackSteps(pipeline);
+  const steps = resolveStackSteps(pipeline, options?.config);
   registerBuiltinCompressionEngines();
 
   let currentBody = body;
@@ -839,6 +838,10 @@ function runStackedCompression(
   const start = performance.now();
 
   const bailout = options?.bailout;
+  const breaker = resolvePipelineBreakerConfig(
+    options?.circuitBreaker ?? options?.config?.pipelineCircuitBreaker
+  );
+  const breakerOn = breaker.enabled;
   const fidelityGate = options?.fidelityGate ?? options?.config?.fidelityGate;
   const onStep = options?.onEngineStep;
   const totalSteps = steps.length;
@@ -846,43 +849,41 @@ function runStackedCompression(
 
   for (const step of steps) {
     const engine = getCompressionEngine(step.engine);
-    if (!engine) continue;
+    if (!engine) {
+      acc.validationErrors.add(`Unknown compression engine: "${step.engine}"`);
+      continue;
+    }
     // Respect the registry enabled flag: a step naming a disabled engine is skipped, so an
     // operator can turn an engine off (setEngineEnabled) without editing every pipeline.
-    if (getEngineEntry(step.engine)?.enabled === false) continue;
+    if (getEngineEntry(step.engine)?.enabled === false) {
+      acc.validationWarnings.add(`${step.engine}: skipped (engine disabled in registry)`);
+      continue;
+    }
+    // T02: when the per-engine breaker is OPEN, skip this step (verbatim body kept — fail-open).
+    if (breakerOn && !canRunEngine(step.engine, breaker)) {
+      acc.validationWarnings.add(`${step.engine}: skipped (pipeline circuit-breaker open)`);
+      continue;
+    }
 
-    // TV1: when bail-out is ENABLED, wrap apply() and apply skip rules.
-    // When DISABLED (default), the code path below is identical to pre-TV1.
-    if (bailout?.enabled) {
-      let result: CompressionResult;
+    // TV1 bail-out (per-request) OR T02 breaker (cross-request) wrap the call so a throwing engine
+    // is caught + recorded; when neither is on, a throw propagates (byte-identical to legacy).
+    const ctx = { bailout, breakerOn, breaker, fidelityGate };
+    let result: CompressionResult;
+    if (bailout?.enabled || breakerOn) {
       try {
         result = engine.apply(currentBody, buildStepOptions(step, options));
       } catch (err) {
-        // Failure bail-out: keep the verbatim body for this step, but RECORD the
-        // failure so a crashing engine is visible in telemetry (not silently gone).
-        acc.validationErrors.add(
-          `${step.engine}: bailed out — ${err instanceof Error ? err.message : String(err)}`
-        );
-        acc.fallbackApplied = true;
+        recordStepFailure(acc, step.engine, err, ctx);
         continue;
       }
-      mergeStackStep(acc, step.engine, result);
-      if (
-        decideStep(result, bailout).advance &&
-        gateAdvance(result, currentBody, fidelityGate, acc, step.engine)
-      ) {
-        currentBody = result.body;
-        compressed = true;
-      }
     } else {
-      const result = engine.apply(currentBody, buildStepOptions(step, options));
-      mergeStackStep(acc, step.engine, result);
-      if (result.compressed && gateAdvance(result, currentBody, fidelityGate, acc, step.engine)) {
-        currentBody = result.body;
-        compressed = true;
-      }
-      reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
+      result = engine.apply(currentBody, buildStepOptions(step, options));
     }
+    const committed = commitStepResult(acc, step, result, currentBody, ctx);
+    currentBody = committed.body;
+    if (committed.advanced) compressed = true;
+    // The pre-existing bail-out path did not stream per-step; everything else does.
+    if (!bailout?.enabled) reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
   }
 
   // Hard-budget post-pass (#17): runs after all engines, before finalize.
@@ -934,7 +935,7 @@ async function runStackedCompressionAsync(
   pipeline?: Array<CompressionPipelineStep | string>,
   options?: StackOptions
 ): Promise<CompressionResult> {
-  const steps = resolveStackSteps(pipeline);
+  const steps = resolveStackSteps(pipeline, options?.config);
   registerBuiltinCompressionEngines();
 
   let currentBody = body;
@@ -943,6 +944,10 @@ async function runStackedCompressionAsync(
   const start = performance.now();
 
   const bailout = options?.bailout;
+  const breaker = resolvePipelineBreakerConfig(
+    options?.circuitBreaker ?? options?.config?.pipelineCircuitBreaker
+  );
+  const breakerOn = breaker.enabled;
   const fidelityGate = options?.fidelityGate ?? options?.config?.fidelityGate;
   const onStep = options?.onEngineStep;
   const totalSteps = steps.length;
@@ -950,46 +955,43 @@ async function runStackedCompressionAsync(
 
   for (const step of steps) {
     const engine = getCompressionEngine(step.engine);
-    if (!engine) continue;
+    if (!engine) {
+      acc.validationErrors.add(`Unknown compression engine: "${step.engine}"`);
+      continue;
+    }
     // Respect the registry enabled flag (same as the sync loop) — keep both in lockstep.
-    if (getEngineEntry(step.engine)?.enabled === false) continue;
+    if (getEngineEntry(step.engine)?.enabled === false) {
+      acc.validationWarnings.add(`${step.engine}: skipped (engine disabled in registry)`);
+      continue;
+    }
+    // T02: skip an engine whose breaker is OPEN (verbatim body kept — fail-open). Lockstep w/ sync.
+    if (breakerOn && !canRunEngine(step.engine, breaker)) {
+      acc.validationWarnings.add(`${step.engine}: skipped (pipeline circuit-breaker open)`);
+      continue;
+    }
     const stepOptions = buildStepOptions(step, options);
 
-    // TV1: same bail-out discipline as the sync loop (opt-in, default off).
-    if (bailout?.enabled) {
-      let result: CompressionResult;
+    // TV1 bail-out (per-request) OR T02 breaker (cross-request) wrap the call (lockstep w/ sync).
+    const ctx = { bailout, breakerOn, breaker, fidelityGate };
+    let result: CompressionResult;
+    if (bailout?.enabled || breakerOn) {
       try {
         result = engine.applyAsync
           ? await engine.applyAsync(currentBody, stepOptions)
           : engine.apply(currentBody, stepOptions);
       } catch (err) {
-        // Failure bail-out: keep the verbatim body, but RECORD the failure so a
-        // crashing engine is visible in telemetry (not silently gone).
-        acc.validationErrors.add(
-          `${step.engine}: bailed out — ${err instanceof Error ? err.message : String(err)}`
-        );
-        acc.fallbackApplied = true;
+        recordStepFailure(acc, step.engine, err, ctx);
         continue;
       }
-      mergeStackStep(acc, step.engine, result);
-      if (
-        decideStep(result, bailout).advance &&
-        gateAdvance(result, currentBody, fidelityGate, acc, step.engine)
-      ) {
-        currentBody = result.body;
-        compressed = true;
-      }
     } else {
-      const result = engine.applyAsync
+      result = engine.applyAsync
         ? await engine.applyAsync(currentBody, stepOptions)
         : engine.apply(currentBody, stepOptions);
-      mergeStackStep(acc, step.engine, result);
-      if (result.compressed && gateAdvance(result, currentBody, fidelityGate, acc, step.engine)) {
-        currentBody = result.body;
-        compressed = true;
-      }
-      reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
     }
+    const committed = commitStepResult(acc, step, result, currentBody, ctx);
+    currentBody = committed.body;
+    if (committed.advanced) compressed = true;
+    if (!bailout?.enabled) reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
   }
 
   // Hard-budget post-pass (#17): runs after all engines, before finalize.

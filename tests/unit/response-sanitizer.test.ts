@@ -777,3 +777,286 @@ test("sanitizeResponsesApiResponse strips leaked multi_tool_use envelopes from R
   assert.equal(JSON.stringify(sanitized).includes("to=multi_tool_use.parallel"), false);
   assert.equal(JSON.stringify(sanitized).includes("recipient_name"), false);
 });
+
+test("sanitizeStreamingChunk strips zero-width joiners from delta content", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        index: 0,
+        delta: {
+          content: "o\u200dpencode",
+        },
+      },
+    ],
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.choices[0].delta.content, "opencode");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk leaves delta content without zero-width joiners unchanged", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        index: 0,
+        delta: {
+          content: "opncode",
+        },
+      },
+    ],
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.choices[0].delta.content, "opncode");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips inline zero-width joiners from sentence content", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        index: 0,
+        delta: {
+          content: "hello o\u200dpencode world",
+        },
+      },
+    ],
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.choices[0].delta.content, "hello opencode world");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from reasoning_content deltas", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        index: 0,
+        delta: {
+          reasoning_content: "c\u200dursor plan",
+        },
+      },
+    ],
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.choices[0].delta.reasoning_content, "cursor plan");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from Responses reasoning summaries", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.output_item.done",
+    item: {
+      id: "rs_1",
+      type: "reasoning",
+      summary: [{ type: "summary_text", text: "a\u200dider note" }],
+    },
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.item.summary[0].text, "aider note");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from native response.output_text.delta", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.output_text.delta",
+    delta: "o\u200dpencode",
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.delta, "opencode");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from native response.output_text.done", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.output_text.done",
+    text: "c\u200dursor done",
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.text, "cursor done");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from response.reasoning_summary_text.delta", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.reasoning_summary_text.delta",
+    delta: "a\u200dider",
+  }) as any;
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.delta, "aider");
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from native response.function_call_arguments.delta", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.function_call_arguments.delta",
+    delta: '{"command":"o\u200d',
+  }) as unknown as { delta: string };
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.delta, '{"command":"o');
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from native response.function_call_arguments.done", () => {
+  const sanitized = sanitizeStreamingChunk({
+    type: "response.function_call_arguments.done",
+    arguments: '{"command":"o\u200dpencode"}',
+  }) as unknown as { arguments: string };
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.arguments, '{"command":"opencode"}');
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeStreamingChunk strips zero-width joiners from OpenAI chat tool-call argument deltas", () => {
+  const sanitized = sanitizeStreamingChunk({
+    id: "chunk_tool",
+    object: "chat.completion.chunk",
+    model: "claude-sonnet",
+    choices: [
+      {
+        index: 0,
+        delta: {
+          role: "assistant",
+          tool_calls: [
+            {
+              index: 0,
+              id: "call_1",
+              type: "function",
+              function: {
+                name: "run",
+                arguments: '{"command":"cd /tmp/o\u200dpencode && pwd"}',
+              },
+            },
+          ],
+        },
+      },
+    ],
+  }) as unknown as {
+    choices: { delta: { tool_calls: { function: { arguments: string } }[] } }[];
+  };
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(
+    sanitized.choices[0].delta.tool_calls[0].function.arguments,
+    '{"command":"cd /tmp/opencode && pwd"}'
+  );
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeOpenAIResponse strips zero-width joiners from non-stream tool-call arguments", () => {
+  const sanitized = sanitizeOpenAIResponse({
+    id: "chatcmpl_zwj",
+    model: "claude-sonnet",
+    choices: [
+      {
+        index: 0,
+        finish_reason: "tool_calls",
+        message: {
+          role: "assistant",
+          content: "",
+          tool_calls: [
+            {
+              id: "call_1",
+              type: "function",
+              function: {
+                name: "run",
+                arguments: '{"command":"o\u200dpencode"}',
+              },
+            },
+          ],
+        },
+      },
+    ],
+  }) as unknown as {
+    choices: { message: { tool_calls: { function: { arguments: string } }[] } }[];
+  };
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(
+    sanitized.choices[0].message.tool_calls[0].function.arguments,
+    '{"command":"opencode"}'
+  );
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizeResponsesApiResponse strips zero-width joiners from native function_call output item arguments", () => {
+  const sanitized = sanitizeResponsesApiResponse({
+    id: "resp_zwj",
+    object: "response",
+    model: "gpt-5.1-codex",
+    status: "completed",
+    output: [
+      {
+        id: "fc_1",
+        type: "function_call",
+        call_id: "call_1",
+        name: "run",
+        arguments: '{"command":"o\u200dpencode"}',
+      },
+    ],
+  }) as unknown as { output: { arguments: string }[] };
+  const output = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.output[0].arguments, '{"command":"opencode"}');
+  assert.equal(output.includes("\u200d"), false);
+});
+
+test("sanitizer leaves normal tool arguments byte-identical (no parse/restringify)", () => {
+  const rawArgs = '{ "command" : "printf \\"hello\\" && ls -ll", "path" : "/tmp/opencode" }';
+
+  const streamed = sanitizeStreamingChunk({
+    object: "chat.completion.chunk",
+    choices: [
+      {
+        index: 0,
+        delta: {
+          tool_calls: [
+            {
+              index: 0,
+              id: "call_1",
+              type: "function",
+              function: { name: "run", arguments: rawArgs },
+            },
+          ],
+        },
+      },
+    ],
+  }) as unknown as {
+    choices: { delta: { tool_calls: { function: { arguments: string } }[] } }[];
+  };
+  assert.equal(streamed.choices[0].delta.tool_calls[0].function.arguments === rawArgs, true);
+
+  const nonStream = sanitizeOpenAIResponse({
+    id: "chatcmpl_identity",
+    model: "claude-sonnet",
+    choices: [
+      {
+        index: 0,
+        finish_reason: "tool_calls",
+        message: {
+          role: "assistant",
+          content: "",
+          tool_calls: [
+            {
+              id: "call_1",
+              type: "function",
+              function: { name: "run", arguments: rawArgs },
+            },
+          ],
+        },
+      },
+    ],
+  }) as unknown as {
+    choices: { message: { tool_calls: { function: { arguments: string } }[] } }[];
+  };
+  assert.equal(nonStream.choices[0].message.tool_calls[0].function.arguments === rawArgs, true);
+});

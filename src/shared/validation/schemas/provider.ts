@@ -25,10 +25,37 @@ export { validateProviderSpecificData };
 
 // ──── Provider Schemas ────
 
+// #2166: shared optional remote icon URL for compatible provider nodes. Empty string
+// is accepted as "no custom icon" (clears any previously stored value). Restricted to
+// http(s) — `.url()` alone also accepts syntactically-valid-but-unsafe schemes like
+// `javascript:`/`data:`, which we never want persisted as an <img src>.
+const providerNodeIconUrlSchema = z
+  .string()
+  .trim()
+  .max(2000)
+  .refine((value) => value === "" || z.string().url().safeParse(value).success, {
+    message: "Icon URL must be a valid URL",
+  })
+  .refine((value) => value === "" || /^https?:\/\//i.test(value), {
+    message: "Icon URL must be a valid http:// or https:// URL",
+  })
+  .optional();
+
+// #6715: the `apiKey` field is reused as the raw `Cookie:` header value for
+// cookie-based web providers (Gemini Business, Copilot M365, ChatGPT Web,
+// Claude Web, …). Real multi-cookie session headers (many `__Secure-*` entries,
+// large session tokens) legitimately exceed the old 10,000-char cap, so saving
+// a cookie that the provider's own `validate` check (validateProviderApiKeySchema,
+// uncapped) had already accepted failed with HTTP 400 "Too big …<=10000". Raised
+// to a still-bounded ceiling — well under the 10 MB default request-body limit and
+// the unconstrained SQLite TEXT column — so garbage input is still rejected.
+// Same fix shape as #6562 (priority cap raised to 100_000).
+export const MAX_PROVIDER_CREDENTIAL_LENGTH = 100_000;
+
 export const createProviderSchema = z
   .object({
     provider: z.string().min(1).max(100),
-    apiKey: z.string().max(10000).optional(),
+    apiKey: z.string().max(MAX_PROVIDER_CREDENTIAL_LENGTH).optional(),
     name: z.string().min(1).max(200),
     priority: z.number().int().min(1).max(100).optional(),
     globalPriority: z.number().int().min(1).max(100).nullable().optional(),
@@ -75,7 +102,9 @@ export const bulkCreateProviderSchema = z
       .array(
         z.object({
           name: z.string().min(1).max(200),
-          apiKey: z.string().min(1).max(10000),
+          apiKey: z.string().min(1).max(MAX_PROVIDER_CREDENTIAL_LENGTH),
+          // Per-key account id — required for cloudflare-ai (enforced in superRefine below).
+          accountId: z.string().min(1).max(200).optional(),
         })
       )
       .min(1, "entries must contain at least 1 item")
@@ -103,6 +132,19 @@ export const bulkCreateProviderSchema = z
           path: ["providerSpecificData", "cx"],
         });
       }
+    }
+    if (data.provider === "cloudflare-ai") {
+      // Cloudflare Workers AI builds its per-connection URL from accountId, so every
+      // bulk entry must carry its own non-empty account id (name|accountId|apiKey).
+      data.entries.forEach((entry, index) => {
+        if (typeof entry.accountId !== "string" || entry.accountId.trim().length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "accountId is required for cloudflare-ai entries",
+            path: ["entries", index, "accountId"],
+          });
+        }
+      });
     }
   });
 
@@ -166,6 +208,12 @@ export const providerModelMutationSchema = z.object({
   // catalog); they persist as inputTokenLimit / outputTokenLimit.
   max_input_tokens: z.number().int().positive().optional(),
   max_output_tokens: z.number().int().positive().optional(),
+  // #4125: manual context-window override for a specific provider/model. Persisted
+  // via the Feature-5004 `model_context_overrides` table (source="manual") so it wins
+  // over the auto-discovery/static-catalog context window in `getModelContextLimit()`
+  // — fixes the "provider misreports context length" combo-drop case. `null` clears
+  // a previously set override.
+  contextWindowOverride: z.number().int().positive().nullable().optional(),
   normalizeToolCallId: z.boolean().optional(),
   preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
   upstreamHeaders: upstreamHeadersRecordSchema.nullable().optional(),
@@ -207,6 +255,11 @@ export const createProviderNodeSchema = z
     compatMode: z.enum(["cc"]).optional(),
     chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
     modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
+    // #2166: optional operator-supplied remote icon URL for the provider node. Empty
+    // string is accepted so callers can explicitly submit "no custom icon" (falls back
+    // to the built-in @lobehub/static resolution). Restricted to http(s) — `.url()` alone
+    // also accepts syntactically-valid-but-unsafe schemes like `javascript:`/`data:`.
+    iconUrl: providerNodeIconUrlSchema,
     customHeaders: customHeadersSchema,
   })
   .superRefine((value, ctx) => {
@@ -236,6 +289,9 @@ export const updateProviderNodeSchema = z.object({
   baseUrl: z.string().trim().min(1, "Base URL is required"),
   chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
   modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
+  // #2166: same optional remote icon URL as createProviderNodeSchema — empty string
+  // clears a previously stored custom icon.
+  iconUrl: providerNodeIconUrlSchema,
   customHeaders: customHeadersSchema,
 });
 
@@ -252,11 +308,20 @@ export const providerNodeValidateSchema = z.object({
 export const updateProviderConnectionSchema = z
   .object({
     name: z.string().max(200).optional(),
-    priority: z.coerce.number().int().min(1).max(100).optional(),
-    globalPriority: z.union([z.coerce.number().int().min(1).max(100), z.null()]).optional(),
+    // #6562: `priority` is auto-incremented on connection creation
+    // (src/lib/db/providers.ts::createProviderConnection — `MAX(priority)+1` per
+    // provider, unbounded) and the edit UI always round-trips the connection's
+    // current priority unchanged. Providers whose accounts are commonly rotated
+    // in bulk (e.g. Codex OAuth import-bulk, up to 50 entries per call, repeatable)
+    // routinely exceed 100 connections, so a `max(100)` UI-only ceiling here
+    // rejected re-saving an already-valid, already-persisted priority with
+    // "Invalid request" on every edit. Bounded well above any realistic
+    // connection count (still rejects garbage input) rather than removed.
+    priority: z.coerce.number().int().min(1).max(100_000).optional(),
+    globalPriority: z.union([z.coerce.number().int().min(1).max(100_000), z.null()]).optional(),
     defaultModel: z.union([z.string().max(200), z.null()]).optional(),
     isActive: z.boolean().optional(),
-    apiKey: z.string().max(10000).optional(),
+    apiKey: z.string().max(MAX_PROVIDER_CREDENTIAL_LENGTH).optional(),
     testStatus: z.string().max(50).optional(),
     lastError: z.union([z.string(), z.null()]).optional(),
     lastErrorAt: z.union([z.string(), z.null()]).optional(),
@@ -368,6 +433,21 @@ export const providersBatchTestSchema = z
 export const batchUpdateProviderConnectionsSchema = z.object({
   ids: z.array(z.string().trim().min(1)).min(1).max(100),
   isActive: z.boolean(),
+});
+
+// PUT /api/providers/[id]/param-filters — upsert provider/model param filter config
+const paramFilterListSchema = z.array(z.string().trim().min(1).max(200)).max(500);
+
+const modelParamFilterSchema = z.object({
+  block: paramFilterListSchema.optional(),
+  allow: paramFilterListSchema.optional(),
+});
+
+export const updateParamFilterConfigSchema = z.object({
+  block: paramFilterListSchema.optional(),
+  allow: paramFilterListSchema.optional(),
+  models: z.record(z.string().trim().min(1).max(200), modelParamFilterSchema).optional(),
+  autoLearn: z.boolean().optional(),
 });
 
 export const validateProviderApiKeySchema = z

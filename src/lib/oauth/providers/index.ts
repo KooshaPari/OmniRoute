@@ -27,6 +27,8 @@ import { cline } from "./cline";
 import { windsurf } from "./windsurf";
 import { grokCli } from "./grok-cli";
 import { codebuddyCn } from "./codebuddy-cn";
+import { zed } from "./zed";
+import { zedHosted } from "./zed-hosted";
 
 export const PROVIDERS = {
   claude,
@@ -44,11 +46,18 @@ export const PROVIDERS = {
   trae,
   kilocode,
   cline,
+  // clinepass reuses the Cline WorkOS OAuth flow 1:1 (same api.cline.bot host, same token
+  // type) — it is a separate catalog entry advertising the cline-pass/* (ClinePass
+  // subscription) models. See registry/clinepass/index.ts.
+  clinepass: cline,
   windsurf,
   // devin-cli shares the same token format as windsurf (WINDSURF_API_KEY / devin auth login)
   "devin-cli": windsurf,
   "grok-cli": grokCli,
   "codebuddy-cn": codebuddyCn,
+  // Zed IDE credential bridge — uses keychain import, not standard OAuth
+  zed,
+  "zed-hosted": zedHosted,
 };
 
 export default PROVIDERS;

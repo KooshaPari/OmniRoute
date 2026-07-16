@@ -46,6 +46,7 @@ import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "@/lib/oa
 export interface RegistryModel {
   id: string;
   name: string;
+  aliases?: readonly string[];
   toolCalling?: boolean;
   supportsReasoning?: boolean;
   supportsVision?: boolean;
@@ -56,6 +57,13 @@ export interface RegistryModel {
   unsupportedParams?: readonly string[];
   /** Maximum context window in tokens */
   contextLength?: number;
+  /**
+   * Explicit maximum input-token budget, when it is smaller than the full
+   * context window (e.g. OAuth backends that reserve part of the window for
+   * output). When set, catalog/capability builders prefer this over deriving
+   * max_input_tokens from contextLength (#6191).
+   */
+  maxInputTokens?: number;
   /**
    * Interleaved-reasoning signal, mirroring models.dev's `interleaved_field`.
    * Set to "reasoning_content" for models whose upstream runs DeepSeek thinking
@@ -141,6 +149,24 @@ export interface RegistryEntry {
    * so the authenticated path is never affected.
    */
   anonymousApiKey?: string;
+}
+
+/**
+ * Build a standard OpenAI-compatible provider registry entry.
+ * Eliminates the 4-field boilerplate (format, executor, authType, authHeader)
+ * repeated across 40+ provider files.
+ */
+export function buildOpenAiCompatibleRegistryEntry(
+  overrides: Pick<RegistryEntry, "id"> &
+    Partial<Omit<RegistryEntry, "id" | "format" | "executor" | "authType" | "authHeader">>
+): RegistryEntry {
+  return {
+    format: "openai",
+    executor: "default",
+    authType: "apikey",
+    authHeader: "bearer",
+    ...overrides,
+  } as RegistryEntry;
 }
 
 export interface LegacyProvider {
@@ -258,13 +284,27 @@ export const GPT_5_5_CODEX_CAPABILITIES = {
   contextLength: GPT_5_5_CONTEXT_LENGTH,
 } as const;
 
-export const GPT_5_4_CODEX_CAPABILITIES = {
+// Public OpenAI API limits. These differ from the Codex OAuth catalog limits below.
+export const GPT_5_6_API_CAPABILITIES = {
+  toolCalling: true,
+  supportsReasoning: true,
+  supportsVision: true,
+  supportsXHighEffort: true,
+  contextLength: 1050000,
+  maxInputTokens: 922000,
+  maxOutputTokens: 128000,
+} as const;
+
+// Codex's live catalog reports a 372K usable input budget for GPT-5.6.
+// Keep the reserved 128K output budget explicit, matching the GPT-5.5 catalog contract.
+export const GPT_5_6_CODEX_CAPABILITIES = {
   targetFormat: "openai-responses",
   toolCalling: true,
   supportsReasoning: true,
   supportsVision: true,
   supportsXHighEffort: true,
-  contextLength: 200000,
+  contextLength: 500000,
+  maxInputTokens: 372000,
   maxOutputTokens: 128000,
 } as const;
 
@@ -410,9 +450,6 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   "xiaomi-mimo": [
     { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro", contextLength: 1048576, maxOutputTokens: 131072 },
     { id: "mimo-v2.5", name: "MiMo-V2.5", contextLength: 1048576, maxOutputTokens: 131072 },
-    { id: "mimo-v2-pro", name: "MiMo-V2-Pro", contextLength: 262144, maxOutputTokens: 131072 },
-    { id: "mimo-v2-omni", name: "MiMo-V2-Omni", contextLength: 262144, maxOutputTokens: 131072 },
-    { id: "mimo-v2-flash", name: "MiMo-V2-Flash", contextLength: 262144, maxOutputTokens: 65536 },
   ],
   gitlawb: [
     { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro", contextLength: 1048576, maxOutputTokens: 131072 },

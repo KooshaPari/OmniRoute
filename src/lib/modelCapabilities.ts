@@ -3,8 +3,16 @@ import {
   PROVIDER_MODELS,
 } from "@omniroute/open-sse/config/providerModels.ts";
 import { parseModel, resolveCanonicalProviderModel } from "@omniroute/open-sse/services/model.ts";
-import { MODEL_SPECS, getModelSpec, type ModelSpec } from "@/shared/constants/modelSpecs";
+import {
+  MODEL_SPECS,
+  getAuthoritativeContextWindow,
+  getAuthoritativeProviderContextWindow,
+  getModelSpec,
+  type ModelSpec,
+} from "@/shared/constants/modelSpecs";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
+import { getModelContextOverride } from "@/lib/db/modelContextOverrides";
+import { getModelCapabilityOverride } from "@/lib/db/modelCapabilityOverrides";
 import { isVisionModelId } from "@/shared/constants/visionModels";
 
 const TOOL_CALLING_UNSUPPORTED_PATTERNS: string[] = [];
@@ -177,6 +185,22 @@ function getStaticSpec(modelId: string | null, rawModel: string | null): ModelSp
   return undefined;
 }
 
+function getAuthoritativeStaticContextWindow(
+  provider: string | null,
+  modelId: string | null,
+  rawModel: string | null
+): number | null {
+  for (const candidate of [modelId, rawModel]) {
+    const providerContextWindow = getAuthoritativeProviderContextWindow(provider, candidate);
+    if (typeof providerContextWindow === "number") return providerContextWindow;
+  }
+  for (const candidate of [modelId, rawModel]) {
+    const contextWindow = getAuthoritativeContextWindow(candidate);
+    if (typeof contextWindow === "number") return contextWindow;
+  }
+  return null;
+}
+
 function getStaticSpecCanonicalModelId(modelId: string | null, rawModel: string | null) {
   const candidates = [modelId, rawModel].filter(
     (candidate): candidate is string => typeof candidate === "string" && candidate.length > 0
@@ -317,6 +341,47 @@ function resolveVisionCapability(
   return null;
 }
 
+/**
+ * Issue #6524: an operator-set `max_token` capability override (see
+ * `src/lib/db/modelCapabilityOverrides.ts`) is the manual escape hatch for a
+ * wrong/stale synced `limit_output` value (e.g. a provider's models.dev catalog
+ * row reporting `limit_output` equal to `limit_context`). It already won over the
+ * synced value in `getResolvedModelCapabilities().maxOutputTokens` — this helper
+ * makes `getExplicitModelOutputCap()` (used by the reasoning-token-buffer clamp)
+ * consult the same override so both read paths agree.
+ */
+function getMaxTokenCapabilityOverride(resolved: {
+  provider: string | null;
+  model: string | null;
+  rawModel: string | null;
+}): number | null {
+  return (
+    getModelCapabilityOverride(resolved.provider, resolved.model, "max_token") ??
+    (resolved.rawModel && resolved.rawModel !== resolved.model
+      ? getModelCapabilityOverride(resolved.provider, resolved.rawModel, "max_token")
+      : null)
+  );
+}
+
+export function getExplicitModelOutputCap(input: CapabilityInput): number | null {
+  const resolved = resolveCapabilityInput(input);
+  const maxTokenOverride = getMaxTokenCapabilityOverride(resolved);
+  if (maxTokenOverride !== null) return maxTokenOverride;
+
+  const synced = getSyncedCapabilityForResolved(
+    resolved.provider,
+    resolved.model,
+    resolved.rawModel
+  );
+  if (synced && typeof synced.limit_output === "number") return synced.limit_output;
+
+  const registryModel = getRegistryModel(resolved.provider, resolved.model);
+  if (typeof registryModel?.maxOutputTokens === "number") return registryModel.maxOutputTokens;
+
+  const spec = getStaticSpec(resolved.model, resolved.rawModel);
+  return spec?.maxOutputTokens ?? null;
+}
+
 export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedModelCapabilities {
   const resolved = resolveCapabilityInput(input);
   const spec = getStaticSpec(resolved.model, resolved.rawModel);
@@ -350,11 +415,19 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
         : null) ??
       (typeof spec?.supportsThinking === "boolean" ? spec.supportsThinking : null));
 
+  const authoritativeContextWindow = getAuthoritativeStaticContextWindow(
+    resolved.provider,
+    resolved.model,
+    resolved.rawModel
+  );
   const contextWindow =
+    authoritativeContextWindow ??
     synced?.limit_context ??
     (typeof registryModel?.contextLength === "number" ? registryModel.contextLength : null) ??
     spec?.contextWindow ??
     null;
+
+  const maxTokenOverride = getMaxTokenCapabilityOverride(resolved);
 
   return {
     provider: resolved.provider,
@@ -377,8 +450,13 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     structuredOutput: synced?.structured_output ?? null,
     temperature: synced?.temperature ?? null,
     contextWindow,
-    maxInputTokens: synced?.limit_input ?? contextWindow,
+    maxInputTokens:
+      (typeof registryModel?.maxInputTokens === "number" ? registryModel.maxInputTokens : null) ??
+      authoritativeContextWindow ??
+      synced?.limit_input ??
+      contextWindow,
     maxOutputTokens:
+      maxTokenOverride ??
       synced?.limit_output ??
       (typeof registryModel?.maxOutputTokens === "number" ? registryModel.maxOutputTokens : null) ??
       spec?.maxOutputTokens ??
@@ -440,5 +518,9 @@ export function getModelContextLimit(
     typeof providerOrInput === "string" && modelId !== undefined
       ? getResolvedModelCapabilities({ provider: providerOrInput, model: modelId })
       : getResolvedModelCapabilities(providerOrInput);
-  return resolved.contextWindow;
+  // Feature 5004: a persisted override (operator-set or auto-discovered) wins over the
+  // static catalog / models.dev sync. `getResolvedModelCapabilities` stays override-free
+  // so the reconciler can compare the catalog value against provider-declared windows.
+  const override = getModelContextOverride(resolved.provider, resolved.model);
+  return override ?? resolved.contextWindow;
 }

@@ -43,6 +43,13 @@ const USER_AGENT =
 const BX_VERSION = "2.5.36";
 const BX_UMIDTOKEN_FALLBACK = "T2gA0000000000000000000000000000000000000000";
 
+// Qwen SPA version — required by the v2 chat completion endpoint. Without this
+// header the upstream returns HTTP 200 with `{"success":false,"data":{"code":"Bad_Request"}}`
+// for every completion request, even with a valid session. The version string is
+// the SPA build identifier shipped in the React client's `version` request header.
+// Pinned from a live capture (2026-07); bump if Qwen ships a breaking change.
+const QWEN_SPA_VERSION = "0.2.66";
+
 const MODEL_ALIASES: Record<string, string> = {
   // Legacy OmniRoute ids → current upstream catalog (GET /api/models).
   "qwen-plus": "qwen3.7-plus",
@@ -51,7 +58,9 @@ const MODEL_ALIASES: Record<string, string> = {
   "qwen3-plus": "qwen3.7-plus",
   "qwen3-max": "qwen3.7-max",
   "qwen3-flash": "qwen3.6-plus",
-  "qwen3-coder-plus": "qwen3.7-max",
+  // Note: `qwen3-coder-plus` is a real upstream model id (Qwen3-Coder) and
+  // must NOT be aliased — the previous `"qwen3-coder-plus": "qwen3.7-max"`
+  // entry silently rewrote valid coder requests to the wrong model.
   "qwen3-coder-flash": "qwen3.6-plus",
   qwen: "qwen3.7-max",
   qwen3: "qwen3.7-max",
@@ -96,6 +105,7 @@ export class QwenWebExecutor extends BaseExecutor {
       Origin: BASE_URL,
       Referer: chatId ? `${BASE_URL}/c/${chatId}` : `${BASE_URL}/`,
       source: "web",
+      version: QWEN_SPA_VERSION,
       "x-request-id": uuid(),
       "bx-v": BX_VERSION,
       "bx-umidtoken": BX_UMIDTOKEN_FALLBACK,
@@ -245,11 +255,32 @@ export class QwenWebExecutor extends BaseExecutor {
     };
   }
 
+  /** Flatten OpenAI-style content (string | Array<{type,text}>) into plain text.
+   *  A bare String() on an array of content parts yields "[object Object]" — the
+   *  serialization bug reported on the support mesh. */
+  private contentToText(content: unknown): string {
+    if (typeof content === "string") return content;
+    if (Array.isArray(content)) {
+      return content
+        .map((part) => {
+          if (typeof part === "string") return part;
+          if (part && typeof part === "object") {
+            const p = part as { type?: unknown; text?: unknown };
+            if (typeof p.text === "string") return p.text;
+          }
+          return "";
+        })
+        .filter(Boolean)
+        .join("\n");
+    }
+    return content == null ? "" : String(content);
+  }
+
   private foldMessages(messages: Array<{ role: string; content: unknown }>): string {
     let systemContent = "";
     let userContent = "";
     for (const m of messages) {
-      const text = String(m.content ?? "");
+      const text = this.contentToText(m.content);
       if (m.role === "system") {
         systemContent += (systemContent ? "\n\n" : "") + text;
       } else if (m.role === "user") {

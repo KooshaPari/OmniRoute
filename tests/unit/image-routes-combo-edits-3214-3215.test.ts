@@ -123,10 +123,18 @@ test("resolveImageRouteModel lets bare combos shadow built-in image aliases", as
   assert.equal(await resolveImageRouteModel("openai/gpt-image-2"), "openai/gpt-image-2");
 });
 
+test("resolveImageRouteModel keeps codex bare aliases over same-name combos", async () => {
+  await createCombo({
+    name: "gpt-5.6-sol",
+    models: ["myimg/gpt-5.6-sol"],
+    strategy: "priority",
+  });
+
+  assert.equal(await resolveSingleImageComboTarget("gpt-5.6-sol"), "myimg/gpt-5.6-sol");
+  assert.equal(await resolveImageRouteModel("gpt-5.6-sol"), "gpt-5.6-sol");
+});
+
 test("resolveImageRouteModel leaves built-in / already-resolved ids untouched", async () => {
-  assert.equal(
-    await resolveImageRouteModel("cgpt-web/gpt-5.3-instant"),
-    "cgpt-web/gpt-5.3-instant"
-  );
+  assert.equal(await resolveImageRouteModel("cgpt-web/gpt-5.5"), "cgpt-web/gpt-5.5");
   assert.equal(await resolveSingleImageComboTarget("definitely-not-a-combo-3215"), null);
 });

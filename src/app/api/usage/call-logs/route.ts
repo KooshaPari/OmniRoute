@@ -3,6 +3,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getCallLogs } from "@/lib/usageDb";
 import { getCompletedDetails, getPendingById } from "@/lib/usage/usageHistory";
 import { getProviderConnections } from "@/lib/localDb";
+import { matchesSearch } from "@/shared/utils/turkishText";
 
 type CallLogListRowsInput = {
   logs: any[];
@@ -63,6 +64,7 @@ export function buildCallLogListRows({
       apiKeyName: null,
       comboName: null,
       error: null,
+      correlationId: detail.correlationId || null,
       active: true,
     });
   }
@@ -96,6 +98,7 @@ export function buildCallLogListRows({
       apiKeyName: null,
       comboName: null,
       error: detail.error || null,
+      correlationId: detail.correlationId || null,
       active: false,
       completed: true,
       completedAt: completedAt ? new Date(completedAt).toISOString() : null,
@@ -104,9 +107,12 @@ export function buildCallLogListRows({
   }
 
   return [...activeEntries, ...completedEntries, ...logs].sort((a, b) => {
-    const timestampDelta = rowTimestampMs(b) - rowTimestampMs(a);
-    if (timestampDelta !== 0) return timestampDelta;
-    return rowPriority(a) - rowPriority(b);
+    // Active requests always on top
+    const pa = rowPriority(a);
+    const pb = rowPriority(b);
+    if (pa !== pb) return pa - pb;
+    // Within same priority, newest first
+    return rowTimestampMs(b) - rowTimestampMs(a);
   });
 }
 
@@ -125,19 +131,28 @@ export async function GET(request: Request) {
     if (searchParams.get("apiKey")) filter.apiKey = searchParams.get("apiKey");
     if (searchParams.get("combo")) filter.combo = searchParams.get("combo");
     if (searchParams.get("search")) filter.search = searchParams.get("search");
+    if (searchParams.get("correlationId")) filter.correlationId = searchParams.get("correlationId");
     if (searchParams.get("limit")) filter.limit = parseInt(searchParams.get("limit"));
     if (searchParams.get("offset")) filter.offset = parseInt(searchParams.get("offset"));
 
     const [logs, connections] = await Promise.all([getCallLogs(filter), getProviderConnections()]);
 
-    return NextResponse.json(
-      buildCallLogListRows({
-        logs,
-        connections,
-        pendingDetails: getPendingById().values(),
-        completedDetails: getCompletedDetails().values(),
-      })
-    );
+    const rows = buildCallLogListRows({
+      logs,
+      connections,
+      pendingDetails: getPendingById().values(),
+      completedDetails: getCompletedDetails().values(),
+    });
+
+    // When correlationId filter is set, also filter in-memory entries
+    // (active + completed) that don't match — getCallLogs already filters
+    // the DB rows but activeEntries/completedEntries bypass it.
+    if (filter.correlationId) {
+      const cid = filter.correlationId;
+      return NextResponse.json(rows.filter((r: any) => matchesSearch(r.correlationId || "", cid)));
+    }
+
+    return NextResponse.json(rows);
   } catch (error) {
     console.error("[API ERROR] /api/usage/call-logs failed:", error);
     return NextResponse.json({ error: "Failed to fetch call logs" }, { status: 500 });

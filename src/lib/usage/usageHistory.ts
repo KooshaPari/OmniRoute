@@ -10,6 +10,15 @@
 import { getDbInstance } from "../db/core";
 import { protectPayloadForLog } from "../logPayloads";
 import {
+  asRecord,
+  normalizeServiceTier,
+  percentile,
+  stdDev,
+  toNumber,
+  toStringOrNull,
+  truncatePendingPreview,
+} from "./usageHistory/helpers";
+import {
   clearCompletedDetails,
   maybeEnrichCompletedDetail,
   scheduleCompletedDetailCleanup,
@@ -25,7 +34,6 @@ import {
   getReasoningTokens,
 } from "./tokenAccounting";
 
-type JsonRecord = Record<string, unknown>;
 export type PendingRequestMetadata = {
   clientEndpoint?: string | null;
   clientRequest?: unknown;
@@ -66,85 +74,6 @@ export type PendingRequestDetail = {
     client?: string[];
   } | null;
 };
-
-function asRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
-function toStringOrNull(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
-
-function normalizeServiceTier(value: unknown): string {
-  const tier = typeof value === "string" ? value.trim().toLowerCase() : "";
-  if (tier === "priority" || tier === "fast") return "priority";
-  if (tier === "flex") return "flex";
-  return "standard";
-}
-
-function toNumber(value: unknown): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
-}
-
-function percentile(sortedValues: number[], p: number): number {
-  if (sortedValues.length === 0) return 0;
-  if (sortedValues.length === 1) return sortedValues[0];
-  const bounded = Math.max(0, Math.min(1, p));
-  const idx = Math.round((sortedValues.length - 1) * bounded);
-  return sortedValues[idx] ?? sortedValues[sortedValues.length - 1];
-}
-
-function stdDev(values: number[], avg: number): number {
-  if (values.length <= 1) return 0;
-  const variance = values.reduce((acc, v) => acc + (v - avg) ** 2, 0) / values.length;
-  return Math.sqrt(Math.max(0, variance));
-}
-
-const MAX_PREVIEW_DEPTH = 6;
-const MAX_PREVIEW_STRING = 1200;
-const MAX_PREVIEW_ARRAY_ITEMS = 12;
-const MAX_PREVIEW_OBJECT_KEYS = 24;
-
-function truncatePendingPreview(value: unknown, depth = 0): unknown {
-  if (depth >= MAX_PREVIEW_DEPTH) {
-    return "[TRUNCATED_DEPTH]";
-  }
-
-  if (typeof value === "string") {
-    return value.length > MAX_PREVIEW_STRING ? `${value.slice(0, MAX_PREVIEW_STRING)}...` : value;
-  }
-
-  if (Array.isArray(value)) {
-    const preview = value
-      .slice(0, MAX_PREVIEW_ARRAY_ITEMS)
-      .map((item) => truncatePendingPreview(item, depth + 1));
-    if (value.length > MAX_PREVIEW_ARRAY_ITEMS) {
-      preview.push({ _truncatedItems: value.length - MAX_PREVIEW_ARRAY_ITEMS });
-    }
-    return preview;
-  }
-
-  if (!value || typeof value !== "object") {
-    return value;
-  }
-
-  const entries = Object.entries(value as JsonRecord);
-  const truncatedEntries = entries
-    .slice(0, MAX_PREVIEW_OBJECT_KEYS)
-    .map(([key, entryValue]) => [key, truncatePendingPreview(entryValue, depth + 1)]);
-  const preview = Object.fromEntries(truncatedEntries);
-
-  if (entries.length > MAX_PREVIEW_OBJECT_KEYS) {
-    preview._truncatedKeys = entries.length - MAX_PREVIEW_OBJECT_KEYS;
-  }
-
-  return preview;
-}
 
 function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingRequestMetadata {
   if (!metadata) return {};
@@ -624,7 +553,8 @@ export async function getUsageDb(sinceIso?: string | null, limit?: number, curso
   });
 
   // Provide next cursor if we hit the limit (more rows exist)
-  const nextCursor = rows.length === maxRows ? (rows[rows.length - 1] as any)?.timestamp : null;
+  const nextCursor =
+    rows.length === maxRows ? toStringOrNull(asRecord(rows[rows.length - 1]).timestamp) : null;
 
   return { data: { history, nextCursor } };
 }
@@ -632,9 +562,49 @@ export async function getUsageDb(sinceIso?: string | null, limit?: number, curso
 // ──────────────── Save Request Usage ────────────────
 
 /**
+ * DB-entity-mapped shape accepted by {@link saveRequestUsage}, mirroring the
+ * `usage_history` table columns 1:1 (see `src/lib/db/migrations/`). Convention
+ * (#3512): every `usage_history` writer should type its entry against this
+ * interface instead of an inline anonymous object or `any` — call sites are
+ * intentionally permissive (fields optional/nullable) because rows are built
+ * incrementally across several extraction points (chatCore success/failure
+ * paths, rejected-request accounting, the Codex Responses WS bridge).
+ *
+ * `tokens` stays `unknown` on purpose: callers pass either the raw
+ * provider-shaped usage object (OpenAI `prompt_tokens`/`completion_tokens`,
+ * Anthropic `input_tokens`/`cache_read_input_tokens`, …) or the already
+ * normalized `{ input, output, cacheRead, cacheCreation, reasoning }` shape —
+ * `getLoggedInputTokens`/`getLoggedOutputTokens`/`getPromptCache*Tokens` in
+ * `./tokenAccounting` accept both and extract the right fields.
+ */
+export interface UsageEntry {
+  provider?: string | null;
+  model?: string | null;
+  /** Raw or normalized token usage — see the interface doc above. */
+  tokens?: unknown;
+  status?: string | null;
+  success?: boolean;
+  latencyMs?: number;
+  timeToFirstTokenMs?: number;
+  errorCode?: string | null;
+  /** ISO timestamp; defaults to `new Date().toISOString()` when omitted. */
+  timestamp?: string;
+  connectionId?: string | null;
+  apiKeyId?: string | null;
+  apiKeyName?: string | null;
+  serviceTier?: string | null;
+  /** @deprecated legacy snake_case fallback, read only if `serviceTier` is unset. */
+  service_tier?: string | null;
+  comboStrategy?: string | null;
+  /** @deprecated legacy snake_case fallback, read only if `comboStrategy` is unset. */
+  combo_strategy?: string | null;
+  endpoint?: string | null;
+}
+
+/**
  * Save request usage entry to SQLite.
  */
-export async function saveRequestUsage(entry: any) {
+export async function saveRequestUsage(entry: UsageEntry) {
   if (!shouldPersistToDisk) return;
 
   try {
@@ -737,10 +707,17 @@ export async function saveRequestUsage(entry: any) {
 
 // ──────────────── Get Usage History ────────────────
 
+export interface UsageHistoryFilter {
+  provider?: string;
+  model?: string;
+  startDate?: string | number | Date;
+  endDate?: string | number | Date;
+}
+
 /**
  * Get usage history with optional filters.
  */
-export async function getUsageHistory(filter: any = {}) {
+export async function getUsageHistory(filter: UsageHistoryFilter = {}) {
   const db = getDbInstance();
   let sql = "SELECT * FROM usage_history";
   const conditions: string[] = [];
@@ -946,7 +923,7 @@ export async function appendRequestLog({
   model?: string;
   provider?: string;
   connectionId?: string;
-  tokens?: any;
+  tokens?: unknown;
   status?: string | number;
 }) {
   // Deprecated: request summaries now come from SQLite call_logs.
@@ -980,8 +957,11 @@ export async function getRecentLogs(limit = 200) {
       const status = typeof row.status === "number" ? row.status : String(row.status || "-");
       return `${timestamp} | ${model} | ${provider} | ${account} | ${tokensIn} | ${tokensOut} | ${status}`;
     });
-  } catch (error: any) {
-    console.error("[usageDb] Failed to read recent call logs:", error.message);
+  } catch (error) {
+    console.error(
+      "[usageDb] Failed to read recent call logs:",
+      error instanceof Error ? error.message : String(error)
+    );
     return [];
   }
 }

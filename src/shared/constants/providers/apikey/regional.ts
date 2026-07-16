@@ -115,7 +115,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     icon: "cloud_queue",
     color: "#FF6600",
     textIcon: "AL",
-    website: "https://dashscope-intl.aliyuncs.com",
+    website: "https://bailian.console.alibabacloud.com/",
     hasFree: false,
   },
   "alibaba-cn": {
@@ -125,7 +125,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     icon: "cloud_queue",
     color: "#FF6600",
     textIcon: "AL",
-    website: "https://dashscope.aliyuncs.com",
+    website: "https://dashscope.console.aliyun.com/",
     hasFree: false,
   },
   longcat: {
@@ -255,6 +255,14 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     freeNote: "Free Step-2 models. Chinese AI company.",
     passthroughModels: true,
     authHint: "Get API key at platform.stepfun.com",
+    // #5462 — this integration calls StepFun's China platform (api.stepfun.com),
+    // whose sign-up appears to be phone-based. International users have a separate
+    // global platform (platform.stepfun.ai, operated by Sparkling AI Pte Ltd,
+    // Singapore) with email/Google/Discord login.
+    notice: {
+      text: "This connects to StepFun's China platform (platform.stepfun.com), whose sign-up appears to require a Chinese phone number. Users outside mainland China can instead register at the global StepFun Open Platform (platform.stepfun.ai, operated by Sparkling AI Pte. Ltd., Singapore) with email/Google/Discord login.",
+      signupUrl: "https://platform.stepfun.ai",
+    },
   },
   coze: {
     id: "coze",
@@ -307,6 +315,13 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     freeNote: "Free SenseTime models. Computer vision leader.",
     passthroughModels: true,
     authHint: "Get API key at platform.sensenova.cn",
+    // #5462 — SenseNova's console (platform.sensenova.cn) appears to require a
+    // Chinese (+86) phone number for SMS-verified registration, with no documented
+    // international sign-up path. Warn users outside mainland China up front.
+    notice: {
+      text: "SenseNova registration appears to require a Chinese (+86) phone number for SMS verification — no international sign-up path is documented, so users outside mainland China may be unable to obtain an API key.",
+      signupUrl: "https://platform.sensenova.cn/console",
+    },
   },
   sparkdesk: {
     id: "sparkdesk",
@@ -322,22 +337,18 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     passthroughModels: true,
     authHint: "Get API key at console.xfyun.cn",
   },
-  inclusionai: {
-    id: "inclusionai",
-    alias: "inclusion",
-    name: "InclusionAI",
-    icon: "psychology",
-    color: "#10B981",
-    textIcon: "IA",
-    website: "https://inclusionai.com",
+  hcnsec: {
+    id: "hcnsec",
+    alias: "hcnsec",
+    name: "Huancheng Public API",
+    icon: "security",
+    color: "#0EA5E9",
+    textIcon: "HC",
+    website: "https://api.hcnsec.cn",
     hasFree: true,
-    freeNote: "Free Ling-2.6-flash model (1T-param MoE, 262K context). No credit card required.",
+    freeNote:
+      "Xinjiang Huancheng Cybersecurity public LLM API platform: free credits with daily check-ins.",
     passthroughModels: true,
-    authHint: "Get API key at inclusionai.com",
-    subscriptionRisk: true,
-    riskNoticeVariant: "deprecated",
-    deprecated: true,
-    deprecationReason:
-      "api.inclusionai.tech no longer resolves (sweep 2026-06-19); the inference API appears discontinued.",
+    authHint: "Get API key at api.hcnsec.cn",
   },
 };

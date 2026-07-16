@@ -24,6 +24,20 @@ import {
   cleanJSONSchemaForAntigravity,
 } from "../helpers/geminiHelper.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
+import {
+  type GeminiGenerationConfig,
+  isVertexGeminiProvider,
+  buildChangedToolNameMap,
+  extractClientThoughtSignature,
+  deepCleanUndefined,
+  applyAntigravityGenerationDefaults,
+  stringifyHistoricalToolArguments,
+  buildInertHistoricalToolCallText,
+  buildInertHistoricalToolResponseText,
+  escapeHistoricalContextAttribute,
+  escapeHistoricalContextContent,
+  buildHistoricalToolResultContext,
+} from "./openai-to-gemini/helpers.ts";
 
 // Observed Antigravity wrapper output cap, not an underlying model capability.
 // Keep this bridge-local: Antigravity currently caps visible output around 16K.
@@ -42,20 +56,6 @@ const GEMINI_BUILTIN_TOOL_NAMES = new Set<string>([
 
 type GeminiPart = Record<string, unknown>;
 type GeminiContent = { role: string; parts: GeminiPart[] };
-
-type GeminiGenerationConfig = {
-  temperature?: unknown;
-  topP?: unknown;
-  topK?: unknown;
-  maxOutputTokens?: unknown;
-  thinkingConfig?: {
-    thinkingBudget: number;
-    includeThoughts: boolean;
-  };
-  responseMimeType?: string;
-  responseSchema?: unknown;
-  stopSequences?: string[] | unknown[];
-};
 
 type GeminiFunctionDeclaration = {
   name: string;
@@ -118,124 +118,27 @@ type GeminiToolNameOptions = {
   supportsSignatureBypass?: boolean;
 };
 
-// Vertex AI (and Vertex Partner models) reject the OpenAI-style `id` field inside
-// function_call / function_response parts. Detect these by the routed provider id.
-function isVertexGeminiProvider(provider: unknown): boolean {
-  return provider === "vertex" || provider === "vertex-partner";
-}
-
-type OpenAIToolCallLike = {
-  thoughtSignature?: unknown;
-  thought_signature?: unknown;
-  function?: {
-    thoughtSignature?: unknown;
-    thought_signature?: unknown;
-  };
-};
-
-function buildChangedToolNameMap(toolNameMap: Map<string, string>): Map<string, string> | null {
-  const changedEntries = [...toolNameMap.entries()].filter(
-    ([sanitizedName, originalName]) => sanitizedName !== originalName
-  );
-  return changedEntries.length > 0 ? new Map(changedEntries) : null;
-}
-
-function extractClientThoughtSignature(toolCall: unknown): string | null {
-  if (!toolCall || typeof toolCall !== "object") return null;
-  const candidate = toolCall as OpenAIToolCallLike;
-
-  const signature =
-    candidate.thoughtSignature ||
-    candidate.thought_signature ||
-    candidate.function?.thoughtSignature ||
-    candidate.function?.thought_signature ||
-    null;
-  return typeof signature === "string" && signature.length > 0 ? signature : null;
-}
-
-function deepCleanUndefined(value: unknown, depth = 0): void {
-  if (depth > 10 || !value || typeof value !== "object") {
-    return;
-  }
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      deepCleanUndefined(item, depth + 1);
-    }
-  } else {
-    const obj = value as Record<string, unknown>;
-    for (const key of Object.keys(obj)) {
-      const val = obj[key];
-      if (typeof val === "string" && val === "[undefined]") {
-        delete obj[key];
-      } else {
-        deepCleanUndefined(val, depth + 1);
-      }
+// Gemini-family APIs (incl. Antigravity / Vertex) reject a `contents[]` array that
+// has two adjacent entries with the same role:
+//   400 INVALID_ARGUMENT "Request contains consecutive messages with the same role".
+// Client history that carries consecutive user turns — or a tool-result turn (mapped
+// to role:"user") immediately followed by a plain user turn — would otherwise leak
+// that invalid alternation through. Merge adjacent same-role entries by concatenating
+// their parts, the same normalization the Kiro and Claude request paths already apply
+// (9router#2191).
+export function mergeConsecutiveSameRoleContents(contents: GeminiContent[]): GeminiContent[] {
+  const merged: GeminiContent[] = [];
+  for (const entry of contents) {
+    const last = merged[merged.length - 1];
+    if (last && last.role === entry.role) {
+      last.parts.push(...entry.parts);
+    } else {
+      // Shallow-copy the entry and its `parts` array so a later same-role merge
+      // (`last.parts.push(...)`) never mutates the caller's input objects.
+      merged.push({ ...entry, parts: [...entry.parts] });
     }
   }
-}
-
-function applyAntigravityGenerationDefaults(generationConfig: GeminiGenerationConfig) {
-  const config = { ...generationConfig };
-  if (config.topK === undefined) {
-    config.topK = 40;
-  }
-  if (config.topP === undefined) {
-    config.topP = 1;
-  }
-
-  const thinkingBudget = Number(config.thinkingConfig?.thinkingBudget);
-  const maxOutputTokens = Number(config.maxOutputTokens);
-  if (
-    Number.isFinite(thinkingBudget) &&
-    thinkingBudget > 0 &&
-    (!Number.isFinite(maxOutputTokens) || maxOutputTokens <= thinkingBudget)
-  ) {
-    config.maxOutputTokens = Math.floor(thinkingBudget) + 1;
-  }
-
-  return config;
-}
-
-function stringifyHistoricalToolArguments(value: unknown): string {
-  if (typeof value === "string") return value;
-  try {
-    return JSON.stringify(value ?? {});
-  } catch {
-    return String(value ?? "{}");
-  }
-}
-
-function buildInertHistoricalToolCallText(name: string | undefined, args: unknown): string {
-  const toolName = name || "unknown";
-  return `[tool_history_call: ${toolName}] ${stringifyHistoricalToolArguments(args || "{}")}`;
-}
-
-function buildInertHistoricalToolResponseText(name: string, response: unknown): string {
-  return `[tool_history_result: ${name || "unknown"}] ${typeof response === "string" ? response : stringifyHistoricalToolArguments(response)}`;
-}
-
-function escapeHistoricalContextAttribute(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-}
-
-function escapeHistoricalContextContent(value: string): string {
-  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-}
-
-function buildHistoricalToolResultContext(name: string, response: unknown): string {
-  const source = escapeHistoricalContextAttribute(name || "unknown");
-  const rawResult =
-    typeof response === "string" ? response : stringifyHistoricalToolArguments(response);
-  const result = escapeHistoricalContextContent(rawResult);
-  return [
-    `<previous_tool_result_context source="${source}">`,
-    result,
-    "</previous_tool_result_context>",
-  ].join("\n");
+  return merged;
 }
 
 // Core: Convert OpenAI request to Gemini format (base for all variants)
@@ -285,35 +188,50 @@ function openaiToGeminiBase(
   }
 
   // Thinking / Reasoning support (Google Gemini 2.0+ Thinking models)
-  // 1. OpenAI format: reasoning_effort (low/medium/high/auto/max/xhigh)
-  // "auto", "max", and "xhigh" are clamped to the high-tier budget because Gemini
-  // does not accept these strings directly. "auto" signals "use max reasonable effort"
-  // which maps to high. "max"/"xhigh" exceed Gemini's accepted range and are clamped.
-  // Port of decolua/9router#2043 by @nguyenxvotanminh3.
-  if (body.reasoning_effort) {
-    const highBudget = capThinkingBudget(model, 32768);
-    const budgetMap: Record<string, number> = {
-      low: 1024,
-      medium: getDefaultThinkingBudget(model) || 8192,
-      high: highBudget,
-      auto: highBudget,
-      max: highBudget,
-      xhigh: highBudget,
-    };
-    const budget =
-      budgetMap[body.reasoning_effort as string] ?? getDefaultThinkingBudget(model) ?? 8192;
-    result.generationConfig.thinkingConfig = {
-      thinkingBudget: budget,
-      includeThoughts: true,
-    };
-  }
-  // 2. Claude format: thinking (type: enabled, budget_tokens)
-  const thinking = body.thinking as { type?: string; budget_tokens?: number } | undefined;
-  if (thinking?.type === "enabled" && thinking.budget_tokens) {
-    result.generationConfig.thinkingConfig = {
-      thinkingBudget: thinking.budget_tokens,
-      includeThoughts: true,
-    };
+  // gemma-4 models return - 400: Thinking budget is not supported for this model.
+  // Mirrors the same guard in claude-to-gemini.ts. Port of the thinkingConfig
+  // guard half of decolua/9router#2480 (the signature-replay half of that PR
+  // is out of scope and not ported here).
+  if (model.startsWith("gemma-4")) {
+    // gemma-4 models returns - 400: Thinking budget is not supported for this model
+  } else {
+    // 1. OpenAI format: reasoning_effort (none/low/medium/high/auto/max/xhigh)
+    // "auto", "max", and "xhigh" are clamped to the high-tier budget because Gemini
+    // does not accept these strings directly. "auto" signals "use max reasonable effort"
+    // which maps to high. "max"/"xhigh" exceed Gemini's accepted range and are clamped.
+    // "none" maps to budget 0 — an explicit, documented off-switch (#6813 defect 2),
+    // distinct from the no-knob-at-all default-injection case below (#4170).
+    // Port of decolua/9router#2043 by @nguyenxvotanminh3.
+    if (body.reasoning_effort) {
+      const highBudget = capThinkingBudget(model, 32768);
+      const budgetMap: Record<string, number> = {
+        none: 0,
+        low: 1024,
+        medium: getDefaultThinkingBudget(model) || 8192,
+        high: highBudget,
+        auto: highBudget,
+        max: highBudget,
+        xhigh: highBudget,
+      };
+      const budget =
+        budgetMap[body.reasoning_effort as string] ?? getDefaultThinkingBudget(model) ?? 8192;
+      result.generationConfig.thinkingConfig = {
+        thinkingBudget: budget,
+        includeThoughts: budget !== 0,
+      };
+    }
+    // 2. Claude format: thinking (type: enabled, budget_tokens)
+    // Use an explicit numeric check (not truthy) so an explicit `budget_tokens: 0` — the
+    // natural way to disable thinking — is honored as thinkingBudget 0 instead of being
+    // dropped and falling through to the default injection below (#6813). A zero budget
+    // yields no thoughts, so includeThoughts is only set for a non-zero budget.
+    const thinking = body.thinking as { type?: string; budget_tokens?: number } | undefined;
+    if (thinking?.type === "enabled" && typeof thinking.budget_tokens === "number") {
+      result.generationConfig.thinkingConfig = {
+        thinkingBudget: thinking.budget_tokens,
+        includeThoughts: thinking.budget_tokens !== 0,
+      };
+    }
   }
 
   // 3. Default: all modern Gemini models (2.5+) have thinking capability.
@@ -321,7 +239,9 @@ function openaiToGeminiBase(
   // thinking.type), still set includeThoughts so the upstream marks thought
   // parts with thought:true. Without this, the model's reasoning leaks into
   // visible content instead of being routed to reasoning_content by the
-  // response translator. (#4170)
+  // response translator. (#4170) — this default-injection case is intentionally
+  // unconditional (no-knob-at-all still gets includeThoughts:true); the explicit
+  // "reasoning_effort: none" off-switch above (#6813) is the supported opt-out.
   if (!result.generationConfig.thinkingConfig) {
     const modelLower = model.toLowerCase();
     if (
@@ -585,6 +505,9 @@ function openaiToGeminiBase(
     }
   }
 
+  // Collapse any consecutive same-role contents Gemini would reject (9router#2191).
+  result.contents = mergeConsecutiveSameRoleContents(result.contents ?? []);
+
   // Convert tools
   const bodyTools = body.tools as Array<Record<string, unknown>> | undefined;
   const geminiTools = buildGeminiTools(bodyTools, {
@@ -715,6 +638,7 @@ function wrapInCloudCodeEnvelope(model, cloudCodeRequest, credentials = null) {
       systemInstruction: cloudCodeRequest.systemInstruction,
       generationConfig: applyAntigravityGenerationDefaults(cloudCodeRequest.generationConfig),
       tools: cloudCodeRequest.tools,
+      safetySettings: cloudCodeRequest.safetySettings,
     },
     model: cleanModel,
     userAgent: getAntigravityEnvelopeUserAgent(credentials),

@@ -9,6 +9,7 @@ import {
   containsTextualToolCallMarker,
 } from "../../utils/textualToolCall.ts";
 import { normalizeOpenAICompatibleFinishReasonString } from "../../utils/finishReason.ts";
+import { stripAnsiCodes } from "../../utils/streamHelpers.ts";
 
 type GeminiToOpenAIState = {
   functionIndex: number;
@@ -401,6 +402,10 @@ export function geminiToOpenAIResponse(chunk, state) {
   // Process parts
   if (content?.parts) {
     for (const part of content.parts) {
+      // Normalize the part text once: strip ANSI/VT100 escape codes that some
+      // upstreams (gemini-cli terminal redraws) inject, so the `<thinking>` /
+      // `[Tool call:]` textual parsers below never see stray control bytes (#2273).
+      const partText = stripAnsiCodes(part.text);
       const hasThoughtSig = part.thoughtSignature || part.thought_signature;
       const isThought = part.thought === true;
       if (hasThoughtSig && typeof hasThoughtSig === "string") {
@@ -409,7 +414,7 @@ export function geminiToOpenAIResponse(chunk, state) {
 
       // Handle thought signature (thinking mode) or native gemini thought flag
       if (hasThoughtSig || isThought) {
-        const hasTextContent = part.text !== undefined && part.text !== "";
+        const hasTextContent = partText !== undefined && partText !== "";
         const hasFunctionCall = !!part.functionCall;
 
         // Gemini/Antigravity can emit thoughtSignature as a standalone part
@@ -433,7 +438,7 @@ export function geminiToOpenAIResponse(chunk, state) {
             choices: [
               {
                 index: 0,
-                delta: isThought ? { reasoning_content: part.text } : { content: part.text },
+                delta: isThought ? { reasoning_content: partText } : { content: partText },
                 finish_reason: null,
               },
             ],
@@ -463,10 +468,10 @@ export function geminiToOpenAIResponse(chunk, state) {
       // "[Tool call: ...]" block instead of native functionCall. Convert that
       // back to a structured OpenAI tool call so clients/tools do not see it as
       // assistant prose.
-      if (part.text !== undefined && part.text !== "") {
+      if (partText !== undefined && partText !== "") {
         const afterReasoning = parseTextualReasoningTags
-          ? consumeTextualReasoningTags(part.text, state, results)
-          : part.text;
+          ? consumeTextualReasoningTags(partText, state, results)
+          : partText;
         if (!afterReasoning) continue;
 
         let accumulated = (state.textualToolCallBuffer || "") + afterReasoning;
@@ -724,6 +729,12 @@ export function geminiToOpenAIResponse(chunk, state) {
     // normalizeOpenAICompatibleFinishReasonString lowercases, maps max_tokens→length,
     // and folds Gemini safety reasons (safety/recitation/blocklist/...) → content_filter
     // so downstream clients can distinguish a blocked completion from a normal stop.
+    // Abort reasons (MALFORMED_FUNCTION_CALL, UNEXPECTED_TOOL_CALL, ...) are NOT in
+    // either mapped set, so they surface here unchanged (e.g. raw
+    // "malformed_function_call") rather than being folded into a misleading "stop" —
+    // isAbortFinishReason() (finishReason.ts) is what the openai→claude hub step
+    // uses downstream to recognize this raw value and keep it off a clean end_turn
+    // (9router#2462 sub-bug #2).
     let finishReason = normalizeOpenAICompatibleFinishReasonString(candidate.finishReason);
     if (finishReason === "stop" && state.toolCalls.size > 0) {
       finishReason = "tool_calls";

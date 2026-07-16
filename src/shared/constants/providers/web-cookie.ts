@@ -125,7 +125,7 @@ export const WEB_COOKIE_PROVIDERS = {
     textIcon: "M365",
     website: "https://m365.cloud.microsoft/chat",
     authHint:
-      "Paste the access_token and account-specific Chathub path from the Microsoft 365 Copilot WebSocket URL.",
+      "Sign in at m365.cloud.microsoft/chat, then open DevTools → Network → filter 'WS' → click the Chathub WebSocket connection. Copy both the access_token query parameter AND the account-specific Chathub path segment from its request URL (wss://…/Chathub/<path>?…&access_token=…). It is NOT an Authorization: Bearer header on an XHR/Fetch request. The token is short-lived; this is an unofficial integration.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
@@ -171,18 +171,35 @@ export const WEB_COOKIE_PROVIDERS = {
       "Paste your __client cookie value from .clerk.agent.adapta.one (DevTools → Application → Cookies)",
   },
   lmarena: {
+    // Wire id stays `lmarena` for DB/combo/model-prefix back-compat.
+    // Product rebranded LMArena → Arena (arena.ai) in Jan 2026.
     id: "lmarena",
     alias: "lma",
-    name: "LMArena (Free)",
+    name: "Arena (Free)",
     icon: "auto_awesome",
     color: "#FF6B6B",
-    textIcon: "LMA",
-    website: "https://lmarena.ai",
+    textIcon: "AR",
+    website: "https://arena.ai",
     hasFree: true,
     freeNote:
-      "Free model comparison platform — 40+ models (GPT, Claude, Gemini, Llama). No subscription required.",
+      "Free model comparison platform (formerly LMArena) at arena.ai — Direct-chat catalog of chat models (GPT, Claude, Gemini, Llama, …). No subscription required.",
     authHint:
-      "Paste the full Cookie header from lmarena.ai (DevTools → Network → request → Cookie). The session is now split across arena-auth-prod-v1.0, .1, … — copy the whole header. Optional — works with free tier for basic comparisons.",
+      "Paste the full Cookie header from arena.ai (DevTools → Network → request → Cookie). Include arena-auth-prod-v1.0/.1… and cf_clearance/__cf_bm when present. OmniRoute uses Chrome TLS impersonation; if Arena still 403s, set providerSpecificData.recaptchaV3Token from a live browser session.",
+    riskNoticeVariant: "webCookie",
+  },
+  "yuanbao-web": {
+    id: "yuanbao-web",
+    alias: "ybw",
+    name: "Tencent Yuanbao (Free)",
+    icon: "auto_awesome",
+    color: "#0052D9",
+    textIcon: "YB",
+    website: "https://yuanbao.tencent.com",
+    hasFree: true,
+    freeNote:
+      "Free consumer web session — DeepSeek V3/R1 and Hunyuan / Hunyuan-T1, optional web search. No subscription required. Rate limits apply.",
+    authHint:
+      "Log in to yuanbao.tencent.com, then paste the full Cookie header (DevTools → Network → any /api request → Request Headers → Cookie). It must contain hy_user and hy_token.",
     riskNoticeVariant: "webCookie",
   },
   huggingchat: {
@@ -197,7 +214,7 @@ export const WEB_COOKIE_PROVIDERS = {
     hasFree: true,
     freeNote: "Free LLM chat — no subscription required. Rate limits apply.",
     authHint:
-      "Paste your hf-chat cookie value from huggingface.co/chat (DevTools → Application → Cookies → hf-chat). Optional — works without auth for basic use.",
+      "Paste the full Cookie header from huggingface.co/chat (DevTools → Network → /chat/conversation → Request Headers → Cookie). It should include hf-chat and may also include token / aws-waf-token.",
     riskNoticeVariant: "webCookie",
   },
   "poe-web": {
@@ -225,7 +242,13 @@ export const WEB_COOKIE_PROVIDERS = {
   },
   "v0-vercel-web": {
     id: "v0-vercel-web",
-    alias: "v0",
+    // #6343: was "v0", colliding with the unrelated "v0-vercel" API-key provider's
+    // alias. Aliases resolve 1:1 to a provider id, so the dashboard's model-string
+    // routing always picked v0-vercel, silently hiding this provider's own
+    // credentials. Follows the established secondary-web-variant convention (see
+    // kimi-web / qwen-web / huggingchat in tests/unit/provider-alias-uniqueness.test.ts):
+    // the web/secondary variant uses its own id as alias instead of a short prefix.
+    alias: "v0-vercel-web",
     name: "v0 Vercel Web (Code Gen)",
     icon: "auto_awesome",
     color: "#000000",
@@ -242,20 +265,22 @@ export const WEB_COOKIE_PROVIDERS = {
     icon: "auto_awesome",
     color: "#2563EB",
     textIcon: "KW",
-    website: "https://kimi.moonshot.cn",
-    authHint: "Paste your session cookie from kimi.moonshot.cn (DevTools → Application → Cookies)",
+    website: "https://www.kimi.com",
+    authHint:
+      "Paste your Cookie header from www.kimi.com (must contain kimi-auth=...). Find it via DevTools → Network → request → Cookie.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
   "doubao-web": {
     id: "doubao-web",
     alias: "db",
-    name: "Doubao Web (ByteDance)",
+    name: "Dola Web (ByteDance)",
     icon: "auto_awesome",
     color: "#3B82F6",
-    textIcon: "DW",
-    website: "https://www.doubao.com",
-    authHint: "Paste your session cookie from doubao.com (DevTools → Application → Cookies)",
+    textIcon: "DA",
+    website: "https://www.dola.com",
+    authHint:
+      "Paste the full Cookie header from www.dola.com. It should include sessionid, ttwid, and s_v_web_id. If s_v_web_id is unavailable, fp=verify_... from a chat/completion request URL can be used as a fallback.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
@@ -298,8 +323,65 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://zenmux.ai",
     hasFree: true,
     freeNote:
-      "Free tier (5 Flows/5h, 38.64 Flows/week) — DeepSeek V3.2, GLM 4.7 Flash Free, MiMo V2 Flash Free and more. No subscription required.",
+      "Free tier (5 Flows/5h, 38.64 Flows/week) — DeepSeek V3.2, GLM 4.7 Flash Free and more. No subscription required.",
     authHint:
       "Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days.",
   },
+  "zai-web": {
+    id: "zai-web",
+    alias: "zw",
+    name: "Z.ai Web (Free)",
+    icon: "auto_awesome",
+    color: "#2563EB",
+    textIcon: "ZW",
+    website: "https://chat.z.ai",
+    hasFree: true,
+    freeNote:
+      "Free consumer web session — GLM chat models via chat.z.ai. Distinct from the API-key zai/glm providers. No subscription required.",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    authHint: "Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie)",
+  },
 };
+
+/** Resolved public site for a web-session provider (href + display host). */
+export interface WebProviderHostLink {
+  /** Full URL to open in a new tab (the provider's own `website`, or the origin
+   * derived from a registry baseUrl fallback). */
+  url: string;
+  /** Display host, e.g. `chatgpt.com` — used for the "Open ‹host› →" label. */
+  host: string;
+}
+
+/**
+ * Resolve the public website + display host for a web-session provider so the
+ * "Add session cookie" modal can render a prominent "Open ‹host› →" link.
+ *
+ * Primary source: `WEB_COOKIE_PROVIDERS[providerId].website`. When an entry has
+ * no `website` (or the provider is not in the catalog but the caller knows it is
+ * a web-session provider), the caller may pass its registry `baseUrl` as a
+ * fallback — only the origin is kept from it.
+ *
+ * Pure and React-free (unit-testable). Web-ness gating is the caller's
+ * responsibility: with no `fallbackBaseUrl`, a provider absent from
+ * `WEB_COOKIE_PROVIDERS` resolves to `null`.
+ */
+export function resolveWebProviderHost(
+  providerId: string | null | undefined,
+  fallbackBaseUrl?: string | null
+): WebProviderHostLink | null {
+  if (!providerId) return null;
+  const entry = (WEB_COOKIE_PROVIDERS as Record<string, { website?: string }>)[providerId];
+  const website = entry?.website?.trim();
+  const fallback = fallbackBaseUrl?.trim();
+  const source = website || fallback;
+  if (!source) return null;
+  try {
+    const parsed = new URL(source);
+    // Keep the website URL verbatim (it may point at a specific path like
+    // `/chat`); for a registry baseUrl fallback, keep only the origin.
+    return { url: website ? source : parsed.origin, host: parsed.host };
+  } catch {
+    return null;
+  }
+}

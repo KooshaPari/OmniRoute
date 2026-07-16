@@ -8,7 +8,18 @@ import {
 import { PROVIDERS } from "../config/constants.ts";
 import { v4 as uuidv4 } from "uuid";
 import { refreshKiroToken } from "../services/tokenRefresh.ts";
-import { splitInlineThinking, flushPendingThinking, type KiroThinkingState } from "./kiroThinking.ts";
+import {
+  isExternalIdpAuthMethod,
+  KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER,
+  KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE,
+} from "../services/kiroExternalIdp.ts";
+import {
+  splitInlineThinking,
+  flushPendingThinking,
+  type KiroThinkingState,
+} from "./kiroThinking.ts";
+import { ByteQueue, TEXT_ENCODER, parseEventFrame } from "./kiro/eventstream.ts";
+import { kiroRuntimeHost, resolveKiroRuntimeRegion } from "../services/kiroRegion.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -40,97 +51,6 @@ type KiroStreamState = {
   // Inline-thinking splitter state (populated only when thinkingExpected=true).
   thinking?: KiroThinkingState;
 };
-
-type EventFrame = {
-  headers: Record<string, string>;
-  payload: JsonRecord | null;
-};
-
-class ByteQueue {
-  private chunks: Uint8Array[] = [];
-  private headOffset = 0;
-  length = 0;
-
-  push(chunk: Uint8Array) {
-    if (!(chunk instanceof Uint8Array) || chunk.length === 0) return;
-    this.chunks.push(chunk);
-    this.length += chunk.length;
-  }
-
-  peekUint32BE(offset = 0): number | null {
-    if (this.length < offset + 4) return null;
-
-    let value = 0;
-    for (let i = 0; i < 4; i++) {
-      value = (value << 8) | this.byteAt(offset + i);
-    }
-    return value >>> 0;
-  }
-
-  read(length: number): Uint8Array | null {
-    if (length < 0 || this.length < length) return null;
-
-    const output = new Uint8Array(length);
-    let written = 0;
-
-    while (written < length) {
-      const head = this.chunks[0];
-      const available = head.length - this.headOffset;
-      const take = Math.min(available, length - written);
-      output.set(head.subarray(this.headOffset, this.headOffset + take), written);
-      written += take;
-      this.headOffset += take;
-      this.length -= take;
-
-      if (this.headOffset >= head.length) {
-        this.chunks.shift();
-        this.headOffset = 0;
-      }
-    }
-
-    return output;
-  }
-
-  private byteAt(offset: number): number {
-    let remaining = offset;
-    for (let i = 0; i < this.chunks.length; i++) {
-      const chunk = this.chunks[i];
-      const start = i === 0 ? this.headOffset : 0;
-      const available = chunk.length - start;
-      if (remaining < available) {
-        return chunk[start + remaining];
-      }
-      remaining -= available;
-    }
-    return 0;
-  }
-}
-
-// ── CRC32 lookup table (IEEE polynomial, no dependency) ──
-const CRC32_TABLE = new Uint32Array(256);
-const TEXT_ENCODER = new TextEncoder();
-const TEXT_DECODER = new TextDecoder();
-for (let i = 0; i < 256; i++) {
-  let c = i;
-  for (let j = 0; j < 8; j++) {
-    c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-  }
-  CRC32_TABLE[i] = c >>> 0;
-}
-
-// Full per-frame message-CRC validation is O(frame bytes) and runs for EVERY frame of
-// every Kiro response on the main thread. The transport is TLS-protected and the 8-byte
-// prelude CRC already guards framing, so the full-message CRC is redundant overhead that
-// contributes to the CPU-runaway on large/long generations. Keep it opt-in for debugging.
-const KIRO_VERIFY_FULL_CRC = process.env.KIRO_VERIFY_FULL_CRC === "true";
-
-function crc32(buf: Uint8Array) {
-  let crc = 0xffffffff;
-  for (let i = 0; i < buf.length; i++) {
-    crc = CRC32_TABLE[(crc ^ buf[i]) & 0xff] ^ (crc >>> 8);
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-}
 
 /**
  * Flush buffered tool arguments at finish boundaries.
@@ -233,35 +153,28 @@ function ensureKiroUsage(state: KiroStreamState) {
 }
 
 /**
- * Resolve the AWS region for a Kiro/CodeWhisperer connection. Enterprise AWS IAM Identity
- * Center accounts are region-bound: the access token, the Q Developer profile ARN and the
- * runtime endpoint must all match the region the IdC instance lives in (e.g. eu-central-1).
- * A request signed for one region is rejected by another ("bearer token is invalid"), and a
- * regional profileArn sent to us-east-1 fails with "Improperly formed request". Falls back to
- * the region embedded in the profileArn, then us-east-1 (the AWS Builder ID default).
+ * Resolve the RUNTIME AWS region for a Kiro/CodeWhisperer connection.
+ *
+ * The runtime region is the region of the Amazon Q Developer profile (embedded in the
+ * profileArn — always us-east-1 or eu-central-1), NOT the IAM Identity Center / OIDC token
+ * region. An enterprise IdC instance may live in eu-north-1 (or any region), but the Q Developer
+ * profile that serves generateAssistantResponse only exists in us-east-1 / eu-central-1, so a
+ * runtime call must target the profileArn's region — routing to q.{idcRegion}.amazonaws.com
+ * (a host that does not exist) is what caused "no limits + 502 on every request". Delegates to
+ * the shared resolver (profileArn region → valid stored profile region → us-east-1). The IdC
+ * token region is used only for oidc.{region} token mint/refresh, elsewhere.
  */
 export function resolveKiroRegion(
   credentials: { providerSpecificData?: unknown } | null | undefined
 ): string {
-  const psd = (credentials?.providerSpecificData || {}) as Record<string, unknown>;
-  const region = typeof psd.region === "string" ? psd.region.trim().toLowerCase() : "";
-  if (region) return region;
-  const arn = typeof psd.profileArn === "string" ? psd.profileArn.toLowerCase() : "";
-  const match = arn.match(/^arn:aws:codewhisperer:([a-z0-9-]+):/);
-  return match ? match[1] : "us-east-1";
+  return resolveKiroRuntimeRegion(
+    (credentials?.providerSpecificData || {}) as { region?: unknown; profileArn?: unknown }
+  );
 }
 
-/**
- * CodeWhisperer/Amazon Q runtime host for a region. us-east-1 keeps the legacy
- * codewhisperer.us-east-1 host (AWS Builder ID); other regions use the regional Amazon Q
- * endpoint q.{region}.amazonaws.com — codewhisperer.{region}.amazonaws.com does not resolve
- * for non-us-east-1 regions.
- */
-export function kiroRuntimeHost(region: string): string {
-  return region === "us-east-1"
-    ? "https://codewhisperer.us-east-1.amazonaws.com"
-    : `https://q.${region}.amazonaws.com`;
-}
+// Re-exported from the shared region module so existing importers (and tests) that pull
+// kiroRuntimeHost from this executor keep working.
+export { kiroRuntimeHost };
 
 /**
  * KiroExecutor - Executor for Kiro AI (AWS CodeWhisperer)
@@ -282,8 +195,29 @@ export class KiroExecutor extends BaseExecutor {
       "anthropic-beta": "prompt-caching-2024-07-31",
     };
 
-    if (credentials.accessToken) {
-      headers["Authorization"] = `Bearer ${credentials.accessToken}`;
+    const authMethod =
+      typeof credentials.providerSpecificData?.authMethod === "string"
+        ? credentials.providerSpecificData.authMethod
+        : undefined;
+    const isApiKey = authMethod === "api_key";
+    const token = isApiKey
+      ? credentials.apiKey || credentials.accessToken
+      : credentials.accessToken;
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+      // Long-lived Kiro/CodeWhisperer API keys authenticate with `tokentype: API_KEY`.
+      if (isApiKey) headers["tokentype"] = "API_KEY";
+
+      // Enterprise / Microsoft Entra "Your organization" (external_idp) logins send an
+      // org-IdP-issued access token. CodeWhisperer only binds it to the Amazon Q Developer
+      // profile when the request carries `TokenType: EXTERNAL_IDP`; without it every call
+      // returns `ValidationException: Invalid ARN <clientId>` (the service falls back to the
+      // token's client id as the resource ARN). AWS SSO (Builder ID / IDC) and social tokens
+      // must NOT send this header, so it is gated on the persisted authMethod.
+      if (isExternalIdpAuthMethod(authMethod)) {
+        headers[KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER] = KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE;
+      }
     }
 
     return headers;
@@ -300,6 +234,12 @@ export class KiroExecutor extends BaseExecutor {
     if (b.conversationState !== undefined) kiroPayload.conversationState = b.conversationState;
     if (b.profileArn !== undefined) kiroPayload.profileArn = b.profileArn;
     if (b.inferenceConfig !== undefined) kiroPayload.inferenceConfig = b.inferenceConfig;
+    // Thinking control: `additionalModelRequestFields` ({output_config.effort,
+    // thinking:{type:"adaptive"}, max_tokens}) is a recognized top-level field on
+    // GenerateAssistantResponse — it steers adaptive reasoning. Built by the
+    // openai-to-kiro translator only when the request asked for thinking.
+    if (b.additionalModelRequestFields !== undefined)
+      kiroPayload.additionalModelRequestFields = b.additionalModelRequestFields;
 
     // Fallback: if somehow conversationState isn't there, return the rest without model
     // (for backward compatibility if something else bypasses the translator)
@@ -354,16 +294,18 @@ export class KiroExecutor extends BaseExecutor {
     // channel.
     const tb = transformedBody as Record<string, unknown>;
     const userContent =
-      (
+      ((
         (
-          (
-            (tb?.conversationState as Record<string, unknown>)
-              ?.currentMessage as Record<string, unknown>
-          )?.userInputMessage as Record<string, unknown>
-        )?.content as string
-      ) || "";
+          (tb?.conversationState as Record<string, unknown>)?.currentMessage as Record<
+            string,
+            unknown
+          >
+        )?.userInputMessage as Record<string, unknown>
+      )?.content as string) || "";
     const thinkingExpected = userContent.includes("<thinking_mode>enabled</thinking_mode>");
-    const transformedResponse = this.transformEventStreamToSSE(response, model, { thinkingExpected });
+    const transformedResponse = this.transformEventStreamToSSE(response, model, {
+      thinkingExpected,
+    });
 
     return { response: transformedResponse, url, headers, transformedBody };
   }
@@ -466,6 +408,56 @@ export class KiroExecutor extends BaseExecutor {
             if (!state.totalContentLength) state.totalContentLength = 0;
             if (!state.contextUsagePercentage) state.contextUsagePercentage = 0;
 
+            // Native reasoning frames. Verified against the live CodeWhisperer
+            // stream (2026-07): with adaptive thinking enabled (via
+            // additionalModelRequestFields), Kiro streams reasoning as a dedicated
+            // `reasoningContentEvent` frame carrying `{ text, signature }` — NOT
+            // inline `<thinking>` tags and NOT `assistantResponseEvent`. Some
+            // models/variants instead use a `reasoningText` object or a flat
+            // `{ text }` (cf. javargasm/pi-kiro `src/event-parser.ts`). OmniRoute
+            // had no handler for this event, so the reasoning was silently dropped;
+            // route it to the OpenAI `reasoning_content` channel.
+            {
+              const rp = event.payload as Record<string, unknown> | undefined;
+              const rt = rp?.reasoningText;
+              if (eventType === "reasoningContentEvent" || rt !== undefined) {
+                let nativeReasoning = "";
+                if (rt && typeof rt === "object") {
+                  const rto = rt as { text?: unknown; Text?: unknown };
+                  nativeReasoning =
+                    typeof rto.text === "string"
+                      ? rto.text
+                      : typeof rto.Text === "string"
+                        ? rto.Text
+                        : "";
+                } else if (typeof rt === "string") {
+                  nativeReasoning = rt;
+                } else if (typeof rp?.text === "string") {
+                  nativeReasoning = rp.text as string;
+                }
+                if (nativeReasoning) {
+                  state.hasReasoningContent = true;
+                  const reasoningDelta: JsonRecord =
+                    (state.reasoningChunkCount ?? 0) === 0 && chunkIndex === 0
+                      ? { role: "assistant", reasoning_content: nativeReasoning }
+                      : { reasoning_content: nativeReasoning };
+                  const chunk: JsonRecord = {
+                    id: responseId,
+                    object: "chat.completion.chunk",
+                    created,
+                    model,
+                    choices: [{ index: 0, delta: reasoningDelta, finish_reason: null }],
+                  };
+                  chunkIndex++;
+                  state.reasoningChunkCount = (state.reasoningChunkCount ?? 0) + 1;
+                  controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+                }
+                // Consume the reasoning frame (incl. signature-only) so it never
+                // falls through to the content handlers below.
+                continue;
+              }
+            }
+
             // Handle assistantResponseEvent
             if (eventType === "assistantResponseEvent") {
               const content =
@@ -494,7 +486,10 @@ export class KiroExecutor extends BaseExecutor {
                       choices: [
                         {
                           index: 0,
-                          delta: chunkIndex === 0 ? { role: "assistant", content: text } : { content: text },
+                          delta:
+                            chunkIndex === 0
+                              ? { role: "assistant", content: text }
+                              : { content: text },
                           finish_reason: null,
                         },
                       ],
@@ -805,6 +800,7 @@ export class KiroExecutor extends BaseExecutor {
   }
 
   async refreshCredentials(credentials: ProviderCredentials, log?: ExecutorLog | null) {
+    if (credentials.providerSpecificData?.authMethod === "api_key") return null;
     if (!credentials.refreshToken) return null;
 
     try {
@@ -840,103 +836,6 @@ export class KiroExecutor extends BaseExecutor {
       log?.error?.("TOKEN", `Kiro refresh error: ${err.message}`);
       return null;
     }
-  }
-}
-
-/**
- * Parse AWS EventStream frame
- */
-function parseEventFrame(data: Uint8Array): EventFrame | null {
-  try {
-    const view = new DataView(data.buffer, data.byteOffset);
-    const totalLength = view.getUint32(0, false);
-    const headersLength = view.getUint32(4, false);
-
-    // ── CRC32 validation ──
-    // Prelude CRC covers bytes [0..7] (totalLength + headersLength)
-    const preludeCRC = view.getUint32(8, false);
-    const computedPreludeCRC = crc32(data.slice(0, 8));
-    if (preludeCRC !== computedPreludeCRC) {
-      console.warn(
-        `[Kiro] Prelude CRC mismatch: expected ${preludeCRC}, got ${computedPreludeCRC} — skipping corrupted frame`
-      );
-      return null;
-    }
-
-    // Message CRC covers bytes [0..totalLength-5] (everything except the CRC itself).
-    // Skipped by default (O(frame bytes) per frame) — the prelude CRC above already
-    // validates framing and the stream is TLS-protected. Enable KIRO_VERIFY_FULL_CRC=true
-    // to restore full validation for debugging corrupted-stream issues.
-    if (KIRO_VERIFY_FULL_CRC) {
-      const messageCRC = view.getUint32(data.length - 4, false);
-      const computedMessageCRC = crc32(data.slice(0, data.length - 4));
-      if (messageCRC !== computedMessageCRC) {
-        console.warn(
-          `[Kiro] Message CRC mismatch: expected ${messageCRC}, got ${computedMessageCRC} — skipping corrupted frame`
-        );
-        return null;
-      }
-    }
-    // Parse headers
-    const headers: Record<string, string> = {};
-    let offset = 12; // After prelude
-    const headerEnd = 12 + headersLength;
-
-    while (offset < headerEnd && offset < data.length) {
-      const nameLen = data[offset];
-      offset++;
-      if (offset + nameLen > data.length) break;
-
-      const name = TEXT_DECODER.decode(data.subarray(offset, offset + nameLen));
-      offset += nameLen;
-
-      const headerType = data[offset];
-      offset++;
-
-      if (headerType === 7) {
-        // String type
-        const valueLen = (data[offset] << 8) | data[offset + 1];
-        offset += 2;
-        if (offset + valueLen > data.length) break;
-
-        const value = TEXT_DECODER.decode(data.subarray(offset, offset + valueLen));
-        offset += valueLen;
-        headers[name] = value;
-      } else {
-        break;
-      }
-    }
-
-    // Parse payload
-    const payloadStart = 12 + headersLength;
-    const payloadEnd = data.length - 4; // Exclude message CRC
-
-    let payload: JsonRecord | null = null;
-    if (payloadEnd > payloadStart) {
-      const payloadStr = TEXT_DECODER.decode(data.subarray(payloadStart, payloadEnd));
-
-      // Skip empty or whitespace-only payloads
-      if (!payloadStr || !payloadStr.trim()) {
-        return { headers, payload: null };
-      }
-
-      try {
-        payload = JSON.parse(payloadStr);
-      } catch (parseError) {
-        const err = parseError instanceof Error ? parseError : new Error(String(parseError));
-        // Log parse error for debugging
-        console.warn(
-          `[Kiro] Failed to parse payload: ${err.message} | payload: ${payloadStr.substring(0, 100)}`
-        );
-        payload = { raw: payloadStr };
-      }
-    }
-
-    return { headers, payload };
-  } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err));
-    console.warn(`[Kiro] Frame parse error: ${error.message}`);
-    return null;
   }
 }
 

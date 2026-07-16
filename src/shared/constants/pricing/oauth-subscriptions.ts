@@ -2,7 +2,13 @@
  * Pricing data — oauth-subscriptions family (OAuth / IDE subscription aliases (cc, codex, antigravity, copilot, kiro…)).
  * Pure data; merged by default-pricing.ts via spread (god-file decomposition; semantic split).
  */
-import { GPT_5_3_CODEX_PRICING, GPT_5_5_PRICING } from "./shared-tiers";
+import {
+  GPT_5_3_CODEX_PRICING,
+  GPT_5_5_PRICING,
+  GPT_5_6_LUNA_PRICING,
+  GPT_5_6_SOL_PRICING,
+  GPT_5_6_TERRA_PRICING,
+} from "./shared-tiers";
 
 export const DEFAULT_PRICING_OAUTH = {
   cc: {
@@ -41,6 +47,13 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 15.0,
       cache_creation: 3.75,
     },
+    "claude-sonnet-5": {
+      input: 3.0,
+      output: 15.0,
+      cached: 0.3,
+      reasoning: 15.0,
+      cache_creation: 3.75,
+    },
     "claude-opus-4-5-20251101": {
       input: 5.0,
       output: 25.0,
@@ -65,6 +78,28 @@ export const DEFAULT_PRICING_OAUTH = {
   },
   cx: {
     "codex-auto-review": GPT_5_5_PRICING,
+    // Codex uses credits per 1M tokens. OmniRoute stores the dollar-equivalent
+    // values below at the documented conversion of 25 credits per USD.
+    "gpt-5.6-sol": GPT_5_6_SOL_PRICING,
+    "gpt-5.6-sol-ultra": GPT_5_6_SOL_PRICING,
+    "gpt-5.6-sol-max": GPT_5_6_SOL_PRICING,
+    "gpt-5.6-sol-xhigh": GPT_5_6_SOL_PRICING,
+    "gpt-5.6-sol-high": GPT_5_6_SOL_PRICING,
+    "gpt-5.6-sol-medium": GPT_5_6_SOL_PRICING,
+    "gpt-5.6-sol-low": GPT_5_6_SOL_PRICING,
+    "gpt-5.6-terra": GPT_5_6_TERRA_PRICING,
+    "gpt-5.6-terra-ultra": GPT_5_6_TERRA_PRICING,
+    "gpt-5.6-terra-max": GPT_5_6_TERRA_PRICING,
+    "gpt-5.6-terra-xhigh": GPT_5_6_TERRA_PRICING,
+    "gpt-5.6-terra-high": GPT_5_6_TERRA_PRICING,
+    "gpt-5.6-terra-medium": GPT_5_6_TERRA_PRICING,
+    "gpt-5.6-terra-low": GPT_5_6_TERRA_PRICING,
+    "gpt-5.6-luna": GPT_5_6_LUNA_PRICING,
+    "gpt-5.6-luna-max": GPT_5_6_LUNA_PRICING,
+    "gpt-5.6-luna-xhigh": GPT_5_6_LUNA_PRICING,
+    "gpt-5.6-luna-high": GPT_5_6_LUNA_PRICING,
+    "gpt-5.6-luna-medium": GPT_5_6_LUNA_PRICING,
+    "gpt-5.6-luna-low": GPT_5_6_LUNA_PRICING,
     // GPT 5.5
     "gpt-5.5": GPT_5_5_PRICING,
     "gpt5.5": GPT_5_5_PRICING,
@@ -73,42 +108,6 @@ export const DEFAULT_PRICING_OAUTH = {
     "gpt-5.5-medium": GPT_5_5_PRICING,
     "gpt-5.5-low": GPT_5_5_PRICING,
     "gpt-5.5-none": GPT_5_5_PRICING,
-    // GPT 5.4
-    "gpt-5.4": {
-      input: 5.0,
-      output: 20.0,
-      cached: 2.5,
-      reasoning: 30.0,
-      cache_creation: 5.0,
-    },
-    "gpt5.4": {
-      input: 5.0,
-      output: 20.0,
-      cached: 2.5,
-      reasoning: 30.0,
-      cache_creation: 5.0,
-    },
-    // T12: fallback pricing for gpt-5.4 mini variants
-    "gpt-5.4-mini": {
-      input: 1.5,
-      output: 6.0,
-      cached: 0.75,
-      reasoning: 9.0,
-      cache_creation: 1.5,
-    },
-    "gpt5.4-mini": {
-      input: 1.5,
-      output: 6.0,
-      cached: 0.75,
-      reasoning: 9.0,
-      cache_creation: 1.5,
-    },
-    // gpt-5.4 reasoning-effort variants share the gpt-5.4 tier (registry exposes
-    // -xhigh/-high/-medium/-low; without these rows they resolved to $0).
-    "gpt-5.4-xhigh": GPT_5_3_CODEX_PRICING,
-    "gpt-5.4-high": GPT_5_3_CODEX_PRICING,
-    "gpt-5.4-medium": GPT_5_3_CODEX_PRICING,
-    "gpt-5.4-low": GPT_5_3_CODEX_PRICING,
     // GPT 5.3 Codex family (all same pricing tier)
     "gpt-5.3-codex-spark": GPT_5_3_CODEX_PRICING,
     "gpt-5.3-codex": GPT_5_3_CODEX_PRICING,
@@ -526,6 +525,13 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 15.0,
       cache_creation: 3.0,
     },
+    "claude-sonnet-5": {
+      input: 3.0,
+      output: 15.0,
+      cached: 1.5,
+      reasoning: 15.0,
+      cache_creation: 3.0,
+    },
     "deepseek-v3.2": {
       input: 0.27,
       output: 1.1,
@@ -570,7 +576,8 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 8.0,
       cache_creation: 2.0,
     },
-    // Kiro "Auto" model — routes to best available
+    // Kiro "Auto" pricing — retained for both the upstream "auto" id and the
+    // local "auto-kiro" selector. The translator maps auto-kiro back to auto.
     auto: {
       input: 3.0,
       output: 15.0,
@@ -578,7 +585,6 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 15.0,
       cache_creation: 3.0,
     },
-    // Registry exposes the Auto model as id "auto-kiro" — keep both keys priced.
     "auto-kiro": {
       input: 3.0,
       output: 15.0,

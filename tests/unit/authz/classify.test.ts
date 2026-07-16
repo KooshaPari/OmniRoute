@@ -136,10 +136,46 @@ const cases: Case[] = [
     expectedClass: "PUBLIC",
   },
   {
-    name: "/api/cloud/* is PUBLIC",
-    path: "/api/cloud/something",
+    name: "/api/health/ping is PUBLIC",
+    path: "/api/health/ping",
     method: "GET",
     expectedClass: "PUBLIC",
+  },
+  {
+    name: "/api/cloud/auth POST is PUBLIC",
+    path: "/api/cloud/auth",
+    method: "POST",
+    expectedClass: "PUBLIC",
+  },
+  {
+    name: "/api/cloud/model/resolve POST is PUBLIC",
+    path: "/api/cloud/model/resolve",
+    method: "POST",
+    expectedClass: "PUBLIC",
+  },
+  {
+    name: "/api/cloud/models/alias GET is PUBLIC",
+    path: "/api/cloud/models/alias",
+    method: "GET",
+    expectedClass: "PUBLIC",
+  },
+  {
+    name: "/api/cloud/credentials/update PUT is MANAGEMENT",
+    path: "/api/cloud/credentials/update",
+    method: "PUT",
+    expectedClass: "MANAGEMENT",
+  },
+  {
+    name: "/api/cloud/models/alias PUT is MANAGEMENT",
+    path: "/api/cloud/models/alias",
+    method: "PUT",
+    expectedClass: "MANAGEMENT",
+  },
+  {
+    name: "/api/cloud/unknown GET is MANAGEMENT",
+    path: "/api/cloud/unknown",
+    method: "GET",
+    expectedClass: "MANAGEMENT",
   },
   {
     name: "/api/oauth/* is PUBLIC",
@@ -175,6 +211,13 @@ const cases: Case[] = [
   { name: "/api/db/health MANAGEMENT", path: "/api/db/health", expectedClass: "MANAGEMENT" },
   { name: "/api/settings MANAGEMENT", path: "/api/settings", expectedClass: "MANAGEMENT" },
   { name: "/api/audit MANAGEMENT", path: "/api/audit", expectedClass: "MANAGEMENT" },
+
+  {
+    name: "/api/usage/om-usage is PUBLIC (handler enforces its own API key auth)",
+    path: "/api/usage/om-usage",
+    method: "GET",
+    expectedClass: "PUBLIC",
+  },
 
   {
     name: "Unknown top-level path defaults MANAGEMENT (fail-closed)",

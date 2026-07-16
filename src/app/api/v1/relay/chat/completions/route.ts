@@ -22,9 +22,11 @@ import {
   getBifrostRoutingConfig,
   getRoutingFallbackHeader,
   resolveRelayRoutingBackend,
-  shouldTryBifrost,
+  shouldTryBifrostForRequest,
   type BifrostRoutingConfig,
 } from "./routingBackend";
+import { getProviderPluginManifestEntryForModel } from "@omniroute/open-sse/config/providerPluginManifestRegistry.ts";
+import { getProviderPluginManifestHeader } from "@omniroute/open-sse/config/providerPluginManifestUrl.ts";
 import { finalizeReadableStream } from "./streamFinalizer";
 import {
   clearBifrostFailure,
@@ -73,6 +75,7 @@ async function forwardToBifrost(
     "Content-Type": "application/json",
     "x-relay-token-id": token.id,
     "x-relay-client-ip": clientIp,
+    ...getProviderPluginManifestHeader(new URL(request.url).origin),
   };
   if (config.apiKey) {
     upstreamHeaders.Authorization = `Bearer ${config.apiKey}`;
@@ -212,7 +215,7 @@ export async function POST(request: Request) {
     }
 
     // 2b. Per-token rate limit check
-    const rateCheck = checkRateLimit(token.id);
+    const rateCheck = checkRateLimit(token.id, token);
     if (!rateCheck.allowed) {
       recordRelayUsage(token.id, {
         requestId: request.headers.get("x-request-id") || undefined,
@@ -290,9 +293,17 @@ export async function POST(request: Request) {
     const backend = resolveRelayRoutingBackend();
     const bifrostConfig = getBifrostRoutingConfig();
     let bifrostFallbackReason: string | null = null;
-    if (shouldTryBifrost(backend, bifrostConfig)) {
-      const cooldown =
-        backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
+    const bifrostDecision = shouldTryBifrostForRequest(
+      backend,
+      bifrostConfig,
+      parsedBody,
+      (model) => getProviderPluginManifestEntryForModel(model)?.sidecar ?? null
+    );
+    if (bifrostDecision.fallbackReason) {
+      bifrostFallbackReason = bifrostDecision.fallbackReason;
+    }
+    if (bifrostDecision.tryBifrost) {
+      const cooldown = backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
       if (cooldown) {
         bifrostFallbackReason = `bifrost-cooldown; remaining=${cooldown.remainingMs}`;
       } else {

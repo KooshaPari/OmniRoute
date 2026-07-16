@@ -1,7 +1,7 @@
 /**
  * Live Dashboard WebSocket Server
  *
- * Separate process (runs alongside Next.js on port 20129).
+ * Separate process (runs alongside Next.js on port 20132).
  * Forwards EventBus events to subscribed dashboard clients.
  *
  * Protocol:
@@ -20,12 +20,7 @@ import { randomUUID } from "crypto";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
-import type {
-  WsClientMessage,
-  WsServerMessage,
-  WsEventMessage,
-  WsAuthResult,
-} from "./types";
+import type { WsClientMessage, WsServerMessage, WsEventMessage, WsAuthResult } from "./types";
 
 import { emit, on, onAny, getEventHistory, type HistoryEntry } from "@/lib/events/eventBus";
 
@@ -41,7 +36,7 @@ import {
 
 // ── Config ────────────────────────────────────────────────────────────────
 
-const DEFAULT_PORT = 20129;
+const DEFAULT_PORT = 20132;
 // Loopback by default. Opt-in to LAN exposure via LIVE_WS_HOST=0.0.0.0 — the
 // caller is then responsible for fronting it with a TLS terminator + origin
 // allow-list. Mirrors the route guard "local-only by default" posture.
@@ -580,7 +575,19 @@ export async function startLiveDashboardServer(
     clients.clear();
   });
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    // Reject on bind failure (e.g. EADDRINUSE when the API bridge already holds
+    // 20129) instead of crashing the process — the crash-loop of issue #6324.
+    // The listener MUST be on `wss`, not `server`: ws re-emits the server's
+    // "error" via wss.emit(), which throws synchronously when wss has no
+    // listener — before any `server.on("error")` handler could run. The server
+    // never opened, so wss.on("close") won't fire; release the EventBus
+    // subscription here so a failed start leaks nothing.
+    wss.once("error", (err: NodeJS.ErrnoException) => {
+      unsubscribe();
+      clients.clear();
+      reject(err);
+    });
     server.listen(port, host, () => {
       console.log("[LiveWS] Dashboard WebSocket server listening on %s:%d", host, port);
       resolve(server);

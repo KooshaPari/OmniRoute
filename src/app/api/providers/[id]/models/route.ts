@@ -3,12 +3,11 @@ import {
   isClaudeCodeCompatibleProvider,
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
-  isSelfHostedChatProvider,
   NOAUTH_PROVIDERS,
 } from "@/shared/constants/providers";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getModelsByProviderId } from "@/shared/constants/models";
-import { getStaticModelsForProvider, type LocalCatalogModel } from "@/lib/providers/staticModels";
+import { getStaticModelsForProvider } from "@/lib/providers/staticModels";
 import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
 import {
   getProviderConnectionById,
@@ -22,25 +21,21 @@ import {
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import {
+  getProviderOutboundGuard,
+  getProviderValidationGuard,
+} from "@/shared/network/outboundUrlGuard";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
 import { fetchGitHubCopilotModels } from "@omniroute/open-sse/services/githubCopilotModels.ts";
 import { fetchKiroAvailableModels } from "@omniroute/open-sse/services/kiroModels.ts";
-import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
-import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
-import {
-  getAntigravityModelsDiscoveryUrls,
-  getAntigravityFetchAvailableModelsUrls,
-} from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import {
   buildGlmCodingHeaders,
   buildGlmModelsUrl,
 } from "@omniroute/open-sse/config/glmProvider.ts";
 import { getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { getVideoProvider } from "@omniroute/open-sse/config/videoRegistry.ts";
-import { resolveAntigravityVersion } from "@omniroute/open-sse/services/antigravityVersion.ts";
 import {
   discoverBedrockNativeModels,
   isBedrockNativeApiError,
@@ -64,12 +59,6 @@ import {
   WATSONX_DEFAULT_BASE_URL,
   buildWatsonxModelsUrl,
 } from "@omniroute/open-sse/config/watsonx.ts";
-import {
-  getClientVisibleAntigravityModelName,
-  isUserCallableAntigravityModelId,
-  toClientAntigravityModelId,
-} from "@omniroute/open-sse/config/antigravityModelAliases.ts";
-import { normalizeAntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
 import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import {
@@ -85,699 +74,38 @@ import {
   parseGeminiModelsList,
   type GeminiDiscoveryModel,
 } from "@/lib/providerModels/geminiModelsParser";
-import { getSyncedAvailableModels } from "@/lib/db/models";
+import { getSyncedAvailableModels, getCustomModels } from "@/lib/db/models";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
-
-type JsonRecord = Record<string, unknown>;
-const antigravityDiscoveryInflight = new Map<
-  string,
-  Promise<Array<{ id: string; name: string }>>
->();
-
-function asRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
-function toNonEmptyString(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
-
-function getProviderBaseUrl(providerSpecificData: unknown): string | null {
-  const data = asRecord(providerSpecificData);
-  const baseUrl = data.baseUrl;
-  return typeof baseUrl === "string" && baseUrl.trim().length > 0 ? baseUrl : null;
-}
-
-function normalizeAzureOpenAIBaseUrl(baseUrl: string) {
-  return baseUrl
-    .trim()
-    .replace(/\/+$/, "")
-    .replace(/\/openai$/i, "")
-    .replace(/\/openai\/deployments\/[^/]+\/chat\/completions.*$/i, "");
-}
-
-function getAzureOpenAIApiVersion(providerSpecificData: unknown) {
-  const data = asRecord(providerSpecificData);
-  const apiVersion =
-    toNonEmptyString(data.apiVersion) || toNonEmptyString(data.validationApiVersion);
-  return apiVersion || "2024-12-01-preview";
-}
-
-function isLocalOpenAIStyleProvider(provider: string): boolean {
-  return isSelfHostedChatProvider(provider);
-}
-
-const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
-  "modal",
-  "reka",
-  "empower",
-  "nous-research",
-  "poe",
-  "siliconflow",
-  // #3976: these carry a real modelsUrl but were not classified by any live-fetch
-  // branch, so their hardcoded registry catalog was served instead of the live
-  // `<baseUrl>/models` list. Live fetch falls back to the local catalog on error.
-  "llm7",
-  "byteplus",
-  // #4202: zenmux is the same case — its free models (e.g. z-ai/glm-5.2-free,
-  // moonshotai/kimi-k2.7-code-free) live only on the upstream /models list.
-  "zenmux",
-  // #4249: vercel-ai-gateway carries a real baseUrl (.../v1/chat/completions) but
-  // was unclassified, so import served the 5-entry hardcoded catalog instead of the
-  // live `https://ai-gateway.vercel.sh/v1/models` list. Falls back to local on error.
-  "vercel-ai-gateway",
-  // #4239 / #4155 / #3841: OpenAI-compatible aggregators whose real catalog lives
-  // on the upstream `/v1/models` list — serve it live, fall back to the seeded
-  // registry catalog on error (same case as zenmux).
-  "openadapter",
-  "dit",
-  "tokenrouter",
-  // provider-model-sweep (2026-06-19): same class as #3976/#4202/#4249 — keyed
-  // openai-style providers with a real live `<baseUrl>/models` catalog, served
-  // their small hardcoded seed because unclassified. Seed stays as offline fallback.
-  "venice",
-  "deepinfra",
-  "wandb",
-  "pollinations",
-  "nscale",
-  "inference-net",
-  "moonshot",
-  // provider-model-sweep (2026-06-19) cont.: GPU-cloud / aggregator marketplaces
-  // hosting large, volatile OSS catalogs. The sweep confirmed each exposes a live
-  // `<baseUrl>/v1/models` endpoint (200 public or 401/403 = exists + keyed), so live
-  // fetch keeps the catalog fresh; the registry seed remains the offline fallback.
-  "crof",
-  "featherless-ai",
-  "ovhcloud",
-  "sambanova",
-  "orcarouter",
-  "uncloseai",
-  "opencode-go",
-  "baseten",
-  "hyperbolic",
-  "nebius",
-  "scaleway",
-  "together",
-  // escalated cmqlvxg4o: api-airforce has a live `https://api.airforce/v1/models` catalog
-  // but was left out of the sweep, so it served a stale hardcoded seed (grok-3, grok-2-1212,
-  // claude-3.7-sonnet …). Live fetch keeps it fresh; seed stays as the offline fallback.
-  "api-airforce",
-  // DGrid is an OpenAI-compatible gateway whose default seed is the free auto-router;
-  // the full model catalog is discovered live from https://api.dgrid.ai/v1/models.
-  "dgrid",
-]);
-
-function isNamedOpenAIStyleProvider(provider: string): boolean {
-  return NAMED_OPENAI_STYLE_PROVIDERS.has(provider);
-}
-
-function mergeLocalCatalogModels<T extends LocalCatalogModel, U extends LocalCatalogModel>(
-  registryCatalogModels: T[],
-  specialtyCatalogModels: U[]
-): Array<T | U> {
-  if (registryCatalogModels.length === 0) return specialtyCatalogModels;
-
-  const registryModelIds = new Set(registryCatalogModels.map((model) => model.id));
-  return [
-    ...registryCatalogModels,
-    ...specialtyCatalogModels.filter((model) => !registryModelIds.has(model.id)),
-  ];
-}
-
-function buildOptionalBearerHeaders(token: string | null | undefined): Record<string, string> {
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
-
-function buildNamedOpenAiStyleHeaders(
-  provider: string,
-  token: string | null | undefined
-): Record<string, string> {
-  const headers = buildOptionalBearerHeaders(token);
-
-  if (provider === "reka" && token) {
-    headers["X-Api-Key"] = token;
-  }
-
-  return headers;
-}
-
-function normalizeAntigravityModelsResponse(data: unknown): Array<{ id: string; name: string }> {
-  const payload = asRecord(data).models;
-
-  if (Array.isArray(payload)) {
-    return payload
-      .map((value) => {
-        const item = asRecord(value);
-        const id =
-          typeof item.id === "string"
-            ? item.id
-            : typeof item.name === "string"
-              ? item.name
-              : typeof item.model === "string"
-                ? item.model
-                : "";
-        const name =
-          typeof item.displayName === "string"
-            ? item.displayName
-            : typeof item.name === "string"
-              ? item.name
-              : id;
-        return id ? { id, name } : null;
-      })
-      .filter((value): value is { id: string; name: string } => Boolean(value));
-  }
-
-  const modelsById = asRecord(payload);
-  return Object.entries(modelsById)
-    .map(([id, value]) => {
-      const item = asRecord(value);
-      const name =
-        typeof item.displayName === "string"
-          ? item.displayName
-          : typeof item.name === "string"
-            ? item.name
-            : id;
-      return id ? { id, name } : null;
-    })
-    .filter((value): value is { id: string; name: string } => Boolean(value));
-}
-
-function filterUserCallableAntigravityModels(models: Array<{ id: string; name: string }>) {
-  return models.filter((model) => isUserCallableAntigravityModelId(model.id));
-}
-
-function mapAntigravityModelForClient(model: { id: string; name: string }): {
-  id: string;
-  name: string;
-} {
-  const clientId = toClientAntigravityModelId(model.id);
-  return {
-    id: clientId,
-    name: getClientVisibleAntigravityModelName(clientId, model.name),
-  };
-}
-
-async function fetchAntigravityDiscoveryModelsCached(
-  accessToken: string,
-  connectionId: string,
-  proxy: unknown,
-  providerSpecificData?: unknown
-): Promise<Array<{ id: string; name: string }>> {
-  const profile = normalizeAntigravityClientProfile(asRecord(providerSpecificData).clientProfile);
-  const cacheKey = `${connectionId}:${accessToken.substring(0, 16)}:${profile}`;
-  const inflight = antigravityDiscoveryInflight.get(cacheKey);
-  if (inflight) return inflight;
-
-  const promise = (async () => {
-    await resolveAntigravityVersion();
-    await ensureAntigravityProjectAssigned(
-      accessToken,
-      fetch,
-      normalizeAntigravityClientProfile(asRecord(providerSpecificData).clientProfile)
-    );
-
-    for (const discoveryUrl of [
-      ...getAntigravityFetchAvailableModelsUrls(),
-      ...getAntigravityModelsDiscoveryUrls(),
-    ]) {
-      try {
-        const response = await safeOutboundFetch(discoveryUrl, {
-          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-          guard: getProviderOutboundGuard(),
-          proxyConfig: proxy,
-          method: "POST",
-          headers: getAntigravityHeaders("models", accessToken),
-          body: JSON.stringify({}),
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.warn(
-            `[models] antigravity discovery failed at ${discoveryUrl} (${response.status}): ${errorText}`
-          );
-          continue;
-        }
-
-        const models = filterUserCallableAntigravityModels(
-          normalizeAntigravityModelsResponse(await response.json())
-        ).map(mapAntigravityModelForClient);
-        if (models.length > 0) {
-          return models;
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[models] antigravity discovery threw for ${discoveryUrl}: ${message}`);
-      }
-    }
-
-    return [];
-  })().finally(() => {
-    antigravityDiscoveryInflight.delete(cacheKey);
-  });
-
-  antigravityDiscoveryInflight.set(cacheKey, promise);
-  return promise;
-}
-
-function normalizeDataRobotCatalogResponse(data: unknown): Array<{ id: string; name: string }> {
-  const items = Array.isArray(asRecord(data).data) ? (asRecord(data).data as unknown[]) : [];
-
-  return items
-    .map((value) => {
-      const item = asRecord(value);
-      const model =
-        toNonEmptyString(item.model) || toNonEmptyString(item.id) || toNonEmptyString(item.name);
-      if (!model) return null;
-      if (item.isActive === false) return null;
-      const name = toNonEmptyString(item.label) || toNonEmptyString(item.displayName) || model;
-      return { id: model, name };
-    })
-    .filter((value): value is { id: string; name: string } => Boolean(value));
-}
-
-function normalizeOpenAiLikeModelsResponse(
-  data: unknown,
-  fallbackOwner: string
-): Array<{ id: string; name: string; owned_by: string }> {
-  const payload = asRecord(data);
-  const items = Array.isArray(data)
-    ? data
-    : Array.isArray(payload.data)
-      ? (payload.data as unknown[])
-      : Array.isArray(payload.models)
-        ? (payload.models as unknown[])
-        : [];
-
-  return items
-    .map((value) => {
-      const item = asRecord(value);
-      const id =
-        toNonEmptyString(item.id) || toNonEmptyString(item.model) || toNonEmptyString(item.name);
-      if (!id) return null;
-      const name =
-        toNonEmptyString(item.display_name) ||
-        toNonEmptyString(item.displayName) ||
-        toNonEmptyString(item.name) ||
-        id;
-      const ownedBy =
-        toNonEmptyString(item.owned_by) || toNonEmptyString(item.provider) || fallbackOwner;
-      return { id, name, owned_by: ownedBy };
-    })
-    .filter((value): value is { id: string; name: string; owned_by: string } => Boolean(value));
-}
-
-function normalizeSapModelsResponse(
-  data: unknown
-): Array<{ id: string; name: string; owned_by: string }> {
-  const payload = asRecord(data);
-  const items = Array.isArray(payload.resources) ? (payload.resources as unknown[]) : [];
-
-  return items
-    .map((value) => {
-      const item = asRecord(value);
-      const id =
-        toNonEmptyString(item.model) || toNonEmptyString(item.id) || toNonEmptyString(item.name);
-      if (!id) return null;
-      const name =
-        toNonEmptyString(item.displayName) ||
-        toNonEmptyString(item.display_name) ||
-        toNonEmptyString(item.name) ||
-        id;
-      const ownedBy = toNonEmptyString(item.provider) || "sap";
-      return { id, name, owned_by: ownedBy };
-    })
-    .filter((value): value is { id: string; name: string; owned_by: string } => Boolean(value));
-}
-
-type ProviderModelsConfigEntry = {
-  url: string;
-  method: "GET" | "POST";
-  headers: Record<string, string>;
-  authHeader?: string;
-  authPrefix?: string;
-  authQuery?: string;
-  body?: unknown;
-  parseResponse: (data: any) => any;
-};
-
-const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
-  url: "https://api.kimi.com/coding/v1/models",
-  method: "GET",
-  headers: { "Content-Type": "application/json" },
-  authHeader: "x-api-key",
-  parseResponse: (data) => data.data || data.models || [],
-};
-
-// Provider models endpoints configuration
-const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
-  claude: {
-    url: "https://api.anthropic.com/v1/models",
-    method: "GET",
-    headers: {
-      "Anthropic-Version": "2023-06-01",
-      "Content-Type": "application/json",
-    },
-    authHeader: "x-api-key",
-    parseResponse: (data) => data.data || [],
-  },
-  gemini: {
-    url: "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authQuery: "key", // Use query param for API key
-    parseResponse: (data) => parseGeminiModelsList(data),
-  },
-  huggingface: {
-    url: "https://router.huggingface.co/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => normalizeOpenAiLikeModelsResponse(data, "huggingface"),
-  },
-  qwen: {
-    url: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || [],
-  },
-  // #3931: qwen-web (cookie provider) was missing here, so its discovery page
-  // showed nothing (the OAuth fallback above only fires for provider==="qwen").
-  // `chat.qwen.ai/api/v2/models` is public (no auth header configured/sent);
-  // shape `{ data: { data: [{ id, name, owned_by }] } }`, flatter `{ data: [] }` fallback.
-  "qwen-web": {
-    url: "https://chat.qwen.ai/api/v2/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    parseResponse: (data) => {
-      const innerData = data?.data?.data || data?.data || [];
-      return (Array.isArray(innerData) ? innerData : [])
-        .map((item: any) => ({
-          id: item.id || item.name,
-          name: item.name || item.id,
-          owned_by: item.owned_by || "qwen",
-        }))
-        .filter((m: any) => m.id);
-    },
-  },
-  antigravity: {
-    url: getAntigravityModelsDiscoveryUrls()[0],
-    method: "POST",
-    headers: getAntigravityHeaders("models"),
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    body: {},
-    parseResponse: (data) => data.models || [],
-  },
-  openai: {
-    url: "https://api.openai.com/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || [],
-  },
-  openrouter: {
-    url: "https://openrouter.ai/api/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || [],
-  },
-  glhf: {
-    url: "https://glhf.chat/api/openai/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  cablyai: {
-    url: "https://cablyai.com/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  thebai: {
-    url: "https://api.theb.ai/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  fenayai: {
-    url: "https://fenayai.com/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  chutes: {
-    url: "https://llm.chutes.ai/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  clarifai: {
-    url: "https://api.clarifai.com/v2/ext/openai/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Key ",
-    parseResponse: (data) => normalizeOpenAiLikeModelsResponse(data, "clarifai"),
-  },
-  kimi: {
-    url: "https://api.moonshot.ai/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || [],
-  },
-  "kimi-coding": {
-    ...KIMI_CODING_MODELS_CONFIG,
-  },
-  "kimi-coding-apikey": {
-    ...KIMI_CODING_MODELS_CONFIG,
-  },
-  anthropic: {
-    url: "https://api.anthropic.com/v1/models",
-    method: "GET",
-    headers: {
-      "Anthropic-Version": "2023-06-01",
-      "Content-Type": "application/json",
-    },
-    authHeader: "x-api-key",
-    parseResponse: (data) => data.data || [],
-  },
-  deepseek: {
-    url: "https://api.deepseek.com/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  groq: {
-    url: "https://api.groq.com/openai/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  blackbox: {
-    url: "https://api.blackbox.ai/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  xai: {
-    url: "https://api.x.ai/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  mistral: {
-    url: "https://api.mistral.ai/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-
-  together: {
-    url: "https://api.together.xyz/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  fireworks: {
-    url: "https://api.fireworks.ai/inference/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  cerebras: {
-    url: "https://api.cerebras.ai/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  cohere: {
-    url: "https://api.cohere.com/v2/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  nvidia: {
-    url: "https://integrate.api.nvidia.com/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  nebius: {
-    url: "https://api.tokenfactory.nebius.com/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  kilocode: {
-    url: "https://api.kilo.ai/api/openrouter/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  "ollama-cloud": {
-    url: "https://api.ollama.com/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.models || data.data || [],
-  },
-  "cloudflare-ai": {
-    url: "https://api.cloudflare.com/client/v4/accounts/{accountId}/ai/models/search",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    // #4259: Cloudflare's `/ai/models/search` returns `{ id: "<uuid>", name: "@cf/..." }`.
-    // `name` is the usable model slug; `id` is an internal UUID. Map `name`→id so the
-    // dashboard/import surfaces callable model ids (`@cf/...`) instead of UUIDs.
-    parseResponse: (data) =>
-      (data.result || [])
-        .map((model: any) => {
-          const slug = typeof model?.name === "string" ? model.name : "";
-          if (!slug) return null;
-          return {
-            id: slug,
-            name: slug,
-            ...(typeof model?.description === "string" && model.description
-              ? { description: model.description }
-              : {}),
-          };
-        })
-        .filter(Boolean),
-  },
-  synthetic: {
-    url: "https://api.synthetic.new/openai/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  "kilo-gateway": {
-    url: "https://api.kilo.ai/api/gateway/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  "command-code": {
-    url: "https://api.commandcode.ai/provider/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  "opencode-zen": {
-    url: "https://opencode.ai/zen/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  "opencode-go": {
-    url: "https://opencode.ai/zen/go/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  "glm-cn": {
-    url: "https://open.bigmodel.cn/api/coding/paas/v4/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  gitlawb: {
-    url: "https://opengateway.gitlawb.com/v1/xiaomi-mimo/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-  "gitlawb-gmi": {
-    url: "https://opengateway.gitlawb.com/v1/gmi-cloud/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
-};
+import {
+  type JsonRecord,
+  asRecord,
+  toNonEmptyString,
+  getProviderBaseUrl,
+  normalizeAzureOpenAIBaseUrl,
+  getAzureOpenAIApiVersion,
+  isLocalOpenAIStyleProvider,
+  mergeLocalCatalogModels,
+  buildOptionalBearerHeaders,
+  buildNamedOpenAiStyleHeaders,
+} from "./discovery/helpers";
+import {
+  fetchAntigravityDiscoveryModelsCached,
+  normalizeDataRobotCatalogResponse,
+  normalizeOpenAiLikeModelsResponse,
+  normalizeSapModelsResponse,
+} from "./discovery/normalizers";
+import { isNamedOpenAIStyleProvider } from "./discovery/providerSets";
+import { buildStaleEncryptionKeyResponse } from "./staleEncryptionGuard";
+import {
+  type ProviderModelsConfigEntry,
+  PROVIDER_MODELS_CONFIG,
+} from "./discovery/providerModelsConfig";
+import {
+  buildCodexDiscoveryCatalog,
+  enrichCodexModelsFromGithubCatalog,
+  fetchCodexDiscoveryModels,
+  fetchCodexGithubCatalogModels,
+} from "./discovery/codex";
 
 /**
  * GET /api/providers/[id]/models - Get models list from provider
@@ -793,6 +121,7 @@ export async function GET(
     // Check if we should exclude hidden models (used by MCP tools to prevent hidden model leaks)
     const { searchParams } = new URL(request.url);
     const excludeHidden = searchParams.get("excludeHidden") === "true";
+    const excludeCustom = searchParams.get("excludeCustom") === "true";
     const refresh = searchParams.get("refresh") === "true";
 
     const connection = await getProviderConnectionById(id);
@@ -875,6 +204,13 @@ export async function GET(
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
+    // #6148 — short-circuit when a stored credential is encrypted but no longer
+    // decrypts (STORAGE_ENCRYPTION_KEY changed/unset). Otherwise the null key is
+    // coerced to "", an empty-Bearer probe is sent, and the operator sees a
+    // misleading "Auth failed: 401" instead of the real cause.
+    const staleEncryptionResponse = buildStaleEncryptionKeyResponse(connection);
+    if (staleEncryptionResponse) return staleEncryptionResponse;
+
     const provider =
       typeof connection.provider === "string" && connection.provider.trim().length > 0
         ? connection.provider
@@ -886,7 +222,42 @@ export async function GET(
     // Resolve proxy for this provider (provider-level → global → direct)
     const proxy = await resolveProxyForProvider(provider);
 
+    // #6247 — user-added custom models live in key_value namespace `customModels`
+    // (getCustomModels). The live REST /api/v1/models merges them, but this
+    // per-connection route (used by MCP list_models_catalog + the dashboard
+    // import view) never did, so custom models were dropped on both the
+    // discovery-success and local_catalog paths. Read them once here and fold
+    // them into every user-facing models response via buildResponse below
+    // (dedup by id). Internal model-sync discovery opts out because these rows
+    // are a response projection, not provider-discovered models.
+    let customModelsForProvider: Array<{ id: string; name?: string }> = [];
+    if (!excludeCustom) {
+      try {
+        const custom = await getCustomModels(provider);
+        if (Array.isArray(custom)) {
+          customModelsForProvider = custom as Array<{ id: string; name?: string }>;
+        }
+      } catch {
+        // DB unavailable — proceed without custom models.
+      }
+    }
+
+    const mergeCustomModels = (models: any[]) => {
+      if (customModelsForProvider.length === 0) return models;
+      const base = Array.isArray(models) ? models : [];
+      const existing = new Set(
+        base.map((m) => (m && typeof m.id === "string" ? m.id : null)).filter(Boolean)
+      );
+      const extra = customModelsForProvider
+        .filter((m) => m && typeof m.id === "string" && m.id.length > 0 && !existing.has(m.id))
+        .map((m) => ({ id: m.id, name: m.name || m.id, owned_by: provider }));
+      return extra.length > 0 ? [...base, ...extra] : base;
+    };
+
     const buildResponse = (payload: any, statusConfig?: ResponseInit) => {
+      if (payload.models && Array.isArray(payload.models)) {
+        payload.models = mergeCustomModels(payload.models);
+      }
       if (excludeHidden && payload.models && Array.isArray(payload.models)) {
         payload.models = payload.models.filter((m: any) => !getModelIsHidden(provider, m.id));
       }
@@ -938,8 +309,7 @@ export async function GET(
         ...((model as Record<string, unknown>).supportedEndpoints
           ? {
               supportedEndpoints: (model as Record<string, unknown>).supportedEndpoints as
-                | string[]
-                | undefined,
+                string[] | undefined,
             }
           : {}),
         ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
@@ -955,7 +325,7 @@ export async function GET(
         ...(warning ? { warning } : {}),
       });
 
-    const buildLocalCatalogResponse = (warning?: string) => {
+    const buildLocalCatalogResponse = (warning?: string, intentional = false) => {
       const localModels = toLocalCatalogModels();
       if (localModels.length === 0) return null;
       return buildResponse({
@@ -963,6 +333,10 @@ export async function GET(
         connectionId,
         models: localModels,
         source: "local_catalog",
+        // #5460/#5465 — flag catalogs that are the provider's ONLY discovery
+        // source (no remote /models endpoint). model-sync imports these instead
+        // of treating them as a degraded remote-fetch failure (502).
+        ...(intentional ? { intentional: true } : {}),
         ...(warning ? { warning } : {}),
       });
     };
@@ -970,14 +344,16 @@ export async function GET(
     const buildDiscoveryFallbackResponse = ({
       cacheWarning = "API unavailable — using cached catalog",
       localWarning = "API unavailable — using local catalog",
+      localIntentional = false,
     }: {
       cacheWarning?: string;
       localWarning?: string;
+      localIntentional?: boolean;
     } = {}) => {
       if (cachedDiscoveryModels.length > 0) {
         return buildCachedDiscoveryResponse(cacheWarning);
       }
-      return buildLocalCatalogResponse(localWarning);
+      return buildLocalCatalogResponse(localWarning, localIntentional);
     };
 
     const buildDiscoveryErrorFallbackResponse = (
@@ -987,6 +363,16 @@ export async function GET(
         localWarning?: string;
       }
     ) => {
+      // #6267 — a models-endpoint redirect (307/308) is not a fixable-config
+      // error. safeOutboundFetch throws REDIRECT_BLOCKED which
+      // getSafeOutboundFetchErrorStatus maps to 503, but unlike the other 503
+      // cases (URL_GUARD_BLOCKED / INVALID_URL, which are genuinely
+      // unrecoverable and stay hard errors) a blocked redirect should degrade to
+      // the local/cached catalog OmniRoute ships instead of surfacing a raw 503.
+      // General fix — covers any config-driven provider that 307s (e.g. qwen-web).
+      if (error instanceof SafeOutboundFetchError && error.code === "REDIRECT_BLOCKED") {
+        return buildDiscoveryFallbackResponse(warnings);
+      }
       const status = getSafeOutboundFetchErrorStatus(error);
       if (status === 400 || status === 503 || status === 504) return null;
       return buildDiscoveryFallbackResponse(warnings);
@@ -1015,7 +401,11 @@ export async function GET(
       });
     };
 
-    const buildApiDiscoveryResponse = async (models: any[], warning?: string) => {
+    const buildApiDiscoveryResponse = async (
+      models: any[],
+      warning?: string,
+      extraPayload: Record<string, unknown> = {}
+    ) => {
       const discoveredModels = await persistDiscoveredModels(provider, connectionId, models);
       if (discoveredModels.length > 0) {
         return buildResponse({
@@ -1024,6 +414,7 @@ export async function GET(
           models,
           source: "api",
           ...(warning ? { warning } : {}),
+          ...extraPayload,
         });
       }
 
@@ -1058,8 +449,7 @@ export async function GET(
         ...((model as Record<string, unknown>).supportedEndpoints
           ? {
               supportedEndpoints: (model as Record<string, unknown>).supportedEndpoints as
-                | string[]
-                | undefined,
+                string[] | undefined,
             }
           : {}),
         ...(freshRegistry.length > 0 ? { owned_by: provider } : {}),
@@ -1083,7 +473,16 @@ export async function GET(
     };
 
     if (provider === "reka") {
-      const localCatalog = buildLocalCatalogResponse();
+      // reka has no remote model-discovery endpoint — the local catalog is the
+      // intended source, not a degraded fallback (#5460).
+      const localCatalog = buildLocalCatalogResponse(undefined, true);
+      if (localCatalog) return localCatalog;
+    }
+
+    if (provider === "lmarena") {
+      // Direct-chat allowlist is the intended source — no arena.ai HTML scrape
+      // (avoids CF bot burn and thrashy initialModels rows).
+      const localCatalog = buildLocalCatalogResponse(undefined, true);
       if (localCatalog) return localCatalog;
     }
 
@@ -1211,7 +610,14 @@ export async function GET(
         base = base.slice(0, -17);
       } else if (base.endsWith("/completions")) {
         base = base.slice(0, -12);
-      } else if (base.endsWith("/v1")) {
+      }
+
+      // Strip trailing /v1 unconditionally so the next step re-adds it exactly once.
+      // Without this, baseUrls that embed /v1 (e.g. "https://api.airforce/v1/chat/completions")
+      // become "…/v1" after stripping "/chat/completions", and then appending "/v1/models"
+      // produces "…/v1/v1/models" — a 308 redirect that blocked model fetch (#5899).
+      // Guard against a literal "scheme://v1" authority so we never strip the host itself.
+      if (base.endsWith("/v1") && !base.endsWith("://v1")) {
         base = base.slice(0, -3);
       }
 
@@ -1232,7 +638,11 @@ export async function GET(
         try {
           const response = await safeOutboundFetch(modelsUrl, {
             ...SAFE_OUTBOUND_FETCH_PRESETS.modelsProbe,
-            guard: getProviderOutboundGuard(),
+            // #6939: model-list discovery for local/OpenAI-compatible providers (e.g. LM
+            // Studio on a LAN host) must use the same guard tier as the test-connection path
+            // (getProviderValidationGuard — respects the local-first default) rather than the
+            // stricter outbound guard, which never allows LAN hosts by default.
+            guard: getProviderValidationGuard(),
             proxyConfig: proxy,
             method: "GET",
             headers: isNamedOpenAIStyleProvider(provider)
@@ -1254,6 +664,11 @@ export async function GET(
           }
         } catch (err: any) {
           if (err.message === "auth_failed") break; // Don't try other endpoints if auth failed
+
+          if (err?.code === "REDIRECT_BLOCKED") {
+            continue; // Try next endpoint
+          }
+
           const status = getSafeOutboundFetchErrorStatus(err);
           if (status) {
             throw err;
@@ -2316,6 +1731,102 @@ export async function GET(
           owned_by: "qwen",
         })),
         source: "local_catalog",
+        // #5460/#5465 — Qwen OAuth has no OAuth-compatible remote /models list;
+        // the static catalog is intentional, so model-sync should import it.
+        intentional: true,
+      });
+    }
+
+    if (provider === "codex") {
+      // Auto-merge live/GitHub/local (future-proof discovery), then apply explicit
+      // denylist filters (e.g. drop GPT-5.4 family). Do not gate remote-only IDs.
+      const staticCodexCatalog = mergeLocalCatalogModels(
+        getModelsByProviderId("codex") || [],
+        getStaticModelsForProvider("codex") || []
+      );
+      const finalizeCodexCatalog = (remoteModels: typeof cachedDiscoveryModels) =>
+        buildCodexDiscoveryCatalog(remoteModels, staticCodexCatalog);
+      const cachedCatalogModels = finalizeCodexCatalog(cachedDiscoveryModels);
+      const cachedIdsMatchFinalCatalog =
+        cachedDiscoveryModels.length === cachedCatalogModels.length &&
+        cachedDiscoveryModels.every((model, index) => model.id === cachedCatalogModels[index]?.id);
+      const persistFilteredCacheIfNeeded = async () => {
+        if (cachedIdsMatchFinalCatalog) return;
+        await persistDiscoveredModels(provider, connectionId, cachedCatalogModels);
+      };
+
+      if (!refresh && cachedDiscoveryModels.length > 0) {
+        await persistFilteredCacheIfNeeded();
+        return buildResponse({
+          provider,
+          connectionId,
+          models: cachedCatalogModels,
+          source: "cache",
+        });
+      }
+
+      if (!refresh && !autoFetchModels) {
+        return buildResponse({
+          provider,
+          connectionId,
+          models: finalizeCodexCatalog([]),
+          source: "local_catalog",
+          warning: "Auto-fetch disabled — using local catalog",
+        });
+      }
+
+      const liveModels = await fetchCodexDiscoveryModels({
+        accessToken: accessToken || null,
+        providerSpecificData: connection.providerSpecificData,
+        fetchImpl: (url, init) =>
+          safeOutboundFetch(url, {
+            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+            guard: getProviderOutboundGuard(),
+            proxyConfig: proxy,
+            ...init,
+          }),
+      });
+      const githubCatalogModels = await fetchCodexGithubCatalogModels({
+        fetchImpl: (url, init) =>
+          safeOutboundFetch(url, {
+            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+            guard: "public-only",
+            proxyConfig: proxy,
+            ...init,
+          }),
+      });
+      if (liveModels && liveModels.length > 0) {
+        const enrichedLiveModels =
+          githubCatalogModels && githubCatalogModels.length > 0
+            ? enrichCodexModelsFromGithubCatalog(liveModels, githubCatalogModels)
+            : liveModels;
+        return buildApiDiscoveryResponse(finalizeCodexCatalog(enrichedLiveModels));
+      }
+
+      if (githubCatalogModels && githubCatalogModels.length > 0) {
+        return buildApiDiscoveryResponse(
+          finalizeCodexCatalog(githubCatalogModels),
+          "Codex live catalog unavailable — using GitHub model catalog"
+        );
+      }
+
+      if (cachedDiscoveryModels.length > 0) {
+        await persistFilteredCacheIfNeeded();
+        return buildResponse({
+          provider,
+          connectionId,
+          models: cachedCatalogModels,
+          source: "cache",
+          warning: "Codex live catalog unavailable — using cached catalog",
+        });
+      }
+      return buildResponse({
+        provider,
+        connectionId,
+        models: finalizeCodexCatalog([]),
+        source: "local_catalog",
+        intentional: true,
+        warning: "Codex live and GitHub catalogs unavailable — using local catalog",
       });
     }
 
@@ -2333,13 +1844,16 @@ export async function GET(
           ...((m as Record<string, unknown>).supportedEndpoints
             ? {
                 supportedEndpoints: (m as Record<string, unknown>).supportedEndpoints as
-                  | string[]
-                  | undefined,
+                  string[] | undefined,
               }
             : {}),
           ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
         })),
         source: "local_catalog",
+        // #5460/#5465 — providers with no discovery config (embedding/rerank/
+        // web-cookie providers like voyage-ai, jina-ai, t3-web) are
+        // intentionally local-catalog-only; model-sync imports rather than 502s.
+        intentional: true,
         warning: "API unavailable — using local catalog",
       });
     }
@@ -2389,7 +1903,11 @@ export async function GET(
           base = base.slice(0, -"/chat/completions".length);
         } else if (base.endsWith("/completions")) {
           base = base.slice(0, -"/completions".length);
-        } else if (base.endsWith("/v1")) {
+        }
+        // Strip a trailing /v1 unconditionally (same #5899 double-prefix guard as the
+        // discovery path above): a customBaseUrl like ".../v1/chat/completions" would
+        // otherwise leave base as ".../v1" and produce ".../v1/v1/models" below.
+        if (base.endsWith("/v1") && !base.endsWith("://v1")) {
           base = base.slice(0, -"/v1".length);
         }
         url = `${base}/v1/models`;
@@ -2413,8 +1931,8 @@ export async function GET(
     }
 
     // Build headers
-    const headers = { ...config.headers };
-    if (config.authHeader && !config.authQuery) {
+    const headers = config.buildHeaders ? config.buildHeaders(token) : { ...config.headers };
+    if (!config.buildHeaders && config.authHeader && !config.authQuery) {
       headers[config.authHeader] = (config.authPrefix || "") + token;
     }
 

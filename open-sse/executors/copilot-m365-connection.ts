@@ -24,6 +24,30 @@ export const M365_INDIVIDUAL_DEFAULTS = {
   scenario: "OfficeWebPaidConsumerCopilot",
 } as const;
 
+/**
+ * Education "Starter / OfficeWebIncludedCopilot" tier overrides, captured from the
+ * official UI in #6210. Differs from the individual tier only by scenario + isEdu;
+ * opt-in via `providerSpecificData.tier="edu"` so the individual path is unchanged.
+ */
+export const M365_EDU_OVERRIDES = {
+  scenario: "OfficeWebIncludedCopilot",
+  isEdu: "true",
+  licenseType: "Starter",
+} as const;
+
+/**
+ * Enterprise / "work" (Microsoft 365 Copilot for work) tier overrides (#6334). Enterprise
+ * tenants ride the `agent="work"` BizChat surface with the `officeweb` scenario and a
+ * Premium license. Opt-in via `providerSpecificData.tier="enterprise"` (alias `"work"`) so
+ * the individual and EDU paths are unchanged. A raw `providerSpecificData.agent` override is
+ * also honored for tenants that need a different agent value.
+ */
+export const M365_ENTERPRISE_OVERRIDES = {
+  agent: "work",
+  scenario: "officeweb",
+  licenseType: "Premium",
+} as const;
+
 export const M365_DEFAULT_VARIANTS = [
   "EnableMcpServerWidgets",
   "feature.EnableMcpServerWidgets",
@@ -79,11 +103,48 @@ export interface M365ConnectionParams {
   chathubPath: string; // "<user-oid>@<tenant-id>"
   accessToken: string;
   variants?: string;
+  /** Tier overrides — when unset, buildWsUrl falls back to the individual defaults. */
+  scenario?: string;
+  isEdu?: string;
+  licenseType?: string;
+  agent?: string;
 }
 
 /** A new 32-hex chat session id (== XRoutingParameterSessionKey == clientrequestid). */
 export function newChatSessionId(): string {
   return randomBytes(16).toString("hex");
+}
+
+function parsePastedCredential(
+  raw: string
+): Partial<Pick<M365ConnectionParams, "accessToken" | "chathubPath">> {
+  const value = raw.trim();
+  const parts: Record<string, string> = {};
+
+  for (const segment of value.split(/[;\n]/)) {
+    const separator = segment.indexOf("=");
+    if (separator <= 0) continue;
+    const key = segment.slice(0, separator).trim();
+    const partValue = segment.slice(separator + 1).trim();
+    if (key && partValue) parts[key] = partValue;
+  }
+
+  if (/^wss:\/\/substrate\.office\.com\/m365Copilot\/Chathub\//i.test(value)) {
+    try {
+      const url = new URL(value);
+      parts.access_token ||= url.searchParams.get("access_token") || "";
+      parts.chathubPath ||= decodeURIComponent(
+        url.pathname.split("/m365Copilot/Chathub/")[1] || ""
+      );
+    } catch {
+      // Keep any key/value fields already parsed from the pasted text.
+    }
+  }
+
+  return {
+    accessToken: parts.access_token || parts.accessToken,
+    chathubPath: parts.chathubPath || parts.userTenant,
+  };
 }
 
 /**
@@ -95,8 +156,14 @@ export function resolveConnectionParams(
   credentials: ProviderCredentials | undefined
 ): M365ConnectionParams | { error: string } {
   const psd = (credentials?.providerSpecificData ?? {}) as JsonRecord;
+  const parsedApiKey =
+    typeof credentials?.apiKey === "string" ? parsePastedCredential(credentials.apiKey) : {};
   const accessToken =
-    (typeof credentials?.apiKey === "string" && credentials.apiKey) ||
+    parsedApiKey.accessToken ||
+    (typeof credentials?.apiKey === "string" &&
+      credentials.apiKey &&
+      !credentials.apiKey.includes("access_token=") &&
+      credentials.apiKey) ||
     (typeof psd.accessToken === "string" && psd.accessToken) ||
     (typeof psd.access_token === "string" && psd.access_token) ||
     "";
@@ -104,6 +171,7 @@ export function resolveConnectionParams(
     return { error: "Missing M365 Copilot access_token. Paste it as the provider credential." };
   }
   const chathubPath =
+    parsedApiKey.chathubPath ||
     (typeof psd.chathubPath === "string" && psd.chathubPath) ||
     (typeof psd.userTenant === "string" && psd.userTenant) ||
     "";
@@ -115,7 +183,41 @@ export function resolveConnectionParams(
   }
   const host = (typeof psd.host === "string" && psd.host) || M365_INDIVIDUAL_DEFAULTS.host;
   const variants = typeof psd.variants === "string" && psd.variants ? psd.variants : undefined;
-  return { host, chathubPath, accessToken, variants };
+
+  return { host, chathubPath, accessToken, variants, ...resolveTierOverrides(psd) };
+}
+
+/**
+ * Resolve tier overrides (opt-in). `tier="edu"|"included"` applies the EDU overrides and
+ * `tier="enterprise"|"work"` applies the enterprise/work overrides; individual fields
+ * (`scenario`/`isEdu`/`licenseType`/`agent`) can also be overridden directly via
+ * providerSpecificData. Unset fields fall back to the individual defaults in buildWsUrl.
+ * (#6210, #6334)
+ */
+function resolveTierOverrides(
+  psd: JsonRecord
+): Pick<M365ConnectionParams, "scenario" | "isEdu" | "licenseType" | "agent"> {
+  const tier = typeof psd.tier === "string" ? psd.tier.toLowerCase() : "";
+  const isEduTier = tier === "edu" || tier === "included";
+  const isEnterpriseTier = tier === "enterprise" || tier === "work";
+  const psdIsEdu =
+    (typeof psd.isEdu === "string" && psd.isEdu) ||
+    (typeof psd.isEdu === "boolean" && String(psd.isEdu)) ||
+    undefined;
+  return {
+    scenario:
+      (typeof psd.scenario === "string" && psd.scenario) ||
+      (isEduTier ? M365_EDU_OVERRIDES.scenario : undefined) ||
+      (isEnterpriseTier ? M365_ENTERPRISE_OVERRIDES.scenario : undefined),
+    isEdu: psdIsEdu || (isEduTier ? M365_EDU_OVERRIDES.isEdu : undefined),
+    licenseType:
+      (typeof psd.licenseType === "string" && psd.licenseType) ||
+      (isEduTier ? M365_EDU_OVERRIDES.licenseType : undefined) ||
+      (isEnterpriseTier ? M365_ENTERPRISE_OVERRIDES.licenseType : undefined),
+    agent:
+      (typeof psd.agent === "string" && psd.agent) ||
+      (isEnterpriseTier ? M365_ENTERPRISE_OVERRIDES.agent : undefined),
+  };
 }
 
 /**
@@ -136,10 +238,10 @@ export function buildWsUrl(params: M365ConnectionParams): string {
     source: M365_INDIVIDUAL_DEFAULTS.source,
     product: M365_INDIVIDUAL_DEFAULTS.product,
     agentHost: M365_INDIVIDUAL_DEFAULTS.agentHost,
-    licenseType: M365_INDIVIDUAL_DEFAULTS.licenseType,
-    isEdu: "false",
-    agent: M365_INDIVIDUAL_DEFAULTS.agent,
-    scenario: M365_INDIVIDUAL_DEFAULTS.scenario,
+    licenseType: params.licenseType ?? M365_INDIVIDUAL_DEFAULTS.licenseType,
+    isEdu: params.isEdu ?? "false",
+    agent: params.agent ?? M365_INDIVIDUAL_DEFAULTS.agent,
+    scenario: params.scenario ?? M365_INDIVIDUAL_DEFAULTS.scenario,
   });
   return `wss://${params.host}/m365Copilot/Chathub/${params.chathubPath}?${query.toString()}`;
 }

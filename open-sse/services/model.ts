@@ -32,11 +32,6 @@ for (const [id, alias] of Object.entries(PROVIDER_ID_TO_ALIAS)) {
 // or backward-compatible slug changes, not a single provider's display name.
 // opencode/ → opencode-zen (the main free/open tier; opencode-go is a separate paid tier)
 ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
-
-// Manual aliases for external compatibility not covered by PROVIDER_ID_TO_ALIAS.
-// OpenCode's Zen provider now uses the "opencode" slug, but OmniRoute registers
-// it as "opencode-zen". This alias ensures `opencode/<model>` resolves correctly.
-ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
 // xiaomi/ is the user-visible prefix for MiMo models; register it so
 // parseModel("xiaomi/mimo-v2-flash") resolves provider = "xiaomi-mimo" instead
 // of falling through to the identity fallback ("xiaomi").
@@ -70,6 +65,15 @@ const PROVIDER_MODEL_ALIASES: ProviderModelAliasMap = {
     "nvidia/gpt-oss-120b": "openai/gpt-oss-120b",
     "gpt-oss-20b": "openai/gpt-oss-20b",
     "nvidia/gpt-oss-20b": "openai/gpt-oss-20b",
+  },
+  synthetic: {
+    "syn:gpt-oss-120b": "hf:openai/gpt-oss-120b",
+    "syn:large:text": "hf:zai-org/GLM-5.2",
+    "syn:large:vision": "hf:moonshotai/Kimi-K2.7-Code",
+    "syn:small:vision": "hf:Qwen/Qwen3.6-27B",
+    "syn:minimax-m3": "hf:MiniMaxAI/MiniMax-M3",
+    "syn:small:text": "hf:zai-org/GLM-4.7-Flash",
+    "syn:nemotron-3-super": "hf:nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
   },
   // Antigravity model aliases must be applied by the Antigravity executor, not by
   // the global model resolver. Applying them here rewrites the client-visible model
@@ -127,7 +131,13 @@ const CODEX_PREFERRED_UNPREFIXED_MODELS = new Set([
   "gpt-5.5-medium",
   "gpt-5.5-low",
 ]);
-const CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES = new Map([["gpt-5.5", "gpt-5.5-medium"]]);
+// Intentionally empty: an unprefixed codex-preferred model keeps its BARE id when
+// inferred to codex. #2877 established that baking a `-medium` effort suffix silently
+// overrides a client `reasoning.effort` (the Codex executor reads the suffix as an
+// explicit modelEffort). This map was dormant while bare `gpt-5.5` hit the OpenAI
+// short-circuit; #5887 makes the codex block reachable for bare `gpt-5.5`, so the
+// `gpt-5.5 → gpt-5.5-medium` entry is removed to preserve #2877's bare-id contract.
+const CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES = new Map<string, string>([]);
 export const CODEX_NATIVE_UNPREFIXED_MODELS = new Set(["codex-auto-review"]);
 
 interface ProviderConnectionLike {
@@ -141,7 +151,24 @@ interface ProviderConnectionLike {
  */
 export function resolveProviderAlias(aliasOrId: string | null | undefined): string | null {
   if (typeof aliasOrId !== "string") return null;
-  return ALIAS_TO_PROVIDER_ID[aliasOrId] || aliasOrId;
+  // Follow the alias chain transitively so intermediate alias-only hops resolve
+  // to the final target, but STOP as soon as a hop lands on a registered
+  // provider id (#2901): "oc" must resolve to the no-auth "opencode" provider,
+  // NOT continue through the manual "opencode" → "opencode-zen" slug override —
+  // that override is for user-typed `opencode/` prefixes only. Without this
+  // boundary the no-auth provider becomes unreachable by any prefix.
+  // Guarded against infinite loops with both a depth limit and a seen-set.
+  let current = aliasOrId;
+  const seen = new Set<string>();
+  for (let i = 0; i < 10; i++) {
+    const next = ALIAS_TO_PROVIDER_ID[current];
+    if (!next || next === current) return current;
+    if (next in PROVIDER_ID_TO_ALIAS) return next;
+    if (seen.has(next)) return next;
+    seen.add(next);
+    current = next;
+  }
+  return current;
 }
 
 /**
@@ -511,17 +538,11 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
     getPreferClaudeCodeForUnprefixedClaudeModels(),
   ]);
 
-  // Preserve historical behavior: OpenAI stays default when model exists there.
-  // Connection availability must not make unprefixed OpenAI models resolve to a
-  // different provider; callers can still force Codex with an explicit prefix.
-  if (providers.includes("openai")) {
-    return {
-      provider: "openai",
-      model: modelId,
-      extendedContext,
-    };
-  }
-
+  // Codex-only setups must keep auto-routing codex-preferred unprefixed models
+  // (e.g. `gpt-5.5`) to codex even after those ids were added to the OpenAI
+  // static catalog (#5887). This block is guarded by `!activeProviders.has("openai")`,
+  // so it must run BEFORE the OpenAI short-circuit below; users WITH an active
+  // OpenAI connection still fall through to the OpenAI default.
   if (
     activeProviders?.has("codex") &&
     !activeProviders.has("openai") &&
@@ -535,8 +556,26 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
     };
   }
 
-  // Fallback for newly released OpenAI-family model IDs that may not be in the local catalog yet.
-  if (/^gpt-/i.test(modelId) || /^o1/i.test(modelId) || /^o3/i.test(modelId)) {
+  // Preserve historical behavior: OpenAI stays default when model exists there.
+  // Connection availability must not make unprefixed OpenAI models resolve to a
+  // different provider; callers can still force Codex with an explicit prefix.
+  if (providers.includes("openai")) {
+    return {
+      provider: "openai",
+      model: modelId,
+      extendedContext,
+    };
+  }
+
+  // Fallback for newly released OpenAI-family model IDs that may not be in the local
+  // catalog yet. This must only fire when NO known provider catalogs the model id —
+  // otherwise it hijacks cataloged open-weight models like "gpt-oss-120b" (served by
+  // fireworks/cerebras/scaleway/byteplus) into provider "openai", which does not carry
+  // them (#5852).
+  if (
+    providers.length === 0 &&
+    (/^gpt-/i.test(modelId) || /^o1/i.test(modelId) || /^o3/i.test(modelId))
+  ) {
     return {
       provider: "openai",
       model: modelId,

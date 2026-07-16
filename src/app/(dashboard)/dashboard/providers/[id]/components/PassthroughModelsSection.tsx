@@ -14,14 +14,15 @@
  */
 import React, { useState, useMemo } from "react";
 import { Button } from "@/shared/components";
+import { generateUniqueModelAlias } from "./passthroughAlias.ts";
 import {
   matchesModelCatalogQuery,
   normalizeModelCatalogSource,
 } from "@/shared/utils/modelCatalogSearch";
 import { useNotificationStore } from "@/store/notificationStore";
-import { withDashboardCsrfHeader } from "@/shared/utils/dashboardCsrf";
 import {
   buildCompatMap,
+  getDisplayModelAlias,
   providerText,
   testAllResultsText,
   evaluateTestAllEntry,
@@ -47,6 +48,7 @@ export type ModelCompatSavePatchPassthrough = {
 export interface PassthroughModelsSectionProps {
   providerAlias: string;
   modelAliases: Record<string, string>;
+  catalogModels?: CompatModelRow[];
   availableModels?: CompatModelRow[];
   customModels?: CompatModelRow[];
   description: string;
@@ -79,6 +81,11 @@ export interface PassthroughModelsSectionProps {
   onAutoHideFailedChange?: (v: boolean) => void;
 }
 
+function getDefaultModelAlias(model: CompatModelRow): string | null {
+  const [firstAlias] = model.aliases || [];
+  return typeof firstAlias === "string" && firstAlias.trim() ? firstAlias.trim() : null;
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -86,6 +93,7 @@ export interface PassthroughModelsSectionProps {
 export default function PassthroughModelsSection({
   providerAlias,
   modelAliases,
+  catalogModels = [],
   availableModels = [],
   customModels = [],
   description,
@@ -159,7 +167,7 @@ export default function PassthroughModelsSection({
           >;
         } = await fetch("/api/models/test-all", {
           method: "POST",
-          headers: await withDashboardCsrfHeader({ "Content-Type": "application/json" }),
+          headers: { "Content-Type": "application/json" },
           // Bug #3610 fix 2: pass autoHideFailed so the server persists the hide
           body: JSON.stringify(
             buildPassthroughTestBody({
@@ -229,17 +237,20 @@ export default function PassthroughModelsSection({
     for (const [alias, fullModel] of providerAliases) {
       const fmStr = fullModel as string;
       const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
-      aliasByModelId.set(modelId, alias as string);
+      const displayAlias = getDisplayModelAlias(modelId, alias as string);
+      if (displayAlias) aliasByModelId.set(modelId, displayAlias);
       fullModelByModelId.set(modelId, fmStr);
     }
 
     const addModel = (model: CompatModelRow, source: string) => {
       if (!model?.id || seenModelIds.has(model.id)) return;
-      const fullModel = fullModelByModelId.get(model.id) || `${providerAlias}/${model.id}`;
+      const defaultAlias = getDefaultModelAlias(model);
+      const fullModel =
+        fullModelByModelId.get(model.id) || `${providerAlias}/${defaultAlias || model.id}`;
       rows.push({
         modelId: model.id,
         fullModel,
-        alias: aliasByModelId.get(model.id) || null,
+        alias: aliasByModelId.get(model.id) || defaultAlias,
         displayName: model.name || model.id,
         source,
         isFree:
@@ -256,6 +267,10 @@ export default function PassthroughModelsSection({
       addModel(model, "imported");
     }
 
+    for (const model of catalogModels) {
+      addModel(model, "system");
+    }
+
     for (const model of customModels) {
       addModel(
         model,
@@ -267,12 +282,14 @@ export default function PassthroughModelsSection({
       const fmStr = fullModel as string;
       const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
       if (!modelId || seenModelIds.has(modelId)) continue;
+      const displayAlias = getDisplayModelAlias(modelId, alias as string);
+      if (!displayAlias) continue;
       const customModel = customModelMap.get(modelId);
       rows.push({
         modelId,
         fullModel: fmStr,
-        alias: alias as string,
-        displayName: alias as string,
+        alias: displayAlias,
+        displayName: displayAlias,
         source: customModel ? customModel.source || "custom" : "alias",
         isFree:
           modelId.endsWith(":free") ||
@@ -287,6 +304,7 @@ export default function PassthroughModelsSection({
     return rows;
   }, [
     availableModels,
+    catalogModels,
     customModelMap,
     customModels,
     isModelHidden,
@@ -320,22 +338,18 @@ export default function PassthroughModelsSection({
     : filteredModels;
   const activeCount = allModels.filter((model) => !model.isHidden).length;
 
-  // Generate default alias from modelId (last part after /)
-  const generateDefaultAlias = (modelId: string) => {
-    const parts = modelId.split("/");
-    return parts[parts.length - 1];
-  };
-
   const handleAdd = async () => {
     if (!newModel.trim() || adding) return;
     const modelId = newModel.trim();
-    const defaultAlias = generateDefaultAlias(modelId);
 
-    // Check if alias already exists
-    if (modelAliases[defaultAlias]) {
-      alert(t("aliasExistsAlert", { alias: defaultAlias }));
+    // #1850: block re-adding the SAME model, but disambiguate DISTINCT models
+    // that would otherwise collapse to the same last-segment alias (e.g.
+    // enx/gpt-5.5 vs enx/codebuddy/gpt-5.5 → both "gpt-5.5").
+    if (Object.values(modelAliases).includes(modelId)) {
+      alert(t("aliasExistsAlert", { alias: modelId }));
       return;
     }
+    const defaultAlias = generateUniqueModelAlias(modelId, modelAliases);
 
     setAdding(true);
     try {
@@ -413,6 +427,7 @@ export default function PassthroughModelsSection({
                 key={fullModel as string}
                 modelId={modelId}
                 fullModel={fullModel}
+                provider={providerId}
                 alias={alias}
                 source={source}
                 isFree={isFree}

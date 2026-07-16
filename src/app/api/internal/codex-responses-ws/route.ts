@@ -6,6 +6,7 @@ import { getApiKeyMetadata } from "@/lib/db/apiKeys";
 import { authorizeWebSocketHandshake, extractWsTokenFromRequest } from "@/lib/ws/handshake";
 import { getModelInfo } from "@/sse/services/model";
 import { getProviderCredentialsWithQuotaPreflight } from "@/sse/services/auth";
+import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { checkAndRefreshToken } from "@/sse/services/tokenRefresh";
 import { resolveCodexWsModelInfo } from "./modelResolution";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
@@ -18,6 +19,8 @@ import {
 } from "@/lib/memory/settings";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { logger } from "@omniroute/open-sse/utils/logger.ts";
+import { resolveProxy } from "@omniroute/open-sse/utils/networkProxy.ts";
+import { proxyConfigToUrl } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
 
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 const executor = new CodexExecutor();
@@ -338,6 +341,28 @@ async function authenticate(body: JsonRecord) {
   });
 }
 
+/**
+ * #6564: the WS bridge authenticates the API key (see `authenticate()`) but
+ * historically never enforced the API-key model/combo policy the HTTP
+ * `/v1/responses` path enforces via `enforceApiKeyPolicy()` — a key
+ * restricted to `allowedModels`/`allowedCombos` could still reach a direct
+ * Codex model through this transport. The bridge's token arrives via query
+ * params, not a normal Authorization header, so this builds an equivalent
+ * Request carrying the extracted bearer token and evaluates policy against
+ * the CLIENT-requested model, before any Codex-specific remapping.
+ */
+async function enforceCodexWsApiKeyPolicy(
+  authRequest: Request,
+  apiKey: string | null,
+  requestedModel: string
+): Promise<{ rejection: Response | null; apiKeyInfo: ApiKeyMetadata | null }> {
+  const policyHeaders = new Headers(authRequest.headers);
+  if (apiKey) policyHeaders.set("Authorization", `Bearer ${apiKey}`);
+  const policyRequest = new Request(authRequest.url, { headers: policyHeaders });
+  const policy = await enforceApiKeyPolicy(policyRequest, requestedModel);
+  return { rejection: policy.rejection, apiKeyInfo: policy.apiKeyInfo };
+}
+
 async function prepare(body: JsonRecord) {
   // Global kill-switch (feature flag OMNIROUTE_CODEX_WS_ENABLED, default ON).
   // When disabled, the public Responses-over-WebSocket endpoint is unavailable.
@@ -350,17 +375,23 @@ async function prepare(body: JsonRecord) {
 
   const authRequest = getAuthRequest(body);
   const apiKey = extractWsTokenFromRequest(authRequest);
-  const metadata = apiKey ? await getApiKeyMetadata(apiKey).catch(() => null) : null;
-  const allowedConnections =
-    metadata && Array.isArray(metadata.allowedConnections) && metadata.allowedConnections.length > 0
-      ? metadata.allowedConnections
-      : null;
 
   const responseBody = isRecord(body.response) ? body.response : {};
   const requestedModel =
     typeof responseBody.model === "string" && responseBody.model.trim()
       ? responseBody.model.trim()
       : "gpt-5.5";
+
+  const policyResult = await enforceCodexWsApiKeyPolicy(authRequest, apiKey, requestedModel);
+  if (policyResult.rejection) return policyResult.rejection;
+
+  const metadata =
+    policyResult.apiKeyInfo ?? (apiKey ? await getApiKeyMetadata(apiKey).catch(() => null) : null);
+  const allowedConnections =
+    metadata && Array.isArray(metadata.allowedConnections) && metadata.allowedConnections.length > 0
+      ? metadata.allowedConnections
+      : null;
+
   // codex-only bridge: re-resolve bare ChatGPT model ids (the Codex CLI rejects
   // provider-prefixed ids client-side over WebSocket) as codex models.
   const modelInfo = await resolveCodexWsModelInfo(requestedModel, getModelInfo);
@@ -408,16 +439,32 @@ async function prepare(body: JsonRecord) {
 
   const headers = normalizeUpstreamHeaders(executor.buildHeaders(refreshedCredentials, true));
 
+  // #5611: apply the configured Global/provider proxy to the upstream Codex
+  // Responses WebSocket too. The downstream client→OmniRoute hop works, but the
+  // upstream wreq-js.websocket() connect previously ignored the Proxy Registry,
+  // so a no-direct-egress container failed with a DNS lookup error.
+  let proxy: string | undefined;
+  try {
+    proxy = proxyConfigToUrl(await resolveProxy(provider)) || undefined;
+  } catch (err) {
+    logger.warn(`[codex-responses-ws] proxy resolution failed: ${sanitizeErrorMessage(err)}`);
+  }
+
   return NextResponse.json({
     ok: true,
     upstreamUrl: CODEX_RESPONSES_WS_URL,
-    browser: "chrome_149",
+    // #5591: chrome_149 does not exist in wreq-js 2.3.1 (max chrome_147) → the
+    // native layer yields a degenerate TLS fingerprint and ChatGPT rejects the
+    // upgrade ("Invalid JSON body"). chrome_142 is the profile that shipped in
+    // v3.8.39 and is confirmed working against this upstream.
+    browser: "chrome_142",
     os: "windows",
     connectionId: refreshedCredentials.connectionId,
     provider,
     account: refreshedCredentials.email || null,
     model,
     headers,
+    proxy,
     response: transformed,
   });
 }

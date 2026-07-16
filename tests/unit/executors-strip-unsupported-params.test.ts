@@ -5,6 +5,11 @@
 //   1. claude-opus-4 series: temperature deprecated → Anthropic 400.
 //   2. github + gpt-5.4: temperature unsupported.
 //   3. github + Claude (except opus/sonnet 4.6): thinking + reasoning_effort rejected.
+//   4. nvidia + z-ai/glm-5.2: reasoning rejected → NVIDIA 400.
+//   5. volcengine + kimi-k2-5-260127: max_tokens clamped to the Ark endpoint cap
+//      (32768), confirmed independently against two live-endpoint reports for the
+//      same Volcengine Ark Kimi coding-plan endpoint (decolua/9router#2460;
+//      NousResearch/hermes-agent#51773; MoonshotAI/kimi-cli#1124).
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -112,10 +117,87 @@ test("stripUnsupportedParams: missing model is a no-op", () => {
   assert.equal(body.temperature, 0.7);
 });
 
-test("STRIP_RULES is non-empty and every rule has a drop list", () => {
+test("stripUnsupportedParams: drops reasoning for nvidia z-ai/glm-5.2", () => {
+  const body: Record<string, unknown> = {
+    model: "z-ai/glm-5.2",
+    reasoning: { effort: "high" },
+    temperature: 0.7,
+  };
+  stripUnsupportedParams("nvidia", "z-ai/glm-5.2", body);
+  assert.equal(body.reasoning, undefined, "reasoning must be stripped");
+  assert.equal(body.temperature, 0.7, "other params must survive");
+  assert.equal(body.model, "z-ai/glm-5.2", "model must not be touched");
+});
+
+test("stripUnsupportedParams: nvidia z-ai/glm-5.1 keeps reasoning (rule is 5.2-only)", () => {
+  const body: Record<string, unknown> = {
+    model: "z-ai/glm-5.1",
+    reasoning: { effort: "medium" },
+    max_tokens: 100,
+  };
+  stripUnsupportedParams("nvidia", "z-ai/glm-5.1", body);
+  assert.ok(body.reasoning !== undefined, "reasoning must survive for glm-5.1");
+  assert.equal(body.max_tokens, 100, "other params must survive");
+});
+
+test("stripUnsupportedParams: nvidia glm-5 rule is provider-scoped (no-op for other providers)", () => {
+  const body: Record<string, unknown> = {
+    model: "z-ai/glm-5.2",
+    reasoning: { effort: "high" },
+  };
+  stripUnsupportedParams("openai", "z-ai/glm-5.2", body);
+  assert.ok(body.reasoning !== undefined, "reasoning must survive for non-nvidia provider");
+});
+
+test("stripUnsupportedParams: nvidia non-glm-5 model keeps reasoning", () => {
+  const body: Record<string, unknown> = {
+    model: "deepseek-ai/deepseek-v4-pro",
+    reasoning: { effort: "high" },
+  };
+  stripUnsupportedParams("nvidia", "deepseek-ai/deepseek-v4-pro", body);
+  assert.ok(body.reasoning !== undefined, "reasoning must survive for non-glm-5 nvidia model");
+});
+
+test("STRIP_RULES is non-empty and every rule has a drop list or a clamp mechanism", () => {
   assert.ok(__STRIP_RULES_FOR_TEST.length > 0);
   for (const rule of __STRIP_RULES_FOR_TEST) {
-    assert.ok(Array.isArray(rule.drop) && rule.drop.length > 0);
+    const hasDrop = Array.isArray(rule.drop) && rule.drop.length > 0;
+    const hasClamp = rule.clampToModelMaxOutput === true || Number.isFinite(rule.maxOutputCap);
+    assert.ok(hasDrop || hasClamp, "rule must either drop params or clamp max output");
     assert.ok(typeof rule.match === "function" || rule.match instanceof RegExp);
   }
+});
+
+test("stripUnsupportedParams: volcengine kimi-k2-5-260127 clamps max_tokens above the Ark endpoint cap (32768)", () => {
+  const body: Record<string, unknown> = { max_tokens: 65536 };
+  stripUnsupportedParams("volcengine", "kimi-k2-5-260127", body);
+  assert.equal(body.max_tokens, 32768, "oversized max_tokens must be clamped to the Ark cap");
+});
+
+test("stripUnsupportedParams: volcengine kimi-k2-5-260127 leaves max_tokens under the cap unchanged", () => {
+  const body: Record<string, unknown> = { max_tokens: 8000 };
+  stripUnsupportedParams("volcengine", "kimi-k2-5-260127", body);
+  assert.equal(body.max_tokens, 8000, "max_tokens under the cap must not be modified");
+});
+
+test("stripUnsupportedParams: volcengine kimi-k2-5-260127 also clamps max_completion_tokens/max_output_tokens", () => {
+  const body: Record<string, unknown> = {
+    max_completion_tokens: 100000,
+    max_output_tokens: 50000,
+  };
+  stripUnsupportedParams("volcengine", "kimi-k2-5-260127", body);
+  assert.equal(body.max_completion_tokens, 32768);
+  assert.equal(body.max_output_tokens, 32768);
+});
+
+test("stripUnsupportedParams: volcengine non-kimi model (glm-4-7-251222) is NOT clamped by the kimi rule", () => {
+  const body: Record<string, unknown> = { max_tokens: 65536 };
+  stripUnsupportedParams("volcengine", "glm-4-7-251222", body);
+  assert.equal(body.max_tokens, 65536, "kimi-specific cap must not apply to other volcengine models");
+});
+
+test("stripUnsupportedParams: kimi rule is provider-scoped (no-op for non-volcengine providers)", () => {
+  const body: Record<string, unknown> = { max_tokens: 65536 };
+  stripUnsupportedParams("kimi", "kimi-k2-5-260127", body);
+  assert.equal(body.max_tokens, 65536, "the Ark-specific cap must not leak to other kimi-hosting providers");
 });

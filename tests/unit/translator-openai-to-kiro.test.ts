@@ -81,7 +81,9 @@ test("OpenAI -> Kiro preserves prior history, tool uses and accumulated tool res
   assert.equal(result.conversationState.history.length, 2);
   assert.deepEqual(result.conversationState.history[0], {
     userInputMessage: {
-      content: "Rules\n\nHello",
+      // #2306: the system prompt ("Rules") is wrapped in <system-reminder> before
+      // being merged into the Kiro user turn, instead of leaking as raw user text.
+      content: "<system-reminder>\nRules\n</system-reminder>\n\nHello",
       modelId: "claude-sonnet-4",
       origin: "AI_EDITOR",
     },
@@ -233,11 +235,11 @@ test("OpenAI -> Kiro derives a stable conversationId for the same first history 
 
   assert.equal(
     (first.conversationState as any).history[0].userInputMessage.content,
-    "Rules\n\nHello"
+    "<system-reminder>\nRules\n</system-reminder>\n\nHello"
   );
   assert.equal(
     (second as any).conversationState.history[0].userInputMessage.content,
-    "Rules\n\nHello"
+    "<system-reminder>\nRules\n</system-reminder>\n\nHello"
   );
   assert.equal(first.conversationState.conversationId, second.conversationState.conversationId);
 });
@@ -291,7 +293,10 @@ test("OpenAI -> Kiro merges adjacent user history turns after role normalization
 
   const firstUser = history[0].userInputMessage;
   assert.ok(firstUser, "first history turn should be a user turn");
-  assert.equal(firstUser.content, "System rules\n\nFirst question");
+  assert.equal(
+    firstUser.content,
+    "<system-reminder>\nSystem rules\n</system-reminder>\n\nFirst question"
+  );
   assert.equal(history[1].assistantResponseMessage?.content, "Answer 1");
 });
 
@@ -832,6 +837,50 @@ test("OpenAI -> Kiro toolUseId round-trips between tool_use and tool_result in 2
   assert.equal(tr!.status, "success");
 });
 
+test("OpenAI -> Kiro does not inject the '(empty)' placeholder on a trailing tool-result-only turn", () => {
+  // Regression for the same bug class as upstream decolua/9router#2183: an agentic
+  // loop that ends in a tool-result turn with no follow-up user text must not have
+  // its (otherwise legitimately-empty) user content replaced by a placeholder —
+  // toolResults already give Kiro all the context it needs for this turn.
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "What is 2+2? Use the calc tool." },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "call_1",
+              type: "function",
+              function: { name: "calc", arguments: '{"expr":"2+2"}' },
+            },
+          ],
+        },
+        { role: "tool", tool_call_id: "call_1", content: "4" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const current = result.conversationState.currentMessage.userInputMessage;
+  const ctx = current.userInputMessageContext as {
+    toolResults?: Array<{ toolUseId: string }>;
+  };
+
+  // The trailing tool-result turn must still carry its toolResults...
+  assert.ok(ctx?.toolResults, "toolResults must be present in currentMessage context");
+  assert.equal(ctx.toolResults![0].toolUseId, "call_1");
+
+  // ...and the turn's own body (content minus the injected "[Context: ...]" time
+  // prefix, which buildKiroPayload always prepends) must be empty — NOT the
+  // literal "(empty)" placeholder, since tool-result context is present.
+  const body = current.content.replace(/^\[Context: Current time is [^\]]*\]\n\n/, "");
+  assert.equal(body, "");
+  assert.ok(!current.content.includes("(empty)"), "must not contain the '(empty)' placeholder");
+});
+
 test("OpenAI -> Kiro generates stable non-random toolUseId when tool_call has no id", () => {
   const makePayload = () =>
     buildKiroPayload(
@@ -995,4 +1044,213 @@ test("buildKiroPayload accepts kr/* model ids without the [1m] suffix", () => {
     () => buildKiroPayload("claude-sonnet-4.5", body, true, {}),
     "model ids without [1m] must continue to build normally"
   );
+});
+
+test("buildKiroPayload strips local Kiro selector suffixes before upstream", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const result = buildKiroPayload("claude-sonnet-5-thinking-agentic", body, true, {});
+  assert.equal(
+    result.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-sonnet-5",
+    "local -thinking/-agentic aliases must not be forwarded to Kiro"
+  );
+  assert.equal(
+    result.additionalModelRequestFields?.output_config?.effort,
+    "high",
+    "the -thinking selector should still request Kiro adaptive thinking"
+  );
+});
+
+test("buildKiroPayload maps auto-kiro selector to Kiro auto upstream id", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const result = buildKiroPayload("auto-kiro", body, true, {});
+  assert.equal(result.conversationState.currentMessage.userInputMessage.modelId, "auto");
+});
+
+// Regression for upstream decolua/9router PR #2270: the dash->dot normalization's
+// trailing minor-version group must be bounded (1-2 digits), otherwise a
+// date-suffixed Claude model id (e.g. claude-opus-4-20250514) gets corrupted into
+// "claude-opus-4.20250514" because the unbounded `-(\d+)$` group swallows the
+// 8-digit date as if it were a minor version.
+test("buildKiroPayload normalizes short dash-suffixed minor versions to dots", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const opus = buildKiroPayload("claude-opus-4-8", body, false, null);
+  assert.equal(
+    opus.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-opus-4.8",
+    "1-digit minor version should normalize dash to dot"
+  );
+
+  const sonnet = buildKiroPayload("claude-sonnet-4-6", body, false, null);
+  assert.equal(
+    sonnet.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-sonnet-4.6",
+    "1-digit minor version should normalize dash to dot (sonnet)"
+  );
+});
+
+test("buildKiroPayload does not corrupt date-suffixed Claude model ids (#2270)", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const result = buildKiroPayload("claude-opus-4-20250514", body, false, null);
+  assert.equal(
+    result.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-opus-4-20250514",
+    "date-suffixed model ids (3+ digit trailing group) must NOT be dash->dot normalized"
+  );
+});
+
+test("buildKiroPayload leaves already-two-dash Claude ids unchanged (#2270)", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const result = buildKiroPayload("claude-opus-4-1-20250805", body, false, null);
+  assert.equal(
+    result.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-opus-4-1-20250805",
+    "two-dash form (patch + date) must remain unchanged"
+  );
+});
+
+test("buildKiroPayload enables thinking mode for Claude models via reasoning_effort", () => {
+  const body = {
+    messages: [{ role: "user", content: "Solve a hard problem" }],
+    reasoning_effort: "high",
+    max_tokens: 64000,
+  };
+
+  const result = buildKiroPayload("claude-sonnet-5", body, false, null); // only Kiro model accepting adaptive thinking (#6576)
+
+  assert.ok(result.additionalModelRequestFields, "additionalModelRequestFields must be set");
+  assert.deepEqual(result.additionalModelRequestFields.thinking, {
+    type: "adaptive",
+    display: "summarized",
+  });
+  assert.equal(result.additionalModelRequestFields.output_config.effort, "high");
+  assert.equal(result.additionalModelRequestFields.max_tokens, 64000);
+  assert.match(
+    result.conversationState.currentMessage.userInputMessage.content,
+    /<thinking_mode>enabled<\/thinking_mode>/,
+    "thinking_mode directive must be injected into user content"
+  );
+  assert.match(
+    result.conversationState.currentMessage.userInputMessage.content,
+    /<max_thinking_length>\d+<\/max_thinking_length>/,
+    "max_thinking_length directive must be injected into user content"
+  );
+});
+
+test("buildKiroPayload drops temperature when thinking is enabled", () => {
+  const body = {
+    messages: [{ role: "user", content: "Solve a hard problem" }],
+    reasoning_effort: "high",
+    temperature: 0.5,
+  };
+
+  const result = buildKiroPayload("claude-sonnet-5", body, false, null);
+
+  assert.ok(result.additionalModelRequestFields, "thinking must be enabled");
+  assert.equal(
+    result.inferenceConfig?.temperature,
+    undefined,
+    "temperature must be dropped when adaptive thinking is active"
+  );
+});
+
+test("buildKiroPayload ignores thinking request for unsupported effort levels", () => {
+  const body = {
+    messages: [{ role: "user", content: "Hello" }],
+    reasoning_effort: "invalid",
+  };
+
+  const result = buildKiroPayload("claude-opus-4.8", body, false, null);
+
+  assert.equal(
+    result.additionalModelRequestFields,
+    undefined,
+    "invalid effort must not enable thinking"
+  );
+});
+
+test("buildKiroPayload maps body.thinking budget_tokens to effort level", () => {
+  const body = {
+    messages: [{ role: "user", content: "Deep reasoning" }],
+    thinking: { type: "enabled", budget_tokens: 50000 },
+  };
+
+  const result = buildKiroPayload("claude-sonnet-5", body, false, null);
+
+  assert.ok(result.additionalModelRequestFields, "thinking must be enabled from budget_tokens");
+  assert.equal(result.additionalModelRequestFields.output_config.effort, "high");
+});
+
+test("buildKiroPayload leaves thinking off when no reasoning is requested", () => {
+  const body = { messages: [{ role: "user", content: "Hi" }] };
+
+  const result = buildKiroPayload("claude-opus-4.8", body, false, null);
+
+  assert.equal(result.additionalModelRequestFields, undefined, "no thinking fields by default");
+  assert.doesNotMatch(
+    result.conversationState.currentMessage.userInputMessage.content,
+    /<thinking_mode>/,
+    "no directive injected by default"
+  );
+});
+
+test("buildKiroPayload maps reasoning_effort to the same Kiro effort level (no +1 shift)", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-5",
+    { messages: [{ role: "user", content: "hard" }], reasoning_effort: "medium" },
+    false,
+    null
+  );
+
+  assert.equal(result.additionalModelRequestFields.output_config.effort, "medium");
+});
+
+test("buildKiroPayload reads effort from Anthropic output_config.effort", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-5",
+    { messages: [{ role: "user", content: "hard" }], output_config: { effort: "xhigh" } },
+    false,
+    null
+  );
+
+  assert.ok(result.additionalModelRequestFields, "output_config.effort must enable thinking");
+  assert.equal(result.additionalModelRequestFields.output_config.effort, "xhigh");
+});
+
+test("buildKiroPayload defaults adaptive thinking (no effort) to high", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-5",
+    { messages: [{ role: "user", content: "hard" }], thinking: { type: "adaptive" } },
+    false,
+    null
+  );
+
+  assert.equal(
+    result.additionalModelRequestFields.output_config.effort,
+    "high",
+    "adaptive with no explicit effort defaults to Anthropic's documented default (high)"
+  );
+});
+
+test("buildKiroPayload drops both temperature and top_p when thinking is enabled", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-5",
+    {
+      messages: [{ role: "user", content: "hard" }],
+      reasoning_effort: "high",
+      temperature: 0.5,
+      top_p: 0.9,
+    },
+    false,
+    null
+  );
+
+  assert.ok(result.additionalModelRequestFields, "thinking must be enabled");
+  assert.equal(result.inferenceConfig?.temperature, undefined, "temperature must be dropped");
+  assert.equal(result.inferenceConfig?.topP, undefined, "top_p must be dropped");
 });

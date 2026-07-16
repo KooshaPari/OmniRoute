@@ -3,8 +3,17 @@ import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/e
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { freeProxySyncSchema } from "@/shared/validation/freeProxySchemas";
 import { getEnabledProviders, getProvider } from "@/lib/freeProxyProviders";
-import { recordFreeProxySync } from "@/lib/localDb";
-import type { FreeProxySourceId } from "@/lib/freeProxyProviders/types";
+import {
+  recordFreeProxySync,
+  clearFreeProxySyncErrors,
+  recordFreeProxySyncErrors,
+} from "@/lib/localDb";
+import type { FreeProxyProvider, FreeProxySourceId } from "@/lib/freeProxyProviders/types";
+
+let _providersOverrideForTests: FreeProxyProvider[] | null = null;
+export function _setProvidersForTests(providers: FreeProxyProvider[] | null): void {
+  _providersOverrideForTests = providers;
+}
 
 export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
@@ -35,15 +44,31 @@ export async function POST(request: Request) {
 
   try {
     const providers =
-      validation.data.sources && validation.data.sources.length > 0
+      _providersOverrideForTests ??
+      (validation.data.sources && validation.data.sources.length > 0
         ? validation.data.sources
             .map((id) => getProvider(id as FreeProxySourceId))
             .filter((p): p is NonNullable<typeof p> => p != null)
-        : getEnabledProviders();
+        : getEnabledProviders());
 
     const results: Record<string, unknown> = {};
     for (const provider of providers) {
-      results[provider.id] = await provider.sync();
+      try {
+        results[provider.id] = await provider.sync();
+        await clearFreeProxySyncErrors(provider.id);
+      } catch (error) {
+        // #5595: isolate per-source failures so one provider throwing doesn't
+        // abort the whole sync — the other sources still populate the pool and
+        // the failure is surfaced in `results` instead of a blanket 500.
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        results[provider.id] = {
+          fetched: 0,
+          added: 0,
+          updated: 0,
+          errors: [errorMessage],
+        };
+        await recordFreeProxySyncErrors(provider.id, [errorMessage]);
+      }
     }
 
     // #4878: persist the sync timestamp so the UI's "last sync" advances even

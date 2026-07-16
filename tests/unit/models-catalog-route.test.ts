@@ -23,6 +23,11 @@ async function resetStorage() {
   apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  // #6408 added a 1.5s TTL response cache to getUnifiedModelsResponse keyed only by
+  // (prefix, isCodex client, apiKey) — NOT by DB/settings state. Without clearing it
+  // between test cases, a test running within the TTL window of a previous one gets
+  // served the previous test's stale serialized catalog instead of a fresh build.
+  v1ModelsCatalog.__resetCatalogBuilderRunsForTest();
 }
 
 async function seedConnection(provider: string, overrides: Record<string, unknown> = {}) {
@@ -841,6 +846,99 @@ test("v1 models catalog includes synced non-Gemini provider models from discover
   assert.ok(syncedModel);
   assert.equal(syncedModel.owned_by, "opencode-go");
   assert.equal(syncedModel.context_length, 262144);
+});
+
+test("v1 models catalog advertises GLM-5.2 provider aliases with hosted context limits", async () => {
+  const hfConnection = await seedConnection("huggingface", {
+    name: "huggingface-glm52",
+    apiKey: "hf-key",
+  });
+  const cfConnection = await seedConnection("cloudflare-ai", {
+    name: "cloudflare-glm52",
+    apiKey: "cf-key",
+  });
+  const zenmuxConnection = await seedConnection("zenmux", {
+    name: "zenmux-glm52",
+    apiKey: "zen-key",
+  });
+  await seedConnection("opencode-go", {
+    name: "opencode-go-glm52",
+    apiKey: "go-key",
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection(
+    "huggingface",
+    (hfConnection as any).id,
+    [
+      {
+        id: "zai-org/GLM-5.2",
+        name: "GLM 5.2",
+        source: "imported",
+        supportedEndpoints: ["chat"],
+        inputTokenLimit: 128000,
+        outputTokenLimit: 128000,
+      },
+    ]
+  );
+  await modelsDb.replaceSyncedAvailableModelsForConnection(
+    "cloudflare-ai",
+    (cfConnection as any).id,
+    [
+      {
+        id: "@cf/zai-org/glm-5.2",
+        name: "GLM 5.2",
+        source: "imported",
+        supportedEndpoints: ["chat"],
+        inputTokenLimit: 128000,
+        outputTokenLimit: 128000,
+      },
+    ]
+  );
+  await modelsDb.replaceSyncedAvailableModelsForConnection("zenmux", (zenmuxConnection as any).id, [
+    {
+      id: "z-ai/glm-5.2",
+      name: "GLM 5.2",
+      source: "imported",
+      supportedEndpoints: ["chat"],
+      inputTokenLimit: 128000,
+      outputTokenLimit: 128000,
+    },
+  ]);
+
+  try {
+    modelsDevSync.saveModelsDevCapabilities({
+      huggingface: {
+        "zai-org/GLM-5.2": capability({ limit_context: 128000, limit_input: 128000 }),
+      },
+      "cloudflare-ai": {
+        "@cf/zai-org/glm-5.2": capability({ limit_context: 128000, limit_input: 128000 }),
+      },
+      zenmux: {
+        "z-ai/glm-5.2": capability({ limit_context: 128000, limit_input: 128000 }),
+      },
+    });
+
+    const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+      new Request("http://localhost/api/v1/models")
+    );
+    const body = (await response.json()) as any;
+    const byId = new Map(body.data.map((item) => [item.id, item]));
+
+    for (const [id, expectedContext] of [
+      ["huggingface/zai-org/GLM-5.2", 262144],
+      ["cloudflare-ai/@cf/zai-org/glm-5.2", 262144],
+      ["opencode-go/glm-5.2", 1000000],
+      ["zenmux/z-ai/glm-5.2", 1000000],
+    ] as const) {
+      const model = byId.get(id) as any;
+      assert.ok(model, `expected ${id} in catalog`);
+      assert.equal(model.context_length, expectedContext, id);
+      assert.equal(model.max_input_tokens, expectedContext, id);
+      assert.notEqual(model.context_length, 128000, id);
+    }
+  } finally {
+    modelsDevSync.saveModelsDevCapabilities({});
+  }
 });
 
 test("v1 models catalog includes media, moderation, rerank, video, and music models for active providers", async () => {

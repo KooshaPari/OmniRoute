@@ -13,6 +13,10 @@ import {
   isForbiddenCustomHeaderName,
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
+import {
+  effortRequestSchema,
+  thinkingRequestSchema,
+} from "@/shared/reasoning/effortStandardization";
 
 import { modelIdSchema, nonEmptyStringSchema } from "./misc.ts";
 
@@ -87,6 +91,31 @@ export const v1ModerationSchema = z
   })
   .catchall(z.unknown());
 
+// Mistral OCR: `document` is a { type, document_url | image_url } object.
+// Keep the schema permissive-but-typed — validate model + that a non-empty
+// `document` object (or a document_url/image_url string shorthand) is present.
+export const v1OcrDocumentSchema = z.union([
+  z
+    .object({
+      type: z.string().trim().min(1).optional(),
+      document_url: z.string().trim().min(1).optional(),
+      image_url: z.union([z.string().trim().min(1), z.record(z.string(), z.unknown())]).optional(),
+    })
+    .catchall(z.unknown())
+    .refine(
+      (value) => value.document_url !== undefined || value.image_url !== undefined,
+      "document must include document_url or image_url"
+    ),
+  nonEmptyStringSchema,
+]);
+
+export const v1OcrSchema = z
+  .object({
+    model: modelIdSchema.optional(),
+    document: v1OcrDocumentSchema,
+  })
+  .catchall(z.unknown());
+
 export const v1RerankSchema = z
   .object({
     model: modelIdSchema,
@@ -101,6 +130,15 @@ export const providerChatCompletionSchema = z
     messages: z.array(chatMessageSchema).min(1).optional(),
     input: z.union([nonEmptyStringSchema, z.array(z.unknown()).min(1)]).optional(),
     prompt: nonEmptyStringSchema.optional(),
+    // Canonical, provider-agnostic reasoning controls (#6241). `effort` reuses the shared
+    // none/low/medium/high/xhigh vocabulary (UI tiers extra/max collapse onto xhigh);
+    // `thinking` is a simple boolean toggle. Both are optional and normalized onto the
+    // per-provider reasoning fields (reasoning_effort / reasoning.effort / thinking) by
+    // normalizeReasoningRequest before translation — an explicit client reasoning_effort /
+    // reasoning / object-shaped thinking always wins. See
+    // @/shared/reasoning/effortStandardization.
+    effort: effortRequestSchema.optional(),
+    thinking: thinkingRequestSchema.optional(),
   })
   .catchall(z.unknown())
   .superRefine((value, ctx) => {
@@ -251,7 +289,7 @@ export const v1BatchCreateSchema = z.object({
 
 export const v1WebFetchSchema = z.object({
   url: z.string().url("url must be a valid URL (http/https)"),
-  provider: z.enum(["firecrawl", "jina-reader", "tavily-search"]).optional(),
+  provider: z.enum(["firecrawl", "jina-reader", "tavily-search", "tinyfish"]).optional(),
   format: z.enum(["markdown", "html", "links", "screenshot"]).default("markdown"),
   depth: z.union([z.literal(0), z.literal(1), z.literal(2)]).default(0),
   wait_for_selector: z.string().max(256).optional(),

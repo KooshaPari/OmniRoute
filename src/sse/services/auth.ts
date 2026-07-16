@@ -4,18 +4,15 @@ import {
   getProviderNodes,
   validateApiKey,
   updateProviderConnection,
+  clearConnectionErrorIfUnchanged,
   getSettings,
   getCachedSettings,
-  getSessionAccountAffinity,
-  upsertSessionAccountAffinity,
-  touchSessionAccountAffinity,
-  deleteSessionAccountAffinity,
 } from "@/lib/localDb";
 import {
   DEFAULT_QUOTA_THRESHOLD_PERCENT,
   getQuotaCache,
   getQuotaWindowStatus,
-  isAccountQuotaExhausted,
+  isQuotaExhaustedForRequest,
 } from "@/domain/quotaCache";
 import { getQuotaScopeLabelForProvider } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 import {
@@ -60,6 +57,12 @@ import {
   WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
+import {
+  applySessionAffinityPin,
+  formatSessionKeyForLog,
+  resolveSessionAffinityTtlMs,
+  selectSessionAffinityConnection,
+} from "./sessionAffinityPin";
 import { isNoAuthProviderBlockedBySettings } from "./noAuthProviderSettings";
 import { resolveAccountProxiesFromRegistry } from "./noAuthProxyResolution";
 import * as log from "../utils/logger";
@@ -302,10 +305,6 @@ export function extractSessionAffinityKey(
   const inputText = getFirstInputText(body);
   if (!inputText || inputText.trim().length === 0) return null;
   return `input:sha256:${createHash("sha256").update(inputText.slice(0, 4096)).digest("hex")}`;
-}
-
-function formatSessionKeyForLog(sessionKey: string): string {
-  return `${sessionKey.slice(0, 18)}...`;
 }
 
 function getCodexLimitPolicy(providerSpecificData: JsonRecord): {
@@ -659,7 +658,7 @@ function getP2CConnectionScore(
   requestedModel: string | null = null
 ): { score: number; quotaHeadroomPercent: number | null } {
   const quotaBlocked = evaluateQuotaLimitPolicy(provider, connection, requestedModel).blocked;
-  const quotaExhausted = isAccountQuotaExhausted(connection.id);
+  const quotaExhausted = isQuotaExhaustedForRequest(connection.id, provider, requestedModel);
   const quotaHeadroomPercent = getConnectionQuotaHeadroomPercent(
     provider,
     connection,
@@ -711,69 +710,6 @@ function compareP2CConnections(
   }
 
   return a.id.localeCompare(b.id);
-}
-
-function compareLruConnections(a: ProviderConnectionView, b: ProviderConnectionView): number {
-  if (!a.lastUsedAt && !b.lastUsedAt) return (a.priority || 999) - (b.priority || 999);
-  if (!a.lastUsedAt) return -1;
-  if (!b.lastUsedAt) return 1;
-  const recencyDelta = new Date(a.lastUsedAt).getTime() - new Date(b.lastUsedAt).getTime();
-  if (recencyDelta !== 0) return recencyDelta;
-  if ((a.consecutiveUseCount || 0) !== (b.consecutiveUseCount || 0)) {
-    return (a.consecutiveUseCount || 0) - (b.consecutiveUseCount || 0);
-  }
-  return (a.priority || 999) - (b.priority || 999);
-}
-
-async function selectSessionAffinityConnection(
-  provider: string,
-  sessionKey: string | null | undefined,
-  connections: ProviderConnectionView[],
-  ttlMs = 0
-): Promise<ProviderConnectionView | null> {
-  if (!sessionKey || connections.length === 0 || ttlMs <= 0) return null;
-
-  const existing = getSessionAccountAffinity(sessionKey, provider, ttlMs);
-  if (existing) {
-    const connection = connections.find((candidate) => candidate.id === existing.connectionId);
-    if (connection) {
-      touchSessionAccountAffinity(sessionKey, provider, Date.now(), ttlMs);
-      await updateProviderConnection(connection.id, {
-        lastUsedAt: new Date().toISOString(),
-        consecutiveUseCount: (connection.consecutiveUseCount || 0) + 1,
-      });
-      log.info(
-        "AUTH",
-        `session_key=${formatSessionKeyForLog(sessionKey)} -> connection ${connection.id.slice(
-          0,
-          8
-        )} (affinity)`
-      );
-      return connection;
-    }
-
-    deleteSessionAccountAffinity(sessionKey, provider);
-    log.info(
-      "AUTH",
-      `affinity cleared for session_key=${formatSessionKeyForLog(sessionKey)} provider=${provider}`
-    );
-  }
-
-  const connection = [...connections].sort(compareLruConnections)[0] ?? null;
-  if (!connection) return null;
-
-  upsertSessionAccountAffinity(sessionKey, provider, connection.id, Date.now(), ttlMs);
-  await updateProviderConnection(connection.id, {
-    lastUsedAt: new Date().toISOString(),
-    consecutiveUseCount: 1,
-  });
-  log.info(
-    "AUTH",
-    `new affinity created for session_key=${formatSessionKeyForLog(
-      sessionKey
-    )} -> connection ${connection.id.slice(0, 8)}`
-  );
-  return connection;
 }
 
 /**
@@ -865,8 +801,7 @@ async function loadNoAuthProviderSpecificData(providerId: string): Promise<JsonR
 
 function providerCanUseSyntheticNoAuthFallback(providerId: string): boolean {
   const providerDef = getProviderById(providerId) as
-    | AnonymousFallbackProviderDefinition
-    | undefined;
+    AnonymousFallbackProviderDefinition | undefined;
   const noAuthProviderDef = (
     NOAUTH_PROVIDERS as Record<string, AnonymousFallbackProviderDefinition | undefined>
   )[providerId];
@@ -950,6 +885,36 @@ function buildQuotaPreflightRateLimitedResult(
     lastError: `All ${provider} accounts blocked by quota preflight`,
     lastErrorCode: 429,
   };
+}
+
+function quotaPreflightUnavailableUntil(resetAt?: string | null): string {
+  const resetMs = parseFutureDateMs(resetAt ?? null);
+  return new Date(resetMs ?? Date.now() + 5 * 60 * 1000).toISOString();
+}
+
+async function markQuotaPreflightAccountUnavailable(
+  provider: string,
+  connectionId: string,
+  preflight: { quotaPercent?: number; resetAt?: string | null },
+  requestedModel: string | null
+): Promise<string> {
+  const unavailableUntil = quotaPreflightUnavailableUntil(preflight.resetAt ?? null);
+  const percentLabel = Number.isFinite(preflight.quotaPercent)
+    ? `${Math.round((preflight.quotaPercent as number) * 100)}%`
+    : "exhausted";
+  const modelLabel = requestedModel ? ` for ${requestedModel}` : "";
+
+  await updateProviderConnection(connectionId, {
+    rateLimitedUntil: unavailableUntil,
+    testStatus: "unavailable",
+    lastError: `Quota preflight blocked${modelLabel}: ${percentLabel}`,
+    lastErrorType: "quota_exhausted",
+    lastErrorSource: "quota_preflight",
+    errorCode: 429,
+    lastErrorAt: new Date().toISOString(),
+  });
+
+  return unavailableUntil;
 }
 
 // Provider-scoped mutexes prevent race conditions during account selection without
@@ -1084,7 +1049,7 @@ export async function getProviderCredentials(
     const allowRateLimitedConnections =
       allowSuppressedConnections || options.allowRateLimitedConnections === true;
     const bypassQuotaPolicy = options.bypassQuotaPolicy === true;
-    const forcedConnectionId =
+    let forcedConnectionId =
       typeof options.forcedConnectionId === "string" && options.forcedConnectionId.trim().length > 0
         ? options.forcedConnectionId.trim()
         : null;
@@ -1092,6 +1057,11 @@ export async function getProviderCredentials(
       excludeConnectionId,
       options.excludeConnectionIds
     );
+
+    // Fetched early so the session-affinity-pin override (#5903) can consult
+    // the TTL before forcedConnectionId narrows the connection pool.
+    const settings = await getSettings();
+    const sessionAffinityTtlMs = resolveSessionAffinityTtlMs(provider, options, settings);
 
     // Fix #922: Check for aliases (nvidia/nvidia_nim) to ensure credentials are found
     const providersToSearch = await getProviderSearchPool(provider);
@@ -1107,6 +1077,24 @@ export async function getProviderCredentials(
     if (allowedConnections && allowedConnections.length > 0) {
       connections = connections.filter((conn) => allowedConnections.includes(conn.id));
     }
+
+    // #5903: an active session-affinity pin outranks a per-request reset-aware
+    // forcedConnectionId (see sessionAffinityPin leaf for the full rationale).
+    forcedConnectionId =
+      applySessionAffinityPin({
+        forcedConnectionId,
+        options,
+        sessionAffinityTtlMs,
+        connections,
+        provider,
+        requestedModel,
+        excludedConnectionIds,
+        isTerminalConnectionStatus,
+        isCodexScopeUnavailable,
+        isQuotaPolicyBlocked: (c) =>
+          evaluateQuotaLimitPolicy(provider, c as ProviderConnectionView, requestedModel).blocked,
+      }) ?? forcedConnectionId;
+
     if (forcedConnectionId) {
       connections = connections.filter((conn) => conn.id === forcedConnectionId);
     }
@@ -1389,6 +1377,7 @@ export async function getProviderCredentials(
           lastErrorCode: allBlockedByModelCooldown ? 429 : earliestConn?.errorCode || null,
           cooldownScope: allBlockedByModelCooldown ? "model" : "connection",
           cooldownModel: allBlockedByModelCooldown ? requestedModel : null,
+          connectionsCount: connections.length,
         };
       }
       const syntheticFallback = await maybeSyntheticNoAuthFallback(
@@ -1449,9 +1438,13 @@ export async function getProviderCredentials(
       };
     }
 
-    // Quota-aware: filter out accounts with exhausted quota
-    const withQuota = policyEligibleConnections.filter((c) => !isAccountQuotaExhausted(c.id));
-    const exhaustedQuota = policyEligibleConnections.filter((c) => isAccountQuotaExhausted(c.id));
+    // Quota-aware: filter out accounts with exhausted quota for the requested scope.
+    const withQuota = policyEligibleConnections.filter(
+      (c) => !isQuotaExhaustedForRequest(c.id, provider, requestedModel)
+    );
+    const exhaustedQuota = policyEligibleConnections.filter((c) =>
+      isQuotaExhaustedForRequest(c.id, provider, requestedModel)
+    );
 
     if (exhaustedQuota.length > 0) {
       log.info(
@@ -1484,18 +1477,13 @@ export async function getProviderCredentials(
 
     const orderedConnections = withQuota;
 
-    const settings = await getSettings();
-    const strategy = settings.fallbackStrategy || "fill-first";
-    const sessionAffinityTtlMs =
-      provider === "codex"
-        ? Number.isFinite(Number(options.sessionAffinityTtlMs)) &&
-          Number(options.sessionAffinityTtlMs) > 0
-          ? Number(options.sessionAffinityTtlMs)
-          : Number.isFinite(Number(settings.codexSessionAffinityTtlMs)) &&
-              Number(settings.codexSessionAffinityTtlMs) > 0
-            ? Number(settings.codexSessionAffinityTtlMs)
-            : 0
-        : 0;
+    const providerStrategyOverrides = (settings.providerStrategies || {}) as Record<
+      string,
+      { fallbackStrategy?: string; stickyRoundRobinLimit?: number }
+    >;
+    const providerOverride = providerStrategyOverrides[resolvedId] || {};
+    const strategy =
+      providerOverride.fallbackStrategy || settings.fallbackStrategy || "fill-first";
 
     let connection;
     const affinityConnection = await selectSessionAffinityConnection(
@@ -1516,7 +1504,11 @@ export async function getProviderCredentials(
     if (connection) {
       // Session affinity selected a connection before global sticky routing.
     } else if (strategy === "round-robin") {
-      const stickyLimit = toNumber((settings as Record<string, unknown>).stickyRoundRobinLimit, 3);
+      const stickyLimit = toNumber(
+        providerOverride.stickyRoundRobinLimit ??
+          (settings as Record<string, unknown>).stickyRoundRobinLimit,
+        3
+      );
 
       // If excluding account(s) (fallback scenario), skip sticky logic and go straight to LRU.
       // This prevents same-model retries from getting stuck on a failed account.
@@ -1656,8 +1648,7 @@ export async function getProviderCredentials(
     }
 
     const apiKeyHealth = connection.providerSpecificData?.apiKeyHealth as
-      | Record<string, KeyHealth>
-      | undefined;
+      Record<string, KeyHealth> | undefined;
     if (apiKeyHealth) {
       syncHealthFromDB(connection.id, apiKeyHealth);
     }
@@ -1766,6 +1757,13 @@ export async function getProviderCredentialsWithQuotaPreflight(
       ("allRateLimited" in credentials && credentials.allRateLimited) ||
       ("allExpired" in credentials && credentials.allExpired)
     ) {
+      if (
+        "allRateLimited" in credentials &&
+        credentials.allRateLimited &&
+        blockedByPreflight.length > 0
+      ) {
+        return buildQuotaPreflightRateLimitedResult(provider, blockedByPreflight);
+      }
       return credentials;
     }
 
@@ -1845,10 +1843,16 @@ export async function getProviderCredentialsWithQuotaPreflight(
       return credentials;
     }
 
+    const unavailableUntil = await markQuotaPreflightAccountUnavailable(
+      provider,
+      connectionId,
+      preflight,
+      requestedModel
+    );
     blockedByPreflight.push({
       id: connectionId,
       quotaPercent: preflight.quotaPercent,
-      resetAt: preflight.resetAt ?? null,
+      resetAt: unavailableUntil,
     });
     excludedConnectionIds.add(connectionId);
 
@@ -1858,7 +1862,7 @@ export async function getProviderCredentialsWithQuotaPreflight(
         Number.isFinite(preflight.quotaPercent)
           ? ` at ${Math.round((preflight.quotaPercent as number) * 100)}%`
           : ""
-      }`
+      } until ${unavailableUntil}`
     );
   }
 }
@@ -1918,14 +1922,20 @@ export async function markAccountUnavailable(
     // If this connection was ALREADY marked unavailable by a prior concurrent
     // request (within the mutex window), skip re-marking to avoid resetting
     // the cooldown timer or double-incrementing the backoff level.
-    if (conn?.rateLimitedUntil && new Date(conn.rateLimitedUntil).getTime() > Date.now()) {
+    // Uses cooldownUntilMs (not a raw `new Date()`) because `rate_limited_until`
+    // can hold a numeric-epoch string (e.g. the Antigravity full-quota path) —
+    // see #3954.
+    const existingCooldownMs = conn?.rateLimitedUntil
+      ? cooldownUntilMs(conn.rateLimitedUntil)
+      : NaN;
+    if (Number.isFinite(existingCooldownMs) && existingCooldownMs > Date.now()) {
       log.info(
         "AUTH",
-        `${connectionId.slice(0, 8)} already marked unavailable (until ${conn.rateLimitedUntil}), skipping duplicate mark`
+        `${connectionId.slice(0, 8)} already marked unavailable (until ${conn?.rateLimitedUntil}), skipping duplicate mark`
       );
       return {
         shouldFallback: true,
-        cooldownMs: new Date(conn.rateLimitedUntil).getTime() - Date.now(),
+        cooldownMs: existingCooldownMs - Date.now(),
       };
     }
 
@@ -1967,8 +1977,7 @@ export async function markAccountUnavailable(
     // Read passthroughModels from connection config (user-configured per-model quota)
     const connProviderSpecificData = (conn?.providerSpecificData as Record<string, unknown>) || {};
     const connectionPassthroughModels = connProviderSpecificData.passthroughModels as
-      | boolean
-      | undefined;
+      boolean | undefined;
     // #2997: per-connection opt-out of the TRANSIENT connection cooldown. When set,
     // a recoverable failure records lastError/backoff but does NOT cool the
     // connection, so getProviderCredentials keeps selecting it. Terminal states
@@ -1996,6 +2005,26 @@ export async function markAccountUnavailable(
             : status === 429
               ? "rate_limited"
               : "server_error";
+
+      // #5976: a bare 500 is intermittent and NOT model-specific — skip
+      // lockout/cooldown ONLY for the exact 500 (the contract its own tests pin:
+      // combo-provider-cooldown-sibling.test.ts — "Gemini 503 should NOT skip
+      // cooldown"). 502/503/504 keep the pre-#6216 model-lockout path: cooldownMs
+      // 0 hot-loops the failing upstream (broke resilience-http-e2e on the PR).
+      if (status === 500) {
+        updateProviderConnection(connectionId, {
+          lastErrorType: reason,
+          lastError: `Model ${model} ${reason}`,
+          lastErrorAt: new Date().toISOString(),
+          errorCode: status,
+        }).catch(() => {});
+        log.info(
+          "AUTH",
+          `Server error for ${provider}:${model} — ${status} ${reason} (no model lockout, connection stays active for sibling models)`
+        );
+        return { shouldFallback: true, cooldownMs: 0 };
+      }
+
       const quotaScope = getQuotaScopeLabelForProvider(provider, model);
       const antigravityFamilyInferredBaseCooldownMs =
         provider === "antigravity" && quotaScope === "family" && status === 429
@@ -2017,7 +2046,9 @@ export async function markAccountUnavailable(
         {
           ...modelLockoutOptions,
           exactCooldownMs:
-            fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
+            fallbackResult.usedUpstreamRetryHint === true
+              ? fallbackResult.cooldownMs
+              : (fallbackResult.quotaResetHintMs ?? null),
           maxCooldownMs: mlSettings.maxCooldownMs,
         }
       );
@@ -2107,8 +2138,7 @@ export async function markAccountUnavailable(
     // doesn't exist or isn't available for this account — it should NOT lock
     // out the entire connection.
     const connBaseUrl = (conn?.providerSpecificData as Record<string, unknown>)?.baseUrl as
-      | string
-      | undefined;
+      string | undefined;
 
     if (isLocalProvider(connBaseUrl) && status === 404 && provider && model) {
       const lockout = recordModelLockoutFailure(
@@ -2272,11 +2302,38 @@ export async function clearAccountError(
   log.info("AUTH", `Account ${connectionId.slice(0, 8)} error cleared`);
 }
 
+/**
+ * Optional CAS token. When provided, the clear is performed via an atomic
+ * conditional UPDATE (clearConnectionErrorIfUnchanged) that aborts if the row
+ * was written by a concurrent path between the caller's snapshot read and this
+ * clear. Closes the TOCTOU window in the quota-recovery path. When omitted,
+ * the clear is unconditional (preserves existing post-success-call behavior).
+ */
+export interface RecoveredStateExpectation {
+  testStatus: string | null;
+  lastErrorAt: string | null;
+  rateLimitedUntil: string | null;
+}
+
 export async function clearRecoveredProviderState(
-  credentials: Partial<RecoverableConnectionState> | null
-) {
-  if (!credentials?.connectionId) return;
+  credentials: Partial<RecoverableConnectionState> | null,
+  expectedState?: RecoveredStateExpectation
+): Promise<{ applied: boolean }> {
+  if (!credentials?.connectionId) return { applied: false };
+  if (expectedState) {
+    const applied = await clearConnectionErrorIfUnchanged(credentials.connectionId, expectedState);
+    if (!applied) {
+      log.info(
+        "AUTH",
+        `Skipped recovery clear for ${credentials.connectionId.slice(0, 8)} — state changed concurrently (CAS miss)`
+      );
+      return { applied: false };
+    }
+    log.info("AUTH", `Account ${credentials.connectionId.slice(0, 8)} error cleared (CAS)`);
+    return { applied: true };
+  }
   await clearAccountError(credentials.connectionId, credentials);
+  return { applied: true };
 }
 
 type AuthRequestHeaders = Headers | Record<string, string | string[] | undefined>;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   formatCountdown,
@@ -10,6 +11,7 @@ import {
 } from "../utils";
 import QuotaMiniBar from "../QuotaMiniBar";
 import { translateUsageOrFallback, type UsageTranslationValues } from "../i18nFallback";
+import { hasFixedQuotaOrder } from "../quotaParsing";
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
@@ -21,8 +23,35 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   INR: "₹",
 };
 
+const DEFAULT_VISIBLE_ROWS = 3;
+
+/** Pure helper — sorts quotas by remaining percentage, highest first. */
+export function sortQuotasByRemaining(quotas: any[]): any[] {
+  return [...quotas].sort(
+    (a, b) => getQuotaRemainingPercentage(b) - getQuotaRemainingPercentage(a)
+  );
+}
+
+/**
+ * Pure helper — resolves the display order for a provider's quotas.
+ * Providers with a deterministic fixed-window order (codex, glm family — see
+ * quotaParsing.ts's sortCodexOrder()/sortGlmOrder()) keep the order
+ * parseQuotaData() already established. Every other provider still gets the
+ * remaining-percentage sort. Fixes #6687 (bars re-sorted by % undid the fixed
+ * session/weekly order).
+ */
+export function resolveQuotaDisplayOrder(providerId: string | undefined, quotas: any[]): any[] {
+  return hasFixedQuotaOrder(providerId) ? [...quotas] : sortQuotasByRemaining(quotas);
+}
+
+/** Pure helper — slices the sorted quotas down to the visible window. */
+export function getVisibleQuotas(sortedQuotas: any[], expanded: boolean): any[] {
+  return expanded ? sortedQuotas : sortedQuotas.slice(0, DEFAULT_VISIBLE_ROWS);
+}
+
 interface Props {
   quotas: any[];
+  providerId?: string;
   loading: boolean;
   error: string | null;
   message?: string | null;
@@ -30,12 +59,44 @@ interface Props {
   hasStaleData: boolean;
   onRefresh: () => void;
   onOpenCutoff: () => void;
+  onOpenCost: () => void;
+  onRedeemResetCredit?: () => void;
   canEditCutoff: boolean;
   hasCutoffOverrides: boolean;
+  canRedeemResetCredit?: boolean;
+  redeemingResetCredit?: boolean;
 }
 
 function QuotaDetailRow({ q }: { q: any }) {
   const t = useTranslations("usage");
+  if (q.isResetCredits) {
+    const count = Number(q.creditCount ?? q.remaining ?? 0);
+    const colors = getBarColor(q.remainingPercentage ?? 100);
+    return (
+      <div className="flex min-h-[34px] items-center justify-between gap-2 py-1">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5 text-[12px] font-medium leading-none text-text-main">
+          <span className="inline-flex size-6 shrink-0 items-center justify-center">
+            <span
+              className="material-symbols-outlined text-[15px] leading-none"
+              style={{ color: colors.text }}
+            >
+              restart_alt
+            </span>
+          </span>
+          <span className="truncate leading-none">
+            {translateUsageOrFallback(t, "resetCreditsLabel", "Reset credits")}
+          </span>
+        </span>
+        <span
+          className="inline-flex h-6 shrink-0 items-center text-[12px] font-bold leading-none tabular-nums"
+          style={{ color: colors.text }}
+        >
+          {count.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+        </span>
+      </div>
+    );
+  }
+
   if (q.isCredits) {
     const colors = getBarColor(q.remainingPercentage ?? 0);
     const sym = CURRENCY_SYMBOLS[q.currency] ?? q.currency ?? "";
@@ -108,6 +169,7 @@ function QuotaDetailRow({ q }: { q: any }) {
 
 export default function QuotaCardExpanded({
   quotas,
+  providerId,
   loading,
   error,
   message,
@@ -115,12 +177,27 @@ export default function QuotaCardExpanded({
   hasStaleData,
   onRefresh,
   onOpenCutoff,
+  onOpenCost,
+  onRedeemResetCredit,
   canEditCutoff,
   hasCutoffOverrides,
+  canRedeemResetCredit = false,
+  redeemingResetCredit = false,
 }: Props) {
   const t = useTranslations("usage");
   const tr = (key: string, fallback: string, values?: UsageTranslationValues) =>
     translateUsageOrFallback(t, key, fallback, values);
+
+  const [expanded, setExpanded] = useState(false);
+  const sortedQuotas = useMemo(
+    () => resolveQuotaDisplayOrder(providerId, quotas),
+    [quotas, providerId]
+  );
+  const visibleQuotas = useMemo(
+    () => getVisibleQuotas(sortedQuotas, expanded),
+    [sortedQuotas, expanded]
+  );
+  const hiddenCount = sortedQuotas.length - visibleQuotas.length;
 
   const refreshedLabel = refreshedAt
     ? new Date(refreshedAt).toLocaleTimeString([], {
@@ -153,10 +230,28 @@ export default function QuotaCardExpanded({
         <div className="text-[11px] text-text-muted italic">{t("noQuotaData")}</div>
       ) : (
         <div className="flex flex-col divide-y divide-border/40">
-          {quotas.map((q, i) => (
+          {visibleQuotas.map((q, i) => (
             <QuotaDetailRow key={`${q.name}-${q.modelKey ?? ""}-${i}`} q={q} />
           ))}
         </div>
+      )}
+
+      {!loading && !error && sortedQuotas.length > DEFAULT_VISIBLE_ROWS && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded((prev) => !prev);
+          }}
+          className="inline-flex items-center justify-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-[12px]">
+            {expanded ? "expand_less" : "expand_more"}
+          </span>
+          {expanded
+            ? tr("showLessQuotas", "Show less")
+            : tr("showMoreQuotas", `Show ${hiddenCount} more`, { count: hiddenCount })}
+        </button>
       )}
 
       <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-border/40">
@@ -175,6 +270,26 @@ export default function QuotaCardExpanded({
           </span>
         )}
         <div className="flex items-center gap-1.5 ml-auto">
+          {canRedeemResetCredit && (
+            <button
+              type="button"
+              disabled={loading || redeemingResetCredit}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRedeemResetCredit?.();
+              }}
+              className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-primary/40 text-primary bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <span
+                className={`material-symbols-outlined text-[12px] ${
+                  redeemingResetCredit ? "animate-spin" : ""
+                }`}
+              >
+                {redeemingResetCredit ? "progress_activity" : "restart_alt"}
+              </span>
+              {tr("redeemResetCredit", "Redeem reset")}
+            </button>
+          )}
           <button
             type="button"
             disabled={!canEditCutoff}
@@ -188,6 +303,17 @@ export default function QuotaCardExpanded({
           >
             <span className="material-symbols-outlined text-[12px]">tune</span>
             {tr("editCutoffs", "Edit cutoffs")}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenCost();
+            }}
+            className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[12px]">bar_chart</span>
+            USD Cost
           </button>
           <button
             type="button"
