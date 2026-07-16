@@ -697,6 +697,13 @@ export function createSSEStream(options: StreamOptions = {}) {
     return false;
   };
   const streamStartedAt = Date.now();
+  let ttft: number | null = null;
+  const setTtftOnce = () => {
+    if (ttft !== null) return;
+    ttft = Date.now() - streamStartedAt;
+  };
+  const isDataChunkForTtft = (output: string): boolean =>
+    /(^|\n)data:\s*(?!\[DONE\])/m.test(output);
 
   let lastToolCallChunkTime: number | null = null;
   let toolFinishTime: number | null = null;
@@ -929,6 +936,7 @@ export function createSSEStream(options: StreamOptions = {}) {
 
     const output = formatSSE(itemSanitized, sourceFormat);
     clientPayloadCollector.push(itemSanitized);
+    setTtftOnce();
     reqLogger?.appendConvertedChunk?.(output);
     controller.enqueue(encoder.encode(output));
   };
@@ -1336,6 +1344,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                           output = formatSSEDataEvents(responseToolCallEvents);
                           clientPayloadCollector.push(...responseToolCallEvents);
                           reqLogger?.appendConvertedChunk?.(output);
+                          setTtftOnce();
                           controller.enqueue(encoder.encode(output));
                           injectedUsage = true;
                         } else {
@@ -1606,6 +1615,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                       injectedUsage = true;
                       clientPayload = parsed;
                       clientPayloadCollector.push(clientPayload);
+                      setTtftOnce();
                       reqLogger?.appendConvertedChunk?.(output);
                       controller.enqueue(encoder.encode(output));
                       continue;
@@ -1676,6 +1686,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     );
                     totalContentLength += delta.reasoning_content.length;
                     clientPayloadCollector.push(reasoningChunk);
+                    setTtftOnce();
                     reqLogger?.appendConvertedChunk?.(rOutput);
                     controller.enqueue(encoder.encode(rOutput));
                     delete delta.reasoning_content;
@@ -1850,6 +1861,7 @@ export function createSSEStream(options: StreamOptions = {}) {
               clientPayloadCollector.push(clientPayload);
             }
 
+            setTtftOnce();
             reqLogger?.appendConvertedChunk?.(output);
             controller.enqueue(encoder.encode(output));
             if (failurePayload) {
@@ -2103,6 +2115,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                 updateClaudeEmptyResponseLifecycle(claudeEmptyResponseLifecycle, payload),
               passthroughEventPrefix,
               emitConvertedOutput: (output: string) => {
+                if (isDataChunkForTtft(output)) {
+                  setTtftOnce();
+                }
                 reqLogger?.appendConvertedChunk?.(output);
                 controller.enqueue(encoder.encode(output));
               },
@@ -2227,6 +2242,9 @@ export function createSSEStream(options: StreamOptions = {}) {
               if (output && !output.endsWith("\n\n")) {
                 output = output.endsWith("\n") ? `${output}\n` : `${output}\n\n`;
               }
+              if (isDataChunkForTtft(output) && (bufferedPayload || output.includes("data:"))) {
+                setTtftOnce();
+              }
               reqLogger?.appendConvertedChunk?.(output);
               controller.enqueue(encoder.encode(output));
             }
@@ -2283,6 +2301,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 };
                 flushOutput = `data: ${JSON.stringify(syntheticChunk)}\n\n`;
               }
+              setTtftOnce();
               reqLogger?.appendConvertedChunk?.(flushOutput);
               controller.enqueue(encoder.encode(flushOutput));
               passthroughAccumulatedContent = appendBoundedText(
@@ -2386,6 +2405,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 onComplete({
                   status: 200,
                   usage,
+                  ttft: ttft === null ? null : ttft,
                   responseBody,
                   providerPayload: providerPayloadCollector.build(
                     buildStreamSummaryFromEvents(
@@ -2629,12 +2649,13 @@ export function createSSEStream(options: StreamOptions = {}) {
                 },
                 _streamed: true,
               };
-              onComplete({
-                status: 200,
-                usage: state?.usage,
-                responseBody,
-                providerPayload: providerPayloadCollector.build(
-                  buildStreamSummaryFromEvents(
+                onComplete({
+                  status: 200,
+                  usage: state?.usage,
+                  ttft: ttft === null ? null : ttft,
+                  responseBody,
+                  providerPayload: providerPayloadCollector.build(
+                    buildStreamSummaryFromEvents(
                     providerPayloadCollector.getEvents(),
                     targetFormat,
                     model

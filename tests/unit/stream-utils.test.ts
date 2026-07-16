@@ -143,6 +143,114 @@ test("createSSEStream leaves successful pending requests for onComplete finaliza
   usageHistory.clearPendingRequests();
 });
 
+test("createSSEStream passthrough emits ttft once in successful completion", async () => {
+  let onCompleteCount = 0;
+  let onCompletePayload = null;
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl_ttf_test",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [{ index: 0, delta: { content: "hello" }, finish_reason: null }],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl_ttf_test",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "gpt-4.1-mini",
+        choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+        usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "openai",
+      model: "gpt-4.1-mini",
+      body: { messages: [{ role: "user", content: "hello" }] },
+      onComplete(payload) {
+        onCompleteCount += 1;
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.equal(onCompleteCount, 1);
+  assert.equal(onCompletePayload.status, 200);
+  assert.equal(typeof onCompletePayload.ttft, "number");
+  assert.ok(onCompletePayload.ttft >= 0);
+  assert.match(text, /"content":"hello"/);
+});
+
+test("createSSEStream passthrough leaves ttft unset when no upstream payload was emitted", async () => {
+  let onCompletePayload = null;
+  const text = await readTransformed(["data: [DONE]\n\n"], {
+    mode: "passthrough",
+    sourceFormat: FORMATS.OPENAI,
+    provider: "openai",
+    model: "gpt-4.1-mini",
+    body: { messages: [{ role: "user", content: "hello" }] },
+    onComplete(payload) {
+      onCompletePayload = payload;
+    },
+  });
+
+  assert.equal(onCompletePayload.status, 200);
+  assert.equal(onCompletePayload.ttft, null);
+  assert.match(text, /data: \[DONE\]/);
+});
+
+test("createSSEStream passthrough preserves upstream payload order", async () => {
+  const payloadOne = {
+    id: "chatcmpl_order_test",
+    object: "chat.completion.chunk",
+    created: 1,
+    model: "gpt-4.1-mini",
+    choices: [{ index: 0, delta: { content: "first" }, finish_reason: null }],
+  };
+  const payloadTwo = {
+    id: "chatcmpl_order_test",
+    object: "chat.completion.chunk",
+    created: 1,
+    model: "gpt-4.1-mini",
+    choices: [{ index: 0, delta: { content: " second" }, finish_reason: null }],
+  };
+  const payloadStop = {
+    id: "chatcmpl_order_test",
+    object: "chat.completion.chunk",
+    created: 1,
+    model: "gpt-4.1-mini",
+    choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+    usage: { prompt_tokens: 1, completion_tokens: 3, total_tokens: 4 },
+  };
+
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify(payloadOne)}\n\n`,
+      `data: ${JSON.stringify(payloadTwo)}\n\n`,
+      `data: ${JSON.stringify(payloadStop)}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      provider: "openai",
+      model: "gpt-4.1-mini",
+      body: { messages: [{ role: "user", content: "hello" }] },
+    }
+  );
+
+  const payloads = parseJsonDataPayloads(text);
+  assert.equal(payloads.length, 3);
+  assert.equal(payloads[0]?.choices?.[0]?.delta?.content, "first");
+  assert.equal(payloads[1]?.choices?.[0]?.delta?.content, " second");
+  assert.equal(payloads[2]?.choices?.[0]?.finish_reason, "stop");
+  assert.ok(
+    text.indexOf("first") < text.indexOf(" second") && text.indexOf(" second") < text.indexOf("stop")
+  );
+});
+
 test.after(() => {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
