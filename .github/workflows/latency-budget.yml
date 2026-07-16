@@ -5,6 +5,7 @@
 # Jobs:
 #   1. budget-check   — runs tools/latency-budget-to-ci/budget.py against synthetic trace
 #   2. budget-regression — compares current p99 vs main baseline, fails on >10% regression
+#   3. latency-budget-result — reports whether paid evidence ran and aggregates its results
 #
 # Refs: docs/latency-budgets/REST-endpoints.md, docs/PERF_BUDGETS.md
 
@@ -175,19 +176,28 @@ jobs:
 
   # Summary job to aggregate results for branch protection
   latency-budget-result:
-    if: ${{ always() && github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
+    if: ${{ always() }}
     name: Latency budget result
     runs-on: ubuntu-latest
     needs: [budget-check, budget-regression]
     steps:
-      - name: Check budget-check result
+      - name: Report latency evidence status
         run: |
           echo "budget-check: ${{ needs.budget-check.result }}"
           echo "budget-regression: ${{ needs.budget-regression.result }}"
-          if [ "${{ needs.budget-check.result }}" = "failure" ] || [ "${{ needs.budget-regression.result }}" = "failure" ]; then
-            echo "::error::Latency budget gates failed"
+
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ contains(github.event.pull_request.labels.*.name, 'ci-billing-exception') }}" != "true" ]; then
+            if [ "${{ needs.budget-check.result }}" != "skipped" ] || [ "${{ needs.budget-regression.result }}" != "skipped" ]; then
+              echo "::error::Unlabeled PR unexpectedly ran paid latency evidence"
+              exit 1
+            fi
+            echo "::notice::Latency evidence not run; add the ci-billing-exception label to authorize paid latency jobs."
+            exit 0
+          fi
+
+          if [ "${{ needs.budget-check.result }}" != "success" ] || [ "${{ needs.budget-regression.result }}" != "success" ]; then
+            echo "::error::Latency evidence did not complete successfully"
             exit 1
           fi
-          echo "All latency budget gates passed"
-
+          echo "All latency budget gates passed with latency evidence"
 
