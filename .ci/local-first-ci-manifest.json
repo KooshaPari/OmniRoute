@@ -1,44 +1,44 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-16T10:30:47.558Z",
+  "generatedAt": "2026-07-16T21:58:04.189Z",
   "gateResults": [
     {
       "name": "typecheck-core",
       "status": "passed",
       "command": "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json",
       "proofPath": ".ci/local-first-ci-gates/typecheck-core.proof.json",
-      "proofHash": "ead4625175354f505b81e1ffbecf8d1079091694d08fc2003a54584e3c6abe27",
-      "executedAt": "2026-07-16T10:30:26.384Z"
+      "proofHash": "23aa40e09bfc08289e6d3bd27097155f86bcc3b452a7cc53a8a855b425069eae",
+      "executedAt": "2026-07-16T21:57:16.844Z"
     },
     {
       "name": "integrity-manifest",
       "status": "passed",
       "command": "bun run integrity:manifest:write",
       "proofPath": ".ci/local-first-ci-gates/integrity-manifest.proof.json",
-      "proofHash": "ff63dce2ee18fd7b25b550fe348100509ec51b2f9f1d9a53da458294caccdc5f",
-      "executedAt": "2026-07-16T10:30:31.771Z"
+      "proofHash": "5c9bf785248bf5d1efc619c2b4f58d00e1dbe199fb40dc2771e0f83bab180c4d",
+      "executedAt": "2026-07-16T21:56:58.091Z"
     },
     {
       "name": "t11-any-budget-push",
       "status": "passed",
       "command": "bun scripts/check/check-t11-any-budget.mjs",
       "proofPath": ".ci/local-first-ci-gates/t11-any-budget-push.proof.json",
-      "proofHash": "fb97fd5c295505a8a3cb3830b5c7f60d761bd01258cde884fa2de186713eedd9",
-      "executedAt": "2026-07-16T10:30:34.634Z"
+      "proofHash": "aabc32674bac3aa427af304853cc418805276fbbba4c863363ac2c5d4bf8bbe1",
+      "executedAt": "2026-07-16T21:57:34.808Z"
     },
     {
       "name": "cycles-push",
       "status": "passed",
       "command": "bun scripts/check/check-cycles.mjs",
       "proofPath": ".ci/local-first-ci-gates/cycles-push.proof.json",
-      "proofHash": "e667244189ed8fd01650a53a253d055c869fe1069bf95709c6f6b73c14956189",
-      "executedAt": "2026-07-16T10:30:38.436Z"
+      "proofHash": "d50915e811971f86bdbc64b823bde6a7841b252d8ac7faee466da924e596a012",
+      "executedAt": "2026-07-16T21:57:55.012Z"
     }
   ],
   "content": {
     "algorithm": "sha256",
-    "hash": "ec6c2cf0c5db6f0f96cb9f7352f0b5bca0854e1cf4b089741d4e4016fc59d7d6",
-    "fileCount": 8455,
+    "hash": "e2dc8320787533980717ebd52032b4bb4c139916f46be152b549765b25c78a5d",
+    "fileCount": 8458,
     "trackedFiles": [
       ".coderabbit.yaml",
       ".devcontainer/devcontainer.json",
@@ -2796,6 +2796,8 @@
       "scripts/check/lib/allowlist.mjs",
       "scripts/check/local-first-ci-attestation.mjs",
       "scripts/check/local-first-ci-attestation.test.mjs",
+      "scripts/check/local-first-ci-mode.mjs",
+      "scripts/check/local-first-ci-mode.test.mjs",
       "scripts/check/test-report-summary.mjs",
       "scripts/check/verify-integrity-manifest.mjs",
       "scripts/ci/should-promote-latest.sh",
@@ -8293,6 +8295,7 @@
       "tests/unit/ui/provider-breaker-health-hook.test.tsx",
       "tests/unit/ui/provider-plan-config.test.tsx",
       "tests/unit/ui/provider-quota-widget-auto-refresh-label-4611.test.tsx",
+      "tests/unit/ui/provider-stats-bifrost-connections.test.tsx",
       "tests/unit/ui/providerCascadeNode.test.tsx",
       "tests/unit/ui/qdrant-config-card.test.tsx",
       "tests/unit/ui/quantumLockBadge.test.tsx",
@@ -8496,6 +8499,6 @@
       "worklogs/2026-06-25-L5-119-b9-dispatcher-fallback.md",
       "worklogs/L5-209-v48-envelope-expansion-2026-06-30.json"
     ],
-    "sourceTreeSha256": "a19a8f4c1b86e1c2912a58f476fc7c686d1f7a18a854363a9d200f214b6649af"
+    "sourceTreeSha256": "1e78c7d45eed10eaa17ec65783e4629d588b6099d978605a5972ece31d52c079"
   }
 }

@@ -1,10 +1,10 @@
 command: bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json
-startedAt: 2026-07-16T10:30:22.399Z
-finishedAt: 2026-07-16T10:30:26.377Z
+startedAt: 2026-07-16T21:57:11.343Z
+finishedAt: 2026-07-16T21:57:16.827Z
 exitCode: 0
 signal: none
-inputSha256: ec6c2cf0c5db6f0f96cb9f7352f0b5bca0854e1cf4b089741d4e4016fc59d7d6
-sourceTreeSha256: a19a8f4c1b86e1c2912a58f476fc7c686d1f7a18a854363a9d200f214b6649af
+inputSha256: e2dc8320787533980717ebd52032b4bb4c139916f46be152b549765b25c78a5d
+sourceTreeSha256: 1e78c7d45eed10eaa17ec65783e4629d588b6099d978605a5972ece31d52c079
 stdout:
 
 stderr:
