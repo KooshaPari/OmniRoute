@@ -1,43 +1,43 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-16T07:42:57.957Z",
+  "generatedAt": "2026-07-16T08:20:14.877Z",
   "gateResults": [
     {
       "name": "typecheck-core",
       "status": "passed",
       "command": "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json",
       "proofPath": ".ci/local-first-ci-gates/typecheck-core.proof.json",
-      "proofHash": "08fe7fd4e63d1c09ff722ea54abdf70768cfc51518a40230057d99e433d790d7",
-      "executedAt": "2026-07-16T07:40:44.415Z"
+      "proofHash": "3ce30175057039bfbe14c243094315a5ac5bfc11396741139271b3fda783607a",
+      "executedAt": "2026-07-16T08:01:34.945Z"
     },
     {
       "name": "integrity-manifest",
       "status": "passed",
       "command": "bun run integrity:manifest:write",
       "proofPath": ".ci/local-first-ci-gates/integrity-manifest.proof.json",
-      "proofHash": "567cae86fe6ef738ad0b98a0abd8534ffe66f78b5a92dcce8725ac082b66b036",
-      "executedAt": "2026-07-16T07:41:05.427Z"
+      "proofHash": "734a5726a63d6c0594b71557d507b7d161b3960e3bb9b6570b0957e5e57a9bf1",
+      "executedAt": "2026-07-16T08:02:07.590Z"
     },
     {
       "name": "t11-any-budget-push",
       "status": "passed",
       "command": "bun scripts/check/check-t11-any-budget.mjs",
       "proofPath": ".ci/local-first-ci-gates/t11-any-budget-push.proof.json",
-      "proofHash": "2e4908c0a67f007f1e0085fe3956c41be44f70fb0111bfab1e39e99cac3952a6",
-      "executedAt": "2026-07-16T07:41:38.970Z"
+      "proofHash": "c251638fa9a87b3e6c87446384b9a698ec41a843ccdd2dd5ab95c0a230e5ccf7",
+      "executedAt": "2026-07-16T08:02:45.880Z"
     },
     {
       "name": "cycles-push",
       "status": "passed",
       "command": "bun scripts/check/check-cycles.mjs",
       "proofPath": ".ci/local-first-ci-gates/cycles-push.proof.json",
-      "proofHash": "0974166c3e0a5f15c376efba17860f6c31a7145956e9968524be2be5c0f5719e",
-      "executedAt": "2026-07-16T07:42:21.227Z"
+      "proofHash": "10aef6715f4f940827df18317068c042c5a848875043b3de491d1328f4801267",
+      "executedAt": "2026-07-16T08:05:12.579Z"
     }
   ],
   "content": {
     "algorithm": "sha256",
-    "hash": "603121d5ed07bb2ecc71119950f149896b08ad6735a61ff9bf91438100e6feca",
+    "hash": "44c917fc2474fc907ebf04f655291f4de867e2b8195d8d0f6cdc4e7c68bf7232",
     "fileCount": 8451,
     "trackedFiles": [
       ".coderabbit.yaml",
@@ -8492,6 +8492,6 @@
       "worklogs/2026-06-25-L5-119-b9-dispatcher-fallback.md",
       "worklogs/L5-209-v48-envelope-expansion-2026-06-30.json"
     ],
-    "sourceTreeSha256": "2bebb1661935416af8bc4618ad560ae048015fad4ac65512d5beacfabeeeb18d"
+    "sourceTreeSha256": "2e4673fe2a1f7bfb504e68a31fe29cff6debba155ad6dbcd05e39f562a510346"
   }
 }
