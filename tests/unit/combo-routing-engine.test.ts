@@ -793,6 +793,43 @@ test("handleComboChat performance strategy reorders targets using projected Bifr
   assert.equal(result.status, 500);
 });
 
+test("handleComboChat performance strategy uses Bifrost alias telemetry", async () => {
+  seedProjectedOutcomes("anthropic", "perf-bridge-fast", [
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+  ]);
+  seedProjectedOutcomes("openai", "perf-bridge-slow", [
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+  ]);
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-bifrost-alias-order",
+      strategy: "performance",
+      models: ["openai/perf-bridge-slow", "claude/perf-bridge-fast"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["claude/perf-bridge-fast", "openai/perf-bridge-slow"]);
+});
+
 test("handleComboChat performance strategy ranks a slower healthy target before a faster unhealthy target", async () => {
   seedProjectedOutcomes("openai", "perf-healthy-slower", [
     { status: 200, latencyMs: 100 },

@@ -52,6 +52,10 @@ import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
 import { parseModel, resolveCanonicalProviderModel } from "./model.ts";
+import {
+  applyBifrostModelOverride,
+  resolveBifrostProviderId,
+} from "../executors/bifrostProviderMap.ts";
 import { createComboContext } from "./combo/context.ts";
 import { phaseComboSetup } from "./combo/comboSetup.ts";
 import { checkCredentialGate, logCredentialSkip } from "./credentialGate.ts";
@@ -248,6 +252,19 @@ function isFiniteProjectionValue(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
 
+function hasEligibleBifrostProjection(
+  projection: ReturnType<typeof getProjectedBifrostRouteMetrics>
+) {
+  return (
+    projection?.health !== undefined &&
+    projection.stability !== undefined &&
+    isFiniteProjectionValue(projection.e2eLatencyMs) &&
+    isFiniteProjectionValue(projection.health) &&
+    isFiniteProjectionValue(projection.failureRate) &&
+    isFiniteProjectionValue(projection.stability)
+  );
+}
+
 function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[]): ResolvedComboTarget[] {
   const scored: Array<{
     target: ResolvedComboTarget;
@@ -267,16 +284,15 @@ function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[
     const canonical = resolveCanonicalProviderModel(target.provider || parsed.provider, model);
     const canonicalProvider = canonical.provider || parsed.provider || "unknown";
     const canonicalModel = canonical.model || model;
-    const projection = getProjectedBifrostRouteMetrics(canonicalProvider, canonicalModel);
+    let projection = getProjectedBifrostRouteMetrics(canonicalProvider, canonicalModel);
+    if (!hasEligibleBifrostProjection(projection)) {
+      projection = getProjectedBifrostRouteMetrics(
+        resolveBifrostProviderId(canonicalProvider) ?? canonicalProvider,
+        applyBifrostModelOverride(canonicalProvider, canonicalModel)
+      );
+    }
 
-    if (
-      projection?.health === undefined ||
-      projection.stability === undefined ||
-      !isFiniteProjectionValue(projection.e2eLatencyMs) ||
-      !isFiniteProjectionValue(projection.health) ||
-      !isFiniteProjectionValue(projection.failureRate) ||
-      !isFiniteProjectionValue(projection.stability)
-    ) {
+    if (!hasEligibleBifrostProjection(projection)) {
       noComparable.push(target);
       return;
     }
