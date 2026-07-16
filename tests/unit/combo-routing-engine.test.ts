@@ -769,6 +769,43 @@ test("handleComboChat performance strategy reorders targets using projected Bifr
   assert.equal(result.status, 500);
 });
 
+test("handleComboChat performance strategy honors model aliases before order", async () => {
+  seedProjectedOutcomes("github", "claude-opus-4-5-20251101", [
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+  ]);
+  seedProjectedOutcomes("github", "claude-opus-4-7", [
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+  ]);
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-alias-order",
+      strategy: "performance",
+      models: ["github/claude-opus-4-7", "github/claude-4.5-opus"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["github/claude-4.5-opus", "github/claude-opus-4-7"]);
+});
+
 test("handleComboChat performance strategy keeps original relative order when no projected metrics exist", async () => {
   const calls: any[] = [];
   await handleComboChat({

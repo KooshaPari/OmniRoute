@@ -51,7 +51,7 @@ import { evaluateQuotaCutoff, getQuotaFetcher, type QuotaInfo } from "./quotaPre
 import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
-import { parseModel } from "./model.ts";
+import { parseModel, resolveCanonicalProviderModel } from "./model.ts";
 import { createComboContext } from "./combo/context.ts";
 import { phaseComboSetup } from "./combo/comboSetup.ts";
 import { checkCredentialGate, logCredentialSkip } from "./credentialGate.ts";
@@ -258,7 +258,10 @@ function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[
   targets.forEach((target, index) => {
     const parsed = parseModel(target.modelStr);
     const model = parsed.model || target.modelStr;
-    const projection = getProjectedBifrostRouteMetrics(target.provider, model);
+    const canonical = resolveCanonicalProviderModel(target.provider || parsed.provider, model);
+    const canonicalProvider = canonical.provider || parsed.provider || "unknown";
+    const canonicalModel = canonical.model || model;
+    const projection = getProjectedBifrostRouteMetrics(canonicalProvider, canonicalModel);
 
     if (
       projection?.health === undefined ||
