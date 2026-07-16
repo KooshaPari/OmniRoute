@@ -455,7 +455,7 @@ export class BifrostBackendExecutor extends BaseExecutor {
     // fields are optional — callers that have them can wire them in via
     // input.killSwitchCost if/when that field is added.
     const latencyMs = Date.now() - startTime;
-    if (shouldRecordRouteOutcome) {
+    if (shouldRecordRouteOutcome && response.status !== HTTP_STATUS.BAD_REQUEST) {
       recordBifrostRouteOutcome({
         provider: this.provider,
         model,
