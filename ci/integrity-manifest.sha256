@@ -21,9 +21,10 @@ f7ae985a3e782db33a38788d7f40dbb43b4ba6708fcf8c94d79be952a1099552  apps/bff/src/t
 aa7858f05b2261348f1502fa076550b0930672e0df3f054a22e8a8d9b68fb32e  apps/bff/vitest.config.ts
 4aebbec05edaf48712508f9a0f5e0ebd3a85e5f8d334b783bdbbb31539bf6295  apps/web/.gitignore
 c6d5a0fe61584c9d32ceaf127af9b719682bfed832d3dc22622476251bd8b9bd  apps/web/bun.lock
-9df787b866203b1c81e71ed6dbfa29b8eb91a1f788347f9e6f5d62448e2248a5  apps/web/package.json
+aadba4463f60758be6e9e14e70c44dc4da5a91eb3e86650035c27891f188b23d  apps/web/package.json
 86081c62590880b24ac39bc61a7f36123b97dfa35af161aa190a85ee61e2793f  apps/web/postcss.config.mjs
 8623736e05893f71ebd6f092b3868181a2742dabdc052829cb3c613fcf6eec19  apps/web/project.inlang/settings.json
+bcded14a66b60e5d8f34cf8359e28155cd53800fd049a6fc5cc092ab6724031e  apps/web/scripts/check/verify-ssr-i18n.mjs
 d5a02e53cf278fe3fbcd7f0933cd431e0302751f1f931e23b2a8081adda1dc31  apps/web/src/app.css
 34afba937fbadbe40ddc1189b27d89d0ebc313709690baeb04657ee53cc45dc0  apps/web/src/app.html
 765432ebb211191704465327f9d211f146957e959e649cf25e0e7ca21f1aa95e  apps/web/src/hooks.server.ts
@@ -63,7 +64,7 @@ f2646be1d646d52f6b33cfa86d3c41a30ad8850ea14ae1158eb41a65756fb6c2  apps/web/src/l
 1345c78d52539d10573db25cf53e1788636cf1dee9bd66df0e397b33aff4400c  apps/web/src/lib/i18n/hr.json
 1345c78d52539d10573db25cf53e1788636cf1dee9bd66df0e397b33aff4400c  apps/web/src/lib/i18n/hu.json
 1345c78d52539d10573db25cf53e1788636cf1dee9bd66df0e397b33aff4400c  apps/web/src/lib/i18n/id.json
-93b20ef632c6f3530ce520415e58c6e6b2ae9ec74644691b31f26cbda1092b44  apps/web/src/lib/i18n/index.ts
+e5537dd4c62eb61f186ccab06e4861542be6a6976d56f857de603b9366275093  apps/web/src/lib/i18n/index.svelte.ts
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  apps/web/src/lib/i18n/index.ts.bak
 1345c78d52539d10573db25cf53e1788636cf1dee9bd66df0e397b33aff4400c  apps/web/src/lib/i18n/is.json
 378194833b5dbb0068313de1e11c22bb69978f1d0c6ff4e40230331ae56e1980  apps/web/src/lib/i18n/it.json
@@ -92,7 +93,7 @@ cdae1ca29ca5ba0c71572d4652e6e49a66bf913a9ddfbe01b344aa2a8abf364e  apps/web/src/l
 8345e2670597c2618d6fb741ef0de398a6d02e6bb40651765ac4d98d0894c6e7  apps/web/src/lib/observability/web-vitals.ts
 c2e64c0f3cebbf571830d42b9c5e8c839137f7bdec453ea69e3ebb1ee2eeec5e  apps/web/src/lib/stores/theme.svelte.ts
 02951033769284bc34d16422cca48827ff4a0831f7eb818f14c5fd5ea7b2297e  apps/web/src/lib/trpc/client.ts
-eca750dd8caa6fbd0756023a04bd56d80a5284cd565b9ce9be33972de522409a  apps/web/src/routes/+layout.svelte
+87d8faad429dbd5c22182ed91912f85e96884a7194df7151f2701798213be958  apps/web/src/routes/+layout.svelte
 2ecbc1b9bd98d10059c00782d480cd1b8317dd98521849a44986dad8c85bf3ce  apps/web/src/routes/+page.svelte
 94f159e12b1eadbca4db37418528cdb2cd2cd6b0b21d4ebd349678770fec4547  apps/web/src/routes/callback/+page.svelte
 06a67f8aa60bcbafcbb87fcdffe6e7730c5d7454416eb8369d4dbb82f710f46d  apps/web/src/routes/dashboard/+page.server.ts
@@ -135,6 +136,7 @@ f1fbd37149f5b9256fb0a1ec1c7484ed54edf9176c4dd6b314059fa8c5b9215e  apps/web/src/r
 2fb663ec0592d0638e533617eab92e028edd579943246544a4cfbce628317a0d  apps/web/src/routes/dashboard/webhooks/+page.svelte
 5460044f3da0fcae19dc3d828fe0b656bf5954a3aad0c609c8abd2b9fbb9a032  apps/web/src/routes/login/+page.svelte
 6d51f94e18f1b73c695df4bf30487b017e0257061781a83ed73438289001f68a  apps/web/svelte.config.js
+59830cbbfa6319bf55336e36bf6bf37ab03aff2e1c64596bf13185bd6b795c3b  apps/web/tests/unit/i18n/runtime.test.ts
 4fca6828745e92761d6feaae3b3f7c236f556c7bd8239c424ac337bd9b49753f  apps/web/tsconfig.json
 e4bd9f149c04e35cae2196296bd17f179331c0fba03f5df7152217796c5b12e4  apps/web/vite.config.ts
 1afccfdd21c276d711740dff9e39a1328ccd5c47d0d7991711bc24a2e4204a50  lefthook.yml
@@ -208,9 +210,10 @@ a2a3e262b6960e1b3e3a848d3bcecdbba538cf2a4d2871a0832287186361754a  scripts/check/
 90f26665bd173f02e085b61aa2cd0b9ca5cd75feda6583b11005d667fab3bc3f  scripts/check/check-workflows.mjs
 9b31c50a6ff5df35e5f5e0e02cf1d626de43a9f3b493a0d78631ade24615c420  scripts/check/compression-budget-baseline.json
 7b61e8a7da0c7731985098b7395f6fe10dbeeef55ef11e7002eab2b60df8c2a1  scripts/check/lib/allowlist.mjs
+2e2c7fc84bc1b564064f0e7f9b2ac1e139f60ede947b51f9ae3ee0a36e8ed6ca  scripts/check/local-first-ci-artifact.mjs
 7ce736bcd604151d6c09673a967426bf9a22b631d4567c1d0f9d697472d7f145  scripts/check/local-first-ci-attestation.mjs
 c1f4f2c5a2bfece7d6c4a0f5845c010c3824ec27b0803a4d6abd047a562e28df  scripts/check/local-first-ci-attestation.test.mjs
-d3ba919241d880040d61a597d499ab6f5cf56c02ad221d68b6ea771386b41c78  scripts/check/local-first-ci-mode.mjs
-6826e76c095168fa301c33e7539051930692758987b8fcb028a7cb2f7c66b79d  scripts/check/local-first-ci-mode.test.mjs
+c3be140ed75c484a24eb93caa277a79d9bf8c737f635584e4355793012e2bfaa  scripts/check/local-first-ci-mode.mjs
+d24411a366d52891d30a188ef11d728dd1b01e1475cb007c00a013d2e237e6fa  scripts/check/local-first-ci-mode.test.mjs
 eba610d3bc07dc427fdc1cc807a9b68001402a57951382c7a0732ef4828463ed  scripts/check/test-report-summary.mjs
 d0f2c6fe56bd382eae4f4a7abd9a75cfabc6a931b623c514cbfea0fef6e827d3  scripts/check/verify-integrity-manifest.mjs
