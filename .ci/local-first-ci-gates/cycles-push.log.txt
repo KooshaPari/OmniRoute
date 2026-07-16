@@ -1,10 +1,10 @@
 command: bun scripts/check/check-cycles.mjs
-startedAt: 2026-07-16T07:32:05.187Z
-finishedAt: 2026-07-16T07:32:05.834Z
+startedAt: 2026-07-16T07:42:20.413Z
+finishedAt: 2026-07-16T07:42:21.216Z
 exitCode: 0
 signal: none
-inputSha256: 9efbe96508306dbb6750834423a9218c90ccb3332de91fcff3b3eb6b7f936088
-sourceTreeSha256: 52594c787d34aae5993f2e4444dcac1802d7bb12408acb58221823f3fbfc57d8
+inputSha256: 603121d5ed07bb2ecc71119950f149896b08ad6735a61ff9bf91438100e6feca
+sourceTreeSha256: 2bebb1661935416af8bc4618ad560ae048015fad4ac65512d5beacfabeeeb18d
 stdout:
 [cycles] OK - no cycles detected across 346 files in: src/shared/components, src/lib/db, src/lib/compliance, open-sse/translator, open-sse/mcp-server
 

@@ -322,11 +322,11 @@ function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[
     const failureDiff = a.failureRate - b.failureRate;
     if (failureDiff !== 0) return failureDiff;
 
-    const stabilityDiff = b.stability - a.stability;
-    if (stabilityDiff !== 0) return stabilityDiff;
-
     const latencyDiff = a.e2eLatencyMs - b.e2eLatencyMs;
     if (latencyDiff !== 0) return latencyDiff;
+
+    const stabilityDiff = b.stability - a.stability;
+    if (stabilityDiff !== 0) return stabilityDiff;
 
     if (a.avgTtftMs !== undefined && b.avgTtftMs !== undefined) {
       const ttftDiff = a.avgTtftMs - b.avgTtftMs;
