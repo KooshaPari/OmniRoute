@@ -17,17 +17,24 @@ Local development pre-push checks now emit committed per-gate proof artifacts in
 (`*.proof.json` + `*.log.txt`) and a manifest at `.ci/local-first-ci-manifest.json`.
 The workflow at `.github/workflows/local-first-ci.yml` has two fail-closed modes:
 
-| Event | Mode | Required result |
-| --- | --- | --- |
-| Push to the repository default branch | `verify` | Verify committed schema-v2 evidence against the exact checked-out tree |
-| Pull request | `live` | Install pinned tools and dependencies, run all four canonical gates plus unit/tamper tests |
-| Push to a non-default branch | `live` | Same live gate and test execution as a pull request |
-| Manual dispatch | `live` | Same live gate and test execution for operator diagnosis |
-| Any other event or inconsistent branch metadata | rejected | The terminal aggregate fails closed |
+| Event                                           | Mode     | Required result                                                                                                 |
+| ----------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| Push to the repository default branch           | `record` | Run four canonical gates on the exact merge tree, verify fresh evidence, and upload a commit-addressed artifact |
+| Pull request                                    | `live`   | Install pinned tools and dependencies, run all four canonical gates plus unit/tamper tests                      |
+| Push to a non-default branch                    | `live`   | Same live gate and test execution as a pull request                                                             |
+| Manual dispatch (`live`)                        | `live`   | Same live gate and test execution for operator diagnosis                                                        |
+| Manual dispatch (`verify`)                      | `verify` | Audit the committed snapshot; stale evidence fails closed                                                       |
+| Manual dispatch (`record`)                      | `record` | Regenerate, verify, and upload exact-tree evidence for the selected commit without changing the branch          |
+| Any other event or inconsistent branch metadata | rejected | The terminal aggregate fails closed                                                                             |
 
-Live mode does not require a branch to commit regenerated `.ci` evidence. The terminal aggregate
+Live mode does not require a branch to commit regenerated `.ci` evidence. Record mode regenerates
+evidence only in the runner workspace, verifies it, and uploads the manifest, four proof/log pairs,
+checksums, and workflow provenance as `local-first-ci-<full commit SHA>`. It never commits generated
+evidence, so normal source merges cannot create evidence-repair churn. Committed `.ci` evidence is
+retained only as an explicitly dispatched audit snapshot and does not block normal `main` pushes.
+The terminal aggregate
 requires exactly the selected mode to succeed, the other mode to skip, and rejects cancellation,
-failure, or an unexpected skip. Default-branch verification remains an exact-tree publication gate.
+failure, or an unexpected skip. Default-branch recording is the exact-tree publication gate.
 Manifests and proofs require exact SHA-256 parity with every tracked repository file except the
 generated `.ci/` evidence itself. That single exclusion prevents proofs and their manifest from
 invalidating their own provenance; product source, tests, configuration, workflows, manifests,

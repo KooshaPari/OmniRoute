@@ -4,12 +4,22 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Run live gates or audit the committed snapshot
+        required: true
+        default: live
+        type: choice
+        options:
+          - live
+          - verify
+          - record
 
 permissions:
   contents: read
 
 concurrency:
-  group: local-first-ci-${{ github.workflow }}-${{ github.event.pull_request.head.sha || github.sha }}
+  group: local-first-ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.head.sha || github.sha }}
   cancel-in-progress: true
 
 jobs:
@@ -33,6 +43,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           REF_NAME: ${{ github.ref_name }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          DISPATCH_MODE: ${{ inputs.mode }}
         run: node scripts/check/local-first-ci-mode.mjs
 
   verify-committed-evidence:
@@ -85,10 +96,64 @@ jobs:
       - name: Assert live mode did not mutate committed evidence
         run: git diff --exit-code -- .ci/local-first-ci-manifest.json .ci/local-first-ci-gates
 
+  record-main-evidence:
+    name: Record exact-tree evidence
+    needs: mode
+    if: ${{ needs.mode.outputs.selected == 'record' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4.2.2
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v4.4.0
+        with:
+          node-version: "24"
+          cache: npm
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.3.14
+      - name: Install pinned dependencies
+        run: npm ci --ignore-scripts
+      - name: Record typecheck proof
+        run: node scripts/check/local-first-ci-attestation.mjs --record --gate typecheck-core --command "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json"
+      - name: Record integrity-manifest proof
+        run: node scripts/check/local-first-ci-attestation.mjs --record --gate integrity-manifest --command "bun run integrity:manifest:write"
+      - name: Restore exact merge tree after integrity writer
+        run: git restore --source=HEAD -- ci/integrity-manifest.sha256
+      - name: Record T11 any-budget proof
+        run: node scripts/check/local-first-ci-attestation.mjs --record --gate t11-any-budget-push --command "bun scripts/check/check-t11-any-budget.mjs"
+      - name: Record dependency-cycle proof
+        run: node scripts/check/local-first-ci-attestation.mjs --record --gate cycles-push --command "bun scripts/check/check-cycles.mjs"
+      - name: Write and verify schema-v2 manifest
+        run: |
+          node scripts/check/local-first-ci-attestation.mjs --write
+          node scripts/check/local-first-ci-attestation.mjs
+      - name: Run mode, unit, and tamper tests
+        run: node --test scripts/check/local-first-ci-mode.test.mjs scripts/check/local-first-ci-attestation.test.mjs
+      - name: Assert source tree remained exact
+        run: git diff --exit-code -- . ':!.ci/**'
+      - name: Build checksum and provenance envelope
+        run: node scripts/check/local-first-ci-artifact.mjs
+      - name: Upload commit-addressed evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: local-first-ci-${{ github.sha }}
+          path: |
+            .ci/local-first-ci-manifest.json
+            .ci/local-first-ci-gates/
+            .local-first-ci-artifact/checksums.sha256
+            .local-first-ci-artifact/provenance.json
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 9
+          include-hidden-files: true
+
   terminal:
     name: Local-First CI terminal
     if: ${{ always() }}
-    needs: [mode, verify-committed-evidence, live-gates]
+    needs: [mode, verify-committed-evidence, live-gates, record-main-evidence]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     env:
@@ -96,6 +161,7 @@ jobs:
       SELECTED_MODE: ${{ needs.mode.outputs.selected }}
       VERIFY_RESULT: ${{ needs.verify-committed-evidence.result }}
       LIVE_RESULT: ${{ needs.live-gates.result }}
+      RECORD_RESULT: ${{ needs.record-main-evidence.result }}
     steps:
       - name: Enforce selected mode result
         shell: bash
@@ -107,14 +173,20 @@ jobs:
           fi
           case "$SELECTED_MODE" in
             verify)
-              [[ "$VERIFY_RESULT" == "success" && "$LIVE_RESULT" == "skipped" ]] || {
-                echo "Unexpected verify-mode results: verify=$VERIFY_RESULT live=$LIVE_RESULT" >&2
+              [[ "$VERIFY_RESULT" == "success" && "$LIVE_RESULT" == "skipped" && "$RECORD_RESULT" == "skipped" ]] || {
+                echo "Unexpected verify-mode results: verify=$VERIFY_RESULT live=$LIVE_RESULT record=$RECORD_RESULT" >&2
                 exit 1
               }
               ;;
             live)
-              [[ "$LIVE_RESULT" == "success" && "$VERIFY_RESULT" == "skipped" ]] || {
-                echo "Unexpected live-mode results: live=$LIVE_RESULT verify=$VERIFY_RESULT" >&2
+              [[ "$LIVE_RESULT" == "success" && "$VERIFY_RESULT" == "skipped" && "$RECORD_RESULT" == "skipped" ]] || {
+                echo "Unexpected live-mode results: live=$LIVE_RESULT verify=$VERIFY_RESULT record=$RECORD_RESULT" >&2
+                exit 1
+              }
+              ;;
+            record)
+              [[ "$RECORD_RESULT" == "success" && "$VERIFY_RESULT" == "skipped" && "$LIVE_RESULT" == "skipped" ]] || {
+                echo "Unexpected record-mode results: record=$RECORD_RESULT verify=$VERIFY_RESULT live=$LIVE_RESULT" >&2
                 exit 1
               }
               ;;
