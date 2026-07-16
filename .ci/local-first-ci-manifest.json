@@ -1,38 +1,38 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-16T22:11:31.289Z",
+  "generatedAt": "2026-07-16T22:19:31.948Z",
   "gateResults": [
     {
       "name": "typecheck-core",
       "status": "passed",
       "command": "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json",
       "proofPath": ".ci/local-first-ci-gates/typecheck-core.proof.json",
-      "proofHash": "90a3eed674fb2a6d85bd1b3032df6ed2f4001e558c2c2e9a0f6d4d35280c795b",
-      "executedAt": "2026-07-16T22:11:28.308Z"
+      "proofHash": "8bb773d1a5916819ca91b15585f90bc4dd38e0e70cc6706d7d018a363948b04a",
+      "executedAt": "2026-07-16T22:19:24.862Z"
     },
     {
       "name": "integrity-manifest",
       "status": "passed",
       "command": "bun run integrity:manifest:write",
       "proofPath": ".ci/local-first-ci-gates/integrity-manifest.proof.json",
-      "proofHash": "5dc76479fd8caf02cf9cf54108bc046dfbb908d3a06bd23d0a9ce8e4c488dbe2",
-      "executedAt": "2026-07-16T22:11:26.033Z"
+      "proofHash": "e80e848b4a6f81bff595c7d056901a5ee18989891e0c67be23be82c4617898cf",
+      "executedAt": "2026-07-16T22:19:20.131Z"
     },
     {
       "name": "t11-any-budget-push",
       "status": "passed",
       "command": "bun scripts/check/check-t11-any-budget.mjs",
       "proofPath": ".ci/local-first-ci-gates/t11-any-budget-push.proof.json",
-      "proofHash": "a525f5cc8fc1c9567f2a8bd0469cee446c299eeb3f45df390e7882d9ac7f5b06",
-      "executedAt": "2026-07-16T22:11:29.346Z"
+      "proofHash": "bdbaf6aab307295a4aaf2530fa3c9a8b21582519d1aa37d26b2ede0b56c7e717",
+      "executedAt": "2026-07-16T22:19:27.811Z"
     },
     {
       "name": "cycles-push",
       "status": "passed",
       "command": "bun scripts/check/check-cycles.mjs",
       "proofPath": ".ci/local-first-ci-gates/cycles-push.proof.json",
-      "proofHash": "1266877ed9396f5e9a6ec548e731a029e93ca7b6cd36b9340cf1894dad5a9d9a",
-      "executedAt": "2026-07-16T22:11:30.464Z"
+      "proofHash": "43b05c50f5bdbbfd3ab4975deb001e4a86737877d25b5bf807f8bbceea2205ef",
+      "executedAt": "2026-07-16T22:19:29.205Z"
     }
   ],
   "content": {
@@ -8502,6 +8502,6 @@
       "worklogs/2026-06-25-L5-119-b9-dispatcher-fallback.md",
       "worklogs/L5-209-v48-envelope-expansion-2026-06-30.json"
     ],
-    "sourceTreeSha256": "5f890fc7377e2346df734962bea2015d5e73ff62166cd58574b776f296db8afa"
+    "sourceTreeSha256": "fb1772d7cfa836e5f341e74fe48e434c6fcef9f7d35c840776f6cc5025b6a6fa"
   }
 }
