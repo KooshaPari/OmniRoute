@@ -37,6 +37,7 @@ interface ToolLatencyStat {
 interface BifrostRouteMetric {
   provider: string;
   model: string;
+  connectionId?: string | null;
   e2eLatencyMs: number;
   health: number | undefined;
   failureRate: number;
@@ -78,6 +79,10 @@ function successRate(successful: number, total: number): string {
 function formatPercent(value: number | null | undefined): string {
   if (value == null || !Number.isFinite(value)) return "—";
   return `${(value * 100).toFixed(1)}%`;
+}
+
+function formatConnectionLabel(connectionId: string | null | undefined): string {
+  return connectionId?.trim() ? connectionId : "Shared / legacy";
 }
 
 export default function ProviderStatsPage() {
@@ -286,7 +291,7 @@ export default function ProviderStatsPage() {
           </div>
           {performanceMetrics && (
             <span className="text-xs text-text-muted tabular-nums">
-              {performanceMetrics.length} models
+              {performanceMetrics.length} routes
             </span>
           )}
         </div>
@@ -321,7 +326,7 @@ export default function ProviderStatsPage() {
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left py-2 px-2 text-text-muted font-medium">
-                    Provider / Model
+                    Provider / Model / Connection
                   </th>
                   <th className="text-right py-2 px-2 text-text-muted font-medium">E2E p95</th>
                   <th className="text-right py-2 px-2 text-text-muted font-medium">Health</th>
@@ -340,7 +345,11 @@ export default function ProviderStatsPage() {
                   .map((metric) => {
                     return (
                       <tr
-                        key={`${metric.provider}-${metric.model}`}
+                        key={JSON.stringify([
+                          metric.provider,
+                          metric.model,
+                          metric.connectionId ?? null,
+                        ])}
                         className="border-b border-border/50 hover:bg-surface/50 transition-colors"
                       >
                         <td className="py-2 px-2">
@@ -348,6 +357,9 @@ export default function ProviderStatsPage() {
                             {resolveProviderName(metric.provider, nodeMap)}
                           </p>
                           <p className="font-mono text-text-muted mt-0.5">{metric.model}</p>
+                          <p className="text-text-muted mt-0.5">
+                            Connection: {formatConnectionLabel(metric.connectionId)}
+                          </p>
                         </td>
                         <td className="py-2 px-2 text-right tabular-nums text-text-main">
                           {formatLatency(metric.e2eLatencyMs)}

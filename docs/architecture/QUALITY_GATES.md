@@ -15,8 +15,19 @@ in `CLAUDE.md`.
 
 Local development pre-push checks now emit committed per-gate proof artifacts in `.ci/local-first-ci-gates/`
 (`*.proof.json` + `*.log.txt`) and a manifest at `.ci/local-first-ci-manifest.json`.
-The workflow at `.github/workflows/local-first-ci.yml` verifies this manifest on `push` and on PRs
-that carry the `local-first-ci` label, and fails PRs that have stale/mismatched artifacts.
+The workflow at `.github/workflows/local-first-ci.yml` has two fail-closed modes:
+
+| Event | Mode | Required result |
+| --- | --- | --- |
+| Push to the repository default branch | `verify` | Verify committed schema-v2 evidence against the exact checked-out tree |
+| Pull request | `live` | Install pinned tools and dependencies, run all four canonical gates plus unit/tamper tests |
+| Push to a non-default branch | `live` | Same live gate and test execution as a pull request |
+| Manual dispatch | `live` | Same live gate and test execution for operator diagnosis |
+| Any other event or inconsistent branch metadata | rejected | The terminal aggregate fails closed |
+
+Live mode does not require a branch to commit regenerated `.ci` evidence. The terminal aggregate
+requires exactly the selected mode to succeed, the other mode to skip, and rejects cancellation,
+failure, or an unexpected skip. Default-branch verification remains an exact-tree publication gate.
 Manifests and proofs require exact SHA-256 parity with every tracked repository file except the
 generated `.ci/` evidence itself. That single exclusion prevents proofs and their manifest from
 invalidating their own provenance; product source, tests, configuration, workflows, manifests,
