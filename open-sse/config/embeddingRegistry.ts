@@ -93,6 +93,17 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     ],
   },
 
+  "vercel-ai-gateway": {
+    id: "vercel-ai-gateway",
+    baseUrl: "https://ai-gateway.vercel.sh/v1/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "text-embedding-3-small", name: "Text Embedding 3 Small", dimensions: 1536 },
+      { id: "text-embedding-3-large", name: "Text Embedding 3 Large", dimensions: 3072 },
+    ],
+  },
+
   upstage: {
     id: "upstage",
     baseUrl: "https://api.upstage.ai/v1/embeddings",
@@ -205,7 +216,10 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/embeddings",
     authType: "apikey",
     authHeader: "bearer",
-    models: [{ id: "text-embedding-004", name: "Text Embedding 004", dimensions: 768 }],
+    models: [
+      { id: "gemini-embedding-2", name: "Gemini Embedding 2", dimensions: 768 },
+      { id: "gemini-embedding-001", name: "Gemini Embedding 001", dimensions: 768 },
+    ],
   },
 
   "voyage-ai": {

@@ -5,7 +5,14 @@ import { normalizeExcludedModelPatterns } from "@/domain/connectionModelRules";
 import { normalizeRoutingTags } from "@/domain/tagRouter";
 import { normalizeOpenRouterPreset } from "@/shared/constants/openRouterPreset";
 
-export const CODEX_REASONING_EFFORT_VALUES = ["none", "low", "medium", "high", "xhigh"] as const;
+export const CODEX_REASONING_EFFORT_VALUES = [
+  "none",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+] as const;
 
 export type CodexReasoningEffort = (typeof CODEX_REASONING_EFFORT_VALUES)[number];
 
@@ -65,6 +72,10 @@ export function normalizeClaudeCodeCompatibleRedactThinking(value: unknown): tru
   return value === true ? true : undefined;
 }
 
+export function normalizeClaudeCodeCompatibleSummarizeThinking(value: unknown): true | undefined {
+  return value === true ? true : undefined;
+}
+
 export function normalizeRequestDefaults(
   provider: string | null | undefined,
   value: unknown
@@ -103,6 +114,15 @@ export function normalizeRequestDefaults(
       normalized.redactThinking = true;
     } else {
       delete normalized.redactThinking;
+    }
+
+    const summarizeThinking = normalizeClaudeCodeCompatibleSummarizeThinking(
+      record.summarizeThinking
+    );
+    if (summarizeThinking) {
+      normalized.summarizeThinking = true;
+    } else {
+      delete normalized.summarizeThinking;
     }
   }
 
@@ -286,6 +306,7 @@ export function getCodexRequestDefaults(providerSpecificData: unknown): {
 export function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unknown): {
   context1m?: true;
   redactThinking?: true;
+  summarizeThinking?: true;
 } {
   const defaults = getProviderRequestDefaults(
     "anthropic-compatible-cc-default",
@@ -293,8 +314,12 @@ export function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unk
   );
   const context1m = normalizeClaudeCodeCompatibleContext1m(defaults.context1m);
   const redactThinking = normalizeClaudeCodeCompatibleRedactThinking(defaults.redactThinking);
+  const summarizeThinking = normalizeClaudeCodeCompatibleSummarizeThinking(
+    defaults.summarizeThinking
+  );
   return {
     ...(context1m ? { context1m } : {}),
     ...(redactThinking ? { redactThinking } : {}),
+    ...(summarizeThinking ? { summarizeThinking } : {}),
   };
 }

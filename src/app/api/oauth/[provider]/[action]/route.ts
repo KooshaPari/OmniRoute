@@ -9,7 +9,10 @@ import {
   pollForToken,
   resolveBrowserOAuthRedirectUri,
 } from "@/lib/oauth/providers";
-import { persistOAuthConnection } from "@/lib/oauth/connectionPersistence";
+import {
+  persistOAuthConnection,
+  buildOAuthConnectionCreatePayload,
+} from "@/lib/oauth/connectionPersistence";
 import { createDeviceFlowTicket, getDeviceFlowTicketStatus } from "@/lib/oauth/deviceFlowTickets";
 import {
   createProviderConnection,
@@ -32,6 +35,7 @@ import {
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { keychainImportOnlyGuard } from "./keychainImportOnly";
 
 // Use globalThis to persist callback server state across Next.js HMR reloads
 if (!globalThis.__codexCallbackState) {
@@ -63,7 +67,7 @@ const BROWSER_DEVICE_FLOW_PROVIDERS = new Set(["codex"]);
 const RETIRED_PKCE_PROVIDERS = new Set(["windsurf", "devin-cli"]);
 
 /** Providers that allow direct import of a raw API token (no OAuth exchange). */
-const IMPORT_TOKEN_PROVIDERS = new Set(["windsurf", "devin-cli"]);
+const IMPORT_TOKEN_PROVIDERS = new Set(["windsurf", "devin-cli", "grok-cli"]);
 
 /**
  * Constant-time string comparison to prevent timing-oracle attacks (CWE-208).
@@ -112,7 +116,7 @@ export async function GET(
   // The action permanently does not exist for these providers regardless of who
   // is asking — answering 401 first would mislead callers into thinking the
   // route is gated rather than gone. See spec
-  // docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
+  // _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
   try {
     const earlyParams = await params;
     if (
@@ -133,6 +137,10 @@ export async function GET(
         { status: 410 }
       );
     }
+    // Keychain-import-only providers (e.g. zed) have no OAuth flow — return a
+    // clear 400 pointing at the Import button instead of a 500 (#6041).
+    const kio = keychainImportOnlyGuard(earlyParams.provider, earlyParams.action);
+    if (kio) return kio;
   } catch {
     /* fall through to normal handling */
   }
@@ -196,7 +204,8 @@ export async function GET(
         provider === "kiro" ||
         provider === "amazon-q" ||
         provider === "kimi-coding" ||
-        provider === "kilocode"
+        provider === "kilocode" ||
+        provider === "codebuddy-cn"
       ) {
         // GitHub, Kiro/Amazon Q, Kimi Coding, and KiloCode don't use PKCE for device code
         if ((provider === "kiro" || provider === "amazon-q") && startUrl) {
@@ -352,6 +361,9 @@ export async function POST(
         { status: 410 }
       );
     }
+    // Keychain-import-only providers (e.g. zed) have no OAuth flow (#6041).
+    const kio = keychainImportOnlyGuard(earlyParams.provider, earlyParams.action);
+    if (kio) return kio;
   } catch {
     /* fall through to normal handling */
   }
@@ -496,13 +508,9 @@ export async function POST(
         }
       }
       if (!connection) {
-        connection = await createProviderConnection({
-          provider,
-          authType: "oauth",
-          ...tokenData,
-          expiresAt,
-          testStatus: "active",
-        });
+        connection = await createProviderConnection(
+          buildOAuthConnectionCreatePayload(provider, tokenData, expiresAt)
+        );
       }
 
       // Auto sync to Cloud if enabled
@@ -527,7 +535,12 @@ export async function POST(
 
       // Poll for token (through proxy if configured)
       let result;
-      if (provider === "github" || provider === "kimi-coding" || provider === "kilocode") {
+      if (
+        provider === "github" ||
+        provider === "kimi-coding" ||
+        provider === "kilocode" ||
+        provider === "codebuddy-cn"
+      ) {
         // For providers that don't use PKCE (GitHub, Kimi Coding, KiloCode), don't pass codeVerifier
         result = await runWithProxyContextOrDirect(proxy, () =>
           (pollForToken as any)(provider, deviceCode)
@@ -583,13 +596,9 @@ export async function POST(
           }
         }
         if (!connection) {
-          connection = await createProviderConnection({
-            provider,
-            authType: "oauth",
-            ...result.tokens,
-            expiresAt,
-            testStatus: "active",
-          });
+          connection = await createProviderConnection(
+            buildOAuthConnectionCreatePayload(provider, result.tokens, expiresAt)
+          );
         }
 
         // Auto sync to Cloud if enabled
@@ -716,13 +725,9 @@ export async function POST(
           }
         }
         if (!connection) {
-          connection = await createProviderConnection({
-            provider,
-            authType: "oauth",
-            ...tokenData,
-            expiresAt,
-            testStatus: "active",
-          });
+          connection = await createProviderConnection(
+            buildOAuthConnectionCreatePayload(provider, tokenData, expiresAt)
+          );
         }
 
         await syncToCloudIfEnabled();
@@ -790,13 +795,9 @@ export async function POST(
           }
         }
         if (!connection) {
-          connection = await createProviderConnection({
-            provider,
-            authType: "oauth",
-            ...tokenData,
-            expiresAt,
-            testStatus: "active",
-          });
+          connection = await createProviderConnection(
+            buildOAuthConnectionCreatePayload(provider, tokenData, expiresAt)
+          );
         }
 
         await syncToCloudIfEnabled();

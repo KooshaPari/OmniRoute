@@ -13,6 +13,11 @@ import { syncToCloud } from "@/lib/cloudSync";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { KiroService } from "@/lib/oauth/services/kiro";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import {
+  emailFromExternalIdpToken,
+  isExternalIdpAuthMethod,
+  normalizeScope,
+} from "@omniroute/open-sse/services/kiroExternalIdp.ts";
 
 /**
  * GET /api/oauth/kiro/auto-import
@@ -202,11 +207,69 @@ async function tryKiroCliSqlite(): Promise<{
 
 // ── ~/.aws/sso/cache fallback ─────────────────────────────────────────────────
 
+/**
+ * Read the Amazon Q Developer profileArn the Kiro IDE persists in its
+ * `profile.json`. This is the authoritative source for the profileArn of AWS
+ * IAM Identity Center AND External IdP (organization) logins, since neither can
+ * enumerate it via ListAvailableProfiles (org tokens get an empty list).
+ *
+ * The ARN's region segment is preserved verbatim (#2314). #2059 originally
+ * forced every ARN's region to us-east-1, which 403s the runtime gateway for
+ * IDC accounts that live in a non-us-east-1 region. The OAuth device-code
+ * path (src/lib/oauth/providers/kiro.ts) already discovers the correct
+ * region-matched ARN, so this fallback now mirrors that behavior instead of
+ * rewriting it.
+ */
+async function readKiroIdeProfileArn(): Promise<string | null> {
+  const { readFile } = await import("fs/promises");
+  const kiroProfilePaths = [
+    join(
+      process.env.APPDATA || join(homedir(), "AppData", "Roaming"),
+      "Kiro",
+      "User",
+      "globalStorage",
+      "kiro.kiroagent",
+      "profile.json"
+    ),
+    join(homedir(), ".config", "Kiro", "User", "globalStorage", "kiro.kiroagent", "profile.json"),
+    join(
+      homedir(),
+      "Library",
+      "Application Support",
+      "Kiro",
+      "User",
+      "globalStorage",
+      "kiro.kiroagent",
+      "profile.json"
+    ),
+  ];
+  for (const profilePath of kiroProfilePaths) {
+    try {
+      const profileContent = await readFile(profilePath, "utf-8");
+      const profileData = JSON.parse(profileContent);
+      if (profileData.arn) {
+        return profileData.arn;
+      }
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
 async function tryAwsSsoCache(targetProvider: string): Promise<{
   found: boolean;
   triedPath?: string;
   refreshToken?: string;
+  accessToken?: string | null;
   source?: string;
+  clientId?: string | null;
+  clientSecret?: string | null;
+  region?: string | null;
+  authMethod?: string | null;
+  profileArn?: string | null;
+  tokenEndpoint?: string | null;
+  scopes?: string | string[] | null;
 }> {
   const { readFile, readdir } = await import("fs/promises");
   const cachePath = join(homedir(), ".aws/sso/cache");
@@ -230,8 +293,70 @@ async function tryAwsSsoCache(targetProvider: string): Promise<{
     try {
       const content = await readFile(join(cachePath, file), "utf-8");
       const data = JSON.parse(content);
+
+      // Enterprise / Microsoft Entra "Your organization" (external_idp) tokens are NOT AWS SSO
+      // tokens — their refresh token does not start with `aorAAAAAG`. Detect them by authMethod/
+      // provider and take the dedicated external_idp branch (org IdP tokenEndpoint refresh +
+      // profileArn read from the Kiro IDE profile.json).
+      const isExternalIdp =
+        !!data.refreshToken &&
+        (isExternalIdpAuthMethod(data.authMethod) ||
+          String(data.provider || "").toLowerCase() === "externalidp");
+
+      if (isExternalIdp) {
+        const region: string | null = data.region || null;
+        const profileArn = await readKiroIdeProfileArn();
+        return {
+          found: true,
+          source: file,
+          refreshToken: data.refreshToken,
+          accessToken: data.accessToken || null,
+          clientId: data.clientId || null,
+          clientSecret: null,
+          region,
+          authMethod: "external_idp",
+          profileArn,
+          tokenEndpoint: data.tokenEndpoint || null,
+          scopes: data.scopes || null,
+        };
+      }
+
       if (data.refreshToken?.startsWith("aorAAAAAG")) {
-        return { found: true, refreshToken: data.refreshToken, source: file };
+        const region: string | null = data.region || null;
+        const authMethod: string | null = data.authMethod || null;
+
+        // For IDC/organization tokens, resolve clientId and clientSecret from
+        // the linked client registration file (referenced by clientIdHash).
+        let clientId: string | null = null;
+        let clientSecret: string | null = null;
+        if (data.clientIdHash) {
+          const clientFile = `${data.clientIdHash}.json`;
+          try {
+            const clientContent = await readFile(join(cachePath, clientFile), "utf-8");
+            const clientData = JSON.parse(clientContent);
+            if (clientData.clientId && clientData.clientSecret) {
+              clientId = clientData.clientId;
+              clientSecret = clientData.clientSecret;
+            }
+          } catch {
+            // Client registration file not found — continue without it
+          }
+        }
+
+        // Read profileArn from Kiro IDE's profile.json. The region is preserved
+        // verbatim by readKiroIdeProfileArn() (#2314) — see its docstring for why.
+        const profileArn: string | null = await readKiroIdeProfileArn();
+
+        return {
+          found: true,
+          refreshToken: data.refreshToken,
+          source: file,
+          clientId,
+          clientSecret,
+          region,
+          authMethod,
+          profileArn,
+        };
       }
     } catch {
       // skip
@@ -296,8 +421,16 @@ export function findKiroConnectionByProfileArn(
 
 // ── Save to OmniRoute DB ──────────────────────────────────────────────────────
 
+type SaveAndRespondResult = Awaited<ReturnType<typeof tryKiroCliSqlite>> & {
+  // Fields added by tryAwsSsoCache for IDC tokens (#2059)
+  authMethod?: string | null;
+  // Fields added by tryAwsSsoCache for External IdP (organization) tokens
+  tokenEndpoint?: string | null;
+  scopes?: string | string[] | null;
+};
+
 async function saveAndRespond(
-  result: Awaited<ReturnType<typeof tryKiroCliSqlite>>,
+  result: SaveAndRespondResult,
   targetProvider: string,
   request: Request
 ) {
@@ -305,14 +438,100 @@ async function saveAndRespond(
     const kiroService = new KiroService();
     const proxy = await resolveProxyForProvider(targetProvider);
 
+    // Enterprise / Microsoft Entra "Your organization" (external_idp) tokens: refresh via the
+    // org IdP tokenEndpoint (public-client OAuth2), persist the Kiro IDE profileArn, and mark
+    // the connection so the runtime executor sends `TokenType: EXTERNAL_IDP` and the quota
+    // fetch works. These tokens can't refresh via AWS OIDC / Kiro social and have no client
+    // secret, so they get their own path.
+    if (isExternalIdpAuthMethod(result.authMethod)) {
+      const region = result.region || "us-east-1";
+      const scope = normalizeScope(result.scopes);
+      const externalIdpPsd = {
+        authMethod: "external_idp",
+        clientId: result.clientId || undefined,
+        tokenEndpoint: result.tokenEndpoint || undefined,
+        scope,
+        region,
+      };
+      const refreshed = await runWithProxyContext(proxy, () =>
+        kiroService.refreshToken(result.refreshToken!, externalIdpPsd)
+      );
+      const email =
+        emailFromExternalIdpToken(refreshed.accessToken) ||
+        kiroService.extractEmailFromJWT(refreshed.accessToken);
+      const profileArn = result.profileArn || null;
+      const connectionName = deriveKiroConnectionName({
+        email,
+        profileArn: profileArn || undefined,
+        region,
+        targetProvider,
+      });
+      const providerSpecificData: Record<string, any> = {
+        authMethod: "external_idp",
+        provider: "ExternalIdp",
+        clientId: result.clientId || null,
+        tokenEndpoint: result.tokenEndpoint || null,
+        scope,
+        region,
+      };
+      if (profileArn) providerSpecificData.profileArn = profileArn;
+
+      const existingConnections = await getProviderConnections({ provider: targetProvider });
+      const existingByArn = findKiroConnectionByProfileArn(
+        existingConnections,
+        profileArn || undefined
+      );
+      const record = {
+        accessToken: refreshed.accessToken,
+        refreshToken: refreshed.refreshToken || result.refreshToken!,
+        expiresAt: new Date(Date.now() + (refreshed.expiresIn || 3600) * 1000).toISOString(),
+        email: email || null,
+        name: connectionName,
+        providerSpecificData,
+        testStatus: "active",
+      };
+      if (existingByArn && typeof existingByArn.id === "string") {
+        await updateProviderConnection(existingByArn.id, record);
+      } else {
+        await createProviderConnection({
+          provider: targetProvider,
+          authType: "oauth",
+          ...record,
+        } as any);
+      }
+      if (await isCloudEnabled()) {
+        const machineId = await getConsistentMachineId();
+        await syncToCloud(machineId).catch(() => {});
+      }
+      return NextResponse.json({
+        found: true,
+        source: result.source,
+        email: email || null,
+        profileArn: profileArn || null,
+        region,
+        message: "Kiro credentials imported successfully.",
+      });
+    }
+
     // If we have a refresh token but no valid access token, refresh now
     let accessToken = result.accessToken;
     let refreshToken = result.refreshToken!;
     let expiresAt = result.expiresAt;
     let profileArn = result.profileArn;
 
+    // Determine authMethod: prefer the value from the SSO cache token (e.g. "idc")
+    // so that kiroService.refreshToken() takes the correct OIDC path for IDC tokens
+    // (#2059). Fall back to "kiro-cli" for the SQLite path and "imported" for plain
+    // social SSO cache tokens (no clientIdHash → no IDC client creds).
+    const resolvedAuthMethod =
+      result.source === "kiro-cli-sqlite"
+        ? "kiro-cli"
+        : result.clientId
+          ? result.authMethod || "idc"
+          : "imported";
+
     const providerSpecificData: Record<string, any> = {
-      authMethod: result.source === "kiro-cli-sqlite" ? "kiro-cli" : "imported",
+      authMethod: resolvedAuthMethod,
       provider: result.source === "kiro-cli-sqlite" ? "kiro-cli SQLite" : "AWS SSO Cache",
     };
 
@@ -397,7 +616,7 @@ async function saveAndRespond(
       } as any);
     }
 
-    if (isCloudEnabled()) {
+    if (await isCloudEnabled()) {
       const machineId = await getConsistentMachineId();
       await syncToCloud(machineId).catch(() => {});
     }

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import QuotaCard from "./QuotaCard";
 
 interface Props {
@@ -10,10 +11,13 @@ interface Props {
   lastRefreshedAt: Record<string, string | undefined>;
   emailsVisible: boolean;
   providerLabels: Record<string, string>;
+  renderInlineQuotaSummary?: (quota: any) => ReactNode;
   onRefresh: (id: string, provider: string) => void;
   onOpenCutoff: (connection: any) => void;
+  onRedeemResetCredit?: (id: string, provider: string) => void;
   onToggleActive: (id: string, nextActive: boolean) => void;
   togglingActiveId: string | null;
+  redeemingResetCreditId?: string | null;
 }
 
 export default function QuotaCardGrid({
@@ -24,10 +28,13 @@ export default function QuotaCardGrid({
   lastRefreshedAt,
   emailsVisible,
   providerLabels,
+  renderInlineQuotaSummary: _renderInlineQuotaSummary,
   onRefresh,
   onOpenCutoff,
+  onRedeemResetCredit,
   onToggleActive,
   togglingActiveId,
+  redeemingResetCreditId = null,
 }: Props) {
   if (connections.length === 0) return null;
 
@@ -40,16 +47,16 @@ export default function QuotaCardGrid({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="columns-1 2xl:columns-2 gap-6 [column-fill:_balance]">
       {[...groups.entries()].map(([provider, conns]) => (
-        <div key={provider} className="flex flex-col gap-3">
+        <div key={provider} className="flex flex-col gap-3 break-inside-avoid mb-6">
           <h3 className="text-sm font-semibold text-text-main flex items-center gap-2">
             {providerLabels[provider] || provider}
             <span className="text-xs font-normal text-text-muted">
               ({conns.length} account{conns.length !== 1 ? "s" : ""})
             </span>
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
             {conns.map((conn) => (
               <QuotaCard
                 key={conn.id}
@@ -62,8 +69,10 @@ export default function QuotaCardGrid({
                 providerLabel={providerLabels[conn.provider] || conn.provider}
                 onRefresh={() => onRefresh(conn.id, conn.provider)}
                 onOpenCutoff={() => onOpenCutoff(conn)}
+                onRedeemResetCredit={() => onRedeemResetCredit?.(conn.id, conn.provider)}
                 onToggleActive={(nextActive) => onToggleActive(conn.id, nextActive)}
                 togglingActive={togglingActiveId === conn.id}
+                redeemingResetCredit={redeemingResetCreditId === conn.id}
               />
             ))}
           </div>

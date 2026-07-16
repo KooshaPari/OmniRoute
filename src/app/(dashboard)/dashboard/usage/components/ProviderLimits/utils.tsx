@@ -18,7 +18,7 @@ const QUOTA_LABEL_MAP: Record<string, string> = {
   weekly: "Weekly",
   code_review: "Code Review",
   code_review_weekly: "Code Review Weekly",
-  gpt_5_3_codex_spark_session: "GPT-5.3-Codex-Spark",
+  gpt_5_3_codex_spark_session: "GPT-5.3-Codex-Spark Session",
   gpt_5_3_codex_spark_weekly: "GPT-5.3-Codex-Spark Weekly",
   agentic_request: "Agentic",
   agentic_request_freetrial: "Agentic (Trial)",
@@ -33,6 +33,9 @@ const QUOTA_LABEL_MAP: Record<string, string> = {
   "Monthly Tools": "Monthly Tools",
   tokens: "Tokens",
   time_limit: "Time Limit",
+  banked_reset_credits: "Banked Reset Credits",
+  gemini_weekly: "Gemini Weekly",
+  claude_gpt_weekly: "Claude & GPT Weekly",
 };
 
 function toRecord(value: unknown): Record<string, unknown> {

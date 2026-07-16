@@ -3,6 +3,7 @@
  *
  * Defines providers that support audio endpoints:
  * - /v1/audio/transcriptions (Whisper API)
+ * - /v1/audio/translations (Whisper translate-to-English API)
  * - /v1/audio/speech (TTS API)
  */
 
@@ -160,6 +161,30 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
   },
 };
 
+/**
+ * Providers that expose an OpenAI-Whisper-compatible /audio/translations
+ * endpoint (translate-to-English). This is a narrower surface than
+ * transcription: only Whisper-family models support it, and there is no
+ * `language` input — output is always English regardless of source audio.
+ */
+export const AUDIO_TRANSLATION_PROVIDERS: Record<string, AudioProvider> = {
+  openai: {
+    id: "openai",
+    baseUrl: "https://api.openai.com/v1/audio/translations",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "whisper-1", name: "Whisper 1" }],
+  },
+
+  groq: {
+    id: "groq",
+    baseUrl: "https://api.groq.com/openai/v1/audio/translations",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "whisper-large-v3", name: "Whisper Large v3" }],
+  },
+};
+
 export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
   vertex: {
     id: "vertex",
@@ -168,6 +193,7 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authHeader: "bearer",
     format: "vertex-gemini-tts",
     models: [
+      { id: "gemini-3.1-flash-tts-preview", name: "Gemini 3.1 Flash TTS (Vertex)" },
       { id: "gemini-2.5-flash-preview-tts", name: "Gemini 2.5 Flash TTS (Vertex)" },
       { id: "gemini-2.5-pro-preview-tts", name: "Gemini 2.5 Pro TTS (Vertex)" },
     ],
@@ -390,7 +416,6 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "mimo-v2.5-tts", name: "MiMo V2.5 TTS" },
       { id: "mimo-v2.5-tts-voicedesign", name: "MiMo V2.5 Voice Design" },
       { id: "mimo-v2.5-tts-voiceclone", name: "MiMo V2.5 Voice Clone" },
-      { id: "mimo-v2-tts", name: "MiMo V2 TTS" },
     ],
   },
 };
@@ -400,6 +425,13 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
  */
 export function getTranscriptionProvider(providerId: string): AudioProvider | null {
   return AUDIO_TRANSCRIPTION_PROVIDERS[providerId] || null;
+}
+
+/**
+ * Get translation provider config by ID
+ */
+export function getTranslationProvider(providerId: string): AudioProvider | null {
+  return AUDIO_TRANSLATION_PROVIDERS[providerId] || null;
 }
 
 /**
@@ -477,6 +509,10 @@ export function parseTranscriptionModel(
 
 export function parseSpeechModel(modelStr: string | null, dynamicProviders?: AudioProvider[]) {
   return parseAudioModel(modelStr, AUDIO_SPEECH_PROVIDERS, dynamicProviders);
+}
+
+export function parseTranslationModel(modelStr: string | null, dynamicProviders?: AudioProvider[]) {
+  return parseAudioModel(modelStr, AUDIO_TRANSLATION_PROVIDERS, dynamicProviders);
 }
 
 /**

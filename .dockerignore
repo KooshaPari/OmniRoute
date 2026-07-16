@@ -77,6 +77,8 @@ bun.lock
 # Agent config
 .agents
 .gemini
+.claude
+.source
 
 # Misc
 llm.txt
@@ -123,3 +125,4 @@ app.__qa_backup/
 .worktrees
 .next-playwright/
 cloud/
+electron/dist-electron

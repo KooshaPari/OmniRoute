@@ -12,16 +12,11 @@ test("T28: gemini AI Studio catalog includes current preview models", () => {
   const geminiIds = REGISTRY.gemini.models.map((m) => m.id);
   assert.ok(geminiIds.includes("gemini-3.1-pro-preview"));
   assert.ok(geminiIds.includes("gemini-3-flash-preview"));
-  assert.ok(geminiIds.includes("gemini-3.1-flash-lite-preview"));
+  assert.ok(geminiIds.includes("gemini-3.1-flash-lite"));
   assert.ok(geminiIds.includes("gemini-3.5-flash"));
   assert.ok(geminiIds.includes("gemini-2.5-flash"));
   assert.ok(geminiIds.includes("gemini-2.5-pro"));
-  assert.equal(geminiIds[0], "gemini-2.0-flash", "preserve the existing Gemini default");
-
-  // gemini-cli still has hardcoded models (Cloud Code doesn't have a models API)
-  const geminiCliIds = REGISTRY["gemini-cli"].models.map((m) => m.id);
-  assert.ok(geminiCliIds.includes("gemini-3.1-flash-lite-preview"));
-  assert.ok(geminiCliIds.includes("gemini-3-flash-preview"));
+  assert.equal(geminiIds[0], "gemini-3.1-pro-preview", "preserve the existing Gemini default");
 });
 
 test("T28: antigravity static catalog exposes client-visible Gemini tier IDs", () => {
@@ -63,6 +58,31 @@ test("T28: qwen registry uses native chat.qwen.ai base URL", () => {
   );
 });
 
+test("T28: lmarena registry seeds Direct-chat Text/search; image models in IMAGE_PROVIDERS", async () => {
+  const { IMAGE_PROVIDERS } = await import("../../open-sse/config/imageRegistry.ts");
+  const lmarenaIds = REGISTRY.lmarena.models.map((m) => m.id);
+  const imageIds = (IMAGE_PROVIDERS.lmarena?.models || []).map((m: { id: string }) => m.id);
+
+  // Chat registry: Text + Search only (not Image thrash)
+  assert.ok(lmarenaIds.length >= 40 && lmarenaIds.length < 60);
+  assert.ok(lmarenaIds.includes("gemini-3.1-pro-preview"));
+  assert.ok(lmarenaIds.includes("gemini-3.5-flash-high"));
+  assert.ok(lmarenaIds.includes("claude-sonnet-5"));
+  assert.ok(!lmarenaIds.includes("flux-2-pro"), "image models must not live in chat registry");
+
+  // Image registry: Direct-chat Image category
+  assert.ok(imageIds.length >= 20);
+  assert.ok(imageIds.includes("flux-2-pro") || imageIds.includes("flux-2-dev"));
+  assert.ok(IMAGE_PROVIDERS.lmarena, "lmarena must be an IMAGE_PROVIDERS key");
+
+  // publicName collision → category-suffixed catalog id (chat side)
+  assert.ok(lmarenaIds.includes("grok-4.3/text") || lmarenaIds.includes("grok-4.3/search"));
+
+  const resolved = await getModelInfoCore("lma/gemini-3.1-pro-preview", {});
+  assert.equal(resolved.provider, "lmarena");
+  assert.equal(resolved.model, "gemini-3.1-pro-preview");
+});
+
 test("T28: vertex catalog includes partner models when vertex executor is available", () => {
   const vertexIds = REGISTRY.vertex.models.map((m) => m.id);
 
@@ -72,7 +92,25 @@ test("T28: vertex catalog includes partner models when vertex executor is availa
   assert.ok(vertexIds.includes("GLM-5.1-FP8"));
 });
 
+test("T28: volcengine (Ark) catalog includes DeepSeek V4 models", () => {
+  const volcengineIds = REGISTRY.volcengine.models.map((m) => m.id);
+
+  assert.ok(
+    volcengineIds.includes("DeepSeek-V4-Flash"),
+    "volcengine Ark must list DeepSeek-V4-Flash"
+  );
+  assert.ok(volcengineIds.includes("DeepSeek-V4-Pro"), "volcengine Ark must list DeepSeek-V4-Pro");
+  // Existing models must still be present
+  assert.ok(volcengineIds.includes("deepseek-v3-2-251201"));
+  assert.ok(volcengineIds.includes("kimi-k2-5-260127"));
+  assert.ok(volcengineIds.includes("glm-4-7-251222"));
+});
+
 test("T28: new catalog models resolve through getModelInfoCore", async () => {
+  const cerebrasGemma = await getModelInfoCore("cerebras/gemma-4-31b", {});
+  assert.equal(cerebrasGemma.provider, "cerebras");
+  assert.equal(cerebrasGemma.model, "gemma-4-31b");
+
   const minimax = await getModelInfoCore("minimax/MiniMax-M2.7", {});
   assert.equal(minimax.provider, "minimax");
   assert.equal(minimax.model, "MiniMax-M2.7");

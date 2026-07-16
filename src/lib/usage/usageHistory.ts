@@ -10,6 +10,15 @@
 import { getDbInstance } from "../db/core";
 import { protectPayloadForLog } from "../logPayloads";
 import {
+  asRecord,
+  normalizeServiceTier,
+  percentile,
+  stdDev,
+  toNumber,
+  toStringOrNull,
+  truncatePendingPreview,
+} from "./usageHistory/helpers";
+import {
   clearCompletedDetails,
   maybeEnrichCompletedDetail,
   scheduleCompletedDetailCleanup,
@@ -25,7 +34,6 @@ import {
   getReasoningTokens,
 } from "./tokenAccounting";
 
-type JsonRecord = Record<string, unknown>;
 export type PendingRequestMetadata = {
   clientEndpoint?: string | null;
   clientRequest?: unknown;
@@ -38,6 +46,7 @@ export type PendingRequestMetadata = {
   errorCode?: string | null;
   stage?: string | null;
   stageUpdatedAt?: number | null;
+  correlationId?: string | null;
 };
 export type PendingRequestDetail = {
   id: string;
@@ -58,91 +67,13 @@ export type PendingRequestDetail = {
   durationMs?: number | null;
   stage?: string | null;
   stageUpdatedAt?: number | null;
+  correlationId?: string | null;
   streamChunks?: {
     provider?: string[];
     openai?: string[];
     client?: string[];
   } | null;
 };
-
-function asRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
-function toStringOrNull(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
-
-function normalizeServiceTier(value: unknown): string {
-  const tier = typeof value === "string" ? value.trim().toLowerCase() : "";
-  if (tier === "priority" || tier === "fast") return "priority";
-  if (tier === "flex") return "flex";
-  return "standard";
-}
-
-function toNumber(value: unknown): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
-}
-
-function percentile(sortedValues: number[], p: number): number {
-  if (sortedValues.length === 0) return 0;
-  if (sortedValues.length === 1) return sortedValues[0];
-  const bounded = Math.max(0, Math.min(1, p));
-  const idx = Math.round((sortedValues.length - 1) * bounded);
-  return sortedValues[idx] ?? sortedValues[sortedValues.length - 1];
-}
-
-function stdDev(values: number[], avg: number): number {
-  if (values.length <= 1) return 0;
-  const variance = values.reduce((acc, v) => acc + (v - avg) ** 2, 0) / values.length;
-  return Math.sqrt(Math.max(0, variance));
-}
-
-const MAX_PREVIEW_DEPTH = 6;
-const MAX_PREVIEW_STRING = 1200;
-const MAX_PREVIEW_ARRAY_ITEMS = 12;
-const MAX_PREVIEW_OBJECT_KEYS = 24;
-
-function truncatePendingPreview(value: unknown, depth = 0): unknown {
-  if (depth >= MAX_PREVIEW_DEPTH) {
-    return "[TRUNCATED_DEPTH]";
-  }
-
-  if (typeof value === "string") {
-    return value.length > MAX_PREVIEW_STRING ? `${value.slice(0, MAX_PREVIEW_STRING)}...` : value;
-  }
-
-  if (Array.isArray(value)) {
-    const preview = value
-      .slice(0, MAX_PREVIEW_ARRAY_ITEMS)
-      .map((item) => truncatePendingPreview(item, depth + 1));
-    if (value.length > MAX_PREVIEW_ARRAY_ITEMS) {
-      preview.push({ _truncatedItems: value.length - MAX_PREVIEW_ARRAY_ITEMS });
-    }
-    return preview;
-  }
-
-  if (!value || typeof value !== "object") {
-    return value;
-  }
-
-  const entries = Object.entries(value as JsonRecord);
-  const truncatedEntries = entries
-    .slice(0, MAX_PREVIEW_OBJECT_KEYS)
-    .map(([key, entryValue]) => [key, truncatePendingPreview(entryValue, depth + 1)]);
-  const preview = Object.fromEntries(truncatedEntries);
-
-  if (entries.length > MAX_PREVIEW_OBJECT_KEYS) {
-    preview._truncatedKeys = entries.length - MAX_PREVIEW_OBJECT_KEYS;
-  }
-
-  return preview;
-}
 
 function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingRequestMetadata {
   if (!metadata) return {};
@@ -192,6 +123,9 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
   }
   if (metadata.errorCode !== undefined) {
     normalized.errorCode = toStringOrNull(metadata.errorCode) || null;
+  }
+  if (metadata.correlationId !== undefined) {
+    normalized.correlationId = toStringOrNull(metadata.correlationId) || null;
   }
 
   return normalized;
@@ -341,7 +275,10 @@ export function trackPendingRequest(
       }
       const now = Date.now();
       const newDetail = {
-        id: `${now}-${Math.random().toString(36).slice(2, 8)}`,
+        // crypto RNG (not Math.random) to satisfy CodeQL js/insecure-randomness —
+        // this pending-request id flows into attempt logging; it's a correlation
+        // id, not a security secret.
+        id: `${now}-${globalThis.crypto.randomUUID().slice(0, 6)}`,
         model,
         provider,
         connectionId,
@@ -616,7 +553,8 @@ export async function getUsageDb(sinceIso?: string | null, limit?: number, curso
   });
 
   // Provide next cursor if we hit the limit (more rows exist)
-  const nextCursor = rows.length === maxRows ? (rows[rows.length - 1] as any)?.timestamp : null;
+  const nextCursor =
+    rows.length === maxRows ? toStringOrNull(asRecord(rows[rows.length - 1]).timestamp) : null;
 
   return { data: { history, nextCursor } };
 }
@@ -624,9 +562,49 @@ export async function getUsageDb(sinceIso?: string | null, limit?: number, curso
 // ──────────────── Save Request Usage ────────────────
 
 /**
+ * DB-entity-mapped shape accepted by {@link saveRequestUsage}, mirroring the
+ * `usage_history` table columns 1:1 (see `src/lib/db/migrations/`). Convention
+ * (#3512): every `usage_history` writer should type its entry against this
+ * interface instead of an inline anonymous object or `any` — call sites are
+ * intentionally permissive (fields optional/nullable) because rows are built
+ * incrementally across several extraction points (chatCore success/failure
+ * paths, rejected-request accounting, the Codex Responses WS bridge).
+ *
+ * `tokens` stays `unknown` on purpose: callers pass either the raw
+ * provider-shaped usage object (OpenAI `prompt_tokens`/`completion_tokens`,
+ * Anthropic `input_tokens`/`cache_read_input_tokens`, …) or the already
+ * normalized `{ input, output, cacheRead, cacheCreation, reasoning }` shape —
+ * `getLoggedInputTokens`/`getLoggedOutputTokens`/`getPromptCache*Tokens` in
+ * `./tokenAccounting` accept both and extract the right fields.
+ */
+export interface UsageEntry {
+  provider?: string | null;
+  model?: string | null;
+  /** Raw or normalized token usage — see the interface doc above. */
+  tokens?: unknown;
+  status?: string | null;
+  success?: boolean;
+  latencyMs?: number;
+  timeToFirstTokenMs?: number;
+  errorCode?: string | null;
+  /** ISO timestamp; defaults to `new Date().toISOString()` when omitted. */
+  timestamp?: string;
+  connectionId?: string | null;
+  apiKeyId?: string | null;
+  apiKeyName?: string | null;
+  serviceTier?: string | null;
+  /** @deprecated legacy snake_case fallback, read only if `serviceTier` is unset. */
+  service_tier?: string | null;
+  comboStrategy?: string | null;
+  /** @deprecated legacy snake_case fallback, read only if `comboStrategy` is unset. */
+  combo_strategy?: string | null;
+  endpoint?: string | null;
+}
+
+/**
  * Save request usage entry to SQLite.
  */
-export async function saveRequestUsage(entry: any) {
+export async function saveRequestUsage(entry: UsageEntry) {
   if (!shouldPersistToDisk) return;
 
   try {
@@ -634,41 +612,94 @@ export async function saveRequestUsage(entry: any) {
     const timestamp = entry.timestamp || new Date().toISOString();
     const serviceTier = normalizeServiceTier(entry.serviceTier ?? entry.service_tier);
 
-    db.prepare(
+    const tokensInput = getLoggedInputTokens(entry.tokens);
+    const tokensOutput = getLoggedOutputTokens(entry.tokens);
+
+    // Dedup guard: skip INSERT when an identical row already exists in the same
+    // second. This prevents double-counting when onRequestSuccess fires more
+    // than once (e.g. combo routing calling the callback from both the
+    // streaming and non-streaming paths for the same underlying request).
+    // Keyed on the natural identity of a request: timestamp + provider + model
+    // + connectionId + apiKeyId + token counts. If only the endpoint is missing
+    // on the existing row, fill it in rather than inserting a duplicate.
+    let inserted = false;
+
+    db.transaction(() => {
+      const existing = db
+        .prepare(
+          `SELECT id, endpoint FROM usage_history
+           WHERE timestamp = ?
+             AND COALESCE(provider, '')     = COALESCE(?, '')
+             AND COALESCE(model, '')        = COALESCE(?, '')
+             AND COALESCE(connection_id, '') = COALESCE(?, '')
+             AND COALESCE(api_key_id, '')   = COALESCE(?, '')
+             AND tokens_input  = ?
+             AND tokens_output = ?
+           ORDER BY id DESC LIMIT 1`
+        )
+        .get(
+          timestamp,
+          entry.provider || null,
+          entry.model || null,
+          entry.connectionId || null,
+          entry.apiKeyId || null,
+          tokensInput,
+          tokensOutput
+        ) as { id: number; endpoint: string | null } | undefined;
+
+      if (existing) {
+        // Back-fill endpoint if the original row missed it.
+        if (!existing.endpoint && entry.endpoint) {
+          db.prepare(`UPDATE usage_history SET endpoint = ? WHERE id = ?`).run(
+            entry.endpoint,
+            existing.id
+          );
+        }
+        return; // duplicate — do not insert
+      }
+
+      db.prepare(
+        `
+        INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
+          tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
+          service_tier, status, success, latency_ms, ttft_ms, error_code, combo_strategy, endpoint, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
-      INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
-        tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-        service_tier, status, success, latency_ms, ttft_ms, error_code, combo_strategy, timestamp)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `
-    ).run(
-      entry.provider || null,
-      entry.model || null,
-      entry.connectionId || null,
-      entry.apiKeyId || null,
-      entry.apiKeyName || null,
-      getLoggedInputTokens(entry.tokens),
-      getLoggedOutputTokens(entry.tokens),
-      getPromptCacheReadTokens(entry.tokens),
-      getPromptCacheCreationTokens(entry.tokens),
-      getReasoningTokens(entry.tokens),
-      serviceTier,
-      entry.status || null,
-      entry.success === false ? 0 : 1,
-      Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
-      Number.isFinite(Number(entry.timeToFirstTokenMs))
-        ? Number(entry.timeToFirstTokenMs)
-        : Number.isFinite(Number(entry.latencyMs))
-          ? Number(entry.latencyMs)
-          : 0,
-      entry.errorCode || null,
-      entry.comboStrategy || entry.combo_strategy || null,
-      timestamp
-    );
+      ).run(
+        entry.provider || null,
+        entry.model || null,
+        entry.connectionId || null,
+        entry.apiKeyId || null,
+        entry.apiKeyName || null,
+        tokensInput,
+        tokensOutput,
+        getPromptCacheReadTokens(entry.tokens),
+        getPromptCacheCreationTokens(entry.tokens),
+        getReasoningTokens(entry.tokens),
+        serviceTier,
+        entry.status || null,
+        entry.success === false ? 0 : 1,
+        Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
+        Number.isFinite(Number(entry.timeToFirstTokenMs))
+          ? Number(entry.timeToFirstTokenMs)
+          : Number.isFinite(Number(entry.latencyMs))
+            ? Number(entry.latencyMs)
+            : 0,
+        entry.errorCode || null,
+        entry.comboStrategy || entry.combo_strategy || null,
+        entry.endpoint || null,
+        timestamp
+      );
+
+      inserted = true;
+    })();
 
     // Decoupled via the event bus so usageHistory never imports providerLimits
     // (which would pull the executors/translator graph into the type-check surface).
-    emitUsageRecorded(entry.provider, entry.connectionId);
+    // Only emit when a row was actually inserted — not on dedup no-ops.
+    if (inserted) {
+      emitUsageRecorded(entry.provider, entry.connectionId);
+    }
   } catch (error) {
     console.error("Failed to save usage stats:", error);
   }
@@ -676,10 +707,17 @@ export async function saveRequestUsage(entry: any) {
 
 // ──────────────── Get Usage History ────────────────
 
+export interface UsageHistoryFilter {
+  provider?: string;
+  model?: string;
+  startDate?: string | number | Date;
+  endDate?: string | number | Date;
+}
+
 /**
  * Get usage history with optional filters.
  */
-export async function getUsageHistory(filter: any = {}) {
+export async function getUsageHistory(filter: UsageHistoryFilter = {}) {
   const db = getDbInstance();
   let sql = "SELECT * FROM usage_history";
   const conditions: string[] = [];
@@ -885,7 +923,7 @@ export async function appendRequestLog({
   model?: string;
   provider?: string;
   connectionId?: string;
-  tokens?: any;
+  tokens?: unknown;
   status?: string | number;
 }) {
   // Deprecated: request summaries now come from SQLite call_logs.
@@ -919,8 +957,11 @@ export async function getRecentLogs(limit = 200) {
       const status = typeof row.status === "number" ? row.status : String(row.status || "-");
       return `${timestamp} | ${model} | ${provider} | ${account} | ${tokensIn} | ${tokensOut} | ${status}`;
     });
-  } catch (error: any) {
-    console.error("[usageDb] Failed to read recent call logs:", error.message);
+  } catch (error) {
+    console.error(
+      "[usageDb] Failed to read recent call logs:",
+      error instanceof Error ? error.message : String(error)
+    );
     return [];
   }
 }

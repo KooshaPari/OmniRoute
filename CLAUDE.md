@@ -35,22 +35,22 @@ For full test matrix, see `CONTRIBUTING.md` → "Running Tests". For deep archit
 
 ## Project at a Glance
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 231 LLM providers, auto-fallback.
+**OmniRoute** — unified AI proxy/router. One endpoint, 250 LLM providers, auto-fallback.
 
-| Layer         | Location                | Purpose                                                                                                                                |
-| ------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| API Routes    | `src/app/api/v1/`       | Next.js App Router — entry points                                                                                                      |
-| Handlers      | `open-sse/handlers/`    | Request processing (chat, embeddings, etc)                                                                                             |
-| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch                                                                                                        |
-| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                               |
-| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                       |
-| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                               |
-| Database      | `src/lib/db/`           | SQLite domain modules (83 files, 97 migrations)                                                                                        |
-| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                              |
-| MCP Server    | `open-sse/mcp-server/`  | 87 tools (33 base + memory/skill/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 30 scopes |
-| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                            |
-| Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                             |
-| Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                       |
+| Layer         | Location                | Purpose                                                                                                                                                |
+| ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| API Routes    | `src/app/api/v1/`       | Next.js App Router — entry points                                                                                                                      |
+| Handlers      | `open-sse/handlers/`    | Request processing (chat, embeddings, etc)                                                                                                             |
+| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch                                                                                                                        |
+| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                               |
+| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                       |
+| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                               |
+| Database      | `src/lib/db/`           | SQLite domain modules (95 files, 110 migrations)                                                                                                       |
+| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                              |
+| MCP Server    | `open-sse/mcp-server/`  | 94 tools (34 base + memory/skill/agentSkill/pool/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 30 scopes |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                            |
+| Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                                             |
+| Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                                       |
 
 Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine workspace), `electron/` (desktop app), `tests/`, `bin/` (CLI entry point).
 
@@ -72,7 +72,7 @@ Client → /v1/chat/completions (Next.js route)
 
 API routes follow a consistent pattern: `Route → CORS preflight → Zod body validation → Optional auth (extractApiKey/isValidApiKey) → API key policy enforcement → Handler delegation (open-sse)`. No global Next.js middleware — interception is route-specific.
 
-**Combo routing** (`open-sse/services/combo.ts`): 15 strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, reset-aware, reset-window, strict-random, auto, lkgp, context-optimized, context-relay). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. See `docs/routing/AUTO-COMBO.md` for the 9-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
+**Combo routing** (`open-sse/services/combo.ts`): 18 strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. The `fusion` strategy is the exception: it fans out to a panel of models in parallel, then a judge model synthesizes one final answer (`open-sse/services/fusion.ts`). See `docs/routing/AUTO-COMBO.md` for the 12-factor Auto-Combo scoring + the full strategy table and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
@@ -221,7 +221,7 @@ connection continue serving other models.
 - **2 spaces**, semicolons, double quotes, 100 char width, es5 trailing commas (enforced by lint-staged via Prettier)
 - **Imports**: external → internal (`@/`, `@omniroute/open-sse`) → relative
 - **Naming**: files=camelCase/kebab, components=PascalCase, constants=UPPER_SNAKE
-- **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = error everywhere; `no-explicit-any` = warn in `open-sse/` and `tests/`
+- **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = error everywhere; `no-explicit-any` = **error** in `open-sse/` and `tests/` (since #6218 — pre-existing violations are frozen in `config/quality/eslint-suppressions.json`, new ones must be fixed; `npm run lint` applies the suppressions and is what CI runs)
 - **TypeScript**: `strict: false`, target ES2022, module esnext, resolution bundler. Prefer explicit types.
 
 ### Database
@@ -311,7 +311,7 @@ connection continue serving other models.
 4. Create 7 API endpoints under `src/app/api/services/{name}/` (`_lib.ts`, `install`, `start`, `stop`, `restart`, `update`, `status`, `auto-start`). All delegate errors through `createErrorResponse()`. The shared `logs` endpoint is already wired via `[name]/logs/route.ts`.
 5. Verify `/api/services/` is in `LOCAL_ONLY_API_PREFIXES` in `src/server/authz/routeGuard.ts`; add a test asserting `isLocalOnlyPath()` returns `true` for the new prefix if you add one (hard rule #17).
 6. Add a UI tab in `src/app/(dashboard)/dashboard/providers/services/tabs/` reusing `ServiceStatusCard`, `ServiceLifecycleButtons`, `ServiceLogsPanel`.
-7. Document in `docs/frameworks/EMBEDDED-SERVICES.md` (update §1 service table + §4 API reference) and `docs/reference/openapi.yaml`.
+7. Document in `docs/frameworks/EMBEDDED-SERVICES.md` (update §1 service table + §4 API reference) and `docs/openapi.yaml`.
 8. Write tests: unit (`tests/unit/services/`), integration (`tests/integration/services/`, gated by `RUN_SERVICES_INT=1`), and update `docs/ops/RELEASE_CHECKLIST.md` smoke section.
 
 ### Adding a New Guardrail / Eval / Skill / Webhook event
@@ -327,33 +327,33 @@ connection continue serving other models.
 
 For any non-trivial change, read the matching deep-dive first:
 
-| Area                                          | Doc                                                               |
-| --------------------------------------------- | ----------------------------------------------------------------- |
-| Repo navigation                               | `docs/architecture/REPOSITORY_MAP.md`                             |
-| Architecture                                  | `docs/architecture/ARCHITECTURE.md`                               |
-| Engineering reference                         | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (9-factor scoring, 15 strategies)  | `docs/routing/AUTO-COMBO.md`                                      |
-| Resilience (3 mechanisms)                     | `docs/architecture/RESILIENCE_GUIDE.md`                           |
-| Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                                |
-| Skills framework                              | `docs/frameworks/SKILLS.md`                                       |
-| Memory system (FTS5 + Qdrant)                 | `docs/frameworks/MEMORY.md`                                       |
-| Cloud agents                                  | `docs/frameworks/CLOUD_AGENT.md`                                  |
-| Guardrails (PII / injection / vision)         | `docs/security/GUARDRAILS.md`                                     |
-| Public upstream credentials (Gemini/etc.)     | `docs/security/PUBLIC_CREDS.md`                                   |
-| Error message sanitization                    | `docs/security/ERROR_SANITIZATION.md`                             |
-| Evals                                         | `docs/frameworks/EVALS.md`                                        |
-| Compliance / audit                            | `docs/security/COMPLIANCE.md`                                     |
-| Webhooks                                      | `docs/frameworks/WEBHOOKS.md`                                     |
-| Authorization pipeline                        | `docs/architecture/AUTHZ_GUIDE.md`                                |
-| Stealth (TLS / fingerprint)                   | `docs/security/STEALTH_GUIDE.md`                                  |
-| Agent protocols (A2A / ACP / Cloud)           | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
-| MCP server                                    | `docs/frameworks/MCP-SERVER.md`                                   |
-| A2A server                                    | `docs/frameworks/A2A-SERVER.md`                                   |
-| API reference + OpenAPI                       | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
-| Provider catalog (auto-generated)             | `docs/reference/PROVIDER_REFERENCE.md`                            |
-| Release flow                                  | `docs/ops/RELEASE_CHECKLIST.md`                                   |
-| Embedded services                             | `docs/frameworks/EMBEDDED-SERVICES.md`                            |
-| Quality gates (~48 scripts, allowlist policy) | `docs/architecture/QUALITY_GATES.md`                              |
+| Area                                          | Doc                                                     |
+| --------------------------------------------- | ------------------------------------------------------- |
+| Repo navigation                               | `docs/architecture/REPOSITORY_MAP.md`                   |
+| Architecture                                  | `docs/architecture/ARCHITECTURE.md`                     |
+| Engineering reference                         | `docs/architecture/CODEBASE_DOCUMENTATION.md`           |
+| Auto-Combo (12-factor scoring, 18 strategies) | `docs/routing/AUTO-COMBO.md`                            |
+| Resilience (3 mechanisms)                     | `docs/architecture/RESILIENCE_GUIDE.md`                 |
+| Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                      |
+| Skills framework                              | `docs/frameworks/SKILLS.md`                             |
+| Memory system (FTS5 + Qdrant)                 | `docs/frameworks/MEMORY.md`                             |
+| Cloud agents                                  | `docs/frameworks/CLOUD_AGENT.md`                        |
+| Guardrails (PII / injection / vision)         | `docs/security/GUARDRAILS.md`                           |
+| Public upstream credentials (Gemini/etc.)     | `docs/security/PUBLIC_CREDS.md`                         |
+| Error message sanitization                    | `docs/security/ERROR_SANITIZATION.md`                   |
+| Evals                                         | `docs/frameworks/EVALS.md`                              |
+| Compliance / audit                            | `docs/security/COMPLIANCE.md`                           |
+| Webhooks                                      | `docs/frameworks/WEBHOOKS.md`                           |
+| Authorization pipeline                        | `docs/architecture/AUTHZ_GUIDE.md`                      |
+| Stealth (TLS / fingerprint)                   | `docs/security/STEALTH_GUIDE.md`                        |
+| Agent protocols (A2A / ACP / Cloud)           | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`              |
+| MCP server                                    | `docs/frameworks/MCP-SERVER.md`                         |
+| A2A server                                    | `docs/frameworks/A2A-SERVER.md`                         |
+| API reference + OpenAPI                       | `docs/reference/API_REFERENCE.md` + `docs/openapi.yaml` |
+| Provider catalog (auto-generated)             | `docs/reference/PROVIDER_REFERENCE.md`                  |
+| Release flow                                  | `docs/ops/RELEASE_CHECKLIST.md`                         |
+| Embedded services                             | `docs/frameworks/EMBEDDED-SERVICES.md`                  |
+| Quality gates (~48 scripts, allowlist policy) | `docs/architecture/QUALITY_GATES.md`                    |
 
 ---
 
@@ -388,6 +388,31 @@ Why this matters: fixing bug A while opening bug B is worse than not fixing at a
 
 ---
 
+## Planning & Research Artifacts (superpowers, deep-research)
+
+`_tasks/` is a **separate, isolated git repository** that is gitignored by the main
+repo (`.gitignore` → `_tasks/`). It is the canonical home for working artifacts —
+plans, specs/designs, research, hand-offs — so they stay **versioned in their own
+repo** instead of polluting the main OmniRoute tree.
+
+**Hard rule — never write superpowers / planning / research output under `docs/` or
+the repo root.** The superpowers skills ship with defaults that point at `docs/…`
+(`writing-plans` → `docs/superpowers/plans/`, `brainstorming` → `docs/superpowers/specs/`).
+Those defaults are **overridden here**. Whenever you invoke superpowers (or any
+plan/spec/research generator) in this project, save to `_tasks/` instead, using the
+same filename convention:
+
+| Artifact (skill)                   | Default (do NOT use)      | Save here instead                                             |
+| ---------------------------------- | ------------------------- | ------------------------------------------------------------- |
+| Plans (`writing-plans`)            | `docs/superpowers/plans/` | `_tasks/superpowers/plans/YYYY-MM-DD-<feature>.md`            |
+| Specs / design (`brainstorming`)   | `docs/superpowers/specs/` | `_tasks/superpowers/specs/YYYY-MM-DD-<topic>-design.md`       |
+| Research (`deep-research`, ad-hoc) | `docs/research/`          | `_tasks/research/…`                                           |
+| Hand-offs (`/handoff`)             | —                         | `_tasks/hands-off/<YYYY-MM-DD>_<branch>_v<versão>_sess-<id>/` |
+
+When a superpowers skill announces a path like "saved to `docs/superpowers/plans/…`",
+rewrite it to the `_tasks/…` equivalent before writing. Commit those artifacts inside
+the `_tasks/` repo (`git -C _tasks …`), never in the main repo.
+
 ## Git Workflow
 
 ```bash
@@ -403,8 +428,10 @@ git push -u origin feat/your-feature
 
 **Husky hooks**:
 
-- **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11`
-- **pre-push**: fast deterministic gates (`check:any-budget:t11` + `check:tracked-artifacts`); intentionally excludes `test:unit` (slow — covered by the CI `test-unit` job). Activated 2026-06-13 (Quality Gates Fase 6A.12).
+- **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11` + `check:tracked-artifacts`
+- **pre-push**: intentionally light (PATH/npm sanity only). `any-budget` + `tracked-artifacts`
+  already run on pre-commit; re-running them on every push was pure double-pay. CI still
+  enforces both. (Was Fase 6A.12 full pre-push gate; folded into pre-commit in #6716.)
 
 ### Worktree isolation (MANDATORY for every development task)
 
@@ -419,25 +446,33 @@ own dedicated branch, and you MUST confirm the base branch with the operator bef
    `AskUserQuestion`, unless they already told you) from which branch the new worktree/branch
    should be cut. Do NOT assume `main` or "whatever I'm on" — the answer is usually the active
    `release/vX.Y.Z`, but it can be another feature/release branch. Get the base explicitly.
-2. **Create an isolated worktree + branch off that base** (never reuse the main checkout):
+2. **Create an isolated worktree + branch off that base** (never reuse the main checkout).
+   **🔴 MANDATORY PATH: every worktree lives under `.claude/worktrees/` — and nowhere else.**
+   This is the single canonical location (the same dir the native `EnterWorktree` tool uses). It
+   is gitignored AND in the `tsconfig.json` / `.dockerignore` excludes, so worktrees never leak
+   into the build scope. **Never** use `.worktrees/`, repo-root, or any other path — a worktree
+   outside `.claude/worktrees/` (a) escapes the build-scope excludes and poisons `next build` (the
+   `tsconfig` `include: **/*` globs ~70× the codebase → OOM; incident 2026-06-25) and (b) scatters
+   worktrees across two dirs.
 
    ```bash
    BASE_BRANCH="release/vX.Y.Z"          # ← the branch the operator confirmed in step 1
    TASK="feat/your-feature"               # feat/ fix/ refactor/ docs/ test/ chore/
    git fetch origin "$BASE_BRANCH"
-   git worktree add ".worktrees/${TASK##*/}" -b "$TASK" "origin/$BASE_BRANCH"
-   cd ".worktrees/${TASK##*/}"
+   git worktree add ".claude/worktrees/${TASK##*/}" -b "$TASK" "origin/$BASE_BRANCH"
+   cd ".claude/worktrees/${TASK##*/}"
    # symlink node_modules from the main checkout to skip a per-worktree npm install:
    ln -s "$(git -C <main_checkout> rev-parse --show-toplevel)/node_modules" node_modules
    ```
 
-   In Claude Code prefer the native `EnterWorktree` tool (create the worktree with the command
-   above, then call `EnterWorktree` with its `path`).
+   In Claude Code prefer the native `EnterWorktree` tool (it already creates worktrees under
+   `.claude/worktrees/`): create the worktree with the command above, then call `EnterWorktree`
+   with its `path`.
 
 3. **Work, commit, push, open the PR — all from inside the worktree.** Never `git checkout` a
    different branch inside a worktree another session might share.
 4. **Tear down only your own** worktree + branch when done, from the main checkout:
-   `git worktree remove .worktrees/<dir>` then `git branch -D <task>`. Never blanket-delete
+   `git worktree remove .claude/worktrees/<dir>` then `git branch -D <task>`. Never blanket-delete
    `fix/*`/`feat/*` — other sessions keep their own; delete only the branches you created, by name.
 5. **Never touch another session's worktree, branch, or uncommitted changes.** If `git worktree
 list` shows worktrees you didn't create, leave them alone. End every session with the main
@@ -447,7 +482,8 @@ list` shows worktrees you didn't create, leave them alone. End every session wit
 
 ## Environment
 
-- **Runtime**: Node.js ≥22.0.0 <23 || ≥24.0.0 <27, ES Modules
+- **Runtime**: Node.js ≥22.0.0 <23 || ≥24.0.0 <27, ES Modules. This is the **only** runtime for the published `omniroute` CLI, the server, and the test suites (`node:test` + vitest) — `engines.node` is authoritative and end users never need Bun.
+- **Bun (build/dev script runner only)**: Bun `1.3.10` is pinned as an **exact devDependency** (provisioned through the existing `npm ci` via the lockfile's `@oven/bun-*` platform binaries — no `setup-bun`/ad-hoc install). It is used **only** to execute a small, allow-listed set of TypeScript **gate/generator scripts** (replacing `node --import tsx` for startup speed): the CI checks `check:provider-consistency`, `check:compression-budget`, `check:known-symbols`, and the non-CI `gen:provider-reference`, `bench:compression`. **Do NOT** widen Bun to `npm install`, the build (`build:cli*`), `check:pack-artifact`, the published runtime, or the test runners — those stay on Node. Any new Bun-invoking script must be validated byte-identical against its `node --import tsx` output first. After pulling the lockfile change, run `npm install` so `bun` resolves locally (a stale `node_modules` will fail those 5 scripts with `bun: not found`).
 - **TypeScript**: 6.0+, target ES2022, module esnext, resolution bundler
 - **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Default port**: 20128 (API + dashboard on same port)
@@ -505,6 +541,11 @@ the stale-enforcement added in Fase 6A.3.
 17. Never expose routes under `/api/services/` or `/dashboard/providers/services/*/embed/` without `isLocalOnlyPath()` classification in `src/server/authz/routeGuard.ts`. These routes can spawn child processes (`npm install`, `node`). Loopback enforcement happens unconditionally before any auth check — a leaked JWT via tunnel cannot trigger process spawning. See `docs/security/ROUTE_GUARD_TIERS.md`.
 18. Every bug fix must be validated before shipping: a failing-then-passing unit/integration test (TDD) OR a documented live test on the production VPS (192.168.0.15). A fix without either is not merged. See Testing → "Bug fix / issue triage protocol" for the full decision tree.
 19. Never develop on the shared main checkout. Every development task runs in its own git worktree on its own dedicated branch, and you MUST confirm the base branch with the operator (e.g. via `AskUserQuestion`) before creating the worktree/branch — never assume `main` or the currently checked-out branch. A `git checkout` in the shared checkout silently destroys other sessions' uncommitted work. Tear down only the worktrees/branches you created (by name, never `fix/*`/`feat/*` wildcards), leave other sessions' worktrees untouched, and end on the branch you started on (the active `release/vX.Y.Z`, never `main`). See Git Workflow → "Worktree isolation".
+20. PII redaction/sanitization is **opt-in — never on by default**. OmniRoute proxies for self-hosted/local LLMs where the operator owns the data, so mutating request/response payloads by default would silently corrupt legitimate traffic. The two data-mutating PII feature flags **MUST** keep `defaultValue: "false"` in `src/shared/constants/featureFlagDefinitions.ts`: `PII_REDACTION_ENABLED` (request-side) and `PII_RESPONSE_SANITIZATION` (response + streaming). All three application points — `src/lib/guardrails/piiMasker.ts` (request guardrail), `src/lib/piiSanitizer.ts` (response), `src/lib/streamingPiiTransform.ts` (SSE) — are gated on these flags; with both off the `pii-masker` guardrail still runs but never mutates payloads (data passes through untouched). Flipping either default to `"true"` requires explicit operator approval. The regression guard is `tests/unit/pii-opt-in-default.test.ts` (asserts both definition defaults + behavioral pass-through). Opt-in is per-operator via env or the settings/DB override (`src/lib/db/featureFlags.ts`), never a silent default. See `docs/security/GUARDRAILS.md`.
+21. **Release-freeze — the FROZEN release branch belongs to the release captain; development does NOT stop (parallel-cycle model, 2026-07-04).** `/generate-release` opens a marker issue labeled `release-freeze` at the start of reconciliation (Phase 0a), **immediately cuts the next cycle's branch `release/vX+1` from the frozen tip (Phase 0a.0b — bump + living release PR + re-home of open PRs)**, and closes the freeze once the release PR squash-merges to `main`. Before merging **any** PR, every campaign workflow (`/review-prs`, `/review-group-prs`, `/merge-prs`, `/triage-fix-bugs`, `/implement-fix-bugs`, `/triage-features`, `/implement-features`, `/green-prs`, `/port-upstream-*`) **MUST** check `gh issue list --repo diegosouzapw/OmniRoute --label release-freeze --state open` — if a freeze is active: **NEVER merge into the frozen `release/vX.Y.Z` named in the freeze title**; instead resolve the ACTIVE development branch (the **highest** `release/v*` by semver — normally `release/vX+1`, announced in a freeze-issue comment) and **retarget the PR there** (`gh pr edit <N> --base release/vX+1`, then VERIFY with `gh pr view <N> --json baseRefName` — the edit fails silently) and merge normally. **HOLD only when the highest release/v\* branch IS the frozen one** (the short window before 0a.0b completes, or a pre-parallel-cycle release) — in that case leave the PR ready and open, tell the operator, and resume when the next branch appears or the freeze lifts. The just-shipped fixes reach `release/vX+1` via the Phase 5 sync-back (`scripts/release/sync-next-cycle.mjs`); do not try to sync mid-release. This is a **coordination signal, not a permission lock**: the release captain and the campaign sessions share the `diegosouzapw` identity, so a GitHub branch-protection lock cannot distinguish them — only this honored marker prevents the mid-release commit races that forced full CHANGELOG re-reconciliation in v3.8.40/v3.8.41 (a parallel campaign advanced `release/vX.Y.Z` by 34 commits mid-run). The release captain's own reconciliation/cycle-open pushes are exempt — they _are_ the release. Fixes that must land during a freeze (a homologation finding) follow the post-merge read-only rule: land on `main` first via `fix/release-vX.Y.Z-*`. **⛔ ONLY `/generate-release` may raise a release-freeze, and ONLY at its Phase 0a (start of generating a new version) — lifted at Phase 12c after the squash-merge to `main`.** No campaign, session, or agent may open a `release-freeze` marker at any other time — a freeze is **never** a mid-development coordination tool. If a session ever believes a freeze is genuinely, unavoidably necessary outside the `/generate-release` flow, it **MUST first ask the operator (`diegosouzapw`) in chat, explicitly alert "estou criando um freeze" and get an explicit yes** — never open, extend, or re-open a `release-freeze` autonomously. Conversely, do **not** close/lift an active `/generate-release` freeze to unblock campaign merges: it protects the captain's single clean CI run and auto-lifts at Phase 12c — closing it early re-triggers the exact commit race it prevents. Verify a freeze is legitimate before acting on it: an open `release-freeze` whose title/body references an **OPEN** release PR (`gh pr view <N> --json state`) is the authorized captain freeze — hold, don't touch.
+22. **Cross-session safety — this repo is worked by MANY parallel sessions/agents at once; never step on another's in-flight work.** Two absolute bans, both recurring incidents (this rule exists because they keep happening):
+    - **(a) Never `git stash` / `git stash pop` — ANYWHERE in this repo, including inside an isolated worktree, and including inside any subagent you dispatch.** `git stash` operates on the **shared repository object store**, not the per-worktree working tree — so a stash pushed or popped in one session can silently clobber or resurrect another parallel session's uncommitted changes. This is not hypothetical: 2026-07-02 a `#5923` quotaCache change leaked into the unrelated `#2296` worktree via a global `stash pop`, and the same class reincided through a **subagent**. To compare working changes against a base ref **without** stashing, use `git show <ref>:<path>` or `git diff <ref> -- <path>`; to confirm a typecheck/lint error is pre-existing on the base, inspect the base ref directly (`git show origin/release/vX.Y.Z:<path>`) — never stash your tree away to "get it clean". **Put this ban verbatim in the prompt of every subagent that touches git** (agents don't inherit this file's context — the recurrence was a subagent).
+    - **(b) Never merge, push, rebase, or force-push a PR / branch / worktree that another session is actively working.** An open PR whose head is a live fix worktree in `.claude/worktrees/` you did **not** create (e.g. `fix-5852`/`fix-5923` carrying fresh commits, even when they share your `diegosouzapw` identity), or any branch another session owns, is **off-limits — HOLD**, and let the owning session merge it. **Before** merging or pushing to any PR you did not create _this_ session, run `git worktree list` to check for a matching in-flight worktree and re-check `gh pr view <N> --json state,headRefOid`. Only the owning session merges its own in-flight PR; mid-flight merges race the owner and re-trigger the exact commit/CHANGELOG races Rule #19 and Rule #21 guard against. (Reinforces Rule #19.)
 
 ---
 

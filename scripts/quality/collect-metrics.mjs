@@ -15,19 +15,49 @@ import * as yaml from "js-yaml";
 const cwd = process.cwd();
 const out = {};
 
-// 1) ESLint: contagem de warnings (errors devem ser 0; o lint já gata isso)
+// 1) ESLint: contagem de warnings/errors NOVOS além do baseline congelado.
+// Pacote 4 (plano mestre testes+CI, 2026-07-04): a dívida pré-existente vive em
+// config/quality/eslint-suppressions.json (ESLint bulk suppressions nativo) e é
+// bloqueada no PR que a introduziria (job lint-guard + lint-staged). A métrica do
+// ratchet passa a medir a dívida LÍQUIDA nova — em regime, ~0 — em vez do estoque
+// bruto (que driftava +41/+88 por ciclo e era rebaselinado às cegas na release).
+// O aperto do estoque acontece via --prune-suppressions na release.
 function eslintCounts() {
-  let stdout;
-  try {
-    stdout = execFileSync("npx", ["eslint", ".", "--format", "json"], {
-      encoding: "utf8",
-      maxBuffer: 256 * 1024 * 1024,
-    });
-  } catch (e) {
-    // eslint sai com código != 0 quando há errors; o JSON ainda vem no stdout
-    stdout = e.stdout?.toString() || "[]";
+  // Prefer a precomputed JSON report (same existence reason as lint job: inventory
+  // of net-new warnings vs suppressions). Avoids a second cold full-tree ESLint
+  // when CI/local already produced the report.
+  const cached = path.resolve(
+    cwd,
+    process.env.ESLINT_RESULTS_JSON || path.join(".artifacts", "eslint-results.json")
+  );
+  let results;
+  if (fs.existsSync(cached)) {
+    results = JSON.parse(fs.readFileSync(cached, "utf8"));
+  } else {
+    let stdout;
+    const eslintBin = path.join(
+      cwd,
+      "node_modules",
+      ".bin",
+      process.platform === "win32" ? "eslint.cmd" : "eslint"
+    );
+    const args = [".", "--format", "json", "--cache", "--cache-location", ".eslintcache"];
+    if (fs.existsSync(path.join(cwd, "config/quality/eslint-suppressions.json"))) {
+      args.push("--suppressions-location", "config/quality/eslint-suppressions.json");
+    }
+    try {
+      // Prefer local bin (Windows-safe .cmd); shell only when needed for the shim.
+      stdout = execFileSync(eslintBin, args, {
+        encoding: "utf8",
+        maxBuffer: 256 * 1024 * 1024,
+        shell: process.platform === "win32",
+      });
+    } catch (e) {
+      // eslint sai com código != 0 quando há errors; o JSON ainda vem no stdout
+      stdout = e.stdout?.toString() || "[]";
+    }
+    results = JSON.parse(stdout);
   }
-  const results = JSON.parse(stdout);
   out.eslintWarnings = results.reduce((n, r) => n + (r.warningCount || 0), 0);
   out.eslintErrors = results.reduce((n, r) => n + (r.errorCount || 0), 0);
 }
@@ -119,7 +149,7 @@ function coverageByModule() {
 // 4) OpenAPI coverage: percentage of implemented routes documented in openapi.yaml
 function openapiCoverage() {
   const API_ROOT = path.join(cwd, "src", "app", "api");
-  const OPENAPI_PATH = path.join(cwd, "docs", "reference", "openapi.yaml");
+  const OPENAPI_PATH = path.join(cwd, "docs", "openapi.yaml");
   if (!fs.existsSync(API_ROOT) || !fs.existsSync(OPENAPI_PATH)) return;
 
   function collectRoutePaths(dir) {

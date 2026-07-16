@@ -32,6 +32,11 @@ export interface CompressionEngineMetadata {
 export interface CompressionEngineApplyOptions {
   model?: string;
   supportsVision?: boolean | null;
+  /** Como o request chega ao provider: rota direta oficial ('direct') vs
+   *  agregador que pode reprocessar imagens ('aggregator'). O engine omniglyph
+   *  exige 'direct' — medição 2026-07-06: agregadores redimensionam as páginas
+   *  e destroem a legibilidade. undefined = desconhecido = skip (fail-closed). */
+  providerTransport?: "direct" | "aggregator";
   config?: CompressionConfig;
   compressionComboId?: string | null;
   stepConfig?: Record<string, unknown>;
@@ -47,6 +52,11 @@ export interface CompressionEngine {
   targets: CompressionEngineTarget[];
   stackable: boolean;
   stackPriority: number;
+  /**
+   * Marks an intentionally-lossy sampling engine (e.g. ionizer). The fidelity gate SKIPS such
+   * engines: their drop is deliberate and recoverable via CCR, not accidental corruption.
+   */
+  sampling?: boolean;
   metadata: CompressionEngineMetadata;
   apply(body: Record<string, unknown>, options?: CompressionEngineApplyOptions): CompressionResult;
   /**

@@ -44,6 +44,13 @@ export const ENGINE_CATALOG: Record<string, EngineMeta> = {
     isSingleMode: false,
     description: "Tabular JSON compaction.",
   },
+  relevance: {
+    id: "relevance",
+    label: "Relevance",
+    stackPriority: 18,
+    isSingleMode: true,
+    description: "Extractive sentence scoring against the last user query.",
+  },
   caveman: {
     id: "caveman",
     label: "Caveman",
@@ -72,6 +79,13 @@ export const ENGINE_CATALOG: Record<string, EngineMeta> = {
     stackPriority: 40,
     isSingleMode: true,
     description: "Heuristic token pruning (+ optional SLM).",
+  },
+  omniglyph: {
+    id: "omniglyph",
+    label: "OmniGlyph",
+    stackPriority: 90,
+    isSingleMode: true,
+    description: "Contexto-como-imagem (Claude Fable 5, rota direta).",
   },
 };
 

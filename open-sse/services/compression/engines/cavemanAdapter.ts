@@ -1,7 +1,7 @@
 import { applyLiteCompression } from "../lite.ts";
 import { cavemanCompress } from "../caveman.ts";
 import { compressAggressive } from "../aggressive.ts";
-import { ultraCompress } from "../ultra.ts";
+import { ultraCompressHeuristic } from "../ultra.ts";
 import { createCompressionStats } from "../stats.ts";
 import { adaptBodyForCompression } from "../bodyAdapter.ts";
 import {
@@ -289,9 +289,22 @@ export const cavemanEngine: CompressionEngine = {
   },
   apply(body, options) {
     const adapter = adaptBodyForCompression(body);
+    // Mirror rtkAdapter's default-enabled behavior (see rtk/index.ts:530-535). When this engine
+    // is invoked as a stacked step without explicit `enabled` on either the cavemanConfig or the
+    // stepConfig, default `enabled: true` so the rules actually run. Without this,
+    // DEFAULT_CAVEMAN_CONFIG.enabled=false made cavemanCompress() a silent no-op, and the
+    // preview route's default [rtk, caveman] pipeline reported 0% savings even on trigger prose.
+    // (Issue #6425.)
+    const explicitCavemanConfig = options?.config?.cavemanConfig;
+    const explicitStepConfig = options?.stepConfig;
+    const explicitEnabled =
+      (explicitCavemanConfig && "enabled" in explicitCavemanConfig) ||
+      (explicitStepConfig && "enabled" in explicitStepConfig);
+    const enabledDefault = explicitEnabled ? {} : { enabled: true };
     const cavemanConfig = {
-      ...(options?.config?.cavemanConfig ?? {}),
-      ...(options?.stepConfig ?? {}),
+      ...enabledDefault,
+      ...(explicitCavemanConfig ?? {}),
+      ...(explicitStepConfig ?? {}),
       ...(options?.config?.languageConfig?.enabled
         ? {
             language: options.config.languageConfig.defaultLanguage,
@@ -414,7 +427,7 @@ export const ultraEngine: CompressionEngine = {
       ...(options?.stepConfig ?? {}),
       preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
     };
-    const result = ultraCompress(messages, ultraConfig);
+    const result = ultraCompressHeuristic(messages, ultraConfig);
     const compressedBody = { ...adapter.body, messages: result.messages };
     return {
       body: adapter.restore(compressedBody),

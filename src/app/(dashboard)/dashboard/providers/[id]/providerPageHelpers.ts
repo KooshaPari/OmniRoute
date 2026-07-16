@@ -5,6 +5,7 @@
 // dependency. Extracting them here unblocks moving the heavier modals
 // (AddApiKeyModal / EditConnectionModal) out of the god-component in later phases.
 import { LOCAL_PROVIDERS, isSelfHostedChatProvider } from "@/shared/constants/providers";
+import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import {
   MODEL_COMPAT_PROTOCOL_KEYS,
   type ModelCompatProtocolKey,
@@ -37,14 +38,7 @@ export type LocalProviderMetadata = {
 
 export type CommandCodeAuthFlowState = {
   phase:
-    | "idle"
-    | "starting"
-    | "polling"
-    | "received"
-    | "applying"
-    | "applied"
-    | "expired"
-    | "error";
+    "idle" | "starting" | "polling" | "received" | "applying" | "applied" | "expired" | "error";
   state: string;
   authUrl: string;
   callbackUrl: string;
@@ -70,19 +64,21 @@ export type CompatByProtocolMap = Partial<
 export type CompatModelRow = {
   id?: string;
   name?: string;
+  /** optional registry aliases for display/import */ aliases?: readonly string[];
   source?: string;
   apiFormat?: string;
   supportedEndpoints?: string[];
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
   isHidden?: boolean;
+  isDeleted?: boolean;
   upstreamHeaders?: Record<string, string>;
   compatByProtocol?: CompatByProtocolMap;
   /** #2905: per-model upstream wire-format override. */ targetFormat?: string;
+  /** #4125: manual context-window override (tokens), when set. */ contextWindowOverride?: number;
 };
 
 export type CompatModelMap = Map<string, CompatModelRow>;
-
 export type HeaderDraftRow = { id: string; name: string; value: string };
 
 // ---------------------------------------------------------------------------
@@ -90,13 +86,11 @@ export type HeaderDraftRow = { id: string; name: string; value: string };
 // outside the .tsx). Returns the i18n key for a targetFormat value, or null when the
 // value is unknown (the caller then renders the raw value verbatim).
 // ---------------------------------------------------------------------------
-
 const TARGET_FORMAT_BADGE_I18N_KEYS: Record<string, string> = {
   openai: "compatProtocolOpenAI",
   "openai-responses": "compatProtocolOpenAIResponses",
   claude: "compatProtocolClaude",
   gemini: "targetFormatGemini",
-  "gemini-cli": "targetFormatGeminiCli",
   antigravity: "targetFormatAntigravity",
 };
 
@@ -124,6 +118,18 @@ export function providerText(
     );
   }
   return fallback;
+}
+
+/** #5442 — badge for add-credential validation; unsupported → neutral N/A (not red Invalid). */
+export function validationBadgeProps(result: string): {
+  variant: "success" | "error" | "info";
+  labelKey: string;
+  fallback: string;
+} {
+  if (result === "success") return { variant: "success", labelKey: "valid", fallback: "Valid" };
+  if (result === "unsupported")
+    return { variant: "info", labelKey: "notApplicable", fallback: "N/A" };
+  return { variant: "error", labelKey: "invalid", fallback: "Invalid" };
 }
 
 /** A single model's outcome from a `/api/models/test-all` response. */
@@ -245,6 +251,25 @@ export function isBaseUrlConfigurableProvider(providerId?: string | null) {
     providerId &&
     (CONFIGURABLE_BASE_URL_PROVIDERS.has(providerId) || isSelfHostedChatProvider(providerId))
   );
+}
+
+/**
+ * #6147 — whether a built-in provider is eligible for an OPT-IN "Advanced →
+ * override base URL" affordance in the edit-connection modal.
+ *
+ * This does NOT widen the always-on base-URL field: providers already covered by
+ * `isBaseUrlConfigurableProvider` (the configurable set + self-hosted) keep their
+ * existing dedicated field and return `false` here. Every *other* provider id is
+ * eligible to opt in per-connection so an operator can hot-fix a broken built-in
+ * preset by pointing it at a custom endpoint. The field stays hidden until the
+ * user explicitly reveals it (or an override was already saved), so nothing is
+ * exposed by default. OAuth connections are excluded at the call site, since
+ * their save path does not persist `providerSpecificData.baseUrl`.
+ */
+export function isBaseUrlOverrideEligibleProvider(providerId?: string | null): boolean {
+  if (!providerId) return false;
+  if (isBaseUrlConfigurableProvider(providerId)) return false;
+  return true;
 }
 
 export function getProviderBaseUrlDefault(providerId?: string | null) {
@@ -403,6 +428,21 @@ export function getWebSessionCredentialHint(
         );
   }
 
+  // #5465 — a provider-specific hint (e.g. t3.chat's step-by-step DevTools copy)
+  // replaces the generic one-line cookie/token template when that template is
+  // unclear for the provider (t3.chat needs a localStorage value AND the Cookie
+  // header, so "Required cookie: convex-session-id + Cookie header…" reads
+  // circular). The override key ships translated in every locale.
+  if (requirement.hintKey) {
+    return providerText(
+      t,
+      requirement.hintKey,
+      requirement.hintFallback ??
+        "Open the provider's web session in DevTools, copy the required credential(s), and paste them in the fields below.",
+      values
+    );
+  }
+
   return requirement.kind === "token"
     ? providerText(
         t,
@@ -534,19 +574,31 @@ export function buildCompatMap(rows: CompatModelRow[]): CompatModelMap {
   return m;
 }
 
+export function getDisplayModelAlias(modelId: string, alias?: string | null): string | null {
+  const trimmed = typeof alias === "string" ? alias.trim() : "";
+  if (!trimmed || trimmed === modelId) return null;
+  return trimmed;
+}
+
+function readActiveHiddenFlag(row: CompatModelRow | undefined): boolean | undefined {
+  if (!row || row.isDeleted === true) return undefined;
+  if (Object.prototype.hasOwnProperty.call(row, "isHidden")) {
+    return Boolean(row.isHidden);
+  }
+  return undefined;
+}
+
 export function isModelHiddenFn(
   modelId: string,
   customMap: CompatModelMap,
   overrideMap: CompatModelMap
 ): boolean {
-  const c = customMap.get(modelId);
-  if (c && Object.prototype.hasOwnProperty.call(c, "isHidden")) {
-    return Boolean(c.isHidden);
-  }
-  const o = overrideMap.get(modelId);
-  if (o && Object.prototype.hasOwnProperty.call(o, "isHidden")) {
-    return Boolean(o.isHidden);
-  }
+  const customHidden = readActiveHiddenFlag(customMap.get(modelId));
+  if (customHidden !== undefined) return customHidden;
+
+  const overrideHidden = readActiveHiddenFlag(overrideMap.get(modelId));
+  if (overrideHidden !== undefined) return overrideHidden;
+
   return false;
 }
 
@@ -646,6 +698,7 @@ export const CODEX_REASONING_STRENGTH_OPTIONS = [
   { value: "medium", label: "Medium" },
   { value: "high", label: "High" },
   { value: "xhigh", label: "XHigh" },
+  { value: "max", label: "Max" },
 ];
 
 export const CODEX_ACCOUNT_SERVICE_TIER_VALUES: CodexServiceTier[] = [
@@ -696,12 +749,12 @@ export function getCodexRequestDefaults(providerSpecificData: unknown): {
     ...(defaults.serviceTier ? { serviceTier: defaults.serviceTier } : {}),
   };
 }
-
 export function getClaudeCodeCompatibleRequestDefaults(providerSpecificData: unknown) {
   const defaults = _getClaudeCodeCompatibleRequestDefaults(providerSpecificData);
   return {
     context1m: defaults.context1m === true,
     redactThinking: defaults.redactThinking === true,
+    summarizeThinking: defaults.summarizeThinking === true,
   };
 }
 
@@ -719,6 +772,30 @@ export function compatProtocolLabelKey(protocol: string): string {
   if (protocol === "openai-responses") return "compatProtocolOpenAIResponses";
   if (protocol === "claude") return "compatProtocolClaude";
   return "compatProtocolOpenAI";
+}
+
+/**
+ * #5446 — Modal authenticates with two credentials, a Token ID (`ak-…`) and a
+ * Token Secret (`as-…`), sent as `Authorization: Bearer <TOKEN_ID>:<TOKEN_SECRET>`.
+ * The add-connection form collects them in two fields and combines them here into
+ * the single encrypted `apiKey` value, so the generic bearer executor path emits
+ * `Bearer <id:secret>` with no provider-specific header code. When only the id
+ * field is filled, it is returned verbatim so users can still paste a pre-combined
+ * `id:secret` string into the single field.
+ */
+// #5446 checklist item 4 — Modal is bring-your-own-deploy, but the server-side
+// validator probes a known public model; pre-fill the same id so the UI and the
+// probe never drift.
+export function defaultValidationModelIdForProvider(provider: string | undefined): string {
+  return provider === "modal" ? MODAL_DEFAULT_VALIDATION_MODEL_ID : "";
+}
+
+export function combineModalCredential(tokenId: string, tokenSecret: string): string {
+  const id = tokenId.trim();
+  const secret = tokenSecret.trim();
+  if (!secret) return id;
+  if (!id) return secret;
+  return `${id}:${secret}`;
 }
 
 export function extractCommandCodeCredentialInput(value: string): string {

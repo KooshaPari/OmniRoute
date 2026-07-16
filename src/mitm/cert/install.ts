@@ -122,6 +122,19 @@ export async function checkCertInstalled(certPath: string): Promise<boolean> {
   return checkCertInstalledLinux(certPath);
 }
 
+/**
+ * macOS `security find-certificate -a -Z` prints the SHA-1 as a colon-less
+ * hex string (e.g. `SHA-1 hash: ABCDEF…`), while {@link getCertFingerprint}
+ * returns a colon-separated one (`AB:CD:EF…`). A raw substring check therefore
+ * never matched and the cert was reported as not-installed on every run,
+ * re-prompting for the sudo install. Normalize both sides (strip `:`,
+ * upper-case) before comparing.
+ */
+export function macCertOutputHasFingerprint(securityOutput: string, fingerprint: string): boolean {
+  const normalize = (value: string) => value.replace(/:/g, "").toUpperCase();
+  return normalize(securityOutput).includes(normalize(fingerprint));
+}
+
 async function checkCertInstalledMac(certPath: string): Promise<boolean> {
   try {
     const fingerprint = getCertFingerprint(certPath);
@@ -131,7 +144,7 @@ async function checkCertInstalledMac(certPath: string): Promise<boolean> {
       "-Z",
       "/Library/Keychains/System.keychain",
     ]);
-    return output.toUpperCase().includes(fingerprint);
+    return macCertOutputHasFingerprint(output, fingerprint);
   } catch {
     return false;
   }
@@ -171,12 +184,117 @@ export async function installCert(sudoPassword: string, certPath: string): Promi
     return;
   }
 
+  if (process.env.OMNIROUTE_SKIP_SYSTEM_TRUST === "1") {
+    console.log("[cert] OMNIROUTE_SKIP_SYSTEM_TRUST=1 — skipping OS trust-store mutation");
+    return;
+  }
+
   if (IS_WIN) {
     await installCertWindows(certPath);
   } else if (IS_MAC) {
     await installCertMac(sudoPassword, certPath);
   } else {
     await installCertLinux(sudoPassword, certPath);
+  }
+}
+
+// ── Graceful fallback for containers / headless environments (#4546) ──────────
+//
+// In a container the system trust store can't be written (no sudo / read-only
+// store / no interactive auth), so installCert() throws and used to abort the
+// whole Agent Bridge start. The helpers below let callers treat that as a
+// recoverable "skip" with a manual-install guide, instead of a hard failure.
+
+const CERT_DOWNLOAD_URL = "/api/tools/agent-bridge/cert/download";
+
+/** Why an automatic cert install did not complete. */
+export type CertInstallReason = "canceled" | "environment";
+
+/** Platform-specific steps the operator can run to trust the MITM root CA by hand. */
+export interface CertManualGuide {
+  platform: NodeJS.Platform;
+  certPath: string;
+  downloadUrl: string;
+  steps: string[];
+}
+
+/** Structured outcome of an attempted cert install (never throws for env failures). */
+export interface CertInstallResult {
+  installed: boolean;
+  skipped: boolean;
+  reason?: CertInstallReason;
+  /** Safe, already-sanitized message (no stack trace). */
+  message?: string;
+  manualGuide?: CertManualGuide;
+}
+
+/**
+ * Classify a cert-install failure message. Only an explicit user cancellation
+ * counts as "canceled"; every other failure (missing trust store, no sudo,
+ * read-only FS, container) is treated as an "environment" failure that the
+ * operator can resolve with a manual install.
+ */
+export function classifyCertInstallError(message: string): CertInstallReason {
+  return /cancel+ed/i.test(message) ? "canceled" : "environment";
+}
+
+/**
+ * Build the manual-install instructions for trusting the MITM root CA on the
+ * given platform. Pure + platform-overridable so it is fully unit-testable.
+ */
+export function buildCertManualGuide(
+  certPath: string,
+  platform: NodeJS.Platform = process.platform
+): CertManualGuide {
+  let steps: string[];
+  if (platform === "win32") {
+    steps = [
+      `certutil -addstore -f Root "${certPath}"`,
+      "Or import it via certmgr.msc → Trusted Root Certification Authorities → Certificates → Import.",
+    ];
+  } else if (platform === "darwin") {
+    steps = [
+      `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "${certPath}"`,
+    ];
+  } else {
+    // Linux — match the detected distro's anchor dir + refresh command.
+    const config = getLinuxCertConfig();
+    steps = [
+      `sudo cp "${certPath}" ${config.dir}/${LINUX_CERT_NAME}`,
+      `sudo ${config.cmd}`,
+      `Container-friendly per-tool trust (no root needed): set NODE_EXTRA_CA_CERTS="${certPath}" (Node) or REQUESTS_CA_BUNDLE="${certPath}" (Python), or import "${certPath}" into your client's trust store.`,
+    ];
+  }
+  return { platform, certPath, downloadUrl: CERT_DOWNLOAD_URL, steps };
+}
+
+/**
+ * Attempt to install the cert, returning a structured result instead of
+ * throwing on environment failures. A user-canceled authorization is reported
+ * with reason "canceled" (not skipped); any other failure is reported as a
+ * skippable "environment" failure carrying a manual-install guide so the bridge
+ * can still start and the operator can trust the CA by hand.
+ */
+export async function installCertResult(
+  sudoPassword: string,
+  certPath: string
+): Promise<CertInstallResult> {
+  try {
+    await installCert(sudoPassword, certPath);
+    return { installed: true, skipped: false };
+  } catch (error) {
+    const message = getErrorMessage(error);
+    const reason = classifyCertInstallError(message);
+    if (reason === "canceled") {
+      return { installed: false, skipped: false, reason, message };
+    }
+    return {
+      installed: false,
+      skipped: true,
+      reason,
+      message,
+      manualGuide: buildCertManualGuide(certPath),
+    };
   }
 }
 
@@ -254,6 +372,11 @@ export async function uninstallCert(sudoPassword: string, certPath: string): Pro
   const isInstalled = await checkCertInstalled(certPath);
   if (!isInstalled) {
     console.log("Certificate not found in system store");
+    return;
+  }
+
+  if (process.env.OMNIROUTE_SKIP_SYSTEM_TRUST === "1") {
+    console.log("[cert] OMNIROUTE_SKIP_SYSTEM_TRUST=1 — skipping OS trust-store mutation");
     return;
   }
 

@@ -40,6 +40,34 @@ export const ALLOWED_MESSAGE_TYPES = [
   "GenerateContentQuery",
 ] as const;
 
+export const M365_DEFAULT_OPTION_SETS = [
+  "search_result_progress_messages_with_search_queries",
+  "update_textdoc_response_after_streaming",
+  "deepleo_networking_timeout_10minutes_canmore",
+  "cwc_flux_image",
+  "cwc_code_interpreter",
+  "cwc_code_interpreter_amsfix",
+  "enable_msa_user",
+  "cwcgptv",
+  "flux_v3_gptv_enable_upload_multi_image_in_turn_wo_ch",
+  "gptvnorm2048",
+  "pdnascan",
+  "cwc_code_interpreter_citation_fix",
+  "code_interpreter_interactive_charts",
+  "cwc_code_interpreter_interactive_charts_inline_image",
+  "code_interpreter_matplotlib_patching",
+  "cwc_fileupload_odb",
+  "update_memory_plugin",
+  "add_custom_instructions",
+  "cwc_flux_v3",
+  "flux_v3_progress_messages",
+  "enable_batch_token_processing",
+  "enable_gg_gpt",
+  "flux_v3_image_gen_enable_non_watermarked_storage",
+  "flux_v3_image_gen_enable_story",
+  "rich_responses",
+] as const;
+
 /** Append the record separator to a JSON-serializable frame. */
 export function encodeFrame(obj: unknown): string {
   return JSON.stringify(obj) + RECORD_SEPARATOR;
@@ -118,7 +146,7 @@ export function buildChatInvocation(opts: ChatInvocationOptions): Record<string,
         source: "officeweb",
         clientCorrelationId: opts.traceId,
         sessionId: opts.sessionId,
-        optionsSets: opts.optionsSets ?? [],
+        optionsSets: opts.optionsSets ?? [...M365_DEFAULT_OPTION_SETS],
         streamingMode: "ConciseWithPadding",
         spokenTextMode: "None",
         options: {},
@@ -180,6 +208,7 @@ export function extractBotText(frame: Record<string, unknown> | null): string | 
     if (!m) continue;
     const author = m.author;
     const text = m.text;
+    if (m.messageType === "Progress" || m.contentType === "EarlyProgress") continue;
     if ((author === "bot" || author === undefined) && typeof text === "string" && text.length > 0) {
       return text;
     }
@@ -198,4 +227,53 @@ export function incrementalDelta(previous: string, next: string): string {
   if (next === previous) return "";
   if (next.startsWith(previous)) return next.slice(previous.length);
   return next;
+}
+
+/**
+ * Extract an incremental `writeAtCursor` delta from a `type:1` update frame. The EDU /
+ * GPT-5.5 path (`OfficeWebIncludedCopilot`, feature.bizchatfluxv3) streams response text
+ * as `arguments[0].writeAtCursor` INCREMENTS instead of only accumulated `messages[].text`
+ * snapshots. Returns null when the frame carries no writeAtCursor delta. (#6210)
+ */
+export function extractWriteAtCursor(frame: Record<string, unknown> | null): string | null {
+  if (!isUpdateFrame(frame)) return null;
+  const args = (frame as Record<string, unknown>).arguments;
+  const first = Array.isArray(args) ? (args[0] as Record<string, unknown> | undefined) : undefined;
+  const wac = first?.writeAtCursor;
+  return typeof wac === "string" && wac.length > 0 ? wac : null;
+}
+
+/**
+ * Extract the final answer from a `type:2` invocation-result frame
+ * (`item.result.message`). Used as a last-resort fallback when a turn emitted no
+ * streamed content (some EDU turns only surface the answer here). (#6210)
+ */
+export function extractFinalResultMessage(frame: Record<string, unknown> | null): string | null {
+  if (!frame || frame.type !== 2) return null;
+  const item = frame.item as Record<string, unknown> | undefined;
+  const result = item?.result as Record<string, unknown> | undefined;
+  const message = result?.message;
+  return typeof message === "string" && message.length > 0 ? message : null;
+}
+
+/**
+ * Fold a single incoming frame into the running bot answer, returning the suffix to
+ * stream (`delta`) and the new accumulated text (`next`). Handles both wire formats:
+ * `messages[].text` snapshots are the full accumulated answer (diffed via
+ * {@link incrementalDelta}), while `writeAtCursor` frames are incremental and are
+ * appended. Non-content frames leave the state unchanged. (#6210)
+ */
+export function accumulateBotContent(
+  previous: string,
+  frame: Record<string, unknown> | null
+): { delta: string; next: string } {
+  const snapshot = extractBotText(frame);
+  if (snapshot) {
+    return { delta: incrementalDelta(previous, snapshot), next: snapshot };
+  }
+  const wac = extractWriteAtCursor(frame);
+  if (wac) {
+    return { delta: wac, next: previous + wac };
+  }
+  return { delta: "", next: previous };
 }

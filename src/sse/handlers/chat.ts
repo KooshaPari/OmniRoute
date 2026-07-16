@@ -1,5 +1,7 @@
 import { randomUUID } from "crypto";
 import { resolveChatRequestBody } from "./requestBody";
+import { normalizeReasoningRequest } from "@/shared/reasoning/effortStandardization";
+import { resolveRoutingModel } from "./resolveRoutingModel";
 import {
   getProviderCredentialsWithQuotaPreflight,
   markAccountUnavailable,
@@ -16,9 +18,14 @@ import {
   isDailyQuotaExhausted,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { getModelInfo, getComboForModel } from "../services/model";
+import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts";
+import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
+import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
+import { resolveRequestAutoControls } from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
 import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
 import {
@@ -27,6 +34,7 @@ import {
 } from "@omniroute/open-sse/config/constants.ts";
 import { getTargetFormat } from "@omniroute/open-sse/services/provider.ts";
 import {
+  getModelsByProviderId,
   getModelTargetFormat,
   PROVIDER_ID_TO_ALIAS,
 } from "@omniroute/open-sse/config/providerModels.ts";
@@ -44,8 +52,12 @@ import * as log from "../utils/logger";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
+import { updateCombo } from "@/lib/db/combos";
+import { isModelAllowedForKey } from "@/lib/db/apiKeys";
+import { promoteSuccessfulComboModel } from "@/lib/combos/autoPromote";
 import {
   deleteSessionAccountAffinity,
+  evictSessionAccountAffinityForConnection,
   getCachedSettings,
   getCombos,
   getCombosCacheVersion,
@@ -64,21 +76,24 @@ import {
   handleNoCredentials,
   safeResolveProxy,
   safeLogEvents,
+  applyExecutorProxyToInfo,
   shouldRetryStreamEarlyEof,
   withSessionHeader,
   withSelectedConnectionHeader,
+  withCorrelationId,
 } from "./chatHelpers";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 
 // Pipeline integration — wired modules
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
 import { resolveUseUpstream429BreakerHints } from "@/shared/utils/providerHints";
-import { getCircuitBreaker } from "../../shared/utils/circuitBreaker";
+import { getCircuitBreaker, isLocalStreamLifecycleError } from "../../shared/utils/circuitBreaker";
 import { markAccountExhaustedFrom429 } from "../../domain/quotaCache";
 import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTelemetry";
 import { generateRequestId } from "../../shared/utils/requestId";
 import { logAuditEvent } from "../../lib/compliance/index";
 import { enforceApiKeyPolicy } from "../../shared/utils/apiKeyPolicy";
+import { hasProviderQuotaBypassScope } from "../../shared/constants/apiKeyPolicyScopes";
 import { cloneLogPayload } from "@/lib/logPayloads";
 import { handleInternalUsageCommand } from "@/lib/usage/internalUsageCommand";
 import {
@@ -117,6 +132,7 @@ import {
   waitForCooldownAwareRetry,
 } from "../services/cooldownAwareRetry";
 import { constrainConnectionsToQuota, resolveQuotaKeyScope } from "../../lib/quota/quotaKey";
+import { checkConnectionCapacity } from "../utils/backpressure";
 
 registerCodexQuotaFetcher();
 
@@ -190,6 +206,7 @@ function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): st
 }
 
 const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
+const comboPromoteDeps = { updateCombo, info: log.info, warn: log.warn };
 
 /**
  * Handle chat completion request
@@ -199,11 +216,18 @@ const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
 export async function handleChat(
   request: any,
   clientRawRequest: any = null,
-  preParsedBody: any = null
+  preParsedBody: any = null,
+  correlationId?: string
 ) {
   // Pipeline: Start request telemetry
-  const reqId = generateRequestId();
+  const reqId = correlationId || generateRequestId();
   const telemetry = new RequestTelemetry(reqId);
+
+  const backpressure = checkConnectionCapacity();
+  if (backpressure.shouldReject) {
+    log.warn("BACKPRESSURE", "Rejecting request: at connection limit");
+    return backpressure.response;
+  }
 
   let body;
   try {
@@ -215,24 +239,110 @@ export async function handleChat(
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
   }
 
-  const rawClientBody = cloneLogPayload(body);
+  // Feature #6241: fold the canonical `effort` / `thinking` request params onto the
+  // per-provider reasoning fields (reasoning_effort / reasoning.effort / thinking) that the
+  // existing translators already consume. Done here — right after the body is first
+  // resolved, before any reasoning field is read below — so it flows uniformly into every
+  // downstream mapper (Anthropic / Gemini / xAI / Responses). An explicit client
+  // reasoning_effort / reasoning / object-shaped thinking always wins (backward compatible).
+  body = normalizeReasoningRequest(body);
 
-  // Build clientRawRequest for logging (if not provided)
-  if (!clientRawRequest) {
-    clientRawRequest = buildClientRawRequest(request, rawClientBody);
+  // Early guard: an invalid `messages` field is rejected here with a clear
+  // OmniRoute-level 400 before any routing or upstream call (#5110, #6402).
+  // Without this guard, schema-invalid bodies fell through to model resolution
+  // and surfaced as a misleading 404 `model_not_found` from chatHelpers.ts (#6402).
+  // Cases covered:
+  //   - present-but-non-array (null, number, string, object) → 400 (#6402)
+  //   - empty array → 400 ("at least one message is required") (#5110)
+  //   - missing entirely, when the Responses-API `input` discriminator is also
+  //     absent → 400 (#6402). Responses-API requests use `input` (not `messages`)
+  //     and are still unaffected.
+  {
+    const b = body as { messages?: unknown; input?: unknown };
+    if ("messages" in b && !Array.isArray(b.messages)) {
+      log.warn("CHAT", "Rejecting request with non-array messages");
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array");
+    }
+    if (Array.isArray(b.messages) && b.messages.length === 0) {
+      log.warn("CHAT", "Rejecting request with empty messages array");
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
+    }
+    if (!("messages" in b) && !("input" in b)) {
+      log.warn("CHAT", "Rejecting request with missing messages");
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array, received undefined");
+    }
   }
 
-  // T01 — Accept header negotiation
-  // If client asks for text/event-stream via the Accept header AND the JSON body
-  // does not explicitly set stream=false, treat it as stream=true.
-  // This ensures compatibility with curl/httpx and similar non-OpenAI clients.
-  //
-  // FIX #302: OpenAI Python SDK sends Accept: application/json, text/event-stream
-  // in every request — even when called with stream=False. We must NOT override
-  // an explicit stream=false body field, as that silently breaks tool_calls and
-  // structured completions for SDK users who rely on non-streaming mode.
+  // Reject non-string `model` before it reaches downstream code that calls
+  // `.toLowerCase()` / `.split()` / `.startsWith()` on it (crash-then-500 with an
+  // empty body, escaping the error sanitizer — #6407). An explicit `null`/`undefined`
+  // stays permitted here because the existing `Missing model` guard below returns a
+  // clean 400 for those; anything else that is not a string is a client type error.
+  const rawModel = (body as { model?: unknown }).model;
+  if (rawModel !== undefined && rawModel !== null && typeof rawModel !== "string") {
+    log.warn("CHAT", `Rejecting non-string model (typeof=${typeof rawModel})`);
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      `model: Expected string, received ${Array.isArray(rawModel) ? "array" : typeof rawModel}`
+    );
+  }
+
+  // Early schema validation for scalar params BEFORE provider/model resolution (#6412).
+  // Previously, a bad `temperature: "not-a-number"` on an unknown provider returned
+  // 404 "model_not_found" — hiding the real schema error. Validate the param shape
+  // first so the client gets a 400 with the field name. Kept narrow to widely-supported
+  // OpenAI-spec params (temperature 0..2, top_p 0..1, max_tokens int >=1) so we don't
+  // reject legitimate provider-specific fields.
+  {
+    const b = body as {
+      temperature?: unknown;
+      top_p?: unknown;
+      max_tokens?: unknown;
+      n?: unknown;
+    };
+    const badParam = (name: string, msg: string) =>
+      errorResponse(HTTP_STATUS.BAD_REQUEST, `${name}: ${msg}`);
+    if (b.temperature !== undefined) {
+      if (typeof b.temperature !== "number" || Number.isNaN(b.temperature)) {
+        return badParam("temperature", "must be a number");
+      }
+      if (b.temperature < 0 || b.temperature > 2) {
+        return badParam("temperature", "must be between 0 and 2");
+      }
+    }
+    if (b.top_p !== undefined) {
+      if (typeof b.top_p !== "number" || Number.isNaN(b.top_p)) {
+        return badParam("top_p", "must be a number");
+      }
+      if (b.top_p < 0 || b.top_p > 1) {
+        return badParam("top_p", "must be between 0 and 1");
+      }
+    }
+    if (b.max_tokens !== undefined) {
+      if (typeof b.max_tokens !== "number" || !Number.isInteger(b.max_tokens) || b.max_tokens < 1) {
+        return badParam("max_tokens", "must be a positive integer");
+      }
+    }
+    if (b.n !== undefined) {
+      if (typeof b.n !== "number" || !Number.isInteger(b.n) || b.n < 1) {
+        return badParam("n", "must be a positive integer");
+      }
+    }
+  }
+
+  // buildClientRawRequest already deep-clones the body, so pass `body` directly — the
+  // prior local clone was a redundant second full-body copy on the hot path (#5152).
+  if (!clientRawRequest) {
+    clientRawRequest = buildClientRawRequest(request, body);
+  }
+
+  // T01 — Accept-header streaming opt-in (#302 / #5305). A bare `Accept:
+  // text/event-stream` with `stream` omitted opts a curl/httpx-style client into
+  // SSE; a client that ALSO lists application/json (OpenAI / Vercel AI SDK
+  // non-stream signature) does NOT — it expects a JSON object. An explicit body
+  // `stream` value (true or false) always wins. See acceptHeaderForcesStream.
   const acceptHeader = request.headers.get("accept") || "";
-  if (acceptHeader.includes("text/event-stream") && body.stream === undefined) {
+  if (acceptHeaderForcesStream(acceptHeader, body.stream)) {
     body = { ...body, stream: true };
     log.debug(
       "STREAM",
@@ -254,7 +364,10 @@ export async function handleChat(
     log.debug("NO_THINKING", `Resolved no-thinking alias → ${noThinking.realModel}`);
   }
 
-  let modelStr = body.model;
+  // X-Route-Model header overrides body.model for routing purposes (see
+  // resolveRoutingModel). The resolved model still passes through
+  // enforceApiKeyPolicy below, so it cannot bypass per-key allowlists.
+  let modelStr = resolveRoutingModel(request, body);
 
   // Count messages (support both messages[] and input[] formats)
   const msgCount = body.messages?.length || body.input?.length || 0;
@@ -265,11 +378,13 @@ export async function handleChat(
     `${url.pathname} | ${modelStr} | ${msgCount} msgs${toolCount ? ` | ${toolCount} tools` : ""}${effort ? ` | effort=${effort}` : ""}`
   );
 
-  // Log API key (masked)
+  // Log only that an API key was provided — never the key itself, not even a
+  // masked prefix/last4. These debug lines get copied verbatim into bug reports
+  // and support tickets, so any key fragment is sensitive.
   const authHeader = request.headers.get("Authorization");
   const apiKey = extractApiKey(request);
   if (authHeader && apiKey) {
-    log.debug("AUTH", `API Key: ${log.maskKey(apiKey)}`);
+    log.debug("AUTH", "API key provided");
   } else {
     log.debug("AUTH", "No API key provided (local mode)");
   }
@@ -285,6 +400,25 @@ export async function handleChat(
   if (!modelStr) {
     log.warn("CHAT", "Missing model");
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing model");
+  }
+
+  // Reject image-generation models routed to /v1/chat/completions (#6457).
+  // Image-only models live in IMAGE_PROVIDERS (open-sse/config/imageRegistry.ts)
+  // and are served by /v1/images/generations. Forwarding them to a chat upstream
+  // yielded confusing raw provider 400s (e.g. HuggingFace: "not a chat model").
+  // Models such as Codex GPT-5.5 support both chat and image generation, so an
+  // image-registry match is only image-only when the same provider/model pair is
+  // absent from the chat catalog.
+  const imageModel = getImageModelEntry(modelStr);
+  const isChatCatalogModel = imageModel
+    ? getModelsByProviderId(imageModel.provider).some((model) => model.id === imageModel.model)
+    : false;
+  if (imageModel && !isChatCatalogModel) {
+    log.warn("CHAT", `Rejecting image-generation model on chat endpoint: ${modelStr}`);
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      `Model '${modelStr}' is an image-generation model and cannot be used on /v1/chat/completions. Use POST /v1/images/generations instead.`
+    );
   }
 
   // T04: client-provided external session header has priority over generated fingerprint.
@@ -307,6 +441,7 @@ export async function handleChat(
     return policy.rejection;
   }
   const apiKeyInfo = policy.apiKeyInfo;
+  const bypassProviderQuotaPolicy = hasProviderQuotaBypassScope(apiKeyInfo?.scopes);
   telemetry.endPhase();
 
   // Guardrail pre-call pipeline — prompt injection, PII masking, and future custom rules.
@@ -336,6 +471,23 @@ export async function handleChat(
     );
   }
   body = preCallGuardrails.payload;
+  if (body?.model && typeof body.model === "string" && body.model !== modelStr) {
+    const rerouteModel = body.model;
+    // A guardrail (e.g. Vision Bridge auto-reroute) can swap body.model AFTER
+    // enforceApiKeyPolicy already validated modelStr's allowlist/budget above.
+    // Re-check the new target against the same per-key allowlist so a
+    // policy-restricted key cannot be silently routed to an unchecked model.
+    const rerouteAllowed = await isModelAllowedForKey(apiKey, rerouteModel);
+    if (!rerouteAllowed) {
+      log.warn(
+        "POLICY",
+        `Guardrail reroute to "${rerouteModel}" rejected by API key policy (key=${apiKeyInfo?.id || "unknown"}); keeping original model "${modelStr}"`
+      );
+      body = { ...body, model: modelStr };
+    } else {
+      modelStr = rerouteModel;
+    }
+  }
   telemetry.endPhase();
 
   // T08: per-key active session limit (0 = unlimited).
@@ -604,6 +756,7 @@ export async function handleChat(
           sessionKey: sessionAffinityKey,
           ...(target?.allowRateLimitedConnection ? { allowRateLimitedConnections: true } : {}),
           ...(target?.connectionId ? { forcedConnectionId: target.connectionId } : {}),
+          ...(bypassProviderQuotaPolicy ? { bypassQuotaPolicy: true } : {}),
         }
       );
       if (!creds || creds.allRateLimited) return false;
@@ -619,6 +772,24 @@ export async function handleChat(
     ]);
     const relayConfig =
       combo.strategy === "context-relay" ? resolveComboConfig(combo, settings) : null;
+    // Per-request Auto-Combo controls (#6023 / #6024 / #6025 / #3470): steer an
+    // `auto` combo on this single request without mutating its stored config.
+    const perRequestAutoControls = resolveRequestAutoControls(request.headers);
+    const relayOptions =
+      combo.strategy === "context-relay" ||
+      bypassProviderQuotaPolicy ||
+      Object.keys(perRequestAutoControls).length > 0
+        ? {
+            ...(combo.strategy === "context-relay"
+              ? {
+                  sessionId,
+                  config: relayConfig,
+                }
+              : {}),
+            ...(bypassProviderQuotaPolicy ? { bypassProviderQuotaPolicy: true } : {}),
+            ...perRequestAutoControls,
+          }
+        : undefined;
     telemetry.endPhase();
 
     // Context-relay keeps generation in combo.ts, but handoff injection lives here
@@ -663,23 +834,30 @@ export async function handleChat(
             ),
             cachedSettings: settings,
             providerId: target?.providerId ?? null,
+            correlationId: reqId,
+            modelPinned: (target as any)?.modelPinned ?? false,
           },
           target?.effectiveComboStrategy ?? combo.strategy,
           true
-        ),
+        ).then(async (res: Response) => {
+          // Auto-promote the winning combo model to position #1 (opt-in flag).
+          if (res?.ok)
+            await promoteSuccessfulComboModel(
+              combo,
+              m,
+              settings as Record<string, unknown>,
+              comboPromoteDeps
+            );
+          return res;
+        }),
       isModelAvailable: checkModelAvailable,
       log,
       settings,
       allCombos,
       apiKeyAllowedConnections: apiKeyInfo?.allowedConnections ?? null,
-      relayOptions:
-        combo.strategy === "context-relay"
-          ? {
-              sessionId,
-              config: relayConfig,
-            }
-          : undefined,
+      relayOptions,
       signal: request?.signal ?? null,
+      correlationId: reqId,
     });
 
     // ── Global Fallback Provider (#689) ────────────────────────────────────
@@ -730,7 +908,28 @@ export async function handleChat(
 
     // Record telemetry
     recordTelemetry(telemetry);
-    return withSessionHeader(response, sessionId);
+    // Log combo failures that bypassed handleChatCore (e.g. all targets skipped by circuit breaker).
+    // Records BOTH a call_logs row (dashboard/logs) AND a usage_history row attributed to the api key
+    // (success:false) so gate/breaker-rejected traffic is counted per key — support-mesh 2026-07-08.
+    if (!response.ok) {
+      try {
+        const { recordRejectedRequestUsage } = await import("./rejectedRequestUsage");
+        await recordRejectedRequestUsage({
+          status: response.status,
+          model: body?.model || resolvedModelStr,
+          requestedModel: body?.model || resolvedModelStr,
+          provider: "-",
+          endpoint: clientRawRequest?.endpoint,
+          error: `[${response.status}] Combo "${combo.name}" failed — all targets exhausted`,
+          comboName: combo.name,
+          apiKeyId: apiKeyInfo?.id ?? null,
+          apiKeyName: apiKeyInfo?.name ?? null,
+          correlationId: reqId,
+          startTime: telemetry?.startTime,
+        });
+      } catch {}
+    }
+    return withCorrelationId(withSessionHeader(response, sessionId), reqId);
   }
   telemetry.endPhase();
 
@@ -748,12 +947,13 @@ export async function handleChat(
       sessionAffinityKey,
       forceLiveComboTest: isComboLiveTest,
       forcedConnectionId: requestedConnectionId,
+      correlationId: reqId,
     },
     null,
     false
   );
   recordTelemetry(telemetry);
-  return withSessionHeader(response, sessionId);
+  return withCorrelationId(withSessionHeader(response, sessionId), reqId);
 }
 
 export function buildClientRawRequest(request: Request, body: unknown) {
@@ -762,6 +962,7 @@ export function buildClientRawRequest(request: Request, body: unknown) {
     endpoint: url.pathname,
     body: cloneLogPayload(body),
     headers: Object.fromEntries(request.headers.entries()),
+    signal: request.signal ?? null,
   };
 }
 
@@ -794,6 +995,7 @@ async function handleSingleModelChat(
     preselectedCredentials?: any;
     cachedSettings?: any;
     providerId?: string | null;
+    correlationId?: string | null;
   } = {},
   comboStrategy: string | null = null,
   isCombo: boolean = false
@@ -812,6 +1014,10 @@ async function handleSingleModelChat(
   // resolveModelOrError found a combo but the main handler's combo lookup missed it.
   if ((resolved as any).combo) {
     const redirectCombo = (resolved as any).combo;
+    log.info(
+      "ROUTING",
+      `Safety-net combo redirect for "${modelStr}" → combo="${redirectCombo.name}"`
+    );
     log.info("ROUTING", `Auto-combo redirect from handleSingleModelChat for "${modelStr}"`);
     log.info("ROUTING", `Auto-combo redirect to combo flow for "${modelStr}"`);
     return handleComboChat({
@@ -848,6 +1054,7 @@ async function handleSingleModelChat(
             skipUpstreamRetry: target?.failoverBeforeRetry ?? false,
             allowRateLimitedConnection: target?.allowRateLimitedConnection === true,
             providerId: target?.providerId ?? null,
+            correlationId: runtimeOptions?.correlationId ?? null,
           },
           target?.effectiveComboStrategy ?? redirectCombo.strategy ?? "priority",
           false
@@ -858,6 +1065,7 @@ async function handleSingleModelChat(
       allCombos: [],
       relayOptions: undefined,
       signal: request?.signal ?? null,
+      correlationId: runtimeOptions?.correlationId ?? null,
     });
   }
 
@@ -889,6 +1097,7 @@ async function handleSingleModelChat(
     return runtimeOptions.providerId;
   })();
   const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
+  const bypassProviderQuotaPolicy = hasProviderQuotaBypassScope(apiKeyInfo?.scopes);
   const hasForcedConnection =
     typeof runtimeOptions.forcedConnectionId === "string" &&
     runtimeOptions.forcedConnectionId.trim().length > 0;
@@ -920,7 +1129,30 @@ async function handleSingleModelChat(
     providerProfile,
     ...(bypassReason ? { bypassReason } : {}),
   });
-  if (gate) return gate;
+  if (gate) {
+    // Log the rejected request so it appears in /dashboard/logs AND is counted in the
+    // per-api-key usage analytics (usage_history, success:false) — otherwise a key whose
+    // traffic is entirely gate/breaker-rejected shows "zero requests" (support-mesh 2026-07-08).
+    try {
+      const { recordRejectedRequestUsage } = await import("./rejectedRequestUsage");
+      await recordRejectedRequestUsage({
+        status: gate.status,
+        model,
+        requestedModel: body?.model || modelStr,
+        provider,
+        endpoint: clientRawRequest?.endpoint,
+        error: `[${gate.status}] Pipeline gate rejected`,
+        comboName: isCombo ? comboName : null,
+        comboStepId: isCombo ? (runtimeOptions?.comboStepId ?? null) : null,
+        comboExecutionKey: isCombo ? (runtimeOptions?.comboExecutionKey ?? null) : null,
+        apiKeyId: apiKeyInfo?.id ?? null,
+        apiKeyName: apiKeyInfo?.name ?? null,
+        correlationId: runtimeOptions?.correlationId ?? null,
+        startTime: telemetry?.startTime,
+      });
+    } catch {}
+    return gate;
+  }
 
   // Issue #2100 follow-up: opt-in upstream 429 hint trust per provider.
   const useHints429 = resolveUseUpstream429BreakerHints(
@@ -930,6 +1162,9 @@ async function handleSingleModelChat(
   const breaker = getCircuitBreaker(provider, {
     failureThreshold: providerProfile.failureThreshold,
     resetTimeout: providerProfile.resetTimeoutMs,
+    // #4602: a local WS-bridge "Controller is already closed" throw is not an
+    // upstream outage — keep it from tripping the whole-provider breaker.
+    isFailure: (e) => !isLocalStreamLifecycleError(e),
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
     ...(useHints429
@@ -1006,6 +1241,9 @@ async function handleSingleModelChat(
                       bypassQuotaPolicy: true,
                     }
                   : {}),
+                ...(!forceLiveComboTest && bypassProviderQuotaPolicy
+                  ? { bypassQuotaPolicy: true }
+                  : {}),
                 ...(runtimeOptions.forcedConnectionId
                   ? { forcedConnectionId: runtimeOptions.forcedConnectionId }
                   : {}),
@@ -1013,7 +1251,7 @@ async function handleSingleModelChat(
             );
       preselectedCredentials = null;
 
-      if (!credentials || "allRateLimited" in credentials) {
+      if (!credentials || "allRateLimited" in credentials || !credentials.connectionId) {
         if (credentials?.allRateLimited) {
           const retryDecision = getCooldownAwareRetryDecision({
             retryAfter: credentials.retryAfter,
@@ -1055,7 +1293,7 @@ async function handleSingleModelChat(
           breaker._onFailure();
         }
 
-        return handleNoCredentials(
+        const noCredsRes = handleNoCredentials(
           credentials,
           excludedConnectionIds.size > 0 ? Array.from(excludedConnectionIds)[0] : null,
           provider,
@@ -1063,11 +1301,24 @@ async function handleSingleModelChat(
           lastError,
           lastStatus
         );
+        const lastFailedConnectionId =
+          excludedConnectionIds.size > 0
+            ? Array.from(excludedConnectionIds)[excludedConnectionIds.size - 1]
+            : null;
+        return withSelectedConnectionHeader(noCredsRes, lastFailedConnectionId);
       }
 
       const accountId = credentials.connectionId.slice(0, 8);
       log.info("AUTH", `Using ${provider} account: ${accountId}...`);
-      let requestBody = body;
+      // #474: when the request used a bare model name (no "/" — e.g. an alias
+      // that resolved to "auto") and the selected connection declares a
+      // defaultModel, resolve the bare name to that real model ID before the
+      // upstream call so the provider receives a concrete model rather than the
+      // placeholder. A "/"-qualified model name is always left untouched.
+      const effectiveModel =
+        resolveBareModelToConnectionDefault(modelStr, model, credentials.defaultModel) ?? model;
+      let requestBody =
+        effectiveModel !== model ? { ...body, model: `${provider}/${effectiveModel}` } : body;
       let injectedHandoff = null;
       if (
         comboStrategy === "context-relay" &&
@@ -1121,6 +1372,9 @@ async function handleSingleModelChat(
         );
       }
       const proxyInfo = await safeResolveProxy(credentials.connectionId, apiKeyInfo?.id);
+      // #5217: sink for the proxy the executor pins internally (e.g. OpencodeExecutor
+      // rotation) so the egress log below reflects the real egress, not "direct".
+      const appliedProxySink: { proxy: unknown } = { proxy: null };
       const proxyStartTime = Date.now();
 
       // 4. Execute chat via core after breaker gate checks (with optional TLS tracking)
@@ -1130,9 +1384,10 @@ async function handleSingleModelChat(
         breaker,
         body: requestBody,
         provider,
-        model,
+        model: effectiveModel,
         refreshedCredentials,
         proxyInfo,
+        appliedProxySink,
         log,
         clientRawRequest,
         credentials,
@@ -1148,6 +1403,8 @@ async function handleSingleModelChat(
         providerProfile,
         cachedSettings: runtimeOptions.cachedSettings,
         skipUpstreamRetry: runtimeOptions.skipUpstreamRetry ?? false,
+        correlationId: runtimeOptions?.correlationId ?? null,
+        modelPinned: runtimeOptions?.modelPinned ?? false,
       });
       if (telemetry) telemetry.endPhase();
 
@@ -1159,9 +1416,10 @@ async function handleSingleModelChat(
         targetFormat;
 
       // 5. Log proxy + translation events (fire-and-forget; never blocks the response)
+      // #5217: reflect the proxy the executor actually applied (per-account rotation).
       void safeLogEvents({
         result,
-        proxyInfo,
+        proxyInfo: applyExecutorProxyToInfo(proxyInfo, appliedProxySink.proxy),
         proxyLatency,
         provider,
         model,
@@ -1462,11 +1720,17 @@ async function handleSingleModelChat(
       // A3 guard: if 401 and connection has extra keys, skip connection-level disable
       // (key-level failure already recorded in chatCore.ts via T07)
       // Check extra keys directly from credentials for reliability across restarts
-      const extraKeys =
-        (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
-      const hasExtraKeys = extraKeys.length > 0 || connectionHasExtraKeys(credentials.connectionId);
+      const hasExtraKeys =
+        ((credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? []).length >
+          0 || connectionHasExtraKeys(credentials.connectionId);
       const is401 = result.status === 401;
-      const skipConnectionDisable = is401 && hasExtraKeys;
+      // Our own timeout fired on a slow upstream; don't cool down a healthy account.
+      const skipConnectionDisable =
+        result.status === 499 ||
+        result.errorCode === "client_disconnected" ||
+        result.errorType === "client_disconnected" ||
+        (is401 && hasExtraKeys) ||
+        isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider);
 
       const { shouldFallback, cooldownMs } = skipConnectionDisable
         ? { shouldFallback: false, cooldownMs: 0 }
@@ -1493,6 +1757,21 @@ async function handleSingleModelChat(
           requestRetryLastCooldownMs = cooldownMs;
         }
         log.warn("AUTH", `Account ${accountId}... unavailable (${result.status}), trying fallback`);
+        // #6219: evict the sticky session pin when the pinned account fails over,
+        // otherwise the next request re-pins the same throttled account until
+        // restart. Guarded by connection match so a pin for a different (healthy)
+        // account is left intact.
+        if (runtimeOptions.sessionAffinityKey) {
+          try {
+            evictSessionAccountAffinityForConnection(
+              runtimeOptions.sessionAffinityKey,
+              provider,
+              credentials.connectionId
+            );
+          } catch {
+            // best-effort: selection also excludes this connection for the current retry.
+          }
+        }
         excludedConnectionIds.add(credentials.connectionId);
         lastError = result.error;
         lastStatus = result.status;

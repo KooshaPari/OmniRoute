@@ -7,6 +7,7 @@ export const compressionModeSchema = z.enum([
   "aggressive",
   "ultra",
   "rtk",
+  "omniglyph",
   "stacked",
 ]);
 
@@ -33,6 +34,13 @@ export const cavemanOutputModeSchema = z
   })
   .strict();
 
+export const outputStyleSelectionSchema = z
+  .object({
+    id: z.string().trim().min(1),
+    level: cavemanIntensitySchema,
+  })
+  .strict();
+
 export const rtkConfigSchema = z
   .object({
     enabled: z.boolean().optional(),
@@ -53,6 +61,7 @@ export const rtkConfigSchema = z
     groupingThreshold: z.number().int().min(2).max(100).optional(),
     stripCodeComments: z.boolean().optional(),
     preserveDocstrings: z.boolean().optional(),
+    enableRenderers: z.boolean().optional(),
   })
   .strict();
 
@@ -132,6 +141,19 @@ export const ultraConfigSchema = z
 
 const noConfigSchema = z.object({}).strict();
 
+// Structural engines (session-dedup / ccr / headroom / relevance / llmlingua) do not
+// expose a fixed intensity enum in ENGINE_CATALOG — accept optional free-form intensity
+// and a loose config bag so GET→PUT round-trips of stackedPipeline succeed (#6747).
+const structuralStepConfigSchema = z.record(z.string(), z.unknown()).optional();
+
+/**
+ * Writable stacked-pipeline step shape for PUT /api/settings/compression and
+ * PUT /api/context/combos/[id]. MUST accept every engine id in ENGINE_CATALOG /
+ * GET /api/compression/engines and every engine the DB normalizer keeps
+ * (src/lib/db/compression.ts STACKED_PIPELINE_ENGINE_IDS). Issue #6747: a 5-engine
+ * discriminator rejected session-dedup/ccr/headroom/relevance/llmlingua on write even
+ * though GET returned them.
+ */
 export const stackedPipelineStepSchema = z.discriminatedUnion("engine", [
   z
     .object({
@@ -150,7 +172,8 @@ export const stackedPipelineStepSchema = z.discriminatedUnion("engine", [
   z
     .object({
       engine: z.literal("aggressive"),
-      intensity: z.literal("standard").optional(),
+      // #6747: previously only "standard"; GET / engines.level may echo "ultra"
+      intensity: z.enum(["standard", "ultra"]).optional(),
       config: aggressiveConfigSchema.optional(),
     })
     .strict(),
@@ -168,7 +191,75 @@ export const stackedPipelineStepSchema = z.discriminatedUnion("engine", [
       config: rtkConfigSchema.optional(),
     })
     .strict(),
+  z
+    .object({
+      engine: z.literal("session-dedup"),
+      intensity: z.string().optional(),
+      config: structuralStepConfigSchema,
+    })
+    .strict(),
+  z
+    .object({
+      engine: z.literal("ccr"),
+      intensity: z.string().optional(),
+      config: structuralStepConfigSchema,
+    })
+    .strict(),
+  z
+    .object({
+      engine: z.literal("headroom"),
+      intensity: z.string().optional(),
+      config: structuralStepConfigSchema,
+    })
+    .strict(),
+  z
+    .object({
+      engine: z.literal("relevance"),
+      intensity: z.string().optional(),
+      config: structuralStepConfigSchema,
+    })
+    .strict(),
+  z
+    .object({
+      engine: z.literal("llmlingua"),
+      intensity: z.string().optional(),
+      config: structuralStepConfigSchema,
+    })
+    .strict(),
+  z
+    .object({
+      engine: z.literal("omniglyph"),
+      intensity: z.string().optional(),
+      config: structuralStepConfigSchema,
+    })
+    .strict(),
 ]);
+
+/**
+ * Canonical engine → selectable-intensities map for the named-combos pipeline editor
+ * (Engine Combos UI). This is the SINGLE source of truth shared by the dashboard
+ * dropdowns and `stackedPipelineStepSchema`: every engine/intensity offered here is,
+ * by construction, accepted by the API update schema.
+ *
+ * Every ENGINE_CATALOG id must appear here (empty intensity list = no level selector).
+ * Parity with `stackedPipelineStepSchema` is guarded by unit tests (#4955 / #6747).
+ * #4955 fixed a UI/schema drift by shrinking the UI; #6747 expands the schema so the
+ * full catalog (and GET stackedPipeline) can round-trip on PUT.
+ */
+export const STACKED_PIPELINE_ENGINE_INTENSITIES: Record<string, readonly string[]> = {
+  // Order matches ENGINE_CATALOG stackPriority for readability
+  "session-dedup": [],
+  ccr: [],
+  lite: ["lite"],
+  rtk: ["minimal", "standard", "aggressive"],
+  headroom: [],
+  relevance: [],
+  caveman: ["lite", "full", "ultra"],
+  aggressive: ["standard", "ultra"],
+  llmlingua: [],
+  omniglyph: [],
+  ultra: ["ultra"],
+};
 
 export const engineToggleSchema = z.object({
   enabled: z.boolean(),
@@ -183,12 +274,14 @@ export const compressionSettingsUpdateSchema = z
     autoTriggerTokens: z.number().int().min(0).optional(),
     cacheMinutes: z.number().int().min(1).max(60).optional(),
     preserveSystemPrompt: z.boolean().optional(),
+    preserveSystemPromptMode: z.enum(["always", "whenNoCache", "never"]).optional(),
     mcpDescriptionCompressionEnabled: z.boolean().optional(),
     comboOverrides: z.record(z.string(), compressionModeSchema).optional(),
     compressionComboId: z.string().trim().min(1).nullable().optional(),
     stackedPipeline: z.array(stackedPipelineStepSchema).optional(),
     cavemanConfig: cavemanConfigSchema.optional(),
     cavemanOutputMode: cavemanOutputModeSchema.optional(),
+    outputStyles: z.array(outputStyleSelectionSchema).optional(),
     rtkConfig: rtkConfigSchema.optional(),
     languageConfig: languageConfigSchema.optional(),
     aggressive: aggressiveConfigSchema.optional(),
@@ -197,6 +290,8 @@ export const compressionSettingsUpdateSchema = z
     engines: z.record(z.string(), engineToggleSchema).optional(),
     enginesExplicit: z.boolean().optional(),
     activeComboId: z.string().nullable().optional(),
+    ultraEngine: z.enum(["heuristic", "slm"]).optional(),
+    ultraSlmPrewarm: z.boolean().optional(),
   })
   .strict();
 

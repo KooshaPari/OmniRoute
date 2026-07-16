@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// Gemini, Antigravity and Windsurf public defaults come from
+// Antigravity and Windsurf public defaults come from
 // open-sse/utils/publicCreds.ts — no env override needed in this suite.
 const originalEnv = { ...process.env };
 Object.assign(process.env, {
@@ -16,7 +16,6 @@ Object.assign(process.env, {
 
 const providersModule = await import("../../src/lib/oauth/providers/index.ts");
 const oauthModule = await import("../../src/lib/oauth/constants/oauth.ts");
-const registryModule = await import("../../open-sse/config/providerRegistry.ts");
 const antigravityHeadersModule = await import("../../open-sse/services/antigravityHeaders.ts");
 const oauthHelpersModule = await import("../../src/lib/oauth/providers.ts");
 
@@ -28,10 +27,12 @@ const {
   CLAUDE_CONFIG,
   CLINE_CONFIG,
   CODEX_CONFIG,
+  CODEBUDDY_CN_CONFIG,
+  ZED_CONFIG,
   CURSOR_CONFIG,
-  GEMINI_CONFIG,
   GITHUB_CONFIG,
   GITLAB_DUO_CONFIG,
+  GROK_CLI_CONFIG,
   KILOCODE_CONFIG,
   KIMI_CODING_CONFIG,
   KIRO_CONFIG,
@@ -41,8 +42,8 @@ const {
   QWEN_CONFIG,
   TRAE_CONFIG,
   WINDSURF_CONFIG,
+  ZED_HOSTED_CONFIG,
 } = oauthModule;
-const { REGISTRY } = registryModule;
 const { getAntigravityLoadCodeAssistMetadata } = antigravityHeadersModule;
 
 const originalFetch = globalThis.fetch;
@@ -50,7 +51,6 @@ const originalFetch = globalThis.fetch;
 const EXPECTED_PROVIDER_KEYS = [
   "claude",
   "codex",
-  "gemini-cli",
   "antigravity",
   "agy",
   "qoder",
@@ -64,14 +64,25 @@ const EXPECTED_PROVIDER_KEYS = [
   "trae",
   "kilocode",
   "cline",
+  "clinepass",
   "windsurf",
   "devin-cli",
+  "grok-cli",
+  "codebuddy-cn",
+  "zed",
+  "zed-hosted",
 ];
+
+const browserUrl = "http://localhost:20128/callback";
+const publicBaseEnv = {
+  NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+  ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
+  ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
+};
 
 const EXPECTED_CONFIG_BY_PROVIDER = {
   claude: CLAUDE_CONFIG,
   codex: CODEX_CONFIG,
-  "gemini-cli": GEMINI_CONFIG,
   antigravity: ANTIGRAVITY_CONFIG,
   agy: AGY_CONFIG,
   qoder: QODER_CONFIG,
@@ -84,15 +95,30 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   cursor: CURSOR_CONFIG,
   kilocode: KILOCODE_CONFIG,
   cline: CLINE_CONFIG,
+  clinepass: CLINE_CONFIG, // reuses the Cline WorkOS flow (clinepass: cline in providers/index.ts)
   windsurf: WINDSURF_CONFIG,
   "devin-cli": WINDSURF_CONFIG,
   trae: TRAE_CONFIG,
+  "grok-cli": GROK_CLI_CONFIG,
+  "codebuddy-cn": CODEBUDDY_CN_CONFIG,
+  zed: ZED_CONFIG,
+  "zed-hosted": ZED_HOSTED_CONFIG,
 };
+
+const KIRO_REQUIRED_FIELDS = [
+  "registerClientUrl",
+  "deviceAuthUrl",
+  "tokenUrl",
+  "socialAuthEndpoint",
+  "socialLoginUrl",
+  "socialTokenUrl",
+  "socialRefreshUrl",
+  "authMethods",
+];
 
 const REQUIRED_FIELDS_BY_PROVIDER = {
   claude: ["authorizeUrl", "tokenUrl", "redirectUri", "scopes", "clientId"],
   codex: ["authorizeUrl", "tokenUrl", "scope", "clientId"],
-  "gemini-cli": ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
   antigravity: ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
   agy: ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
   qoder: ["extraParams"],
@@ -109,32 +135,16 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
     "codeChallengeMethod",
     "clientId",
   ],
-  kiro: [
-    "registerClientUrl",
-    "deviceAuthUrl",
-    "tokenUrl",
-    "socialAuthEndpoint",
-    "socialLoginUrl",
-    "socialTokenUrl",
-    "socialRefreshUrl",
-    "authMethods",
-  ],
-  "amazon-q": [
-    "registerClientUrl",
-    "deviceAuthUrl",
-    "tokenUrl",
-    "socialAuthEndpoint",
-    "socialLoginUrl",
-    "socialTokenUrl",
-    "socialRefreshUrl",
-    "authMethods",
-  ],
+  kiro: KIRO_REQUIRED_FIELDS,
+  "amazon-q": KIRO_REQUIRED_FIELDS,
   cursor: ["apiEndpoint", "api3Endpoint", "agentEndpoint", "agentNonPrivacyEndpoint", "dbKeys"],
   kilocode: ["apiBaseUrl", "initiateUrl", "pollUrlBase"],
   cline: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
+  clinepass: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
   windsurf: ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   "devin-cli": ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   trae: ["apiEndpoint", "chatEndpoint", "webUrl"],
+  "zed-hosted": ["webBaseUrl", "cloudBaseUrl", "llmBaseUrl", "userInfoUrl", "llmTokenUrl", "modelsUrl"],
 };
 
 function getByPath(object, path) {
@@ -316,9 +326,6 @@ test("browser-based providers expose buildAuthUrl and return provider-specific a
   const codexUrl = new URL(
     PROVIDERS.codex.buildAuthUrl(CODEX_CONFIG, redirectUri, state, codeChallenge)
   );
-  const geminiUrl = new URL(
-    PROVIDERS["gemini-cli"].buildAuthUrl(GEMINI_CONFIG, redirectUri, state)
-  );
   const antigravityUrl = new URL(
     PROVIDERS.antigravity.buildAuthUrl(ANTIGRAVITY_CONFIG, redirectUri, state)
   );
@@ -328,21 +335,39 @@ test("browser-based providers expose buildAuthUrl and return provider-specific a
   assert.equal(claudeUrl.searchParams.get("client_id"), CLAUDE_CONFIG.clientId);
   assert.equal(codexUrl.origin, "https://auth.openai.com");
   assert.equal(codexUrl.searchParams.get("code_challenge"), codeChallenge);
-  assert.equal(geminiUrl.origin, "https://accounts.google.com");
-  assert.equal(geminiUrl.searchParams.get("redirect_uri"), redirectUri);
   assert.equal(antigravityUrl.origin, "https://accounts.google.com");
   assert.equal(clineUrl.origin, "https://api.cline.bot");
 });
 
-// Regression for #3861: GitLab Duo needs an operator-registered OAuth client_id.
-// When it's missing, buildAuthUrl must return null (like Qoder) so the authorize route
-// can surface a clear "configure it" message — it previously THREW, which the route
-// swallowed into an opaque "Internal server error" 500 at the Add Connection step.
+test("zed-hosted buildAuthUrl returns {authUrl, codeVerifier, redirectUri} carrying a fresh RSA keypair", () => {
+  const built = PROVIDERS["zed-hosted"].buildAuthUrl(ZED_HOSTED_CONFIG);
+  assert.equal(typeof built, "object");
+  assert.ok(built.authUrl.startsWith("https://zed.dev/native_app_signin?"));
+  const url = new URL(built.authUrl);
+  assert.ok(url.searchParams.get("native_app_public_key"));
+  assert.ok(built.codeVerifier.startsWith("zed-rsa-pkcs1:"));
+  assert.ok(built.redirectUri.startsWith("http://127.0.0.1:"));
+});
+
+test("generateAuthData honors an object-returning buildAuthUrl (zed-hosted) without breaking string-returning providers", async () => {
+  const oauthHelpers = await import("../../src/lib/oauth/providers.ts");
+  const zedAuthData = oauthHelpers.generateAuthData("zed-hosted", "http://localhost:20128/callback");
+  assert.equal(zedAuthData.flowType, "authorization_code");
+  assert.ok(zedAuthData.authUrl.startsWith("https://zed.dev/native_app_signin?"));
+  assert.ok(zedAuthData.codeVerifier.startsWith("zed-rsa-pkcs1:"));
+  assert.ok(zedAuthData.redirectUri.startsWith("http://127.0.0.1:"));
+
+  const clineAuthData = oauthHelpers.generateAuthData("cline", "http://localhost:20128/callback");
+  assert.equal(typeof clineAuthData.authUrl, "string");
+  assert.equal(clineAuthData.redirectUri, "http://localhost:20128/callback");
+  assert.ok(clineAuthData.codeVerifier);
+  assert.ok(!clineAuthData.codeVerifier.startsWith("zed-rsa-pkcs1:"));
+});
+
 test("gitlab-duo buildAuthUrl returns null (not throw) when client_id is unconfigured (#3861)", () => {
-  const redirectUri = "http://localhost:20128/callback";
   const unconfigured = PROVIDERS["gitlab-duo"].buildAuthUrl(
     { ...GITLAB_DUO_CONFIG, clientId: "" },
-    redirectUri,
+    browserUrl,
     "state-x",
     "challenge-y"
   );
@@ -350,36 +375,14 @@ test("gitlab-duo buildAuthUrl returns null (not throw) when client_id is unconfi
 
   // Configured: returns a real authorize URL carrying the client_id + PKCE challenge.
   const configured = new URL(
-    PROVIDERS["gitlab-duo"].buildAuthUrl(GITLAB_DUO_CONFIG, redirectUri, "state-x", "challenge-y")
+    PROVIDERS["gitlab-duo"].buildAuthUrl(GITLAB_DUO_CONFIG, browserUrl, "state-x", "challenge-y")
   );
   assert.equal(configured.searchParams.get("client_id"), GITLAB_DUO_CONFIG.clientId);
   assert.equal(configured.searchParams.get("code_challenge"), "challenge-y");
 });
 
 test("custom Google OAuth credentials switch Antigravity remote callbacks to NEXT_PUBLIC_BASE_URL", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri(
-    "antigravity",
-    "http://localhost:20128/callback",
-    {
-      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com/",
-      ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
-      ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
-    }
-  );
-
-  assert.equal(redirectUri, "https://omniroute.example.com/callback");
-});
-
-test("custom Google OAuth credentials switch Gemini remote callbacks to OMNIROUTE_PUBLIC_BASE_URL", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri(
-    "gemini-cli",
-    "http://127.0.0.1:20128/callback",
-    {
-      OMNIROUTE_PUBLIC_BASE_URL: "https://omniroute.example.com",
-      GEMINI_CLI_OAUTH_CLIENT_ID: "custom-gemini.apps.googleusercontent.com",
-      GEMINI_CLI_OAUTH_CLIENT_SECRET: "custom-gemini-secret",
-    }
-  );
+  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", browserUrl, publicBaseEnv);
 
   assert.equal(redirectUri, "https://omniroute.example.com/callback");
 });
@@ -388,11 +391,7 @@ test("custom Google OAuth callbacks preserve the requested callback path and que
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
     "http://127.0.0.1:20128/auth/callback?source=popup",
-    {
-      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com/base",
-      ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
-      ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
-    }
+    { ...publicBaseEnv, NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com/base" }
   );
 
   assert.equal(redirectUri, "https://omniroute.example.com/base/auth/callback?source=popup");
@@ -400,13 +399,9 @@ test("custom Google OAuth callbacks preserve the requested callback path and que
 
 test("custom Google OAuth credentials switch IPv6 loopback callbacks to public base URL", () => {
   const redirectUri = resolveBrowserOAuthRedirectUri(
-    "gemini-cli",
+    "antigravity",
     "http://[::1]:20128/callback",
-    {
-      OMNIROUTE_PUBLIC_BASE_URL: "https://omniroute.example.com",
-      GEMINI_OAUTH_CLIENT_ID: "custom-gemini.apps.googleusercontent.com",
-      GEMINI_OAUTH_CLIENT_SECRET: "custom-gemini-secret",
-    }
+    publicBaseEnv
   );
 
   assert.equal(redirectUri, "https://omniroute.example.com/callback");
@@ -416,27 +411,7 @@ test("custom Google OAuth callbacks default root loopback paths to callback path
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
     "http://127.0.0.1:20128",
-    {
-      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
-      ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
-      ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
-    }
-  );
-
-  assert.equal(redirectUri, "https://omniroute.example.com/callback");
-});
-
-test("custom Google OAuth credentials ignore blank Gemini CLI values before checking Gemini fallback values", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri(
-    "gemini-cli",
-    "http://127.0.0.1:20128/callback",
-    {
-      OMNIROUTE_PUBLIC_BASE_URL: "https://omniroute.example.com",
-      GEMINI_CLI_OAUTH_CLIENT_ID: "   ",
-      GEMINI_CLI_OAUTH_CLIENT_SECRET: "   ",
-      GEMINI_OAUTH_CLIENT_ID: "custom-gemini.apps.googleusercontent.com",
-      GEMINI_OAUTH_CLIENT_SECRET: "custom-gemini-secret",
-    }
+    publicBaseEnv
   );
 
   assert.equal(redirectUri, "https://omniroute.example.com/callback");
@@ -488,21 +463,11 @@ test("device and import-token providers expose the flow-specific fields expected
 
 test("provider-specific config shapes remain valid for special cases", () => {
   assert.ok(Array.isArray(CLAUDE_CONFIG.scopes) && CLAUDE_CONFIG.scopes.length > 0);
-  assert.ok(Array.isArray(GEMINI_CONFIG.scopes) && GEMINI_CONFIG.scopes.length > 0);
   assert.ok(Array.isArray(ANTIGRAVITY_CONFIG.scopes) && ANTIGRAVITY_CONFIG.scopes.length > 0);
   assert.equal(typeof CODEX_CONFIG.extraParams.originator, "string");
   assert.equal(typeof QODER_CONFIG.extraParams.loginMethod, "string");
   assert.ok(Array.isArray(KIRO_CONFIG.grantTypes) && KIRO_CONFIG.grantTypes.length > 0);
   assert.equal(typeof KILOCODE_CONFIG.pollUrlBase, "string");
-});
-
-test("Gemini OAuth defaults resolve to a GOCSPX-style client secret shared by both endpoints", () => {
-  // No env override: GEMINI_CONFIG.clientSecret must come from the embedded
-  // public default in open-sse/utils/publicCreds.ts.
-  const expected = GEMINI_CONFIG.clientSecret;
-  assert.ok(expected.startsWith("G" + "OCSPX-"), "must be a GOCSPX-style secret");
-  assert.equal(REGISTRY.gemini.oauth.clientSecretDefault, expected);
-  assert.equal(REGISTRY["gemini-cli"].oauth.clientSecretDefault, expected);
 });
 
 test("Qoder remains a safe special case when browser OAuth is disabled", () => {
@@ -579,16 +544,8 @@ test("Cline decodes embedded callback payloads without using the network", async
   assert.equal(mapped.name, "Cline Bot");
 });
 
-test("Gemini and Antigravity run mocked browser OAuth exchanges and post-exchange enrichment", async () => {
-  const geminiConfig = { ...GEMINI_CONFIG, clientSecret: "gemini-secret" };
+test("Antigravity runs mocked browser OAuth exchanges and post-exchange enrichment", async () => {
   useFetchSequence([
-    jsonResponse({
-      access_token: "gemini-access",
-      refresh_token: "gemini-refresh",
-      expires_in: 3600,
-    }),
-    jsonResponse({ email: "gemini@example.com" }),
-    jsonResponse({ cloudaicompanionProject: { id: "gemini-project" } }),
     jsonResponse({ access_token: "anti-access", refresh_token: "anti-refresh", expires_in: 7200 }),
     jsonResponse({ email: "anti@example.com" }),
     (_url, init: any = {}) => {
@@ -624,14 +581,6 @@ test("Gemini and Antigravity run mocked browser OAuth exchanges and post-exchang
     },
   ]);
 
-  const geminiTokens = await PROVIDERS["gemini-cli"].exchangeToken(
-    geminiConfig,
-    "code-1",
-    "http://localhost/callback"
-  );
-  const geminiExtra = await PROVIDERS["gemini-cli"].postExchange(geminiTokens);
-  const geminiMapped = PROVIDERS["gemini-cli"].mapTokens(geminiTokens, geminiExtra);
-
   const antigravityTokens = await PROVIDERS.antigravity.exchangeToken(
     ANTIGRAVITY_CONFIG,
     "code-2",
@@ -639,11 +588,17 @@ test("Gemini and Antigravity run mocked browser OAuth exchanges and post-exchang
   );
   const antigravityExtra = await PROVIDERS.antigravity.postExchange(antigravityTokens);
   const antigravityMapped = PROVIDERS.antigravity.mapTokens(antigravityTokens, antigravityExtra);
+  // postExchange runs onboarding fire-and-forget now (it must never block the OAuth
+  // login response); give the background onboard call a tick to consume its mocked
+  // fetch so the sequence drains deterministically.
+  await new Promise((r) => setTimeout(r, 50));
 
-  assert.equal(geminiMapped.email, "gemini@example.com");
-  assert.equal(geminiMapped.projectId, "gemini-project");
   assert.equal(antigravityMapped.email, "anti@example.com");
-  assert.equal(antigravityMapped.projectId, "anti-project-final");
+  // projectId comes from loadCodeAssist ("anti-project"), NOT the backgrounded
+  // onboardUser response ("anti-project-final"). Onboarding is fire-and-forget, so it
+  // no longer updates the returned projectId synchronously — matching the 9router web
+  // flow, which also returns the loadCodeAssist project id.
+  assert.equal(antigravityMapped.projectId, "anti-project");
 });
 
 test("Qoder enabled mode exchanges tokens and loads profile metadata through mocked endpoints", async () => {

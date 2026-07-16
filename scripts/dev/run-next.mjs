@@ -10,10 +10,13 @@ import { createOmnirouteWsBridge } from "./v1-ws-bridge.mjs";
 import { createResponsesWsProxy } from "./responses-ws-proxy.mjs";
 import { ensurePeerStampToken, stampPeerIp } from "./peer-stamp.mjs";
 import methodGuard from "./http-method-guard.cjs";
+import headResponseGuard from "./head-response-guard.cjs";
 import { ensureNativeSqlite } from "./ensure-native-sqlite.mjs";
+import { isTurbopackCacheCorruption, purgeAllTurbopackCaches } from "./turbopackCacheHeal.mjs";
 import { randomUUID } from "node:crypto";
 
 const { maybeHandleDisallowedMethod } = methodGuard;
+const { wrapRequestListenerWithHeadResponseGuard } = headResponseGuard;
 
 // Pre-read DATA_DIR from local .env before bootstrap resolves paths
 if (!process.env.DATA_DIR) {
@@ -56,9 +59,23 @@ for (const [key, value] of Object.entries(mergedEnv)) {
   }
 }
 
+// The mergedEnv copy above pulls NODE_ENV straight from `.env` — and the shipped
+// `.env.example` default is `NODE_ENV=production`. Next's programmatic `next()`
+// entry (unlike the `next` CLI) trusts that value verbatim, so `npm run dev`
+// would boot the dev bundler with NODE_ENV=production. That desyncs Next's
+// webpack CSS pipeline and `src/app/globals.css` reaches webpack's JS parser
+// instead of PostCSS — failing as `Module parse failed: Unexpected character
+// '@'` on the `@import "tailwindcss"` line. Force NODE_ENV to track the run
+// mode, exactly like the `next` CLI does.
+process.env.NODE_ENV = dev ? "development" : "production";
+process.env.OMNIROUTE_INTERNAL_SCHEME = "http";
+
 const { dashboardPort } = runtimePorts;
 const hostname = process.env.HOST || "0.0.0.0";
-const useTurbopack = dev && mergedEnv.OMNIROUTE_USE_TURBOPACK === "1";
+// Turbopack by default in dev (matches the Next 16 CLI default and the production
+// build default in build-next-isolated.mjs); OMNIROUTE_USE_TURBOPACK=0 is the
+// webpack escape hatch.
+const useTurbopack = dev && mergedEnv.OMNIROUTE_USE_TURBOPACK !== "0";
 process.env.OMNIROUTE_WS_BRIDGE_SECRET ||= randomUUID();
 // Per-process secret used to prove the trusted peer-IP stamp came from this
 // server (read by the authz middleware in the same process). See peer-stamp.mjs.
@@ -75,17 +92,47 @@ ensurePeerStampToken();
 if (!useTurbopack) {
   delete process.env.TURBOPACK;
 }
-const nextApp = next({
-  dev,
-  dir: process.cwd(),
-  hostname,
-  port: dashboardPort,
-  turbopack: useTurbopack,
-  webpack: !useTurbopack,
-});
+function createNextApp() {
+  return next({
+    dev,
+    dir: process.cwd(),
+    hostname,
+    port: dashboardPort,
+    turbopack: useTurbopack,
+    webpack: !useTurbopack,
+  });
+}
+
+let nextApp = createNextApp();
+
+// Best-effort self-heal for a corrupted Turbopack persistent dev cache (#6289):
+// on Windows an mmap of an SST cache file can fail ("os error 1455" / paging
+// file too small), which Turbopack surfaces as a misleading module-resolve
+// error. This is an UPSTREAM Turbopack cache-corruption bug — not our code.
+// When `prepare()` rejects with that signature we purge the cache and retry
+// ONCE. Caveat: the failure often surfaces as a runtime overlay rather than a
+// `prepare()` rejection, so this cannot always intercept it — the reliable
+// remedy remains manually deleting `.build/next/**/cache/turbopack`.
+async function prepareWithHeal() {
+  try {
+    await nextApp.prepare();
+  } catch (error) {
+    const detail =
+      error instanceof Error ? `${error.message}\n${error.stack ?? ""}` : String(error);
+    if (!useTurbopack || !isTurbopackCacheCorruption(detail)) throw error;
+    console.warn(
+      "[Next] Turbopack dev cache looks corrupted (Windows mmap / os error 1455 — known upstream bug). Purging and retrying once…"
+    );
+    const removed = purgeAllTurbopackCaches();
+    for (const dir of removed) console.warn(`[Next] purged Turbopack cache: ${dir}`);
+    nextApp = createNextApp();
+    await nextApp.prepare();
+    console.warn("[Next] Turbopack dev cache purged; startup retry succeeded.");
+  }
+}
 
 async function start() {
-  await nextApp.prepare();
+  await prepareWithHeal();
 
   const requestHandler = nextApp.getRequestHandler();
   const upgradeHandler = nextApp.getUpgradeHandler();
@@ -97,13 +144,15 @@ async function start() {
     baseUrl: `http://127.0.0.1:${dashboardPort}`,
   });
 
-  const server = http.createServer((req, res) => {
-    if (maybeHandleDisallowedMethod(req, res)) return;
-    // Stamp the real TCP peer IP before Next sees the request, so the authz
-    // middleware can decide LOCAL_ONLY locality without trusting the Host header.
-    stampPeerIp(req);
-    return requestHandler(req, res);
-  });
+  const server = http.createServer(
+    wrapRequestListenerWithHeadResponseGuard((req, res) => {
+      if (maybeHandleDisallowedMethod(req, res)) return;
+      // Stamp the real TCP peer IP before Next sees the request, so the authz
+      // middleware can decide LOCAL_ONLY locality without trusting the Host header.
+      stampPeerIp(req);
+      return requestHandler(req, res);
+    })
+  );
   server.on("upgrade", async (req, socket, head) => {
     try {
       const responsesWsHandled = await responsesWsProxy.handleUpgrade(req, socket, head);

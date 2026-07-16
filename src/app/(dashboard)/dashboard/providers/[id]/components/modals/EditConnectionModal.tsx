@@ -23,6 +23,7 @@ import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage
 import { resolveDashboardProviderInfo } from "../../../providerPageUtils";
 import {
   isBaseUrlConfigurableProvider,
+  isBaseUrlOverrideEligibleProvider,
   getProviderBaseUrlDefault,
   getProviderBaseUrlHint,
   getProviderBaseUrlPlaceholder,
@@ -50,7 +51,9 @@ import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import { assignEditApiKeyProviderSpecificData } from "./connectionProviderSpecificData";
+import { isM365TierCapableProvider, normalizeM365TierValue, type M365TierValue } from "./m365Tier";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
+import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
 
 export interface EditConnectionModalConnection {
   id?: string;
@@ -71,6 +74,7 @@ export interface EditConnectionModalProps {
   isOpen: boolean;
   connection: EditConnectionModalConnection | null;
   providerId: string;
+  providerWebsite?: string;
   onSave: (data: unknown) => Promise<void | unknown>;
   /** Triggered after a successful save when the "import only free models" flag changed. */
   onResyncModels?: (connectionId: string) => void | Promise<void>;
@@ -83,6 +87,7 @@ export default function EditConnectionModal({
   isOpen,
   connection,
   providerId,
+  providerWebsite,
   onSave,
   onResyncModels,
   onClose,
@@ -90,6 +95,8 @@ export default function EditConnectionModal({
   const t = useTranslations("providers");
   const notify = useNotificationStore();
   const provider = connection?.provider || providerId;
+  const connectionAuthType = connection?.authType;
+  const connectionProviderSpecificData = connection?.providerSpecificData;
   const showFreeModelsToggle = providerHasFreeModels(provider);
   const [formData, setFormData] = useState({
     name: "",
@@ -116,18 +123,21 @@ export default function EditConnectionModal({
     codexServiceTier: "default" as CodexServiceTier,
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
+    ...EMPTY_GLM_TEAM_QUOTA_FIELDS,
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
+    ccCompatibleSummarizeThinking: false,
     cloudCodeProjectId: "",
     antigravityClientProfile: "ide",
     blockExtraUsage:
       provider === "claude"
-        ? isClaudeExtraUsageBlockEnabled(provider, connection?.providerSpecificData)
+        ? isClaudeExtraUsageBlockEnabled(provider, connectionProviderSpecificData)
         : false,
-    passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
-    disableCooling: connection?.providerSpecificData?.disableCooling === true,
-    importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
+    passthroughModels: connectionProviderSpecificData?.passthroughModels === true,
+    disableCooling: connectionProviderSpecificData?.disableCooling === true,
+    importFreeModelsOnly: connectionProviderSpecificData?.importFreeModelsOnly === true,
+    m365Tier: normalizeM365TierValue(connectionProviderSpecificData?.tier) as M365TierValue,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -152,7 +162,18 @@ export default function EditConnectionModal({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const showEmail = useEmailPrivacyStore((state) => state.emailsVisible);
 
-  const usesBaseUrl = isBaseUrlConfigurableProvider(provider);
+  // #6147 — built-in providers can opt in to an advanced base-URL override.
+  // OAuth connections are excluded: their save path does not persist
+  // providerSpecificData.baseUrl.
+  const isConfigurableBaseUrl = isBaseUrlConfigurableProvider(provider);
+  const isBaseUrlOverrideEligible =
+    !!connection && connectionAuthType !== "oauth" && isBaseUrlOverrideEligibleProvider(provider);
+  const [showBaseUrlOverride, setShowBaseUrlOverride] = useState(
+    () =>
+      typeof connectionProviderSpecificData?.baseUrl === "string" &&
+      connectionProviderSpecificData.baseUrl.trim().length > 0
+  );
+  const usesBaseUrl = isConfigurableBaseUrl || (isBaseUrlOverrideEligible && showBaseUrlOverride);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
   const isBedrock = provider === "bedrock";
@@ -163,12 +184,11 @@ export default function EditConnectionModal({
   const setOpenRouterPreset = openRouterPreset.setValue;
   const isCodex = provider === "codex";
   const isClaude = provider === "claude";
-  const isGeminiCli = provider === "gemini-cli";
-  const isAntigravity = provider === "antigravity";
-  const supportsGoogleProjectId = isGeminiCli || isAntigravity;
+  const isAntigravityFamily = provider === "antigravity" || provider === "agy";
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
+  const isM365TierCapable = isM365TierCapableProvider(provider);
   const webSessionCredential = getWebSessionCredentialRequirement(provider);
   const isNoAuthWebSessionCredential = webSessionCredential?.kind === "none";
   const isWebSessionCredential = !!webSessionCredential && webSessionCredential.kind !== "none";
@@ -224,6 +244,14 @@ export default function EditConnectionModal({
         stringField(connection.providerSpecificData?.opencodeGoWorkspaceId) ||
         stringField(connection.providerSpecificData?.openCodeGoWorkspaceId) ||
         stringField(connection.providerSpecificData?.workspaceId);
+      const existingGlmOrganizationId =
+        stringField(connection.providerSpecificData?.glmOrganizationId) ||
+        stringField(connection.providerSpecificData?.bigmodelOrganization) ||
+        stringField(connection.providerSpecificData?.glmOrganization);
+      const existingGlmProjectId =
+        stringField(connection.providerSpecificData?.glmProjectId) ||
+        stringField(connection.providerSpecificData?.bigmodelProject) ||
+        stringField(connection.providerSpecificData?.glmProject);
       const codexRequestDefaults = getCodexRequestDefaults(connection.providerSpecificData);
       const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
         connection.providerSpecificData
@@ -275,11 +303,14 @@ export default function EditConnectionModal({
         codexServiceTier: codexRequestDefaults.serviceTier ?? "default",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
+        glmOrganizationId: existingGlmOrganizationId,
+        glmProjectId: existingGlmProjectId,
         opencodeGoWorkspaceId: existingOpenCodeGoWorkspaceId,
         opencodeGoAuthCookie: "",
         ollamaCloudUsageCookie: "",
         ccCompatibleContext1m: ccRequestDefaults.context1m,
         ccCompatibleRedactThinking: ccRequestDefaults.redactThinking,
+        ccCompatibleSummarizeThinking: ccRequestDefaults.summarizeThinking,
         cloudCodeProjectId:
           (connection.providerSpecificData?.projectId as string) || connection.projectId || "",
         antigravityClientProfile: normalizeAntigravityClientProfileSetting(
@@ -292,6 +323,7 @@ export default function EditConnectionModal({
         passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
         disableCooling: connection?.providerSpecificData?.disableCooling === true,
         importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
+        m365Tier: normalizeM365TierValue(connection.providerSpecificData?.tier) as M365TierValue,
       });
       const existing = connection.providerSpecificData?.extraApiKeys;
       setExtraApiKeys(Array.isArray(existing) ? existing : []);
@@ -310,7 +342,10 @@ export default function EditConnectionModal({
       setApiKeyHealth(health || {});
       setNewExtraKey("");
       setOpenRouterPreset(existingOpenRouterPreset);
-      setShowAdvanced(!!existingCustomUserAgent);
+      setShowAdvanced(
+        !!existingCustomUserAgent ||
+          normalizeM365TierValue(connection.providerSpecificData?.tier) !== ""
+      );
       setTestResult(null);
       setValidationResult(null);
       setSaveError(null);
@@ -430,7 +465,7 @@ export default function EditConnectionModal({
         overrides.maxConcurrent = Number(formData.rateLimitMaxConcurrent);
       updates.rateLimitOverrides = Object.keys(overrides).length > 0 ? overrides : null;
 
-      if (supportsGoogleProjectId) {
+      if (isAntigravityFamily) {
         updates.projectId = trimmedCloudCodeProjectId || null;
       }
 
@@ -441,12 +476,18 @@ export default function EditConnectionModal({
 
       let validatedBaseUrl = null;
       if (usesBaseUrl) {
-        const checked = normalizeAndValidateHttpBaseUrl(formData.baseUrl, defaultBaseUrl);
-        if (checked.error) {
-          setSaveError(checked.error);
-          return;
+        // #6147 — an opt-in override left blank clears it (no default to fall
+        // back to). Configurable providers keep their existing default-fallback.
+        if (!isConfigurableBaseUrl && !formData.baseUrl.trim()) {
+          validatedBaseUrl = null;
+        } else {
+          const checked = normalizeAndValidateHttpBaseUrl(formData.baseUrl, defaultBaseUrl);
+          if (checked.error) {
+            setSaveError(checked.error);
+            return;
+          }
+          validatedBaseUrl = checked.value;
         }
-        validatedBaseUrl = checked.value;
       }
 
       if (!isOAuth && formData.apiKey) {
@@ -504,7 +545,7 @@ export default function EditConnectionModal({
           defaultRegion,
           isGlm,
           isCloudflare,
-          supportsGoogleProjectId,
+          isAntigravityFamily,
           trimmedCloudCodeProjectId,
           isGooglePse,
           isCcCompatible,
@@ -529,11 +570,11 @@ export default function EditConnectionModal({
           updates.providerSpecificData.openaiStoreEnabled =
             formData.codexOpenaiStoreEnabled === true;
         }
-        if (supportsGoogleProjectId) {
+        if (isAntigravityFamily) {
           updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
         }
       }
-      if (isAntigravity) {
+      if (isAntigravityFamily) {
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
           ...(updates.providerSpecificData || {}),
@@ -654,14 +695,8 @@ export default function EditConnectionModal({
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
             {isCcCompatible && (
               <CcCompatibleRequestDefaultsFields
-                context1m={formData.ccCompatibleContext1m}
-                redactThinking={formData.ccCompatibleRedactThinking}
-                onContext1mChange={(checked) =>
-                  setFormData({ ...formData, ccCompatibleContext1m: checked })
-                }
-                onRedactThinkingChange={(checked) =>
-                  setFormData({ ...formData, ccCompatibleRedactThinking: checked })
-                }
+                values={formData}
+                onChange={(patch) => setFormData({ ...formData, ...patch })}
               />
             )}
             {openRouterPreset.input}
@@ -690,32 +725,26 @@ export default function EditConnectionModal({
           t={t}
           editMode
         />
-        {supportsGoogleProjectId && (
+        {isAntigravityFamily && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
-            {isAntigravity && (
-              <Select
-                label={t("antigravityClientProfileLabel")}
-                value={formData.antigravityClientProfile}
-                options={ANTIGRAVITY_CLIENT_PROFILE_OPTIONS.map((option) => ({
-                  value: option.value,
-                  label: t(option.labelKey),
-                }))}
-                onChange={(e) =>
-                  setFormData({ ...formData, antigravityClientProfile: e.target.value })
-                }
-                hint={t("antigravityClientProfileHint")}
-              />
-            )}
+            <Select
+              label={t("antigravityClientProfileLabel")}
+              value={formData.antigravityClientProfile}
+              options={ANTIGRAVITY_CLIENT_PROFILE_OPTIONS.map((option) => ({
+                value: option.value,
+                label: t(option.labelKey),
+              }))}
+              onChange={(e) =>
+                setFormData({ ...formData, antigravityClientProfile: e.target.value })
+              }
+              hint={t("antigravityClientProfileHint")}
+            />
             <Input
-              label={isAntigravity ? t("antigravityProjectIdLabel") : t("geminiCliProjectIdLabel")}
+              label={t("antigravityProjectIdLabel")}
               value={formData.cloudCodeProjectId}
               onChange={(e) => setFormData({ ...formData, cloudCodeProjectId: e.target.value })}
-              placeholder={
-                isAntigravity
-                  ? t("antigravityProjectIdPlaceholder")
-                  : t("geminiCliProjectIdPlaceholder")
-              }
-              hint={isAntigravity ? t("antigravityProjectIdHint") : t("geminiCliProjectIdHint")}
+              placeholder={t("antigravityProjectIdPlaceholder")}
+              hint={t("antigravityProjectIdHint")}
               className="font-mono text-xs"
             />
           </div>
@@ -750,25 +779,33 @@ export default function EditConnectionModal({
             setFormData({ ...formData, priority: Number.parseInt(e.target.value) || 1 })
           }
         />
-        <Input
-          label={t("accountConcurrencyCapLabel")}
-          type="number"
-          min={0}
-          step={1}
-          value={formData.maxConcurrent}
-          onChange={(e) => {
-            const nextValue = e.target.value;
-            setFormData({ ...formData, maxConcurrent: nextValue });
-            if (saveError && nextValue.trim()) {
-              const numericValue = Number(nextValue);
-              if (Number.isInteger(numericValue) && numericValue >= 0) {
-                setSaveError(null);
+        <div className="flex flex-col gap-2 rounded-lg border border-primary/30 bg-primary/5 p-4">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-primary">
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+              dynamic_feed
+            </span>
+            {t("accountConcurrencyCapLabel")}
+          </div>
+          <Input
+            type="number"
+            min={0}
+            step={1}
+            aria-label={t("accountConcurrencyCapLabel")}
+            value={formData.maxConcurrent}
+            onChange={(e) => {
+              const nextValue = e.target.value;
+              setFormData({ ...formData, maxConcurrent: nextValue });
+              if (saveError && nextValue.trim()) {
+                const numericValue = Number(nextValue);
+                if (Number.isInteger(numericValue) && numericValue >= 0) {
+                  setSaveError(null);
+                }
               }
-            }
-          }}
-          placeholder="0"
-          hint={t("accountConcurrencyCapHint")}
-        />
+            }}
+            placeholder="0"
+            hint={t("accountConcurrencyCapHint")}
+          />
+        </div>
         {saveError && (
           <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
             {saveError}
@@ -780,6 +817,7 @@ export default function EditConnectionModal({
               <WebSessionCredentialGuide
                 requirement={webSessionCredential}
                 providerName={providerDisplayName}
+                providerWebsite={providerWebsite}
                 t={t}
               />
             )}
@@ -858,6 +896,21 @@ export default function EditConnectionModal({
                   placeholder="my-app/1.0"
                   hint={t("customUserAgentHint")}
                 />
+                {isM365TierCapable && (
+                  <Select
+                    label={t("m365TierLabel")}
+                    value={formData.m365Tier ?? ""}
+                    options={[
+                      { value: "", label: t("m365TierIndividualOption") },
+                      { value: "edu", label: t("m365TierEduOption") },
+                      { value: "enterprise", label: t("m365TierEnterpriseOption") },
+                    ]}
+                    onChange={(e) =>
+                      setFormData({ ...formData, m365Tier: e.target.value as M365TierValue })
+                    }
+                    hint={t("m365TierHint")}
+                  />
+                )}
                 <Toggle
                   size="sm"
                   checked={formData.passthroughModels}
@@ -941,13 +994,33 @@ export default function EditConnectionModal({
           </>
         )}
 
+        {/* #6147 — opt-in "Advanced → override base URL" for eligible built-ins */}
+        {!usesBaseUrl && isBaseUrlOverrideEligible && (
+          <button
+            type="button"
+            onClick={() => setShowBaseUrlOverride(true)}
+            className="self-start text-xs text-primary hover:underline"
+          >
+            {providerText(t, "overrideBaseUrlAdvanced", "Advanced: override base URL")}
+          </button>
+        )}
+
         {usesBaseUrl && (
           <Input
             label={t("baseUrlLabel")}
             value={formData.baseUrl}
             onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
             placeholder={getProviderBaseUrlPlaceholder(provider)}
-            hint={getProviderBaseUrlHint(provider, t)}
+            hint={
+              getProviderBaseUrlHint(provider, t) ||
+              (isBaseUrlOverrideEligible
+                ? providerText(
+                    t,
+                    "overrideBaseUrlHint",
+                    "Advanced: point this built-in provider at a custom endpoint. Leave blank to use the default."
+                  )
+                : undefined)
+            }
           />
         )}
 
@@ -972,19 +1045,26 @@ export default function EditConnectionModal({
         )}
 
         {isGlm && (
-          <div>
-            <label className="text-sm font-medium text-text-main mb-1 block">
-              {t("apiRegionLabel")}
-            </label>
-            <select
-              value={formData.apiRegion}
-              onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
-            >
-              <option value="international">{t("apiRegionInternational")}</option>
-              <option value="china">{t("apiRegionChina")}</option>
-            </select>
-            <p className="text-xs text-text-muted mt-1">{t("apiRegionHint")}</p>
+          <div className="flex flex-col gap-3">
+            <div>
+              <label className="text-sm font-medium text-text-main mb-1 block">
+                {t("apiRegionLabel")}
+              </label>
+              <select
+                value={formData.apiRegion}
+                onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+              >
+                <option value="international">{t("apiRegionInternational")}</option>
+                <option value="china">{t("apiRegionChina")}</option>
+              </select>
+              <p className="text-xs text-text-muted mt-1">{t("apiRegionHint")}</p>
+            </div>
+            <GlmTeamQuotaFields
+              values={formData}
+              onChange={(patch) => setFormData({ ...formData, ...patch })}
+              t={t}
+            />
           </div>
         )}
 
