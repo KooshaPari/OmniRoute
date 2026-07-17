@@ -11,8 +11,20 @@ const canonicalUtcPattern = /^\d{4}-(0[1-9]|1[0-2])-([0-2]\d|3[01])T([01]\d|2[0-
 const allowedActions = new Set(["goto", "click", "fill", "press", "observe"]);
 const allowedChecks = new Set([
   "document-title", "heading-order", "landmarks", "focus-visible",
-  "accessible-names", "contrast", "no-horizontal-overflow",
+  "accessible-names", "contrast", "no-horizontal-overflow", "reduced-motion",
 ]);
+
+export function validateAccessibility(manifest, relative = "<manifest>") {
+  const errors = [];
+  const assert = (condition, message) => { if (!condition) errors.push(`${relative}: ${message}`); };
+  assert(manifest.accessibility?.reducedMotion === true, "reducedMotion must be true");
+  const checks = Array.isArray(manifest.accessibility?.checks) ? manifest.accessibility.checks : [];
+  for (const check of checks) assert(allowedChecks.has(check), `unsupported accessibility check ${check}`);
+  assert(checks.length === allowedChecks.size && new Set(checks).size === allowedChecks.size
+    && [...allowedChecks].every((check) => checks.includes(check)),
+  "accessibility checks must exactly match the substantiated eight-check contract");
+  return errors;
+}
 
 export function validateEvidence(manifest, relative = "<manifest>") {
   const errors = [];
@@ -93,8 +105,7 @@ export async function validateRepository(root = process.cwd()) {
       assert(typeof step.target === "string" && step.target.length > 0, relative, "step target is required");
       assert(Array.isArray(step.assertions) && step.assertions.length > 0, relative, "each step needs assertions");
     }
-    assert(manifest.accessibility?.reducedMotion === true, relative, "reducedMotion must be true");
-    for (const check of manifest.accessibility?.checks ?? []) assert(allowedChecks.has(check), relative, `unsupported accessibility check ${check}`);
+    errors.push(...validateAccessibility(manifest, relative));
     assert(manifest.redaction?.reviewRequired === true, relative, "human redaction review is required");
     assert(Array.isArray(manifest.redaction?.denyPatterns) && manifest.redaction.denyPatterns.length > 0, relative, "denyPatterns are required");
     errors.push(...validateEvidence(manifest, relative));

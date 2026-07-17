@@ -159,7 +159,9 @@
         },
         "checks": {
           "type": "array",
-          "minItems": 1,
+          "minItems": 8,
+          "maxItems": 8,
+          "uniqueItems": true,
           "items": {
             "enum": [
               "document-title",
@@ -168,7 +170,8 @@
               "focus-visible",
               "accessible-names",
               "contrast",
-              "no-horizontal-overflow"
+              "no-horizontal-overflow",
+              "reduced-motion"
             ]
           }
         }

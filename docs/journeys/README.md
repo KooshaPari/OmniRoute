@@ -35,10 +35,10 @@ Captures must contain no API keys, authorization headers, tokens, cookies, secre
 
 ## Accessibility requirements
 
-Every journey declares its applicable checks. The capture runner must force reduced motion and record results for document title, heading order, landmarks, visible focus, accessible names, contrast, and horizontal overflow as declared.
+Every journey declares the exact substantiated eight-check contract. The capture runner must record results for document title, heading order, landmarks, visible focus, accessible names, contrast, horizontal overflow, and reduced motion.
 
 ## First smoke journey
 
-`anonymous-home-smoke` is grounded in `tests/e2e/journey-evidence-smoke.spec.ts`. Workflow run `29548404979` captured the exact `Welcome to argismonitor v4` heading, accessibility report, screenshot, and trace from source commit `038506cfcacd9cfa892a1da625a4f8558cd169e3`, without credentials and with local-only networking. The manifest records artifact `8394891335` and each file digest so later consumers can detect substitution or incomplete evidence.
+`anonymous-home-smoke` is grounded in `tests/e2e/journey-evidence-smoke.spec.ts`. Workflow run `29556634781` captured the exact `Welcome to argismonitor v4` heading, accessibility report, screenshot, and trace from source commit `7deef13b517b04ed6b3768b3bca2dc0fba4c1b9f`, without credentials and with local-only networking. The manifest records artifact `8397677852` and each file digest so later consumers can detect substitution or incomplete evidence.
 
 Related: #344, #361, #362.
