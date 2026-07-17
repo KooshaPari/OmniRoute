@@ -2299,17 +2299,19 @@
       "disposition": "AFFIRM",
       "target": "self (canonical hardware ledger)",
       "wave": "2026-07-17-queue-refresh-batch4",
-      "fsm": "active",
+      "fsm": "verified",
+      "verified_at": "2026-07-17T12:50:00Z",
       "core_lang": "n/a",
       "size_kb": 96,
       "remote_branch_count": 1,
       "last_push": "2026-07-16T04:24:01Z",
       "grade_score": null,
       "grade_percentage": null,
-      "audit_artifact": "audits/absorption-justifications/hwLedger-2026-07-17.md",
+      "audit_artifact": "docs/boundary/hwLedger.md",
+      "boundary_artifact": "docs/boundary/hwLedger.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:35:00.000000Z",
-      "note": "Phenotype-org hardware ledger. Establish as canonical AFFIRM (similar to phenotype-org-audits/phenokits-commons pattern)."
+      "note": "Phenotype-org hardware ledger. AFFIRMED 2026-07-17 (CANON declaration): no absorption target; hwLedger is itself the canonical home. Boundary doc captured at docs/boundary/hwLedger.md (project descriptor: projects/hwLedger.json; canonical_scope enumerated; fsm advanced from active to verified)."
     },
     {
       "id": "repo-omniroute-rs",
