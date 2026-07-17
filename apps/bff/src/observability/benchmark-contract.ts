@@ -3,7 +3,11 @@ import { z } from "zod";
 
 const sha = z.string().regex(/^[0-9a-f]{40}$/);
 export const NormalizedRouteTemplateSchema = z.string().min(1).max(160)
-  .regex(/^\/(?:[A-Za-z][A-Za-z0-9._~-]*|:[A-Za-z][A-Za-z0-9_]*)(?:\/(?:[A-Za-z][A-Za-z0-9._~-]*|:[A-Za-z][A-Za-z0-9_]*))*$/)
+  .refine((value) => value.startsWith("/") && value.split("/").slice(1).every((segment) => {
+    const candidate = segment.startsWith(":") ? segment.slice(1) : segment;
+    const allowed = segment.startsWith(":") ? /^\w+$/ : /^[A-Za-z][\w.~-]*$/;
+    return candidate.length > 0 && /^[A-Za-z]/.test(candidate) && allowed.test(candidate);
+  }), "route must contain normalized literal or parameter segments")
   .refine((value) => !/[?#%@]/.test(value), "route must not contain query, fragment, credentials, or escapes");
 const method = z.enum(["GET", "POST", "PUT", "PATCH", "DELETE"]);
 const duration = z.number().finite().nonnegative().max(60_000);

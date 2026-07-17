@@ -27,6 +27,9 @@ describe("benchmark egress guard", () => {
       ];
       for (const probe of probes) expect(probe).toThrow(/blocked/);
       expect(guard.blockedAttemptCount()).toBe(REQUIRED_BENCHMARK_GUARDS.length);
+      expect(() => (globalThis.fetch as any)({ url: "http://127.0.0.1:1/healthz" })).toThrow(/invalid URL input/);
+      expect(() => globalThis.fetch(`http://127.0.0.1:1/${"a".repeat(2048)}`)).toThrow(/invalid URL input/);
+      expect(() => globalThis.fetch("http://localhost:1/healthz")).toThrow(/invalid loopback target/);
     } finally {
       guard.restore();
       (globalThis as any).Bun = priorBun;

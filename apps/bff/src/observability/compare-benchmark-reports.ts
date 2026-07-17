@@ -17,7 +17,7 @@ function nearestRank(sorted: number[], quantile: number): number {
 
 function exactKeys(values: string[], label: string): string[] {
   assertUnique(values, label);
-  return [...values].sort();
+  return [...values].sort((left, right) => left.localeCompare(right, "en"));
 }
 
 function requireEqual(left: unknown, right: unknown, label: string): void {

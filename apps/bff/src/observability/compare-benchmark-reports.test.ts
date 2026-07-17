@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { inventorySha256 } from "./benchmark-contract";
 import { compareBenchmarkReports } from "./compare-benchmark-reports";
 
-const routes = ["GET /healthz", "GET /api/dashboard/health"].sort();
+const routes = ["GET /healthz", "GET /api/dashboard/health"]
+  .sort((left, right) => left.localeCompare(right, "en"));
 const result = (route: string, offset = 0) => {
   const samples = Array.from({ length: 50 }, (_, sequence) => ({
     sequence, durationMs: 2 + (sequence % 5) * 0.1 + offset, status: 200,
@@ -38,7 +39,7 @@ const report = () => ({
 
 describe("strict benchmark comparison", () => {
   it("accepts order-independent exact route sets", () => {
-    const second = report(); second.routes.reverse();
+    const second = report(); second.routes = [...second.routes]; second.routes.reverse();
     expect(() => compareBenchmarkReports(report(), second)).not.toThrow();
   });
 

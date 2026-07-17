@@ -2,17 +2,20 @@
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
+  import { unavailableMessage } from '$lib/observability/unavailable';
 
   type Session = { id: string; device: string; ip: string; location: string; lastActive: string; current: boolean };
 
   let sessions = $state<Session[]>([]);
   let loading = $state(true);
   let signingOut = $state(false);
+  let unavailable = $state<string | null>(null);
 
   async function load() {
     const r = await fetch('http://localhost:4322/api/dashboard/sessions');
     if (r.ok) {
       const j = await r.json();
+      if (j.status === 'unavailable') unavailable = unavailableMessage(j.source);
       sessions = j.sessions ?? [];
     }
     loading = false;
@@ -49,7 +52,7 @@
   {#if loading}
     <p class="text-gray-500 text-sm">Loading sessions...</p>
   {:else if sessions.length === 0}
-    <p class="text-gray-500 text-sm">No active sessions.</p>
+    <p class="text-gray-500 text-sm">{unavailable ?? 'No active sessions.'}</p>
   {:else}
     <table class="w-full text-sm">
       <thead class="bg-gray-50 border-b border-gray-200">

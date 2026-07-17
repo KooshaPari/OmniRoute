@@ -35,9 +35,9 @@ SHA-256 checksums with the raw reports.
 Run twice from an installed checkout:
 
 ```sh
-SOURCE_COMMIT=$(git rev-parse HEAD) SOURCE_TREE=$(git rev-parse HEAD^{tree}) bun run --cwd apps/bff benchmark:latency -- ../../artifacts/run-1.json
-SOURCE_COMMIT=$(git rev-parse HEAD) SOURCE_TREE=$(git rev-parse HEAD^{tree}) bun run --cwd apps/bff benchmark:latency -- ../../artifacts/run-2.json
-bun run --cwd apps/bff benchmark:compare -- ../../artifacts/run-1.json ../../artifacts/run-2.json
+SOURCE_COMMIT=$(git rev-parse HEAD) SOURCE_TREE=$(git rev-parse HEAD^{tree}) bun run --cwd apps/bff benchmark:latency -- run-1.json
+SOURCE_COMMIT=$(git rev-parse HEAD) SOURCE_TREE=$(git rev-parse HEAD^{tree}) bun run --cwd apps/bff benchmark:latency -- run-2.json
+bun run --cwd apps/bff benchmark:compare -- ../../latency-evidence/run-1.json ../../latency-evidence/run-2.json
 ```
 
 The comparison strictly revalidates schemas, raw-sample sequences and derived summaries,

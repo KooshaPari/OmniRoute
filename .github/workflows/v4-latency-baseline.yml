@@ -51,8 +51,8 @@ jobs:
           bun run --cwd apps/web build
       - name: Capture two local-only runs
         run: |
-          bun run --cwd apps/bff benchmark:latency -- ../../latency-evidence/run-1.json
-          bun run --cwd apps/bff benchmark:latency -- ../../latency-evidence/run-2.json
+          bun run --cwd apps/bff benchmark:latency -- run-1.json
+          bun run --cwd apps/bff benchmark:latency -- run-2.json
           bun run --cwd apps/bff benchmark:compare -- ../../latency-evidence/run-1.json ../../latency-evidence/run-2.json
           sha256sum latency-evidence/*.json > latency-evidence/manifest.sha256
       - name: Upload non-deployable evidence

@@ -41,6 +41,16 @@
       "pathPrefix": "/api/dashboard/keys/:id/usage",
       "state": "explicitly-unavailable",
       "reason": "No per-key usage aggregation source is implemented."
+    },
+    {
+      "pathPrefix": "/api/dashboard/keys",
+      "state": "explicitly-unavailable",
+      "reason": "No persistent key store is implemented; no key material is fabricated."
+    },
+    {
+      "pathPrefix": "/api/dashboard/sessions",
+      "state": "explicitly-unavailable",
+      "reason": "No session store is implemented; no session activity is fabricated."
     }
   ],
   "benchmarkNetworkPolicy": {

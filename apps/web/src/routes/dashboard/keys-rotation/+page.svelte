@@ -1,11 +1,13 @@
 <script lang="ts">
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import { unavailableMessage } from '$lib/observability/unavailable';
 
   type Step = 1 | 2 | 3;
   let step = $state<Step>(1);
-  let currentKey = $state('omni_pk_demo_xxxxxxxxxxxxxxxxxxxx');
+  let currentKey = $state<string | null>(null);
   let newKey = $state<string | null>(null);
+  let unavailable = $state<string | null>(null);
   let confirmed = $state(false);
   let rotating = $state(false);
 
@@ -15,6 +17,10 @@
       const r = await fetch('http://localhost:4322/api/dashboard/keys-rotation', { method: 'POST' });
       if (r.ok) {
         const j = await r.json();
+        if (j.status === 'unavailable' || !j.newKey) {
+          unavailable = unavailableMessage(j.source);
+          return;
+        }
         newKey = j.newKey;
         step = 2;
       }
@@ -43,7 +49,8 @@
       <span class="w-7 h-7 rounded-full flex items-center justify-center font-semibold {step > 1 ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}">1</span>
       <div class="flex-1">
         <div class="font-medium">Current key</div>
-        <code class="block mt-1 px-3 py-2 bg-gray-100 rounded text-sm font-mono break-all">{currentKey}</code>
+        {#if currentKey}<code class="block mt-1 px-3 py-2 bg-gray-100 rounded text-sm font-mono break-all">{currentKey}</code>{/if}
+        {#if unavailable}<p class="mt-1 text-sm text-amber-700">{unavailable}</p>{/if}
         <p class="text-xs text-gray-500 mt-1">This is your current API key. After rotation, it will be revoked.</p>
         <div class="mt-2"><Button onclick={rotate} disabled={rotating}>{rotating ? 'Rotating...' : 'Rotate now'}</Button></div>
       </div>

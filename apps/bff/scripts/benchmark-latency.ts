@@ -1,14 +1,13 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import os from "node:os";
-import path from "node:path";
 
 import inventory from "../../../config/performance/v4-latency-inventory.json";
 import {
   BenchmarkReportSchema,
   assertUnique,
   inventorySha256,
-  routeKey,
 } from "../src/observability/benchmark-contract";
+import { prepareBenchmarkOutputPath } from "../src/observability/benchmark-output-path";
 import { summarizeLatencySamples, type LatencySampleV1 } from "../src/observability/latency";
 import { installBenchmarkEgressGuard } from "../src/observability/benchmark-egress-guard";
 
@@ -18,7 +17,7 @@ if (!sourceCommit || !/^[0-9a-f]{40}$/.test(sourceCommit)) throw new Error("inva
 if (!sourceTree || !/^[0-9a-f]{40}$/.test(sourceTree)) throw new Error("invalid SOURCE_TREE");
 const output = process.argv[2];
 if (!output) throw new Error("usage: bun scripts/benchmark-latency.ts <output.json>");
-const outputPath = path.resolve(output);
+const outputPath = await prepareBenchmarkOutputPath(output);
 
 // Install process-local direct socket/DNS guards before loading the built application.
 const egressGuard = installBenchmarkEgressGuard();
@@ -28,7 +27,7 @@ const { default: app } = await import("../dist/index.js");
 if (!app?.routes || typeof app.fetch !== "function") throw new Error("built BFF export is invalid");
 
 const registeredRoutes = [...new Set<string>(app.routes.map((entry: { method: string; path: string }) =>
-  `${entry.method} ${entry.path}`))].sort();
+  `${entry.method} ${entry.path}`))].sort((left, right) => left.localeCompare(right, "en"));
 assertUnique(registeredRoutes, "route inventory");
 const routeInventoryHash = inventorySha256(registeredRoutes);
 if (registeredRoutes.length !== inventory.registeredRouteCount ||
@@ -124,7 +123,5 @@ const report = BenchmarkReportSchema.parse({
   routes: results,
 });
 
-try { await mkdir(path.dirname(outputPath), { recursive: true }); }
-catch (error) { if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error; }
 await writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`, { mode: 0o600 });
 console.log(`wrote ${outputPath} for ${sourceCommit}`);

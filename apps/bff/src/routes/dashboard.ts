@@ -53,18 +53,15 @@ export const dashboardRoutes = new Hono()
   .get("/keys", (c) => c.json({ keys: [] }))
   .post("/keys", zValidator("json", KeyCreateSchema), (c) =>
     c.json({
-      ok: true,
-      key: {
-        id: crypto.randomUUID(),
-        name: c.req.valid("json").name,
-        prefix: "omni_pk_" + Math.random().toString(36).slice(2, 10),
-        createdAt: new Date().toISOString(),
-        lastUsedAt: null,
-        revoked: false,
-      },
+      ok: false,
+      status: "unavailable",
+      source: "no-key-store",
+      key: null,
     })
   )
-  .post("/keys/:id/revoke", (c) => c.json({ ok: true, id: c.req.param("id") }))
+  .post("/keys/:id/revoke", (c) =>
+    c.json({ ok: false, status: "unavailable", source: "no-key-store", id: c.req.param("id") })
+  )
   .get("/settings", (c) =>
     c.json({
       baseUrl: "http://localhost:20128",
@@ -238,13 +235,9 @@ export const dashboardRoutes = new Hono()
   .get("/billing/invoices", (c) => c.json({ invoices: [] }))
   .get("/keys/:id", (c) =>
     c.json({
-      id: c.req.param("id"),
-      name: "demo",
-      prefix: "omni_pk_demo",
-      fullKey: "omni_pk_demo_xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-      createdAt: "2026-07-01T00:00:00Z",
-      lastUsedAt: null,
-      revoked: false,
+      status: "unavailable",
+      source: "no-key-store",
+      key: null,
     })
   )
   .get("/keys/:id/usage", (c) =>
@@ -304,37 +297,14 @@ export const dashboardRoutes = new Hono()
   .put("/profile", (c) => c.json({ ok: true }))
   .get("/sessions", (c) =>
     c.json({
-      sessions: [
-        {
-          id: "s1",
-          device: "MacBook Pro 16",
-          ip: "192.168.1.10",
-          location: "San Francisco, CA",
-          lastActive: new Date().toISOString(),
-          current: true,
-        },
-        {
-          id: "s2",
-          device: "iPhone 15 Pro",
-          ip: "73.222.18.4",
-          location: "San Francisco, CA",
-          lastActive: new Date(Date.now() - 86400000).toISOString(),
-          current: false,
-        },
-        {
-          id: "s3",
-          device: "Firefox on Linux",
-          ip: "12.34.56.78",
-          location: "Frankfurt, DE",
-          lastActive: new Date(Date.now() - 5 * 86400000).toISOString(),
-          current: false,
-        },
-      ],
+      status: "unavailable",
+      source: "no-session-store",
+      sessions: [],
     })
   )
   .delete("/sessions/:id", (c) => c.json({ ok: true, id: c.req.param("id") }))
   .post("/keys-rotation", (c) =>
-    c.json({ ok: true, newKey: "omni_pk_" + Math.random().toString(36).slice(2, 18) })
+    c.json({ ok: false, status: "unavailable", source: "no-key-store", newKey: null })
   )
   .get("/sso", (c) => c.json({ enabled: false, provider: "google", allowedDomains: [] }))
   .put("/sso", (c) => c.json({ ok: true }))

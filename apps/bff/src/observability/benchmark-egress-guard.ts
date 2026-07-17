@@ -30,11 +30,16 @@ export function installBenchmarkEgressGuard() {
     if (typeof original !== "function") throw new Error(`required benchmark guard API missing: ${name}`);
     const wrapped = (...args: any[]) => {
       if (urlMode) {
-        const url = new URL(args[0] instanceof Request ? args[0].url : String(args[0]));
-        if (url.protocol !== "http:" || url.hostname !== "127.0.0.1" || url.port !== allowedPort ||
-            url.username || url.password || url.search || url.hash) {
+        const raw = args[0] instanceof Request ? args[0].url : args[0];
+        if (typeof raw !== "string" || raw.length > 2048 || !raw.startsWith("http://") || /[?#@]/.test(raw)) {
           blockedAttemptCount++;
-          throw new Error(`benchmark blocked ${name} to ${url.protocol}//${url.host}`);
+          throw new Error(`benchmark blocked ${name} invalid URL input`);
+        }
+        const pathStart = raw.indexOf("/", "http://".length);
+        const authority = raw.slice("http://".length, pathStart < 0 ? raw.length : pathStart);
+        if (authority !== `127.0.0.1:${allowedPort}` || pathStart < 0) {
+          blockedAttemptCount++;
+          throw new Error(`benchmark blocked ${name} invalid loopback target`);
         }
         allowedLoopbackAttempts++;
       } else {
@@ -60,7 +65,10 @@ export function installBenchmarkEgressGuard() {
     patch("node:dns.lookup", dns, "lookup", (a) => String(a[0]));
     patch("node:dns.resolve", dns, "resolve", (a) => String(a[0]));
   } catch (error) {
-    for (const item of originals.reverse()) item.owner[item.key] = item.value;
+    for (let index = originals.length - 1; index >= 0; index--) {
+      const item = originals[index];
+      item.owner[item.key] = item.value;
+    }
     throw error;
   }
   if (JSON.stringify(installed) !== JSON.stringify(REQUIRED_BENCHMARK_GUARDS)) throw new Error("incomplete benchmark guard set");
@@ -87,6 +95,11 @@ export function installBenchmarkEgressGuard() {
     activationResults: () => activations.map((value) => ({ ...value })),
     allowedLoopbackAttempts: () => allowedLoopbackAttempts,
     blockedAttemptCount: () => blockedAttemptCount,
-    restore() { for (const item of originals.reverse()) item.owner[item.key] = item.value; },
+    restore() {
+      for (let index = originals.length - 1; index >= 0; index--) {
+        const item = originals[index];
+        item.owner[item.key] = item.value;
+      }
+    },
   };
 }

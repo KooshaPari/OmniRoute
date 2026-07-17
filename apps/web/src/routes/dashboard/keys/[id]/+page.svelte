@@ -13,6 +13,7 @@
   let usageResponse = $state<UsageResponse | null>(null);
   let revealed = $state(false);
   let loading = $state(true);
+  let keyUnavailable = $state<string | null>(null);
   const maxUsage = $derived(usage.length ? Math.max(1, ...usage.map((u) => u.requests)) : 1);
 
   onMount(async () => {
@@ -21,7 +22,8 @@
       fetch(`http://localhost:4322/api/dashboard/keys/${id}`).then((r) => r.ok ? r.json() : null),
       fetch(`http://localhost:4322/api/dashboard/keys/${id}/usage`).then((r) => r.ok ? r.json() : null),
     ]);
-    key = a;
+    key = a?.key ?? (a?.status === 'unavailable' ? null : a);
+    if (a?.status === 'unavailable') keyUnavailable = unavailableMessage(a.source);
     usageResponse = b;
     usage = b?.usage ?? [];
     loading = false;
@@ -38,6 +40,8 @@
 
 {#if loading}
   <p class="text-gray-500">Loading...</p>
+{:else if keyUnavailable}
+  <p class="text-amber-700">{keyUnavailable}</p>
 {:else if key}
   <div class="space-y-4">
     <Card title={key.revoked ? 'API key (revoked)' : 'API key'}>
