@@ -94,11 +94,11 @@ Exit codes:
   in `--mode=sidecar`). It is a separate sub-crate for stub servers, not part of
   the smoke binary itself.
 - **`scripts/run-smoke.sh`** — helper script that builds the bridge and sets
-  `DYLD_LIBRARY_PATH` / `LD_LIBRARY_PATH`. **Absorbed as-is** into
-  `crates/pheno-forge-smoke/scripts/run-smoke.sh`. The script's
-  `$REPO_ROOT/../pheno-cdylib-bridge` path is correct as-shipped — the bridge crate
-  is a sibling in the monorepo (`crates/pheno-cdylib-bridge`), so the relative
-  path resolves correctly.
+  `DYLD_LIBRARY_PATH` / `LD_LIBRARY_PATH`. **NOT absorbed.** The pheno monorepo
+  root `.gitignore` line 146 has a blanket `scripts/` exclusion; absorbed crates
+  do not carry `scripts/` directories. The script remains in the GitHub archive
+  of the source repo for reference. Equivalent functionality is provided by the
+  monorepo's own scripts/ tooling.
 
 ## Consumers
 

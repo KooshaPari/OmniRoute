@@ -32,7 +32,7 @@
 | `README.md` | `pheno/crates/pheno-forge-smoke/README.md` | Copied as-is; references `../pheno-cdylib-bridge` which is now a sibling path under `crates/` |
 | `CHANGELOG.md` | `pheno/crates/pheno-forge-smoke/CHANGELOG.md` | Copied as-is |
 | `.gitignore` | `pheno/crates/pheno-forge-smoke/.gitignore` | Copied as-is (excludes `/target/`, `/bin/*-sidecar`, IDE/OS noise). |
-| `scripts/run-smoke.sh` | `pheno/crates/pheno-forge-smoke/scripts/run-smoke.sh` | Copied as-is. The `$REPO_ROOT/../pheno-cdylib-bridge` default resolves correctly in the monorepo because `pheno-cdylib-bridge` is a sibling crate under `crates/`. |
+| `scripts/run-smoke.sh` | (NOT transferred — out of scope per monorepo policy) | Helper script that builds the bridge and sets `DYLD_LIBRARY_PATH` / `LD_LIBRARY_PATH`. The pheno monorepo root `.gitignore` line 146 has a blanket `scripts/` exclusion; absorbed crates do not carry `scripts/` directories. The script remains in the GitHub archive of the source repo. |
 | `sidecars/Cargo.toml` + `sidecars/src/main.rs` | `pheno/crates/pheno-forge-smoke/sidecars/` | Copied as a non-workspace sub-crate. The smoke binary spawns `pheno-sidecar-stub` as an external process in `--mode=sidecar`, so it does not need to be a workspace member. Cargo treats it as a separate package but does not build it as part of `cargo build -p pheno-forge-smoke`. |
 | `sidecars/pheno-sidecar-stub.cdx.json` | (NOT transferred — generated SBOM) | CycloneDX BOM artifact; regenerated on build. |
 | `pheno-forge-smoke.cdx.json` (source root) | (NOT transferred — generated SBOM) | CycloneDX BOM artifact; regenerated on build. |
@@ -41,6 +41,7 @@
 
 | Source | Reason |
 |--------|--------|
+| `scripts/run-smoke.sh` | Pheno monorepo `.gitignore` line 146 has a blanket `scripts/` exclusion. The script remains in the GitHub archive of the source repo. |
 | `docs/`, `examples/` | Empty in source. |
 | `AGENTS.md`, `SSOT.md`, `WORKLOG.md`, `llms.txt`, `LICENSE-*`, `cliff.toml` | Single-repo governance meta-bundle. Lives in the GitHub archive. The monorepo `pheno` repo has its own governance bundle. |
 | `Cargo.lock` (source root) | Workspace root `pheno/Cargo.lock` will be updated by `cargo` on first build (no need to copy). The `sidecars/` sub-crate has its own `Cargo.lock` (also not transferred — it would be regenerated if/when the sidecar is built). |
