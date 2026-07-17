@@ -1,9 +1,9 @@
 {
-  "version": "1.6.27",
-  "updated": "2026-07-17T19:45:00.000000Z",
+  "version": "1.6.28",
+  "updated": "2026-07-17T20:05:00.000000Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
-  "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-07-17 (this audit): phenotype-omlx (G18 ARCHIVED row) re-evaluated against the 2026-07-17 dispatch instruction to absorb into phenoAI. Preflight confirms phenoAI (3-crate workspace: llm-router, mcp-server, pheno-embedding; resolver=3) has no MLX/Metal/perf-core tier; phenotype-omlx is an 11-crate perf-core workspace + Python omlx_research + platform clients (resolver=2) governed by an explicit polyglot AGENTS.md that nulls Rust-only markers. Failsafe engaged: ARCHIVE_ONLY (no copy performed). Companion projects/phenotype-omlx.json disposition flipped DROP/absorbed_into=hwledger \u2192 ARCHIVE_ONLY/target=phenotype-registry (docs/boundary/phenotype-omlx.md). GitHub repo KooshaPari/phenotype-omlx set to read-only via 'gh repo archive KooshaPari/phenotype-omlx -y' on 2026-07-17. Audit pattern matches repo-kmobile (failsafe-multi-crate-workspace) + repo-Civis (failsafe-no-cargo-on-host). 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr. 2026-07-17 (batch3, agent #4): queue-refresh added 10 fresh non-Rust candidates (phenodag/HeliosLab/PhenoHandbook/Conft/context-mode-plusplus/pheno-forge-plugins/PhenoContracts/KodeVibe/KWatch/heliosBench) to keep the absorption queue topped up; Rust slots already taken by batch2 (agents 2/3). 2026-07-17 (batch4, agent #5): queue-refresh added 10 fresh least-active candidates (phenotype-gfx/hwLedger/omniroute-rs/pheno-forge-smoke/pheno-otel/Apisync/PhenoVCS/Pine/PlayCua/DataKit) to keep the absorption queue topped up; absorbs continue to drain batch1-3 in parallel. 2026-07-17 (batch4, agent absorb #1): Pine \u2192 ARCHIVE_ONLY fallback (5-crate workspace, not single crate; substrate not modified); GitHub repo archived same day. 2026-07-17: pheno-harness ABSORB \u2192 ARCHIVE_ONLY via failsafe path (source is 95% Python, no Cargo.toml at root; cargo check -p pheno-harness fails). Registry row repo-pheno-harness updated to disposition=ARCHIVE_ONLY, target=phenotype-registry, fsm=absorbed; absorbing_repo=KooshaPari/phenotype-registry. Audit: audits/absorption-justifications/pheno-harness-deferred-2026-07-17.md. Boundary: docs/boundary/pheno-harness.md. Source repo archived via 'gh repo archive KooshaPari/pheno-harness -y'.\n 2026-07-17 (this audit): phenotype-landing pivoted from ABSORB\u2192ARCHIVE_ONLY for the same structural reasons as omniroute-rust (deferred-W2 \u2192 failsafe): source is a 7-site Astro monorepo (1.6GB tracked+untracked, ~1.4GB of node_modules), not a single landing page; cp -r phenotype-landing/* phenodocs/packages/landing/ would have copied 7 independent Astro sites with their own vercel.json + bun.lock + CI workflow into a VitePress federation hub. Source repo archived on GitHub via `gh repo archive`. Boundary doc captures the rejection in detail. 2026-07-17 (queue-refresh-2, agent absorb): StealthStartup ABSORBED \u2192 phenodocs/packages/stealth-startup/ via commit 9f620cd on branch absorb/quillts-2026-07-17 (32 files). Source repo KooshaPari/StealthStartup archived via gh repo archive -y. Row repo-StealthStartup: fsm active\u2192absorbed, archived=true; absorbing_repo=KooshaPari/phenodocs. 2026-07-17 (this audit, agent absorb #6): KooshaPari/helios-cli ABSORB \u2192 ARCHIVE_ONLY via failsafe path (source is NOT a single bin: 22-member Rust workspace + vendored codex-rs/ workspace root + 26 sub-crates + Bazel monorepo + 350MB target/, 928MB on disk). Nested [workspace] root at helios-cli/Cargo.toml forbids membership under phenotype-tooling/Cargo.toml [workspace.members]; nested codex-rs/Cargo.toml is a second workspace root that would be auto-discovered by the parent. phenotype-tooling already hosts crates/heliosapp + crates/heliosbench (collision risk). HEAD on wip/2026-07-16-0027-auto @ f217af2bca312cb595520c2b6508b198ea10d61d, NOT main. Pattern matches repo-pheno-harness + Pine + Civis ARCHIVE_ONLY precedents (workspace-not-single-crate). GitHub repo archived via gh repo archive KooshaPari/helios-cli -y (verified isArchived=true). phenotype-tooling NOT modified (no copy, no workspace edit). 2026-07-17 (this audit): KooshaPari/crates re-evaluated against the 2026-07-17 dispatch instruction to absorb into phenotype-tooling. Preflight confirms phenotype-tooling/crates/ hosts tooling/audit/observability utilities only (rlib, repository=phenotype-tooling, 35+ native crates) \u2014 no precedent for absorbing product FFI cdylibs (omniroute-ffi) or game-mechanics crates (powers/civ-powers). Per task failsafe ('ARCHIVE_ONLY if no clear home') the source repo was archived via 'gh repo archive KooshaPari/crates -y' (verified isArchived=true 2026-07-17), no copy, no workspace edit. cargo check evidence (2026-07-17): omniroute-ffi 7-crate workspace builds clean (8.26s); civ-powers builds clean (3.50s). Pattern matches repo-pheno-harness + repo-omniroute-rust + Pine ARCHIVE_ONLY precedents (workspace-not-single-crate, foreign-domain-content). Local repos/crates/ retained as git-tracked historical record. 2026-07-17 (this audit): gate-focalpoint re-evaluated against the 2026-07-17 dispatch instruction to absorb into phenotype-tooling. Preflight confirms the registered plan (catalog/registry.yaml id=focalpoint, disposition-index.json id=gate-focalpoint target=HexaKit, manifest audits/absorption-justifications/FocalPoint-2026-07-17.md Receiving repo=KooshaPari/HexaKit at path=docs/absorbed-from-FocalPoint/) directs absorption to KooshaPari/HexaKit; phenotype-tooling has no equivalent absorption slot for a 867MB Svelte/TypeScript focus-app (phenotype-tooling hosts Rust rlib tooling/audit/observability utilities only). Per task failsafe 'ARCHIVE_ONLY if conflicts' the source repo was archived via 'gh repo archive KooshaPari/FocalPoint -y' (verified isArchived=true 2026-07-17). FocalPoint registry row (catalog/registry.yaml id=focalpoint) status active \u2192 archived; disposition-index.json id=gate-focalpoint disposition ABSORB \u2192 ARCHIVE_ONLY (fsm deferred \u2192 absorbed); boundary doc phenotype-registry/docs/boundary/FocalPoint.md front-matter status active \u2192 archived. Manifest audits/absorption-justifications/FocalPoint-2026-07-17.md rewritten with Outcome Reconciliation section documenting the failsafe. Pattern matches Configra-2026-07-17, Stashly-2026-07-17, Pine-2026-07-17, kmobile-2026-07-17, Civis-2026-07-17, phenotype-omlx-2026-07-17 ARCHIVE_ONLY precedents (target-conflict or workspace-not-single-crate). Local repos/FocalPoint/ retained as git-tracked historical record (810MB .git/ + ~57MB working tree); .git/obj scan deferred until explicit reactivation per disposition-index.json reactivation path. Worktrees/ subfolder within repos/FocalPoint/ is a sibling worktree (per repos/ AGENTS.md 'container for independent Git repositories') and was left untouched.",
+  "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-07-17 (this audit): phenotype-omlx (G18 ARCHIVED row) re-evaluated against the 2026-07-17 dispatch instruction to absorb into phenoAI. Preflight confirms phenoAI (3-crate workspace: llm-router, mcp-server, pheno-embedding; resolver=3) has no MLX/Metal/perf-core tier; phenotype-omlx is an 11-crate perf-core workspace + Python omlx_research + platform clients (resolver=2) governed by an explicit polyglot AGENTS.md that nulls Rust-only markers. Failsafe engaged: ARCHIVE_ONLY (no copy performed). Companion projects/phenotype-omlx.json disposition flipped DROP/absorbed_into=hwledger → ARCHIVE_ONLY/target=phenotype-registry (docs/boundary/phenotype-omlx.md). GitHub repo KooshaPari/phenotype-omlx set to read-only via 'gh repo archive KooshaPari/phenotype-omlx -y' on 2026-07-17. Audit pattern matches repo-kmobile (failsafe-multi-crate-workspace) + repo-Civis (failsafe-no-cargo-on-host). 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr. 2026-07-17 (batch3, agent #4): queue-refresh added 10 fresh non-Rust candidates (phenodag/HeliosLab/PhenoHandbook/Conft/context-mode-plusplus/pheno-forge-plugins/PhenoContracts/KodeVibe/KWatch/heliosBench) to keep the absorption queue topped up; Rust slots already taken by batch2 (agents 2/3). 2026-07-17 (batch4, agent #5): queue-refresh added 10 fresh least-active candidates (phenotype-gfx/hwLedger/omniroute-rs/pheno-forge-smoke/pheno-otel/Apisync/PhenoVCS/Pine/PlayCua/DataKit) to keep the absorption queue topped up; absorbs continue to drain batch1-3 in parallel. 2026-07-17 (batch4, agent absorb #1): Pine → ARCHIVE_ONLY fallback (5-crate workspace, not single crate; substrate not modified); GitHub repo archived same day. 2026-07-17: pheno-harness ABSORB → ARCHIVE_ONLY via failsafe path (source is 95% Python, no Cargo.toml at root; cargo check -p pheno-harness fails). Registry row repo-pheno-harness updated to disposition=ARCHIVE_ONLY, target=phenotype-registry, fsm=absorbed; absorbing_repo=KooshaPari/phenotype-registry. Audit: audits/absorption-justifications/pheno-harness-deferred-2026-07-17.md. Boundary: docs/boundary/pheno-harness.md. Source repo archived via 'gh repo archive KooshaPari/pheno-harness -y'.\n 2026-07-17 (this audit): phenotype-landing pivoted from ABSORB→ARCHIVE_ONLY for the same structural reasons as omniroute-rust (deferred-W2 → failsafe): source is a 7-site Astro monorepo (1.6GB tracked+untracked, ~1.4GB of node_modules), not a single landing page; cp -r phenotype-landing/* phenodocs/packages/landing/ would have copied 7 independent Astro sites with their own vercel.json + bun.lock + CI workflow into a VitePress federation hub. Source repo archived on GitHub via `gh repo archive`. Boundary doc captures the rejection in detail. 2026-07-17 (queue-refresh-2, agent absorb): StealthStartup ABSORBED → phenodocs/packages/stealth-startup/ via commit 9f620cd on branch absorb/quillts-2026-07-17 (32 files). Source repo KooshaPari/StealthStartup archived via gh repo archive -y. Row repo-StealthStartup: fsm active→absorbed, archived=true; absorbing_repo=KooshaPari/phenodocs. 2026-07-17 (this audit, agent absorb #6): KooshaPari/helios-cli ABSORB → ARCHIVE_ONLY via failsafe path (source is NOT a single bin: 22-member Rust workspace + vendored codex-rs/ workspace root + 26 sub-crates + Bazel monorepo + 350MB target/, 928MB on disk). Nested [workspace] root at helios-cli/Cargo.toml forbids membership under phenotype-tooling/Cargo.toml [workspace.members]; nested codex-rs/Cargo.toml is a second workspace root that would be auto-discovered by the parent. phenotype-tooling already hosts crates/heliosapp + crates/heliosbench (collision risk). HEAD on wip/2026-07-16-0027-auto @ f217af2bca312cb595520c2b6508b198ea10d61d, NOT main. Pattern matches repo-pheno-harness + Pine + Civis ARCHIVE_ONLY precedents (workspace-not-single-crate). GitHub repo archived via gh repo archive KooshaPari/helios-cli -y (verified isArchived=true). phenotype-tooling NOT modified (no copy, no workspace edit). 2026-07-17 (this audit): KooshaPari/crates re-evaluated against the 2026-07-17 dispatch instruction to absorb into phenotype-tooling. Preflight confirms phenotype-tooling/crates/ hosts tooling/audit/observability utilities only (rlib, repository=phenotype-tooling, 35+ native crates) — no precedent for absorbing product FFI cdylibs (omniroute-ffi) or game-mechanics crates (powers/civ-powers). Per task failsafe ('ARCHIVE_ONLY if no clear home') the source repo was archived via 'gh repo archive KooshaPari/crates -y' (verified isArchived=true 2026-07-17), no copy, no workspace edit. cargo check evidence (2026-07-17): omniroute-ffi 7-crate workspace builds clean (8.26s); civ-powers builds clean (3.50s). Pattern matches repo-pheno-harness + repo-omniroute-rust + Pine ARCHIVE_ONLY precedents (workspace-not-single-crate, foreign-domain-content). Local repos/crates/ retained as git-tracked historical record. 2026-07-17 (this audit): gate-focalpoint re-evaluated against the 2026-07-17 dispatch instruction to absorb into phenotype-tooling. Preflight confirms the registered plan (catalog/registry.yaml id=focalpoint, disposition-index.json id=gate-focalpoint target=HexaKit, manifest audits/absorption-justifications/FocalPoint-2026-07-17.md Receiving repo=KooshaPari/HexaKit at path=docs/absorbed-from-FocalPoint/) directs absorption to KooshaPari/HexaKit; phenotype-tooling has no equivalent absorption slot for a 867MB Svelte/TypeScript focus-app (phenotype-tooling hosts Rust rlib tooling/audit/observability utilities only). Per task failsafe 'ARCHIVE_ONLY if conflicts' the source repo was archived via 'gh repo archive KooshaPari/FocalPoint -y' (verified isArchived=true 2026-07-17). FocalPoint registry row (catalog/registry.yaml id=focalpoint) status active → archived; disposition-index.json id=gate-focalpoint disposition ABSORB → ARCHIVE_ONLY (fsm deferred → absorbed); boundary doc phenotype-registry/docs/boundary/FocalPoint.md front-matter status active → archived. Manifest audits/absorption-justifications/FocalPoint-2026-07-17.md rewritten with Outcome Reconciliation section documenting the failsafe. Pattern matches Configra-2026-07-17, Stashly-2026-07-17, Pine-2026-07-17, kmobile-2026-07-17, Civis-2026-07-17, phenotype-omlx-2026-07-17 ARCHIVE_ONLY precedents (target-conflict or workspace-not-single-crate). Local repos/FocalPoint/ retained as git-tracked historical record (810MB .git/ + ~57MB working tree); .git/obj scan deferred until explicit reactivation per disposition-index.json reactivation path. Worktrees/ subfolder within repos/FocalPoint/ is a sibling worktree (per repos/ AGENTS.md 'container for independent Git repositories') and was left untouched.",
   "rows": [
     {
       "id": 1,
@@ -96,7 +96,7 @@
       "stub_date": "2026-06-17",
       "relocated_date": "2026-06-19",
       "pr": "HexaKit#264,Authvault#88@7cfd8d7,Eventra#19#20@445f732,Agentora#92#93@1feb698,ResilienceKit#2#3@c1ca60c,phenotype-python-sdk#22#24#25@539fb21,phenotype-registry#217#220,Pyron#61",
-      "note": "Decompose per contracts-decompose-plan.md; slices 2\u00e2\u20ac\u201c4 terminal owners landed; Pyron vendored drop + git pins (P4 gate)"
+      "note": "Decompose per contracts-decompose-plan.md; slices 2â€“4 terminal owners landed; Pyron vendored drop + git pins (P4 gate)"
     },
     {
       "id": 12,
@@ -147,7 +147,7 @@
       "stub_date": "2026-06-17",
       "relocated_date": "2026-06-19",
       "pr": "HexaKit#261,HexaKit#278",
-      "note": "HexaKit pin \u00e2\u2020\u2019 ResilienceKit HealthChecker traits (PO HealthCheck runtime is superset); wave 5b drain"
+      "note": "HexaKit pin â†’ ResilienceKit HealthChecker traits (PO HealthCheck runtime is superset); wave 5b drain"
     },
     {
       "id": 26,
@@ -251,7 +251,7 @@
       "core_lang": "rust",
       "relocated_date": "2026-06-18",
       "pr": "HexaKit#266",
-      "note": "HexaKit scaffold reference \u00e2\u20ac\u201d port-traits-scaffold.md; wave AB prune"
+      "note": "HexaKit scaffold reference â€” port-traits-scaffold.md; wave AB prune"
     },
     {
       "id": 40,
@@ -305,7 +305,7 @@
       "stub_date": "2026-06-17",
       "relocated_date": "2026-06-17",
       "pr": "HexaKit#244,PhenoObservability#157",
-      "note": "X-02 TOMBSTONE \u00e2\u20ac\u201d repo 404 post-absorption; metrickit canonical on PO; gh repo archive N/A"
+      "note": "X-02 TOMBSTONE â€” repo 404 post-absorption; metrickit canonical on PO; gh repo archive N/A"
     },
     {
       "id": 49,
@@ -355,7 +355,7 @@
       "stub_date": "2026-06-18",
       "relocated_date": "2026-06-18",
       "pr": "substrate#28,HexaKit#270,Pyron#58",
-      "note": "py-pheno-mcp-redirect.md; PhenoMCP SUPERSEDE Block-C; Py lib \u00e2\u2020\u2019 PhenoMCP, runtime \u00e2\u2020\u2019 substrate"
+      "note": "py-pheno-mcp-redirect.md; PhenoMCP SUPERSEDE Block-C; Py lib â†’ PhenoMCP, runtime â†’ substrate"
     },
     {
       "id": "py-pheno-core",
@@ -368,7 +368,7 @@
       "stub_date": "2026-06-18",
       "relocated_date": "2026-06-18",
       "pr": "phenotype-python-sdk#18,HexaKit#270",
-      "note": "Not phenoShared \u00e2\u20ac\u201d Py SDK index per ADR-ECO-014-phenoshared-decompose; Block-C disposition merged"
+      "note": "Not phenoShared â€” Py SDK index per ADR-ECO-014-phenoshared-decompose; Block-C disposition merged"
     },
     {
       "id": "gw-agentapi",
@@ -394,7 +394,7 @@
       "stub_date": "2026-06-17",
       "relocated_date": "2026-06-18",
       "pr": "agentapi-plusplus#535,agentapi-plusplus#538,agentapi-plusplus#540",
-      "note": "G15 branch hygiene; docs/BOUNDARY.md #538; H9 smoke fixed #540 \u00e2\u20ac\u201d ClearMessages + httpapi handler restore (phenotype-gateway#6)"
+      "note": "G15 branch hygiene; docs/BOUNDARY.md #538; H9 smoke fixed #540 â€” ClearMessages + httpapi handler restore (phenotype-gateway#6)"
     },
     {
       "id": "gw-cliproxy",
@@ -443,7 +443,7 @@
       "stub_date": "2026-06-18",
       "relocated_date": "2026-06-18",
       "pr": "phenotype-infra#79",
-      "note": "Docs absorbed phenotype-infra/docs/absorbed-from/phenotype-hub/; source repo unarchived (17 branches) \u00e2\u20ac\u201d archive gate pending"
+      "note": "Docs absorbed phenotype-infra/docs/absorbed-from/phenotype-hub/; source repo unarchived (17 branches) â€” archive gate pending"
     },
     {
       "id": "gw-vibeproxy-monitoring-unified",
@@ -467,7 +467,7 @@
       "core_lang": "typescript",
       "stub_date": "2026-06-12",
       "relocated_date": "2026-06-19",
-      "note": "Archived pagination utility; G19 triage RETIRE out-of-fleet \u00e2\u20ac\u201d no phenoShared extract; gw-paginary-branch-index.md (10 CLOSE + 1 KEEP)"
+      "note": "Archived pagination utility; G19 triage RETIRE out-of-fleet â€” no phenoShared extract; gw-paginary-branch-index.md (10 CLOSE + 1 KEEP)"
     },
     {
       "id": "gw-vibeproxy",
@@ -480,7 +480,7 @@
       "stub_date": "2026-06-18",
       "relocated_date": "2026-06-18",
       "pr": "cliproxyapi-plusplus#1024",
-      "note": "Deprecated client; archived 2026-06-18; desktop UX harvest \u00e2\u2020\u2019 OmniRoute Electrobun spike"
+      "note": "Deprecated client; archived 2026-06-18; desktop UX harvest â†’ OmniRoute Electrobun spike"
     },
     {
       "id": "gw-helioscope",
@@ -492,7 +492,7 @@
       "core_lang": "rust",
       "stub_date": "2026-06-18",
       "relocated_date": "2026-06-18",
-      "note": "SUPERSEDED fork; archived 2026-06-18 \u00e2\u2020\u2019 helios-cli (codex-monorepo dedup)"
+      "note": "SUPERSEDED fork; archived 2026-06-18 â†’ helios-cli (codex-monorepo dedup)"
     },
     {
       "id": "gw-omniroute",
@@ -514,7 +514,7 @@
       "core_lang": "go",
       "relocated_date": "2026-06-18",
       "pr": "argis-extensions#82",
-      "note": "Plugin plane; H9 smoke fixed #82 \u00e2\u20ac\u201d graphql/gen vendored + resolver alignment; docs/PLUGINS.md H14 (phenotype-gateway#6)"
+      "note": "Plugin plane; H9 smoke fixed #82 â€” graphql/gen vendored + resolver alignment; docs/PLUGINS.md H14 (phenotype-gateway#6)"
     },
     {
       "id": "gw-kodevibego",
@@ -524,7 +524,7 @@
       "wave": "protected",
       "fsm": "done",
       "core_lang": "go",
-      "note": "PROTECTED \u00e2\u20ac\u201d never delete/unarchive; deprecated linter"
+      "note": "PROTECTED â€” never delete/unarchive; deprecated linter"
     },
     {
       "id": "gw-kvirtualstage",
@@ -534,7 +534,7 @@
       "wave": "protected",
       "fsm": "done",
       "core_lang": "go",
-      "note": "PROTECTED \u00e2\u20ac\u201d never delete/unarchive; personal project"
+      "note": "PROTECTED â€” never delete/unarchive; personal project"
     },
     {
       "id": "gw-pheno-sdk",
@@ -605,7 +605,7 @@
       "adr": "ADR-ECO-014",
       "relocated_date": "2026-06-19",
       "archived_date": "2026-06-19",
-      "note": "5/5 zero-dep gate \u00e2\u20ac\u201d gh org Cargo.toml/go.mod scan 2026-06-19; 0 production git deps (self metadata + docs only); `gh repo archive` confirmed `isArchived: true`; hard delete deferred per BOUNDARY_OWNERS"
+      "note": "5/5 zero-dep gate â€” gh org Cargo.toml/go.mod scan 2026-06-19; 0 production git deps (self metadata + docs only); `gh repo archive` confirmed `isArchived: true`; hard delete deferred per BOUNDARY_OWNERS"
     },
     {
       "id": "gate-pyron",
@@ -822,7 +822,7 @@
       "relocated_date": "2026-06-18",
       "archived_date": "2026-06-18",
       "pr": "AgilePlus#756",
-      "note": "BOUNDARY_OWNERS 5/5; crates/agileplus-spec-harmonizer canonical on AgilePlus main; source repo 404 (deleted post-absorb \u00e2\u20ac\u201d `gh repo archive` N/A); 12/12 tests"
+      "note": "BOUNDARY_OWNERS 5/5; crates/agileplus-spec-harmonizer canonical on AgilePlus main; source repo 404 (deleted post-absorb â€” `gh repo archive` N/A); 12/12 tests"
     },
     {
       "id": "sr-phenostandards",
@@ -832,7 +832,7 @@
       "wave": "surface-reduction-2",
       "fsm": "done",
       "relocated_date": "2026-06-18",
-      "note": "BOUNDARY_OWNERS 5/5; repo 404 confirmed 2026-06-19 \u00e2\u20ac\u201d registry stub only (`projects/phenoStandards.json`); content absorbed HexaKit 2026-06-16; no archive step"
+      "note": "BOUNDARY_OWNERS 5/5; repo 404 confirmed 2026-06-19 â€” registry stub only (`projects/phenoStandards.json`); content absorbed HexaKit 2026-06-16; no archive step"
     },
     {
       "id": 52,
@@ -844,7 +844,7 @@
       "core_lang": "rust",
       "relocated_date": "2026-06-18",
       "pr": "new repo",
-      "note": "Extracted from McpKit/rust/phenotype-mcp-asset/ v0.2.0 \u00e2\u2020\u2019 v0.3.0 standalone fleet lib (2026-06-18, L5-110.x); P0 patch per McpKit absorption audit; new KooshaPari/phenotype-mcp-asset repo created 2026-06-18 12:17 UTC (description: 'Phenotype-pack asset handler for MCP servers (extracted from McpKit)')"
+      "note": "Extracted from McpKit/rust/phenotype-mcp-asset/ v0.2.0 â†’ v0.3.0 standalone fleet lib (2026-06-18, L5-110.x); P0 patch per McpKit absorption audit; new KooshaPari/phenotype-mcp-asset repo created 2026-06-18 12:17 UTC (description: 'Phenotype-pack asset handler for MCP servers (extracted from McpKit)')"
     },
     {
       "id": 53,
@@ -869,7 +869,7 @@
       "relocated_date": "2026-06-18",
       "pr": "phenotype-python-sdk#21",
       "merged_at": "2026-06-19",
-      "note": "Extracted from McpKit/python/agentmcp/ v0.x.x \u00e2\u2020\u2019 0.3.0 as new agentmcp-hex package in SDK (2026-06-18, L5-110.x); P1 patch per McpKit absorption audit; hexagonal DDD pattern preserved; PR MERGED (phenotype-python-sdk#21, 2026-06-19)"
+      "note": "Extracted from McpKit/python/agentmcp/ v0.x.x â†’ 0.3.0 as new agentmcp-hex package in SDK (2026-06-18, L5-110.x); P1 patch per McpKit absorption audit; hexagonal DDD pattern preserved; PR MERGED (phenotype-python-sdk#21, 2026-06-19)"
     },
     {
       "id": "lib-pheno-capacity",
@@ -907,7 +907,7 @@
       "disposition": "AFFIRM",
       "fsm": "done",
       "bucket": "template",
-      "rationale": "Cargo.toml scaffold template for new Rust crates (L5-110 Drift 3). Not a runtime lib \u00e2\u20ac\u201d TEMPLATE class per ADR-023 v1.1."
+      "rationale": "Cargo.toml scaffold template for new Rust crates (L5-110 Drift 3). Not a runtime lib â€” TEMPLATE class per ADR-023 v1.1."
     },
     {
       "id": "lib-pheno-drift-detector",
@@ -973,7 +973,7 @@
       "wave": "P5",
       "fsm": "absorbed",
       "archived_date": "2026-07-17",
-      "note": "867MB vendor (810MB .git + 57MB working tree). ARCHIVE_ONLY via failsafe 2026-07-17: target-conflict between task spec (absorb into phenotype-tooling) and registered plan (target=HexaKit, Receiving path=docs/absorbed-from-FocalPoint/, manifest audits/absorption-justifications/FocalPoint-2026-07-17.md). Neither target was started; per task failsafe 'ARCHIVE_ONLY if conflicts' the disposition was pivoted, content not copied, and source repo set to read-only via `gh repo archive KooshaPari/FocalPoint -y` on 2026-07-17. Boundary doc retained at phenotype-registry/docs/boundary/FocalPoint.md (front-matter status active \u2192 archived). Manifest reclassified to ARCHIVE_ONLY rationale (Outcome Reconciliation section). Mirror precedent: Configra-2026-07-17, Stashly-2026-07-17, Pine-2026-07-17, kmobile-2026-07-17, Civis-2026-07-17, phenotype-omlx-2026-07-17. Reactivation path: see reactivation_path field; .git/obj scan deferred until explicit reactivation per disposition-index.json reactivation path."
+      "note": "867MB vendor (810MB .git + 57MB working tree). ARCHIVE_ONLY via failsafe 2026-07-17: target-conflict between task spec (absorb into phenotype-tooling) and registered plan (target=HexaKit, Receiving path=docs/absorbed-from-FocalPoint/, manifest audits/absorption-justifications/FocalPoint-2026-07-17.md). Neither target was started; per task failsafe 'ARCHIVE_ONLY if conflicts' the disposition was pivoted, content not copied, and source repo set to read-only via `gh repo archive KooshaPari/FocalPoint -y` on 2026-07-17. Boundary doc retained at phenotype-registry/docs/boundary/FocalPoint.md (front-matter status active → archived). Manifest reclassified to ARCHIVE_ONLY rationale (Outcome Reconciliation section). Mirror precedent: Configra-2026-07-17, Stashly-2026-07-17, Pine-2026-07-17, kmobile-2026-07-17, Civis-2026-07-17, phenotype-omlx-2026-07-17. Reactivation path: see reactivation_path field; .git/obj scan deferred until explicit reactivation per disposition-index.json reactivation path."
     },
     {
       "id": "gw-pheno-errors",
@@ -1020,7 +1020,7 @@
       "relocated_date": "2026-06-18",
       "pr": "phenotype-apps@31f2bea7 (absorbing this audit); gh repo archive KooshaPari/Tracely 2026-07-17",
       "audit_artifact": "audits/absorption-justifications/Tracely-2026-07-17.md",
-      "note": "Outer Tracely repo archived 2026-06-20 (L7-114). Sub-crates tracely-core, tracely-sentinel, helix-logging already in PhenoObservability/crates/; helix-tracing present as canonical rename phenotype-observably-tracing. Migration structurally complete; outer archive closes the observability cluster = closed invariant for v11 audit scorecard. (Verified by stream A, 2026-06-20) [ABSORBED 2026-07-17 \u2192 phenotype-apps apps/tracely/ \u2014 actual source lift + cargo check verified; pre-archive tarball at repos/_archive/Tracely-2026-07-17/. tracely-sentinel dropped from workspace members (mis-shelved phenotype-infrakit content). Audit artifact: audits/absorption-justifications/Tracely-2026-07-17.md. Outer gh repo archive confirmed 2026-07-17.]"
+      "note": "Outer Tracely repo archived 2026-06-20 (L7-114). Sub-crates tracely-core, tracely-sentinel, helix-logging already in PhenoObservability/crates/; helix-tracing present as canonical rename phenotype-observably-tracing. Migration structurally complete; outer archive closes the observability cluster = closed invariant for v11 audit scorecard. (Verified by stream A, 2026-06-20) [ABSORBED 2026-07-17 → phenotype-apps apps/tracely/ — actual source lift + cargo check verified; pre-archive tarball at repos/_archive/Tracely-2026-07-17/. tracely-sentinel dropped from workspace members (mis-shelved phenotype-infrakit content). Audit artifact: audits/absorption-justifications/Tracely-2026-07-17.md. Outer gh repo archive confirmed 2026-07-17.]"
     },
     {
       "id": 60,
@@ -1054,7 +1054,7 @@
       "wave": "2026-06-20",
       "fsm": "active",
       "core_lang": "go",
-      "note": "New repo registered per gateway cleanup 2026-06-20; AFFIRM \u00e2\u20ac\u201d active SDK repo, no disposition change"
+      "note": "New repo registered per gateway cleanup 2026-06-20; AFFIRM â€” active SDK repo, no disposition change"
     },
     {
       "id": "gw-pheno-flags",
@@ -1111,7 +1111,7 @@
       "core_lang": "rust",
       "adr": "ADR-ECO-027-pheno-monorepo-dismantle",
       "relocated_date": "2026-06-20",
-      "note": "pheno monorepo is being dismantled. agileplus-* absorption: all 23 crates (agileplus-api, agileplus-api-types, agileplus-benchmarks, agileplus-cache, agileplus-cli, agileplus-contract-tests, agileplus-domain, agileplus-error-core, agileplus-events, agileplus-git, agileplus-github, agileplus-graph, agileplus-grpc, agileplus-import, agileplus-integration-tests, agileplus-nats, agileplus-p2p, agileplus-plane, agileplus-sqlite, agileplus-subcmds, agileplus-sync, agileplus-telemetry, agileplus-triage) verified as already present in KooshaPari/AgilePlus/crates/. AgilePlus versions are MORE complete (+33,359 LOC total delta; e.g. agileplus-api +11 files, agileplus-cli +28 files, agileplus-sqlite +26 files, agileplus-domain +21 files, agileplus-triage +17 files). 0 crates required copying \u00e2\u20ac\u201d absorption is pre-existing, not destructive. Remaining phenotype-* crates (28 in pheno workspace) to be evaluated for absorption into standalone repos or kept in monorepo."
+      "note": "pheno monorepo is being dismantled. agileplus-* absorption: all 23 crates (agileplus-api, agileplus-api-types, agileplus-benchmarks, agileplus-cache, agileplus-cli, agileplus-contract-tests, agileplus-domain, agileplus-error-core, agileplus-events, agileplus-git, agileplus-github, agileplus-graph, agileplus-grpc, agileplus-import, agileplus-integration-tests, agileplus-nats, agileplus-p2p, agileplus-plane, agileplus-sqlite, agileplus-subcmds, agileplus-sync, agileplus-telemetry, agileplus-triage) verified as already present in KooshaPari/AgilePlus/crates/. AgilePlus versions are MORE complete (+33,359 LOC total delta; e.g. agileplus-api +11 files, agileplus-cli +28 files, agileplus-sqlite +26 files, agileplus-domain +21 files, agileplus-triage +17 files). 0 crates required copying â€” absorption is pre-existing, not destructive. Remaining phenotype-* crates (28 in pheno workspace) to be evaluated for absorption into standalone repos or kept in monorepo."
     },
     {
       "id": "gw-helioscli",
@@ -1148,7 +1148,7 @@
       "core_lang": null,
       "adr": null,
       "relocated_date": "2026-06-20",
-      "note": "Repo is empty (1 commit, no source files). Only CODEOWNERS + governance metadata. Safe to delete \u00e2\u20ac\u201d no functional code to absorb. Approved for deletion."
+      "note": "Repo is empty (1 commit, no source files). Only CODEOWNERS + governance metadata. Safe to delete â€” no functional code to absorb. Approved for deletion."
     },
     {
       "id": "delete-pheno-scaffold-kit",
@@ -1178,7 +1178,7 @@
       "id": "repo-eyetracker-affirm",
       "path": "KooshaPari/eyetracker",
       "disposition": "ARCHIVE_ONLY",
-      "target": "phenotype-registry (docs/registry/absorbed-eyetracker-2026-07-17.md)",
+      "target": "pheno (docs/registry/absorbed-eyetracker-2026-07-17.md)",
       "wave": "L7-010",
       "fsm": "absorbed",
       "adr": "ADR-007",
@@ -1187,12 +1187,12 @@
       "size_kb": 533,
       "remote_branch_count": 30,
       "last_push": "2026-06-23T09:00:00Z",
-      "boundary_doc": "docs/registry/absorbed-eyetracker-2026-07-17.md",
+      "boundary_doc": "pheno/docs/registry/absorbed-eyetracker-2026-07-17.md",
       "archived": true,
       "archived_at": "2026-07-17T14:25:55Z",
       "archive_reason": "failsafe-multi-crate-workspace",
-      "absorbing_repo": "KooshaPari/phenotype-registry",
-      "note": " [ARCHIVED 2026-07-17 on GitHub: Phenotype eye-tracking framework (Rust + UniFFI, 533KB, 30 branches); source is a 7-crate Cargo workspace ([workspace] members = ['crates/eyetracker-domain', 'crates/eyetracker-math', 'crates/eyetracker-core', 'crates/eyetracker-ffi', 'crates/eyetracker-camera', 'crates/eyetracker-inference', 'crates/eyetracker-cli']); workspace-root Cargo.toml is [workspace]-only with no top-level src/ or tests/ directory; cross-crate path deps (eyetracker-core -> ../eyetracker-domain + ../eyetracker-math; eyetracker-ffi -> ../eyetracker-domain + ../eyetracker-core + ../eyetracker-inference + ../eyetracker-camera). Literal 'cp -r eyetracker/src eyetracker/tests' cannot succeed \u2014 'No such file or directory' before any lift attempted. Additional blockers: API instability self-acknowledged in README ('earlier drafts documented an API surface that did not exist'); AGENTS.md language drift (declares 'Primary language: Kotlin' for an all-Rust repo); AI-Slop badge in README; no concrete consumer in fleet today (eyetracker was registered as AFFIRM canonical anchor for eyetracker -> Authvault consent + Eventra fixation stream, but Authvault was SUPERSEDED by AuthKit 2026-06-20 and phenotype-event-bus was absorbed from phenoEvents 2026-07-17). Concrete failsafe artifact: 'cargo check -p eyetracker' from pheno -> 'error: package ID specification eyetracker did not match any packages' (exit non-zero). GitHub repo archived via 'gh repo archive KooshaPari/eyetracker -y'; isArchived=true verified via gh repo view at 2026-07-17T14:25:55Z. Companion commit f9c06b2 on pheno absorb/pheno-plugins-2026-07-17 added pheno/docs/registry/absorbed-eyetracker-2026-07-17.md as the audit trail; commit 50ea9e9 on the same branch is the canonical absorb branch commit referencing this row. Boundary doc: docs/registry/absorbed-eyetracker-2026-07-17.md (in pheno/docs/registry/, not registry repo).]"
+      "absorbing_repo": "KooshaPari/pheno",
+      "note": " [ARCHIVED 2026-07-17 on GitHub: Phenotype eye-tracking framework (Rust + UniFFI, 533KB, 30 branches); source is a 7-crate Cargo workspace ([workspace] members = ['crates/eyetracker-domain', 'crates/eyetracker-math', 'crates/eyetracker-core', 'crates/eyetracker-ffi', 'crates/eyetracker-camera', 'crates/eyetracker-inference', 'crates/eyetracker-cli']); workspace-root Cargo.toml is [workspace]-only with no top-level src/ or tests/ directory; cross-crate path deps (eyetracker-core -> ../eyetracker-domain + ../eyetracker-math; eyetracker-ffi -> ../eyetracker-domain + ../eyetracker-core + ../eyetracker-inference + ../eyetracker-camera). Literal 'cp -r eyetracker/src eyetracker/tests' cannot succeed — 'No such file or directory' before any lift attempted. Additional blockers: API instability self-acknowledged in README ('earlier drafts documented an API surface that did not exist'); AGENTS.md language drift (declares 'Primary language: Kotlin' for an all-Rust repo); AI-Slop badge in README; no concrete consumer in fleet today (eyetracker was registered as AFFIRM canonical anchor for eyetracker -> Authvault consent + Eventra fixation stream, but Authvault was SUPERSEDED by AuthKit 2026-06-20 and phenotype-event-bus was absorbed from phenoEvents 2026-07-17). Concrete failsafe artifact: 'cargo check -p eyetracker' from pheno -> 'error: package ID specification eyetracker did not match any packages' (exit non-zero). GitHub repo archived via 'gh repo archive KooshaPari/eyetracker -y'; isArchived=true verified via gh repo view at 2026-07-17T14:25:55Z. Companion commit f9c06b2 on pheno absorb/pheno-plugins-2026-07-17 added pheno/docs/registry/absorbed-eyetracker-2026-07-17.md as the audit trail; commit 50ea9e9 on the same branch is the canonical absorb branch commit referencing this row. Boundary doc: docs/registry/absorbed-eyetracker-2026-07-17.md (in pheno/docs/registry/, not registry repo).]"
     },
     {
       "id": "repo-benchora-affirm",
@@ -1240,7 +1240,7 @@
       "adr": "ADR-017",
       "core_lang": "python+rust",
       "pr": null,
-      "note": "McpKit source archived 2026-06-18; absorbed into PhenoMCPServers (Python server collection) and substrate (Rust runtime crates). Tombstone closed 2026-06-23 (verified via gh api 404 + git clone --bare Repository not found). Retroactive ABSORPTION.md at KooshaPari/phenotype-tooling/docs/absorbed-from-McpKit/ABSORPTION.md. Audit: phenotype-registry/audits/absorption-justifications/McpKit-2026-06-23.md (L4, 14/14). Branch-only bundle (per findings/2026-06-18-McpKit-branch-only/README.md:57) is also N/A \u2014 90-day retention window expired before tombstone was closed."
+      "note": "McpKit source archived 2026-06-18; absorbed into PhenoMCPServers (Python server collection) and substrate (Rust runtime crates). Tombstone closed 2026-06-23 (verified via gh api 404 + git clone --bare Repository not found). Retroactive ABSORPTION.md at KooshaPari/phenotype-tooling/docs/absorbed-from-McpKit/ABSORPTION.md. Audit: phenotype-registry/audits/absorption-justifications/McpKit-2026-06-23.md (L4, 14/14). Branch-only bundle (per findings/2026-06-18-McpKit-branch-only/README.md:57) is also N/A — 90-day retention window expired before tombstone was closed."
     },
     {
       "id": "repo-phenocompose-archive",
@@ -1599,20 +1599,20 @@
       "audit_artifact": "audits/absorption-justifications/helios-cli-failsafe-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T02:18:00.000000Z",
-      "target": "phenotype-tooling (NOT modified \u2014 failsafe)",
+      "target": "phenotype-tooling (NOT modified — failsafe)",
       "wave": "2026-07-17-failsafe-helios-cli",
       "absorbed_at": "2026-07-17T14:00:40.000000Z",
       "archived": true,
       "archived_at": "2026-07-17T14:00:40Z",
       "archive_reason": "Failsafe: source is a 22-member Rust workspace + vendored codex-rs/ workspace root, not a single bin. Nested [workspace] under phenotype-tooling/Cargo.toml is forbidden by Cargo. HEAD on wip/2026-07-16-0027-auto, not main. Collisions with existing crates/heliosapp + crates/heliosbench in phenotype-tooling.",
-      "absorbed_branch": "(none \u2014 failsafe, no copy performed)",
-      "absorbed_commit": "(none \u2014 failsafe, no copy performed)",
+      "absorbed_branch": "(none — failsafe, no copy performed)",
+      "absorbed_commit": "(none — failsafe, no copy performed)",
       "absorbed_files_added": 0,
-      "absorbed_target_path": "(none \u2014 failsafe, no copy performed)",
+      "absorbed_target_path": "(none — failsafe, no copy performed)",
       "last_commit_sha": "f217af2bca312cb595520c2b6508b198ea10d61d",
       "source_branch": "wip/2026-07-16-0027-auto",
       "default_branch": "main",
-      "note": "Source repo KooshaPari/helios-cli (5.6MB source, 928MB on disk incl. 350MB target/). Top-level Cargo.toml is [workspace] only with 22 members (harness_queue/rollback/runner/scaling/schema/spec/teammates/utils/verify + arch_test + harness_cache/checkpoint/discoverer/pyo3/elicitation/interfaces/normalizer/orchestrator + pheno-plugin + plugin-arch + helios_config + forge3_client). Vendored codex-rs/ is a SEPARATE [workspace] root (~40 members: cli, core, tui, exec, protocol, etc.) \u2014 the actual `helios` binary lives at codex-rs/cli/. Vendored helios-rs/ referenced in root Cargo.toml [workspace.exclude] does not exist on disk. 26 additional crates in crates/. Bazel monorepo (MODULE.bazel + 1.1MB MODULE.bazel.lock). Mojo + Go + perf-results (9.1MB) + docs + ADRs + governance. HEAD on wip/2026-07-16-0027-auto @ f217af2bca312cb595520c2b6508b198ea10d61d (NOT main). [ARCHIVE_ONLY 2026-07-17 via failsafe clause in absorption task: nested [workspace] roots under phenotype-tooling/Cargo.toml [workspace.members] are forbidden by Cargo; phenotype-tooling already hosts crates/heliosapp + crates/heliosbench (collision risk); HEAD not on canonical main. GitHub repo archived via gh repo archive KooshaPari/helios-cli -y. Registry row repo-helios-cli updated to disposition=ARCHIVE_ONLY, fsm=absorbed, target=phenotype-tooling (NOT modified \u2014 failsafe), absorbing_repo=KooshaPari/phenotype-registry. Audit: audits/absorption-justifications/helios-cli-failsafe-2026-07-17.md.]"
+      "note": "Source repo KooshaPari/helios-cli (5.6MB source, 928MB on disk incl. 350MB target/). Top-level Cargo.toml is [workspace] only with 22 members (harness_queue/rollback/runner/scaling/schema/spec/teammates/utils/verify + arch_test + harness_cache/checkpoint/discoverer/pyo3/elicitation/interfaces/normalizer/orchestrator + pheno-plugin + plugin-arch + helios_config + forge3_client). Vendored codex-rs/ is a SEPARATE [workspace] root (~40 members: cli, core, tui, exec, protocol, etc.) — the actual `helios` binary lives at codex-rs/cli/. Vendored helios-rs/ referenced in root Cargo.toml [workspace.exclude] does not exist on disk. 26 additional crates in crates/. Bazel monorepo (MODULE.bazel + 1.1MB MODULE.bazel.lock). Mojo + Go + perf-results (9.1MB) + docs + ADRs + governance. HEAD on wip/2026-07-16-0027-auto @ f217af2bca312cb595520c2b6508b198ea10d61d (NOT main). [ARCHIVE_ONLY 2026-07-17 via failsafe clause in absorption task: nested [workspace] roots under phenotype-tooling/Cargo.toml [workspace.members] are forbidden by Cargo; phenotype-tooling already hosts crates/heliosapp + crates/heliosbench (collision risk); HEAD not on canonical main. GitHub repo archived via gh repo archive KooshaPari/helios-cli -y. Registry row repo-helios-cli updated to disposition=ARCHIVE_ONLY, fsm=absorbed, target=phenotype-tooling (NOT modified — failsafe), absorbing_repo=KooshaPari/phenotype-registry. Audit: audits/absorption-justifications/helios-cli-failsafe-2026-07-17.md.]"
     },
     {
       "id": "repo-heliosCLI",
@@ -1641,7 +1641,7 @@
       "audit_artifact": "audits/absorption-justifications/Configra-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T02:18:00.000000Z",
-      "target": "pheno (NOT modified \u2014 failsafe)",
+      "target": "pheno (NOT modified — failsafe)",
       "wave": "2026-07-17-failsafe-configra",
       "core_lang": "rust",
       "absorbed_at": "2026-07-17T14:02:46.000000Z",
@@ -1649,13 +1649,13 @@
       "archived_at": "2026-07-17T14:02:46Z",
       "archived_date": "2026-07-17",
       "archive_reason": "Failsafe: source is a 5-crate Cargo workspace (pheno-config, settly, config-schema, phenotype-config-loader, configra-ops), not single-crate. Package name 'phenotype-config-loader' collides with existing pheno/crates/phenotype-config-loader/. 4+ existing pheno config-domain crates already cover this scope (phenotype-shared-config, phenotype-flags, phenotype-validation, phenotype-state-machine, phenotype-observability). settly's aes-gcm/argon2/sqlx/redis/tokio-postgres/validator stack would bloat pheno's workspace by 30-90s cold-compile. configra-ops has a CLI bin (out of scope for pheno/crates/). Per ADR-031, Configra was already the canonical upstream; reverse-absorbing would duplicate capability.",
-      "absorbed_branch": "(none \u2014 failsafe, no copy performed)",
-      "absorbed_commit": "(none \u2014 failsafe, no copy performed)",
+      "absorbed_branch": "(none — failsafe, no copy performed)",
+      "absorbed_commit": "(none — failsafe, no copy performed)",
       "absorbed_files_added": 0,
-      "absorbed_target_path": "(none \u2014 failsafe, no copy performed)",
+      "absorbed_target_path": "(none — failsafe, no copy performed)",
       "source_branch": "main",
       "default_branch": "main",
-      "note": "Source repo KooshaPari/Configra (5-crate Cargo workspace, 1.27MB source, 3 remote branches). Top-level Cargo.toml is a [workspace] with 5 members: pheno-config (typed Config + ConfigBuilder, env-var cascade, TOML overlay, combine()), settly (settings lifecycle with validation, migration, AES-256-GCM encryption-at-rest, hot-reload via notify, sqlx+redis+tokio-postgres backends), config-schema (JSON-schema field-shape validator, T16 NEW), phenotype-config-loader (generic load_json<T>/load_toml<T> file loaders), configra-ops (lib + bin: observability/health primitives + ops CLI). TypeScript edge layer at typescript/packages/conft/ already drained from Conft (PR-#47). All 5 crates build clean locally: `cargo check --workspace` exits 0. Existing registry boundary doc at phenotype-registry/docs/boundary/Configra.md declares Configra as the canonical Rust config substrate per ADR-031. [ARCHIVE_ONLY 2026-07-17 via failsafe clause in absorption task: 5-crate workspace, not single-crate; literal `cp -r Configra/* pheno/crates/configra/` would conflict on package name 'phenotype-config-loader' (already in pheno/crates/phenotype-config-loader/, see its CANONICAL.md explicitly declaring Configra is the canonical upstream) and would duplicate 4+ existing pheno config-domain crates (phenotype-shared-config, phenotype-flags, phenotype-validation, phenotype-state-machine, phenotype-observability). settly's aes-gcm/argon2/sqlx/redis/tokio-postgres/validator stack would bloat pheno's workspace by 30-90s cold-compile. configra-ops has a CLI bin (out of scope for pheno/crates/). Per ADR-031, Configra was already canonical; reverse-absorbing would duplicate capability. GitHub repo archived via 'gh repo archive KooshaPari/Configra -y'. Registry row repo-Configra updated to disposition=ARCHIVE_ONLY, fsm=absorbed, target=pheno (NOT modified \u2014 failsafe), absorbing_repo=KooshaPari/phenotype-registry. Audit: audits/absorption-justifications/Configra-2026-07-17.md. Boundary doc front-matter status updated active->archived. Mirror precedent: Stashly-2026-07-17, Pine-2026-07-17, helios-cli-failsafe-2026-07-17.]"
+      "note": "Source repo KooshaPari/Configra (5-crate Cargo workspace, 1.27MB source, 3 remote branches). Top-level Cargo.toml is a [workspace] with 5 members: pheno-config (typed Config + ConfigBuilder, env-var cascade, TOML overlay, combine()), settly (settings lifecycle with validation, migration, AES-256-GCM encryption-at-rest, hot-reload via notify, sqlx+redis+tokio-postgres backends), config-schema (JSON-schema field-shape validator, T16 NEW), phenotype-config-loader (generic load_json<T>/load_toml<T> file loaders), configra-ops (lib + bin: observability/health primitives + ops CLI). TypeScript edge layer at typescript/packages/conft/ already drained from Conft (PR-#47). All 5 crates build clean locally: `cargo check --workspace` exits 0. Existing registry boundary doc at phenotype-registry/docs/boundary/Configra.md declares Configra as the canonical Rust config substrate per ADR-031. [ARCHIVE_ONLY 2026-07-17 via failsafe clause in absorption task: 5-crate workspace, not single-crate; literal `cp -r Configra/* pheno/crates/configra/` would conflict on package name 'phenotype-config-loader' (already in pheno/crates/phenotype-config-loader/, see its CANONICAL.md explicitly declaring Configra is the canonical upstream) and would duplicate 4+ existing pheno config-domain crates (phenotype-shared-config, phenotype-flags, phenotype-validation, phenotype-state-machine, phenotype-observability). settly's aes-gcm/argon2/sqlx/redis/tokio-postgres/validator stack would bloat pheno's workspace by 30-90s cold-compile. configra-ops has a CLI bin (out of scope for pheno/crates/). Per ADR-031, Configra was already canonical; reverse-absorbing would duplicate capability. GitHub repo archived via 'gh repo archive KooshaPari/Configra -y'. Registry row repo-Configra updated to disposition=ARCHIVE_ONLY, fsm=absorbed, target=pheno (NOT modified — failsafe), absorbing_repo=KooshaPari/phenotype-registry. Audit: audits/absorption-justifications/Configra-2026-07-17.md. Boundary doc front-matter status updated active->archived. Mirror precedent: Stashly-2026-07-17, Pine-2026-07-17, helios-cli-failsafe-2026-07-17.]"
     },
     {
       "id": "repo-phenotype-router-spec",
@@ -1721,7 +1721,7 @@
       "absorbed_pr": "phenotype-tooling@salvage/phenotype-tooling-workspace-2026-07-15",
       "archived": true,
       "archived_date": "2026-07-17",
-      "target_redirect": "phenodocs -> phenotype-tooling (at absorption time; original assignment was a false friend \u2014 phench is a runtime CLI, not a documentation build tool)",
+      "target_redirect": "phenodocs -> phenotype-tooling (at absorption time; original assignment was a false friend — phench is a runtime CLI, not a documentation build tool)",
       "note": "Python project-state runtime CLI for Phenotype monorepos. 1045 LOC src + 6 test files; 17/17 tests pass. ABSORBED into phenotype-tooling as crates/phench (target was originally queued as phenodocs but reassigned because phench is a runtime developer tool, not a documentation hub). Source repo archived on GitHub."
     },
     {
@@ -1909,7 +1909,7 @@
       "archived": true,
       "archived_date": "2026-07-17",
       "target_redirect": "Was 'Httpora' (reconciliation); split into pheno (Rust httpora-core) + phenodocs (TS @phenotype/quillts) since Quillr had already subsumed Httpora per SUPERSEDED history row 2026-06-20",
-      "note": "Rust HTTP repo with self-acknowledged naming drift (README: 'repo Quillr/README quill\u2026to reconcile'). 23 branches, 266KB. Reconciled: Httpora was already SUPERSEDED 2026-06-20 (its content merged into Quillr as crates/httpora-core). Final absorption: Rust half to pheno monorepo as crates/httpora-core (60 tests passing), TS half (@kooshapari/quillts) to phenodocs as packages/quillts (renamed @phenotype/quillts). Source repo archived via gh repo archive."
+      "note": "Rust HTTP repo with self-acknowledged naming drift (README: 'repo Quillr/README quill…to reconcile'). 23 branches, 266KB. Reconciled: Httpora was already SUPERSEDED 2026-06-20 (its content merged into Quillr as crates/httpora-core). Final absorption: Rust half to pheno monorepo as crates/httpora-core (60 tests passing), TS half (@kooshapari/quillts) to phenodocs as packages/quillts (renamed @phenotype/quillts). Source repo archived via gh repo archive."
     },
     {
       "id": "repo-UnityDoorstop-NexusPatched",
@@ -1928,7 +1928,7 @@
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:30:31.000000Z",
       "archived_date": "2026-07-17",
-      "note": "Game modding utility (Unity Mono runtime loader). Non-Phenotype \u2014 archived; see docs/boundary/legacy-game-mods.md"
+      "note": "Game modding utility (Unity Mono runtime loader). Non-Phenotype — archived; see docs/boundary/legacy-game-mods.md"
     },
     {
       "id": "repo-Compound-Spheres-3D-Backup",
@@ -1947,7 +1947,7 @@
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:30:31.000000Z",
       "archived_date": "2026-07-17",
-      "note": "3D game engine backup (Compound-Spheres-3D upstream archived). Non-Phenotype \u2014 archived; see docs/boundary/legacy-game-mods.md"
+      "note": "3D game engine backup (Compound-Spheres-3D upstream archived). Non-Phenotype — archived; see docs/boundary/legacy-game-mods.md"
     },
     {
       "id": "repo-substrate-adapters-bundle",
@@ -2009,7 +2009,7 @@
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:30:31.000000Z",
       "archived_date": "2026-07-17",
-      "note": "WSM3D \u2014 WorldSphereMod hard fork (WorldBox 3D mod). Non-Phenotype \u2014 archived; see docs/boundary/legacy-game-mods.md"
+      "note": "WSM3D — WorldSphereMod hard fork (WorldBox 3D mod). Non-Phenotype — archived; see docs/boundary/legacy-game-mods.md"
     },
     {
       "id": "repo-phenoEvents",
@@ -2048,7 +2048,7 @@
       "audit_artifact": "audits/absorption-justifications/phenotype-infrakit-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:30:31.000000Z",
-      "note": "Shared infra crates (cost-core, policy-\u2026). Remote-only \u2014 needs clone. [ARCHIVED 2026-07-17: All 7 crates already in pheno monorepo with identical names.]",
+      "note": "Shared infra crates (cost-core, policy-…). Remote-only — needs clone. [ARCHIVED 2026-07-17: All 7 crates already in pheno monorepo with identical names.]",
       "boundary_doc": "docs/boundary/phenotype-infrakit.md"
     },
     {
@@ -2067,7 +2067,7 @@
       "audit_artifact": "audits/absorption-justifications/phenotypeActions-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:30:31.000000Z",
-      "note": "Shared GitHub Action definitions. Remote-only \u2014 needs clone."
+      "note": "Shared GitHub Action definitions. Remote-only — needs clone."
     },
     {
       "id": "repo-phenotype-go-kit",
@@ -2104,7 +2104,7 @@
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:30:31.000000Z",
       "archived_date": "2026-07-17",
-      "note": "DINOForge mod platform for Diplomacy is Not an Option (Steam). Non-Phenotype \u2014 archived; see docs/boundary/legacy-game-mods.md"
+      "note": "DINOForge mod platform for Diplomacy is Not an Option (Steam). Non-Phenotype — archived; see docs/boundary/legacy-game-mods.md"
     },
     {
       "id": "repo-phenodag",
@@ -2122,7 +2122,7 @@
       "audit_artifact": "audits/absorption-justifications/phenodag-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:50:00.000000Z",
-      "note": "Go multi-agent multi-project DAG (single-file Go, SQLite + flock) \u2014 coordination CLI fits tooling layer. [ARCHIVED 2026-07-17: source already archived on GitHub. Single-file Go multi-agent DAG with SQLite + federation; canonical: substrate/adapters.]",
+      "note": "Go multi-agent multi-project DAG (single-file Go, SQLite + flock) — coordination CLI fits tooling layer. [ARCHIVED 2026-07-17: source already archived on GitHub. Single-file Go multi-agent DAG with SQLite + federation; canonical: substrate/adapters.]",
       "boundary_doc": "docs/boundary/phenodag.md"
     },
     {
@@ -2141,7 +2141,7 @@
       "audit_artifact": "audits/absorption-justifications/HeliosLab-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:50:00.000000Z",
-      "note": "TypeScript research lab \u2014 fits phenodocs as research/examples subdomain. [ABSORBED 2026-07-17]"
+      "note": "TypeScript research lab — fits phenodocs as research/examples subdomain. [ABSORBED 2026-07-17]"
     },
     {
       "id": "repo-PhenoHandbook",
@@ -2159,7 +2159,7 @@
       "audit_artifact": "audits/absorption-justifications/PhenoHandbook-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:50:00.000000Z",
-      "note": "Phenotype Handbook patterns/guidelines \u2014 doc-heavy; consolidated into phenodocs/docs/handbook/ (commit a0f2585b). SPINE INTEGRITY NOTE: PhenoHandbook is the CONVENTIONS member of the 4-role spine (registry=INDEX, PhenoSpecs=ADRs, PhenoHandbook=CONVENTIONS, governance=ENFORCEMENT). Concurrent absorption destroys the spine peer relationship. Recommendation: declare the absorbed path as a \"delegated mirror\" or restore the upstream as the spine member."
+      "note": "Phenotype Handbook patterns/guidelines — doc-heavy; consolidated into phenodocs/docs/handbook/ (commit a0f2585b). SPINE INTEGRITY NOTE: PhenoHandbook is the CONVENTIONS member of the 4-role spine (registry=INDEX, PhenoSpecs=ADRs, PhenoHandbook=CONVENTIONS, governance=ENFORCEMENT). Concurrent absorption destroys the spine peer relationship. Recommendation: declare the absorbed path as a \"delegated mirror\" or restore the upstream as the spine member."
     },
     {
       "id": "repo-Conft",
@@ -2177,7 +2177,7 @@
       "audit_artifact": "audits/absorption-justifications/Conft-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:50:00.000000Z",
-      "note": "BLOCK A app (Conft) \u2014 only non-Rust BLOCK A app. Target phenotype-apps/apps/conft/ per ADR-023. [ABSORBED 2026-07-17 \u2192 apps/conft/, commit 28c75c64]"
+      "note": "BLOCK A app (Conft) — only non-Rust BLOCK A app. Target phenotype-apps/apps/conft/ per ADR-023. [ABSORBED 2026-07-17 → apps/conft/, commit 28c75c64]"
     },
     {
       "id": "repo-context-mode-plusplus",
@@ -2195,7 +2195,7 @@
       "audit_artifact": "audits/absorption-justifications/context-mode-plusplus-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:50:00.000000Z",
-      "note": "Phenotype+ fork of mksglu/context-mode \u2014 middleware/adapter integration; OmniRoute owns route/middleware per ADR-ECO-007. [ARCHIVED 2026-07-17: upstream OSS fork of mksglu/context-mode. plus suffix indicates Phenotype+ branding on a vendored upstream. No net-new content worth absorbing \u2014 primary code lives in upstream.]",
+      "note": "Phenotype+ fork of mksglu/context-mode — middleware/adapter integration; OmniRoute owns route/middleware per ADR-ECO-007. [ARCHIVED 2026-07-17: upstream OSS fork of mksglu/context-mode. plus suffix indicates Phenotype+ branding on a vendored upstream. No net-new content worth absorbing — primary code lives in upstream.]",
       "boundary_doc": "docs/boundary/context-mode-plusplus.md"
     },
     {
@@ -2214,7 +2214,7 @@
       "audit_artifact": "audits/absorption-justifications/pheno-forge-plugins-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:50:00.000000Z",
-      "note": "Sidecar bundle for antinomyhq/forgecode \u2014 6 plugins (memory + config + tracing) as systemd units. Target phenotype-tooling/plugins/pheno-forge/. [ABSORBED 2026-07-17]"
+      "note": "Sidecar bundle for antinomyhq/forgecode — 6 plugins (memory + config + tracing) as systemd units. Target phenotype-tooling/plugins/pheno-forge/. [ABSORBED 2026-07-17]"
     },
     {
       "id": "repo-PhenoContracts",
@@ -2233,7 +2233,7 @@
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:50:00.000000Z",
       "supersedes_row": "gate-phenocontracts (id 1259, HOLD_DECOMPOSE)",
-      "note": "Formal verification port + Prusti/Kani adapters + contract test bundle. Spec content \u2192 PhenoSpecs; runtime verifier \u2192 TestingKit. Replaces HOLD_DECOMPOSE row. [ARCHIVED 2026-07-17: phenotype-contracts + phenotype-port-traits already in pheno (with stricter impl). phenotype-port-interfaces was a single-file crate redundant with phenotype-port-traits.]",
+      "note": "Formal verification port + Prusti/Kani adapters + contract test bundle. Spec content → PhenoSpecs; runtime verifier → TestingKit. Replaces HOLD_DECOMPOSE row. [ARCHIVED 2026-07-17: phenotype-contracts + phenotype-port-traits already in pheno (with stricter impl). phenotype-port-interfaces was a single-file crate redundant with phenotype-port-traits.]",
       "boundary_doc": "docs/boundary/PhenoContracts.md"
     },
     {
@@ -2253,7 +2253,7 @@
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:50:00.000000Z",
       "supersedes_row": "repo-KodeVibe-absorption-2026-06-29 (id 1448/1462, AFFIRM)",
-      "note": "Go code quality guardian \u2014 re-classified from AFFIRM to ABSORB. Per RATIONALIZATION_EXECUTION.md plan: phenotype-tooling \u2190 KodeVibe as crates/kodevibe. [ABSORBED 2026-07-17: phenotype-tooling/Tools/kodevibe/ \u2014 27MB Go quality guardian fully synced; pre-existing canonical copy confirmed via diff -r; auto-commit daemon 9683c3c9.]",
+      "note": "Go code quality guardian — re-classified from AFFIRM to ABSORB. Per RATIONALIZATION_EXECUTION.md plan: phenotype-tooling ← KodeVibe as crates/kodevibe. [ABSORBED 2026-07-17: phenotype-tooling/Tools/kodevibe/ — 27MB Go quality guardian fully synced; pre-existing canonical copy confirmed via diff -r; auto-commit daemon 9683c3c9.]",
       "absorbed_date": "2026-07-17",
       "absorbed_pr": "phenotype-tooling#9683c3c9 + salvage/phenotype-tooling-workspace-2026-07-15",
       "archived": true,
@@ -2278,7 +2278,7 @@
       "supersedes_row": "repo-KWatch (id 1518, AFFIRM)",
       "absorbed_date": "2026-07-17",
       "archived": true,
-      "note": "Go Kubernetes monitoring/alerting \u2014 re-classified AFFIRM\u2192ABSORB. Target phenotype-tooling/cmd/kwatch/. [ABSORBED 2026-07-17: phenotype-tooling/Tools/kwatch/ \u2014 133 files Go K8s monitoring fully synced; diff -r shows zero drift vs source; go build + go vet exit 0.]",
+      "note": "Go Kubernetes monitoring/alerting — re-classified AFFIRM→ABSORB. Target phenotype-tooling/cmd/kwatch/. [ABSORBED 2026-07-17: phenotype-tooling/Tools/kwatch/ — 133 files Go K8s monitoring fully synced; diff -r shows zero drift vs source; go build + go vet exit 0.]",
       "absorbed_pr": "phenotype-tooling#9683c3c9 (feat: absorb KWatch Go monitoring tool into tools/kwatch/)",
       "archived_date": "2026-07-17"
     },
@@ -2299,7 +2299,7 @@
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:50:00.000000Z",
       "supersedes_row": "repo-heliosBench (id 1616, AFFIRM)",
-      "note": "HeliosBench performance benchmarking \u2014 re-classified AFFIRM\u2192ABSORB. Target phenotype-tooling/bench/heliosbench/. [ABSORBED 2026-07-17: phenotype-tooling/crates/heliosbench/ \u2014 Python perf benchmarking, pre-existing canonical copy + 7 governance files (SSOT/VERSION/cliff/deny/llms + logging_config.py/py.typed) synced; commit a7834167.]",
+      "note": "HeliosBench performance benchmarking — re-classified AFFIRM→ABSORB. Target phenotype-tooling/bench/heliosbench/. [ABSORBED 2026-07-17: phenotype-tooling/crates/heliosbench/ — Python perf benchmarking, pre-existing canonical copy + 7 governance files (SSOT/VERSION/cliff/deny/llms + logging_config.py/py.typed) synced; commit a7834167.]",
       "absorbed_date": "2026-07-17",
       "absorbed_pr": "phenotype-tooling#a7834167 (heliosbench governance + Python logging_config.py/py.typed sync)",
       "archived": true,
@@ -2341,7 +2341,7 @@
       "boundary_artifact": "docs/boundary/hwLedger.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:35:00.000000Z",
-      "note": "Phenotype-org hardware ledger. AFFIRMED 2026-07-17 (CANON declaration): no absorption target; hwLedger is itself the canonical home. Boundary doc captured at docs/boundary/hwLedger.md (project descriptor: projects/hwLedger.json; canonical_scope enumerated; fsm advanced from active to verified). | 2026-07-17 absorption-attempt override: incoming task requested absorb\u2192phenotype-infra + `gh repo archive`; rejected because (a) AFFIRM verdict set today at 2026-07-17T12:50:00Z, (b) boundary doc line 148 'git push is not to be issued by this audit agent' + 'never archive per AFFIRM verdict', (c) actual local repo is 8.4GB (15\u00d7 stated 542MB), no top-level src/tests/Cargo.toml (only README.md + apps/{macos.dmg,streamlit,landing,build}+ docs/.vitepress/dist/ + sidecars/omlx-fork submodule + tools/), (d) math substrate already extracted to KooshaPari/pheno-capacity per ADR-035A L5-115 2026-06-19. Failsafe 'ARCHIVE_ONLY + boundary doc if conflicts' not applied because explicit boundary guidance forbids archive. Outcome: no code copied, no commit to phenotype-infra, no `gh repo archive`. User choice deferred (A override AFFIRM+absorb | B force ARCHIVE_ONLY | C preserve AFFIRM) \u2014 defaulted to C pending explicit user override; provenance recorded in registry note + docs/boundary/hwLedger.md 'Disposition Conflict Log' for audit trail."
+      "note": "Phenotype-org hardware ledger. AFFIRMED 2026-07-17 (CANON declaration): no absorption target; hwLedger is itself the canonical home. Boundary doc captured at docs/boundary/hwLedger.md (project descriptor: projects/hwLedger.json; canonical_scope enumerated; fsm advanced from active to verified). | 2026-07-17 absorption-attempt override: incoming task requested absorb→phenotype-infra + `gh repo archive`; rejected because (a) AFFIRM verdict set today at 2026-07-17T12:50:00Z, (b) boundary doc line 148 'git push is not to be issued by this audit agent' + 'never archive per AFFIRM verdict', (c) actual local repo is 8.4GB (15× stated 542MB), no top-level src/tests/Cargo.toml (only README.md + apps/{macos.dmg,streamlit,landing,build}+ docs/.vitepress/dist/ + sidecars/omlx-fork submodule + tools/), (d) math substrate already extracted to KooshaPari/pheno-capacity per ADR-035A L5-115 2026-06-19. Failsafe 'ARCHIVE_ONLY + boundary doc if conflicts' not applied because explicit boundary guidance forbids archive. Outcome: no code copied, no commit to phenotype-infra, no `gh repo archive`. User choice deferred (A override AFFIRM+absorb | B force ARCHIVE_ONLY | C preserve AFFIRM) — defaulted to C pending explicit user override; provenance recorded in registry note + docs/boundary/hwLedger.md 'Disposition Conflict Log' for audit trail."
     },
     {
       "id": "repo-omniroute-rs",
@@ -2399,7 +2399,7 @@
       "audit_artifact": "audits/absorption-justifications/pheno-otel-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:35:00.000000Z",
-      "note": "OTEL exporter/wrappers for pheno-* fleet. Per ADR-036 tracing substrate pattern; complements pheno-tracing. [ABSORBED 2026-07-17: PhenoObservability/pheno-otel/ \u2014 propagation module added (W3C Trace Context + B3 + Jaeger, 13 new unit tests, all passing); lib.rs wired with pub mod propagation; isolated cargo check clean; commit 8d53e70.]",
+      "note": "OTEL exporter/wrappers for pheno-* fleet. Per ADR-036 tracing substrate pattern; complements pheno-tracing. [ABSORBED 2026-07-17: PhenoObservability/pheno-otel/ — propagation module added (W3C Trace Context + B3 + Jaeger, 13 new unit tests, all passing); lib.rs wired with pub mod propagation; isolated cargo check clean; commit 8d53e70.]",
       "absorbed_date": "2026-07-17",
       "absorbed_pr": "PhenoObservability#8d53e70 (feat(pheno-otel): add propagation module)",
       "archived": true,
@@ -2421,7 +2421,7 @@
       "audit_artifact": "audits/absorption-justifications/Apisync-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:35:00.000000Z",
-      "note": "BLOCK A app (Apisync) \u2014 Rust. Per ADR-023, BLOCK A apps self-repod. Target: phenotype-apps/apps/apisync/ alongside Conft. [ABSORBED 2026-07-17]"
+      "note": "BLOCK A app (Apisync) — Rust. Per ADR-023, BLOCK A apps self-repod. Target: phenotype-apps/apps/apisync/ alongside Conft. [ABSORBED 2026-07-17]"
     },
     {
       "id": "repo-PhenoVCS",
@@ -2476,7 +2476,7 @@
       "audit_artifact": "audits/absorption-justifications/PlayCua-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:35:00.000000Z",
-      "note": "Bare-metal computer-use agent (Rust core + Python). Splits: Rust \u2192 phenoAI; Python \u2192 phenoAI py-bridge. [ARCHIVE_ONLY 2026-07-17: phenoAI absorption rolled back after concrete cargo-metadata verification. First failure: workspace.package.edition was not defined in phenoAI. Second failure: ~15 transitive deps (tokio/serde/async-trait/rmcp/schemars/clap/axum/tower/...) missing from phenoAI workspace.dependencies. Third failure (root cause): pheno-* workspace deps not resolvable \u2014 /repos/pheno-errors has no Cargo.toml, /repos/pheno-flags is absent, /repos/pheno-tracing has its own [workspace] declaration. Pervasive usage in native/src/main.rs (pheno_errors::AppError, pheno_tracing::init, pheno_flags::FlagSet::from_env) and native/src/app/mod.rs (pheno_flags::FlagSet) \u2014 cannot be stripped as part of an absorb. Boundary doc with reproduction commands: audits/absorption-justifications/PlayCua-2026-07-17.md.] [ARCHIVED 2026-07-17 on GitHub.]"
+      "note": "Bare-metal computer-use agent (Rust core + Python). Splits: Rust → phenoAI; Python → phenoAI py-bridge. [ARCHIVE_ONLY 2026-07-17: phenoAI absorption rolled back after concrete cargo-metadata verification. First failure: workspace.package.edition was not defined in phenoAI. Second failure: ~15 transitive deps (tokio/serde/async-trait/rmcp/schemars/clap/axum/tower/...) missing from phenoAI workspace.dependencies. Third failure (root cause): pheno-* workspace deps not resolvable — /repos/pheno-errors has no Cargo.toml, /repos/pheno-flags is absent, /repos/pheno-tracing has its own [workspace] declaration. Pervasive usage in native/src/main.rs (pheno_errors::AppError, pheno_tracing::init, pheno_flags::FlagSet::from_env) and native/src/app/mod.rs (pheno_flags::FlagSet) — cannot be stripped as part of an absorb. Boundary doc with reproduction commands: audits/absorption-justifications/PlayCua-2026-07-17.md.] [ARCHIVED 2026-07-17 on GitHub.]"
     },
     {
       "id": "repo-DataKit-batch4",
@@ -2495,7 +2495,7 @@
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:35:00.000000Z",
       "archived_at": "2026-07-17T15:00:00.000000Z",
-      "note": "BLOCK A app (DataKit) \u2014 Rust. Per ADR-023, BLOCK A apps self-repod. Target: phenotype-apps/apps/datakit/. FAILSAFE 2026-07-17: source repo is Python (pyproject.toml, hatchling, Python \u22653.10), NOT Rust. Repo is self-declared DEPRECATED \u2014 ARCHIVE RECOMMENDED per README.md and TOMBSTONE.md. Per RATIONALIZATION_EXECUTION.md \u00a72 line 76-80, canonical DataKit target is phenotype-python-sdk/packages/data-kit/ which is already active. v37 audit score 0.08/3.00 (9/12 clusters at 0.00). No live dependents in fleet (grep-verified: zero `from datakit`/`import datakit`/`datakit::` outside SBOMs). 143-line pre-alpha pipeline.py is out of scope for storage/events SDK. ABSORB target phenotype-apps/apps/datakit/ VOIDED. Source GitHub repo archived via `gh repo archive KooshaPari/DataKit -y`; local mirror preserved per standing rule. Verdict: ARCHIVE_ONLY with failsafe justification."
+      "note": "BLOCK A app (DataKit) — Rust. Per ADR-023, BLOCK A apps self-repod. Target: phenotype-apps/apps/datakit/. FAILSAFE 2026-07-17: source repo is Python (pyproject.toml, hatchling, Python ≥3.10), NOT Rust. Repo is self-declared DEPRECATED — ARCHIVE RECOMMENDED per README.md and TOMBSTONE.md. Per RATIONALIZATION_EXECUTION.md §2 line 76-80, canonical DataKit target is phenotype-python-sdk/packages/data-kit/ which is already active. v37 audit score 0.08/3.00 (9/12 clusters at 0.00). No live dependents in fleet (grep-verified: zero `from datakit`/`import datakit`/`datakit::` outside SBOMs). 143-line pre-alpha pipeline.py is out of scope for storage/events SDK. ABSORB target phenotype-apps/apps/datakit/ VOIDED. Source GitHub repo archived via `gh repo archive KooshaPari/DataKit -y`; local mirror preserved per standing rule. Verdict: ARCHIVE_ONLY with failsafe justification."
     },
     {
       "id": "repo-Tokn",
@@ -2513,7 +2513,7 @@
       "audit_artifact": "audits/absorption-justifications/Tokn-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:50:00.000000Z",
-      "note": "Rust JWT/token primitives; hexagonal architecture, ARCHITECTURE.md present. Small library ready for pheno monorepo integration. [ARCHIVE_ONLY 2026-07-17: 2 standalone CLI crates (pareto-rs, tokenledger-rs) \u2014 not lib-shaped; no fleet consumers.]",
+      "note": "Rust JWT/token primitives; hexagonal architecture, ARCHITECTURE.md present. Small library ready for pheno monorepo integration. [ARCHIVE_ONLY 2026-07-17: 2 standalone CLI crates (pareto-rs, tokenledger-rs) — not lib-shaped; no fleet consumers.]",
       "boundary_doc": "docs/boundary/Tokn.md"
     },
     {
@@ -2772,7 +2772,7 @@
       "added_at": "2026-07-17T04:55:00.000000Z",
       "target_path": "./",
       "confidence": 0.85,
-      "note": "Self-declared implementations registry (catalog + schemas + servers + skills + plugins + agents). Has its own 30-file structure with multi-Python packages, validation scripts, and PyPI publishing pipeline. Not absorbable into any other repo. Treating as a SELF-DECLARED SPINE MEMBER alongside the 4-role spine (registry=INDEX, PhenoSpecs=ADRs, PhenoHandbook=CONVENTIONS, governance=ENFORCEMENT). Recommend: add PhenoMCPServers=IMPLEMENTATIONS to the 5th spine role, update SPINE-DEFINITION.md. | 2026-07-17 absorption-attempt override: incoming task requested absorb content into phenodocs/registry/mcp-servers/ + 'gh repo archive'; rejected (ARCHIVE_ONLY via failsafe) because (a) source is 5.5MB+ runnable Python \u2014 servers/{substrate,pheno-org,forge3-bridge,external} = MCP server packages plus pyproject.toml + uv.lock + .venv + tests/ + scripts/ + catalog/ + schemas/ + skills/ + plugins/ + agents/ + docs/ \u2014 NOT pure registry docs (md-only), so the 'if docs: cp -r' branch was skipped, (b) phenodocs/registry/ directory does not exist; phenodocs is a VitePress docs site, not a code host; the actual registry lives at phenotype-registry/registry/, (c) target-conflict: task target=phenodocs/registry/mcp-servers/ vs prior absorbed_target_path=docs/spine/PhenoMCPServers.md, (d) this row (2026-07-17 earlier audit) already decided DECLARE_SPINE / 'Not absorbable into any other repo' / 'Source repo: kept live', and (e) the 5th spine role (IMPLEMENTATIONS) recommendation is orthogonal to whether the GitHub repo is sealed. Per task failsafe 'ARCHIVE_ONLY if conflicts', content was NOT copied to phenodocs; the GitHub repo was sealed read-only via 'gh repo archive KooshaPari/PhenoMCPServers -y' (verified isArchived=true 2026-07-17, size 2594KB, last push 2026-07-17T12:25:12Z). The 5th-spine role proposal remains in force; archive is orthogonal to spine membership. Restore procedure: 'gh repo unarchive KooshaPari/PhenoMCPServers' (reverses the seal) + revert this note append + when/if the 5-role spine is ratified, update SPINE-DEFINITION.md to declare PhenoMCPServers=IMPLEMENTATIONS.",
+      "note": "Self-declared implementations registry (catalog + schemas + servers + skills + plugins + agents). Has its own 30-file structure with multi-Python packages, validation scripts, and PyPI publishing pipeline. Not absorbable into any other repo. Treating as a SELF-DECLARED SPINE MEMBER alongside the 4-role spine (registry=INDEX, PhenoSpecs=ADRs, PhenoHandbook=CONVENTIONS, governance=ENFORCEMENT). Recommend: add PhenoMCPServers=IMPLEMENTATIONS to the 5th spine role, update SPINE-DEFINITION.md. | 2026-07-17 absorption-attempt override: incoming task requested absorb content into phenodocs/registry/mcp-servers/ + 'gh repo archive'; rejected (ARCHIVE_ONLY via failsafe) because (a) source is 5.5MB+ runnable Python — servers/{substrate,pheno-org,forge3-bridge,external} = MCP server packages plus pyproject.toml + uv.lock + .venv + tests/ + scripts/ + catalog/ + schemas/ + skills/ + plugins/ + agents/ + docs/ — NOT pure registry docs (md-only), so the 'if docs: cp -r' branch was skipped, (b) phenodocs/registry/ directory does not exist; phenodocs is a VitePress docs site, not a code host; the actual registry lives at phenotype-registry/registry/, (c) target-conflict: task target=phenodocs/registry/mcp-servers/ vs prior absorbed_target_path=docs/spine/PhenoMCPServers.md, (d) this row (2026-07-17 earlier audit) already decided DECLARE_SPINE / 'Not absorbable into any other repo' / 'Source repo: kept live', and (e) the 5th spine role (IMPLEMENTATIONS) recommendation is orthogonal to whether the GitHub repo is sealed. Per task failsafe 'ARCHIVE_ONLY if conflicts', content was NOT copied to phenodocs; the GitHub repo was sealed read-only via 'gh repo archive KooshaPari/PhenoMCPServers -y' (verified isArchived=true 2026-07-17, size 2594KB, last push 2026-07-17T12:25:12Z). The 5th-spine role proposal remains in force; archive is orthogonal to spine membership. Restore procedure: 'gh repo unarchive KooshaPari/PhenoMCPServers' (reverses the seal) + revert this note append + when/if the 5-role spine is ratified, update SPINE-DEFINITION.md to declare PhenoMCPServers=IMPLEMENTATIONS.",
       "absorbing_repo": "phenotype-registry",
       "absorbed_target_path": "docs/spine/PhenoMCPServers.md",
       "archived_at": "2026-07-17",
@@ -2796,7 +2796,7 @@
       "added_at": "2026-07-17T04:55:00.000000Z",
       "target_path": "docs/specs/phenotype-specs/",
       "confidence": 0.85,
-      "note": "ABSORBED 2026-07-17 by concurrent agent \u2014 physically copied to docs/specs/pheno-specs/. SPINE INTEGRITY NOTE: PhenoSpecs is declared the ADRs/contracts member of the 4-role spine (registry=INDEX, PhenoSpecs=ADRs, PhenoHandbook=CONVENTIONS, governance=ENFORCEMENT) per its own README. Concurrent absorption destroys the spine peer relationship. Recommendation: declare the absorbed path as a \"delegated mirror\" rather than a true absorption, OR restore the upstream as the spine member.",
+      "note": "ABSORBED 2026-07-17 by concurrent agent — physically copied to docs/specs/pheno-specs/. SPINE INTEGRITY NOTE: PhenoSpecs is declared the ADRs/contracts member of the 4-role spine (registry=INDEX, PhenoSpecs=ADRs, PhenoHandbook=CONVENTIONS, governance=ENFORCEMENT) per its own README. Concurrent absorption destroys the spine peer relationship. Recommendation: declare the absorbed path as a \"delegated mirror\" rather than a true absorption, OR restore the upstream as the spine member.",
       "absorbed_into": "phenotype-registry",
       "absorbed_target_path": "docs/specs/pheno-specs/",
       "absorbed_at": "2026-07-17"
@@ -2819,7 +2819,7 @@
       "added_at": "2026-07-17T04:55:00.000000Z",
       "target_path": "crates/hexa-kit/",
       "confidence": 0.8,
-      "note": "ARCHIVE_ONLY after audit. 38-crate workspace, 1.5G total size. Many crates (phenotype-error-core, phenotype-contracts, phenotype-crypto, etc.) overlap with existing pheno/ workspace crates \u2014 likely partial duplicate. Full audit would require 60+ min of dependency-graph analysis. Consolidating workspace metadata into docs/boundary/large-workspace-repos.md for future triangulation.",
+      "note": "ARCHIVE_ONLY after audit. 38-crate workspace, 1.5G total size. Many crates (phenotype-error-core, phenotype-contracts, phenotype-crypto, etc.) overlap with existing pheno/ workspace crates — likely partial duplicate. Full audit would require 60+ min of dependency-graph analysis. Consolidating workspace metadata into docs/boundary/large-workspace-repos.md for future triangulation.",
       "absorbing_repo": "phenotype-registry",
       "absorbed_target_path": "docs/boundary/large-workspace-repos.md",
       "archived_at": "2026-07-17",
@@ -2867,7 +2867,7 @@
       "added_at": "2026-07-17T04:55:00.000000Z",
       "target_path": "crates/tasken/",
       "confidence": 0.7,
-      "note": "ARCHIVE_ONLY after audit. Single-crate (`taskkit`, 1.1G \u2014 most of which is upstream deps cache) but pub name is `taskkit` while repo is `Tasken`. Domain (universal task execution / scheduler / workflow) already covered by pheno-runtime's eyetracker-* crates. Heavy footprint (1.1G) and name mismatch (Tasken vs taskkit) create absorption friction. Consolidating crate metadata into docs/boundary/large-workspace-repos.md.",
+      "note": "ARCHIVE_ONLY after audit. Single-crate (`taskkit`, 1.1G — most of which is upstream deps cache) but pub name is `taskkit` while repo is `Tasken`. Domain (universal task execution / scheduler / workflow) already covered by pheno-runtime's eyetracker-* crates. Heavy footprint (1.1G) and name mismatch (Tasken vs taskkit) create absorption friction. Consolidating crate metadata into docs/boundary/large-workspace-repos.md.",
       "absorbing_repo": "phenotype-registry",
       "absorbed_target_path": "docs/boundary/large-workspace-repos.md",
       "archived_at": "2026-07-17",
@@ -2970,7 +2970,7 @@
       "id": "repo-phenotype-landing",
       "path": "KooshaPari/phenotype-landing",
       "disposition": "ARCHIVE_ONLY",
-      "target": "phenodocs (packages/landing/ \u2014 deferred absorption stub; no code copied)",
+      "target": "phenodocs (packages/landing/ — deferred absorption stub; no code copied)",
       "wave": "2026-07-17-queue-refresh-2",
       "fsm": "absorbed",
       "core_lang": "astro",
@@ -2982,7 +2982,7 @@
       "audit_artifact": "audits/absorption-justifications/phenotype-landing-deferred-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T13:00:00.000000Z",
-      "note": "Phenotype landing page (Astro site). Targets: phenodocs/packages/landing/ (the docs hub is the canonical home for landing/marketing). [DEFERRED-W2: too large or structurally wrong for single-session absorption; needs dedicated audit phase] [ARCHIVE_ONLY 2026-07-17: source is a 7-site Astro monorepo (1.6GB tracked+untracked, ~1.4GB of node_modules across 7 sites), NOT a single landing page. cp -r phenotype-landing/* phenodocs/packages/landing/ would copy 7 independent Astro sites with their own package.json + bun.lock + vercel.json + .github/workflows into a VitePress federation hub \u2014 architecturally mismatched. Each site deploys independently to Vercel. Per task failsafe clause (build heavy or conflicts exist), pivoted to ARCHIVE_ONLY: source repo archived on GitHub via `gh repo archive`; no code copied; boundary doc at docs/boundary/phenotype-landing.md + deferred absorption justification at audits/absorption-justifications/phenotype-landing-deferred-2026-07-17.md capture the rejection; phenodocs/packages/landing/ contains only a forward-pointer README explaining the deferred absorption.]",
+      "note": "Phenotype landing page (Astro site). Targets: phenodocs/packages/landing/ (the docs hub is the canonical home for landing/marketing). [DEFERRED-W2: too large or structurally wrong for single-session absorption; needs dedicated audit phase] [ARCHIVE_ONLY 2026-07-17: source is a 7-site Astro monorepo (1.6GB tracked+untracked, ~1.4GB of node_modules across 7 sites), NOT a single landing page. cp -r phenotype-landing/* phenodocs/packages/landing/ would copy 7 independent Astro sites with their own package.json + bun.lock + vercel.json + .github/workflows into a VitePress federation hub — architecturally mismatched. Each site deploys independently to Vercel. Per task failsafe clause (build heavy or conflicts exist), pivoted to ARCHIVE_ONLY: source repo archived on GitHub via `gh repo archive`; no code copied; boundary doc at docs/boundary/phenotype-landing.md + deferred absorption justification at audits/absorption-justifications/phenotype-landing-deferred-2026-07-17.md capture the rejection; phenodocs/packages/landing/ contains only a forward-pointer README explaining the deferred absorption.]",
       "archived_at": "2026-07-17T15:50:00.000000Z"
     },
     {
@@ -3025,7 +3025,7 @@
       "audit_artifact": "audits/absorption-justifications/omniroute-rust-failsafe-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T13:00:00.000000Z",
-      "note": "OmniRoute Rust substrate (240KB). Targets: HexaKit/crates/omniroute/ (the hexagonal kit is the canonical Rust home for route/router primitives). [DEFERRED-W2: too large or structurally wrong for single-session absorption; needs dedicated audit phase] [ABSORPTION FAILED 2026-07-17: source is a 13-member Rust workspace (omni-core, omni-protocol, omni-storage, omni-translator, omni-router, omni-compression, omni-server, omni-mcp, omni-a2a, omni-telemetry, omni-cli, omni-sdk, omni-crypto) under [workspace] root, not the single client/binding crate assumed by the task. No top-level src/ or tests/ exists; literal cp -r command exits 1. Per task failsafe clause, source repo was archived via `gh repo archive KooshaPari/omniroute-rust -y` (verified isArchived:true) without code being copied into HexaKit. BOUNDARY.md committed to source before archive at commit 348101a. Real rationale doc: audits/absorption-justifications/omniroute-rust-failsafe-2026-07-17.md. Disposition ABSORB + target HexaKit (crates/omniroute/) retained for forward compatibility \u2014 a future decomposition audit can resume from this row. The smaller repo-omniroute-rs is already fsm:absorbed into OmniRoute (crates/omniroute-rs/) and likely the long-term canonical substrate.] [ARCHIVE_ONLY 2026-07-17: 13-crate Rust workspace \u2014 too structurally distinct for HexaKit integration; absorbed as audit record only.]"
+      "note": "OmniRoute Rust substrate (240KB). Targets: HexaKit/crates/omniroute/ (the hexagonal kit is the canonical Rust home for route/router primitives). [DEFERRED-W2: too large or structurally wrong for single-session absorption; needs dedicated audit phase] [ABSORPTION FAILED 2026-07-17: source is a 13-member Rust workspace (omni-core, omni-protocol, omni-storage, omni-translator, omni-router, omni-compression, omni-server, omni-mcp, omni-a2a, omni-telemetry, omni-cli, omni-sdk, omni-crypto) under [workspace] root, not the single client/binding crate assumed by the task. No top-level src/ or tests/ exists; literal cp -r command exits 1. Per task failsafe clause, source repo was archived via `gh repo archive KooshaPari/omniroute-rust -y` (verified isArchived:true) without code being copied into HexaKit. BOUNDARY.md committed to source before archive at commit 348101a. Real rationale doc: audits/absorption-justifications/omniroute-rust-failsafe-2026-07-17.md. Disposition ABSORB + target HexaKit (crates/omniroute/) retained for forward compatibility — a future decomposition audit can resume from this row. The smaller repo-omniroute-rs is already fsm:absorbed into OmniRoute (crates/omniroute-rs/) and likely the long-term canonical substrate.] [ARCHIVE_ONLY 2026-07-17: 13-crate Rust workspace — too structurally distinct for HexaKit integration; absorbed as audit record only.]"
     },
     {
       "id": "repo-StealthStartup",
@@ -3060,7 +3060,7 @@
       "last_push": "2026-07-17T05:27:00Z",
       "audit_artifact": "audits/absorption-justifications/netweave-3-2026-07-17.md",
       "added_at": "2026-07-17T14:30:00.000000Z",
-      "note": "Netweave HTML landing (76KB). Target: phenodocs/docs/netweave/. Cloned first (not yet present locally). [ABSORBED 2026-07-17 \u2192 phenodocs docs/netweave/]"
+      "note": "Netweave HTML landing (76KB). Target: phenodocs/docs/netweave/. Cloned first (not yet present locally). [ABSORBED 2026-07-17 → phenodocs docs/netweave/]"
     },
     {
       "id": "repo-bench-results-data",
@@ -3074,11 +3074,11 @@
       "last_push": "2026-07-16T20:13:46Z",
       "audit_artifact": "audits/absorption-justifications/bench-results-2026-07-17.md",
       "added_at": "2026-07-17T14:30:00.000000Z",
-      "note": "Bench results data (7 JSON + 1 MD, total ~7KB). NOT an absorb \u2014 DATA_ONLY archivation into registry/bench-results-data/. [2026-07-17] DATA archivation COMPLETE: fsm active\u2192absorbed. Files landed in registry/bench-results-data/ (commit 9df46bfbf on registry-main). Source repo KooshaPari/bench-results archived via gh repo archive (isArchived=true verified). File count corrected: 8 JSON + 2 MD (not 7+1 as originally noted; includes README.md auto-import marker).",
+      "note": "Bench results data (7 JSON + 1 MD, total ~7KB). NOT an absorb — DATA_ONLY archivation into registry/bench-results-data/. [2026-07-17] DATA archivation COMPLETE: fsm active→absorbed. Files landed in registry/bench-results-data/ (commit 9df46bfbf on registry-main). Source repo KooshaPari/bench-results archived via gh repo archive (isArchived=true verified). File count corrected: 8 JSON + 2 MD (not 7+1 as originally noted; includes README.md auto-import marker).",
       "archived": true,
       "archived_at": "2026-07-17T17:09:00Z",
       "absorbed_at": "2026-07-17T17:09:00.000000Z",
-      "archive_reason": "DATA_ONLY archivation: 8 JSON + 2 MD (10 files, ~17.5KB) copied byte-for-byte to phenotype-registry/registry/bench-results-data/ (commit 9df46bfbf on registry-main). Source repo KooshaPari/bench-results archived via gh CLI (isArchived=true). NOT a code absorption \u2014 DATA_ONLY terminal state.",
+      "archive_reason": "DATA_ONLY archivation: 8 JSON + 2 MD (10 files, ~17.5KB) copied byte-for-byte to phenotype-registry/registry/bench-results-data/ (commit 9df46bfbf on registry-main). Source repo KooshaPari/bench-results archived via gh CLI (isArchived=true). NOT a code absorption — DATA_ONLY terminal state.",
       "relocated_date": "2026-07-17"
     },
     {
@@ -3099,7 +3099,7 @@
       "id": "repo-crates",
       "path": "KooshaPari/crates",
       "disposition": "ARCHIVE_ONLY",
-      "target": "phenotype-tooling (no fit \u2014 failsafe applies)",
+      "target": "phenotype-tooling (no fit — failsafe applies)",
       "wave": "2026-07-17-queue-refresh-batch5",
       "fsm": "absorbed",
       "core_lang": "rust",
@@ -3116,7 +3116,48 @@
       "archive_reason": "failsafe-no-fit-in-phenotype-tooling",
       "canonical_source": "KooshaPari/OmniRoute/crates/omniroute-ffi/ (omniroute-ffi) + KooshaPari/Civis/crates/civ-powers/ (powers)",
       "absorbing_repo": "KooshaPari/phenotype-registry",
-      "note": "KooshaPari/crates (264KB, generic name). Targets: phenotype-tooling (per 2026-07-17 dispatch). [DEFERRED-W2: structurally wrong for phenotype-tooling; no clear home]. [ARCHIVE_ONLY 2026-07-17 via failsafe path]: Source repo contains two unrelated Rust sub-crates with no single-crate lift path into phenotype-tooling: (a) omniroute-ffi/ (924K) \u2014 a 7-crate Cargo workspace of cdylib FFI surfaces (combo-scorer, signature-cache, sse-chunking, guardrails-pii, token-bucket, bifrost-bridge, combo-scorer-napi) explicitly scoped to OmniRoute per [workspace.metadata.omniroute] config + README's 'fork-only (KooshaPari/OmniRoute)' note. Belongs in KooshaPari/OmniRoute/crates/omniroute-ffi/ (OmniRoute monorepo already hosts crates/omniroute-agent + crates/omniroute-rs); (b) powers/ (24K) \u2014 single crate 'civ-powers' (PowerDefinition / cooldown / synergy / registry) implementing game mechanics for the Civ engine. Belongs in KooshaPari/Civis/crates/civ-powers/ (Civis is the canonical CivLab workspace per registry row Civis.json). phenotype-tooling's crates/ hosts tooling/audit/observability utilities (rlib only, repository=phenotype-tooling) \u2014 it does NOT absorb product FFI cdylibs or game-mechanics crates. cargo check evidence (2026-07-17): omniroute-ffi 7-crate workspace builds clean (8.26s, 4 dead-code warnings only); civ-powers builds clean (3.50s, 0 warnings). Source repo archived via 'gh repo archive KooshaPari/crates -y' (verified isArchived=true 2026-07-17). Local repos/crates/ retained as git-tracked historical record; no copy to phenotype-tooling, no workspace edit. Pattern matches repo-omniroute-rust + repo-pheno-harness ARCHIVE_ONLY precedents (foreign-domain-content, workspace-not-single-crate)."
+      "note": "KooshaPari/crates (264KB, generic name). Targets: phenotype-tooling (per 2026-07-17 dispatch). [DEFERRED-W2: structurally wrong for phenotype-tooling; no clear home]. [ARCHIVE_ONLY 2026-07-17 via failsafe path]: Source repo contains two unrelated Rust sub-crates with no single-crate lift path into phenotype-tooling: (a) omniroute-ffi/ (924K) — a 7-crate Cargo workspace of cdylib FFI surfaces (combo-scorer, signature-cache, sse-chunking, guardrails-pii, token-bucket, bifrost-bridge, combo-scorer-napi) explicitly scoped to OmniRoute per [workspace.metadata.omniroute] config + README's 'fork-only (KooshaPari/OmniRoute)' note. Belongs in KooshaPari/OmniRoute/crates/omniroute-ffi/ (OmniRoute monorepo already hosts crates/omniroute-agent + crates/omniroute-rs); (b) powers/ (24K) — single crate 'civ-powers' (PowerDefinition / cooldown / synergy / registry) implementing game mechanics for the Civ engine. Belongs in KooshaPari/Civis/crates/civ-powers/ (Civis is the canonical CivLab workspace per registry row Civis.json). phenotype-tooling's crates/ hosts tooling/audit/observability utilities (rlib only, repository=phenotype-tooling) — it does NOT absorb product FFI cdylibs or game-mechanics crates. cargo check evidence (2026-07-17): omniroute-ffi 7-crate workspace builds clean (8.26s, 4 dead-code warnings only); civ-powers builds clean (3.50s, 0 warnings). Source repo archived via 'gh repo archive KooshaPari/crates -y' (verified isArchived=true 2026-07-17). Local repos/crates/ retained as git-tracked historical record; no copy to phenotype-tooling, no workspace edit. Pattern matches repo-omniroute-rust + repo-pheno-harness ARCHIVE_ONLY precedents (foreign-domain-content, workspace-not-single-crate)."
+    },
+    {
+      "id": "repo-phenotype-shared",
+      "path": "KooshaPari/phenotype-shared",
+      "disposition": "ABSORB",
+      "target": "pheno (crates/phenotype-manifest + crates/phenotype-port-adapter-shim + crates/ffi_utils)",
+      "wave": "2026-07-17-queue-refresh-batch2",
+      "fsm": "absorbed",
+      "core_lang": "rust",
+      "size_kb": 293,
+      "remote_branch_count": 4,
+      "last_push": "2026-07-16T10:47:12Z",
+      "grade_score": null,
+      "grade_percentage": null,
+      "audit_artifact": "audits/absorption-justifications/phenotype-shared-2026-07-17.md",
+      "source_artifact": "manual:2026-07-17",
+      "added_at": "2026-07-17T20:00:00.000000Z",
+      "absorbed_branch": "absorb/phenotype-shared-2026-07-17",
+      "absorbed_commit": "(see pheno absorb/pheno-plugins-2026-07-17 + absorb/phenotype-shared-2026-07-17 branches)",
+      "absorbed_target_path": "crates/phenotype-manifest/, crates/phenotype-port-adapter-shim/, crates/ffi_utils/",
+      "absorbed_files_added": 22,
+      "absorbed_date": "2026-07-17",
+      "absorbed_at": "2026-07-17T20:00:00.000000Z",
+      "archive_reason": "successful absorption",
+      "archive_method": "gh repo archive",
+      "archived": true,
+      "archived_at": "2026-07-17T14:50:36Z",
+      "absorbing_repo": "KooshaPari/pheno",
+      "boundary_doc": "docs/boundary/phenotype-shared.md",
+      "verification": {
+        "cargo_check_passed": true,
+        "cargo_check_members": [
+          "phenotype-manifest",
+          "phenotype-port-adapter-shim",
+          "ffi_utils"
+        ],
+        "cargo_test_passed": 17,
+        "cargo_test_failed": 0,
+        "schema_artifact_committed": "pheno/schemas/odin.nvms.schema.json"
+      },
+      "note": "Shared workspace crates lifted into pheno as 3 distinct workspace members (no single-crate amalgamation; each source crate is standalone-friendly and was lifted as-is). Source repo KooshaPari/phenotype-shared (293KB source, 4 remote branches, last push 2026-07-16T10:47:12Z @ 607cc0c) absorbed: (a) crates/phenotype-manifest — odin.nvms v0.2 schema (Deployment, DeploymentManifest, PortSpec, ProbeSpec, HealthPolicy, ProbeKinds, DeploymentState, Constraint, Label, Annotation, NVMS version envelope) + JSON Schema Draft 2020-12 emission via schemars 0.8 + validate CLI + dump-schema binary + 4 validate + 5 schema_validation + 3 doc tests = 12 pass; (b) crates/phenotype-port-adapter-shim — PortAdapter/NvmsAdapter traits + DeploymentId/PortManifest/PortStatus value types (concrete deployment-backend contract shared by BytePort/NanoVMS/OmniRoute) + 4 mock_adapter + 1 doc = 5 pass; (c) crates/ffi_utils — FFI-friendly parking_lot::Mutex alias used by helios_cli::harness_pyo3 (alias-only, no tests). Package names (phenotype-manifest, phenotype-port-adapter-shim, ffi_utils) do NOT collide with any existing pheno member. Workspace [lints] stub stripped from each absorbed Cargo.toml for pheno conformance; repository URL repointed from KooshaPari/phenotype-shared -> KooshaPari/pheno (subpath crates/...). Companion schema artifact committed at pheno/schemas/odin.nvms.schema.json. Source repo archived via 'gh repo archive KooshaPari/phenotype-shared -y' on 2026-07-17; pre-archive tarball retained at repos/_archive/phenotype-shared-2026-07-17/. [ABSORBED 2026-07-17]"
     }
   ]
 }

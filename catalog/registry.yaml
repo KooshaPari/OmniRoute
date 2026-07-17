@@ -1063,6 +1063,30 @@ substrates:
     notes: |
       Protocol spec for phenotype router A2A surface (RouterDispatch/Mailbox/Trace/Artifact JSON schema). Points to substrate adapters.
 
+  - id: phenotype-shared
+    repo: KooshaPari/phenotype-shared
+    name: phenotype-shared
+    status: absorbed
+    tier: pheno-lib
+    architecture: layered
+    archetype: library
+    language: rust
+    role: shared
+    boundary: docs/boundary/phenotype-shared.md
+    intent: null
+    notes: |
+      [ABSORBED 2026-07-17] Shared workspace crates lifted into `pheno` as 3 distinct workspace members:
+      `crates/phenotype-manifest` (odin.nvms v0.2 schema + JSON Schema Draft 2020-12 emission via schemars 0.8
+      + validate CLI; standalone-friendly), `crates/phenotype-port-adapter-shim` (PortAdapter/NvmsAdapter traits +
+      DeploymentId/PortManifest/PortStatus value types — concrete deployment-backend contract shared by
+      BytePort/NanoVMS/OmniRoute), `crates/ffi_utils` (FFI-friendly parking_lot::Mutex alias used by
+      helios_cli::harness_pyo3). Source repo `KooshaPari/phenotype-shared` (293KB, 4 remote branches) archived
+      on GitHub via `gh repo archive -y` on 2026-07-17; pre-archive tarball retained at
+      `repos/_archive/phenotype-shared-2026-07-17/`. Package names do not collide with any existing pheno
+      member; verified by `cargo check -p phenotype-manifest -p phenotype-port-adapter-shim -p ffi_utils`
+      (17 tests passed, 0 failed). Companion schema artifact committed at `pheno/schemas/odin.nvms.schema.json`.
+      Disposition-index row: `repo-phenotype-shared` (fsm=absorbed, disposition=ABSORB, target="pheno (crates/phenotype-manifest + crates/phenotype-port-adapter-shim + crates/ffi_utils)").
+
   - id: phenotype-tooling
     repo: KooshaPari/phenotype-tooling
     name: phenotype-tooling
