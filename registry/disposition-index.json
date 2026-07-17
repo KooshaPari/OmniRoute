@@ -2832,10 +2832,10 @@
     {
       "id": "repo-omniroute-rust",
       "path": "KooshaPari/omniroute-rust",
-      "disposition": "ABSORB",
-      "target": "HexaKit (crates/omniroute/)",
+      "disposition": "ARCHIVE_ONLY",
+      "target": "phenotype-registry (audits/absorption-justifications/omniroute-rust-failsafe-2026-07-17.md)",
       "wave": "2026-07-17-queue-refresh-2",
-      "fsm": "blocked-decomposition",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 240,
       "remote_branch_count": 1,
@@ -2845,7 +2845,7 @@
       "audit_artifact": "audits/absorption-justifications/omniroute-rust-failsafe-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T13:00:00.000000Z",
-      "note": "OmniRoute Rust substrate (240KB). Targets: HexaKit/crates/omniroute/ (the hexagonal kit is the canonical Rust home for route/router primitives). [DEFERRED-W2: too large or structurally wrong for single-session absorption; needs dedicated audit phase] [ABSORPTION FAILED 2026-07-17: source is a 13-member Rust workspace (omni-core, omni-protocol, omni-storage, omni-translator, omni-router, omni-compression, omni-server, omni-mcp, omni-a2a, omni-telemetry, omni-cli, omni-sdk, omni-crypto) under [workspace] root, not the single client/binding crate assumed by the task. No top-level src/ or tests/ exists; literal cp -r command exits 1. Per task failsafe clause, source repo was archived via `gh repo archive KooshaPari/omniroute-rust -y` (verified isArchived:true) without code being copied into HexaKit. BOUNDARY.md committed to source before archive at commit 348101a. Real rationale doc: audits/absorption-justifications/omniroute-rust-failsafe-2026-07-17.md. Disposition ABSORB + target HexaKit (crates/omniroute/) retained for forward compatibility — a future decomposition audit can resume from this row. The smaller repo-omniroute-rs is already fsm:absorbed into OmniRoute (crates/omniroute-rs/) and likely the long-term canonical substrate.]"
+      "note": "OmniRoute Rust substrate (240KB). Targets: HexaKit/crates/omniroute/ (the hexagonal kit is the canonical Rust home for route/router primitives). [DEFERRED-W2: too large or structurally wrong for single-session absorption; needs dedicated audit phase] [ABSORPTION FAILED 2026-07-17: source is a 13-member Rust workspace (omni-core, omni-protocol, omni-storage, omni-translator, omni-router, omni-compression, omni-server, omni-mcp, omni-a2a, omni-telemetry, omni-cli, omni-sdk, omni-crypto) under [workspace] root, not the single client/binding crate assumed by the task. No top-level src/ or tests/ exists; literal cp -r command exits 1. Per task failsafe clause, source repo was archived via `gh repo archive KooshaPari/omniroute-rust -y` (verified isArchived:true) without code being copied into HexaKit. BOUNDARY.md committed to source before archive at commit 348101a. Real rationale doc: audits/absorption-justifications/omniroute-rust-failsafe-2026-07-17.md. Disposition ABSORB + target HexaKit (crates/omniroute/) retained for forward compatibility — a future decomposition audit can resume from this row. The smaller repo-omniroute-rs is already fsm:absorbed into OmniRoute (crates/omniroute-rs/) and likely the long-term canonical substrate.] [ARCHIVE_ONLY 2026-07-17: 13-crate Rust workspace — too structurally distinct for HexaKit integration; absorbed as audit record only.]"
     },
     {
       "id": "repo-StealthStartup",
