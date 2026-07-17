@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "owner": "apps/bff",
+  "registeredRouteCount": 65,
+  "registeredRouteSha256": "5fa728cf935f6620380544d0d4803b073cec073efc354428b73c393d341b7e13",
+  "producers": [
+    {
+      "path": "/api/v1/telemetry/web-vitals",
+      "method": "POST",
+      "state": "validated-log-only",
+      "consumer": "none"
+    }
+  ],
+  "consumers": [
+    {
+      "pathPrefix": "/api/dashboard/observability/",
+      "state": "explicitly-unavailable",
+      "reason": "No runtime aggregation store is implemented."
+    },
+    {
+      "pathPrefix": "/api/dashboard/performance",
+      "state": "explicitly-unavailable",
+      "reason": "No model latency aggregation source is implemented."
+    }
+  ],
+  "benchmarkedRoutes": [
+    { "path": "/healthz", "method": "GET", "budgetName": "/healthz" },
+    {
+      "path": "/api/dashboard/health",
+      "method": "GET",
+      "budgetName": "/api/dashboard/health"
+    }
+  ],
+  "legacyBudgetScope": "Entries outside benchmarkedRoutes describe the legacy service and are not evidence for v4."
+}
