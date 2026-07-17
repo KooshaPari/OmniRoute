@@ -1,0 +1,19 @@
+{
+  "name": "Agentora",
+  "languages": [
+    "Rust"
+  ],
+  "primary_language": "Rust",
+  "status": "queued",
+  "has_readme": false,
+  "type": "framework",
+  "path": "repos/Agentora",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch3",
+  "queued_at": "2026-07-17",
+  "proposed_target": "pheno (crates/agentora)",
+  "proposed_target_repo": "pheno",
+  "proposed_target_path": "crates/agentora/",
+  "absorption_note": null,
+  "note": "Rust hexagonal-architecture framework for AI agents."
+}
