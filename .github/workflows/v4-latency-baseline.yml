@@ -45,6 +45,7 @@ jobs:
         run: |
           bun run --cwd apps/bff test
           bun run --cwd apps/bff build
+          (cd apps/web && bunx svelte-kit sync)
           (cd apps/web && bunx vitest run src/lib/observability/unavailable.test.ts)
           bun run --cwd apps/web build
       - name: Capture two local-only runs
