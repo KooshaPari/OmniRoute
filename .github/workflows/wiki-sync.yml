@@ -1,6 +1,8 @@
 name: Wiki Sync
 
-# Keeps the GitHub wiki in sync with docs/ on every release that lands on main.
+# Deferred while repository settings report Wiki disabled. This workflow is manual-only
+# and its job remains skipped unless WIKI_ENABLED is explicitly set to true after the
+# repository Wiki has been enabled and initialized.
 # The wiki has no native generator and historically drifts (it sat at "212+ providers /
 # 14 strategies / 37 MCP tools" while code was at 226 / 15 / 87, and new docs like
 # SUPPLY_CHAIN never appeared). This runs scripts/docs/sync-wiki.mjs, which:
@@ -12,16 +14,6 @@ name: Wiki Sync
 # gated on regenerating those sources first.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "docs/**"
-      - "README.md"
-      - "AGENTS.md"
-      - "src/shared/constants/routingStrategies.ts"
-      - "config/i18n.json"
-      - "open-sse/mcp-server/server.ts"
-      - "scripts/docs/sync-wiki.mjs"
   workflow_dispatch:
 
 permissions:
@@ -34,6 +26,7 @@ concurrency:
 jobs:
   sync-wiki:
     name: Sync wiki with docs
+    if: ${{ vars.WIKI_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo

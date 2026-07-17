@@ -1,9 +1,9 @@
-# ADR-002: Phenotype identity decision inputs
+# ADR-002: Fork identity and publication defaults
 
-- Status: Proposed decision template
+- Status: Accepted — conservative, reversible defaults
 - Decision owner: repository owner
 - Scope: naming, URLs, governance disclosure, and upstream attribution
-- Out of scope: choosing a brand, acquiring a domain, DNS, deployment, or changing upstream history
+- Out of scope: inventing or acquiring a brand/domain, DNS, deployment, package renaming, or changing upstream history
 
 ## Context
 
@@ -102,16 +102,28 @@ Strong cross-surface consistency; requires template and release automation chang
 
 ## Decision record
 
-- Selected naming option:
-- Selected URL option:
-- Selected disclosure option:
-- Selected attribution option:
-- Rationale:
-- Approved by:
-- Approval date:
-- Follow-up issues:
-- Revisit trigger:
+- Canonical repository: `KooshaPari/OmniRoute`
+- Selected naming option: use current-main SSOT without a rename — product display name `ArgisMonitor`, root package `argismonitor`, scoped packages `@argismonitor/*`, and retained `omniroute` CLI compatibility aliases
+- Canonical organization display name: `KooshaPari` as repository owner; Phenotype governance context is secondary disclosure, not part of the primary product value proposition
+- Selected URL option: Option C, default GitHub Pages target `https://kooshapari.github.io/OmniRoute/`
+- Product/repository fallback URL: `https://github.com/KooshaPari/OmniRoute`
+- API/reference URL: `https://kooshapari.github.io/OmniRoute/reference/` after Pages is enabled and that route is verified
+- Support/issues URL: `https://github.com/KooshaPari/OmniRoute/issues`
+- Security reporting: repository `SECURITY.md`; no external security URL is inferred
+- Redirect policy: no redirects until an owned replacement URL is approved and tested
+- Selected disclosure option: Option C; link governance from contribution/support surfaces outside the primary value proposition
+- Selected attribution option: Option B; concise secondary README attribution plus a durable fork-lineage document
+- Wiki strategy: deferred/retired as a publication surface while repository settings report Wiki disabled; reconsider only after explicit enablement
+- Rationale: these values are already present in current main or mechanically derived from the canonical repository. GitHub Pages is repository-coupled, reversible, and requires no invented domain. No live-site claim is made before enablement and verification.
+- Approved by: repository-owner directive to apply conservative reversible defaults
+- Approval date: 2026-07-14
+- Follow-up issues: enable and validate GitHub Pages; add secondary governance/fork-lineage surfaces; reconcile repository/package metadata; decide whether Wiki should ever be enabled
+- Revisit trigger: repository or package rename, verified custom-domain ownership, GitHub Pages limitations, or explicit Wiki enablement
 
 ## Implementation gate
 
-README, repository metadata, website, docs deployment, package renaming, or redirects must not encode a final identity until this record is approved. Capability claims must follow `docs/reference/CAPABILITY_FACTS.md`.
+The defaults above authorize documentation and metadata preparation, not deployment. Pages remains disabled until repository settings enable it and a current-main build passes publication, link, accessibility, provenance, and rollback gates. DNS, secrets, package renaming, redirects, and release publication require separate approval. Capability claims must follow `docs/reference/CAPABILITY_FACTS.md`.
+
+## Rollback
+
+Revert the commit that records these defaults. Because this decision does not enable Pages, configure DNS, add secrets, deploy content, rename packages, or enable Wiki, rollback has no external-state cleanup. If Pages is enabled later, disable that external setting separately before reverting the URL record.

@@ -1,11 +1,22 @@
 ---
-title: Proposed Public Documentation Boundary
-status: proposed
+title: Public Documentation Boundary
+status: accepted-defaults
 ---
 
 # Proposed public documentation boundary
 
-This document defines a proposed input boundary for a fork-owned Phenodocs build. It changes no deployment or navigation by itself.
+This document defines the input and deployment gates for the fork-owned documentation build. It changes no deployment or navigation by itself.
+
+## Identity and hosting defaults
+
+- Canonical repository: `KooshaPari/OmniRoute`
+- Product display name: `ArgisMonitor`, derived from the root package on current `main`
+- Initial hosting target: GitHub Pages at `https://kooshapari.github.io/OmniRoute/`
+- Deployment state: disabled; repository settings currently report no Pages site
+- Governance and upstream attribution: secondary contribution/support and fork-lineage surfaces, outside the primary value proposition
+- Wiki: deferred as a publication surface while repository settings report Wiki disabled
+
+These are reversible defaults, not evidence of a live site. A custom domain, DNS, secrets, or another hosting provider requires a later approved decision.
 
 ## Public information architecture
 
@@ -102,6 +113,8 @@ journey: <manifest slug when applicable>
 
 ## Publication gates
 
+- GitHub Pages is explicitly enabled for `KooshaPari/OmniRoute`
+- the configured base path is `/OmniRoute/` and the default URL is verified after deployment
 - no broken internal or external links
 - no unresolved rich-media placeholders
 - capability claims conform to `docs/reference/CAPABILITY_FACTS.md`
@@ -111,16 +124,18 @@ journey: <manifest slug when applicable>
 - accessibility checks cover headings, alt text, contrast, keyboard navigation, and reduced motion
 - deprecated/superseded content has redirects or banners
 - preview build succeeds before merge
+- deployment commit and rollback instructions are recorded
+- no custom domain, DNS, or secret is introduced by the docs change
 
 ## Journey evidence boundary
 
 Journey media is published only when backed by a deterministic manifest containing persona, preconditions, fixtures, steps, assertions, viewport, redaction rules, and source commit. Generic feature screenshots may illustrate a page but must not be labeled journey evidence.
 
-## Open owner decisions
+## Remaining owner decisions
 
-- canonical product/org identity and URLs
-- whether GitHub Wiki is synchronized, deprecated, or an offline mirror
-- hosting and preview provider
+- whether to replace the repository-coupled Pages URL with a verified owned custom domain
+- whether GitHub Wiki should ever be enabled; until then, sync remains deferred
+- preview provider beyond deterministic CI artifacts
 - public metrics/privacy policy
 - versioning and support window
 - content ownership roles and review cadence
