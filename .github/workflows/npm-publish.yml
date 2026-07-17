@@ -67,8 +67,11 @@ jobs:
       - name: Install dependencies (skip scripts to avoid heavy build)
         run: npm ci --ignore-scripts --no-audit --no-fund
 
+      - name: Generate publication pack report
+        run: npm pack --dry-run --json --ignore-scripts > "$RUNNER_TEMP/publication-pack.json"
+
       - name: Verify publication identity and tarball metadata
-        run: node scripts/check/check-publication-preflight.mjs
+        run: node scripts/check/check-publication-preflight.mjs --workflow .github/workflows/npm-publish.yml --pack-report "$RUNNER_TEMP/publication-pack.json"
 
       - name: Resolve version, dist-tag and skip flag
         id: resolve
