@@ -58,12 +58,15 @@ export function validateEvidence(manifest, relative = "<manifest>") {
     };
     const createdAt = parseCanonicalUtc(capture.artifact?.createdAt);
     const expiresAt = parseCanonicalUtc(capture.artifact?.expiresAt);
+    const retentionDays = evidence.retentionDays;
+    const validRetentionDays = typeof retentionDays === "number" && Number.isFinite(retentionDays) && retentionDays > 0;
     assert(Number.isFinite(createdAt), "capture.artifact.createdAt must be canonical RFC 3339 UTC with whole-second precision");
     assert(Number.isFinite(expiresAt), "capture.artifact.expiresAt must be canonical RFC 3339 UTC with whole-second precision");
-    if (Number.isFinite(createdAt) && Number.isFinite(expiresAt)) {
-      const retentionMs = evidence.retentionDays * 86_400_000;
+    assert(validRetentionDays, "retentionDays must be a positive finite number");
+    if (Number.isFinite(createdAt) && Number.isFinite(expiresAt) && validRetentionDays) {
+      const retentionMs = retentionDays * 86_400_000;
       assert(expiresAt > createdAt, "capture artifact expiry must follow creation");
-      assert(expiresAt - createdAt <= retentionMs && retentionMs - (expiresAt - createdAt) <= 1000,
+      assert(Math.abs((expiresAt - createdAt) - retentionMs) <= 1000,
         "capture artifact dates must match retentionDays (allowing one-second platform rounding)");
     }
     const files = Array.isArray(capture.files) ? capture.files : [];
@@ -99,13 +102,23 @@ const validateSteps = (manifest, relative, assert) => {
   }
 };
 
-const validateProvenance = async (root, manifest, relative, errors, assert) => {
+export const validateProvenance = async (root, manifest, relative, errors, assert) => {
   assert(manifest.provenance?.baseBranch === "main", relative, "provenance.baseBranch must be main");
   assert(/^tests\//.test(manifest.provenance?.testFile ?? ""), relative, "provenance.testFile must reference tests/");
+  const testFile = manifest.provenance?.testFile;
+  if (typeof testFile !== "string" || !/^tests\//.test(testFile)) return;
   try {
-    const testSource = await readFile(path.join(root, manifest.provenance.testFile), "utf8");
+    const testSource = await readFile(path.join(root, testFile), "utf8");
     assert(testSource.includes(manifest.provenance.testTitle), relative, "referenced test title was not found");
-    const routeTargets = (manifest.steps ?? []).filter((step) => step.action === "goto").map((step) => step.target);
+    const routeTargets = [];
+    for (const step of manifest.steps ?? []) {
+      if (step.action !== "goto") continue;
+      if (typeof step.target !== "string") {
+        assert(false, relative, "goto step target must be a string before provenance matching");
+        continue;
+      }
+      routeTargets.push(step.target);
+    }
     for (const target of routeTargets) {
       const escaped = target.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
       const routePattern = new RegExp(String.raw`goto\(\s*["']${escaped}["']\s*[,)]`);

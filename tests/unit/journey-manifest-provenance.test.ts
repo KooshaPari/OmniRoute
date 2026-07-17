@@ -1,6 +1,8 @@
 import { expect, test } from "bun:test";
-import { readFile } from "node:fs/promises";
-import { validateAccessibility, validateEvidence } from "../../scripts/docs/validate-journey-manifests.mjs";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { validateAccessibility, validateEvidence, validateProvenance } from "../../scripts/docs/validate-journey-manifests.mjs";
 
 interface CaptureLink {
   sourceCommit: string;
@@ -73,6 +75,27 @@ test("rejects invalid retention timestamps", () => {
   expect(errorsFor((value) => { value.evidence.capture!.artifact.createdAt = "not-a-date"; }).join("\n")).toMatch(/createdAt/);
   expect(errorsFor((value) => { value.evidence.capture!.artifact.expiresAt = "2026-08-01T05:11:46Z"; }).join("\n")).toMatch(/retentionDays/);
   expect(errorsFor((value) => { value.evidence.capture!.artifact.expiresAt = "2026-07-16T05:11:46Z"; }).join("\n")).toMatch(/expiry must follow creation/);
+});
+
+test("validates finite retention and allows symmetric one-second rounding", () => {
+  expect(errorsFor((value) => { (value.evidence as { retentionDays: unknown }).retentionDays = Number.NaN; }).join("\n")).toMatch(/positive finite/);
+  expect(errorsFor((value) => { (value.evidence as { retentionDays: unknown }).retentionDays = "14"; }).join("\n")).toMatch(/positive finite/);
+  expect(errorsFor((value) => { value.evidence.capture!.artifact.expiresAt = "2026-07-31T05:11:47Z"; })).toEqual([]);
+});
+
+test("guards malformed provenance fields before filesystem and string operations", async () => {
+  const root = path.join(os.tmpdir(), `journey-provenance-${crypto.randomUUID()}`);
+  await mkdir(path.join(root, "tests", "e2e"), { recursive: true });
+  await writeFile(path.join(root, "tests", "e2e", "journey.spec.ts"), "test('capture', async ({ page }) => page.goto('/'));\n");
+  const run = async (candidate: any) => {
+    const errors: string[] = [];
+    const assert = (condition: unknown, file: string, message: string) => { if (!condition) errors.push(`${file}: ${message}`); };
+    await validateProvenance(root, candidate, "manifest.json", errors, assert);
+    return errors;
+  };
+  await expect(run({ provenance: { baseBranch: "main", testFile: undefined }, steps: [] })).resolves.toContain("manifest.json: provenance.testFile must reference tests/");
+  await expect(run({ provenance: { baseBranch: "main", testFile: "tests/e2e/journey.spec.ts", testTitle: "capture" }, steps: [{ action: "goto", target: null }] }))
+    .resolves.toContain("manifest.json: goto step target must be a string before provenance matching");
 });
 
 test("rejects parseable but noncanonical or impossible timestamps", () => {
