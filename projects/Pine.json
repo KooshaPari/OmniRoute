@@ -1,0 +1,17 @@
+{
+  "name": "Pine",
+  "languages": [
+    "rust"
+  ],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": true,
+  "type": "compat-layer",
+  "path": "repos/Pine",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch4",
+  "absorbed_into": "substrate",
+  "absorption_note": "Wine-equivalent for Phenotype — Windows and cross-platform application compatibility layer. Target: substrate monorepo as crates/pine. Fits substrate sandbox/compat theme (alongside nanovms Firecracker, WASM isolation). Per ADR-ECO-008 compat layer policy.",
+  "note": "Audited 2026-07-17; Windows/cross-platform compat layer; large scope — needs deeper audit before absorption.",
+  "adr": "ADR-ECO-008"
+}

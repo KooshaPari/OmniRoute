@@ -1,0 +1,17 @@
+{
+  "name": "pheno-otel",
+  "languages": [
+    "rust"
+  ],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": false,
+  "type": "observability-binding",
+  "path": "repos/pheno-otel",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch4",
+  "absorbed_into": "PhenoObservability",
+  "absorption_note": "OpenTelemetry exporter/wrappers for the pheno-* fleet. Target: PhenoObservability as crates/pheno-otel. Complements pheno-tracing (already absorbed into pheno) and the substrate observability spine. Per ADR-036 tracing substrate pattern.",
+  "note": "Audited 2026-07-17; Rust crate for OTEL bindings; fits observability spine.",
+  "adr": "ADR-036"
+}

@@ -4,13 +4,14 @@
     "rust"
   ],
   "primary_language": "rust",
-  "status": "complete",
+  "status": "active",
   "has_readme": true,
-  "has_spec": true,
-  "has_plan": true,
-  "type": "core",
+  "type": "vcs-primitives",
   "path": "repos/PhenoVCS",
-  "absorbed_from": [
-    "worktree-manager"
-  ]
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch4",
+  "absorbed_into": "pheno",
+  "absorption_note": "Version control primitives registry with Git worktree management. Target: pheno monorepo as crates/pheno-vcs. Complements SessionLedger (already absorbed) — SessionLedger handles session/continuation bundles; PhenoVCS handles VCS primitives (worktree mgmt, git operations, repo abstractions).",
+  "note": "Audited 2026-07-17; Rust VCS primitives crate; clean absorption target.",
+  "adr": "ADR-ECO-007"
 }

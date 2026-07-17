@@ -1,0 +1,17 @@
+{
+  "name": "pheno-forge-smoke",
+  "languages": [
+    "rust"
+  ],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": true,
+  "type": "smoke-binary",
+  "path": "repos/pheno-forge-smoke",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch4",
+  "absorbed_into": "pheno",
+  "absorption_note": "End-to-end smoke binary for the 4-PR forgecode improvement stack (ADR-096). Loads libpheno_bridge via libloading and exercises composite routing. Target: pheno monorepo as crates/pheno-forge-smoke. Consumed by forgecode CI; lives next to pheno-cdylib-bridge (already absorbed).",
+  "note": "Audited 2026-07-17; single-purpose smoke binary; ADR-096 compliant.",
+  "adr": "ADR-096"
+}

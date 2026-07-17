@@ -1,5 +1,5 @@
 {
-  "name": "DataKit",
+  "name": "Apisync",
   "languages": [
     "rust"
   ],
@@ -7,11 +7,11 @@
   "status": "active",
   "has_readme": true,
   "type": "block-a-app",
-  "path": "repos/DataKit",
+  "path": "repos/Apisync",
   "disposition": "ABSORB",
   "wave": "2026-07-17-queue-refresh-batch4",
   "absorbed_into": "phenotype-apps",
-  "absorption_note": "BLOCK A app (DataKit) — Rust. Per ADR-023 app-policy: BLOCK A apps are self-repod. DataKit is one of 6 BLOCK A apps. Target: phenotype-apps/apps/datakit/ as a sibling to Conft (absorbed in batch3) and Stashly (absorbed in crates/stashly).",
+  "absorption_note": "BLOCK A app (Apisync) — Rust. Per ADR-023 app-policy: BLOCK A apps are self-repod. Apisync is one of 6 BLOCK A apps (Apisync/DataKit/phenoData/Stashly/Conft/Tracely). Stashly already absorbed; Tracely archived; Conft absorbed (batch3). Target: phenotype-apps/apps/apisync/.",
   "note": "Audited 2026-07-17; BLOCK A app fits the apps monorepo policy per ADR-023.",
   "adr": "ADR-023"
 }
