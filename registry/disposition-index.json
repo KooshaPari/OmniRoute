@@ -1,5 +1,5 @@
 {
-  "version": "1.6.9",
+  "version": "1.6.10",
   "updated": "2026-07-17T12:30:00.000000Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
@@ -2451,7 +2451,7 @@
       "disposition": "ABSORB",
       "target": "PhenoObservability (curated-traces/)",
       "wave": "2026-07-17-queue-refresh-2",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "python",
       "size_kb": 6642,
       "remote_branch_count": 1,
@@ -2461,6 +2461,11 @@
       "audit_artifact": "audits/absorption-justifications/curated-traces-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:50:00.000000Z",
+      "absorbed_at": "2026-07-17T13:00:00.000000Z",
+      "absorbed_into": "KooshaPari/PhenoObservability",
+      "absorbed_branch": "overlay/logify-2026-07-17",
+      "absorbed_commit": "5ec1646",
+      "source_archived": true,
       "note": "Python trace-replay + curated dataset for observability replay tooling. Target: PhenoObservability/curated-traces/."
     },
     {
