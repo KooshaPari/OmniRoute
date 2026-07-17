@@ -1,27 +1,32 @@
-import { expect } from "@playwright/test";
+import { expect, test } from "bun:test";
 import { mkdtemp, mkdir, realpath, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import test from "node:test";
-import { declaredChecks, resolveJourneyAccessibilityReportPath, validateJourneyAccessibilityReport } from "../../scripts/docs/validate-journey-accessibility-report.mjs";
+import { resolveJourneyAccessibilityReportPath, validateJourneyAccessibilityReport } from "../../scripts/docs/validate-journey-accessibility-report.mjs";
 
 const valid = () => ({
   schemaVersion: 2,
   viewport: { width: 1280, height: 800 },
-  checks: Object.fromEntries(declaredChecks.map((check) => [check, { status: "passed" }])) as Record<string, unknown>,
+  checks: {
+    "document-title": { status: "passed", title: "argismonitor v4" },
+    "heading-order": { status: "passed", headingCount: 2, hasHeadingSkip: false },
+    landmarks: { status: "passed", main: 1, navigation: 1 },
+    "focus-visible": { status: "passed", keyboardOnly: true, targets: [{ index: 0, focusVisible: true, changedProperties: ["outlineWidth"] }] },
+    "accessible-names": { status: "passed", axeRules: [{ id: "button-name", result: "passed" }] },
+    contrast: { status: "passed", axeRule: "color-contrast" },
+    "no-horizontal-overflow": { status: "passed", horizontalOverflow: false },
+    "reduced-motion": { status: "passed", reducedMotion: true },
+  } as Record<string, any>,
   axe: { violations: [] as unknown[], incomplete: [] as unknown[], rules: ["button-name", "color-contrast", "image-alt", "landmark-one-main"].map((id) => ({ id, result: "passed" })) },
 });
 
 test("accepts complete journey accessibility evidence", () => {
   const report = valid();
-  report.checks.landmarks = { status: "passed", main: 1, navigation: 1 };
-  report.checks["focus-visible"] = { status: "passed", targets: [{ index: 0, focusVisible: true, changedProperties: ["outlineWidth"] }] };
   expect(validateJourneyAccessibilityReport(report)).toEqual([]);
 });
 
 test("rejects missing checks, axe review gaps, focus gaps, and raw HTML", () => {
   const report = valid() as ReturnType<typeof valid> & { html?: string };
-  report.checks.landmarks = { status: "passed", main: 1, navigation: 1 };
   report.checks["focus-visible"] = { status: "passed", targets: [] };
   report.axe.incomplete = [{ id: "color-contrast" }];
   report.html = "<main>unsafe</main>";
@@ -30,10 +35,51 @@ test("rejects missing checks, axe review gaps, focus gaps, and raw HTML", () => 
   expect(errors).toMatch(/contrast must be passed/);
   expect(errors).toMatch(/focus-visible targets are required/);
   expect(errors).toMatch(/axe incomplete results must be empty/);
-  expect(errors).toMatch(/raw HTML fields are forbidden/);
+  expect(errors).toMatch(/forbidden raw HTML field/);
 });
 
-test("confines report reads to the real journey evidence root", async (t) => {
+test("rejects contradictory evidence and malformed axe inventories", () => {
+  const report = valid();
+  report.checks["document-title"].title = " ";
+  report.checks["heading-order"].headingCount = 0;
+  report.checks["heading-order"].hasHeadingSkip = true;
+  report.checks["no-horizontal-overflow"].horizontalOverflow = true;
+  report.checks["reduced-motion"].reducedMotion = false;
+  report.axe.rules = [{ id: "button-name", result: "failed" }, { result: "passed" } as any];
+  const errors = validateJourneyAccessibilityReport(report).join("\n");
+  expect(errors).toMatch(/document title evidence must be non-empty/);
+  expect(errors).toMatch(/heading count must be a positive integer/);
+  expect(errors).toMatch(/heading order must not contain a skip/);
+  expect(errors).toMatch(/horizontal overflow must be false/);
+  expect(errors).toMatch(/reduced motion must be enabled/);
+  expect(errors).toMatch(/every axe rule id must be a non-empty string/);
+  expect(errors).toMatch(/every axe rule result must be passed or inapplicable/);
+});
+
+test("rejects malformed axe findings before enforcing zero findings", () => {
+  const report = valid();
+  report.axe.violations = [{ id: "", impact: "unknown", help: "", targetCount: -1 }];
+  const errors = validateJourneyAccessibilityReport(report).join("\n");
+  expect(errors).toMatch(/axe violations must be empty/);
+  expect(errors).toMatch(/every axe finding id must be a non-empty string/);
+  expect(errors).toMatch(/every axe finding impact must be null or valid/);
+  expect(errors).toMatch(/every axe finding help must be non-empty/);
+  expect(errors).toMatch(/every axe finding targetCount must be a positive integer/);
+});
+
+test("rejects forbidden markup structurally without false-positive html text", () => {
+  expect(validateJourneyAccessibilityReport({ ...valid(), note: 'the word "html" is legal' })).toEqual([]);
+  for (const tamper of [
+    { innerHTML: "safe-looking" },
+    { nested: { markup: "safe-looking" } },
+    { note: "<main>opening tag</main>" },
+    { note: "closing only </main>" },
+    { note: "<!-- comment -->" },
+    { note: "<!DOCTYPE html>" },
+  ]) expect(validateJourneyAccessibilityReport({ ...valid(), ...tamper }).join("\n")).toMatch(/raw HTML/);
+});
+
+test("confines report reads to the real journey evidence root", async () => {
   const sandbox = await mkdtemp(path.join(tmpdir(), "journey-report-boundary-"));
   const root = path.join(sandbox, "journey-evidence", "anonymous-home-smoke");
   const sibling = path.join(sandbox, "journey-evidence", "anonymous-home-smoke-copy");
@@ -54,8 +100,7 @@ test("confines report reads to the real journey evidence root", async (t) => {
       await symlink(outside, link, process.platform === "win32" ? "junction" : "dir");
       await expect(resolveJourneyAccessibilityReportPath("journey-evidence/anonymous-home-smoke/linked-outside/accessibility-smoke.json", root, sandbox)).rejects.toThrow(/real path escapes/);
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "EPERM") t.diagnostic("symlink creation unavailable; realpath guard remains covered on supported platforms");
-      else throw error;
+      if ((error as NodeJS.ErrnoException).code !== "EPERM") throw error;
     }
   } finally { /* temporary directory is owned by the operating system */ }
 });

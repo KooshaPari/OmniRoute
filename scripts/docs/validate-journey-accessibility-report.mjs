@@ -7,28 +7,70 @@ export const declaredChecks = [
   "accessible-names", "contrast", "no-horizontal-overflow", "reduced-motion",
 ];
 
+const forbiddenMarkupKeys = new Set(["html", "innerhtml", "outerhtml", "markup", "rawhtml"]);
+const markupPattern = /<!doctype\s+html\b|<!--|-->|<\/?[a-z][a-z0-9:-]*(?:\s[^<>]*?)?\s*\/?>/i;
+
+export function findForbiddenMarkup(value, location = "report", seen = new Set()) {
+  const findings = [];
+  if (typeof value === "string") {
+    if (markupPattern.test(value)) findings.push(`${location} contains raw HTML content`);
+    return findings;
+  }
+  if (value === null || typeof value !== "object" || seen.has(value)) return findings;
+  seen.add(value);
+  for (const [key, child] of Object.entries(value)) {
+    const childLocation = `${location}.${key}`;
+    if (forbiddenMarkupKeys.has(key.toLowerCase())) findings.push(`${childLocation} is a forbidden raw HTML field`);
+    findings.push(...findForbiddenMarkup(child, childLocation, seen));
+  }
+  return findings;
+}
+
 export function validateJourneyAccessibilityReport(report) {
   const errors = [];
   const assert = (condition, message) => { if (!condition) errors.push(message); };
   assert(report?.schemaVersion === 2, "schemaVersion must be 2");
-  assert(Number.isInteger(report?.viewport?.width) && Number.isInteger(report?.viewport?.height), "viewport must be recorded");
+  assert(Number.isInteger(report?.viewport?.width) && report.viewport.width > 0 && Number.isInteger(report?.viewport?.height) && report.viewport.height > 0, "positive viewport dimensions must be recorded");
   for (const check of declaredChecks) assert(report?.checks?.[check]?.status === "passed", `${check} must be passed`);
+  assert(typeof report?.checks?.["document-title"]?.title === "string" && report.checks["document-title"].title.trim().length > 0, "document title evidence must be non-empty");
+  assert(Number.isInteger(report?.checks?.["heading-order"]?.headingCount) && report.checks["heading-order"].headingCount > 0, "heading count must be a positive integer");
+  assert(report?.checks?.["heading-order"]?.hasHeadingSkip === false, "heading order must not contain a skip");
   assert(report?.checks?.landmarks?.main === 1, "exactly one main landmark is required");
   assert(report?.checks?.landmarks?.navigation === 1, "exactly one navigation landmark is required");
   const targets = report?.checks?.["focus-visible"]?.targets;
+  assert(report?.checks?.["focus-visible"]?.keyboardOnly === true, "focus traversal must be keyboard-only");
   assert(Array.isArray(targets) && targets.length > 0, "focus-visible targets are required");
   for (const target of targets ?? []) {
     assert(target.focusVisible === true, "every focus target must match :focus-visible");
     assert(Array.isArray(target.changedProperties) && target.changedProperties.length > 0, "every focus target needs a style delta");
   }
   assert((targets ?? []).every((target, index) => target.index === index), "focus target inventory must be ordered and contiguous");
+  assert(Array.isArray(report?.checks?.["accessible-names"]?.axeRules) && report.checks["accessible-names"].axeRules.length > 0, "accessible-name axe rule evidence is required");
+  assert(report?.checks?.contrast?.axeRule === "color-contrast", "contrast evidence must identify color-contrast");
+  assert(report?.checks?.["no-horizontal-overflow"]?.horizontalOverflow === false, "horizontal overflow must be false");
+  assert(report?.checks?.["reduced-motion"]?.reducedMotion === true, "reduced motion must be enabled");
   assert(Array.isArray(report?.axe?.violations) && report.axe.violations.length === 0, "axe violations must be empty");
   assert(Array.isArray(report?.axe?.incomplete) && report.axe.incomplete.length === 0, "axe incomplete results must be empty");
-  const reviewedRules = report?.axe?.rules?.map(({ id }) => id) ?? [];
+  const findings = [...(Array.isArray(report?.axe?.violations) ? report.axe.violations : []), ...(Array.isArray(report?.axe?.incomplete) ? report.axe.incomplete : [])];
+  for (const finding of findings) {
+    assert(typeof finding?.id === "string" && finding.id.length > 0, "every axe finding id must be a non-empty string");
+    assert(finding?.impact === null || ["minor", "moderate", "serious", "critical"].includes(finding?.impact), "every axe finding impact must be null or valid");
+    assert(typeof finding?.help === "string" && finding.help.length > 0, "every axe finding help must be non-empty");
+    assert(Number.isInteger(finding?.targetCount) && finding.targetCount > 0, "every axe finding targetCount must be a positive integer");
+  }
+  const ruleEntries = Array.isArray(report?.axe?.rules) ? report.axe.rules : [];
+  assert(Array.isArray(report?.axe?.rules), "axe rule inventory must be an array");
+  const accessibleNameRules = Array.isArray(report?.checks?.["accessible-names"]?.axeRules) ? report.checks["accessible-names"].axeRules : [];
+  for (const rule of [...ruleEntries, ...accessibleNameRules]) {
+    assert(typeof rule?.id === "string" && rule.id.length > 0, "every axe rule id must be a non-empty string");
+    assert(["passed", "inapplicable"].includes(rule?.result), "every axe rule result must be passed or inapplicable");
+  }
+  const reviewedRules = ruleEntries.filter(({ id }) => typeof id === "string").map(({ id }) => id);
   assert(new Set(reviewedRules).size === reviewedRules.length, "axe rule inventory must be unique");
   assert(reviewedRules.every((id, index) => index === 0 || reviewedRules[index - 1].localeCompare(id) <= 0), "axe rule inventory must be sorted");
+  assert(accessibleNameRules.every(({ id }) => reviewedRules.includes(id)), "accessible-name rules must exist in the axe inventory");
   for (const rule of ["color-contrast", "button-name", "image-alt", "landmark-one-main"]) assert(reviewedRules.includes(rule), `axe review ${rule} is required`);
-  assert(!JSON.stringify(report).includes('"html"'), "raw HTML fields are forbidden");
+  errors.push(...findForbiddenMarkup(report));
   return errors;
 }
 
