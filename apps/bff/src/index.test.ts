@@ -65,6 +65,10 @@ describe("BFF observability placeholders", () => {
     "/api/dashboard/observability/timeseries",
     "/api/dashboard/observability/top-endpoints",
     "/api/dashboard/performance",
+    "/api/dashboard/cache",
+    "/api/dashboard/compression/stats",
+    "/api/dashboard/diagnostics/full",
+    "/api/dashboard/keys/test-key/usage",
   ])("does not present fabricated telemetry from %s", async (path) => {
     const response = await app.request(`http://localhost${path}`);
     expect(response.status).toBe(200);

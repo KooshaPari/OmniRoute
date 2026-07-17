@@ -21,10 +21,11 @@ permissions:
 jobs:
   baseline:
     if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 8
     env:
       SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+      RUNNER_IMAGE: ubuntu-24.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -53,11 +54,12 @@ jobs:
           bun run --cwd apps/bff benchmark:latency -- ../../latency-evidence/run-1.json
           bun run --cwd apps/bff benchmark:latency -- ../../latency-evidence/run-2.json
           bun run --cwd apps/bff benchmark:compare -- ../../latency-evidence/run-1.json ../../latency-evidence/run-2.json
+          sha256sum latency-evidence/*.json > latency-evidence/manifest.sha256
       - name: Upload non-deployable evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: v4-latency-baseline-${{ github.event.pull_request.head.sha || github.sha }}
-          path: latency-evidence/*.json
+          path: latency-evidence/
           if-no-files-found: error
           retention-days: 14
           include-hidden-files: false

@@ -1,9 +1,17 @@
 <script lang="ts">
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import { unavailableMessage } from '$lib/observability/unavailable';
   import { onMount } from 'svelte';
 
-  type Stats = { gcfBytes: number; toonBytes: number; jsonBytes: number; prompts: number };
+  type Stats = {
+    status?: 'unavailable';
+    source?: string;
+    gcfBytes: number | null;
+    toonBytes: number | null;
+    jsonBytes: number | null;
+    prompts: number | null;
+  };
   let stats = $state<Stats | null>(null);
   let input = $state('');
   let gcfOut = $state('');
@@ -40,24 +48,30 @@
   }
 
   const maxBytes = $derived(Math.max(1, stats?.jsonBytes ?? 1, jsonOut.length || 1));
+  const unavailable = $derived(unavailableMessage(stats, 'Compression metrics'));
+  const metrics = $derived(stats?.gcfBytes != null && stats.toonBytes != null && stats.jsonBytes != null
+    ? { gcfBytes: stats.gcfBytes, toonBytes: stats.toonBytes, jsonBytes: stats.jsonBytes }
+    : null);
 </script>
 
 <Card title="Compression studio">
-  {#if stats}
+  {#if unavailable}
+    <p class="mb-4 text-gray-500">{unavailable}</p>
+  {:else if metrics}
     <div class="grid grid-cols-3 gap-3 mb-4">
       <div class="border border-gray-200 rounded p-3">
         <div class="text-xs text-gray-500">GCF</div>
-        <div class="text-2xl font-bold">{stats.gcfBytes.toLocaleString()}</div>
-        <div class="text-xs text-gray-500">bytes ({((1 - stats.gcfBytes / Math.max(1, stats.jsonBytes)) * 100).toFixed(1)}% saved)</div>
+        <div class="text-2xl font-bold">{metrics.gcfBytes.toLocaleString()}</div>
+        <div class="text-xs text-gray-500">bytes ({((1 - metrics.gcfBytes / Math.max(1, metrics.jsonBytes)) * 100).toFixed(1)}% saved)</div>
       </div>
       <div class="border border-gray-200 rounded p-3">
         <div class="text-xs text-gray-500">TOON</div>
-        <div class="text-2xl font-bold">{stats.toonBytes.toLocaleString()}</div>
-        <div class="text-xs text-gray-500">bytes ({((1 - stats.toonBytes / Math.max(1, stats.jsonBytes)) * 100).toFixed(1)}% saved)</div>
+        <div class="text-2xl font-bold">{metrics.toonBytes.toLocaleString()}</div>
+        <div class="text-xs text-gray-500">bytes ({((1 - metrics.toonBytes / Math.max(1, metrics.jsonBytes)) * 100).toFixed(1)}% saved)</div>
       </div>
       <div class="border border-gray-200 rounded p-3">
         <div class="text-xs text-gray-500">JSON</div>
-        <div class="text-2xl font-bold">{stats.jsonBytes.toLocaleString()}</div>
+        <div class="text-2xl font-bold">{metrics.jsonBytes.toLocaleString()}</div>
         <div class="text-xs text-gray-500">bytes (baseline)</div>
       </div>
     </div>

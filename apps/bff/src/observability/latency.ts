@@ -1,9 +1,10 @@
 import { z } from "zod";
+import { NormalizedRouteTemplateSchema } from "./benchmark-contract";
 
 export const LatencySampleV1Schema = z
   .object({
     schemaVersion: z.literal(1),
-    route: z.string().startsWith("/"),
+  route: NormalizedRouteTemplateSchema,
     method: z.enum(["GET", "POST", "PUT", "PATCH", "DELETE"]),
     durationMs: z.number().finite().nonnegative(),
     status: z.number().int().min(100).max(599),

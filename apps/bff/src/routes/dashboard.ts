@@ -86,13 +86,29 @@ export const dashboardRoutes = new Hono()
   .get("/a2a", (c) => c.json({ agents: [] }))
   .get("/skills", (c) => c.json({ skills: [] }))
   .get("/memory", (c) => c.json({ entries: [] }))
-  .get("/cache", (c) => c.json({ hits: 12450, misses: 320, sizeMb: 42, evictions: 18 }))
+  .get("/cache", (c) =>
+    c.json({
+      status: "unavailable",
+      source: "no-cache-metrics-source",
+      hits: null,
+      misses: null,
+      sizeMb: null,
+      evictions: null,
+    })
+  )
   .get("/batch", (c) => c.json({ batches: [] }))
   .get("/webhooks", (c) => c.json({ webhooks: [] }))
   .get("/audit", (c) => c.json({ events: [] }))
   // Phase 2.11-2.12 critical routes
   .get("/compression/stats", (c) =>
-    c.json({ gcfBytes: 1840, toonBytes: 2104, jsonBytes: 4120, prompts: 1280 })
+    c.json({
+      status: "unavailable",
+      source: "no-compression-metrics-source",
+      gcfBytes: null,
+      toonBytes: null,
+      jsonBytes: null,
+      prompts: null,
+    })
   )
   .post("/compression/ab", zValidator("json", CompressionABSchema), (c) => {
     const t = c.req.valid("json").text;
@@ -172,20 +188,17 @@ export const dashboardRoutes = new Hono()
   )
   .get("/diagnostics/full", (c) =>
     c.json({
-      uptimeSeconds: 86420,
-      version: "0.1.0",
-      bffConnected: true,
-      nextjsConnected: true,
-      tauriShell: false,
-      dbWalPosition: 1042834,
-      lastBackup: "2026-07-04T03:00:00Z",
-      cacheHitRate: 0.974,
-      networkChecks: [
-        { url: "http://localhost:4322/healthz", ok: true, latencyMs: 4 },
-        { url: "http://localhost:20128/healthz", ok: true, latencyMs: 12 },
-        { url: "https://api.openai.com", ok: true, latencyMs: 88 },
-        { url: "https://api.anthropic.com", ok: true, latencyMs: 124 },
-      ],
+      status: "unavailable",
+      source: "no-diagnostics-metrics-source",
+      uptimeSeconds: null,
+      version: null,
+      bffConnected: null,
+      nextjsConnected: null,
+      tauriShell: null,
+      dbWalPosition: null,
+      lastBackup: null,
+      cacheHitRate: null,
+      networkChecks: [],
     })
   )
   .get("/flags", (c) =>
@@ -236,10 +249,9 @@ export const dashboardRoutes = new Hono()
   )
   .get("/keys/:id/usage", (c) =>
     c.json({
-      usage: Array.from({ length: 30 }, (_, i) => ({
-        date: new Date(Date.now() - (29 - i) * 86400000).toISOString().slice(0, 10),
-        requests: Math.floor(Math.random() * 1000),
-      })),
+      status: "unavailable",
+      source: "no-key-usage-metrics-source",
+      usage: [],
     })
   )
   .get("/usage/by-model", (c) => c.json({ rows: [] }))

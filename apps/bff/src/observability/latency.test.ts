@@ -46,4 +46,18 @@ describe("latency sample v1 aggregation", () => {
     const result = summarizeLatencySamples([1, 1, 2, 2, 100].map((value) => sample(value)));
     expect(result).toMatchObject({ p50Ms: 2, p95Ms: 100, p99Ms: 100 });
   });
+
+  it.each([
+    "/users/12345",
+    "/users/550e8400-e29b-41d4-a716-446655440000",
+    "/search?q=secret",
+    "/token/%2Fprivate",
+    `/${"a".repeat(161)}`,
+  ])("rejects concrete, sensitive, or unbounded route %s", (route) => {
+    expect(summarizeLatencySamples([{ ...sample(1), route }]).sampleCount).toBe(0);
+  });
+
+  it("accepts normalized parameter templates", () => {
+    expect(summarizeLatencySamples([{ ...sample(1), route: "/users/:id" }]).sampleCount).toBe(1);
+  });
 });
