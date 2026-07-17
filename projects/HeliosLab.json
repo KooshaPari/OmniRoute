@@ -1,0 +1,18 @@
+{
+  "name": "HeliosLab",
+  "languages": [
+    "typescript",
+    "vue"
+  ],
+  "primary_language": "typescript",
+  "status": "active",
+  "has_readme": true,
+  "type": "research-workspace",
+  "path": "repos/HeliosLab",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch3",
+  "absorbed_into": "phenodocs",
+  "absorption_note": "TypeScript research lab workspace (Phenotype-org). Fits phenodocs as a research/examples subdomain (alongside phenodocs/research/helios-lab/). Vue-based; verify before merge.",
+  "note": "Audited 2026-07-17; research content fits docs layer.",
+  "adr": "ADR-023"
+}

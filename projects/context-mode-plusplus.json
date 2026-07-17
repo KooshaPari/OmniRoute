@@ -1,0 +1,17 @@
+{
+  "name": "context-mode-plusplus",
+  "languages": [
+    "typescript"
+  ],
+  "primary_language": "typescript",
+  "status": "active",
+  "has_readme": true,
+  "type": "fork",
+  "path": "repos/context-mode-plusplus",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch3",
+  "absorbed_into": "OmniRoute",
+  "absorption_note": "Phenotype+ fork of mksglu/context-mode. Adds substrate::context-budget adapter (per-conv token budget via EnginePort middleware) + OTLP/HTTP trace export + cliproxy-adapter integration. Target: OmniRoute/adapters/context-mode/ (OmniRoute owns route/middleware). Alternative: PhenoMCPServers if MCP-flavoured.",
+  "note": "Audited 2026-07-17; fork; integration code (middleware + adapters) belongs with route layer.",
+  "adr": "ADR-ECO-007"
+}

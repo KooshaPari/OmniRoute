@@ -1,0 +1,18 @@
+{
+  "name": "PhenoHandbook",
+  "languages": [
+    "shell",
+    "markdown"
+  ],
+  "primary_language": "shell",
+  "status": "active",
+  "has_readme": true,
+  "type": "handbook",
+  "path": "repos/PhenoHandbook",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch3",
+  "absorbed_into": "phenodocs",
+  "absorption_note": "Phenotype Handbook — patterns, guidelines, anti-patterns, methodologies. Shell scripts + Markdown. Target: phenodocs/handbook/ alongside RATIONALIZATION_PLAN.md. CONSOLIDATE: per RATIONALIZATION_PLAN.md, all governance content consolidates into phenodocs.",
+  "note": "Audited 2026-07-17; doc-heavy; canonical home is phenodocs.",
+  "adr": "ADR-023"
+}

@@ -1,0 +1,17 @@
+{
+  "name": "pheno-forge-plugins",
+  "languages": [
+    "shell"
+  ],
+  "primary_language": "shell",
+  "status": "active",
+  "has_readme": true,
+  "type": "plugin-bundle",
+  "path": "repos/pheno-forge-plugins",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch3",
+  "absorbed_into": "phenotype-tooling",
+  "absorption_note": "Sidecar bundle for antinomyhq/forgecode — 6 plugins (memory + config + tracing) as per-machine systemd units. Target: phenotype-tooling/plugins/pheno-forge/ as a plugin pack. Could also split: memory→PhenoMemory, config→Configra, tracing→pheno-tracing.",
+  "note": "Audited 2026-07-17; plugin pack — fits tooling as a unit.",
+  "adr": "ADR-ECO-006"
+}

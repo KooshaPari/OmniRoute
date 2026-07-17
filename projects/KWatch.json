@@ -6,6 +6,9 @@
   "has_readme": true,
   "type": "shared-lib",
   "path": "repos/KWatch",
-  "disposition": "AFFIRM",
-  "note": "Audited 2026-07-17; active monitoring/watchdog daemon for K-series services."
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch3",
+  "absorbed_into": "phenotype-tooling",
+  "absorption_note": "Go Kubernetes cluster monitoring and alerting system. Re-classified from AFFIRM to ABSORB. Target: phenotype-tooling/cmd/kwatch/ alongside BytePort/phenodag. Lightweight Go binary — single absorption.",
+  "note": "Audited 2026-07-17; active monitoring/watchdog daemon for K-series services. Now queued for absorption into phenotype-tooling."
 }
