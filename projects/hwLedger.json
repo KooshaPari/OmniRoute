@@ -13,6 +13,35 @@
   "wave": "2026-07-17-queue-refresh-batch4",
   "absorbed_into": "self",
   "absorption_note": "Phenotype-org hardware ledger — canonical home for hardware inventory/tracking. No absorption target; hwLedger IS the canonical home. Establish as AFFIRM (similar to phenotype-org-audits, phenokits-commons pattern). Verify ownership scope before declaring canonical.",
-  "note": "Audited 2026-07-17; n/a primary language (markdown/yaml likely). Hardware ledger with org-wide scope.",
-  "adr": "ADR-ECO-007"
+  "canonical_scope": [
+    "Canonical Rust workspace for LLM capacity planning + heterogeneous hardware fleet ledger + desktop inference runtime (per ADR-035A HwLedger reclassification)",
+    "VRAM estimation UI/CLI: per-layer breakdown slider, MoE resident-vs-active, MLA / GQA / MQA / Sliding / SSM / Hybrid / Sink classification (math layer itself lives in substrate crate pheno-capacity; hwLedger owns the planner UX and the per-arch dispatch glue)",
+    "Heterogeneous fleet ledger — event-sourced audit log over Apple Silicon, NVIDIA/AMD local boxes, and cloud rentals (Vast.ai / RunPod / Lambda / Modal)",
+    "Fleet wire: Axum + rustls mTLS agents; russh + deadpool SSH agentless probe; reqwest Vast/RunPod/Lambda/Modal; tailscale status JSON for tailnet discovery",
+    "Per-OS native GUIs over shared Rust FFI core: SwiftUI (macOS), WinUI 3 + .NET 9 (Windows), Qt 6 / cxx-qt + QML (Linux), Slint (Linux)",
+    "Web-fallback interface: Streamlit (apps/streamlit/)",
+    "oMlx sidecar (sidecars/omlx-fork/) — fat fork of jundot/omlx, Apple Silicon MLX inference with SSD-paged KV cache",
+    "Spot-price-aware cost model + dispatch planner + traceability report generation",
+    "Live telemetry reconciliation against MLX, mistral.rs, llama.cpp, vLLM, TGI",
+    "Per-OS distribution packaging: macOS DMG (WP21), Windows MSIX, Linux AppImage/deb"
+  ],
+  "audit_artifact": "docs/boundary/hwLedger.md",
+  "fsm": "verified",
+  "verified_at": "2026-07-17T12:50:00Z",
+  "role": "hardware-ledger",
+  "domain_role": "hardware-ledger",
+  "boundary": "hardware-fleet",
+  "ecosystem": "governance",
+  "bucket": "CONDITIONAL",
+  "adr": "ADR-ECO-007",
+  "tier": "federated-service",
+  "architecture": "layered-workspace",
+  "language": "rust",
+  "home": "KooshaPari/hwLedger",
+  "supersedes": [],
+  "superseded_by": [],
+  "substrate_consumer_of": [
+    "KooshaPari/pheno-capacity (math substrate, ADR-035A)"
+  ],
+  "note": "Audited 2026-07-17; n/a primary language (markdown/yaml likely). Hardware ledger with org-wide scope. Boundary doc captured at docs/boundary/hwLedger.md — declares hwLedger as the canonical Phenotype-org hardware ledger; no absorption target; fsm advanced from active to verified (CANON declaration, not active record)."
 }
