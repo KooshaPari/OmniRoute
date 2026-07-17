@@ -1,6 +1,7 @@
 import { onLCP, onFID, onCLS, onINP, onTTFB, onFCP, type Metric } from 'web-vitals';
 
 const ENDPOINT = '/api/v1/telemetry/web-vitals';
+let initialized = false;
 
 export function reportMetric(metric: Metric) {
   try {
@@ -14,7 +15,8 @@ export function reportMetric(metric: Metric) {
       ts: Date.now(),
     });
     if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
-      navigator.sendBeacon(ENDPOINT, body);
+      const queued = navigator.sendBeacon(ENDPOINT, new Blob([body], { type: 'application/json' }));
+      if (!queued) throw new Error('web-vitals beacon was not queued');
     } else if (typeof fetch !== 'undefined') {
       fetch(ENDPOINT, { method: 'POST', body, keepalive: true, headers: { 'content-type': 'application/json' } }).catch(() => {});
     }
@@ -24,7 +26,8 @@ export function reportMetric(metric: Metric) {
 }
 
 export function initWebVitals() {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || initialized) return;
+  initialized = true;
   try {
     onLCP(reportMetric);
     onFID(reportMetric);
@@ -32,7 +35,8 @@ export function initWebVitals() {
     onINP(reportMetric);
     onTTFB(reportMetric);
     onFCP(reportMetric);
-  } catch {
-    // web-vitals not loaded
+  } catch (error) {
+    initialized = false;
+    console.error('[web-vitals] initialization failed', error);
   }
 }

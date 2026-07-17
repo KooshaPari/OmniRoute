@@ -28,6 +28,7 @@ jobs:
     env:
       CI: "true"
       PLAYWRIGHT_BASE_URL: http://127.0.0.1:4321
+      BFF_ORIGIN: http://127.0.0.1:4322
       NO_COLOR: "1"
     steps:
       - name: Check out source
@@ -59,22 +60,25 @@ jobs:
       - name: Start BFF and web preview
         run: |
           mkdir -p journey-evidence/service-logs
-          (cd apps/bff && PORT=4322 bun run start) >journey-evidence/service-logs/bff.log 2>&1 &
+          setsid bash -c 'cd apps/bff && exec env PORT=4322 bun dist/index.js' >journey-evidence/service-logs/bff.log 2>&1 &
           echo $! > journey-evidence/service-logs/bff.pid
-          (cd apps/web && bun run preview --host 127.0.0.1 --port 4321) >journey-evidence/service-logs/web.log 2>&1 &
+          setsid bash -c 'cd apps/web && exec env HOST=127.0.0.1 PORT=4321 BFF_ORIGIN="$BFF_ORIGIN" node build/index.js' >journey-evidence/service-logs/web.log 2>&1 &
           echo $! > journey-evidence/service-logs/web.pid
 
-      - name: Wait for v4 web lifecycle
+      - name: Wait for v4 service lifecycle
         shell: bash
         run: |
           set -euo pipefail
           for attempt in {1..30}; do
-            if curl --fail --silent --show-error http://127.0.0.1:4321/ >/dev/null; then
+            if kill -0 "$(cat journey-evidence/service-logs/bff.pid)" 2>/dev/null \
+              && kill -0 "$(cat journey-evidence/service-logs/web.pid)" 2>/dev/null \
+              && curl --fail --silent --show-error http://127.0.0.1:4322/healthz >/dev/null \
+              && curl --fail --silent --show-error http://127.0.0.1:4321/ >/dev/null; then
               exit 0
             fi
             sleep 1
           done
-          echo "v4 web preview did not become ready" >&2
+          echo "v4 BFF and web preview did not become ready" >&2
           exit 1
 
       - name: Capture deterministic evidence
@@ -90,6 +94,16 @@ jobs:
             exit 1
           fi
 
+      - name: Stop v4 services
+        if: always()
+        shell: bash
+        run: |
+          for pid_file in journey-evidence/service-logs/web.pid journey-evidence/service-logs/bff.pid; do
+            if test -f "$pid_file"; then
+              kill -- "-$(cat "$pid_file")" 2>/dev/null || true
+            fi
+          done
+
       - name: Upload journey evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -103,5 +117,3 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
           include-hidden-files: false
-
-
