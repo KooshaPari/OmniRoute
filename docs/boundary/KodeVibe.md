@@ -1,39 +1,39 @@
 ---
 repo: "KodeVibe"
-role: unknown
-status: active
-last_boundary_review: 2026-06-17
-review_cadence: 30d
-in_scope:
-  - "<to be filled>"
-out_of_scope:
-  - "<to be filled>"
+role: quality
+status: absorbed
+absorbed_into: "phenotype-tooling"
+absorbed_at: "phenotype-tooling/tools/kodevibe/"
+absorbed_date: 2026-07-17
+last_boundary_review: 2026-07-17
+review_cadence: never (absorbed)
 ---
 
-# Boundary — KodeVibe
+# Boundary — KodeVibe (ABSORBED)
 
-## In Scope
+## Disposition
 
-<To be filled.>
+**ABSORBED** into `phenotype-tooling/tools/kodevibe/` on 2026-07-17.
 
-## Out of Scope
+The KodeVibe repo was a Go quality guardian tool (26.8MB, 13 branches) providing
+code quality analysis and review capabilities. It has been absorbed as a standalone
+tool directory within the phenotype-tooling collection.
 
-| Not here | Lives in | Reason |
-| -------- | -------- | ------ |
-| `<capability>` | `<other-repo-or-N/A>` | `<why>` |
+## Content migrated
 
-## Boundary Crossings
+| Item | Source path | Target path |
+|------|-------------|-------------|
+| Go source | `engine/*.go` (38 files) | `phenotype-tooling/tools/kodevibe/engine/` |
+| Binary | `kodevibe` | `phenotype-tooling/tools/kodevibe/kodevibe` |
+| Build config | `Makefile`, `.goreleaser.yaml` | `phenotype-tooling/tools/kodevibe/` |
+| Installer | `install.sh` | `phenotype-tooling/tools/kodevibe/install.sh` |
+| Docs | `docs/`, `README.md`, `AGENTS.md`, `CLAUDE.md` | `phenotype-tooling/tools/kodevibe/` |
+| Config | `.kodevibe.yaml`, charter/intent/SOTA | `phenotype-tooling/tools/kodevibe/` |
+| Governance | `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md` | `phenotype-tooling/tools/kodevibe/` |
 
-| Crossing | Direction | Surface | Status |
-| -------- | --------- | ------- | ------ |
-| `<capability or interface>` | `<this-repo→other|other→this-repo>` || `<this-repo→other|other→this-repo>` | `<Trait / HTTP / CLI / file / event>` | `<green|amber|red>` || `<green|amber|red>` || `<green|amber|red>` |
+Total: 158 files.
 
-## Last Boundary Review
+## Outcome
 
-**Date:** 2026-06-17
-**Reviewer:** forge subagent (L7-001 sweep)
-**Worklog / finding:** `worklogs/L7-001-intent-boundary-curation-2026-06-17.json`
-**Decisions:**
-- Initial scaffolding; needs human review.
-
-**Next review:** 2026-07-17
+Source repo `KooshaPari/KodeVibe` archived on GitHub.
+Registry disposition-index updated: disposition=ABSORB, target=phenotype-tooling.
