@@ -33,6 +33,7 @@ describe("benchmark egress guard", () => {
       expect(() => (globalThis.fetch as any)({ url: "http://127.0.0.1:1/healthz" })).toThrow(/invalid URL input/);
       expect(() => globalThis.fetch(`http://127.0.0.1:1/${"a".repeat(2048)}`)).toThrow(/invalid URL input/);
       expect(() => globalThis.fetch("http://localhost:1/healthz")).toThrow(/invalid loopback target/);
+      expect(() => globalThis.fetch("http://attacker.invalid/healthz")).toThrow(/invalid loopback target/);
       expect(() => globalThis.fetch("http://127.0.0.1:4322/unregistered")).toThrow(/invalid loopback target/);
       guard.setAllowedLoopbackPort(4322);
       expect(() => globalThis.fetch("http://127.0.0.1:4322/healthz", { method: "POST" })).toThrow(/invalid loopback target/);
