@@ -1729,20 +1729,39 @@
       "archived_date": "2026-07-17",
       "selective_absorb_summary": {
         "absorbed_templates": [
-          "phenotype-config", "phenotype-id", "phenotype-logging",
-          "phenotype-py-kit", "phenotype-testing", "phenotype-toolkit",
-          "plugin-typescript", "phenotype-go-kit", "phenotype-go-auth",
-          "phenotype-go-cli", "phenotype-go-config", "phenotype-go-middleware"
+          "phenotype-config",
+          "phenotype-id",
+          "phenotype-logging",
+          "phenotype-py-kit",
+          "phenotype-testing",
+          "phenotype-toolkit",
+          "plugin-typescript",
+          "phenotype-go-kit",
+          "phenotype-go-auth",
+          "phenotype-go-cli",
+          "phenotype-go-config",
+          "phenotype-go-middleware"
         ],
-        "absorbed_docs": ["docs/template-kitty-specs/001-commons"],
+        "absorbed_docs": [
+          "docs/template-kitty-specs/001-commons"
+        ],
         "skipped_overlap": [
-          "clean-rust", "hexagonal-cs/csharp/go/python/rs/rust/typescript/zig",
-          "microservice-scaffold", "phenotype-api"
+          "clean-rust",
+          "hexagonal-cs/csharp/go/python/rs/rust/typescript/zig",
+          "microservice-scaffold",
+          "phenotype-api"
         ],
         "skipped_governance": [
-          "PRD.md", "FUNCTIONAL_REQUIREMENTS.md", "COMPARISON.md",
-          "ADR-018-testing-strategy.md", "worklog.md",
-          "docs/", "scripts/", "tests/", "contracts/", ".github/"
+          "PRD.md",
+          "FUNCTIONAL_REQUIREMENTS.md",
+          "COMPARISON.md",
+          "ADR-018-testing-strategy.md",
+          "worklog.md",
+          "docs/",
+          "scripts/",
+          "tests/",
+          "contracts/",
+          ".github/"
         ],
         "files_added": 57,
         "insertions": 4007
@@ -2002,9 +2021,9 @@
       "id": "repo-phenotype-go-kit",
       "path": "KooshaPari/phenotype-go-kit",
       "disposition": "ABSORB",
-      "target": "phenotype-go-sdk",
+      "target": "phenotype-go-sdk (packages/)",
       "wave": "2026-07-17-queue-refresh-batch2",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "go",
       "size_kb": null,
       "remote_branch_count": null,
@@ -2014,7 +2033,7 @@
       "audit_artifact": "audits/absorption-justifications/phenotype-go-kit-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:30:31.000000Z",
-      "note": "Go-side toolkit (deleted remote recovery). Consolidates with phenotype-go-sdk, McpKit, PlatformKit, DevHex."
+      "note": "Go-side toolkit (deleted remote recovery). Consolidates with phenotype-go-sdk, McpKit, PlatformKit, DevHex. [ABSORBED 2026-07-17]"
     },
     {
       "id": "repo-Dino",
