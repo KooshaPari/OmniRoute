@@ -1331,13 +1331,25 @@ substrates:
   - id: tracely
     repo: KooshaPari/Tracely
     name: Tracely
-    status: active
+    status: absorbed
     tier: pheno-lib
     architecture: layered
     archetype: app
-    language: typescript
+    language: rust
     role: tracing
     boundary: null
     intent: null
     notes: |
-      Tracing app (gh lang=HTML).
+      Tracing observability library (workspace `name = "tracely"`, v0.2.0,
+      14 source `.rs` files: `lib.rs`, `logging.rs`, `tracing.rs`,
+      `benches/bench.rs`, `fuzz/fuzz_targets/init_fuzz.rs`).
+      Absorbed 2026-07-17 → phenotype-apps/apps/tracely/ as a BLOCK A app
+      (cargo check -p tracely verified; absorbing pr phenotype-apps@31f2bea7;
+      audit artifact audits/absorption-justifications/Tracely-2026-07-17.md;
+      outer `gh repo archive KooshaPari/Tracely -y` confirmed same day;
+      pre-archive tarball at repos/_archive/Tracely-2026-07-17/).
+      Previous language=typescript + "gh lang=HTML" framing was an API
+      mis-classification of upstream (the `crates/` directory also contained
+      mis-shelved stubs from already-absorbed repos: tracely-sentinel was
+      actually phenotype-sentinel and was dropped from the destination
+      workspace [members]).
