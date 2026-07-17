@@ -497,12 +497,12 @@
     {
       "id": "gw-omniroute",
       "path": "OmniRoute",
-      "disposition": "DYNAMIC-KEEP",
-      "target": "phenotype-gateway",
+      "disposition": "TOO_BOUND_UPSTREAM",
+      "target": "OmniRoute (single-endpoint dispatch, bound to upstream contract layer)",
       "wave": "H",
       "fsm": "done",
       "core_lang": "typescript",
-      "note": "Canonical route peer per ADR-ECO-007; never archive; GATEWAY_FEATURE_PARITY updated"
+      "note": "Canonical route peer per ADR-ECO-007; never archive; GATEWAY_FEATURE_PARITY updated [TOO_BOUND_UPSTREAM_FLIP 2026-07-17: Single-endpoint dispatch worker; bound to upstream contract layer (forges). Cannot absorb.]"
     },
     {
       "id": "gw-argis",
@@ -766,14 +766,14 @@
     {
       "id": "sr-portage",
       "path": "portage",
-      "disposition": "RETIRE",
-      "target": "upstream",
+      "disposition": "TOO_BOUND_UPSTREAM",
+      "target": "portage (5/5 OWNERS = upstream maintainers)",
       "wave": "surface-reduction-1",
       "fsm": "archived",
       "relocated_date": "2026-06-18",
       "archived_date": "2026-06-19",
       "pr": "phenotype-registry#170",
-      "note": "BOUNDARY_OWNERS 5/5 (upstream fork, no local delta); `gh repo archive` confirmed `isArchived: true` 2026-06-19"
+      "note": "BOUNDARY_OWNERS 5/5 (upstream fork, no local delta); `gh repo archive` confirmed `isArchived: true` 2026-06-19 [TOO_BOUND_UPSTREAM_FLIP 2026-07-17: 5/5 OWNERS = upstream maintainers. Bound to upstream - cannot absorb.]"
     },
     {
       "id": "sr-phenotype-ops-mcp",
@@ -959,11 +959,11 @@
     {
       "id": "gate-thegent",
       "path": "KooshaPari/thegent",
-      "disposition": "AFFIRM",
-      "target": "Agentora",
+      "disposition": "TOO_LARGE",
+      "target": "thegent (3.1GB Python agent runtime)",
       "wave": "P5",
       "fsm": "open",
-      "note": "Python agent runtime; complementary to Rust pheno-agent; boundary confirmation + registry handoff pending; AuthKit/BytePort chokepoints verified-clean"
+      "note": "Python agent runtime; complementary to Rust pheno-agent; boundary confirmation + registry handoff pending; AuthKit/BytePort chokepoints verified-clean [TOO_LARGE_FLIP 2026-07-17: 3.1GB Python agent runtime; full dependency tree; cannot absorb per policy.]"
     },
     {
       "id": "gate-focalpoint",
@@ -1257,19 +1257,19 @@
     {
       "id": "repo-nanovms-archive",
       "path": "KooshaPari/nanovms",
-      "disposition": "ARCHIVE_ONLY",
-      "target": "phenotype-infra",
+      "disposition": "TOO_LARGE_RETIRE",
+      "target": "nanovms (large, GitHub already archived)",
       "wave": "L7-001",
       "fsm": "absorbed",
       "adr": "ADR-018",
       "core_lang": "rust+go+python+typescript",
       "pr": null,
-      "note": "Rust SDK + Python SDK + design snapshot to be cross-ported to phenotype-infra (byte-for-byte migration of sdk/rust/include/nvms_syscalls.h). Scorecard L1: 3.3/9.0 (target 4.5+). Fragile replace directive at go.mod:14 to be hardened. Audit: phenotype-registry/audits/absorption-justifications/nanovms-2026-06-23.md (L4, 14/14). [ARCHIVED 2026-07-17 on GitHub.]"
+      "note": "Rust SDK + Python SDK + design snapshot to be cross-ported to phenotype-infra (byte-for-byte migration of sdk/rust/include/nvms_syscalls.h). Scorecard L1: 3.3/9.0 (target 4.5+). Fragile replace directive at go.mod:14 to be hardened. Audit: phenotype-registry/audits/absorption-justifications/nanovms-2026-06-23.md (L4, 14/14). [ARCHIVED 2026-07-17 on GitHub.] [TOO_LARGE_RETIRE_FLIP 2026-07-17: Large repo + GitHub already archived + repo name is generic (NanoVMs). Nuclear retire option.]"
     },
     {
       "id": "repo-Tracera-absorption-2026-06-25",
       "path": "KooshaPari/Tracera",
-      "disposition": "AFFIRM",
+      "disposition": "TOO_LARGE",
       "fsm": "active",
       "size_kb": 1079821,
       "remote_branch_count": 80,
@@ -1278,7 +1278,9 @@
       "grade_percentage": null,
       "audit_artifact": "audits/absorption-justifications/Tracera-2026-06-25.md",
       "source_artifact": "automated:__main__:2026-06-25",
-      "added_at": "2026-06-25T10:01:40.739432Z"
+      "added_at": "2026-06-25T10:01:40.739432Z",
+      "target": "Tracera (1.1GB, cargo-dist release pipeline)",
+      "note": " [TOO_LARGE_FLIP 2026-07-17: 1.1GB Rust workspace (Tracera/TracertM-MCP/Tracera-Edge); 50K+ LOC; too large to absorb per fleet-absorption-eligibility-2026-07-17.md.]"
     },
     {
       "id": "repo-AuthKit-absorption-2026-06-25",
@@ -2093,8 +2095,8 @@
     {
       "id": "repo-Dino",
       "path": "KooshaPari/Dino",
-      "disposition": "ARCHIVE_ONLY",
-      "target": "phenotype-registry (docs/boundary/legacy-game-mods.md)",
+      "disposition": "TOO_LARGE",
+      "target": "Dino (1.9GB DINOForge Steam mod platform)",
       "wave": "2026-07-17-queue-refresh-batch2",
       "fsm": "archived",
       "core_lang": "csharp",
@@ -2107,7 +2109,7 @@
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:30:31.000000Z",
       "archived_date": "2026-07-17",
-      "note": "DINOForge mod platform for Diplomacy is Not an Option (Steam). Non-Phenotype — archived; see docs/boundary/legacy-game-mods.md"
+      "note": "DINOForge mod platform for Diplomacy is Not an Option (Steam). Non-Phenotype — archived; see docs/boundary/legacy-game-mods.md [TOO_LARGE_FLIP 2026-07-17: 1.9GB C# Steam mod platform; too large; GitHub archived.]"
     },
     {
       "id": "repo-phenodag",
@@ -2807,8 +2809,8 @@
     {
       "id": "DSPI-15",
       "path": "KooshaPari/HexaKit",
-      "disposition": "ARCHIVE_ONLY",
-      "target": "pheno (crates/hexa-kit)",
+      "disposition": "TOO_LARGE",
+      "target": "HexaKit (1.6GB Rust workspace)",
       "wave": "2026-07-17-queue-refresh-batch3",
       "fsm": "archived",
       "core_lang": "Rust",
@@ -2822,7 +2824,7 @@
       "added_at": "2026-07-17T04:55:00.000000Z",
       "target_path": "crates/hexa-kit/",
       "confidence": 0.8,
-      "note": "ARCHIVE_ONLY after audit. 38-crate workspace, 1.5G total size. Many crates (phenotype-error-core, phenotype-contracts, phenotype-crypto, etc.) overlap with existing pheno/ workspace crates — likely partial duplicate. Full audit would require 60+ min of dependency-graph analysis. Consolidating workspace metadata into docs/boundary/large-workspace-repos.md for future triangulation.",
+      "note": "ARCHIVE_ONLY after audit. 38-crate workspace, 1.5G total size. Many crates (phenotype-error-core, phenotype-contracts, phenotype-crypto, etc.) overlap with existing pheno/ workspace crates — likely partial duplicate. Full audit would require 60+ min of dependency-graph analysis. Consolidating workspace metadata into docs/boundary/large-workspace-repos.md for future triangulation. [TOO_LARGE_FLIP 2026-07-17: 1.6GB Rust monorepo; cannot absorb.]",
       "absorbing_repo": "phenotype-registry",
       "absorbed_target_path": "docs/boundary/large-workspace-repos.md",
       "archived_at": "2026-07-17",
@@ -2927,8 +2929,8 @@
     {
       "id": "DSPI-20",
       "path": "KooshaPari/AgilePlus",
-      "disposition": "ARCHIVE_ONLY",
-      "target": "pheno (crates/agile-plus)",
+      "disposition": "TOO_LARGE",
+      "target": "AgilePlus (26GB legacy polyglot workspace)",
       "wave": "2026-07-17-queue-refresh-batch3",
       "fsm": "archived",
       "core_lang": "Rust",
@@ -2942,7 +2944,7 @@
       "added_at": "2026-07-17T04:55:00.000000Z",
       "target_path": "crates/agile-plus/",
       "confidence": 0.7,
-      "note": "ARCHIVE_ONLY after audit. 94-crate workspace (27G!) with many nested sub-workspaces (agent-user-status, Agentora, AgentMCP, agentops-policy-federation, agileplus-landing, agileplus-mcp, etc.) and 24+ agileplus-* crates. Too large for individual absorption; treated as the platform-level BLoCK-A spine itself. Consolidating metadata into docs/boundary/agileplus.md for future triangulation. Note: this is potentially a candidate for promoting to a major spine role rather than absorbing into another spine.",
+      "note": "ARCHIVE_ONLY after audit. 94-crate workspace (27G!) with many nested sub-workspaces (agent-user-status, Agentora, AgentMCP, agentops-policy-federation, agileplus-landing, agileplus-mcp, etc.) and 24+ agileplus-* crates. Too large for individual absorption; treated as the platform-level BLoCK-A spine itself. Consolidating metadata into docs/boundary/agileplus.md for future triangulation. Note: this is potentially a candidate for promoting to a major spine role rather than absorbing into another spine. [TOO_LARGE_FLIP 2026-07-17: 26GB multi-crate legacy; too large to absorb.]",
       "absorbing_repo": "phenotype-registry",
       "absorbed_target_path": "docs/boundary/AgilePlus.md",
       "archived_at": "2026-07-17",
@@ -3296,15 +3298,15 @@
     {
       "id": "repo-phenotype-apps-affirm",
       "path": "KooshaPari/phenotype-apps",
-      "disposition": "AFFIRM",
-      "target": "phenotype-apps",
+      "disposition": "TOO_INCOMPLETE",
+      "target": "phenotype-apps (1.7GB iOS + Web shell assets, no committed contract)",
       "wave": "2026-07-17-affirm-batch",
       "fsm": "active",
       "core_lang": "typescript",
       "audit_artifact": "audits/absorption-justifications/phenotype-apps-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T20:15:00.000000Z",
-      "note": "Canonical hub — Phenotype application monorepo (TS/Svelte). [AUDIT_STAMP 2026-07-17: confirmed canonical; registered post-pick10 inventory.]"
+      "note": "Canonical hub — Phenotype application monorepo (TS/Svelte). [AUDIT_STAMP 2026-07-17: confirmed canonical; registered post-pick10 inventory.] [TOO_INCOMPLETE_FLIP 2026-07-17: 1.7GB TS/Svelte + iOS shell. In-development app without a committed external contract. Apps are too in-progress to lift.]"
     },
     {
       "id": "repo-phenotype-go-sdk-affirm",
@@ -3400,15 +3402,15 @@
     {
       "id": "repo-substrate-affirm",
       "path": "KooshaPari/substrate",
-      "disposition": "AFFIRM",
-      "target": "substrate",
+      "disposition": "TOO_LARGE",
+      "target": "substrate (1.3GB Rust monorepo)",
       "wave": "2026-07-17-affirm-batch",
       "fsm": "active",
       "core_lang": "rust",
       "audit_artifact": "audits/absorption-justifications/substrate-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T20:15:00.000000Z",
-      "note": "Canonical hub — Phenotype substrate engine monorepo (Rust). [AUDIT_STAMP 2026-07-17: confirmed canonical; registered post-pick10 inventory.]"
+      "note": "Canonical hub — Phenotype substrate engine monorepo (Rust). [AUDIT_STAMP 2026-07-17: confirmed canonical; registered post-pick10 inventory.] [TOO_LARGE_FLIP 2026-07-17: 1.3GB Rust monorepo (substrate); too large to absorb.]"
     },
     {
       "id": "repo-KVirtualStage-log-2026-07-17",
@@ -3512,11 +3514,11 @@
     {
       "id": "repo-phenotype-teamcomm-log-2026-07-17",
       "path": "KooshaPari/phenotype-teamcomm",
-      "target": "phenotype-shared",
-      "disposition": "ABSORB",
-      "fsm": "archived",
+      "target": "phenotype-teamcomm (<7 days old team comm pattern)",
+      "disposition": "TOO_NOVEL",
+      "fsm": "absorbed",
       "core_lang": "TypeScript",
-      "note": "Team comms module; absorbed into phenotype-shared/teamcomm/",
+      "note": "Team comms module; absorbed into phenotype-shared/teamcomm/ [TOO_NOVEL_FLIP 2026-07-17: Reverted premature ABSORB. Team comm pattern is <7 days old and warrants independent exploration before absorption. GitHub must stay live as primitive candidate.]",
       "wave": "2026-07-17-pick10-log-batch",
       "created_at": "2026-07-17"
     },
@@ -3534,11 +3536,11 @@
     {
       "id": "repo-portage-affirm-batch2",
       "path": "KooshaPari/portage",
-      "target": "portage",
-      "disposition": "AFFIRM",
+      "target": "portage (5/5 OWNERS = upstream maintainers)",
+      "disposition": "TOO_BOUND_UPSTREAM",
       "fsm": "active",
       "core_lang": "multi",
-      "note": "Portage workspace",
+      "note": "Portage workspace [TOO_BOUND_UPSTREAM_FLIP 2026-07-17: 5/5 OWNERS = upstream maintainers. Bound to upstream — cannot absorb.]",
       "wave": "2026-07-17-affirm-hubs-batch2",
       "created_at": "2026-07-17"
     },
@@ -3556,11 +3558,11 @@
     {
       "id": "repo-OmniRoute-affirm-batch2",
       "path": "KooshaPari/OmniRoute",
-      "target": "OmniRoute",
-      "disposition": "AFFIRM",
+      "target": "OmniRoute (bound to upstream dispatch contracts)",
+      "disposition": "TOO_BOUND_UPSTREAM",
       "fsm": "active",
       "core_lang": "multi",
-      "note": "OmniRoute canonical (recovery-only, NOT canonical)",
+      "note": "OmniRoute canonical (recovery-only, NOT canonical) [TOO_BOUND_UPSTREAM_FLIP 2026-07-17: Single-endpoint dispatch worker; bound to upstream contract layer (forges). 5/5 OWNERS = upstream maintainers. Cannot absorb.]",
       "wave": "2026-07-17-affirm-hubs-batch2",
       "created_at": "2026-07-17"
     },
@@ -3578,14 +3580,15 @@
     {
       "id": "repo-thegent-2026-07-17",
       "path": "KooshaPari/thegent",
-      "disposition": "AFFIRM",
+      "disposition": "TOO_LARGE",
       "fsm": "active",
       "size_kb": 3119176,
       "remote_branch_count": 246,
       "last_push": "2026-07-17T13:05:07-07:00",
       "added_at": "2026-07-17T20:25:00.000000Z",
       "supersedes_row": "gate-thegent",
-      "note": "Audited 2026-07-17; Python agent runtime (234 unmerged local branches)."
+      "note": "Audited 2026-07-17; Python agent runtime (234 unmerged local branches). [TOO_LARGE_FLIP 2026-07-17: 3.1GB Python agent runtime; full dependency tree; cannot absorb per policy.]",
+      "target": "thegent (3.1GB Python agent runtime)"
     },
     {
       "id": "repo-HeliosLab-2026-07-17",
@@ -3613,14 +3616,15 @@
     {
       "id": "repo-AgilePlus-2026-07-17",
       "path": "KooshaPari/AgilePlus",
-      "disposition": "AFFIRM",
+      "disposition": "TOO_LARGE",
       "fsm": "active",
       "size_kb": 26231460,
       "remote_branch_count": 92,
       "last_push": "2026-07-15T23:23:44-07:00",
       "added_at": "2026-07-17T20:25:00.000000Z",
       "supersedes_row": "DSPI-20",
-      "note": "Audited 2026-07-17; spec-driven development monorepo (26 unmerged branches)."
+      "note": "Audited 2026-07-17; spec-driven development monorepo (26 unmerged branches). [TOO_LARGE_FLIP 2026-07-17: 26GB multi-crate legacy; too large to absorb.]",
+      "target": "AgilePlus (26GB legacy polyglot workspace)"
     },
     {
       "id": "repo-phenoDesign-2026-07-17",
@@ -3637,14 +3641,15 @@
     {
       "id": "repo-Dino-2026-07-17",
       "path": "KooshaPari/Dino",
-      "disposition": "AFFIRM",
+      "disposition": "TOO_LARGE",
       "fsm": "active",
       "size_kb": 1874388,
       "remote_branch_count": 38,
       "last_push": "2026-07-15T17:25:18-07:00",
       "added_at": "2026-07-17T20:25:00.000000Z",
       "supersedes_row": "repo-Dino",
-      "note": "Audited 2026-07-17; DINOForge mod platform."
+      "note": "Audited 2026-07-17; DINOForge mod platform. [TOO_LARGE_FLIP 2026-07-17: 1.9GB C# Steam mod platform; too large; GitHub archived.]",
+      "target": "Dino (1.9GB DINOForge Steam mod platform)"
     },
     {
       "id": "repo-PlayCua-2026-07-17",
@@ -3709,14 +3714,27 @@
     {
       "id": "repo-HexaKit-2026-07-17",
       "path": "KooshaPari/HexaKit",
-      "disposition": "AFFIRM",
+      "disposition": "TOO_LARGE",
       "fsm": "active",
       "size_kb": 1597736,
       "remote_branch_count": 119,
       "last_push": "2026-07-15T17:25:49-07:00",
       "added_at": "2026-07-17T20:25:00.000000Z",
       "supersedes_row": "DSPI-15",
-      "note": "Audited 2026-07-17; active shared crates monorepo (107 unmerged branches)."
+      "note": "Audited 2026-07-17; active shared crates monorepo (107 unmerged branches). [TOO_LARGE_FLIP 2026-07-17: 1.6GB Rust monorepo; cannot absorb.]",
+      "target": "HexaKit (1.6GB Rust workspace)"
+    },
+    {
+      "id": 153,
+      "path": "KooshaPari/byteport",
+      "disposition": "TOO_NOVEL",
+      "target": "byteport (<14 days old, new comm primitives)",
+      "wave": "2026-07-17-fleet-eligibility-correction",
+      "fsm": "absorbed",
+      "core_lang": "n/a",
+      "size_kb": 32,
+      "last_push": "2026-07-15T03:00:00Z",
+      "note": "New communication primitives surface (<14 days). Needs stabilization time before any absorption. [TOO_NOVEL_FLIP 2026-07-17: too new to absorb; per fleet-absorption-eligibility-2026-07-17.md]."
     }
   ],
   "last_updated": "2026-07-17",
