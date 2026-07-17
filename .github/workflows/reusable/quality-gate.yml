@@ -109,7 +109,7 @@ jobs:
 
       - name: Run semgrep SAST scan
         if: ${{ steps.parse-na.outputs.skip_sast != 'true' }}
-        uses: returntocorp/semgrep-action@efb646f426b20d66c1a61aca87c03a7fa4f7ed2f
+        uses: returntocorp/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d
         with:
           config: ${{ inputs.sast-config }}
           generateSarif: true

@@ -66,6 +66,12 @@ const DEFAULT_BASE_URL = `http://${DEFAULT_HOST}:${DEFAULT_PORT}`;
 const HEALTH_CHECK_TIMEOUT_MS = 5000;
 export const BIFROST_TAG = "BIFROST";
 
+function isClientAbortedStreamingFetch(input: ExecuteInput, error: unknown): boolean {
+  if (!input.stream || !input.signal?.aborted) return false;
+  if (error === input.signal.reason) return true;
+  return error instanceof Error && error.name === "AbortError";
+}
+
 /**
  * Resolve the Bifrost base URL. Reads from env, falls back to the
  * default localhost:8080 (which is Bifrost's documented default).
@@ -182,7 +188,7 @@ async function enforceBifrostModelCache(
   log?: {
     info?: (tag: string, msg: string) => void;
     warn?: (tag: string, msg: string) => void;
-  },
+  }
 ): Promise<void> {
   const required = isBifrostCacheRequired();
   const refreshOnMiss = isBifrostCacheRefreshOnMiss();
@@ -192,7 +198,7 @@ async function enforceBifrostModelCache(
   if (cached) {
     log?.info?.(
       BIFROST_TAG,
-      `bifrost_models cache hit for ${provider}/${model} (fetched ${cached.fetchedAt})`,
+      `bifrost_models cache hit for ${provider}/${model} (fetched ${cached.fetchedAt})`
     );
     return;
   }
@@ -201,7 +207,7 @@ async function enforceBifrostModelCache(
   if (refreshOnMiss) {
     log?.info?.(
       BIFROST_TAG,
-      `bifrost_models cache miss for ${provider}/${model} — refreshing from ${baseUrl}/v1/models`,
+      `bifrost_models cache miss for ${provider}/${model} — refreshing from ${baseUrl}/v1/models`
     );
     const fetcher: BifrostFetcher = async (prov: string) => {
       const url = `${baseUrl}/v1/models?provider=${encodeURIComponent(prov)}`;
@@ -223,7 +229,7 @@ async function enforceBifrostModelCache(
         throw new Error(
           `[${BIFROST_TAG}] BIFROST_MODEL_CACHE_REQUIRED=1 and cache refresh failed for ` +
             `${provider}/${model}. Underlying: ${msg}. ` +
-            `Disable the cache toggle or fix the Bifrost /v1/models endpoint.`,
+            `Disable the cache toggle or fix the Bifrost /v1/models endpoint.`
         );
       }
       // Refresh failed but not required: continue with stale (or absent) cache.
@@ -231,10 +237,7 @@ async function enforceBifrostModelCache(
     }
     const postRefresh = getBifrostModel(provider, model);
     if (postRefresh) {
-      log?.info?.(
-        BIFROST_TAG,
-        `bifrost_models cache hit for ${provider}/${model} after refresh`,
-      );
+      log?.info?.(BIFROST_TAG, `bifrost_models cache hit for ${provider}/${model} after refresh`);
       return;
     }
   }
@@ -244,12 +247,12 @@ async function enforceBifrostModelCache(
       `[${BIFROST_TAG}] BIFROST_MODEL_CACHE_REQUIRED=1 and model "${model}" ` +
         `is not in the bifrost_models cache for provider "${provider}". ` +
         `Set BIFROST_MODEL_CACHE_REFRESH_ON_MISS=1 to populate lazily, or refresh manually ` +
-        `(see refreshBifrostModels in src/lib/db/bifrostModels.ts).`,
+        `(see refreshBifrostModels in src/lib/db/bifrostModels.ts).`
     );
   }
   log?.warn?.(
     BIFROST_TAG,
-    `bifrost_models cache miss for ${provider}/${model} — proceeding without cache enforcement`,
+    `bifrost_models cache miss for ${provider}/${model} — proceeding without cache enforcement`
   );
 }
 
@@ -332,7 +335,9 @@ export class BifrostBackendExecutor extends BaseExecutor {
     if (!bifrostProviderId) {
       // Defensive — isBifrostSupported already covered this branch, but
       // keep the explicit guard for type narrowing.
-      throw new Error(`[${BIFROST_TAG}] resolveBifrostProviderId returned null for "${this.provider}".`);
+      throw new Error(
+        `[${BIFROST_TAG}] resolveBifrostProviderId returned null for "${this.provider}".`
+      );
     }
 
     const baseUrl = await resolveBifrostBaseUrl();
@@ -423,24 +428,29 @@ export class BifrostBackendExecutor extends BaseExecutor {
       );
       response = result;
     } catch (err) {
-      // Fetch threw (network error, abort, timeout). Record a failed
-      // observation and re-throw. The dispatcher will handle the error.
+      // A downstream client can abort a streaming request before Bifrost
+      // returns its response. That is not an upstream failure, so do not
+      // degrade route metrics or the kill switch; preserve all other
+      // transport failures (including the executor timeout) as failures.
       const latencyMs = Date.now() - startTime;
-      recordBifrostRouteOutcome({
-        provider: this.provider,
-        model,
-        status: null,
-        latencyMs,
-        ok: false,
-        error: err,
-      });
-      if (!isKillSwitchDisabled()) {
-        recordObservation({
-          timestamp: Date.now(),
+      if (!isClientAbortedStreamingFetch(input, err)) {
+        recordBifrostRouteOutcome({
           provider: this.provider,
+          model,
+          connectionId: input.credentials?.connectionId,
+          status: null,
           latencyMs,
           ok: false,
+          error: err,
         });
+        if (!isKillSwitchDisabled()) {
+          recordObservation({
+            timestamp: Date.now(),
+            provider: this.provider,
+            latencyMs,
+            ok: false,
+          });
+        }
       }
       throw err;
     }
@@ -455,10 +465,19 @@ export class BifrostBackendExecutor extends BaseExecutor {
     // fields are optional — callers that have them can wire them in via
     // input.killSwitchCost if/when that field is added.
     const latencyMs = Date.now() - startTime;
-    if (shouldRecordRouteOutcome) {
+    if (
+      shouldRecordRouteOutcome &&
+      ![
+        HTTP_STATUS.BAD_REQUEST,
+        HTTP_STATUS.UNAUTHORIZED,
+        HTTP_STATUS.PAYMENT_REQUIRED,
+        HTTP_STATUS.FORBIDDEN,
+      ].includes(response.status)
+    ) {
       recordBifrostRouteOutcome({
         provider: this.provider,
         model,
+        connectionId: input.credentials?.connectionId,
         status: response.status,
         latencyMs,
         ok: response.ok,
@@ -496,7 +515,12 @@ export class BifrostBackendExecutor extends BaseExecutor {
    * (via refreshBifrostModels). This is the B4 wiring: sub-millisecond
    * lookup in the steady state, network roundtrip only on cache miss.
    */
-  async healthCheck(): Promise<{ ok: boolean; latencyMs: number; error?: string; version?: string }> {
+  async healthCheck(): Promise<{
+    ok: boolean;
+    latencyMs: number;
+    error?: string;
+    version?: string;
+  }> {
     const start = Date.now();
     if (!isBifrostEnabled()) {
       return {
@@ -602,9 +626,12 @@ export default BifrostBackendExecutor;
  * L1a implements path (1) only; path (2) requires the upstreamProxy.ts
  * module that this fork is missing (fork drift — see DAG S6 P6d).
  */
-export function shouldRouteViaBifrost(provider: string, opts?: {
-  providerSpecificData?: { bifrostMode?: boolean | null } | null;
-}): boolean {
+export function shouldRouteViaBifrost(
+  provider: string,
+  opts?: {
+    providerSpecificData?: { bifrostMode?: boolean | null } | null;
+  }
+): boolean {
   if (process.env.BIFROST_ENABLED === "1" || process.env.BIFROST_ENABLED === "true") {
     return true;
   }
@@ -642,7 +669,7 @@ export function shouldRouteViaBifrost(provider: string, opts?: {
  */
 export async function dispatchBifrostWithFallback(
   exec: BifrostBackendExecutor,
-  input: ExecuteInput,
+  input: ExecuteInput
 ): ReturnType<BifrostBackendExecutor["execute"]> {
   try {
     return await exec.execute(input);
@@ -669,16 +696,19 @@ export function createBifrostBackedExecutor(
   log?: {
     info?: (tag: string, msg: string) => void;
     warn?: (tag: string, msg: string) => void;
-  },
+  }
 ): {
   execute: (input: ExecuteInput) => ReturnType<BifrostBackendExecutor["execute"]>;
   getProvider: () => string;
 } {
   log?.info?.(
     BIFROST_TAG,
-    `${provider} → BifrostBackendExecutor (Tier-1 router, fallback-wrapped)`,
+    `${provider} → BifrostBackendExecutor (Tier-1 router, fallback-wrapped)`
   );
-  const bifrost = new BifrostBackendExecutor(provider, {} as ConstructorParameters<typeof BaseExecutor>[1]);
+  const bifrost = new BifrostBackendExecutor(
+    provider,
+    {} as ConstructorParameters<typeof BaseExecutor>[1]
+  );
   return {
     getProvider: () => bifrost.getProvider(),
     execute: (input) => dispatchBifrostWithFallback(bifrost, input),

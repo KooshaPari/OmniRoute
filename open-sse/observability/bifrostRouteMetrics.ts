@@ -25,6 +25,8 @@ const BIFROST_METRICS_PERSIST_DEBOUNCE_MS = 250;
 export interface BifrostRouteOutcomeInput {
   provider: string;
   model: string;
+  /** Optional provider connection identity; absent preserves the legacy bucket. */
+  connectionId?: string | null;
   latencyMs: number;
   status?: number | null;
   /** Optional error instance/message when a transport failure occurs. */
@@ -41,6 +43,7 @@ export interface BifrostRouteOutcomeInput {
 export interface BifrostRouteOutcomeStats {
   provider: string;
   model: string;
+  connectionId?: string | null;
   sampleCount: number;
   successCount: number;
   failureCount: number;
@@ -57,6 +60,7 @@ export interface BifrostRouteOutcomeStats {
 export interface BifrostRouteProjectedOutcome {
   provider: string;
   model: string;
+  connectionId?: string | null;
   e2eLatencyMs: number;
   avgTtftMs: number | null;
   avgTokensPerSecond: number | null;
@@ -89,6 +93,7 @@ interface OutcomeSample {
 interface OutcomeRing {
   provider: string;
   model: string;
+  connectionId: string | null;
   samples: Array<OutcomeSample | null>;
   writeIndex: number;
   updatedAtMs: number;
@@ -105,6 +110,7 @@ const pendingPersistenceSnapshots = new Map<
   {
     provider: string;
     model: string;
+    connectionId: string | null;
     samples: OutcomeSample[];
   }
 >();
@@ -164,6 +170,7 @@ function capturePendingPersistenceSnapshot(key: string, state: OutcomeRing): voi
   pendingPersistenceSnapshots.set(key, {
     provider: state.provider,
     model: state.model,
+    connectionId: state.connectionId,
     samples: merged,
   });
 }
@@ -190,7 +197,7 @@ async function flushBifrostRouteMetricsPersistence(): Promise<void> {
 
   const samplesByKey: BifrostRouteMetricKeySamples[] = [];
   for (const key of keysToPersist) {
-    const [provider, model] = key.split("\u0000");
+    const [provider, model, connectionId] = key.split("\u0000");
     if (!provider || !model) continue;
     const state = metricsMap.get(key) ?? null;
 
@@ -200,9 +207,11 @@ async function flushBifrostRouteMetricsPersistence(): Promise<void> {
     samplesByKey.push({
       provider,
       model,
+      connectionId: connectionId || null,
       samples: orderedSamples.map((sample) => ({
         provider,
         model,
+        connectionId: connectionId || null,
         timestampMs: sample.timestampMs,
         status: sample.status,
         latencyMs: sample.latencyMs,
@@ -259,13 +268,14 @@ function hydrateBifrostRouteMetricsFromDb(): boolean {
     });
     for (const item of persisted) {
       const orderedSamples = orderSamplesByTimestamp(item.samples);
-      const key = normalizeKey(item.provider, item.model);
+      const key = normalizeKey(item.provider, item.model, item.connectionId);
       const samples = orderedSamples.filter((sample): sample is OutcomeSample => sample !== null);
       if (samples.length === 0) continue;
 
       metricsMap.set(key, {
         provider: item.provider,
         model: item.model,
+        connectionId: item.connectionId ?? null,
         samples,
         writeIndex: samples.length >= MAX_SAMPLES_PER_KEY ? 0 : samples.length,
         updatedAtMs: item.updatedAtMs,
@@ -301,8 +311,12 @@ export function initializeBifrostRouteMetricsFromStorage(
   if (!hydrated) return;
 }
 
-function normalizeKey(provider: string, model: string): string {
-  return `${provider}\u0000${model}`;
+function normalizeConnectionId(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function normalizeKey(provider: string, model: string, connectionId?: string | null): string {
+  return `${provider}\u0000${model}\u0000${normalizeConnectionId(connectionId) ?? ""}`;
 }
 
 function normalizeError(error: unknown): string | null {
@@ -374,6 +388,7 @@ function buildStats(state: OutcomeRing): BifrostRouteOutcomeStats {
   return {
     provider: state.provider,
     model: state.model,
+    connectionId: state.connectionId,
     sampleCount,
     successCount,
     failureCount,
@@ -388,8 +403,12 @@ function buildStats(state: OutcomeRing): BifrostRouteOutcomeStats {
   };
 }
 
-function getOrCreateState(provider: string, model: string): OutcomeRing {
-  const key = normalizeKey(provider, model);
+function getOrCreateState(
+  provider: string,
+  model: string,
+  connectionId: string | null
+): OutcomeRing {
+  const key = normalizeKey(provider, model, connectionId);
   const existing = metricsMap.get(key);
   if (existing) {
     // Move key to most-recent position for LRU semantics.
@@ -401,6 +420,7 @@ function getOrCreateState(provider: string, model: string): OutcomeRing {
   const created: OutcomeRing = {
     provider,
     model,
+    connectionId,
     samples: [],
     writeIndex: 0,
     updatedAtMs: Date.now(),
@@ -521,6 +541,7 @@ function isValidStats(stats: MetricProjectionInput): stats is BifrostRouteOutcom
 function buildStatsFromSamples(
   provider: string,
   model: string,
+  connectionId: string | null,
   orderedSamples: OutcomeSample[]
 ): BifrostRouteOutcomeStats {
   let successCount = 0;
@@ -554,6 +575,7 @@ function buildStatsFromSamples(
   return {
     provider,
     model,
+    connectionId,
     sampleCount,
     successCount,
     failureCount,
@@ -577,11 +599,13 @@ function buildFreshStatsFromState(
   const projectionWindowMs = normalizeProjectionWindowMs(options.projectionWindowMs);
   const cutoffMs = now - projectionWindowMs;
   const orderedSamples = getOrderedSamples(state);
-  const freshSamples = orderedSamples.filter((sample) => sample.timestampMs >= cutoffMs);
+  const freshSamples = orderedSamples.filter(
+    (sample) => sample.timestampMs >= cutoffMs && sample.timestampMs <= now
+  );
 
   if (freshSamples.length === 0) return null;
 
-  return buildStatsFromSamples(state.provider, state.model, freshSamples);
+  return buildStatsFromSamples(state.provider, state.model, state.connectionId, freshSamples);
 }
 
 function projectBifrostRouteStats(
@@ -612,6 +636,7 @@ export function projectBifrostRouteMetrics(
     return {
       provider: stats.provider,
       model: stats.model,
+      connectionId: stats.connectionId ?? null,
       e2eLatencyMs,
       avgTtftMs: stats.avgTtftMs,
       avgTokensPerSecond: stats.avgTokensPerSecond,
@@ -626,6 +651,7 @@ export function projectBifrostRouteMetrics(
   return {
     provider: stats.provider,
     model: stats.model,
+    connectionId: stats.connectionId ?? null,
     e2eLatencyMs,
     avgTtftMs: stats.avgTtftMs,
     avgTokensPerSecond: stats.avgTokensPerSecond,
@@ -640,6 +666,7 @@ export function projectBifrostRouteMetrics(
 export function recordBifrostRouteOutcome(input: BifrostRouteOutcomeInput): void {
   const provider = safeProviderModel(input.provider, DEFAULT_PROVIDER);
   const model = safeProviderModel(input.model, DEFAULT_MODEL);
+  const connectionId = normalizeConnectionId(input.connectionId);
   const status = normalizeStatus(input.status);
   const latencyMs = ensureMs(input.latencyMs, 0);
   const ok =
@@ -660,19 +687,21 @@ export function recordBifrostRouteOutcome(input: BifrostRouteOutcomeInput): void
     generationDurationMs: normalizePositiveMs(input.generationDurationMs, null),
   };
 
-  const state = getOrCreateState(provider, model);
+  const state = getOrCreateState(provider, model, connectionId);
   writeSample(state, sample);
   state.updatedAtMs = sample.timestampMs;
-  queuePersistence(normalizeKey(provider, model));
+  queuePersistence(normalizeKey(provider, model, connectionId));
 }
 
 export function getBifrostRouteMetrics(
   provider: string,
-  model: string
+  model: string,
+  connectionId?: string | null
 ): BifrostRouteOutcomeStats | null {
   const key = normalizeKey(
     safeProviderModel(provider, DEFAULT_PROVIDER),
-    safeProviderModel(model, DEFAULT_MODEL)
+    safeProviderModel(model, DEFAULT_MODEL),
+    connectionId
   );
   const state = metricsMap.get(key);
   if (!state) return null;
@@ -682,11 +711,13 @@ export function getBifrostRouteMetrics(
 export function getProjectedBifrostRouteMetrics(
   provider: string,
   model: string,
-  options: BifrostRouteProjectionOptions = {}
+  options: BifrostRouteProjectionOptions = {},
+  connectionId?: string | null
 ): BifrostRouteProjectedOutcome | null {
   const key = normalizeKey(
     safeProviderModel(provider, DEFAULT_PROVIDER),
-    safeProviderModel(model, DEFAULT_MODEL)
+    safeProviderModel(model, DEFAULT_MODEL),
+    connectionId
   );
   const state = metricsMap.get(key);
   if (!state) return null;

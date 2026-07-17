@@ -19,9 +19,9 @@ concurrency:
 
 jobs:
   gitleaks:
-    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
+    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
     name: Secrets Scan (Gitleaks)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: read
@@ -34,16 +34,16 @@ jobs:
           persist-credentials: false
 
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_COMMENTS: false
           GITLEAKS_ENABLE_UPLOAD: true
 
   deps-audit:
-    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
+    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
     name: Dependency Audit (npm)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout repository
@@ -65,9 +65,9 @@ jobs:
         continue-on-error: true
 
   codeql:
-    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
+    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
     name: CodeQL Analysis
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       security-events: write
@@ -91,9 +91,9 @@ jobs:
           category: "/language:javascript-typescript"
 
   ossf-scorecard:
-    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
+    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
     name: OpenSSF Scorecard
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       security-events: write

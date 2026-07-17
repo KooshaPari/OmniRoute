@@ -18,11 +18,11 @@ permissions:
 
 jobs:
   fmt:
-    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
+    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e4311558cf03e74e50c0c7c
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: 1.9
           terraform_wrapper: false
@@ -30,11 +30,11 @@ jobs:
         run: ./.pre-commit-hooks/terraform-fmt.sh
 
   validate:
-    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
+    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e4311558cf03e74e50c0c7c
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: 1.9
           terraform_wrapper: false

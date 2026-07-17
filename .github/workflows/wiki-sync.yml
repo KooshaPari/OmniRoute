@@ -1,6 +1,8 @@
 name: Wiki Sync
 
-# Keeps the GitHub wiki in sync with docs/ on every release that lands on main.
+# Retired while repository settings report Wiki disabled. Manual dispatch remains
+# available for a future explicitly approved re-enable, but the job is skipped unless
+# WIKI_ENABLED is set after the repository Wiki is enabled and initialized.
 # The wiki has no native generator and historically drifts (it sat at "212+ providers /
 # 14 strategies / 37 MCP tools" while code was at 226 / 15 / 87, and new docs like
 # SUPPLY_CHAIN never appeared). This runs scripts/docs/sync-wiki.mjs, which:
@@ -12,16 +14,6 @@ name: Wiki Sync
 # gated on regenerating those sources first.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "docs/**"
-      - "README.md"
-      - "AGENTS.md"
-      - "src/shared/constants/routingStrategies.ts"
-      - "config/i18n.json"
-      - "open-sse/mcp-server/server.ts"
-      - "scripts/docs/sync-wiki.mjs"
   workflow_dispatch:
 
 permissions:
@@ -33,15 +25,15 @@ concurrency:
 
 jobs:
   sync-wiki:
-    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
     name: Sync wiki with docs
+    if: ${{ vars.WIKI_ENABLED == 'true' }}
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: "24"
 
@@ -68,5 +60,4 @@ jobs:
           else
             echo "Wiki already in sync — nothing to push."
           fi
-
 

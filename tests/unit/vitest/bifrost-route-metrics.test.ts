@@ -52,6 +52,44 @@ describe("bifrostRouteMetrics", () => {
     expect(stats?.lastError).toBeNull();
   });
 
+  it("isolates identical provider-model outcomes by connectionId while preserving legacy buckets", () => {
+    recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o",
+      connectionId: "connection-a",
+      status: 200,
+      latencyMs: 100,
+      timestampMs: makeTimestamp(1),
+    });
+    recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o",
+      connectionId: "connection-b",
+      status: 500,
+      latencyMs: 200,
+      timestampMs: makeTimestamp(2),
+    });
+    recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o",
+      status: 200,
+      latencyMs: 120,
+      timestampMs: makeTimestamp(3),
+    });
+    recordBifrostRouteOutcome({
+      provider: "openai",
+      model: "gpt-4o",
+      status: 200,
+      latencyMs: 140,
+      timestampMs: makeTimestamp(4),
+    });
+    expect(getBifrostRouteMetrics("openai", "gpt-4o", "connection-a")?.sampleCount).toBe(1);
+    expect(getBifrostRouteMetrics("openai", "gpt-4o", "connection-b")?.failureCount).toBe(1);
+    const legacy = getBifrostRouteMetrics("openai", "gpt-4o");
+    expect(legacy?.sampleCount).toBe(2);
+    expect(legacy?.connectionId).toBeNull();
+  });
+
   it("keeps only the latest 64 samples per provider-model key", () => {
     for (let idx = 1; idx <= 70; idx += 1) {
       recordBifrostRouteOutcome({
@@ -216,6 +254,40 @@ describe("bifrostRouteMetrics", () => {
     expect(metrics).toBeNull();
   });
 
+  it("excludes future samples while retaining current samples in the freshness window", () => {
+    const nowMs = 1_700_000_000_000;
+
+    for (let idx = 0; idx < 4; idx += 1) {
+      recordBifrostRouteOutcome({
+        provider: "openai",
+        model: "gpt-future-only",
+        status: 200,
+        latencyMs: 100,
+        timestampMs: nowMs + 60_000,
+      });
+      recordBifrostRouteOutcome({
+        provider: "openai",
+        model: "gpt-current",
+        status: 200,
+        latencyMs: 100,
+        timestampMs: nowMs,
+      });
+    }
+
+    expect(
+      getProjectedBifrostRouteMetrics("openai", "gpt-future-only", {
+        projectionWindowMs: 30_000,
+        nowMs,
+      })
+    ).toBeNull();
+    expect(
+      getProjectedBifrostRouteMetrics("openai", "gpt-current", {
+        projectionWindowMs: 30_000,
+        nowMs,
+      })?.sampleCount
+    ).toBe(4);
+  });
+
   it("prefers fresh samples and ignores stale samples when projecting metrics", () => {
     const nowMs = 1_700_000_000_000;
 
@@ -356,7 +428,7 @@ describe("bifrostRouteMetrics", () => {
 
     expect(metrics).not.toBeNull();
     expect(metrics?.avgTtftMs).toBeCloseTo(50);
-    expect(metrics?.avgTokensPerSecond).toBeCloseTo((180 + 220 + 150) / (360 + 440 + 300) * 1000);
+    expect(metrics?.avgTokensPerSecond).toBeCloseTo(((180 + 220 + 150) / (360 + 440 + 300)) * 1000);
   });
 
   it("computes averages using partial telemetry and ignores missing fields", () => {

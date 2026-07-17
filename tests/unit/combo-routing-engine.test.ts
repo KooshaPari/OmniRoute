@@ -118,12 +118,14 @@ function capabilityEntry(limitContext: unknown, overrides: Record<string, unknow
 function seedProjectedOutcomes(
   provider: string,
   model: string,
-  outcomes: Array<{ status: number; latencyMs: number }>
+  outcomes: Array<{ status: number; latencyMs: number }>,
+  connectionId?: string
 ) {
   for (const outcome of outcomes) {
     recordBifrostRouteOutcome({
       provider,
       model,
+      connectionId,
       status: outcome.status,
       latencyMs: outcome.latencyMs,
     });
@@ -793,6 +795,140 @@ test("handleComboChat performance strategy reorders targets using projected Bifr
   assert.equal(result.status, 500);
 });
 
+test("handleComboChat performance strategy uses Bifrost alias telemetry", async () => {
+  seedProjectedOutcomes("anthropic", "perf-bridge-fast", [
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+  ]);
+  seedProjectedOutcomes("openai", "perf-bridge-slow", [
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+  ]);
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-bifrost-alias-order",
+      strategy: "performance",
+      models: ["openai/perf-bridge-slow", "claude/perf-bridge-fast"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["claude/perf-bridge-fast", "openai/perf-bridge-slow"]);
+});
+
+test("handleComboChat performance strategy uses connection-scoped evidence for identical targets", async () => {
+  seedProjectedOutcomes(
+    "openai",
+    "perf-connection-aware",
+    Array.from({ length: 4 }, () => ({ status: 200, latencyMs: 80 })),
+    "conn-slow"
+  );
+  seedProjectedOutcomes(
+    "openai",
+    "perf-connection-aware",
+    Array.from({ length: 4 }, () => ({ status: 200, latencyMs: 20 })),
+    "conn-fast"
+  );
+
+  const calls: Array<{ modelStr: string; connectionId: string | null | undefined }> = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-connection-aware",
+      strategy: "performance",
+      models: [
+        { providerId: "openai", model: "openai/perf-connection-aware", connectionId: "conn-slow" },
+        { providerId: "openai", model: "openai/perf-connection-aware", connectionId: "conn-fast" },
+      ],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any, target: any) => {
+      calls.push({ modelStr, connectionId: target?.connectionId });
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, [
+    { modelStr: "openai/perf-connection-aware", connectionId: "conn-fast" },
+    { modelStr: "openai/perf-connection-aware", connectionId: "conn-slow" },
+  ]);
+});
+
+test("handleComboChat performance strategy falls back to legacy evidence for a connection", async () => {
+  seedProjectedOutcomes(
+    "openai",
+    "perf-connection-legacy",
+    [{ status: 200, latencyMs: 5 }],
+    "conn-legacy"
+  );
+  seedProjectedOutcomes("openai", "perf-connection-legacy", [
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 20 },
+  ]);
+  seedProjectedOutcomes("anthropic", "perf-connection-backed", [
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+    { status: 200, latencyMs: 60 },
+  ]);
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-connection-legacy-fallback",
+      strategy: "performance",
+      models: [
+        {
+          providerId: "anthropic",
+          model: "anthropic/perf-connection-backed",
+          connectionId: "conn-backed",
+        },
+        {
+          providerId: "openai",
+          model: "openai/perf-connection-legacy",
+          connectionId: "conn-legacy",
+        },
+      ],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["openai/perf-connection-legacy", "anthropic/perf-connection-backed"]);
+});
+
 test("handleComboChat performance strategy ranks a slower healthy target before a faster unhealthy target", async () => {
   seedProjectedOutcomes("openai", "perf-healthy-slower", [
     { status: 200, latencyMs: 100 },
@@ -1088,6 +1224,43 @@ test("handleComboChat performance strategy preserves stable order for tie-scorin
   });
 
   assert.deepEqual(calls, ["openai/perf-tie-a", "anthropic/perf-tie-b"]);
+});
+
+test("handleComboChat performance strategy ranks faster targets ahead of slightly more stable targets", async () => {
+  seedProjectedOutcomes("openai", "perf-fast-less-stable", [
+    { status: 200, latencyMs: 10 },
+    { status: 200, latencyMs: 20 },
+    { status: 200, latencyMs: 10 },
+    { status: 200, latencyMs: 20 },
+  ]);
+  seedProjectedOutcomes("anthropic", "perf-slow-stable", [
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+    { status: 200, latencyMs: 100 },
+  ]);
+
+  const calls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "performance-latency-before-stability",
+      strategy: "performance",
+      models: ["anthropic/perf-slow-stable", "openai/perf-fast-less-stable"],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return errorResponse(500, "forced fallback");
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["openai/perf-fast-less-stable", "anthropic/perf-slow-stable"]);
 });
 
 test("handleComboChat performance strategy uses ttft as an additional ordering signal", async () => {

@@ -6,8 +6,8 @@ jobs:
   fuzz:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659
       - run: cargo install cargo-fuzz
       - run: cargo fuzz build --fuzz-dir fuzz
       - run: cargo fuzz list --fuzz-dir fuzz

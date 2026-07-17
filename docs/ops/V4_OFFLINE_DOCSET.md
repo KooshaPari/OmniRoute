@@ -1,3 +1,7 @@
+---
+title: v4 offline docset contract
+---
+
 # v4 offline docset contract
 
 The GitHub wiki is not treated as a source: its public URL does not currently expose a wiki, and enabling the existing legacy sync would import unreviewed/stale material.

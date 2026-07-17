@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   analyze:
-    if: ${{ github.event_name != "push" && (github.event_name != "pull_request" || contains(github.event.pull_request.labels.*.name, "ci-billing-exception")) }}
+    if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
     name: Analyze (JavaScript / TypeScript)
     runs-on: ubuntu-24.04
     timeout-minutes: 15

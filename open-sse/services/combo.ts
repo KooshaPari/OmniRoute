@@ -52,6 +52,10 @@ import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
 import { parseModel, resolveCanonicalProviderModel } from "./model.ts";
+import {
+  applyBifrostModelOverride,
+  resolveBifrostProviderId,
+} from "../executors/bifrostProviderMap.ts";
 import { createComboContext } from "./combo/context.ts";
 import { phaseComboSetup } from "./combo/comboSetup.ts";
 import { checkCredentialGate, logCredentialSkip } from "./credentialGate.ts";
@@ -248,7 +252,52 @@ function isFiniteProjectionValue(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
 
-function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[]): ResolvedComboTarget[] {
+function hasEligibleBifrostProjection(
+  projection: ReturnType<typeof getProjectedBifrostRouteMetrics>
+) {
+  return (
+    projection?.health !== undefined &&
+    projection.stability !== undefined &&
+    isFiniteProjectionValue(projection.e2eLatencyMs) &&
+    isFiniteProjectionValue(projection.health) &&
+    isFiniteProjectionValue(projection.failureRate) &&
+    isFiniteProjectionValue(projection.stability)
+  );
+}
+
+function getTargetBifrostProjection(
+  canonicalProvider: string,
+  canonicalModel: string,
+  connectionId: string | null
+) {
+  const bifrostProvider = resolveBifrostProviderId(canonicalProvider) ?? canonicalProvider;
+  const bifrostModel = applyBifrostModelOverride(canonicalProvider, canonicalModel);
+  const projectionKeys = [
+    [canonicalProvider, canonicalModel],
+    [bifrostProvider, bifrostModel],
+  ] as const;
+
+  // Connection-scoped evidence is the most representative signal for a resolved
+  // target. Retain the provider/model bucket as a legacy fallback when that
+  // connection has no fresh, reliable projection.
+  if (connectionId) {
+    for (const [provider, model] of projectionKeys) {
+      const projection = getProjectedBifrostRouteMetrics(provider, model, {}, connectionId);
+      if (hasEligibleBifrostProjection(projection)) return projection;
+    }
+  }
+
+  for (const [provider, model] of projectionKeys) {
+    const projection = getProjectedBifrostRouteMetrics(provider, model);
+    if (hasEligibleBifrostProjection(projection)) return projection;
+  }
+
+  return null;
+}
+
+function orderTargetsByProjectedBifrostPerformance(
+  targets: ResolvedComboTarget[]
+): ResolvedComboTarget[] {
   const scored: Array<{
     target: ResolvedComboTarget;
     originalIndex: number;
@@ -267,16 +316,12 @@ function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[
     const canonical = resolveCanonicalProviderModel(target.provider || parsed.provider, model);
     const canonicalProvider = canonical.provider || parsed.provider || "unknown";
     const canonicalModel = canonical.model || model;
-    const projection = getProjectedBifrostRouteMetrics(canonicalProvider, canonicalModel);
-
-    if (
-      projection?.health === undefined ||
-      projection.stability === undefined ||
-      !isFiniteProjectionValue(projection.e2eLatencyMs) ||
-      !isFiniteProjectionValue(projection.health) ||
-      !isFiniteProjectionValue(projection.failureRate) ||
-      !isFiniteProjectionValue(projection.stability)
-    ) {
+    const projection = getTargetBifrostProjection(
+      canonicalProvider,
+      canonicalModel,
+      target.connectionId
+    );
+    if (!projection) {
       noComparable.push(target);
       return;
     }
@@ -306,11 +351,11 @@ function orderTargetsByProjectedBifrostPerformance(targets: ResolvedComboTarget[
     const failureDiff = a.failureRate - b.failureRate;
     if (failureDiff !== 0) return failureDiff;
 
-    const stabilityDiff = b.stability - a.stability;
-    if (stabilityDiff !== 0) return stabilityDiff;
-
     const latencyDiff = a.e2eLatencyMs - b.e2eLatencyMs;
     if (latencyDiff !== 0) return latencyDiff;
+
+    const stabilityDiff = b.stability - a.stability;
+    if (stabilityDiff !== 0) return stabilityDiff;
 
     if (a.avgTtftMs !== undefined && b.avgTtftMs !== undefined) {
       const ttftDiff = a.avgTtftMs - b.avgTtftMs;

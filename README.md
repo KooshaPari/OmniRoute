@@ -41,7 +41,6 @@
 [![Telegram](https://img.shields.io/badge/Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/omnirouteOficial)
 [![WhatsApp Global](https://img.shields.io/badge/WhatsApp_Global-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 [![WhatsApp Brasil](https://img.shields.io/badge/WhatsApp_Brasil-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/BTGJXIyjeNIIgExvTMGGhI)
-[![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
 
 **Questions, provider tips, roadmap & support → [Discord](https://discord.gg/EkzRkpzKYt) · [Telegram](https://t.me/omnirouteOficial) · WhatsApp [🌍 Global](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) / [🇧🇷 Brasil](https://chat.whatsapp.com/BTGJXIyjeNIIgExvTMGGhI)**
 
@@ -56,7 +55,7 @@
 ![Docker Pulls](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
 ![Electron Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
-[**🚀 Quick Start**](#-quick-start) • [**🎯 Combos**](#-combos--the-flagship) • [**🌐 Providers**](#-237-ai-providers--90-free) • [**🔌 CLI & MCP**](#-full-cli--a2a--mcp) • [**🗜️ Compression**](#%EF%B8%8F-save-1595-tokens--automatically) • [**🌍 Website**](https://omniroute.online)
+[**🚀 Quick Start**](#-quick-start) • [**🎯 Combos**](#-combos--the-flagship) • [**🌐 Providers**](#-237-ai-providers--90-free) • [**🔌 CLI & MCP**](#-full-cli--a2a--mcp) • [**🗜️ Compression**](#%EF%B8%8F-save-1595-tokens--automatically)
 
 [💥 The Promise](#-the-promise) • [🤔 Why](#-why-omniroute) • [🏆 What Sets Apart](#-what-sets-omniroute-apart) • [🤖 Compatible CLIs](#-compatible-clis--coding-agents) • [🖥️ Where It Runs](#%EF%B8%8F-where-omniroute-runs--anywhere) • [🔒 Private](#-private--local-first) • [🎬 In Action](#-omniroute-in-action) • [📚 Explore More](#-explore-more) • [📧 Support](#-support--community)
 
@@ -116,36 +115,6 @@
   </tr>
 </table>
 </div>
-
-<br/>
-
-> **📣 This project is now distributed as `argismonitor`.**
->
-> `OmniRoute` is the upstream (`diegosouzapw/OmniRoute`, MIT). This fork
-> (`KooshaPari/OmniRoute`) is published under the new name **`argismonitor`**
-> on npm and the **`KooshaPari/ArgisMonitor`** GitHub repo. The internal
-> identifier `omniroute` is preserved as a deprecated alias for upstream-merge
-> safety; new installs should use `argismonitor`.
->
-> |  | old (deprecated) | new (canonical) |
-> |--|------------------|-----------------|
-> | binary | `omniroute` | `argismonitor` |
-> | npm | `omniroute` | `argismonitor` |
-> | data dir | `~/.omniroute` | `~/.argismonitor` (legacy preserved) |
-> | env vars | `OMNIROUTE_*` | `ARGIS_*` (legacy aliased) |
-> | repo | `KooshaPari/OmniRoute` | `KooshaPari/ArgisMonitor` |
->
-> ```bash
-> # Migrate in 30 seconds
-> npm uninstall -g omniroute
-> npm install -g argismonitor
-> argismonitor --version   # canonical
-> OMNIROUTE_LEGACY=1 omniroute --version   # legacy shim still works
-> ```
->
-> Removal window for the legacy aliases is **6 months** after `argismonitor`
-> is published as `latest` on npm. See `docs/RENAMES-STRATEGY.md` for the
-> full migration matrix and `docs/FORK.md` for fork attribution.
 
 <br/>
 
@@ -820,7 +789,7 @@ same process on one port, so there is no separate CLI-only package today.
 
 <div align="center">
 
-> 🎬 **Made a video about OmniRoute?** Open an [issue](https://github.com/diegosouzapw/OmniRoute/issues/new) or [discussion](https://github.com/diegosouzapw/OmniRoute/discussions) with the link — we'll feature it here.
+> 🎬 **Made a video about ArgisMonitor?** Open a [fork issue](https://github.com/KooshaPari/OmniRoute/issues/new) with the link for review.
 
 <br/>
 </div>
@@ -973,11 +942,10 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 # 📧 Support & Community
 
-> 💬 **Chat with the community** — Discord, Telegram & WhatsApp (🌍 / 🇧🇷) links are at the [top of this README](#-join-the-community).
+> Fork support is provided through the repository surfaces below. Upstream community links are attribution, not fork support.
 
-- 🌍 **Website**: [omniroute.online](https://omniroute.online)
-- 🐙 **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- 🐛 **Issues**: [report a bug](https://github.com/diegosouzapw/OmniRoute/issues) (attach `npm run system-info` output)
+- 🐙 **GitHub**: [github.com/KooshaPari/OmniRoute](https://github.com/KooshaPari/OmniRoute)
+- 🐛 **Issues**: [report a bug](https://github.com/KooshaPari/OmniRoute/issues) (attach `npm run system-info` output)
 - 🤝 **Contributing**: see [CONTRIBUTING.md](CONTRIBUTING.md) or pick a `good first issue`
 
 </div>
@@ -1002,7 +970,6 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 - **Testing**: Node.js test runner + Vitest (**21,000+ test cases** across 2,586 files — unit, integration, E2E, security, ecosystem)
 - **Platforms**: Desktop (Electron), Android (Termux), PWA (any browser)
 - **CI/CD**: GitHub Actions (auto npm publish + Docker Hub on release)
-- **Website**: [omniroute.online](https://omniroute.online)
 - **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
 - **Docker**: [hub.docker.com/r/diegosouzapw/omniroute](https://hub.docker.com/r/diegosouzapw/omniroute)
 - **Resilience**: Circuit breaker, exponential backoff, anti-thundering herd, TLS spoofing, auto-combo self-healing
@@ -1285,15 +1252,20 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 
 ## ❤️ Support
 
-OmniRoute is free and open source, built and maintained in the open. If it saves you time or money, consider supporting development:
+ArgisMonitor is free and open source, built and maintained in the open:
 
-- ⭐ **Star the repo** — it genuinely helps visibility
-- 💖 **[GitHub Sponsors](https://github.com/sponsors/diegosouzapw)** — fund ongoing maintenance and new providers
-- 🐛 **Report bugs and share feedback** in [Discussions](https://github.com/diegosouzapw/OmniRoute/discussions)
+- ⭐ **Star the fork** at [`KooshaPari/OmniRoute`](https://github.com/KooshaPari/OmniRoute)
+- 🐛 **Report fork bugs and feedback** through [fork issues](https://github.com/KooshaPari/OmniRoute/issues)
 
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.
+
+## Fork identity and upstream attribution
+
+This repository is the `KooshaPari/OmniRoute` fork, distributed as **ArgisMonitor** through the existing `argismonitor` package and `argismonitor` CLI. The `omniroute` CLI remains a supported compatibility alias for one major release after the 2026-07-14 identity decision.
+
+The upstream project is [`diegosouzapw/OmniRoute`](https://github.com/diegosouzapw/OmniRoute), used under the preserved MIT license without implying upstream endorsement. Its [Discussions](https://github.com/diegosouzapw/OmniRoute/discussions) and [Sponsor page](https://github.com/sponsors/diegosouzapw) are upstream-operated resources, not fork support channels. Fork governance, divergence, and attribution are documented in [`docs/FORK.md`](docs/FORK.md); the binding identity and rollback decision is [`ADR-032`](docs/adr/ADR-032-argismonitor-identity-baseline.md).
 
 ---
 
@@ -1301,7 +1273,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 **[⬆ Back to top](#-omniroute)** · Built with ❤️ for the open-source AI community.
 
-<sub>OmniRoute v3.8.43 · Node ≥22.0.0 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>ArgisMonitor · Node ≥22.0.0 · MIT License</sub>
 
 </div>
 <!-- GitHub Discussions enabled for community Q&A -->

@@ -107,7 +107,7 @@ async function cleanup(): Promise<void> {
       import("@/lib/db/core"),
       import("@/lib/spend/batchWriter"),
       import("@/lib/logRotation"),
-      import("@/open-sse/observability/bifrostRouteMetrics.ts"),
+      import("../../open-sse/observability/bifrostRouteMetrics.ts"),
     ]);
     await flushBifrostRouteMetricsPersistenceForShutdown();
     const flushResult = await flushSpendBatchWriter();

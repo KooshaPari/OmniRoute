@@ -228,27 +228,28 @@ export async function handleComboChat(body, comboId): Promise<ChatResult> {
 }
 ```
 
-Supports **17 routing strategies** (see `src/shared/constants/routingStrategies.ts`):
+Supports **18 routing strategies** (see `src/shared/constants/routingStrategies.ts`):
 
-| Strategy            | Behavior                                                                  |
-| ------------------- | ------------------------------------------------------------------------- |
-| `priority`          | First-target ordered list                                                 |
-| `weighted`          | Probabilistic by per-target weight                                        |
-| `round-robin`       | Cycle through targets in order                                            |
-| `context-relay`     | Hand off context across targets                                           |
-| `fill-first`        | Fill quota before moving to next                                          |
-| `p2c`               | Power of two choices                                                      |
-| `random`            | Uniform random                                                            |
-| `least-used`        | Pick the one with fewest recent uses                                      |
-| `cost-optimized`    | Cheapest healthy target first                                             |
-| `reset-aware`       | Aware of provider reset windows                                           |
-| `reset-window`      | Reset window-based routing                                                |
-| `headroom`          | Most remaining quota headroom first                                       |
-| `strict-random`     | Truly uniform (no quality weighting)                                      |
-| `auto`              | Use 9-factor scoring (`autoCombo/`)                                       |
-| `lkgp`              | Last known good provider first                                            |
-| `context-optimized` | Best for long-context requests                                            |
-| `fusion`            | Fan out to a panel in parallel, then synthesize via a judge (`fusion.ts`) |
+| Strategy            | Behavior                                                                                                                 |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `priority`          | First-target ordered list                                                                                                |
+| `weighted`          | Probabilistic by per-target weight                                                                                       |
+| `round-robin`       | Cycle through targets in order                                                                                           |
+| `context-relay`     | Hand off context across targets                                                                                          |
+| `fill-first`        | Fill quota before moving to next                                                                                         |
+| `p2c`               | Power of two choices                                                                                                     |
+| `random`            | Uniform random                                                                                                           |
+| `least-used`        | Pick the one with fewest recent uses                                                                                     |
+| `cost-optimized`    | Cheapest healthy target first                                                                                            |
+| `reset-aware`       | Aware of provider reset windows                                                                                          |
+| `reset-window`      | Reset window-based routing                                                                                               |
+| `headroom`          | Most remaining quota headroom first                                                                                      |
+| `strict-random`     | Truly uniform (no quality weighting)                                                                                     |
+| `auto`              | Use 9-factor scoring (`autoCombo/`)                                                                                      |
+| `lkgp`              | Last known good provider first                                                                                           |
+| `context-optimized` | Best for long-context requests                                                                                           |
+| `performance`       | Reliability-first provider-model ordering from fresh Bifrost telemetry; configured order is retained when data is sparse |
+| `fusion`            | Fan out to a panel in parallel, then synthesize via a judge (`fusion.ts`)                                                |
 
 ### base.ts (1170 LOC)
 

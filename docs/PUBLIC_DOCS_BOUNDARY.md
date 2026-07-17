@@ -1,11 +1,21 @@
 ---
-title: Proposed Public Documentation Boundary
-status: proposed
+title: Public Documentation Boundary
+status: accepted-defaults
 ---
 
 # Proposed public documentation boundary
 
-This document defines a proposed input boundary for a fork-owned Phenodocs build. It changes no deployment or navigation by itself.
+This document defines the input and deployment gates for fork-owned documentation. It changes no deployment or navigation by itself.
+
+## Approved identity and hosting baseline
+
+- Product: `ArgisMonitor`
+- Repository: `KooshaPari/OmniRoute`
+- Documentation target: `https://kooshapari.github.io/OmniRoute/`
+- Base path: `/OmniRoute/`
+- Deployment: disabled until every publication gate below passes
+- Wiki: retired while repository settings report Wiki disabled
+- Governance/upstream attribution: secondary contribution, support, and fork-lineage surfaces
 
 ## Public information architecture
 
@@ -102,6 +112,8 @@ journey: <manifest slug when applicable>
 
 ## Publication gates
 
+- GitHub Pages is explicitly enabled for `KooshaPari/OmniRoute`
+- the `/OmniRoute/` base path and default Pages URL are verified
 - no broken internal or external links
 - no unresolved rich-media placeholders
 - capability claims conform to `docs/reference/CAPABILITY_FACTS.md`
@@ -111,16 +123,18 @@ journey: <manifest slug when applicable>
 - accessibility checks cover headings, alt text, contrast, keyboard navigation, and reduced motion
 - deprecated/superseded content has redirects or banners
 - preview build succeeds before merge
+- deployment commit, provenance, and rollback instructions are recorded
+- no custom domain, DNS, or secret is introduced
 
 ## Journey evidence boundary
 
 Journey media is published only when backed by a deterministic manifest containing persona, preconditions, fixtures, steps, assertions, viewport, redaction rules, and source commit. Generic feature screenshots may illustrate a page but must not be labeled journey evidence.
 
-## Open owner decisions
+## Remaining owner decisions
 
-- canonical product/org identity and URLs
-- whether GitHub Wiki is synchronized, deprecated, or an offline mirror
-- hosting and preview provider
+- whether a verified owned custom domain should later replace GitHub Pages
+- whether Wiki should ever be re-enabled; until then it remains retired
+- preview provider beyond deterministic CI artifacts
 - public metrics/privacy policy
 - versioning and support window
 - content ownership roles and review cadence
