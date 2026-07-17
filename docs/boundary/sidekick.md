@@ -1,39 +1,34 @@
 ---
 repo: "sidekick"
-role: unknown
-status: active
-last_boundary_review: 2026-06-17
+role: absorbed
+status: absorbed
+absorbed_at: 2026-07-17
+absorbed_into: PhenoObservability
+wave: 2026-07-17-queue-refresh-2
+disposition: ABSORB
+last_boundary_review: 2026-07-17
 review_cadence: 30d
 in_scope:
-  - "<to be filled>"
+  - sidekick-messaging (messaging patterns/contracts)
+  - sidekick-obs-core (correlation, health, metrics, log-levels)
+  - sidekick-observability (tracing initialization)
 out_of_scope:
-  - "<to be filled>"
+  - any future sidekick-* crates (must target PhenoObservability or be
+    re-justified as a separate spine)
 ---
 
-# Boundary — sidekick
+# Boundary — sidekick (absorbed)
+
+The Sidekick repository has been absorbed into PhenoObservability as three
+workspace crates. Source repo archived 2026-07-17.
 
 ## In Scope
 
-<To be filled.>
+- crates/sidekick-messaging — messaging patterns/contracts
+- crates/sidekick-obs-core — correlation, health, metrics, log-levels
+- crates/sidekick-observability — tracing initialization
 
 ## Out of Scope
 
-| Not here | Lives in | Reason |
-| -------- | -------- | ------ |
-| `<capability>` | `<other-repo-or-N/A>` | `<why>` |
-
-## Boundary Crossings
-
-| Crossing | Direction | Surface | Status |
-| -------- | --------- | ------- | ------ |
-| `<capability or interface>` | `<this-repo→other|other→this-repo>` || `<this-repo→other|other→this-repo>` | `<Trait / HTTP / CLI / file / event>` | `<green|amber|red>` || `<green|amber|red>` || `<green|amber|red>` |
-
-## Last Boundary Review
-
-**Date:** 2026-06-17
-**Reviewer:** forge subagent (L7-001 sweep)
-**Worklog / finding:** `worklogs/L7-001-intent-boundary-curation-2026-06-17.json`
-**Decisions:**
-- Initial scaffolding; needs human review.
-
-**Next review:** 2026-07-17
+- Any future sidekick-* crate that doesn't fit PhenoObservability scope
+  (must be re-justified or absorbed elsewhere).

@@ -4,14 +4,19 @@
     "rust"
   ],
   "primary_language": "rust",
-  "status": "active",
+  "status": "absorbed",
   "has_readme": true,
   "type": "smoke-binary",
   "path": "repos/pheno-forge-smoke",
   "disposition": "ABSORB",
   "wave": "2026-07-17-queue-refresh-batch4",
-  "absorbed_into": "pheno",
+  "absorbed_into": "pheno (crates/pheno-forge-smoke)",
+  "absorbed_at": "2026-07-17T13:00:00.000000Z",
+  "absorbed_pr": "pheno#absorb/pheno-forge-smoke-2026-07-17",
+  "audit_artifact": "docs/boundary/pheno-forge-smoke.md",
+  "absorption_artifact": "docs/absorption/pheno-forge-smoke/README.md",
+  "fsm": "absorbed",
   "absorption_note": "End-to-end smoke binary for the 4-PR forgecode improvement stack (ADR-096). Loads libpheno_bridge via libloading and exercises composite routing. Target: pheno monorepo as crates/pheno-forge-smoke. Consumed by forgecode CI; lives next to pheno-cdylib-bridge (already absorbed).",
-  "note": "Audited 2026-07-17; single-purpose smoke binary; ADR-096 compliant.",
+  "note": "Absorbed 2026-07-17 into pheno as crates/pheno-forge-smoke. Single-purpose smoke binary; ADR-096 compliant. cargo check + cargo build --release pass; cargo test (0 tests, runtime smoke checks); binary --help + bridge-missing graceful-fail verified. Source repo to be archived via gh repo archive.",
   "adr": "ADR-096"
 }
