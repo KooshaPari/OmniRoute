@@ -1,5 +1,5 @@
 {
-  "version": "1.6.36",
+  "version": "1.6.37",
   "updated": "2026-07-17T20:15:00.000000Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
@@ -3409,6 +3409,260 @@
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T20:15:00.000000Z",
       "note": "Canonical hub \u2014 Phenotype substrate engine monorepo (Rust). [AUDIT_STAMP 2026-07-17: confirmed canonical; registered post-pick10 inventory.]"
+    },
+    {
+      "id": "repo-KVirtualStage-log-2026-07-17",
+      "path": "KooshaPari/KVirtualStage",
+      "target": "phenotype-tooling",
+      "disposition": "ABSORB",
+      "fsm": "archived",
+      "core_lang": "Python",
+      "note": "Auto-imported from phenotype repo; absorbed into phenotype-tooling as tools/kvirtual/",
+      "wave": "2026-07-17-pick10-log-batch",
+      "created_at": "2026-07-17"
+    },
+    {
+      "id": "repo-MCPForge-log-2026-07-17",
+      "path": "KooshaPari/MCPForge",
+      "target": "phenotype-tooling",
+      "disposition": "ABSORB",
+      "fsm": "archived",
+      "core_lang": "Python",
+      "note": "MCP tooling/hub; absorbed into phenotype-tooling/mcp/",
+      "wave": "2026-07-17-pick10-log-batch",
+      "created_at": "2026-07-17"
+    },
+    {
+      "id": "repo-PhenoProject-log-2026-07-17",
+      "path": "KooshaPari/PhenoProject",
+      "target": "phenotype-journeys",
+      "disposition": "ABSORB",
+      "fsm": "archived",
+      "core_lang": "TypeScript",
+      "note": "PhenoProject workspace; absorbed into phenotype-journeys",
+      "wave": "2026-07-17-pick10-log-batch",
+      "created_at": "2026-07-17"
+    },
+    {
+      "id": "repo-forgecode-log-2026-07-17",
+      "path": "KooshaPari/forgecode",
+      "target": "phenotype-tooling",
+      "disposition": "ABSORB",
+      "fsm": "archived",
+      "core_lang": "TypeScript",
+      "note": "AI pair programmer; absorbed into phenotype-tooling as tools/forgecode/",
+      "wave": "2026-07-17-pick10-log-batch",
+      "created_at": "2026-07-17"
+    },
+    {
+      "id": "repo-heliosApp-log-2026-07-17",
+      "path": "KooshaPari/heliosApp",
+      "target": "phenotype-tooling",
+      "disposition": "ABSORB",
+      "fsm": "archived",
+      "core_lang": "Swift",
+      "note": "Helios internals; absorbed into phenotype-tooling as tools/helios/",
+      "wave": "2026-07-17-pick10-log-batch",
+      "created_at": "2026-07-17"
+    },
+    {
+      "id": "repo-mobile-mcp-log-2026-07-17",
+      "path": "KooshaPari/mobile-mcp",
+      "target": "phenotype-tooling",
+      "disposition": "ABSORB",
+      "fsm": "archived",
+      "core_lang": "TypeScript",
+      "note": "MCP for mobile automation; absorbed into phenotype-tooling/mcp/mobile/",
+      "wave": "2026-07-17-pick10-log-batch",
+      "created_at": "2026-07-17"
+    },
+    {
+      "id": "repo-pheno-agents-md-log-2026-07-17",
+      "path": "KooshaPari/pheno-agents-md",
+      "target": "phenotype-tooling",
+      "disposition": "ABSORB",
+      "fsm": "archived",
+      "core_lang": "Python",
+      "note": "AGENTS.md validator; absorbed into phenotype-tooling/tools/agents-md/",
+      "wave": "2026-07-17-pick10-log-batch",
+      "created_at": "2026-07-17"
+    },
+    {
+      "id": "repo-phenotype-contracts-log-2026-07-17",
+      "path": "KooshaPari/phenotype-contracts",
+      "target": "phenotype-shared",
+      "disposition": "ABSORB",
+      "fsm": "archived",
+      "core_lang": "TypeScript",
+      "note": "Canonical contracts; absorbed into phenotype-shared/contracts/",
+      "wave": "2026-07-17-pick10-log-batch",
+      "created_at": "2026-07-17"
+    },
+    {
+      "id": "repo-phenotype-router-log-2026-07-17",
+      "path": "KooshaPari/phenotype-router",
+      "target": "phenotype-router-spec",
+      "disposition": "SUPERSEDE",
+      "fsm": "archived",
+      "core_lang": "Rust",
+      "note": "Phenotype router (ADR-050/051); superseded by phenotype-router-spec \u2192 registry",
+      "wave": "2026-07-17-pick10-log-batch",
+      "created_at": "2026-07-17"
+    },
+    {
+      "id": "repo-phenotype-teamcomm-log-2026-07-17",
+      "path": "KooshaPari/phenotype-teamcomm",
+      "target": "phenotype-shared",
+      "disposition": "ABSORB",
+      "fsm": "archived",
+      "core_lang": "TypeScript",
+      "note": "Team comms module; absorbed into phenotype-shared/teamcomm/",
+      "wave": "2026-07-17-pick10-log-batch",
+      "created_at": "2026-07-17"
+    },
+    {
+      "id": "repo-pheno-affirm-batch2",
+      "path": "KooshaPari/pheno",
+      "target": "pheno",
+      "disposition": "AFFIRM",
+      "fsm": "active",
+      "core_lang": "multi",
+      "note": "Phenotype monorepo (largest hub)",
+      "wave": "2026-07-17-affirm-hubs-batch2",
+      "created_at": "2026-07-17"
+    },
+    {
+      "id": "repo-portage-affirm-batch2",
+      "path": "KooshaPari/portage",
+      "target": "portage",
+      "disposition": "AFFIRM",
+      "fsm": "active",
+      "core_lang": "multi",
+      "note": "Portage workspace",
+      "wave": "2026-07-17-affirm-hubs-batch2",
+      "created_at": "2026-07-17"
+    },
+    {
+      "id": "repo-cliproxyapi-plusplus-affirm-batch2",
+      "path": "KooshaPari/cliproxyapi-plusplus",
+      "target": "cliproxyapi-plusplus",
+      "disposition": "AFFIRM",
+      "fsm": "active",
+      "core_lang": "multi",
+      "note": "CLI proxy API hub",
+      "wave": "2026-07-17-affirm-hubs-batch2",
+      "created_at": "2026-07-17"
+    },
+    {
+      "id": "repo-OmniRoute-affirm-batch2",
+      "path": "KooshaPari/OmniRoute",
+      "target": "OmniRoute",
+      "disposition": "AFFIRM",
+      "fsm": "active",
+      "core_lang": "multi",
+      "note": "OmniRoute canonical (recovery-only, NOT canonical)",
+      "wave": "2026-07-17-affirm-hubs-batch2",
+      "created_at": "2026-07-17"
+    },
+    {
+      "id": "repo-bifrost-affirm-batch2",
+      "path": "KooshaPari/bifrost",
+      "target": "bifrost",
+      "disposition": "AFFIRM",
+      "fsm": "active",
+      "core_lang": "multi",
+      "note": "Bifrost integration hub",
+      "wave": "2026-07-17-affirm-hubs-batch2",
+      "created_at": "2026-07-17"
+    }
+  ],
+  "last_updated": "2026-07-17",
+  "absorption_queue": {
+    "policy": "always_keep_10_picks",
+    "updated": "2026-07-17",
+    "count": 10,
+    "picks": [
+      {
+        "rank": 1,
+        "repo": "KVirtualStage",
+        "target": "phenotype-tooling",
+        "disposition": "ABSORB",
+        "status": "pending_log"
+      },
+      {
+        "rank": 2,
+        "repo": "MCPForge",
+        "target": "phenotype-tooling",
+        "disposition": "ABSORB",
+        "status": "pending_log"
+      },
+      {
+        "rank": 3,
+        "repo": "PhenoProject",
+        "target": "phenotype-journeys",
+        "disposition": "ABSORB",
+        "status": "pending_log"
+      },
+      {
+        "rank": 4,
+        "repo": "forgecode",
+        "target": "phenotype-tooling",
+        "disposition": "ABSORB",
+        "status": "pending_log"
+      },
+      {
+        "rank": 5,
+        "repo": "heliosApp",
+        "target": "phenotype-tooling",
+        "disposition": "ABSORB",
+        "status": "pending_log"
+      },
+      {
+        "rank": 6,
+        "repo": "mobile-mcp",
+        "target": "phenotype-tooling",
+        "disposition": "ABSORB",
+        "status": "pending_log"
+      },
+      {
+        "rank": 7,
+        "repo": "pheno-agents-md",
+        "target": "phenotype-tooling",
+        "disposition": "ABSORB",
+        "status": "pending_log"
+      },
+      {
+        "rank": 8,
+        "repo": "phenotype-contracts",
+        "target": "phenotype-shared",
+        "disposition": "ABSORB",
+        "status": "pending_log"
+      },
+      {
+        "rank": 9,
+        "repo": "phenotype-router",
+        "target": "phenotype-router-spec",
+        "disposition": "SUPERSEDE",
+        "status": "pending_log"
+      },
+      {
+        "rank": 10,
+        "repo": "phenotype-teamcomm",
+        "target": "phenotype-shared",
+        "disposition": "ABSORB",
+        "status": "pending_log"
+      }
+    ]
+  },
+  "changelog": [
+    {
+      "version": "1.6.37",
+      "date": "2026-07-17",
+      "changes": [
+        "Added 10 absorption queue picks (archive-log batch)",
+        "Added 5 missing major hubs as AFFIRM (pheno, portage, cliproxyapi-plusplus, OmniRoute, bifrost)",
+        "Established always_keep_10_picks policy for absorption_queue"
+      ]
     }
   ]
 }
