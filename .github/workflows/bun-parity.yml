@@ -39,7 +39,10 @@ jobs:
       - name: Frozen root npm install
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Materialize the pinned root Bun executable
-        run: node node_modules/bun/install.js
+        run: |
+          node scripts/check/check-v4-bun-version.mjs
+          node -e "const assert=require('node:assert/strict'); const lock=require('./package-lock.json'); assert.equal(require('./node_modules/bun/package.json').version,'1.3.14'); assert.match(lock.packages['node_modules/bun'].integrity,/^sha512-/)"
+          node node_modules/bun/install.js
       - name: Frozen Bun installs
         shell: bash
         run: |
@@ -78,13 +81,17 @@ jobs:
           bun-version: 1.3.14
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Materialize the pinned root Bun executable
-        run: node node_modules/bun/install.js
+        run: |
+          node scripts/check/check-v4-bun-version.mjs
+          node -e "const assert=require('node:assert/strict'); const lock=require('./package-lock.json'); assert.equal(require('./node_modules/bun/package.json').version,'1.3.14'); assert.match(lock.packages['node_modules/bun'].integrity,/^sha512-/)"
+          node node_modules/bun/install.js
       - name: Install v4 packages
         run: |
           for directory in packages/api-contracts packages/design-tokens apps/bff apps/web apps/desktop; do
             bun install --frozen-lockfile --ignore-scripts --cwd "$directory"
           done
       - run: node --test tests/unit/bun-version-parity.test.mjs
+      - run: bun run --cwd apps/web svelte-kit sync
       - run: bun run ci:v4:typecheck
       - run: bun run ci:v4:typecheck:ts7
       - run: bun test --cwd packages/api-contracts
