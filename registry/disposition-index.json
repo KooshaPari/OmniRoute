@@ -1,6 +1,6 @@
 {
-  "version": "1.6.14",
-  "updated": "2026-07-17T13:45:00.000000Z",
+  "version": "1.6.15",
+  "updated": "2026-07-17T13:55:00.000000Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
   "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr. 2026-07-17 (batch3, agent #4): queue-refresh added 10 fresh non-Rust candidates (phenodag/HeliosLab/PhenoHandbook/Conft/context-mode-plusplus/pheno-forge-plugins/PhenoContracts/KodeVibe/KWatch/heliosBench) to keep the absorption queue topped up; Rust slots already taken by batch2 (agents 2/3). 2026-07-17 (batch4, agent #5): queue-refresh added 10 fresh least-active candidates (phenotype-gfx/hwLedger/omniroute-rs/pheno-forge-smoke/pheno-otel/Apisync/PhenoVCS/Pine/PlayCua/DataKit) to keep the absorption queue topped up; absorbs continue to drain batch1-3 in parallel.",
@@ -2392,9 +2392,9 @@
       "id": "repo-PhenoPlugins",
       "path": "KooshaPari/PhenoPlugins",
       "disposition": "ABSORB",
-      "target": "pheno (crates/phenotype-plugins)",
+      "target": "pheno (crates/pheno-plugins-{core,git,sqlite,vessel,examples}/)",
       "wave": "2026-07-17-queue-refresh-2",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 584,
       "remote_branch_count": 1,
@@ -2404,7 +2404,10 @@
       "audit_artifact": "audits/absorption-justifications/PhenoPlugins-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:50:00.000000Z",
-      "note": "Phenotype plugin system ports. Hexagonal architecture with PLAN.md/SPEC.md/SSOT.md governance. AI-DD metaproject; ready for pheno integration."
+      "note": "Absorbed 5 plugin crates; renamed pheno-plugin-* to pheno-plugins-*; all compile clean in 1.79s",
+      "archived": true,
+      "absorbed_into": "pheno",
+      "absorbed_on": "2026-07-17"
     },
     {
       "id": "repo-phenoData",
