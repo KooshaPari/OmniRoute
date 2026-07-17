@@ -1,4 +1,5 @@
-import { readFile } from "node:fs/promises";
+import { readFile, realpath } from "node:fs/promises";
+import path from "node:path";
 import process from "node:process";
 
 export const declaredChecks = [
@@ -31,10 +32,28 @@ export function validateJourneyAccessibilityReport(report) {
   return errors;
 }
 
+const isContained = (root, target) => {
+  const relative = path.relative(root, target);
+  return relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative));
+};
+
+export async function resolveJourneyAccessibilityReportPath(candidate, evidenceRoot = path.resolve("journey-evidence", "anonymous-home-smoke"), workingDirectory = process.cwd()) {
+  if (typeof candidate !== "string" || candidate.length === 0 || path.isAbsolute(candidate)) {
+    throw new Error("report path must be a non-empty relative path");
+  }
+  const resolvedRoot = path.resolve(evidenceRoot);
+  const resolvedTarget = path.resolve(workingDirectory, candidate);
+  if (!isContained(resolvedRoot, resolvedTarget)) throw new Error("report path escapes the journey evidence root");
+  const [realRoot, realTarget] = await Promise.all([realpath(resolvedRoot), realpath(resolvedTarget)]);
+  if (!isContained(realRoot, realTarget)) throw new Error("report real path escapes the journey evidence root");
+  return realTarget;
+}
+
 if (process.argv[1]?.endsWith("validate-journey-accessibility-report.mjs")) {
   const file = process.argv[2];
   if (!file) throw new Error("usage: validate-journey-accessibility-report.mjs <report.json>");
-  const report = JSON.parse(await readFile(file, "utf8"));
+  const safeFile = await resolveJourneyAccessibilityReportPath(file);
+  const report = JSON.parse(await readFile(safeFile, "utf8"));
   const errors = validateJourneyAccessibilityReport(report);
   if (errors.length) { console.error(errors.join("\n")); process.exit(1); }
   console.log(`Validated ${declaredChecks.length} journey accessibility checks.`);
