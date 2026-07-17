@@ -92,8 +92,10 @@ test("captures anonymous v4 home journey evidence", async ({ page, context }) =>
       ...axeResult.inapplicable.map(({ id }) => ({ id, result: "inapplicable" })),
     ].sort((left, right) => left.id.localeCompare(right.id)),
   };
-  expect(axe.violations, "axe violations require remediation before capture").toEqual([]);
-  expect(axe.incomplete, "axe incomplete results require explicit review before capture").toEqual([]);
+  expect(
+    { violations: axe.violations, incomplete: axe.incomplete },
+    "axe violations and incomplete results require remediation or explicit review before capture",
+  ).toEqual({ violations: [], incomplete: [] });
   for (const rule of ["color-contrast", "button-name", "image-alt", "landmark-one-main"]) expect(axe.rules.map(({ id }) => id)).toContain(rule);
 
   const focusSetup = await page.evaluate((properties) => {
