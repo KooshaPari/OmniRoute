@@ -1,0 +1,19 @@
+{
+  "name": "substrate-adapters-bundle",
+  "languages": [
+    "rust"
+  ],
+  "primary_language": "rust",
+  "status": "queued",
+  "has_readme": false,
+  "type": "meta-repo",
+  "path": "repos/substrate-adapters-bundle",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch2",
+  "queued_at": "2026-07-17",
+  "proposed_target": "pheno (crates/substrate-adapters)",
+  "proposed_target_repo": "pheno",
+  "proposed_target_path": "crates/substrate-adapters/",
+  "absorption_note": null,
+  "note": "Meta-repo of standalone substrate adapter crates. Bundle into pheno workspace."
+}

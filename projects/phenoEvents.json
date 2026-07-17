@@ -1,0 +1,19 @@
+{
+  "name": "phenoEvents",
+  "languages": [
+    "rust"
+  ],
+  "primary_language": "rust",
+  "status": "queued",
+  "has_readme": false,
+  "type": "library",
+  "path": "repos/phenoEvents",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch2",
+  "queued_at": "2026-07-17",
+  "proposed_target": "pheno (crates/pheno-events)",
+  "proposed_target_repo": "pheno",
+  "proposed_target_path": "crates/pheno-events/",
+  "absorption_note": null,
+  "note": "EventBus port with hexagonal architecture. Direct crate fit for pheno workspace."
+}

@@ -1,0 +1,19 @@
+{
+  "name": "phenotype-go-kit",
+  "languages": [
+    "go"
+  ],
+  "primary_language": "go",
+  "status": "queued",
+  "has_readme": false,
+  "type": "library",
+  "path": "repos/phenotype-go-kit",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch2",
+  "queued_at": "2026-07-17",
+  "proposed_target": "phenotype-go-sdk",
+  "proposed_target_repo": "phenotype-go-sdk",
+  "proposed_target_path": "phenotype-go-kit/",
+  "absorption_note": null,
+  "note": "Go-side toolkit (deleted remote recovery). Consolidates with phenotype-go-sdk, McpKit, PlatformKit, DevHex."
+}

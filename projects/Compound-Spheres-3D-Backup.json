@@ -1,0 +1,19 @@
+{
+  "name": "Compound-Spheres-3D-Backup",
+  "languages": [
+    "csharp"
+  ],
+  "primary_language": "csharp",
+  "status": "queued",
+  "has_readme": false,
+  "type": "game-backup",
+  "path": "repos/Compound-Spheres-3D-Backup",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch2",
+  "queued_at": "2026-07-17",
+  "proposed_target": "phenotype-legacy-collection",
+  "proposed_target_repo": "(new spine)",
+  "proposed_target_path": null,
+  "absorption_note": null,
+  "note": "3D game backup. Not phenotype \u2014 legacy collection spine."
+}

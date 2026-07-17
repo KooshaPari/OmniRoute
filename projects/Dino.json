@@ -1,0 +1,19 @@
+{
+  "name": "Dino",
+  "languages": [
+    "csharp"
+  ],
+  "primary_language": "csharp",
+  "status": "queued",
+  "has_readme": false,
+  "type": "app",
+  "path": "repos/Dino",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch2",
+  "queued_at": "2026-07-17",
+  "proposed_target": "phenotype-apps (DINOForge)",
+  "proposed_target_repo": "phenotype-apps",
+  "proposed_target_path": "dino/",
+  "absorption_note": null,
+  "note": "DINOForge general-purpose mod platform for AI agents. BLOCK-A app, fits phenotype-apps pattern."
+}
