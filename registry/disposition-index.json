@@ -1966,9 +1966,9 @@
       "id": "repo-phenoEvents",
       "path": "KooshaPari/phenoEvents",
       "disposition": "ABSORB",
-      "target": "pheno (crates/pheno-events)",
+      "target": "pheno (crates/phenotype-event-bus + crates/phenoevents-observability)",
       "wave": "2026-07-17-queue-refresh-batch2",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 664,
       "remote_branch_count": 17,
@@ -1978,7 +1978,7 @@
       "audit_artifact": "audits/absorption-justifications/phenoEvents-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:30:31.000000Z",
-      "note": "EventBus port with hexagonal architecture. Direct crate fit for pheno workspace."
+      "note": "EventBus port with hexagonal architecture. Direct crate fit for pheno workspace. [ABSORBED 2026-07-17 as phenotype-event-bus + phenoevents-observability. 45 tests pass.]"
     },
     {
       "id": "repo-phenotype-infrakit",
