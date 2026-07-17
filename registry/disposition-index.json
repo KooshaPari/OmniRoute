@@ -2338,10 +2338,10 @@
     {
       "id": "repo-Stashly",
       "path": "KooshaPari/Stashly",
-      "disposition": "ABSORB",
-      "target": "pheno (crates/stashly)",
+      "disposition": "ARCHIVE_ONLY",
+      "target": "pheno (cache coverage via crates/agileplus-cache + crates/phenotype-cache-adapter; no new crates/stashly — domain is cache, not stash)",
       "wave": "2026-07-17-queue-refresh-2",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 222,
       "remote_branch_count": 1,
@@ -2351,7 +2351,8 @@
       "audit_artifact": "audits/absorption-justifications/Stashly-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:50:00.000000Z",
-      "note": "Rust caching framework: TTL, singleflight, CQRS read/write, multiple backends (memory/Redis/Memcached/disk). Hexagonal architecture; small, well-tested."
+      "archived_at": "2026-07-17T13:38:11Z",
+      "note": "Rust caching framework: TTL, singleflight, CQRS read/write, multiple backends (memory/Redis/Memcached/disk). Hexagonal architecture; small, well-tested. ARCHIVE_ONLY verdict: domain is cache (not stash/secret storage); pheno already covers cache via crates/agileplus-cache + crates/phenotype-cache-adapter; lifting as crates/stashly would duplicate capability and clash on the phenotype-cache-adapter package name (Stashly ships its own inner phenotype-cache-adapter crate). Boundary doc: pheno/docs/registry/absorbed-stashly-2026-07-17.md. [ARCHIVED 2026-07-17 on GitHub.]"
     },
     {
       "id": "repo-Sidekick",
