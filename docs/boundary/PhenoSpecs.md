@@ -1,39 +1,25 @@
 ---
 repo: "PhenoSpecs"
-role: unknown
-status: active
-last_boundary_review: 2026-06-17
-review_cadence: 30d
-in_scope:
-  - "<to be filled>"
-out_of_scope:
-  - "<to be filled>"
+role: spec
+status: absorbed
+absorbed_into: "phenotype-registry"
+absorbed_at: "docs/specs/pheno-specs/"
+absorbed_date: 2026-07-17
+last_boundary_review: 2026-07-17
+review_cadence: never (absorbed)
 ---
 
-# Boundary — PhenoSpecs
+# Boundary — PhenoSpecs (ABSORBED)
 
-## In Scope
+## Disposition
 
-<To be filled.>
+**ABSORBED** into `phenotype-registry/docs/specs/pheno-specs/` on 2026-07-17.
 
-## Out of Scope
+PhenoSpecs contained 492 files of research docs, ADRs, platform/sdk specs, and
+archive content (~5.2MB). Absorbed into the canonical ecosystem INDEX alongside
+phenotype-router-spec.
 
-| Not here | Lives in | Reason |
-| -------- | -------- | ------ |
-| `<capability>` | `<other-repo-or-N/A>` | `<why>` |
+## Outcome
 
-## Boundary Crossings
-
-| Crossing | Direction | Surface | Status |
-| -------- | --------- | ------- | ------ |
-| `<capability or interface>` | `<this-repo→other|other→this-repo>` || `<this-repo→other|other→this-repo>` | `<Trait / HTTP / CLI / file / event>` | `<green|amber|red>` || `<green|amber|red>` || `<green|amber|red>` |
-
-## Last Boundary Review
-
-**Date:** 2026-06-17
-**Reviewer:** forge subagent (L7-001 sweep)
-**Worklog / finding:** `worklogs/L7-001-intent-boundary-curation-2026-06-17.json`
-**Decisions:**
-- Initial scaffolding; needs human review.
-
-**Next review:** 2026-07-17
+Source repo `KooshaPari/PhenoSpecs` archived on GitHub.
+Registry disposition-index updated: disposition=ABSORB, target=phenotype-registry.
