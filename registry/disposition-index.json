@@ -1,6 +1,6 @@
 {
-  "version": "1.6.13",
-  "updated": "2026-07-17T13:30:00.000000Z",
+  "version": "1.6.14",
+  "updated": "2026-07-17T13:45:00.000000Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
   "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr. 2026-07-17 (batch3, agent #4): queue-refresh added 10 fresh non-Rust candidates (phenodag/HeliosLab/PhenoHandbook/Conft/context-mode-plusplus/pheno-forge-plugins/PhenoContracts/KodeVibe/KWatch/heliosBench) to keep the absorption queue topped up; Rust slots already taken by batch2 (agents 2/3). 2026-07-17 (batch4, agent #5): queue-refresh added 10 fresh least-active candidates (phenotype-gfx/hwLedger/omniroute-rs/pheno-forge-smoke/pheno-otel/Apisync/PhenoVCS/Pine/PlayCua/DataKit) to keep the absorption queue topped up; absorbs continue to drain batch1-3 in parallel.",
@@ -2371,9 +2371,9 @@
       "id": "repo-phenoUtils",
       "path": "KooshaPari/phenoUtils",
       "disposition": "ABSORB",
-      "target": "pheno (crates/pheno-utils)",
+      "target": "pheno (crates/pheno-utils-{shell,fs,net,async,crypto,testing,chaos}/)",
       "wave": "2026-07-17-queue-refresh-2",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 222,
       "remote_branch_count": 1,
@@ -2383,7 +2383,10 @@
       "audit_artifact": "audits/absorption-justifications/phenoUtils-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:50:00.000000Z",
-      "note": "Five Rust primitive crates (crypto/fs/net/shell/testing). Per registry SUPERSEDED history; re-affirm into pheno monorepo as crates/pheno-utils/."
+      "note": "Absorbed 7 utility crates (6781 LOC); all compile clean in 5.67s; chaos-injection renamed to pheno-utils-chaos",
+      "archived": true,
+      "absorbed_into": "pheno",
+      "absorbed_on": "2026-07-17"
     },
     {
       "id": "repo-PhenoPlugins",
