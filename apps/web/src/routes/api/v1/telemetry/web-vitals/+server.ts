@@ -1,10 +1,12 @@
 import { bffUrl } from '$lib/server/bff';
 import { error } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
 
 const MAX_BODY_BYTES = 4096;
 
-export async function POST({ request, fetch }) {
-  if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
+export const POST: RequestHandler = async ({ request, fetch }) => {
+  const contentType = request.headers.get('content-type') ?? '';
+  if (!contentType.toLowerCase().startsWith('application/json')) {
     error(415, 'content-type must be application/json');
   }
   const declaredLength = Number(request.headers.get('content-length') ?? 0);
@@ -21,4 +23,4 @@ export async function POST({ request, fetch }) {
     status: response.status,
     headers: { 'content-type': response.headers.get('content-type') ?? 'application/json' },
   });
-}
+};
