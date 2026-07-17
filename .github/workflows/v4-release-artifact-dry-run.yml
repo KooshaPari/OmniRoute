@@ -8,6 +8,7 @@ on:
       - "scripts/release/prepare-v4-artifact-dry-run.mjs"
       - "scripts/release/validate-v4-release-readiness.mjs"
       - "config/release/v4-readiness.json"
+      - ".github/workflows/release.yml"
       - "packages/api-contracts/**"
       - "apps/web/**"
       - "apps/bff/**"
@@ -93,5 +94,3 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           include-hidden-files: false
-
-
