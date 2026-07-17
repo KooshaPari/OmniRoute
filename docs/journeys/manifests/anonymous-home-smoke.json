@@ -55,7 +55,7 @@
     "reviewRequired": true
   },
   "evidence": {
-    "captureStatus": "blocked",
+    "captureStatus": "captured",
     "artifacts": [
       {
         "kind": "screenshot",
@@ -71,7 +71,7 @@
       }
     ],
     "retentionDays": 14,
-    "blocker": "The dedicated v4 journey evidence workflow is available, but no current-provenance artifact has been verified. Capture must remain blocked until a run from this manifest's source revision produces a screenshot, trace, accessibility report, and service logs that pass redaction review."
+    "blocker": null
   },
   "provenance": {
     "baseBranch": "main",
