@@ -1,9 +1,13 @@
 ---
 repo: "eyetracker"
 role: unknown
-status: active
+status: archived
 last_boundary_review: 2026-06-17
 review_cadence: 30d
+archived_at: "2026-07-17T14:25:55Z"
+archive_reason: "failsafe-multi-crate-workspace"
+absorbing_repo: "KooshaPari/pheno"
+boundary_doc_ref: "pheno/docs/registry/absorbed-eyetracker-2026-07-17.md (commit 50ea9e9 on absorb/pheno-plugins-2026-07-17)"
 in_scope:
   - "<to be filled>"
 out_of_scope:
