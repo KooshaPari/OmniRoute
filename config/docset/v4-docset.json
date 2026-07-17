@@ -2,7 +2,9 @@
   "schemaVersion": 1,
   "docsetId": "omniroute-v4",
   "versionSource": "apps/web/package.json",
-  "reviewedInputs": [],
+  "reviewedInputs": [
+    "docs/public/QUICKSTART_V4.md"
+  ],
   "excludedInputs": [
     "docs/audits/**",
     "docs/reports/**",
@@ -13,7 +15,7 @@
   "publication": {
     "deployable": false,
     "releaseAttachable": false,
-    "reason": "No reviewed public input is present on current main. PR #329 defines a separate scaffold and PR #334 proposes the first reviewed content slice."
+    "reason": "GitHub Pages remains disabled until current-main publication, accessibility, provenance, base-path, URL, and rollback gates pass."
   },
   "releaseAttachment": {
     "mediaType": "application/gzip",

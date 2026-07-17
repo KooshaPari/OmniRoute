@@ -1,0 +1,31 @@
+name: Publication preflight
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/npm-publish.yml"
+      - ".github/workflows/publication-preflight.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "scripts/check/check-publication-preflight.mjs"
+      - "tests/unit/publication-preflight.test.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: "24"
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Generate dry-run pack report
+        run: npm pack --dry-run --json --ignore-scripts > "$RUNNER_TEMP/publication-pack.json"
+      - name: Validate publication contract
+        run: node scripts/check/check-publication-preflight.mjs --workflow .github/workflows/npm-publish.yml --pack-report "$RUNNER_TEMP/publication-pack.json"
+      - name: Run adversarial tests
+        run: node --test tests/unit/publication-preflight.test.mjs

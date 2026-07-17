@@ -65,7 +65,16 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies (skip scripts to avoid heavy build)
-        run: npm install --ignore-scripts --no-audit --no-fund
+        id: frozen_install
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Generate publication pack report
+        id: pack_report
+        run: npm pack --dry-run --json --ignore-scripts > "$RUNNER_TEMP/publication-pack.json"
+
+      - name: Verify publication identity and tarball metadata
+        id: publication_preflight
+        run: node scripts/check/check-publication-preflight.mjs --workflow .github/workflows/npm-publish.yml --pack-report "$RUNNER_TEMP/publication-pack.json"
 
       - name: Resolve version, dist-tag and skip flag
         id: resolve
@@ -110,21 +119,28 @@ jobs:
             fi
           fi
 
-          # 3) Skip-if-already-published. NOTE: do NOT pass `--silent` to
+          # 3) Resolve the public registry identity from the manifest, then skip if published.
+          PACKAGE_NAME="$(node -p \"require('./package.json').name\")"
+          if [ -z "$PACKAGE_NAME" ]; then
+            echo "Root package name is empty; refusing to publish." >&2
+            exit 1
+          fi
+
+          # NOTE: do NOT pass `--silent` to
           #    `npm view` — it suppresses stdout and breaks the grep, which
           #    caused old releases (3.2.8) to be re-published and steal
           #    dist-tag `latest`. See incident notes in CHANGELOG.
-          PUBLISHED="$(npm view "omniroute@${VERSION}" version 2>/dev/null || true)"
+          PUBLISHED="$(npm view "${PACKAGE_NAME}@${VERSION}" version 2>/dev/null || true)"
           SKIP="false"
           if [ "$PUBLISHED" = "$VERSION" ]; then
-            echo "⚠️ omniroute@${VERSION} is already on npm — skipping publish."
+            echo "⚠️ ${PACKAGE_NAME}@${VERSION} is already on npm — skipping publish."
             SKIP="true"
           fi
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG"          >> "$GITHUB_OUTPUT"
           echo "skip=$SKIP"        >> "$GITHUB_OUTPUT"
-          echo "📦 Resolved omniroute@$VERSION dist-tag=$TAG skip=$SKIP"
+          echo "📦 Resolved ${PACKAGE_NAME}@$VERSION dist-tag=$TAG skip=$SKIP"
 
       - name: Sync package.json version
         if: steps.resolve.outputs.skip != 'true'
@@ -144,6 +160,7 @@ jobs:
         run: npm run check:pack-artifact
 
       - name: Publish to npm
+        id: publish_npm
         if: steps.resolve.outputs.skip != 'true'
         env:
           VERSION: ${{ steps.resolve.outputs.version }}

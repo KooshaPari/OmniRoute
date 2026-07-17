@@ -15,6 +15,10 @@
     "wiki": {
       "enabled": false,
       "status": "retired-while-repository-wiki-disabled"
+    },
+    "publication": {
+      "deployable": false,
+      "reason": "GitHub Pages remains disabled until current-main publication, accessibility, provenance, base-path, URL, and rollback gates pass."
     }
   },
   "sections": [
@@ -28,7 +32,8 @@
       "slug": "quickstart",
       "title": "Quickstart",
       "description": "Prerequisites, installation, first verified request, and uninstall.",
-      "publishable": false
+      "publishable": true,
+      "source": "docs/public/QUICKSTART_V4.md"
     },
     {
       "slug": "journeys",

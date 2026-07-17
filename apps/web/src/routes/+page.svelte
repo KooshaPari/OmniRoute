@@ -25,8 +25,7 @@
   </div>
 
   <button
-    class="px-4 py-2 rounded text-white font-semibold"
-    style="background: var(--grad-brand)"
+    class="px-4 py-2 rounded bg-indigo-700 hover:bg-indigo-800 text-white font-semibold"
     onclick={() => count++}
   >
     Count: {count}

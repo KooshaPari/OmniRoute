@@ -55,8 +55,8 @@
           </a>
         {/each}
       </nav>
-      <div class="ml-auto text-sm text-gray-500 flex items-center gap-3">
-        <select value={getLocale()} onchange={(e) => setLocale((e.target as HTMLSelectElement).value)} class="px-2 py-1 border border-gray-300 rounded text-sm">
+      <div class="ml-auto text-sm text-gray-600 flex items-center gap-3">
+        <select aria-label="Language" value={getLocale()} onchange={(e) => setLocale((e.target as HTMLSelectElement).value)} class="px-2 py-1 border border-gray-300 rounded text-sm">
           {#each supportedLanguages as lang}
             <option value={lang}>{lang}</option>
           {/each}
