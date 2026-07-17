@@ -4,14 +4,16 @@
     "python"
   ],
   "primary_language": "python",
-  "status": "active",
+  "status": "absorbed",
   "has_readme": true,
   "type": "research-tool",
   "path": "repos/phenoResearchEngine",
   "disposition": "ABSORB",
-  "wave": "2026-07-17-queue-refresh",
+  "wave": "2026-07-17-prototype-batch-2",
   "absorbed_into": "phenoAI",
-  "absorption_note": "Python research/investigation engine; 30 branches, 236KB. No external production dependents. Target: phenoAI research workspace (per RATIONALIZATION_PLAN.md, phenoAI absorbs research tooling).",
-  "note": "Audited 2026-07-17; queued for absorption into phenoAI. 30 unmerged branches on remote \u2014 careful branch triage before transfer.",
+  "absorbed_at": "2026-07-17",
+  "absorption_target_path": "python/phenotype-research/",
+  "absorption_note": "Python research/investigation engine; ABSORBED 2026-07-17 into phenoAI/python/phenotype-research/. Upstream was DEPRECATED 2026-06-20 with 90-day compat shim expiring 2026-09-18. Module renamed research_engine -> phenotype_research. 25 files transferred.",
+  "note": "Audited 2026-07-17; absorbed same day. Source repo archived on GitHub. See audits/absorption-justifications/phenoResearchEngine-2026-07-17.md and docs/boundary/phenotype-research.md.",
   "adr": "ADR-ECO-013"
 }

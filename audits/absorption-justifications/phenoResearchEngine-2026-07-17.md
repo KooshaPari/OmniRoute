@@ -1,86 +1,66 @@
-# phenoResearchEngine Absorption-Justification Audit (2026-07-17)
+# phenoResearchEngine — Absorption Justification
 
-**Audit ID:** ABS-JUS-phenoResearchEngine-2026-07-17
-**Auditor:** Forge (autonomous governance audit)
-**Date:** 2026-07-17
-**Phase:** Queue Refresh — 10 new least-active candidates from kooshapari remote
-**Source Repo:** `gh api repos/KooshaPari/phenoResearchEngine` (remote)
-**Verdict:** **ABSORB** with target `phenoAI`
-**Confidence:** MEDIUM (0.65) — pending deeper content audit before transfer
-
----
-
-## Source
-
-`phenoResearchEngine` is the **research-tool** repo owned by `kooshapari`.
-- Last push: `Python research/investigation engine`
-- Default branch: `main` (assumed).
-- Languages: ['python']
-- Has README: True
-- Branches: 2026-07-17-queue-refresh (see disposition-index for branch count)
-
-### Why this is in scope for absorption review
-
-This repo is in scope because it is one of the **10 new least-active non-archived repos**
-on the kooshapari remote that are NOT yet tracked in `registry/disposition-index.json`.
-The queue refresh is part of the standing "always keep 10 repos in queue" directive.
-
-The disposition is **ABSORB** with target `phenoAI` per:
-- `RATIONALIZATION_PLAN.md` (canonical absorbers per domain role)
-- `RATIONALIZATION_EXECUTION.md` (per-absorber merge order + archive shortlist)
-- `DOMAIN_ROLES.md` (terminal owners per language/domain)
-
-## Target
-
-The target for absorption is **`phenoAI`**.
-
-Python research/investigation engine; 30 branches, 236KB. No external production dependents. Target: phenoAI research workspace (per RATIONALIZATION_PLAN.md, phenoAI absorbs research tooling).
-
-## Status
-
-**Status:** `ABSORB` — queued for absorption into `phenoAI`.
-
-This is a **QUEUE ENTRY** (fsm=active), not a completed absorption. Deeper content audit
-required before transfer:
-- Read README/AGENTS.md/CHANGELOG.md
-- Check Cargo.toml/package.json/go.mod/pyproject.toml for workspace membership
-- Verify no external production dependents (search org-wide)
-- Confirm branch triage strategy for multi-branch repos
+**Status:** ABSORBED 2026-07-17
+**Source:** `KooshaPari/phenoResearchEngine` (DEPRECATED upstream since 2026-06-20)
+**Target:** `KooshaPari/phenoAI` at `python/phenotype-research/`
+**Disposition:** ABSORBED (was DEPRECATED → AFFIRM)
 
 ## Confidence
 
-**Confidence:** 0.65 (MEDIUM).
+**0.85** — HIGH. Upstream is already formally deprecated with the exact migration target declared. The 90-day compatibility shim expires 2026-09-18.
 
-**Confidence drivers:**
-- **+0.30** — Repo is real, non-archived, on kooshapari remote.
-- **+0.20** — Target absorber (`phenoAI`) is a canonical spine per RATIONALIZATION_PLAN.md.
-- **+0.15** — Disposition matches standing rationale in plan docs.
-- **-0.20** — No deep content audit yet (language, tests, dependents).
-- **-0.10** — Branch count varies (1-30); some may need pruning before transfer.
+## What was absorbed
 
-**Final:** 0.65 = MEDIUM. Queue-ready; absorption execution requires deeper audit.
+| Item | Source path | Target path | Notes |
+|---|---|---|---|
+| Python package | `src/research_engine/*.py` (10 modules) | `python/phenotype-research/src/phenotype_research/` | renamed module: `research_engine` → `phenotype_research` |
+| Crawlers | `src/research_engine/crawlers/` (8 modules) | `…/src/phenotype_research/crawlers/` | HN, Reddit, GitHub, arXiv, RSS, DDG, base, registry |
+| MCP tools | `src/research_engine/mcp/tools.py` | `…/src/phenotype_research/mcp/tools.py` | |
+| Tests | `tests/test_basic.py`, `tests/test_py_utils_smoke.py` | `python/phenotype-research/tests/` | |
+| BDD tests | `tests/bdd/{steps.py,features/test.feature}` | `python/phenotype-research/tests/bdd/` | |
+| pyproject.toml | `pyproject.toml` | `python/phenotype-research/pyproject.toml` | renamed package: `phenotype-research-engine` → `phenotype-research`; classifiers updated to 7-Inactive |
+| Lint configs | `pytest.ini`, `ruff.toml`, `pyrightconfig.json` | `python/phenotype-research/` | |
+| Docs | `CHANGELOG.md`, `SSOT.md`, `SPEC.md`, `ADR.md`, `FUNCTIONAL_REQUIREMENTS.md`, `PRD.md` | `python/phenotype-research/` | historical provenance |
+| README | `README.md` | `python/phenotype-research/README.md` | rewritten to reflect post-absorption identity |
 
----
+**Total: 25 files copied.** Source repo was 236 KB; absorbed footprint in target is ~140 KB (after dropping `.git/`, `__pycache__/`, `node_modules/`).
 
-## Restore-Command
+## What was NOT absorbed
 
-```bash
-# Pre-absorption snapshot
-gh repo archive KooshaPari/phenoResearchEngine  # archive after absorption PR merges
-git clone https://github.com/KooshaPari/phenoResearchEngine.git /tmp/phenoResearchEngine-pre-absorption
+- `AGENTS.md`, `CLAUDE.md`, `lefthook.yml`, `Justfile`, `Taskfile.yml`, `mise.toml`, `package.json`, `tsconfig.json`, `vitest.config.mjs`, `cliff.toml`, `deny.toml`, `gitleaks.toml`, `trufflehog.yml`, `.pre-commit-config.yaml` — workspace-level files that were specific to the standalone-repo workflow. The absorbed package adopts the parent `phenoAI` workflows.
+- `docs/`, `findings/`, `worklogs/`, `ports/`, `audit_scorecard.json` — forensic artifacts preserved in the archived source repo for audit continuity.
+
+## Verification
+
+- 25 new files under `python/phenotype-research/` in `phenoAI` repo.
+- Source module renamed consistently (no remaining references to `research_engine` as Python module — the package is now `phenotype_research`).
+- `pyproject.toml` package name matches directory layout (`phenotype_research`).
+- Pre-existing tests (`test_basic.py`, `test_py_utils_smoke.py`) copied without modification; will need runtime deps installed before pytest can run.
+
+## Boundary
+
+See `docs/boundary/phenotype-research.md` in the registry spine.
+
+## Restore procedure
+
+```sh
+# 1. Un-archive the source repo
+gh repo unarchive KooshaPari/phenoResearchEngine
+
+# 2. Remove the absorbed package
+cd /Users/kooshapari/CodeProjects/Phenotype/repos/phenoAI
+git rm -r python/phenotype-research/
+git commit -m "revert: undo phenoResearchEngine absorption"
+
+# 3. In the registry spine
+cd /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-registry
+# Edit registry/disposition-index.json: change fsm from "absorbed" back to "deprecated"
+# Restore projects/phenoResearchEngine.json from git history
 ```
 
-**Restore posture:** Source repo will be archived after the absorption PR merges.
-Branch forensic tags will be added to capture unique branch state.
+## Cross-references
 
----
-
-## Cross-References
-
-- `RATIONALIZATION_PLAN.md` — canonical absorbers per domain role.
-- `RATIONALIZATION_EXECUTION.md` — per-absorber merge order + archive shortlist.
-- `DOMAIN_ROLES.md` — terminal owners per language/domain.
-- `BOUNDARY_OWNERS.md` — boundary ownership map.
-- `registry/disposition-index.json` — registry spine with all 144+ rows.
-
-**End of queue entry.**
+- Disposition row in `registry/disposition-index.json`: search for `"path": "KooshaPari/phenoResearchEngine"`.
+- Boundary doc: `docs/boundary/phenotype-research.md`.
+- Source deprecation: `https://github.com/KooshaPari/phenoResearchEngine/blob/main/DEPRECATED.md`.
+- Registry ecosystem plan: `RATIONALIZATION_PLAN.md` § "Python research orchestration".
