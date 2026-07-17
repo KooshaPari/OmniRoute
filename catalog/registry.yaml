@@ -359,6 +359,33 @@ substrates:
     notes: |
       Helios CLI (Rust fork).
 
+  - id: helios-app
+    repo: KooshaPari/heliosApp
+    name: helios-app
+    status: absorbed
+    tier: federated-service
+    architecture: layered
+    archetype: monorepo
+    language: typescript
+    role: desktop-shell
+    boundary: null
+    intent: null
+    notes: |
+      Developer-focused AI runtime environment with ElectroBun desktop
+      shell, terminal multiplexing, session management, multi-provider AI
+      inference (LocalBus V1 message bus; 26 methods × 40 topics; typed
+      envelopes with correlation/sequence tracking). Bun monorepo
+      (4 apps + 5 packages, 18 workflows, 8-stage gate pipeline):
+      apps/{runtime,desktop,renderer,colab-renderer} +
+      packages/{runtime-core,ids,errors,logger,types}.
+      Absorbed 2026-07-17 → phenotype-apps/apps/helios-app/ as a BLOCK A
+      app (bun install --frozen-lockfile verified against copied source
+      with 546 packages; absorbing pr phenotype-apps@4782452d; pre-archive
+      tarball at repos/_archive/heliosApp-2026-07-17/
+      heliosApp-source-pre-archive.tar.gz; outer `gh repo archive
+      KooshaPari/heliosApp -y` confirmed same day; source HEAD
+      5827163d on main).
+
   - id: helioslab
     repo: KooshaPari/HeliosLab
     name: HeliosLab
