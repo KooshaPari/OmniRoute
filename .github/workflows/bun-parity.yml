@@ -99,7 +99,12 @@ jobs:
           bun run --cwd apps/bff typecheck
       - run: bun run ci:v4:typecheck:ts7
       - run: bun test --cwd packages/api-contracts
+        if: ${{ always() }}
       - run: bun run --cwd apps/bff test
+        if: ${{ always() }}
       - run: bun run --cwd apps/web test
+        if: ${{ always() }}
       - run: bun run --cwd apps/web build
+        if: ${{ always() }}
       - run: bun run --cwd apps/bff build
+        if: ${{ always() }}
