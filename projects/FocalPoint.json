@@ -1,0 +1,13 @@
+{
+  "name": "FocalPoint",
+  "languages": ["swift", "go"],
+  "primary_language": "swift",
+  "status": "archived",
+  "has_readme": true,
+  "type": "vendor-ios-app",
+  "path": "repos/FocalPoint",
+  "disposition": "ABSORB",
+  "absorbed_into": "HexaKit",
+  "absorption_note": "867MB vendor iOS app repository. Archived after Xcode build files and caches pruned, and core logic reviewed/absorbed.",
+  "note": "Audited 2026-07-17; status: archived on GitHub remote."
+}

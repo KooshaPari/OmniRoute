@@ -1,0 +1,11 @@
+{
+  "name": "agent-user-status",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": true,
+  "type": "shared-lib",
+  "path": "repos/agent-user-status",
+  "disposition": "AFFIRM",
+  "note": "Audited 2026-07-17; AFFIRM — active status component under agent-control domain, complementary to Agentora/AgilePlus."
+}

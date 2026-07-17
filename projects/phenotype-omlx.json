@@ -13,5 +13,6 @@
   "wave": "G18",
   "branch_count": 27,
   "adr": "ADR-ECO-016-omlx-inference-split",
+  "absorbed_into": "jundot/omlx",
   "note": "G18 DROP: stay archived; engine canonical jundot/omlx; FINISH path = staffing gate only"
 }
