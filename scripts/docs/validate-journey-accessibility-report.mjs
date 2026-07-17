@@ -10,7 +10,7 @@ export const declaredChecks = [
 const forbiddenMarkupKeys = new Set(["html", "innerhtml", "outerhtml", "markup", "rawhtml"]);
 
 const isAsciiLetter = (character) => {
-  const code = character?.toLowerCase().charCodeAt(0);
+  const code = character?.toLowerCase().codePointAt(0);
   return code >= 97 && code <= 122;
 };
 
@@ -24,7 +24,7 @@ export function containsRawMarkup(text) {
     if (lower.startsWith("<!--", opening) || lower.startsWith("<!doctype", opening)) return true;
     let nameStart = opening + 1;
     if (text[nameStart] === "/") nameStart += 1;
-    if (isAsciiLetter(text[nameStart]) && text.indexOf(">", nameStart + 1) !== -1) return true;
+    if (isAsciiLetter(text[nameStart]) && text.includes(">", nameStart + 1)) return true;
     cursor = opening + 1;
   }
   return false;

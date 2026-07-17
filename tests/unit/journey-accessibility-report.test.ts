@@ -82,7 +82,7 @@ test("rejects forbidden markup structurally without false-positive html text", (
 test("scans markup deterministically without regex backtracking", () => {
   for (const legal of [
     "plain html text", "2 < 3 and 4 > 1", "unfinished <", "unfinished <main", "unfinished </main", "< main>", "<123>",
-    "https://example.test/?q=%3Cmain%3E", "x".repeat(100_000),
+    "https://example.test/?q=%3Cmain%3E", "<é>", "<😀>", "😀 < 3", "x".repeat(100_000),
   ]) {
     expect(containsRawMarkup(legal)).toBe(false);
   }
