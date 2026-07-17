@@ -1,58 +1,31 @@
-# Logify (absorbed)
+# Logify — Absorption Boundary
 
-> **Absorbed 2026-07-17**: `KooshaPari/Logify` v0.1.0 overlaid into
-> `KooshaPari/PhenoObservability/crates/logkit/`. See
-> `docs/absorption/Logify/README.md` for the full transfer record.
+**Status**: `ABSORBED` (2026-07-17)  
+**Source**: `github.com/KooshaPari/Logify`  
+**Target**: `github.com/KooshaPari/pheno` → `crates/logkit/`  
+**Type**: Rust crate absorption  
 
-## Identity
+## Description
 
-- **Crate name**: `logkit` (Rust crate, part of PhenoObservability workspace)
-- **Path in workspace**: `crates/logkit/`
-- **Workspace**: `KooshaPari/PhenoObservability` (main spine for observability)
-- **Prior home**: `KooshaPari/Logify` (archived)
+Logify is a structured logging framework (`logkit` crate, 125KB). Zero-cost abstraction with multiple sinks, hexagonal architecture (adapters/sinks, domain, application, infrastructure layers).
 
-## Responsibility
+## Transfer Record
 
-Provides the **org-shared logging surface** for all Phenotype Rust crates:
+- Absorbed into pheno monorepo as `crates/logkit/`
+- Cargo.toml converted to workspace deps (thiserror v1v2, anyhow, async-trait, serde, etc.)
+- `cargo check -p logkit`: 0 errors
+- 10 Rust source files across 4 domain layers
 
-- Zero-cost structured logging framework
-- Hexagonal architecture: domain / application / adapters / infrastructure
-- Multiple sinks (console, file, structured)
-- Async-aware (`tokio`)
-- Field-based structured entries with correlation IDs
-- Thread-safe primitives (`parking_lot`, `Send + Sync` enforced)
+## Verification
 
-## Boundary (post-overlay)
+| Check | Result |
+|-------|--------|
+| Workspace member added | `"crates/logkit"` |
+| Deps converted to workspace | done |
+| `cargo check` | clean |
 
-In scope:
+## Cleanup
 
-- `LoggerBuilder`, `Logger`, `LogEntry`, `Level`, `Sink` port
-- Console + structured sinks (current adapters)
-- Acceptance test stubs for FR-01..FR-09, NFR-01..NFR-05
-
-Out of scope:
-
-- Distributed tracing (handled by `tracingkit` in PhenoObservability)
-- Metrics / OTLP (handled by `phenotype-observably-logging`)
-- External sink integrations beyond console/structured
-
-## Migration
-
-External callers that depend on `KooshaPari/Logify` should update their
-`Cargo.toml` to:
-
-```toml
-logkit = { workspace = true }
-```
-
-via PhenoObservability's workspace dependency declaration. The crate
-name (`logkit`) is unchanged; only the source location moved from a
-standalone GitHub repo to the PhenoObservability workspace.
-
-## See also
-
-- `docs/absorption/Logify/README.md` — full absorption record
-- `KooshaPari/PhenoObservability/crates/logkit/STANDARDS.md` — logging
-  standards preserved from prior absorption
-- `KooshaPari/PhenoObservability/crates/logkit/docs/specs/acceptance/stubs/`
-  — FR/NFR acceptance test oracle
+- [x] Code transferred
+- [x] Deps migrated to workspace
+- [x] Source repo archived
