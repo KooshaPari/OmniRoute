@@ -37,7 +37,6 @@
     { href: '/dashboard/settings/general', key: 'nav.settings' },
   ];
 
-  onMount(() => { initWebVitals(); });
 </script>
 
 <CommandPalette />
