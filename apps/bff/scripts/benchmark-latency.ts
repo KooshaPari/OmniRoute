@@ -10,7 +10,7 @@ import {
   routeKey,
 } from "../src/observability/benchmark-contract";
 import { summarizeLatencySamples, type LatencySampleV1 } from "../src/observability/latency";
-import { BENCHMARK_GUARD_COVERAGE, installBenchmarkEgressGuard } from "../src/observability/benchmark-egress-guard";
+import { installBenchmarkEgressGuard } from "../src/observability/benchmark-egress-guard";
 
 const sourceCommit = process.env.SOURCE_COMMIT;
 const sourceTree = process.env.SOURCE_TREE;
@@ -45,20 +45,9 @@ for (const route of measuredRoutes) {
 }
 
 const server = Bun.serve({ hostname: "127.0.0.1", port: 0, fetch: app.fetch });
+if (!server.port) throw new Error("loopback server did not allocate a port");
 const origin = `http://127.0.0.1:${server.port}`;
-const nativeFetch = globalThis.fetch;
-let allowedLoopbackAttempts = 0;
-let blockedNonLoopbackAttempts = 0;
-globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
-  const url = new URL(input instanceof Request ? input.url : String(input));
-  if (url.protocol !== "http:" || url.hostname !== "127.0.0.1" || url.port !== String(server.port)) {
-    blockedNonLoopbackAttempts++;
-    throw new Error(`benchmark blocked non-loopback fetch to ${url.protocol}//${url.hostname}`);
-  }
-  if (url.username || url.password || url.search || url.hash) throw new Error("benchmark URL contains sensitive or unnormalized components");
-  allowedLoopbackAttempts++;
-  return nativeFetch.call(globalThis, input, init);
-}) as typeof globalThis.fetch;
+egressGuard.setAllowedLoopbackPort(server.port);
 
 const warmupCount = 30;
 const sampleCount = 250;
@@ -93,11 +82,10 @@ try {
     });
   }
 } finally {
-  globalThis.fetch = nativeFetch;
   server.stop(true);
   egressGuard.restore();
 }
-blockedNonLoopbackAttempts += egressGuard.blockedAttemptCount();
+const blockedNonLoopbackAttempts = egressGuard.blockedAttemptCount();
 if (blockedNonLoopbackAttempts !== 0) throw new Error("non-loopback network access was attempted");
 
 const report = BenchmarkReportSchema.parse({
@@ -115,8 +103,9 @@ const report = BenchmarkReportSchema.parse({
   },
   networkPolicy: {
     mode: "deny-non-loopback-network",
-    guardCoverage: BENCHMARK_GUARD_COVERAGE,
-    allowedLoopbackAttempts,
+    guardCoverage: egressGuard.installedCoverage(),
+    guardActivations: egressGuard.activationResults(),
+    allowedLoopbackAttempts: egressGuard.allowedLoopbackAttempts(),
     blockedNonLoopbackAttempts,
   },
   environment: {

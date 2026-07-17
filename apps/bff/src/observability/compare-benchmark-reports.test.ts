@@ -26,6 +26,7 @@ const report = () => ({
   networkPolicy: {
     mode: "deny-non-loopback-network",
     guardCoverage: ["global.fetch", "Bun.connect", "node:net.connect", "node:net.createConnection", "node:dns.lookup", "node:dns.resolve"],
+    guardActivations: ["global.fetch", "Bun.connect", "node:net.connect", "node:net.createConnection", "node:dns.lookup", "node:dns.resolve"].map((api) => ({ api, blocked: true })),
     allowedLoopbackAttempts: 160,
     blockedNonLoopbackAttempts: 0,
   },

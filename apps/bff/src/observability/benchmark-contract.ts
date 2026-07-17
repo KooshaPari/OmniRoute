@@ -46,6 +46,10 @@ export const BenchmarkReportSchema = z.object({
       z.literal("global.fetch"), z.literal("Bun.connect"), z.literal("node:net.connect"),
       z.literal("node:net.createConnection"), z.literal("node:dns.lookup"), z.literal("node:dns.resolve"),
     ]),
+    guardActivations: z.tuple([
+      "global.fetch", "Bun.connect", "node:net.connect", "node:net.createConnection",
+      "node:dns.lookup", "node:dns.resolve",
+    ].map((api) => z.object({ api: z.literal(api), blocked: z.literal(true) }).strict()) as any),
     allowedLoopbackAttempts: z.number().int().positive().max(10_000),
     blockedNonLoopbackAttempts: z.literal(0),
   }).strict(),
