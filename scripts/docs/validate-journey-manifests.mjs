@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const shaPattern = /^[0-9a-f]{64}$/;
 const commitPattern = /^[0-9a-f]{40}$/;
-const idPattern = /^[1-9][0-9]*$/;
+const idPattern = /^[1-9]\d*$/;
 const canonicalUtcPattern = /^\d{4}-(0[1-9]|1[0-2])-([0-2]\d|3[01])T([01]\d|2[0-3]):[0-5]\d:[0-5]\dZ$/;
 const allowedActions = new Set(["goto", "click", "fill", "press", "observe"]);
 const allowedChecks = new Set([
@@ -78,6 +78,44 @@ export function validateEvidence(manifest, relative = "<manifest>") {
   return errors;
 }
 
+const validateManifestFields = (manifest, relative, assert) => {
+  assert(manifest.schemaVersion === 2, relative, "schemaVersion must be 2");
+  assert(slugPattern.test(manifest.slug ?? ""), relative, "slug must be kebab-case");
+  for (const key of ["title", "persona", "purpose"]) assert(typeof manifest[key] === "string" && manifest[key].trim(), relative, `${key} is required`);
+  assert(Array.isArray(manifest.preconditions) && manifest.preconditions.length > 0, relative, "preconditions are required");
+  assert(manifest.fixture?.secrets === false, relative, "fixture.secrets must be false");
+  assert(["blocked", "mocked", "local-only"].includes(manifest.fixture?.network), relative, "fixture.network must be isolated");
+  assert(Number.isInteger(manifest.viewport?.width) && manifest.viewport.width >= 320, relative, "viewport.width is invalid");
+  assert(Number.isInteger(manifest.viewport?.height) && manifest.viewport.height >= 480, relative, "viewport.height is invalid");
+};
+
+const validateSteps = (manifest, relative, assert) => {
+  assert(Array.isArray(manifest.steps) && manifest.steps.length > 0, relative, "steps are required");
+  for (const step of manifest.steps ?? []) {
+    assert(slugPattern.test(step.id ?? ""), relative, "step id must be kebab-case");
+    assert(allowedActions.has(step.action), relative, `unsupported action ${step.action}`);
+    assert(typeof step.target === "string" && step.target.length > 0, relative, "step target is required");
+    assert(Array.isArray(step.assertions) && step.assertions.length > 0, relative, "each step needs assertions");
+  }
+};
+
+const validateProvenance = async (root, manifest, relative, errors, assert) => {
+  assert(manifest.provenance?.baseBranch === "main", relative, "provenance.baseBranch must be main");
+  assert(/^tests\//.test(manifest.provenance?.testFile ?? ""), relative, "provenance.testFile must reference tests/");
+  try {
+    const testSource = await readFile(path.join(root, manifest.provenance.testFile), "utf8");
+    assert(testSource.includes(manifest.provenance.testTitle), relative, "referenced test title was not found");
+    const routeTargets = (manifest.steps ?? []).filter((step) => step.action === "goto").map((step) => step.target);
+    for (const target of routeTargets) {
+      const escaped = target.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const routePattern = new RegExp(String.raw`goto\(\s*["']${escaped}["']\s*[,)]`);
+      assert(routePattern.test(testSource), relative, `route ${target} is not present in the referenced test`);
+    }
+  } catch (error) {
+    errors.push(`${relative}: cannot verify test provenance: ${error.message}`);
+  }
+};
+
 export async function validateRepository(root = process.cwd()) {
   const errors = [];
   const assert = (condition, file, message) => { if (!condition) errors.push(`${file}: ${message}`); };
@@ -89,36 +127,14 @@ export async function validateRepository(root = process.cwd()) {
     let manifest;
     try { manifest = JSON.parse(await readFile(path.join(manifestDir, file), "utf8")); }
     catch (error) { errors.push(`${relative}: invalid JSON: ${error.message}`); continue; }
-    assert(manifest.schemaVersion === 2, relative, "schemaVersion must be 2");
-    assert(slugPattern.test(manifest.slug ?? ""), relative, "slug must be kebab-case");
+    validateManifestFields(manifest, relative, assert);
     assert(file === `${manifest.slug}.json`, relative, "filename must equal <slug>.json");
-    for (const key of ["title", "persona", "purpose"]) assert(typeof manifest[key] === "string" && manifest[key].trim(), relative, `${key} is required`);
-    assert(Array.isArray(manifest.preconditions) && manifest.preconditions.length > 0, relative, "preconditions are required");
-    assert(manifest.fixture?.secrets === false, relative, "fixture.secrets must be false");
-    assert(["blocked", "mocked", "local-only"].includes(manifest.fixture?.network), relative, "fixture.network must be isolated");
-    assert(Number.isInteger(manifest.viewport?.width) && manifest.viewport.width >= 320, relative, "viewport.width is invalid");
-    assert(Number.isInteger(manifest.viewport?.height) && manifest.viewport.height >= 480, relative, "viewport.height is invalid");
-    assert(Array.isArray(manifest.steps) && manifest.steps.length > 0, relative, "steps are required");
-    for (const step of manifest.steps ?? []) {
-      assert(slugPattern.test(step.id ?? ""), relative, "step id must be kebab-case");
-      assert(allowedActions.has(step.action), relative, `unsupported action ${step.action}`);
-      assert(typeof step.target === "string" && step.target.length > 0, relative, "step target is required");
-      assert(Array.isArray(step.assertions) && step.assertions.length > 0, relative, "each step needs assertions");
-    }
+    validateSteps(manifest, relative, assert);
     errors.push(...validateAccessibility(manifest, relative));
     assert(manifest.redaction?.reviewRequired === true, relative, "human redaction review is required");
     assert(Array.isArray(manifest.redaction?.denyPatterns) && manifest.redaction.denyPatterns.length > 0, relative, "denyPatterns are required");
     errors.push(...validateEvidence(manifest, relative));
-    assert(manifest.provenance?.baseBranch === "main", relative, "provenance.baseBranch must be main");
-    assert(/^tests\//.test(manifest.provenance?.testFile ?? ""), relative, "provenance.testFile must reference tests/");
-    try {
-      const testSource = await readFile(path.join(root, manifest.provenance.testFile), "utf8");
-      assert(testSource.includes(manifest.provenance.testTitle), relative, "referenced test title was not found");
-      for (const target of (manifest.steps ?? []).filter((step) => step.action === "goto").map((step) => step.target)) {
-        const escaped = target.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        assert(new RegExp(`goto\\(\\s*[\"']${escaped}[\"']\\s*[,)]`).test(testSource), relative, `route ${target} is not present in the referenced test`);
-      }
-    } catch (error) { errors.push(`${relative}: cannot verify test provenance: ${error.message}`); }
+    await validateProvenance(root, manifest, relative, errors, assert);
   }
   return { errors, count: files.length };
 }
