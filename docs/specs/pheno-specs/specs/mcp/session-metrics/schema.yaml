@@ -1,0 +1,52 @@
+# Agent Session Metrics — pilot schema (ADR-018)
+# SSOT: specs/mcp/session-metrics/
+version: "0.1.0"
+adr: ADR-018
+description: Optional telemetry for zero-loop agent session tracking.
+
+required:
+  - session_id
+  - transcript_ref
+  - ssot_read
+  - outcome
+
+fields:
+  session_id:
+    type: string
+    description: Unique identifier for the agent session.
+  transcript_ref:
+    type: string
+    description: Cursor agent transcript reference (e.g. UUID).
+  ssot_read:
+    type: array
+    items: string
+    description: SSOT file paths read before first edit.
+  loop_events:
+    type: array
+    required: false
+    description: User correction loops during the session; empty when outcome is zero_loop.
+    items:
+      type: object
+      required:
+        - turn
+        - correction
+        - root_cause
+        - preventive_adr
+      properties:
+        turn:
+          type: integer
+          minimum: 1
+        correction:
+          type: string
+        root_cause:
+          type: string
+        preventive_adr:
+          type: string
+          enum:
+            - ADR-017
+            - ADR-018
+  outcome:
+    type: string
+    enum:
+      - zero_loop
+      - n_loops

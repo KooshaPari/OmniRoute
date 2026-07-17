@@ -1,0 +1,65 @@
+{
+  "contract_version": "1.0",
+  "feature": "008-temporal-deployment-workflow-migration",
+  "phases": [
+    {
+      "name": "Foundation",
+      "wps": ["WP01", "WP02"],
+      "wave": 0,
+      "entry_criteria": [],
+      "exit_criteria": ["Temporal Web UI reachable at :8233", "Worker connects and polls tasks", "Dummy workflow visible in Web UI"]
+    },
+    {
+      "name": "Core Workflow Migration",
+      "wps": ["WP03", "WP04", "WP05"],
+      "wave": 1,
+      "entry_criteria": ["WP02 complete", "WP01 complete"],
+      "exit_criteria": ["Agent dispatch runs end-to-end in Temporal", "Hatchet CI pipeline triggers from webhook", "Data sync runs on schedule", "Crash recovery tested"]
+    },
+    {
+      "name": "Observability",
+      "wps": ["WP06", "WP07", "WP08"],
+      "wave": 2,
+      "entry_criteria": ["WP03, WP04, WP05 complete"],
+      "exit_criteria": ["Traces in Jaeger", "SLO dashboards live", "Rollback tested < 10 min"]
+    },
+    {
+      "name": "Cutover",
+      "wps": ["WP09", "WP10"],
+      "wave": 3,
+      "entry_criteria": ["WP07, WP08 complete"],
+      "exit_criteria": ["Zero NATS queue consumers", "48h zero discrepancies"]
+    },
+    {
+      "name": "Handoff",
+      "wps": ["WP11", "WP12"],
+      "wave": 4,
+      "entry_criteria": ["WP10 complete"],
+      "exit_criteria": ["All runbooks written", "Capacity audit complete"]
+    }
+  ],
+  "quality_gates": [
+    {
+      "gate": "Pre-migration audit",
+      "wp": "WP03",
+      "requirement": "All NATS dispatch subjects must be documented before consumer removal"
+    },
+    {
+      "gate": "Rollback tested",
+      "wp": "WP08",
+      "requirement": "Rollback procedure must be executed and verified in test environment before cutover"
+    },
+    {
+      "gate": "48h observation",
+      "wp": "WP10",
+      "requirement": "Zero discrepancies for 48 hours before NATS workflow logic is deleted"
+    }
+  ],
+  "rollback_trigger": "SC-007 failure OR >1 discrepancy in WP10 OR any critical workflow failing >5% of runs",
+  "rollback_steps": [
+    "Set WORKFLOW_ENGINE=nats in process-compose.yml",
+    "Restart NATS JetStream consumer services",
+    "Verify NATS accepts new work within 10 minutes",
+    "Monitor for 1 hour before further investigation"
+  ]
+}

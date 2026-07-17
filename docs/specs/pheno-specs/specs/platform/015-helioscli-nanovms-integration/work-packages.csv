@@ -1,0 +1,10 @@
+WP,Title,Owner,State,Est,Dependencies
+WP1,Define SandboxExecutor trait,TBD,planned,2d,
+WP2,Create nanovms-client crate,TBD,planned,4d,
+WP3,Implement nanovms-sandbox-adapter,TBD,planned,5d,WP2
+WP4,Linux integration (nanovms + legacy),TBD,planned,3d,WP3
+WP5,macOS integration (Lima),TBD,planned,4d,WP3
+WP6,Windows integration (WSL2),TBD,planned,4d,WP3
+WP7,Policy mapping & validation,TBD,planned,3d,WP4-6
+WP8,Integration tests (all platforms),TBD,planned,5d,WP4-7
+WP9,Documentation & migration guide,TBD,planned,2d,WP8

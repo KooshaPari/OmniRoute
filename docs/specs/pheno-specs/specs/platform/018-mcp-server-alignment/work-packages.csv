@@ -1,0 +1,9 @@
+WP,Title,Owner,State,Est,Dependencies
+WP1,Audit helios-mcp-server types,TBD,planned,2d,
+WP2,Audit phenotype-mcp-core types,TBD,planned,2d,
+WP3,Compare and map types,TBD,planned,2d,WP1-2
+WP4,Unify to phenotype-mcp-core,TBD,planned,4d,WP3
+WP5,Migrate helios-mcp-server,TBD,planned,3d,WP4
+WP6,Update phenotype-mcp-asset,TBD,planned,2d,WP4
+WP7,Integration tests,TBD,planned,2d,WP5-6
+WP8,Documentation,TBD,planned,1d,WP7

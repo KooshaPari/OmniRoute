@@ -1,0 +1,366 @@
+# PhenoSpecs Registry Index
+# Spec <-> implementation traceability index.
+# Format: YAML 1.2
+#
+# Authority: the canonical ECOSYSTEM index (repo roles + dependency graph) is
+# phenotype-registry/ECOSYSTEM_MAP.md. THIS file is the spec<->impl traceability
+# index only. The `domains:` block below mirrors ECOSYSTEM_MAP's role taxonomy
+# (SDK kits are standalone repos; shared crates live in `pheno`/`HexaKit`) and
+# replaces the earlier fictional PhenoKit/AuthKit/DataKit monorepo-workspace
+# layout (paths like PhenoKit/rust/PhenotypeCore never existed).
+
+registry_version: "2.0.0"
+last_updated: "2026-06-17"
+ecosystem_index: "https://github.com/KooshaPari/phenotype-registry/blob/main/ECOSYSTEM_MAP.md"
+
+# PhenoSpecs System Entry
+system:
+  id: phenospecs-001
+  title: "PhenoSpecs — Unified Specification Registry"
+  spec: "SPEC.md"
+  research: "RESEARCH.md"
+  status: specified
+
+# --- DOMAIN CLASSIFICATIONS ---
+# Mirrors phenotype-registry/ECOSYSTEM_MAP.md role taxonomy (generated 2026-05-30).
+# SDK kits are standalone repos (not workspace subdirs); shared crates live in
+# the `pheno` monorepo and `HexaKit`. See ecosystem_index above for the
+# authoritative repo roster + dependency graph.
+domains:
+  sdk_kits:
+    name: "SDK Kits (per-domain SDK surface)"
+    role: SDK            # ECOSYSTEM_MAP role: SDK
+    repos:
+      - "AuthKit"            # auth/security SDK
+      - "DataKit"            # data storage & event sourcing SDK
+      - "McpKit"             # Model Context Protocol SDK
+      - "ObservabilityKit"   # observability/telemetry SDK
+      - "ResilienceKit"      # resilience/reliability SDK
+      - "TestingKit"         # testing/QA SDK
+      - "PlatformKit"        # platform SDK
+      - "PhenoKits"          # aggregate kit umbrella
+      - "HexaKit"            # hexagonal infra toolkit
+    specs: [SPEC-AUTH-001, SPEC-AUTH-002, SPEC-CRYPTO-001, SPEC-CRYPTO-002, SPEC-DATA-001, SPEC-CACHE-001, SPEC-OBS-001, SPEC-RESILIENCE-001, SPEC-TEST-001, SPEC-MCP-001]
+
+  shared_lib:
+    name: "Shared libraries (foundation crates/packages)"
+    role: shared-lib     # ECOSYSTEM_MAP role: shared-lib
+    repos:
+      - "pheno"              # shared crates monorepo (phenotype-core, errors, contracts, ...)
+      - "phenoShared"        # @phenotype/shared-utils + Rust crates
+      - "phenoUtils"         # primitives tier (NOT a peer SDK — see ADR-011)
+      - "phenoXddLib"
+      - "Authvault"
+      - "Stashly"
+      - "Settly"
+      - "Traceon"
+      - "PhenoObservability"
+      - "PhenoVCS"
+      - "phenotype-auth-ts"
+    specs: [SPEC-CORE-001, SPEC-VALIDATION-001]
+
+  cli_tooling:
+    name: "CLI & tooling"
+    role: tooling        # ECOSYSTEM_MAP role: tooling
+    repos: ["pheno", "AgilePlus", "phenotype-tooling", "phenotype-dep-guard", "phenotype-runs"]
+    specs: [SPEC-CLI-001, SPEC-RUNS-001]
+
+  agent_runtime:
+    name: "Agent runtime & frameworks"
+    role: agent-runtime  # ECOSYSTEM_MAP role: agent-runtime
+    repos: ["Agentora", "thegent", "PhenoAgent", "PhenoProc"]
+    specs: [SPEC-AGENT-001]
+
+  governance_spine:
+    name: "Spec/governance spine (4-role split)"
+    role: docs
+    repos: ["phenotype-registry", "PhenoSpecs", "PhenoHandbook", "phenotype-org-governance"]
+    note: "registry=INDEX, PhenoSpecs=ADRs/contracts, PhenoHandbook=CONVENTIONS, governance=ENFORCEMENT"
+
+# --- SPECIFICATIONS INDEX ---
+specs:
+  # Authentication Domain
+  SPEC-AUTH-001:
+    title: "OAuth 2.0 + PKCE Implementation"
+    path: "specs/auth/oauth-pkce/spec.md"
+    domain: auth
+    status: implemented
+    implements: [SPEC-AUTH-002, SPEC-CRYPTO-001]
+    repos: ["phenotype-auth-ts"]
+    frd: "specs/auth/oauth-pkce/frd.md"
+    openapi: "openapi/auth-oauth.yaml"
+
+  SPEC-AUTH-002:
+    title: "JWT Token Management"
+    path: "specs/auth/jwt-management/spec.md"
+    domain: auth
+    status: implemented
+    repos: ["phenotype-auth-ts"]
+    frd: "specs/auth/jwt-management/frd.md"
+
+  # Cryptography Domain
+  SPEC-CRYPTO-001:
+    title: "Symmetric Encryption (AES-GCM)"
+    path: "specs/crypto/aes-gcm/spec.md"
+    domain: crypto
+    status: implemented
+    repos: ["phenotype-cipher"]
+    frd: "specs/crypto/aes-gcm/frd.md"
+
+  SPEC-CRYPTO-002:
+    title: "Asymmetric Encryption (RSA/ECDH)"
+    path: "specs/crypto/rsa-ecdh/spec.md"
+    domain: crypto
+    status: specified
+    repos: ["phenotype-cipher"]
+    frd: "specs/crypto/rsa-ecdh/frd.md"
+
+  # Caching Domain
+  SPEC-CACHE-001:
+    title: "Multi-Tier Cache Architecture"
+    path: "specs/caching/multi-tier/spec.md"
+    domain: caching
+    status: implemented
+    repos: ["Stashly"]
+    frd: "specs/caching/multi-tier/frd.md"
+
+  # Observability Domain
+  SPEC-OBS-001:
+    title: "Distributed Tracing with OpenTelemetry"
+    path: "specs/observability/distributed-tracing/spec.md"
+    domain: observability
+    status: implemented
+    repos: ["Tracely"]
+    frd: "specs/observability/distributed-tracing/frd.md"
+
+  # CLI Domain
+  SPEC-CLI-001:
+    title: "Unified CLI Interface"
+    path: "specs/cli/unified-interface/spec.md"
+    domain: cli
+    status: implemented
+    repos: ["pheno", "AgilePlus"]
+    frd: "specs/cli/unified-interface/frd.md"
+
+  SPEC-RUNS-001:
+    title: "phenotype-runs CI/job observability substrate"
+    path: "specs/phenotype-runs.md"
+    domain: cli
+    status: specified
+    repos: ["phenotype-runs"]
+    requirements: [FR-PRUN-001, FR-PRUN-002, FR-PRUN-003, FR-PRUN-004, FR-PRUN-005, FR-PRUN-006, FR-PRUN-007, FR-PRUN-008, NFR-PRUN-001, NFR-PRUN-002, NFR-PRUN-003]
+
+  # Agents Domain
+  SPEC-AGENT-001:
+    title: "Agent Orchestration Protocol"
+    path: "specs/agents/orchestration-protocol/spec.md"
+    domain: agents
+    status: implementing
+    repos: ["thegent"]
+    frd: "specs/agents/orchestration-protocol/frd.md"
+
+  SPEC-MCP-001:
+    title: "MCP Polyrepo Boundaries"
+    path: "specs/mcp/polyrepo-boundaries/spec.md"
+    domain: mcp
+    status: specified
+    repos:
+      - PhenoMCPServers
+      - PhenoFastMCP
+      - PhenoFastMCP-go
+      - PhenoFastMCP-rust
+      - PhenoRMCP
+      - substrate
+    adr: ADR-017
+
+  SPEC-MCP-002:
+    title: "Agent pre-flight (MCP fleet)"
+    path: "specs/mcp/agent-pre-flight/spec.md"
+    domain: mcp
+    status: specified
+    repos:
+      - PhenoMCPServers
+      - phenodag
+      - PhenoSpecs
+    adr: ADR-018
+
+  SPEC-MCP-003:
+    title: "Catalog wiring"
+    path: "specs/mcp/catalog-wiring/spec.md"
+    domain: mcp
+    status: specified
+    repos:
+      - PhenoMCPServers
+    adr: ADR-017
+
+# --- ADRs INDEX ---
+adrs:
+  ADR-001:
+    title: "Hexagonal Architecture Adoption"
+    path: "adrs/001-hexagonal-architecture.md"
+    status: accepted
+    date: "2024-01-15"
+    tags: [architecture, patterns]
+
+  ADR-002:
+    title: "Rust as Primary Systems Language"
+    path: "adrs/002-rust-primary-language.md"
+    status: accepted
+    date: "2024-02-01"
+    tags: [languages, rust]
+
+  ADR-003:
+    title: "Spec-Driven Development via AgilePlus"
+    path: "adrs/003-spec-driven-development.md"
+    status: accepted
+    date: "2024-03-01"
+    tags: [process, agileplus]
+
+  ADR-004:
+    title: "Unified Specification Registry"
+    path: "adrs/004-unified-specification-registry.md"
+    status: accepted
+    date: "2026-04-04"
+    tags: [architecture, registry, phenospecs]
+    affected_specs: [phenospecs-001]
+
+  ADR-005:
+    title: "Multi-Format Documentation Strategy"
+    path: "adrs/005-multi-format-documentation.md"
+    status: accepted
+    date: "2026-04-04"
+    tags: [documentation, process]
+    relates_to: [ADR-004]
+
+  ADR-006:
+    title: "Traceability-First Development"
+    path: "adrs/006-traceability-first-development.md"
+    status: accepted
+    date: "2026-04-04"
+    tags: [process, traceability, quality]
+    relates_to: [ADR-004, ADR-005]
+
+
+  ADR-007:
+    title: "Evaluation Strategy"
+    path: "adrs/007-evaluation.md"
+    status: accepted
+    date: "2026-04-04"
+
+  ADR-008:
+    title: "Real-Time Synchronization Strategy"
+    path: "adrs/008-realtime-sync.md"
+    status: accepted
+    date: "2026-04-05"
+
+  ADR-009:
+    title: "Audit Logging"
+    path: "adrs/009-audit-hash-chain.md"
+    status: accepted
+    date: "2026-04-04"
+
+  ADR-010:
+    title: "Storage Engine"
+    path: "adrs/010-storage-dual-engine.md"
+    status: accepted
+    date: "2026-04-04"
+
+  ADR-011:
+    title: "Canonical SDK Kit Taxonomy and Cross-Language Tiering"
+    path: "adrs/011-sdk-kit-matrix.md"
+    status: proposed
+    date: "2026-06-02"
+    tags: [sdk, taxonomy, architecture]
+
+  ADR-012:
+    title: "Architecture Foundation and Core Principles"
+    path: "adrs/012-architecture-foundation.md"
+    status: accepted
+    date: "2024-01-15"
+    tags: [architecture, principles]
+
+  ADR-013:
+    title: "Data Storage and Persistence Strategy"
+    path: "adrs/013-data-storage-strategy.md"
+    status: accepted
+    date: "2024-01-15"
+    tags: [data, storage]
+
+  ADR-014:
+    title: "API Design Standards and Versioning Strategy"
+    path: "adrs/014-api-design-versioning.md"
+    status: accepted
+    date: "2024-01-15"
+    tags: [api, versioning, contracts]
+
+  ADR-015:
+    title: "Authentication and Authorization Architecture"
+    path: "adrs/015-authn-authz-architecture.md"
+    status: accepted
+    date: "2024-01-15"
+    tags: [auth, security]
+
+  ADR-016:
+    title: "Deployment Pipeline and Infrastructure Strategy"
+    path: "adrs/016-deployment-pipeline.md"
+    status: accepted
+    date: "2024-01-15"
+    tags: [deployment, infrastructure]
+
+  ADR-017:
+    title: "MCP Polyrepo Boundaries"
+    path: "adrs/017-mcp-polyrepo-boundaries.md"
+    status: accepted
+    date: "2026-06-17"
+    tags: [mcp, governance, polyrepo, architecture]
+    affected_specs: [SPEC-MCP-001]
+
+  ADR-020:
+    title: "Tier-0 Zig/Mojo MCP framework forks"
+    path: "adrs/020-tier0-zig-mojo-mcp-forks.md"
+    status: draft
+    date: "2026-06-17"
+    tags: [mcp, zig, mojo, horizon, tier-0]
+    depends_on: [ADR-017, ADR-018]
+
+# --- OPENAPI SPECS INDEX ---
+openapi:
+  auth-api-v1:
+    title: "Authentication API v1"
+    path: "openapi/auth-api-v1.yaml"
+    version: "1.0.0"
+    implements: [SPEC-AUTH-001, SPEC-AUTH-002]
+    repos: ["phenotype-auth-ts"]
+
+  cache-api-v1:
+    title: "Caching API v1"
+    path: "openapi/cache-api-v1.yaml"
+    version: "1.0.0"
+    implements: [SPEC-CACHE-001]
+    repos: ["Stashly"]
+
+# --- INTEGRATION SPECS INDEX ---
+integrations:
+  INT-001:
+    title: "AgilePlus ↔ GitHub Integration"
+    path: "integrations/agileplus-github.md"
+    systems: ["AgilePlus", "GitHub"]
+    protocol: "webhook + api"
+
+  INT-002:
+    title: "Tracely ↔ NATS Integration"
+    path: "integrations/tracely-nats.md"
+    systems: ["Tracely", "NATS"]
+    protocol: "jetstream"
+
+# --- CROSS-CUTTING CONCERNS ---
+cross_cutting:
+  security:
+    refs: [SPEC-AUTH-001, SPEC-CRYPTO-001, SPEC-CRYPTO-002]
+
+  performance:
+    refs: [SPEC-CACHE-001, SPEC-OBS-001]
+
+  observability:
+    refs: [SPEC-OBS-001]
+

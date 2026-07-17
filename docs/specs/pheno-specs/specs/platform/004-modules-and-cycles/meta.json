@@ -1,0 +1,10 @@
+{
+  "feature_number": "004",
+  "slug": "004-modules-and-cycles",
+  "friendly_name": "AgilePlus Modules & Cycles Domain Model",
+  "mission": "software-dev",
+  "source_description": "AgilePlus native Modules and Cycles domain model — add first-class Module (grouping of related features/specs) and Cycle (time-boxed implementation phase with spec→plan→implement→review→ship lifecycle) entities to agileplus-domain, with storage port extensions, CLI commands, dashboard views, and bidirectional Plane.so sync mapping from AgilePlus Modules/Cycles to Plane Modules/Cycles",
+  "created_at": "2026-03-03T00:00:00Z",
+  "target_branch": "main",
+  "vcs": "git"
+}

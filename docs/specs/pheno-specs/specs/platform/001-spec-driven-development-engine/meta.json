@@ -1,0 +1,10 @@
+{
+  "feature_number": "001",
+  "slug": "001-spec-driven-development-engine",
+  "friendly_name": "AgilePlus — Spec-Driven Development Engine",
+  "mission": "software-dev",
+  "source_description": "",
+  "created_at": "2026-02-27T00:00:00Z",
+  "target_branch": "main",
+  "vcs": "git"
+}

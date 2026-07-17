@@ -1,0 +1,150 @@
+syntax = "proto3";
+
+package agileplus.integrations.v1;
+
+import "agileplus/common.proto";
+
+// Integrations service: Plane.so sync, GitHub sync, triage/backlog.
+// Implemented by agileplus-integrations. Called by agileplus-core (via gRPC).
+service IntegrationsService {
+  // Plane.so sync
+  rpc SyncFeatureToPlane(SyncFeatureRequest) returns (SyncResponse);
+  rpc SyncWPToPlane(SyncWPRequest) returns (SyncResponse);
+  rpc DetectPlaneConflicts(DetectConflictsRequest) returns (ConflictReport);
+
+  // GitHub sync
+  rpc SyncBugToGitHub(SyncBugRequest) returns (SyncResponse);
+  rpc SyncIssueStatus(SyncIssueStatusRequest) returns (SyncResponse);
+  rpc DetectGitHubConflicts(DetectConflictsRequest) returns (ConflictReport);
+
+  // Triage
+  rpc ClassifyInput(ClassifyRequest) returns (ClassifyResponse);
+  rpc CreateBacklogItem(CreateBacklogRequest) returns (BacklogItem);
+  rpc ListBacklog(ListBacklogRequest) returns (ListBacklogResponse);
+  rpc PromoteBacklogItem(PromoteRequest) returns (PromoteResponse);
+
+  // Prompt router generation
+  rpc GenerateRouter(GenerateRouterRequest) returns (GenerateRouterResponse);
+}
+
+// --- Sync ---
+
+message SyncFeatureRequest {
+  string feature_slug = 1;
+  string state = 2;
+}
+
+message SyncWPRequest {
+  string feature_slug = 1;
+  int32 wp_sequence = 2;
+  string state = 3;
+  string pr_url = 4;
+}
+
+message SyncBugRequest {
+  string title = 1;
+  string body = 2;
+  repeated string labels = 3;
+  string feature_slug = 4;  // optional cross-reference
+  int32 wp_sequence = 5;    // optional cross-reference
+}
+
+message SyncIssueStatusRequest {
+  string mirror = 1;        // "github"
+  string mirror_id = 2;     // GitHub issue number
+}
+
+message SyncResponse {
+  bool success = 1;
+  string mirror_id = 2;
+  string mirror_url = 3;
+  string message = 4;
+}
+
+message DetectConflictsRequest {
+  string mirror = 1;        // "plane" or "github"
+}
+
+message ConflictReport {
+  repeated Conflict conflicts = 1;
+}
+
+message Conflict {
+  string entity_type = 1;
+  int64 entity_id = 2;
+  string mirror_id = 3;
+  string description = 4;
+  string local_hash = 5;
+  string remote_hash = 6;
+}
+
+// --- Triage ---
+
+message ClassifyRequest {
+  string input = 1;
+  string feature_slug = 2;  // optional context
+  int32 wp_sequence = 3;    // optional context
+}
+
+message ClassifyResponse {
+  string type = 1;           // "bug", "feature", "idea", "task", "tech_debt"
+  string confidence = 2;     // "high", "medium", "low"
+  string suggested_title = 3;
+  string suggested_priority = 4;
+}
+
+message CreateBacklogRequest {
+  string type = 1;
+  string title = 2;
+  string body = 3;
+  string priority = 4;
+  string feature_id = 5;    // optional
+  string wp_id = 6;         // optional
+  string triaged_by = 7;
+}
+
+message BacklogItem {
+  int64 id = 1;
+  string type = 2;
+  string title = 3;
+  string body = 4;
+  string priority = 5;
+  string state = 6;
+  string external_ref = 7;
+  string created_at = 8;
+}
+
+message ListBacklogRequest {
+  string type_filter = 1;
+  string state_filter = 2;
+  string feature_slug = 3;  // optional
+}
+
+message ListBacklogResponse {
+  repeated BacklogItem items = 1;
+}
+
+message PromoteRequest {
+  int64 backlog_item_id = 1;
+  string target_type = 2;    // "feature" or "work_package"
+}
+
+message PromoteResponse {
+  bool success = 1;
+  string created_entity_id = 2;
+  string message = 3;
+}
+
+// --- Prompt Router ---
+
+message GenerateRouterRequest {
+  string project_path = 1;
+  repeated string sub_commands = 2;  // Available sub-command list
+}
+
+message GenerateRouterResponse {
+  bool success = 1;
+  string claude_md_path = 2;
+  string agents_md_path = 3;
+  string message = 4;
+}

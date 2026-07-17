@@ -1,0 +1,14 @@
+id,type,name,url_or_path,accessed,reliability,notes
+S001,codebase,rusqlite GitHub,https://github.com/rusqlite/rusqlite,2026-02-27,high,7k+ stars active maintenance
+S002,codebase,sqlx GitHub,https://github.com/launchbadge/sqlx,2026-02-27,high,Primary focus PostgreSQL
+S003,codebase,git2-rs GitHub,https://github.com/rust-lang/git2-rs,2026-02-27,high,Official Rust libgit2 bindings
+S004,codebase,gitoxide GitHub,https://github.com/Byron/gitoxide,2026-02-27,high,Pure Rust git implementation
+S005,codebase,tonic GitHub,https://github.com/hyperium/tonic,2026-02-27,high,De facto Rust gRPC
+S006,documentation,grpcio PyPI,https://pypi.org/project/grpcio/,2026-02-27,high,Official Google gRPC Python
+S007,codebase,thegent audit implementation,/Users/kooshapari/CodeProjects/Phenotype/repos/thegent/crates/thegent-router/src/audit.rs,2026-02-27,high,SHA-256 hash-chained JSONL per ADR-015
+S008,documentation,Claude Code CLI docs,https://docs.anthropic.com/en/docs/claude-code,2026-02-27,high,--print mode headless invocation
+S009,documentation,Plane.so docs,https://plane.so/docs,2026-02-27,high,REST API Docker Compose deployment
+S010,codebase,opentelemetry-rust,https://github.com/open-telemetry/opentelemetry-rust,2026-02-27,high,CNCF standard Rust SDK
+S011,codebase,keyring crate,https://crates.io/crates/keyring,2026-02-27,high,Cross-platform OS keychain
+S012,codebase,cucumber-rs,https://github.com/cucumber-rs/cucumber,2026-02-27,high,Rust BDD framework
+S013,documentation,Codex CLI docs,https://github.com/openai/codex,2026-02-27,medium,Batch execution capabilities

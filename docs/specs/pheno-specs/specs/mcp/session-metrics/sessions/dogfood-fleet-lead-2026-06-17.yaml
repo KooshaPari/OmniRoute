@@ -1,0 +1,21 @@
+# Live fleet-lead dogfood session (ADR-018 / docs/DOGFOOD.md)
+session_id: sess-dogfood-fleet-lead-2026-06-17
+transcript_ref: 40d15363
+ssot_read:
+  - adrs/017-mcp-polyrepo-boundaries.md
+  - adrs/018-agent-session-zero-loop-ssot.md
+  - PhenoMCPServers/catalog/registry.yaml
+  - PhenoMCPServers/agents/fleet-lead/agent.yaml
+  - PhenoMCPServers/plugins/phenotype-bundle/mcp.json
+  - PhenoMCPServers/docs/DOGFOOD.md
+loop_events: []
+outcome: zero_loop
+acceptance:
+  validate_catalog: pass
+  validate_bundle_wiring: pass
+  substrate_plan_http: pass
+  substrate_dispatch_http: reached  # foreground dispatch blocks on engine spawn (ReadTimeout expected)
+  fleet_lead_skills:
+    - mcp-boundary-guard
+    - github-fork-policy
+    - substrate-dispatch-skill

@@ -1,0 +1,18 @@
+# Enforces the org conventions via the governance reusable gate.
+name: conventions
+on:
+  workflow_dispatch:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  conventions:
+    uses: KooshaPari/phenotype-org-governance/.github/workflows/reusable-conventions-lint.yml@12778e6a13878f90010e03cd0b8f63730da294e0 # pinned from @main

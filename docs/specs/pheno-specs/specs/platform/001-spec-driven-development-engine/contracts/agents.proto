@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package agileplus.agents.v1;
+
+import "agileplus/common.proto";
+
+// Agent dispatch service: spawn agents, manage PR lifecycle, review loop.
+// Implemented by agileplus-agents. Called by agileplus-core (via gRPC).
+service AgentDispatchService {
+  // Spawn an agent to work on a work package
+  rpc SpawnAgent(SpawnAgentRequest) returns (SpawnAgentResponse);
+
+  // Query agent status
+  rpc GetAgentStatus(GetAgentStatusRequest) returns (AgentStatus);
+
+  // Cancel a running agent
+  rpc CancelAgent(CancelAgentRequest) returns (CancelAgentResponse);
+
+  // Bidirectional agent event streaming
+  rpc AgentEvents(stream agileplus.common.v1.AgentEvent) returns (stream agileplus.common.v1.AgentEventAck);
+
+  // Trigger review-fix loop for a PR
+  rpc StartReviewLoop(ReviewLoopRequest) returns (ReviewLoopResponse);
+
+  // Get review loop status
+  rpc GetReviewStatus(GetReviewStatusRequest) returns (ReviewStatus);
+}
+
+// --- Requests ---
+
+message SpawnAgentRequest {
+  string feature_slug = 1;
+  int32 wp_sequence = 2;
+  string harness = 3;         // "claude-code" or "codex"
+  string prompt_path = 4;     // Path to WP prompt file
+  repeated string context_paths = 5; // Additional context files
+  string worktree_path = 6;   // Target worktree
+  int32 max_agents = 7;       // Max concurrent subagents (1-3)
+}
+
+message SpawnAgentResponse {
+  bool success = 1;
+  string agent_id = 2;
+  string message = 3;
+}
+
+message GetAgentStatusRequest {
+  string agent_id = 1;
+}
+
+message AgentStatus {
+  string agent_id = 1;
+  string state = 2;           // "running", "waiting_review", "fixing", "completed", "failed"
+  string feature_slug = 3;
+  int32 wp_sequence = 4;
+  string pr_url = 5;
+  int32 review_cycles = 6;
+  string last_activity = 7;   // ISO 8601
+}
+
+message CancelAgentRequest {
+  string agent_id = 1;
+  string reason = 2;
+}
+
+message CancelAgentResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ReviewLoopRequest {
+  string feature_slug = 1;
+  int32 wp_sequence = 2;
+  string pr_url = 3;
+  string agent_id = 4;
+  int32 max_cycles = 5;       // Default 5
+}
+
+message ReviewLoopResponse {
+  bool success = 1;
+  string review_loop_id = 2;
+  string message = 3;
+}
+
+message GetReviewStatusRequest {
+  string review_loop_id = 1;
+}
+
+message ReviewStatus {
+  string review_loop_id = 1;
+  string state = 2;           // "awaiting_review", "review_received", "fixing", "approved", "failed"
+  int32 cycle = 3;
+  int32 max_cycles = 4;
+  repeated string pending_comments = 5;
+  bool ci_passing = 6;
+}

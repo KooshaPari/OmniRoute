@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.vitepress/dist/
+.vitepress/cache/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store

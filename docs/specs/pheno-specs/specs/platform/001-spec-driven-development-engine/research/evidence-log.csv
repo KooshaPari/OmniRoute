@@ -1,0 +1,16 @@
+id,decision_ref,finding,source_id,confidence,date,notes
+E001,R1,rusqlite is most mature Rust SQLite binding (7k+ stars),S001,high,2026-02-27,WAL mode confirmed for concurrent reads
+E002,R1,sqlx SQLite support secondary to PostgreSQL,S002,high,2026-02-27,WAL handling less documented
+E003,R2,git2-rs used by cargo itself for git operations,S003,high,2026-02-27,Worktree API stable
+E004,R2,gitoxide worktree API still maturing,S004,medium,2026-02-27,Pure Rust but not ready for worktree ops
+E005,R3,tonic is de facto Rust gRPC library (tokio-native),S005,high,2026-02-27,Bidirectional streaming supported
+E006,R3,grpcio is official Google gRPC Python binding,S006,high,2026-02-27,Production grade
+E007,R4,thegent uses SHA-256 hash-chained JSONL audit (ADR-015),S007,high,2026-02-27,Pattern validated in production codebase
+E008,R5,Claude Code supports --print mode and headless invocation,S008,high,2026-02-27,Confirmed via CLI docs
+E009,R6,Plane.so CE is Apache 2.0 with Docker Compose deployment,S009,high,2026-02-27,API covers work items cycles modules views
+E010,R7,opentelemetry-rust supports traces + metrics with OTLP export,S010,high,2026-02-27,CNCF standard
+E011,R8,keyring crate provides cross-platform OS keychain access,S011,high,2026-02-27,macOS Keychain + Linux secret-service
+E012,R9,cucumber-rs integrates with cargo test,S012,high,2026-02-27,Shared .feature files with behave
+E013,R4,thegent-jsonl uses Blake3 hashing,S007,medium,2026-02-27,Faster but less widely auditable than SHA-256
+E014,R5,Codex supports batch/headless execution,S013,medium,2026-02-27,Similar to Claude Code --print mode
+E015,R6,Plane.so API covers cycles (features) and modules (governance),S009,high,2026-02-27,Sufficient for sidecar read-mostly pattern

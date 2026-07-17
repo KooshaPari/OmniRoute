@@ -1,0 +1,8 @@
+WP,Title,Owner,State,Est,Dependencies
+WP1,nanovms Rust client library,TBD,planned,3d,
+WP2,bare-cua sandbox trait,TBD,planned,2d,
+WP3,Tier 1 (WASM) adapter,TBD,planned,3d,WP1
+WP4,Tier 2 (gVisor) adapter,TBD,planned,4d,WP1
+WP5,Tier 3 (Firecracker) adapter,TBD,planned,5d,WP1
+WP6,Integration tests,TBD,planned,3d,WP3-5
+WP7,Documentation & examples,TBD,planned,2d,WP6
