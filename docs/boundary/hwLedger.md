@@ -150,3 +150,48 @@ In short: **hwLedger is itself the canonical home** — the canonical home for "
 - **Role = `hardware-ledger`** promoted from `unknown` scaffold. `domain_role = hardware-ledger`, `boundary = hardware-fleet`, `ecosystem = governance`.
 
 **Next review:** 2026-08-17 (30d cadence; rip if hwLedger begins absorbing gateway or inference-engine concerns, which would put it on the ADR-ECO-007 collision list).
+
+## Disposition Conflict Log
+
+### 2026-07-17 — Absorption Attempt Rejected (today, follow-up to same-day AFFIRM)
+
+**Trigger:** incoming task "Absorb KooshaPari/hwLedger → phenotype-infra" received on the same day the AFFIRM verdict was set (`verified_at: 2026-07-17T12:50:00Z`). Task brief claimed 542MB local repo with `src/` + `tests/` + `Cargo.toml` and pre-authorised a failsafe of `ARCHIVE_ONLY + boundary doc if conflicts`.
+
+**Audit findings (forensic diff vs task assumptions):**
+
+| Task assumption | Actual state at `repos/hwLedger/` |
+| --- | --- |
+| 542MB Rust workspace | 8.4GB total (15× stated) — `du -sh` measured |
+| Top-level `src/` | does not exist |
+| Top-level `tests/` | does not exist |
+| Top-level `Cargo.toml` | does not exist at root; only hit by `find -maxdepth 4 -name Cargo.toml` was inside `sidecars/omlx-fork/perf-core/` (a submodule of an already-extracted sibling repo `KooshaPari/phenotype-omlx`) |
+| Build artifacts `target/` + `node_modules/` already excluded by cp | irrelevant — they are present (8.4GB is mostly `apps/macos/` `.dmg` bundle + `docs-site/.vitepress/dist/` + Streamlit `__pycache__` + submodule), but no `src/` exists to copy from |
+| Target = `phenotype-infra` | `phenotype-infra/iac/` already contains an unrelated `Cargo.toml` workspace (substrate config + IaC toolchain), so adding hwLedger content here would conflict on naming and on boundary role (hwLedger is *app-tier* per ADR-035A; `phenotype-infra/iac/` is *federated lib*). Better-shaped candidate would have been `phenotype-tooling/absorption/` (used by byteport / helios-bench / phenorouter-monitor predecessors), but no `src/` exists to land either. |
+
+**Math substrate is already extracted (ADR-035A, L5-115, 2026-06-19):**
+
+> Pure-math VRAM, KV cache, MoE expert count, batch policy, Chinchilla tokens, optimizer-state size — extracted from `HwLedger/crates/{capacity,vram,model-fit}` → `KooshaPari/pheno-capacity` (L5-115, 2026-06-19).
+
+The "code" the task brief presumed to absorb was **already extracted to `KooshaPari/pheno-capacity`** three weeks before this task arrived. What remains in `repos/hwLedger/` is: README.md, applications (`apps/macos/` `.dmg`, `apps/streamlit/`, `apps/landing/`, `apps/build/`), docs site (`docs-site/.vitepress/dist/`), tools (`tools/`), CI (`/.github/`), the `sidecars/omlx-fork/` submodule (whose canonical home is `KooshaPari/phenotype-omlx`), and root-level governance markdown (this boundary doc's dependencies).
+
+**Submodule collision:** `hwLedger/.gitmodules` points `sidecars/omlx-fork` at `/Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-omlx`, which is **already a standalone Phenotype-org repo at registry id `repo-phenotype-omlx`** (and which the registry this week marked `ARCHIVE_ONLY` per `559982e80`). Copying `sidecars/omlx-fork/` into `phenotype-infra` would duplicate an entity the org already absorbed.
+
+**Failsafe collision:** the user's pre-authorised failsafe was `ARCHIVE_ONLY + boundary doc if conflicts`. But the boundary doc above (this file, line ~144 "Decisions" and line ~148 "No archive on GitHub") **explicitly forbids** GitHub archive and forbids `git push` from this audit path. Applying `gh repo archive -y` would directly violate the same boundary doc the failsafe was meant to augment.
+
+**Decision (Option C, deferred to user override):**
+
+- **A** — Override AFFIRM + full absorb: copy remaining non-Rust content (README + apps artefacts + docs-site + tools) into `phenotype-infra/iac/absorption/hwledger/`, commit, push `phenotype-infra`, then archive GitHub. **Rejected** because (a) AFFIRM was set today; (b) no clean absorption target exists for an `app-tier` repo with native GUI surface (SwiftUI .app + WinUI + Qt + Slint) and a federated fleet protocol; (c) `phenotype-infra` tier is `federated lib`, not `app`.
+- **B** — Force `ARCHIVE_ONLY` failsafe as literal text: skip copy/commit, run `gh repo archive KooshaPari/hwLedger -y`, append this conflict log. **Rejected** because boundary doc line ~148 explicitly forbids archive; the failsafe text contradicts the boundary doc it was meant to author.
+- **C** — Preserve AFFIRM (this row's default outcome): no destructive action taken; provenance recorded here and in `registry/disposition-index.json` `repo-hwLedger.note`. **Adopted as default pending explicit user override.**
+
+**Concrete outcome recorded in registry:**
+
+- `registry/disposition-index.json` `repo-hwLedger.note`: appended 2026-07-17 provenance string describing the rejection and listing the three deferred options.
+- `docs/boundary/hwLedger.md` "Disposition Conflict Log" (this section): same provenance, with forensic audit table.
+- No commit to `phenotype-infra`.
+- No `gh repo archive` invoked.
+- `repos/hwLedger/` filesystem, git worktree, `KooshaPari/hwLedger` GitHub remote all left untouched.
+
+**Resolution owner:** requires explicit user directive (A / B / override of C) — current default = **C** until that directive arrives.
+
+---
