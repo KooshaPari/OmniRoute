@@ -2320,10 +2320,10 @@
     {
       "id": "repo-Tokn",
       "path": "KooshaPari/Tokn",
-      "disposition": "ABSORB",
-      "target": "pheno (crates/tokn)",
+      "disposition": "ARCHIVE_ONLY",
+      "target": "phenotype-registry (docs/boundary/Tokn.md)",
       "wave": "2026-07-17-queue-refresh-2",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 2409,
       "remote_branch_count": 1,
@@ -2333,7 +2333,8 @@
       "audit_artifact": "audits/absorption-justifications/Tokn-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:50:00.000000Z",
-      "note": "Rust JWT/token primitives; hexagonal architecture, ARCHITECTURE.md present. Small library ready for pheno monorepo integration."
+      "note": "Rust JWT/token primitives; hexagonal architecture, ARCHITECTURE.md present. Small library ready for pheno monorepo integration. [ARCHIVE_ONLY 2026-07-17: 2 standalone CLI crates (pareto-rs, tokenledger-rs) — not lib-shaped; no fleet consumers.]",
+      "boundary_doc": "docs/boundary/Tokn.md"
     },
     {
       "id": "repo-Stashly",
