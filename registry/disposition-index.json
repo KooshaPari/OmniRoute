@@ -1,6 +1,6 @@
 {
   "version": "1.6.24",
-  "updated": "2026-07-17T15:50:00.000000Z",
+  "updated": "2026-07-17T16:30:00.000000Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
   "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr. 2026-07-17 (batch3, agent #4): queue-refresh added 10 fresh non-Rust candidates (phenodag/HeliosLab/PhenoHandbook/Conft/context-mode-plusplus/pheno-forge-plugins/PhenoContracts/KodeVibe/KWatch/heliosBench) to keep the absorption queue topped up; Rust slots already taken by batch2 (agents 2/3). 2026-07-17 (batch4, agent #5): queue-refresh added 10 fresh least-active candidates (phenotype-gfx/hwLedger/omniroute-rs/pheno-forge-smoke/pheno-otel/Apisync/PhenoVCS/Pine/PlayCua/DataKit) to keep the absorption queue topped up; absorbs continue to drain batch1-3 in parallel. 2026-07-17 (batch4, agent absorb #1): Pine → ARCHIVE_ONLY fallback (5-crate workspace, not single crate; substrate not modified); GitHub repo archived same day. 2026-07-17: pheno-harness ABSORB → ARCHIVE_ONLY via failsafe path (source is 95% Python, no Cargo.toml at root; cargo check -p pheno-harness fails). Registry row repo-pheno-harness updated to disposition=ARCHIVE_ONLY, target=phenotype-registry, fsm=absorbed; absorbing_repo=KooshaPari/phenotype-registry. Audit: audits/absorption-justifications/pheno-harness-deferred-2026-07-17.md. Boundary: docs/boundary/pheno-harness.md. Source repo archived via 'gh repo archive KooshaPari/pheno-harness -y'.\n 2026-07-17 (this audit): phenotype-landing pivoted from ABSORB→ARCHIVE_ONLY for the same structural reasons as omniroute-rust (deferred-W2 → failsafe): source is a 7-site Astro monorepo (1.6GB tracked+untracked, ~1.4GB of node_modules), not a single landing page; cp -r phenotype-landing/* phenodocs/packages/landing/ would have copied 7 independent Astro sites with their own vercel.json + bun.lock + CI workflow into a VitePress federation hub. Source repo archived on GitHub via `gh repo archive`. Boundary doc captures the rejection in detail.",
@@ -1396,8 +1396,8 @@
     {
       "id": "repo-KDesktopVirt",
       "path": "KooshaPari/KDesktopVirt",
-      "disposition": "AFFIRM",
-      "fsm": "active",
+      "disposition": "ARCHIVE_ONLY",
+      "fsm": "absorbed",
       "size_kb": 1200,
       "remote_branch_count": 1,
       "last_push": "2025-07-14T09:00:00Z",
@@ -1405,13 +1405,21 @@
       "grade_percentage": null,
       "audit_artifact": null,
       "source_artifact": "manual:2026-07-17",
-      "added_at": "2026-07-17T02:18:00.000000Z"
+      "added_at": "2026-07-17T02:18:00.000000Z",
+      "target": "phenotype-registry (docs/boundary/KDesktopVirt.md)",
+      "boundary_doc": "docs/boundary/KDesktopVirt.md",
+      "archived": true,
+      "archived_at": "2026-07-17",
+      "archive_reason": "non-phenotype-content",
+      "absorbing_repo": "KooshaPari/phenotype-registry",
+      "core_lang": "rust+go+python+typescript+shell",
+      "note": " [ARCHIVED 2026-07-17 on GitHub: non-Phenotype KDE desktop virtualization / AI agent UI automation platform; no substrate alignment with DOMAIN_ROLES taxonomy; boundary record at docs/boundary/KDesktopVirt.md; isArchived=true verified via gh repo view.]"
     },
     {
       "id": "repo-Civis",
       "path": "KooshaPari/Civis",
-      "disposition": "AFFIRM",
-      "fsm": "active",
+      "disposition": "ARCHIVE_ONLY",
+      "fsm": "absorbed",
       "size_kb": 2322641,
       "remote_branch_count": 116,
       "last_push": "2026-06-25T23:17:02Z",
@@ -1419,7 +1427,16 @@
       "grade_percentage": null,
       "audit_artifact": "Civis-2026-06-25.md",
       "source_artifact": "manual:2026-07-17",
-      "added_at": "2026-07-17T02:18:00.000000Z"
+      "added_at": "2026-07-17T02:18:00.000000Z",
+      "target": "phenotype-registry",
+      "core_lang": "rust",
+      "absorbed_date": "2026-07-17",
+      "archived_at": "2026-07-17T17:00:00Z",
+      "archive_reason": "failsafe-no-cargo-on-host",
+      "boundary_doc": "docs/boundary/Civis.md",
+      "canonical_source": "KooshaPari/Civis",
+      "absorbing_repo": "KooshaPari/phenotype-registry",
+      "note": "ARCHIVED 2026-07-17 (failsafe). Bevy 0.18 workspace, 28+ crates, 22GB target/, submodule vendor/phenodocs, cargo not on PATH on dispatch host. Supplants 2026-06-25 AFFIRM audit; AFFIRM judgment on canonical-home remains accurate, only absorption feasibility flipped."
     },
     {
       "id": "repo-Parpoura",
