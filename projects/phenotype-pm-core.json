@@ -1,0 +1,17 @@
+{
+  "name": "phenotype-pm-core",
+  "languages": [
+    "rust"
+  ],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": false,
+  "type": "library",
+  "path": "repos/phenotype-pm-core",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh",
+  "absorbed_into": "phenotype-tooling",
+  "absorption_note": "Small Rust PM core lib; 7 branches, 142KB. No README, no production use. Target: phenotype-tooling/crates/pm-core.",
+  "note": "Audited 2026-07-17; queued for absorption into phenotype-tooling. No external dependents expected (no README, no Cargo.toml publish).",
+  "adr": "ADR-040"
+}
