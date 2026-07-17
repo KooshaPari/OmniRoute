@@ -3,6 +3,7 @@
 use crate::error::StorageError;
 use chrono::{DateTime, Utc};
 use omniroute_core::chat::RequestLog;
+use sqlx::Row;
 use sqlx::SqlitePool;
 
 pub struct RequestLogRepo<'a> {

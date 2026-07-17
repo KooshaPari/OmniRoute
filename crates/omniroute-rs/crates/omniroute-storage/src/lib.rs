@@ -14,6 +14,7 @@
 pub mod audit;
 pub mod config_audit;
 pub mod crypto;
+pub mod error;
 pub mod key;
 pub mod migrations;
 pub mod pool;

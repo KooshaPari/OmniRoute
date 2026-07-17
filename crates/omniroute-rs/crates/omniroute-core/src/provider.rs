@@ -11,7 +11,7 @@ use crate::embedding::EmbeddingRequest;
 use crate::error::Result;
 use crate::image::ImageRequest;
 use crate::response::ProviderResponse;
-use crate::stream::ChatChunk;
+use crate::chat::ChatChunk;
 use bytes::Bytes;
 use futures::Stream;
 
