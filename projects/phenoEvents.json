@@ -4,16 +4,16 @@
     "rust"
   ],
   "primary_language": "rust",
-  "status": "queued",
-  "has_readme": false,
+  "status": "absorbed",
+  "has_readme": true,
   "type": "library",
   "path": "repos/phenoEvents",
   "disposition": "ABSORB",
   "wave": "2026-07-17-queue-refresh-batch2",
-  "queued_at": "2026-07-17",
-  "proposed_target": "pheno (crates/pheno-events)",
-  "proposed_target_repo": "pheno",
-  "proposed_target_path": "crates/pheno-events/",
-  "absorption_note": null,
-  "note": "EventBus port with hexagonal architecture. Direct crate fit for pheno workspace."
+  "absorbed_into": "pheno",
+  "absorbed_at": "2026-07-17",
+  "absorption_target_path": "crates/phenotype-event-bus/",
+  "absorption_note": "Rust event-bus library with SQLite outbox, at-least-once delivery, idempotency, DLQ, schema registry, and SQL read-model projections. ABSORBED 2026-07-17 into pheno/crates/phenotype-event-bus/. Crate renamed pheno-events -> phenotype-event-bus (resolves phantom workspace dep). 17 files transferred (~45KB). 37 unit + 8 property tests pass. Source repo archived on GitHub.",
+  "note": "Audited 2026-07-17; absorbed same day. See audits/absorption-justifications/phenoEvents-2026-07-17.md and docs/boundary/phenotype-event-bus.md.",
+  "adr": "ADR-ECO-014"
 }
