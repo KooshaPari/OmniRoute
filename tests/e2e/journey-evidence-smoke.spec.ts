@@ -40,6 +40,7 @@ test("captures anonymous v4 home journey evidence", async ({ page, context }) =>
   });
 
   await context.tracing.start({ screenshots: true, snapshots: true, sources: true });
+  try {
   await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "light" });
   await page.goto("/", { waitUntil: "networkidle" });
   await expect(page.locator("h1").first()).toContainText("Welcome to argismonitor v4");
@@ -92,6 +93,26 @@ test("captures anonymous v4 home journey evidence", async ({ page, context }) =>
       ...axeResult.inapplicable.map(({ id }) => ({ id, result: "inapplicable" })),
     ].sort((left, right) => left.id.localeCompare(right.id)),
   };
+  const axeHasFinding = (ruleIds: string[]) => [...axe.violations, ...axe.incomplete].some(({ id }) => ruleIds.includes(id));
+  const checks: Record<string, unknown> = {
+    "document-title": { status: "passed", title: structure.title },
+    "heading-order": { status: "passed", headingCount: structure.headingCount, hasHeadingSkip: structure.hasHeadingSkip },
+    landmarks: { status: "passed", ...structure.landmarks },
+    "focus-visible": { status: "pending", keyboardOnly: true, targets: [] },
+    "accessible-names": {
+      status: axeHasFinding(["aria-command-name", "aria-input-field-name", "aria-toggle-field-name", "button-name", "image-alt", "input-button-name", "link-name", "select-name"]) ? "failed" : "passed",
+      axeRules: axe.rules.filter(({ id }) => id.includes("name") || id === "image-alt"),
+    },
+    contrast: { status: axeHasFinding(["color-contrast", "color-contrast-enhanced"]) ? "failed" : "passed", axeRule: "color-contrast" },
+    "no-horizontal-overflow": { status: "passed", horizontalOverflow: structure.horizontalOverflow },
+    "reduced-motion": { status: "passed", reducedMotion: structure.reducedMotion },
+  };
+  const persistAccessibility = () => writeFile(
+    path.join(evidenceRoot, "accessibility-smoke.json"),
+    `${JSON.stringify({ schemaVersion: 2, viewport: structure.viewport, checks, axe }, null, 2)}\n`,
+    { mode: 0o600 },
+  );
+  await persistAccessibility();
   expect(
     { violations: axe.violations, incomplete: axe.incomplete },
     "axe violations and incomplete results require remediation or explicit review before capture",
@@ -133,24 +154,18 @@ test("captures anonymous v4 home journey evidence", async ({ page, context }) =>
     expect(focused?.focusVisible).toBe(true);
     expect(changedProperties.length).toBeGreaterThan(0);
     focusTraversal.push({ ...baseline, after: focused?.after, focusVisible: focused?.focusVisible, changedProperties });
+    checks["focus-visible"] = { status: "pending", keyboardOnly: true, targets: focusTraversal };
+    await persistAccessibility();
   }
   expect(focusTraversal.map(({ index }) => index)).toEqual(focusSetup.map(({ index }) => index));
 
-  const checks = {
-    "document-title": { status: "passed", title: structure.title },
-    "heading-order": { status: "passed", headingCount: structure.headingCount, hasHeadingSkip: structure.hasHeadingSkip },
-    landmarks: { status: "passed", ...structure.landmarks },
-    "focus-visible": { status: "passed", keyboardOnly: true, targets: focusTraversal },
-    "accessible-names": { status: "passed", axeRules: axe.rules.filter(({ id }) => id.includes("name") || id === "image-alt") },
-    contrast: { status: "passed", axeRule: "color-contrast" },
-    "no-horizontal-overflow": { status: "passed", horizontalOverflow: structure.horizontalOverflow },
-    "reduced-motion": { status: "passed", reducedMotion: structure.reducedMotion },
-  };
-  const accessibility = { schemaVersion: 2, viewport: structure.viewport, checks, axe };
+  checks["focus-visible"] = { status: "passed", keyboardOnly: true, targets: focusTraversal };
+  await persistAccessibility();
   expect(runtimeErrors).toEqual([]);
   expect(failedResponses).toEqual([]);
   expect(new Set(telemetryIds).size).toBe(telemetryIds.length);
-  await writeFile(path.join(evidenceRoot, "accessibility-smoke.json"), `${JSON.stringify(accessibility, null, 2)}\n`, { mode: 0o600 });
   await page.screenshot({ path: path.join(evidenceRoot, "home.png"), fullPage: false, animations: "disabled" });
+  } finally {
   await context.tracing.stop({ path: path.join(evidenceRoot, "trace.zip") });
+  }
 });
