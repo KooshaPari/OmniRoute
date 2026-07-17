@@ -1657,7 +1657,7 @@
       "disposition": "ABSORB",
       "target": "phenoAI",
       "wave": "2026-07-17-queue-refresh",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "python",
       "size_kb": 236,
       "remote_branch_count": 30,
@@ -1667,7 +1667,10 @@
       "audit_artifact": "audits/absorption-justifications/phenoResearchEngine-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:16:58.000000Z",
-      "note": "Python research/investigation engine; target phenoAI research workspace. 30 branches, 236KB. No external production dependents (research tool, not on critical path)."
+      "note": "ABSORBED 2026-07-17 \u2014 module renamed research_engine -> phenotype_research",
+      "absorbed_into": "phenoAI",
+      "absorbed_target_path": "python/phenotype-research/",
+      "absorbed_at": "2026-07-17"
     },
     {
       "id": "repo-PolicyStack",
