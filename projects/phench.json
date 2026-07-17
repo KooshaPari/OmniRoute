@@ -4,14 +4,15 @@
     "python"
   ],
   "primary_language": "python",
-  "status": "active",
+  "status": "absorbed",
   "has_readme": true,
   "type": "cli",
   "path": "repos/phench",
   "disposition": "ABSORB",
   "wave": "2026-07-17-queue-refresh",
-  "absorbed_into": "phenodocs",
-  "absorption_note": "Python project-state runtime CLI for Phenotype monorepos; 1 branch, 84KB. Target: phenodocs governance tooling layer (or phenotype-tooling).",
-  "note": "Audited 2026-07-17; small CLI for monorepo project-state inspection. Fits governance tooling layer.",
+  "absorbed_into": "phenotype-tooling (crates/phench)",
+  "absorbed_date": "2026-07-17",
+  "absorption_note": "Python project-state runtime CLI (Typer+Rich, 1045 LOC src + 6 test files, 17 tests pass). Originally queued with target 'phenodocs' but reassigned to 'phenotype-tooling' at absorption time because phench is a *runtime* developer tool (git ops, env doctor, target materialize), not a documentation build tool. Source repo archived on GitHub.",
+  "note": "Absorbed 2026-07-17 into phenotype-tooling as crates/phench. 17/17 tests pass. Target redirection documented in absorption README.",
   "adr": "ADR-ECO-006"
 }

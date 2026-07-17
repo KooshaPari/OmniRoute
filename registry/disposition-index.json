@@ -1,6 +1,6 @@
 {
-  "version": "1.6.1",
-  "updated": "2026-07-17T11:50:00.000000Z",
+  "version": "1.6.2",
+  "updated": "2026-07-17T12:30:00.000000Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
   "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr. 2026-07-17 (batch3, agent #4): queue-refresh added 10 fresh non-Rust candidates (phenodag/HeliosLab/PhenoHandbook/Conft/context-mode-plusplus/pheno-forge-plugins/PhenoContracts/KodeVibe/KWatch/heliosBench) to keep the absorption queue topped up; Rust slots already taken by batch2 (agents 2/3).",
@@ -1688,9 +1688,9 @@
       "id": "repo-phench",
       "path": "KooshaPari/phench",
       "disposition": "ABSORB",
-      "target": "phenodocs",
+      "target": "phenotype-tooling (crates/phench)",
       "wave": "2026-07-17-queue-refresh",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "python",
       "size_kb": 84,
       "remote_branch_count": 1,
@@ -1700,7 +1700,12 @@
       "audit_artifact": "audits/absorption-justifications/phench-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:16:58.000000Z",
-      "note": "Python project-state runtime CLI for Phenotype monorepos. 1 branch, 84KB. Fits phenodocs governance tooling layer."
+      "absorbed_date": "2026-07-17",
+      "absorbed_pr": "phenotype-tooling@salvage/phenotype-tooling-workspace-2026-07-15",
+      "archived": true,
+      "archived_date": "2026-07-17",
+      "target_redirect": "phenodocs -> phenotype-tooling (at absorption time; original assignment was a false friend — phench is a runtime CLI, not a documentation build tool)",
+      "note": "Python project-state runtime CLI for Phenotype monorepos. 1045 LOC src + 6 test files; 17/17 tests pass. ABSORBED into phenotype-tooling as crates/phench (target was originally queued as phenodocs but reassigned because phench is a runtime developer tool, not a documentation hub). Source repo archived on GitHub."
     },
     {
       "id": "repo-template-commons",
