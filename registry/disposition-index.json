@@ -1,9 +1,9 @@
 {
   "version": "1.6.0",
-  "updated": "2026-07-17T11:45:00.000000Z",
+  "updated": "2026-07-17T12:30:00.000000Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
-  "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr.",
+  "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr. 2026-07-17 (L7-batch2): rich-cli-kit absorbed into phenotype-tooling as crates/rck-{core,cli}; source repo KooshaPari/rich-cli-kit archived via `gh repo archive`.",
   "rows": [
     {
       "id": "repo-phenoshared",
@@ -1993,6 +1993,22 @@
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:30:31.000000Z",
       "note": "DINOForge general-purpose mod platform for AI agents. BLOCK-A app, fits phenotype-apps pattern."
+    },
+    {
+      "id": "repo-rich-cli-kit",
+      "path": "KooshaPari/rich-cli-kit",
+      "disposition": "ABSORB",
+      "target": "phenotype-tooling (crates/rck-core/ + crates/rck-cli/)",
+      "wave": "2026-07-17-absorption",
+      "fsm": "absorbed",
+      "core_lang": "rust",
+      "absorbed_date": "2026-07-17",
+      "archived_date": "2026-07-17",
+      "size_kb": 14336,
+      "audit_artifact": "phenotype-tooling/absorption/rich-cli-kit/README.md",
+      "source_artifact": "phenotype-tooling/docs/absorption/RCK_PORT.md",
+      "added_at": "2026-07-17T12:30:00.000000Z",
+      "note": "2-crate Rust workspace (rck-core: 44 tests pass + rck-cli: 1 smoke test pass) absorbed into phenotype-tooling as crates/rck-{core,cli}. 3 GLSL shaders staged at repo root (shaders/) per include_str!(\"../../../shaders/...\") path. docs/ + shaders/ provenance mirror at phenotype-tooling/absorption/rich-cli-kit/. rck binary builds with 13 subcommands (detect | image | progress | panel | link | copy | task-start | task-end | ask | pick | input | shader | demo). Python mcp/rich_cli_mcp/ server deferred (out of scope). Source repo archived via `gh repo archive KooshaPari/rich-cli-kit -y`."
     }
   ]
 }

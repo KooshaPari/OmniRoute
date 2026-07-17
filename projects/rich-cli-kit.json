@@ -1,0 +1,16 @@
+{
+  "name": "rich-cli-kit",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "archived",
+  "has_readme": true,
+  "type": "tool",
+  "path": "repos/rich-cli-kit",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-absorption",
+  "absorbed_into": "phenotype-tooling",
+  "absorption_note": "2-crate Rust workspace absorbed as phenotype-tooling/crates/rck-{core,cli}. rck-core (44 tests pass) provides capability detection + kitty-graphics encoder + OSC 8/52/133 wrappers + interactive primitives; rck-cli provides the `rck` binary with 13 subcommands (detect | image | progress | panel | link | copy | task-start | task-end | ask | pick | input | shader | demo). 3 GLSL shaders staged at repo root per include_str!(\"../../../shaders/...\") path. docs/ + shaders/ provenance mirror kept under phenotype-tooling/absorption/rich-cli-kit/. Source repo archived via gh repo archive KooshaPari/rich-cli-kit -y.",
+  "absorbed_date": "2026-07-17",
+  "archived_date": "2026-07-17",
+  "note": "Source repo: KooshaPari/rich-cli-kit (Rust workspace, 14MB). Port spec: phenotype-tooling/docs/absorption/RCK_PORT.md. Provenance: phenotype-tooling/absorption/rich-cli-kit/README.md. Original mcp/rich_cli_mcp/ Python MCP server deferred (out of scope)."
+}
