@@ -1,9 +1,9 @@
 {
-  "version": "1.6.17",
-  "updated": "2026-07-17T14:15:00.000000Z",
+  "version": "1.6.19",
+  "updated": "2026-07-17T14:45:00.000000Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
-  "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr. 2026-07-17 (batch3, agent #4): queue-refresh added 10 fresh non-Rust candidates (phenodag/HeliosLab/PhenoHandbook/Conft/context-mode-plusplus/pheno-forge-plugins/PhenoContracts/KodeVibe/KWatch/heliosBench) to keep the absorption queue topped up; Rust slots already taken by batch2 (agents 2/3). 2026-07-17 (batch4, agent #5): queue-refresh added 10 fresh least-active candidates (phenotype-gfx/hwLedger/omniroute-rs/pheno-forge-smoke/pheno-otel/Apisync/PhenoVCS/Pine/PlayCua/DataKit) to keep the absorption queue topped up; absorbs continue to drain batch1-3 in parallel.",
+  "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr. 2026-07-17 (batch3, agent #4): queue-refresh added 10 fresh non-Rust candidates (phenodag/HeliosLab/PhenoHandbook/Conft/context-mode-plusplus/pheno-forge-plugins/PhenoContracts/KodeVibe/KWatch/heliosBench) to keep the absorption queue topped up; Rust slots already taken by batch2 (agents 2/3). 2026-07-17 (batch4, agent #5): queue-refresh added 10 fresh least-active candidates (phenotype-gfx/hwLedger/omniroute-rs/pheno-forge-smoke/pheno-otel/Apisync/PhenoVCS/Pine/PlayCua/DataKit) to keep the absorption queue topped up; absorbs continue to drain batch1-3 in parallel. 2026-07-17 (batch4, agent absorb #1): Pine → ARCHIVE_ONLY fallback (5-crate workspace, not single crate; substrate not modified); GitHub repo archived same day.",
   "rows": [
     {
       "id": 1,
@@ -2246,10 +2246,10 @@
     {
       "id": "repo-PhenoVCS",
       "path": "KooshaPari/PhenoVCS",
-      "disposition": "ABSORB",
-      "target": "pheno (crates/pheno-vcs)",
+      "disposition": "ARCHIVE_ONLY",
+      "target": "phenotype-registry",
       "wave": "2026-07-17-queue-refresh-batch4",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 768,
       "remote_branch_count": 1,
@@ -2259,15 +2259,15 @@
       "audit_artifact": "audits/absorption-justifications/PhenoVCS-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:35:00.000000Z",
-      "note": "VCS primitives registry (Git worktree management). Complements SessionLedger (session bundles) for repo abstractions."
+      "note": "VCS primitives registry (Git worktree management). Complements SessionLedger (session bundles) for repo abstractions. [ABSORBED 2026-07-17]"
     },
     {
       "id": "repo-Pine",
       "path": "KooshaPari/Pine",
-      "disposition": "ABSORB",
+      "disposition": "ARCHIVE_ONLY",
       "target": "substrate (crates/pine)",
       "wave": "2026-07-17-queue-refresh-batch4",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 1536,
       "remote_branch_count": 1,
@@ -2277,7 +2277,8 @@
       "audit_artifact": "audits/absorption-justifications/Pine-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:35:00.000000Z",
-      "note": "Wine-equivalent compat layer (Windows + cross-platform). Fits substrate sandbox/compat theme. Per ADR-ECO-008."
+      "note": "Wine-equivalent compat layer (Windows + cross-platform). Fits substrate sandbox/compat theme. Per ADR-ECO-008. [ARCHIVE_ONLY 2026-07-17: source is a 5-crate Cargo workspace (pine-core/pine-compat/pine-loader/pine-nvms/pine-syscall), not the assumed single-crate layout (no top-level src/ or tests/); literal 'cp -r Pine/{src,tests,Cargo.toml,README.md} substrate/crates/pine/' would have copied a 3-line workspace manifest into an empty dir. Per the task's own fallback clause, absorbed=False; archived via 'gh repo archive KooshaPari/Pine --yes' (isArchived=true verified). substrate working tree intentionally untouched. Audit: phenotype-registry/audits/absorption-justifications/Pine-2026-07-17.md. Reactivation path documented in the same audit.]",
+      "archived_date": "2026-07-17"
     },
     {
       "id": "repo-PlayCua",
@@ -2830,6 +2831,62 @@
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T13:00:00.000000Z",
       "note": "OmniRoute Rust substrate (240KB). Targets: HexaKit/crates/omniroute/ (the hexagonal kit is the canonical Rust home for route/router primitives). [DEFERRED-W2: too large or structurally wrong for single-session absorption; needs dedicated audit phase]"
+    },
+    {
+      "id": "repo-StealthStartup",
+      "path": "KooshaPari/StealthStartup",
+      "disposition": "ABSORB",
+      "target": "phenodocs (packages/stealth-startup/)",
+      "wave": "2026-07-17-queue-refresh-2",
+      "fsm": "active",
+      "core_lang": "javascript",
+      "size_kb": 751,
+      "last_push": "2026-07-17T05:27:00Z",
+      "audit_artifact": "audits/absorption-justifications/stealthstartup-2026-07-17.md",
+      "added_at": "2026-07-17T14:30:00.000000Z",
+      "note": "Stealth startup landing/registry site (JS, 751KB). Target: phenodocs/packages/stealth-startup/. Cloned first (not yet present locally)."
+    },
+    {
+      "id": "repo-netweave-3",
+      "path": "KooshaPari/netweave-3",
+      "disposition": "ABSORB",
+      "target": "phenodocs (docs/netweave/)",
+      "wave": "2026-07-17-queue-refresh-2",
+      "fsm": "active",
+      "core_lang": "html",
+      "size_kb": 76,
+      "last_push": "2026-07-17T05:27:00Z",
+      "audit_artifact": "audits/absorption-justifications/netweave-3-2026-07-17.md",
+      "added_at": "2026-07-17T14:30:00.000000Z",
+      "note": "Netweave HTML landing (76KB). Target: phenodocs/docs/netweave/. Cloned first (not yet present locally)."
+    },
+    {
+      "id": "repo-bench-results-data",
+      "path": "KooshaPari/bench-results",
+      "disposition": "ARCHIVE_DATA",
+      "target": "phenotype-registry/bench-results-data/",
+      "wave": "2026-07-17-queue-refresh-2",
+      "fsm": "active",
+      "core_lang": "data",
+      "size_kb": 7,
+      "last_push": "2026-07-16T20:13:46Z",
+      "audit_artifact": "audits/absorption-justifications/bench-results-2026-07-17.md",
+      "added_at": "2026-07-17T14:30:00.000000Z",
+      "note": "Bench results data (7 JSON + 1 MD, total ~7KB). NOT an absorb — DATA_ONLY archivation into registry/bench-results-data/."
+    },
+    {
+      "id": "repo-dist-sbom",
+      "path": "KooshaPari/dist",
+      "disposition": "ARCHIVE_DATA",
+      "target": "phenotype-registry/dist-sbom/",
+      "wave": "2026-07-17-queue-refresh-2",
+      "fsm": "active",
+      "core_lang": "data",
+      "size_kb": 47,
+      "last_push": "2026-07-16T20:13:46Z",
+      "audit_artifact": "audits/absorption-justifications/dist-sbom-2026-07-17.md",
+      "added_at": "2026-07-17T14:30:00.000000Z",
+      "note": "dist/ SBOM artifact cache (47KB). DATA_ONLY archivation into registry/dist-sbom/."
     }
   ]
 }

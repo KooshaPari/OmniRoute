@@ -1040,16 +1040,26 @@ substrates:
   - id: phenovcs
     repo: KooshaPari/PhenoVCS
     name: PhenoVCS
-    status: active
+    status: archived
     tier: phenotype-framework
     architecture: layered
     archetype: tooling
     language: rust
     role: vcs
-    boundary: null
+    boundary: docs/boundary/PhenoVCS.md
     intent: null
     notes: |
-      Version-control tooling. Absorbed worktree-manager (retired).
+      Version-control tooling. Rejected ABSORB into pheno on 2026-07-17 (was
+      queued target `pheno (crates/pheno-vcs)`). Reasons: (a) PhenoVCS is a
+      5-member Rust workspace (airlock-v2, pheno-vcs-core, phenotype-infrastructure,
+      phenovcs-observability, worktree-manager) with no root src/ or tests/;
+      (b) pheno-vcs-core is a stub (9 LoC, only `assert!(true)`); (c) pheno
+      already has phenotype-git-core / agileplus-git / agileplus-github /
+      pheno-plugins-git covering VCS scope; (d) crates/phenotype-infrastructure
+      collides on name with pheno/crates/phenotype-infrastructure.
+      Disposition pivoted to ARCHIVE_ONLY; source repo archived on GitHub
+      via `gh repo archive`. See docs/boundary/PhenoVCS.md for the full
+      rejection rationale. [ABSORBED 2026-07-17]
 
   - id: pine
     repo: KooshaPari/Pine
