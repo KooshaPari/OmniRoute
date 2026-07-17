@@ -1,5 +1,5 @@
 {
-  "version": "1.6.8",
+  "version": "1.6.9",
   "updated": "2026-07-17T12:30:00.000000Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
@@ -2426,9 +2426,9 @@
       "id": "repo-scripts",
       "path": "KooshaPari/scripts",
       "disposition": "ABSORB",
-      "target": "phenotype-tooling (bin/)",
+      "target": "phenotype-tooling (bin/legacy-scripts/)",
       "wave": "2026-07-17-queue-refresh-2",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "shell",
       "size_kb": 6,
       "remote_branch_count": 1,
@@ -2438,7 +2438,12 @@
       "audit_artifact": "audits/absorption-justifications/scripts-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:50:00.000000Z",
-      "note": "Collection of AI-DD shell scripts (ai-dd-pipeline, ai-dd-strict, eval-ai-dd-rare, judge, deploy-grapheon). Target: phenotype-tooling/bin/."
+      "absorbed_at": "2026-07-17T12:55:00.000000Z",
+      "absorbed_into": "KooshaPari/phenotype-tooling",
+      "absorbed_branch": "salvage/phenotype-tooling-workspace-2026-07-15",
+      "absorbed_commit": "6d6a723c",
+      "source_archived": true,
+      "note": "Collection of AI-DD shell scripts (ai-dd-pipeline, ai-dd-strict, eval-ai-dd-rare, judge, deploy-grapheon). Target: phenotype-tooling/bin/legacy-scripts/."
     },
     {
       "id": "repo-curated-traces",
