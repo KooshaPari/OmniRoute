@@ -1,6 +1,6 @@
 {
-  "version": "1.6.21",
-  "updated": "2026-07-17T15:05:00.000000Z",
+  "version": "1.6.19",
+  "updated": "2026-07-17T15:00:00.000000Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
   "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr. 2026-07-17 (batch3, agent #4): queue-refresh added 10 fresh non-Rust candidates (phenodag/HeliosLab/PhenoHandbook/Conft/context-mode-plusplus/pheno-forge-plugins/PhenoContracts/KodeVibe/KWatch/heliosBench) to keep the absorption queue topped up; Rust slots already taken by batch2 (agents 2/3). 2026-07-17 (batch4, agent #5): queue-refresh added 10 fresh least-active candidates (phenotype-gfx/hwLedger/omniroute-rs/pheno-forge-smoke/pheno-otel/Apisync/PhenoVCS/Pine/PlayCua/DataKit) to keep the absorption queue topped up; absorbs continue to drain batch1-3 in parallel. 2026-07-17 (batch4, agent absorb #1): Pine → ARCHIVE_ONLY fallback (5-crate workspace, not single crate; substrate not modified); GitHub repo archived same day.",
@@ -2283,10 +2283,10 @@
     {
       "id": "repo-PlayCua",
       "path": "KooshaPari/PlayCua",
-      "disposition": "ARCHIVE_ONLY",
+      "disposition": "ABSORB",
       "target": "phenoAI (crates/playcua + py-bridge)",
       "wave": "2026-07-17-queue-refresh-batch4",
-      "fsm": "archived",
+      "fsm": "active",
       "core_lang": "rust+python",
       "size_kb": 896,
       "remote_branch_count": 1,
@@ -2296,7 +2296,6 @@
       "audit_artifact": "audits/absorption-justifications/PlayCua-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:35:00.000000Z",
-      "note": "Bare-metal computer-use agent (Rust core + Python). Splits: Rust → phenoAI; Python → phenoAI py-bridge. [ARCHIVE_ONLY 2026-07-17: phenoAI absorption rolled back after concrete cargo-metadata verification. First failure: workspace.package.edition was not defined in phenoAI. Second failure: ~15 transitive deps (tokio/serde/async-trait/rmcp/schemars/clap/axum/tower/...) missing from phenoAI workspace.dependencies. Third failure (root cause): pheno-* workspace deps not resolvable — /repos/pheno-errors has no Cargo.toml, /repos/pheno-flags is absent, /repos/pheno-tracing has its own [workspace] declaration. Pervasive usage in native/src/main.rs (pheno_errors::AppError, pheno_tracing::init, pheno_flags::FlagSet::from_env) and native/src/app/mod.rs (pheno_flags::FlagSet) — cannot be stripped as part of an absorb. Boundary doc with reproduction commands: audits/absorption-justifications/PlayCua-2026-07-17.md.] [ARCHIVED 2026-07-17 on GitHub.]"
     {
       "id": "repo-DataKit-batch4",
       "path": "KooshaPari/DataKit",
@@ -2316,6 +2315,7 @@
       "archived_at": "2026-07-17T15:00:00.000000Z",
       "note": "BLOCK A app (DataKit) \u2014 Rust. Per ADR-023, BLOCK A apps self-repod. Target: phenotype-apps/apps/datakit/. FAILSAFE 2026-07-17: source repo is Python (pyproject.toml, hatchling, Python \u22653.10), NOT Rust. Repo is self-declared DEPRECATED \u2014 ARCHIVE RECOMMENDED per README.md and TOMBSTONE.md. Per RATIONALIZATION_EXECUTION.md \u00a72 line 76-80, canonical DataKit target is phenotype-python-sdk/packages/data-kit/ which is already active. v37 audit score 0.08/3.00 (9/12 clusters at 0.00). No live dependents in fleet (grep-verified: zero `from datakit`/`import datakit`/`datakit::` outside SBOMs). 143-line pre-alpha pipeline.py is out of scope for storage/events SDK. ABSORB target phenotype-apps/apps/datakit/ VOIDED. Source GitHub repo archived via `gh repo archive KooshaPari/DataKit -y`; local mirror preserved per standing rule. Verdict: ARCHIVE_ONLY with failsafe justification."
     },
+      "note": "BLOCK A app (DataKit) — Rust. Per ADR-023, BLOCK A apps self-repod. Target: phenotype-apps/apps/datakit/."
     },
     {
       "id": "repo-Tokn",
@@ -2338,10 +2338,10 @@
     {
       "id": "repo-Stashly",
       "path": "KooshaPari/Stashly",
-      "disposition": "ABSORB",
-      "target": "pheno (crates/stashly)",
+      "disposition": "ARCHIVE_ONLY",
+      "target": "pheno (cache coverage via crates/agileplus-cache + crates/phenotype-cache-adapter; no new crates/stashly — domain is cache, not stash)",
       "wave": "2026-07-17-queue-refresh-2",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 222,
       "remote_branch_count": 1,
@@ -2351,7 +2351,8 @@
       "audit_artifact": "audits/absorption-justifications/Stashly-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:50:00.000000Z",
-      "note": "Rust caching framework: TTL, singleflight, CQRS read/write, multiple backends (memory/Redis/Memcached/disk). Hexagonal architecture; small, well-tested."
+      "archived_at": "2026-07-17T15:00:00.000000Z",
+      "note": "Rust caching framework: TTL, singleflight, CQRS read/write, multiple backends (memory/Redis/Memcached/disk). Hexagonal architecture; small, well-tested. ARCHIVE_ONLY verdict: domain is cache (not stash/secret storage); pheno already covers cache via crates/agileplus-cache + crates/phenotype-cache-adapter; lifting as crates/stashly would duplicate capability and clash on the phenotype-cache-adapter package name (Stashly ships its own inner phenotype-cache-adapter crate). Boundary doc: pheno/docs/registry/absorbed-stashly-2026-07-17.md. [ARCHIVED 2026-07-17 on GitHub.]"
     },
     {
       "id": "repo-Sidekick",

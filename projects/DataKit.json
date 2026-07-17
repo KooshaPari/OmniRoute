@@ -1,17 +1,17 @@
 {
   "name": "DataKit",
   "languages": [
-    "rust"
+    "python"
   ],
-  "primary_language": "rust",
-  "status": "active",
+  "primary_language": "python",
+  "status": "deprecated",
   "has_readme": true,
-  "type": "block-a-app",
+  "type": "sdk",
   "path": "repos/DataKit",
-  "disposition": "ABSORB",
+  "disposition": "ARCHIVE_ONLY",
   "wave": "2026-07-17-queue-refresh-batch4",
-  "absorbed_into": "phenotype-apps",
-  "absorption_note": "BLOCK A app (DataKit) — Rust. Per ADR-023 app-policy: BLOCK A apps are self-repod. DataKit is one of 6 BLOCK A apps. Target: phenotype-apps/apps/datakit/ as a sibling to Conft (absorbed in batch3) and Stashly (absorbed in crates/stashly).",
-  "note": "Audited 2026-07-17; BLOCK A app fits the apps monorepo policy per ADR-023.",
-  "adr": "ADR-023"
+  "absorbed_into": "phenotype-python-sdk/packages/data-kit/",
+  "absorption_note": "FAILSAFE ARCHIVE_ONLY. Source repo is Python (pyproject.toml, hatchling, Python \u22653.10), not Rust as originally classified. Repo is self-declared DEPRECATED \u2014 ARCHIVE RECOMMENDED per its own README.md and TOMBSTONE.md. Per RATIONALIZATION_EXECUTION.md \u00a72 line 76-80, the canonical DataKit target is phenotype-python-sdk/packages/data-kit/, which is already active and populated (Python db_kit, Rust phenotype-event-bus + phenotype-in-memory-store, Go go.work). The 143-line pre-alpha pipeline.py is out of scope for the storage/events SDK and is not migrated. No live dependents in fleet (grep-verified). Source GitHub repo to be archived via `gh repo archive KooshaPari/DataKit -y`. Local mirror at /Users/kooshapari/CodeProjects/Phenotype/repos/DataKit/ is preserved per standing rule (NOT deleted).",
+  "note": "Audited 2026-07-17; failsafe ARCHIVE_ONLY triggered \u2014 original ABSORB target was based on stale metadata (wrong language, wrong workspace, repo already absorbed). See audits/absorption-justifications/DataKit-2026-07-17.md for full justification.",
+  "adr": "RATIONALIZATION_EXECUTION.md \u00a72"
 }
