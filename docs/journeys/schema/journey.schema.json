@@ -21,7 +21,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "const": 1
+      "const": 2
     },
     "slug": {
       "type": "string",
@@ -159,7 +159,9 @@
         },
         "checks": {
           "type": "array",
-          "minItems": 1,
+          "minItems": 8,
+          "maxItems": 8,
+          "uniqueItems": true,
           "items": {
             "enum": [
               "document-title",
@@ -168,7 +170,8 @@
               "focus-visible",
               "accessible-names",
               "contrast",
-              "no-horizontal-overflow"
+              "no-horizontal-overflow",
+              "reduced-motion"
             ]
           }
         }
@@ -210,14 +213,14 @@
         "captureStatus",
         "artifacts",
         "retentionDays",
-        "blocker"
+        "blocker",
+        "capture"
       ],
       "properties": {
         "captureStatus": {
           "enum": [
             "blocked",
-            "captured",
-            "published"
+            "captured"
           ]
         },
         "artifacts": {
@@ -254,8 +257,34 @@
             "string",
             "null"
           ]
+        },
+        "capture": {
+          "anyOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/capture" }
+          ]
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "captureStatus": { "const": "blocked" } } },
+          "then": {
+            "properties": {
+              "blocker": { "type": "string", "minLength": 1 },
+              "capture": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "captureStatus": { "const": "captured" } } },
+          "then": {
+            "properties": {
+              "blocker": { "type": "null" },
+              "capture": { "$ref": "#/$defs/capture" }
+            }
+          }
+        }
+      ]
     },
     "provenance": {
       "type": "object",
@@ -281,6 +310,41 @@
         "command": {
           "type": "string",
           "minLength": 1
+        }
+      }
+    }
+  },
+  "$defs": {
+    "capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceCommit", "workflowRunId", "artifact", "files"],
+      "properties": {
+        "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "workflowRunId": { "type": "string", "pattern": "^[1-9][0-9]*$" },
+        "artifact": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "name", "createdAt", "expiresAt"],
+          "properties": {
+            "id": { "type": "string", "pattern": "^[1-9][0-9]*$" },
+            "name": { "type": "string", "minLength": 1 },
+            "createdAt": { "type": "string", "format": "date-time", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]Z$" },
+            "expiresAt": { "type": "string", "format": "date-time", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]Z$" }
+          }
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "sha256"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+            }
+          }
         }
       }
     }
