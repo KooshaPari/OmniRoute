@@ -2,15 +2,7 @@
   type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
   type Size = 'sm' | 'md' | 'lg';
 
-  let {
-    variant = 'primary' as Variant,
-    size = 'md' as Size,
-    disabled = false,
-    type = 'button' as 'button' | 'submit' | 'reset',
-    class: className = '',
-    onclick,
-    children,
-  } = $props<{
+  interface Props {
     variant?: Variant;
     size?: Size;
     disabled?: boolean;
@@ -18,7 +10,17 @@
     class?: string;
     onclick?: (e: MouseEvent) => void;
     children?: import('svelte').Snippet;
-  }>();
+  }
+
+  let {
+    variant = 'primary',
+    size = 'md',
+    disabled = false,
+    type = 'button',
+    class: className = '',
+    onclick,
+    children,
+  }: Props = $props();
 
   const base =
     'inline-flex items-center justify-center font-semibold rounded transition disabled:opacity-50 disabled:cursor-not-allowed';
