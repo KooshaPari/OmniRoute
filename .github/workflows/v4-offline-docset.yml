@@ -8,6 +8,7 @@ on:
       - "config/docset/v4-docset.json"
       - "tools/docset/build-v4-docset.mjs"
       - "apps/web/package.json"
+      - "docs/public/QUICKSTART_V4.md"
   workflow_dispatch:
 
 permissions:
@@ -22,8 +23,14 @@ jobs:
     if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify checked-out provenance
+        run: test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
       - name: Validate contract and prepare stage
         run: node tools/docset/build-v4-docset.mjs
       - name: Build deterministic offline archive
@@ -35,8 +42,9 @@ jobs:
           node tools/docset/build-v4-docset.mjs --finalize
       - name: Enforce non-publication state
         run: |
-          node -e "const p=require('./docset-artifact/stage/provenance.json'); if(p.deployable||p.releaseAttachable||p.reviewedInputs.length) process.exit(1)"
-          node -e "const fs=require('fs'); const f=fs.readdirSync('docset-artifact').find(x=>x.endsWith('.attachment.json')); const a=require('./docset-artifact/'+f); if(a.releaseAttachable||a.deployment) process.exit(1)"
+          node -e "const p=require('./docset-artifact/stage/provenance.json'); if(p.sourceCommit!==process.env.SOURCE_COMMIT||p.deployable||p.releaseAttachable||p.reviewedInputs.length!==1||p.reviewedInputSha256.length!==1) process.exit(1)"
+          node -e "const fs=require('fs'); const f=fs.readdirSync('docset-artifact').find(x=>x.endsWith('.attachment.json')); const a=require('./docset-artifact/'+f); if(a.sourceCommit!==process.env.SOURCE_COMMIT||a.releaseAttachable||a.deployment||a.reviewedInputs.length!==1||a.reviewedInputSha256.length!==1) process.exit(1)"
+          test -s docset-artifact/stage/docs/public/QUICKSTART_V4.md
           (cd docset-artifact && sha256sum --check *.tar.gz.sha256)
       - name: Upload contract artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

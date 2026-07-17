@@ -6,11 +6,13 @@ on:
     paths:
       - ".github/workflows/v4-docs-build.yml"
       - "apps/docs/**"
+      - "docs/public/QUICKSTART_V4.md"
   push:
     branches: [main]
     paths:
       - ".github/workflows/v4-docs-build.yml"
       - "apps/docs/**"
+      - "docs/public/QUICKSTART_V4.md"
   workflow_dispatch:
 
 permissions:
@@ -25,8 +27,14 @@ jobs:
     if: ${{ github.event_name != 'push' && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-billing-exception')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify checked-out provenance
+        run: test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
       - name: Validate public boundary
         run: node apps/docs/scripts/build.mjs --check
       - name: Build deterministic preview
@@ -34,7 +42,10 @@ jobs:
           node apps/docs/scripts/build.mjs
           test -s apps/docs/dist/index.html
           test -s apps/docs/dist/build-manifest.json
+          test -s apps/docs/dist/quickstart.md
           grep -q '"deployable": false' apps/docs/dist/build-manifest.json
+          grep -q '"quickstart"' apps/docs/dist/build-manifest.json
+          node -e "const m=require('./apps/docs/dist/build-manifest.json'); if(m.sourceCommit!==process.env.SOURCE_COMMIT) process.exit(1)"
       - name: Upload non-deployable preview
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

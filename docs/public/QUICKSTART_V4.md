@@ -83,7 +83,7 @@ curl --fail --silent http://localhost:4321/ | grep -F "Welcome to argismonitor v
 
 You can also open <http://localhost:4321/>. The first heading is `Welcome to argismonitor v4`, and the BFF health panel should become `healthy` after the browser reaches the local health route.
 
-> The existing `tests/e2e/smoke.spec.ts` currently expects different heading text. That test is stale relative to `apps/web/src/routes/+page.svelte`; this Quickstart follows the implemented route and records the mismatch instead of claiming that the Playwright smoke is green.
+The checked-in `tests/e2e/smoke.spec.ts` asserts the same `Welcome to argismonitor v4` heading as the implemented route and this Quickstart.
 
 ## 6. Teardown
 
@@ -124,4 +124,4 @@ Run:
 node scripts/docs/validate-v4-quickstart.mjs
 ```
 
-The validator checks the documented package commands, ports, health route/response, home heading, and the explicitly recorded stale-test mismatch against current source.
+The validator checks the documented package commands, ports, health route/response, home heading, and smoke-test heading against current source.

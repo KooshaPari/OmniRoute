@@ -29,16 +29,16 @@ for (const packagePath of ["packages/api-contracts", "apps/bff", "apps/web"]) {
 }
 requireEvidence(bffSource.includes("app.get('/healthz'"), "BFF /healthz route changed");
 requireEvidence(bffSource.includes("status: 'ok'") && bffSource.includes("service: 'argismonitor-bff'"), "BFF health contract changed");
-requireEvidence(homeSource.includes("fetch('http://localhost:4322/healthz')"), "home BFF URL changed");
+requireEvidence(homeSource.includes("fetch('/api/bff/healthz')"), "home BFF health proxy URL changed");
 requireEvidence(homeSource.includes("Welcome to argismonitor v4"), "implemented home heading changed");
 requireEvidence(doc.includes("Welcome to argismonitor v4"), "documented home heading missing");
 
 const smokeMatchesSource = smokeTest.includes("Welcome to argismonitor v4");
-requireEvidence(!smokeMatchesSource, "remove the stale-test warning: smoke test now matches source");
-requireEvidence(doc.includes("test is stale relative"), "known test/source mismatch is not disclosed");
+requireEvidence(smokeMatchesSource, "smoke-test heading no longer matches source");
+requireEvidence(!doc.includes("test is stale relative"), "stale smoke-test warning remains in Quickstart");
 
 if (failures.length) {
   console.error(failures.map((failure) => `- ${failure}`).join("\n"));
   process.exit(1);
 }
-console.log("Validated v4 Quickstart commands and provenance; stale smoke-test mismatch remains explicitly disclosed.");
+console.log("Validated v4 Quickstart commands, smoke heading, and source provenance.");
