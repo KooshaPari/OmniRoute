@@ -1859,10 +1859,10 @@
     {
       "id": "repo-substrate-adapters-bundle",
       "path": "KooshaPari/substrate-adapters-bundle",
-      "disposition": "ABSORB",
-      "target": "pheno (crates/substrate-adapters)",
+      "disposition": "ARCHIVE_ONLY",
+      "target": "phenotype-registry",
       "wave": "2026-07-17-queue-refresh-batch2",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 216,
       "remote_branch_count": 2,
@@ -1872,7 +1872,8 @@
       "audit_artifact": "audits/absorption-justifications/substrate-adapters-bundle-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:30:31.000000Z",
-      "note": "Meta-repo of standalone substrate adapter crates. Bundle into pheno workspace."
+      "note": "Meta-repo of standalone substrate adapter crates. Bundle into pheno workspace. [ARCHIVED 2026-07-17: 8 path-delegate shim crates re-exporting substrate monorepo crates. Substrate already holds canonical source. Packaged for future OSS consumption, not for fleet use.]",
+      "boundary_doc": "docs/boundary/substrate-adapters-bundle.md"
     },
     {
       "id": "repo-PlusForges",
@@ -1934,10 +1935,10 @@
     {
       "id": "repo-phenotype-infrakit",
       "path": "KooshaPari/phenotype-infrakit",
-      "disposition": "ABSORB",
-      "target": "phenotype-tooling",
+      "disposition": "ARCHIVE_ONLY",
+      "target": "phenotype-registry",
       "wave": "2026-07-17-queue-refresh-batch2",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 49,
       "remote_branch_count": null,
@@ -1947,7 +1948,8 @@
       "audit_artifact": "audits/absorption-justifications/phenotype-infrakit-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:30:31.000000Z",
-      "note": "Shared infra crates (cost-core, policy-…). Remote-only — needs clone."
+      "note": "Shared infra crates (cost-core, policy-…). Remote-only — needs clone. [ARCHIVED 2026-07-17: All 7 crates already in pheno monorepo with identical names.]",
+      "boundary_doc": "docs/boundary/phenotype-infrakit.md"
     },
     {
       "id": "repo-phenotypeActions",
