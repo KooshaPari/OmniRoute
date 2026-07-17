@@ -81,17 +81,23 @@ test("captures anonymous v4 home journey evidence", async ({ page, context }) =>
 
   const axeTags = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa"];
   const axeResult = await new AxeBuilder({ page }).withTags(axeTags).analyze();
+  const landmarkRules = ["landmark-one-main", "region"];
+  const landmarkResult = await new AxeBuilder({ page }).withRules(landmarkRules).analyze();
   const summarizeAxe = (items: typeof axeResult.violations) => items
     .map(({ id, impact, help, nodes }) => ({ id, impact, help, targetCount: nodes.length }))
     .sort((left, right) => left.id.localeCompare(right.id));
   const axe = {
     engine: { name: axeResult.testEngine.name, version: axeResult.testEngine.version },
     tags: axeTags,
-    violations: summarizeAxe(axeResult.violations), incomplete: summarizeAxe(axeResult.incomplete),
-    rules: [
+    explicitRules: landmarkRules,
+    violations: summarizeAxe([...axeResult.violations, ...landmarkResult.violations]),
+    incomplete: summarizeAxe([...axeResult.incomplete, ...landmarkResult.incomplete]),
+    rules: Array.from(new Map([
       ...axeResult.passes.map(({ id }) => ({ id, result: "passed" })),
       ...axeResult.inapplicable.map(({ id }) => ({ id, result: "inapplicable" })),
-    ].sort((left, right) => left.id.localeCompare(right.id)),
+      ...landmarkResult.passes.map(({ id }) => ({ id, result: "passed" })),
+      ...landmarkResult.inapplicable.map(({ id }) => ({ id, result: "inapplicable" })),
+    ].map((item) => [item.id, item])).values()).sort((left, right) => left.id.localeCompare(right.id)),
   };
   const axeHasFinding = (ruleIds: string[]) => [...axe.violations, ...axe.incomplete].some(({ id }) => ruleIds.includes(id));
   const checks: Record<string, unknown> = {
