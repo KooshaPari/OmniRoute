@@ -1,0 +1,11 @@
+{
+  "name": "heliosApp",
+  "languages": ["typescript"],
+  "primary_language": "typescript",
+  "status": "active",
+  "has_readme": true,
+  "type": "application",
+  "path": "repos/heliosApp",
+  "disposition": "AFFIRM",
+  "note": "Audited 2026-07-17; active dashboard interface wrapper."
+}

@@ -1,0 +1,11 @@
+{
+  "name": "pheno",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": true,
+  "type": "monorepo",
+  "path": "repos/pheno",
+  "disposition": "PARTIAL_ARCHIVE",
+  "note": "Audited 2026-07-17; active legacy monorepo in consolidation (177 unmerged branches)."
+}

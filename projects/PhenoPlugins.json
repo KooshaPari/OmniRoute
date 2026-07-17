@@ -1,0 +1,11 @@
+{
+  "name": "PhenoPlugins",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": true,
+  "type": "plugins",
+  "path": "repos/PhenoPlugins",
+  "disposition": "AFFIRM",
+  "note": "Audited 2026-07-17; plugin runner and loader registry (79 unmerged branches)."
+}

@@ -1,0 +1,11 @@
+{
+  "name": "thegent",
+  "languages": ["python"],
+  "primary_language": "python",
+  "status": "active",
+  "has_readme": true,
+  "type": "framework",
+  "path": "repos/thegent",
+  "disposition": "AFFIRM",
+  "note": "Audited 2026-07-17; Python agent runtime (234 unmerged local branches)."
+}

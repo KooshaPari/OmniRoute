@@ -1,0 +1,11 @@
+{
+  "name": "sharecli",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": true,
+  "type": "cli",
+  "path": "repos/sharecli",
+  "disposition": "AFFIRM",
+  "note": "Audited 2026-07-17; active hypervisor/sharing client CLI (67 unmerged branches)."
+}
