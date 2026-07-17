@@ -1,39 +1,24 @@
 ---
 repo: "Benchora"
-role: unknown
-status: active
-last_boundary_review: 2026-06-17
-review_cadence: 30d
-in_scope:
-  - "<to be filled>"
-out_of_scope:
-  - "<to be filled>"
+role: bench
+status: absorbed
+absorbed_into: "phenotype-tooling"
+absorbed_at: "phenotype-tooling/crates/benchora/"
+absorbed_date: 2026-07-17
+last_boundary_review: 2026-07-17
+review_cadence: never (absorbed)
 ---
 
-# Boundary — Benchora
+# Boundary — Benchora (ABSORBED)
 
-## In Scope
+## Disposition
 
-<To be filled.>
+**ABSORBED** into `phenotype-tooling/crates/benchora/` on 2026-07-17.
 
-## Out of Scope
+Benchora (benchora v0.2.0) was a modern benchmarking + xDD testing framework
+for Rust (615KB). Absorbed as a crate in the phenotype-tooling workspace.
 
-| Not here | Lives in | Reason |
-| -------- | -------- | ------ |
-| `<capability>` | `<other-repo-or-N/A>` | `<why>` |
+## Outcome
 
-## Boundary Crossings
-
-| Crossing | Direction | Surface | Status |
-| -------- | --------- | ------- | ------ |
-| `<capability or interface>` | `<this-repo→other|other→this-repo>` || `<this-repo→other|other→this-repo>` | `<Trait / HTTP / CLI / file / event>` | `<green|amber|red>` || `<green|amber|red>` || `<green|amber|red>` |
-
-## Last Boundary Review
-
-**Date:** 2026-06-17
-**Reviewer:** forge subagent (L7-001 sweep)
-**Worklog / finding:** `worklogs/L7-001-intent-boundary-curation-2026-06-17.json`
-**Decisions:**
-- Initial scaffolding; needs human review.
-
-**Next review:** 2026-07-17
+Source repo `KooshaPari/Benchora` archived on GitHub.
+Registry disposition-index updated: disposition=ABSORB, target=phenotype-tooling.
