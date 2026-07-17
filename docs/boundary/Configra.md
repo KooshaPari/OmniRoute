@@ -1,8 +1,8 @@
 ---
 repo: "Configra"
 role: substrate-config
-status: active
-last_boundary_review: 2026-06-20
+status: archived
+last_boundary_review: 2026-07-17
 review_cadence: 30d
 tier: pheno-lib
 architecture: layered
@@ -15,6 +15,8 @@ out_of_scope:
   - "Auth/secrets storage (lives in Authvault)"
   - "Feature flag runtime (lives in phenotype-feature-flags)"
   - "Schema authoring tools (use a JSON-schema crate for Draft 4/7/2020-12)"
+archived_at: 2026-07-17
+archive_reason: "ARCHIVE_ONLY via failsafe — 5-crate Cargo workspace, package-name collision on phenotype-config-loader with pheno/crates/phenotype-config-loader/; reverse-absorption would duplicate ADR-031 canonical substrate. See audits/absorption-justifications/Configra-2026-07-17.md."
 ---
 
 # Boundary — Configra
