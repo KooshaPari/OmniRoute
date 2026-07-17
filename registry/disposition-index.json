@@ -1944,8 +1944,12 @@
       "audit_artifact": "audits/absorption-justifications/substrate-adapters-bundle-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:30:31.000000Z",
-      "note": "Meta-repo of standalone substrate adapter crates. Bundle into pheno workspace. [ARCHIVED 2026-07-17: 8 path-delegate shim crates re-exporting substrate monorepo crates. Substrate already holds canonical source. Packaged for future OSS consumption, not for fleet use.]",
-      "boundary_doc": "docs/boundary/substrate-adapters-bundle.md"
+      "note": "ARCHIVED 2026-07-17 (redundant-shims). 8 thin re-export shim crates (engine-agentapi, engine-claude, engine-codex, engine-forge, omniroute-adapter, cliproxy-adapter, context-budget, substrate-trace) that all delegate via pub use to the canonical substrate monorepo crates. The substrate repo (AFFIRM) already holds the canonical source. No physical transfer to pheno workspace; no fork relationships created.",
+      "boundary_doc": "docs/boundary/substrate-adapters-bundle.md",
+      "archived_at": "2026-07-17",
+      "archive_reason": "redundant-shims",
+      "canonical_source": "KooshaPari/substrate",
+      "absorbing_repo": "KooshaPari/substrate"
     },
     {
       "id": "repo-PlusForges",
@@ -2156,10 +2160,10 @@
     {
       "id": "repo-context-mode-plusplus",
       "path": "KooshaPari/context-mode-plusplus",
-      "disposition": "ABSORB",
-      "target": "OmniRoute",
+      "disposition": "ARCHIVE_ONLY",
+      "target": "phenotype-registry",
       "wave": "2026-07-17-queue-refresh-batch3",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "typescript",
       "size_kb": 768,
       "remote_branch_count": 1,
@@ -2169,7 +2173,8 @@
       "audit_artifact": "audits/absorption-justifications/context-mode-plusplus-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:50:00.000000Z",
-      "note": "Phenotype+ fork of mksglu/context-mode — middleware/adapter integration; OmniRoute owns route/middleware per ADR-ECO-007."
+      "note": "Phenotype+ fork of mksglu/context-mode — middleware/adapter integration; OmniRoute owns route/middleware per ADR-ECO-007. [ARCHIVED 2026-07-17: upstream OSS fork of mksglu/context-mode. plus suffix indicates Phenotype+ branding on a vendored upstream. No net-new content worth absorbing — primary code lives in upstream.]",
+      "boundary_doc": "docs/boundary/context-mode-plusplus.md"
     },
     {
       "id": "repo-pheno-forge-plugins",
@@ -2192,10 +2197,10 @@
     {
       "id": "repo-PhenoContracts",
       "path": "KooshaPari/PhenoContracts",
-      "disposition": "ABSORB",
-      "target": "PhenoSpecs + TestingKit",
+      "disposition": "ARCHIVE_ONLY",
+      "target": "phenotype-registry",
       "wave": "2026-07-17-queue-refresh-batch3",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "typescript+rust",
       "size_kb": 1856,
       "remote_branch_count": 6,
@@ -2206,7 +2211,8 @@
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:50:00.000000Z",
       "supersedes_row": "gate-phenocontracts (id 1259, HOLD_DECOMPOSE)",
-      "note": "Formal verification port + Prusti/Kani adapters + contract test bundle. Spec content → PhenoSpecs; runtime verifier → TestingKit. Replaces HOLD_DECOMPOSE row."
+      "note": "Formal verification port + Prusti/Kani adapters + contract test bundle. Spec content → PhenoSpecs; runtime verifier → TestingKit. Replaces HOLD_DECOMPOSE row. [ARCHIVED 2026-07-17: phenotype-contracts + phenotype-port-traits already in pheno (with stricter impl). phenotype-port-interfaces was a single-file crate redundant with phenotype-port-traits.]",
+      "boundary_doc": "docs/boundary/PhenoContracts.md"
     },
     {
       "id": "repo-KodeVibe-batch3",
