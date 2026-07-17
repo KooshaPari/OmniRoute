@@ -4,14 +4,15 @@
     "rust"
   ],
   "primary_language": "rust",
-  "status": "active",
+  "status": "absorbed",
   "has_readme": true,
   "type": "library",
   "path": "repos/pheno-cdylib-bridge",
   "disposition": "ABSORB",
   "wave": "2026-07-17-queue-refresh",
-  "absorbed_into": "pheno (monorepo crates/cdylib-bridge)",
-  "absorption_note": "Rust C-ABI shared library exposing pheno-* Rust crates to Go (forgecode) and other languages; 3 branches, 49KB. Belongs in pheno monorepo as crates/cdylib-bridge.",
-  "note": "Audited 2026-07-17; bridges Rust workspace to non-Rust callers. Should be part of pheno monorepo so the cdylib can keep its workspace deps consistent.",
+  "absorbed_into": "pheno (monorepo crates/pheno-cdylib-bridge)",
+  "absorbed_date": "2026-07-17",
+  "absorption_note": "Rust C-ABI cdylib exposing thegent-memory MemoryPort trait to Go (forgecode) and other FFI consumers. Absorbed into pheno monorepo as crates/pheno-cdylib-bridge; cargo check + 4/4 FFI smoke tests pass. Source repo archived on GitHub.",
+  "note": "Absorbed 2026-07-17 into pheno monorepo as crates/pheno-cdylib-bridge. Build/test green.",
   "adr": "ADR-ECO-006"
 }

@@ -1,5 +1,5 @@
 {
-  "version": "1.6.0",
+  "version": "1.5.7",
   "updated": "2026-07-17T11:45:00.000000Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
@@ -1782,9 +1782,9 @@
       "id": "repo-pheno-cdylib-bridge",
       "path": "KooshaPari/pheno-cdylib-bridge",
       "disposition": "ABSORB",
-      "target": "pheno (monorepo crates/cdylib-bridge)",
+      "target": "pheno (monorepo crates/pheno-cdylib-bridge)",
       "wave": "2026-07-17-queue-refresh",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 49,
       "remote_branch_count": 3,
@@ -1794,7 +1794,11 @@
       "audit_artifact": "audits/absorption-justifications/pheno-cdylib-bridge-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:16:58.000000Z",
-      "note": "Rust C-ABI shared library exposing pheno-* Rust crates to Go (forgecode) and other languages. 3 branches, 49KB. Belongs in pheno monorepo as crates/cdylib-bridge."
+      "absorbed_date": "2026-07-17",
+      "absorbed_pr": "pheno#absorb/pheno-cdylib-bridge-2026-07-17",
+      "archived": true,
+      "archived_date": "2026-07-17",
+      "note": "Rust C-ABI cdylib exposing thegent-memory MemoryPort trait to Go (forgecode). Absorbed into pheno monorepo as crates/pheno-cdylib-bridge; cargo check + 4/4 FFI smoke tests pass. Extended provider match to cover thegent-memory v0.2.x variants (Graphiti/Hippo/Zep) which surface as NULL handle with descriptive error until v0.2 adapters land per ADR-096. Source repo archived via gh repo archive."
     },
     {
       "id": "repo-Quillr",
