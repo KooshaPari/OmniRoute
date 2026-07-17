@@ -6,6 +6,8 @@ on:
     paths:
       - ".github/workflows/v4-journey-evidence.yml"
       - "tests/e2e/journey-evidence-smoke.spec.ts"
+      - "tests/unit/journey-accessibility-report.test.ts"
+      - "scripts/docs/validate-journey-accessibility-report.mjs"
       - "apps/web/**"
       - "apps/bff/**"
       - "packages/api-contracts/**"
@@ -85,6 +87,9 @@ jobs:
 
       - name: Capture deterministic evidence
         run: bunx playwright test tests/e2e/journey-evidence-smoke.spec.ts --project=chromium --workers=1 --retries=0
+
+      - name: Validate structured accessibility evidence
+        run: node scripts/docs/validate-journey-accessibility-report.mjs journey-evidence/anonymous-home-smoke/accessibility-smoke.json
 
       - name: Reject textual secret patterns
         if: always()
