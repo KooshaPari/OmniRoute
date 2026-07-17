@@ -2113,9 +2113,9 @@
       "id": "repo-PhenoHandbook",
       "path": "KooshaPari/PhenoHandbook",
       "disposition": "ABSORB",
-      "target": "phenodocs",
+      "target": "phenodocs (docs/handbook/)",
       "wave": "2026-07-17-queue-refresh-batch3",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "shell",
       "size_kb": 480,
       "remote_branch_count": 3,
@@ -2125,15 +2125,15 @@
       "audit_artifact": "audits/absorption-justifications/PhenoHandbook-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:50:00.000000Z",
-      "note": "Phenotype Handbook patterns/guidelines — doc-heavy; consolidate into phenodocs/handbook/."
+      "note": "Phenotype Handbook patterns/guidelines — doc-heavy; consolidate into phenodocs/handbook/. [ABSORBED 2026-07-17 → docs/handbook/, commit a0f2585b]"
     },
     {
       "id": "repo-Conft",
       "path": "KooshaPari/Conft",
       "disposition": "ABSORB",
-      "target": "phenotype-apps",
+      "target": "phenotype-apps (apps/conft/)",
       "wave": "2026-07-17-queue-refresh-batch3",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "typescript",
       "size_kb": 320,
       "remote_branch_count": 1,
@@ -2143,7 +2143,7 @@
       "audit_artifact": "audits/absorption-justifications/Conft-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:50:00.000000Z",
-      "note": "BLOCK A app (Conft) — only non-Rust BLOCK A app. Target phenotype-apps/apps/conft/ per ADR-023."
+      "note": "BLOCK A app (Conft) — only non-Rust BLOCK A app. Target phenotype-apps/apps/conft/ per ADR-023. [ABSORBED 2026-07-17 → apps/conft/, commit 28c75c64]"
     },
     {
       "id": "repo-context-mode-plusplus",
