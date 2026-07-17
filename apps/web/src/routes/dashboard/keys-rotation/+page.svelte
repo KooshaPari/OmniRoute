@@ -18,7 +18,7 @@
       if (r.ok) {
         const j = await r.json();
         if (j.status === 'unavailable' || !j.newKey) {
-          unavailable = unavailableMessage(j.source);
+          unavailable = unavailableMessage(j, 'Key rotation');
           return;
         }
         newKey = j.newKey;

@@ -23,7 +23,7 @@
       fetch(`http://localhost:4322/api/dashboard/keys/${id}/usage`).then((r) => r.ok ? r.json() : null),
     ]);
     key = a?.key ?? (a?.status === 'unavailable' ? null : a);
-    if (a?.status === 'unavailable') keyUnavailable = unavailableMessage(a.source);
+    if (a?.status === 'unavailable') keyUnavailable = unavailableMessage(a, 'API key');
     usageResponse = b;
     usage = b?.usage ?? [];
     loading = false;
