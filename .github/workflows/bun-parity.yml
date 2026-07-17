@@ -92,7 +92,11 @@ jobs:
           done
       - run: node --test tests/unit/bun-version-parity.test.mjs
       - run: bun run --cwd apps/web svelte-kit sync
-      - run: bun run ci:v4:typecheck
+      - name: Typecheck TS5 package surfaces
+        run: |
+          bun run --cwd packages/api-contracts typecheck
+          bun run --cwd packages/design-tokens typecheck
+          bun run --cwd apps/bff typecheck
       - run: bun run ci:v4:typecheck:ts7
       - run: bun test --cwd packages/api-contracts
       - run: bun run --cwd apps/bff test
