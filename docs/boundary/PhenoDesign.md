@@ -1,31 +1,29 @@
-# PhenoDesign -- Boundary
+# phenoDesign — Absorption Boundary
 
-> Boundary file for PhenoDesign. Filled with real prose 2026-06-19.
+**Status**: `ABSORBED` (2026-07-17)  
+**Source**: `github.com/KooshaPari/phenoDesign`  
+**Target**: `github.com/KooshaPari/phenodocs` → `packages/design-tokens/`  
+**Type**: TypeScript package absorption  
 
-## In Scope
+## Description
 
-Design tokens (color, type, space, motion); component recipes; accessibility primitives; Figma <-> code sync
+phenoDesign is the "@phenotype/design" package — design tokens, CSS keycap palette, VitePress theme, and style guide (849KB). W3C DTCG token format, Vue/VitePress integration.
 
-## Out of Scope
+## Transfer Record
 
-Component implementations (lives in each consumer repo); brand strategy; logo design
+- Full source copied to `packages/design-tokens/` inside phenodocs
+- Excluded `.git`, `node_modules`, `dist` during rsync
+- Package name: `@phenotype/design` — follows phenodocs monorepo pattern
 
-## Crossings
+## Verification
 
-PhenoDesign crosses into other Phenotype repos at the following seams:
+| Check | Result |
+|-------|--------|
+| Full source copied | Bun package, 849KB |
+| Excluded build artifacts | done |
+| Fits phenodocs package structure | packages/ dir already existed |
 
-- **Auth**: depends on AuthKit `typescript/packages/auth-ts/`
-- **Telemetry**: emits OTel traces via pheno-otel
-- **Config**: resolves from `phenotype-config` schema (Pydantic + Zod)
-- **Versioning**: pinned to the pheno-standards `{major.minor}` channel
+## Cleanup
 
-## Review cadence
-
-Weekly per ADR-024. Refresh by `scripts/render-per-repo.py --force`
-once any prompt binds to this repo.
-
-## Source-of-Truth
-
-- `phenotype-registry/ECOSYSTEM_MAP.md` section 6 (role classification)
-- `docs/intent/PhenoDesign.md` (intent statement)
-- `docs/registries.md` section 'Capability & Intent SSOT' (registry layer)
+- [x] Code transferred
+- [x] Source repo archived
