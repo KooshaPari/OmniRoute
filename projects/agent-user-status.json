@@ -1,11 +1,19 @@
 {
   "name": "agent-user-status",
-  "languages": ["rust"],
-  "primary_language": "rust",
-  "status": "active",
+  "languages": ["python", "swift"],
+  "primary_language": "python",
+  "status": "absorbed",
   "has_readme": true,
   "type": "shared-lib",
   "path": "repos/agent-user-status",
-  "disposition": "AFFIRM",
-  "note": "Audited 2026-07-17; AFFIRM — active status component under agent-control domain, complementary to Agentora/AgilePlus."
+  "disposition": "ABSORB",
+  "absorbing_repo": "KooshaPari/phenotype-tooling",
+  "absorbing_path": "crates/agent-user-status/",
+  "absorbed_date": "2026-07-17",
+  "absorbed_commit": "29ce5dd4d7baecd4920e5ccedca744eee5422a10",
+  "absorbed_branch": "salvage/phenotype-tooling-workspace-2026-07-15",
+  "archived": true,
+  "archived_at": "2026-07-17T14:30:00Z",
+  "archive_method": "gh repo archive",
+  "note": "Audited 2026-07-17; ABSORBED into KooshaPari/phenotype-tooling as crates/agent-user-status/. Single Python project (>=3.12) + stdio MCP server + optional macOS Swift native monitor bundle. 91/91 pytests pass on Python 3.14.6. Original AFFIRM verdict (rust primary_language field) was incorrect; project is Python with embedded Swift native sources. Source repo archived on GitHub via gh repo archive -y (isArchived=true verified)."
 }

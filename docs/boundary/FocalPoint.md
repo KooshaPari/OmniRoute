@@ -1,9 +1,11 @@
 ---
 repo: "FocalPoint"
 role: unknown
-status: active
+status: archived
 last_boundary_review: 2026-06-17
 review_cadence: 30d
+last_archived: 2026-07-17
+archive_reason: ARCHIVE_ONLY via failsafe (target-conflict HexaKit vs phenotype-tooling)
 in_scope:
   - "<to be filled>"
 out_of_scope:

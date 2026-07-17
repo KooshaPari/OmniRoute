@@ -164,3 +164,71 @@ git clone https://github.com/KooshaPari/agent-user-status.git /tmp/agent-user-st
 - ADR-008 — consolidation over proliferation
 - ADR-039 — monorepo preference for SDK-layer code
 - ECO-022 — compute/infra subtree registry correction
+
+---
+
+## Absorption Follow-up — 2026-07-17 (Forge)
+
+Original 2026-07-17 row `repo-agent-user-status` was added with `disposition=AFFIRM/fsm=active`
+as a queue entry. Subsequent absorption task (2026-07-17) promoted the row to:
+
+- `disposition: ABSORB`
+- `fsm: absorbed`
+- `target: phenotype-tooling (crates/agent-user-status)`
+- `core_lang: python`
+- `absorbed_commit: 29ce5dd4` on branch `salvage/phenotype-tooling-workspace-2026-07-15`
+- `archived: true` (GitHub `isArchived=true` verified post-`gh repo archive`)
+- `absorbing_repo: KooshaPari/phenotype-tooling`
+
+### Why phenotype-tooling (not Agentora, despite the original audit's Agentora target)
+
+The original auto-generated audit declared `KooshaPari/Agentora` as the receiver, but:
+
+1. Agentora is a Rust agent-orchestration workspace (47 crates); the Python source
+   cannot be embedded without breaking Agentora's `[workspace]` semantics.
+2. `phenotype-tooling` already hosts Python subpackages via the `crates/phench`
+   precedent (Python package embedded under `crates/` WITHOUT registering in
+   `[workspace.members]`).
+3. The source's purpose — local user-status / iMessage / MCP-server runtime for
+   coding agents — is a developer-tooling concern, not an agent-orchestration
+   concern.
+
+### Verification evidence (re-run on absorption target)
+
+- `python3 -m compileall -q src/` → exit 0
+- `python3 -c "import agent_user_status.bootstrap, agent_user_status.statusd,
+   agent_user_status.agent_imessage"` → OK (non-macOS modules)
+- `python3 -m pytest tests/ -q` → **91 passed in 6.40s** on Python 3.14.6
+- `agent_user_status.cursor_tracker` correctly fails on this host because
+  `pyobjc-framework-Cocoa` is macOS-only (listed under `[eye]` optional extra).
+
+### Files transferred (selective copy, not full repo)
+
+| Path                       | Source state        | Target state                                |
+|----------------------------|---------------------|---------------------------------------------|
+| `src/`                     | 35 .py files        | copied verbatim                             |
+| `src/mcp/`                 | 1 .py file          | copied verbatim                             |
+| `src/native/macos/*.swift` | 12 Swift files      | copied verbatim (build inputs only)         |
+| `tests/`                   | 20 .py files        | copied verbatim                             |
+| `scripts/`                 | 4 .sh + helpers     | copied verbatim                             |
+| `docs/`                    | 188 KB markdown     | copied verbatim                             |
+| `launchd/`                 | 16 KB plists        | copied verbatim                             |
+| `packaging/`               | 88 KB scaffolding   | copied verbatim                             |
+| `skills/`, `codex/`        | 8 KB references     | copied verbatim                             |
+| `pyproject.toml`           | identity preserved  | copied verbatim                             |
+| `conftest.py`, `pytest.ini`, `pyrightconfig.json` | test config | copied verbatim |
+| `README.md`, `AGENTS.md`, `CLAUDE.md` | docs | copied verbatim |
+| `ABSORPTION.md`            | (new)               | provenance marker — see `crates/agent-user-status/ABSORPTION.md` |
+
+### Excluded (would have collided with repo-root or were redundant)
+
+- `.git/`, `.gitattributes`, `.gitignore`, `.editorconfig`, `.gitleaks.toml`,
+  `.pre-commit-config.yaml`, `.python-version` — repo-root already owns these.
+- `LICENSE`, `LICENSE-MIT`, `LICENSE-APACHE`, `CITATION.cff`, `FUNDING.yml`,
+  `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `CODEOWNERS`, `SECURITY.md`,
+  `CHANGELOG.md`, `deny.toml`, `justfile`, `Taskfile.yml`, `grade.sh`,
+  `lefthook.yml`, `audit_scorecard.json`, `renovate.json5`, `uv.lock` —
+  tooling repo-root owns governance/lockfiles.
+- `.github/` — tooling repo-root owns CI workflows.
+
+**End of audit.**

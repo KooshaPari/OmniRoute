@@ -303,16 +303,33 @@ substrates:
   - id: focalpoint
     repo: KooshaPari/FocalPoint
     name: FocalPoint
-    status: active
+    status: archived
     tier: phenotype-framework
     architecture: layered
     archetype: app
     language: typescript
     role: focus-app
-    boundary: null
+    boundary: docs/boundary/FocalPoint.md
     intent: null
     notes: |
-      Svelte app. Deferred-tier per registry AGENTS.md rules.
+      [ARCHIVE_ONLY 2026-07-17 via failsafe: target-conflict between task spec
+      ("absorb into phenotype-tooling") and registered plan
+      (catalog/registry.yaml prior note + disposition-index.json id=gate-focalpoint
+      target="HexaKit" + audits/absorption-justifications/FocalPoint-2026-07-17.md
+      Receiving repo="KooshaPari/HexaKit", path="docs/absorbed-from-FocalPoint/").
+      Neither target was started (HexaKit/docs/absorbed-from-FocalPoint/ absent;
+      phenotype-tooling has no equivalent absorption slot). Per task failsafe
+      "ARCHIVE_ONLY if conflicts", disposition pivoted; source repo archived
+      via `gh repo archive KooshaPari/FocalPoint -y` on 2026-07-17. Boundary doc
+      retained at `phenotype-registry/docs/boundary/FocalPoint.md` (front-matter
+      status updated active → archived). Manifest reclassified
+      audits/absorption-justifications/FocalPoint-2026-07-17.md to
+      ARCHIVE_ONLY rationale. Mirror precedent: Configra-2026-07-17,
+      Stashly-2026-07-17, Pine-2026-07-17, kmobile-2026-07-17,
+      Civis-2026-07-17, phenotype-omlx-2026-07-17. Original mirror content
+      (810MB .git + ~57MB working tree) preserved at repos/FocalPoint/ for
+      forensic retention; .git/obj scan deferred until explicit reactivation
+      per disposition-index.json reactivation path.]
 
   - id: forgecode
     repo: KooshaPari/forgecode

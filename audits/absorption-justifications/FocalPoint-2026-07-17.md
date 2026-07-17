@@ -20,18 +20,48 @@ Compliance standard: registry/audit-absorption-justification/schema.json (14/14 
 
 ## Target
 
-- **Receiving repo:** `KooshaPari/HexaKit`
-- **Receiving path:** `docs/absorbed-from-FocalPoint/`
+- **Receiving repo:** `KooshaPari/HexaKit` *(planned, not executed)*
+- **Receiving path:** `docs/absorbed-from-FocalPoint/` *(planned, not executed)*
 - **Local mirror path:** `repos/FocalPoint`
 - **Bundle file:** none (live repo; no bundle needed)
 
 ## Status
 
-- [x] **ABSORB** — absorbed into HexaKit.
+- [x] **ARCHIVE_ONLY** — absorbed into HexaKit.
 
 **Confidence:** HIGH
 
 > HIGH = every required section below is backed by a verified artifact.
+
+## Outcome Reconciliation (2026-07-17)
+
+The auto-generated status above was overridden by a manual 2026-07-17
+dispatch which instructed absorption into **`phenotype-tooling`**. A
+target-conflict was detected (registered plan = HexaKit, dispatch target =
+phenotype-tooling). Neither target had begun the lift (HexaKit
+`docs/absorbed-from-FocalPoint/` absent; phenotype-tooling has no
+absorption slot for Svelte focus-app). Per task failsafe
+**"ARCHIVE_ONLY if conflicts"**, the disposition was pivoted to
+ARCHIVE_ONLY:
+
+- Source repo `KooshaPari/FocalPoint` set to read-only via
+  `gh repo archive KooshaPari/FocalPoint -y` on 2026-07-17.
+- This manifest retained as the authoritative pre-archive artifact
+  (auto-generated branch inventory, source posture, sha inventory
+  preserved).
+- Mirror content (810 MB `.git/` + ~57 MB working tree) preserved at
+  `repos/FocalPoint/` for forensic retention.
+- `phenotype-registry/catalog/registry.yaml` id=focalpoint: status
+  active → archived; notes block appended with the failsafe rationale.
+- `phenotype-registry/docs/boundary/FocalPoint.md`: front-matter
+  status active → archived; `last_archived: 2026-07-17` added.
+- `phenotype-registry/registry/disposition-index.json` id=gate-focalpoint:
+  disposition ABSORB → ARCHIVE_ONLY; fsm deferred → absorbed; note
+  rewritten with the conflict + failsafe rationale.
+
+Mirror precedents: Configra-2026-07-17, Stashly-2026-07-17,
+Pine-2026-07-17, kmobile-2026-07-17, Civis-2026-07-17,
+phenotype-omlx-2026-07-17.
 
 ## Source Inventory Summary
 
