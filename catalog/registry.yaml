@@ -1227,23 +1227,22 @@ substrates:
   - id: stashly
     repo: KooshaPari/Stashly
     name: Stashly
-    status: archived
+    status: absorbed
     tier: pheno-lib
     architecture: layered
     archetype: library
     language: rust
     role: cache
-    boundary: docs/registry/absorbed-stashly-2026-07-17.md
+    boundary: docs/boundary/Stashly.md
     intent: null
     notes: |
-      ARCHIVE_ONLY 2026-07-17. Caching framework (TTL, multi-tier, singleflight), not stash/secret storage.
-      Pheno workspace already covers the cache domain via `pheno/crates/agileplus-cache` +
-      `pheno/crates/phenotype-cache-adapter`. Absorbing as `crates/stashly` would duplicate capability
-      and conflict with the existing `phenotype-cache-adapter` package name (Stashly carries an inner
-      `Stashly/src/phenotype-cache-adapter/Cargo.toml`). Repo `KooshaPari/Stashly` archived on GitHub;
-      source remains at `repos/Stashly/` for forensic retention. Boundary doc:
-      `pheno/docs/registry/absorbed-stashly-2026-07-17.md`. Disposition-index row: `repo-Stashly`
-      (ARCHIVE_ONLY, fsm=absorbed).
+      [ABSORBED 2026-07-17] Hexagonal caching framework (TTL, multi-tier, singleflight, CQRS read/write,
+      memory/Redis/Memcached/disk backends). Absorbed into pheno workspace at `crates/stashly`. Package
+      name `stashly` is distinct from existing `phenotype-cache-adapter` — no workspace name collision.
+      Source carries an inner `Stashly/src/phenotype-cache-adapter/Cargo.toml` scaffold that is NOT
+      declared in `lib.rs` and is therefore inert in the absorbed crate. Repo `KooshaPari/Stashly`
+      archived on GitHub; source remains at `repos/Stashly/` for forensic retention. Disposition-index
+      row: `repo-Stashly` (fsm=absorbed, disposition=ABSORB, target="pheno (crates/stashly)").
 
   - id: substrate
     repo: KooshaPari/substrate

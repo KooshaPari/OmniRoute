@@ -1,6 +1,6 @@
 {
-  "version": "1.6.24",
-  "updated": "2026-07-17T14:00:40.000000Z",
+  "version": "1.6.25",
+  "updated": "2026-07-17T17:09:00.000000Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
   "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr. 2026-07-17 (batch3, agent #4): queue-refresh added 10 fresh non-Rust candidates (phenodag/HeliosLab/PhenoHandbook/Conft/context-mode-plusplus/pheno-forge-plugins/PhenoContracts/KodeVibe/KWatch/heliosBench) to keep the absorption queue topped up; Rust slots already taken by batch2 (agents 2/3). 2026-07-17 (batch4, agent #5): queue-refresh added 10 fresh least-active candidates (phenotype-gfx/hwLedger/omniroute-rs/pheno-forge-smoke/pheno-otel/Apisync/PhenoVCS/Pine/PlayCua/DataKit) to keep the absorption queue topped up; absorbs continue to drain batch1-3 in parallel. 2026-07-17 (batch4, agent absorb #1): Pine → ARCHIVE_ONLY fallback (5-crate workspace, not single crate; substrate not modified); GitHub repo archived same day. 2026-07-17: pheno-harness ABSORB → ARCHIVE_ONLY via failsafe path (source is 95% Python, no Cargo.toml at root; cargo check -p pheno-harness fails). Registry row repo-pheno-harness updated to disposition=ARCHIVE_ONLY, target=phenotype-registry, fsm=absorbed; absorbing_repo=KooshaPari/phenotype-registry. Audit: audits/absorption-justifications/pheno-harness-deferred-2026-07-17.md. Boundary: docs/boundary/pheno-harness.md. Source repo archived via 'gh repo archive KooshaPari/pheno-harness -y'.\n 2026-07-17 (this audit): phenotype-landing pivoted from ABSORB→ARCHIVE_ONLY for the same structural reasons as omniroute-rust (deferred-W2 → failsafe): source is a 7-site Astro monorepo (1.6GB tracked+untracked, ~1.4GB of node_modules), not a single landing page; cp -r phenotype-landing/* phenodocs/packages/landing/ would have copied 7 independent Astro sites with their own vercel.json + bun.lock + CI workflow into a VitePress federation hub. Source repo archived on GitHub via `gh repo archive`. Boundary doc captures the rejection in detail. 2026-07-17 (queue-refresh-2, agent absorb): StealthStartup ABSORBED → phenodocs/packages/stealth-startup/ via commit 9f620cd on branch absorb/quillts-2026-07-17 (32 files). Source repo KooshaPari/StealthStartup archived via gh repo archive -y. Row repo-StealthStartup: fsm active→absorbed, archived=true; absorbing_repo=KooshaPari/phenodocs. 2026-07-17 (this audit, agent absorb #6): KooshaPari/helios-cli ABSORB → ARCHIVE_ONLY via failsafe path (source is NOT a single bin: 22-member Rust workspace + vendored codex-rs/ workspace root + 26 sub-crates + Bazel monorepo + 350MB target/, 928MB on disk). Nested [workspace] root at helios-cli/Cargo.toml forbids membership under phenotype-tooling/Cargo.toml [workspace.members]; nested codex-rs/Cargo.toml is a second workspace root that would be auto-discovered by the parent. phenotype-tooling already hosts crates/heliosapp + crates/heliosbench (collision risk). HEAD on wip/2026-07-16-0027-auto @ f217af2bca312cb595520c2b6508b198ea10d61d, NOT main. Pattern matches repo-pheno-harness + Pine + Civis ARCHIVE_ONLY precedents (workspace-not-single-crate). GitHub repo archived via gh repo archive KooshaPari/helios-cli -y (verified isArchived=true). phenotype-tooling NOT modified (no copy, no workspace edit).",
@@ -2373,7 +2373,7 @@
       "disposition": "ABSORB",
       "target": "pheno (crates/stashly)",
       "wave": "2026-07-17-queue-refresh-2",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 222,
       "remote_branch_count": 1,
@@ -2383,7 +2383,7 @@
       "audit_artifact": "audits/absorption-justifications/Stashly-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:50:00.000000Z",
-      "note": "Rust caching framework: TTL, singleflight, CQRS read/write, multiple backends (memory/Redis/Memcached/disk). Hexagonal architecture; small, well-tested."
+      "note": "Rust caching framework: TTL, singleflight, CQRS read/write, multiple backends (memory/Redis/Memcached/disk). Hexagonal architecture; small, well-tested. [ABSORBED 2026-07-17]"
     },
     {
       "id": "repo-Sidekick",
@@ -2919,13 +2919,18 @@
       "disposition": "ARCHIVE_DATA",
       "target": "phenotype-registry/bench-results-data/",
       "wave": "2026-07-17-queue-refresh-2",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "data",
       "size_kb": 7,
       "last_push": "2026-07-16T20:13:46Z",
       "audit_artifact": "audits/absorption-justifications/bench-results-2026-07-17.md",
       "added_at": "2026-07-17T14:30:00.000000Z",
-      "note": "Bench results data (7 JSON + 1 MD, total ~7KB). NOT an absorb — DATA_ONLY archivation into registry/bench-results-data/."
+      "note": "Bench results data (7 JSON + 1 MD, total ~7KB). NOT an absorb — DATA_ONLY archivation into registry/bench-results-data/. [2026-07-17] DATA archivation COMPLETE: fsm active→absorbed. Files landed in registry/bench-results-data/ (commit 9df46bfbf on registry-main). Source repo KooshaPari/bench-results archived via gh repo archive (isArchived=true verified). File count corrected: 8 JSON + 2 MD (not 7+1 as originally noted; includes README.md auto-import marker).",
+      "archived": true,
+      "archived_at": "2026-07-17T17:09:00Z",
+      "absorbed_at": "2026-07-17T17:09:00.000000Z",
+      "archive_reason": "DATA_ONLY archivation: 8 JSON + 2 MD (10 files, ~17.5KB) copied byte-for-byte to phenotype-registry/registry/bench-results-data/ (commit 9df46bfbf on registry-main). Source repo KooshaPari/bench-results archived via gh CLI (isArchived=true). NOT a code absorption — DATA_ONLY terminal state.",
+      "relocated_date": "2026-07-17"
     },
     {
       "id": "repo-dist-sbom",
