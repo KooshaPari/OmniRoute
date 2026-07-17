@@ -1009,15 +1009,17 @@
     {
       "id": 59,
       "path": "KooshaPari/Tracely",
-      "disposition": "ARCHIVE",
-      "target": "PhenoObservability",
+      "disposition": "ABSORB",
+      "target": "phenotype-apps (apps/tracely/)",
       "wave": "observability-substrate-completion",
-      "fsm": "done",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "archived_date": "2026-06-20",
+      "absorbed_date": "2026-07-17",
       "relocated_date": "2026-06-18",
-      "pr": "(outer repo archive only)",
-      "note": "Outer Tracely repo archived 2026-06-20 (L7-114). Sub-crates tracely-core, tracely-sentinel, helix-logging already in PhenoObservability/crates/; helix-tracing present as canonical rename phenotype-observably-tracing. Migration structurally complete; outer archive closes the observability cluster = closed invariant for v11 audit scorecard. (Verified by stream A, 2026-06-20)"
+      "pr": "phenotype-apps@31f2bea7 (absorbing this audit); gh repo archive KooshaPari/Tracely 2026-07-17",
+      "audit_artifact": "audits/absorption-justifications/Tracely-2026-07-17.md",
+      "note": "Outer Tracely repo archived 2026-06-20 (L7-114). Sub-crates tracely-core, tracely-sentinel, helix-logging already in PhenoObservability/crates/; helix-tracing present as canonical rename phenotype-observably-tracing. Migration structurally complete; outer archive closes the observability cluster = closed invariant for v11 audit scorecard. (Verified by stream A, 2026-06-20) [ABSORBED 2026-07-17 → phenotype-apps apps/tracely/ — actual source lift + cargo check verified; pre-archive tarball at repos/_archive/Tracely-2026-07-17/. tracely-sentinel dropped from workspace members (mis-shelved phenotype-infrakit content). Audit artifact: audits/absorption-justifications/Tracely-2026-07-17.md. Outer gh repo archive confirmed 2026-07-17.]"
     },
     {
       "id": 60,
