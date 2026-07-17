@@ -1,0 +1,11 @@
+{
+  "name": "KDesktopVirt",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": true,
+  "type": "desktop-app",
+  "path": "repos/KDesktopVirt",
+  "disposition": "AFFIRM",
+  "note": "Audited 2026-07-17; desktop virtualization client wrapper."
+}

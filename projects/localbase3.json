@@ -1,0 +1,11 @@
+{
+  "name": "localbase3",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": true,
+  "type": "shared-lib",
+  "path": "repos/localbase3",
+  "disposition": "AFFIRM",
+  "note": "Audited 2026-07-17; active in dev (32 unmerged branches); local state DB storage engine."
+}

@@ -1,0 +1,14 @@
+{
+  "name": "heliosCLI",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "archived",
+  "has_readme": true,
+  "type": "shared-lib",
+  "path": "repos/heliosCLI",
+  "disposition": "ARCHIVED",
+  "absorbed_into": "helios-cli",
+  "absorption_note": "Legacy heliosCLI repository archived on GitHub and absorbed into helios-cli.",
+  "note": "Audited 2026-07-17; ARCHIVED; legacy repo replaced by helios-cli.",
+  "audit_artifact": "audits/absorption-justifications/heliosCLI-2026-07-17.md"
+}

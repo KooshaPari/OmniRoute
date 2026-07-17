@@ -1,0 +1,11 @@
+{
+  "name": "heliosBench",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": true,
+  "type": "tool",
+  "path": "repos/heliosBench",
+  "disposition": "AFFIRM",
+  "note": "Audited 2026-07-17; performance benchmarking tools for helios-cli."
+}
