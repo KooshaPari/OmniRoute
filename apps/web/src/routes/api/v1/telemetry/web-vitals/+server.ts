@@ -5,7 +5,8 @@ import type { RequestHandler } from './$types';
 const MAX_BODY_BYTES = 4096;
 
 export const POST: RequestHandler = async ({ request, fetch }) => {
-  if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
+  const contentType = request.headers.get('content-type') ?? '';
+  if (!contentType.toLowerCase().startsWith('application/json')) {
     error(415, 'content-type must be application/json');
   }
   const declaredLength = Number(request.headers.get('content-length') ?? 0);
