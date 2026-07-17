@@ -1,0 +1,112 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:00000000-0000-4000-8000-000025bf8e1a",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "application",
+      "name": "omniroute-v4-release-candidate",
+      "version": "0.1.0",
+      "properties": [
+        {
+          "name": "omniroute:commit",
+          "value": "local"
+        },
+        {
+          "name": "omniroute:publication",
+          "value": "dry-run"
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "type": "application",
+      "name": "@argismonitor/web",
+      "version": "0.1.0",
+      "properties": [
+        {
+          "name": "omniroute:surface",
+          "value": "web"
+        },
+        {
+          "name": "omniroute:manifest",
+          "value": "apps/web/package.json"
+        },
+        {
+          "name": "omniroute:manifest:sha256",
+          "value": "9df787b866203b1c81e71ed6dbfa29b8eb91a1f788347f9e6f5d62448e2248a5"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "@argismonitor/bff",
+      "version": "0.1.0",
+      "properties": [
+        {
+          "name": "omniroute:surface",
+          "value": "bff"
+        },
+        {
+          "name": "omniroute:manifest",
+          "value": "apps/bff/package.json"
+        },
+        {
+          "name": "omniroute:manifest:sha256",
+          "value": "b6bc19858754743447dd1d2e00af3ebaee7a0659e542e0a140a8c880b80165a6"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "@argismonitor/desktop",
+      "version": "0.1.0",
+      "properties": [
+        {
+          "name": "omniroute:surface",
+          "value": "desktop"
+        },
+        {
+          "name": "omniroute:manifest",
+          "value": "apps/desktop/package.json"
+        },
+        {
+          "name": "omniroute:manifest:sha256",
+          "value": "2056c333d58d76ecb5e4260ab9f22e1e8df69f75da6a0c204fa9668a2e905e51"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "argismonitor",
+      "version": "0.1.0",
+      "properties": [
+        {
+          "name": "omniroute:surface",
+          "value": "desktop-tauri"
+        },
+        {
+          "name": "omniroute:manifest",
+          "value": "apps/desktop/src-tauri/tauri.conf.json"
+        },
+        {
+          "name": "omniroute:manifest:sha256",
+          "value": "aa999f6400c10560437c6c89feac21eff37b9f918a98a888074a48a87d193ff0"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "argismonitor-desktop",
+      "version": "0.1.0",
+      "properties": [
+        {
+          "name": "omniroute:manifest",
+          "value": "apps/desktop/src-tauri/Cargo.toml"
+        }
+      ]
+    }
+  ]
+}

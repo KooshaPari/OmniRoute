@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "repository": "KooshaPari/OmniRoute",
+  "commit": null,
+  "ready": false,
+  "findings": [
+    {
+      "control": "version-group:v4-application",
+      "passed": true,
+      "evidence": [
+        {
+          "path": "apps/web/package.json",
+          "value": "0.1.0"
+        },
+        {
+          "path": "apps/bff/package.json",
+          "value": "0.1.0"
+        },
+        {
+          "path": "apps/desktop/package.json",
+          "value": "0.1.0"
+        },
+        {
+          "path": "apps/desktop/src-tauri/tauri.conf.json",
+          "value": "0.1.0"
+        },
+        {
+          "path": "apps/desktop/src-tauri/Cargo.toml",
+          "value": "0.1.0"
+        }
+      ]
+    },
+    {
+      "control": "pinned-actions",
+      "passed": false,
+      "evidence": {
+        "actionUses": [
+          "actions/checkout@v4",
+          "actions/checkout@v4",
+          "oven-sh/setup-bun@v2"
+        ],
+        "unpinned": [
+          "actions/checkout@v4",
+          "actions/checkout@v4",
+          "oven-sh/setup-bun@v2"
+        ]
+      }
+    },
+    {
+      "control": "frozen-installs",
+      "passed": false,
+      "evidence": "release workflow must use frozen lockfiles"
+    },
+    {
+      "control": "checksums",
+      "passed": false,
+      "evidence": "release workflow must emit checksums for artifacts"
+    },
+    {
+      "control": "sbom",
+      "passed": false,
+      "evidence": "release workflow must produce an SBOM"
+    },
+    {
+      "control": "provenance",
+      "passed": false,
+      "evidence": "release workflow must produce verifiable provenance"
+    },
+    {
+      "control": "no-secret-repository-clone",
+      "passed": false,
+      "evidence": "release must use the triggering checkout without a secret-backed second clone"
+    },
+    {
+      "control": "tag-version-validation",
+      "passed": false,
+      "evidence": "tag/version agreement must be checked before artifacts are built"
+    }
+  ],
+  "independentSurfaces": [
+    {
+      "path": "package.json",
+      "reason": "Legacy npm/CLI surface has an independent existing version line; this validator does not change or align it.",
+      "sha256": "49951bed1912f91870a0ee14bfc78ff19153eff69203132028c856876c935651"
+    }
+  ]
+}
