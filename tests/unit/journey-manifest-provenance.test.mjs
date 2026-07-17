@@ -11,13 +11,16 @@ const errorsFor = (mutate) => {
   return validateEvidence(candidate);
 };
 
-test("accepts captured and published provenance, including an expired historical artifact", () => {
+test("accepts captured provenance, including an expired historical artifact", () => {
   assert.deepEqual(validateEvidence(manifest), []);
-  assert.deepEqual(errorsFor((value) => { value.evidence.captureStatus = "published"; }), []);
   assert.deepEqual(errorsFor((value) => {
     value.evidence.capture.artifact.createdAt = "2020-01-01T00:00:00Z";
     value.evidence.capture.artifact.expiresAt = "2020-01-14T23:59:59Z";
   }), []);
+});
+
+test("rejects a status-only published claim without publication provenance", () => {
+  assert.match(errorsFor((value) => { value.evidence.captureStatus = "published"; }).join("\n"), /invalid evidence status/);
 });
 
 test("accepts blocked evidence only without capture linkage", () => {
@@ -51,6 +54,18 @@ test("rejects invalid retention timestamps", () => {
   assert.match(errorsFor((value) => { value.evidence.capture.artifact.createdAt = "not-a-date"; }).join("\n"), /createdAt/);
   assert.match(errorsFor((value) => { value.evidence.capture.artifact.expiresAt = "2026-08-01T01:52:40Z"; }).join("\n"), /retentionDays/);
   assert.match(errorsFor((value) => { value.evidence.capture.artifact.expiresAt = "2026-07-16T01:52:40Z"; }).join("\n"), /expiry must follow creation/);
+});
+
+test("rejects parseable but noncanonical or impossible timestamps", () => {
+  for (const timestamp of [
+    "July 17, 2026 01:52:40 UTC",
+    "2026/07/17 01:52:40 UTC",
+    "2026-07-17T03:52:40+02:00",
+    "2026-07-17T01:52:40.000Z",
+    "2026-02-30T01:52:40Z",
+  ]) {
+    assert.match(errorsFor((value) => { value.evidence.capture.artifact.createdAt = timestamp; }).join("\n"), /canonical RFC 3339 UTC/);
+  }
 });
 
 test("requires exact, unique artifact inventory", () => {

@@ -14,13 +14,16 @@ This directory introduces a validated contract for product-journey evidence. It 
 node scripts/docs/validate-journey-manifests.mjs
 ```
 
-The validator checks required safety/accessibility fields, verifies that each manifest's route and test title exist in its cited Playwright test, and enforces immutable captured-evidence linkage. Captured and published entries must identify the exact source commit, workflow run, hosted artifact, retention timestamps, and SHA-256 digest for every declared journey-evidence file; that captured-file inventory must exactly match the manifest's planned journey-evidence inventory. A workflow artifact may also contain operational logs that are outside this journey-evidence inventory.
+The validator checks required safety/accessibility fields, verifies that each manifest's route and test title exist in its cited Playwright test, and enforces immutable captured-evidence linkage. Captured entries must identify the exact source commit, workflow run, hosted artifact, retention timestamps, and SHA-256 digest for every declared journey-evidence file; that captured-file inventory must exactly match the manifest's planned journey-evidence inventory. A workflow artifact may also contain operational logs that are outside this journey-evidence inventory.
+
+Artifact timestamps use canonical RFC 3339 UTC with whole-second precision: `YYYY-MM-DDTHH:mm:ssZ`. Offsets, fractional seconds, normalized impossible dates, and other JavaScript-parseable date forms are rejected.
 
 ## Evidence lifecycle
 
 - **blocked:** a precise technical blocker is recorded; artifact paths are planned only.
 - **captured:** CI produced the artifacts at the linked source commit and redaction review passed; immutable workflow/artifact IDs and file digests are recorded.
-- **published:** reviewed artifacts are linked from public documentation.
+
+Publication is intentionally outside schema v2. A later schema may add a published state only together with schema-validated public-document and review provenance.
 
 Never commit a hand-made or local screenshot as journey evidence. A capture must use the declared viewport, reduced motion, isolated fixture/network policy, and exact source commit.
 

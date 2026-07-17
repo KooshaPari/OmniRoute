@@ -7,6 +7,7 @@ const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const shaPattern = /^[0-9a-f]{64}$/;
 const commitPattern = /^[0-9a-f]{40}$/;
 const idPattern = /^[1-9][0-9]*$/;
+const canonicalUtcPattern = /^\d{4}-(0[1-9]|1[0-2])-([0-2]\d|3[01])T([01]\d|2[0-3]):[0-5]\d:[0-5]\dZ$/;
 const allowedActions = new Set(["goto", "click", "fill", "press", "observe"]);
 const allowedChecks = new Set([
   "document-title", "heading-order", "landmarks", "focus-visible",
@@ -18,7 +19,7 @@ export function validateEvidence(manifest, relative = "<manifest>") {
   const assert = (condition, message) => { if (!condition) errors.push(`${relative}: ${message}`); };
   const evidence = manifest.evidence ?? {};
   const artifacts = Array.isArray(evidence.artifacts) ? evidence.artifacts : [];
-  assert(["blocked", "captured", "published"].includes(evidence.captureStatus), "invalid evidence status");
+  assert(["blocked", "captured"].includes(evidence.captureStatus), "invalid evidence status");
   assert(artifacts.length > 0, "at least one evidence artifact is required");
   const artifactPaths = artifacts.map((artifact) => artifact?.path);
   assert(artifactPaths.every((artifactPath) => typeof artifactPath === "string" && artifactPath.length > 0), "every evidence artifact needs a path");
@@ -29,7 +30,7 @@ export function validateEvidence(manifest, relative = "<manifest>") {
     assert(evidence.capture === null, "blocked evidence must have capture set to null");
     return errors;
   }
-  if (evidence.captureStatus === "captured" || evidence.captureStatus === "published") {
+  if (evidence.captureStatus === "captured") {
     assert(evidence.blocker === null, `${evidence.captureStatus} evidence must have blocker set to null`);
     const capture = evidence.capture;
     assert(capture && typeof capture === "object" && !Array.isArray(capture), `${evidence.captureStatus} evidence needs capture linkage`);
@@ -38,10 +39,15 @@ export function validateEvidence(manifest, relative = "<manifest>") {
     assert(idPattern.test(capture.workflowRunId ?? ""), "capture.workflowRunId must be a positive decimal ID string");
     assert(idPattern.test(capture.artifact?.id ?? ""), "capture.artifact.id must be a positive decimal ID string");
     assert(capture.artifact?.name === `${manifest.slug}-${capture.sourceCommit}`, "capture.artifact.name must equal <slug>-<sourceCommit>");
-    const createdAt = Date.parse(capture.artifact?.createdAt ?? "");
-    const expiresAt = Date.parse(capture.artifact?.expiresAt ?? "");
-    assert(Number.isFinite(createdAt), "capture.artifact.createdAt must be an ISO date-time");
-    assert(Number.isFinite(expiresAt), "capture.artifact.expiresAt must be an ISO date-time");
+    const parseCanonicalUtc = (value) => {
+      if (!canonicalUtcPattern.test(value ?? "")) return Number.NaN;
+      const parsed = Date.parse(value);
+      return Number.isFinite(parsed) && new Date(parsed).toISOString() === value.replace("Z", ".000Z") ? parsed : Number.NaN;
+    };
+    const createdAt = parseCanonicalUtc(capture.artifact?.createdAt);
+    const expiresAt = parseCanonicalUtc(capture.artifact?.expiresAt);
+    assert(Number.isFinite(createdAt), "capture.artifact.createdAt must be canonical RFC 3339 UTC with whole-second precision");
+    assert(Number.isFinite(expiresAt), "capture.artifact.expiresAt must be canonical RFC 3339 UTC with whole-second precision");
     if (Number.isFinite(createdAt) && Number.isFinite(expiresAt)) {
       const retentionMs = evidence.retentionDays * 86_400_000;
       assert(expiresAt > createdAt, "capture artifact expiry must follow creation");
