@@ -13,27 +13,25 @@
 
 | Item | Source path | Target path | Notes |
 |------|-------------|-------------|-------|
-| Main crate | `src/*.rs` (10 files) | `crates/phenotype-event-bus/src/` | renamed `pheno_events` → `phenotype_event_bus` in all `use` paths |
-| Sub-crate | `crates/phenoevents-observability/` | `crates/phenotype-event-bus/observability/` | renamed `phenoevents-observability` → `phenotype-event-bus-observability`; nested under main crate |
+| Main crate | `src/*.rs` (10 files) | `crates/phenotype-event-bus/src/` | renamed package `pheno-events` → `phenotype-event-bus`; lib name preserved as `pheno_events` |
 | Tests | `tests/property_tests.rs` | `crates/phenotype-event-bus/tests/` | 8 property tests for envelope + schema |
 | Benches | `benches/{bus,schema}.rs` | `crates/phenotype-event-bus/benches/` | Criterion benchmarks |
 | Docs | `CHANGELOG.md`, `SSOT.md` | `crates/phenotype-event-bus/` | historical provenance |
 | README | `README.md` | `crates/phenotype-event-bus/README.md` | rewritten to reflect post-absorption identity + migration notes |
+| Observability backend | `crates/phenoevents-observability/` | (workspace-level) `pheno/crates/phenoevents-observability/` | REUSED existing workspace member — no copy created |
 
-**Total: 17 files transferred** (10 src + 1 sub-crate lib + 1 test + 2 bench + 2 docs + 1 readme). Source repo was 664 KB; absorbed footprint is similar (after dropping `.git/` and build artifacts).
+**Total: ~16 files transferred** (10 src + 1 test + 2 bench + 2 docs + 1 readme + Cargo.toml). Observability is provided by the pre-existing workspace member; no parallel copy was created.
 
 ## Renaming applied
 
 | Was | Now |
 |-----|-----|
-| Crate name: `pheno-events` | `phenotype-event-bus` |
-| Imports: `use pheno_events::...` | `use phenotype_event_bus::...` |
-| Sub-crate name: `phenoevents-observability` | `phenotype-event-bus-observability` |
-| Path: `crates/phenoevents-observability/` | `crates/phenotype-event-bus/observability/` |
-| Tracing filter target: `pheno_events=debug` | `phenotype_event_bus=debug` |
-| Test target name: `pheno-events-test` | `phenotype-event-bus-test` |
+| Crate package name: `pheno-events` | `phenotype-event-bus` |
+| Crate lib name (in `[lib].name`): `pheno_events` | `pheno_events` (preserved) |
+| Source `use` paths: `use pheno_events::...` | `use pheno_events::...` (unchanged) |
+| Cargo.toml consumer: `pheno-events = { path = ... }` | `phenotype-event-bus = { path = ... }` |
 
-No compatibility shim was added; upstream is `0.1.0` with no stable API commitment, and the only known downstream consumer is `pheno` itself (where the rename is applied atomically).
+**Strategy**: package renamed, lib name preserved. This avoids touching 13+ source files while still resolving the phantom workspace dep.
 
 ## Workspace integration
 
@@ -49,11 +47,12 @@ members = [
 phenotype-event-bus = { path = "crates/phenotype-event-bus" }
 ```
 
+The absorbed crate's `[dependencies]` declares `phenoevents-observability = { path = "../phenoevents-observability" }` — this is the pre-existing workspace member, not a new crate.
+
 ## What was NOT absorbed
 
-- The old `pheno-events` crate name and any reverse-compat re-exports (upstream is pre-1.0).
 - Workspace-level files from the source repo (`AGENTS.md`, `CLAUDE.md`, `lefthook.yml`, `justfile`, `audit_scorecard.json`, `.github/`, `docs/`, `Cargo.lock` from the source repo) — these were specific to the standalone-repo workflow. The absorbed crate adopts the parent `pheno` workflows.
-- The pre-existing `crates/phenoevents-observability/` workspace member in pheno — this is a parallel/duplicate observability crate left in place pending a future cleanup wave. The new nested `phenotype-event-bus-observability` sub-crate is self-contained and does not depend on it.
+- The source repo's `crates/phenoevents-observability/` directory — this is satisfied by the existing workspace member at `pheno/crates/phenoevents-observability/`. No duplicate was created.
 
 ## Verification
 
@@ -64,6 +63,7 @@ phenotype-event-bus = { path = "crates/phenotype-event-bus" }
 | `cargo test -p phenotype-event-bus --tests` | ✅ 37 unit + 8 property tests pass (45 total) |
 | `cargo metadata` workspace resolution | ✅ `phenotype-event-bus` resolves as a real workspace member |
 | Phantom workspace dep `phenotype-event-bus` | ✅ Now resolves to a real crate at the declared path |
+| `use pheno_events::...` still works | ✅ Lib name preserved as `pheno_events` |
 
 ## Boundary
 
