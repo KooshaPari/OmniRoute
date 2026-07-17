@@ -1,0 +1,59 @@
+{
+  "schema_version": "0.1.0",
+  "comment": "Example of a complete RouterDispatch with sync lane. The router returns a RouterMailbox subscription; the consumer follows it for engine events; the trace stream carries the task lifecycle.",
+  "request": {
+    "$ref": "https://github.com/KooshaPari/phenotype-router-spec/schema/router-dispatch.json#/examples/0"
+  },
+  "mailbox": {
+    "$ref": "https://github.com/KooshaPari/phenotype-router-spec/schema/router-mailbox.json#/examples/0"
+  },
+  "trace_events": [
+    {
+      "event_type": "task_registered",
+      "task_id": "110ec58a-a0f2-4ac4-8393-c866d813b8d1",
+      "occurred_at": "2026-06-24T18:30:00.123Z"
+    },
+    {
+      "event_type": "lane_sync_started",
+      "task_id": "110ec58a-a0f2-4ac4-8393-c866d813b8d1",
+      "occurred_at": "2026-06-24T18:30:00.140Z"
+    },
+    {
+      "event_type": "engine_dispatched",
+      "task_id": "110ec58a-a0f2-4ac4-8393-c866d813b8d1",
+      "conv_id": "f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+      "attributes": {
+        "engine": "engine-agentapi-claude",
+        "model": "claude-opus-4-7",
+        "lane": "sync"
+      },
+      "occurred_at": "2026-06-24T18:30:00.156Z"
+    },
+    {
+      "event_type": "engine_response_chunk",
+      "task_id": "110ec58a-a0f2-4ac4-8393-c866d813b8d1",
+      "conv_id": "f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+      "attributes": {
+        "chunk_index": "0",
+        "text_preview": "Looking at the bug in src/foo.rs..."
+      },
+      "occurred_at": "2026-06-24T18:30:01.234Z"
+    },
+    {
+      "event_type": "engine_response_complete",
+      "task_id": "110ec58a-a0f2-4ac4-8393-c866d813b8d1",
+      "conv_id": "f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+      "duration_ms": 4821,
+      "occurred_at": "2026-06-24T18:30:05.000Z"
+    },
+    {
+      "event_type": "task_completed",
+      "task_id": "110ec58a-a0f2-4ac4-8393-c866d813b8d1",
+      "duration_ms": 4877,
+      "occurred_at": "2026-06-24T18:30:05.001Z"
+    }
+  ],
+  "artifact": {
+    "$ref": "https://github.com/KooshaPari/phenotype-router-spec/schema/router-artifact.json#/examples/0"
+  }
+}

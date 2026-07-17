@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/KooshaPari/phenotype-router-spec/schema/router-artifact.json",
+  "title": "RouterArtifact",
+  "description": "A structured output produced by an engine after task completion. Artifacts are returned in StructuredResult.artifacts as part of an EnginePort.extract_result call.",
+  "type": "object",
+  "required": ["version", "artifact_id", "kind", "produced_at"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "examples": ["0.1.0"]
+    },
+    "artifact_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "task_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "conv_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "pr_url",
+        "diff",
+        "file",
+        "log",
+        "metric",
+        "screenshot",
+        "report",
+        "summary"
+      ]
+    },
+    "uri": {
+      "description": "URI pointing at the artifact body. May be an https URL, file://, data:, or substrate-specific scheme.",
+      "type": "string"
+    },
+    "text": {
+      "description": "Inline text body (small artifacts only).",
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "produced_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "examples": [{
+    "version": "0.1.0",
+    "artifact_id": "7a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+    "task_id":    "110ec58a-a0f2-4ac4-8393-c866d813b8d1",
+    "conv_id":    "f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+    "kind": "pr_url",
+    "uri": "https://github.com/KooshaPari/substrate/pull/1234",
+    "metadata": {
+      "title": "fix(engine-agentapi): retry on /status 503",
+      "branch": "fix/engine-agentapi-retry-503",
+      "files_changed": 3,
+      "lines_added": 47,
+      "lines_removed": 12
+    },
+    "produced_at": "2026-06-24T18:35:00Z"
+  }]
+}

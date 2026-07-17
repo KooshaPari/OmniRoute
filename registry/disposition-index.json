@@ -1642,6 +1642,17 @@
       "audit_artifact": null,
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T02:18:00.000000Z"
+    },
+    {
+      "id": "repo-phenotype-router-spec",
+      "path": "KooshaPari/phenotype-router-spec",
+      "disposition": "ABSORB",
+      "target": "phenotype-registry",
+      "wave": "2026-07-17-absorption",
+      "fsm": "absorbed",
+      "core_lang": "json",
+      "absorbed_date": "2026-07-17",
+      "note": "4 JSON schemas + 5 protocol docs absorbed into phenotype-registry/docs/specs/router-protocol/. Source repo archived."
     }
   ]
 }

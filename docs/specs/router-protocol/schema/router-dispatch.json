@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/KooshaPari/phenotype-router-spec/schema/router-dispatch.json",
+  "title": "RouterDispatch",
+  "description": "A routing decision emitted by a substrate-compatible router in response to a RouterRequest. The decision selects which engine + model to use and is consumed by an EnginePort to begin work.",
+  "type": "object",
+  "required": ["version", "decision_id", "request_id", "engine", "model", "created_at"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "description": "Protocol version. Current: \"0.1.0\".",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "examples": ["0.1.0"]
+    },
+    "decision_id": {
+      "description": "Unique identifier (UUID v4) for this decision. Different from request_id when the router returns multiple candidate decisions.",
+      "type": "string",
+      "format": "uuid"
+    },
+    "request_id": {
+      "description": "The RouterRequest.decision_request_id this dispatch responds to.",
+      "type": "string",
+      "format": "uuid"
+    },
+    "engine": {
+      "description": "Engine identifier. Convention: \"<engine-family>-<agent>\" or \"<engine-family>:<agent>\".",
+      "type": "string",
+      "examples": ["engine-agentapi-claude", "engine:codex", "cliproxy-gpt-4o", "forge-default"]
+    },
+    "model": {
+      "description": "Model identifier passed to the engine.",
+      "type": "string",
+      "examples": ["claude-opus-4-7", "gpt-4o", "kimi-k2-0711-preview"]
+    },
+    "reason": {
+      "description": "Optional rationale (for debug, audit, or explainability).",
+      "type": "string"
+    },
+    "candidates": {
+      "description": "Ordered fallback candidates if the primary engine fails.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["engine", "model"],
+        "properties": {
+          "engine": { "type": "string" },
+          "model":  { "type": "string" }
+        }
+      }
+    },
+    "policy": {
+      "description": "Overflow / retry / fallback policy attached to this dispatch.",
+      "type": "object",
+      "properties": {
+        "max_retries":       { "type": "integer", "minimum": 0 },
+        "on_engine_error":   { "enum": ["retry", "fallback", "fail"] },
+        "on_budget_overflow": { "enum": ["reject", "truncate", "warn"] },
+        "timeout_seconds":   { "type": "integer", "minimum": 0 }
+      }
+    },
+    "context": {
+      "description": "Arbitrary trace context propagated to the engine + mailbox.",
+      "type": "object",
+      "additionalProperties": true
+    },
+    "created_at": {
+      "description": "ISO-8601 RFC3339 timestamp at which the router produced the decision.",
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "examples": [{
+    "version": "0.1.0",
+    "decision_id": "f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+    "request_id":  "110ec58a-a0f2-4ac4-8393-c866d813b8d1",
+    "engine": "engine-agentapi-claude",
+    "model":  "claude-opus-4-7",
+    "reason": "explicit engine directive",
+    "candidates": [
+      { "engine": "engine-agentapi-codex",  "model": "codex-mini" },
+      { "engine": "engine-forge",            "model": "kimi-k2-0711-preview" }
+    ],
+    "policy": {
+      "max_retries": 2,
+      "on_engine_error": "fallback",
+      "on_budget_overflow": "warn",
+      "timeout_seconds": 600
+    },
+    "created_at": "2026-06-24T18:30:00Z"
+  }]
+}
