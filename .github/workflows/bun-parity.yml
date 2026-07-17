@@ -38,6 +38,8 @@ jobs:
           bun-version: 1.3.14
       - name: Frozen root npm install
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Materialize the pinned root Bun executable
+        run: node node_modules/bun/install.js
       - name: Frozen Bun installs
         shell: bash
         run: |
@@ -75,6 +77,8 @@ jobs:
         with:
           bun-version: 1.3.14
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Materialize the pinned root Bun executable
+        run: node node_modules/bun/install.js
       - name: Install v4 packages
         run: |
           for directory in packages/api-contracts packages/design-tokens apps/bff apps/web apps/desktop; do
