@@ -1,0 +1,15 @@
+{
+  "name": "guardrails-pii-ts-processPII",
+  "tier": "T2",
+  "edge": "guardrails.pii.anonymize",
+  "description": "processPII() inputSanitizer with mixed PII/non-PII texts",
+  "iterations": 3000,
+  "totalMs": 20.970583999999974,
+  "meanMicros": 6.617911000000029,
+  "minMicros": 1.2499999999704414,
+  "maxMicros": 5780.124999999998,
+  "p50Micros": 2.7910000000019863,
+  "p95Micros": 17.33400000000529,
+  "p99Micros": 20.041999999989457,
+  "result": 1
+}

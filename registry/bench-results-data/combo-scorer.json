@@ -1,0 +1,15 @@
+{
+  "name": "combo-scorer-ts-calculateScore",
+  "tier": "T3",
+  "edge": "scoring.combo.scoreSimd",
+  "description": "TypeScript calculateScore() for 1 candidate with 12 factors",
+  "iterations": 5000,
+  "totalMs": 8.836332999999968,
+  "meanMicros": 1.3642036000000188,
+  "minMicros": 0.4159999999728825,
+  "maxMicros": 1137.4170000000277,
+  "p50Micros": 0.5829999998923086,
+  "p95Micros": 1.5839999999798238,
+  "p99Micros": 4.37499999998181,
+  "result": 0.5019000000000001
+}

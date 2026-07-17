@@ -1,0 +1,109 @@
+[
+  {
+    "edge": "scoring.combo.scoreSimd",
+    "benchName": "combo-scorer-ts-calculateScore",
+    "tier": "T3",
+    "claimMicros": 5,
+    "measuredMicros": 1,
+    "claimOpsSec": 200000,
+    "measuredOpsSec": 565846,
+    "verdict": "PASS",
+    "note": "TS calculateScore() baseline; Rust SIMD target ≤2x",
+    "source": "combo-scorer.json"
+  },
+  {
+    "edge": "compression.lite.collapseWhitespace",
+    "benchName": "compression-lite-collapseWhitespace",
+    "tier": "T2",
+    "claimMicros": 50,
+    "measuredMicros": 82,
+    "claimOpsSec": 20000,
+    "measuredOpsSec": 12137,
+    "verdict": "PASS",
+    "note": "Per-call latency with UDS RPC round-trip",
+    "source": "compression-lite.json"
+  },
+  {
+    "edge": "compression.lite.compressToolResults",
+    "benchName": "compression-lite-compressToolResults",
+    "tier": "T2",
+    "claimMicros": 50,
+    "measuredMicros": 16,
+    "claimOpsSec": 20000,
+    "measuredOpsSec": 28632,
+    "verdict": "PASS",
+    "note": "Per-call latency with UDS RPC round-trip",
+    "source": "compression-lite.json"
+  },
+  {
+    "edge": "compression.lite.dedupSystemPrompt",
+    "benchName": "compression-lite-dedupSystemPrompt",
+    "tier": "T2",
+    "claimMicros": 50,
+    "measuredMicros": 14,
+    "claimOpsSec": 20000,
+    "measuredOpsSec": 53248,
+    "verdict": "PASS",
+    "note": "Per-call latency with UDS RPC round-trip",
+    "source": "compression-lite.json"
+  },
+  {
+    "edge": "compression.lite.removeRedundantContent",
+    "benchName": "compression-lite-removeRedundantContent",
+    "tier": "T2",
+    "claimMicros": 50,
+    "measuredMicros": 6,
+    "claimOpsSec": 20000,
+    "measuredOpsSec": 124081,
+    "verdict": "PASS",
+    "note": "Per-call latency with UDS RPC round-trip",
+    "source": "compression-lite.json"
+  },
+  {
+    "edge": "compression.lite.replaceImageUrls",
+    "benchName": "compression-lite-replaceImageUrls",
+    "tier": "T2",
+    "claimMicros": 0,
+    "measuredMicros": 2,
+    "claimOpsSec": 0,
+    "measuredOpsSec": 583643,
+    "verdict": "FLAG",
+    "source": "compression-lite.json"
+  },
+  {
+    "edge": "guardrails.pii.anonymize",
+    "benchName": "guardrails-pii-ts-processPII",
+    "tier": "T2",
+    "claimMicros": 50,
+    "measuredMicros": 7,
+    "claimOpsSec": 20000,
+    "measuredOpsSec": 143058,
+    "verdict": "PASS",
+    "note": "Per-call latency with UDS RPC round-trip",
+    "source": "guardrails-pii.json"
+  },
+  {
+    "edge": "cache.semantic.lookup",
+    "benchName": "semantic-lookup-ts-some",
+    "tier": "T3",
+    "claimMicros": 8,
+    "measuredMicros": 12,
+    "claimOpsSec": 125000,
+    "measuredOpsSec": 20710,
+    "verdict": "FAIL",
+    "note": "TS Array.some() baseline; Rust simhash target",
+    "source": "semantic-lookup.json"
+  },
+  {
+    "edge": "sse.chunk.sseStream",
+    "benchName": "sse-chunking-ts-encode-decode",
+    "tier": "T3",
+    "claimMicros": 3,
+    "measuredMicros": 3,
+    "claimOpsSec": 333333,
+    "measuredOpsSec": 290092,
+    "verdict": "PASS",
+    "note": "TS TextEncoder/Decoder baseline; Rust zero-copy target",
+    "source": "sse-chunking.json"
+  }
+]

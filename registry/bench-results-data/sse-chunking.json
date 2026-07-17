@@ -1,0 +1,15 @@
+{
+  "name": "sse-chunking-ts-encode-decode",
+  "tier": "T3",
+  "edge": "sse.chunk.sseStream",
+  "description": "TS TextEncoder + TextDecoder per SSE line (matches chatCore hot path)",
+  "iterations": 3000,
+  "totalMs": 10.341541000000007,
+  "meanMicros": 3.092544666666547,
+  "minMicros": 1.2909999999806132,
+  "maxMicros": 1357.3339999999803,
+  "p50Micros": 2.0830000000273685,
+  "p95Micros": 4.583000000025095,
+  "p99Micros": 7.957999999973708,
+  "result": 80
+}

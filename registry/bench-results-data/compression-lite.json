@@ -1,0 +1,79 @@
+{
+  "name": "compression-lite-collapseWhitespace",
+  "tier": "T2",
+  "edge": "compression.lite.collapseWhitespace",
+  "description": "collapseWhitespace() on a multi-turn conversation body",
+  "iterations": 2000,
+  "totalMs": 164.77941700000008,
+  "meanMicros": 82.02663699999877,
+  "minMicros": 35.99999999994452,
+  "maxMicros": 23010.249999999927,
+  "p50Micros": 47.333999999978005,
+  "p95Micros": 82.08300000001145,
+  "p99Micros": 449.7910000000047,
+  "result": true
+}
+---
+{
+  "name": "compression-lite-compressToolResults",
+  "tier": "T2",
+  "edge": "compression.lite.compressToolResults",
+  "description": "compressToolResults() on tool output blocks",
+  "iterations": 2000,
+  "totalMs": 69.85175000000004,
+  "meanMicros": 16.180184499998234,
+  "minMicros": 0.45799999998052954,
+  "maxMicros": 13768.459000000006,
+  "p50Micros": 0.9169999999585343,
+  "p95Micros": 1.4160000000629225,
+  "p99Micros": 2.9999999999290594,
+  "result": false
+}
+---
+{
+  "name": "compression-lite-dedupSystemPrompt",
+  "tier": "T2",
+  "edge": "compression.lite.dedupSystemPrompt",
+  "description": "dedupSystemPrompt() on a repeated system prompt",
+  "iterations": 2000,
+  "totalMs": 37.56012499999997,
+  "meanMicros": 13.83706199999926,
+  "minMicros": 1.165999999898304,
+  "maxMicros": 4655.499999999961,
+  "p50Micros": 1.334000000042579,
+  "p95Micros": 2.583999999956177,
+  "p99Micros": 71.41699999999673,
+  "result": false
+}
+---
+{
+  "name": "compression-lite-removeRedundantContent",
+  "tier": "T2",
+  "edge": "compression.lite.removeRedundantContent",
+  "description": "removeRedundantContent() on assistant tool-call blocks",
+  "iterations": 2000,
+  "totalMs": 16.11850000000004,
+  "meanMicros": 6.201276999999265,
+  "minMicros": 0.29099999994741665,
+  "maxMicros": 6790.875000000028,
+  "p50Micros": 0.41699999997035775,
+  "p95Micros": 2.417000000036751,
+  "p99Micros": 9.666000000038366,
+  "result": false
+}
+---
+{
+  "name": "compression-lite-replaceImageUrls",
+  "tier": "T2",
+  "edge": "compression.lite.replaceImageUrls",
+  "description": "replaceImageUrls() with default model (no vision URLs in body = fast-path)",
+  "iterations": 2000,
+  "totalMs": 3.42674999999997,
+  "meanMicros": 1.5384819999986235,
+  "minMicros": 0.9169999999585343,
+  "maxMicros": 39.54200000009678,
+  "p50Micros": 1.125000000001819,
+  "p95Micros": 2.2910000000138098,
+  "p99Micros": 3.291999999987638,
+  "result": false
+}

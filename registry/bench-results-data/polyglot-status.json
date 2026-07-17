@@ -1,0 +1,124 @@
+{
+  "generated": "2026-07-07T01:30:49.417Z",
+  "session": "L5-114",
+  "branch": "chore/l5-109-omniroute-fork-cleanup-2026-06-18",
+  "total_items": 23,
+  "ok_count": 23,
+  "items": [
+    {
+      "id": "audit_log_compliance",
+      "name": "polyglot_tier_decisions audit log → compliance.logAuditEvent",
+      "evidence": "open-sse/rpc/audit.ts:33"
+    },
+    {
+      "id": "cascade_ks_bridge",
+      "name": "Per-provider cascading kill-switch bridge",
+      "evidence": "open-sse/rpc/killSwitchBridge.ts:11"
+    },
+    {
+      "id": "ffi_guardrails_pii",
+      "name": "F4 guardrails-pii FFI crate (Rust aho-corasick)",
+      "evidence": "EXISTS"
+    },
+    {
+      "id": "ffi_guardrails_pii_test",
+      "name": "F4 guardrails-pii 3/3 inline tests",
+      "evidence": "crates/omniroute-ffi/crates/guardrails-pii/src/lib.rs:3 matches"
+    },
+    {
+      "id": "ffi_guardrails_wired",
+      "name": "F4 guardrails-pii T3 path in TS",
+      "evidence": "open-sse/rpc/edges/guardrailsEdges.ts:25"
+    },
+    {
+      "id": "ffi_v2_bucketed",
+      "name": "F5 v2 semantic-cache bucketed lookup",
+      "evidence": "crates/omniroute-ffi/crates/signature-cache/src/lib.rs:202"
+    },
+    {
+      "id": "ffi_token_bucket",
+      "name": "DEBT-001 token-bucket Rust crate",
+      "evidence": "EXISTS"
+    },
+    {
+      "id": "ffi_token_bucket_test",
+      "name": "DEBT-001 token-bucket 7/7 inline tests",
+      "evidence": "\u001b[01;31m\u001b[Ktest result\u001b[m\u001b[K: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\u001b[01;31m\u001b[Ktest result\u001b[m\u001b[K: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    },
+    {
+      "id": "ffi_token_bucket_edge",
+      "name": "DEBT-001 token-bucket TS edge binding",
+      "evidence": "EXISTS"
+    },
+    {
+      "id": "await_scorepool",
+      "name": "scorePool called with await in 3 sites",
+      "evidence": "open-sse/services/autoCombo/engine.ts:1 matches, open-sse/services/autoCombo/routerStrategy.ts:1 matches, open-sse/services/combo.ts:1 matches"
+    },
+    {
+      "id": "env_override",
+      "name": "OMNIROUTE_EDGE_TIER_* env-override wired",
+      "evidence": ".env.example:1822"
+    },
+    {
+      "id": "cross_compile",
+      "name": "scripts/build-cross-ffi.sh (5 targets)",
+      "evidence": "scripts/build-cross-ffi.sh:0 matches"
+    },
+    {
+      "id": "ci_gate",
+      "name": "tier-matrix:verify CI gate script",
+      "evidence": "scripts/check/tier-matrix-verify.mjs:1 matches, package.json:1 matches"
+    },
+    {
+      "id": "workflow",
+      "name": ".github/workflows/rust-ffi-ci.yml matrix",
+      "evidence": ".github/workflows/rust-ffi-ci.yml:0 matches"
+    },
+    {
+      "id": "tests_token_bucket",
+      "name": "tests/unit/polyglot-token-bucket-edges.test.ts",
+      "evidence": "EXISTS"
+    },
+    {
+      "id": "tests_cascade",
+      "name": "tests/unit/polyglot-ks-cascade.test.ts",
+      "evidence": "EXISTS"
+    },
+    {
+      "id": "tests_matrix",
+      "name": "tests/unit/polyglot-tier-matrix-verify.test.ts",
+      "evidence": "EXISTS"
+    },
+    {
+      "id": "tests_guardrails",
+      "name": "tests/unit/polyglot-guardrails-edges.test.ts",
+      "evidence": "EXISTS"
+    },
+    {
+      "id": "tests_audit",
+      "name": "audit-log integration test",
+      "evidence": "EXISTS"
+    },
+    {
+      "id": "adr_appendix_c",
+      "name": "ADR-032 Appendix C sections",
+      "evidence": "docs/adr/0032-polyglot-binding-tiers.md:1 matches"
+    },
+    {
+      "id": "doc_accuracy",
+      "name": "check-fabricated-docs.mjs --strict shows no new drift",
+      "evidence": "✗ 59 claim(s) drift from source. Failing (--strict)."
+    },
+    {
+      "id": "ts_sweep",
+      "name": "TS polyglot sweep passes",
+      "evidence": "Command failed: node --import tsx/esm --test tests/unit/polyglot-*.test.ts 2>&1 | grep -E \"^ℹ (tests|pass|fail)\""
+    },
+    {
+      "id": "rust_sweep",
+      "name": "Rust FFI sweep passes",
+      "evidence": "\u001b[01;31m\u001b[Ktest result\u001b[m\u001b[K: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s | \u001b[01;31m\u001b[Ktest result\u001b[m\u001b[K: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s | \u001b[01;31m\u001b[Ktest result\u001b[m\u001b[K: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s | \u001b[01;31m\u001b[Ktest result\u001b[m\u001b[K: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s | \u001b[01;31m\u001b[Ktest result\u001b[m\u001b[K: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s | \u001b[01;31m\u001b[Ktest result\u001b[m\u001b[K: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s | \u001b[01;31m\u001b[Ktest result\u001b[m\u001b[K: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s | \u001b[01;31m\u001b[Ktest result\u001b[m\u001b[K: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s | \u001b[01;31m\u001b[Ktest result\u001b[m\u001b[K: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s | \u001b[01;31m\u001b[Ktest result\u001b[m\u001b[K: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    }
+  ]
+}

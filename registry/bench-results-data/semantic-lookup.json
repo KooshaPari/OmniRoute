@@ -1,0 +1,15 @@
+{
+  "name": "semantic-lookup-ts-some",
+  "tier": "T3",
+  "edge": "cache.semantic.lookup",
+  "description": "TS Array.some() substring scan across 200 signature patterns (simulated simhash baseline)",
+  "iterations": 2000,
+  "totalMs": 96.57045799999997,
+  "meanMicros": 12.021789499999896,
+  "minMicros": 0.4159999999728825,
+  "maxMicros": 1271.4169999999854,
+  "p50Micros": 12.29200000000219,
+  "p95Micros": 22.208000000006223,
+  "p99Micros": 41.04099999997857,
+  "result": false
+}
