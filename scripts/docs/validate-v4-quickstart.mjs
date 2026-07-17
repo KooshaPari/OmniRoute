@@ -29,7 +29,7 @@ for (const packagePath of ["packages/api-contracts", "apps/bff", "apps/web"]) {
 }
 requireEvidence(bffSource.includes("app.get('/healthz'"), "BFF /healthz route changed");
 requireEvidence(bffSource.includes("status: 'ok'") && bffSource.includes("service: 'argismonitor-bff'"), "BFF health contract changed");
-requireEvidence(homeSource.includes("fetch('http://localhost:4322/healthz')"), "home BFF URL changed");
+requireEvidence(homeSource.includes("fetch('/api/bff/healthz')"), "home BFF health proxy URL changed");
 requireEvidence(homeSource.includes("Welcome to argismonitor v4"), "implemented home heading changed");
 requireEvidence(doc.includes("Welcome to argismonitor v4"), "documented home heading missing");
 
