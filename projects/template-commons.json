@@ -1,0 +1,17 @@
+{
+  "name": "template-commons",
+  "languages": [
+    "python"
+  ],
+  "primary_language": "python",
+  "status": "active",
+  "has_readme": true,
+  "type": "template-library",
+  "path": "repos/template-commons",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh",
+  "absorbed_into": "phenokits-commons",
+  "absorption_note": "Python shared template workflows + ADR sessions; 5 branches, 259KB. Per RATIONALIZATION_PLAN.md phenokits-commons is the template home.",
+  "note": "Audited 2026-07-17; recovery from deleted remote. Templates should consolidate into phenokits-commons/templates.",
+  "adr": "ADR-ECO-014"
+}

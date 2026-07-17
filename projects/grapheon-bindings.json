@@ -1,0 +1,17 @@
+{
+  "name": "grapheon-bindings",
+  "languages": [
+    "go"
+  ],
+  "primary_language": "go",
+  "status": "active",
+  "has_readme": false,
+  "type": "library",
+  "path": "repos/grapheon-bindings",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh",
+  "absorbed_into": "phenotype-go-sdk",
+  "absorption_note": "Go bindings for Grapheon (canonical graph library); 1 branch, 2KB stub. Target: phenotype-go-sdk Go SDK monorepo.",
+  "note": "Audited 2026-07-17; stub repo (2KB) \u2014 likely just binding declarations. Consolidate into phenotype-go-sdk when Grapheon is absorbed.",
+  "adr": "ADR-ECO-007"
+}

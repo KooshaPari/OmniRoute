@@ -1,0 +1,17 @@
+{
+  "name": "phenoResearchEngine",
+  "languages": [
+    "python"
+  ],
+  "primary_language": "python",
+  "status": "active",
+  "has_readme": true,
+  "type": "research-tool",
+  "path": "repos/phenoResearchEngine",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh",
+  "absorbed_into": "phenoAI",
+  "absorption_note": "Python research/investigation engine; 30 branches, 236KB. No external production dependents. Target: phenoAI research workspace (per RATIONALIZATION_PLAN.md, phenoAI absorbs research tooling).",
+  "note": "Audited 2026-07-17; queued for absorption into phenoAI. 30 unmerged branches on remote \u2014 careful branch triage before transfer.",
+  "adr": "ADR-ECO-013"
+}

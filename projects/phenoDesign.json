@@ -1,0 +1,17 @@
+{
+  "name": "phenoDesign",
+  "languages": [
+    "typescript"
+  ],
+  "primary_language": "typescript",
+  "status": "active",
+  "has_readme": true,
+  "type": "design-system",
+  "path": "repos/phenoDesign",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh",
+  "absorbed_into": "phenodocs",
+  "absorption_note": "TypeScript design tokens + VitePress theme package (@kooshapari/design); 21 branches, 849KB. Per RATIONALIZATION_PLAN.md: 'phenodocs Absorbs: phenoDesign (design tokens live here)'.",
+  "note": "Audited 2026-07-17; pre-existing archive plan (was on the archive shortlist but unexecuted). Now queued for absorption into phenodocs.",
+  "adr": "ADR-ECO-014"
+}

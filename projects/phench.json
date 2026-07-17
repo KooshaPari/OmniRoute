@@ -1,0 +1,17 @@
+{
+  "name": "phench",
+  "languages": [
+    "python"
+  ],
+  "primary_language": "python",
+  "status": "active",
+  "has_readme": true,
+  "type": "cli",
+  "path": "repos/phench",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh",
+  "absorbed_into": "phenodocs",
+  "absorption_note": "Python project-state runtime CLI for Phenotype monorepos; 1 branch, 84KB. Target: phenodocs governance tooling layer (or phenotype-tooling).",
+  "note": "Audited 2026-07-17; small CLI for monorepo project-state inspection. Fits governance tooling layer.",
+  "adr": "ADR-ECO-006"
+}

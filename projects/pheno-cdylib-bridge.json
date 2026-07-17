@@ -1,0 +1,17 @@
+{
+  "name": "pheno-cdylib-bridge",
+  "languages": [
+    "rust"
+  ],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": true,
+  "type": "library",
+  "path": "repos/pheno-cdylib-bridge",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh",
+  "absorbed_into": "pheno (monorepo crates/cdylib-bridge)",
+  "absorption_note": "Rust C-ABI shared library exposing pheno-* Rust crates to Go (forgecode) and other languages; 3 branches, 49KB. Belongs in pheno monorepo as crates/cdylib-bridge.",
+  "note": "Audited 2026-07-17; bridges Rust workspace to non-Rust callers. Should be part of pheno monorepo so the cdylib can keep its workspace deps consistent.",
+  "adr": "ADR-ECO-006"
+}

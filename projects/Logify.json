@@ -1,0 +1,17 @@
+{
+  "name": "Logify",
+  "languages": [
+    "rust"
+  ],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": true,
+  "type": "library",
+  "path": "repos/Logify",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh",
+  "absorbed_into": "pheno (monorepo crates/logify)",
+  "absorption_note": "Rust structured logging framework with zero-cost abstraction; 18 branches, 125KB. Target: pheno monorepo as crates/logify (or absorbed into PhenoObservability per ADR-035A).",
+  "note": "Audited 2026-07-17; structured logging framework. May overlap with PhenoObservability tracing/logging. Verify before merge \u2014 could be MERGE-INTO-PO instead of standalone crate.",
+  "adr": "ADR-035A"
+}

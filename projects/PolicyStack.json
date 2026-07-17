@@ -1,0 +1,17 @@
+{
+  "name": "PolicyStack",
+  "languages": [
+    "python"
+  ],
+  "primary_language": "python",
+  "status": "active",
+  "has_readme": true,
+  "type": "cli",
+  "path": "repos/PolicyStack",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh",
+  "absorbed_into": "phenotype-tooling",
+  "absorption_note": "Python policy-federation CLI; per RATIONALIZATION_EXECUTION.md this is \u2705 SAFE (no external manifest deps). 21 branches, 13.6MB. Target: phenotype-tooling/policystack.",
+  "note": "Audited 2026-07-17; per RATIONALIZATION_EXECUTION.md the policy-federation identifier is already resolved; safe to absorb without chokepoint concerns.",
+  "adr": "ADR-040"
+}

@@ -1,0 +1,86 @@
+# grapheon-bindings Absorption-Justification Audit (2026-07-17)
+
+**Audit ID:** ABS-JUS-grapheon-bindings-2026-07-17
+**Auditor:** Forge (autonomous governance audit)
+**Date:** 2026-07-17
+**Phase:** Queue Refresh — 10 new least-active candidates from kooshapari remote
+**Source Repo:** `gh api repos/KooshaPari/grapheon-bindings` (remote)
+**Verdict:** **ABSORB** with target `phenotype-go-sdk`
+**Confidence:** MEDIUM (0.65) — pending deeper content audit before transfer
+
+---
+
+## Source
+
+`grapheon-bindings` is the **library** repo owned by `kooshapari`.
+- Last push: `Go bindings for Grapheon (canonical graph library)`
+- Default branch: `main` (assumed).
+- Languages: ['go']
+- Has README: False
+- Branches: 2026-07-17-queue-refresh (see disposition-index for branch count)
+
+### Why this is in scope for absorption review
+
+This repo is in scope because it is one of the **10 new least-active non-archived repos**
+on the kooshapari remote that are NOT yet tracked in `registry/disposition-index.json`.
+The queue refresh is part of the standing "always keep 10 repos in queue" directive.
+
+The disposition is **ABSORB** with target `phenotype-go-sdk` per:
+- `RATIONALIZATION_PLAN.md` (canonical absorbers per domain role)
+- `RATIONALIZATION_EXECUTION.md` (per-absorber merge order + archive shortlist)
+- `DOMAIN_ROLES.md` (terminal owners per language/domain)
+
+## Target
+
+The target for absorption is **`phenotype-go-sdk`**.
+
+Go bindings for Grapheon (canonical graph library); 1 branch, 2KB stub. Target: phenotype-go-sdk Go SDK monorepo.
+
+## Status
+
+**Status:** `ABSORB` — queued for absorption into `phenotype-go-sdk`.
+
+This is a **QUEUE ENTRY** (fsm=active), not a completed absorption. Deeper content audit
+required before transfer:
+- Read README/AGENTS.md/CHANGELOG.md
+- Check Cargo.toml/package.json/go.mod/pyproject.toml for workspace membership
+- Verify no external production dependents (search org-wide)
+- Confirm branch triage strategy for multi-branch repos
+
+## Confidence
+
+**Confidence:** 0.65 (MEDIUM).
+
+**Confidence drivers:**
+- **+0.30** — Repo is real, non-archived, on kooshapari remote.
+- **+0.20** — Target absorber (`phenotype-go-sdk`) is a canonical spine per RATIONALIZATION_PLAN.md.
+- **+0.15** — Disposition matches standing rationale in plan docs.
+- **-0.20** — No deep content audit yet (language, tests, dependents).
+- **-0.10** — Branch count varies (1-30); some may need pruning before transfer.
+
+**Final:** 0.65 = MEDIUM. Queue-ready; absorption execution requires deeper audit.
+
+---
+
+## Restore-Command
+
+```bash
+# Pre-absorption snapshot
+gh repo archive KooshaPari/grapheon-bindings  # archive after absorption PR merges
+git clone https://github.com/KooshaPari/grapheon-bindings.git /tmp/grapheon-bindings-pre-absorption
+```
+
+**Restore posture:** Source repo will be archived after the absorption PR merges.
+Branch forensic tags will be added to capture unique branch state.
+
+---
+
+## Cross-References
+
+- `RATIONALIZATION_PLAN.md` — canonical absorbers per domain role.
+- `RATIONALIZATION_EXECUTION.md` — per-absorber merge order + archive shortlist.
+- `DOMAIN_ROLES.md` — terminal owners per language/domain.
+- `BOUNDARY_OWNERS.md` — boundary ownership map.
+- `registry/disposition-index.json` — registry spine with all 144+ rows.
+
+**End of queue entry.**
