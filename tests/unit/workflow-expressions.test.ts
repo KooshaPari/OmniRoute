@@ -8,15 +8,26 @@ function stripYamlComment(value: string): string {
   if (trimmed[0] === '"') {
     let escaped = false;
     for (let index = 1; index < trimmed.length; index += 1) {
-      if (trimmed[index] === '"' && !escaped) return trimmed.slice(0, index + 1);
+      if (trimmed[index] === '"' && !escaped) {
+        const remainder = trimmed.slice(index + 1).trimStart();
+        return !remainder || remainder.startsWith("#") ? trimmed.slice(0, index + 1) : '"';
+      }
       if (trimmed[index] === "\\" && !escaped) escaped = true;
       else escaped = false;
     }
     return trimmed; // Unterminated YAML quoting is rejected by unwrapping.
   }
   if (trimmed[0] === "'") {
-    const comment = trimmed.match(/'\s+#/);
-    return comment?.index === undefined ? trimmed : trimmed.slice(0, comment.index + 1);
+    for (let index = 1; index < trimmed.length; index += 1) {
+      if (trimmed[index] !== "'") continue;
+      if (trimmed[index + 1] === "'") {
+        index += 1;
+        continue;
+      }
+      const remainder = trimmed.slice(index + 1).trimStart();
+      return !remainder || remainder.startsWith("#") ? trimmed.slice(0, index + 1) : '"';
+    }
+    return trimmed;
   }
   let inExpressionString = false;
   for (let index = 0; index < value.length; index += 1) {
@@ -81,10 +92,15 @@ function collectIfScalars(lines: string[]): Array<{ line: number; scalar: string
   const scalars: Array<{ line: number; scalar: string }> = [];
   for (let index = 0; index < lines.length; index += 1) {
     const currentLine = lines[index].replace(/\r$/, "");
-    const match = currentLine.match(/^(\s*)(?:-\s*)?if\s*:\s*(.*)$/);
+    const match = currentLine.match(/^(\s*)(?:-\s*)?(?:if|"if"|'if')\s*:\s*(.*)$/);
     if (!match) {
-      const inline = currentLine.match(/(?:^|[{,])\s*if\s*:\s*(.*)$/);
-      if (!inline) continue;
+      const inline = currentLine.match(/(?:^|[{,])\s*(?:if|"if"|'if')\s*:\s*(.*)$/);
+      if (!inline) {
+        if (/^\s*(?:-\s*)?(?:\?|[!*&][^\s:]*)\s*(?:if|"if"|'if')?\s*:/.test(currentLine)) {
+          scalars.push({ line: index + 1, scalar: '"' });
+        }
+        continue;
+      }
       let inSingleQuotedString = false;
       let expressionDepth = 0;
       let end = inline[1].length;
@@ -108,6 +124,10 @@ function collectIfScalars(lines: string[]): Array<{ line: number; scalar: string
         }
       }
       scalars.push({ line: index + 1, scalar: inline[1].slice(0, end) });
+      continue;
+    }
+    if (currentLine.includes("\t")) {
+      scalars.push({ line: index + 1, scalar: '"' });
       continue;
     }
     const block = match[2].match(/^([>|])(?:(?:[+-][1-9]?)|(?:[1-9][+-]?))?\s*(?:#.*)?$/);
@@ -139,6 +159,9 @@ test("workflow expression scanner handles adversarial scalar syntax", () => {
     "if: ${{ contains('}}', github.ref) && github.event_name == 'push' }}",
     "if: ${{ github.event_name == 'push' }} # ${{ github.ref == \"unsafe-comment\" }}",
     "if: \"${{ github.event_name == 'push' }}\"",
+    "\"if\": ${{ github.event_name == 'push' }}",
+    "'if': ${{ github.event_name == 'push' }}",
+    "- \"if\": ${{ github.event_name == 'push' }}",
     "if: \"${{ contains('}}', github.ref) && github.event_name == 'push' }}\" # YAML comment",
     "if: '${{ contains(''}}'', github.ref) && github.event_name == ''push'' }}'",
     "if: &condition ${{ github.event_name == 'push' }}",
@@ -148,6 +171,7 @@ test("workflow expression scanner handles adversarial scalar syntax", () => {
     "if: ${{ github.event_name == 'push' }} && ${{ github.ref == 'refs/heads/main' }}",
     "if: ${{ format('owner''s \"quoted\" value') == 'expected' }}",
     "jobs: { test: { if: ${{ fromJSON('{\"enabled\": true}').enabled }}, runs-on: ubuntu-latest } }",
+    "jobs: { test: { 'if': ${{ github.event_name == 'push' }}, runs-on: ubuntu-latest } }",
   ];
   const unsafe = [
     "if: ${{ github.event_name == 'push' }} && github.ref == \"refs/heads/main\"",
@@ -160,6 +184,16 @@ test("workflow expression scanner handles adversarial scalar syntax", () => {
     "if: *condition",
     "if: github.ref == refs/heads/main#fragment",
     "if:\t${{ github.event_name == 'push' }}",
+    '\"if\": ${{ github.event_name == "push" }}',
+    "'if': ${{ github.event_name == \"push\" }}",
+    "- 'if': ${{ github.event_name == \"push\" }}",
+    'jobs: { test: { "if": ${{ github.event_name == "push" }}, runs-on: ubuntu-latest } }',
+    "if: \"${{ github.event_name == 'push' }}\" trailing",
+    "if: '${{ github.event_name == ''push'' }}' &trailing",
+    "? if: ${{ github.event_name == 'push' }}",
+    "*if: ${{ github.event_name == 'push' }}",
+    "!tag if: ${{ github.event_name == 'push' }}",
+    "&anchor if: ${{ github.event_name == 'push' }}",
   ];
   assert.deepEqual(
     collectIfScalars(safe).filter(({ scalar }) => hasUnsafeExpressionScalar(scalar)),
@@ -225,6 +259,12 @@ test("workflow expression scanner handles adversarial scalar syntax", () => {
   assert.equal(
     hasUnsafeExpressionScalar(
       collectIfScalars(["if: |-2", "  github.event_name ==\t'push'"])[0].scalar
+    ),
+    true
+  );
+  assert.equal(
+    hasUnsafeExpressionScalar(
+      collectIfScalars(["if: |\t# tabbed separator", "  github.event_name == 'push'"])[0].scalar
     ),
     true
   );
