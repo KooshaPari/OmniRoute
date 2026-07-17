@@ -1,0 +1,19 @@
+{
+  "name": "UnityDoorstop-NexusPatched",
+  "languages": [
+    "c"
+  ],
+  "primary_language": "c",
+  "status": "queued",
+  "has_readme": false,
+  "type": "game-modding-tool",
+  "path": "repos/UnityDoorstop-NexusPatched",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch2",
+  "queued_at": "2026-07-17",
+  "proposed_target": "phenotype-legacy-collection",
+  "proposed_target_repo": "(new spine)",
+  "proposed_target_path": null,
+  "absorption_note": null,
+  "note": "Game modding utility (Unity Mono runtime loader). Not phenotype \u2014 legacy collection spine."
+}

@@ -1,0 +1,19 @@
+{
+  "name": "phenotype-infrakit",
+  "languages": [
+    "rust"
+  ],
+  "primary_language": "rust",
+  "status": "queued",
+  "has_readme": false,
+  "type": "library-collection",
+  "path": "repos/phenotype-infrakit",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch2",
+  "queued_at": "2026-07-17",
+  "proposed_target": "phenotype-tooling",
+  "proposed_target_repo": "phenotype-tooling",
+  "proposed_target_path": "infrakit/",
+  "absorption_note": null,
+  "note": "Shared infra crates (cost-core, policy-\u2026). Remote-only \u2014 needs clone."
+}

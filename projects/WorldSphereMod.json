@@ -1,0 +1,19 @@
+{
+  "name": "WorldSphereMod",
+  "languages": [
+    "csharp"
+  ],
+  "primary_language": "csharp",
+  "status": "queued",
+  "has_readme": false,
+  "type": "game-mod-backup",
+  "path": "repos/WorldSphereMod",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch2",
+  "queued_at": "2026-07-17",
+  "proposed_target": "phenotype-legacy-collection",
+  "proposed_target_repo": "(new spine)",
+  "proposed_target_path": null,
+  "absorption_note": null,
+  "note": "Backup of deleted WorldSphereMod repo (100% recovered). Legacy 3D mod backup."
+}

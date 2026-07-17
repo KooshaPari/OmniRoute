@@ -1,0 +1,19 @@
+{
+  "name": "phenotypeActions",
+  "languages": [
+    "shell"
+  ],
+  "primary_language": "shell",
+  "status": "queued",
+  "has_readme": false,
+  "type": "ci-assets",
+  "path": "repos/phenotypeActions",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch2",
+  "queued_at": "2026-07-17",
+  "proposed_target": "phenokits-commons",
+  "proposed_target_repo": "phenokits-commons",
+  "proposed_target_path": "actions/",
+  "absorption_note": null,
+  "note": "Shared GitHub Action definitions. Remote-only \u2014 needs clone."
+}
