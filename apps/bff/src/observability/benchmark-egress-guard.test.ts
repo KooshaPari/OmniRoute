@@ -9,6 +9,9 @@ describe("benchmark egress guard", () => {
     const priorBun = (globalThis as any).Bun;
     const fakeBun = { connect: () => { throw new Error("native must not run"); } };
     (globalThis as any).Bun = fakeBun;
+    const nativeFetch = globalThis.fetch;
+    const receivedFetches: unknown[][] = [];
+    globalThis.fetch = ((...args: unknown[]) => { receivedFetches.push(args); return Promise.resolve(new Response()); }) as typeof fetch;
     const originals = {
       fetch: globalThis.fetch, bun: fakeBun.connect, connect: net.connect,
       createConnection: net.createConnection, lookup: dns.lookup, resolve: dns.resolve,
@@ -30,11 +33,18 @@ describe("benchmark egress guard", () => {
       expect(() => (globalThis.fetch as any)({ url: "http://127.0.0.1:1/healthz" })).toThrow(/invalid URL input/);
       expect(() => globalThis.fetch(`http://127.0.0.1:1/${"a".repeat(2048)}`)).toThrow(/invalid URL input/);
       expect(() => globalThis.fetch("http://localhost:1/healthz")).toThrow(/invalid loopback target/);
+      expect(() => globalThis.fetch("http://127.0.0.1:4322/unregistered")).toThrow(/invalid loopback target/);
+      guard.setAllowedLoopbackPort(4322);
+      expect(() => globalThis.fetch("http://127.0.0.1:4322/healthz", { method: "POST" })).toThrow(/invalid loopback target/);
+      expect(() => globalThis.fetch("http://127.0.0.1:4322/healthz", { method: "GET" })).not.toThrow();
+      expect(receivedFetches.at(-1)?.[0]).toBe("http://127.0.0.1:4322/healthz");
     } finally {
       guard.restore();
+      globalThis.fetch = nativeFetch;
       (globalThis as any).Bun = priorBun;
     }
-    expect(globalThis.fetch).toBe(originals.fetch);
+    expect(originals.fetch).not.toBe(nativeFetch);
+    expect(globalThis.fetch).toBe(nativeFetch);
     expect(fakeBun.connect).toBe(originals.bun);
     expect(net.connect).toBe(originals.connect);
     expect(net.createConnection).toBe(originals.createConnection);

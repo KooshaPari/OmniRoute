@@ -29,6 +29,7 @@ export function installBenchmarkEgressGuard() {
     const original = owner?.[key] as Fn | undefined;
     if (typeof original !== "function") throw new Error(`required benchmark guard API missing: ${name}`);
     const wrapped = (...args: any[]) => {
+      let invocationArgs = args;
       if (urlMode) {
         const raw = args[0] instanceof Request ? args[0].url : args[0];
         if (typeof raw !== "string" || raw.length > 2048 || !raw.startsWith("http://") || /[?#@]/.test(raw)) {
@@ -37,10 +38,15 @@ export function installBenchmarkEgressGuard() {
         }
         const pathStart = raw.indexOf("/", "http://".length);
         const authority = raw.slice("http://".length, pathStart < 0 ? raw.length : pathStart);
-        if (authority !== `127.0.0.1:${allowedPort}` || pathStart < 0) {
+        const requestedPath = pathStart < 0 ? "" : raw.slice(pathStart);
+        const safePath = requestedPath === "/healthz" ? "/healthz" :
+          requestedPath === "/api/dashboard/health" ? "/api/dashboard/health" : undefined;
+        const init = args[1] as RequestInit | undefined;
+        if (authority !== `127.0.0.1:${allowedPort}` || !safePath || (init?.method && init.method !== "GET")) {
           blockedAttemptCount++;
           throw new Error(`benchmark blocked ${name} invalid loopback target`);
         }
+        invocationArgs = [`http://127.0.0.1:${allowedPort}${safePath}`, init];
         allowedLoopbackAttempts++;
       } else {
         const host = hostAt(args);
@@ -49,7 +55,7 @@ export function installBenchmarkEgressGuard() {
           throw new Error(`benchmark blocked ${name} to ${host}`);
         }
       }
-      return original.apply(owner, args);
+      return original.apply(owner, invocationArgs);
     };
     try { owner[key] = wrapped; } catch { throw new Error(`required benchmark guard API unpatchable: ${name}`); }
     if (owner[key] !== wrapped) throw new Error(`required benchmark guard API unpatchable: ${name}`);
