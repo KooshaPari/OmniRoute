@@ -1,14 +1,20 @@
 <script lang="ts">
   import Card from '$lib/components/ui/Card.svelte';
+  import { unavailableMessage } from '$lib/observability/unavailable';
   import { onMount } from 'svelte';
 
-  type Overview = { p50: number; p95: number; p99: number; rps: number; errorRate: number };
+  type Overview = {
+    status?: 'unavailable'; source?: string;
+    p50: number | null; p95: number | null; p99: number | null;
+    rps: number | null; errorRate: number | null;
+  };
   type Point = { ts: string; latency: number };
   type Endpoint = { path: string; method: string; rps: number };
 
   let overview = $state<Overview | null>(null);
   let series = $state<Point[]>([]);
   let topEndpoints = $state<Endpoint[]>([]);
+  const unavailable = $derived(unavailableMessage(overview, 'Runtime latency aggregation'));
 
   onMount(async () => {
     const [a, b, c] = await Promise.all([
@@ -22,7 +28,11 @@
 
 <div class="space-y-4">
   <Card title="Observability overview (last 1h)">
-    {#if overview}
+    {#if unavailable}
+      <p class="text-gray-500" data-testid="observability-unavailable">
+        {unavailable}
+      </p>
+    {:else if overview && overview.p50 !== null && overview.p95 !== null && overview.p99 !== null && overview.rps !== null && overview.errorRate !== null}
       <div class="grid grid-cols-5 gap-3">
         <div><div class="text-xs text-gray-500">p50</div><div class="text-2xl font-bold">{overview.p50}ms</div></div>
         <div><div class="text-xs text-gray-500">p95</div><div class="text-2xl font-bold">{overview.p95}ms</div></div>

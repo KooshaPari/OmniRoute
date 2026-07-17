@@ -3,13 +3,17 @@
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
+  import { unavailableMessage } from '$lib/observability/unavailable';
 
   type Key = { id: string; name: string; prefix: string; fullKey: string; createdAt: string; lastUsedAt: string | null; revoked: boolean };
   type Usage = { date: string; requests: number }[];
+  type UsageResponse = { status?: 'unavailable'; source?: string; usage: Usage };
   let key = $state<Key | null>(null);
   let usage = $state<Usage>([]);
+  let usageResponse = $state<UsageResponse | null>(null);
   let revealed = $state(false);
   let loading = $state(true);
+  let keyUnavailable = $state<string | null>(null);
   const maxUsage = $derived(usage.length ? Math.max(1, ...usage.map((u) => u.requests)) : 1);
 
   onMount(async () => {
@@ -18,7 +22,10 @@
       fetch(`http://localhost:4322/api/dashboard/keys/${id}`).then((r) => r.ok ? r.json() : null),
       fetch(`http://localhost:4322/api/dashboard/keys/${id}/usage`).then((r) => r.ok ? r.json() : null),
     ]);
-    key = a; usage = b?.usage ?? [];
+    key = a?.key ?? (a?.status === 'unavailable' ? null : a);
+    if (a?.status === 'unavailable') keyUnavailable = unavailableMessage(a.source);
+    usageResponse = b;
+    usage = b?.usage ?? [];
     loading = false;
   });
 
@@ -28,10 +35,13 @@
     await fetch(`http://localhost:4322/api/dashboard/keys/${key.id}/revoke`, { method: 'POST' });
     key.revoked = true;
   }
+  const usageUnavailable = $derived(unavailableMessage(usageResponse, 'Key usage metrics'));
 </script>
 
 {#if loading}
   <p class="text-gray-500">Loading...</p>
+{:else if keyUnavailable}
+  <p class="text-amber-700">{keyUnavailable}</p>
 {:else if key}
   <div class="space-y-4">
     <Card title={key.revoked ? 'API key (revoked)' : 'API key'}>
@@ -55,7 +65,9 @@
     </Card>
 
     <Card title="Usage (last 30d)">
-      {#if usage.length === 0}
+      {#if usageUnavailable}
+        <p class="text-gray-500">{usageUnavailable}</p>
+      {:else if usage.length === 0}
         <p class="text-gray-500">No usage recorded.</p>
       {:else}
         <div class="flex items-end gap-px h-24">

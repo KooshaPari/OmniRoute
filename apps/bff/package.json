@@ -11,6 +11,8 @@
     "dev": "bun run --watch src/index.ts",
     "start": "bun run src/index.ts",
     "build": "bun build src/index.ts --target=bun --outdir=dist",
+    "benchmark:latency": "bun scripts/benchmark-latency.ts",
+    "benchmark:compare": "bun scripts/compare-latency-runs.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "typecheck:ts7": "bun node_modules/typescript-7/bin/tsc --noEmit"

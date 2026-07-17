@@ -1,17 +1,21 @@
 <script lang="ts">
   import Card from '$lib/components/ui/Card.svelte';
+  import { unavailableMessage } from '$lib/observability/unavailable';
   import { onMount } from 'svelte';
 
   type Row = { model: string; provider: string; requests: number; p50: number; p95: number; p99: number; successRate: number; cost: number };
+  type PerformanceResponse = { status?: 'unavailable'; source?: string; rows: Row[] };
 
   let range = $state<'1h' | '24h' | '7d'>('24h');
   let rows = $state<Row[]>([]);
+  let unavailable = $state<string | null>(null);
   let loading = $state(true);
 
   onMount(async () => {
     const r = await fetch(`http://localhost:4322/api/dashboard/performance?range=${range}`);
     if (r.ok) {
-      const j = await r.json();
+      const j = await r.json() as PerformanceResponse;
+      unavailable = unavailableMessage(j, 'Runtime model aggregation');
       rows = j.rows ?? [];
     }
     loading = false;
@@ -32,6 +36,10 @@
 
   {#if loading}
     <p class="text-gray-500 text-sm">Loading performance data...</p>
+  {:else if unavailable}
+    <p class="text-gray-500 text-sm" data-testid="performance-unavailable">
+      {unavailable}
+    </p>
   {:else if rows.length === 0}
     <p class="text-gray-500 text-sm">No data in this range.</p>
   {:else}

@@ -2,6 +2,7 @@
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
+  import { unavailableMessage } from '$lib/observability/unavailable';
 
   type ApiKey = {
     id: string;
@@ -42,6 +43,10 @@
     });
     if (res.ok) {
       const j = await res.json();
+      if (j.status === 'unavailable' || !j.key) {
+        error = unavailableMessage(j.source);
+        return;
+      }
       keys = [j.key, ...keys];
       newKeyName = '';
       showCreate = false;

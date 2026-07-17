@@ -1,17 +1,20 @@
 <script lang="ts">
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
+  import { unavailableMessage } from '$lib/observability/unavailable';
   import { onMount } from 'svelte';
 
   type Diagnostics = {
-    uptimeSeconds: number;
-    version: string;
-    bffConnected: boolean;
-    nextjsConnected: boolean;
-    tauriShell: boolean;
-    dbWalPosition: number;
+    status?: 'unavailable';
+    source?: string;
+    uptimeSeconds: number | null;
+    version: string | null;
+    bffConnected: boolean | null;
+    nextjsConnected: boolean | null;
+    tauriShell: boolean | null;
+    dbWalPosition: number | null;
     lastBackup: string | null;
-    cacheHitRate: number;
+    cacheHitRate: number | null;
     networkChecks: { url: string; ok: boolean; latencyMs: number }[];
   };
 
@@ -28,6 +31,7 @@
   }
 
   onMount(run);
+  const unavailable = $derived(unavailableMessage(data, 'Self-diagnostics'));
 </script>
 
 <Card title="Self-diagnostics">
@@ -35,7 +39,9 @@
     <p class="text-sm text-gray-600">Last run: {lastRun ?? 'never'}</p>
     <Button onclick={run} disabled={running}>{running ? 'Running...' : 'Run full diagnostic'}</Button>
   </div>
-  {#if data}
+  {#if unavailable}
+    <p class="text-gray-500">{unavailable}</p>
+  {:else if data && data.uptimeSeconds != null && data.version != null && data.bffConnected != null && data.nextjsConnected != null && data.tauriShell != null && data.cacheHitRate != null}
     <div class="grid grid-cols-2 gap-3 text-sm mb-4">
       <div class="border border-gray-200 rounded p-3">
         <div class="text-xs text-gray-500">Uptime</div>

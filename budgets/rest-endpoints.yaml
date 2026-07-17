@@ -1,6 +1,17 @@
 # L17 REST endpoint latency budgets — consumed by tools/latency-budget-to-ci/budget.py
 version: 1
 spans:
+  # Current v4 BFF local-only baselines. All other entries below remain legacy-service
+  # budgets and are not evidence for apps/bff until explicitly migrated.
+  - name: "/healthz"
+    method: GET
+    threshold_ms: 50
+    hard_cap_ms: 100
+  - name: "/api/dashboard/health"
+    method: GET
+    threshold_ms: 50
+    hard_cap_ms: 100
+
   # Inference endpoints (hot path)
   - name: "/v1/responses/non-stream"
     method: POST
