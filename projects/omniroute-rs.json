@@ -1,0 +1,17 @@
+{
+  "name": "omniroute-rs",
+  "languages": [
+    "rust"
+  ],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": false,
+  "type": "service",
+  "path": "repos/omniroute-rs",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch4",
+  "absorbed_into": "OmniRoute",
+  "absorption_note": "Rust port of OmniRoute — likely Rust implementation of OmniRoute's routing/transport layer. Target: OmniRoute monorepo as Rust service (services/rs/ or crates/omniroute-rs/). Pairs with bifrost Rust gateway work.",
+  "note": "Audited 2026-07-17; Rust service port of OmniRoute. No README yet — verify scope.",
+  "adr": "ADR-ECO-007"
+}

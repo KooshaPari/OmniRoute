@@ -1,0 +1,18 @@
+{
+  "name": "PlayCua",
+  "languages": [
+    "rust",
+    "python"
+  ],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": true,
+  "type": "computer-use-agent",
+  "path": "repos/PlayCua",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch4",
+  "absorbed_into": "phenoAI",
+  "absorption_note": "Bare-metal computer-use agent with Rust + Python. Rust core → phenoAI as crates/playcua; Python bridge bindings → phenoAI/py-bridge. Fits phenoAI agent workspace alongside Eidolon/Agentora. Computer-use is a key agent capability per ADR-ECO-009.",
+  "note": "Audited 2026-07-17; Rust+Python polyglot; absorbs cleanly into phenoAI agent workspace.",
+  "adr": "ADR-ECO-009"
+}

@@ -1,0 +1,18 @@
+{
+  "name": "phenotype-gfx",
+  "languages": [
+    "rust",
+    "csharp"
+  ],
+  "primary_language": "rust",
+  "status": "active",
+  "has_readme": true,
+  "type": "graphics-sdk",
+  "path": "repos/phenotype-gfx",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch4",
+  "absorbed_into": "pheno",
+  "absorption_note": "Phenotype GFX SDK — polyglot graphics collection (Rust voxel substrate + C# terrain & water). Rust half absorbed into pheno workspace as crates/phenotype-gfx; C# terrain/water half may split into separate decision (phenotype-voxel/phenotype-water). Unified branding/versioning/interop. Per RATIONALIZATION_PLAN.md: graphics SDKs converge into pheno workspace + voxel/water spines.",
+  "note": "Audited 2026-07-17; polyglot SDK — Rust+C#. Clean absorption candidate.",
+  "adr": "ADR-ECO-006"
+}

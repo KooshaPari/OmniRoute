@@ -1,0 +1,18 @@
+{
+  "name": "hwLedger",
+  "languages": [
+    "markdown",
+    "yaml"
+  ],
+  "primary_language": "n/a",
+  "status": "active",
+  "has_readme": true,
+  "type": "ledger",
+  "path": "repos/hwLedger",
+  "disposition": "AFFIRM",
+  "wave": "2026-07-17-queue-refresh-batch4",
+  "absorbed_into": "self",
+  "absorption_note": "Phenotype-org hardware ledger — canonical home for hardware inventory/tracking. No absorption target; hwLedger IS the canonical home. Establish as AFFIRM (similar to phenotype-org-audits, phenokits-commons pattern). Verify ownership scope before declaring canonical.",
+  "note": "Audited 2026-07-17; n/a primary language (markdown/yaml likely). Hardware ledger with org-wide scope.",
+  "adr": "ADR-ECO-007"
+}
