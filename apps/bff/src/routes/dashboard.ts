@@ -3,6 +3,7 @@ import { zValidator } from '@hono/zod-validator';
 import { streamSSE } from 'hono/streaming';
 import { z } from 'zod';
 import { ProviderSchema } from '@argismonitor/api-contracts';
+import { buildTimeSeries } from './timeSeries';
 
 const SettingsSchema = z.object({ baseUrl: z.string().url(), telemetry: z.boolean(), autoUpdate: z.boolean(), language: z.string(), theme: z.enum(['auto','light','dark']) });
 const KeyCreateSchema = z.object({ name: z.string().min(1).max(100) });
@@ -72,7 +73,16 @@ export const dashboardRoutes = new Hono()
   }))
   .put('/router', zValidator('json', RouterSchema), (c) => c.json({ ok: true, router: c.req.valid('json') }))
   .get('/observability/overview', (c) => c.json({ p50: 120, p95: 480, p99: 1200, rps: 47, errorRate: 0.012 }))
-  .get('/observability/timeseries', (c) => c.json({ points: Array.from({ length: 60 }, (_, i) => ({ ts: new Date(Date.now() - (60 - i) * 60000).toISOString(), latency: 100 + Math.random() * 800 })) }))
+  .get('/observability/timeseries', (c) => c.json({ points: buildTimeSeries({
+    count: 60,
+    stepMs: 60000,
+    now: Date.now,
+    endOffsetSteps: 1,
+    mapPoint: (_, timestampMs) => ({
+      ts: new Date(timestampMs).toISOString(),
+      latency: 100 + Math.random() * 800,
+    }),
+  }) }))
   .get('/observability/top-endpoints', (c) => c.json({ endpoints: [
     { path: '/v1/chat/completions', method: 'POST', rps: 22.4 },
     { path: '/v1/embeddings', method: 'POST', rps: 11.2 },
@@ -108,10 +118,15 @@ export const dashboardRoutes = new Hono()
     createdAt: '2026-07-01T00:00:00Z', lastUsedAt: null, revoked: false,
   }))
   .get('/keys/:id/usage', (c) => c.json({
-    usage: Array.from({ length: 30 }, (_, i) => ({
-      date: new Date(Date.now() - (29 - i) * 86400000).toISOString().slice(0, 10),
-      requests: Math.floor(Math.random() * 1000),
-    })),
+    usage: buildTimeSeries({
+      count: 30,
+      stepMs: 86400000,
+      now: Date.now,
+      mapPoint: (_, timestampMs) => ({
+        date: new Date(timestampMs).toISOString().slice(0, 10),
+        requests: Math.floor(Math.random() * 1000),
+      }),
+    }),
   }))
   .get('/usage/by-model', (c) => c.json({ rows: [] }))
   .get('/cost/by-provider', (c) => c.json({ providers: [] }))
