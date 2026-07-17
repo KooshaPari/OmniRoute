@@ -192,16 +192,27 @@ substrates:
   - id: configra
     repo: KooshaPari/Configra
     name: Configra
-    status: active
+    status: archived
     tier: pheno-lib
     architecture: layered
     archetype: library
     language: rust
     role: config
-    boundary: null
+    boundary: docs/boundary/Configra.md
     intent: null
     notes: |
       Canonical config substrate per ADR-031 (pheno-config, settly, config-schema, phenotype-config-loader).
+      [ARCHIVE_ONLY 2026-07-17 via failsafe: 5-crate Cargo workspace, not single-crate (pheno-config, settly, config-schema, phenotype-config-loader, configra-ops);
+      literal `cp -r Configra/* pheno/crates/configra/` would conflict on package name `phenotype-config-loader`
+      (already in pheno/crates/phenotype-config-loader/, see its CANONICAL.md declaring Configra is the canonical
+      upstream) and would duplicate 4+ existing pheno config-domain crates (phenotype-shared-config,
+      phenotype-flags, phenotype-validation, phenotype-state-machine, phenotype-observability). settly's
+      aes-gcm/argon2/sqlx/redis/tokio-postgres/validator stack would also bloat pheno's workspace by 30-90s
+      cold-compile. Per task failsafe "ARCHIVE_ONLY if conflicts", disposition pivoted; source repo
+      archived via `gh repo archive KooshaPari/Configra -y`. Boundary doc retained at
+      `phenotype-registry/docs/boundary/Configra.md` (status: archived in front-matter). Audit:
+      `phenotype-registry/audits/absorption-justifications/Configra-2026-07-17.md`. Mirror precedent:
+      Stashly-2026-07-17, Pine-2026-07-17. pheno working tree intentionally untouched.]
 
   - id: conft
     repo: KooshaPari/Conft
@@ -420,16 +431,30 @@ substrates:
   - id: kmobile
     repo: KooshaPari/kmobile
     name: kmobile
-    status: active
+    status: archived
     tier: phenotype-framework
     architecture: layered
     archetype: cli
     language: rust
     role: mobile
-    boundary: null
+    boundary: docs/registry/absorbed-kmobile-2026-07-17.md
     intent: null
     notes: |
-      KMobile: CLI/API/MCP for mobile dev+test automation.
+      ARCHIVE_ONLY 2026-07-17. KMobile: CLI/API/MCP for mobile dev+test automation.
+      Pheno workspace already covers mobile/MCP/test scaffolding via crates/phenotype-test-infra,
+      crates/agileplus-cli, crates/phenotype-event-bus, and downstream MCP/test wiring in
+      agileplus-cli. kmobile is itself a 6-element Cargo workspace
+      ([workspace] members = ['.', 'crates/*', 'packages/kmobile-overlay/crates/*']) with 4
+      sub-crates (kmobile-core, kmobile-api, kmobile-cli, kmobile-mcp) plus 2 packages
+      (kmobile-overlay, mcp-server). Root kmobile crate's [dependencies] pulls
+      kmobile-core via path = 'crates/kmobile-core'; flat cp would orphan that path dep and
+      drop kmobile-api / kmobile-cli / kmobile-mcp / kmobile-overlay / mcp-server. Also fragile
+      single-tag git ref (KooshaPari/clap-ext@v0.1.0), heavy optional feature closure
+      (desktop = eframe/egui/cpal/rodio/winit/gilrs/...), AI-only / slop-expected maintainer
+      policy. Repo `KooshaPari/kmobile` archived on GitHub 2026-07-17T14:00:39Z; source
+      remains at `repos/kmobile/` for forensic retention. Boundary doc:
+      `pheno/docs/registry/absorbed-kmobile-2026-07-17.md`. Disposition-index row:
+      `repo-kmobile` (ARCHIVE_ONLY, fsm=absorbed).
 
   - id: kodevibe
     repo: KooshaPari/KodeVibe
