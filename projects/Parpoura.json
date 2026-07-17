@@ -1,11 +1,11 @@
 {
-  "name": "helios-cli",
+  "name": "Parpoura",
   "languages": ["rust"],
   "primary_language": "rust",
   "status": "active",
   "has_readme": true,
   "type": "shared-lib",
-  "path": "repos/helios-cli",
+  "path": "repos/Parpoura",
   "disposition": "AFFIRM",
-  "note": "Active CLI home for Helios (23 crates). Complementary to legacy archived heliosCLI."
+  "note": "Audited 2026-07-17; message routing and synchronization layer."
 }

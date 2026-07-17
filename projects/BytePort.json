@@ -2,16 +2,14 @@
   "name": "BytePort",
   "languages": ["rust", "typescript"],
   "primary_language": "rust",
-  "status": "archived",
+  "status": "active",
   "has_readme": true,
   "type": "cli",
   "path": "repos/BytePort",
-  "disposition": "DELETION_CANDIDATE",
+  "disposition": "ARCHIVE_ONLY",
   "wave": "absorption-justification-2026-06-23",
   "absorbed_into": "phenotype-tooling",
-  "absorption_note": "2026-06-23 audit: BytePort CLI absorbed into phenotype-tooling/crates/byteport per ADR-040 deletion recipe (Wave 4 tooling merge). Source repo archived; thegent chokepoint verified-clean; 90-day GitHub retention window applies pending manual UI delete.",
+  "absorption_note": "ADR-040: BytePort CLI to be consolidated into phenotype-tooling/crates/byteport. Active in dev (unarchived 2026-07-17).",
   "adr": "ADR-040",
-  "note": "Audited 2026-06-23; deletion candidate per ADR-040 5-step recipe (pre-archive doc + tombstone + 4 manual gh repo delete commands); local mirror preserved at C:\\Users\\koosh\\BytePort",
-  "audit_artifact": "audits/absorption-justifications/BytePort-2026-06-23.md",
-  "audited_at": "2026-06-23T23:55:00Z"
+  "note": "Audited 2026-06-23; active in dev (37 unmerged branches); local mirror at repos/BytePort."
 }

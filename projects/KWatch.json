@@ -1,0 +1,11 @@
+{
+  "name": "KWatch",
+  "languages": ["go"],
+  "primary_language": "go",
+  "status": "active",
+  "has_readme": true,
+  "type": "shared-lib",
+  "path": "repos/KWatch",
+  "disposition": "AFFIRM",
+  "note": "Audited 2026-07-17; active monitoring/watchdog daemon for K-series services."
+}

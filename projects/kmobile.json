@@ -1,0 +1,11 @@
+{
+  "name": "kmobile",
+  "languages": ["typescript"],
+  "primary_language": "typescript",
+  "status": "active",
+  "has_readme": true,
+  "type": "mobile-app",
+  "path": "repos/kmobile",
+  "disposition": "AFFIRM",
+  "note": "Audited 2026-07-17; mobile client interface for K-series."
+}

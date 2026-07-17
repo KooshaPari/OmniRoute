@@ -9,11 +9,11 @@ Compliance standard: registry/audit-absorption-justification/schema.json (14/14 
 
 - **Repo:** `KooshaPari/pheno-errors`
 - **GitHub URL:** https://github.com/KooshaPari/pheno-errors
-- **Archived at:** False
+- **Archived at:** True
 - **Default branch at audit time:** `main`
 - **Last commit SHA on default branch:** `ba5c913`
 - **Visibility at audit time:** private
-- **Archived:** False
+- **Archived:** True
 - **Stargazers:** 0 · **Open issues:** 0 · **Size:** 5 KB
 - **Primary language:** (none) · **License:** (none)
 - **Description:** (none)
