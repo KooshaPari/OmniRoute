@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     const run = await assessor.runAssessment(models, trigger);
 
     for (const assessment of assessor.getAllAssessments()) {
-      categorizer.assignCategoriesAndFitness(assessment);
+      Object.assign(assessment, categorizer.assignCategoriesAndFitness(assessment));
     }
 
     return NextResponse.json({

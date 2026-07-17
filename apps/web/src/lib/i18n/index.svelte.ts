@@ -38,7 +38,7 @@ const RTL = new Set(['ar', 'he', 'fa', 'ur']);
 let current = $state<string>('en');
 
 export function setLocale(lang: string) {
-  if (messages[lang]) current = lang;
+  if (supportedLanguages.includes(lang)) current = lang;
   else current = 'en';
   if (typeof document !== 'undefined') {
     document.documentElement.lang = current;

@@ -34,6 +34,20 @@ interface ToolLatencyStat {
   measurementCount: number;
 }
 
+interface BifrostRouteMetric {
+  provider: string;
+  model: string;
+  connectionId?: string | null;
+  e2eLatencyMs: number;
+  health: number | undefined;
+  failureRate: number;
+  stability: number | undefined;
+  sampleCount: number;
+  avgTtftMs: number | null;
+  avgTokensPerSecond: number | null;
+  updatedAtMs: number;
+}
+
 type SortKey =
   | "totalRequests"
   | "successfulRequests"
@@ -62,6 +76,15 @@ function successRate(successful: number, total: number): string {
   return `${((successful / total) * 100).toFixed(1)}%`;
 }
 
+function formatPercent(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return "—";
+  return `${(value * 100).toFixed(1)}%`;
+}
+
+function formatConnectionLabel(connectionId: string | null | undefined): string {
+  return connectionId?.trim() ? connectionId : "Shared / legacy";
+}
+
 export default function ProviderStatsPage() {
   const nodeMap = useProviderNodeMap();
   const [data, setData] = useState<{
@@ -72,23 +95,41 @@ export default function ProviderStatsPage() {
     toolLatency: Record<string, ToolLatencyStat>;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [performanceMetrics, setPerformanceMetrics] = useState<BifrostRouteMetric[] | null>(null);
+  const [performanceError, setPerformanceError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("totalRequests");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [expandedProvider, setExpandedProvider] = useState<string | null>(null);
 
-  const fetchData = useCallback(async () => {
+  const fetchPerformanceMetrics = useCallback(async () => {
     try {
-      const res = await fetch("/api/provider-stats");
+      const res = await fetch("/api/observability/bifrost-route-metrics");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      setData(json);
-      setError(null);
-      setLastRefresh(new Date());
+      const json = (await res.json()) as { metrics?: BifrostRouteMetric[] };
+      setPerformanceMetrics(Array.isArray(json.metrics) ? json.metrics : []);
+      setPerformanceError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setPerformanceError(err instanceof Error ? err.message : "Unknown error");
     }
   }, []);
+
+  const fetchData = useCallback(async () => {
+    const providerStatsRequest = (async () => {
+      try {
+        const res = await fetch("/api/provider-stats");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        setData(json);
+        setError(null);
+        setLastRefresh(new Date());
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Unknown error");
+      }
+    })();
+
+    await Promise.all([providerStatsRequest, fetchPerformanceMetrics()]);
+  }, [fetchPerformanceMetrics]);
 
   useEffect(() => {
     fetchData();
@@ -236,6 +277,138 @@ export default function ProviderStatsPage() {
           <p className="text-xl font-semibold text-text-main">{activeProviders}</p>
         </Card>
       </div>
+
+      <section className="border border-border rounded-xl px-5 py-4">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div>
+            <h2 className="text-base font-semibold text-text-main flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px] text-primary">speed</span>
+              Performance Routing Evidence
+            </h2>
+            <p className="text-xs text-text-muted mt-1">
+              Bifrost upstream outcomes, refreshed every 30 seconds
+            </p>
+          </div>
+          {performanceMetrics && (
+            <span className="text-xs text-text-muted tabular-nums">
+              {performanceMetrics.length} routes
+            </span>
+          )}
+        </div>
+
+        {performanceMetrics === null && !performanceError && (
+          <div className="py-6 text-center text-sm text-text-muted">
+            Loading performance routing evidence...
+          </div>
+        )}
+
+        {performanceError && (
+          <div className="py-5 text-center text-sm text-red-400">
+            <p>Failed to load performance routing evidence: {performanceError}</p>
+            <button
+              onClick={fetchPerformanceMetrics}
+              className="mt-3 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs hover:bg-primary/20 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {performanceMetrics && !performanceError && performanceMetrics.length === 0 && (
+          <div className="py-6 text-center text-sm text-text-muted">
+            No Bifrost route metrics recorded yet.
+          </div>
+        )}
+
+        {performanceMetrics && !performanceError && performanceMetrics.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left py-2 px-2 text-text-muted font-medium">
+                    Provider / Model / Connection
+                  </th>
+                  <th className="text-right py-2 px-2 text-text-muted font-medium">E2E p95</th>
+                  <th className="text-right py-2 px-2 text-text-muted font-medium">Health</th>
+                  <th className="text-right py-2 px-2 text-text-muted font-medium">Failure</th>
+                  <th className="text-right py-2 px-2 text-text-muted font-medium">Stability</th>
+                  <th className="text-right py-2 px-2 text-text-muted font-medium">TTFT</th>
+                  <th className="text-right py-2 px-2 text-text-muted font-medium">TPS</th>
+                  <th className="text-right py-2 px-2 text-text-muted font-medium">Samples</th>
+                  <th className="text-right py-2 px-2 text-text-muted font-medium">Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {performanceMetrics
+                  .slice()
+                  .sort((a, b) => b.updatedAtMs - a.updatedAtMs)
+                  .map((metric) => {
+                    return (
+                      <tr
+                        key={JSON.stringify([
+                          metric.provider,
+                          metric.model,
+                          metric.connectionId ?? null,
+                        ])}
+                        className="border-b border-border/50 hover:bg-surface/50 transition-colors"
+                      >
+                        <td className="py-2 px-2">
+                          <p className="font-medium text-text-main">
+                            {resolveProviderName(metric.provider, nodeMap)}
+                          </p>
+                          <p className="font-mono text-text-muted mt-0.5">{metric.model}</p>
+                          <p className="text-text-muted mt-0.5">
+                            Connection: {formatConnectionLabel(metric.connectionId)}
+                          </p>
+                        </td>
+                        <td className="py-2 px-2 text-right tabular-nums text-text-main">
+                          {formatLatency(metric.e2eLatencyMs)}
+                        </td>
+                        <td className="py-2 px-2 text-right tabular-nums">
+                          {metric.health === undefined ? (
+                            <span className="text-text-muted">—</span>
+                          ) : (
+                            <span
+                              className={
+                                metric.health >= 0.99 ? "text-green-500" : "text-amber-500"
+                              }
+                            >
+                              {formatPercent(metric.health)}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2 px-2 text-right tabular-nums text-text-main">
+                          {formatPercent(metric.failureRate)}
+                        </td>
+                        <td className="py-2 px-2 text-right tabular-nums">
+                          {metric.stability === undefined ? (
+                            <span className="text-text-muted">—</span>
+                          ) : (
+                            formatPercent(metric.stability)
+                          )}
+                        </td>
+                        <td className="py-2 px-2 text-right tabular-nums text-text-main">
+                          {formatLatency(metric.avgTtftMs)}
+                        </td>
+                        <td className="py-2 px-2 text-right tabular-nums text-text-main">
+                          {metric.avgTokensPerSecond == null
+                            ? "—"
+                            : `${metric.avgTokensPerSecond.toFixed(1)}/s`}
+                        </td>
+                        <td className="py-2 px-2 text-right tabular-nums">
+                          <span className="text-text-main">{metric.sampleCount}</span>
+                        </td>
+                        <td className="py-2 px-2 text-right tabular-nums text-text-muted whitespace-nowrap">
+                          {new Date(metric.updatedAtMs).toLocaleTimeString()}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       {/* Provider Table */}
       <Card className="p-5">

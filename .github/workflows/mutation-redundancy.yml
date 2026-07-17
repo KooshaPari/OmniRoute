@@ -22,7 +22,7 @@ permissions:
 jobs:
   stryker-nobail:
     name: Stryker disableBail (batch ${{ matrix.batch.name }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -41,10 +41,10 @@ jobs:
             mutate: "open-sse/handlers/chatCore/telemetryHelpers.ts,open-sse/handlers/chatCore/memorySkillsInjection.ts,open-sse/handlers/chatCore/semanticCache.ts"
     timeout-minutes: 300
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: "24"
           cache: npm
@@ -55,9 +55,10 @@ jobs:
         run: npx stryker run --config-file stryker.disablebail.json --mutate "$BATCH_MUTATE"
       - name: Upload mutation report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: mutation-nobail-${{ matrix.batch.name }}
           path: reports/mutation/
           if-no-files-found: warn
           retention-days: 14
+

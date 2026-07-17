@@ -40,8 +40,8 @@ back-compat. Internal identifiers are migrated per the schedule in §6.
 | 14 | DB schema names | preserved | unchanged | Future | Untouched |
 | 15 | Internal config keys | preserved | unchanged | Future | Untouched |
 | 16 | Domain `omniroute.online` (upstream) | preserved | unchanged | n/a | Out of scope (upstream) |
-| 17 | Domain `argismonitor.phenotype.space` (this fork) | new | added | Gate 6 | Pending |
-| 18 | Domain `argismonitor.pheno.studio` (this fork) | new | added | Gate 6 | Pending |
+| 17 | Docs target `kooshapari.github.io/OmniRoute` | new | approved target | Gate 6 | Pages disabled |
+| 18 | Additional fork domain | n/a | none approved | n/a | Out of scope |
 | 19 | Cargo / crate name (none — Node-only) | n/a | n/a | n/a | n/a |
 | 20 | NuGet package (future) | n/a | n/a | n/a | n/a |
 
@@ -74,7 +74,7 @@ back-compat. Internal identifiers are migrated per the schedule in §6.
 
   ```bash
   npm deprecate omniroute@* \
-    "ArgisMonitor has been renamed; install argismonitor instead. See https://argismonitor.phenotype.space/migration."
+    "Install argismonitor; the omniroute alias remains supported for one major release after ADR-032."
   ```
 
 ## 4. New artifacts added in Gate 1
@@ -85,8 +85,8 @@ back-compat. Internal identifiers are migrated per the schedule in §6.
 | `bin/omniroute.mjs` | Deprecation shim forwarding to `argismonitor.mjs`. |
 | `package.json` `bin` | `{ "argismonitor": "bin/argismonitor.mjs", "omniroute": "bin/omniroute.mjs" }`. |
 | `package.json` `name` | `argismonitor`. |
-| `package.json` `homepage` | `https://argismonitor.phenotype.space`. |
-| `package.json` `repository.url` | `git+https://github.com/KooshaPari/ArgisMonitor.git`. |
+| `package.json` `homepage` | `https://kooshapari.github.io/OmniRoute/` (approved target; Pages not enabled here). |
+| `package.json` `repository.url` | `https://github.com/KooshaPari/OmniRoute`. |
 | `package.json` `author` | `KooshaPari / Phenotype.`. |
 | `.github/workflows/argismonitor-publish.yml` | New publish workflow (additive; old `npm-publish.yml` kept). |
 | `docs/FORK.md` | Provenance, AI-DD notice, fork differences. |
@@ -142,12 +142,12 @@ This sequence keeps every gate independently shippable and reversible.
 The `omniroute` binary shim, the `~/.omniroute/` data-dir alias, and
 the `OMNIROUTE_*` env-var read-aliase are removed when **all** of:
 
-- 6 months have passed since the first `argismonitor@1.0.0` GA release,
+- one major release has shipped after ADR-032 while the alias remained supported,
   AND
 - upstream `diegosouzapw/OmniRoute` has not received a meaningful
   rebase in that window (decision criterion: <5 merges from upstream
   per month), AND
-- no open issue on `KooshaPari/ArgisMonitor` references a blocking
+- no open issue on `KooshaPari/OmniRoute` references a blocking
   legacy-identifier problem, AND
 - telemetry shows <1% of invocations use legacy identifiers.
 
@@ -157,5 +157,5 @@ Tracked in [`TECH_DEBT.md`](./TECH_DEBT.md) § "Legacy aliases".
 
 - Upstream: <https://github.com/diegosouzapw/OmniRoute>
 - This fork: <https://github.com/KooshaPari/OmniRoute>
-- Future canonical: <https://github.com/KooshaPari/ArgisMonitor>
-- Domain: <https://argismonitor.phenotype.space>
+- Canonical repository: <https://github.com/KooshaPari/OmniRoute>
+- Documentation target: <https://kooshapari.github.io/OmniRoute/>

@@ -43,6 +43,31 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
+test("proxy assignment schema is available after fresh bootstrap and reopen", async () => {
+  await resetStorage();
+
+  const freshDb = core.getDbInstance();
+  const freshTable = freshDb
+    .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'proxy_assignments'")
+    .get() as { name?: string } | undefined;
+  assert.equal(freshTable?.name, "proxy_assignments");
+
+  const freshIndexes = freshDb
+    .prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name IN (?, ?)")
+    .all("idx_proxy_assignments_proxy_id", "idx_proxy_assignments_scope") as Array<{ name: string }>;
+  assert.deepEqual(
+    freshIndexes.map(({ name }) => name).sort(),
+    ["idx_proxy_assignments_proxy_id", "idx_proxy_assignments_scope"]
+  );
+
+  core.resetDbInstance();
+  const reopenedDb = core.getDbInstance();
+  const reopenedTable = reopenedDb
+    .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'proxy_assignments'")
+    .get() as { name?: string } | undefined;
+  assert.equal(reopenedTable?.name, "proxy_assignments");
+});
+
 async function withPrepareFailure(match, message, fn) {
   const db = core.getDbInstance();
   const originalPrepare = db.prepare.bind(db);

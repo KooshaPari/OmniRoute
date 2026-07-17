@@ -1,3 +1,7 @@
+---
+title: v4 release readiness validator
+---
+
 # v4 release readiness validator
 
 This validator reports whether the existing v4 release path has the minimum reproducibility controls required for a release candidate. It does not publish, sign, attest, upload, or merge anything.

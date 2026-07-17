@@ -142,6 +142,7 @@ import {
   PROVIDER_ERROR_TYPES,
   isEmptyContentResponse,
 } from "../services/errorClassifier.ts";
+import { shouldRouteViaBifrost } from "../executors/bifrost.ts";
 import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/providers";
 import { wasRefreshTokenRotated } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import { connectionHasExtraKeys } from "../services/apiKeyRotator.ts";
@@ -153,6 +154,12 @@ import {
   createStreamingErrorResult,
   getUpstreamErrorIdentifier,
 } from "./chatCore/streamErrorResult.ts";
+import {
+  buildBifrostStreamOutcomePayload,
+  resolveBifrostStreamRouteTarget,
+  type BifrostStreamOutcomeRecord,
+  shouldSkipBifrostStreamOutcome,
+} from "./chatCore/bifrostStreamOutcome.ts";
 import { wrapReadableStreamWithFinalize } from "./chatCore/streamFinalize.ts";
 import { buildCacheUsageLogMeta } from "./chatCore/cacheUsageMeta.ts";
 import { buildExecutorClientHeaders } from "./chatCore/executorClientHeaders.ts";
@@ -208,6 +215,7 @@ import { runPluginOnResponseHook } from "./chatCore/pluginOnResponse.ts";
 import { scheduleStreamingQuotaShareConsumption } from "./chatCore/streamingQuotaShare.ts";
 import { recordStreamingUsageStats } from "./chatCore/streamingUsageStats.ts";
 import { recordStreamingCost } from "./chatCore/streamingCost.ts";
+import { recordBifrostRouteOutcome } from "../observability/bifrostRouteMetrics.ts";
 import {
   appendNonStreamingSseTerminalSignal,
   type NonStreamingSseTerminalState,
@@ -344,6 +352,32 @@ import { isSmallEnoughForSemanticCache } from "../utils/estimateSize.ts";
  * @param {boolean} options.isCombo - Whether this request is from a combo
  * @param {string} options.connectionId - Connection ID for settings lookup
  */
+
+export { buildBifrostStreamOutcomePayload, resolveBifrostStreamRouteTarget };
+export type { BifrostStreamOutcomeRecord };
+
+function computeBifrostStreamOutcomeRecord(params: {
+  shouldRecordViaBifrost: boolean;
+  provider: string;
+  model: string;
+  connectionId?: string | null;
+  status: number;
+  startTime: number;
+  ttft?: number | null;
+  streamUsage?: unknown;
+}): BifrostStreamOutcomeRecord | null {
+  return buildBifrostStreamOutcomePayload({
+    shouldRecord: params.shouldRecordViaBifrost,
+    provider: params.provider,
+    model: params.model,
+    connectionId: params.connectionId,
+    status: params.status,
+    startTime: params.startTime,
+    ttft: params.ttft,
+    streamUsage: params.streamUsage,
+  });
+}
+
 
 // extractSystemRoleMessages extracted to chatCore/claudeSystemRole.ts (#3501); re-exported above so
 // existing importers (e.g. tests/unit/system-role-extraction.test.ts) keep resolving it from here.
@@ -2137,6 +2171,30 @@ export async function handleChatCore({
 
   // Get executor for this provider (with optional upstream proxy routing)
   const executor = await resolveExecutorWithProxy(provider);
+  const shouldRouteViaBifrostRequest = shouldRouteViaBifrost(provider, {
+    providerSpecificData: credentials?.providerSpecificData,
+  });
+  let shouldRecordBifrostStreamOutcome = false;
+  let bifrostStreamRouteTarget: { provider: string; model: string } | null = null;
+  const bifrostBaseUrl = (() => {
+    const configured = process.env.BIFROST_BASE_URL;
+    return (configured && configured.trim().length > 0
+      ? configured.trim().replace(/\/+$/, "")
+      : "http://127.0.0.1:8080"
+    ).replace(/\/+$/, "");
+  })();
+  const isBifrostResponseUrl = (responseUrl: string | null | undefined): boolean => {
+    if (!shouldRouteViaBifrostRequest || !responseUrl) return false;
+    try {
+      return new URL(responseUrl).origin === new URL(bifrostBaseUrl).origin;
+    } catch {
+      return false;
+    }
+  };
+  const resolveBifrostStreamRouteTargetOnce = (responseUrl: string | null | undefined) => {
+    if (!isBifrostResponseUrl(responseUrl)) return null;
+    return resolveBifrostStreamRouteTarget(provider, effectiveModel);
+  };
   const getExecutionCredentials = () =>
     resolveExecutionCredentialsFor({
       credentials,
@@ -4005,6 +4063,10 @@ export async function handleChatCore({
       response: buildNonStreamingJsonResponse(translatedResponse, responseHeaders),
     };
   }
+  const initialProviderResponseUrl = providerUrl ?? providerResponse?.url;
+  const maybeResolvedBifrostTarget = resolveBifrostStreamRouteTargetOnce(initialProviderResponseUrl);
+  shouldRecordBifrostStreamOutcome = maybeResolvedBifrostTarget !== null;
+  bifrostStreamRouteTarget = maybeResolvedBifrostTarget;
 
   // Streaming response
   // #3089 — some "reasoning" openai-compatible upstreams ignore a stream:true
@@ -4060,6 +4122,24 @@ export async function handleChatCore({
       claudeCacheMeta: claudePromptCacheLogMeta,
       cacheSource: "upstream",
     });
+    if (shouldRecordBifrostStreamOutcome && bifrostStreamRouteTarget) {
+      const payload = computeBifrostStreamOutcomeRecord({
+        shouldRecordViaBifrost: true,
+        provider: bifrostStreamRouteTarget.provider,
+        model: bifrostStreamRouteTarget.model,
+        connectionId: getCurrentConnectionId(),
+        status: failureResponse.status,
+        startTime,
+        streamUsage: undefined,
+      });
+      if (payload) {
+        recordBifrostRouteOutcome({
+          ...payload,
+          status: payload.status,
+          error: reason,
+        });
+      }
+    }
     persistFailureUsage(failureResponse.status, streamReadiness.code);
     // Do NOT call onStreamFailure — a stream stall is an upstream issue,
     // not an account/quota failure. Marking the account unavailable here
@@ -4116,8 +4196,36 @@ export async function handleChatCore({
       if (streamFailureCompletionRecorded) return;
       streamFailureCompletionRecorded = true;
     }
-    const cacheUsageLogMeta = buildCacheUsageLogMeta(streamUsage);
     const streamConnectionId = getCurrentConnectionId();
+    if (shouldRecordBifrostStreamOutcome && bifrostStreamRouteTarget) {
+      const skipOutcome = shouldSkipBifrostStreamOutcome({
+        status: normalizedStreamStatus,
+        streamError,
+        streamErrorCode,
+      });
+      if (skipOutcome) {
+        return;
+      }
+
+      const payload = computeBifrostStreamOutcomeRecord({
+        shouldRecordViaBifrost: true,
+        provider: bifrostStreamRouteTarget.provider,
+        model: bifrostStreamRouteTarget.model,
+        connectionId: streamConnectionId,
+        status: normalizedStreamStatus,
+        startTime,
+        ttft,
+        streamUsage,
+      });
+      if (payload) {
+        recordBifrostRouteOutcome({
+          ...payload,
+          status: payload.status,
+          error: streamError,
+        });
+      }
+    }
+    const cacheUsageLogMeta = buildCacheUsageLogMeta(streamUsage);
 
     if (normalizedStreamStatus === 200) {
       void maybeSyncClaudeExtraUsageState({

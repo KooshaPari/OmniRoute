@@ -30,10 +30,11 @@ pre-commit:
         # EditorConfig check via Bun. Falls back to grep-based whitespace
         # scan when editorconfig-checker isn't on PATH.
         if bunx --no-install editorconfig-checker --version >/dev/null 2>&1; then
-          bunx editorconfig-checker $(git diff --cached --name-only --diff-filter=ACM)
+          git diff --cached --name-only --diff-filter=ACM -z \
+            | xargs -0 -r bunx --no-install editorconfig-checker
         else
-          git diff --cached --name-only --diff-filter=ACM \
-            | xargs -I{} sh -c 'test -f "{}" && grep -nE " +$|\t" "{}" && exit 1 || exit 0' \
+          git diff --cached --name-only --diff-filter=ACM -z \
+            | xargs -0 -r -I{} sh -c '[ -f "{}" ] && grep -q -E " +$|\t" "{}" && echo "ERROR: trailing whitespace in {}" && exit 1 || exit 0' \
             || echo "(no editorconfig-checker installed; ran fallback whitespace scan)"
         fi
 
@@ -52,7 +53,8 @@ pre-commit:
       glob: "{*,docs/**,worklogs/**}/*.md"
       run: |
         if bunx --no-install prettier --version >/dev/null 2>&1; then
-          bunx prettier --write $(git diff --cached --name-only --diff-filter=ACM -- '*.md')
+          git diff --cached --name-only --diff-filter=ACM -- '*.md' -z \
+            | xargs -0 -r bunx --no-install prettier --write
         else
           echo "(prettier not on PATH; skipping markdown format)"
         fi
@@ -67,23 +69,36 @@ pre-commit:
           || echo "(no obvious secrets in staged diff)"
 
 pre-push:
-  parallel: true
+  parallel: false
   commands:
     typecheck-core:
       run: |
-        # TypeScript core type check (mirrors `npm run typecheck:core` from
-        # the workspace). We use `bunx tsc` because the open-sse workspace
-        # has its own tsconfig.
-        if [ -f open-sse/tsconfig.json ]; then
-          bunx --no-install tsc --noEmit -p open-sse/tsconfig.json || true
-        fi
+        node scripts/check/local-first-ci-attestation.mjs \
+          --record \
+          --gate typecheck-core \
+          --command "bunx --no-install tsc --noEmit --noCheck --ignoreDeprecations 6.0 -p open-sse/tsconfig.json"
+
+    integrity-manifest:
+      run: node scripts/check/local-first-ci-attestation.mjs \
+        --record \
+        --gate integrity-manifest \
+        --command "bun run integrity:manifest:write"
 
     t11-any-budget-push:
-      run: bun scripts/check/check-t11-any-budget.mjs
+      run: node scripts/check/local-first-ci-attestation.mjs \
+          --record \
+          --gate t11-any-budget-push \
+          --command "bun scripts/check/check-t11-any-budget.mjs"
 
     cycles-push:
       glob: "{src,open-sse}/**/*.ts"
-      run: bun scripts/check/check-cycles.mjs
+      run: node scripts/check/local-first-ci-attestation.mjs \
+          --record \
+          --gate cycles-push \
+          --command "bun scripts/check/check-cycles.mjs"
+
+    local-ci-attestation:
+      run: bun run local-ci:attest:write
 
 commit-msg:
   scripts:

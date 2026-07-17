@@ -2,7 +2,7 @@
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { basename, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(fileURLToPath(new URL("../..", import.meta.url)));
@@ -25,7 +25,7 @@ for (const binName of requiredBins) {
   }
 }
 
-if (!workflow.includes('PACKAGE_NAME="$(node -p "require(\'./package.json\').name")"')) {
+if (!/PACKAGE_NAME="\$\(node -p \\"require\('\.\/package\.json'\)\.name\\"\)"/.test(workflow)) {
   failures.push("npm publish workflow must derive PACKAGE_NAME from root package.json");
 }
 if (!workflow.includes('npm view "${PACKAGE_NAME}@${VERSION}" version')) {
@@ -39,8 +39,8 @@ if (!workflow.includes("npm ci --ignore-scripts --no-audit --no-fund")) {
 }
 
 try {
-  const npm = process.platform === "win32" ? "npm.cmd" : "npm";
-  const output = execFileSync(npm, ["pack", "--dry-run", "--json", "--ignore-scripts"], {
+  const npmCli = process.env.npm_execpath ?? resolve(dirname(process.execPath), "node_modules/npm/bin/npm-cli.js");
+  const output = execFileSync(process.execPath, [npmCli, "pack", "--dry-run", "--json", "--ignore-scripts"], {
     cwd: root,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],

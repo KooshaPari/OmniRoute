@@ -4,9 +4,9 @@ on:
   workflow_dispatch: {}
 jobs:
   fleet-score:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - run: |
           echo "pillar-checks — weekly fleet sustainment check"
           echo "date=$(date -u +%Y-%m-%d)" >> $GITHUB_OUTPUT
@@ -24,3 +24,4 @@ jobs:
           echo "Fleet mean check — below 3.70 triggers new cycle"
           echo "Current phase: v47 sustainment (watchdog mode)"
           echo "pillar-checks: PASS"
+

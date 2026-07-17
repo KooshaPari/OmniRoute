@@ -56,6 +56,12 @@ function isOtelOptIn(): boolean {
   return true;
 }
 
+function getOtelModuleId(packageName: string): string {
+  // Keep this computed: OTel SDK packages are optional, and literal dynamic
+  // imports make Turbopack resolve them during route compilation.
+  return ["@opentelemetry", packageName].join("/");
+}
+
 /** B10 — Idempotency latch for `initOtel`. Survives across calls in the same process. */
 let __otelInitAttempted = false;
 /** B10 — Result of the first `initOtel` call (or `null` if not yet attempted). */
@@ -109,11 +115,11 @@ export async function initOtel(): Promise<boolean> {
       { resourceFromAttributes },
       { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION },
     ] = await Promise.all([
-      import("@opentelemetry/sdk-node"),
-      import("@opentelemetry/exporter-trace-otlp-http"),
-      import("@opentelemetry/resources"),
-      import("@opentelemetry/resources"),
-      import("@opentelemetry/semantic-conventions"),
+      import(getOtelModuleId("sdk-node")),
+      import(getOtelModuleId("exporter-trace-otlp-http")),
+      import(getOtelModuleId("resources")),
+      import(getOtelModuleId("resources")),
+      import(getOtelModuleId("semantic-conventions")),
     ]);
 
     const serviceName = process.env.OTEL_SERVICE_NAME?.trim() || "omniroute";
@@ -332,9 +338,8 @@ export async function registerNodejs(): Promise<void> {
     // without this the dashboard mode (auto/custom/adaptive) silently reverts to
     // the passthrough default on every restart. Previously this was only wired into
     // the unused `server-init.ts`, so it never ran in production.
-    const { hydrateThinkingBudgetConfig } = await import(
-      "@omniroute/open-sse/services/thinkingBudget.ts"
-    );
+    const { hydrateThinkingBudgetConfig } =
+      await import("@omniroute/open-sse/services/thinkingBudget.ts");
     if (hydrateThinkingBudgetConfig(settings)) {
       console.log("[STARTUP] Thinking-Budget config restored from settings");
     }
@@ -389,6 +394,19 @@ export async function registerNodejs(): Promise<void> {
   }
 
   await import("@/lib/db/core").then(({ ensureDbInitialized }) => ensureDbInitialized());
+
+  try {
+    const { initializeBifrostRouteMetricsFromStorage } =
+      await import("../open-sse/observability/bifrostRouteMetrics.ts");
+    initializeBifrostRouteMetricsFromStorage();
+    console.log("[STARTUP] Bifrost route metrics hydration initialized");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(
+      "[STARTUP] Could not initialize bifrost route metrics hydration (non-fatal):",
+      msg
+    );
+  }
 
   // Storage-configured scheduled VACUUM (#4437): registers the timer from
   // Settings > System & Storage and persists lastVacuumAt for the UI.

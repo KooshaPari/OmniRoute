@@ -2,7 +2,7 @@
  * Shared combo (model combo) handling with fallback support
  * Supports: priority, weighted, round-robin, random, least-used, cost-optimized,
  * reset-aware, reset-window, strict-random, auto, fill-first, p2c, lkgp,
- * context-optimized, context-relay, and fusion strategies
+ * context-optimized, context-relay, performance, and fusion strategies
  */
 
 import {
@@ -30,6 +30,7 @@ import {
   getDefaultComboConfig,
   resolveComboQueueDepth,
 } from "./comboConfig.ts";
+import { getProjectedBifrostRouteMetrics } from "../observability/bifrostRouteMetrics.ts";
 import {
   maybeGenerateHandoff,
   maybeGenerateUniversalHandoff,
@@ -50,7 +51,11 @@ import { evaluateQuotaCutoff, getQuotaFetcher, type QuotaInfo } from "./quotaPre
 import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
-import { parseModel } from "./model.ts";
+import { parseModel, resolveCanonicalProviderModel } from "./model.ts";
+import {
+  applyBifrostModelOverride,
+  resolveBifrostProviderId,
+} from "../executors/bifrostProviderMap.ts";
 import { createComboContext } from "./combo/context.ts";
 import { phaseComboSetup } from "./combo/comboSetup.ts";
 import { checkCredentialGate, logCredentialSkip } from "./credentialGate.ts";
@@ -241,6 +246,131 @@ function calculateTargetContextAffinity(
   if (target.connectionId === sessionConnectionId) return 1;
   if (!target.connectionId) return 0.5;
   return 0.1;
+}
+
+function isFiniteProjectionValue(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function hasEligibleBifrostProjection(
+  projection: ReturnType<typeof getProjectedBifrostRouteMetrics>
+) {
+  return (
+    projection?.health !== undefined &&
+    projection.stability !== undefined &&
+    isFiniteProjectionValue(projection.e2eLatencyMs) &&
+    isFiniteProjectionValue(projection.health) &&
+    isFiniteProjectionValue(projection.failureRate) &&
+    isFiniteProjectionValue(projection.stability)
+  );
+}
+
+function getTargetBifrostProjection(
+  canonicalProvider: string,
+  canonicalModel: string,
+  connectionId: string | null
+) {
+  const bifrostProvider = resolveBifrostProviderId(canonicalProvider) ?? canonicalProvider;
+  const bifrostModel = applyBifrostModelOverride(canonicalProvider, canonicalModel);
+  const projectionKeys = [
+    [canonicalProvider, canonicalModel],
+    [bifrostProvider, bifrostModel],
+  ] as const;
+
+  // Connection-scoped evidence is the most representative signal for a resolved
+  // target. Retain the provider/model bucket as a legacy fallback when that
+  // connection has no fresh, reliable projection.
+  if (connectionId) {
+    for (const [provider, model] of projectionKeys) {
+      const projection = getProjectedBifrostRouteMetrics(provider, model, {}, connectionId);
+      if (hasEligibleBifrostProjection(projection)) return projection;
+    }
+  }
+
+  for (const [provider, model] of projectionKeys) {
+    const projection = getProjectedBifrostRouteMetrics(provider, model);
+    if (hasEligibleBifrostProjection(projection)) return projection;
+  }
+
+  return null;
+}
+
+function orderTargetsByProjectedBifrostPerformance(
+  targets: ResolvedComboTarget[]
+): ResolvedComboTarget[] {
+  const scored: Array<{
+    target: ResolvedComboTarget;
+    originalIndex: number;
+    e2eLatencyMs: number;
+    health: number;
+    failureRate: number;
+    stability: number;
+    avgTtftMs?: number;
+    avgTokensPerSecond?: number;
+  }> = [];
+  const noComparable: ResolvedComboTarget[] = [];
+
+  targets.forEach((target, index) => {
+    const parsed = parseModel(target.modelStr);
+    const model = parsed.model || target.modelStr;
+    const canonical = resolveCanonicalProviderModel(target.provider || parsed.provider, model);
+    const canonicalProvider = canonical.provider || parsed.provider || "unknown";
+    const canonicalModel = canonical.model || model;
+    const projection = getTargetBifrostProjection(
+      canonicalProvider,
+      canonicalModel,
+      target.connectionId
+    );
+    if (!projection) {
+      noComparable.push(target);
+      return;
+    }
+
+    scored.push({
+      target,
+      originalIndex: index,
+      e2eLatencyMs: projection.e2eLatencyMs,
+      health: projection.health,
+      failureRate: projection.failureRate,
+      stability: projection.stability,
+      avgTtftMs: isFiniteProjectionValue(projection.avgTtftMs)
+        ? projection.avgTtftMs
+        : undefined,
+      avgTokensPerSecond: isFiniteProjectionValue(projection.avgTokensPerSecond)
+        ? projection.avgTokensPerSecond
+        : undefined,
+    });
+  });
+
+  if (scored.length === 0) return targets;
+
+  scored.sort((a, b) => {
+    const healthDiff = b.health - a.health;
+    if (healthDiff !== 0) return healthDiff;
+
+    const failureDiff = a.failureRate - b.failureRate;
+    if (failureDiff !== 0) return failureDiff;
+
+    const latencyDiff = a.e2eLatencyMs - b.e2eLatencyMs;
+    if (latencyDiff !== 0) return latencyDiff;
+
+    const stabilityDiff = b.stability - a.stability;
+    if (stabilityDiff !== 0) return stabilityDiff;
+
+    if (a.avgTtftMs !== undefined && b.avgTtftMs !== undefined) {
+      const ttftDiff = a.avgTtftMs - b.avgTtftMs;
+      if (ttftDiff !== 0) return ttftDiff;
+    }
+
+    if (a.avgTokensPerSecond !== undefined && b.avgTokensPerSecond !== undefined) {
+      const tpsDiff = b.avgTokensPerSecond - a.avgTokensPerSecond;
+      if (tpsDiff !== 0) return tpsDiff;
+    }
+
+    return a.originalIndex - b.originalIndex;
+  });
+
+  return [...scored.map((entry) => entry.target), ...noComparable];
 }
 
 function getBootstrapLatencyMs(modelId: string): number {
@@ -1378,6 +1508,9 @@ export async function handleComboChat({
   } else if (strategy === "least-used") {
     orderedTargets = sortTargetsByUsage(orderedTargets, combo.name);
     log.info("COMBO", `Least-used ordering: ${orderedTargets[0]?.modelStr} has fewest requests`);
+  } else if (strategy === "performance") {
+    orderedTargets = orderTargetsByProjectedBifrostPerformance(orderedTargets);
+    log.info("COMBO", `Performance ordering: ${orderedTargets[0]?.modelStr} is first by projected metrics`);
   } else if (strategy === "cost-optimized") {
     orderedTargets = await sortTargetsByCost(orderedTargets);
     if (config.manifestRouting === true) {
