@@ -110,9 +110,12 @@ function collectIfScalars(lines: string[]): Array<{ line: number; scalar: string
       scalars.push({ line: index + 1, scalar: inline[1].slice(0, end) });
       continue;
     }
-    const block = match[2].match(/^([>|])(?:[1-9])?[+-]?\s*(?:#.*)?$/);
+    const block = match[2].match(/^([>|])(?:(?:[+-][1-9]?)|(?:[1-9][+-]?))?\s*(?:#.*)?$/);
     if (!block) {
-      scalars.push({ line: index + 1, scalar: lines[index].includes("\t") ? '"' : match[2] });
+      scalars.push({
+        line: index + 1,
+        scalar: lines[index].includes("\t") || /^[>|]/.test(match[2]) ? '"' : match[2],
+      });
       continue;
     }
     const indentation = match[1].length;
@@ -121,7 +124,7 @@ function collectIfScalars(lines: string[]): Array<{ line: number; scalar: string
       const continuation = lines[index + 1].replace(/\r$/, "");
       const continuationIndentation = continuation.match(/^\s*/)?.[0].length ?? 0;
       if (continuation.trim() && continuationIndentation <= indentation) break;
-      content.push(continuation.trim());
+      content.push(continuation.includes("\t") ? '"' : continuation.trim());
       index += 1;
     }
     scalars.push({ line: index + 1, scalar: content.join(block[1] === ">" ? " " : "\n") });
@@ -190,6 +193,41 @@ test("workflow expression scanner handles adversarial scalar syntax", () => {
   assert.equal(hasUnsafeExpressionScalar(collectIfScalars(safeBlock)[0].scalar), false);
   assert.equal(hasUnsafeExpressionScalar(collectIfScalars(unsafeBlock)[0].scalar), true);
   assert.equal(hasUnsafeExpressionScalar(collectIfScalars(terminatedBlock)[0].scalar), false);
+
+  const indicators = [
+    "",
+    "+",
+    "-",
+    ...Array.from({ length: 9 }, (_, index) => `${index + 1}`),
+    ...Array.from({ length: 9 }, (_, index) => `+${index + 1}`),
+    ...Array.from({ length: 9 }, (_, index) => `-${index + 1}`),
+    ...Array.from({ length: 9 }, (_, index) => `${index + 1}+`),
+    ...Array.from({ length: 9 }, (_, index) => `${index + 1}-`),
+  ];
+  for (const style of ["|", ">"] as const) {
+    for (const indicator of indicators) {
+      const scalar = collectIfScalars([
+        "jobs:",
+        `  if: ${style}${indicator} # legal header`,
+        "    github.event_name == 'push'",
+      ]);
+      assert.equal(scalar.length, 1, `${style}${indicator} should be collected`);
+      assert.equal(
+        hasUnsafeExpressionScalar(scalar[0].scalar),
+        false,
+        `${style}${indicator} should scan`
+      );
+    }
+  }
+  for (const invalid of ["|0", ">0", "|++", ">--", "|1+2", ">+2-"]) {
+    assert.equal(hasUnsafeExpressionScalar(collectIfScalars([`if: ${invalid}`])[0].scalar), true);
+  }
+  assert.equal(
+    hasUnsafeExpressionScalar(
+      collectIfScalars(["if: |-2", "  github.event_name ==\t'push'"])[0].scalar
+    ),
+    true
+  );
 });
 
 test("GitHub Actions if expressions use single-quoted string literals", async () => {
