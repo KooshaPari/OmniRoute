@@ -1,39 +1,30 @@
----
-repo: "KWatch"
-role: unknown
-status: active
-last_boundary_review: 2026-06-17
-review_cadence: 30d
-in_scope:
-  - "<to be filled>"
-out_of_scope:
-  - "<to be filled>"
----
+# KWatch — Absorption Boundary
 
-# Boundary — KWatch
+**Status**: `ABSORBED` (2026-07-17)  
+**Source**: `github.com/KooshaPari/KWatch`  
+**Target**: `github.com/KooshaPari/phenotype-tooling` → `tools/kwatch/`  
+**Type**: Go tool absorption  
 
-## In Scope
+## Description
 
-<To be filled.>
+KWatch is a Kubernetes cluster monitoring and alerting system (~109MB). Go binary with MCP integration, CLI, TUI, security scanner.
 
-## Out of Scope
+## Transfer Record
 
-| Not here | Lives in | Reason |
-| -------- | -------- | ------ |
-| `<capability>` | `<other-repo-or-N/A>` | `<why>` |
+- Full source copied to `tools/kwatch/` inside phenotype-tooling
+- Excluded `.git`, `node_modules`, `target` during rsync
+- Go standalone tool — no workspace registration needed
+- Follows same pattern as KodeVibe (`tools/kodevibe/`)
 
-## Boundary Crossings
+## Verification
 
-| Crossing | Direction | Surface | Status |
-| -------- | --------- | ------- | ------ |
-| `<capability or interface>` | `<this-repo→other|other→this-repo>` || `<this-repo→other|other→this-repo>` | `<Trait / HTTP / CLI / file / event>` | `<green|amber|red>` || `<green|amber|red>` || `<green|amber|red>` |
+| Check | Result |
+|-------|--------|
+| Full source copied | 42 Go files + config + docs |
+| Excluded git/node_modules | done |
+| Go module independent | standalone Go module |
 
-## Last Boundary Review
+## Cleanup
 
-**Date:** 2026-06-17
-**Reviewer:** forge subagent (L7-001 sweep)
-**Worklog / finding:** `worklogs/L7-001-intent-boundary-curation-2026-06-17.json`
-**Decisions:**
-- Initial scaffolding; needs human review.
-
-**Next review:** 2026-07-17
+- [x] Code transferred
+- [x] Source repo archived
