@@ -6,6 +6,10 @@ on:
     paths:
       - ".github/workflows/v4-release-artifact-dry-run.yml"
       - "scripts/release/prepare-v4-artifact-dry-run.mjs"
+      - "scripts/release/validate-v4-release-readiness.mjs"
+      - "config/release/v4-readiness.json"
+      - ".github/workflows/release.yml"
+      - "packages/api-contracts/**"
       - "apps/web/**"
       - "apps/bff/**"
       - "apps/desktop/package.json"
@@ -46,8 +50,13 @@ jobs:
           bun install --frozen-lockfile --cwd apps/bff --ignore-scripts
           bun install --frozen-lockfile --cwd apps/web --ignore-scripts
 
+      - name: Generate current readiness evidence (non-strict)
+        run: node scripts/release/validate-v4-release-readiness.mjs
+
       - name: Tag and version preflight
-        run: node scripts/release/prepare-v4-artifact-dry-run.mjs
+        run: |
+          node scripts/release/prepare-v4-artifact-dry-run.mjs
+          cp release-readiness/v4-release-readiness.json release-candidate/v4-release-readiness.json
 
       - name: Build existing v4 web and BFF artifacts
         run: |
@@ -66,7 +75,7 @@ jobs:
           tar --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner -C apps/bff -cf - dist | gzip -n > "release-candidate/omniroute-bff-${version}.tar.gz"
           (
             cd release-candidate
-            sha256sum "omniroute-web-${version}.tar.gz" "omniroute-bff-${version}.tar.gz" v4-sbom.cdx.json v4-preflight.json > SHA256SUMS
+            sha256sum "omniroute-web-${version}.tar.gz" "omniroute-bff-${version}.tar.gz" v4-sbom.cdx.json v4-preflight.json v4-release-readiness.json > SHA256SUMS
             sha256sum --check SHA256SUMS
           )
 
@@ -75,6 +84,7 @@ jobs:
           node -e "const p=require('./release-candidate/v4-preflight.json'); if(p.publication||p.signing||p.nativeCompatibilityChanged||p.npmCompatibilityChanged) process.exit(1)"
           test -s release-candidate/SHA256SUMS
           test -s release-candidate/v4-sbom.cdx.json
+          node -e "const r=require('./release-candidate/v4-release-readiness.json'); if(r.schemaVersion!==1||!Array.isArray(r.findings)) process.exit(1)"
 
       - name: Upload release candidate only
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -84,5 +94,3 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           include-hidden-files: false
-
-

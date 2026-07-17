@@ -14,6 +14,34 @@ test.use({
 
 test("captures anonymous v4 home journey evidence", async ({ page, context }) => {
   await mkdir(evidenceRoot, { recursive: true });
+  const runtimeErrors: string[] = [];
+  const failedResponses: string[] = [];
+  const telemetryIds: string[] = [];
+
+  page.on("console", (message) => {
+    if (message.type() === "error") runtimeErrors.push(`console: ${message.text()}`);
+  });
+  page.on("pageerror", (error) => runtimeErrors.push(`page: ${error.message}`));
+  page.on("requestfailed", (request) => {
+    const url = new URL(request.url());
+    if (["127.0.0.1", "localhost"].includes(url.hostname)) {
+      runtimeErrors.push(`request: ${request.method()} ${url.pathname} ${request.failure()?.errorText ?? "failed"}`);
+    }
+  });
+  page.on("response", (response) => {
+    const url = new URL(response.url());
+    if (["127.0.0.1", "localhost"].includes(url.hostname) && response.status() >= 400) {
+      failedResponses.push(`${response.status()} ${response.request().method()} ${url.pathname}`);
+    }
+    if (url.pathname === "/api/v1/telemetry/web-vitals") {
+      try {
+        const data = JSON.parse(response.request().postData() ?? "null") as { id?: string } | null;
+        if (data?.id) telemetryIds.push(data.id);
+      } catch (error) {
+        runtimeErrors.push(`telemetry payload: ${(error as Error).message}`);
+      }
+    }
+  });
 
   await context.route("**/*", async (route) => {
     const url = new URL(route.request().url());
@@ -25,10 +53,29 @@ test("captures anonymous v4 home journey evidence", async ({ page, context }) =>
   });
 
   await context.tracing.start({ screenshots: true, snapshots: true, sources: true });
+  await page.emulateMedia({ reducedMotion: "reduce", colorScheme: "light" });
   await page.goto("/", { waitUntil: "networkidle" });
 
   const heading = page.locator("h1").first();
-  await expect(heading).toContainText("Welcome to OmniRoute v4");
+  await expect(heading).toContainText("Welcome to argismonitor v4");
+  await expect(page.getByText("healthy", { exact: true })).toBeVisible();
+
+  const telemetryStatus = await page.evaluate(async () => {
+    const response = await fetch("/api/v1/telemetry/web-vitals", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: "phenotype-journey-metric", name: "LCP", value: 1, rating: "good",
+        delta: 1, navigationType: "navigate", ts: Date.now(),
+      }),
+    });
+    return response.status;
+  });
+  expect(telemetryStatus).toBe(202);
+  expect(runtimeErrors).toEqual([]);
+  expect(failedResponses).toEqual([]);
+  expect(telemetryIds).toContain("phenotype-journey-metric");
+  expect(new Set(telemetryIds).size).toBe(telemetryIds.length);
   await expect(page.locator("body")).not.toContainText(forbiddenText);
 
   await page.locator("input[type='password'], [data-sensitive='true']").evaluateAll((nodes) => {
@@ -73,6 +120,9 @@ test("captures anonymous v4 home journey evidence", async ({ page, context }) =>
   expect(accessibility.unnamedButtons).toBe(0);
   expect(accessibility.horizontalOverflow).toBe(false);
   expect(accessibility.reducedMotion).toBe(true);
+  expect(runtimeErrors).toEqual([]);
+  expect(failedResponses).toEqual([]);
+  expect(new Set(telemetryIds).size).toBe(telemetryIds.length);
 
   await writeFile(
     path.join(evidenceRoot, "accessibility-smoke.json"),

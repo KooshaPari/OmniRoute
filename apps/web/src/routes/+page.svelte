@@ -5,7 +5,8 @@
 
   onMount(async () => {
     try {
-      const r = await fetch('http://localhost:4322/healthz');
+      const r = await fetch('/api/bff/healthz');
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const j = await r.json();
       bffHealthy = j.status === 'ok' ? 'healthy' : `unhealthy: ${JSON.stringify(j)}`;
     } catch (e) {
