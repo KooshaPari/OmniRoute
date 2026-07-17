@@ -13,6 +13,16 @@
   "wave": "G18",
   "branch_count": 27,
   "adr": "ADR-ECO-016-omlx-inference-split",
-  "absorbed_into": "hwledger",
-  "note": "Active but work moving into hwledger per 2026-07-17 instructions."
+  "disposition": "ARCHIVE_ONLY",
+  "target": "phenotype-registry (docs/boundary/phenotype-omlx.md)",
+  "boundary_doc": "docs/boundary/phenotype-omlx.md",
+  "archived": true,
+  "archived_at": "2026-07-17T14:24:56Z",
+  "archive_reason": "failsafe-platform-specific-mlx-stack",
+  "absorbing_repo": "KooshaPari/phenotype-registry",
+  "core_lang": "rust+python+swift+mojo+zig+typescript+bash+powershell",
+  "size_kb": 266,
+  "wave_new": "2026-07-17-failsafe-phenotype-omlx",
+  "absorbed_at": "2026-07-17",
+  "note": "Active but work moving into hwledger per 2026-07-17 instructions. [ARCHIVE_ONLY 2026-07-17 via failsafe clause: task asked to absorb into phenoAI, but phenoAI is a focused 3-crate Rust workspace (llm-router, mcp-server, pheno-embedding) with resolver=3 and no perf-core/MLX/Metal tier in its PLAN.md roadmap. phenotype-omlx is an 11-crate Rust workspace (tree-attention-spirv, tree-attention, spec-decode, concurrent-exec, concurrent-exec-cuda, turbo-quant, turbo-quant-mojo, turbo-quant-zig, fleet-proto, fleet-proto-zeromq, hwledger-core) using resolver=2, plus a standalone Python package omlx_research with MLX/Metal/vLLM/TensorRT/SGLang/llama.cpp backends, plus platform clients (macOS GUI, Linux, Windows PowerShell), all governed by an explicit polyglot AGENTS.md that supersedes Rust-only markers (Mojo/CUDA/Zig/Swift allowed on perf-cores). Lifting into phenoAI/crates/ would force resolver conflict, triple the workspace size, pollute its tight functional requirements, and violate its own polyglot policy. G18 DROP entry (jundot/omlx upstream) corroborates: no Phenotype substrate owns MLX/Metal perf-cores. Boundary doc at docs/boundary/phenotype-omlx.md records the audit. GitHub repo archived via 'gh repo archive KooshaPari/phenotype-omlx -y' on 2026-07-17; absorbing_repo=KooshaPari/phenotype-registry; audit pattern matches kmobile (failsafe-multi-crate-workspace) + Civis (failsafe-no-cargo-on-host).]"
 }
