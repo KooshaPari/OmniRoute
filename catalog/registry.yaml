@@ -1190,16 +1190,23 @@ substrates:
   - id: stashly
     repo: KooshaPari/Stashly
     name: Stashly
-    status: active
+    status: archived
     tier: pheno-lib
     architecture: layered
-    archetype: app
+    archetype: library
     language: rust
-    role: stash
-    boundary: null
+    role: cache
+    boundary: docs/registry/absorbed-stashly-2026-07-17.md
     intent: null
     notes: |
-      BLOCK A app (Stashly). (`stashly` crate referenced in resilience repoints.)
+      ARCHIVE_ONLY 2026-07-17. Caching framework (TTL, multi-tier, singleflight), not stash/secret storage.
+      Pheno workspace already covers the cache domain via `pheno/crates/agileplus-cache` +
+      `pheno/crates/phenotype-cache-adapter`. Absorbing as `crates/stashly` would duplicate capability
+      and conflict with the existing `phenotype-cache-adapter` package name (Stashly carries an inner
+      `Stashly/src/phenotype-cache-adapter/Cargo.toml`). Repo `KooshaPari/Stashly` archived on GitHub;
+      source remains at `repos/Stashly/` for forensic retention. Boundary doc:
+      `pheno/docs/registry/absorbed-stashly-2026-07-17.md`. Disposition-index row: `repo-Stashly`
+      (ARCHIVE_ONLY, fsm=absorbed).
 
   - id: substrate
     repo: KooshaPari/substrate
