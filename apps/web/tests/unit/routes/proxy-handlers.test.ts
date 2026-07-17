@@ -32,4 +32,14 @@ describe('typed proxy route handlers', () => {
     expect(response.status).toBe(202);
     expect(await response.text()).toBe('{"name":"LCP","value":1}');
   });
+
+  it('rejects telemetry without content-type as 415', async () => {
+    const request = new Request('http://localhost/api/v1/telemetry/web-vitals', {
+      method: 'POST',
+      body: '{"name":"LCP","value":1}',
+    });
+
+    await expect(POST({ request, fetch: vi.fn() } as unknown as Parameters<typeof POST>[0]))
+      .rejects.toMatchObject({ status: 415 });
+  });
 });
