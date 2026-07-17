@@ -1,6 +1,6 @@
 {
-  "version": "1.5.5",
-  "updated": "2026-07-17T11:16:58.000000Z",
+  "version": "1.5.6",
+  "updated": "2026-07-17T11:35:00.000000Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
   "note": "phenoShared targets are interim staging per ADR-ECO-014-phenoshared-decompose; terminal owners are DOMAIN_ROLES repos. 2026-06-18 (post-archive, L5-114): phenotype-voxel/terrain/water/postfx source repos ARCHIVED + DELETED (delete_repo scope) after phenotype-gfx#10 merged. phenotype-gfx is canonical; 4 source rows now terminal archived state. 2026-06-19 (L5-115, ADR-035A): pheno-capacity registered as new pheno-*-lib substrate (extracted from HwLedger per ADR-035A). 2026-06-20: Authvault SUPERSEDE by AuthKit; Httpora SUPERSEDE by Quillr.",
@@ -1760,9 +1760,9 @@
       "id": "repo-grapheon-bindings",
       "path": "KooshaPari/grapheon-bindings",
       "disposition": "ABSORB",
-      "target": "phenotype-go-sdk",
+      "target": "phenotype-go-sdk (packages/graphclient)",
       "wave": "2026-07-17-queue-refresh",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "go",
       "size_kb": 2,
       "remote_branch_count": 1,
@@ -1772,7 +1772,11 @@
       "audit_artifact": "audits/absorption-justifications/grapheon-bindings-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:16:58.000000Z",
-      "note": "Go bindings for Grapheon (canonical graph library). 1 branch, 2KB (stub/scaffold). Fits phenotype-go-sdk Go SDK monorepo."
+      "absorbed_date": "2026-07-17",
+      "absorbed_pr": "phenotype-go-sdk#absorb/grapheon-bindings-2026-07-17",
+      "archived": true,
+      "archived_date": "2026-07-17",
+      "note": "Go HTTP client (117 LOC, pkg/client/client.go) for Grapheon claims graph server. Absorbed into phenotype-go-sdk/packages/graphclient/ as a Go workspace member; go build + go vet clean. Source repo archived via gh repo archive."
     },
     {
       "id": "repo-pheno-cdylib-bridge",

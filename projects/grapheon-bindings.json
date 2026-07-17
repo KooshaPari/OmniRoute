@@ -4,14 +4,15 @@
     "go"
   ],
   "primary_language": "go",
-  "status": "active",
+  "status": "absorbed",
   "has_readme": false,
   "type": "library",
   "path": "repos/grapheon-bindings",
   "disposition": "ABSORB",
   "wave": "2026-07-17-queue-refresh",
   "absorbed_into": "phenotype-go-sdk",
-  "absorption_note": "Go bindings for Grapheon (canonical graph library); 1 branch, 2KB stub. Target: phenotype-go-sdk Go SDK monorepo.",
-  "note": "Audited 2026-07-17; stub repo (2KB) \u2014 likely just binding declarations. Consolidate into phenotype-go-sdk when Grapheon is absorbed.",
+  "absorbed_date": "2026-07-17",
+  "absorption_note": "Go HTTP client (117 LOC, package client/client.go) for Grapheon claims graph server. Absorbed into phenotype-go-sdk/packages/graphclient/ as a workspace member. Source repo archived on GitHub.",
+  "note": "Absorbed 2026-07-17 into phenotype-go-sdk/packages/graphclient/. Build/vet green.",
   "adr": "ADR-ECO-007"
 }
