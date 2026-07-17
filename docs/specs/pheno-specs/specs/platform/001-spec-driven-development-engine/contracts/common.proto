@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package agileplus.common.v1;
+
+// Shared message types used across all AgilePlus services.
+
+// --- Feature ---
+
+message Feature {
+  int64 id = 1;
+  string slug = 2;
+  string friendly_name = 3;
+  string state = 4;
+  string target_branch = 5;
+  string created_at = 6;
+  string updated_at = 7;
+  int32 wp_count = 8;
+  int32 wp_done = 9;
+}
+
+message FeatureState {
+  string state = 1;
+  string next_command = 2;        // recommended next action
+  repeated string blockers = 3;   // what's blocking progression
+  GovernanceStatus governance = 4;
+}
+
+// --- Work Packages ---
+
+message WorkPackageStatus {
+  int64 id = 1;
+  string title = 2;
+  string state = 3;
+  int32 sequence = 4;
+  string agent_id = 5;
+  string pr_url = 6;
+  string pr_state = 7;
+  repeated int32 depends_on = 8;
+  repeated string file_scope = 9;
+}
+
+// --- Governance ---
+
+message GateViolation {
+  string fr_id = 1;
+  string rule_id = 2;
+  string message = 3;
+  string remediation = 4;
+}
+
+message GovernanceStatus {
+  bool all_gates_passed = 1;
+  int32 total_rules = 2;
+  int32 passed_rules = 3;
+  repeated GateViolation outstanding = 4;
+}
+
+// --- Audit ---
+
+message AuditEntry {
+  int64 id = 1;
+  string feature_slug = 2;
+  int32 wp_sequence = 3; // 0 if feature-level
+  string timestamp = 4;
+  string actor = 5;
+  string transition = 6;
+  repeated string evidence_refs = 7;
+  bytes prev_hash = 8;
+  bytes hash = 9;
+}
+
+// --- Commands ---
+
+message CommandRequest {
+  string command = 1;          // "specify", "research", "plan", etc.
+  string feature_slug = 2;     // target feature
+  map<string, string> args = 3; // command-specific arguments
+}
+
+message CommandResponse {
+  bool success = 1;
+  string message = 2;
+  map<string, string> outputs = 3; // command-specific outputs
+}
+
+// --- Agent Events ---
+
+message AgentEvent {
+  string event_type = 1;  // "started", "progress", "pr_created", "review_received", "completed", "failed"
+  string feature_slug = 2;
+  int32 wp_sequence = 3;
+  string agent_id = 4;
+  string payload = 5;     // JSON, event-specific
+  string timestamp = 6;
+}
+
+message AgentEventAck {
+  string event_id = 1;
+  bool acknowledged = 2;
+  string instruction = 3; // optional follow-up instruction
+}

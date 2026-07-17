@@ -1,0 +1,10 @@
+{
+  "feature_number": "002",
+  "slug": "002-org-wide-release-governance-dx-automation",
+  "friendly_name": "Org-Wide Release Governance & DX Automation",
+  "mission": "software-dev",
+  "source_description": "Org-wide DX infrastructure and release governance automation: GitHub Actions publishing workflows (npm, PyPI, crates.io), pre-commit/pre-push hooks, Taskfile or CLI DX commands, experimental/dev/alpha package variants and release channels following the existing 5-tier release channel governance (alpha → canary → beta → rc → prod) as defined in STACKED_PRS_AND_RELEASE_CHANNELS.md. Should cover all repos in the Phenotype org.",
+  "created_at": "2026-03-01T12:45:00Z",
+  "target_branch": "main",
+  "vcs": "git"
+}

@@ -1,0 +1,10 @@
+WP,Title,Owner,State,Est,Dependencies
+WP1,nanovms HTTP API design,TBD,planned,2d,
+WP2,heliosApp nanovms adapter,TBD,planned,4d,WP1
+WP3,Tier 1 provider tools,TBD,planned,3d,WP2
+WP4,Tier 2 PTY session isolation,TBD,planned,4d,WP2
+WP5,Tier 3 colab-renderer isolation,TBD,planned,5d,WP2
+WP6,Session snapshot/recovery,TBD,planned,3d,WP5
+WP7,Platform support (macOS/Win/Linux),TBD,planned,4d,WP3-6
+WP8,Integration tests,TBD,planned,3d,WP7
+WP9,Documentation,TBD,planned,2d,WP8

@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package agileplus.core.v1;
+
+import "agileplus/common.proto";
+
+// Core domain service: features, work packages, governance, audit, command dispatch.
+// Implemented by agileplus-core. Called by agileplus-mcp, agileplus-agents, agileplus-integrations.
+service AgilePlusCoreService {
+  // Feature operations
+  rpc GetFeature(GetFeatureRequest) returns (agileplus.common.v1.Feature);
+  rpc ListFeatures(ListFeaturesRequest) returns (ListFeaturesResponse);
+  rpc GetFeatureState(GetFeatureStateRequest) returns (agileplus.common.v1.FeatureState);
+
+  // Work package operations
+  rpc ListWorkPackages(ListWorkPackagesRequest) returns (ListWorkPackagesResponse);
+  rpc GetWorkPackageStatus(GetWPStatusRequest) returns (agileplus.common.v1.WorkPackageStatus);
+
+  // Governance operations
+  rpc CheckGovernanceGate(GovernanceGateRequest) returns (GovernanceGateResponse);
+  rpc GetAuditTrail(GetAuditTrailRequest) returns (stream agileplus.common.v1.AuditEntry);
+  rpc VerifyAuditChain(VerifyChainRequest) returns (VerifyChainResponse);
+
+  // Command dispatch (MCP → Core)
+  rpc DispatchCommand(agileplus.common.v1.CommandRequest) returns (agileplus.common.v1.CommandResponse);
+}
+
+// --- Requests ---
+
+message GetFeatureRequest {
+  string slug = 1;
+}
+
+message ListFeaturesRequest {
+  string state_filter = 1;
+}
+
+message ListFeaturesResponse {
+  repeated agileplus.common.v1.Feature features = 1;
+}
+
+message GetFeatureStateRequest {
+  string slug = 1;
+}
+
+message ListWorkPackagesRequest {
+  string feature_slug = 1;
+  string state_filter = 2;
+}
+
+message ListWorkPackagesResponse {
+  repeated agileplus.common.v1.WorkPackageStatus packages = 1;
+}
+
+message GetWPStatusRequest {
+  string feature_slug = 1;
+  int32 wp_sequence = 2;
+}
+
+message GovernanceGateRequest {
+  string feature_slug = 1;
+  string transition = 2;
+}
+
+message GovernanceGateResponse {
+  bool passed = 1;
+  repeated agileplus.common.v1.GateViolation violations = 2;
+}
+
+message GetAuditTrailRequest {
+  string feature_slug = 1;
+  int64 after_id = 2;
+}
+
+message VerifyChainRequest {
+  string feature_slug = 1;
+}
+
+message VerifyChainResponse {
+  bool valid = 1;
+  int64 entries_verified = 2;
+  string first_invalid_id = 3;
+  string error_message = 4;
+}

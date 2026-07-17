@@ -1,0 +1,24 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: phenospecs
+  title: PhenoSpecs
+  description: Unified specification registry for the Phenotype ecosystem
+  annotations:
+    github.com/project-slug: KooshaPari/PhenoSpecs
+    backstage.io/techdocs-ref: dir:./
+    kooshapari.com/registry-type: spec
+    kooshapari.com/language: markdown
+  tags:
+    - specs
+    - requirements
+    - documentation
+    - registry
+spec:
+  type: website
+  lifecycle: production
+  owner: team-platform
+  system: phenotype-registry
+  dependsOn:
+    - component:agileplus
+    - component:hexakit

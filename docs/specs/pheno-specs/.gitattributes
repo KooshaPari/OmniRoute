@@ -1,0 +1,49 @@
+# .gitattributes — Phenotype org canonical
+# Auto-detect text; normalize to LF in-repo, native on checkout
+* text=auto eol=lf
+
+# Language-specific
+*.rs    text eol=lf diff=rust
+*.toml  text eol=lf
+*.py    text eol=lf diff=python
+*.go    text eol=lf diff=golang
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.js    text eol=lf
+*.jsx   text eol=lf
+*.md    text eol=lf
+*.yaml  text eol=lf
+*.yml   text eol=lf
+*.json  text eol=lf
+*.sh    text eol=lf
+
+# Windows-specific (preserves CRLF for native Windows tools)
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+# Binary (no line-ending normalization)
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.pdf   binary
+*.zip   binary
+*.tar.gz binary
+*.woff  binary
+*.woff2 binary
+
+# Lockfiles — prevent merge conflicts but preserve exact bytes
+Cargo.lock     -diff
+package-lock.json -diff
+bun.lockb      binary
+yarn.lock      -diff
+pnpm-lock.yaml -diff
+uv.lock        -diff
+
+# Release archives exclude dev-only dirs
+.github/        export-ignore
+.vscode/        export-ignore
+tests/          export-ignore

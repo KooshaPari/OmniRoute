@@ -1,0 +1,17 @@
+# Example session metrics (pilot) — see ADR-018 Appendix A for loop catalog
+session_id: sess-40d15363-pilot
+transcript_ref: 40d15363
+ssot_read:
+  - adrs/017-mcp-polyrepo-boundaries.md
+  - PhenoMCPServers/catalog/registry.yaml
+  - PhenoFastMCP-rust/PHENO.md
+loop_events:
+  - turn: 3
+    correction: Use PhenoFastMCP-rust, not rmcp as framework analogue
+    root_cause: Wrong framework analogue
+    preventive_adr: ADR-017
+  - turn: 7
+    correction: Fork via gh repo fork; do not mirror-to-empty
+    root_cause: Wrong bootstrap procedure
+    preventive_adr: ADR-018
+outcome: n_loops

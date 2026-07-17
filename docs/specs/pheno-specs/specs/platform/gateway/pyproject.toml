@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=64.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "phenospecs-gateway"
+version = "0.1.0"
+description = "Governance validation tools for PhenoSpecs"
+requires-python = ">=3.10"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.5.0",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "S", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]

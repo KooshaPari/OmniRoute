@@ -1,0 +1,186 @@
+---
+version: "3"
+
+vars:
+  STACK:
+    sh: |
+      if [ -f Cargo.toml ]; then
+        echo rust
+      elif [ -f go.mod ]; then
+        echo go
+      elif [ -f pyproject.toml ] || [ -f setup.py ]; then
+        echo python
+      elif [ -f requirements.txt ]; then
+        echo python
+      elif [ -f package.json ] || [ -f bun.lock ]; then
+        echo javascript
+      elif [ -f bun.lockb ] || [ -f pnpm-lock.yaml ]; then
+        echo javascript
+      elif [ -f yarn.lock ] || [ -f package-lock.json ]; then
+        echo javascript
+      elif [ -f registry.yaml ] && [ -d specs ]; then
+        echo docs
+      else
+        echo unknown
+      fi
+
+tasks:
+  default:
+    desc: Run the default build task
+    cmds:
+      - task: build
+
+  build:
+    desc: Build or validate this repository for the detected stack
+    cmds:
+      - task: test
+      - task: lint
+
+  test:
+    desc: Run the primary tests for the detected stack
+    cmds:
+      - cmd: |
+          set -euo pipefail
+          case "{{.STACK}}" in
+            rust)
+              cargo test
+              ;;
+            go)
+              go test ./...
+              ;;
+            python)
+              if command -v uv >/dev/null 2>&1; then
+                uv run pytest
+              else
+                pytest
+              fi
+              ;;
+            javascript)
+              if [ -f bun.lock ] || [ -f bun.lockb ]; then
+                bun test
+              elif [ -f pnpm-lock.yaml ]; then
+                pnpm test
+              elif [ -f yarn.lock ]; then
+                yarn test
+              else
+                npm test
+              fi
+              ;;
+            docs)
+              echo "--- Registry structure check ---"
+              python3 -c 'import textwrap; exec(textwrap.dedent("""
+              from pathlib import Path
+              import re
+
+              root = Path.cwd()
+              registry = (root / "registry.yaml").read_text()
+              required = ["registry_version", "system", "domains", "specs"]
+              missing = [
+                  key for key in required
+                  if not re.search(
+                      "^" + re.escape(key) + ":",
+                      registry,
+                      re.MULTILINE,
+                  )
+              ]
+              if missing:
+                  raise SystemExit(f"registry.yaml missing keys: {missing}")
+
+              for path in ["README.md", "SPEC.md", "PRD.md", "CHARTER.md"]:
+                  if not (root / path).is_file():
+                      raise SystemExit(f"missing required document: {path}")
+
+              for path in ["specs", "adrs", "docs", "research"]:
+                  if not (root / path).is_dir():
+                      raise SystemExit(f"missing required directory: {path}")
+
+              print("registry and documentation structure validated")
+              """))'
+              echo "--- Registry integrity tests ---"
+              if [ -d tests ]; then
+                python3 -m pytest tests/ -v
+              else
+                echo "No tests/ directory; skipping pytest"
+              fi
+              ;;
+            *)
+              echo "Unable to detect a supported stack." >&2
+              exit 1
+              ;;
+          esac
+
+  lint:
+    desc: Run linting for the detected stack
+    cmds:
+      - cmd: |
+          set -euo pipefail
+          case "{{.STACK}}" in
+            rust)
+              cargo clippy -- -D warnings
+              ;;
+            go)
+              golangci-lint run
+              ;;
+            python)
+              if command -v uv >/dev/null 2>&1; then
+                uv run ruff check .
+              else
+                ruff check .
+              fi
+              ;;
+            javascript)
+              if [ -f bun.lock ] || [ -f bun.lockb ]; then
+                bunx eslint .
+              elif [ -f pnpm-lock.yaml ]; then
+                pnpm lint
+              elif [ -f yarn.lock ]; then
+                yarn lint
+              else
+                npm run lint
+              fi
+              ;;
+            docs)
+              if command -v yamllint >/dev/null 2>&1; then
+                YAML_LINT_CONFIG='
+                extends: relaxed
+                rules:
+                  document-start: disable
+                '
+                yamllint -d "$YAML_LINT_CONFIG" \
+                  registry.yaml \
+                  catalog-info.yaml \
+                  Taskfile.yml
+              else
+                echo "yamllint not installed; skipping YAML lint"
+              fi
+
+              if command -v markdownlint >/dev/null 2>&1; then
+                markdownlint README.md SPEC.md PRD.md CHARTER.md
+              else
+                echo "markdownlint not installed; skipping Markdown lint"
+              fi
+              ;;
+            *)
+              echo "Unable to detect a supported stack." >&2
+              exit 1
+              ;;
+          esac
+
+  clean:
+    desc: Remove common build and cache artifacts
+    cmds:
+      - |
+        rm -rf \
+          .coverage \
+          .markdownlintcache \
+          .mypy_cache \
+          .pytest_cache \
+          .ruff_cache \
+          .task \
+          .yamllintcache \
+          build \
+          coverage \
+          dist \
+          htmlcov \
+          node_modules \
+          target

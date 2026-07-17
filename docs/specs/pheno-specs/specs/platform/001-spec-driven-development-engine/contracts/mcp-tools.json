@@ -1,0 +1,115 @@
+{
+  "name": "agileplus",
+  "version": "1.0.0",
+  "description": "AgilePlus MCP server — spec-driven development engine",
+  "tools": [
+    {
+      "name": "agileplus_feature_status",
+      "description": "Get the current status of a feature including state, WP progress, governance gate status, and recommended next action",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "feature_slug": {
+            "type": "string",
+            "description": "Feature slug (e.g., '001-spec-driven-development-engine')"
+          }
+        },
+        "required": ["feature_slug"]
+      }
+    },
+    {
+      "name": "agileplus_list_features",
+      "description": "List all features with their current states and WP progress",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "state_filter": {
+            "type": "string",
+            "description": "Optional state filter (created, specified, researched, planned, implementing, validated, shipped)",
+            "enum": ["created", "specified", "researched", "planned", "implementing", "validated", "shipped", "retrospected"]
+          }
+        }
+      }
+    },
+    {
+      "name": "agileplus_wp_status",
+      "description": "Get status of a specific work package including PR state, review status, and blockers",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "feature_slug": { "type": "string" },
+          "wp_sequence": { "type": "integer", "description": "Work package number (1-based)" }
+        },
+        "required": ["feature_slug", "wp_sequence"]
+      }
+    },
+    {
+      "name": "agileplus_governance_check",
+      "description": "Check if a feature passes governance gates for a given state transition",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "feature_slug": { "type": "string" },
+          "transition": { "type": "string", "description": "State transition (e.g., 'implementing → validated')" }
+        },
+        "required": ["feature_slug", "transition"]
+      }
+    },
+    {
+      "name": "agileplus_audit_trail",
+      "description": "Get the audit trail for a feature, optionally filtered by WP",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "feature_slug": { "type": "string" },
+          "wp_sequence": { "type": "integer", "description": "Optional: filter to specific WP" },
+          "limit": { "type": "integer", "description": "Max entries to return", "default": 50 }
+        },
+        "required": ["feature_slug"]
+      }
+    },
+    {
+      "name": "agileplus_verify_audit_chain",
+      "description": "Verify the integrity of a feature's hash-chained audit log",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "feature_slug": { "type": "string" }
+        },
+        "required": ["feature_slug"]
+      }
+    },
+    {
+      "name": "agileplus_read_spec",
+      "description": "Read the specification for a feature",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "feature_slug": { "type": "string" },
+          "section": { "type": "string", "description": "Optional: specific section name to return" }
+        },
+        "required": ["feature_slug"]
+      }
+    },
+    {
+      "name": "agileplus_dispatch_command",
+      "description": "Dispatch an AgilePlus command (specify, research, plan, implement, validate, ship, retrospective)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "enum": ["specify", "research", "plan", "implement", "validate", "ship", "retrospective"]
+          },
+          "feature_slug": { "type": "string" },
+          "args": {
+            "type": "object",
+            "description": "Command-specific arguments",
+            "additionalProperties": { "type": "string" }
+          }
+        },
+        "required": ["command", "feature_slug"]
+      }
+    }
+  ]
+}

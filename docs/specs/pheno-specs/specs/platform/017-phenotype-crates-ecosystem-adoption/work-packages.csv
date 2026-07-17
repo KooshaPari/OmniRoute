@@ -1,0 +1,8 @@
+WP,Title,Owner,State,Est,Dependencies
+WP1,bare-cua migration (config validation errors),TBD,planned,5d,
+WP2,heliosCLI migration (telemetry metrics health),TBD,planned,5d,
+WP3,HexaKit migration (contracts port-traits),TBD,planned,4d,
+WP4,agentapi-plusplus migration (errors async),TBD,planned,3d,
+WP5,Create migration guides,TBD,planned,3d,WP1-4
+WP6,Adoption tracking dashboard,TBD,planned,2d,WP5
+WP7,Cross-project integration tests,TBD,planned,3d,WP1-4
