@@ -107,7 +107,7 @@ const validateProvenance = async (root, manifest, relative, errors, assert) => {
     assert(testSource.includes(manifest.provenance.testTitle), relative, "referenced test title was not found");
     const routeTargets = (manifest.steps ?? []).filter((step) => step.action === "goto").map((step) => step.target);
     for (const target of routeTargets) {
-      const escaped = target.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const escaped = target.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
       const routePattern = new RegExp(String.raw`goto\(\s*["']${escaped}["']\s*[,)]`);
       assert(routePattern.test(testSource), relative, `route ${target} is not present in the referenced test`);
     }
