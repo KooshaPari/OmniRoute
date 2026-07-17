@@ -1237,11 +1237,11 @@
       "disposition": "ARCHIVE_ONLY",
       "target": "phenotype-infra",
       "wave": "L7-001",
-      "fsm": "active",
+      "fsm": "absorbed",
       "adr": "ADR-018",
       "core_lang": "rust+python+typescript",
       "pr": null,
-      "note": "Port-trait library + driver to be cross-ported to phenotype-infra/thegent-compat/ (target: KooshaPari/thegent which exists at id 1162255140). Self-declared merged with nanovms per docs/CHANGELOG.md. Scorecard L1: 2.7/9.0 (target 4.5+). 12 SOTA branches archived as archive/*-2026-06-11 immutable tags. Audit: phenotype-registry/audits/absorption-justifications/phenocompose-2026-06-23.md (L4, 14/14)."
+      "note": "Port-trait library + driver to be cross-ported to phenotype-infra/thegent-compat/ (target: KooshaPari/thegent which exists at id 1162255140). Self-declared merged with nanovms per docs/CHANGELOG.md. Scorecard L1: 2.7/9.0 (target 4.5+). 12 SOTA branches archived as archive/*-2026-06-11 immutable tags. Audit: phenotype-registry/audits/absorption-justifications/phenocompose-2026-06-23.md (L4, 14/14). [ARCHIVED 2026-07-17 on GitHub.]"
     },
     {
       "id": "repo-nanovms-archive",
@@ -1249,11 +1249,11 @@
       "disposition": "ARCHIVE_ONLY",
       "target": "phenotype-infra",
       "wave": "L7-001",
-      "fsm": "active",
+      "fsm": "absorbed",
       "adr": "ADR-018",
       "core_lang": "rust+go+python+typescript",
       "pr": null,
-      "note": "Rust SDK + Python SDK + design snapshot to be cross-ported to phenotype-infra (byte-for-byte migration of sdk/rust/include/nvms_syscalls.h). Scorecard L1: 3.3/9.0 (target 4.5+). Fragile replace directive at go.mod:14 to be hardened. Audit: phenotype-registry/audits/absorption-justifications/nanovms-2026-06-23.md (L4, 14/14)."
+      "note": "Rust SDK + Python SDK + design snapshot to be cross-ported to phenotype-infra (byte-for-byte migration of sdk/rust/include/nvms_syscalls.h). Scorecard L1: 3.3/9.0 (target 4.5+). Fragile replace directive at go.mod:14 to be hardened. Audit: phenotype-registry/audits/absorption-justifications/nanovms-2026-06-23.md (L4, 14/14). [ARCHIVED 2026-07-17 on GitHub.]"
     },
     {
       "id": "repo-Tracera-absorption-2026-06-25",
@@ -1354,7 +1354,7 @@
       "id": "repo-BytePort",
       "path": "KooshaPari/BytePort",
       "disposition": "ARCHIVE_ONLY",
-      "fsm": "active",
+      "fsm": "absorbed",
       "size_kb": 1284,
       "remote_branch_count": 37,
       "last_push": "2026-06-30T09:00:00Z",
@@ -1362,7 +1362,8 @@
       "grade_percentage": null,
       "audit_artifact": "audits/absorption-justifications/BytePort-2026-06-23.md",
       "source_artifact": "manual:2026-07-17",
-      "added_at": "2026-07-17T02:18:00.000000Z"
+      "added_at": "2026-07-17T02:18:00.000000Z",
+      "note": " [ARCHIVED 2026-07-17 on GitHub.]"
     },
     {
       "id": "repo-localbase3",
