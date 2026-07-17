@@ -2081,7 +2081,7 @@
       "id": "repo-KWatch-batch3",
       "path": "KooshaPari/KWatch",
       "disposition": "ABSORB",
-      "target": "phenotype-tooling",
+      "target": "phenotype-tooling (Tools/kwatch/)",
       "wave": "2026-07-17-queue-refresh-batch3",
       "fsm": "absorbed",
       "core_lang": "go",
@@ -2097,9 +2097,7 @@
       "absorbed_date": "2026-07-17",
       "archived": true,
       "note": "Go Kubernetes monitoring/alerting — re-classified AFFIRM→ABSORB. Target phenotype-tooling/cmd/kwatch/. [ABSORBED 2026-07-17: phenotype-tooling/Tools/kwatch/ — 133 files Go K8s monitoring fully synced; diff -r shows zero drift vs source; go build + go vet exit 0.]",
-      "absorbed_date": "2026-07-17",
       "absorbed_pr": "phenotype-tooling#9683c3c9 (feat: absorb KWatch Go monitoring tool into tools/kwatch/)",
-      "archived": true,
       "archived_date": "2026-07-17"
     },
     {
@@ -2129,9 +2127,9 @@
       "id": "repo-phenotype-gfx",
       "path": "KooshaPari/phenotype-gfx",
       "disposition": "ABSORB",
-      "target": "pheno (crates/phenotype-gfx) + C# halves to voxel/water spines",
+      "target": "pheno (crates/phenotype-gfx)",
       "wave": "2026-07-17-queue-refresh-batch4",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust+csharp",
       "size_kb": 3072,
       "remote_branch_count": 1,
@@ -2141,7 +2139,7 @@
       "audit_artifact": "audits/absorption-justifications/phenotype-gfx-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:35:00.000000Z",
-      "note": "Polyglot GFX SDK (Rust voxel + C# terrain/water). Rust half absorbs into pheno; C# halves may split into voxel/water."
+      "note": "Polyglot GFX SDK (Rust voxel + C# terrain/water). Rust half absorbs into pheno; C# halves may split into voxel/water. [ABSORBED 2026-07-17]"
     },
     {
       "id": "repo-hwLedger",
@@ -2167,9 +2165,9 @@
       "id": "repo-omniroute-rs",
       "path": "KooshaPari/omniroute-rs",
       "disposition": "ABSORB",
-      "target": "OmniRoute (services/rs/ or crates/omniroute-rs)",
+      "target": "OmniRoute (crates/omniroute-rs/)",
       "wave": "2026-07-17-queue-refresh-batch4",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 512,
       "remote_branch_count": 1,
@@ -2179,7 +2177,7 @@
       "audit_artifact": "audits/absorption-justifications/omniroute-rs-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:35:00.000000Z",
-      "note": "Rust port of OmniRoute. Pairs with bifrost gateway. Target: OmniRoute monorepo Rust service."
+      "note": "Rust port of OmniRoute. Pairs with bifrost gateway. Target: OmniRoute monorepo Rust service. [ABSORBED 2026-07-17]"
     },
     {
       "id": "repo-pheno-forge-smoke-batch4",
@@ -2231,7 +2229,7 @@
       "disposition": "ABSORB",
       "target": "phenotype-apps (apps/apisync/)",
       "wave": "2026-07-17-queue-refresh-batch4",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 412,
       "remote_branch_count": 1,
@@ -2241,7 +2239,7 @@
       "audit_artifact": "audits/absorption-justifications/Apisync-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:35:00.000000Z",
-      "note": "BLOCK A app (Apisync) — Rust. Per ADR-023, BLOCK A apps self-repod. Target: phenotype-apps/apps/apisync/ alongside Conft."
+      "note": "BLOCK A app (Apisync) — Rust. Per ADR-023, BLOCK A apps self-repod. Target: phenotype-apps/apps/apisync/ alongside Conft. [ABSORBED 2026-07-17]"
     },
     {
       "id": "repo-PhenoVCS",
