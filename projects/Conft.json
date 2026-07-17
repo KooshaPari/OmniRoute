@@ -1,0 +1,17 @@
+{
+  "name": "Conft",
+  "languages": [
+    "typescript"
+  ],
+  "primary_language": "typescript",
+  "status": "active",
+  "has_readme": true,
+  "type": "block-a-app",
+  "path": "repos/Conft",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch3",
+  "absorbed_into": "phenotype-apps",
+  "absorption_note": "BLOCK A app (Conft) — TypeScript. Per ADR-023 app-policy: BLOCK A apps are self-repod. Conft is one of 6 BLOCK A apps (Apisync/DataKit/phenoData/Stashly/Conft/Tracely). Tracely already absorbed. Target: phenotype-apps/apps/conft/ as a sibling to the existing apps/ directory. Conft is the only non-Rust BLOCK A app.",
+  "note": "Audited 2026-07-17; BLOCK A app fits the apps monorepo policy.",
+  "adr": "ADR-023"
+}

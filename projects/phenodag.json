@@ -1,0 +1,17 @@
+{
+  "name": "phenodag",
+  "languages": [
+    "go"
+  ],
+  "primary_language": "go",
+  "status": "active",
+  "has_readme": true,
+  "type": "cli",
+  "path": "repos/phenodag",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch3",
+  "absorbed_into": "phenotype-tooling",
+  "absorption_note": "Go multi-agent multi-project DAG (single-file Go with SQLite + flock). Built-in v3-180 preset, hybrid similarity, atomic claims, mangled-git scan, side-DAG back-fill. Fits phenotype-tooling as coordination/orchestration CLI alongside sharecli. Target: phenotype-tooling/cmd/phenodag/.",
+  "note": "Audited 2026-07-17; single-file Go binary (claim DAG) — clean integration candidate for tooling layer.",
+  "adr": "ADR-ECO-006"
+}

@@ -1,0 +1,19 @@
+{
+  "name": "PhenoContracts",
+  "languages": [
+    "typescript",
+    "html",
+    "rust"
+  ],
+  "primary_language": "typescript",
+  "status": "active",
+  "has_readme": true,
+  "type": "verification-port",
+  "path": "repos/PhenoContracts",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch3",
+  "absorbed_into": "PhenoSpecs + TestingKit",
+  "absorption_note": "Phenotype contract verification — formal verification port + Prusti/Kani adapters + contract test bundle. Spec content (JSON schemas + ADRs) → PhenoSpecs; runtime verifier (Prusti/Kani adapters, contract tests, Rust contracts crate) → TestingKit. Upgrades prior HOLD_DECOMPOSE row (id 1259) to ABSORB.",
+  "note": "Audited 2026-07-17; multi-target absorption (specs vs runtime).",
+  "adr": "ADR-017"
+}

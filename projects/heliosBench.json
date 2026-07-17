@@ -6,6 +6,9 @@
   "has_readme": true,
   "type": "tool",
   "path": "repos/heliosBench",
-  "disposition": "AFFIRM",
-  "note": "Audited 2026-07-17; performance benchmarking tools for helios-cli."
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch3",
+  "absorbed_into": "phenotype-tooling",
+  "absorption_note": "HeliosBench performance benchmarking tools. Re-classified from AFFIRM to ABSORB. Target: phenotype-tooling/bench/heliosbench/ alongside Benchora for benchmarking layer.",
+  "note": "Audited 2026-07-17; performance benchmarking tools for helios-cli. Now queued for absorption."
 }
