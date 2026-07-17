@@ -1711,19 +1711,43 @@
       "id": "repo-template-commons",
       "path": "KooshaPari/template-commons",
       "disposition": "ABSORB",
-      "target": "phenokits-commons",
+      "target": "phenokits-commons (templates/* + docs/template-kitty-specs)",
       "wave": "2026-07-17-queue-refresh",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "python",
       "size_kb": 259,
       "remote_branch_count": 5,
-      "last_push": "2026-07-15T22:45:47Z",
+      "last_push": "2026-07-15T07:33:00Z",
       "grade_score": null,
       "grade_percentage": null,
       "audit_artifact": "audits/absorption-justifications/template-commons-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
-      "added_at": "2026-07-17T11:16:58.000000Z",
-      "note": "Python shared template workflows + ADR sessions. 5 branches, 259KB. Per RATIONALIZATION_PLAN.md template-commons consolidates into phenokits-commons."
+      "added_at": "2026-07-17T11:17:01.000000Z",
+      "absorbed_date": "2026-07-17",
+      "absorbed_pr": "phenokits-commons@wip/2026-07-16-0029-auto (commit 4441d804)",
+      "archived": true,
+      "archived_date": "2026-07-17",
+      "selective_absorb_summary": {
+        "absorbed_templates": [
+          "phenotype-config", "phenotype-id", "phenotype-logging",
+          "phenotype-py-kit", "phenotype-testing", "phenotype-toolkit",
+          "plugin-typescript", "phenotype-go-kit", "phenotype-go-auth",
+          "phenotype-go-cli", "phenotype-go-config", "phenotype-go-middleware"
+        ],
+        "absorbed_docs": ["docs/template-kitty-specs/001-commons"],
+        "skipped_overlap": [
+          "clean-rust", "hexagonal-cs/csharp/go/python/rs/rust/typescript/zig",
+          "microservice-scaffold", "phenotype-api"
+        ],
+        "skipped_governance": [
+          "PRD.md", "FUNCTIONAL_REQUIREMENTS.md", "COMPARISON.md",
+          "ADR-018-testing-strategy.md", "worklog.md",
+          "docs/", "scripts/", "tests/", "contracts/", ".github/"
+        ],
+        "files_added": 57,
+        "insertions": 4007
+      },
+      "note": "Cross-domain template primitives Python+Go. 5 branches, 259KB. ABSORBED into phenokits-commons via selective copy: 12 new templates (Python+Go+TS) that did not already exist locally; 1 kitty-spec doc. Skipped overlap (clean-rust, hexagonal-*, microservice-scaffold, phenotype-api) and skipped template-commons governance boilerplate (PRD, COMPARISON, worklog, etc.) to avoid drift with phenokits-commons' own governance layer. Source repo archived on GitHub."
     },
     {
       "id": "repo-Logify",
