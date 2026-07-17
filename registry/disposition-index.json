@@ -1422,16 +1422,13 @@
     {
       "id": "repo-pheno-context",
       "path": "KooshaPari/pheno-context",
-      "disposition": "AFFIRM",
-      "fsm": "active",
-      "size_kb": 0,
-      "remote_branch_count": 5,
-      "last_push": "2026-06-28T19:15:15.910378+00:00",
-      "grade_score": null,
-      "grade_percentage": null,
-      "audit_artifact": "automated:ADR-095-T0:2026-06-28",
-      "source_artifact": "automated:forge:2026-06-28",
-      "added_at": "2026-06-28T19:15:15.910378+00:00"
+      "disposition": "ABSORB",
+      "target": "pheno (monorepo)",
+      "wave": "2026-07-17-absorption",
+      "fsm": "absorbed",
+      "core_lang": "rust",
+      "absorbed_date": "2026-07-17",
+      "note": "Single Rust crate (Context builder + header extraction) absorbed into KooshaPari/pheno as crates/pheno-context/. All 12 tests pass. Source repo archived."
     },
     {
       "id": "repo-pheno-runtime-config",
