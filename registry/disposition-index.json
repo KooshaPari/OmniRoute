@@ -1977,7 +1977,7 @@
       "audit_artifact": "audits/absorption-justifications/PhenoHandbook-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:50:00.000000Z",
-      "note": "Phenotype Handbook patterns/guidelines \u2014 doc-heavy; consolidate into phenodocs/handbook/. [ABSORBED 2026-07-17 \u2192 docs/handbook/, commit a0f2585b]"
+      "note": "Phenotype Handbook patterns/guidelines \u2014 doc-heavy; consolidated into phenodocs/docs/handbook/ (commit a0f2585b). SPINE INTEGRITY NOTE: PhenoHandbook is the CONVENTIONS member of the 4-role spine (registry=INDEX, PhenoSpecs=ADRs, PhenoHandbook=CONVENTIONS, governance=ENFORCEMENT). Concurrent absorption destroys the spine peer relationship. Recommendation: declare the absorbed path as a \"delegated mirror\" or restore the upstream as the spine member."
     },
     {
       "id": "repo-Conft",
@@ -2173,7 +2173,7 @@
       "disposition": "ABSORB",
       "target": "pheno (crates/pheno-forge-smoke)",
       "wave": "2026-07-17-queue-refresh-batch4",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 144,
       "remote_branch_count": 1,
@@ -2183,7 +2183,11 @@
       "audit_artifact": "audits/absorption-justifications/pheno-forge-smoke-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:35:00.000000Z",
-      "note": "E2E smoke binary for forgecode 4-PR stack per ADR-096. Loads libpheno_bridge via libloading; consumed by forgecode CI."
+      "absorbed_date": "2026-07-17",
+      "absorbed_pr": "pheno#absorb/pheno-forge-smoke-2026-07-17",
+      "archived": true,
+      "archived_date": "2026-07-17",
+      "note": "E2E smoke binary for forgecode 4-PR stack per ADR-096 (loads libpheno_bridge via libloading, exercises composite routing across 4 scopes). Absorbed into pheno monorepo as crates/pheno-forge-smoke; cargo check + cargo build --release pass; binary --help + bridge-missing graceful-fail verified. 9/11 deps mapped to workspace.dependencies; libloading + colored pinned locally. Sibling crate to pheno-cdylib-bridge (already absorbed at 26ec806). Source repo archived via gh repo archive."
     },
     {
       "id": "repo-pheno-otel",
@@ -2552,7 +2556,7 @@
       "disposition": "ABSORB",
       "target": "phenotype-registry",
       "wave": "2026-07-17-queue-refresh-batch3",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "Python",
       "size_kb": 250,
       "remote_branch_count": 5,
@@ -2564,7 +2568,10 @@
       "added_at": "2026-07-17T04:55:00.000000Z",
       "target_path": "docs/specs/phenotype-specs/",
       "confidence": 0.85,
-      "note": "Phenotype Specification Registry - Central source of truth for phenotype specs. Absorb into phenotype-registry/docs/specs/."
+      "note": "ABSORBED 2026-07-17 by concurrent agent \u2014 physically copied to docs/specs/pheno-specs/. SPINE INTEGRITY NOTE: PhenoSpecs is declared the ADRs/contracts member of the 4-role spine (registry=INDEX, PhenoSpecs=ADRs, PhenoHandbook=CONVENTIONS, governance=ENFORCEMENT) per its own README. Concurrent absorption destroys the spine peer relationship. Recommendation: declare the absorbed path as a \"delegated mirror\" rather than a true absorption, OR restore the upstream as the spine member.",
+      "absorbed_into": "phenotype-registry",
+      "absorbed_target_path": "docs/specs/pheno-specs/",
+      "absorbed_at": "2026-07-17"
     },
     {
       "id": "DSPI-15",
