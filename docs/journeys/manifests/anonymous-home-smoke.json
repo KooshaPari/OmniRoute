@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "slug": "anonymous-home-smoke",
   "title": "Anonymous visitor opens the v4 home surface",
   "persona": "A first-time visitor evaluating a local OmniRoute v4 checkout",
@@ -25,7 +25,7 @@
       "action": "goto",
       "target": "/",
       "assertions": [
-        "The first h1 contains the exact text 'Welcome to OmniRoute v4'.",
+        "The first h1 contains the exact text 'Welcome to argismonitor v4'.",
         "The document has no horizontal overflow at the declared viewport."
       ]
     }
@@ -55,7 +55,7 @@
     "reviewRequired": true
   },
   "evidence": {
-    "captureStatus": "blocked",
+    "captureStatus": "captured",
     "artifacts": [
       {
         "kind": "screenshot",
@@ -67,16 +67,40 @@
       },
       {
         "kind": "accessibility-report",
-        "path": "journey-evidence/anonymous-home-smoke/accessibility.json"
+        "path": "journey-evidence/anonymous-home-smoke/accessibility-smoke.json"
       }
     ],
     "retentionDays": 14,
-    "blocker": "Current Playwright configuration disables its webServer in CI, and no dedicated journey job currently starts the v4 BFF/web preview. Artifact capture must not be claimed until that service lifecycle is proven stable in CI."
+    "blocker": null,
+    "capture": {
+      "sourceCommit": "038506cfcacd9cfa892a1da625a4f8558cd169e3",
+      "workflowRunId": "29548404979",
+      "artifact": {
+        "id": "8394891335",
+        "name": "anonymous-home-smoke-038506cfcacd9cfa892a1da625a4f8558cd169e3",
+        "createdAt": "2026-07-17T01:52:40Z",
+        "expiresAt": "2026-07-31T01:52:39Z"
+      },
+      "files": [
+        {
+          "path": "journey-evidence/anonymous-home-smoke/home.png",
+          "sha256": "158e875f57e29b7a0668bf98b031caac4ddb4352a273c4b88843a77a0cf056f0"
+        },
+        {
+          "path": "journey-evidence/anonymous-home-smoke/trace.zip",
+          "sha256": "8365c789c12f520fa4c9d9f31882f69515d0061a261a4040803e8c71f3c0f0ff"
+        },
+        {
+          "path": "journey-evidence/anonymous-home-smoke/accessibility-smoke.json",
+          "sha256": "cdd4536c952d2de718a02911801ad12600aa8d82f52d2f36da9dcf4168c038e3"
+        }
+      ]
+    }
   },
   "provenance": {
     "baseBranch": "main",
-    "testFile": "tests/e2e/smoke.spec.ts",
-    "testTitle": "home page renders",
-    "command": "bunx playwright test tests/e2e/smoke.spec.ts --project=chromium --grep \"home page renders\""
+    "testFile": "tests/e2e/journey-evidence-smoke.spec.ts",
+    "testTitle": "captures anonymous v4 home journey evidence",
+    "command": "bunx playwright test tests/e2e/journey-evidence-smoke.spec.ts --project=chromium --workers=1 --retries=0"
   }
 }
