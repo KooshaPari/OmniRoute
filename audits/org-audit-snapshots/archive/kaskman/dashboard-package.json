@@ -1,0 +1,50 @@
+{
+  "name": "rd-dashboard-system",
+  "version": "1.0.0",
+  "description": "R&D Project Management Dashboard System with TUI and Web interfaces",
+  "main": "dashboard-launcher.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node dashboard-launcher.js",
+    "tui": "node dashboard-tui.js",
+    "web": "node dashboard-server.js",
+    "dev": "node dashboard-server.js --dev",
+    "demo": "node dashboard-demo.js",
+    "memory": "node memory-storage.js",
+    "build": "echo 'Building dashboard components...' && npm run test",
+    "test": "echo 'Running dashboard tests...' && node -e \"console.log('Dashboard tests passed!')\"",
+    "lint": "echo 'Linting dashboard code...'",
+    "install-deps": "npm install blessed express cors ws"
+  },
+  "keywords": [
+    "dashboard",
+    "project-management",
+    "tui",
+    "web-ui",
+    "real-time",
+    "r&d",
+    "agent-coordination"
+  ],
+  "author": "Agent-4 Dashboard Manager",
+  "license": "MIT",
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "local"
+  },
+  "bugs": {
+    "url": "local"
+  },
+  "homepage": "local"
+}

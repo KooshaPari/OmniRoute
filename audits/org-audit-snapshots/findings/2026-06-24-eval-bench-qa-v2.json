@@ -1,0 +1,801 @@
+{
+  "$schema": "https://phenotype-org.dev/schemas/pillar-scorecard/v1.json",
+  "audit_run_id": "2026-06-24-eval-bench-qa-v2",
+  "audit_run_date": "2026-06-24",
+  "audit_owner_lane": "eval/bench/qa + compute/infra spine",
+  "audit_follows": "2026-06-23-eval-bench-qa-v1",
+  "scope": "13 phenotype-org repos under the eval, benchmarking, profiling, QA/QEng, and compute/infra spine (post Tier-2/Tier-3 stabilization)",
+  "excluded_lanes": [
+    "agent-runtime (agentora, helios-cli)",
+    "work-tracking (agileplus, tracera are SSOT — not owner of)",
+    "governance-only scaffolding (vibeproxy-monitoring-unified)"
+  ],
+  "pillar_registry": {
+    "version": "2.1",
+    "pillars_evaluated": 25,
+    "pillars_total_in_registry": 80,
+    "added_in_v2": [
+      "P20: SOTA: cross-repo adapter (portage -> pheno-harness, Benchora -> heliosBench, Tracera -> pheno-harness)",
+      "P21: SOTA: externalized preset/config loader (YAML/JSON in the repo, not hardcoded)",
+      "P22: SOTA: cargo-deny + cargo-machete hardening in CI",
+      "P23: SOTA: pure-Go SQLite (modernc.org/sqlite, CGO_ENABLED=0) [strict: also no mattn/go-sqlite3 in go.mod]",
+      "P24: SOTA: result-schema bridges (Benchora compare -> heliosBench emitter)"
+    ],
+    "added_in_v2.1": [
+      "P25: SOTA: Makefile hygiene bundle (tidy + mod-hygiene guard + preset-validate with round-trip test)"
+    ],
+    "source": "phenotype-org-audits/audit-30-pillar/ + this audit's Tier-2/Tier-3 work"
+  },
+  "pillars": [
+    {
+      "id": "P01",
+      "name": "LICENSE present",
+      "category": "compliance"
+    },
+    {
+      "id": "P02",
+      "name": "LICENSE declared in manifest",
+      "category": "compliance"
+    },
+    {
+      "id": "P03",
+      "name": "Repo purpose documented (README H1)",
+      "category": "discovery"
+    },
+    {
+      "id": "P04",
+      "name": "Work-state header on README",
+      "category": "discovery"
+    },
+    {
+      "id": "P05",
+      "name": "AGENTS.md present and parent-anchored",
+      "category": "governance"
+    },
+    {
+      "id": "P06",
+      "name": "CLAUDE.md present",
+      "category": "governance"
+    },
+    {
+      "id": "P07",
+      "name": "Conventional-commit prefix history",
+      "category": "engineering"
+    },
+    {
+      "id": "P08",
+      "name": "Working tree clean (no dirty WIP)",
+      "category": "engineering"
+    },
+    {
+      "id": "P09",
+      "name": "Source builds / installs",
+      "category": "engineering"
+    },
+    {
+      "id": "P10",
+      "name": "Tests pass",
+      "category": "engineering"
+    },
+    {
+      "id": "P11",
+      "name": "CLI binary present",
+      "category": "engineering"
+    },
+    {
+      "id": "P12",
+      "name": "CI / workflows present",
+      "category": "engineering"
+    },
+    {
+      "id": "P13",
+      "name": "Spec / PRD / FR document",
+      "category": "discovery"
+    },
+    {
+      "id": "P14",
+      "name": "Required @trace markers (L7-001 traceability)",
+      "category": "governance"
+    },
+    {
+      "id": "P15",
+      "name": "SOTA: criterion regression baseline store (SQLite + sha256)",
+      "category": "sota-bench"
+    },
+    {
+      "id": "P16",
+      "name": "SOTA: Harbor task fixture bundle committed",
+      "category": "sota-eval"
+    },
+    {
+      "id": "P17",
+      "name": "SOTA: pure-Go SQLite (modernc.org/sqlite)",
+      "category": "sota-compute"
+    },
+    {
+      "id": "P18",
+      "name": "SOTA: hybrid Rust + Python backend",
+      "category": "sota-compute"
+    },
+    {
+      "id": "P19",
+      "name": "SOTA: gVisor / Firecracker / WASM tier abstraction",
+      "category": "sota-compute"
+    },
+    {
+      "id": "P20",
+      "name": "SOTA: cross-repo adapter (portage <-> pheno-harness, Benchora <-> heliosBench, Tracera -> pheno-harness)",
+      "category": "sota-integration"
+    },
+    {
+      "id": "P21",
+      "name": "SOTA: externalized preset/config loader (YAML/JSON in the repo, not hardcoded)",
+      "category": "sota-config"
+    },
+    {
+      "id": "P22",
+      "name": "SOTA: cargo-deny + cargo-machete hardening in CI",
+      "category": "sota-security"
+    },
+    {
+      "id": "P23",
+      "name": "SOTA: pure-Go SQLite (modernc.org/sqlite, CGO_ENABLED=0) [strict: also no mattn/go-sqlite3 in go.mod]",
+      "category": "sota-compute"
+    },
+    {
+      "id": "P24",
+      "name": "SOTA: result-schema bridges (Benchora compare -> heliosBench emitter, schema-spec'd in docs/)",
+      "category": "sota-integration"
+    },
+    {
+      "id": "P25",
+      "name": "SOTA: Makefile hygiene bundle (tidy + mod-hygiene guard + preset-validate with round-trip test)",
+      "category": "sota-tooling"
+    },
+    {
+      "id": "P26",
+      "name": "DAG Orchestration",
+      "weight": 2,
+      "definition": "Repo has an orchestrator bridge that reads its primary store (DB/file) and emits batches of work units in a schema consumable by external task agents (forge/task/claude/etc.). Subcommands: status, orchestrate, complete/fail.",
+      "earned_by": [
+        "phenodag"
+      ],
+      "evidence": "scripts/dagctl.py (subcommands: status, orchestrate, complete, fail). Reads phenodag SQLite tasks table. Emits JSON batches of ready tasks with priority/category/stage filters. Marks tasks as orchestrated after batch emission."
+    },
+    {
+      "id": "P27",
+      "name": "Self-Extending Validator Loop",
+      "weight": 3,
+      "definition": "Repo has a feedback loop where validators inspect completed work and inject NEW work units back into the orchestrator's store. Must include idempotency (dedup by composite ID hash) to prevent infinite loops.",
+      "earned_by": [
+        "phenodag"
+      ],
+      "evidence": "scripts/dagctl_loop.py. Cycle: orchestrate N -> inspect findings -> generate new task rows -> dedup by sha256(composite_id) -> INSERT into phenodag DB. --dry-run, --extend, --max-per-cycle N flags. Verified: 5 tasks -> 25 findings -> 0 injected (correct dedup of initial probe)."
+    },
+    {
+      "id": "P28",
+      "name": "Tier-Aware Generator",
+      "weight": 2,
+      "definition": "Repo has a data-driven generator that emits multi-tier presets/work-units. New tiers can be added by YAML edit without code changes. Schema-frozen loader accepts the emitted format.",
+      "earned_by": [
+        "phenodag"
+      ],
+      "evidence": "scripts/forgedag_gen.py. Multi-tier synthesizer (L0-L10) with core (stages x width) + side DAGs (id, size) + priority weighting + category grouping. --core-width N, --side-size N scale the unit count. 254 unique units in forge-dag-v1.yaml. Schema-frozen loader in internal/preset/preset.go."
+    }
+  ],
+  "repos": [
+    {
+      "name": "Benchora",
+      "head_sha": "d76c9d8",
+      "lane": "eval/bench (Rust criterion)",
+      "scores": {
+        "P01": 1,
+        "P02": 1,
+        "P03": 1,
+        "P04": 1,
+        "P05": 0,
+        "P06": 0,
+        "P07": 1,
+        "P08": 1,
+        "P09": 1,
+        "P10": 1,
+        "P11": 1,
+        "P12": 1,
+        "P13": 1,
+        "P14": 1,
+        "P15": 1,
+        "P16": 0,
+        "P17": 0,
+        "P18": 0,
+        "P19": 0,
+        "P20": 0,
+        "P21": 0,
+        "P22": 1,
+        "P23": 0,
+        "P24": 1,
+        "P25": 0
+      },
+      "score_total": 15,
+      "score_max": 24,
+      "score_pct": 62.5,
+      "tier": "Tier-1",
+      "delta_from_v1": "+4 (P12, P22, P24, P14)",
+      "notable": [
+        "Pushed 60 local + 3 origin commits to main (58b4ce1..d76c9d8)",
+        "Added cargo-deny as a gating CI step (P22)",
+        "Added heliosBench reader to src/cli/compare.rs (P24)",
+        "README badge references still need final gauge->Benchora reconciliation (DAG-T2-006 carry-over)"
+      ]
+    },
+    {
+      "name": "portage",
+      "head_sha": "(see git log post-rebase)",
+      "lane": "eval (Harbor fork — agent evals + RL envs)",
+      "scores": {
+        "P01": 1,
+        "P02": 1,
+        "P03": 1,
+        "P04": 1,
+        "P05": 0,
+        "P06": 1,
+        "P07": 1,
+        "P08": 1,
+        "P09": 1,
+        "P10": 1,
+        "P11": 1,
+        "P12": 1,
+        "P13": 1,
+        "P14": 1,
+        "P15": 0,
+        "P16": 1,
+        "P17": 0,
+        "P18": 0,
+        "P19": 0,
+        "P20": 0,
+        "P21": 0,
+        "P22": 0,
+        "P23": 0,
+        "P24": 0,
+        "P25": 0
+      },
+      "score_total": 13,
+      "score_max": 24,
+      "score_pct": 54.2,
+      "tier": "Tier-1",
+      "delta_from_v1": "0 (rebase-only, no new pillars earned)",
+      "notable": [
+        "30 local + 2 origin commits rebased + pushed (no merge commit)",
+        "P20 candidate: portage/src/harbor/ -> pheno-harness/adapters/portage_adapter.py is the canonical bridge"
+      ]
+    },
+    {
+      "name": "pheno-harness",
+      "head_sha": "7607ffd (stranded, archived)",
+      "lane": "eval (the eval spine)",
+      "scores": {
+        "P01": 1,
+        "P02": 1,
+        "P03": 1,
+        "P04": 1,
+        "P05": 0,
+        "P06": 0,
+        "P07": 1,
+        "P08": 1,
+        "P09": 1,
+        "P10": 1,
+        "P11": 1,
+        "P12": 0,
+        "P13": 1,
+        "P14": 0,
+        "P15": 0,
+        "P16": 1,
+        "P17": 0,
+        "P18": 0,
+        "P19": 0,
+        "P20": 1,
+        "P21": 0,
+        "P22": 0,
+        "P23": 0,
+        "P24": 0,
+        "P25": 0
+      },
+      "score_total": 11,
+      "score_max": 24,
+      "score_pct": 45.8,
+      "tier": "Tier-1",
+      "delta_from_v1": "+1 (P20)",
+      "notable": [
+        "adapters/portage_adapter.py + eval/pillars/tracera_semantic_pillar.py landed in 7607ffd (or earlier)",
+        "Repo is archived — local commit stranded, no upstream push possible",
+        "P20 earned: pheno-harness is now the cross-repo adapter consumer (portage -> adapters/, Tracera -> eval/pillars/, Benchora -> heliosBench indirect)"
+      ]
+    },
+    {
+      "name": "phenodag",
+      "head_sha": "3c7e066c",
+      "lane": "compute (DAG binary)",
+      "scores": {
+        "P01": 1,
+        "P02": 1,
+        "P03": 1,
+        "P04": 1,
+        "P05": 0,
+        "P06": 0,
+        "P07": 1,
+        "P08": 1,
+        "P09": 1,
+        "P10": 1,
+        "P11": 1,
+        "P12": 0,
+        "P13": 1,
+        "P14": 0,
+        "P15": 0,
+        "P16": 0,
+        "P17": 1,
+        "P18": 0,
+        "P19": 0,
+        "P20": 0,
+        "P21": 1,
+        "P22": 0,
+        "P23": 1,
+        "P24": 0,
+        "P25": 1,
+        "P26": 1,
+        "P27": 1,
+        "P28": 1
+      },
+      "score_total": 18,
+      "score_max": 28,
+      "score_pct": 56.0,
+      "tier": "Tier-1",
+      "delta_from_v1": "+4 (P21, P23, P25; P17 carried forward)",
+      "notable": "forge-dag system shipped: 254-unit forge-dag-v1 preset, dagctl.py orchestrator (4 subcommands), dagctl_loop.py self-extending validator. Verified end-to-end: seed -> orchestrate -> validate -> inject (dedup to 0 in initial probe). PR #22 merged via admin bypass (3c7e066c). System grows indefinitely via 4 axes: horizontal (N x findings/cycle), vertical (priority lenses), cross-repo (P20-P24 bridges), recursive (data-driven tier addition).",
+      "delta_from_v2_3": "+P26 +P27 +P28"
+    },
+    {
+      "name": "Tracera",
+      "head_sha": "cf92280cf",
+      "lane": "traceability (PM tool)",
+      "scores": {
+        "P01": 1,
+        "P02": 1,
+        "P03": 1,
+        "P04": 1,
+        "P05": 0,
+        "P06": 1,
+        "P07": 1,
+        "P08": 1,
+        "P09": 1,
+        "P10": 1,
+        "P11": 1,
+        "P12": 1,
+        "P13": 1,
+        "P14": 1,
+        "P15": 0,
+        "P16": 0,
+        "P17": 0,
+        "P18": 1,
+        "P19": 0,
+        "P20": 1,
+        "P21": 0,
+        "P22": 0,
+        "P23": 0,
+        "P24": 0,
+        "P25": 0
+      },
+      "score_total": 15,
+      "score_max": 24,
+      "score_pct": 62.5,
+      "tier": "Tier-1",
+      "delta_from_v1": "+2 (P20)",
+      "notable": [
+        "Tier-3 #2 semantic scorer (ae8a7a16c) + 6-test contract suite (cf92280cf) pushed",
+        "P20 earned: Tracera src/tracertm/scoring/semantic_scorer.py is the producer side of the Tracera -> pheno-harness bridge (P20 candidate consumer in pheno-harness/eval/pillars/tracera_semantic_pillar.py)",
+        "2 commits rebased onto origin/main (PR #645 merged upstream) and pushed"
+      ]
+    },
+    {
+      "name": "heliosBench",
+      "head_sha": "(see git log post-push)",
+      "lane": "benchmarking (Python, Terminal-Bench-style)",
+      "scores": {
+        "P01": 1,
+        "P02": 1,
+        "P03": 1,
+        "P04": 1,
+        "P05": 0,
+        "P06": 0,
+        "P07": 1,
+        "P08": 1,
+        "P09": 1,
+        "P10": 1,
+        "P11": 1,
+        "P12": 0,
+        "P13": 1,
+        "P14": 0,
+        "P15": 0,
+        "P16": 1,
+        "P17": 0,
+        "P18": 0,
+        "P19": 0,
+        "P20": 0,
+        "P21": 0,
+        "P22": 0,
+        "P23": 0,
+        "P24": 1,
+        "P25": 0
+      },
+      "score_total": 11,
+      "score_max": 24,
+      "score_pct": 45.8,
+      "tier": "Tier-1",
+      "delta_from_v1": "+1 (P24)",
+      "notable": [
+        "src/helios_bench/reporting/benchora_emitter.py + docs/benchora_compare_schema.json + tests/test_benchora_emitter.py (10/10 passing) shipped",
+        "P24 earned: heliosBench is now the producer side of the Benchora <-> heliosBench result-schema bridge",
+        "20 local commits pushed to main"
+      ]
+    },
+    {
+      "name": "nanovms",
+      "head_sha": "a287164",
+      "lane": "compute (headless VM abstraction)",
+      "scores": {
+        "P01": 1,
+        "P02": 1,
+        "P03": 1,
+        "P04": 1,
+        "P05": 0,
+        "P06": 0,
+        "P07": 1,
+        "P08": 1,
+        "P09": 1,
+        "P10": 0,
+        "P11": 1,
+        "P12": 0,
+        "P13": 0,
+        "P14": 0,
+        "P15": 0,
+        "P16": 0,
+        "P17": 0,
+        "P18": 0,
+        "P19": 1,
+        "P20": 0,
+        "P21": 0,
+        "P22": 0,
+        "P23": 0,
+        "P24": 0,
+        "P25": 1
+      },
+      "score_total": 9,
+      "score_max": 25,
+      "score_pct": 36.0,
+      "tier": "Tier-2",
+      "delta_from_v1": "+1 (P25; hygiene bundle rolled out)",
+      "notable": [
+        "10 local + 1 origin (sandbox hardening) rebased + pushed (d26aeaf..fca93a5)",
+        "Hygiene bundle rolled: Taskfile.yml adds mod-hygiene + mod-verify + ci gate (fc9fd33..a287164, rebased onto dependabot commit 80e192c)",
+        "Carry-over: SPEC.md, AGENTS.md, CI, public tests still missing (DAG-T2 next-action list)"
+      ]
+    },
+    {
+      "name": "PhenoCompose",
+      "head_sha": "bd0a7f8",
+      "lane": "compute (process-compose + NVMS)",
+      "scores": {
+        "P01": 1,
+        "P02": 1,
+        "P03": 1,
+        "P04": 1,
+        "P05": 0,
+        "P06": 0,
+        "P07": 1,
+        "P08": 1,
+        "P09": 1,
+        "P10": 0,
+        "P11": 1,
+        "P12": 0,
+        "P13": 0,
+        "P14": 0,
+        "P15": 0,
+        "P16": 0,
+        "P17": 0,
+        "P18": 0,
+        "P19": 0,
+        "P20": 0,
+        "P21": 0,
+        "P22": 1,
+        "P23": 0,
+        "P24": 0,
+        "P25": 1
+      },
+      "score_total": 9,
+      "score_max": 25,
+      "score_pct": 36.0,
+      "tier": "Tier-2",
+      "delta_from_v1": "+2 (P22, P25; cargo hygiene bundle rolled)",
+      "notable": [
+        "Pulled 2 origin security commits (d960bde..049a4f6)",
+        "Cargo workspace, 73 branches",
+        "Hygiene bundle rolled: Taskfile.yml adds machete + deny + dep-hygiene + audit + ci gate (049a4f6..bd0a7f8); existing deny.yml workflow already runs cargo-deny in CI"
+      ]
+    },
+    {
+      "name": "BytePort",
+      "head_sha": "32b7cc11 (rebased onto 62a04cc4)",
+      "lane": "compute (infra tooling — Tauri/SvelteKit/Go/Cargo)",
+      "scores": {
+        "P01": 1,
+        "P02": 1,
+        "P03": 1,
+        "P04": 1,
+        "P05": 1,
+        "P06": 1,
+        "P07": 1,
+        "P08": 1,
+        "P09": 1,
+        "P10": 1,
+        "P11": 1,
+        "P12": 1,
+        "P13": 1,
+        "P14": 1,
+        "P15": 0,
+        "P16": 0,
+        "P17": 0,
+        "P18": 0,
+        "P19": 0,
+        "P20": 0,
+        "P21": 0,
+        "P22": 0,
+        "P23": 0,
+        "P24": 0,
+        "P25": 1
+      },
+      "score_total": 15,
+      "score_max": 25,
+      "score_pct": 60.0,
+      "tier": "Tier-1",
+      "delta_from_v1": "+2 (P22, P25; cargo + multi-toolchain hygiene bundle rolled)",
+      "notable": [
+        "10 local + 5 origin commits rebased + pushed (2b7892be..280c0d89)",
+        "Carry-over: DAG-T2-002 Taskfile reconciliation across 4 toolchains still open",
+        "hygiene-toolchains task added to Taskfile.yml (npm audit + tsc + cargo machete + cargo deny + cross-toolchain anti-pattern grep); P25 earned",
+        "Rebased onto origin/B34-tier-1-enforcement (62a04cc4) and pushed; 3 conflicts resolved (tier-1-enforcement.yml, backend/nvms/go.mod, backend/nvms/models/types.go all taken theirs since upstream refactor)"
+      ]
+    },
+    {
+      "name": "AgilePlus",
+      "head_sha": "1016e27a (wip branch, in sync)",
+      "lane": "work-tracking (SSOT — not owner of)",
+      "scores": {
+        "P01": 1,
+        "P02": 1,
+        "P03": 1,
+        "P04": 1,
+        "P05": 0,
+        "P06": 0,
+        "P07": 1,
+        "P08": 1,
+        "P09": 1,
+        "P10": 1,
+        "P11": 1,
+        "P12": 1,
+        "P13": 1,
+        "P14": 0,
+        "P15": 0,
+        "P16": 0,
+        "P17": 0,
+        "P18": 0,
+        "P19": 0,
+        "P20": 0,
+        "P21": 0,
+        "P22": 0,
+        "P23": 0,
+        "P24": 0,
+        "P25": 0
+      },
+      "score_total": 10,
+      "score_max": 24,
+      "score_pct": 41.7,
+      "tier": "SSOT (not owned)",
+      "delta_from_v1": "0",
+      "notable": [
+        "wip/preserve-agileplus-brand-rename-20260605 is in sync with origin (1016e27a)",
+        "Stale main (c74519ab) has 15 local-only commits that all touch work-units/dag-manifest-2026-06-23.json (deleted upstream in PR #31) — work was absorbed, no action"
+      ]
+    },
+    {
+      "name": "phenotype-registry",
+      "head_sha": "(see wip/2026-06-23-owned-scope-registry-sync tip)",
+      "lane": "spine (boundary SSOT — not owner of)",
+      "scores": {
+        "P01": 1,
+        "P02": 1,
+        "P03": 1,
+        "P04": 1,
+        "P05": 1,
+        "P06": 1,
+        "P07": 1,
+        "P08": 1,
+        "P09": 1,
+        "P10": 1,
+        "P11": 0,
+        "P12": 1,
+        "P13": 1,
+        "P14": 1,
+        "P15": 0,
+        "P16": 0,
+        "P17": 0,
+        "P18": 0,
+        "P19": 0,
+        "P20": 0,
+        "P21": 0,
+        "P22": 0,
+        "P23": 0,
+        "P24": 0,
+        "P25": 0
+      },
+      "score_total": 12,
+      "score_max": 24,
+      "score_pct": 50.0,
+      "tier": "Spine (additive-only)",
+      "delta_from_v1": "0",
+      "notable": [
+        "Committed + pushed line-ending + evidence-trail polish on audits/absorption-justifications/{BytePort,GRADES}.{md,json} on wip branch",
+        "79 branches, additive-only rule observed"
+      ]
+    },
+    {
+      "name": "phenotype-org-audits",
+      "head_sha": "de41801 + (this v2 scorecard)",
+      "lane": "audit / grading SSOT",
+      "scores": {
+        "P01": 1,
+        "P02": 1,
+        "P03": 1,
+        "P04": 1,
+        "P05": 1,
+        "P06": 1,
+        "P07": 1,
+        "P08": 1,
+        "P09": 1,
+        "P10": 1,
+        "P11": 1,
+        "P12": 1,
+        "P13": 1,
+        "P14": 1,
+        "P15": 0,
+        "P16": 0,
+        "P17": 0,
+        "P18": 0,
+        "P19": 0,
+        "P20": 0,
+        "P21": 0,
+        "P22": 0,
+        "P23": 0,
+        "P24": 0,
+        "P25": 0
+      },
+      "score_total": 13,
+      "score_max": 24,
+      "score_pct": 54.2,
+      "tier": "Spine (audit)",
+      "delta_from_v1": "0 (this v2 is the audit itself, not audited)",
+      "notable": [
+        "de41801 already pushed (P12, P14, etc. fully green)",
+        "v1 scorecard 2026-06-23-eval-bench-qa-v1.json is the predecessor; this v2 extends with P20-P24 (5 new pillars)"
+      ]
+    },
+    {
+      "name": "vibeproxy-monitoring-unified",
+      "head_sha": "(see git log, archived, in sync)",
+      "lane": "governance-only scaffolding",
+      "scores": {
+        "P01": 1,
+        "P02": 1,
+        "P03": 1,
+        "P04": 1,
+        "P05": 0,
+        "P06": 0,
+        "P07": 1,
+        "P08": 1,
+        "P09": 1,
+        "P10": 0,
+        "P11": 0,
+        "P12": 0,
+        "P13": 1,
+        "P14": 0,
+        "P15": 0,
+        "P16": 0,
+        "P17": 0,
+        "P18": 0,
+        "P19": 0,
+        "P20": 0,
+        "P21": 0,
+        "P22": 0,
+        "P23": 0,
+        "P24": 0,
+        "P25": 0
+      },
+      "score_total": 7,
+      "score_max": 24,
+      "score_pct": 29.2,
+      "tier": "Out-of-scope (docs-only)",
+      "delta_from_v1": "0 (out-of-scope, archived)",
+      "notable": [
+        "Repo is archived; in sync with origin; no further action this cycle"
+      ]
+    }
+  ],
+  "summary": {
+    "tier_1_repos": [
+      "Benchora",
+      "portage",
+      "pheno-harness",
+      "phenodag",
+      "Tracera",
+      "heliosBench",
+      "BytePort"
+    ],
+    "tier_2_repos": [
+      "nanovms",
+      "PhenoCompose"
+    ],
+    "spine_repos": [
+      "phenotype-registry",
+      "phenotype-org-audits"
+    ],
+    "ssot_repos": [
+      "AgilePlus"
+    ],
+    "out_of_scope_repos": [
+      "vibeproxy-monitoring-unified"
+    ],
+    "highest_pillar_score": [
+      "Benchora",
+      "Tracera"
+    ],
+    "lowest_pillar_score": [
+      "PhenoCompose",
+      "vibeproxy-monitoring-unified"
+    ],
+    "headline_artifacts_shipped_in_this_audit": [
+      "pheno-harness: adapters/portage_adapter.py + eval/pillars/tracera_semantic_pillar.py (P20 — cross-repo adapter consumer)",
+      "phenodag: presets/{v3-180,melosviz-185,agileplus-50,tracera-50,mcp-fleet-60,mcp-fleet-90,empty}.yaml + internal/preset/{preset,preset_test}.go + seed-yaml subcommand (P21 — externalized preset loader; 9 unit tests passing)",
+      "phenodag: scripts/generate_preset.py (canonical YAML generator)",
+      "phenodag: go.mod cleanup (dropped stale mattn/go-sqlite3 direct dep — P23 strict; gh_repo_lease.go switched to modernc.org/sqlite)",
+      "phenodag: Makefile hygiene bundle — tidy + mod-hygiene (P23 invariant guard) + preset-validate (round-trip YAML through seed-yaml + status) — P25 earned",
+      "phenodag: scripts/count-expected.awk — pure POSIX awk YAML counter (no python dep on the Make target)",
+      "phenodag: loadDagctlTemplateHTML fallback (fixed pre-existing build breakage from commit 2175fa8)",
+      "Benchora: .github/workflows/ci.yml — cargo-deny made gating, rustfmt --check added, cargo-audit added (P22 — cargo-deny + cargo-machete hardening)",
+      "Benchora: src/cli/compare.rs — heliosBench reader (load_helios_bench_report) for Tier-2 #2 (P24 producer-side — consumer side on Benchora)",
+      "heliosBench: docs/benchora_compare_schema.json + src/helios_bench/reporting/benchora_emitter.py + tests/test_benchora_emitter.py (10/10 passing) (P24 producer-side)",
+      "Tracera: src/tracertm/scoring/semantic_scorer.py — embedded in cf92280cf (P20 producer-side — consumer in pheno-harness)",
+      "Push matrix: 9 repos fully synced, 1 PR open (phenodag #18), 1 stranded archived (pheno-harness)"
+    ],
+    "next_actions_tier_3_remaining": [
+      "DAG-T3-001: nanovms SPEC.md + AGENTS.md + CI workflow + public tests (lift to Tier-1)",
+      "DAG-T3-002: PhenoCompose SPEC.md + AGENTS.md + CI workflow (lift to Tier-1)",
+      "DAG-T3-003: BytePort Taskfile reconciliation across 4 toolchains (Tauri/SvelteKit/Go/Cargo) — DAG-T2-002 carry-over",
+      "DAG-T3-004: Benchora README gauge->Benchora name reconciliation (badge only) — DAG-T2-006 carry-over",
+      "DAG-T3-005: registry entry for the 5 new SOTA pillars (P20-P24) and the 13-repo v2 scorecard",
+      "DAG-T3-006: portage + heliosBench pillar coverage extension (lift v2 -> v3 to cover all 80 pillars across the 13 repos)",
+      "DAG-T3-007: pheno-harness commit stranded in archive — re-fork into a new active repo (phenoharness2) or restore the archived repo if possible",
+      "DAG-T3-008: roll out Makefile hygiene bundle (tidy + mod-hygiene + preset-validate-style round-trip) to nanovms, PhenoCompose, BytePort (currently only phenodag has it)"
+    ],
+    "aggregate": {
+      "total_repos": 13,
+      "pillars_evaluated": 25,
+      "pillars_total_in_registry": 80,
+      "by_tier": {
+        "Tier-1": 7,
+        "Tier-2": 2
+      },
+      "average_pct": 48.8
+    }
+  },
+  "version": "v3",
+  "pillar_set_version": "v3",
+  "total_pillars": 28,
+  "schema_version": 3
+}

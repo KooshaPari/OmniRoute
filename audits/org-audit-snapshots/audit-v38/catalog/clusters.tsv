@@ -1,0 +1,13 @@
+cluster_id	pillar_range	category	source_file
+C00	L0-L9	Architecture + Module	audit-30-pillar/audit-30-pillar-L0.md .. L9.md
+C01	L10-L19	CI, DX, Observability	audit-30-pillar/audit-30-pillar-L10.md .. L19.md
+C02	L20-L29	Error handling, API, Governance	audit-30-pillar/audit-30-pillar-L20.md .. L29.md
+C03	L30	Agent Readiness	audit-v38/catalog/L30-agent-readiness.md
+C04	L31-L40	Security	audit-30-pillar/audit-30-pillar-L31-L40-security.md
+C05	L41-L50	Observability (deep)	audit-30-pillar/audit-30-pillar-L41-L50-observability.md
+C06	L51-L60	Supply Chain	audit-30-pillar/audit-30-pillar-L51-L60-supply-chain.md
+C07	L61-L70	DX, QEng, Portability	audit-30-pillar/audit-30-pillar-L61-L70-dx-qeng-portability.md
+C08	L71-L80	Eval Coverage	audit-30-pillar/audit-30-pillar-L71-L80-eval-coverage.md
+C09	L81-L95	Accessibility + UX	audit-v38/catalog/X-ax-L81-L95.md
+C10	L96-L107	Visual Identity	audit-v38/catalog/X-visual-identity-L96-L107.md
+C11	L108-L122	Packaging + Distribution	audit-v38/catalog/X-packaging-distribution-L108-L122.md

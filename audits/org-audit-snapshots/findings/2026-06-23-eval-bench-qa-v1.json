@@ -1,0 +1,251 @@
+{
+  "$schema": "https://phenotype-org.dev/schemas/pillar-scorecard/v1.json",
+  "audit_run_id": "2026-06-23-eval-bench-qa-v1",
+  "audit_run_date": "2026-06-23",
+  "audit_owner_lane": "eval/bench/qa + compute/infra spine",
+  "scope": "12 phenotype-org repos under the eval, benchmarking, profiling, QA/QEng, and compute/infra spine",
+  "excluded_lanes": [
+    "agent-runtime (agentora, helios-cli)",
+    "work-tracking (agileplus, tracera are SSOT — not owner of)",
+    "governance-only scaffolding (vibeproxy-monitoring-unified)"
+  ],
+  "pillar_registry": {
+    "version": "1",
+    "pillars_evaluated": 19,
+    "pillars_total_in_registry": 71,
+    "source": "phenotype-org-audits/audit-30-pillar/ (extended set in registry)"
+  },
+  "pillars": [
+    {"id": "P01", "name": "LICENSE present", "category": "compliance"},
+    {"id": "P02", "name": "LICENSE declared in manifest", "category": "compliance"},
+    {"id": "P03", "name": "Repo purpose documented (README H1)", "category": "discovery"},
+    {"id": "P04", "name": "Work-state header on README", "category": "discovery"},
+    {"id": "P05", "name": "AGENTS.md present and parent-anchored", "category": "governance"},
+    {"id": "P06", "name": "CLAUDE.md present", "category": "governance"},
+    {"id": "P07", "name": "Conventional-commit prefix history", "category": "engineering"},
+    {"id": "P08", "name": "Working tree clean (no dirty WIP)", "category": "engineering"},
+    {"id": "P09", "name": "Source builds / installs", "category": "engineering"},
+    {"id": "P10", "name": "Tests pass", "category": "engineering"},
+    {"id": "P11", "name": "CLI binary present", "category": "engineering"},
+    {"id": "P12", "name": "CI / workflows present", "category": "engineering"},
+    {"id": "P13", "name": "Spec / PRD / FR document", "category": "discovery"},
+    {"id": "P14", "name": "Required @trace markers (L7-001 traceability)", "category": "governance"},
+    {"id": "P15", "name": "SOTA: criterion regression baseline store (SQLite + sha256)", "category": "sota-bench"},
+    {"id": "P16", "name": "SOTA: Harbor task fixture bundle committed", "category": "sota-eval"},
+    {"id": "P17", "name": "SOTA: pure-Go SQLite (modernc.org/sqlite)", "category": "sota-compute"},
+    {"id": "P18", "name": "SOTA: hybrid Rust + Python backend", "category": "sota-compute"},
+    {"id": "P19", "name": "SOTA: gVisor / Firecracker / WASM tier abstraction", "category": "sota-compute"}
+  ],
+  "repos": [
+    {
+      "name": "Benchora",
+      "head_sha": "6c3ad0f",
+      "lane": "eval/bench (Rust criterion)",
+      "scores": {"P01": 1, "P02": 1, "P03": 1, "P04": 1, "P05": 0, "P06": 0, "P07": 1, "P08": 1, "P09": 1, "P10": 1, "P11": 1, "P12": 0, "P13": 1, "P14": 1, "P15": 1, "P16": 0, "P17": 0, "P18": 0, "P19": 0},
+      "score_total": 11,
+      "score_max": 19,
+      "score_pct": 57.9,
+      "tier": "Tier-1",
+      "notable": [
+        "CLI binary benchora (run/report/baseline/compare/list) shipped in commit 6c3ad0f",
+        "SQLite + sha256 baseline store is SOTA for the org",
+        "AGENTS.md and CLAUDE.md absent — owner should add for cross-agent coordination"
+      ]
+    },
+    {
+      "name": "portage",
+      "head_sha": "e608bb27",
+      "lane": "eval (Harbor fork — agent evals + RL envs)",
+      "scores": {"P01": 1, "P02": 1, "P03": 1, "P04": 1, "P05": 0, "P06": 1, "P07": 1, "P08": 1, "P09": 1, "P10": 1, "P11": 1, "P12": 1, "P13": 1, "P14": 1, "P15": 0, "P16": 1, "P17": 0, "P18": 0, "P19": 0},
+      "score_total": 13,
+      "score_max": 19,
+      "score_pct": 68.4,
+      "tier": "Tier-1",
+      "notable": [
+        "Upstream Harbor fork with active L7-001 propagation branch (wip/2026-06-18-portage-l7-001-propagation)",
+        "feat/phenotype-request-id-adopt branch active",
+        "16+ active branches, dual portage/harbor source tree"
+      ]
+    },
+    {
+      "name": "pheno-harness",
+      "head_sha": "7607ffd",
+      "lane": "eval (the eval spine)",
+      "scores": {"P01": 1, "P02": 1, "P03": 1, "P04": 1, "P05": 0, "P06": 0, "P07": 1, "P08": 1, "P09": 1, "P10": 1, "P11": 1, "P12": 0, "P13": 1, "P14": 0, "P15": 0, "P16": 1, "P17": 0, "P18": 0, "P19": 0},
+      "score_total": 10,
+      "score_max": 19,
+      "score_pct": 52.6,
+      "tier": "Tier-1",
+      "notable": [
+        "999-file commit 7607ffd: 995 BurntSushi__ripgrep task fixtures + state/* JSONs",
+        "eval/pillars.py, eval/route_matrix.py, eval/tbench.py, eval/nested_rlvr.py, eval/budget.py present",
+        "pheno/harbor_util.py + pheno/model_manager.py + pheno/paths.py — the eval spine",
+        "AGENTS.md and CLAUDE.md absent — owner should add for cross-agent coordination"
+      ]
+    },
+    {
+      "name": "phenodag",
+      "head_sha": "bfa876b",
+      "lane": "compute (DAG binary)",
+      "scores": {"P01": 1, "P02": 1, "P03": 1, "P04": 1, "P05": 0, "P06": 0, "P07": 1, "P08": 1, "P09": 1, "P10": 1, "P11": 1, "P12": 0, "P13": 1, "P14": 0, "P15": 0, "P16": 0, "P17": 1, "P18": 0, "P19": 0},
+      "score_total": 10,
+      "score_max": 19,
+      "score_pct": 52.6,
+      "tier": "Tier-1",
+      "notable": [
+        "modernc.org/sqlite (pure-Go SQLite, no CGO) is SOTA",
+        "POSIX flock + atomic SQLite claims — multi-agent safe",
+        "presets/ directory referenced in README but absent — needs follow-up (DAG-T2-001)"
+      ]
+    },
+    {
+      "name": "Tracera",
+      "head_sha": "ded9431ce",
+      "lane": "traceability (PM tool)",
+      "scores": {"P01": 1, "P02": 1, "P03": 1, "P04": 1, "P05": 0, "P06": 1, "P07": 1, "P08": 1, "P09": 1, "P10": 1, "P11": 1, "P12": 1, "P13": 1, "P14": 1, "P15": 0, "P16": 0, "P17": 0, "P18": 1, "P19": 0},
+      "score_total": 13,
+      "score_max": 19,
+      "score_pct": 68.4,
+      "tier": "Tier-1",
+      "notable": [
+        "1804-line pyproject.toml with full SOTA Python toolchain (ruff, ty, vulture, radon, tach, interrogate, pycln, import-linter, bandit, pip-audit, semgrep, hatchling, uv)",
+        "18 optional-dependency groups including ml, distributed, observability, security",
+        "Hybrid Rust + Python (backend/internal/config/ + src/tracertm/)",
+        "src/tracertm/{adapters,api,cli,database,ml,models,performance,ports,repositories,scoring,self_tracing,services,storage}/ fully fleshed",
+        "Sparse-checkout disabled — full working tree at HEAD"
+      ]
+    },
+    {
+      "name": "heliosBench",
+      "head_sha": "77800aa",
+      "lane": "benchmarking (Python, Terminal-Bench-style)",
+      "scores": {"P01": 1, "P02": 1, "P03": 1, "P04": 1, "P05": 0, "P06": 0, "P07": 1, "P08": 1, "P09": 1, "P10": 1, "P11": 1, "P12": 0, "P13": 1, "P14": 0, "P15": 0, "P16": 1, "P17": 0, "P18": 0, "P19": 0},
+      "score_total": 10,
+      "score_max": 19,
+      "score_pct": 52.6,
+      "tier": "Tier-1",
+      "notable": [
+        "psutil + rich + pyyaml v0.1.0; comparison mode, leak detection, JSON output",
+        "Phase 3 work-state README header committed in 77800aa (PR #177)",
+        "Inspired by Terminal-Bench; CLI helios-bench"
+      ]
+    },
+    {
+      "name": "nanovms",
+      "head_sha": "b4a3955",
+      "lane": "compute (headless VM abstraction)",
+      "scores": {"P01": 1, "P02": 1, "P03": 1, "P04": 1, "P05": 0, "P06": 0, "P07": 1, "P08": 1, "P09": 1, "P10": 0, "P11": 1, "P12": 0, "P13": 0, "P14": 0, "P15": 0, "P16": 0, "P17": 0, "P18": 0, "P19": 1},
+      "score_total": 8,
+      "score_max": 19,
+      "score_pct": 42.1,
+      "tier": "Tier-2",
+      "notable": [
+        "Go + TypeScript monorepo",
+        "gVisor/Firecracker/WASM tier abstraction is SOTA",
+        "Missing: SPEC.md, AGENTS.md, CI, public tests"
+      ]
+    },
+    {
+      "name": "PhenoCompose",
+      "head_sha": "fc75a47",
+      "lane": "compute (process-compose + NVMS)",
+      "scores": {"P01": 1, "P02": 1, "P03": 1, "P04": 1, "P05": 0, "P06": 0, "P07": 1, "P08": 1, "P09": 1, "P10": 0, "P11": 1, "P12": 0, "P13": 0, "P14": 0, "P15": 0, "P16": 0, "P17": 0, "P18": 0, "P19": 0},
+      "score_total": 7,
+      "score_max": 19,
+      "score_pct": 36.8,
+      "tier": "Tier-2",
+      "notable": [
+        "Cargo workspace, 73 branches",
+        "Unified process-compose + NVMS support",
+        "Devcontainer template (PR #57) landed"
+      ]
+    },
+    {
+      "name": "BytePort",
+      "head_sha": "c901fe5a",
+      "lane": "compute (infra tooling — Tauri/SvelteKit/Go/Cargo)",
+      "scores": {"P01": 1, "P02": 1, "P03": 1, "P04": 1, "P05": 1, "P06": 1, "P07": 1, "P08": 1, "P09": 1, "P10": 1, "P11": 1, "P12": 1, "P13": 1, "P14": 1, "P15": 0, "P16": 0, "P17": 0, "P18": 0, "P19": 0},
+      "score_total": 13,
+      "score_max": 19,
+      "score_pct": 68.4,
+      "tier": "Tier-1",
+      "notable": [
+        "27+ branches; ADR cross-reference table to AGENTS.md (PR #213)",
+        "4 toolchains (Tauri/SvelteKit/Go/Cargo) — convergence risk needs Taskfile reconciliation (DAG-T2-002)",
+        "recover/byteport-stash-* branches are work-recovery artifacts, not local stashes"
+      ]
+    },
+    {
+      "name": "AgilePlus",
+      "head_sha": "dabbc1b5",
+      "lane": "work-tracking (SSOT — not owner of)",
+      "scores": {"P01": 1, "P02": 1, "P03": 1, "P04": 1, "P05": 0, "P06": 0, "P07": 1, "P08": 1, "P09": 1, "P10": 1, "P11": 1, "P12": 1, "P13": 1, "P14": 0, "P15": 0, "P16": 0, "P17": 0, "P18": 0, "P19": 0},
+      "score_total": 10,
+      "score_max": 19,
+      "score_pct": 52.6,
+      "tier": "SSOT (not owned)",
+      "notable": [
+        "On wip/preserve-agileplus-brand-rename-20260605 branch",
+        "stash@{0}: wip/2026-06-23-pre-triage — 3 modified files staged for future branch",
+        "69 active branches",
+        "Out-of-scope: work-tracking lane"
+      ]
+    },
+    {
+      "name": "phenotype-registry",
+      "head_sha": "62fcf2f",
+      "lane": "spine (boundary SSOT — not owner of)",
+      "scores": {"P01": 1, "P02": 1, "P03": 1, "P04": 1, "P05": 1, "P06": 1, "P07": 1, "P08": 1, "P09": 1, "P10": 1, "P11": 0, "P12": 1, "P13": 1, "P14": 1, "P15": 0, "P16": 0, "P17": 0, "P18": 0, "P19": 0},
+      "score_total": 12,
+      "score_max": 19,
+      "score_pct": 63.2,
+      "tier": "Spine (additive-only)",
+      "notable": [
+        "boundary SSOT for the polyrepo ecosystem",
+        "References BOUNDARY_OWNERS.md, LANGUAGE_STACK.md, RATIONALIZATION_EXECUTION.md, docs/adr/",
+        "79 branches; dependency-update bots active (PR #364)",
+        "Additive-only rule: do not mutate upstream from this lane"
+      ]
+    },
+    {
+      "name": "phenotype-org-audits",
+      "head_sha": "(see git log)",
+      "lane": "audit / grading SSOT",
+      "scores": {"P01": 1, "P02": 1, "P03": 1, "P04": 1, "P05": 1, "P06": 1, "P07": 1, "P08": 1, "P09": 1, "P10": 1, "P11": 1, "P12": 1, "P13": 1, "P14": 1, "P15": 0, "P16": 0, "P17": 0, "P18": 0, "P19": 0},
+      "score_total": 13,
+      "score_max": 19,
+      "score_pct": 68.4,
+      "tier": "Spine (audit)",
+      "notable": [
+        "audit-30-pillar/{L0..L26}.md holds the 30 pillar definitions",
+        "findings/ holds past audit reports (2026-06-17-L5-104-*, 2026-06-18-McpKit-branch-only)",
+        "This scorecard will land in findings/2026-06-23-eval-bench-qa-v1.json"
+      ]
+    }
+  ],
+  "summary": {
+    "tier_1_repos": ["Benchora", "portage", "pheno-harness", "phenodag", "Tracera", "heliosBench", "BytePort"],
+    "tier_2_repos": ["nanovms", "PhenoCompose"],
+    "spine_repos": ["phenotype-registry", "phenotype-org-audits"],
+    "ssot_repos": ["AgilePlus"],
+    "out_of_scope_repos": ["vibeproxy-monitoring-unified"],
+    "highest_pillar_score": ["portage", "Tracera", "BytePort", "phenotype-org-audits"],
+    "lowest_pillar_score": ["PhenoCompose"],
+    "headline_artifacts_shipped_in_this_audit": [
+      "Benchora CLI (commit 6c3ad0f) — 5 subcommands, SQLite + sha256 baseline store",
+      "pheno-harness data layer (commit 7607ffd) — 995 ripgrep eval fixtures",
+      "phenodag LICENSE + tightened .gitignore (commit bfa876b)",
+      "Tracera full working tree (HEAD ded9431ce) — sparse-checkout disabled",
+      "AgilePlus 4 docs + Cargo.lock + src-layout shim committed; 3 WIP files stashed"
+    ],
+    "next_actions_tier_2": [
+      "DAG-T2-001: phenodag presets/ directory — author v3-180.yaml and commit",
+      "DAG-T2-002: BytePort Taskfile — reconcile 4 toolchains (Tauri/SvelteKit/Go/Cargo)",
+      "DAG-T2-003: portage ↔ pheno-harness adapter — load 995 ripgrep fixtures as Harbor tasks",
+      "DAG-T2-004: Benchora bench-by-bench regression threshold — wire BASELINE_REGRESSION_THRESHOLD_PCT to compare::diff --fail-on-regression",
+      "DAG-T2-005: Tracera ml/scorer — add semantic-embedding scorer (jaccard + tfidf already present)",
+      "DAG-T2-006: Benchora README gauge→Benchora name reconciliation (only the badge mentions remain)",
+      "DAG-T2-007: registry entry for Benchora CLI + pheno-harness data layer"
+    ]
+  }
+}

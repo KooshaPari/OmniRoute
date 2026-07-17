@@ -1,0 +1,88 @@
+name: Quarterly Org Audit
+
+on:
+  schedule:
+    # Run at 9am ET (14:00 UTC) on 1st of Jan, Apr, Jul, Oct
+    - cron: '0 14 1 1,4,7,10 *'
+  workflow_dispatch:
+  # Federation entrypoint: the org-wide reusable-workflow federation can invoke
+  # the quarterly audit on demand (e.g. an ad-hoc audit wave) via:
+  #   uses: KooshaPari/phenotype-org-audits/.github/workflows/quarterly-audit.yml@main
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout phenotype-org-audits
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Checkout phenotype-tooling (aggregator)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: KooshaPari/phenotype-tooling
+          path: ./phenotype-tooling
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+        with:
+          toolchain: stable
+
+      - name: Build aggregator
+        run: |
+          cd ./phenotype-tooling
+          cargo build --release --bin aggregator
+
+      - name: Generate audit snapshot
+        env:
+          AUDIT_DATE: ${{ github.event.schedule || 'manual' }}
+        run: |
+          SNAPSHOT_DIR="audits/$(date +%Y-%m-%d)"
+          mkdir -p "$SNAPSHOT_DIR"
+
+          # Run aggregator against all phenotype repos
+          ./phenotype-tooling/target/release/aggregator \
+            --repos-manifest ../repos-manifest.txt \
+            --output-dir "$SNAPSHOT_DIR" \
+            --schema audit-schema.toml \
+            || echo "Aggregator run completed with warnings"
+
+          # Validate outputs
+          if [ ! -f "$SNAPSHOT_DIR/INDEX.md" ]; then
+            echo "ERROR: INDEX.md not generated" >&2
+            exit 1
+          fi
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1
+        with:
+          commit-message: |
+            audit(quarterly): snapshot as of $(date +%Y-%m-%d)
+
+            Automated quarterly organization audit capturing:
+            - LOC trends across all active repos
+            - Systemic issues and governance gaps
+            - Test traceability and FR scaffolding
+            - Dependency alignment status
+          branch: audit/quarterly-$(date +%Y-%m-%d)
+          title: 'audit(quarterly): snapshot as of $(date +%Y-%m-%d)'
+          body: |
+            # Quarterly Org Audit - $(date +%Y-%m-%d)
+
+            Automated snapshot of organization-wide metrics.
+
+            See `audits/$(date +%Y-%m-%d)/INDEX.md` for full details.
+
+            - [ ] Review SYSTEMIC_ISSUES.md for blocking items
+            - [ ] Update AgilePlus with governance gaps
+            - [ ] Schedule dependency alignment wave if needed
+          labels: audit, quarterly
+          delete-branch: true

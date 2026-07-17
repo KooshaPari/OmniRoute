@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R&D Project Management Dashboard</title>
+    <link rel="stylesheet" href="dashboard-web.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1><i class="fas fa-cogs"></i> R&D Project Management Dashboard</h1>
+                <div class="header-controls">
+                    <div class="status-indicator">
+                        <span class="status-dot online"></span>
+                        <span>System Online</span>
+                    </div>
+                    <div class="last-update">
+                        Last Update: <span id="lastUpdateTime">--:--:--</span>
+                    </div>
+                    <button class="refresh-btn" onclick="refreshDashboard()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <div class="nav-items">
+                <button class="nav-item active" onclick="showView('overview')">
+                    <i class="fas fa-tachometer-alt"></i> Overview
+                </button>
+                <button class="nav-item" onclick="showView('projects')">
+                    <i class="fas fa-project-diagram"></i> Projects
+                </button>
+                <button class="nav-item" onclick="showView('proposals')">
+                    <i class="fas fa-clipboard-list"></i> Proposals
+                </button>
+                <button class="nav-item" onclick="showView('agents')">
+                    <i class="fas fa-robot"></i> Agents
+                </button>
+                <button class="nav-item" onclick="showView('monitor')">
+                    <i class="fas fa-chart-line"></i> Monitor
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Overview View -->
+            <div id="overview-view" class="view active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-project-diagram"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Active Projects</h3>
+                            <div class="stat-value" id="activeProjects">0</div>
+                            <div class="stat-change positive">+2 this week</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Pending Proposals</h3>
+                            <div class="stat-value" id="pendingProposals">0</div>
+                            <div class="stat-change neutral">No change</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Active Agents</h3>
+                            <div class="stat-value" id="activeAgents">5</div>
+                            <div class="stat-change positive">All online</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Tasks Completed</h3>
+                            <div class="stat-value" id="completedTasks">147</div>
+                            <div class="stat-change positive">+15 today</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overview-content">
+                    <div class="overview-section">
+                        <h2>System Health</h2>
+                        <div class="health-grid">
+                            <div class="health-item">
+                                <span class="health-label">Agent Coordination</span>
+                                <span class="health-status online">Online</span>
+                            </div>
+                            <div class="health-item">
+                                <span class="health-label">Memory System</span>
+                                <span class="health-status online">Online</span>
+                            </div>
+                            <div class="health-item">
+                                <span class="health-label">Task Queue</span>
+                                <span class="health-status online">Online</span>
+                            </div>
+                            <div class="health-item">
+                                <span class="health-label">Research Pipeline</span>
+                                <span class="health-status online">Online</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overview-section">
+                        <h2>Recent Activity</h2>
+                        <div class="activity-list" id="activityList">
+                            <div class="activity-item">
+                                <i class="fas fa-project-diagram"></i>
+                                <div class="activity-content">
+                                    <div class="activity-title">Project Alpha-1 Updated</div>
+                                    <div class="activity-time">2 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <i class="fas fa-clipboard-list"></i>
+                                <div class="activity-content">
+                                    <div class="activity-title">New Proposal Submitted</div>
+                                    <div class="activity-time">5 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <i class="fas fa-robot"></i>
+                                <div class="activity-content">
+                                    <div class="activity-title">Agent Coordination Complete</div>
+                                    <div class="activity-time">10 minutes ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projects View -->
+            <div id="projects-view" class="view">
+                <div class="view-header">
+                    <h2>Project Management</h2>
+                    <button class="btn btn-primary" onclick="createNewProject()">
+                        <i class="fas fa-plus"></i> New Project
+                    </button>
+                </div>
+                <div class="projects-grid" id="projectsGrid">
+                    <!-- Projects will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Proposals View -->
+            <div id="proposals-view" class="view">
+                <div class="view-header">
+                    <h2>Proposal Review</h2>
+                    <div class="proposal-filters">
+                        <button class="filter-btn active" onclick="filterProposals('all')">All</button>
+                        <button class="filter-btn" onclick="filterProposals('pending')">Pending</button>
+                        <button class="filter-btn" onclick="filterProposals('approved')">Approved</button>
+                        <button class="filter-btn" onclick="filterProposals('rejected')">Rejected</button>
+                    </div>
+                </div>
+                <div class="proposals-list" id="proposalsList">
+                    <!-- Proposals will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Agents View -->
+            <div id="agents-view" class="view">
+                <div class="view-header">
+                    <h2>Agent Management</h2>
+                    <div class="agent-controls">
+                        <button class="btn btn-secondary" onclick="refreshAgents()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+                <div class="agents-grid" id="agentsGrid">
+                    <!-- Agents will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Monitor View -->
+            <div id="monitor-view" class="view">
+                <div class="view-header">
+                    <h2>Real-Time Monitoring</h2>
+                    <div class="monitor-controls">
+                        <button class="toggle-btn" onclick="toggleAutoRefresh()">
+                            <i class="fas fa-play"></i> Auto-Refresh
+                        </button>
+                    </div>
+                </div>
+                <div class="monitor-content">
+                    <div class="monitor-section">
+                        <h3>System Performance</h3>
+                        <div class="performance-metrics">
+                            <div class="metric">
+                                <span class="metric-label">Response Time</span>
+                                <div class="metric-bar">
+                                    <div class="metric-fill" style="width: 62%"></div>
+                                </div>
+                                <span class="metric-value">125ms</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Throughput</span>
+                                <div class="metric-bar">
+                                    <div class="metric-fill" style="width: 75%"></div>
+                                </div>
+                                <span class="metric-value">450 req/s</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Error Rate</span>
+                                <div class="metric-bar">
+                                    <div class="metric-fill good" style="width: 2%"></div>
+                                </div>
+                                <span class="metric-value">0.02%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="monitor-section">
+                        <h3>Resource Usage</h3>
+                        <div class="resource-chart" id="resourceChart">
+                            <canvas id="chartCanvas" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modals -->
+        <div id="projectModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Project Details</h3>
+                    <button class="modal-close" onclick="closeModal('projectModal')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="projectForm">
+                        <div class="form-group">
+                            <label>Project Name</label>
+                            <input type="text" id="projectName" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="projectDescription" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="projectType" name="type">
+                                <option value="research">Research</option>
+                                <option value="development">Development</option>
+                                <option value="analysis">Analysis</option>
+                                <option value="innovation">Innovation</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Priority</label>
+                            <select id="projectPriority" name="priority">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModal('projectModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveProject()">Save Project</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="proposalModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Proposal Review</h3>
+                    <button class="modal-close" onclick="closeModal('proposalModal')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="proposalDetails">
+                        <!-- Proposal details will be loaded here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger" onclick="rejectProposal()">Reject</button>
+                    <button class="btn btn-success" onclick="approveProposal()">Approve</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="dashboard-web.js"></script>
+</body>
+</html>

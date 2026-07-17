@@ -1,0 +1,20 @@
+# phenotype-org-audits
+
+## Summary
+Brief description of phenotype-org-audits and its role in the fleet.
+
+## Stack
+- **Language:** TypeScript / Node 22+
+- **Build:** pnpm
+- **Test:** vitest
+
+## Key files
+- `AGENTS.md` — agent governance
+- `SSOT.md` — single source of truth
+- `justfile` — build system
+- `deny.toml` — cargo-deny config
+
+## Conventions
+- Stdlib-only Python where possible
+- Cargo-deny on Rust crates
+- gitleaks on commit

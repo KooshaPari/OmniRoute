@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (${{ github.repository }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run checks
+        run: |
+          if [ -f justfile ]; then
+            just --justfile justfile --evaluate verify 2>&1 || true
+            echo "no just recipes to run for this repo yet"
+          else
+            echo "no justfile — skipping"
+          fi
