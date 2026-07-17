@@ -1,5 +1,5 @@
 {
-  "version": "1.6.5",
+  "version": "1.6.6",
   "updated": "2026-07-17T12:30:00.000000Z",
   "authority": "phenotype-registry",
   "charter": "docs/rationalization/boundary-shaping.md",
@@ -1876,9 +1876,9 @@
       "id": "repo-Quillr",
       "path": "KooshaPari/Quillr",
       "disposition": "ABSORB",
-      "target": "Httpora",
+      "target": "pheno (crates/httpora-core) + phenodocs (packages/quillts)",
       "wave": "2026-07-17-queue-refresh",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "rust",
       "size_kb": 266,
       "remote_branch_count": 23,
@@ -1888,7 +1888,11 @@
       "audit_artifact": "audits/absorption-justifications/Quillr-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T11:16:58.000000Z",
-      "note": "Rust HTTP repo with self-acknowledged naming drift (README: 'repo Quillr/README quill…to reconcile'). 23 branches, 266KB. Per RATIONALIZATION_PLAN.md #14: 'Httpora + Quillr | half-baked HTTP repos | reconcile identity/name first'. Target: Httpora (reconciliation)."
+      "absorbed_pr": "pheno#absorb/httpora-core-2026-07-17 + phenodocs#absorb/quillts-2026-07-17",
+      "archived": true,
+      "archived_date": "2026-07-17",
+      "target_redirect": "Was 'Httpora' (reconciliation); split into pheno (Rust httpora-core) + phenodocs (TS @phenotype/quillts) since Quillr had already subsumed Httpora per SUPERSEDED history row 2026-06-20",
+      "note": "Rust HTTP repo with self-acknowledged naming drift (README: 'repo Quillr/README quill…to reconcile'). 23 branches, 266KB. Reconciled: Httpora was already SUPERSEDED 2026-06-20 (its content merged into Quillr as crates/httpora-core). Final absorption: Rust half to pheno monorepo as crates/httpora-core (60 tests passing), TS half (@kooshapari/quillts) to phenodocs as packages/quillts (renamed @phenotype/quillts). Source repo archived via gh repo archive."
     },
     {
       "id": "repo-UnityDoorstop-NexusPatched",
