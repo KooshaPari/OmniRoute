@@ -2996,13 +2996,13 @@
       "disposition": "ABSORB",
       "target": "phenodocs (docs/netweave/)",
       "wave": "2026-07-17-queue-refresh-2",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "html",
       "size_kb": 76,
       "last_push": "2026-07-17T05:27:00Z",
       "audit_artifact": "audits/absorption-justifications/netweave-3-2026-07-17.md",
       "added_at": "2026-07-17T14:30:00.000000Z",
-      "note": "Netweave HTML landing (76KB). Target: phenodocs/docs/netweave/. Cloned first (not yet present locally)."
+      "note": "Netweave HTML landing (76KB). Target: phenodocs/docs/netweave/. Cloned first (not yet present locally). [ABSORBED 2026-07-17 → phenodocs docs/netweave/]"
     },
     {
       "id": "repo-bench-results-data",
