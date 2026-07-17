@@ -1,72 +1,107 @@
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
+import { pathToFileURL } from "node:url";
+import path from "node:path";
 
-const v4Packages = [
+export const EXPECTED_BUN_VERSION = "1.3.14";
+
+const bunPackages = [
   "packages/api-contracts",
   "packages/design-tokens",
   "apps/bff",
   "apps/web",
   "apps/desktop",
+  "sveltekit-dashboard",
+  "desktop-electrobun",
 ];
-const bunWorkflows = [
-  ".github/workflows/ci.yml",
-  ".github/workflows/argismonitor-ci.yml",
-  ".github/workflows/release.yml",
-];
+const bunTypesPackages = [".", "apps/bff", "apps/desktop", "desktop-electrobun"];
 
-const failures = [];
-const versions = new Set();
-
-for (const directory of v4Packages) {
-  const manifest = JSON.parse(await readFile(`${directory}/package.json`, "utf8"));
-  const packageManager = manifest.packageManager;
-  const packageManagerMatch = /^bun@(\d+\.\d+\.\d+)$/.exec(packageManager ?? "");
-  const engineVersion = manifest.engines?.bun;
-
-  if (!packageManagerMatch) {
-    failures.push(`${directory}/package.json must pin packageManager to bun@<exact version>`);
-    continue;
-  }
-
-  const version = packageManagerMatch[1];
-  versions.add(version);
-  if (engineVersion !== version) {
-    failures.push(`${directory}/package.json engines.bun must equal ${version}`);
-  }
-
-  const lockfile = await readFile(`${directory}/bun.lock`, "utf8");
-  if (!/"lockfileVersion"\s*:\s*1\b/.test(lockfile)) {
-    failures.push(`${directory}/bun.lock must use the expected text lockfile format`);
-  }
+async function json(root, relativePath) {
+  return JSON.parse(await readFile(path.join(root, relativePath), "utf8"));
 }
 
-if (versions.size !== 1) {
-  failures.push(`v4 packageManager pins disagree: ${[...versions].sort().join(", ")}`);
-}
+export async function checkBunParity(root = process.cwd()) {
+  const failures = [];
+  const rootManifest = await json(root, "package.json");
+  const rootLock = await json(root, "package-lock.json");
+  const rootLockManifest = rootLock.packages?.[""];
 
-const [expectedVersion] = versions;
-for (const workflow of bunWorkflows) {
-  const source = await readFile(workflow, "utf8");
-  const workflowVersions = [...source.matchAll(/bun-version:\s*([0-9]+\.[0-9]+\.[0-9]+)/g)].map(
-    (match) => match[1],
-  );
-
-  if (workflowVersions.length === 0) {
-    failures.push(`${workflow} must contain an exact bun-version pin`);
+  if (rootManifest.devDependencies?.bun !== EXPECTED_BUN_VERSION) {
+    failures.push(`package.json devDependencies.bun must equal ${EXPECTED_BUN_VERSION}`);
   }
-  for (const version of workflowVersions) {
-    if (version !== expectedVersion) {
-      failures.push(`${workflow} pins Bun ${version}; expected ${expectedVersion}`);
+  if (rootLockManifest?.devDependencies?.bun !== EXPECTED_BUN_VERSION) {
+    failures.push(`package-lock.json root Bun declaration must equal ${EXPECTED_BUN_VERSION}`);
+  }
+  if (rootLock.packages?.["node_modules/bun"]?.version !== EXPECTED_BUN_VERSION) {
+    failures.push(`package-lock.json resolved Bun must equal ${EXPECTED_BUN_VERSION}`);
+  }
+  for (const [name, metadata] of Object.entries(rootLock.packages ?? {})) {
+    if (name.startsWith("node_modules/@oven/bun-") && metadata.version !== EXPECTED_BUN_VERSION) {
+      failures.push(`${name} resolves ${metadata.version}; expected ${EXPECTED_BUN_VERSION}`);
     }
   }
+
+  for (const directory of bunPackages) {
+    const manifest = await json(root, `${directory}/package.json`);
+    if (manifest.packageManager !== `bun@${EXPECTED_BUN_VERSION}`) {
+      failures.push(`${directory}/package.json packageManager must equal bun@${EXPECTED_BUN_VERSION}`);
+    }
+    if (manifest.engines?.bun !== EXPECTED_BUN_VERSION) {
+      failures.push(`${directory}/package.json engines.bun must equal ${EXPECTED_BUN_VERSION}`);
+    }
+    const lockfile = await readFile(path.join(root, directory, "bun.lock"), "utf8");
+    if (!/"lockfileVersion"\s*:\s*1\b/.test(lockfile)) {
+      failures.push(`${directory}/bun.lock must use the expected text lockfile format`);
+    }
+  }
+
+  for (const directory of bunTypesPackages) {
+    const manifestPath = directory === "." ? "package.json" : `${directory}/package.json`;
+    const manifest = await json(root, manifestPath);
+    if (manifest.devDependencies?.["@types/bun"] !== EXPECTED_BUN_VERSION) {
+      failures.push(`${manifestPath} @types/bun must equal ${EXPECTED_BUN_VERSION}`);
+    }
+    if (directory === ".") {
+      if (rootLock.packages?.["node_modules/@types/bun"]?.version !== EXPECTED_BUN_VERSION) {
+        failures.push(`package-lock.json resolved @types/bun must equal ${EXPECTED_BUN_VERSION}`);
+      }
+      if (rootLock.packages?.["node_modules/bun-types"]?.version !== EXPECTED_BUN_VERSION) {
+        failures.push(`package-lock.json resolved bun-types must equal ${EXPECTED_BUN_VERSION}`);
+      }
+    } else {
+      const lockfile = await readFile(path.join(root, directory, "bun.lock"), "utf8");
+      if (!lockfile.includes(`"@types/bun@${EXPECTED_BUN_VERSION}"`) ||
+          !lockfile.includes(`"bun-types@${EXPECTED_BUN_VERSION}"`)) {
+        failures.push(`${directory}/bun.lock must resolve @types/bun and bun-types ${EXPECTED_BUN_VERSION}`);
+      }
+    }
+  }
+
+  const workflowDir = path.join(root, ".github", "workflows");
+  for (const entry of await readdir(workflowDir, { withFileTypes: true })) {
+    if (!entry.isFile() || !/\.ya?ml$/.test(entry.name)) continue;
+    const workflow = await readFile(path.join(workflowDir, entry.name), "utf8");
+    if (!workflow.includes("oven-sh/setup-bun@")) continue;
+    const versions = [...workflow.matchAll(/bun-version:\s*['\"]?([^'\"\s}]+)/g)].map((match) => match[1]);
+    if (versions.length === 0) failures.push(`.github/workflows/${entry.name} must contain an exact bun-version pin`);
+    for (const version of versions) {
+      if (version !== EXPECTED_BUN_VERSION) {
+        failures.push(`.github/workflows/${entry.name} pins Bun ${version}; expected ${EXPECTED_BUN_VERSION}`);
+      }
+    }
+  }
+
+  if (process.versions.bun && process.versions.bun !== EXPECTED_BUN_VERSION) {
+    failures.push(`running Bun ${process.versions.bun}; expected ${EXPECTED_BUN_VERSION}`);
+  }
+  return failures;
 }
 
-if (process.versions.bun && process.versions.bun !== expectedVersion) {
-  failures.push(`running Bun ${process.versions.bun}; expected ${expectedVersion}`);
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const failures = await checkBunParity(process.argv[2] ? path.resolve(process.argv[2]) : process.cwd());
+  if (failures.length) {
+    for (const failure of failures) console.error(`Bun parity check failed: ${failure}`);
+    process.exitCode = 1;
+  } else {
+    console.log(`Bun ${EXPECTED_BUN_VERSION} is aligned across manifests, locks, workflows, and runtime`);
+  }
 }
-
-if (failures.length > 0) {
-  for (const failure of failures) console.error(`Bun parity check failed: ${failure}`);
-  process.exit(1);
-}
-
-console.log(`Bun ${expectedVersion} is aligned across v4 manifests, locks, workflows, and runtime`);

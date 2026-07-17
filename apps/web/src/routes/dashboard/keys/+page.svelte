@@ -44,7 +44,7 @@
     if (res.ok) {
       const j = await res.json();
       if (j.status === 'unavailable' || !j.key) {
-        error = unavailableMessage(j.source);
+        error = unavailableMessage(j, 'API keys');
         return;
       }
       keys = [j.key, ...keys];

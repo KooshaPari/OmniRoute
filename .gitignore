@@ -182,6 +182,7 @@ bun.lock
 !apps/desktop/bun.lock
 !packages/api-contracts/bun.lock
 !packages/design-tokens/bun.lock
+!desktop-electrobun/bun.lock
 
 # Private environment variables for .http-client
 http-client.private.env.json

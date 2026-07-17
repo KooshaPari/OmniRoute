@@ -15,7 +15,7 @@
     const r = await fetch('http://localhost:4322/api/dashboard/sessions');
     if (r.ok) {
       const j = await r.json();
-      if (j.status === 'unavailable') unavailable = unavailableMessage(j.source);
+      if (j.status === 'unavailable') unavailable = unavailableMessage(j, 'Sessions');
       sessions = j.sessions ?? [];
     }
     loading = false;
