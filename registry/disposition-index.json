@@ -2503,10 +2503,10 @@
     {
       "id": "repo-phenotype-org-audits",
       "path": "KooshaPari/phenotype-org-audits",
-      "disposition": "ABSORB",
+      "disposition": "ABSORBED",
       "target": "phenotype-registry (audits/org-audit-snapshots/)",
       "wave": "2026-07-17-queue-refresh-2",
-      "fsm": "active",
+      "fsm": "absorbed",
       "core_lang": "shell",
       "size_kb": 11832,
       "remote_branch_count": 1,
@@ -2516,7 +2516,13 @@
       "audit_artifact": "audits/absorption-justifications/phenotype-org-audits-2026-07-17.md",
       "source_artifact": "manual:2026-07-17",
       "added_at": "2026-07-17T12:50:00.000000Z",
-      "note": "Org-wide audit snapshots (audit-30-pillar, audit-v38, audits/, catalog/). Historical governance content. Target: phenotype-registry/audits/org-audit-snapshots/."
+      "note": "Org-wide audit snapshots (audit-30-pillar, audit-v38, audits/, catalog/). Historical governance content. Target: phenotype-registry/audits/org-audit-snapshots/. [ABSORBED 2026-07-17 into audits/org-audit-snapshots/ via registry commit 1e95a09d; 430 files / 18 subdirs (audit-30-pillar, audit-v38, audits/, catalog/, consolidation/, curation/, docs/, findings/, inventory/, metrics/, ops/, pillar-scores/, plans/, tooling/, worklogs/, archive/, forge-runner-scripts/); source repo KooshaPari/phenotype-org-audits archived on GitHub 2026-07-17.]",
+      "archived": true,
+      "archived_at": "2026-07-17T14:50:00.000000Z",
+      "absorbed_at": "2026-07-17T14:50:00.000000Z",
+      "absorbed_branch": "registry-main",
+      "absorbed_commit": "1e95a09d87f3993d00768d380db5f8454c3b7095",
+      "absorbed_files_added": 430
     },
     {
       "id": "DSPI-11",
