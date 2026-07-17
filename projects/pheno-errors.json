@@ -1,0 +1,14 @@
+{
+  "name": "pheno-errors",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "archived",
+  "has_readme": true,
+  "type": "shared-lib",
+  "path": "repos/pheno-errors",
+  "disposition": "ARCHIVED",
+  "absorbed_into": "pheno",
+  "absorption_note": "AppError design and variants absorbed into phenotype-error-core in the pheno monorepo per ADR-ECO-027-pheno-errors-absorption.",
+  "adr": "ADR-ECO-027-pheno-errors-absorption",
+  "note": "Audited 2026-07-17; ARCHIVED; absorbed into pheno/crates/phenotype-error-core."
+}

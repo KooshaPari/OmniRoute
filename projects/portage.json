@@ -8,5 +8,6 @@
   "path": "repos/portage",
   "disposition": "RETIRE",
   "wave": "surface-reduction-1",
+  "absorbed_into": "upstream",
   "note": "Upstream-maintained fork — archived (verified `isArchived: true` 2026-06-19); BOUNDARY_OWNERS 5/5; no local delta"
 }

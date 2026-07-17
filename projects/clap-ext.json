@@ -1,0 +1,14 @@
+{
+  "name": "clap-ext",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "archived",
+  "has_readme": true,
+  "type": "shared-lib",
+  "path": "repos/clap-ext",
+  "disposition": "ABSORB",
+  "absorbed_into": "HexaKit",
+  "absorption_note": "Rust CLI command-line argument parser extensions absorbed into HexaKit/libs/clap-ext/ per sprint H15.",
+  "adr": "ADR-ECO-027",
+  "note": "Audited 2026-07-17; ABSORB; canonical CLI extensions now reside in HexaKit/libs/clap-ext."
+}

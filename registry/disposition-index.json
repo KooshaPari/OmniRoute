@@ -1474,6 +1474,20 @@
       "audit_artifact": "audits/absorption-justifications/KodeVibe-2026-06-29.md",
       "source_artifact": "automated:__main__:2026-06-29",
       "added_at": "2026-06-29T22:02:30.003960Z"
+    },
+    {
+      "id": "repo-agent-user-status",
+      "path": "KooshaPari/agent-user-status",
+      "disposition": "AFFIRM",
+      "fsm": "active",
+      "size_kb": 24,
+      "remote_branch_count": 1,
+      "last_push": "2026-06-20T09:10:00Z",
+      "grade_score": null,
+      "grade_percentage": null,
+      "audit_artifact": "audits/absorption-justifications/agent-user-status-2026-07-17.md",
+      "source_artifact": "manual:2026-07-17",
+      "added_at": "2026-07-17T01:43:00.000000Z"
     }
   ]
 }

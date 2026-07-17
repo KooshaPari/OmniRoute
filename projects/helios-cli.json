@@ -1,0 +1,14 @@
+{
+  "name": "helios-cli",
+  "languages": ["rust"],
+  "primary_language": "rust",
+  "status": "archived",
+  "has_readme": true,
+  "type": "shared-lib",
+  "path": "repos/helios-cli",
+  "disposition": "ARCHIVED",
+  "absorbed_into": "KooshaPari/helios-cli",
+  "absorption_note": "HeliosCLI absorbed into helios-cli: 23 crates.",
+  "adr": "ADR-ECO-027-helioscli-absorption",
+  "note": "Audited 2026-07-17; ARCHIVED; absorbed into helios-cli."
+}
