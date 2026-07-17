@@ -1,19 +1,19 @@
-# omniroute-monorepo Archive
+# omniroute-pr6029-cliproxy — Tarball Archive
 
-This is the archived state of the local `repos/omniroute-monorepo` clone.
+This is the tarballed state of the orphan clone at:
+`/Users/kooshapari/CodeProjects/Phenotype/repos/_loose-inbox/omniroute-pr6029-cliproxy`
 
-Originally had no remote (was a scaffold with `.init-marker` only). On 2026-07-14, the
-clone was found to be a real monorepo skeleton (Cargo workspace + 30 other entries) with
-unpushed local work. Pushed here for preservation.
+Removed on 2026-07-15 because:
 
-## Restoration
+1. Origin URL was a broken local-path reference: `~/.../Phenotype/repos/work` (which is itself a separate full clone)
+2. The clone was small, had no remote tracking, and the target `repos/work` is the canonical clone
+3. No unique work was identified — the local clone appeared to be a stale convenience checkout of `repos/work`
 
-Date: 2026-07-14
-Source: `/Users/kooshapari/CodeProjects/Phenotype/repos/omniroute-monorepo`
-Target: `KooshaPari/omniroute-monorepo-archive`
+## Contents
 
-## Note
+- `full-clone.tar.gz` — full clone with `.git` and working tree
 
-A duplicate empty scaffold (`.init-marker` only) was found at
-`repos/_loose-inbox/omniroute-monorepo` — that one will be removed since this repo has
-the real content.
+## See also
+
+- `repos/work` — the canonical clone this pointed at
+- `repos/omniroute-monorepo-archive` — the real monorepo archive (separately restored)
