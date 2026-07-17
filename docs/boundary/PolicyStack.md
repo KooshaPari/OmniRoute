@@ -1,39 +1,45 @@
 ---
 repo: "PolicyStack"
-role: unknown
-status: active
-last_boundary_review: 2026-06-17
-review_cadence: 30d
-in_scope:
-  - "<to be filled>"
-out_of_scope:
-  - "<to be filled>"
+role: policy
+status: absorbed
+absorbed_into: "phenotype-python-sdk"
+absorbed_at: "phenotype-python-sdk/packages/policystack/"
+absorbed_date: 2026-07-17
+last_boundary_review: 2026-07-17
+review_cadence: never (absorbed)
 ---
 
-# Boundary — PolicyStack
+# Boundary — PolicyStack (ABSORBED)
 
-## In Scope
+## Disposition
 
-<To be filled.>
+**ABSORBED** into `phenotype-python-sdk/packages/policystack/` on 2026-07-17.
 
-## Out of Scope
+The PolicyStack repo was a Python policy-federation CLI (13.6MB, 21 branches)
+with a small Rust wrapper (`wrappers/rust/`). The primary Python code has been
+absorbed into the canonical Python SDK as a `policystack` package.
 
-| Not here | Lives in | Reason |
-| -------- | -------- | ------ |
-| `<capability>` | `<other-repo-or-N/A>` | `<why>` |
+## Content migrated
 
-## Boundary Crossings
+| Category | Count | Target path |
+|----------|-------|-------------|
+| Python source | 26 modules (policy_federation package) | `phenotype-python-sdk/packages/policystack/cli/src/policy_federation/` |
+| Tests | 46 test files | `phenotype-python-sdk/packages/policystack/tests/` |
+| Scripts | 1,263 CI/security/federation scripts | `phenotype-python-sdk/packages/policystack/scripts/` |
+| Tools | 4 utility tools | `phenotype-python-sdk/packages/policystack/tools/` |
+| Wrappers | 6 agent wrappers (Python) | `phenotype-python-sdk/packages/policystack/wrappers/` |
+| Root py/lib | policy_lib.py, resolve.py, validate_governance.py | `phenotype-python-sdk/packages/policystack/` |
 
-| Crossing | Direction | Surface | Status |
-| -------- | --------- | ------- | ------ |
-| `<capability or interface>` | `<this-repo→other|other→this-repo>` || `<this-repo→other|other→this-repo>` | `<Trait / HTTP / CLI / file / event>` | `<green|amber|red>` || `<green|amber|red>` || `<green|amber|red>` |
+Total: 1,350 files, 8.0 MB.
 
-## Last Boundary Review
+## Rust wrapper (not migrated)
 
-**Date:** 2026-06-17
-**Reviewer:** forge subagent (L7-001 sweep)
-**Worklog / finding:** `worklogs/L7-001-intent-boundary-curation-2026-06-17.json`
-**Decisions:**
-- Initial scaffolding; needs human review.
+PolicyStack also contained `wrappers/rust/` — a single-file Rust binary CLI
+(39KB main.rs, depends on clap/serde/serde_json). This Rust component was NOT
+migrated as part of this Python absorption. Its canonical home would be
+`phenotype-tooling` if a Rust CLI wrapper is needed.
 
-**Next review:** 2026-07-17
+## Outcome
+
+Source repo `KooshaPari/PolicyStack` archived on GitHub.
+Registry disposition-index updated: disposition=ABSORB, target=phenotype-python-sdk.
