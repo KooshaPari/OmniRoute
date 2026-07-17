@@ -65,12 +65,15 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies (skip scripts to avoid heavy build)
+        id: frozen_install
         run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Generate publication pack report
+        id: pack_report
         run: npm pack --dry-run --json --ignore-scripts > "$RUNNER_TEMP/publication-pack.json"
 
       - name: Verify publication identity and tarball metadata
+        id: publication_preflight
         run: node scripts/check/check-publication-preflight.mjs --workflow .github/workflows/npm-publish.yml --pack-report "$RUNNER_TEMP/publication-pack.json"
 
       - name: Resolve version, dist-tag and skip flag
@@ -157,6 +160,7 @@ jobs:
         run: npm run check:pack-artifact
 
       - name: Publish to npm
+        id: publish_npm
         if: steps.resolve.outputs.skip != 'true'
         env:
           VERSION: ${{ steps.resolve.outputs.version }}

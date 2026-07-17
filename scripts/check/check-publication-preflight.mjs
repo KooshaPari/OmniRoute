@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseDocument } from "yaml";
@@ -25,29 +26,32 @@ export function validatePublicationPreflight({ workflowSource, manifest, packRep
 
   const trigger = workflow?.on;
   if (!trigger?.release?.types?.includes("released") || !trigger?.workflow_dispatch || !trigger?.workflow_call) failures.push("publish triggers changed");
-  const jobs = Object.entries(workflow?.jobs ?? {});
-  const publishingJobs = jobs.filter(([, job]) => (job.steps ?? []).some((step) => typeof step?.run === "string" && /npm publish --access public --tag "\$TAG"/.test(step.run)));
-  if (publishingJobs.length !== 1 || publishingJobs[0]?.[0] !== "publish") failures.push("exactly one active public publish job is required");
-  const publishJob = publishingJobs[0]?.[1];
+  const publishJob = workflow?.jobs?.publish;
+  if (!publishJob) failures.push("active publish job is required");
   if (!publishJob) return failures;
   const permissions = publishJob.permissions ?? {};
   if (permissions.contents !== "read" || permissions["id-token"] !== "write" || permissions.packages !== "write" || Object.keys(permissions).length !== 3) failures.push("publish permissions changed");
   const steps = publishJob.steps ?? [];
-  const matches = (pattern) => steps.flatMap((step, index) => {
-    if (typeof step?.run !== "string") return [];
-    const flags = pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`;
-    return [...step.run.matchAll(new RegExp(pattern.source, flags))].map(() => ({ step, index }));
-  });
-  const install = matches(/^npm ci --ignore-scripts --no-audit --no-fund$/m);
-  const pack = matches(/npm pack --dry-run --json --ignore-scripts > "\$RUNNER_TEMP\/publication-pack\.json"/);
-  const validate = matches(/node scripts\/check\/check-publication-preflight\.mjs --workflow \.github\/workflows\/npm-publish\.yml --pack-report "\$RUNNER_TEMP\/publication-pack\.json"/);
-  const identity = matches(/PACKAGE_NAME="\$\(node -p \\"require\('\.\/package\.json'\)\.name\\"\)"/);
-  const lookup = matches(/npm view "\$\{PACKAGE_NAME\}@\$\{VERSION\}" version/);
-  const publish = matches(/npm publish --access public --tag "\$TAG"/);
-  for (const [name, found] of Object.entries({ install, pack, validate, identity, lookup, publish })) if (found.length !== 1) failures.push(`exactly one active ${name} step is required`);
-  for (const found of [install, pack, validate]) if (found[0]?.step?.if != null) failures.push("preflight steps must be unconditional");
-  if (install[0] && pack[0] && validate[0] && publish[0] && !(install[0].index < pack[0].index && pack[0].index < validate[0].index && validate[0].index < publish[0].index)) failures.push("install, pack, validation, and publish ordering changed");
-  const publishStep = publish[0]?.step;
+  const ids = steps.map((step) => step?.id).filter(Boolean);
+  if (new Set(ids).size !== ids.length) failures.push("publish step IDs must be unique");
+  const required = ["frozen_install", "pack_report", "publication_preflight", "resolve", "publish_npm"];
+  const byId = Object.fromEntries(required.map((id) => [id, steps.filter((step) => step?.id === id)]));
+  for (const id of required) if (byId[id].length !== 1) failures.push(`exactly one ${id} step is required`);
+  const exactCommands = {
+    frozen_install: "npm ci --ignore-scripts --no-audit --no-fund",
+    pack_report: 'npm pack --dry-run --json --ignore-scripts > "$RUNNER_TEMP/publication-pack.json"',
+    publication_preflight: 'node scripts/check/check-publication-preflight.mjs --workflow .github/workflows/npm-publish.yml --pack-report "$RUNNER_TEMP/publication-pack.json"',
+  };
+  for (const [id, command] of Object.entries(exactCommands)) {
+    const step = byId[id][0];
+    if (step?.run !== command || step?.if != null) failures.push(`${id} command or execution gate changed`);
+  }
+  const indices = required.map((id) => steps.findIndex((step) => step?.id === id));
+  if (indices.some((index) => index < 0) || !indices.every((index, position) => position === 0 || indices[position - 1] < index)) failures.push("publication step ordering changed");
+  const hash = (value) => createHash("sha256").update(value ?? "").digest("hex");
+  if (hash(byId.resolve[0]?.run) !== "d2450180f2dae448d93b79c0a7f09dd694797445d4ab2d8995b3fce36df8d78d") failures.push("resolve command scalar changed");
+  if (hash(byId.publish_npm[0]?.run) !== "915e70e44bb48364e5175d8c3c53148822ca93a7c7aa4ee25aab2b5f9664cbc1") failures.push("public publish command scalar changed");
+  const publishStep = byId.publish_npm[0];
   if (publishStep?.if !== "steps.resolve.outputs.skip != 'true'" || publishStep?.env?.NODE_AUTH_TOKEN !== "${{ secrets.NPM_TOKEN }}") failures.push("publish gate or token authority changed");
 
   const report = Array.isArray(packReports) && packReports.length === 1 ? packReports[0] : null;
