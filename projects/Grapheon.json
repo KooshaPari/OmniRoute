@@ -1,0 +1,19 @@
+{
+  "name": "Grapheon",
+  "languages": [
+    "Rust"
+  ],
+  "primary_language": "Rust",
+  "status": "queued",
+  "has_readme": false,
+  "type": "library",
+  "path": "repos/Grapheon",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch3",
+  "queued_at": "2026-07-17",
+  "proposed_target": "pheno (crates/grapheon)",
+  "proposed_target_repo": "pheno",
+  "proposed_target_path": "crates/grapheon/",
+  "absorption_note": null,
+  "note": "Canonical Grapheon repository; canonical source for grapheon-bindings wrapper."
+}

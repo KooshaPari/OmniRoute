@@ -1,0 +1,19 @@
+{
+  "name": "AgilePlus",
+  "languages": [
+    "Rust"
+  ],
+  "primary_language": "Rust",
+  "status": "queued",
+  "has_readme": false,
+  "type": "tooling",
+  "path": "repos/AgilePlus",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch3",
+  "queued_at": "2026-07-17",
+  "proposed_target": "pheno (crates/agile-plus)",
+  "proposed_target_repo": "pheno",
+  "proposed_target_path": "crates/agile-plus/",
+  "absorption_note": null,
+  "note": "Phenotype-org spec-driven development; possible migration to omni-rust workflow."
+}

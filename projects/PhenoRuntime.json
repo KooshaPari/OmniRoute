@@ -1,0 +1,19 @@
+{
+  "name": "PhenoRuntime",
+  "languages": [
+    "Rust"
+  ],
+  "primary_language": "Rust",
+  "status": "queued",
+  "has_readme": false,
+  "type": "placeholder",
+  "path": "repos/PhenoRuntime",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch3",
+  "queued_at": "2026-07-17",
+  "proposed_target": "phenotype-legacy-collection",
+  "proposed_target_repo": "phenotype-legacy-collection",
+  "proposed_target_path": "docs/boundary/placeholder-repos.md",
+  "absorption_note": null,
+  "note": "ARCHIVED: placeholder only - verify during absorption."
+}

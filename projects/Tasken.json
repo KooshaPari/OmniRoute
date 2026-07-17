@@ -1,0 +1,19 @@
+{
+  "name": "Tasken",
+  "languages": [
+    "Rust"
+  ],
+  "primary_language": "Rust",
+  "status": "queued",
+  "has_readme": false,
+  "type": "orchestrator",
+  "path": "repos/Tasken",
+  "disposition": "ABSORB",
+  "wave": "2026-07-17-queue-refresh-batch3",
+  "queued_at": "2026-07-17",
+  "proposed_target": "phenotype-tooling",
+  "proposed_target_repo": "phenotype-tooling",
+  "proposed_target_path": "crates/tasken/",
+  "absorption_note": null,
+  "note": "Phenotype-org task orchestration."
+}
