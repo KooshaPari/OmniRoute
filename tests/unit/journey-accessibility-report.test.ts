@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdtemp, mkdir, realpath, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { resolveJourneyAccessibilityReportPath, validateJourneyAccessibilityReport } from "../../scripts/docs/validate-journey-accessibility-report.mjs";
+import { containsRawMarkup, resolveJourneyAccessibilityReportPath, validateJourneyAccessibilityReport } from "../../scripts/docs/validate-journey-accessibility-report.mjs";
 
 const valid = () => ({
   schemaVersion: 2,
@@ -77,6 +77,22 @@ test("rejects forbidden markup structurally without false-positive html text", (
     { note: "<!-- comment -->" },
     { note: "<!DOCTYPE html>" },
   ]) expect(validateJourneyAccessibilityReport({ ...valid(), ...tamper }).join("\n")).toMatch(/raw HTML/);
+});
+
+test("scans markup deterministically without regex backtracking", () => {
+  for (const legal of [
+    "plain html text", "2 < 3 and 4 > 1", "unfinished <", "unfinished <main", "unfinished </main", "< main>", "<123>",
+    "https://example.test/?q=%3Cmain%3E", "x".repeat(100_000),
+  ]) {
+    expect(containsRawMarkup(legal)).toBe(false);
+  }
+  for (const markup of [
+    "<main>", "</main>", "<custom-element data-x='1'/>", "<ScRiPt>alert(1)</sCrIpT>", "<!--open", "closed-->",
+    "<!DOCTYPE html>", "<!DoCtYpE HTML>",
+  ]) {
+    expect(containsRawMarkup(markup)).toBe(true);
+  }
+  expect(containsRawMarkup("<".repeat(100_000))).toBe(false);
 });
 
 test("confines report reads to the real journey evidence root", async () => {
