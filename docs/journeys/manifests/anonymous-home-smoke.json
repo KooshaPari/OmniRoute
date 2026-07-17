@@ -55,7 +55,7 @@
     "reviewRequired": true
   },
   "evidence": {
-    "captureStatus": "captured",
+    "captureStatus": "blocked",
     "artifacts": [
       {
         "kind": "screenshot",
@@ -71,7 +71,7 @@
       }
     ],
     "retentionDays": 14,
-    "blocker": null
+    "blocker": "Recapture is required after rebasing onto current main and fixing the browser-visible BFF CORS failure plus telemetry POST 404 responses."
   },
   "provenance": {
     "baseBranch": "main",
