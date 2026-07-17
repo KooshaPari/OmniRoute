@@ -1,0 +1,52 @@
+{
+  "name": "phenotype-landing",
+  "aliases": [
+    "phenotype-landings",
+    "phenotype-sites-factory"
+  ],
+  "languages": [
+    "typescript",
+    "astro"
+  ],
+  "primary_language": "typescript",
+  "status": "archived",
+  "has_readme": true,
+  "type": "landing-factory",
+  "archetype": "landing",
+  "path": "repos/phenotype-landing",
+  "disposition": "ARCHIVE_ONLY",
+  "wave": "2026-07-17-queue-refresh-2",
+  "absorbed_into": "phenotype-registry (boundary doc + forward-pointer at phenodocs/packages/landing/)",
+  "absorption_note": "ARCHIVE_ONLY (rejected ABSORB into phenodocs/packages/landing/). phenotype-landing is a 7-site Astro multi-tenant factory, not a single landing page. Each site (sites/{agileplus,byteport,hwledger,phenokits,projects,thegent}-landing Astro+Bun + sites/odin-landing static HTML) has its own package.json + bun.lock + vercel.json + .github/workflows/ci.yml + vitest.config.ts. The literal `cp -r phenotype-landing/* phenodocs/packages/landing/` would copy 7 independently-deployable Astro sites (each with its own vercel deploy target and CI workflow) into a VitePress federation hub — architecturally mismatched. Tracked source is ~1.5 MB but on-disk footprint is ~1.6 GB (mostly node_modules). Per task failsafe clause (build heavy or conflicts exist), pivoted to ARCHIVE_ONLY: source repo archived on GitHub via `gh repo archive`; no code copied; forward-pointer README at phenodocs/packages/landing/ captures the deferred absorption decision. Parallel precedent: omniroute-rust and PhenoVCS (both ARCHIVE_ONLY 2026-07-17) for the same 'multi-crate/-site workspace vs monolithic absorber' structural mismatch.",
+  "audit_artifact": "audits/absorption-justifications/phenotype-landing-deferred-2026-07-17.md",
+  "audited_at": "2026-07-17T15:50:00Z",
+  "fsm": "absorbed",
+  "verified_at": "2026-07-17T15:50:00Z",
+  "role": "landing",
+  "domain_role": "landing",
+  "boundary": "docs/boundary/phenotype-landing.md",
+  "intent": "docs/intent/phenotype-landing.md",
+  "ecosystem": "marketing",
+  "bucket": "ARCHIVE_ONLY",
+  "adr": "ADR-ECO-014",
+  "tier": "pheno-lib",
+  "architecture": "layered-monorepo",
+  "language": "typescript",
+  "home": "KooshaPari/phenotype-landing",
+  "supersedes": [],
+  "superseded_by": [],
+  "archived_at": "2026-07-17T15:50:00Z",
+  "size_kb_tracked": 1592,
+  "size_kb_ondisk": 1679360,
+  "sites_count": 7,
+  "sites": [
+    {"name": "agileplus-landing", "stack": "astro+bun", "ondisk_kb": 205824},
+    {"name": "byteport-landing", "stack": "astro+bun", "ondisk_kb": 201728},
+    {"name": "hwledger-landing", "stack": "astro+bun", "ondisk_kb": 200704},
+    {"name": "phenokits-landing", "stack": "astro+bun", "ondisk_kb": 200704},
+    {"name": "projects-landing", "stack": "astro+bun", "ondisk_kb": 200704},
+    {"name": "thegent-landing", "stack": "astro+bun", "ondisk_kb": 200704},
+    {"name": "odin-landing", "stack": "static-html", "ondisk_kb": 188416}
+  ],
+  "note": "Audited 2026-07-17; ARCHIVE_ONLY disposition (was ABSORB in pre-audit queue). Absorbed not into phenodocs/packages/landing/ but into phenotype-registry (boundary doc + forward-pointer README): rejected absorption because (a) source is a 7-site Astro monorepo, not a single landing page, (b) each site has its own package.json + vercel.json + CI workflow making it architecturally mismatched with phenodocs's VitePress federation hub, (c) no root package.json means phenodocs's `workspaces: [packages/*]` can't ingest it as a single workspace entry, (d) tracked source 1.5MB but on-disk 1.6GB (node_modules heavy). Boundary doc at docs/boundary/phenotype-landing.md captures the rejected absorption in detail; forward-pointer README at phenodocs/packages/landing/ marks the deferred state. [ABSORBED 2026-07-17]"
+}

@@ -914,16 +914,28 @@ substrates:
   - id: phenotype-landing
     repo: KooshaPari/phenotype-landing
     name: phenotype-landing
-    status: active
+    status: archived
     tier: pheno-lib
     architecture: layered
     archetype: landing
     language: typescript
     role: landing
-    boundary: null
-    intent: null
+    boundary: docs/boundary/phenotype-landing.md
+    intent: docs/intent/phenotype-landing.md
     notes: |
-      Org landing site (Astro).
+      ARCHIVE_ONLY 2026-07-17. Source is a 7-site Astro monorepo (1.6GB on disk,
+      ~1.4GB of node_modules across `sites/{agileplus,byteport,hwledger,
+      phenokits,projects,thegent}-landing` + `sites/odin-landing` static
+      HTML). The literal `cp -r phenotype-landing/* phenodocs/packages/landing/`
+      would have copied 7 independent Astro sites (each with its own
+      `package.json` + `bun.lock` + `vercel.json` + `.github/workflows/ci.yml`)
+      into a VitePress federation hub — architecturally mismatched. Each site
+      deploys independently to Vercel; no shared CI/build path. Per the task
+      failsafe clause ("ARCHIVE_ONLY + boundary doc if build is heavy or
+      conflicts exist"), disposition pivoted to ARCHIVE_ONLY. Source repo
+      archived on GitHub via `gh repo archive KooshaPari/phenotype-landing`.
+      Forward-pointer at `phenodocs/packages/landing/` (no code copied; pointer
+      README only). [ABSORBED 2026-07-17]
 
   - id: phenotype-ops
     repo: KooshaPari/phenotype-ops
