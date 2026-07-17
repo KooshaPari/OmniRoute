@@ -1,0 +1,75 @@
+{
+  "schema_version": "0.1.0",
+  "comment": "Example of a RouterDispatch using the tree lane. A parent task recursively spawns N children via substrate-dag + a2a. Each child has its own mailbox; events are correlated via parent_trace_id.",
+  "request": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "version": "0.1.0",
+    "task_id": "310ec58a-a0f2-4ac4-8393-c866d813b8d3",
+    "prompt": "Audit all *.py files in src/ for type-safety regressions",
+    "cwd": "/repo/big-monorepo",
+    "lane": {
+      "type": "tree",
+      "tree": {
+        "max_depth": 3,
+        "max_concurrency": 4,
+        "subtask_strategy": "per_subdirectory"
+      }
+    },
+    "routing": {
+      "engine": "engine-agentapi-claude",
+      "model": "claude-opus-4-7"
+    },
+    "attributes": {
+      "client": "audit-tool"
+    }
+  },
+  "tree_outcome": {
+    "root_task_id": "310ec58a-a0f2-4ac4-8393-c866d813b8d3",
+    "depth": 2,
+    "total_nodes": 7,
+    "completed_nodes": 6,
+    "failed_nodes": 1,
+    "tree": [
+      {
+        "task_id": "310ec58a-a0f2-4ac4-8393-c866d813b8d3",
+        "depth": 0,
+        "role": "parent",
+        "status": "completed",
+        "children": [
+          {
+            "task_id": "311ec58a-a0f2-4ac4-8393-c866d813b8d4",
+            "depth": 1,
+            "role": "child",
+            "subdirectory": "src/api",
+            "status": "completed",
+            "findings_count": 4
+          },
+          {
+            "task_id": "311ec58a-a0f2-4ac4-8393-c866d813b8d5",
+            "depth": 1,
+            "role": "child",
+            "subdirectory": "src/db",
+            "status": "completed",
+            "findings_count": 2
+          },
+          {
+            "task_id": "311ec58a-a0f2-4ac4-8393-c866d813b8d6",
+            "depth": 1,
+            "role": "child",
+            "subdirectory": "src/util",
+            "status": "completed",
+            "findings_count": 0
+          },
+          {
+            "task_id": "311ec58a-a0f2-4ac4-8393-c866d813b8d7",
+            "depth": 1,
+            "role": "child",
+            "subdirectory": "src/ml",
+            "status": "failed",
+            "error": "subtree too large (1543 files), partial fail per audit policy"
+          }
+        ]
+      }
+    ]
+  }
+}

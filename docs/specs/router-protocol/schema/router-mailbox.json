@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/KooshaPari/phenotype-router-spec/schema/router-mailbox.json",
+  "title": "RouterMailbox",
+  "description": "An event envelope emitted by an engine during dispatch. Carries status updates, message chunks, errors, and cancellation signals. Delivered to consumers in order; consumers may subscribe to a stream of these via the substrate wire_mailbox API.",
+  "type": "object",
+  "required": ["version", "event_id", "conv_id", "kind", "payload", "emitted_at"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "description": "Protocol version.",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "examples": ["0.1.0"]
+    },
+    "event_id": {
+      "description": "Monotonically increasing event identifier within a conversation (use UUID v4 if monotonicity cannot be guaranteed).",
+      "type": "string"
+    },
+    "conv_id": {
+      "description": "The conversation this event belongs to. Must match a RouterDispatch.decision_id whose engine produced this event.",
+      "type": "string",
+      "format": "uuid"
+    },
+    "decision_id": {
+      "description": "The RouterDispatch.decision_id that originated this conversation. Optional but recommended for traceability.",
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "description": "Event kind.",
+      "type": "string",
+      "enum": [
+        "status_change",
+        "message_chunk",
+        "message_complete",
+        "tool_call",
+        "tool_result",
+        "error",
+        "cancel",
+        "heartbeat"
+      ]
+    },
+    "payload": {
+      "description": "Event payload. Shape depends on `kind`. See examples/.",
+      "oneOf": [
+        {
+          "description": "status_change payload",
+          "type": "object",
+          "required": ["status"],
+          "properties": {
+            "status": { "type": "string", "enum": ["starting", "running", "stable", "idle", "errored", "cancelled"] }
+          }
+        },
+        {
+          "description": "message_chunk payload",
+          "type": "object",
+          "required": ["chunk_id", "delta"],
+          "properties": {
+            "chunk_id": { "type": "string" },
+            "delta":    { "type": "string" },
+            "role":     { "enum": ["agent", "user", "system"] }
+          }
+        },
+        {
+          "description": "message_complete payload",
+          "type": "object",
+          "required": ["message_id", "text"],
+          "properties": {
+            "message_id": { "type": "string" },
+            "text":       { "type": "string" },
+            "role":       { "enum": ["agent", "user", "system"] }
+          }
+        },
+        {
+          "description": "tool_call payload",
+          "type": "object",
+          "required": ["tool", "args"],
+          "properties": {
+            "tool": { "type": "string" },
+            "args": { "type": "object", "additionalProperties": true }
+          }
+        },
+        {
+          "description": "tool_result payload",
+          "type": "object",
+          "required": ["tool", "result"],
+          "properties": {
+            "tool":   { "type": "string" },
+            "result": { "type": "object", "additionalProperties": true }
+          }
+        },
+        {
+          "description": "error payload",
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code":    { "type": "string" },
+            "message": { "type": "string" },
+            "retryable": { "type": "boolean" }
+          }
+        },
+        {
+          "description": "cancel payload",
+          "type": "object",
+          "properties": {
+            "reason": { "type": "string" }
+          }
+        },
+        {
+          "description": "heartbeat payload",
+          "type": "object",
+          "properties": {
+            "rtt_ms": { "type": "integer", "minimum": 0 }
+          }
+        }
+      ]
+    },
+    "emitted_at": {
+      "description": "ISO-8601 RFC3339 timestamp at which the engine emitted the event.",
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "examples": [{
+    "version": "0.1.0",
+    "event_id": "01HMRX5K2B0N0C5G1C0E0FAKE0",
+    "conv_id": "f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+    "decision_id": "f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+    "kind": "status_change",
+    "payload": { "status": "running" },
+    "emitted_at": "2026-06-24T18:30:00Z"
+  }]
+}

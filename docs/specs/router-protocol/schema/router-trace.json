@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/KooshaPari/phenotype-router-spec/schema/router-trace.json",
+  "title": "RouterTrace",
+  "description": "A trace event describing a task lifecycle transition. Routers MUST emit these for state changes; consumers MAY use them to drive OTLP/HTTP export, audit logs, or UI updates.",
+  "type": "object",
+  "required": ["version", "trace_id", "event_type", "task_id", "occurred_at"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "examples": ["0.1.0"]
+    },
+    "trace_id": {
+      "description": "UUID v4 unique identifier for this trace event.",
+      "type": "string",
+      "format": "uuid"
+    },
+    "parent_trace_id": {
+      "description": "For nested tasks (tree lane), the parent's trace_id.",
+      "type": "string",
+      "format": "uuid"
+    },
+    "span_id": {
+      "description": "OTLP-compatible 8-byte span identifier (hex). Optional; if absent, the router generates one from trace_id.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{16}$"
+    },
+    "task_id": {
+      "description": "The substrate Task.id (UUID v4) this event pertains to.",
+      "type": "string",
+      "format": "uuid"
+    },
+    "conv_id": {
+      "description": "The conversation this event pertains to, if any.",
+      "type": "string",
+      "format": "uuid"
+    },
+    "event_type": {
+      "description": "Lifecycle event type.",
+      "type": "string",
+      "enum": [
+        "task_registered",
+        "task_started",
+        "task_completed",
+        "task_failed",
+        "task_cancelled",
+        "engine_dispatched",
+        "engine_response_chunk",
+        "engine_response_complete",
+        "engine_error",
+        "lane_fanout_started",
+        "lane_fanout_partial",
+        "lane_fanout_complete",
+        "lane_tree_started",
+        "lane_tree_node_started",
+        "lane_tree_node_complete"
+      ]
+    },
+    "attributes": {
+      "description": "OTLP-compatible attributes attached to this trace event.",
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "occurred_at": {
+      "description": "ISO-8601 RFC3339 timestamp.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration_ms": {
+      "description": "For task_completed / task_failed: wall-clock duration from task_started to this event, in milliseconds.",
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "examples": [{
+    "version": "0.1.0",
+    "trace_id": "5fab4d1a-1c0a-4a3b-9c0e-1f0a8b2c3d4e",
+    "task_id":  "110ec58a-a0f2-4ac4-8393-c866d813b8d1",
+    "conv_id":  "f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+    "event_type": "engine_dispatched",
+    "attributes": {
+      "engine": "engine-agentapi-claude",
+      "model": "claude-opus-4-7",
+      "lane": "sync"
+    },
+    "occurred_at": "2026-06-24T18:30:00Z"
+  }]
+}

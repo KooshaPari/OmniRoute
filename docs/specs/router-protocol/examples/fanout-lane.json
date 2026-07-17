@@ -1,0 +1,59 @@
+{
+  "schema_version": "0.1.0",
+  "comment": "Example of a RouterDispatch using the fanout lane. The router dispatches the same task to N engines in parallel and waits for partial completion under the configured threshold.",
+  "request": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "version": "0.1.0",
+    "task_id": "210ec58a-a0f2-4ac4-8393-c866d813b8d2",
+    "prompt": "Diagnose the regression in the search indexer across the last 24h",
+    "cwd": "/repo/search-indexer",
+    "lane": {
+      "type": "fanout",
+      "fanout": {
+        "engines": [
+          "engine-agentapi-claude",
+          "engine-agentapi-codex",
+          "engine-agentapi-gemini"
+        ],
+        "max_parallel": 3,
+        "partial_threshold": 0.5,
+        "timeout_ms": 600000
+      }
+    },
+    "routing": {
+      "engine": "engine-agentapi-claude",
+      "model": "claude-opus-4-7",
+      "reason": "fanout initial engine"
+    },
+    "attributes": {
+      "client": "ci-bot",
+      "trace_id": "210ec58a-a0f2-4ac4-8393-c866d813b8d2"
+    }
+  },
+  "fanout_outcome": {
+    "completed": 2,
+    "failed": 1,
+    "partial": true,
+    "results": [
+      {
+        "engine": "engine-agentapi-claude",
+        "conv_id": "c81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+        "status": "completed",
+        "duration_ms": 18234
+      },
+      {
+        "engine": "engine-agentapi-codex",
+        "conv_id": "c81d4fae-7dec-11d0-a765-00a0c91e6bf7",
+        "status": "completed",
+        "duration_ms": 15891
+      },
+      {
+        "engine": "engine-agentapi-gemini",
+        "conv_id": "c81d4fae-7dec-11d0-a765-00a0c91e6bf8",
+        "status": "failed",
+        "error": "engine crashed after 30s (sandbox OOM)",
+        "duration_ms": 30124
+      }
+    ]
+  }
+}
