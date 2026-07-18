@@ -227,7 +227,10 @@
     "tier-matrix:verify:strict": "node scripts/check/tier-matrix-verify.mjs --strict",
     "ffi:build": "cargo build --release --manifest-path crates/omniroute-ffi/Cargo.toml",
     "ffi:test": "cargo test --manifest-path crates/omniroute-ffi/Cargo.toml",
-    "ffi:cross": "bash scripts/build-cross-ffi.sh"
+    "ffi:cross": "bash scripts/build-cross-ffi.sh",
+    "lint:oxlint": "oxlint --config .oxlintrc.json src/ open-sse/",
+    "fmt:oxfmt": "oxfmt --config .oxfmtrc.json src/ open-sse/",
+    "fmt:check": "oxfmt --config .oxfmtrc.json --check src/ open-sse/"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1073.0",
@@ -358,6 +361,7 @@
     "lint-staged": "^17.0.8",
     "lockfile-lint": "^5.0.0",
     "node-loader": "^2.1.0",
+    "oxfmt": "^0.59.0",
     "oxlint": "^1.74.0",
     "prettier": "^3.8.3",
     "size-limit": "^12.1.0",
