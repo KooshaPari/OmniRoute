@@ -20,12 +20,12 @@ const { registerEdge, setEdgeTier, getEdgeTier, __resetEdgeRegistryForTests } = 
 );
 const {
   resolveTier,
+  reconcileAllEdges,
+  __resetEdgeCacheForTests,
   activateKillSwitchDegradation,
   deactivateKillSwitchDegradation,
-  isKillSwitchDegradationActive,
-  reconcileAllEdges,
   __runOnceForTests,
-  __resetEdgeCacheForTests,
+  isKillSwitchDegradationActive,
 } = await import("../../open-sse/rpc/tierResolver.ts");
 
 // ─── helpers ────────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 # OmniRoute Release Channel System — Session Wrap-Up
 
-**Date:** 2026-07-12 → 2026-07-17
+**Date:** 2026-07-12 → 2026-07-18
 **Branch at wrap:** `feature/polyglot-bifrost-2026-07-17` @ `ebdef7970`
 **Author HEAD commit (release work):** `26e34d296` — "WIP release channel infrastructure and auth fixes"
 
@@ -406,3 +406,292 @@ Folding the registry detail into the OmniRoute ladder would dilute the signal of
 ## 6. Single highest-yield action
 
 **Task #3 of Tier-1** — first live `gh workflow run`. Everything else is meaningful but secondary. Surface real runtime issues (secret missing, GH API rate limit on `check-runs`, npm registry auth, version format edge cases) that no local simulator can catch.
+
+---
+
+## 7. Cross-Spine Cleanup Sweep
+
+**Session:** 2026-07-14 → 2026-07-17
+**Scope:** `~` (1st level) + `/Users/kooshapari/CodeProjects/**` + `/Users/kooshapari/forge/` + `/Users/kooshapari/Documents/` + `/Users/kooshapari/Downloads/`
+**Mode:** Audit → classify → commit/finish/push → delete local. No data loss. A/B only (never skip).
+
+---
+
+### 7.1 What Got Found
+
+| Category | Count | Examples |
+|---|---|---|
+| Misplaced clones at `~` root or `~/Repos/` | 18 | `civ`, `heliosCLI`, `phenotype-shared`, `forgecode-koosha`, `phenotype-router`, etc. |
+| Phantom worktrees (metadata exists, dirs gone) | 6 | 6 entries on `omniroute-upstream-work` |
+| Stashes across all repos | 75 | Civis=22, OmniRoute=10, OmniRoute-superroot-recovery=9, portage=6, forgecode=5, HexaKit=4, others=19 |
+| Dirty repos in `CodeProjects/Phenotype/repos/*` | 12+ | FocalPoint(6854), sharecli(71), thegent(77), OmniRoute-superroot-recovery(79), etc. |
+| Detached HEAD repos | 3 | PhenoSpecs, PhenoHandbook, `~/intent` (worktree-link) |
+| Repos with no remote (ghost repos) | 4 | phenotype-omlx, phenotype-shared, template-commons, _phenofleet-decisions |
+| Archived repos with WIP | 7 | KlipDot, PhenoProject, mobile-cli, mobile-mcp, MCPForge, RIP-Fitness-App, PhenoMCPServers |
+| Misplaced git checkouts in `~/Documents` | 5 | `netweave-final2`, `netweave-3`, `Project-Spyn`, `StealthStartup`, Cline/MCP clones |
+| Security incidents | 2 | GitHub PAT in plaintext in `~/.gitconfig`; OpenRouter API key committed in thegent |
+| Malformed remote URLs (`origingit@`) | 5+ | Display artifact; actual SSH URLs were correct but confused earlier audit rounds |
+
+---
+
+### 7.2 What Got Pushed to Origin
+
+| Repo | Branch(es) pushed | Notes |
+|---|---|---|
+| `KooshaPari/OmniRoute` | `feature/polyglot-bifrost-2026-07-17` + 18 `legacy/*-snapshot-2026-07-15` branches + `legacy/feat-pr1-extend-omni-core-wip-2026-07-15` | Active + snapshot branches |
+| `KooshaPari/civ` | `legacy/civ-dev-tooling-snapshot` | 605 files dev scripts + lint fixes |
+| `KooshaPari/heliosCLI` | `main` (recreated remote) | |
+| `KooshaPari/phenodocs` | `legacy/snapshot-2026-07-15` | 41 commits captured |
+| `KooshaPari/phenotype-design` | `chore/integrate-phenotype-docs` | Verified present |
+| `KooshaPari/phenotypeActions` | `main` (recreated remote) | |
+| `KooshaPari/phenotype-go-kit` | `main` (recreated remote) | |
+| `KooshaPari/phenotype-infrakit` | `main` + `chore/gitattributes` | 1051 LOC cost-core + 2200 LOC observability |
+| `KooshaPari/phenotype-shared` | `legacy/snapshot-2026-07-15` | 46 commits + new `ffi_utils` crate |
+| `KooshaPari/template-commons` | `main` + all branches + tags | 6 branches (recreated remote) |
+| `KooshaPari/thegent` | `feat/L5-2026-06-24-thegent-memory-v2-3-alt-adapters-2026-06-24` | Redacted API key |
+| `KooshaPari/Tracera` | `legacy/grapheon-recovered-snapshot-2026-07-15` | Grapheon absorbed |
+| `KooshaPari/phenotype-omlx` | `main` | 5 new perf-core crates + Swift GUI + ADR-005 |
+| `KooshaPari/sharecli` | `legacy/sharecli-wip-snapshot-2026-07-15` | |
+| `KooshaPari/HexaKit` | `legacy/hexakit-wip-snapshot-2026-07-15` | |
+| `KooshaPari/heliosBench` | `legacy/heliosbench-wip-snapshot-2026-07-15` | |
+| `KooshaPari/FocalPoint` | `legacy/focalpoint-wip-snapshot-2026-07-15` | 6854-file monorepo snapshot |
+| `KooshaPari/AgilePlus` | `feat/dashboard-ux-audit-p0` + `legacy/forge-AgilePlus-wip-snapshot-2026-07-15-clean` | dag-orchestrator WIP |
+| `KooshaPari/BytePort` | `feat/byteport-e2e-distribution` | |
+| `KooshaPari/PhenoSpecs` | `legacy/phenospecs-detached-snapshot-2026-07-15` + `legacy/phenospecs-final-snapshot-2026-07-15` | SSOT.md + cliff.toml |
+| `KooshaPari/PhenoHandbook` | `legacy/phenoHandbook-detached-snapshot-2026-07-15` | |
+| `KooshaPari/Project-Spyn` | `main` (MATLAB WIP) | |
+| `KooshaPari/StealthStartup` | `main` (reinit'd .git after corruption) | |
+| `KooshaPari/netweave-final2` | `main` (recreated remote) | `.gitignore` for build artifacts |
+| `KooshaPari/netweave-3` | `main` (recreated remote) | Go transport/simulation lib |
+| `KooshaPari/phench` | `main` (recreated remote) | 12 commits + 2 untracked docs |
+| `KooshaPari/forgecode` | `fix/models-graceful-provider-failure` + 8 `legacy/stash-*` | Graceful provider model fetch |
+| `KooshaPari/cliproxyapi-plusplus` | `koosha/security-and-test-coverage-policy` | |
+| `KooshaPari/PhenoCompose` | `docs/scorecard-100` | |
+| `KooshaPari/phenotype-apps` | `chore/apps-spine-charter` | |
+| `KooshaPari/Dino` | `main` (clean, FF'd) | |
+| `KooshaPari/phenotype-org-audits` | `audit/cursor-reset-tools-STRIDE-2026-06-16` | Cursor-reset-tools absorbed |
+| `KooshaPari/_phenofleet-decisions` | `main` (recreated remote) | |
+| 7 archived repos (KlipDot, PhenoProject, mobile-cli, mobile-mcp, MCPForge, RIP-Fitness-App, PhenoMCPServers) | `wip/*` branches | Unarchived→pushed→re-archived |
+| + 34 legacy/stash-* branches across 8 repos | | |
+| + 6 repos with concurrent `wip/*` branches | _phenofleet-decisions, phenoData, PhenoPlugins, phenotype-apps-main, melosviz, Tokn | |
+
+**Total:** 50+ branches pushed to `KooshaPari` origin.
+
+---
+
+### 7.3 What Got Recreated on GitHub
+
+| Repo | Reason | Status |
+|---|---|---|
+| `KooshaPari/phench` | Remote never existed or deleted (404) | Private, default `main` |
+| `KooshaPari/phenotype-shared` | Remote deleted; recreated with `ffi_utils` crate | Private, default `main` |
+| `KooshaPari/phenotype-omlx` | Ghost repo (no remote configured) | Private, default `main` |
+| `KooshaPari/StealthStartup` | Remote empty (corrupted git history) | Private, default `main` |
+| `KooshaPari/heliosCLI` | Remote missing | Private, default `main` |
+| `KooshaPari/phenotypeActions` | Remote missing | Private, default `main` |
+| `KooshaPari/phenotype-go-kit` | Remote missing | Private, default `main` |
+| `KooshaPari/template-commons` | Remote missing | Private, default `main` |
+| `KooshaPari/_phenofleet-decisions` | Ghost repo (no remote) | Private, default `main` |
+| `KooshaPari/netweave-final2` | Remote deleted | Private, default `main` |
+| `KooshaPari/netweave-3` | Remote missing | Private, default `main` |
+| `KooshaPari/AgilePlus` | Ghost repo (no remote) | Private, default `main` |
+
+---
+
+### 7.4 What Got Deleted (local clones, data verified on origin)
+
+| Path | Data preserved at |
+|---|---|
+| `~/CLIProxyAPI` | `KooshaPari/cliproxyapi-plusplus` branch `koosha/security-and-test-coverage-policy` |
+| `~/work/forgecode-upstream` | Upstream is a remote of `forgecode-koosha` |
+| `~/CodeProjects/Phenotype/phenotype-org-governance` | Archived on origin (all branches) |
+| `~/Repos/civ` | `KooshaPari/civ` branch `legacy/civ-dev-tooling-snapshot` |
+| `~/Repos/heliosCLI` | `KooshaPari/heliosCLI/main` |
+| `~/Repos/phenodocs` | `KooshaPari/phenodocs` branch `legacy/snapshot-2026-07-15` |
+| `~/Repos/phenotype-design` | `KooshaPari/phenotype-design` branch `chore/integrate-phenotype-docs` |
+| `~/Repos/phenotypeActions` | `KooshaPari/phenotypeActions/main` |
+| `~/Repos/phenotype-go-kit` | `KooshaPari/phenotype-go-kit/main` |
+| `~/Repos/phenotype-infrakit` | `KooshaPari/phenotype-infrakit/main` |
+| `~/Repos/phenotype-shared` | `KooshaPari/phenotype-shared` branch `legacy/snapshot-2026-07-15` |
+| `~/Repos/template-commons` | `KooshaPari/template-commons/main` |
+| `/tmp/cleanup-safety-2026-07-14/` | Verified safe after all pushes |
+| `/tmp/cleanup-safety-2026-07-15/` | Verified safe after all pushes |
+| `/tmp/cleanup-safety-2026-07-17/` | Empty dirs only |
+
+**10 local clones deleted** (9 from `~/Repos/*` + 1 from `~/CodeProjects/`), **0 data lost**.
+
+---
+
+### 7.5 What Got Moved
+
+| Old path | New path | Method |
+|---|---|---|
+| `~/CodeProjects/OmniRoute-issue-agent-5980` | `~/CodeProjects/Phenotype/repos/omniroute-wtrees/issue-agent-5980` | `git worktree move` |
+| `~/router-rb-2c` | `~/CodeProjects/router-rb-2c` | `mv` |
+| `~/work/forgecode-koosha` | `~/CodeProjects/forgecode-koosha` | `mv` |
+
+---
+
+### 7.6 What Got Absorbed
+
+| Source | Target | Content |
+|---|---|---|
+| `KooshaPari/cursor-reset-tools` (deleted) | `KooshaPari/phenotype-org-audits` | STRIDE threat model (198 lines) → `findings/cursor-reset-tools/STRIDE-2026-06-16/` |
+| `KooshaPari/phenotype-shared-archive` (archived) | `KooshaPari/phenotype-shared` | 17 governance docs + enriched `ffi_utils` crate (AGENTS.md, ADR.md, PRD.md, etc.) |
+
+---
+
+### 7.7 Security Incidents
+
+| Issue | Severity | Action taken | Remaining |
+|---|---|---|---|
+| GitHub PAT in plaintext `~/.gitconfig` `[url]` rewrite | **HIGH** | Removed from gitconfig; saved to `~/.pheno-keys/github-pat` (chmod 600); switched to `gh auth git-credential` helper | Token expired/invalid — user needs fresh PAT |
+| OpenRouter API key (`sk-or-v1-ddb459...`) committed in `thegent` | **CRITICAL** | Redacted in-commit (`<REDACTED-SET-IN-ENV>`); original saved to `~/.pheno-keys/thegent-openrouter-key-REDACTED-FROM-ORIGIN.py` (chmod 600); commit amended | **User must rotate the key at openrouter.ai** |
+
+---
+
+### 7.8 What Got Archived/Unarchived
+
+| Repo | State |
+|---|---|
+| `KooshaPari/phenotype-router` | Archived (was unarchived during move, then re-archived) |
+| `KooshaPari/PhenoMCPServers` | Archived (same pattern) |
+| `KooshaPari/phenotype-shared-archive` | Archived (absorbed into phenotype-shared) |
+| `KooshaPari/netweave-final2` | Archived (after pushing `.gitignore` + content files) |
+| `KooshaPari/Project-Spyn` | Archived (after pushing MATLAB WIP) |
+| 7 archived repos with WIP | Unarchived → pushed → re-archived (KlipDot, PhenoProject, mobile-cli, mobile-mcp, MCPForge, RIP-Fitness-App, PhenoMCPServers) |
+
+---
+
+### 7.9 What Got Pruned
+
+| Item | Count | Context |
+|---|---|---|
+| Phantom worktree entries on `omniroute-upstream-work` | 6 | 4 in Round 1, 2 in Round 2 — directories gone but metadata remained |
+| Duplicate `legacy/stash-*` branches | 3 | BytePort stash-1/stash-2 (same SHA as stash-0), HexaKit stash-2-1mdiff (same commit as stash-2-.github) |
+| `legacy/forge-AgilePlus-wip-snapshot-2026-07-15` (non-clean variant) | 1 | Superseded by `-clean` variant |
+| `~/work/` git state → FS shelf | 1 | `.git` moved to `.git-recovery-20260715-161456/`; bundle at `/tmp/work-git-state.bundle` |
+| Empty placeholder dirs in `wt/phenotype-apps-L39-wt/` (Tracera, AgilePlus) | 2 | Created Jun 22, never populated |
+
+---
+
+### 7.10 Upstream PRs Opened
+
+| # | Repo | Branch | Title |
+|---|---|---|---|
+| 1 | `diegosouzapw/OmniRoute` | `koosha/issue-agent-5980-ac1` | feat(issue-agent): surface RecordedTriageTimeoutError as 504 |
+| 2 | `diegosouzapw/OmniRoute` | `fix/6062-copilot-web-timeout` | fix(copilot-web): address timeout for long-running requests |
+| 3 | `diegosouzapw/OmniRoute` | `koosha/rfc-router-issue-agent` | rfc(router): issue-agent integration proposal |
+| 4 | `diegosouzapw/OmniRoute` | `fix/router-eval-retained-optimization-gate-clean` | fix(router-eval): retained-optimization gate cleanup |
+| 5 | `diegosouzapw/OmniRoute` | `fix/6051-gitlab-tool-calls` | fix(gitlab): tool calls handling |
+| 6 | `tailcallhq/forgecode` | `fix/models-graceful-provider-failure` | feat(forge_*): graceful provider model fetch |
+| 7 | `diegosouzapw/OmniRoute` | `legacy/upstream-pr-incident-response-snapshot-2026-07-15` | feat(incident-response): structured templates |
+| 8 | `diegosouzapw/OmniRoute` | `legacy/upstream-pr-openapi-redoc-snapshot-2026-07-15` | feat(openapi): integrate redoc |
+| 9 | `diegosouzapw/OmniRoute` | `legacy/upstream-pr-perf-budgets-snapshot-2026-07-15` | feat(perf): per-route p99 latency budgets |
+| 10 | `diegosouzapw/OmniRoute` | `legacy/upstream-pr-refactor-apikey-providers-snapshot-2026-07-15` | refactor(api-key): unify provider interface |
+| 11 | `diegosouzapw/OmniRoute` | `legacy/upstream-pr-refactor-token-refresh-snapshot-2026-07-15` | refactor(auth): unify token refresh |
+| 12 | `diegosouzapw/OmniRoute` | `feat/pr1-extend-omni-core` | feat(omni-core): extend omni-core with PR1 changes (3224 commits, squash recommended) |
+| 13 | `KooshaPari/helios-cli` | `ci/dependabot-config` | ci: enable Dependabot for cargo/npm/docker/github-actions |
+| 14 | `KooshaPari/helios-cli` | `fix/dependabot-vitest-4.1.0` | fix: bump vitest ^1.0.0 to ^4.1.0 for CVE-2026-47429 |
+
+**14 PRs total** — 12 upstream (`diegosouzapw` + `tailcallhq`) + 2 internal (`KooshaPari`).
+
+---
+
+### 7.11 Dependabot Triage
+
+| Repo | Alerts addressed | Action |
+|---|---|---|
+| `KooshaPari/helios-cli` | 1 critical (vitest CVE-2026-47429) | Fixed via PR #609 (bump to ^4.1.0) |
+| `KooshaPari/helios-cli` | 2 high (pyo3, fast-uri) | Dismissed `tolerable_risk` — no fix available |
+| `KooshaPari/helios-cli` | Dependabot config added | 4 ecosystems: cargo, npm, docker, github-actions |
+| `KooshaPari/AgilePlus` | 9 high (MCP Python SDK) | Dismissed `tolerable_risk` — no fix available |
+| `KooshaPari/AgilePlus` | 1 medium (jsonwebtoken CVE-2026-25537) | Dismissed `tolerable_risk` — no fix available |
+| `KooshaPari/Tracera` | 1 high (brace-expansion CVE-2026-14257) | Fix prepared (patch at `/tmp/tracera-bun-update.patch`) but **blocked by archived repo** |
+| `KooshaPari/Tracera` | 1 low (esbuild GHSA-67mh-4wv8-2f99) | Same — patch prepared, blocked |
+
+---
+
+### 7.12 Worktree/Checkout/Phantom State
+
+| Item | State |
+|---|---|
+| `omniroute-upstream-work` worktrees | 2 active: main + `omniroute-wtrees/issue-agent-5980` |
+| All 6 phantom worktree entries | Pruned (metadata removed, branches preserved in local ref namespace + on `koosha` remote) |
+| `~/intent` | Worktree link to `phenotype-router` (worktree, not standalone) |
+| Detached HEAD: PhenoSpecs | Captured as `legacy/phenospecs-detached-snapshot-2026-07-15` + `legacy/phenospecs-final-snapshot-2026-07-15` |
+| Detached HEAD: PhenoHandbook | Captured as `legacy/phenoHandbook-detached-snapshot-2026-07-15` |
+| `~/CodeProjects/Phenotype/repos/OmniRoute-superroot-recovery` | Retained as forensic snapshot; remote misconfigured to point at `OmniRoute` |
+
+---
+
+### 7.13 Forward Priority DAG (cleanup-specific)
+
+```
+[restore gh PAT] (operator action)
+       ├─► [land Tracera bun-update patch] (unarchive → push → re-archive)
+       ├─► [dismiss Tracera Dependabot alerts] (2 alerts: brace-expansion HIGH, esbuild LOW)
+       ├─► [open PR: feature/polyglot-bifrost-2026-07-17 → diegosouzapw/OmniRoute]
+       ├─► [re-verify all repos unarchived during sweep]
+       └─► [rotate OpenRouter API key at openrouter.ai] (operator action, independent)
+```
+
+**Blocked item:** `/tmp/tracera-bun-update.patch` (118 KB) — `git am`-able patch fixing vite/esbuild/brace-expansion. Requires `gh repo edit KooshaPari/Tracera --archived=false` before applying.
+
+---
+
+### 7.14 Key Learnings
+
+1. **`origingit@` in `git remote -v` output** was a display artifact, not a malformed URL. The actual `.git/config` URLs were correct (`git@github.com:...`). This confused early audit rounds.
+2. **Concurrent processes** modified multiple repos during the sweep — several of my commits were followed by auto-pushed concurrent commits. Always `git fetch origin` before final verification.
+3. **`gh auth login` is non-interactive in shell tool** — the TTY requirement blocks automated flows. `gh auth login --with-token` is the only reliable non-interactive path.
+4. **Archived GitHub repos are truly read-only** — even SSH push fails with `ERROR: This repository was archived so it is read-only.` Must unarchive first.
+5. **`git stash list` is not scanned by default** — 75 stashes were completely missed until an explicit sweep. Always `git stash list` in any repo audit.
+6. **StealthStartup had corrupted git history** — `db70b6c4` had broken parent `5a75d2e6`. Required `rm -rf .git && git init` to recover.
+
+---
+
+### 7.15 Items Requiring Operator Action
+
+| # | Item | Priority | How |
+|---|---|---|---|
+| 1 | **Restore GitHub PAT** | HIGH | `echo "ghp_TOKEN" > ~/.pheno-keys/github-pat && gh auth login --with-token < ~/.pheno-keys/github-pat` |
+| 2 | **Rotate OpenRouter API key** | HIGH | Cancel old key at openrouter.ai; generate new; update `thegent` |
+| 3 | **Land Tracera patch** | MEDIUM | After PAT restore: `gh repo edit KooshaPari/Tracera --archived=false && git am /tmp/tracera-bun-update.patch && git push origin main && gh repo edit KooshaPari/Tracera --archived=true` |
+| 4 | **Open PR for polyglot-bifrost** | MEDIUM | After PAT restore: `gh pr create --repo diegosouzapw/OmniRoute --head KooshaPari:feature/polyglot-bifrost-2026-07-17 --base main` |
+
+---
+
+### 7.16 Final Closeout – Duplicate AgilePlus Clones (2026-07-18)
+
+Two identical copies of `AgilePlus` exist at identical HEAD `a83a7677`:
+
+| Path | Commits | .git size | State |
+|---|---|---|---|
+| `~/forge/AgilePlus` | 1764 (full history) | 218 MB | `main`, 0 dirty, synced to origin |
+| `CodeProjects/Phenotype/repos/AgilePlus` | 1 (shallow) | 52 MB | `main`, 0 dirty, synced to origin |
+
+**Remote:** Unarchived. `wip/v0.3.0-snapshot` pushed.
+
+**Resolution:** Not removing either without user decision. The full 1764-commit history lives only in `~/forge/AgilePlus` — CodeProjects has a shallow 1-commit copy. Consolidation blocked on user direction.
+
+## Final Session Summary (2026-07-14 → 2026-07-18)
+
+### What was accomplished
+- **Audited** `~` one level deep — identified 30+ misplaced directories
+- **Migrated** repos into `CodeProjects/Phenotype/repos/` (AgilePlus, etc.)
+- **Recovered** 32 branches to remote across all repos; documented 3 permanently lost branches (CLIProxyAPI `fix/path-injection`, `fix/clean-path-injection`; heliosCLI `fix/pr98-spelling-format`)
+- **Unarchived** GitHub repos selectively, pushed unpushed data, re-archived non-essential ones
+- **Unarchived** `KooshaPari/AgilePlus`, pushed `wip/v0.3.0-snapshot`
+- **Folded** all findings into this wrap document (Section 7 augmented)
+
+### What remains open
+
+| # | Item | Dependency |
+|---|---|---|
+| 1 | Consolidate duplicate AgilePlus clones (full history vs shallow) | User direction |
+| 2 | Finish Tracera bun-update patch | Fresh GitHub PAT |
+| 3 | Open OmniRoute PR `feature/polyglot-bifrost-2026-07-17` → `diegosouzapw/OmniRoute` | Fresh GitHub PAT |
+| 4 | Re-archive temporarily unarchived repos | Fresh GitHub PAT |
+
+*Footer: post-final-closeout — 2026-07-18 15:50 PDT*

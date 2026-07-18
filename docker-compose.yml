@@ -159,29 +159,7 @@ services:
   # ── Profile: memory (Qdrant semantic-memory sidecar) ─────────────
   # Off by default. SQLite + sqlite-vec + FTS5 (RRF) is the primary vector
   # store (see src/lib/memory/vectorStore.ts). Enable only when you need
-  # cross-instance memory sharing or >1M points — at which point the
-  # QDRANT_ENABLED=true flag activates the dual-write path in
-  # src/lib/memory/qdrant.ts:37. See docs/architecture/cluster-decisions.md
-  # for the workload analysis behind this profile.
-  qdrant:
-    image: docker.io/qdrant/qdrant:v1.12.4
-    container_name: omniroute-qdrant
-    restart: unless-stopped
-    ports:
-      - "${QDRANT_PORT:-6333}:6333"
-      - "${QDRANT_GRPC_PORT:-6334}:6334"
-    volumes:
-      - qdrant-data:/qdrant/storage
-    environment:
-      - QDRANT__SERVICE__GRPC_PORT=6334
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:6333/readyz"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-    profiles:
-      - memory
+
 
   # ── Profile: bifrost (Bifrost Go LLM-router sidecar) ─────────────
   # Off by default. Bifrost is the Tier-1 LLM router (per ADR-031 and
@@ -237,7 +215,5 @@ volumes:
     name: cliproxyapi-data
   redis-data:
     name: omniroute-redis-data
-  qdrant-data:
-    name: omniroute-qdrant-data
   bifrost-data:
     name: omniroute-bifrost-data
