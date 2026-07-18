@@ -40,10 +40,20 @@ function proxyHeaders(source: Headers): Headers {
 
   source.forEach((value, key) => {
     const normalizedKey = key.toLowerCase();
+    if (normalizedKey === 'set-cookie') return;
     if (!HOP_BY_HOP_HEADERS.has(normalizedKey) && !connectionHeaders.has(normalizedKey)) {
       headers.set(key, value);
     }
   });
+
+  type HeadersWithSetCookie = Headers & { getSetCookie?: () => string[] };
+  const getSetCookie = (source as HeadersWithSetCookie).getSetCookie;
+  const cookies = getSetCookie
+    ? getSetCookie.call(source)
+    : [source.get('set-cookie')].filter((cookie): cookie is string => cookie !== null);
+  for (const cookie of cookies) {
+    headers.append('set-cookie', cookie);
+  }
 
   return headers;
 }
@@ -72,13 +82,19 @@ async function forwardToUpstream(
   }
 
   const requestUrl = new URL(c.req.url);
-  const upstreamUrl = `${upstream}${upstreamPath}${requestUrl.search}`;
+  const base = upstream.endsWith('/') ? upstream.slice(0, -1) : upstream;
+  const path = upstreamPath.startsWith('/') ? upstreamPath : `/${upstreamPath}`;
+  const upstreamUrl = `${base}${path}${requestUrl.search}`;
   const headers = proxyHeaders(c.req.raw.headers);
   headers.set('x-proxied-by', 'argismonitor-bff');
 
   const controller = new AbortController();
   const abortUpstream = () => controller.abort(c.req.raw.signal.reason);
-  c.req.raw.signal.addEventListener('abort', abortUpstream, { once: true });
+  if (c.req.raw.signal.aborted) {
+    abortUpstream();
+  } else {
+    c.req.raw.signal.addEventListener('abort', abortUpstream, { once: true });
+  }
   const timeout = setTimeout(() => controller.abort(new Error('upstream_timeout')), timeoutMs);
 
   const init: RequestInit = {
@@ -97,7 +113,10 @@ async function forwardToUpstream(
       headers: responseHeaders,
     });
   } catch (error) {
-    if (controller.signal.aborted && !c.req.raw.signal.aborted) {
+    if (c.req.raw.signal.aborted) {
+      return new Response(null, { status: 499 });
+    }
+    if (controller.signal.aborted) {
       return c.json({
         error: 'upstream_timeout',
         message: 'Upstream request timed out',

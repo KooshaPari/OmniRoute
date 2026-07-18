@@ -20,7 +20,7 @@ describe("proxy routes", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const routes = createProxyRoutes({ upstream: "https://upstream.test" });
+    const routes = createProxyRoutes({ upstream: "https://upstream.test/" });
     const response = await routes.request("http://localhost/api/v1/chat/completions?stream=true", {
       method: "POST",
       headers: { cookie: "web_stack=svelte", "content-type": "text/plain" },
@@ -61,6 +61,8 @@ describe("proxy routes", () => {
       "x-upstream-remove": "private",
       "x-upstream-keep": "public",
     });
+    upstreamHeaders.append("set-cookie", "session=abc; Path=/; HttpOnly");
+    upstreamHeaders.append("set-cookie", "expires=later; Expires=Wed, 21 Oct 2026 07:28:00 GMT");
     const fetchMock = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
       const headers = new Headers(init?.headers);
       expect(headers.get("connection")).toBeNull();
@@ -86,6 +88,10 @@ describe("proxy routes", () => {
     expect(response.headers.get("x-upstream-remove")).toBeNull();
     expect(response.headers.get("x-upstream-keep")).toBe("public");
     expect(response.headers.get("x-proxied-by")).toBe("argismonitor-bff");
+    expect(response.headers.getSetCookie()).toEqual([
+      "session=abc; Path=/; HttpOnly",
+      "expires=later; Expires=Wed, 21 Oct 2026 07:28:00 GMT",
+    ]);
   });
 
   it("returns the upstream stream without waiting for completion", async () => {
@@ -126,9 +132,30 @@ describe("proxy routes", () => {
     await vi.waitFor(() => expect(upstreamSignal).toBeDefined());
 
     downstream.abort(new Error("client_aborted"));
-    await responsePromise;
+    const response = await responsePromise;
 
     expect(upstreamSignal.aborted).toBe(true);
+    expect(response.status).toBe(499);
+    expect(await response.text()).toBe("");
+  });
+
+  it("does not start an already-aborted downstream request", async () => {
+    const fetchMock = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+      expect((init?.signal as AbortSignal).aborted).toBe(true);
+      throw new Error("sensitive-client-reason");
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const downstream = new AbortController();
+    downstream.abort(new Error("sensitive-client-reason"));
+    const routes = createProxyRoutes({ upstream: "https://upstream.test" });
+    const response = await routes.request(
+      new Request("http://localhost/api/v1/models", { signal: downstream.signal }),
+    );
+
+    expect(response.status).toBe(499);
+    expect(await response.text()).toBe("");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("applies a bounded deadline with a stable timeout response", async () => {
