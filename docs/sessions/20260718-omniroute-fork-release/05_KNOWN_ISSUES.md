@@ -49,3 +49,8 @@
 Document each hold's owner, evidence, and next action in the reconciliation
 ledger. Resolve by forward commits or explicit preservation; never force-reset,
 delete, or silently discard a checkout.
+
+- The fork package migration must remove any globally installed upstream
+  `omniroute` package before installing `@kooshapari/omniroute`; otherwise npm
+  can leave a stale unscoped executable earlier on `PATH`. The deploy workflow,
+  CLI updater, and npm auto-update script now perform this uninstall explicitly.

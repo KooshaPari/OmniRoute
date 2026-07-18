@@ -264,7 +264,10 @@ export function buildNpmUpdateScript(latest: string): string {
     // --include=optional keeps the optionalDependencies (better-sqlite3, keytar,
     // tls-client, and the llmlingua SLM stack) installed on every update so an
     // `omit=optional` config / .npmrc cannot silently drop them.
-    `npm install -g omniroute@${latest} --include=optional --ignore-scripts --legacy-peer-deps`,
+    // Remove the unscoped upstream package first so npm cannot leave a stale
+    // executable earlier on PATH after the fork migration.
+    "npm uninstall -g omniroute --ignore-scripts || true",
+    `npm install -g @kooshapari/omniroute@${latest} --include=optional --ignore-scripts --legacy-peer-deps`,
     "if command -v pm2 >/dev/null 2>&1; then",
     "  pm2 restart omniroute || true",
     "fi",

@@ -59,3 +59,13 @@ is represented solely by intent or a documentation claim.
   diagnostic fallback instead of replacing the comparator failure with an
   `ENOENT` error.
 - Validation: `actionlint .github/workflows/latency-budget.yml` passed.
+
+## Scoped package migration guard (2026-07-18)
+
+- `tests/unit/auto-update.test.ts` verifies npm auto-update scripts uninstall
+  unscoped `omniroute` and install `@kooshapari/omniroute`.
+- `tests/unit/cli-update-prefer-online-4376.test.ts` verifies the CLI updater
+  queries and installs the scoped package and never emits the old install
+  command.
+- The deploy workflow performs the same uninstall-before-install sequence on
+  VPS hosts.
