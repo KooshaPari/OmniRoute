@@ -41,7 +41,7 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 | P1-L3 | Refresh omni-evolve snapshot and add convergence stream | P1-L2 | `[ ]` |
 | P1-L4 | Inventory and verify the last coherent v4 commit range | P1-L2 | `[x]` |
 | P1-L5 | Restore BFF/web without reverting Rust or Argis absorbs | P1-L4 | `[x]` merged via PR #380 |
-| P1-L6 | Rebase or supersede #339, #340, and PR #375 | P1-L5 | `[/]` #339/#375 complete via PR #382; closed #342 source commit verified for #340 replay |
+| P1-L6 | Rebase or supersede #339, #340, and PR #375 | P1-L5 | `[/]` #339/#375 complete via PR #382; #340 proxy replay in PR #401 |
 | P1-L7 | Publish v4-to-Rust feature-parity matrix and owners | P1-L4 | `[x]` published in `2026-07-18-v4-rust-feature-parity-matrix.md` |
 
 ## P2 — Hygiene (parallel)
@@ -116,7 +116,7 @@ flowchart TD
 
 ## Next-two queue
 
-1. **P1-L6:** cleanly replay #340 source commit `51d39d911` from closed PR #342.
+1. **P1-L6:** review and land #340 proxy replay PR #401; retain dashboard/SSE follow-on.
 2. **P0-L7:** resolve #390 before provider repository CRUD.
 
 ## Update rule
