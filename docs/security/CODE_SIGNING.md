@@ -1,3 +1,8 @@
+---
+title: Code Signing for OmniRoute Desktop
+description: Guidance for signing and notarizing OmniRoute desktop artifacts.
+---
+
 # Code Signing for OmniRoute Desktop
 
 > How to sign and notarize the Electron desktop app for macOS and Windows.

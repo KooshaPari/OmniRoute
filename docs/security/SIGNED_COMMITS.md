@@ -1,3 +1,8 @@
+---
+title: Signed Commits Guide
+description: Configure and verify signed commits for OmniRoute.
+---
+
 # Signed Commits Guide
 
 > OmniRoute requires GPG-signed commits on the `main` branch.

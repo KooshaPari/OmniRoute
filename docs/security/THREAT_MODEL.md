@@ -1,3 +1,8 @@
+---
+title: OmniRoute Threat Model
+description: STRIDE-based threat model for the OmniRoute AI gateway.
+---
+
 # OmniRoute Threat Model
 
 > STRIDE-based threat model for the OmniRoute AI gateway.
@@ -5,8 +10,6 @@
 **Last reviewed**: 2026-07-09
 **Review cadence**: Quarterly
 **Owner**: Platform Security
-
----
 
 ## System Boundaries
 
