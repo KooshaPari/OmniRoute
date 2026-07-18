@@ -50,7 +50,7 @@ jobs:
 
       - name: Collect latency trace (synthetic)
         run: |
-          mkdir -p "$(dirname ${{ env.TRACE_FILE }})"
+          mkdir -p "$(dirname "${{ env.TRACE_FILE }}")"
           node scripts/check/check-latency-trace.mjs --output "${{ env.TRACE_FILE }}" --budget "${{ env.BUDGET_FILE }}" \
             || echo "::warning::Trace collection did not return all endpoints; using partial trace"
 
@@ -110,7 +110,7 @@ jobs:
 
       - name: Fetch baseline (main) budget trace
         run: |
-          mkdir -p "$(dirname ${{ env.TRACE_FILE }})"
+          mkdir -p "$(dirname "${{ env.TRACE_FILE }}")"
           git fetch origin main --depth=1
           if git show origin/main:budgets/rest-endpoints.yaml > /dev/null 2>&1; then
             echo "Baseline budget file found on main"
@@ -121,9 +121,12 @@ jobs:
       - name: Compare p99 regression vs main
         id: regression
         run: |
+          # Always leave a report for the follow-up comment step, including when
+          # the comparator cannot start or exits before producing normal output.
+          : > regression-output.txt
           # Compare current trace vs baseline; flag >10% regression
           if [ ! -f "${{ env.TRACE_FILE }}" ]; then
-            echo "No trace file available — cannot compute regression"
+            echo "No trace file available — cannot compute regression" | tee regression-output.txt
             echo "exit=0" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -131,7 +134,7 @@ jobs:
             --baseline-budget "${{ env.BUDGET_FILE }}" \
             --current-trace "${{ env.TRACE_FILE }}" \
             --threshold-pct 10 \
-            | tee regression-output.txt
+            2>&1 | tee regression-output.txt
           exit_code=${PIPESTATUS[0]}
           echo "exit=$exit_code" >> "$GITHUB_OUTPUT"
           if [ "$exit_code" -ne 0 ]; then
@@ -145,7 +148,9 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const report = fs.readFileSync('regression-output.txt', 'utf8');
+            const report = fs.existsSync('regression-output.txt')
+              ? fs.readFileSync('regression-output.txt', 'utf8')
+              : 'Regression comparator did not produce a report. Inspect the failed comparator step logs.';
             const marker = '<!-- latency-regression-bot -->';
             const body = `${marker}\n## L17 Latency Regression Report\n\n\`\`\`\n${report.trim()}\n\`\`\`\n\n_Threshold: 10% p99 regression._`;
             const { data: comments } = await github.rest.issues.listComments({

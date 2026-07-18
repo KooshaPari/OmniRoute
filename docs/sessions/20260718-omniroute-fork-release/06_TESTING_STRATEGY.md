@@ -50,3 +50,12 @@ is represented solely by intent or a documentation claim.
   diagnostics plus existing YAML errors in `flamegraph.yml` and `qgate.yml`.
 - GitHub code-scanning API: 2,708 open, 130 fixed; secret-scanning API: three
   open and zero resolved/revoked. These are release blockers, not test skips.
+
+## Latency workflow regression guard (2026-07-18)
+
+- The comparator step initializes `regression-output.txt` and pipes stderr into
+  the report, preserving the original non-zero comparator status.
+- The PR comment step checks for the report before reading it and emits a
+  diagnostic fallback instead of replacing the comparator failure with an
+  `ENOENT` error.
+- Validation: `actionlint .github/workflows/latency-budget.yml` passed.

@@ -14,6 +14,11 @@
 - Five preserved archive tips are materially divergent from current `main` and
   produced conflicts when admitted as whole-history merges. They remain held
   with immutable refs; no conflict markers remain in the worktree.
+- The latency regression workflow previously read `regression-output.txt` even
+  when the comparator exited before creating it, masking the root failure with
+  a comment-step file error. The workflow now initializes the report, captures
+  comparator stderr, and uses an explicit fallback comment when the file is
+  unexpectedly absent.
 
 ## Release risks
 
