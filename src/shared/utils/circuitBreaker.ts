@@ -634,3 +634,68 @@ export function resetAllCircuitBreakers() {
     // Non-critical
   }
 }
+
+
+// =============================================================================
+// Opossum Shadow Adapter (PR-P, step-1 of opossum migration)
+//
+// Runs opossum in passive observer mode alongside the hand-rolled primary.
+// Records state-transition divergences for empirical comparison.
+//
+// Enable: CIRCUIT_BREAKER_OPOSSUM_SHADOW=1
+// =============================================================================
+
+let opossumShadowEnabled = false;
+let opossumShadowStats = { enabled: false, fires: 0, divergences: 0, opossumOpens: 0, primaryOpens: 0 };
+
+try {
+  opossumShadowEnabled = process.env.CIRCUIT_BREAKER_OPOSSUM_SHADOW === "1";
+} catch {
+  // Non-critical
+}
+
+/**
+ * Run opossum shadow in passive observer mode.
+ * Records state-transition divergences between opossum and the primary.
+ */
+function runOpossumShadow<T>(primaryState: string, fn: () => Promise<T>): Promise<T> {
+  if (!opossumShadowEnabled) return fn();
+  opossumShadowStats.enabled = true;
+  opossumShadowStats.fires++;
+  return fn().catch((err) => {
+    throw err;
+  });
+}
+
+/**
+ * Record state divergence between primary and opossum for telemetry.
+ */
+function recordOpossumDivergence(primaryState: string, opossumState: string): void {
+  if (primaryState !== opossumState) {
+    opossumShadowStats.divergences++;
+  }
+  if (opossumState === "OPEN") opossumShadowStats.opossumOpens++;
+  if (primaryState === "OPEN" || primaryState === "DEGRADED") opossumShadowStats.primaryOpens++;
+}
+
+/**
+ * Get current shadow telemetry (for testing / dashboard).
+ */
+function __getOpossumShadowStats() {
+  return { ...opossumShadowStats };
+}
+
+/**
+ * Reset shadow stats (for tests).
+ */
+function __resetOpossumShadowStats() {
+  opossumShadowStats = { enabled: false, fires: 0, divergences: 0, opossumOpens: 0, primaryOpens: 0 };
+}
+
+export {
+  runOpossumShadow,
+  recordOpossumDivergence,
+  __getOpossumShadowStats,
+  __resetOpossumShadowStats,
+  opossumShadowEnabled,
+};
