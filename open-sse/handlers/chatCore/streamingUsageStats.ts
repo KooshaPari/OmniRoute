@@ -20,7 +20,7 @@ export type RecordStreamingUsageStatsContext = {
   model: string | null | undefined;
   streamStatus: number;
   startTime: number;
-  ttft: number;
+  ttft: number | null;
   streamErrorCode: string | null | undefined;
   connectionId: string | null | undefined;
   apiKeyInfo: { id?: string | null; name?: string | null } | null | undefined;
