@@ -125,7 +125,12 @@ test("latency — nonpositive or malformed TPS evidence cannot manufacture a sco
 
 test("latency — historical TTFT/E2E evidence can change the selected candidate", () => {
   const pool = [
-    cand({ provider: "low-p95", p95LatencyMs: 100 }),
+    cand({
+      provider: "low-p95",
+      p95LatencyMs: 100,
+      avgTtftMs: 140,
+      avgE2ELatencyMs: 800,
+    }),
     cand({
       provider: "historically-fast-stream",
       p95LatencyMs: 200,
