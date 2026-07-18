@@ -3,6 +3,7 @@ name: v4 latency baseline evidence
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, labeled]
     paths:
       - ".github/workflows/v4-latency-baseline.yml"
       - "apps/bff/**"
