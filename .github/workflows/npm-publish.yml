@@ -45,6 +45,7 @@ permissions:
 
 env:
   NPM_PUBLISH_NODE_VERSION: "24"
+  PACKAGE_NAME: "@kooshapari/omniroute"
 
 jobs:
   publish:
@@ -118,17 +119,17 @@ jobs:
           #    `npm view` — it suppresses stdout and breaks the grep, which
           #    caused old releases (3.2.8) to be re-published and steal
           #    dist-tag `latest`. See incident notes in CHANGELOG.
-          PUBLISHED="$(npm view "omniroute@${VERSION}" version 2>/dev/null || true)"
+          PUBLISHED="$(npm view "${PACKAGE_NAME}@${VERSION}" version 2>/dev/null || true)"
           SKIP="false"
           if [ "$PUBLISHED" = "$VERSION" ]; then
-            echo "⚠️ omniroute@${VERSION} is already on npm — skipping publish."
+            echo "⚠️ ${PACKAGE_NAME}@${VERSION} is already on npm — skipping publish."
             SKIP="true"
           fi
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG"          >> "$GITHUB_OUTPUT"
           echo "skip=$SKIP"        >> "$GITHUB_OUTPUT"
-          echo "📦 Resolved omniroute@$VERSION dist-tag=$TAG skip=$SKIP"
+          echo "📦 Resolved ${PACKAGE_NAME}@$VERSION dist-tag=$TAG skip=$SKIP"
 
       - name: Sync package.json version
         if: steps.resolve.outputs.skip != 'true'
@@ -190,10 +191,10 @@ jobs:
           set -euo pipefail
           echo "Configuring for GitHub Packages..."
           echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" > .npmrc
-          npm pkg set name="@diegosouzapw/omniroute"
+          npm pkg set name="$PACKAGE_NAME"
           npm publish --registry=https://npm.pkg.github.com --tag "$TAG" \
             || echo "⚠️ omniroute@${VERSION} might already be published on GitHub Packages."
-          echo "✅ Action finished for GitHub Packages"
+          echo "✅ Action finished for GitHub Packages (${PACKAGE_NAME})"
 
   publish-opencode-plugin:
     runs-on: ubuntu-latest

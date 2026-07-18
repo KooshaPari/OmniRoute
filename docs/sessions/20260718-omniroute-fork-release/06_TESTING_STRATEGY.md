@@ -30,3 +30,23 @@
 The release is complete only when every DAG item has direct evidence, every
 held checkout has a preservation reference and reason, and no acceptance gate
 is represented solely by intent or a documentation claim.
+
+## Current reconciliation evidence
+
+- `git merge --no-ff` was attempted for each divergent preserved tip.
+- The `5218-mcp-auth` historical tip produced conflicts across workflows,
+  i18n, provider code, tests, and package metadata; it was aborted cleanly.
+- The integration worktree currently has a clean index and no unresolved merge
+  state. Contained tips require no additional tests beyond the combined branch
+  release-green gate.
+
+## Security/release evidence (2026-07-18)
+
+- `actionlint .github/workflows/dependency-review.yml .github/workflows/gitleaks-fleet.yml`
+  passed after action-SHA and permission hardening.
+- `npm run check:workflows -- --strict` remains red with 88 pre-existing
+  findings across 68 workflows; `zizmor` was not installed, so no ratchet
+  measurement was available. The strict failures include unrelated shellcheck
+  diagnostics plus existing YAML errors in `flamegraph.yml` and `qgate.yml`.
+- GitHub code-scanning API: 2,708 open, 130 fixed; secret-scanning API: three
+  open and zero resolved/revoked. These are release blockers, not test skips.

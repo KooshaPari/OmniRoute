@@ -11,8 +11,26 @@
 - The reconciliation branch was observed one commit behind `origin/main` at
   audit time. Rebase/update only after checking that the source branch has not
   acquired new unpreserved local work.
+- Five preserved archive tips are materially divergent from current `main` and
+  produced conflicts when admitted as whole-history merges. They remain held
+  with immutable refs; no conflict markers remain in the worktree.
 
 ## Release risks
+
+- Live GitHub audit on 2026-07-18 reports 2,708 open code-scanning alerts
+  (130 fixed; 2,838 total in the API listing) and three open secret-scanning
+  alerts (Stripe, AWS temporary access key ID, and Google API key). No alerts
+  were dismissed. These findings block an A+ scorecard claim until triaged and
+  remediated or explicitly accepted by the security owner.
+- Dependabot security updates were enabled through the repository API. GitHub
+  kept non-provider secret-pattern scanning disabled for this fork despite an
+  enable request; verify account/plan eligibility before retrying.
+- `main` was protected through the repository API with one approving review,
+  stale-review dismissal, code-owner review, last-push approval, enforced
+  admins, conversation resolution, and force-push/deletion disabled. No status
+  checks were required because no stable check context was verified yet.
+- `dependency-review.yml` and `gitleaks-fleet.yml` now pin third-party actions
+  to immutable commit SHAs and use least-privilege workflow permissions.
 
 - The current remote inventory is large (830 refs); not every historical or
   upstream ref is a merge candidate. Admission must be evidence-gated.

@@ -56,7 +56,7 @@ jobs:
             set -euo pipefail
 
             echo "=== Updating OmniRoute ==="
-            npm install -g omniroute@latest
+            npm install -g @kooshapari/omniroute@latest
             INSTALLED_VERSION=$(omniroute --version 2>/dev/null | tr -d '[:space:]' || echo "unknown")
             echo "Installed CLI version: $INSTALLED_VERSION"
 
