@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 2,
+  "slug": "anonymous-landing-smoke",
+  "title": "Anonymous visitor opens the OmniRoute landing surface",
+  "persona": "A first-time visitor evaluating OmniRoute without credentials",
+  "purpose": "Prove that the public landing route renders locally and satisfies the declared accessibility contract.",
+  "preconditions": [
+    "Dependencies are installed from package-lock.json.",
+    "The Playwright web server starts the current Next.js application on localhost.",
+    "No provider credentials are configured."
+  ],
+  "fixture": { "kind": "repository", "network": "local-only", "secrets": false },
+  "viewport": { "width": 1280, "height": 800, "deviceScaleFactor": 1 },
+  "steps": [
+    {
+      "id": "open-landing",
+      "action": "goto",
+      "target": "/landing",
+      "assertions": [
+        "The document title contains OmniRoute.",
+        "The first heading is visible.",
+        "The document has no horizontal overflow at the declared viewport."
+      ]
+    }
+  ],
+  "accessibility": {
+    "keyboardOnly": true,
+    "reducedMotion": true,
+    "checks": [
+      "document-title",
+      "heading-order",
+      "landmarks",
+      "focus-visible",
+      "accessible-names",
+      "contrast",
+      "no-horizontal-overflow",
+      "reduced-motion"
+    ]
+  },
+  "redaction": {
+    "denyPatterns": [
+      "(?i)(api[-_ ]?key|authorization|token|secret|cookie)\\s*[:=]\\s*\\S+",
+      "(?i)bearer\\s+\\S+"
+    ],
+    "maskSelectors": ["input[type='password']", "[data-sensitive='true']"],
+    "reviewRequired": true
+  },
+  "evidence": {
+    "captureStatus": "blocked",
+    "artifacts": [
+      { "kind": "screenshot", "path": "journey-evidence/anonymous-landing-smoke/landing.png" },
+      { "kind": "trace", "path": "journey-evidence/anonymous-landing-smoke/trace.zip" },
+      {
+        "kind": "accessibility-report",
+        "path": "journey-evidence/anonymous-landing-smoke/accessibility.json"
+      }
+    ],
+    "retentionDays": 14,
+    "blocker": "A fresh exact-source-commit GitHub Actions capture is required before captured status can be asserted.",
+    "capture": null
+  },
+  "provenance": {
+    "baseBranch": "main",
+    "testFile": "tests/e2e/journey-evidence-landing.spec.ts",
+    "testTitle": "captures anonymous current-main landing journey evidence",
+    "command": "npx playwright test tests/e2e/journey-evidence-landing.spec.ts --project=chromium --workers=1 --retries=0"
+  }
+}

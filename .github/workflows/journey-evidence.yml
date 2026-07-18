@@ -1,0 +1,41 @@
+name: Journey evidence
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/journey-evidence.yml"
+      - "docs/journeys/**"
+      - "scripts/docs/validate-journey-manifests.mjs"
+      - "tests/e2e/journey-evidence-landing.spec.ts"
+      - "tests/unit/journey-manifest-provenance.test.ts"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: journey-evidence-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      JOURNEY_EVIDENCE_DIR: journey-evidence
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/docs/validate-journey-manifests.mjs
+      - run: node --import tsx --test tests/unit/journey-manifest-provenance.test.ts
+      - run: npx playwright test tests/e2e/journey-evidence-landing.spec.ts --project=chromium --workers=1 --retries=0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: anonymous-landing-smoke-${{ github.event.pull_request.head.sha }}
+          path: journey-evidence/anonymous-landing-smoke/
+          if-no-files-found: error
+          retention-days: 14
