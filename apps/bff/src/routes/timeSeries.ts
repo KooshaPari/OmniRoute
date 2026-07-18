@@ -32,8 +32,15 @@ export type KeyUsagePoint = {
   requests: number;
 };
 
+function secureRandomUnit(): number {
+  return crypto.getRandomValues(new Uint32Array(1))[0] / 4_294_967_296;
+}
+
 /** 60 one-minute latency points; trailing offset matches legacy dashboard semantics. */
-export function buildObservabilityLatencySeries(now: () => number = Date.now): ObservabilityTimeseriesPoint[] {
+export function buildObservabilityLatencySeries(
+  now: () => number = Date.now,
+  random: () => number = secureRandomUnit,
+): ObservabilityTimeseriesPoint[] {
   return buildTimeSeries({
     count: 60,
     stepMs: 60_000,
@@ -41,20 +48,23 @@ export function buildObservabilityLatencySeries(now: () => number = Date.now): O
     endOffsetSteps: 1,
     mapPoint: (_, timestampMs) => ({
       ts: new Date(timestampMs).toISOString(),
-      latency: 100 + Math.random() * 800,
+      latency: 100 + random() * 800,
     }),
   });
 }
 
 /** 30 one-day usage points. */
-export function buildKeyUsageSeries(now: () => number = Date.now): KeyUsagePoint[] {
+export function buildKeyUsageSeries(
+  now: () => number = Date.now,
+  random: () => number = secureRandomUnit,
+): KeyUsagePoint[] {
   return buildTimeSeries({
     count: 30,
     stepMs: 86_400_000,
     now,
     mapPoint: (_, timestampMs) => ({
       date: new Date(timestampMs).toISOString().slice(0, 10),
-      requests: Math.floor(Math.random() * 1000),
+      requests: Math.floor(random() * 1000),
     }),
   });
 }

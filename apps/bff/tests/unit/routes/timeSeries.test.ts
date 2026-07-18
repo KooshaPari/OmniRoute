@@ -44,10 +44,10 @@ describe("buildTimeSeries", () => {
 
 describe("dashboard time-series builders", () => {
   it("preserves the observability response shape and captures its clock once", () => {
-    const now = vi.spyOn(Date, "now").mockReturnValue(Date.UTC(2026, 6, 14, 12));
-    const random = vi.spyOn(Math, "random").mockReturnValue(0.5);
+    const now = vi.fn(() => Date.UTC(2026, 6, 14, 12));
+    const random = vi.fn(() => 0.5);
 
-    const points = buildObservabilityLatencySeries();
+    const points = buildObservabilityLatencySeries(now, random);
 
     expect(now).toHaveBeenCalledTimes(1);
     expect(random).toHaveBeenCalledTimes(60);
@@ -63,10 +63,10 @@ describe("dashboard time-series builders", () => {
   });
 
   it("preserves the key-usage response shape and captures its clock once", () => {
-    const now = vi.spyOn(Date, "now").mockReturnValue(Date.UTC(2026, 6, 14, 12));
-    const random = vi.spyOn(Math, "random").mockReturnValue(0.5);
+    const now = vi.fn(() => Date.UTC(2026, 6, 14, 12));
+    const random = vi.fn(() => 0.5);
 
-    const usage = buildKeyUsageSeries();
+    const usage = buildKeyUsageSeries(now, random);
 
     expect(now).toHaveBeenCalledTimes(1);
     expect(random).toHaveBeenCalledTimes(30);
