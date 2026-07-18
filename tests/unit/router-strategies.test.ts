@@ -71,6 +71,44 @@ test("latency — selects the lowest p95 candidate", () => {
   assert.equal(getStrategy("latency").select(pool, ctx).provider, "fast");
 });
 
+test("latency — sparse evidence cannot outrank mature evidence", () => {
+  const pool = [
+    cand({
+      provider: "sparse-fast",
+      p95LatencyMs: 50,
+      avgTtftMs: 20,
+      avgE2ELatencyMs: 200,
+      avgTokensPerSecond: 200,
+      historicalRequestCount: 3,
+    }),
+    cand({
+      provider: "mature-steady",
+      p95LatencyMs: 300,
+      avgTtftMs: 100,
+      avgE2ELatencyMs: 600,
+      avgTokensPerSecond: 80,
+      historicalRequestCount: 10,
+    }),
+  ];
+  assert.equal(getStrategy("latency").select(pool, ctx).provider, "mature-steady");
+});
+
+test("latency — missing or malformed evidence counts remain unknown", () => {
+  const base = [
+    cand({ provider: "fast", p95LatencyMs: 100 }),
+    cand({ provider: "slow", p95LatencyMs: 300 }),
+  ];
+  const baseline = getStrategy("latency").select(base, ctx);
+  const withUnknownCounts = getStrategy("latency").select(
+    [
+      cand({ provider: "fast", p95LatencyMs: 100, historicalRequestCount: Number.NaN }),
+      cand({ provider: "slow", p95LatencyMs: 300, historicalRequestCount: 0 }),
+    ],
+    ctx
+  );
+  assert.equal(withUnknownCounts.provider, baseline.provider);
+});
+
 test("latency — error rate penalizes a fast-but-flaky candidate", () => {
   // flaky: 100ms + 0.5*1000 = 600 effective; steady: 400ms + 0 = 400 → steady wins.
   const pool = [

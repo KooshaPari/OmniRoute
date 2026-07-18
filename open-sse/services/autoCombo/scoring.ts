@@ -71,6 +71,10 @@ export interface ProviderCandidate {
   errorRate: number;
   /** Optional provider/model observed failure rate. Falls back to errorRate. */
   failureRate?: number;
+  /** Number of historical requests supporting the latency telemetry, when known. */
+  historicalRequestCount?: number;
+  /** Number of successful historical requests supporting the latency telemetry, when known. */
+  historicalSuccessfulRequestCount?: number;
   /** T10: Optional account tier for priority boosting (Ultra > Pro > Free) */
   accountTier?: "ultra" | "pro" | "standard" | "free";
   /** T10: Optional quota reset interval in seconds (shorter = higher priority when same quota) */
