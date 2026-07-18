@@ -56,7 +56,10 @@ jobs:
             set -euo pipefail
 
             echo "=== Updating OmniRoute ==="
-            npm install -g omniroute@latest
+            # Remove a pre-fork global install so its unscoped executable cannot
+            # shadow the scoped package's `omniroute` bin on PATH.
+            npm uninstall -g omniroute --ignore-scripts || true
+            npm install -g @kooshapari/omniroute@latest
             INSTALLED_VERSION=$(omniroute --version 2>/dev/null | tr -d '[:space:]' || echo "unknown")
             echo "Installed CLI version: $INSTALLED_VERSION"
 

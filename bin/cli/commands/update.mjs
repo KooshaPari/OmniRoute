@@ -14,6 +14,7 @@ const execFileAsync = promisify(execFile);
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PKG_ROOT = path.resolve(SCRIPT_DIR, "..", "..", "..");
 const BIN_DIR = path.join(PKG_ROOT, "bin");
+const PACKAGE_NAME = "@kooshapari/omniroute";
 
 export async function getCurrentVersion() {
   try {
@@ -31,7 +32,7 @@ export async function getCurrentVersion() {
 // they were already on the latest version (#4376). `execFn` is injectable for tests.
 export async function getLatestVersion(execFn = execFileAsync) {
   try {
-    const { stdout } = await execFn("npm", ["view", "omniroute", "version", "--prefer-online"], {
+    const { stdout } = await execFn("npm", ["view", PACKAGE_NAME, "version", "--prefer-online"], {
       timeout: 15000,
     });
     return stdout.trim();
@@ -114,7 +115,7 @@ export async function runUpdateCommand(opts = {}) {
 
   if (showChangelog) {
     try {
-      const { stdout } = await execFileAsync("npm", ["view", "omniroute", "changelog"], {
+      const { stdout } = await execFileAsync("npm", ["view", PACKAGE_NAME, "changelog"], {
         timeout: 10000,
       });
       if (stdout.trim()) {
@@ -146,7 +147,8 @@ export async function runUpdateCommand(opts = {}) {
   }
 
   if (dryRun) {
-    console.log("\n  [DRY RUN] Would run: npm install -g omniroute@latest --include=optional");
+    console.log("\n  [DRY RUN] Would run: npm uninstall -g omniroute || true");
+    console.log("  [DRY RUN] Would run: npm install -g @kooshapari/omniroute@latest --include=optional");
     if (!skipBackup) console.log("  [DRY RUN] Would create backup in ~/.omniroute/backups/");
     return 0;
   }
@@ -180,7 +182,10 @@ export async function runUpdateCommand(opts = {}) {
     const { execSync } = await import("child_process");
     // --include=optional keeps the optionalDependencies (better-sqlite3, keytar,
     // tls-client, llmlingua SLM stack) on update so an omit=optional config can't drop them.
-    execSync("npm install -g omniroute@latest --include=optional", { stdio: "inherit" });
+    execSync(
+      "npm uninstall -g omniroute --ignore-scripts || true && npm install -g @kooshapari/omniroute@latest --include=optional",
+      { stdio: "inherit" }
+    );
     printSuccess(`Updated to version ${latest}`);
     printInfo("Run `omniroute --version` to verify.");
     return 0;

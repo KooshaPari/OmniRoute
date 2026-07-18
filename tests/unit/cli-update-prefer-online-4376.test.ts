@@ -5,8 +5,8 @@ const update = await import("../../bin/cli/commands/update.mjs");
 
 // #4376: `omniroute update` reported "Latest version: 3.8.30" while npm's `latest`
 // dist-tag was already 3.8.31, so it told users on an old build they were "running
-// the latest version". Root cause: getLatestVersion() ran `npm view omniroute version`
-// without `--prefer-online`, so npm served a stale value from its HTTP cache.
+// the latest version". Root cause: getLatestVersion() queried npm without
+// `--prefer-online`, so npm served a stale value from its HTTP cache.
 // The fix forces npm to revalidate the cache against the registry.
 test("getLatestVersion passes --prefer-online to bypass the stale npm cache (#4376)", async () => {
   let capturedArgs = null;
@@ -24,7 +24,7 @@ test("getLatestVersion passes --prefer-online to bypass the stale npm cache (#43
   );
   // still the right query
   assert.ok(capturedArgs.args.includes("view"));
-  assert.ok(capturedArgs.args.includes("omniroute"));
+  assert.ok(capturedArgs.args.includes("@kooshapari/omniroute"));
   assert.ok(capturedArgs.args.includes("version"));
 });
 
@@ -33,4 +33,30 @@ test("getLatestVersion returns null when npm is unavailable (#4376)", async () =
     throw new Error("npm not found");
   });
   assert.equal(latest, null);
+});
+
+test("update command targets the scoped fork package and removes the legacy global package", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { fileURLToPath } = await import("node:url");
+  const source = readFileSync(
+    fileURLToPath(new URL("../../bin/cli/commands/update.mjs", import.meta.url)),
+    "utf8"
+  );
+
+  assert.match(source, /npm uninstall -g omniroute/);
+  assert.match(source, /npm install -g @kooshapari\/omniroute@latest/);
+  assert.doesNotMatch(source, /npm install -g omniroute@latest/);
+});
+
+test("VPS deploy removes the legacy global package before installing the fork", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { fileURLToPath } = await import("node:url");
+  const workflow = readFileSync(
+    fileURLToPath(new URL("../../.github/workflows/deploy-vps.yml", import.meta.url)),
+    "utf8"
+  );
+  const uninstall = workflow.indexOf("npm uninstall -g omniroute");
+  const install = workflow.indexOf("npm install -g @kooshapari/omniroute@latest");
+  assert.ok(uninstall >= 0, "deploy must remove the unscoped package");
+  assert.ok(install > uninstall, "deploy must install the scoped package after removal");
 });
