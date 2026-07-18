@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createProxyRoutes } from "./proxy";
+import { createAuthProxyRoutes, createProxyRoutes } from "../../../src/routes/proxy";
 
 afterEach(() => {
   vi.useRealTimers();
@@ -35,6 +35,22 @@ describe("proxy routes", () => {
       headers: { cookie: "web_stack=next" },
     });
     expect(nextResponse.status).toBe(410);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves public auth paths without applying web-stack rollout", async () => {
+    const fetchMock = vi.fn(async (url: string | URL | Request) => {
+      expect(String(url)).toBe("https://upstream.test/api/auth/callback?code=test");
+      return new Response("ok");
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const routes = createAuthProxyRoutes({ upstream: "https://upstream.test", rollout: 0 });
+    const response = await routes.request("http://localhost/api/auth/callback?code=test", {
+      headers: { cookie: "web_stack=next" },
+    });
+
+    expect(response.status).toBe(200);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
