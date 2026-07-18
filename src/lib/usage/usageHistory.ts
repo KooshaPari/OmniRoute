@@ -738,6 +738,8 @@ export interface ModelLatencyStatsEntry {
   latencyStdDev: number;
   /** Average positive streaming TTFT, when telemetry is available. */
   avgTtftMs?: number;
+  /** Average output tokens per second, when output, TTFT, and generation duration are valid. */
+  avgTokensPerSecond?: number;
   windowHours: number;
 }
 
@@ -770,12 +772,13 @@ export async function getModelLatencyStats(
     success: number | null;
     latency_ms: number | null;
     ttft_ms: number | null;
+    tokens_output: number | null;
   };
 
   const rows = db
     .prepare(
       `
-      SELECT provider, model, success, latency_ms, ttft_ms
+      SELECT provider, model, success, latency_ms, ttft_ms, tokens_output
       FROM usage_history
       WHERE timestamp >= @sinceIso
         AND provider IS NOT NULL
@@ -797,6 +800,8 @@ export async function getModelLatencyStats(
       allLatencies: number[];
       successfulTtfts: number[];
       allTtfts: number[];
+      successfulTokensPerSecond: number[];
+      allTokensPerSecond: number[];
     }
   >();
 
@@ -816,6 +821,8 @@ export async function getModelLatencyStats(
         allLatencies: [],
         successfulTtfts: [],
         allTtfts: [],
+        successfulTokensPerSecond: [],
+        allTokensPerSecond: [],
       });
     }
 
@@ -837,6 +844,16 @@ export async function getModelLatencyStats(
       bucket.allTtfts.push(ttft);
       if (isSuccess) bucket.successfulTtfts.push(ttft);
     }
+
+    const outputTokens = toNumber(row.tokens_output);
+    const generationDurationMs = latency - ttft;
+    if (outputTokens > 0 && ttft > 0 && generationDurationMs > 0) {
+      const tokensPerSecond = (outputTokens * 1000) / generationDurationMs;
+      if (Number.isFinite(tokensPerSecond) && tokensPerSecond > 0) {
+        bucket.allTokensPerSecond.push(tokensPerSecond);
+        if (isSuccess) bucket.successfulTokensPerSecond.push(tokensPerSecond);
+      }
+    }
   }
 
   const stats: Record<string, ModelLatencyStatsEntry> = {};
@@ -854,6 +871,10 @@ export async function getModelLatencyStats(
       bucket.totalRequests > 0 ? bucket.successfulRequests / bucket.totalRequests : 0;
     const ttfts =
       bucket.successfulTtfts.length >= minSamples ? bucket.successfulTtfts : bucket.allTtfts;
+    const tokensPerSecond =
+      bucket.successfulTokensPerSecond.length >= minSamples
+        ? bucket.successfulTokensPerSecond
+        : bucket.allTokensPerSecond;
 
     stats[key] = {
       provider: bucket.provider,
@@ -869,6 +890,13 @@ export async function getModelLatencyStats(
       latencyStdDev: Math.round(stdDev(sorted, avg)),
       ...(ttfts.length > 0
         ? { avgTtftMs: Math.round(ttfts.reduce((acc, n) => acc + n, 0) / ttfts.length) }
+        : {}),
+      ...(tokensPerSecond.length > 0
+        ? {
+            avgTokensPerSecond: Number(
+              (tokensPerSecond.reduce((acc, n) => acc + n, 0) / tokensPerSecond.length).toFixed(3)
+            ),
+          }
         : {}),
       windowHours,
     };
