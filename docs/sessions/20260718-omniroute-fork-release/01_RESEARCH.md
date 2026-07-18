@@ -42,6 +42,19 @@ The `5452-tls-options-packaging` recovery artifact is commit
 `e2e00647805de4a41279518f8c573476a5f04411` (15 insertions over one file),
 with stable patch-id `c33e3b19629024d39b8e9a89e2287c78fb2f773c`.
 
+## Reconciliation evidence refresh (2026-07-18)
+
+The active reconciliation branch is `85422a797096b2840a35502ade3699ba8ab780db`.
+Its sync merge used `origin/main` at
+`4a12a49106649ad7a02f3a652bef00d6f810bbd8`; the fetched remote-tracking ref
+now points at `9272e9ad1210a12785619c1f030b47d1a125dde1` and must be refreshed
+before release merge. Reachability checks confirm that the `main`,
+`feature/polyglot-bifrost-2026-07-17`, and `restore/polyglot-binding-tiers`
+preservation tips are already contained. Five preservation refs remain held;
+fresh merge-tree probes report 130, 413, 107, 128, and 666 conflict records
+respectively (full breakdown and reasons are in `03_DAG_WBS.md`). The probes
+were aborted without writing a merge, and the final index/status is clean.
+
 ## Repository precedents
 
 - `docs/ops/RELEASE_GREEN.md` and `scripts/quality/validate-release-green.mjs`
