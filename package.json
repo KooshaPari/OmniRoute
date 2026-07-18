@@ -220,7 +220,10 @@
     "check:npm-publish:remote": "node scripts/quality/validate-npm-publish.mjs --check-remote",
     "check:npm-publish:strict": "node scripts/quality/validate-npm-publish.mjs --strict-advisory",
     "release:preflight": "npm run check:release-green --silent && npm run check:npm-publish --silent",
-    "release:preflight:remote": "npm run check:release-green --silent && npm run check:npm-publish:remote --silent"
+    "release:preflight:remote": "npm run check:release-green --silent && npm run check:npm-publish:remote --silent",
+    "lint:oxlint": "oxlint --config .oxlintrc.json src/ open-sse/",
+    "fmt:oxfmt": "oxfmt --config .oxfmtrc.json src/ open-sse/",
+    "fmt:check": "oxfmt --config .oxfmtrc.json --check src/ open-sse/"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1073.0",
@@ -351,6 +354,7 @@
     "lint-staged": "^17.0.8",
     "lockfile-lint": "^5.0.0",
     "node-loader": "^2.1.0",
+    "oxfmt": "^0.59.0",
     "oxlint": "^1.74.0",
     "prettier": "^3.8.3",
     "size-limit": "^12.1.0",
