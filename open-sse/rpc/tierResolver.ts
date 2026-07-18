@@ -126,7 +126,9 @@ export function resolveTier(
 export function reconcileAllEdges(signals: ResolverSignals = sampleSystem()): number {
   // Apply the kill-switch signal BEFORE the resolution loop so the per-edge
   // resolveTier() call inside the loop sees the up-to-date flag.
-  if (signals.killSwitchActive) forcedTToT1 = true;
+  if (signals.killSwitchActive !== undefined) forcedTToT1 = signals.killSwitchActive;
+  // Also flip every edge in the registry so callers that ask for a specific
+  // edge post-cascade see T1 (not the stale `defaultTier` from polyglotEdges).
   let changes = 0;
   for (const edge of globalPolyglotEdges()) {
     const { tier } = resolveTier(edge.name, undefined, signals);

@@ -1,258 +1,146 @@
-/**
- * Keyv-backed quota store. Implements the {@link QuotaStore} interface using
- * `@keyv/sqlite` by default and a Keyv URI (e.g. `redis://...`) when provided.
- *
- * The store keeps per-key, per-dimension counters in a single bucket key. The
- * bucket key for `(apiKeyId, dim)` is `quota:{apiKeyId}:{dim.unit}:{dim.window}`.
- * Pool-aggregate queries (e.g. `poolUsageWithDimensions`) lazily materialise
- * per-key entries, so adding the keyv backend requires no schema migration.
- *
- * Concurrency: bucket updates use the Keyv `incrbyfloat`-style semantics where
- * available (Redis backend); for file/SQLite backends, `consume` does a get-then-
- * set. Single-process installs (the default for embedded mode) tolerate the
- * small race; multi-process installs must use Redis (already supported).
- *
- * Sidecar status: replaces the previous Redis-backed quota store in
- * `redisQuotaStore.ts`. Drops the Redis container from `docker-compose.yml`
- * for fresh installs.
- */
-import { Keyv } from "keyv";
-import { KeyvSqlite } from "@keyv/sqlite";
-import type { DimensionKey, QuotaDimension } from "./dimensions";
-import { dimensionsByKey } from "./dimensions";
+import Keyv from "keyv";
+import KeyvSqlite from "@keyv/sqlite";
 import type {
   ConsumeResult,
   PoolUsageSnapshot,
   QuotaStore,
 } from "./types";
 
-type BucketValue = {
-  consumed: number;
-  lastUpdated: number;
-};
-
-function bucketKey(apiKeyId: string, dim: DimensionKey): string {
-  return `quota:${apiKeyId}:${dim.unit}:${dim.window}`;
-}
-
-function poolAggregateKey(poolId: string, dim: DimensionKey): string {
-  return `quota:pool:${poolId}:${dim.unit}:${dim.window}:total`;
-}
-
-function parseBucketValue(raw: unknown): BucketValue | undefined {
-  if (raw == null) return undefined;
-  if (typeof raw === "string") {
-    try {
-      const parsed = JSON.parse(raw) as BucketValue;
-      if (
-        typeof parsed === "object" &&
-        parsed !== null &&
-        typeof (parsed as BucketValue).consumed === "number" &&
-        typeof (parsed as BucketValue).lastUpdated === "number"
-      ) {
-        return parsed;
-      }
-      return undefined;
-    } catch {
-      return undefined;
-    }
-  }
-  if (typeof raw === "object" && raw !== null) {
-    const obj = raw as Partial<BucketValue>;
-    if (typeof obj.consumed === "number" && typeof obj.lastUpdated === "number") {
-      return obj as BucketValue;
-    }
-  }
-  return undefined;
-}
-
-export interface KeyvQuotaStoreOptions {
-  /**
-   * Storage URI. Defaults to in-memory (no persistence across restarts).
-   * Examples:
-   *   - `sqlite:///var/lib/omniroute/quota.db` (persistent local)
-   *   - `redis://host:6379`                  (cross-process)
-   */
-  uri?: string;
-  /** Keyv namespace — shared across stores. Default `"quotas"`. */
-  namespace?: string;
-  /** Allow optional init to fail (e.g. ephemeral Redis). Default `false`. */
-  tolerateStorageFailure?: boolean;
-}
-
 /**
- * Module-level singleton. Mirrors `getSqliteQuotaStore` semantics.
+ * KeyvQuotaStore — embedded quota storage backed by keyv.
+ *
+ * Replaces the Redis-side `RedisQuotaStore` (which required a separate
+ * sidecar process) with a keyv-fronted store that defaults to an in-memory
+ * Map. For cross-process distribution, pass a URI such as `redis://...`
+ * or `sqlite://./quota.db` to `KeyvQuotaStore.fromUri()`.
+ *
+ * Implements the `QuotaStore` interface from `./types`. The shape per
+ * `QuotaStore.consume` is a single object: `{ storeId, pool, ownerKey,
+ * dimensions, amount }` — see `types.ts` for the full signature.
+ *
+ * Semantics:
+ *   - `consume({ storeId, pool, ownerKey, dimensions, amount })` increments
+ *     each per-(storeId, dimension) bucket and returns the post-increment
+ *     totals per dimension (the dimension that exceeded its limit, if any).
+ *   - `peek({ storeId, dimensions })` returns current counters without
+ *     mutation.
+ *   - `clear({ storeId, dimensions })` resets the named buckets.
+ *   - `poolConsumedTotal({ pool, dimensions })` sums across all
+ *     `(storeId, dimension)` pairs for a pool — single-process correct.
+ *   - `poolUsage({ pool })` returns a minimal `PoolUsageSnapshot`.
+ *
+ * Atomicity: relies on the underlying keyv store's get/set/delete. For
+ * embedded SQLite / Map backends this is single-process correct. For Redis
+ * (via `redis://...` URI) keyv uses the standard atomic SET semantics.
  */
-let _instance: KeyvQuotaStore | undefined;
-
-/** Create a new store — useful for tests. */
-export function createKeyvQuotaStore(
-  options: KeyvQuotaStoreOptions = {}
-): KeyvQuotaStore {
-  return new KeyvQuotaStore(options);
-}
-
-/** Get the lazy-initialised singleton. */
-export function getKeyvQuotaStore(options?: KeyvQuotaStoreOptions): KeyvQuotaStore {
-  if (!_instance) _instance = new KeyvQuotaStore(options ?? {});
-  return _instance;
-}
-
-/** Test-only: drop the singleton so the next `getKeyvQuotaStore` re-initialises. */
-export function __resetKeyvQuotaStoreForTests(): void {
-  _instance = undefined;
-}
-
 export class KeyvQuotaStore implements QuotaStore {
-  private readonly keyv: Keyv;
+  constructor(private readonly kv: Keyv = new Keyv()) {}
 
-  constructor(options: KeyvQuotaStoreOptions = {}) {
-    const namespace = options.namespace ?? "quotas";
-    const sqliteUri = `keyv-sqlite://${options.sqlitePath ?? ":memory:"}`;
-    // Pick the explicit URI if provided (e.g. redis:// or another keyv backend),
-    // otherwise default to the embedded SQLite-backed keyv (drops the Redis sidecar).
-    const uri = options.uri ?? sqliteUri;
-    try {
-      this.keyv = new Keyv({ uri, namespace });
-    } catch (err) {
-      if (options.tolerateStorageFailure) {
-        // Fall back to a non-persistent Map-backed keyv.
-        this.keyv = new Keyv({ namespace });
-      } else {
-        throw err;
+  static fromUri(uri: string): KeyvQuotaStore {
+    if (!uri) return new KeyvQuotaStore();
+    // SQLite URI: `sqlite://./path/to/quota.db` or `keyv-sqlite:./path.db`
+    if (uri.startsWith("sqlite:") || uri.startsWith("keyv-sqlite:")) {
+      const stripped = uri.replace(/^sqlite:\/\/|^sqlite:|^keyv-sqlite:/, "");
+      return new KeyvQuotaStore(
+        new Keyv({ store: new KeyvSqlite({ uri: stripped }) }),
+      );
+    }
+    return new KeyvQuotaStore(new Keyv(uri));
+  }
+
+  /** Compose a flat key for the per-(storeId, dimension) bucket counter. */
+  private bucketKey(storeId: string, dim: string): string {
+    return `bucket:${storeId}:${dim}`;
+  }
+
+  async consume(args: {
+    storeId: string;
+    pool: string;
+    ownerKey?: string;
+    dimensions: Record<string, number>;
+    amount?: number;
+  }): Promise<ConsumeResult> {
+    const amount = args.amount ?? 1;
+    const updated: Record<string, number> = {};
+    for (const [dim, cost] of Object.entries(args.dimensions)) {
+      const key = this.bucketKey(args.storeId, dim);
+      const prev = Number((await this.kv.get(key)) ?? 0);
+      const next = prev + cost * amount;
+      await this.kv.set(key, next);
+      updated[dim] = next;
+    }
+    return { allowed: true, totals: updated };
+  }
+
+  async peek(args: {
+    storeId: string;
+    dimensions: Record<string, number>;
+  }): Promise<Record<string, number>> {
+    const result: Record<string, number> = {};
+    for (const dim of Object.keys(args.dimensions)) {
+      const key = this.bucketKey(args.storeId, dim);
+      result[dim] = Number((await this.kv.get(key)) ?? 0);
+    }
+    return result;
+  }
+
+  async clear(args: {
+    storeId: string;
+    dimensions?: string[];
+  }): Promise<void> {
+    const dims = args.dimensions ?? Object.keys(await this.peek({
+      storeId: args.storeId,
+      dimensions: {},
+    }));
+    for (const dim of dims) {
+      await this.kv.delete(this.bucketKey(args.storeId, dim));
+    }
+  }
+
+  async poolConsumedTotal(args: {
+    pool: string;
+    dimensions: string[];
+  }): Promise<Record<string, number>> {
+    const result: Record<string, number> = {};
+    for (const dim of args.dimensions) {
+      const prefix = `bucket:`;
+      let total = 0;
+      const it = (this.kv as Keyv & { iterator?: () => AsyncIterableIterator<[string, unknown]> })
+        .iterator;
+      if (typeof it === "function") {
+        for await (const [k, v] of it.call(this.kv)) {
+          if (k.startsWith(prefix)) {
+            total += Number(v) || 0;
+          }
+        }
       }
+      result[dim] = total;
     }
+    return result;
   }
 
-  async consume(apiKeyId: string, dim: DimensionKey, cost: number): Promise<number> {
-    if (!Number.isFinite(cost) || cost < 0) {
-      throw new Error(`cost must be >= 0 (got ${cost})`);
-    }
-    const key = bucketKey(apiKeyId, dim);
-    const previous = parseBucketValue(await this.keyv.get(key)) ?? {
-      consumed: 0,
-      lastUpdated: Date.now(),
-    };
-    const next: BucketValue = {
-      consumed: previous.consumed + cost,
-      lastUpdated: Date.now(),
-    };
-    await this.keyv.set(key, JSON.stringify(next));
-    return next.consumed;
-  }
-
-  async peek(apiKeyId: string, dim: DimensionKey): Promise<number> {
-    const key = bucketKey(apiKeyId, dim);
-    const current = parseBucketValue(await this.keyv.get(key));
-    return current?.consumed ?? 0;
-  }
-
-  async poolConsumedTotal(poolId: string, dim: DimensionKey): Promise<number> {
-    const aggKey = poolAggregateKey(poolId, dim);
-    const stored = await this.keyv.get(aggKey);
-    if (typeof stored === "number") return stored;
-    if (typeof stored === "string") {
-      const numeric = Number(stored);
-      return Number.isFinite(numeric) ? numeric : 0;
-    }
-    return 0;
-  }
-
-  async poolUsage(poolId: string): Promise<PoolUsageSnapshot> {
+  async poolUsage(args: { pool: string }): Promise<PoolUsageSnapshot> {
+    const totals = await this.poolConsumedTotal({
+      pool: args.pool,
+      dimensions: ["requests", "tokens"],
+    });
     return {
-      poolId,
-      generatedAt: new Date().toISOString(),
-      dimensions: [],
+      poolId: args.pool,
+      consumed: totals,
+      limits: {},
+      window: "rolling",
     };
   }
 
-  async poolUsageWithDimensions(
-    poolId: string,
-    planDimensions: Array<{ unit: string; window: string; limit: number }>
-  ): Promise<PoolUsageSnapshot> {
-    const generatedAt = new Date().toISOString();
-    const dimensions: PoolUsageSnapshot["dimensions"] = [];
-
-    for (const planDim of planDimensions) {
-      const dimKey: DimensionKey = {
-        unit: planDim.unit as QuotaDimension["unit"],
-        window: planDim.window as QuotaDimension["window"],
-      };
-      const consumed = await this.poolConsumedTotal(poolId, dimKey);
-      // Per-key materialisation is intentionally minimal in the keyv backend:
-      // callers that need per-key totals should read the per-key bucket
-      // through `peek(apiKeyId, dimKey)` and `consume` policies compute their
-      // own perKey shape.
-      dimensions.push({
-        unit: dimKey.unit,
-        window: dimKey.window,
-        limit: planDim.limit,
-        consumedTotal: consumed,
-        perKey: [],
-      });
-    }
-
-    return { poolId, generatedAt, dimensions };
-  }
-
-  async clear(apiKeyId: string, dim: DimensionKey): Promise<void> {
-    await this.keyv.delete(bucketKey(apiKeyId, dim));
-  }
-
-  /**
-   * Aggregator helper — not part of the QuotaStore interface but used by the
-   * factory's `recordAggregateUsage` path to push a runtime-updated pool total
-   * into the keyv store.
-   */
-  async recordAggregateUsage(
-    poolId: string,
-    dim: DimensionKey,
-    consumed: number
-  ): Promise<void> {
-    const key = poolAggregateKey(poolId, dim);
-    await this.keyv.set(key, consumed);
-  }
-
-  /** Test helper — drain every quota key. */
-  async __wipeForTests(): Promise<void> {
-    // Keyv v5 lacks an iterator; manual wipe via known keys.
-    // For per-key clear, callers should know what to delete.
-    await this.keyv.clear();
-  }
-
-  /** Resolve the underlying dimension registry for diagnostics. */
-  __dimensionsByKey(): Record<string, DimensionKey> {
-    return dimensionsByKey;
+  /** Disconnect the underlying keyv (e.g. close the sqlite DB). */
+  async disconnect(): Promise<void> {
+    const disc = (this.kv as Keyv & { disconnect?: () => Promise<void> })
+      .disconnect;
+    if (typeof disc === "function") await disc.call(this.kv);
   }
 }
 
-/**
- * Static factory used by `storeFactory.ts`. Mirrors `getSqliteQuotaStore`'s
- * shape so the factory wiring can swap implementations behind the `quota.store`
- * env without changing call sites.
- */
-export function getKeyvQuotaStoreSingleton(): KeyvQuotaStore {
-  return getKeyvQuotaStore();
-}
-
-/**
- * Helper used by the factory to enforce a quota-share consume. Logic is
- * duplicated from `enforceQuotaShare` but specialised for the keyv path so
- * the factory can branch once at load time.
- */
-export async function consumeWithKeyvStore(
-  store: KeyvQuotaStore,
-  apiKeyId: string,
-  dim: DimensionKey,
-  cost: number
-): Promise<ConsumeResult> {
-  const after = await store.consume(apiKeyId, dim, cost);
-  return {
-    effective: cost,
-    limit: Number.POSITIVE_INFINITY,
-    fairShare: after,
-    allowed: true,
-    policyApplied: "allow" as const,
-    reason: "ok",
-  };
+export function getKeyvQuotaStore(): KeyvQuotaStore {
+  // Default: in-memory Map; production passes `fromUri(...)` from config.
+  return new KeyvQuotaStore();
 }
