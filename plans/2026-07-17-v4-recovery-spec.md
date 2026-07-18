@@ -80,7 +80,8 @@ Do not restore:
 - [x] Restored packages resolve patched Vitest 3.2.7 instead of blocking
   `GHSA-5xrq-8626-4rwp` versions.
 - [x] Sonar security findings use cryptographic IDs and canonical allowlisted
-  benchmark egress targets; rerun pending.
+  benchmark egress targets; residual scanner false positives are narrowly
+  documented and the final rerun is pending.
 - [ ] PR #375 has a conflict-free replay plan.
 - [ ] #339 and #340 point to canonical restored paths.
 - [ ] Recovery can be reverted with one PR without affecting later Rust work.

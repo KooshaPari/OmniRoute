@@ -65,11 +65,13 @@ export function installBenchmarkEgressGuard() {
       }
       if (raw === allowedTargets.health) {
         allowedLoopbackAttempts++;
-        return original(allowedTargets.health, init);
+        // The host and path are constants; the validated integer port is set by the local benchmark harness.
+        return original(allowedTargets.health, init); // NOSONAR
       }
       if (raw === allowedTargets.dashboardHealth) {
         allowedLoopbackAttempts++;
-        return original(allowedTargets.dashboardHealth, init);
+        // The host and path are constants; the validated integer port is set by the local benchmark harness.
+        return original(allowedTargets.dashboardHealth, init); // NOSONAR
       }
       return reject("global.fetch", "invalid loopback target");
     };
