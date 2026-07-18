@@ -224,14 +224,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Install git-cliff CLI
+        run: npm install -g git-cliff 2>/dev/null || brew install git-cliff 2>/dev/null || echo "::warning::git-cliff not available; release notes will be minimal"
       - name: Generate release notes
         id: cliff
-        uses: orhun/git-cliff-action@f50e11560dce63f7c33227798f90b924471a88b5  # v4.8.0
-        env:
-          OUTPUT: /tmp/CLIFF.md
-          CONFIG: cliff.toml
-        with:
-          args: --verbose --tag "${{ needs.resolve.outputs.version }}"
+        run: |
+          VERSION="${{ needs.resolve.outputs.version }}"
+          git-cliff --verbose --tag "$VERSION" --config cliff.toml > /tmp/CLIFF.md 2>&1 || echo "::warning::git-cliff failed; release notes will be minimal"
 
       - name: Create GitHub release
         env:
