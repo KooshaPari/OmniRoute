@@ -25,17 +25,14 @@ Every user-facing or operator-facing flow should be traceable across:
 ## Rich Media Stubs
 
 <!-- RICH-MEDIA-STUB type="animated-gif" subject="Chat fallback routing journey" journey="chat-fallback-routing" status="TODO" -->
-![Chat fallback routing — request, primary provider failure, fallback provider success, and final response](../assets/rich-media/omniroute/chat-fallback-routing.gif)
 
 *Expected capture: send an OpenAI-compatible chat request, simulate or fixture a primary-provider failure, show fallback selection, and verify final response plus provider trace metadata.*
 
 <!-- RICH-MEDIA-STUB type="annotated-screenshot" subject="Provider health dashboard" journey="provider-health-dashboard" status="TODO" -->
-![Provider health dashboard — available providers, degraded providers, routing policy, and last-check timestamp](../assets/rich-media/omniroute/provider-health-dashboard.png)
 
 *Expected capture: open the dashboard health/provider view, annotate stale/degraded provider states, freshness timestamp, and operator remediation action.*
 
 <!-- RICH-MEDIA-STUB type="journey-eval" subject="MCP tool invocation contract verdict" journey="mcp-tool-invocation" status="TODO" -->
-![MCP tool invocation verdict — tool request, schema validation, response, and eval verdict](../assets/rich-media/omniroute/mcp-tool-invocation.png)
 
 *Expected capture: invoke a representative MCP tool through OmniRoute, validate request/response schema, and attach a pass/fail verdict for FR-OMNI-MCP-001 and NFR-OMNI-CONTRACT-001.*
 
