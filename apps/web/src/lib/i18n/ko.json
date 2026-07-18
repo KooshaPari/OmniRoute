@@ -1,0 +1,20 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "app.title": "argismonitor v4",
+  "app.tagline": "Svelte 5 + SvelteKit 2 + Hono 4 + Tauri 2",
+  "nav.dashboard": "대시보드",
+  "nav.providers": "공급자",
+  "nav.combos": "콤보", "nav.keys": "API 키", "nav.usage": "사용량",
+  "nav.health": "상태", "nav.security": "보안", "nav.settings": "설정",
+  "nav.skills": "기술", "nav.a2a": "A2A", "nav.mcp": "MCP",
+  "nav.cost": "비용", "nav.billing": "결제", "nav.logs": "로그",
+  "nav.memory": "메모리", "nav.cache": "캐시", "nav.batch": "배치",
+  "nav.webhooks": "Webhook", "nav.audit": "감사",
+  "common.loading": "로드 중…", "common.error": "오류", "common.save": "저장",
+  "common.cancel": "취소", "common.delete": "삭제", "common.revoke": "취소",
+  "common.create": "생성", "common.search": "검색", "common.filter": "필터",
+  "common.refresh": "새로고침", "common.connected": "연결됨",
+  "common.disconnected": "연결 끊김",
+  "auth.signin": "로그인", "auth.signout": "로그아웃",
+  "auth.email": "이메일", "auth.password": "비밀번호"
+}

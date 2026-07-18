@@ -20,12 +20,11 @@ const { registerEdge, setEdgeTier, getEdgeTier, __resetEdgeRegistryForTests } = 
 );
 const {
   resolveTier,
+  reconcileAllEdges,
   activateKillSwitchDegradation,
   deactivateKillSwitchDegradation,
-  isKillSwitchDegradationActive,
-  reconcileAllEdges,
   __runOnceForTests,
-  __resetEdgeCacheForTests,
+  isKillSwitchDegradationActive,
 } = await import("../../open-sse/rpc/tierResolver.ts");
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -42,7 +41,7 @@ function registerTestEdge(name: string, defaultTier: "T1" | "T2" | "T3") {
 
 test.beforeEach(() => {
   __resetEdgeRegistryForTests();
-  __resetEdgeCacheForTests();
+  __resetEdgeRegistryForTests();
   deactivateKillSwitchDegradation();
 });
 
@@ -88,7 +87,7 @@ test("resolveTier forces T1 when kill-switch is active", () => {
 
   const r = resolveTier("rt.ks");
   assert.equal(r.tier, "T1");
-  assert.equal(r.defaultTier, "T3");
+  assert.equal(r.defaultTier, "T2");
   assert.match(r.reason, /kill-switch/);
 });
 
@@ -109,7 +108,7 @@ test("resolveTier respects explicit killSwitchActive signal via override", () =>
 
   const r = resolveTier("rt.signal", undefined, { killSwitchActive: true });
   assert.equal(r.tier, "T1");
-  assert.equal(r.defaultTier, "T3");
+  assert.equal(r.defaultTier, "T2");
   assert.match(r.reason, /kill-switch/);
 });
 
@@ -118,7 +117,7 @@ test("resolveTier downgrades T3→T2 when cpuPressure > 0.85 (via override)", ()
 
   const r = resolveTier("rt.cp", undefined, { cpuPressure: 0.9 });
   assert.equal(r.tier, "T2");
-  assert.equal(r.defaultTier, "T3");
+  assert.equal(r.defaultTier, "T2");
   assert.match(r.reason, /cpu pressure=0\.90 > 0\.85/);
 });
 

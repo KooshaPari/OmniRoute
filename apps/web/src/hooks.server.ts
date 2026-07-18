@@ -1,0 +1,49 @@
+import { redirect, type Handle } from '@sveltejs/kit';
+
+import { env } from "$env/dynamic/private";
+
+const UPSTREAM = env.NEXTJS_UPSTREAM ?? "http://localhost:20128";
+const DEFAULT_ROLLOUT = Number(env.OMNI_WEB_STACK_ROLLOUT ?? "100");
+
+function bucketForUser(cookie: string | undefined): number {
+  const seed = cookie ? hash(cookie) : crypto.getRandomValues(new Uint32Array(1))[0];
+  return seed % 100;
+}
+
+function hash(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (Math.imul(h, 31) + (s.codePointAt(i) ?? 0)) % 2_147_483_647;
+  }
+  return Math.abs(h);
+}
+
+export const handle: Handle = async ({ event, resolve }) => {
+  const url = new URL(event.request.url);
+  const webStack = event.cookies.get('web_stack');
+  const force = url.searchParams.get('web');
+
+  // Per-route force: ?web=svelte sets cookie, ?web=next redirects to upstream
+  if (force === 'svelte') {
+    event.cookies.set('web_stack', 'svelte', { path: '/', maxAge: 60 * 60 * 24 * 365 });
+    const clean = url.pathname + (url.search ? url.search.replace(/[?&]web=svelte/, '').replace(/^&/, '?') : '');
+    return redirect(302, clean || '/dashboard');
+  }
+  if (force === 'next') {
+    event.cookies.set('web_stack', 'next', { path: '/', maxAge: 60 * 60 * 24 * 365 });
+    return redirect(302, `${UPSTREAM}${url.pathname}${url.search}`);
+  }
+
+  // Sticky override
+  if (webStack === 'next') {
+    return redirect(302, `${UPSTREAM}${url.pathname}${url.search}`);
+  }
+
+  // Default rollout: only serve Svelte if user's bucket <= rollout
+  const bucket = bucketForUser(event.cookies.get('session_id'));
+  if (webStack !== 'svelte' && bucket >= DEFAULT_ROLLOUT) {
+    return redirect(302, `${UPSTREAM}${url.pathname}${url.search}`);
+  }
+
+  return resolve(event);
+};

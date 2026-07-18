@@ -1,4 +1,8 @@
-# Air-Gapped (Offline) Build Guide
+---
+title: "Air Gapped Build"
+---
+
+# Air Gapped Build (Offline) Build Guide
 
 > **Last updated**: 2026-07-09
 > **Purpose**: Build and deploy OmniRoute in environments without direct internet access

@@ -1,3 +1,7 @@
+---
+title: Release Channels
+---
+
 # Release Channels
 
 Automated release channel system for OmniRoute. Defines the channel taxonomy, how builds are auto-triggered, how they climb the stability ladder, and how to manually intervene.

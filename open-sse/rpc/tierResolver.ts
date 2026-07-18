@@ -168,14 +168,11 @@ export function __runOnceForTests(signals?: ResolverSignals): number {
  * falls back to `T1` regardless of its `defaultTier` / env override.
  *
  * Called by `killSwitchBridge.ts` after a Bifrost provider trip and
- * before any subsequent edges can dispatch into the now-degraded tier.
+ * before any subsequent edges can dispatch into the now-degraded path.
+ * @public
  */
 export function activateKillSwitchDegradation(): void {
   forcedTToT1 = true;
-  // Best-effort: refresh the cached edge list and reconcile so any
-  // pre-existing T2/T3 edges immediately flip back to T1 the moment
-  // a kill-switch is engaged. Recursive imports between this file and
-  // `reconciler.ts` are guarded by the lazy `globalPolyglotEdges()`.
   try {
     globalPolyglotEdgesCache = null;
     reconcileAllEdges({
@@ -198,18 +195,23 @@ export function activateKillSwitchDegradation(): void {
  * warm-start to ensure no stale state from a prior run.
  */
 export function deactivateKillSwitchDegradation(): void {
-  forcedTToT1 = false;
-  try {
+    try {
+    forcedTToT1 = false;
     globalPolyglotEdgesCache = null;
-    reconcileAllEdges({ cpuPressure: 0, memPressure: 0 });
-  } catch {
+    reconcileAllEdges({ killSwitchActive: false, cpuPressure: 0, memPressure: 0 });
+    } catch {
     // best-effort; per-call resolveTier will observe the cleared flag.
-  }
+    }
 }
 
 /** Test-only: kill-switch simulation flag. */
 export function __setKillSwitchActiveForTests(active: boolean): void {
   forcedTToT1 = active;
+}
+
+/** Reset edge resolution cache + kill-switch flag for test isolation. */
+export function __resetEdgeCacheForTests(): void {
+  forcedTToT1 = false;
 }
 
 /**
@@ -220,3 +222,7 @@ export function __setKillSwitchActiveForTests(active: boolean): void {
 export function isKillSwitchDegradationActive(): boolean {
   return forcedTToT1;
 }
+
+/**
+ * Force a single reconcile tick with the given signals override (test helper).
+ */
