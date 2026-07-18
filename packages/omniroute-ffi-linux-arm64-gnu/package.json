@@ -1,0 +1,29 @@
+{
+  "name": "@omniroute/ffi-linux-arm64-gnu",
+  "version": "3.8.43",
+  "description": "OmniRoute FFI prebuilt artifacts — Linux ARM64 (glibc).",
+  "license": "MIT",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "native/"
+  ],
+  "main": "index.js",
+  "types": "index.d.ts",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "libc": [
+    "glibc"
+  ],
+  "engines": {
+    "node": ">=22.0.0 <23 || >=24.0.0 <27"
+  },
+  "private": true,
+  "scripts": {
+    "postinstall": "node ./scripts/postinstall.mjs"
+  }
+}

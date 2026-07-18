@@ -288,14 +288,17 @@ jobs:
           npm ci
           npm run build:cli
 
-      - name: Update package.json version (then restore on failure)
+      - name: "Pre-flight: validate npm-publish readiness"
+        # Catches the class of failures that would otherwise burn NPM_TOKEN
+        # budget: missing files, private:true, bad semver, dirty tree, etc.
+        # See scripts/quality/validate-npm-publish.mjs for the full check list.
         env:
           VERSION: ${{ needs.resolve.outputs.version }}
         run: |
           set -euo pipefail
-          # Snapshot the original so we can ALWAYS restore on exit, regardless
-          # of whether the publish step succeeds or fails — otherwise the next
-          # CI run on the same checkout sees a dirty tree.
+          # Bump package.json to the resolved version FIRST so the validator
+          # sees the same version that npm publish will use. The restore trap
+          # below ensures the working tree stays clean either way.
           cp package.json /tmp/package.json.original
           trap 'cp /tmp/package.json.original package.json && echo "Restored package.json from snapshot"' EXIT
           node -e '
@@ -303,7 +306,30 @@ jobs:
             const p = JSON.parse(fs.readFileSync("package.json","utf8"));
             p.version = process.env.VERSION;
             fs.writeFileSync("package.json", JSON.stringify(p, null, 2) + "\n");
-            console.log("Updated package.json version to", p.version);
+          '
+          npm run check:npm-publish --silent
+
+      - name: Update package.json version (idempotent guard)
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          # Re-assert version + snapshot for the publish step. The pre-flight
+          # step may have restored (and the version we wrote may have already
+          # been committed), so re-write defensively. Same EXIT trap restores
+          # on any failure.
+          cp package.json /tmp/package.json.original
+          trap 'cp /tmp/package.json.original package.json && echo "Restored package.json from snapshot"' EXIT
+          node -e '
+            const fs = require("fs");
+            const p = JSON.parse(fs.readFileSync("package.json","utf8"));
+            if (p.version !== process.env.VERSION) {
+              p.version = process.env.VERSION;
+              fs.writeFileSync("package.json", JSON.stringify(p, null, 2) + "\n");
+              console.log("Updated package.json version to", p.version);
+            } else {
+              console.log("package.json already at version", p.version);
+            }
           '
 
       - name: Publish with channel-specific dist-tag

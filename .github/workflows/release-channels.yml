@@ -180,6 +180,10 @@ jobs:
           '
           npm ci
           npm run build:cli
+          # Pre-flight: catches private:true, missing files, bad semver, dirty
+          # tree, etc. — anything that would cause npm publish to fail or
+          # produce a malformed tarball. See scripts/quality/validate-npm-publish.mjs.
+          npm run check:npm-publish --silent
           npm publish --tag "$TAG" --provenance --access public
 
       # Uses the same action tags as .github/workflows/docker-publish.yml
