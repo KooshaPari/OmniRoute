@@ -101,8 +101,8 @@ export async function getQuotaStore(): Promise<QuotaStore> {
   if (driver === "keyv") {
     try {
       const { getKeyvQuotaStore } = await import("./keyvQuotaStore");
-      const kvUrl = process.env.QUOTA_STORE_KEYV_URL ?? "keyv://sqlite/default";
-      const store = getKeyvQuotaStore(kvUrl);
+      const kvUrl = dbSettings.kvUrl ?? process.env.QUOTA_STORE_KEYV_URL ?? "";
+      const store = getKeyvQuotaStore(kvUrl ? { uri: kvUrl } : undefined);
       _store = store;
       log.info({ kvUrl: kvUrl.replace(/:[^:@]*@/, ":***@") }, "QuotaStore: using keyv driver");
       return _store;

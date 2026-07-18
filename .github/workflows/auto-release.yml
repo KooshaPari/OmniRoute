@@ -201,7 +201,7 @@ jobs:
 
       - name: Upload resolution artifacts
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: release-resolution
           path: /tmp/release-artifacts/
@@ -224,14 +224,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Install git-cliff CLI
+        run: npm install -g git-cliff 2>/dev/null || brew install git-cliff 2>/dev/null || echo "::warning::git-cliff not available; release notes will be minimal"
       - name: Generate release notes
         id: cliff
-        uses: orhun/git-cliff-action@5b8303e5c346e5cc63e4478d6cc4ad4848ed5e6b
-        env:
-          OUTPUT: /tmp/CLIFF.md
-          CONFIG: cliff.toml
-        with:
-          args: --verbose --tag "${{ needs.resolve.outputs.version }}"
+        run: |
+          VERSION="${{ needs.resolve.outputs.version }}"
+          git-cliff --verbose --tag "$VERSION" --config cliff.toml > /tmp/CLIFF.md 2>&1 || echo "::warning::git-cliff failed; release notes will be minimal"
 
       - name: Create GitHub release
         env:
@@ -283,7 +282,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node
-        uses: actions/setup-node@1d0ff469b7ec7b14a9d23ca6fd7b9b6b5e8e2c30
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
         with:
           node-version-file: ".nvmrc"
           registry-url: "https://registry.npmjs.org"
@@ -369,23 +368,21 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # Uses the same action tags as .github/workflows/docker-publish.yml
-      # to keep a single source of truth for which Docker actions are
-      # trusted. Pinning to tags (not SHAs) here mirrors the existing
+      # Pinning to tags (not SHAs) here mirrors the existing
       # docker-publish.yml convention; if you want SHA-pinning here too,
       # see docker-publish.yml for the current SHAs.
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build + push (multi-arch)
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
         with:
           context: .
           file: ./Dockerfile
