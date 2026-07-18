@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "owner": "apps/bff",
-  "registeredRouteCount": 65,
-  "registeredRouteSha256": "5fa728cf935f6620380544d0d4803b073cec073efc354428b73c393d341b7e13",
+  "registeredRouteCount": 68,
+  "registeredRouteSha256": "ef29b19de19768f639e063595ab2560c95dc1af7951eec650890edf8aed98261",
   "producers": [
     {
       "path": "/api/v1/telemetry/web-vitals",
