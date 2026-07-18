@@ -1,4 +1,4 @@
--- Migration 104: Traffic-shadow log table (B6 of v8.1 Bifrost track, ADR-031)
+-- Migration 124: Traffic-shadow log table (renumbered from 104 to resolve a merge collision)
 --
 -- Per-request comparison log for the Bifrost Tier-1 router rollout. Each row
 -- records the parallel invocation of the legacy chatCore path and the Bifrost

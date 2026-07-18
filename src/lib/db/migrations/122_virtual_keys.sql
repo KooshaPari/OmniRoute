@@ -1,4 +1,4 @@
--- Migration 102: virtual_keys (B5 of v8.1 Bifrost track, ADR-031)
+-- Migration 122: virtual_keys (renumbered from 102 to resolve a merge collision)
 --
 -- Per-tenant scoped credentials that OmniRoute mints, hands to the user,
 -- and resolves to a real upstream key at request time. The raw key is

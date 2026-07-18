@@ -1,4 +1,4 @@
--- Migration 105: Traffic-shadow config (B6 of v8.1 Bifrost track, ADR-031)
+-- Migration 125: Traffic-shadow config (renumbered from 105 to resolve a merge collision)
 --
 -- Single-row configuration for the Bifrost traffic-shadow ramp. Default row
 -- (id=1) is inserted on migration; the in-memory SHADOW_RAMP_PHASES table in
