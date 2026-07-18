@@ -1,7 +1,7 @@
 # v4-to-Rust Feature-Parity Matrix
 
 **ADR:** ADR-107 staged convergence  
-**WBS:** P1-L7 → P4-R1…P4-R5  
+**WBS:** P1-L7 → P4-R1…P4-R8  
 **Evidence cutoff:** `main` at `4c19697ad` (PR #382)  
 **Status:** Initial owner and dependency baseline
 
@@ -46,14 +46,14 @@ Status legend:
 | P4-R1 provider repository CRUD | `omniroute-storage` | schema foundation | 0.5 / 1 / 2 d |
 | P4-R2 Axum skeleton and health | `omniroute-api` | P4-R1 interface | 0.5 / 1 / 2 d |
 | P4-R3 router delegates to registry | `omniroute-router`, `omniroute-providers` | P4-R1, P4-R2 | 1 / 2 / 4 d |
-| P4-R4 CLI `serve` and `migrate` | `omniroute-cli` | P4-R2, storage migrations | 0.5 / 1 / 2 d |
-| P4-R5 Linux Rust CI matrix | repository CI owner | P4-R2 through P4-R4 | 0.25 / 0.5 / 1 d |
+| P4-R4 CLI `serve` and `migrate` | `omniroute-cli` | P4-R2, storage migrations | 1 / 2 / 3 d |
+| P4-R5 Linux Rust CI matrix | repository CI owner | P0-L2 compile baseline | 0.25 / 0.5 / 1 d |
 | P4-R6 keys/auth API | `omniroute-api`, `omniroute-storage` | P4-R2 | 1 / 2 / 4 d |
 | P4-R7 measured observability | `omniroute-storage`, `omniroute-api` | P4-R3 | 1 / 3 / 5 d |
 | P4-R8 audit/webhook persistence | `omniroute-storage`, `omniroute-api` | P4-R2 | 1 / 2 / 4 d |
 
-Expected duration uses `(O + 4M + P) / 6`; the critical initial path is
-approximately 6.0 engineering days before CI stabilization:
+Expected duration uses `(O + 4M + P) / 6`; the critical initial path through
+the first operational CLI is approximately 6.3 engineering days:
 
 ```mermaid
 flowchart LR
@@ -61,7 +61,7 @@ flowchart LR
   PROVIDERS --> API[P4-R2 Axum health/API]
   API --> ROUTER[P4-R3 registry routing]
   ROUTER --> CLI[P4-R4 serve/migrate]
-  CLI --> CI[P4-R5 Linux Rust CI]
+  BASELINE[P0-L2 compile baseline] --> CI[P4-R5 Linux Rust CI]
 
   API --> AUTH[P4-R6 keys/auth]
   ROUTER --> OBS[P4-R7 measured observability]
