@@ -20,7 +20,8 @@ const { registerEdge, setEdgeTier, getEdgeTier, __resetEdgeRegistryForTests } = 
 );
 const {
   resolveTier,
-  reconcileAllEdges,
+  __resetEdgeCacheForTests,
+  resolveAllEdges,
   activateKillSwitchDegradation,
   deactivateKillSwitchDegradation,
   __runOnceForTests,

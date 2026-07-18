@@ -212,6 +212,11 @@ export function __setKillSwitchActiveForTests(active: boolean): void {
 /** Reset edge resolution cache + kill-switch flag for test isolation. */
 export function __resetEdgeCacheForTests(): void {
   forcedTToT1 = false;
+  // Also clear the tier overrides map in polyglotEdges (setEdgeTier writes there)
+  try {
+    const { __resetEdgeRegistryForTests } = require("./polyglotEdges");
+    if (typeof __resetEdgeRegistryForTests === "function") __resetEdgeRegistryForTests();
+  } catch { /* ignore circular */ }
 }
 
 /**
