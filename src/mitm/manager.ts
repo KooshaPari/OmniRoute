@@ -715,6 +715,8 @@ export async function startMitm(
   };
 }
 
+}
+
 /**
  * Stop MITM proxy
  * @param {string} sudoPassword - Sudo password for DNS cleanup
