@@ -7,7 +7,7 @@ import { REQUIRED_BENCHMARK_GUARDS, installBenchmarkEgressGuard } from "./benchm
 describe("benchmark egress guard", () => {
   it("installs and activates every required API before restoring them", () => {
     const priorBun = (globalThis as any).Bun;
-    const fakeBun = { connect: () => { throw new Error("native must not run"); } };
+    const fakeBun = { connect: (..._args: any[]) => { throw new Error("native must not run"); } };
     (globalThis as any).Bun = fakeBun;
     const nativeFetch = globalThis.fetch;
     const receivedFetches: unknown[][] = [];
@@ -37,6 +37,10 @@ describe("benchmark egress guard", () => {
       expect(() => globalThis.fetch("http://127.0.0.1:4322/unregistered")).toThrow(/invalid loopback target/);
       expect(() => guard.setAllowedLoopbackPort(0)).toThrow(/integer from 1 to 65535/);
       guard.setAllowedLoopbackPort(4322);
+      expect(() => fakeBun.connect({ hostname: "127.0.0.1", port: 1 })).toThrow(/disallowed loopback port/);
+      expect(() => fakeBun.connect({ hostname: "127.0.0.1", port: 4322, path: "local.sock" }))
+        .toThrow(/local socket path/);
+      expect(() => fakeBun.connect({ hostname: "127.0.0.1", port: 4322 })).toThrow(/native must not run/);
       expect(() => globalThis.fetch("http://127.0.0.1:4322/healthz", { method: "POST" })).toThrow(/invalid loopback target/);
       expect(() => globalThis.fetch("http://127.0.0.1:4322/healthz", { method: "GET" })).not.toThrow();
       expect(receivedFetches.at(-1)?.[0]).toBe("http://127.0.0.1:4322/healthz");

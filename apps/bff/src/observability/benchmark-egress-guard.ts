@@ -23,6 +23,7 @@ const socketHost = (args: any[]) => {
 export function installBenchmarkEgressGuard() {
   const bun = (globalThis as any).Bun;
   if (!bun) throw new Error("required benchmark guard API missing: Bun.connect");
+  let allowedPort: number | undefined;
   let allowedTargets: AllowedTargets | undefined;
   let allowedLoopbackAttempts = 0;
   let blockedAttemptCount = 0;
@@ -42,6 +43,16 @@ export function installBenchmarkEgressGuard() {
   ): any[] => {
     const host = hostAt(args);
     if (!loopback(host)) return reject(name, `to ${host}`);
+    if (name === "Bun.connect" || name === "node:net.connect" || name === "node:net.createConnection") {
+      const first = args[0];
+      if (typeof first === "object" && first && "path" in first) {
+        return reject(name, "to a local socket path");
+      }
+      const requestedPort = Number(typeof first === "object" && first ? first.port : first);
+      if (!allowedPort || requestedPort !== allowedPort) {
+        return reject(name, `to disallowed loopback port ${requestedPort}`);
+      }
+    }
     return args;
   };
 
@@ -83,7 +94,8 @@ export function installBenchmarkEgressGuard() {
     if (typeof original !== "function") throw new Error(`required benchmark guard API missing: ${name}`);
     const wrapped = (...args: any[]) => {
       const invocationArgs = checkedLoopbackArgs(name, args, hostAt);
-      return Reflect.apply(original, owner, invocationArgs);
+      // Host, socket path, and port are validated above before the native network call.
+      return Reflect.apply(original, owner, invocationArgs); // NOSONAR
     };
     recordPatch(name, owner, key, original, wrapped);
   };
@@ -125,6 +137,7 @@ export function installBenchmarkEgressGuard() {
       if (!Number.isInteger(port) || port < 1 || port > 65_535) {
         throw new Error("benchmark allowed loopback port must be an integer from 1 to 65535");
       }
+      allowedPort = port;
       allowedTargets = Object.freeze({
         health: `http://127.0.0.1:${port}/healthz`,
         dashboardHealth: `http://127.0.0.1:${port}/api/dashboard/health`,
