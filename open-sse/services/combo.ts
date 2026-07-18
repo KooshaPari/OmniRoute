@@ -482,6 +482,8 @@ export async function buildAutoCandidates(
       const avgLatency = Number(modelMetric?.avgLatencyMs);
       const successRate = Number(modelMetric?.successRate);
       const historicalP95Latency = Number(historicalModelMetric?.p95LatencyMs);
+      const historicalAvgLatency = Number(historicalModelMetric?.avgLatencyMs);
+      const historicalAvgTtft = Number(historicalModelMetric?.avgTtftMs);
       const historicalStdDev = Number(historicalModelMetric?.latencyStdDev);
       const historicalSuccessRate = Number(historicalModelMetric?.successRate); // 0..1
 
@@ -506,6 +508,14 @@ export async function buildAutoCandidates(
         hasHistoricalSignal && Number.isFinite(historicalStdDev) && historicalStdDev > 0
           ? Math.max(10, historicalStdDev)
           : Math.max(10, p95LatencyMs * 0.1);
+      const avgE2ELatencyMs =
+        hasHistoricalSignal && Number.isFinite(historicalAvgLatency) && historicalAvgLatency > 0
+          ? historicalAvgLatency
+          : undefined;
+      const avgTtftMs =
+        hasHistoricalSignal && Number.isFinite(historicalAvgTtft) && historicalAvgTtft > 0
+          ? historicalAvgTtft
+          : undefined;
 
       const breakerStateRaw = getCircuitBreaker(provider)?.getStatus?.()?.state;
       const circuitBreakerState: ProviderCandidate["circuitBreakerState"] =
@@ -585,6 +595,8 @@ export async function buildAutoCandidates(
         circuitBreakerState,
         costPer1MTokens,
         p95LatencyMs,
+        avgTtftMs,
+        avgE2ELatencyMs,
         latencyStdDev,
         errorRate,
         accountTier: "standard" as const,
