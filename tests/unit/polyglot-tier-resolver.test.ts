@@ -15,8 +15,12 @@ import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const { registerEdge, setEdgeTier, getEdgeTier, __resetEdgeRegistryForTests } = await import(
-  "../../open-sse/rpc/polyglotEdges.ts"
+const { registerEdge, setEdgeTier, getEdgeTimport {
+  __resetEdgeRegistryForTests,
+} from "../../open-sse/rpc/polyglotEdges.ts";
+import {
+  __resetEdgeCacheForTests,
+} from "../../open-sse/rpc/tierResolver.ts";
 );
 const {
   resolveTier,
@@ -140,6 +144,6 @@ test("reconcileAllEdges flips every T3 edge to T1 when kill-switch active", () =
   // At minimum the two T3 edges flip to T1 (or fewer if already T1).
   // Kill-switch forces T1 for all edges, regardless of default.
   assert.ok(changes >= 0);
-  assert.equal(getEdgeTier("rt.recon3"), "T1");
-  assert.equal(getEdgeTier("rt.recon4"), "T1");
+  assert.equal(resolveTier("rt.recon3").tier, "T1");
+  assert.equal(resolveTier("rt.recon4").tier, "T1");
 });

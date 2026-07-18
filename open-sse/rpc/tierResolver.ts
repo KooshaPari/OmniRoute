@@ -15,9 +15,15 @@
  * lines. The resolver is the single seam where runtime tier decisions
  * are made — the registry + transports don't make policy decisions.
  */
-
 import os from "node:os";
-import { getEdgeTier, getEdge, setEdgeTier, listEdges, type EdgeTier } from "./polyglotEdges.ts";
+import {
+  EdgeTier,
+  getEdgeTier,
+  getEdge,
+  setEdgeTier,
+  listEdges,
+  clearTierOverrides,
+} from "./polyglotEdges.ts";
 
 // Re-export type aliases consumed by polyglotHotPath.ts and other edges.
 export type { EdgeTier } from "./polyglotEdges.ts";
@@ -31,11 +37,8 @@ export interface ResolvedTier {
 }
 
 export interface ResolverSignals {
-  /** Current 0..1 CPU pressure (load-avg-normalized). */
   cpuPressure?: number;
-  /** Current 0..1 memory pressure. */
   memPressure?: number;
-  /** True when Bifrost kill-switch is active (`open-sse/services/bifrostKillSwitch.ts`). */
   killSwitchActive?: boolean;
 }
 
@@ -51,8 +54,6 @@ function sampleSystem(): ResolverSignals {
     return { cpuPressure: lastCpu };
   }
   lastSample = now;
-  // `os.loadavg` is POSIX-only; on Windows it returns [0, 0, 0]. We treat
-  // both cases as "no signal" by mapping to a fallback derived from cpus().
   let la = 0;
   try {
     if (os.platform() !== "win32") {
@@ -113,22 +114,26 @@ export function resolveTier(
   };
 }
 
+let globalPolyglotEdgesCache: Array<{ name: string }> | null = null;
+
+function globalPolyglotEdges(): Array<{ name: string }> {
+  if (globalPolyglotEdgesCache) return globalPolyglotEdgesCache;
+  try {
+    globalPolyglotEdgesCache = listEdges();
+  } catch {
+    globalPolyglotEdgesCache = [];
+  }
+  return globalPolyglotEdgesCache;
+}
+
 /**
  * Periodic catch-up: re-resolve every registered edge's tier against
  * the latest signal. Cheaper than resolving per-call because we only
  * settle on a tier change (and only emit a `setEdgeTier` call when
  * the prior tier didn't match).
- *
- * Intended to be called from a 1-second interval timer by
- * `src/server-init.ts`. Test-only entry point is exported via
- * `__runOnceForTests`.
  */
 export function reconcileAllEdges(signals: ResolverSignals = sampleSystem()): number {
-  // Apply the kill-switch signal BEFORE the resolution loop so the per-edge
-  // resolveTier() call inside the loop sees the up-to-date flag.
   if (signals.killSwitchActive !== undefined) forcedTToT1 = signals.killSwitchActive;
-  // Also flip every edge in the registry so callers that ask for a specific
-  // edge post-cascade see T1 (not the stale `defaultTier` from polyglotEdges).
   let changes = 0;
   for (const edge of globalPolyglotEdges()) {
     const { tier } = resolveTier(edge.name, undefined, signals);
@@ -141,67 +146,44 @@ export function reconcileAllEdges(signals: ResolverSignals = sampleSystem()): nu
   return changes;
 }
 
-let globalPolyglotEdgesCache: Array<{ name: string }> | null = null;
-
-/**
- * Lazy accessor for the edge list. We avoid calling `listEdges` at module
- * load so that `polyglotEdges.ts` -> transport imports don't cycle back
- * into this file during cold start in tests.
- */
-function globalPolyglotEdges(): Array<{ name: string }> {
-  if (globalPolyglotEdgesCache) return globalPolyglotEdgesCache;
-  try {
-    globalPolyglotEdgesCache = listEdges();
-  } catch {
-    globalPolyglotEdgesCache = [];
-  }
-  return globalPolyglotEdgesCache;
-}
-
+/** Test-only: force a single reconcile tick with the given signals override. */
 export function __runOnceForTests(signals?: ResolverSignals): number {
   return reconcileAllEdges(signals);
 }
 
 /**
- * Public cascade API: flip the global kill-switch degradation flag and
- * immediately re-resolve all edges so every registered edge's `tier`
- * falls back to `T1` regardless of its `defaultTier` / env override.
- *
- * Called by `killSwitchBridge.ts` after a Bifrost provider trip and
- * before any subsequent edges can dispatch into the now-degraded path.
- * @public
+ * Flip the global kill-switch degradation flag and immediately
+ * re-resolve all edges so every registered edge's tier falls back
+ * to T1 regardless of its defaultTier / env override.
  */
 export function activateKillSwitchDegradation(): void {
   forcedTToT1 = true;
+  globalPolyglotEdgesCache = null;
   try {
-    globalPolyglotEdgesCache = null;
     reconcileAllEdges({
       cpuPressure: 0,
       memPressure: 0,
       killSwitchActive: true,
     });
   } catch {
-    // reconcile is best-effort — the per-call fallback in `resolveTier`
-    // still observes `forcedTToT1` even if reconcile throws.
+    // reconcile is best-effort — the per-call fallback in resolveTier
+    // still observes forcedTToT1 even if reconcile throws.
   }
 }
 
 /**
- * Public cascade API: clear the kill-switch degradation flag and let
- * every edge fall back to its configured default tier on the next call.
- *
- * Called by `killSwitchBridge.ts` after a Bifrost provider recovery
- * (kill-switch reset). Note: reconciler boot path also calls this on
- * warm-start to ensure no stale state from a prior run.
+ * Clear the kill-switch degradation flag and let every edge fall
+ * back to its configured default tier on the next call.
  */
 export function deactivateKillSwitchDegradation(): void {
-    try {
-    forcedTToT1 = false;
-    globalPolyglotEdgesCache = null;
-    reconcileAllEdges({ killSwitchActive: false, cpuPressure: 0, memPressure: 0 });
-    } catch {
+  forcedTToT1 = false;
+  globalPolyglotEdgesCache = null;
+  clearTierOverrides();
+  try {
+    reconcileAllEdges({ cpuPressure: 0, memPressure: 0 });
+  } catch {
     // best-effort; per-call resolveTier will observe the cleared flag.
-    }
+  }
 }
 
 /** Test-only: kill-switch simulation flag. */
@@ -212,17 +194,15 @@ export function __setKillSwitchActiveForTests(active: boolean): void {
 /** Reset edge resolution cache + kill-switch flag for test isolation. */
 export function __resetEdgeCacheForTests(): void {
   forcedTToT1 = false;
+  globalPolyglotEdgesCache = null;
+  clearTierOverrides();
 }
 
 /**
  * Public read-only accessor for the global kill-switch degradation flag.
- * Returns true while a Bifrost provider is in the tripped state and every
- * edge must degrade to T1 (HTTP fallback).
+ * Returns true while a Bifrost provider is in the tripped state and
+ * every edge must degrade to T1 (HTTP fallback).
  */
 export function isKillSwitchDegradationActive(): boolean {
   return forcedTToT1;
 }
-
-/**
- * Force a single reconcile tick with the given signals override (test helper).
- */

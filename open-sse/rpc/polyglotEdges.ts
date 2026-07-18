@@ -86,9 +86,10 @@ const edges = new Map<string, PolyglotEdge<unknown, unknown>>();
 const tierOverrides = new Map<string, EdgeTierOverride>();
 
 export function registerEdge<TIn, TOut>(edge: PolyglotEdge<TIn, TOut>): PolyglotEdge<TIn, TOut> {
-  if (edges.has(edge.name)) {
-    throw new Error(`Polyglot edge "${edge.name}" is already registered`);
-  }
+
+  if (edges.has(edge.name)) return edge;
+
+
   edges.set(edge.name, edge as PolyglotEdge<unknown, unknown>);
   applyEnvOverride(edge.name, edge.defaultTier);
   return edge;
@@ -134,6 +135,10 @@ export function getEdge<TIn = unknown, TOut = unknown>(
 
 export function listEdges(): readonly PolyglotEdge<unknown, unknown>[] {
   return Array.from(edges.values());
+}
+
+export function clearTierOverrides(): void {
+  tierOverrides.clear();
 }
 
 export interface InvokeOptions {
