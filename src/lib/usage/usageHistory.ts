@@ -736,6 +736,8 @@ export interface ModelLatencyStatsEntry {
   p95LatencyMs: number;
   p99LatencyMs: number;
   latencyStdDev: number;
+  /** Average positive streaming TTFT, when telemetry is available. */
+  avgTtftMs?: number;
   windowHours: number;
 }
 
@@ -767,12 +769,13 @@ export async function getModelLatencyStats(
     model: string | null;
     success: number | null;
     latency_ms: number | null;
+    ttft_ms: number | null;
   };
 
   const rows = db
     .prepare(
       `
-      SELECT provider, model, success, latency_ms
+      SELECT provider, model, success, latency_ms, ttft_ms
       FROM usage_history
       WHERE timestamp >= @sinceIso
         AND provider IS NOT NULL
@@ -792,6 +795,8 @@ export async function getModelLatencyStats(
       successfulRequests: number;
       successfulLatencies: number[];
       allLatencies: number[];
+      successfulTtfts: number[];
+      allTtfts: number[];
     }
   >();
 
@@ -809,6 +814,8 @@ export async function getModelLatencyStats(
         successfulRequests: 0,
         successfulLatencies: [],
         allLatencies: [],
+        successfulTtfts: [],
+        allTtfts: [],
       });
     }
 
@@ -823,6 +830,12 @@ export async function getModelLatencyStats(
     if (latency > 0) {
       bucket.allLatencies.push(latency);
       if (isSuccess) bucket.successfulLatencies.push(latency);
+    }
+
+    const ttft = toNumber(row.ttft_ms);
+    if (ttft > 0) {
+      bucket.allTtfts.push(ttft);
+      if (isSuccess) bucket.successfulTtfts.push(ttft);
     }
   }
 
@@ -839,6 +852,8 @@ export async function getModelLatencyStats(
     const avg = sorted.reduce((acc, n) => acc + n, 0) / sorted.length;
     const successRate =
       bucket.totalRequests > 0 ? bucket.successfulRequests / bucket.totalRequests : 0;
+    const ttfts =
+      bucket.successfulTtfts.length >= minSamples ? bucket.successfulTtfts : bucket.allTtfts;
 
     stats[key] = {
       provider: bucket.provider,
@@ -852,6 +867,9 @@ export async function getModelLatencyStats(
       p95LatencyMs: Math.round(percentile(sorted, 0.95)),
       p99LatencyMs: Math.round(percentile(sorted, 0.99)),
       latencyStdDev: Math.round(stdDev(sorted, avg)),
+      ...(ttfts.length > 0
+        ? { avgTtftMs: Math.round(ttfts.reduce((acc, n) => acc + n, 0) / ttfts.length) }
+        : {}),
       windowHours,
     };
   }

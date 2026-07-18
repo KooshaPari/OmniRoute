@@ -107,6 +107,30 @@ test("latency — uses TTFT, TPS, and E2E metrics to pick the fastest provider-m
   assert.match(decision.reason, /tps=120/);
 });
 
+test("latency — historical TTFT/E2E evidence can change the selected candidate", () => {
+  const pool = [
+    cand({ provider: "low-p95", p95LatencyMs: 100 }),
+    cand({
+      provider: "historically-fast-stream",
+      p95LatencyMs: 200,
+      avgTtftMs: 30,
+      avgE2ELatencyMs: 300,
+      latencyStdDev: 10,
+    }),
+  ];
+
+  assert.equal(getStrategy("latency").select(pool, ctx).provider, "historically-fast-stream");
+});
+
+test("latency — zero or missing TTFT has no false fast advantage", () => {
+  const pool = [
+    cand({ provider: "zero-ttft", p95LatencyMs: 300, avgTtftMs: 0 }),
+    cand({ provider: "known-ttft", p95LatencyMs: 200, avgTtftMs: 100 }),
+  ];
+
+  assert.equal(getStrategy("latency").select(pool, ctx).provider, "known-ttft");
+});
+
 test("latency — failure rate can outweigh excellent raw speed", () => {
   const pool = [
     cand({
