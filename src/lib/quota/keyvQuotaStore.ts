@@ -1,10 +1,9 @@
 import { Keyv } from "keyv";
 import KeyvSqlite from "@keyv/sqlite";
-import type { DimensionKey } from "./dimensions";
-import type {
-  PoolUsageSnapshot,
-  QuotaStore,
-} from "./types";
+import type { DimensionKey, QuotaUnit, QuotaWindow } from "./dimensions";
+import type { QuotaDimension } from "./dimensions";
+import { dimensionKeyToString, WINDOW_MS } from "./dimensions";
+import type { PoolUsageSnapshot, ConsumeResult, QuotaStore } from "./types";
 
 /**
  * KeyvQuotaStore — fully-embedded quota storage backed by keyv.

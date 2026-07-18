@@ -163,15 +163,6 @@ export function __runOnceForTests(signals?: ResolverSignals): number {
 }
 
 /**
- * Test-only: clear the cached edge list so the next reconcileAllEdges
- * call sees the current registry state. Required when tests call
- * `__resetEdgeRegistryForTests` between cases.
- */
-export function __resetEdgeCacheForTests(): void {
-  globalPolyglotEdgesCache = null;
-}
-
-/**
  * Public cascade API: flip the global kill-switch degradation flag and
  * immediately re-resolve all edges so every registered edge's `tier`
  * falls back to `T1` regardless of its `defaultTier` / env override.
