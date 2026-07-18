@@ -1,9 +1,9 @@
 # v4-to-Rust Feature-Parity Matrix
 
-**ADR:** ADR-107 staged convergence  
-**WBS:** P1-L7 → P4-R1…P4-R8  
-**Evidence cutoff:** `main` at `4c19697ad` (PR #382)  
-**Status:** Initial owner and dependency baseline
+- **ADR:** ADR-107 staged convergence
+- **WBS:** P1-L7 → P4-R1…P4-R8
+- **Evidence cutoff:** `main` at `4c19697ad` (PR #382)
+- **Status:** Initial owner and dependency baseline
 
 ## Decision boundary
 
