@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import type { Context, MiddlewareHandler, Next } from 'hono';
 import { env } from '../env';
 
-const BEARER = /^Bearer\s+([A-Za-z0-9._-]{16,256})$/i;
+const BEARER = /^Bearer\s+([a-z0-9._-]{16,256})$/i;
 const APIKEY = /^[A-Za-z0-9._-]{16,256}$/;
 
 function verifyHmac(key: string): boolean {

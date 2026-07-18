@@ -35,10 +35,12 @@ describe("benchmark egress guard", () => {
       expect(() => globalThis.fetch("http://localhost:1/healthz")).toThrow(/invalid loopback target/);
       expect(() => globalThis.fetch("http://attacker.invalid/healthz")).toThrow(/invalid loopback target/);
       expect(() => globalThis.fetch("http://127.0.0.1:4322/unregistered")).toThrow(/invalid loopback target/);
+      expect(() => guard.setAllowedLoopbackPort(0)).toThrow(/integer from 1 to 65535/);
       guard.setAllowedLoopbackPort(4322);
       expect(() => globalThis.fetch("http://127.0.0.1:4322/healthz", { method: "POST" })).toThrow(/invalid loopback target/);
       expect(() => globalThis.fetch("http://127.0.0.1:4322/healthz", { method: "GET" })).not.toThrow();
       expect(receivedFetches.at(-1)?.[0]).toBe("http://127.0.0.1:4322/healthz");
+      expect(() => globalThis.fetch("http://127.0.0.1:4322/api/dashboard/health")).not.toThrow();
     } finally {
       guard.restore();
       globalThis.fetch = nativeFetch;

@@ -2,14 +2,17 @@ import { Hono, type Context } from 'hono';
 
 const UPSTREAM = process.env.OMNIROUTE_UPSTREAM ?? 'http://localhost:20128';
 const DEFAULT_ROLLOUT = Number(process.env.OMNI_WEB_STACK_ROLLOUT ?? '100');
+const WEB_STACK_COOKIE = /(?:^|;\s*)web_stack=(svelte|next)/;
 
 function shouldServeNext(cookieHeader: string | null): boolean {
   if (!cookieHeader) return false;
-  const m = cookieHeader.match(/(?:^|;\s*)web_stack=(svelte|next)/);
+  const m = WEB_STACK_COOKIE.exec(cookieHeader);
   if (m) return m[1] === 'next';
   let h = 0;
-  for (let i = 0; i < cookieHeader.length; i++) h = (h * 31 + cookieHeader.charCodeAt(i)) | 0;
-  return Math.abs(h) % 100 >= DEFAULT_ROLLOUT;
+  for (let i = 0; i < cookieHeader.length; i++) {
+    h = (Math.imul(h, 31) + (cookieHeader.codePointAt(i) ?? 0)) % 2_147_483_647;
+  }
+  return h % 100 >= DEFAULT_ROLLOUT;
 }
 
 async function forwardToUpstream(

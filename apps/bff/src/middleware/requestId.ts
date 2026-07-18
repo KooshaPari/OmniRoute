@@ -4,12 +4,7 @@ const HEADER = 'x-request-id';
 const VALID = /^[A-Za-z0-9_-]{8,128}$/;
 
 export function generateRequestId(): string {
-  return (
-    Date.now().toString(36) +
-    '-' +
-    Math.random().toString(36).slice(2, 10) +
-    crypto.randomUUID().slice(0, 8)
-  );
+  return crypto.randomUUID();
 }
 
 export const requestId = (): MiddlewareHandler => async (c: Context, next: Next) => {

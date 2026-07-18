@@ -6,15 +6,16 @@ const UPSTREAM = env.NEXTJS_UPSTREAM ?? "http://localhost:20128";
 const DEFAULT_ROLLOUT = Number(env.OMNI_WEB_STACK_ROLLOUT ?? "100");
 
 function bucketForUser(cookie: string | undefined): number {
-  // Simple consistent bucket from cookie or random for anonymous
-  const seed = cookie ? hash(cookie) : Math.floor(Math.random() * 1e9);
+  const seed = cookie ? hash(cookie) : crypto.getRandomValues(new Uint32Array(1))[0];
   return seed % 100;
 }
 
 function hash(s: string): number {
   let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-  return Math.abs(h);
+  for (let i = 0; i < s.length; i++) {
+    h = (Math.imul(h, 31) + (s.codePointAt(i) ?? 0)) % 2_147_483_647;
+  }
+  return h;
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
