@@ -1,4 +1,6 @@
 name: l52-sbom-audit
+permissions:
+  contents: read
 on:
   schedule: [{cron: '0 9 * * 1'}]
   workflow_dispatch: {}

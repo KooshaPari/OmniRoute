@@ -1,4 +1,6 @@
 name: fuzz-ci
+permissions:
+  contents: read
 on:
   schedule: [{cron: '0 2 * * 6'}]
   workflow_dispatch: {}

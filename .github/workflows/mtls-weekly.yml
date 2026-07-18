@@ -1,4 +1,6 @@
 name: mtls-weekly
+permissions:
+  contents: read
 on:
   schedule: [{cron: '0 12 * * 6'}]
   workflow_dispatch: {}

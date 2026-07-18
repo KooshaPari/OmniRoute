@@ -1,4 +1,6 @@
 name: l21-bom-diff
+permissions:
+  contents: read
 on:
   schedule: [{cron: '0 5 * * 1'}]
   workflow_dispatch: {}

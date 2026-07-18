@@ -1,4 +1,6 @@
 name: sbom-weekly
+permissions:
+  contents: read
 on:
   schedule: [{cron: '0 10 * * 6'}]
   workflow_dispatch: {}
