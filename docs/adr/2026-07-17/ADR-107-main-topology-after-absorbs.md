@@ -1,6 +1,6 @@
 # ADR-107: Main topology after Argis and omniroute-rs absorbs
 
-**Status**: Draft
+**Status**: Accepted
 **Date:** 2026-07-17
 **Decision owner:** Repository owner
 **Related:** #339, #340, #322, PR #375, PR #376
@@ -20,7 +20,11 @@ release criteria, and generated documentation unreliable.
 
 ## 2. Decision
 
-Choose exactly one option before merging or closing BFF work.
+Adopt **Option C: staged convergence**. Restore the v4 BFF/web feature surface
+as a compatibility baseline, while retaining `omniroute-rs` as the target
+architecture. Migrate bounded capabilities behind contract and parity gates;
+delete a v4 capability only after its Rust replacement satisfies the same
+functional, operational, and rollback criteria.
 
 ### Option A — Accept current Rust-first topology (recommended if intentional)
 
@@ -38,11 +42,22 @@ Choose exactly one option before merging or closing BFF work.
 - Resume #339 and #340 against the restored canonical paths.
 - Define coexistence boundaries between v4 services and omniroute-rs.
 
-## 3. Recommendation
+### Option C — Staged convergence (selected)
 
-Accept Option A only if the subtree removal was deliberate. Otherwise choose
-Option B; silently treating an accidental force-push/restructure as an
-architecture decision would lose supported behavior and traceability.
+- Restore v4 BFF/web in a provenance-preserving recovery PR.
+- Keep the Rust workspace and Argis absorb on `main`.
+- Freeze new cross-cutting architecture in v4, but allow correctness,
+  security, observability, and migration-enabling work.
+- Define API contracts and parity tests before each Rust replacement.
+- Route one bounded capability at a time to Rust using a reversible flag.
+- Remove v4 code only after two release cycles with parity, SLO, and rollback
+  evidence.
+
+## 3. Rationale
+
+Option C maximizes long-term capability and polish without pretending the
+scaffold-heavy Rust workspace already replaces the mature v4 feature surface.
+It avoids both permanent dual-stack drift and abrupt feature loss.
 
 ## 4. Consequences
 
@@ -58,11 +73,23 @@ architecture decision would lose supported behavior and traceability.
 - Negative: restores a larger monorepo and creates overlap with Rust absorbs.
 - Risk: recovery provenance and merge conflict volume are substantial.
 
+### Option C
+
+- Positive: preserves maximum feature coverage while establishing a clear
+  Rust-first destination.
+- Positive: supports incremental polish, measurement, and rollback.
+- Negative: temporarily carries two implementations and requires contract
+  governance.
+- Risk: migration can stall into permanent dual-stack operation. Mitigate with
+  per-capability owners, deadlines, and deletion criteria.
+
 ## 5. Release criteria
 
 This ADR is resolved when:
 
-1. The owner selects A or B.
-2. The selected topology is reflected in `main`.
-3. #339, #340, and PR #375 are updated.
-4. `plans/2026-07-17-proc2-wbs-pert-dag.md` is advanced past P1-L1.
+1. The v4 recovery commit range and provenance are documented.
+2. BFF/web restoration passes existing contracts without reverting the Rust or
+   Argis absorbs.
+3. #339, #340, and PR #375 are rebased or superseded explicitly.
+4. A feature-parity matrix maps every v4 capability to a Rust state and owner.
+5. The first capability migrates through a reversible routing flag.

@@ -16,7 +16,7 @@ P0 Absorb stability ──► P1 Architecture truth ──► P3 Product/Rust wo
 Critical path:
 
 ```text
-P0-L1 → P0-L2 → P1-L1 → P1-L2 → P3-R1
+P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 ```
 
 ## P0 — Absorb stability
@@ -33,17 +33,20 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P3-R1
 
 | ID | Work | Dependency | State |
 |---|---|---|---|
-| P1-L1 | Decide whether v4 BFF/web removal was intentional | — | `[!]` |
-| P1-L2 | Accept/revise ADR-107 for the topology decision | P1-L1 | `[~]` |
-| P1-L3 | Refresh omni-evolve snapshot and add Rust stream | P1-L2 | `[~]` |
-| P1-L4 | Retarget or restore #339, #340, and PR #375 | P1-L1 | `[~]` |
+| P1-L1 | Select maximum-feature long-term topology | — | `[x]` |
+| P1-L2 | Accept ADR-107 staged v4-to-Rust convergence | P1-L1 | `[x]` |
+| P1-L3 | Refresh omni-evolve snapshot and add convergence stream | P1-L2 | `[ ]` |
+| P1-L4 | Inventory and verify the last coherent v4 commit range | P1-L2 | `[ ]` |
+| P1-L5 | Restore BFF/web without reverting Rust or Argis absorbs | P1-L4 | `[ ]` |
+| P1-L6 | Rebase or supersede #339, #340, and PR #375 | P1-L5 | `[ ]` |
+| P1-L7 | Publish v4-to-Rust feature-parity matrix and owners | P1-L4 | `[ ]` |
 
 ## P2 — Hygiene (parallel)
 
 | ID | Work | Dependency | State |
 |---|---|---|---|
 | P2-L1 | Verify and close stale issue #320 | — | `[x]` |
-| P2-L2 | Add blocked-by-ADR status to PR #375 | P1-L1 | `[~]` |
+| P2-L2 | Add blocked-by-restoration status to PR #375 | P1-L2 | `[ ]` |
 | P2-L3 | Smoke-test absorbed `extensions/argis` entrypoints | P0-L2 | `[ ]` |
 | P2-L4 | Configure OmniRoute project/epic and GitHub sync in AgilePlus | — | `[ ]` |
 
@@ -62,7 +65,7 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P3-R1
 
 | ID | Work | Effort | Dependency |
 |---|---|---:|---|
-| P4-R1 | Implement provider repository CRUD | 1 d | ADR-107 |
+| P4-R1 | Implement provider repository CRUD | 1 d | P1-L7 |
 | P4-R2 | Add API skeleton and health route | 1 d | P4-R1 |
 | P4-R3 | Delegate router to core registry | 2 d | P4-R2 |
 | P4-R4 | Implement CLI `serve` and `migrate` commands | 2 d | P4-R2 |
@@ -78,12 +81,15 @@ flowchart TD
   NPM[P0-L4 npm lock repair] --> DAST[DAST green]
   LAT[P0-L5 latency baseline] --> REST[Latency gate green]
 
-  DEC{P1-L1 v4 removal intentional?}
-  DEC --> ADR[P1-L2 ADR-107]
+  DEC[P1-L1 choose staged convergence]
+  DEC --> ADR[P1-L2 accept ADR-107]
   ADR --> DAG[P1-L3 refresh omni-evolve]
-  DEC --> BFF[P1-L4 retarget or restore BFF work]
+  ADR --> INV[P1-L4 inventory v4 provenance]
+  INV --> RESTORE[P1-L5 restore BFF/web]
+  RESTORE --> BFF[P1-L6 rebase or supersede BFF work]
+  INV --> MATRIX[P1-L7 parity matrix]
 
-  ADR --> CRUD[P4-R1 provider CRUD]
+  MATRIX --> CRUD[P4-R1 provider CRUD]
   RCI --> API[P4-R2 API skeleton]
   CRUD --> API
   API --> ROUTER[P4-R3 router]
@@ -96,8 +102,7 @@ flowchart TD
 ## Next-two queue
 
 1. **P0-L3:** add a path-scoped Linux Rust workspace check.
-2. **P1-L1:** obtain the topology decision; if unavailable, run P0-L4 and
-   P2-L3 in parallel.
+2. **P1-L4:** identify and verify the coherent v4 recovery commit range.
 
 ## Update rule
 
