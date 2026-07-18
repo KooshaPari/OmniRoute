@@ -77,10 +77,8 @@ export function __resetOtelInitForTests(): void {
  * path is unaffected, all `getTracer(name)` calls return no-op tracers).
  *
  * Implementation notes:
- *   - The SDK packages (`@opentelemetry/sdk-node`, `@opentelemetry/exporter-trace-otlp-http`,
- *     `@opentelemetry/resources`, `@opentelemetry/semantic-conventions`) are NOT a hard
- *     dependency of the project — they are dynamically imported only when the env var is set.
- *     This keeps `node_modules` lean for operators who don't run a collector.
+ *   - The SDK packages are runtime dependencies because Next.js resolves dynamic import
+ *     targets while building the server bundle. They are loaded only when tracing is enabled.
  *   - On init failure, we log once and stay no-op; the request path is never blocked.
  *   - This is called once from `registerNodejs()` (the start of the Node.js startup chain).
  *   - Honors the OTel-spec standard `OTEL_SDK_DISABLED=true` switch.
@@ -329,9 +327,8 @@ export async function registerNodejs(): Promise<void> {
     // without this the dashboard mode (auto/custom/adaptive) silently reverts to
     // the passthrough default on every restart. Previously this was only wired into
     // the unused `server-init.ts`, so it never ran in production.
-    const { hydrateThinkingBudgetConfig } = await import(
-      "@omniroute/open-sse/services/thinkingBudget.ts"
-    );
+    const { hydrateThinkingBudgetConfig } =
+      await import("@omniroute/open-sse/services/thinkingBudget.ts");
     if (hydrateThinkingBudgetConfig(settings)) {
       console.log("[STARTUP] Thinking-Budget config restored from settings");
     }

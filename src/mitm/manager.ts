@@ -8,12 +8,6 @@ import { installCertResult, uninstallCert } from "./cert/install.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
 import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
-import { getPort } from "./getPort";
-import { logger } from "./logger";
-import { MITM_SERVER_PATH } from "./serverPath";
-import { streamProcessLines } from "./streamProcessLines";
-import { injectInspectorIngestToken } from "./token";
-import { waitForPort, waitForStderrReady } from "./util";
 import { Worker as NodeWorker } from "worker_threads";
 
 const USE_WORKER = process.env.MITM_USE_WORKER === "1";
@@ -65,6 +59,7 @@ export function interpretMitmStartupError(stderr: string, port: number): string 
 // Store server process
 let serverProcess: ChildProcess | null = null;
 let serverPid: number | null = null;
+let mitmWorker: NodeWorker | null = null;
 
 // Set when getMitmStatus() finds a stale PID file (server died without clean
 // teardown). The dashboard surfaces this to offer a one-click Repair. Cleared
@@ -249,9 +244,7 @@ export function buildRepairPlan(): RepairPlan {
  */
 async function revertSystemProxyIfApplied(): Promise<boolean> {
   try {
-    const { getSystemProxyState, clearSystemProxy } = await import(
-      "@/lib/inspector/captureState"
-    );
+    const { getSystemProxyState, clearSystemProxy } = await import("@/lib/inspector/captureState");
     const state = getSystemProxyState();
     if (!state.applied || !state.previousState) return false;
     const { revert } = await import("./inspector/systemProxyConfig.ts");
@@ -379,19 +372,19 @@ export async function handleExitCleanup(
       { signal },
       "MITM parent received signal — child terminated; no cached sudo password, run Repair if DNS/CA/proxy were applied."
     );
-      return;
-    }
+    return;
+  }
 
-    try {
-      await deps.removeDNSEntry(sudoPassword);
-      const managed = deps.collectManagedHosts();
-      if (managed.length > 0) {
-        await deps.removeDNSEntries(managed, sudoPassword);
-      }
-      log.info(
-        { signal },
-        "MITM parent received signal — child terminated and privileged /etc/hosts entries reverted."
-      );
+  try {
+    await deps.removeDNSEntry(sudoPassword);
+    const managed = deps.collectManagedHosts();
+    if (managed.length > 0) {
+      await deps.removeDNSEntries(managed, sudoPassword);
+    }
+    log.info(
+      { signal },
+      "MITM parent received signal — child terminated and privileged /etc/hosts entries reverted."
+    );
   } catch (err) {
     _orphanedStateDetected = true;
     log.error(
@@ -587,9 +580,7 @@ export async function startMitm(
   let ingestToken = process.env.INSPECTOR_INTERNAL_INGEST_TOKEN || "";
   if (!ingestToken) {
     try {
-      const ingestMod = await import(
-        "@/app/api/tools/traffic-inspector/internal/ingest/route"
-      );
+      const ingestMod = await import("@/app/api/tools/traffic-inspector/internal/ingest/route");
       if (typeof ingestMod.getIngestTokenForBootstrap === "function") {
         ingestToken = ingestMod.getIngestTokenForBootstrap();
       }
@@ -598,7 +589,6 @@ export async function startMitm(
     }
   }
 
-  const useWorker = process.env.MITM_USE_WORKER === "1";
   const workerEnv = {
     ...process.env,
     ROUTER_API_KEY: apiKey,
@@ -607,17 +597,41 @@ export async function startMitm(
     NODE_ENV: "production",
   } as NodeJS.ProcessEnv;
 
-  if (useWorker) {
+  if (USE_WORKER) {
     // --- Worker path (in-process, no subprocess) ---
-    const { Worker } = await import("node:worker_threads");
     const { pathToFileURL } = await import("node:url");
-    mitmWorker = new Worker(pathToFileURL(MITM_SERVER_PATH).href, {
+    mitmWorker = new NodeWorker(pathToFileURL(MITM_SERVER_PATH), {
       env: workerEnv,
     });
-    mitmWorker.on("message", (msg) => {
-      if (typeof msg === "object" && msg !== null && "port" in msg) {
-        serverReadyResolve(msg.port as number);
-      }
+    const worker = mitmWorker;
+    await new Promise<void>((resolve, reject) => {
+      let settled = false;
+      const settleReady = (readyPort: number) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(survivalTimer);
+        log.info({ port: readyPort }, "MITM worker ready");
+        resolve();
+      };
+      const survivalTimer = setTimeout(() => settleReady(port), 2000);
+
+      worker.once("message", (msg) => {
+        if (typeof msg === "object" && msg !== null && "port" in msg) {
+          settleReady(Number(msg.port));
+        }
+      });
+      worker.once("error", (err) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(survivalTimer);
+        reject(err);
+      });
+      worker.once("exit", (code) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(survivalTimer);
+        reject(new Error(`MITM worker exited before startup (code ${code})`));
+      });
     });
     mitmWorker.on("error", (err) => {
       log.error({ err }, "MITM worker error");
@@ -644,68 +658,69 @@ export async function startMitm(
       fs.writeFileSync(PID_FILE, String(serverPid));
     }
 
-  // Buffer recent stderr so a startup failure can be reported with its real
-  // cause (capped to avoid unbounded growth on a chatty/looping process). (#3606)
-  let stderrBuffer = "";
+    // Buffer recent stderr so a startup failure can be reported with its real
+    // cause (capped to avoid unbounded growth on a chatty/looping process). (#3606)
+    let stderrBuffer = "";
 
-  // Log server output
-  proc.stdout?.on("data", (data) => {
-    log.info({ source: "mitm-server" }, data.toString().trim());
-  });
+    // Log server output
+    proc.stdout?.on("data", (data) => {
+      log.info({ source: "mitm-server" }, data.toString().trim());
+    });
 
-  proc.stderr?.on("data", (data) => {
-    const chunk = data.toString();
-    stderrBuffer = (stderrBuffer + chunk).slice(-4000);
-    log.error({ source: "mitm-server" }, chunk.trim());
-  });
+    proc.stderr?.on("data", (data) => {
+      const chunk = data.toString();
+      stderrBuffer = (stderrBuffer + chunk).slice(-4000);
+      log.error({ source: "mitm-server" }, chunk.trim());
+    });
 
-  proc.on("exit", (code) => {
-    log.info({ exitCode: code }, "MITM server exited");
-    serverProcess = null;
-    serverPid = null;
+    proc.on("exit", (code) => {
+      log.info({ exitCode: code }, "MITM server exited");
+      serverProcess = null;
+      serverPid = null;
 
-    // Remove PID file
-    try {
-      fs.unlinkSync(PID_FILE);
-    } catch (error) {
-      // Ignore
-    }
-  });
-
-  // Wait and verify server actually started
-  const started = await new Promise<boolean>((resolve) => {
-    let resolved = false;
-    const timeout = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        resolve(true);
-      }
-    }, 2000);
-
-    proc.on("exit", () => {
-      clearTimeout(timeout);
-      if (!resolved) {
-        resolved = true;
-        resolve(false);
+      // Remove PID file
+      try {
+        fs.unlinkSync(PID_FILE);
+      } catch (error) {
+        // Ignore
       }
     });
 
-    // Fail fast on any "❌" diagnostic line from server.cjs (covers EADDRINUSE,
-    // EACCES, missing ROUTER_API_KEY, and any other server.on("error") cause).
-    proc.stderr?.on("data", (data) => {
-      const msg = data.toString();
-      if (msg.includes("❌")) {
+    // Wait and verify server actually started
+    const started = await new Promise<boolean>((resolve) => {
+      let resolved = false;
+      const timeout = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          resolve(true);
+        }
+      }, 2000);
+
+      proc.on("exit", () => {
         clearTimeout(timeout);
         if (!resolved) {
           resolved = true;
           resolve(false);
         }
-      }
-    });
-  });
+      });
 
-  if (!started) {
-    throw new Error(interpretMitmStartupError(stderrBuffer, port));
+      // Fail fast on any "❌" diagnostic line from server.cjs (covers EADDRINUSE,
+      // EACCES, missing ROUTER_API_KEY, and any other server.on("error") cause).
+      proc.stderr?.on("data", (data) => {
+        const msg = data.toString();
+        if (msg.includes("❌")) {
+          clearTimeout(timeout);
+          if (!resolved) {
+            resolved = true;
+            resolve(false);
+          }
+        }
+      });
+    });
+
+    if (!started) {
+      throw new Error(interpretMitmStartupError(stderrBuffer, port));
+    }
   }
 
   return {
@@ -721,6 +736,10 @@ export async function startMitm(
  */
 export async function stopMitm(sudoPassword: string): Promise<{ running: false; pid: null }> {
   // 1. Kill server process (in-memory or from PID file)
+  if (mitmWorker) {
+    await mitmWorker.terminate();
+    mitmWorker = null;
+  }
   const proc = serverProcess;
   if (proc && !proc.killed) {
     log.info("Stopping MITM server...");

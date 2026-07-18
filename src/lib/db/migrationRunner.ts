@@ -436,6 +436,18 @@ function isSchemaAlreadyApplied(
       // 112_batch_item_checkpoints, causing a collision). Also covers DBs that
       // applied tenant_quotas under the earlier 100-slot number.
       return hasTable(db, "tenant_quotas");
+    case "122":
+      // fleet_nodes was first shipped in the colliding 102 slot.
+      return hasTable(db, "fleet_nodes");
+    case "123":
+      // fleet_config was first shipped in the colliding 103 slot.
+      return hasTable(db, "fleet_config");
+    case "124":
+      // scaling_policies was first shipped in the colliding 104 slot.
+      return hasTable(db, "scaling_policies");
+    case "125":
+      // alert_rules was first shipped in the colliding 105 slot.
+      return hasTable(db, "alert_rules");
     case "113":
       // cli_access_tokens renumbered 100 → 113 (duplicated 100 slot).
       return hasTable(db, "cli_access_tokens");
