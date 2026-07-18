@@ -2,7 +2,7 @@
 
 **ADR:** ADR-107 staged convergence  
 **WBS:** P1-L4 → P1-L5 → P1-L6  
-**Status:** Recovery verified and merge-ready in PR #380 under RC-A9 waiver
+**Status:** Recovery merged via PR #380; clean #375 replay merged via PR #382
 
 ## Source of truth
 
@@ -82,8 +82,9 @@ Do not restore:
 - [x] Sonar security findings use cryptographic IDs and canonical allowlisted
   benchmark egress targets; residual scanner false positives are narrowly
   documented and the final quality gate passes.
-- [ ] PR #375 has a conflict-free replay plan.
-- [ ] #339 and #340 point to canonical restored paths.
+- [x] PR #375 is superseded by conflict-free replay PR #382.
+- [x] #339 points to the canonical restored path through merged PR #382.
+- [ ] #340 points to canonical restored paths; closed draft #342 requires a clean replay.
 - [x] Recovery can be reverted with one PR without affecting later Rust work.
 
 ## Rollback

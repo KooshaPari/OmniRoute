@@ -249,7 +249,9 @@ export function buildRepairPlan(): RepairPlan {
  */
 async function revertSystemProxyIfApplied(): Promise<boolean> {
   try {
-    const { getSystemProxyState, clearSystemProxy } = await import("@/lib/inspector/captureState");
+    const { getSystemProxyState, clearSystemProxy } = await import(
+      "@/lib/inspector/captureState"
+    );
     const state = getSystemProxyState();
     if (!state.applied || !state.previousState) return false;
     const { revert } = await import("./inspector/systemProxyConfig.ts");
@@ -377,19 +379,19 @@ export async function handleExitCleanup(
       { signal },
       "MITM parent received signal — child terminated; no cached sudo password, run Repair if DNS/CA/proxy were applied."
     );
-    return;
-  }
-
-  try {
-    await deps.removeDNSEntry(sudoPassword);
-    const managed = deps.collectManagedHosts();
-    if (managed.length > 0) {
-      await deps.removeDNSEntries(managed, sudoPassword);
+      return;
     }
-    log.info(
-      { signal },
-      "MITM parent received signal — child terminated and privileged /etc/hosts entries reverted."
-    );
+
+    try {
+      await deps.removeDNSEntry(sudoPassword);
+      const managed = deps.collectManagedHosts();
+      if (managed.length > 0) {
+        await deps.removeDNSEntries(managed, sudoPassword);
+      }
+      log.info(
+        { signal },
+        "MITM parent received signal — child terminated and privileged /etc/hosts entries reverted."
+      );
   } catch (err) {
     _orphanedStateDetected = true;
     log.error(
@@ -585,7 +587,9 @@ export async function startMitm(
   let ingestToken = process.env.INSPECTOR_INTERNAL_INGEST_TOKEN || "";
   if (!ingestToken) {
     try {
-      const ingestMod = await import("@/app/api/tools/traffic-inspector/internal/ingest/route");
+      const ingestMod = await import(
+        "@/app/api/tools/traffic-inspector/internal/ingest/route"
+      );
       if (typeof ingestMod.getIngestTokenForBootstrap === "function") {
         ingestToken = ingestMod.getIngestTokenForBootstrap();
       }
@@ -640,78 +644,75 @@ export async function startMitm(
       fs.writeFileSync(PID_FILE, String(serverPid));
     }
 
-    // Buffer recent stderr so a startup failure can be reported with its real
-    // cause (capped to avoid unbounded growth on a chatty/looping process). (#3606)
-    let stderrBuffer = "";
+  // Buffer recent stderr so a startup failure can be reported with its real
+  // cause (capped to avoid unbounded growth on a chatty/looping process). (#3606)
+  let stderrBuffer = "";
 
-    // Log server output
-    proc.stdout?.on("data", (data) => {
-      log.info({ source: "mitm-server" }, data.toString().trim());
-    });
+  // Log server output
+  proc.stdout?.on("data", (data) => {
+    log.info({ source: "mitm-server" }, data.toString().trim());
+  });
 
-    proc.stderr?.on("data", (data) => {
-      const chunk = data.toString();
-      stderrBuffer = (stderrBuffer + chunk).slice(-4000);
-      log.error({ source: "mitm-server" }, chunk.trim());
-    });
+  proc.stderr?.on("data", (data) => {
+    const chunk = data.toString();
+    stderrBuffer = (stderrBuffer + chunk).slice(-4000);
+    log.error({ source: "mitm-server" }, chunk.trim());
+  });
 
-    proc.on("exit", (code) => {
-      log.info({ exitCode: code }, "MITM server exited");
-      serverProcess = null;
-      serverPid = null;
+  proc.on("exit", (code) => {
+    log.info({ exitCode: code }, "MITM server exited");
+    serverProcess = null;
+    serverPid = null;
 
-      // Remove PID file
-      try {
-        fs.unlinkSync(PID_FILE);
-      } catch (error) {
-        // Ignore
+    // Remove PID file
+    try {
+      fs.unlinkSync(PID_FILE);
+    } catch (error) {
+      // Ignore
+    }
+  });
+
+  // Wait and verify server actually started
+  const started = await new Promise<boolean>((resolve) => {
+    let resolved = false;
+    const timeout = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        resolve(true);
+      }
+    }, 2000);
+
+    proc.on("exit", () => {
+      clearTimeout(timeout);
+      if (!resolved) {
+        resolved = true;
+        resolve(false);
       }
     });
 
-    // Wait and verify server actually started
-    const started = await new Promise<boolean>((resolve) => {
-      let resolved = false;
-      const timeout = setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          resolve(true);
-        }
-      }, 2000);
-
-      proc.on("exit", () => {
+    // Fail fast on any "❌" diagnostic line from server.cjs (covers EADDRINUSE,
+    // EACCES, missing ROUTER_API_KEY, and any other server.on("error") cause).
+    proc.stderr?.on("data", (data) => {
+      const msg = data.toString();
+      if (msg.includes("❌")) {
         clearTimeout(timeout);
         if (!resolved) {
           resolved = true;
           resolve(false);
         }
-      });
-
-      // Fail fast on any "❌" diagnostic line from server.cjs (covers EADDRINUSE,
-      // EACCES, missing ROUTER_API_KEY, and any other server.on("error") cause).
-      proc.stderr?.on("data", (data) => {
-        const msg = data.toString();
-        if (msg.includes("❌")) {
-          clearTimeout(timeout);
-          if (!resolved) {
-            resolved = true;
-            resolve(false);
-          }
-        }
-      });
+      }
     });
+  });
 
-    if (!started) {
-      throw new Error(interpretMitmStartupError(stderrBuffer, port));
-    }
-
-    return {
-      running: true,
-      pid: serverPid,
-      certTrusted,
-    };
+  if (!started) {
+    throw new Error(interpretMitmStartupError(stderrBuffer, port));
   }
 
-  // Explicitly terminate the startMitm declaration before the next exported API.
+  return {
+    running: true,
+    pid: serverPid,
+    certTrusted,
+  };
 }
 
 /**
