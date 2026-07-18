@@ -1,27 +1,18 @@
 //! omniroute-cli: command-line interface (clap v4).
 //!
-//! Subcommands:
-//! - `start`    — start the daemon
-//! - `stop`     — stop the daemon
-//! - `status`   — show daemon status
-//! - `config`   — show / edit / validate config
-//! - `db`       — database operations (migrate, vacuum, backup, restore)
-//! - `doctor`   — diagnose the install
-//! - `version`  — print version
-//! - `serve`    — run the API server in the foreground
-//! - `mcp`      — start the MCP server over stdio
-//! - `reset-password` — recovery for broken encrypted credentials
+//! Scaffold from `absorb/omniroute-rs` — full command modules land in follow-up PRs.
 
 #![deny(unsafe_code)]
 #![warn(missing_docs)]
 
-pub mod cli;
-pub mod config_cmd;
-pub mod db_cmd;
-pub mod doctor;
-pub mod runtime;
-pub mod serve;
-pub mod status;
-pub mod version;
-
-pub use cli::{run, Cli, Command};
+/// CLI entry for the `omniroute` binary.
+pub fn run() -> anyhow::Result<()> {
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
+        )
+        .try_init()
+        .ok();
+    tracing::info!("omniroute CLI scaffold; command surface lands in follow-up PRs");
+    Ok(())
+}

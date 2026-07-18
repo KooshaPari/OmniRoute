@@ -18,3 +18,5 @@ async-trait = { workspace = true }
 http = { workspace = true }
 bytes = { workspace = true }
 url = { workspace = true }
+futures = { workspace = true }
+parking_lot = { workspace = true }
