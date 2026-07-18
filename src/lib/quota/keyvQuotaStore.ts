@@ -6,7 +6,7 @@
  * Implements the `QuotaStore` interface from `./types`.
  */
 import { Keyv } from "keyv";
-import { KeyvSqlite } from "@keyv/sqlite";
+import KeyvSqlite from "@keyv/sqlite";
 import type { DimensionKey, QuotaDimension } from "./dimensions";
 import { dimensionKeyToString, WINDOW_MS } from "./dimensions";
 import type { QuotaStore, PoolUsageSnapshot, ConsumeResult } from "./types";
@@ -36,7 +36,9 @@ export class KeyvQuotaStore implements QuotaStore {
   constructor(options: KeyvQuotaStoreOptions = {}) {
     const uri = options.uri ?? "memory://";
     if (uri !== "memory://") {
-      const store = new KeyvSqlite(uri);
+      // @keyv/sqlite v3 uses the options form; passing a URI string silently
+      // falls back to its in-memory default and loses persistence.
+      const store = new KeyvSqlite({ uri });
       this.kv = new Keyv({ store, namespace: options.namespace ?? "quota" });
     } else {
       this.kv = new Keyv({ store: undefined, namespace: options.namespace ?? "quota" });

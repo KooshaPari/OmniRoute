@@ -6,7 +6,7 @@
  * sidecar. Falls back to in-memory Map when Keyv initialization fails.
  */
 import { Keyv } from "keyv";
-import { KeyvSqlite } from "@keyv/sqlite";
+import KeyvSqlite from "@keyv/sqlite";
 import { resolve } from "node:path";
 
 // Keyv-backed store — always on (replaces REDIS_URL-gated ioredis).
