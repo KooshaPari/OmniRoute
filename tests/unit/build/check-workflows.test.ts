@@ -267,6 +267,21 @@ test("evaluateZizmorRatchet: strict integer comparison — any increase regresse
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// latency-budget report artifact
+// ─────────────────────────────────────────────────────────────────────────────
+
+test("latency-budget: regression comment cannot fail when the report is absent", () => {
+  const workflow = fs.readFileSync(
+    path.join(process.cwd(), ".github/workflows/latency-budget.yml"),
+    "utf8"
+  );
+
+  assert.match(workflow, /printf .*regression-output\.txt/);
+  assert.match(workflow, /fs\.existsSync\(reportPath\)/);
+  assert.match(workflow, /echo "exit=\$exit_code" >> "\$GITHUB_OUTPUT"/);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // readBaselineZizmorValue — tolerant read of quality-baseline.json
 // ─────────────────────────────────────────────────────────────────────────────
 
