@@ -336,7 +336,20 @@ jobs:
             }
           '
 
+      - name: Check NPM_TOKEN availability
+        id: auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [[ -z "${NPM_TOKEN:-}" ]]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::NPM_TOKEN secret is not set — npm publish will be skipped. Set it under Settings → Secrets and variables → Actions."
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish with channel-specific dist-tag
+        if: steps.auth.outputs.available == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           RESOLVED: ${{ needs.resolve.outputs.resolved }}
