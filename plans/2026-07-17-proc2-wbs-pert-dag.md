@@ -38,9 +38,9 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 | P1-L2 | Accept ADR-107 staged v4-to-Rust convergence | P1-L1 | `[x]` |
 | P1-L3 | Refresh omni-evolve snapshot and add convergence stream | P1-L2 | `[ ]` |
 | P1-L4 | Inventory and verify the last coherent v4 commit range | P1-L2 | `[x]` |
-| P1-L5 | Restore BFF/web without reverting Rust or Argis absorbs | P1-L4 | `[/]` PR #380 merge-ready under RC-A9 waiver |
-| P1-L6 | Rebase or supersede #339, #340, and PR #375 | P1-L5 | `[ ]` |
-| P1-L7 | Publish v4-to-Rust feature-parity matrix and owners | P1-L4 | `[ ]` |
+| P1-L5 | Restore BFF/web without reverting Rust or Argis absorbs | P1-L4 | `[x]` merged via PR #380 |
+| P1-L6 | Rebase or supersede #339, #340, and PR #375 | P1-L5 | `[/]` #339/#375 complete via PR #382; closed #342 source commit verified for #340 replay |
+| P1-L7 | Publish v4-to-Rust feature-parity matrix and owners | P1-L4 | `[x]` published in `2026-07-18-v4-rust-feature-parity-matrix.md` |
 
 ## P2 — Hygiene (parallel)
 
@@ -72,6 +72,9 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 | P4-R3 | Delegate router to core registry | 2 d | P4-R2 |
 | P4-R4 | Implement CLI `serve` and `migrate` commands | 2 d | P4-R2 |
 | P4-R5 | Add Linux Rust CI matrix | 0.5 d | P0-L2 |
+| P4-R6 | Implement keys/auth API | 2 d | P4-R2 |
+| P4-R7 | Implement measured observability | 3 d | P4-R3 |
+| P4-R8 | Implement audit and webhook persistence/API | 2 d | P4-R2 |
 
 ## DAG
 
@@ -97,6 +100,10 @@ flowchart TD
   CRUD --> API
   API --> ROUTER[P4-R3 router]
   API --> CLI[P4-R4 CLI]
+  M376 --> RUSTCI[P4-R5 Linux Rust CI]
+  API --> AUTH[P4-R6 keys/auth]
+  ROUTER --> OBS[P4-R7 observability]
+  API --> AUDIT[P4-R8 audit/webhooks]
 
   CLOSE320[P2-L1 close #320]
   BFF --> NOTE375[P2-L2 update #375]
@@ -104,8 +111,8 @@ flowchart TD
 
 ## Next-two queue
 
-1. **P1-L5:** land the bounded v4 compatibility recovery PR.
-2. **P1-L7:** publish the first v4-to-Rust capability-parity matrix.
+1. **P1-L6:** cleanly replay #340 source commit `51d39d911` from closed PR #342.
+2. **P4-R1:** implement provider repository CRUD.
 
 ## Update rule
 
