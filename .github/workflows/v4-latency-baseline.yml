@@ -45,7 +45,7 @@ jobs:
             src/observability/benchmark-egress-guard.test.ts \
             src/observability/benchmark-output-path.test.ts \
             src/observability/latency.test.ts \
-            src/observability/route-inventory.test.ts)
+            tests/unit/observability/route-inventory.test.ts)
           bun run --cwd apps/bff typecheck
           bun run --cwd apps/bff typecheck:ts7
           bun run --cwd apps/bff build

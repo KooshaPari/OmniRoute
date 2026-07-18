@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import inventory from "../../../../config/performance/v4-latency-inventory.json";
-import app from "../index";
-import { assertUnique, inventorySha256 } from "./benchmark-contract";
+import inventory from "../../../../../config/performance/v4-latency-inventory.json";
+import app from "../../../src/index";
+import {
+  assertUnique,
+  inventorySha256,
+} from "../../../src/observability/benchmark-contract";
 
 describe("v4 registered route inventory", () => {
   it("matches the normalized count and hash committed for benchmark evidence", () => {
