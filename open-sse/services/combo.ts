@@ -376,13 +376,18 @@ export async function buildAutoCandidates(
   const { getPricingForModel } = await import("../../src/lib/localDb");
   const quotaPromises = new Map<string, Promise<unknown>>();
   let historicalLatencyStats: Record<string, HistoricalLatencyStatsEntry> = {};
+  let connectionHistoricalLatencyStats: Record<string, HistoricalLatencyStatsEntry> = {};
   try {
     const { getModelLatencyStats } = await import("../../src/lib/usageDb");
-    historicalLatencyStats = await getModelLatencyStats({
+    const statsOptions = {
       windowHours: 24,
       minSamples: 3,
       maxRows: 10000,
-    });
+    };
+    [historicalLatencyStats, connectionHistoricalLatencyStats] = await Promise.all([
+      getModelLatencyStats(statsOptions),
+      getModelLatencyStats({ ...statsOptions, keyByConnectionId: true }),
+    ]);
   } catch {
     // keep empty stats — auto-combo will use runtime + bootstrap signals
   }
@@ -456,7 +461,20 @@ export async function buildAutoCandidates(
       const provider = target.provider || parsed.provider || parsed.providerAlias || "unknown";
       const model = parsed.model || modelStr;
       const historicalKey = `${provider}/${model}`;
-      const historicalModelMetric = historicalLatencyStats[historicalKey] || null;
+      const aggregateHistoricalMetric = historicalLatencyStats[historicalKey] || null;
+      const connectionHistoricalKey = target.connectionId
+        ? `${provider}/${model}/${target.connectionId}`
+        : null;
+      const connectionHistoricalMetric = connectionHistoricalKey
+        ? connectionHistoricalLatencyStats[connectionHistoricalKey] || null
+        : null;
+      const connectionHistoricalTotal = Number(connectionHistoricalMetric?.totalRequests);
+      const hasConnectionHistoricalSignal =
+        Number.isFinite(connectionHistoricalTotal) &&
+        connectionHistoricalTotal >= MIN_HISTORY_SAMPLES;
+      const historicalModelMetric = hasConnectionHistoricalSignal
+        ? connectionHistoricalMetric
+        : aggregateHistoricalMetric;
       const historicalTotal = Number(historicalModelMetric?.totalRequests);
       const hasHistoricalSignal =
         Number.isFinite(historicalTotal) && historicalTotal >= MIN_HISTORY_SAMPLES;

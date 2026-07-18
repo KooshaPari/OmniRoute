@@ -159,6 +159,46 @@ test("getModelLatencyStats aggregates success rate and latency percentiles", asy
   assert.equal(entry.avgTtftMs, 47);
 });
 
+test("getModelLatencyStats can return connection-qualified buckets without changing aggregate keys", async () => {
+  const now = Date.now();
+  for (const [connectionId, latency] of [
+    ["latency-connection-a", 100],
+    ["latency-connection-b", 900],
+  ] as const) {
+    for (let index = 0; index < 2; index++) {
+      await usageHistory.saveRequestUsage({
+        provider: "qualified-provider",
+        model: "qualified-model",
+        connectionId,
+        success: true,
+        latencyMs: latency,
+        timestamp: new Date(now - index * 60 * 1000).toISOString(),
+      });
+    }
+  }
+
+  const aggregate = await usageHistory.getModelLatencyStats({ windowHours: 1, minSamples: 2 });
+  const qualified = await usageHistory.getModelLatencyStats({
+    windowHours: 1,
+    minSamples: 2,
+    keyByConnectionId: true,
+  });
+
+  assert.equal(aggregate["qualified-provider/qualified-model"].p95LatencyMs, 900);
+  assert.equal(
+    qualified["qualified-provider/qualified-model/latency-connection-a"].p95LatencyMs,
+    100
+  );
+  assert.equal(
+    qualified["qualified-provider/qualified-model/latency-connection-b"].p95LatencyMs,
+    900
+  );
+  assert.equal(
+    qualified["qualified-provider/qualified-model/latency-connection-a"].connectionId,
+    "latency-connection-a"
+  );
+});
+
 test("getModelLatencyStats omits unavailable TTFT instead of treating zero as fast", async () => {
   for (const [index, ttft] of [0, -10].entries()) {
     await usageHistory.saveRequestUsage({

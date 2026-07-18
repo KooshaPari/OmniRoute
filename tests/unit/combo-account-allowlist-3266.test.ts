@@ -24,6 +24,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const { buildAutoCandidates, handleComboChat } = await import("../../open-sse/services/combo.ts");
 const { getProviderCredentials } = await import("../../src/sse/services/auth.ts");
 const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
@@ -55,6 +56,19 @@ async function seedConn(name: string, tags?: string[]) {
     isActive: true,
     ...(tags ? { providerSpecificData: { tags } } : {}),
   });
+}
+
+async function seedLatencyHistory(connectionId: string, latencyMs: number, count: number) {
+  for (let index = 0; index < count; index++) {
+    await usageHistory.saveRequestUsage({
+      provider: "openai",
+      model: "gpt-4o-mini",
+      connectionId,
+      success: true,
+      latencyMs,
+      timestamp: new Date(Date.now() - index * 60 * 1000).toISOString(),
+    });
+  }
 }
 
 test.beforeEach(async () => {
@@ -185,6 +199,56 @@ test("buildAutoCandidates expands dynamic auto steps only within allowedConnecti
   assert.deepEqual([...connectionIds].sort(), [foo1.id, foo2.id].sort());
   assert.ok(connectionIds.every((connectionId) => allowed.has(connectionId!)));
   assert.ok(connectionIds.every((connectionId) => !forbidden.has(connectionId!)));
+});
+
+test("buildAutoCandidates prefers connection-qualified history", async () => {
+  const fast = await seedConn("history-fast");
+  const slow = await seedConn("history-slow");
+  await seedLatencyHistory(fast.id, 100, 10);
+  await seedLatencyHistory(slow.id, 900, 10);
+
+  const target = (connectionId: string) => ({
+    kind: "model" as const,
+    stepId: `openai/gpt-4o-mini@${connectionId}`,
+    executionKey: `openai/gpt-4o-mini@${connectionId}`,
+    modelStr: "openai/gpt-4o-mini",
+    provider: "openai",
+    providerId: "openai",
+    connectionId,
+    weight: 1,
+    label: null,
+  });
+
+  const specific = await buildAutoCandidates(
+    [target(fast.id), target(slow.id)],
+    "auto-connection-history"
+  );
+  const specificByConnection = new Map(
+    specific.map((candidate) => [candidate.connectionId, candidate.p95LatencyMs])
+  );
+  assert.equal(specificByConnection.get(fast.id), 100);
+  assert.equal(specificByConnection.get(slow.id), 900);
+});
+
+test("buildAutoCandidates falls back to aggregate history when connection history is undersampled", async () => {
+  const aggregateConn = await seedConn("history-aggregate");
+  const undersampledConn = await seedConn("history-undersampled");
+  await seedLatencyHistory(aggregateConn.id, 300, 10);
+  await seedLatencyHistory(undersampledConn.id, 50, 2);
+
+  const fallback = await buildAutoCandidates(
+    [target(aggregateConn.id), target(undersampledConn.id)],
+    "auto-connection-history-fallback"
+  );
+  const fallbackByConnection = new Map(
+    fallback.map((candidate) => [candidate.connectionId, candidate.p95LatencyMs])
+  );
+  assert.equal(fallbackByConnection.get(aggregateConn.id), 300);
+  assert.equal(
+    fallbackByConnection.get(undersampledConn.id),
+    300,
+    "undersampled connection history must use provider/model aggregate history"
+  );
 });
 
 // ── 3. Acceptance: the credential selector never escapes the allowlist ───────

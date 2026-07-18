@@ -728,6 +728,8 @@ export interface ModelLatencyStatsEntry {
   provider: string;
   model: string;
   key: string;
+  /** Present when stats were requested with connection-qualified keys. */
+  connectionId?: string;
   totalRequests: number;
   successfulRequests: number;
   successRate: number; // 0..1
@@ -748,7 +750,15 @@ export interface ModelLatencyStatsEntry {
  * Used by auto-combo routing to incorporate real-world latency and reliability.
  */
 export async function getModelLatencyStats(
-  options: { windowHours?: number; minSamples?: number; maxRows?: number } = {}
+  options: {
+    windowHours?: number;
+    minSamples?: number;
+    maxRows?: number;
+    /** Restrict the aggregate to one connection without changing its key shape. */
+    connectionId?: string | null;
+    /** Opt in to `${provider}/${model}/${connectionId}` keys for connection history. */
+    keyByConnectionId?: boolean;
+  } = {}
 ): Promise<Record<string, ModelLatencyStatsEntry>> {
   const windowHours =
     Number.isFinite(Number(options.windowHours)) && Number(options.windowHours) > 0
@@ -769,31 +779,42 @@ export async function getModelLatencyStats(
   type LatencyRow = {
     provider: string | null;
     model: string | null;
+    connection_id: string | null;
     success: number | null;
     latency_ms: number | null;
     ttft_ms: number | null;
     tokens_output: number | null;
   };
 
+  const connectionFilter =
+    typeof options.connectionId === "string" && options.connectionId.length > 0
+      ? " AND connection_id = @connectionId"
+      : "";
   const rows = db
     .prepare(
       `
-      SELECT provider, model, success, latency_ms, ttft_ms, tokens_output
+      SELECT provider, model, connection_id, success, latency_ms, ttft_ms, tokens_output
       FROM usage_history
       WHERE timestamp >= @sinceIso
         AND provider IS NOT NULL
         AND model IS NOT NULL
+        ${connectionFilter}
       ORDER BY timestamp DESC
       LIMIT @maxRows
     `
     )
-    .all({ sinceIso, maxRows }) as LatencyRow[];
+    .all({
+      sinceIso,
+      maxRows,
+      ...(connectionFilter ? { connectionId: options.connectionId } : {}),
+    }) as LatencyRow[];
 
   const grouped = new Map<
     string,
     {
       provider: string;
       model: string;
+      connectionId: string | null;
       totalRequests: number;
       successfulRequests: number;
       successfulLatencies: number[];
@@ -810,11 +831,16 @@ export async function getModelLatencyStats(
     const model = toStringOrNull(row.model);
     if (!provider || !model) continue;
 
-    const key = `${provider}/${model}`;
+    const connectionId = toStringOrNull(row.connection_id);
+    const key =
+      options.keyByConnectionId && connectionId
+        ? `${provider}/${model}/${connectionId}`
+        : `${provider}/${model}`;
     if (!grouped.has(key)) {
       grouped.set(key, {
         provider,
         model,
+        connectionId,
         totalRequests: 0,
         successfulRequests: 0,
         successfulLatencies: [],
@@ -880,6 +906,9 @@ export async function getModelLatencyStats(
       provider: bucket.provider,
       model: bucket.model,
       key,
+      ...(options.keyByConnectionId && bucket.connectionId
+        ? { connectionId: bucket.connectionId }
+        : {}),
       totalRequests: bucket.totalRequests,
       successfulRequests: bucket.successfulRequests,
       successRate,
