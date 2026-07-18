@@ -1,4 +1,8 @@
-# Bifrost Backend (Tier-1 Router Bridge)
+---
+title: "Bifrost Backend Framework"
+---
+
+# Bifrost Backend Framework (Tier-1 Router Bridge)
 
 > **Status:** Phase 1 of v8.1 (ADR-031, 2026-06-18).
 > **Decision:** OmniRoute's underlying Tier-1 router is migrating to
