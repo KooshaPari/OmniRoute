@@ -1,0 +1,4 @@
+{
+  "": "https://inlang.com/schema/inlang-message-format",
+  "_note": "Stub locale - falls back to English at runtime. Translate via paraglide-js inlang CLI or web editor."
+}
