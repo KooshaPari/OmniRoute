@@ -382,11 +382,8 @@ export async function handleExitCleanup(
       return;
     }
 
-    serverPid = proc.pid ?? null;
-  }
-
-  try {
-    await deps.removeDNSEntry(sudoPassword);
+    try {
+      await deps.removeDNSEntry(sudoPassword);
     const managed = deps.collectManagedHosts();
     if (managed.length > 0) {
       await deps.removeDNSEntries(managed, sudoPassword);
