@@ -22,6 +22,7 @@
   let available = $state<Model[]>([]);
   let saving = $state(false);
   let saved = $state(false);
+  let saveError = $state<string | null>(null);
   let dirty = $state(false);
   let tab = $state<Tab>('identity');
 
@@ -64,13 +65,21 @@
 
   async function save() {
     saving = true;
+    saved = false;
+    saveError = null;
     try {
-      await fetch('http://localhost:4322/api/dashboard/combos', {
+      const response = await fetch('http://localhost:4322/api/dashboard/combos', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ id, name, primary, fallbacks: fallbacks.map((f) => f.model), strategy }),
       });
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.source ?? `save failed (${response.status})`);
+      }
       saved = true; dirty = false;
+    } catch (error) {
+      saveError = (error as Error).message;
     } finally { saving = false; }
   }
 
@@ -135,6 +144,10 @@
       <Button onclick={save} disabled={!dirty || saving}>{saving ? 'Saving...' : (saved ? 'Saved' : 'Save')}</Button>
     </div>
   </div>
+
+  {#if saveError}
+    <p class="text-sm text-red-600" role="alert">Unable to save combo: {saveError}</p>
+  {/if}
 
   {#if tab === 'identity'}
     <div class="grid grid-cols-2 gap-4">

@@ -8,10 +8,13 @@
   let action = $state('');
   let format = $state<'json' | 'csv'>('json');
   let exporting = $state(false);
+  let exportError = $state<string | null>(null);
   let lastExport = $state<{ url: string; rows: number; ts: string } | null>(null);
 
   async function doExport() {
     exporting = true;
+    exportError = null;
+    lastExport = null;
     try {
       const r = await fetch('http://localhost:4322/api/dashboard/audit/export', {
         method: 'POST',
@@ -21,7 +24,12 @@
       if (r.ok) {
         const j = await r.json();
         lastExport = { url: j.url, rows: j.rows, ts: new Date().toISOString() };
+      } else {
+        const body = await r.json().catch(() => null);
+        exportError = body?.source ?? `export failed (${r.status})`;
       }
+    } catch (error) {
+      exportError = (error as Error).message;
     } finally { exporting = false; }
   }
 </script>
@@ -53,6 +61,12 @@
     </div>
     <Button type="submit" disabled={exporting}>{exporting ? 'Exporting...' : 'Export'}</Button>
   </form>
+
+  {#if exportError}
+    <p class="mt-4 text-sm text-red-600" role="alert">
+      Audit export unavailable: {exportError}
+    </p>
+  {/if}
 
   {#if lastExport}
     <div class="mt-4 border border-green-200 bg-green-50 rounded p-3 text-sm">

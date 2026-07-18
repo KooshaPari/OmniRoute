@@ -25,7 +25,7 @@
     }
 
     try {
-      const res = await fetch('http://localhost:4322/api/v1/auth/callback', {
+      const res = await fetch('http://localhost:4322/api/auth/callback', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         credentials: 'include',

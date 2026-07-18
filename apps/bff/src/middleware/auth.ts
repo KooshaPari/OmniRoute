@@ -3,7 +3,7 @@ import type { Context, MiddlewareHandler, Next } from 'hono';
 import { env } from '../env';
 
 const BEARER = /^Bearer\s+([A-Za-z0-9._-]{16,256})$/i;
-const APIKEY = /^([A-Za-z0-9]{16,128})$/;
+const APIKEY = /^[A-Za-z0-9._-]{16,256}$/;
 
 function verifyHmac(key: string): boolean {
   const expected = env.BFF_API_KEY;

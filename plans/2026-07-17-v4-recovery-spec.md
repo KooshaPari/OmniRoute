@@ -2,7 +2,7 @@
 
 **ADR:** ADR-107 staged convergence  
 **WBS:** P1-L4 → P1-L5 → P1-L6  
-**Status:** Recovery implemented on `recovery/v4-compat-baseline`; verification in progress
+**Status:** Recovery and review remediation implemented in PR #380; CI rerun pending
 
 ## Source of truth
 
@@ -66,14 +66,19 @@ Do not restore:
 ## Acceptance criteria
 
 - [x] BFF and web compile after frozen per-package installs.
-- [x] BFF (52), web (11), and API-contract (2) tests pass.
+- [x] BFF (56), web (11), and API-contract (2) tests pass.
 - [x] BFF, web, and API-contract typechecks pass; web and BFF builds pass.
 - [x] Current desktop, Rust, and Argis paths have no recovery diff.
 - [x] Per-package Bun 1.3.14 frozen lockfiles install successfully.
 - [x] `cargo check --workspace --locked` passes after restoration.
 - [x] Argis targeted infrastructure smoke passes; full-suite baseline drift is
   tracked separately and no Argis file changed.
-- [ ] DAST advances past dependency installation.
+- [x] DAST advances past dependency installation; its unchanged root Next.js
+  bundle precondition is tracked separately.
+- [x] Production BFF surfaces fail closed, tRPC/auth paths match their clients,
+  and placeholder writes do not report fabricated success.
+- [x] Restored packages resolve patched Vitest 3.2.7 instead of blocking
+  `GHSA-5xrq-8626-4rwp` versions.
 - [ ] PR #375 has a conflict-free replay plan.
 - [ ] #339 and #340 point to canonical restored paths.
 - [ ] Recovery can be reverted with one PR without affecting later Rust work.

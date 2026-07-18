@@ -100,4 +100,38 @@ describe("BFF observability placeholders", () => {
     const body = (await response.json()) as { ok: boolean; status: string; source: string };
     expect(body).toMatchObject({ ok: false, status: "unavailable", source: "no-key-store" });
   });
+
+  it("does not report combo persistence without a combo store", async () => {
+    const response = await app.request("http://localhost/api/dashboard/combos", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: "combo-1",
+        name: "Test combo",
+        primary: "model-1",
+        fallbacks: [],
+        strategy: "first-success",
+      }),
+    });
+    expect(response.status).toBe(501);
+    await expect(response.json()).resolves.toMatchObject({
+      ok: false,
+      status: "unavailable",
+      source: "no-combo-store",
+    });
+  });
+
+  it("does not return a fabricated audit export URL", async () => {
+    const response = await app.request("http://localhost/api/dashboard/audit/export", {
+      method: "POST",
+    });
+    expect(response.status).toBe(501);
+    await expect(response.json()).resolves.toEqual({
+      ok: false,
+      status: "unavailable",
+      source: "no-audit-export-store",
+      url: null,
+      rows: 0,
+    });
+  });
 });

@@ -1,9 +1,11 @@
 import { z } from 'zod';
 
-const EnvSchema = z.object({
+const DEV_BFF_API_KEY = 'dev-bff-key-change-me';
+
+const RawEnvSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(4322),
   OMNIROUTE_UPSTREAM: z.string().url().default('http://localhost:20128'),
-  BFF_API_KEY: z.string().min(16).default('dev-bff-key-change-me-in-prod'),
+  BFF_API_KEY: z.string().min(16).optional(),
   BFF_RATE_LIMIT_RPM: z.coerce.number().int().min(1).default(600),
   BFF_LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   BFF_CORS_ORIGINS: z.string().default('http://localhost:4321,http://localhost:14321'),
@@ -12,7 +14,20 @@ const EnvSchema = z.object({
   BFF_CIRCUIT_BREAKER_THRESHOLD: z.coerce.number().int().min(1).default(5),
   BFF_CIRCUIT_BREAKER_COOLDOWN_MS: z.coerce.number().int().min(1000).default(30000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+}).superRefine((value, ctx) => {
+  if (value.NODE_ENV === 'production' && !value.BFF_API_KEY) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['BFF_API_KEY'],
+      message: 'BFF_API_KEY is required in production',
+    });
+  }
 });
+
+const EnvSchema = RawEnvSchema.transform((value) => ({
+  ...value,
+  BFF_API_KEY: value.BFF_API_KEY ?? DEV_BFF_API_KEY,
+}));
 
 const parsed = EnvSchema.safeParse(process.env);
 if (!parsed.success) {

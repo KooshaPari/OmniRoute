@@ -12,7 +12,7 @@
     submitting = true;
     error = null;
     try {
-      const res = await fetch('http://localhost:4322/api/v1/auth/login', {
+      const res = await fetch('http://localhost:4322/api/auth/login', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         credentials: 'include',

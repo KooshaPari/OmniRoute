@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { streamSSE } from "hono/streaming";
 import { z } from "zod";
-import { ProviderSchema } from "@argismonitor/api-contracts";
+import { ComboSchema, ProviderSchema } from "@argismonitor/api-contracts";
 
 const SettingsSchema = z.object({
   baseUrl: z.string().url(),
@@ -41,6 +41,14 @@ export const dashboardRoutes = new Hono()
   )
   .get("/usage", (c) => c.json({ rows: [] }))
   .get("/combos", (c) => c.json({ combos: [] }))
+  .post("/combos", zValidator("json", ComboSchema), (c) =>
+    c.json({
+      ok: false,
+      status: "unavailable",
+      source: "no-combo-store",
+      combo: c.req.valid("json"),
+    }, 501)
+  )
   .get("/security", (c) =>
     c.json({
       csrfEnabled: true,
@@ -251,10 +259,12 @@ export const dashboardRoutes = new Hono()
   .get("/cost/by-provider", (c) => c.json({ providers: [] }))
   .post("/audit/export", (c) =>
     c.json({
-      url: "https://example.com/exports/audit-" + Date.now() + ".json",
+      ok: false,
+      status: "unavailable",
+      source: "no-audit-export-store",
+      url: null,
       rows: 0,
-      ts: new Date().toISOString(),
-    })
+    }, 501)
   )
   .get("/performance", (c) => {
     const range = c.req.query("range") ?? "24h";

@@ -2,9 +2,11 @@ import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
 import { dashboardRoutes } from './routes/dashboard';
-import { proxyRoutes } from './routes/proxy';
+import { authProxyRoutes, proxyRoutes } from './routes/proxy';
 import { gatewayRoutes } from './routes/gateway/proxy';
 import { trpcRoutes } from './trpc/hono';
+import { requireAuth } from './middleware/auth';
+import { env } from './env';
 import { z } from 'zod';
 
 const app = new Hono();
@@ -13,6 +15,22 @@ app.use('*', logger());
 app.use('*', cors({ origin: ['http://localhost:4321'], credentials: true }));
 
 app.get('/healthz', (c) => c.json({ status: 'ok', service: 'argismonitor-bff' }));
+
+const authenticate = requireAuth();
+const protectInProduction = async (
+  c: Parameters<typeof authenticate>[0],
+  next: Parameters<typeof authenticate>[1],
+) => {
+  if (env.NODE_ENV !== 'production') return next();
+  return authenticate(c, next);
+};
+
+app.use('/api/dashboard/*', protectInProduction);
+app.use('/api/trpc/*', protectInProduction);
+app.use('/api/v1/*', async (c, next) => {
+  if (c.req.path === '/api/v1/telemetry/web-vitals') return next();
+  return protectInProduction(c, next);
+});
 
 const WebVitalSchema = z.object({
   id: z.string().min(1).max(128),
@@ -52,6 +70,7 @@ app.post('/api/v1/telemetry/web-vitals', async (c) => {
 
 app.route('/api/dashboard', dashboardRoutes);
 app.route('/api/v1', proxyRoutes);
+app.route('/api/auth', authProxyRoutes);
 app.route('/api/dashboard/gateway', gatewayRoutes);
 app.route('/api/trpc', trpcRoutes);
 

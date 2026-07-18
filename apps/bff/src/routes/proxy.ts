@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 
 const UPSTREAM = process.env.OMNIROUTE_UPSTREAM ?? 'http://localhost:20128';
 const DEFAULT_ROLLOUT = Number(process.env.OMNI_WEB_STACK_ROLLOUT ?? '100');
@@ -12,8 +12,12 @@ function shouldServeNext(cookieHeader: string | null): boolean {
   return Math.abs(h) % 100 >= DEFAULT_ROLLOUT;
 }
 
-export const proxyRoutes = new Hono().all('/*', async (c) => {
-  if (shouldServeNext(c.req.header('cookie') ?? null)) {
+async function forwardToUpstream(
+  c: Context,
+  upstreamPath: string,
+  honorRollout: boolean,
+) {
+  if (honorRollout && shouldServeNext(c.req.header('cookie') ?? null)) {
     return c.json({
       message: 'This route is currently served by the Next.js frontend. Set web_stack=svelte or visit the upstream directly.',
       nextjs_upstream: UPSTREAM,
@@ -21,7 +25,7 @@ export const proxyRoutes = new Hono().all('/*', async (c) => {
   }
 
   const url = new URL(c.req.url);
-  const upstreamUrl = `${UPSTREAM}${url.pathname.replace('/api/v1', '/v1')}${url.search}`;
+  const upstreamUrl = `${UPSTREAM}${upstreamPath}${url.search}`;
 
   const headers = new Headers();
   c.req.raw.headers.forEach((value, key) => {
@@ -43,4 +47,14 @@ export const proxyRoutes = new Hono().all('/*', async (c) => {
   } catch (err) {
     return c.json({ error: 'upstream_unreachable', message: (err as Error).message }, 502);
   }
+}
+
+export const proxyRoutes = new Hono().all('/*', (c) => {
+  const path = new URL(c.req.url).pathname.replace('/api/v1', '/v1');
+  return forwardToUpstream(c, path, true);
+});
+
+export const authProxyRoutes = new Hono().all('/*', (c) => {
+  const path = new URL(c.req.url).pathname;
+  return forwardToUpstream(c, path, false);
 });
