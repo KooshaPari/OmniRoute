@@ -25,7 +25,7 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 |---|---|---|---|
 | P0-L1 | Classify PR #376 latency and DAST failures | — | `[x]` |
 | P0-L2 | Merge PR #376 under documented RC waiver | P0-L1 | `[x]` |
-| P0-L3 | Add Linux `cargo check --workspace` CI gate | P0-L2 | `[ ]` |
+| P0-L3 | Add Linux `cargo check --workspace` CI gate | P0-L2 | `[/]` PR #377 |
 | P0-L4 | Repair root npm lock drift that blocks DAST | — | `[ ]` |
 | P0-L5 | Baseline or repair REST latency workflow | — | `[ ]` |
 
@@ -36,7 +36,7 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 | P1-L1 | Select maximum-feature long-term topology | — | `[x]` |
 | P1-L2 | Accept ADR-107 staged v4-to-Rust convergence | P1-L1 | `[x]` |
 | P1-L3 | Refresh omni-evolve snapshot and add convergence stream | P1-L2 | `[ ]` |
-| P1-L4 | Inventory and verify the last coherent v4 commit range | P1-L2 | `[ ]` |
+| P1-L4 | Inventory and verify the last coherent v4 commit range | P1-L2 | `[x]` |
 | P1-L5 | Restore BFF/web without reverting Rust or Argis absorbs | P1-L4 | `[ ]` |
 | P1-L6 | Rebase or supersede #339, #340, and PR #375 | P1-L5 | `[ ]` |
 | P1-L7 | Publish v4-to-Rust feature-parity matrix and owners | P1-L4 | `[ ]` |
@@ -101,8 +101,8 @@ flowchart TD
 
 ## Next-two queue
 
-1. **P0-L3:** add a path-scoped Linux Rust workspace check.
-2. **P1-L4:** identify and verify the coherent v4 recovery commit range.
+1. **P0-L3:** merge PR #377 and verify its Linux Rust workspace check.
+2. **P1-L5:** restore the bounded v4 compatibility surface from `06886ea531`.
 
 ## Update rule
 
