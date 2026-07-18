@@ -175,6 +175,45 @@ test("getModelLatencyStats omits unavailable TTFT instead of treating zero as fa
   assert.equal("avgTtftMs" in stats["no-ttft-provider/no-ttft-model"], false);
 });
 
+test("getModelLatencyStats derives TPS only from valid output, TTFT, and generation duration", async () => {
+  const validSamples = [
+    { output: 100, latency: 1_000, ttft: 200 },
+    { output: 200, latency: 2_000, ttft: 500 },
+  ];
+  for (const [index, sample] of validSamples.entries()) {
+    await usageHistory.saveRequestUsage({
+      provider: "tps-provider",
+      model: "tps-model",
+      success: true,
+      tokens: { output: sample.output },
+      latencyMs: sample.latency,
+      timeToFirstTokenMs: sample.ttft,
+      timestamp: new Date(Date.now() - index * 60 * 1000).toISOString(),
+    });
+  }
+
+  for (const [index, sample] of [
+    { output: "not-a-number", latency: 1_000, ttft: 200 },
+    { output: -5, latency: 1_000, ttft: 200 },
+    { output: 100, latency: 1_000, ttft: 0 },
+    { output: 100, latency: 200, ttft: 300 },
+  ].entries()) {
+    await usageHistory.saveRequestUsage({
+      provider: "invalid-tps-provider",
+      model: "invalid-tps-model",
+      success: true,
+      tokens: { output: sample.output },
+      latencyMs: sample.latency,
+      timeToFirstTokenMs: sample.ttft,
+      timestamp: new Date(Date.now() - index * 60 * 1000).toISOString(),
+    });
+  }
+
+  const stats = await usageHistory.getModelLatencyStats({ windowHours: 1, minSamples: 2 });
+  assert.equal(stats["tps-provider/tps-model"].avgTokensPerSecond, 129.167);
+  assert.equal("avgTokensPerSecond" in stats["invalid-tps-provider/invalid-tps-model"], false);
+});
+
 test("getModelLatencyStats falls back to all latencies when successful sample count is too small", async () => {
   await usageHistory.saveRequestUsage({
     provider: "fallback-provider",
