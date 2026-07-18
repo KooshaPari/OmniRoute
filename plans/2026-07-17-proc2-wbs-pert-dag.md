@@ -40,7 +40,7 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 | P1-L4 | Inventory and verify the last coherent v4 commit range | P1-L2 | `[x]` |
 | P1-L5 | Restore BFF/web without reverting Rust or Argis absorbs | P1-L4 | `[x]` merged via PR #380 |
 | P1-L6 | Rebase or supersede #339, #340, and PR #375 | P1-L5 | `[/]` #339/#375 complete via PR #382; closed #342 source commit verified for #340 replay |
-| P1-L7 | Publish v4-to-Rust feature-parity matrix and owners | P1-L4 | `[/]` drafted in `2026-07-18-v4-rust-feature-parity-matrix.md` |
+| P1-L7 | Publish v4-to-Rust feature-parity matrix and owners | P1-L4 | `[/]` in review via PR #389 |
 
 ## P2 — Hygiene (parallel)
 
