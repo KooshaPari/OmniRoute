@@ -104,10 +104,6 @@ function readStoredUpstreamCaPath(): string | null {
   }
 }
 
-// Keep the cleanup function's module boundary explicit; this prevents malformed
-// conflict-era brace edits from nesting subsequent exports in the function.
-}
-
 /**
  * Write the canonical `targets.json` consumed by `server.cjs` at startup.
  *
@@ -717,6 +713,9 @@ export async function startMitm(
     pid: serverPid,
     certTrusted,
   };
+}
+
+// Explicitly terminate the startMitm declaration before the next exported API.
 }
 
 /**
