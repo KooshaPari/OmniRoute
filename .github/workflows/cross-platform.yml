@@ -48,8 +48,16 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Check Node runtime
         run: npm run check:node-runtime
+      - name: Clear transient Next build cache
+        run: node -e "require('node:fs').rmSync('.build/next/cache', { recursive: true, force: true })"
       - name: Build CLI
         run: npm run build:cli
+        env:
+          # Windows runners can restore a partially-written webpack pack while
+          # Next is tracing protected Application Data junctions. Disable the
+          # filesystem cache for a deterministic clean production build.
+          NEXT_DISABLE_WEBPACK_CACHE: "1"
+          NEXT_TELEMETRY_DISABLED: "1"
       - name: Assert server.js exists
         run: test -f dist/server.js || (echo "dist/server.js missing" && exit 1)
         shell: bash
