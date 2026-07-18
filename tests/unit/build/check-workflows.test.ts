@@ -276,8 +276,8 @@ test("latency-budget: regression comment cannot fail when the report is absent",
     "utf8"
   );
 
-  assert.match(workflow, /printf .*regression-output\.txt/);
-  assert.match(workflow, /fs\.existsSync\(reportPath\)/);
+  assert.match(workflow, /: > regression-output\.txt/);
+  assert.match(workflow, /fs\.existsSync\('regression-output\.txt'\)/);
   assert.match(workflow, /echo "exit=\$exit_code" >> "\$GITHUB_OUTPUT"/);
 });
 
