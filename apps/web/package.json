@@ -1,0 +1,46 @@
+{
+  "name": "@argismonitor/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.3.14",
+  "engines": {
+    "bun": "1.3.14"
+  },
+  "scripts": {
+    "dev": "vite dev --port 4321",
+    "build": "vite build",
+    "preview": "vite preview",
+    "pretest": "svelte-kit sync",
+    "test": "vitest run",
+    "test:ssr-i18n": "node scripts/check/verify-ssr-i18n.mjs",
+    "pretypecheck": "svelte-kit sync",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json",
+    "typecheck:ts7": "bun node_modules/typescript-7/bin/tsc --noEmit",
+    "i18n:compile": "paraglide-js compile --project ./project.inlang --outdir ./src/lib/i18n"
+  },
+  "dependencies": {
+    "@inlang/paraglide-js": "^2.0.0",
+    "@argismonitor/api-contracts": "file:../../packages/api-contracts",
+    "@sveltejs/adapter-node": "^5.0.0",
+    "@sveltejs/kit": "^2.0.0",
+    "@trpc/client": "^11.0.0",
+    "@trpc/server": "^11.0.0",
+    "@xyflow/svelte": "^1.6.0",
+    "hono": "^4.0.0",
+    "svelte": "^5.0.0",
+    "web-vitals": "^4.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^22.0.0",
+    "svelte-check": "^4.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0",
+    "typescript-7": "npm:typescript@7.0.2",
+    "vite": "^6.0.0",
+    "vitest": "^2.0.0"
+  }
+}

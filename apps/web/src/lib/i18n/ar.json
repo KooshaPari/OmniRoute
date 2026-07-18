@@ -1,0 +1,19 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "app.title": "argismonitor v4",
+  "app.tagline": "Svelte 5 + SvelteKit 2 + Hono 4 + Tauri 2",
+  "nav.dashboard": "لوحة التحكم", "nav.providers": "الموفرون",
+  "nav.combos": "التركيبات", "nav.keys": "مفاتيح API", "nav.usage": "الاستخدام",
+  "nav.health": "الصحة", "nav.security": "الأمان", "nav.settings": "الإعدادات",
+  "nav.skills": "المهارات", "nav.a2a": "A2A", "nav.mcp": "MCP",
+  "nav.cost": "التكلفة", "nav.billing": "الفوترة", "nav.logs": "السجلات",
+  "nav.memory": "الذاكرة", "nav.cache": "التخزين المؤقت", "nav.batch": "الدفعة",
+  "nav.webhooks": "Webhooks", "nav.audit": "التدقيق",
+  "common.loading": "جار التحميل…", "common.error": "خطأ", "common.save": "حفظ",
+  "common.cancel": "إلغاء", "common.delete": "حذف", "common.revoke": "إلغاء",
+  "common.create": "إنشاء", "common.search": "بحث", "common.filter": "تصفية",
+  "common.refresh": "تحديث", "common.connected": "متصل",
+  "common.disconnected": "غير متصل",
+  "auth.signin": "تسجيل الدخول", "auth.signout": "تسجيل الخروج",
+  "auth.email": "البريد الإلكتروني", "auth.password": "كلمة المرور"
+}

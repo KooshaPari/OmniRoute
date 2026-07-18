@@ -25,7 +25,7 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 |---|---|---|---|
 | P0-L1 | Classify PR #376 latency and DAST failures | — | `[x]` |
 | P0-L2 | Merge PR #376 under documented RC waiver | P0-L1 | `[x]` |
-| P0-L3 | Add Linux `cargo check --workspace` CI gate | P0-L2 | `[/]` PR #377 |
+| P0-L3 | Add Linux `cargo check --workspace` CI gate | P0-L2 | `[x]` PR #377; execution infra blocked |
 | P0-L4 | Repair root npm lock drift that blocks DAST | — | `[ ]` |
 | P0-L5 | Baseline or repair REST latency workflow | — | `[ ]` |
 
@@ -37,7 +37,7 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 | P1-L2 | Accept ADR-107 staged v4-to-Rust convergence | P1-L1 | `[x]` |
 | P1-L3 | Refresh omni-evolve snapshot and add convergence stream | P1-L2 | `[ ]` |
 | P1-L4 | Inventory and verify the last coherent v4 commit range | P1-L2 | `[x]` |
-| P1-L5 | Restore BFF/web without reverting Rust or Argis absorbs | P1-L4 | `[ ]` |
+| P1-L5 | Restore BFF/web without reverting Rust or Argis absorbs | P1-L4 | `[/]` recovery branch |
 | P1-L6 | Rebase or supersede #339, #340, and PR #375 | P1-L5 | `[ ]` |
 | P1-L7 | Publish v4-to-Rust feature-parity matrix and owners | P1-L4 | `[ ]` |
 
@@ -46,9 +46,10 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 | ID | Work | Dependency | State |
 |---|---|---|---|
 | P2-L1 | Verify and close stale issue #320 | — | `[x]` |
-| P2-L2 | Add blocked-by-restoration status to PR #375 | P1-L2 | `[ ]` |
-| P2-L3 | Smoke-test absorbed `extensions/argis` entrypoints | P0-L2 | `[ ]` |
+| P2-L2 | Add blocked-by-restoration status to PR #375 | P1-L2 | `[x]` |
+| P2-L3 | Smoke-test absorbed `extensions/argis` entrypoints | P0-L2 | `[x]` targeted infra smoke |
 | P2-L4 | Configure OmniRoute project/epic and GitHub sync in AgilePlus | — | `[ ]` |
+| P2-L5 | Repair Argis GraphQL duplication and Bifrost API drift (#379) | P2-L3 | `[ ]` |
 
 ## P3 — Ready backlog
 
@@ -101,8 +102,8 @@ flowchart TD
 
 ## Next-two queue
 
-1. **P0-L3:** merge PR #377 and verify its Linux Rust workspace check.
-2. **P1-L5:** restore the bounded v4 compatibility surface from `06886ea531`.
+1. **P1-L5:** land the bounded v4 compatibility recovery PR.
+2. **P1-L7:** publish the first v4-to-Rust capability-parity matrix.
 
 ## Update rule
 

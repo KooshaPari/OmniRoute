@@ -2,7 +2,7 @@
 
 **ADR:** ADR-107 staged convergence  
 **WBS:** P1-L4 → P1-L5 → P1-L6  
-**Status:** Recovery source verified; implementation pending
+**Status:** Recovery implemented on `recovery/v4-compat-baseline`; verification in progress
 
 ## Source of truth
 
@@ -38,8 +38,8 @@ metadata:
 
 1. `apps/bff/**`
 2. `apps/web/**`
-3. Required v4 workspace manifests, lockfiles, and path-scoped scripts
-4. Required path-scoped CI definitions
+3. `packages/api-contracts/**`, required by both applications
+4. `config/performance/v4-latency-inventory.json`, required by BFF typecheck
 
 Do not restore:
 
@@ -65,10 +65,14 @@ Do not restore:
 
 ## Acceptance criteria
 
-- [ ] BFF and web compile from a clean checkout.
-- [ ] Existing v4 tests pass or every inherited failure has a linked baseline.
-- [ ] Current desktop, Rust, and Argis trees are not regressed.
-- [ ] Root and v4 lockfiles are internally consistent.
+- [x] BFF and web compile after frozen per-package installs.
+- [x] BFF (52), web (11), and API-contract (2) tests pass.
+- [x] BFF, web, and API-contract typechecks pass; web and BFF builds pass.
+- [x] Current desktop, Rust, and Argis paths have no recovery diff.
+- [x] Per-package Bun 1.3.14 frozen lockfiles install successfully.
+- [x] `cargo check --workspace --locked` passes after restoration.
+- [x] Argis targeted infrastructure smoke passes; full-suite baseline drift is
+  tracked separately and no Argis file changed.
 - [ ] DAST advances past dependency installation.
 - [ ] PR #375 has a conflict-free replay plan.
 - [ ] #339 and #340 point to canonical restored paths.

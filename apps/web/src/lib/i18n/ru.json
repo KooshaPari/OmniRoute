@@ -1,0 +1,19 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "app.title": "argismonitor v4",
+  "app.tagline": "Svelte 5 + SvelteKit 2 + Hono 4 + Tauri 2",
+  "nav.dashboard": "Панель", "nav.providers": "Провайдеры",
+  "nav.combos": "Комбо", "nav.keys": "API ключи", "nav.usage": "Использование",
+  "nav.health": "Здоровье", "nav.security": "Безопасность", "nav.settings": "Настройки",
+  "nav.skills": "Навыки", "nav.a2a": "A2A", "nav.mcp": "MCP",
+  "nav.cost": "Стоимость", "nav.billing": "Биллинг", "nav.logs": "Логи",
+  "nav.memory": "Память", "nav.cache": "Кэш", "nav.batch": "Пакет",
+  "nav.webhooks": "Webhooks", "nav.audit": "Аудит",
+  "common.loading": "Загрузка…", "common.error": "Ошибка", "common.save": "Сохранить",
+  "common.cancel": "Отмена", "common.delete": "Удалить", "common.revoke": "Отозвать",
+  "common.create": "Создать", "common.search": "Поиск", "common.filter": "Фильтр",
+  "common.refresh": "Обновить", "common.connected": "Подключено",
+  "common.disconnected": "Отключено",
+  "auth.signin": "Войти", "auth.signout": "Выйти",
+  "auth.email": "Email", "auth.password": "Пароль"
+}
