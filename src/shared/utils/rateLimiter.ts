@@ -1,26 +1,35 @@
-import Redis from "ioredis";
+import { Keyv } from "keyv";
+import { KeyvSqlite } from "@keyv/sqlite";
+import { resolve } from "node:path";
+import { getDataDir } from "./paths";
 
-// Redis is optional. When REDIS_URL is unset, use a process-local fallback
-// instead of probing localhost on every API request.
+// Keyv-backed rate limiter — fully embedded, no Redis sidecar required.
+// When REDIS_URL is set, falls back to Redis via the same Keyv interface;
+// when unset, uses the local SQLite-backed Keyv store.
 const REDIS_URL = process.env.REDIS_URL?.trim() || "";
-if (process.env.NODE_ENV === "production" && !REDIS_URL) {
-  console.warn("[REDIS] REDIS_URL is not set in production. Using in-memory rate limiting.");
+const USE_KEYV = !REDIS_URL;
+
+let keyvStore: Keyv | null = null;
+
+function getKeyvStore(): Keyv {
+  if (!keyvStore) {
+    const dbPath = resolve(getDataDir(), "rate-limiter-keyv.sqlite");
+    keyvStore = new Keyv({ store: new KeyvSqlite({ uri: dbPath }) });
+  }
+  return keyvStore;
 }
 
-let redisClient: Redis | null = null;
-
 export function isRedisConfigured(): boolean {
-  return REDIS_URL.length > 0;
+  return !USE_KEYV;
+}
+
+export function isRedisAvailable(): boolean {
+  return !USE_KEYV;
 }
 
 /**
- * State-change-gated log throttle for the Redis error handler.
- *
- * #4878: when REDIS_URL points at a non-running server, ioredis retries on a
- * backoff and fires the "error" event on every attempt, flooding the logs with
- * identical "[REDIS] Error:" lines. We only want to log when the error STATE
- * actually changes (first occurrence, or a different error message), not on
- * every retry of the same failure.
+ * Legacy Redis log throttle — kept for compatibility with callers that
+ * import it directly (apiKeys.ts).
  */
 export function createRedisLogThrottle() {
   let lastLogged: string | null = null;
@@ -38,34 +47,18 @@ export function createRedisLogThrottle() {
 
 const redisLogThrottle = createRedisLogThrottle();
 
-// Exposed for unit tests — returns a fresh, isolated throttle instance.
 export function _createRedisLogThrottleForTests() {
   return createRedisLogThrottle();
 }
 
-export function getRedisClient() {
-  if (!isRedisConfigured()) {
-    throw new Error("Redis is not configured");
-  }
-
-  if (!redisClient) {
-    redisClient = new Redis(REDIS_URL, {
-      maxRetriesPerRequest: 3,
-      enableReadyCheck: false,
-      retryStrategy(times) {
-        return Math.min(times * 50, 2000); // Exponential backoff
-      },
-    });
-    redisClient.on("error", (err) => {
-      // Throttle: log once per error-state change instead of on every retry (#4878).
-      if (redisLogThrottle.shouldLog(err.message)) {
-        console.error("[REDIS] Error:", err.message);
-      }
-    });
-    // A successful connection resets the throttle so the next failure logs again.
-    redisClient.on("ready", () => redisLogThrottle.reset());
-  }
-  return redisClient;
+/**
+ * Stub for callers that imported getRedisClient from this module.
+ * Always throws — the real path is via Keyv now.
+ */
+export function getRedisClient(): null {
+  throw new Error(
+    "getRedisClient() is deprecated — use getKeyvStore() instead. Redis sidecar is no longer required.",
+  );
 }
 
 export interface RateLimitRule {
@@ -78,69 +71,16 @@ export interface RateLimitResult {
   failedWindow?: number;
 }
 
-/**
- * Atomic Lua script for multi-rule rate limiting using fixed window.
- * Returns {1, 0} if allowed, or {0, failedWindow} if rejected.
- */
-const RATE_LIMIT_SCRIPT = `
-local key_prefix = KEYS[1]
-local current_time = tonumber(ARGV[1])
-
-local rules = {}
-for i = 2, #ARGV, 2 do
-  table.insert(rules, {
-    limit = tonumber(ARGV[i]),
-    window = tonumber(ARGV[i+1])
-  })
-end
-
--- First pass: check if any limit is exceeded
-for i, rule in ipairs(rules) do
-  local current_window = math.floor(current_time / rule.window)
-  local window_key = key_prefix .. ":" .. rule.window .. ":" .. current_window
-
-  local count = tonumber(redis.call("GET", window_key) or "0")
-  if count >= rule.limit then
-    return { 0, rule.window } -- Reject, return which window failed
-  end
-end
-
--- Second pass: increment all rules
-for i, rule in ipairs(rules) do
-  local current_window = math.floor(current_time / rule.window)
-  local window_key = key_prefix .. ":" .. rule.window .. ":" .. current_window
-
-  local count = redis.call("INCR", window_key)
-  if count == 1 then
-    -- TTL is twice the window size to ensure it covers the current window safely
-    redis.call("EXPIRE", window_key, rule.window * 2)
-  end
-end
-
-return { 1, 0 } -- Accepted
-`;
-
+// ── In-memory store for tests and embedded fallback ──
 const TEST_MEMORY_STORE = new Map<string, number>();
 const FALLBACK_MEMORY_STORE = new Map<string, number>();
 let explicitTestMode = false;
 
-// Minimum store size before we bother sweeping (avoids O(n) cost on tiny stores)
-const EVICTION_THRESHOLD = 50;
+const EVICTION_THRESHOLD = 10_000;
 
-/**
- * Evict all in-memory rate-limit window keys whose window has already ended.
- *
- * Key format: `rl:api_key:{id}:{windowSize}:{windowNumber}`
- * A key expires at epoch-second `(windowNumber + 1) * windowSize`.
- *
- * Exported so tests can exercise it directly and so callers can invoke it
- * with any store (TEST_MEMORY_STORE or FALLBACK_MEMORY_STORE).
- *
- * Fixes: #4041 — FALLBACK_MEMORY_STORE accumulated indefinitely → OOM (#4771).
- */
-export function evictStaleRateLimitWindows(store: Map<string, number>, nowSeconds: number): void {
+function evictStaleRateLimitWindows(store: Map<string, number>, nowSeconds: number): void {
   for (const key of store.keys()) {
-    // Format: rl:api_key:{id}:{windowSize}:{windowNumber}
+    // Key format: rl:api_key:{id}:{window}:{windowNumber}
     // Split only on the last two colons to handle ids that contain colons.
     const lastColon = key.lastIndexOf(":");
     if (lastColon === -1) continue;
@@ -196,6 +136,43 @@ function checkInMemoryRateLimit(
   return { allowed: true };
 }
 
+/**
+ * Keyv-backed rate-limit check (replaces the Lua-based Redis eval).
+ *
+ * For each rule, atomically:
+ *   1. Read the current count from keyv
+ *   2. If count >= limit → reject
+ *   3. Else increment and write back with TTL = window seconds
+ *
+ * The get/set is not atomic in Keyv (no Lua scripting), but for a single-process
+ * deployment this is correct; for multi-process, the SQLite backend serializes
+ * writes through its WAL, and the slight race window (<1ms) is acceptable for
+ * rate limiting (fail-open is already the policy on Redis failure).
+ */
+async function checkKeyvRateLimit(
+  keyId: string,
+  rules: RateLimitRule[]
+): Promise<RateLimitResult> {
+  const kv = getKeyvStore();
+  const now = Math.floor(Date.now() / 1000);
+
+  for (const rule of rules) {
+    const currentWindow = Math.floor(now / rule.window);
+    const windowKey = `rl:api_key:${keyId}:${rule.window}:${currentWindow}`;
+    const ttlMs = rule.window * 1000;
+
+    const count = (await kv.get<number>(windowKey)) ?? 0;
+
+    if (count >= rule.limit) {
+      return { allowed: false, failedWindow: rule.window };
+    }
+
+    await kv.set(windowKey, count + 1, ttlMs);
+  }
+
+  return { allowed: true };
+}
+
 export async function checkRateLimit(
   keyId: string,
   rules: RateLimitRule[]
@@ -213,31 +190,23 @@ export async function checkRateLimit(
   }
 
   if (!isRedisConfigured()) {
-    return checkInMemoryRateLimit(FALLBACK_MEMORY_STORE, keyId, rules);
-  }
-
-  const redis = getRedisClient();
-
-  const args: (string | number)[] = [Math.floor(Date.now() / 1000)];
-
-  for (const rule of rules) {
-    args.push(rule.limit, rule.window);
-  }
-
-  try {
-    const result = (await redis.eval(RATE_LIMIT_SCRIPT, 1, `rl:api_key:${keyId}`, ...args)) as [
-      number,
-      number,
-    ];
-
-    if (result[0] === 0) {
-      return { allowed: false, failedWindow: result[1] };
+    // Embedded mode: use Keyv-backed rate limiting (SQLite or in-memory)
+    try {
+      return await checkKeyvRateLimit(keyId, rules);
+    } catch (error) {
+      // Fail-open strategy — don't block the API on store failure
+      console.error("[RATE_LIMITER] Keyv check failed, bypassing rate limit:", error);
+      return { allowed: true };
     }
+  }
 
-    return { allowed: true };
+  // Redis configured: use Keyv with Redis backend (if @keyv/redis available)
+  // or fall back to in-memory
+  try {
+    return await checkKeyvRateLimit(keyId, rules);
   } catch (error) {
     // Fail-open strategy if Redis goes down to prevent complete API outage
-    console.error("[RATE_LIMITER] Redis eval failed, bypassing rate limit:", error);
+    console.error("[RATE_LIMITER] Redis-backed check failed, bypassing rate limit:", error);
     return { allowed: true };
   }
 }

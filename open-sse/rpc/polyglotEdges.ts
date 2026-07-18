@@ -18,6 +18,8 @@
  * See ADR-032 § "Decision Rule" for the per-edge tier selection policy.
  */
 
+import { __resetEdgeCacheForTests } from "./tierResolver.ts";
+
 export type EdgeTier = "T1" | "T2" | "T3";
 
 export interface PolyglotEdge<TIn, TOut> {
@@ -112,6 +114,10 @@ function applyEnvOverride(edgeName: string, fallback: EdgeTier): void {
  */
 export function setEdgeTier(edgeName: string, tier: EdgeTier, source: EdgeTierOverride["source"] = "config"): void {
   tierOverrides.set(edgeName, { tier, source });
+}
+
+export function clearTierOverrides(): void {
+  tierOverrides.clear();
 }
 
 export function getEdgeTier(edgeName: string): EdgeTier {
@@ -223,21 +229,10 @@ export function reloadEdgeTierOverrides(): void {
 }
 
 /**
- * Test-only: reset the registry and the tierResolver cache. Never call from
- * production code.
+ * Test-only: reset the tier overrides map and the tierResolver cache.
+ * Does NOT clear the edge registry itself (edges remain registered).
  */
 export function __resetEdgeRegistryForTests(): void {
-  edges.clear();
   tierOverrides.clear();
-  // Also invalidate the tierResolver's cache so tests don't see stale results.
-  try {
-    // Lazy import to avoid a circular dependency at module init.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const tr = require("./tierResolver.ts");
-    if (tr && typeof tr.__resetTierResolverForTests === "function") {
-      tr.__resetTierResolverForTests();
-    }
-  } catch {
-    /* tierResolver not loaded — that's fine */
-  }
+  __resetEdgeCacheForTests();
 }

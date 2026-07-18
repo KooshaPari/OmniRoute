@@ -17,7 +17,7 @@
  */
 
 import os from "node:os";
-import { getEdgeTier, getEdge, setEdgeTier, listEdges, type EdgeTier } from "./polyglotEdges.ts";
+import { getEdgeTier, getEdge, setEdgeTier, listEdges, clearTierOverrides, type EdgeTier } from "./polyglotEdges.ts";
 
 // Re-export type aliases consumed by polyglotHotPath.ts and other edges.
 export type { EdgeTier } from "./polyglotEdges.ts";
@@ -212,6 +212,7 @@ export function __setKillSwitchActiveForTests(active: boolean): void {
 /** Reset edge resolution cache + kill-switch flag for test isolation. */
 export function __resetEdgeCacheForTests(): void {
   forcedTToT1 = false;
+  clearTierOverrides();
 }
 
 /**
