@@ -1,3 +1,7 @@
+---
+title: "Capacity Planning"
+---
+
 # Capacity Planning Guide
 
 > **Last updated**: 2026-07-09

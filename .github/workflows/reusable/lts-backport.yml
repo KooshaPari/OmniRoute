@@ -96,7 +96,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b14a9d23ca6fd7b9b6b5e8e2c30
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
         with:
           node-version-file: ${{ inputs.node-version-file }}
           cache: npm
@@ -136,7 +136,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b14a9d23ca6fd7b9b6b5e8e2c30
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
         with:
           node-version-file: ${{ inputs.node-version-file }}
           cache: npm

@@ -201,7 +201,7 @@ jobs:
 
       - name: Upload resolution artifacts
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: release-resolution
           path: /tmp/release-artifacts/
@@ -224,14 +224,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Install git-cliff CLI
+        run: npm install -g git-cliff 2>/dev/null || brew install git-cliff 2>/dev/null || echo "::warning::git-cliff not available; release notes will be minimal"
       - name: Generate release notes
         id: cliff
-        uses: orhun/git-cliff-action@5b8303e5c346e5cc63e4478d6cc4ad4848ed5e6b
-        env:
-          OUTPUT: /tmp/CLIFF.md
-          CONFIG: cliff.toml
-        with:
-          args: --verbose --tag "${{ needs.resolve.outputs.version }}"
+        run: |
+          VERSION="${{ needs.resolve.outputs.version }}"
+          git-cliff --verbose --tag "$VERSION" --config cliff.toml > /tmp/CLIFF.md 2>&1 || echo "::warning::git-cliff failed; release notes will be minimal"
 
       - name: Create GitHub release
         env:
@@ -263,13 +262,18 @@ jobs:
   publish-npm:
     name: Publish npm (${{ needs.resolve.outputs.resolved }})
     needs: [trigger, resolve]
-    # Only publish to npm for canary and above. Nightly's dist-tag churn
-    # pollutes the registry and never gets pulled (users opt into the
-    # channel via `npm install omniroute@canary`, not `@nightly`). RC/stable
-    # are the actually-consumed tags. To force a nightly npm publish, set
-    # the repository variable NPM_FORCE_NIGHTLY=true (Settings → Secrets and
-    # variables → Variables) — used for one-off internal smoke tests.
-    if: ${{ needs.resolve.outputs.resolved != '' && (needs.resolve.outputs.resolved != 'nightly' || vars.NPM_FORCE_NIGHTLY == 'true') }}
+    # Default behavior: publish to npm for every resolved channel, INCLUDING
+    # nightly. Nightly is the project's "primitive / unstable" tracking channel
+    # — its existence is meaningful only if it publishes. If you want to skip
+    # nightly publishes (for example, to reduce registry churn), set the
+    # repository variable NPM_FORCE_NIGHTLY=false (Settings → Secrets and
+    # variables → Variables → Actions → New repository variable).
+    #
+    # Convention: variable absence == defaults to TRUE for this project.
+    # We use `!= 'false'` rather than `== 'true'` so that unconfigured repos
+    # still publish nightly. To explicitly disable, the var must be set to
+    # the literal string "false".
+    if: ${{ needs.resolve.outputs.resolved != '' && (needs.resolve.outputs.resolved != 'nightly' || vars.NPM_FORCE_NIGHTLY != 'false') }}
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -278,7 +282,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node
-        uses: actions/setup-node@1d0ff469b7ec7b14a9d23ca6fd7b9b6b5e8e2c30
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
         with:
           node-version-file: ".nvmrc"
           registry-url: "https://registry.npmjs.org"
@@ -288,14 +292,17 @@ jobs:
           npm ci
           npm run build:cli
 
-      - name: Update package.json version (then restore on failure)
+      - name: "Pre-flight: validate npm-publish readiness"
+        # Catches the class of failures that would otherwise burn NPM_TOKEN
+        # budget: missing files, private:true, bad semver, dirty tree, etc.
+        # See scripts/quality/validate-npm-publish.mjs for the full check list.
         env:
           VERSION: ${{ needs.resolve.outputs.version }}
         run: |
           set -euo pipefail
-          # Snapshot the original so we can ALWAYS restore on exit, regardless
-          # of whether the publish step succeeds or fails — otherwise the next
-          # CI run on the same checkout sees a dirty tree.
+          # Bump package.json to the resolved version FIRST so the validator
+          # sees the same version that npm publish will use. The restore trap
+          # below ensures the working tree stays clean either way.
           cp package.json /tmp/package.json.original
           trap 'cp /tmp/package.json.original package.json && echo "Restored package.json from snapshot"' EXIT
           node -e '
@@ -303,7 +310,30 @@ jobs:
             const p = JSON.parse(fs.readFileSync("package.json","utf8"));
             p.version = process.env.VERSION;
             fs.writeFileSync("package.json", JSON.stringify(p, null, 2) + "\n");
-            console.log("Updated package.json version to", p.version);
+          '
+          npm run check:npm-publish --silent
+
+      - name: Update package.json version (idempotent guard)
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          # Re-assert version + snapshot for the publish step. The pre-flight
+          # step may have restored (and the version we wrote may have already
+          # been committed), so re-write defensively. Same EXIT trap restores
+          # on any failure.
+          cp package.json /tmp/package.json.original
+          trap 'cp /tmp/package.json.original package.json && echo "Restored package.json from snapshot"' EXIT
+          node -e '
+            const fs = require("fs");
+            const p = JSON.parse(fs.readFileSync("package.json","utf8"));
+            if (p.version !== process.env.VERSION) {
+              p.version = process.env.VERSION;
+              fs.writeFileSync("package.json", JSON.stringify(p, null, 2) + "\n");
+              console.log("Updated package.json version to", p.version);
+            } else {
+              console.log("package.json already at version", p.version);
+            }
           '
 
       - name: Publish with channel-specific dist-tag
@@ -338,23 +368,21 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # Uses the same action tags as .github/workflows/docker-publish.yml
-      # to keep a single source of truth for which Docker actions are
-      # trusted. Pinning to tags (not SHAs) here mirrors the existing
+      # Pinning to tags (not SHAs) here mirrors the existing
       # docker-publish.yml convention; if you want SHA-pinning here too,
       # see docker-publish.yml for the current SHAs.
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build + push (multi-arch)
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
         with:
           context: .
           file: ./Dockerfile

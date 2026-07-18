@@ -180,19 +180,21 @@ jobs:
           '
           npm ci
           npm run build:cli
+          # Pre-flight: catches private:true, missing files, bad semver, dirty
+          # tree, etc. — anything that would cause npm publish to fail or
+          # produce a malformed tarball. See scripts/quality/validate-npm-publish.mjs.
+          npm run check:npm-publish --silent
           npm publish --tag "$TAG" --provenance --access public
-
-      # Uses the same action tags as .github/workflows/docker-publish.yml
-      # to keep a single source of truth for which Docker actions are
-      # trusted. Pinning to tags (not SHAs) here mirrors the existing
-      # docker-publish.yml convention; if you want SHA-pinning here too,
-      # see docker-publish.yml for the current SHAs.
+      # Pinning to SHAs here overrides the tag-based convention from
+      # docker-publish.yml because the repo requires SHA-pinning
+      # (sha_pinning_required: true). See docker-publish.yml for the
+      # current Docker action versions.
       - name: Publish Docker
         if: ${{ inputs.channel != 'lts' }}
         env:
           VERSION: ${{ steps.resolve.outputs.version }}
           CHANNEL: ${{ inputs.channel }}
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
         with:
           context: .
           file: ./Dockerfile

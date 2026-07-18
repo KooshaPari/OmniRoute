@@ -8,6 +8,16 @@ import { installCertResult, uninstallCert } from "./cert/install.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
 import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
+import { getPort } from "./getPort";
+import { logger } from "./logger";
+import { MITM_SERVER_PATH } from "./serverPath";
+import { streamProcessLines } from "./streamProcessLines";
+import { injectInspectorIngestToken } from "./token";
+import { waitForPort, waitForStderrReady } from "./util";
+import { Worker as NodeWorker } from "worker_threads";
+
+const USE_WORKER = process.env.MITM_USE_WORKER === "1";
+
 import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState.ts";
 import { listCustomHosts } from "@/lib/db/inspectorCustomHosts.ts";
 import { getUserBypassPatterns } from "@/lib/db/agentBridgeBypass.ts";
@@ -369,7 +379,10 @@ export async function handleExitCleanup(
       { signal },
       "MITM parent received signal — child terminated; no cached sudo password, run Repair if DNS/CA/proxy were applied."
     );
-    return;
+      return;
+    }
+
+    serverPid = proc.pid ?? null;
   }
 
   try {
@@ -588,25 +601,51 @@ export async function startMitm(
     }
   }
 
-  serverProcess = spawn(process.execPath, [MITM_SERVER_PATH], {
-    env: {
-      ...process.env,
-      ROUTER_API_KEY: apiKey,
-      MITM_LOCAL_PORT: String(port),
-      INSPECTOR_INTERNAL_INGEST_TOKEN: ingestToken,
-      NODE_ENV: "production",
-    },
-    detached: false,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  const useWorker = process.env.MITM_USE_WORKER === "1";
+  const workerEnv = {
+    ...process.env,
+    ROUTER_API_KEY: apiKey,
+    MITM_LOCAL_PORT: String(port),
+    INSPECTOR_INTERNAL_INGEST_TOKEN: ingestToken,
+    NODE_ENV: "production",
+  } as NodeJS.ProcessEnv;
 
-  const proc = serverProcess;
-  serverPid = proc.pid ?? null;
+  if (useWorker) {
+    // --- Worker path (in-process, no subprocess) ---
+    const { Worker } = await import("node:worker_threads");
+    const { pathToFileURL } = await import("node:url");
+    mitmWorker = new Worker(pathToFileURL(MITM_SERVER_PATH).href, {
+      env: workerEnv,
+    });
+    mitmWorker.on("message", (msg) => {
+      if (typeof msg === "object" && msg !== null && "port" in msg) {
+        serverReadyResolve(msg.port as number);
+      }
+    });
+    mitmWorker.on("error", (err) => {
+      log.error({ err }, "MITM worker error");
+      mitmWorker = null;
+    });
+    mitmWorker.on("exit", (code) => {
+      log.info({ code }, "MITM worker exited");
+      mitmWorker = null;
+    });
+    // No PID file for workers (same process)
+  } else {
+    // --- Spawn path (original behavior) ---
+    serverProcess = spawn(process.execPath, [MITM_SERVER_PATH], {
+      env: workerEnv,
+      detached: false,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
 
-  // Save PID to file
-  if (serverPid !== null) {
-    fs.writeFileSync(PID_FILE, String(serverPid));
-  }
+    const proc = serverProcess;
+    serverPid = proc.pid ?? null;
+
+    // Save PID to file
+    if (serverPid !== null) {
+      fs.writeFileSync(PID_FILE, String(serverPid));
+    }
 
   // Buffer recent stderr so a startup failure can be reported with its real
   // cause (capped to avoid unbounded growth on a chatty/looping process). (#3606)

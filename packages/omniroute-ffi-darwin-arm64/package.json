@@ -1,0 +1,26 @@
+{
+  "name": "@omniroute/ffi-darwin-arm64",
+  "version": "3.8.43",
+  "description": "OmniRoute FFI prebuilt artifacts — Apple Silicon (darwin-arm64). Auto-installed on matching hosts via optionalDependencies.",
+  "license": "MIT",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "native/"
+  ],
+  "main": "index.js",
+  "types": "index.d.ts",
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "engines": {
+    "node": ">=22.0.0 <23 || >=24.0.0 <27"
+  },
+  "private": true,
+  "scripts": {
+    "postinstall": "node ./scripts/postinstall.mjs"
+  }
+}
