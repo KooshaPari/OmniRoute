@@ -82,6 +82,19 @@ export class InAppLoginService extends EventEmitter {
     const minLoginTime = config.pollingConfig.minLoginTime || 5000;
     const providerId = config.providerId;
 
+
+    // Device-code OAuth: try HTTP-based flow before Playwright (avoids headful browser)
+    try {
+      const { tryDeviceCodeForProvider } = await import("../lib/deviceCodeProviders.js");
+      const deviceCodeResult = await tryDeviceCodeForProvider(providerId);
+      if (deviceCodeResult.success && deviceCodeResult.tokens) {
+        this.log("info", `Device-code OAuth succeeded for ${providerId}`);
+        return { success: true, tokens: deviceCodeResult.tokens };
+      }
+      this.log("info", `Device-code not supported for ${providerId}, falling back to Playwright`);
+    } catch {
+      this.log("info", `Device-code flow unavailable for ${providerId}, falling back to Playwright`);
+    }
     // Dynamically import Playwright (it's a heavy dep, only load when needed)
     let playwright: any;
     try {

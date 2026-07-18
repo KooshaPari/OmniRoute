@@ -48,6 +48,7 @@ import {
   deleteCircuitBreakerState,
   deleteAllCircuitBreakerStates,
 } from "../../lib/db/domainState";
+import OpossumBreaker from "opossum";
 import type { FailureKind } from "./classify429";
 
 /**
@@ -657,8 +658,6 @@ export function resetAllCircuitBreakers() {
 // Enable: CIRCUIT_BREAKER_OPOSSUM_PRIMARY=1
 // =============================================================================
 
-import OpossumBreaker from "opossum";
-
 interface OpossumOptions {
   timeout?: number;
   errorThresholdPercentage?: number;
@@ -725,14 +724,25 @@ function getOrCreateOpossumBreaker(
 }
 
 // ─── Shadow telemetry (kept from step-1) ──────────────────────────────────
+const _opossumShadowEnabled = (() => {
+  try {
+    return process.env.CIRCUIT_BREAKER_OPOSSUM_SHADOW === "1";
+  } catch {
+    return false;
+  }
+})();
+
+export const opossumShadowEnabled = _opossumShadowEnabled;
 
 let _opossumShadowStats = { enabled: false, fires: 0, divergences: 0, opossumOpens: 0, primaryOpens: 0 };
 
-export function runOpossumShadow<T>(primary: CircuitBreaker, fn: () => Promise<T>): Promise<T> {
-  if (!_opossumPrimaryEnabled) return fn();
+export function runOpossumShadow<T>(_primary: CircuitBreaker, fn: () => Promise<T>): Promise<T> {
+  if (!_opossumPrimaryEnabled && !_opossumShadowEnabled) return fn();
   _opossumShadowStats.enabled = true;
   _opossumShadowStats.fires++;
-  return fn().catch((err) => { throw err; });
+  return fn().catch((err) => {
+    throw err;
+  });
 }
 
 export function recordOpossumDivergence(primaryState: string, opossumState: string): void {
