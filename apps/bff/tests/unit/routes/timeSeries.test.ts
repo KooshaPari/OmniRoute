@@ -4,7 +4,7 @@ import {
   buildKeyUsageSeries,
   buildObservabilityLatencySeries,
   buildTimeSeries,
-} from "./timeSeries";
+} from "../../../src/routes/timeSeries";
 
 afterEach(() => {
   vi.restoreAllMocks();
