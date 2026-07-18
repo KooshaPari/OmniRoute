@@ -226,7 +226,7 @@ jobs:
 
       - name: Generate release notes
         id: cliff
-        uses: orhun/git-cliff-action@5b8303e5c346e5cc63e4478d6cc4ad4848ed5e6b
+        uses: orhun/git-cliff-action@f50e11560dce63f7c33227798f90b924471a88b5  # v4.8.0
         env:
           OUTPUT: /tmp/CLIFF.md
           CONFIG: cliff.toml
@@ -283,7 +283,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node
-        uses: actions/setup-node@1d0ff469b7ec7b14a9d23ca6fd7b9b6b5e8e2c30
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
         with:
           node-version-file: ".nvmrc"
           registry-url: "https://registry.npmjs.org"
