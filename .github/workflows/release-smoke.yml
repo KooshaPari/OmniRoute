@@ -1,0 +1,368 @@
+# Smoke-test workflow for the release-channel system.
+#
+# Exercises the full pipeline (trigger-evaluator + channel-resolver) in --dry-run
+# mode WITHOUT making any external API calls (no `gh`, no check-runs, no
+# releases). This validates that:
+#   1. The scripts are runnable from a fresh checkout
+#   2. The trigger rule (24hr OR +5k OR -5k) fires correctly across the boundary
+#   3. The resolver walks the channel ladder correctly
+#   4. The version-format branches produce semver-valid strings
+#   5. The config schemas are internally consistent (gate IDs aligned, etc.)
+#
+# This is the only way to validate the system end-to-end without burning
+# npm publish budget or producing real GH releases. Once this passes, you
+# have high confidence that `auto-release.yml` will work on a real fire.
+#
+# Run from the Actions tab → "Release channel smoke test" → Run workflow,
+# with a `scenario` input to choose which cases to exercise.
+
+name: Release channel smoke test
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: "Which scenarios to exercise"
+        required: true
+        type: choice
+        default: "all"
+        options:
+          - all
+          - trigger-only
+          - resolve-only
+          - nightly-fires
+          - stable-fires
+          - promotion-ladder
+          - version-formats
+          - schema-consistency
+  pull_request:
+    paths:
+      - "scripts/release/**"
+      - "config/release/**"
+      - ".github/workflows/auto-release.yml"
+      - ".github/workflows/release-channels.yml"
+      - ".github/workflows/reusable/lts-backport.yml"
+      - ".github/workflows/cross-platform.yml"
+      - "package.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Release-channel smoke test (${{ inputs.scenario }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@1d0ff469b7ec7b14a9d23ca6fd7b9b6b5e8e2c30
+        with:
+          node-version-file: ".nvmrc"
+        # No `cache: npm` — the smoke test doesn't depend on node_modules.
+
+      # ─────────────────────────────────────────────────────────────────
+      # 1. Config schema consistency
+      # ─────────────────────────────────────────────────────────────────
+      - name: Schema consistency (channels.json ↔ ci-matrix.json)
+        if: ${{ inputs.scenario == 'all' || inputs.scenario == 'schema-consistency' }}
+        run: |
+          set -euo pipefail
+          node --input-type=module -e "
+            import { readFileSync } from 'fs';
+            const channels = JSON.parse(readFileSync('./config/release/channels.json','utf8'));
+            const matrix   = JSON.parse(readFileSync('./config/release/ci-matrix.json','utf8'));
+            const expectedPromo = ['nightly','canary','alpha','beta','rc','stable'];
+            // promotionOrder contains all 6 stability channels
+            const promo = channels.promotionOrder;
+            if (JSON.stringify(promo) !== JSON.stringify(expectedPromo)) {
+              throw new Error('promotionOrder mismatch: ' + JSON.stringify(promo));
+            }
+            // Every gate ID in channels.json exists in ci-matrix.json
+            const chanGateIds = Object.keys(channels.gates);
+            const matGateIds  = Object.keys(matrix.gates);
+            const missing = chanGateIds.filter(g => !matGateIds.includes(g));
+            if (missing.length > 0) {
+              throw new Error('Gate IDs in channels.json missing from ci-matrix.json: ' + missing.join(', '));
+            }
+            // Every blocking-gate referenced by a channel exists in both
+            for (const [ch, def] of Object.entries(channels.channels)) {
+              for (const g of (def.requiredGates?.blocking ?? [])) {
+                if (!channels.gates[g]) throw new Error(\`Channel \${ch} references unknown gate \${g}\`);
+                if (!matrix.gates[g])   throw new Error(\`Channel \${ch} blocking gate \${g} not in ci-matrix.json\`);
+              }
+            }
+            // package.json version parses cleanly
+            const pkg = JSON.parse(readFileSync('./package.json','utf8'));
+            if (!/^\\d+\\.\\d+\\.\\d+/.test(pkg.version)) {
+              throw new Error('package.json version is not semver: ' + pkg.version);
+            }
+            console.log('schema-consistency: OK (' + chanGateIds.length + ' gates, ' + Object.keys(channels.channels).length + ' channels)');
+          "
+
+      # ─────────────────────────────────────────────────────────────────
+      # 2. Trigger evaluator
+      # ─────────────────────────────────────────────────────────────────
+      - name: Trigger — fires after 24h
+        if: ${{ inputs.scenario == 'all' || inputs.scenario == 'trigger-only' }}
+        env:
+          TRIGGER_INTERVAL_HOURS: "24"
+          LAST_RELEASE_TS: "1000"
+          ADDED_LINES: "0"
+          REMOVED_LINES: "0"
+          # 25h after last release — fires on time condition
+          TRIGGER_NOW: "90100000"
+        run: |
+          set -euo pipefail
+          DECISION=$(node scripts/release/trigger-evaluator.mjs --dry-run)
+          FIRE=$(echo "$DECISION" | node -e "let s='';process.stdin.on('data',c=>s+=c).on('end',()=>process.stdout.write(String(JSON.parse(s).fire)))")
+          if [[ "$FIRE" != "true" ]]; then echo "FAIL: 24h stale should fire"; echo "$DECISION"; exit 1; fi
+          echo "trigger: 24h stale → fires (expected)"
+
+      - name: Trigger — does NOT fire when fresh + small
+        if: ${{ inputs.scenario == 'all' || inputs.scenario == 'trigger-only' }}
+        env:
+          TRIGGER_INTERVAL_HOURS: "24"
+          LAST_RELEASE_TS: "1000"
+          ADDED_LINES: "100"
+          REMOVED_LINES: "100"
+          # 1h after last release — not stale, no big diff
+          TRIGGER_NOW: "3701000"
+        run: |
+          set -euo pipefail
+          node scripts/release/trigger-evaluator.mjs --dry-run > /tmp/decision.json
+          FIRE=$(node -e "process.stdout.write(String(JSON.parse(require('fs').readFileSync('/tmp/decision.json','utf8')).fire))")
+          if [[ "$FIRE" != "false" ]]; then echo "FAIL: fresh+small should not fire"; exit 1; fi
+          echo "trigger: fresh+small → does NOT fire (expected)"
+
+      - name: Trigger — fires on +5000 LOC add
+        if: ${{ inputs.scenario == 'all' || inputs.scenario == 'trigger-only' }}
+        env:
+          TRIGGER_INTERVAL_HOURS: "24"
+          LAST_RELEASE_TS: "1000"
+          ADDED_LINES: "5000"
+          REMOVED_LINES: "0"
+          TRIGGER_NOW: "3701000"
+        run: |
+          set -euo pipefail
+          node scripts/release/trigger-evaluator.mjs --dry-run > /tmp/decision.json
+          FIRE=$(node -e "process.stdout.write(String(JSON.parse(require('fs').readFileSync('/tmp/decision.json','utf8')).fire))")
+          if [[ "$FIRE" != "true" ]]; then echo "FAIL: +5000 LOC should fire"; exit 1; fi
+          echo "trigger: +5000 LOC → fires (expected)"
+
+      - name: Trigger — fires on -5000 LOC remove
+        if: ${{ inputs.scenario == 'all' || inputs.scenario == 'trigger-only' }}
+        env:
+          TRIGGER_INTERVAL_HOURS: "24"
+          LAST_RELEASE_TS: "1000"
+          ADDED_LINES: "0"
+          REMOVED_LINES: "5000"
+          TRIGGER_NOW: "3701000"
+        run: |
+          set -euo pipefail
+          node scripts/release/trigger-evaluator.mjs --dry-run > /tmp/decision.json
+          FIRE=$(node -e "process.stdout.write(String(JSON.parse(require('fs').readFileSync('/tmp/decision.json','utf8')).fire))")
+          if [[ "$FIRE" != "true" ]]; then echo "FAIL: -5000 LOC should fire"; exit 1; fi
+          echo "trigger: -5000 LOC → fires (expected)"
+
+      - name: Trigger — boundary at exactly 24h
+        if: ${{ inputs.scenario == 'all' || inputs.scenario == 'trigger-only' }}
+        env:
+          TRIGGER_INTERVAL_HOURS: "24"
+          LAST_RELEASE_TS: "0"
+          ADDED_LINES: "0"
+          REMOVED_LINES: "0"
+          # exactly 24h
+          TRIGGER_NOW: "86400000"
+        run: |
+          set -euo pipefail
+          node scripts/release/trigger-evaluator.mjs --dry-run > /tmp/decision.json
+          FIRE=$(node -e "process.stdout.write(String(JSON.parse(require('fs').readFileSync('/tmp/decision.json','utf8')).fire))")
+          if [[ "$FIRE" != "true" ]]; then echo "FAIL: 24h boundary should fire"; exit 1; fi
+          echo "trigger: exactly 24h → fires (>= boundary)"
+
+      # ─────────────────────────────────────────────────────────────────
+      # 3. Resolver — nightly fires
+      # ─────────────────────────────────────────────────────────────────
+      - name: Resolver — nightly fires when only build is green
+        if: ${{ inputs.scenario == 'all' || inputs.scenario == 'nightly-fires' || inputs.scenario == 'resolve-only' }}
+        env:
+          SHA: "abc1234"
+        run: |
+          set -euo pipefail
+          node scripts/release/channel-resolver.mjs \
+            --sha "$SHA" \
+            --gate-status '{"build":{"satisfied":true,"blockingPass":true,"runs":[]}}' \
+            --dry-run > /tmp/resolution.json
+          CHANNEL=$(node -e "process.stdout.write(JSON.parse(require('fs').readFileSync('/tmp/resolution.json','utf8')).resolved)")
+          if [[ "$CHANNEL" != "nightly" ]]; then echo "FAIL: expected nightly, got $CHANNEL"; exit 1; fi
+          echo "resolver: build-only → nightly (expected)"
+
+      # ─────────────────────────────────────────────────────────────────
+      # 4. Resolver — stable fires when all gates green
+      # ─────────────────────────────────────────────────────────────────
+      - name: Resolver — stable fires when all gates green
+        if: ${{ inputs.scenario == 'all' || inputs.scenario == 'stable-fires' || inputs.scenario == 'resolve-only' }}
+        env:
+          SHA: "abc1234"
+        run: |
+          set -euo pipefail
+          # Build a gate-status override with ALL blocking gates marked satisfied.
+          node --input-type=module -e "
+            import { readFileSync, writeFileSync } from 'fs';
+            const channels = JSON.parse(readFileSync('./config/release/channels.json','utf8'));
+            const allBlocking = new Set();
+            for (const def of Object.values(channels.channels)) {
+              for (const g of (def.requiredGates?.blocking ?? [])) allBlocking.add(g);
+            }
+            const override = {};
+            for (const g of allBlocking) {
+              override[g] = { satisfied: true, blockingPass: true, runs: [] };
+            }
+            writeFileSync('/tmp/all-green.json', JSON.stringify(override));
+            console.log('Built override for', allBlocking.size, 'blocking gates');
+          "
+          node scripts/release/channel-resolver.mjs \
+            --sha "$SHA" \
+            --gate-status /tmp/all-green.json \
+            --dry-run > /tmp/resolution.json
+          CHANNEL=$(node -e "process.stdout.write(JSON.parse(require('fs').readFileSync('/tmp/resolution.json','utf8')).resolved)")
+          if [[ "$CHANNEL" != "stable" ]]; then
+            echo "FAIL: expected stable when all gates green, got $CHANNEL"
+            cat /tmp/resolution.json
+            exit 1
+          fi
+          echo "resolver: all blocking gates green → stable (expected)"
+
+      # ─────────────────────────────────────────────────────────────────
+      # 5. Resolver — promotion ladder monotonicity
+      # ─────────────────────────────────────────────────────────────────
+      - name: Resolver — ladder walks monotonically
+        if: ${{ inputs.scenario == 'all' || inputs.scenario == 'promotion-ladder' }}
+        env:
+          SHA: "abc1234"
+        run: |
+          set -euo pipefail
+          # Test that as we progressively add gates green, the channel climbs:
+          # nightly → canary → alpha → beta → rc → stable
+          node --input-type=module -e "
+            import { readFileSync } from 'fs';
+            import { walkPromotion, loadJson } from './scripts/release/channel-resolver.mjs';
+            const channels = loadJson('./config/release/channels.json');
+            const matrix   = loadJson('./config/release/ci-matrix.json');
+            const allBlocking = [];
+            for (const def of Object.values(channels.channels)) {
+              for (const g of (def.requiredGates?.blocking ?? [])) allBlocking.push(g);
+            }
+            const cases = [
+              { label: 'no gates green',         expected: 'nightly', gates: [] },
+              { label: 'build only',             expected: 'nightly', gates: ['build'] },
+              { label: 'nightly+canary gates',   expected: 'canary',  gates: ['build','unit','vitest','integration'] },
+              { label: 'canary+alpha gates',     expected: 'alpha',   gates: ['build','unit','vitest','integration','e2e','security'] },
+              { label: 'alpha+beta gates',       expected: 'beta',    gates: ['build','unit','vitest','integration','e2e','security','resilience','llm-security'] },
+              { label: 'beta+rc gates',          expected: 'rc',      gates: ['build','unit','vitest','integration','e2e','security','resilience','llm-security','chaos','fuzz','perf','load'] },
+              { label: 'all blocking gates',     expected: 'stable',  gates: allBlocking },
+            ];
+            let pass = 0, fail = 0;
+            for (const c of cases) {
+              const override = {};
+              for (const g of c.gates) override[g] = { satisfied: true, blockingPass: true, runs: [] };
+              const w = walkPromotion(channels, matrix, [], null, override);
+              const ok = w.chosen === c.expected;
+              console.log((ok ? 'PASS' : 'FAIL') + ' :: ' + c.label + ' → ' + w.chosen + (ok ? '' : ' (expected ' + c.expected + ')'));
+              if (ok) pass++; else fail++;
+            }
+            console.log('---'); console.log('pass=' + pass + ' fail=' + fail);
+            if (fail > 0) process.exit(1);
+          "
+
+      # ─────────────────────────────────────────────────────────────────
+      # 6. Version formats
+      # ─────────────────────────────────────────────────────────────────
+      - name: Version formats across channels
+        if: ${{ inputs.scenario == 'all' || inputs.scenario == 'version-formats' }}
+        env:
+          SHA: "abc1234567890def"
+        run: |
+          set -euo pipefail
+          node --input-type=module -e "
+            import { buildVersion, loadJson } from './scripts/release/channel-resolver.mjs';
+            const channels = loadJson('./config/release/channels.json');
+            const cases = [
+              { ch: 'nightly', pattern: /^3\\.8\\.43-nightly\\.\\d{8}\\.abc1234\$/ },
+              { ch: 'canary',  pattern: /^3\\.8\\.43-canary\\.\\d{8}\\.abc1234\$/ },
+              { ch: 'alpha',   pattern: /^3\\.8\\.43-alpha\\.\\d+\$/ },
+              { ch: 'beta',    pattern: /^3\\.8\\.43-beta\\.\\d+\$/ },
+              { ch: 'rc',      pattern: /^3\\.8\\.43-rc\\.\\d+\$/ },
+              { ch: 'stable',  pattern: /^3\\.8\\.43\$/ },
+            ];
+            let pass = 0, fail = 0;
+            for (const c of cases) {
+              const v = buildVersion(c.ch, '$SHA', channels);
+              const ok = c.pattern.test(v);
+              console.log((ok ? 'PASS' : 'FAIL') + ' :: ' + c.ch + ' → ' + v + ' (pattern ' + c.pattern + ')');
+              if (ok) pass++; else fail++;
+            }
+            console.log('---'); console.log('pass=' + pass + ' fail=' + fail);
+            if (fail > 0) process.exit(1);
+          "
+
+      # ─────────────────────────────────────────────────────────────────
+      # 7. End-to-end: trigger fires → resolver chooses nightly → version valid
+      # ─────────────────────────────────────────────────────────────────
+      - name: End-to-end pipeline (trigger → resolve → version)
+        if: ${{ inputs.scenario == 'all' }}
+        env:
+          TRIGGER_INTERVAL_HOURS: "24"
+          LAST_RELEASE_TS: "1000"
+          ADDED_LINES: "6000"
+          REMOVED_LINES: "0"
+          # 1h after release — not stale, but +6k LOC fires the diff condition
+          TRIGGER_NOW: "3701000"
+          SHA: "abc1234"
+        run: |
+          set -euo pipefail
+          # 1. Trigger fires
+          node scripts/release/trigger-evaluator.mjs --dry-run > /tmp/decision.json
+          FIRE=$(node -e "process.stdout.write(String(JSON.parse(require('fs').readFileSync('/tmp/decision.json','utf8')).fire))")
+          if [[ "$FIRE" != "true" ]]; then echo "FAIL: trigger should fire"; exit 1; fi
+
+          # 2. Resolver with only build green (simulating a fresh run where unit/vitest haven't completed)
+          node scripts/release/channel-resolver.mjs \
+            --sha "$SHA" \
+            --gate-status '{"build":{"satisfied":true,"blockingPass":true,"runs":[]}}' \
+            --dry-run > /tmp/resolution.json
+
+          # 3. Validate resolution
+          CHANNEL=$(node -e "process.stdout.write(JSON.parse(require('fs').readFileSync('/tmp/resolution.json','utf8')).resolved)")
+          VERSION=$(node -e "process.stdout.write(JSON.parse(require('fs').readFileSync('/tmp/resolution.json','utf8')).version)")
+          if [[ "$CHANNEL" != "nightly" ]]; then echo "FAIL: expected nightly, got $CHANNEL"; exit 1; fi
+          if [[ ! "$VERSION" =~ ^3\.8\.43-nightly\.[0-9]{8}\.abc1234$ ]]; then
+            echo "FAIL: version format mismatch: $VERSION"; exit 1
+          fi
+          echo "e2e: trigger fires → resolves to nightly → version=$VERSION"
+          echo "e2e: PASS"
+
+      # ─────────────────────────────────────────────────────────────────
+      # 8. Output summary
+      # ─────────────────────────────────────────────────────────────────
+      - name: Smoke test summary
+        if: always()
+        run: |
+          {
+            echo "## Release channel smoke test"
+            echo ""
+            echo "| Scenario | Result |"
+            echo "|----------|--------|"
+            echo "| Scenario selected | \`${{ inputs.scenario }}\` |"
+            echo "| Result | ${{ job.status }} |"
+            echo "| Commit | \`${{ github.sha }}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"

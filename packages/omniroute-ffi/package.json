@@ -1,0 +1,19 @@
+{
+  "name": "@omniroute/ffi",
+  "version": "3.8.43",
+  "description": "OmniRoute FFI — auto-discovers the prebuilt cdylib for the host platform via @omniroute/ffi-<platform> optionalDependency. Falls back to JITI-delayed TS path if no native crate is found.",
+  "license": "MIT",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "engines": {
+    "node": ">=22.0.0 <23 || >=24.0.0 <27"
+  },
+  "private": true,
+  "optionalDependencies": {
+    "@omniroute/ffi-darwin-arm64": "3.8.43",
+    "@omniroute/ffi-darwin-x64": "3.8.43",
+    "@omniroute/ffi-linux-x64-gnu": "3.8.43",
+    "@omniroute/ffi-linux-arm64-gnu": "3.8.43",
+    "@omniroute/ffi-win32-x64": "3.8.43"
+  }
+}
