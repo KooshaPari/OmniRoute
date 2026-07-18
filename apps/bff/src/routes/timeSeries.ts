@@ -1,3 +1,5 @@
+import { randomInt } from "node:crypto";
+
 export type TimeSeriesOptions<T> = {
   count: number;
   stepMs: number;
@@ -36,6 +38,10 @@ function secureRandomUnit(): number {
   return crypto.getRandomValues(new Uint32Array(1))[0] / 4_294_967_296;
 }
 
+function secureRandomRequestCount(): number {
+  return randomInt(1_000);
+}
+
 /** 60 one-minute latency points; trailing offset matches legacy dashboard semantics. */
 export function buildObservabilityLatencySeries(
   now: () => number = Date.now,
@@ -56,7 +62,7 @@ export function buildObservabilityLatencySeries(
 /** 30 one-day usage points. */
 export function buildKeyUsageSeries(
   now: () => number = Date.now,
-  random: () => number = secureRandomUnit,
+  randomRequestCount: () => number = secureRandomRequestCount,
 ): KeyUsagePoint[] {
   return buildTimeSeries({
     count: 30,
@@ -64,7 +70,7 @@ export function buildKeyUsageSeries(
     now,
     mapPoint: (_, timestampMs) => ({
       date: new Date(timestampMs).toISOString().slice(0, 10),
-      requests: Math.floor(random() * 1000),
+      requests: randomRequestCount(),
     }),
   });
 }

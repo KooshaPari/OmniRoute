@@ -64,12 +64,12 @@ describe("dashboard time-series builders", () => {
 
   it("preserves the key-usage response shape and captures its clock once", () => {
     const now = vi.fn(() => Date.UTC(2026, 6, 14, 12));
-    const random = vi.fn(() => 0.5);
+    const randomRequestCount = vi.fn(() => 500);
 
-    const usage = buildKeyUsageSeries(now, random);
+    const usage = buildKeyUsageSeries(now, randomRequestCount);
 
     expect(now).toHaveBeenCalledTimes(1);
-    expect(random).toHaveBeenCalledTimes(30);
+    expect(randomRequestCount).toHaveBeenCalledTimes(30);
     expect(usage).toHaveLength(30);
     expect(usage[0]).toEqual({ date: "2026-06-15", requests: 500 });
     expect(usage[29]).toEqual({ date: "2026-07-14", requests: 500 });
