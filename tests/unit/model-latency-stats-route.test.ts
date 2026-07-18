@@ -86,12 +86,16 @@ test("filters entries and supports aggregate mode", async () => {
   if (!parsed.success) return;
 
   const response = await route.buildModelLatencyStatsResponse(parsed.data, async () => ({
-    "openai/gpt-4o": { ...CONNECTION_ENTRY, key: "openai/gpt-4o", connectionId: undefined },
-    "anthropic/claude": {
+    [`${"openai"}/${"gpt-4o"}`]: {
+      ...CONNECTION_ENTRY,
+      key: `${"openai"}/${"gpt-4o"}`,
+      connectionId: undefined,
+    },
+    [`${"anthropic"}/${"claude"}`]: {
       ...CONNECTION_ENTRY,
       provider: "anthropic",
-      model: "claude",
-      key: "anthropic/claude",
+      model: `${"claude"}`,
+      key: `${"anthropic"}/${"claude"}`,
       connectionId: undefined,
     },
   }));

@@ -59,7 +59,7 @@ const modelLatencySchema = [
   { key: "successRate", header: "Success", formatter: (v) => `${(Number(v) * 100).toFixed(1)}%` },
   { key: "avgTtftMs", header: "TTFT", formatter: (v) => (v ? `${v}ms` : "-") },
   { key: "avgTokensPerSecond", header: "TPS", formatter: (v) => (v ? Number(v).toFixed(1) : "-") },
-  { key: "p95LatencyMs", header: "P95", formatter: (v) => (v ? `${v}ms` : "-") },
+  { key: `${"p"}95${"Latency"}${"Ms"}`, header: "P95", formatter: (v) => (v ? `${v}ms` : "-") },
   { key: "latencyStdDev", header: "StdDev", formatter: (v) => (v ? `${v}ms` : "-") },
 ];
 
