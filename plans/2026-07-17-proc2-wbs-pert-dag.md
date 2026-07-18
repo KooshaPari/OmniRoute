@@ -30,6 +30,7 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 | P0-L5 | Baseline or repair REST latency workflow | — | `[ ]` |
 | P0-L6 | Repair root Next.js bundle preconditions for DAST startup | P0-L4 | `[/]` MDX fixed; petals import remains |
 | P0-L7 | Restore Rust test and migration integrity (#390) | P0-L2 | `[ ]` check passes; tests and migration compatibility blocked |
+| P0-L8 | Close v4 shell auth and transport gaps (#392) | P1-L5 | `[ ]` production browser boundary is not coherent |
 
 ## P1 — Architecture truth
 
@@ -84,6 +85,7 @@ flowchart TD
   C376[P0-L1 classify #376 checks] --> M376[P0-L2 merge #376]
   M376 --> RCI[P0-L3 Rust CI]
   M376 --> RBASE[P0-L7 Rust test/migration integrity]
+  RESTORE --> SHELLFIX[P0-L8 v4 shell auth/transport integrity]
   M376 --> ARG[P2-L3 Argis smoke]
   NPM[P0-L4 npm lock repair] --> BUNDLE[P0-L6 root bundle repair]
   BUNDLE --> DAST[DAST green]
