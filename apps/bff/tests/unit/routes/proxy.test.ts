@@ -96,15 +96,22 @@ describe("proxy routes", () => {
 
   it("returns the upstream stream without waiting for completion", async () => {
     let streamController!: ReadableStreamDefaultController<Uint8Array>;
+    let upstreamSignal!: AbortSignal;
     const body = new ReadableStream<Uint8Array>({
       start(controller) {
         streamController = controller;
       },
     });
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(body)));
+    vi.stubGlobal("fetch", vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+      upstreamSignal = init!.signal as AbortSignal;
+      return new Response(body);
+    }));
 
+    const downstream = new AbortController();
     const routes = createProxyRoutes({ upstream: "https://upstream.test" });
-    const response = await routes.request("http://localhost/api/v1/stream");
+    const response = await routes.request(
+      new Request("http://localhost/api/v1/stream", { signal: downstream.signal }),
+    );
     const reader = response.body!.getReader();
 
     streamController.enqueue(new TextEncoder().encode("first"));
@@ -112,7 +119,9 @@ describe("proxy routes", () => {
 
     expect(new TextDecoder().decode(first.value)).toBe("first");
     expect(first.done).toBe(false);
-    streamController.close();
+    downstream.abort(new Error("client_aborted_after_headers"));
+    expect(upstreamSignal.aborted).toBe(true);
+    await reader.cancel();
   });
 
   it("propagates downstream cancellation to the upstream signal", async () => {

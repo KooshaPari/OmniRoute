@@ -64,6 +64,50 @@ type ProxyOptions = {
   timeoutMs?: number;
 };
 
+function proxyResponseBody(
+  body: ReadableStream<Uint8Array> | null,
+  controller: AbortController,
+  cleanup: () => void,
+): ReadableStream<Uint8Array> | null {
+  if (!body) {
+    cleanup();
+    return null;
+  }
+
+  const reader = body.getReader();
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    cleanup();
+  };
+
+  return new ReadableStream<Uint8Array>({
+    async pull(stream) {
+      try {
+        const next = await reader.read();
+        if (next.done) {
+          finish();
+          stream.close();
+        } else {
+          stream.enqueue(next.value);
+        }
+      } catch (error) {
+        finish();
+        stream.error(error);
+      }
+    },
+    async cancel(reason) {
+      if (!controller.signal.aborted) controller.abort(reason);
+      try {
+        await reader.cancel(reason);
+      } finally {
+        finish();
+      }
+    },
+  });
+}
+
 async function forwardToUpstream(
   c: Context,
   upstreamPath: string,
@@ -90,12 +134,20 @@ async function forwardToUpstream(
 
   const controller = new AbortController();
   const abortUpstream = () => controller.abort(c.req.raw.signal.reason);
+  let abortListenerAttached = false;
+  const removeAbortListener = () => {
+    if (!abortListenerAttached) return;
+    abortListenerAttached = false;
+    c.req.raw.signal.removeEventListener('abort', abortUpstream);
+  };
   if (c.req.raw.signal.aborted) {
     abortUpstream();
   } else {
     c.req.raw.signal.addEventListener('abort', abortUpstream, { once: true });
+    abortListenerAttached = true;
   }
   const timeout = setTimeout(() => controller.abort(new Error('upstream_timeout')), timeoutMs);
+  let responseOwnsAbortListener = false;
 
   const init: RequestInit = {
     method: c.req.method,
@@ -106,12 +158,20 @@ async function forwardToUpstream(
 
   try {
     const upstreamResponse = await fetch(upstreamUrl, init);
+    clearTimeout(timeout);
     const responseHeaders = proxyHeaders(upstreamResponse.headers);
     responseHeaders.set('x-proxied-by', 'argismonitor-bff');
-    return new Response(upstreamResponse.body, {
+    const responseBody = proxyResponseBody(
+      upstreamResponse.body,
+      controller,
+      removeAbortListener,
+    );
+    const response = new Response(responseBody, {
       status: upstreamResponse.status,
       headers: responseHeaders,
     });
+    responseOwnsAbortListener = responseBody !== null;
+    return response;
   } catch (error) {
     if (c.req.raw.signal.aborted) {
       return new Response(null, { status: 499 });
@@ -128,7 +188,7 @@ async function forwardToUpstream(
     }, 502);
   } finally {
     clearTimeout(timeout);
-    c.req.raw.signal.removeEventListener('abort', abortUpstream);
+    if (!responseOwnsAbortListener) removeAbortListener();
   }
 }
 
