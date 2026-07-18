@@ -306,6 +306,13 @@ function hasColumn(db: SqliteAdapter, tableName: string, columnName: string): bo
   return columns.some((column) => column.name === columnName);
 }
 
+const renumberedMigrationTables: Record<string, string> = {
+  "122": "virtual_keys",
+  "123": "fleet_config",
+  "124": "traffic_shadow_log",
+  "125": "traffic_shadow_config",
+};
+
 function ensureColumn(db: SqliteAdapter, tableName: string, columnName: string, ddl: string): void {
   if (!hasColumn(db, tableName, columnName)) {
     db.exec(ddl);
@@ -437,17 +444,10 @@ function isSchemaAlreadyApplied(
       // applied tenant_quotas under the earlier 100-slot number.
       return hasTable(db, "tenant_quotas");
     case "122":
-      // virtual_keys renumbered 102 → 122 to resolve the 102 slot collision.
-      return hasTable(db, "virtual_keys");
     case "123":
-      // fleet_config renumbered 103 → 123 to resolve the 103 slot collision.
-      return hasTable(db, "fleet_config");
     case "124":
-      // traffic_shadow_log renumbered 104 → 124 to resolve the 104 slot collision.
-      return hasTable(db, "traffic_shadow_log");
     case "125":
-      // traffic_shadow_config renumbered 105 → 125 to resolve the 105 slot collision.
-      return hasTable(db, "traffic_shadow_config");
+      return hasTable(db, renumberedMigrationTables[migration.version]);
     case "113":
       // cli_access_tokens renumbered 100 → 113 (duplicated 100 slot).
       return hasTable(db, "cli_access_tokens");
