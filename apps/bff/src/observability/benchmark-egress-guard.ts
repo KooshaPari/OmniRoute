@@ -19,11 +19,6 @@ const socketHost = (args: any[]) => {
   if (typeof first === "object" && first) return String(first.hostname ?? first.host ?? "localhost");
   return typeof args[1] === "string" ? args[1] : "localhost";
 };
-const allowedTarget = (raw: string, targets: AllowedTargets): string | undefined => {
-  if (raw === targets.health) return targets.health;
-  if (raw === targets.dashboardHealth) return targets.dashboardHealth;
-  return undefined;
-};
 
 export function installBenchmarkEgressGuard() {
   const bun = (globalThis as any).Bun;
@@ -40,20 +35,6 @@ export function installBenchmarkEgressGuard() {
     throw new Error(`benchmark blocked ${name} ${reason}`);
   };
 
-  const checkedFetchArgs = (name: GuardName, args: any[]): any[] => {
-    const raw = args[0] instanceof Request ? args[0].url : args[0];
-    if (typeof raw !== "string" || raw.length > 2048 || !raw.startsWith("http://") || /[?#@]/.test(raw)) {
-      return reject(name, "invalid URL input");
-    }
-    const init = args[1] as RequestInit | undefined;
-    const target = allowedTargets ? allowedTarget(raw, allowedTargets) : undefined;
-    if (!target || (init?.method && init.method !== "GET")) {
-      return reject(name, "invalid loopback target");
-    }
-    allowedLoopbackAttempts++;
-    return [target, init];
-  };
-
   const checkedLoopbackArgs = (
     name: GuardName,
     args: any[],
@@ -64,23 +45,49 @@ export function installBenchmarkEgressGuard() {
     return args;
   };
 
-  const patch = (name: GuardName, owner: any, key: string, hostAt: (args: any[]) => string, urlMode = false) => {
-    const original = owner?.[key] as Fn | undefined;
-    if (typeof original !== "function") throw new Error(`required benchmark guard API missing: ${name}`);
-    const wrapped = (...args: any[]) => {
-      const invocationArgs = urlMode
-        ? checkedFetchArgs(name, args)
-        : checkedLoopbackArgs(name, args, hostAt);
-      return Reflect.apply(original, owner, invocationArgs);
-    };
+  const recordPatch = (name: GuardName, owner: any, key: string, original: Fn, wrapped: Fn) => {
     try { owner[key] = wrapped; } catch { throw new Error(`required benchmark guard API unpatchable: ${name}`); }
     if (owner[key] !== wrapped) throw new Error(`required benchmark guard API unpatchable: ${name}`);
     originals.push({ owner, key, value: original });
     installed.push(name);
   };
 
+  const patchFetch = () => {
+    const original = globalThis.fetch;
+    if (typeof original !== "function") throw new Error("required benchmark guard API missing: global.fetch");
+    const wrapped = (input: RequestInfo | URL, init?: RequestInit) => {
+      const raw = input instanceof Request ? input.url : input;
+      if (typeof raw !== "string" || raw.length > 2048 || !raw.startsWith("http://") || /[?#@]/.test(raw)) {
+        return reject("global.fetch", "invalid URL input");
+      }
+      if (!allowedTargets || (init?.method && init.method !== "GET")) {
+        return reject("global.fetch", "invalid loopback target");
+      }
+      if (raw === allowedTargets.health) {
+        allowedLoopbackAttempts++;
+        return original(allowedTargets.health, init);
+      }
+      if (raw === allowedTargets.dashboardHealth) {
+        allowedLoopbackAttempts++;
+        return original(allowedTargets.dashboardHealth, init);
+      }
+      return reject("global.fetch", "invalid loopback target");
+    };
+    recordPatch("global.fetch", globalThis, "fetch", original, wrapped);
+  };
+
+  const patch = (name: GuardName, owner: any, key: string, hostAt: (args: any[]) => string) => {
+    const original = owner?.[key] as Fn | undefined;
+    if (typeof original !== "function") throw new Error(`required benchmark guard API missing: ${name}`);
+    const wrapped = (...args: any[]) => {
+      const invocationArgs = checkedLoopbackArgs(name, args, hostAt);
+      return Reflect.apply(original, owner, invocationArgs);
+    };
+    recordPatch(name, owner, key, original, wrapped);
+  };
+
   try {
-    patch("global.fetch", globalThis, "fetch", () => "", true);
+    patchFetch();
     patch("Bun.connect", bun, "connect", (a) => String(a[0]?.hostname ?? a[0]?.host ?? ""));
     patch("node:net.connect", net, "connect", socketHost);
     patch("node:net.createConnection", net, "createConnection", socketHost);

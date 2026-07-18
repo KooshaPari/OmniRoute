@@ -15,7 +15,7 @@ function hash(s: string): number {
   for (let i = 0; i < s.length; i++) {
     h = (Math.imul(h, 31) + (s.codePointAt(i) ?? 0)) % 2_147_483_647;
   }
-  return h;
+  return Math.abs(h);
 }
 
 export const handle: Handle = async ({ event, resolve }) => {

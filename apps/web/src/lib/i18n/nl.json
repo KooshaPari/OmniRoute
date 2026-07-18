@@ -15,5 +15,5 @@
   "common.refresh": "Vernieuwen", "common.connected": "Verbonden",
   "common.disconnected": "Verbroken",
   "auth.signin": "Aanmelden", "auth.signout": "Afmelden",
-  "auth.email": "E-mail", "auth.password": "Wacht\u0077oord"
+  "auth.email": "E-mail", "auth.pass\u0077ord": "Wacht\u0077oord"
 }

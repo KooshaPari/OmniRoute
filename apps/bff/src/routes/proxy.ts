@@ -12,7 +12,7 @@ function shouldServeNext(cookieHeader: string | null): boolean {
   for (let i = 0; i < cookieHeader.length; i++) {
     h = (Math.imul(h, 31) + (cookieHeader.codePointAt(i) ?? 0)) % 2_147_483_647;
   }
-  return h % 100 >= DEFAULT_ROLLOUT;
+  return Math.abs(h) % 100 >= DEFAULT_ROLLOUT;
 }
 
 async function forwardToUpstream(
