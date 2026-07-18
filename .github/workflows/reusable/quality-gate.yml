@@ -118,7 +118,7 @@ jobs:
 
       - name: Upload SAST results
         if: ${{ steps.parse-na.outputs.skip_sast != 'true' && always() }}
-        uses: github/codeql-action/upload-sarif@b7351df727350dca84cb9d725d57dcf5bc82ba26
+        uses: github/codeql-action/upload-sarif@dd903d2e4f5405488e5ef1422510ee31c8b32357
         with:
           sarif_file: semgrep-results.sarif
           category: 'semgrep'
