@@ -9,6 +9,7 @@ import { ALL_TARGETS } from "./targets/index.ts";
 import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
 import { Worker as NodeWorker } from "worker_threads";
+import { waitForMitmWorkerReady } from "./workerReadiness.ts";
 
 const USE_WORKER = process.env.MITM_USE_WORKER === "1";
 
@@ -60,6 +61,7 @@ export function interpretMitmStartupError(stderr: string, port: number): string 
 let serverProcess: ChildProcess | null = null;
 let serverPid: number | null = null;
 let mitmWorker: NodeWorker | null = null;
+let mitmWorkerStarting = false;
 
 // Set when getMitmStatus() finds a stale PID file (server died without clean
 // teardown). The dashboard surfaces this to offer a one-click Repair. Cleared
@@ -598,41 +600,26 @@ export async function startMitm(
   } as NodeJS.ProcessEnv;
 
   if (USE_WORKER) {
+    if (mitmWorker || mitmWorkerStarting) {
+      throw new Error("MITM proxy worker is already running or starting");
+    }
+    mitmWorkerStarting = true;
     // --- Worker path (in-process, no subprocess) ---
     const { pathToFileURL } = await import("node:url");
-    mitmWorker = new NodeWorker(pathToFileURL(MITM_SERVER_PATH), {
+    const worker = new NodeWorker(pathToFileURL(MITM_SERVER_PATH), {
       env: workerEnv,
     });
-    const worker = mitmWorker;
-    await new Promise<void>((resolve, reject) => {
-      let settled = false;
-      const settleReady = (readyPort: number) => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(survivalTimer);
-        log.info({ port: readyPort }, "MITM worker ready");
-        resolve();
-      };
-      const survivalTimer = setTimeout(() => settleReady(port), 2000);
-
-      worker.once("message", (msg) => {
-        if (typeof msg === "object" && msg !== null && "port" in msg) {
-          settleReady(Number(msg.port));
-        }
-      });
-      worker.once("error", (err) => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(survivalTimer);
-        reject(err);
-      });
-      worker.once("exit", (code) => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(survivalTimer);
-        reject(new Error(`MITM worker exited before startup (code ${code})`));
-      });
-    });
+    mitmWorker = worker;
+    try {
+      const readyPort = await waitForMitmWorkerReady(worker);
+      log.info({ port: readyPort }, "MITM worker ready");
+    } catch (error) {
+      if (mitmWorker === worker) mitmWorker = null;
+      await worker.terminate().catch(() => undefined);
+      throw error;
+    } finally {
+      mitmWorkerStarting = false;
+    }
     mitmWorker.on("error", (err) => {
       log.error({ err }, "MITM worker error");
       mitmWorker = null;

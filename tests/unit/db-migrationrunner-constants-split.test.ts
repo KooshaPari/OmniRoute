@@ -70,14 +70,28 @@ describe("migrationRunner/constants — exact small-table snapshots", () => {
 // ── large tables — count + shape + spot-checks (corruption guard) ─────────────
 
 describe("migrationRunner/constants — large-table integrity", () => {
-  it("RENAMED_MIGRATION_COMPATIBILITY has 10 well-formed entries", () => {
-    assert.equal(RENAMED_MIGRATION_COMPATIBILITY.length, 10);
+  it("RENAMED_MIGRATION_COMPATIBILITY has 14 well-formed entries", () => {
+    assert.equal(RENAMED_MIGRATION_COMPATIBILITY.length, 14);
     for (const e of RENAMED_MIGRATION_COMPATIBILITY) {
       assert.equal(typeof e.fromVersion, "string");
       assert.equal(typeof e.fromName, "string");
       assert.equal(typeof e.toVersion, "string");
       assert.equal(typeof e.toName, "string");
     }
+  });
+
+  it("pins fleet migration compatibility from the colliding slots", () => {
+    assert.deepEqual(
+      RENAMED_MIGRATION_COMPATIBILITY.filter((entry) =>
+        ["122", "123", "124", "125"].includes(entry.toVersion)
+      ),
+      [
+        { fromVersion: "102", fromName: "fleet_nodes", toVersion: "122", toName: "fleet_nodes" },
+        { fromVersion: "103", fromName: "fleet_config", toVersion: "123", toName: "fleet_config" },
+        { fromVersion: "104", fromName: "scaling_policies", toVersion: "124", toName: "scaling_policies" },
+        { fromVersion: "105", fromName: "alert_rules", toVersion: "125", toName: "alert_rules" },
+      ]
+    );
   });
 
   it("RENAMED_MIGRATION_COMPATIBILITY spot-checks the boundary renames", () => {
