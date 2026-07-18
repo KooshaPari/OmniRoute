@@ -29,6 +29,7 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 | P0-L4 | Repair root npm lock drift that blocks DAST | — | `[x]` install passes in #380 run |
 | P0-L5 | Baseline or repair REST latency workflow | — | `[ ]` |
 | P0-L6 | Repair root Next.js bundle preconditions for DAST startup | P0-L4 | `[/]` MDX fixed; petals import remains |
+| P0-L7 | Restore Rust test and migration integrity (#390) | P0-L2 | `[ ]` check passes; tests and migration compatibility blocked |
 
 ## P1 — Architecture truth
 
@@ -67,7 +68,7 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 
 | ID | Work | Effort | Dependency |
 |---|---|---:|---|
-| P4-R1 | Implement provider repository CRUD | 1 d | P1-L7 |
+| P4-R1 | Implement provider repository CRUD | 1 d | P1-L7, P0-L7 |
 | P4-R2 | Add API skeleton and health route | 1 d | P4-R1 |
 | P4-R3 | Delegate router to core registry | 2 d | P4-R2 |
 | P4-R4 | Implement CLI `serve` and `migrate` commands | 2 d | P4-R2 |
@@ -82,6 +83,7 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 flowchart TD
   C376[P0-L1 classify #376 checks] --> M376[P0-L2 merge #376]
   M376 --> RCI[P0-L3 Rust CI]
+  M376 --> RBASE[P0-L7 Rust test/migration integrity]
   M376 --> ARG[P2-L3 Argis smoke]
   NPM[P0-L4 npm lock repair] --> BUNDLE[P0-L6 root bundle repair]
   BUNDLE --> DAST[DAST green]
@@ -96,6 +98,7 @@ flowchart TD
   INV --> MATRIX[P1-L7 parity matrix]
 
   MATRIX --> CRUD[P4-R1 provider CRUD]
+  RBASE --> CRUD
   RCI --> API[P4-R2 API skeleton]
   CRUD --> API
   API --> ROUTER[P4-R3 router]
@@ -112,7 +115,7 @@ flowchart TD
 ## Next-two queue
 
 1. **P1-L6:** cleanly replay #340 source commit `51d39d911` from closed PR #342.
-2. **P4-R1:** implement provider repository CRUD.
+2. **P0-L7:** resolve #390 before provider repository CRUD.
 
 ## Update rule
 

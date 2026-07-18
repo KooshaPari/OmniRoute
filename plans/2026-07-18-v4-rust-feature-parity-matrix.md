@@ -2,8 +2,8 @@
 
 - **ADR:** ADR-107 staged convergence
 - **WBS:** P1-L7 → P4-R1…P4-R8
-- **Evidence cutoff:** `main` at `4c19697ad` (PR #382)
-- **Status:** Initial owner and dependency baseline
+- **Evidence cutoff:** `main` at `63842030c` (PR #389), plus #390 audit
+- **Status:** Initial owner/dependency baseline with verified integrity preconditions
 
 ## Decision boundary
 
@@ -36,14 +36,14 @@ Status legend:
 | CAP-10 | BFF proxy lifecycle and rollout | **Live but bounded debt.** Proxy streaming and rollout work; issue #340 tracks abort, timeout, header, and SSE characterization. | **Absent.** Axum API is not implemented, so no Rust ingress lifecycle exists. | v4 BFF for #340; `omniroute-api` for convergence | Cleanly replay `51d39d911`, then prove cancellation, timeout, hop-by-hop filtering, streaming, and stable 502 behavior. |
 | CAP-11 | Health, diagnostics, and operations API | **Partial.** BFF `/health` is live; diagnostics and runtime metrics are honest placeholders. | **Scaffold.** `omniroute-api` has no router or health endpoint. | `omniroute-api` (P4-R2) | `/healthz` reports process and storage readiness without requiring providers; diagnostics expose only measured fields. |
 | CAP-12 | CLI lifecycle and migrations | **Partial.** Existing JavaScript CLI/release surface remains the operational baseline, but root bundle preconditions still break cross-platform and DAST jobs. | **Scaffold.** Rust CLI only initializes tracing and logs a scaffold message. | `omniroute-cli` (P4-R4) | `serve` and `migrate` commands have help, exit-code, temp-database, and graceful-shutdown tests on Linux. |
-| CAP-13 | Persistence, schema, and encryption | **Delegated.** Restored BFF intentionally owns no durable store. | **Partial/live foundation.** Pool, schema bootstrap, migrations, crypto, combo/key/request-log repositories exist; provider/usage/audit/webhook coverage is incomplete. | `omniroute-storage` | Every declared repository has CRUD/aggregation tests; migration from an empty and previous-version database is idempotent. |
+| CAP-13 | Persistence, schema, and encryption | **Delegated.** Restored BFF intentionally owns no durable store. | **Partial, integrity-blocked.** Pool, schema bootstrap, migrations, crypto, combo/key/request-log repositories exist, but #390 tracks migration ownership, path creation, version typing, and `call_logs`/`request_logs` compatibility defects. | `omniroute-storage` | Resolve #390; then require CRUD/aggregation tests and idempotent empty/prior-version migrations for every repository. |
 | CAP-14 | Svelte dashboard and desktop shell | **Live UI/contract shell.** `apps/web` contains 37 dashboard pages but many consume placeholder BFF responses. | **Not a Rust migration target.** Rust should provide stable APIs, not replace the Svelte presentation layer. | `apps/web` + `apps/bff` compatibility owners | Each page is classified live, unavailable, or hidden based on API capability; no fabricated success remains. |
 
 ## Ownership and sequencing
 
 | Work package | Primary owner | Depends on | PERT estimate (O/M/P) |
 |---|---|---|---:|
-| P4-R1 provider repository CRUD | `omniroute-storage` | schema foundation | 0.5 / 1 / 2 d |
+| P4-R1 provider repository CRUD | `omniroute-storage` | P0-L7 / #390 integrity baseline | 0.5 / 1 / 2 d |
 | P4-R2 Axum skeleton and health | `omniroute-api` | P4-R1 interface | 0.5 / 1 / 2 d |
 | P4-R3 router delegates to registry | `omniroute-router`, `omniroute-providers` | P4-R1, P4-R2 | 1 / 2 / 4 d |
 | P4-R4 CLI `serve` and `migrate` | `omniroute-cli` | P4-R2, storage migrations | 1 / 2 / 3 d |
@@ -57,7 +57,8 @@ the first operational CLI is approximately 6.3 engineering days:
 
 ```mermaid
 flowchart LR
-  MATRIX[P1-L7 parity baseline] --> PROVIDERS[P4-R1 provider CRUD]
+  MATRIX[P1-L7 parity baseline] --> BASEFIX[P0-L7 / #390 test and migration integrity]
+  BASEFIX --> PROVIDERS[P4-R1 provider CRUD]
   PROVIDERS --> API[P4-R2 Axum health/API]
   API --> ROUTER[P4-R3 registry routing]
   ROUTER --> CLI[P4-R4 serve/migrate]
@@ -86,3 +87,13 @@ flowchart LR
    an ADR names them canonical; current ownership is under
    `crates/omniroute-rs`.
 5. Update this matrix and RC-A7 in the same PR that changes a capability state.
+6. Treat `cargo check` as compilation evidence only. P4 implementation work
+   requires passing workspace tests and the #390 migration compatibility gates.
+
+## Historical Rust disposition
+
+The removed `backend-rust` tree is provenance, not a second implementation.
+Its quota bucket/tracker model is a port candidate because the canonical core
+has no quota module. Its `call_logs` contract conflicts with the canonical
+`request_logs` schema and therefore requires the explicit #390 migration
+decision before persistence work expands.
