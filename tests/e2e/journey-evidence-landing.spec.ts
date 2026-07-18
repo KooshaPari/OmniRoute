@@ -87,6 +87,7 @@ test("captures anonymous current-main landing journey evidence", async ({ contex
       schemaVersion: 1,
       slug,
       url: "/landing",
+      serverMode: process.env.OMNIROUTE_PLAYWRIGHT_SERVER_MODE ?? "start",
       viewport: { width: 1280, height: 800 },
       checks,
       axe: { violations: axe.violations, incomplete: axe.incomplete },

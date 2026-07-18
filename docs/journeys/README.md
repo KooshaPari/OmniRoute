@@ -26,4 +26,9 @@ The capture runner uses a fixed viewport, reduced motion, local-only networking,
 axe analysis, keyboard-focus verification, and explicit redaction scanning. Hosted artifacts
 may expire; immutable identifiers and digests remain the historical provenance record.
 
-Related: #394.
+The first recovery capture runs the exercised `/landing` route with the repository-supported
+development server. This is capture-only: it neither claims nor substitutes for a production
+build. Current-main production-build defects remain independently blocking under #400, and the
+accessibility report records the server mode used.
+
+Related: #394, #400.

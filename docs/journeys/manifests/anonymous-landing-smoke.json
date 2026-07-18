@@ -6,7 +6,7 @@
   "purpose": "Prove that the public landing route renders locally and satisfies the declared accessibility contract.",
   "preconditions": [
     "Dependencies are installed from package-lock.json.",
-    "The Playwright web server starts the current Next.js application on localhost.",
+    "The capture-only Playwright web server starts the current Next.js application in development mode on localhost; this does not assert a production build.",
     "No provider credentials are configured."
   ],
   "fixture": { "kind": "repository", "network": "local-only", "secrets": false },
@@ -56,7 +56,7 @@
       }
     ],
     "retentionDays": 14,
-    "blocker": "A fresh exact-source-commit GitHub Actions capture is required before captured status can be asserted.",
+    "blocker": "A fresh exact-source-commit GitHub Actions development-mode capture is required before captured status can be asserted; production-build defects remain tracked separately in issue 400.",
     "capture": null
   },
   "provenance": {
