@@ -1,3 +1,7 @@
+---
+title: Service Level Objectives (SLOs)
+---
+
 # Service Level Objectives (SLOs)
 
 > Current SLO targets for OmniRoute.
