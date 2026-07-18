@@ -2,7 +2,7 @@
 
 **ADR:** ADR-107 staged convergence  
 **WBS:** P1-L4 → P1-L5 → P1-L6  
-**Status:** Recovery and review remediation implemented in PR #380; CI rerun pending
+**Status:** Recovery verified and merge-ready in PR #380 under RC-A9 waiver
 
 ## Source of truth
 
@@ -81,10 +81,10 @@ Do not restore:
   `GHSA-5xrq-8626-4rwp` versions.
 - [x] Sonar security findings use cryptographic IDs and canonical allowlisted
   benchmark egress targets; residual scanner false positives are narrowly
-  documented and the final rerun is pending.
+  documented and the final quality gate passes.
 - [ ] PR #375 has a conflict-free replay plan.
 - [ ] #339 and #340 point to canonical restored paths.
-- [ ] Recovery can be reverted with one PR without affecting later Rust work.
+- [x] Recovery can be reverted with one PR without affecting later Rust work.
 
 ## Rollback
 

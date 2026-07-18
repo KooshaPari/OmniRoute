@@ -28,7 +28,7 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 | P0-L3 | Add Linux `cargo check --workspace` CI gate | P0-L2 | `[x]` PR #377; execution infra blocked |
 | P0-L4 | Repair root npm lock drift that blocks DAST | — | `[x]` install passes in #380 run |
 | P0-L5 | Baseline or repair REST latency workflow | — | `[ ]` |
-| P0-L6 | Repair root Next.js bundle preconditions for DAST startup | P0-L4 | `[ ]` |
+| P0-L6 | Repair root Next.js bundle preconditions for DAST startup | P0-L4 | `[/]` MDX fixed; petals import remains |
 
 ## P1 — Architecture truth
 
@@ -38,7 +38,7 @@ P0-L1 → P0-L2 → P1-L1 → P1-L2 → P1-L5 → P4-R1
 | P1-L2 | Accept ADR-107 staged v4-to-Rust convergence | P1-L1 | `[x]` |
 | P1-L3 | Refresh omni-evolve snapshot and add convergence stream | P1-L2 | `[ ]` |
 | P1-L4 | Inventory and verify the last coherent v4 commit range | P1-L2 | `[x]` |
-| P1-L5 | Restore BFF/web without reverting Rust or Argis absorbs | P1-L4 | `[/]` PR #380; review fixes pass locally |
+| P1-L5 | Restore BFF/web without reverting Rust or Argis absorbs | P1-L4 | `[/]` PR #380 merge-ready under RC-A9 waiver |
 | P1-L6 | Rebase or supersede #339, #340, and PR #375 | P1-L5 | `[ ]` |
 | P1-L7 | Publish v4-to-Rust feature-parity matrix and owners | P1-L4 | `[ ]` |
 
