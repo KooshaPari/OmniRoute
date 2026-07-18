@@ -1,6 +1,5 @@
 import figlet from "figlet";
 import gradient from "gradient-string";
-import chalkAnimation from "chalk-animation";
 
 /**
  * Display banner
@@ -29,13 +28,14 @@ export function showSimpleBanner() {
 }
 
 /**
- * Display success animation
+ * Display success animation (fade-in via gradient + time-boxed carriage return clear)
  */
 export async function showSuccess(message: string) {
   return new Promise<void>((resolve) => {
-    const animation = chalkAnimation.rainbow(`\n✨ ${message}\n`);
+    const line = gradient.pastel.multiline(`\n✨ ${message}\n`);
+    process.stdout.write(line);
     setTimeout(() => {
-      animation.stop();
+      process.stdout.write("\r\x1b[K");
       resolve();
     }, 1000);
   });

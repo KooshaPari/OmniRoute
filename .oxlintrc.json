@@ -1,0 +1,36 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "off",
+    "style": "off",
+    "nursery": "off",
+    "restriction": "off",
+    "perf": "off"
+  },
+  "plugins": ["react", "typescript", "import", "jsdoc", "unicorn"],
+  "rules": {
+    "no-unused-vars": "error",
+    "no-undef": "error",
+    "no-console": "off",
+    "no-empty": "off",
+    "eqeqeq": ["error", "smart"],
+    "prefer-const": "error",
+    "no-var": "error",
+    "typescript/no-explicit-any": "off",
+    "typescript/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "typescript/no-non-null-assertion": "off"
+  },
+  "ignorePatterns": [
+    "node_modules/**",
+    ".next/**",
+    ".build/**",
+    "dist/**",
+    "coverage/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ]
+}

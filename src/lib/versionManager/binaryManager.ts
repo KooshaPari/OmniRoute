@@ -86,6 +86,18 @@ async function extractZip(archivePath: string, destDir: string): Promise<void> {
   await execFileAsync(command, args);
 }
 
+function safeHexEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a.toLowerCase(), "hex");
+  const bb = Buffer.from(b.toLowerCase(), "hex");
+  // Length mismatch: still compare against a same-length scratch to avoid a length-side-channel.
+  if (ab.length !== bb.length) {
+    const scratch = Buffer.alloc(ab.length || 1);
+    crypto.timingSafeEqual(scratch, scratch);
+    return false;
+  }
+  return crypto.timingSafeEqual(ab, bb);
+}
+
 async function verifyChecksum(filePath: string, expectedSha256: string): Promise<boolean> {
   const hash = crypto.createHash("sha256");
   await new Promise<void>((resolve, reject) => {
@@ -94,7 +106,7 @@ async function verifyChecksum(filePath: string, expectedSha256: string): Promise
     stream.on("end", resolve);
     stream.on("error", reject);
   });
-  return hash.digest("hex").toLowerCase() === expectedSha256.toLowerCase();
+  return safeHexEqual(hash.digest("hex"), expectedSha256);
 }
 
 function findBinaryInDir(dir: string): string | null {

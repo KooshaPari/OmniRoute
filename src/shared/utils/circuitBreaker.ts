@@ -9,11 +9,36 @@
  * - Transition history tracking for diagnostics
  * - DB persistence via domainState.js
  *
- * States:
- *   CLOSED    — Normal operation, requests pass through
- *   DEGRADED  — Failure rate elevated, requests pass through but warnings logged
- *   OPEN      — Requests are short-circuited
- *   HALF_OPEN — Probing: limited requests allowed to test recovery
+ * # Migration plan: opossum (deferred — high-risk 600-LOC refactor)
+ *
+ * The opossum library (https://github.com/nodeshift/opossum) provides a mature
+ * circuit breaker (CLOSED / OPEN / HALF_OPEN, but NOT our DEGRADED state and
+ * NOT per-kind thresholds natively). This file should be migrated to opossum
+ * but the work is non-trivial because:
+ *
+ *   1. DEGRADED state — opossum has no equivalent. Migration must wrap a
+ *      `DegradationTracker` sibling to opossum and fold the 4-state model
+ *      into opossum's 3-state model for the opossum-owned breaker only.
+ *   2. Per-kind thresholds (`kindThresholds`, `cooldownByKind`,
+ *      `applyFailureIncrement`) — opossum only has one global threshold.
+ *      Migration must dispatch to N child opossum breakers (one per
+ *      FailureKind) and aggregate state as `max(children.states)`.
+ *   3. Adaptive backoff escalation — migrate by mutating `resetTimeout`
+ *      on the `open` event, persisted via `saveCircuitBreakerState`.
+ *   4. DB persistence (`saveCircuitBreakerState`,
+ *      `loadCircuitBreakerState`, `deleteCircuitBreakerState`) — wrap a
+ *      thin `BreakerPersistence` snapshot for `{ state, failureCount,
+ *      lastFailureTime, openCycleCount, kindFailureCounts }`.
+ *   5. Registry (`getCircuitBreaker`, `getAllCircuitBreakers`,
+ *      `deleteCircuitBreaker`, periodic sweep) — keep `Map<name, …>` +
+ *      500 cap + cold-evict unchanged; only the entry type changes.
+ *   6. Public surface (`CircuitBreakerOpenError`, registry helpers,
+ *      `isLocalStreamLifecycleError`) — must be preserved unchanged. Wire
+ *      `isLocalStreamLifecycleError` as opossum's `errorFilter` option so
+ *      local stream-lifecycle errors never count as failures.
+ *
+ * Until the migration lands, this file's hand-rolled implementation remains
+ * the source of truth. `opossum@10` is installed but unused.
  */
 
 import {

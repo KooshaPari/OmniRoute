@@ -1,0 +1,196 @@
+{
+  "$schema": "./ci-matrix.schema.json",
+  "description": "Runtime lookup table mapping release-channel gate IDs to the GitHub Actions workflows/jobs/check-runs that satisfy them. The channel-resolver queries this via `gh api /repos/:o/:r/commits/:sha/check-runs` to decide how far up the channel ladder to promote. Authoritative for the resolver; the human-readable mapping lives in config/release/channels.json under `gates`.",
+  "version": 1,
+
+  "gateEvaluation": {
+    "freshnessWindowHours": 26,
+    "comment": "How recent a passing check-run must be to count toward gate satisfaction for the current SHA. 26h = 24h trigger interval + 2h buffer for clock skew / queue time. Older greens are ignored (they pre-date the trigger).",
+    "failMode": "open",
+    "failModeComment": "If a gate's workflow is unreachable / API errors / no runs found in the window, the resolver fails OPEN (treats as missing-signal, not blocking). Rationale: a transient CI infra outage should not block releases indefinitely. Stable promotion has its own manual human approval gate as the backstop.",
+    "conclusionRequired": "success",
+    "conclusionRequiredComment": "Only `success` (green) counts. `neutral` and `skipped` are treated as missing-signal. `failure`, `timed_out`, `cancelled`, `action_required`, `startup_failure`, `stale` are blocking.",
+    "excludePullRequests": true,
+    "excludePullRequestsComment": "Check-runs from PRs are ignored — only pushes-to-main and workflow_dispatch runs count, so an in-flight feature branch can't accidentally satisfy a gate for a SHA on main."
+  },
+
+  "gates": {
+    "build": {
+      "checkRunNames": ["build", "package-artifact"],
+      "workflows": ["ci.yml"],
+      "requiredWorkflowJobs": ["build", "package-artifact"],
+      "comment": "Build matrix + npm pack policy. Located in ci.yml. The resolver queries both names as separate check-runs."
+    },
+    "unit": {
+      "checkRunNames": ["test-unit"],
+      "workflows": ["ci.yml"],
+      "requiredWorkflowJobs": ["test-unit"],
+      "comment": "Node 24 unit tests across 8 shards. The single aggregate check-run from ci.yml reports per-shard results in the summary."
+    },
+    "vitest": {
+      "checkRunNames": ["test-vitest"],
+      "workflows": ["ci.yml"],
+      "requiredWorkflowJobs": ["test-vitest"],
+      "comment": "Vitest — MCP server, autoCombo, cache."
+    },
+    "integration": {
+      "checkRunNames": ["test-integration"],
+      "workflows": ["ci.yml"],
+      "requiredWorkflowJobs": ["test-integration"],
+      "comment": "Integration tests — 2 shards. The single check-run is enough (sharding is internal)."
+    },
+    "e2e": {
+      "checkRunNames": ["test-e2e"],
+      "workflows": ["ci.yml"],
+      "requiredWorkflowJobs": ["test-e2e"],
+      "comment": "Playwright E2E — 9 shards aggregated into one check-run."
+    },
+    "security": {
+      "checkRunNames": ["test-security"],
+      "workflows": ["ci.yml"],
+      "requiredWorkflowJobs": ["test-security"],
+      "comment": "Security test suite."
+    },
+    "release-green": {
+      "checkRunNames": ["release-green"],
+      "workflows": ["nightly-release-green.yml"],
+      "requiredWorkflowJobs": ["release-green"],
+      "comment": "Full pre-flight validation: typecheck, lint, db-rules, docs, unit, vitest, integration, pack-artifact. Uses scripts/quality/validate-release-green.mjs."
+    },
+    "resilience": {
+      "checkRunNames": ["Heap-growth gate", "Resilience chaos (fault injection)", "k6 load/soak"],
+      "workflows": ["nightly-resilience.yml"],
+      "requiredWorkflowJobs": ["heap", "chaos", "k6-soak"],
+      "comment": "Three separate jobs in nightly-resilience.yml — each must be green."
+    },
+    "llm-security": {
+      "checkRunNames": ["promptfoo-guard", "garak"],
+      "workflows": ["nightly-llm-security.yml"],
+      "requiredWorkflowJobs": ["promptfoo-guard", "garak"],
+      "comment": "LLM prompt-injection guard + garak probes."
+    },
+    "mutation": {
+      "checkRunNames": ["stryker"],
+      "workflows": ["nightly-mutation.yml"],
+      "requiredWorkflowJobs": ["stryker"],
+      "comment": "Stryker mutation testing — slow, advisory in most channels."
+    },
+    "property": {
+      "checkRunNames": ["property-random-seed"],
+      "workflows": ["nightly-property.yml"],
+      "requiredWorkflowJobs": ["property-random-seed"],
+      "comment": "fast-check property-based tests with random seed."
+    },
+    "schemathesis": {
+      "checkRunNames": ["schemathesis"],
+      "workflows": ["nightly-schemathesis.yml"],
+      "requiredWorkflowJobs": ["schemathesis"],
+      "comment": "OpenAPI contract fuzz via schemathesis."
+    },
+    "chaos": {
+      "checkRunNames": ["chaos"],
+      "workflows": ["chaos-weekly.yml"],
+      "requiredWorkflowJobs": ["chaos"],
+      "comment": "Chaos engineering drill (pod kill + latency injection). Runs weekly."
+    },
+    "fuzz": {
+      "checkRunNames": ["fuzz"],
+      "workflows": ["fuzz-weekly.yml"],
+      "requiredWorkflowJobs": ["fuzz"],
+      "comment": "cargo-fuzz build + list. Note: project has BOTH fuzz-ci.yml and fuzz-weekly.yml; they're identical files. We bind to fuzz-weekly.yml for the release gate (less frequent, more deliberate)."
+    },
+    "perf": {
+      "checkRunNames": ["perf"],
+      "workflows": ["perf-weekly.yml"],
+      "requiredWorkflowJobs": ["perf"],
+      "comment": "cargo-bench performance baseline (weekly)."
+    },
+    "load": {
+      "checkRunNames": ["k6 smoke", "k6 soak", "k6 stress"],
+      "workflows": ["k6-load-test.yml"],
+      "requiredWorkflowJobs": ["k6-run"],
+      "comment": "k6 load test — three scenarios share the same `k6-run` job; the resolver treats any green k6 check-run in the window as satisfying `load`."
+    },
+    "cross-platform": {
+      "checkRunNames": ["build-cli", "test-unit"],
+      "workflows": ["cross-platform.yml"],
+      "requiredWorkflowJobs": ["build-cli", "test-unit"],
+      "comment": "CLI build + unit tests across ubuntu/macos/windows. The check-run names match the matrix entries."
+    },
+    "a11y": {
+      "checkRunNames": ["A11y axe (nightly, freeze-and-alert)"],
+      "workflows": ["nightly-resilience.yml"],
+      "requiredWorkflowJobs": ["a11y"],
+      "comment": "axe accessibility suite (Playwright) — freeze-and-alert strategy (does not block nightly)."
+    }
+  },
+
+  "channelCoverage": {
+    "comment": "Per-channel coverage matrix answering 'is the CI matrix lacking for E2E/integration and others such as chaos, mut, fuzz, perf, viz, reg?'. Built from the existing nightly + weekly workflows. Each cell is one of: required | advisory | n/a. Built automatically from channels.json but denormalized here for the resolver + dashboard.",
+    "matrix": {
+      "build": {
+        "inCiYml": true,
+        "inNightly": true,
+        "inWeekly": true,
+        "comment": "Core. Present everywhere."
+      },
+      "unit": { "inCiYml": true, "inNightly": true, "inWeekly": true },
+      "vitest": { "inCiYml": true, "inNightly": true, "inWeekly": true },
+      "integration": { "inCiYml": true, "inNightly": true, "inWeekly": true, "comment": "WAS missing from PR→release fast-gate before validate-release-green.mjs (see comment in that script about v3.8.42 release PR)." },
+      "e2e": { "inCiYml": true, "inNightly": true, "inWeekly": true },
+      "security": { "inCiYml": true, "inNightly": true, "inWeekly": true },
+      "release-green": { "inCiYml": false, "inNightly": true, "inWeekly": true, "comment": "Pre-flight script in scripts/quality/validate-release-green.mjs. Runs on the nightly-release-green.yml schedule + manual dispatch." },
+      "resilience": { "inCiYml": false, "inNightly": true, "inWeekly": true, "comment": "Heap + chaos + k6-soak. nightly-resilience.yml." },
+      "llm-security": { "inCiYml": false, "inNightly": true, "inWeekly": true, "comment": "promptfoo + garak. nightly-llm-security.yml." },
+      "mutation": { "inCiYml": false, "inNightly": true, "inWeekly": true, "comment": "Stryker, slow → stays advisory until rc." },
+      "property": { "inCiYml": false, "inNightly": true, "inWeekly": true, "comment": "fast-check random seed. nightly-property.yml." },
+      "schemathesis": { "inCiYml": false, "inNightly": true, "inWeekly": true, "comment": "OpenAPI contract fuzz. nightly-schemathesis.yml." },
+      "chaos": { "inCiYml": false, "inNightly": false, "inWeekly": true, "comment": "Only in chaos-weekly.yml. NOT nightly — runs Mondays 02:00 UTC." },
+      "fuzz": { "inCiYml": true, "inNightly": false, "inWeekly": true, "comment": "fuzz-ci.yml runs daily 02:00 Sat; fuzz-weekly.yml is identical. The release gate binds to fuzz-weekly for predictability." },
+      "perf": { "inCiYml": false, "inNightly": false, "inWeekly": true, "comment": "perf-weekly.yml only. cargo-bench baseline." },
+      "load": { "inCiYml": false, "inNightly": true, "inWeekly": true, "comment": "k6-load-test.yml runs daily at 04:00 UTC, scenario=smoke. Heavier scenarios are manual dispatch." },
+      "cross-platform": { "inCiYml": false, "inNightly": false, "inWeekly": true, "comment": "cross-platform.yml is workflow_dispatch-only — no schedule. Effective coverage: on-demand." },
+      "a11y": { "inCiYml": false, "inNightly": true, "inWeekly": true, "comment": "Lives in nightly-resilience.yml as the `a11y` job. Freeze-and-alert strategy means failure does NOT block — but it IS captured here as a check-run the resolver can consult." }
+    },
+    "visualization": {
+      "comment": "ASCII view of which gate lives in which schedule band. Empty = not run. X = runs.",
+      "bands": ["ci.yml (PR+push)", "nightly-*", "weekly-*", "manual"],
+      "rows": [
+        ["build        ", "X", "X", "X", "X"],
+        ["unit         ", "X", "X", "X", "X"],
+        ["vitest       ", "X", "X", "X", "X"],
+        ["integration  ", "X", "X", "X", "X"],
+        ["e2e          ", "X", "X", "X", "X"],
+        ["security     ", "X", "X", "X", "X"],
+        ["release-green", " ", "X", "X", "X"],
+        ["resilience   ", " ", "X", "X", "X"],
+        ["llm-security ", " ", "X", "X", "X"],
+        ["mutation     ", " ", "X", "X", "X"],
+        ["property     ", " ", "X", "X", "X"],
+        ["schemathesis ", " ", "X", "X", "X"],
+        ["chaos        ", " ", " ", "X", "X"],
+        ["fuzz         ", "X", " ", "X", "X"],
+        ["perf         ", " ", " ", "X", "X"],
+        ["load         ", " ", "X", "X", "X"],
+        ["cross-platform", " ", " ", " ", "X"],
+        ["a11y         ", " ", "X", "X", "X"]
+      ]
+    },
+    "coverageGaps": {
+      "comment": "Gaps the matrix currently has relative to the channel taxonomy's required gates. These are the gates that exist as concepts but have no workflow scheduled to produce them on a cadence the resolver can rely on for an automated promotion.",
+      "gaps": [
+        {
+          "channel": "stable",
+          "missingForAutomation": ["cross-platform"],
+          "rationale": "cross-platform.yml is workflow_dispatch-only. To make stable fully automatable we'd need to schedule it (e.g. weekly). Until then, stable's `cross-platform` requirement is satisfied by manual run before promotion. Documented as a known limitation.",
+          "trackedIn": "TODO list in docs/ops/RELEASE_CHANNELS.md"
+        },
+        {
+          "channel": "lts",
+          "missingForAutomation": ["release-green"],
+          "rationale": "LTS branches don't have a nightly-release-green.yml attached to them. Backport CI re-runs unit/vitest/integration on the lts branch but not the full release-green pre-flight. Tracked as a TODO — needs a parametrized reusable workflow."
+        }
+      ]
+    }
+  }
+}

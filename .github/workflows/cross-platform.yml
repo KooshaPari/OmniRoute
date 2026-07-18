@@ -5,6 +5,14 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Required for the `stable` release channel: stable is gated on the
+  # `cross-platform` gate (config/release/ci-matrix.json), which can only
+  # resolve to green if this workflow runs without manual intervention.
+  # Weekly Saturday 02:00 UTC is far enough from the daily auto-release
+  # (07:00 UTC) that green check-runs are visible to channel-resolver.mjs
+  # before the next release attempt.
+  schedule:
+    - cron: "0 2 * * 6"
   workflow_dispatch:
 
 concurrency:

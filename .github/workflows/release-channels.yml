@@ -1,0 +1,449 @@
+name: Release Channels (manual promotion + retention)
+
+# Manual half of the release system. Auto-channel build is in
+# auto-release.yml; this workflow is for human-initiated promotion
+# (alpha → beta → rc → stable) and retention cleanup.
+#
+#   promote    — workflow_dispatch: choose a channel + version, validate,
+#                re-resolve via channel-resolver.mjs with --max-channel,
+#                publish to GitHub + npm + Docker.
+#   cleanup    — schedule (weekly Sunday 03:00 UTC): enforce retention
+#                rules from config/release/channels.json (latest 3 nightly,
+#                5 canary, etc.; stable/lts are immutable).
+#   lts-cut    — workflow_dispatch: cut an LTS branch from a stable release.
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Action"
+        required: true
+        type: choice
+        default: "promote"
+        options:
+          - promote
+          - cleanup
+          - lts-cut
+      channel:
+        description: "Target channel (for promote: alpha|beta|rc|stable|lts; ignored for cleanup/lts-cut)"
+        required: false
+        type: choice
+        default: "stable"
+        options: [alpha, beta, rc, stable, lts]
+      version:
+        description: "Base version to promote FROM (e.g. 3.8.42 — without prerelease tag)"
+        required: false
+        type: string
+      lts-branch:
+        description: "LTS branch name (for lts-cut; e.g. release/3.8-lts)"
+        required: false
+        type: string
+  schedule:
+    # Weekly Sunday 03:00 UTC — retention cleanup. Auto-runs even if no
+    # workflow_dispatch has fired recently.
+    - cron: "0 3 * * 0"
+
+permissions:
+  contents: write
+  id-token: write
+  packages: write
+
+concurrency:
+  group: release-channels-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────
+  # PROMOTE — manually advance an existing release to a higher channel.
+  # ─────────────────────────────────────────────────────────────────────
+  promote:
+    name: Promote to ${{ inputs.channel }}
+    if: ${{ inputs.action == 'promote' }}
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      resolved: ${{ steps.resolve.outputs.resolved }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate inputs
+        env:
+          CHANNEL: ${{ inputs.channel }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${VERSION:-}" ]]; then
+            echo "::error::--version is required for action=promote (the base semver, e.g. 3.8.42)"
+            exit 1
+          fi
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+            echo "::error::Invalid base version: $VERSION"
+            exit 1
+          fi
+          echo "Promoting base ${VERSION} to channel ${CHANNEL}"
+
+      - name: Fetch check-runs for HEAD SHA
+        id: runs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/release-artifacts
+          gh api --paginate "/repos/${{ github.repository }}/commits/${{ github.sha }}/check-runs?per_page=100" \
+            > /tmp/release-artifacts/check-runs.json || echo '{"check_runs":[]}' > /tmp/release-artifacts/check-runs.json
+
+      - name: Resolve (with cap)
+        id: resolve
+        env:
+          MAX_CHANNEL: ${{ inputs.channel }}
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
+          node scripts/release/channel-resolver.mjs \
+            --sha "${{ github.sha }}" \
+            --check-runs /tmp/release-artifacts/check-runs.json \
+            --max-channel "$MAX_CHANNEL" \
+            --dry-run \
+            | tee /tmp/release-artifacts/resolution.json
+
+      - name: Validate resolution matches requested channel
+        env:
+          RESOLVED: ${{ steps.resolve.outputs.resolved }}
+          REQUESTED: ${{ inputs.channel }}
+        run: |
+          set -euo pipefail
+          if [[ "$RESOLVED" != "$REQUESTED" ]]; then
+            echo "::error::Resolver chose '$RESOLVED' but you requested '$REQUESTED'."
+            echo "::error::Either the SHA has failing CI gates, or the channel you requested"
+            echo "::error::is higher than what the blocking gates support for this commit."
+            echo "::error::Run with --max-channel=stable to see what's actually achievable."
+            exit 1
+          fi
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.resolve.outputs.version }}
+          CHANNEL: ${{ inputs.channel }}
+        run: |
+          set -euo pipefail
+          PRERELEASE="false"
+          case "$CHANNEL" in
+            alpha|beta|rc) PRERELEASE="true" ;;
+          esac
+          # Re-use existing body if any.
+          BODY="$(gh release view "v$VERSION" --json body -q '.body' 2>/dev/null || echo 'Manual promotion via release-channels.yml')"
+          # Create or edit the release at the same tag.
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            gh release edit "v$VERSION" \
+              --title "v$VERSION ($CHANNEL)" \
+              --notes "$BODY" \
+              --prerelease="$PRERELEASE"
+          else
+            gh release create "v$VERSION" \
+              --title "v$VERSION ($CHANNEL)" \
+              --notes "$BODY" \
+              --prerelease="$PRERELEASE" \
+              --target "${{ github.sha }}"
+          fi
+
+      - name: Publish npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VERSION: ${{ steps.resolve.outputs.version }}
+          CHANNEL: ${{ inputs.channel }}
+        run: |
+          set -euo pipefail
+          # Map channel → npm dist-tag.
+          case "$CHANNEL" in
+            alpha)  TAG="alpha" ;;
+            beta)   TAG="beta" ;;
+            rc)     TAG="next" ;;
+            stable) TAG="latest" ;;
+            lts)    TAG="lts" ;;
+            *) echo "::error::Unknown channel: $CHANNEL"; exit 1 ;;
+          esac
+          # Snapshot the original package.json so the working tree is restored
+          # on EXIT (success or failure). Without this, the version bump
+          # leaks into subsequent CI runs on the same checkout.
+          cp package.json /tmp/package.json.original
+          trap 'cp /tmp/package.json.original package.json && echo "Restored package.json from snapshot"' EXIT
+          node -e '
+            const fs=require("fs");
+            const p=JSON.parse(fs.readFileSync("package.json","utf8"));
+            p.version=process.env.VERSION;
+            fs.writeFileSync("package.json",JSON.stringify(p,null,2)+"\n");
+          '
+          npm ci
+          npm run build:cli
+          npm publish --tag "$TAG" --provenance --access public
+
+      # Uses the same action tags as .github/workflows/docker-publish.yml
+      # to keep a single source of truth for which Docker actions are
+      # trusted. Pinning to tags (not SHAs) here mirrors the existing
+      # docker-publish.yml convention; if you want SHA-pinning here too,
+      # see docker-publish.yml for the current SHAs.
+      - name: Publish Docker
+        if: ${{ inputs.channel != 'lts' }}
+        env:
+          VERSION: ${{ steps.resolve.outputs.version }}
+          CHANNEL: ${{ inputs.channel }}
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/omniroute:${{ env.CHANNEL }}
+            ghcr.io/${{ github.repository_owner }}/omniroute:v${{ env.VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─────────────────────────────────────────────────────────────────────
+  # CLEANUP — enforce retention rules from channels.json.
+  # ─────────────────────────────────────────────────────────────────────
+  cleanup:
+    name: Retention cleanup
+    if: ${{ inputs.action == 'cleanup' || github.event_name == 'schedule' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read retention rules
+        id: rules
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/release-artifacts
+          node -e '
+            const c = require("./config/release/channels.json");
+            const rules = {};
+            for (const [name, def] of Object.entries(c.channels)) {
+              rules[name] = {
+                keepLast: def.retention?.keepLast ?? null,
+                immutable: def.retention?.immutable ?? false,
+                maxAgeDays: def.retention?.maxAgeDays ?? null,
+                prerelease: def.prerelease ?? false,
+              };
+            }
+            const fs = require("fs");
+            fs.writeFileSync("/tmp/release-artifacts/retention-rules.json", JSON.stringify(rules, null, 2));
+            console.log("Loaded retention rules for", Object.keys(rules).length, "channels");
+          '
+
+      - name: Enforce retention (GitHub Releases)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          node -e '
+            const { execFileSync } = require("child_process");
+            const fs = require("fs");
+            const rules = JSON.parse(fs.readFileSync("/tmp/release-artifacts/retention-rules.json","utf8"));
+            const owner = process.env.GITHUB_REPOSITORY.split("/")[0];
+            const repo  = process.env.GITHUB_REPOSITORY.split("/")[1];
+            const now = Date.now();
+
+            // List all releases, paginated.
+            const all = [];
+            for (let page = 1; page <= 10; page++) {
+              const raw = execFileSync("gh", ["api", "--paginate=false",
+                `/repos/${owner}/${repo}/releases?per_page=100&page=${page}`], { encoding: "utf8" });
+              const batch = JSON.parse(raw);
+              if (batch.length === 0) break;
+              all.push(...batch);
+              if (batch.length < 100) break;
+            }
+            console.log(`Found ${all.length} total releases`);
+
+            // Group by channel. A channel is inferred from the suffix on the tag
+            // (e.g. -rc.1, -nightly.20260712.xxxx). Stable has no suffix.
+            function channelOf(r) {
+              const tag = r.tag_name;
+              for (const ch of Object.keys(rules)) {
+                if (ch === "stable") continue;
+                if (tag.includes("-" + ch + ".")) return ch;
+                if (tag.endsWith("-" + ch)) return ch;
+              }
+              return r.prerelease ? null : "stable";
+            }
+
+            const byChannel = {};
+            for (const r of all) {
+              const ch = channelOf(r);
+              if (!ch) continue;
+              (byChannel[ch] ??= []).push(r);
+            }
+            for (const ch of Object.keys(byChannel)) {
+              byChannel[ch].sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at));
+            }
+
+            const toDelete = [];
+            for (const [ch, releases] of Object.entries(byChannel)) {
+              const rule = rules[ch];
+              if (!rule) continue;
+              if (rule.immutable) {
+                console.log(`Channel ${ch} is immutable — skipping`);
+                continue;
+              }
+              if (rule.maxAgeDays != null) {
+                const cutoff = now - rule.maxAgeDays * 86400_000;
+                for (const r of releases) {
+                  if (Date.parse(r.published_at) < cutoff) {
+                    toDelete.push({ tag: r.tag_name, reason: "maxAgeDays", channel: ch });
+                  }
+                }
+              }
+              if (rule.keepLast != null && releases.length > rule.keepLast) {
+                for (const r of releases.slice(rule.keepLast)) {
+                  if (!toDelete.find(d => d.tag === r.tag_name)) {
+                    toDelete.push({ tag: r.tag_name, reason: "keepLast", channel: ch });
+                  }
+                }
+              }
+            }
+
+            if (toDelete.length === 0) {
+              console.log("Nothing to clean up.");
+              process.exit(0);
+            }
+
+            console.log(`Marking ${toDelete.length} releases for deletion:`);
+            for (const d of toDelete) console.log(`  - ${d.tag} (${d.channel}, ${d.reason})`);
+
+            for (const d of toDelete) {
+              try {
+                execFileSync("gh", ["release", "delete", d.tag, "--yes", "--cleanup-tag"], { stdio: "inherit" });
+                console.log(`Deleted ${d.tag}`);
+              } catch (e) {
+                console.error(`Failed to delete ${d.tag}:`, e.message);
+              }
+            }
+          '
+
+      - name: Cleanup Docker tags
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Best-effort: GHCR doesn't expose fine-grained pruning by tag, so
+          # we only delete versions whose tags match a known non-immutable
+          # channel and exceed maxAgeDays. Skipped silently if the package
+          # isn't visible to this token.
+          node -e '
+            const { execFileSync } = require("child_process");
+            const rules = require("/tmp/release-artifacts/retention-rules.json");
+            const now = Date.now();
+            const owner = process.env.GITHUB_REPOSITORY.split("/")[0];
+            const pkg = "omniroute";
+            try {
+              const raw = execFileSync("gh", ["api", `/orgs/${owner}/packages/container/${pkg}/versions?per_page=100`], { encoding: "utf8" });
+              const versions = JSON.parse(raw);
+              const toDelete = [];
+              for (const v of versions) {
+                if (!v.metadata?.container?.tags) continue;
+                for (const tag of v.metadata.container.tags) {
+                  for (const [ch, rule] of Object.entries(rules)) {
+                    if (rule.immutable) continue;
+                    if (tag === ch || tag.startsWith(ch + ".")) {
+                      if (rule.maxAgeDays != null) {
+                        const age = now - Date.parse(v.created_at);
+                        if (age > rule.maxAgeDays * 86400_000) {
+                          toDelete.push({ id: v.id, tag, channel: ch });
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              for (const d of toDelete) {
+                try {
+                  execFileSync("gh", ["api", "-X", "DELETE", `/orgs/${owner}/packages/container/${pkg}/versions/${d.id}`], { stdio: "inherit" });
+                  console.log(`Deleted GHCR tag ${d.tag} (id=${d.id})`);
+                } catch (e) {
+                  console.error(`Failed to delete GHCR ${d.tag}:`, e.message);
+                }
+              }
+            } catch (e) {
+              console.error("GHCR cleanup skipped:", e.message);
+            }
+          '
+
+  # ─────────────────────────────────────────────────────────────────────
+  # LTS-CUT — manually cut an LTS branch from a stable release.
+  # ─────────────────────────────────────────────────────────────────────
+  lts-cut:
+    name: Cut LTS branch
+    if: ${{ inputs.action == 'lts-cut' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate
+        env:
+          VERSION: ${{ inputs.version }}
+          BRANCH: ${{ inputs.lts-branch }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${VERSION:-}" || -z "${BRANCH:-}" ]]; then
+            echo "::error::lts-cut requires both --version (e.g. 3.8.42) and --lts-branch (e.g. release/3.8-lts)"
+            exit 1
+          fi
+
+      - name: Create LTS branch from stable tag
+        run: |
+          set -euo pipefail
+          git checkout -b "${{ inputs.lts-branch }}" "v${{ inputs.version }}"
+          git push origin "${{ inputs.lts-branch }}"
+          echo "Created branch ${{ inputs.lts-branch }} from tag v${{ inputs.version }}"
+
+      # The LTS branch's CI workflow is generated here, but it does NOT inline
+      # any logic — it just calls the reusable workflow at
+      # ./.github/workflows/reusable/lts-backport.yml. That single source of
+      # truth is shared by every LTS branch cut from any stable release,
+      # preventing drift across cuts.
+      #
+      # IMPORTANT: do NOT escape the ${{ inputs.lts-branch }} expressions
+      # below. The heredoc is a YAML-time substitution target; GH Actions
+      # evaluates ${{ ... }} BEFORE bash sees the run block, so the LTS
+      # branch name is baked into the generated workflow file at cut time.
+      - name: Add LTS backport CI workflow (delegates to reusable workflow)
+        run: |
+          set -euo pipefail
+          cat > .github/workflows/lts-backport-ci.yml <<EOF
+          name: LTS Backport CI (${{ inputs.lts-branch }})
+          on:
+            push:
+              branches: [${{ inputs.lts-branch }}]
+            pull_request:
+              branches: [${{ inputs.lts-branch }}]
+            schedule:
+              - cron: "0 3 * * *"
+          permissions:
+            contents: read
+          concurrency:
+            group: lts-backport-${{ github.ref }}
+            cancel-in-progress: true
+          jobs:
+            lts-backport:
+              uses: ./.github/workflows/reusable/lts-backport.yml
+              with:
+                node-version-file: '.nvmrc'
+                release-green-mode: 'full'
+                skip-quality-gate: 'false'
+          EOF
+          git add .github/workflows/lts-backport-ci.yml
+          git commit -m "ci(lts): add backport CI for ${{ inputs.lts-branch }} (delegates to reusable/lts-backport.yml)"
+          git push origin "${{ inputs.lts-branch }}"

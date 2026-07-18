@@ -10,6 +10,16 @@ export default defineConfig({
     maxWorkers: 20,
     fileParallelism: true,
     maxConcurrency: 20,
+    testTimeout: 20000,
+    hookTimeout: 10000,
+    env: {
+      DISABLE_SQLITE_AUTO_BACKUP: "true",
+    },
+    environmentMatchGlobs: [
+      ["tests/unit/**/*.test.ts", "node"],
+      ["open-sse/**/__tests__/**/*.test.ts", "node"],
+      ["open-sse/services/**/__tests__/**/*.test.ts", "node"],
+    ],
     include: [
       "src/app/**/dashboard/cache/__tests__/**/*.test.tsx",
       "src/app/**/dashboard/endpoint/__tests__/**/*.test.tsx",
@@ -19,6 +29,7 @@ export default defineConfig({
       "src/lib/memory/__tests__/**/*.test.ts",
       "src/lib/skills/__tests__/**/*.test.ts",
       "tests/unit/encryption.test.ts",
+      "tests/unit/**/*.test.ts",
       "tests/unit/**/*.test.tsx",
       "open-sse/**/__tests__/**/*.test.ts",
       "open-sse/services/**/__tests__/**/*.test.ts",

@@ -1,8 +1,15 @@
 import bcrypt from "bcryptjs";
+import argon2 from "@node-rs/argon2";
 import { getSettings, updateSettings } from "@/lib/db/settings";
 
 const BCRYPT_HASH_PATTERN = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
-const MANAGEMENT_PASSWORD_SALT_ROUNDS = 12;
+const ARGON2ID_HASH_PATTERN = /^\$argon2id\$/;
+const ARGON2_PARAMS = {
+  algorithm: argon2.Algorithm.Argon2id,
+  memoryCost: 19456,
+  timeCost: 2,
+  parallelism: 1,
+} as const;
 
 // Well-known placeholder shipped in `.env.example` (INITIAL_PASSWORD=CHANGEME). Bootstrapping
 // with it leaves the dashboard open to anyone, so we warn loudly on boot (Seg2 hardening).
@@ -45,15 +52,48 @@ export function isBcryptHash(value: unknown): value is string {
   return typeof value === "string" && BCRYPT_HASH_PATTERN.test(value);
 }
 
-export async function hashManagementPassword(password: string) {
-  return bcrypt.hash(password, MANAGEMENT_PASSWORD_SALT_ROUNDS);
+export async function hashManagementPassword(password: string): Promise<string> {
+  return argon2.hash(password, ARGON2_PARAMS);
 }
 
-export async function verifyManagementPassword(password: string, hash: string) {
-  if (!isBcryptHash(hash)) return false;
-  return bcrypt.compare(password, hash);
+export function isArgon2idHash(hash: string): boolean {
+  return ARGON2ID_HASH_PATTERN.test(hash);
 }
 
+export async function verifyManagementPassword(
+  password: string,
+  storedHash: string,
+  upgrader: (nextHash: string) => Promise<void> = async (nextHash) => {
+    await updateSettings({ managementPasswordHash: nextHash });
+  },
+): Promise<boolean> {
+  if (!storedHash) return false;
+  if (isArgon2idHash(storedHash)) {
+    try {
+      return await argon2.verify(storedHash, password);
+    } catch {
+      return false;
+    }
+  }
+  if (isBcryptHash(storedHash)) {
+    let ok = false;
+    try {
+      ok = await bcrypt.compare(password, storedHash);
+    } catch {
+      return false;
+    }
+    if (!ok) return false;
+    // Transparent upgrade: re-hash with argon2 on next successful login.
+    const upgraded = await argon2.hash(password, ARGON2_PARAMS);
+    try {
+      await upgrader(upgraded);
+    } catch {
+      // Upgrade write failed; auth still succeeded — caller decides whether to surface.
+    }
+    return true;
+  }
+  return false;
+}
 export async function ensurePersistentManagementPasswordHash(
   options: EnsureManagementPasswordOptions = {}
 ): Promise<EnsuredManagementPassword> {
@@ -105,7 +145,7 @@ export async function ensurePersistentManagementPasswordHash(
   if (options.logger) {
     const context = options.source ? ` during ${options.source}` : "";
     const migrationSource = storedPassword ? "stored plaintext password" : "INITIAL_PASSWORD";
-    options.logger.log(`[AUTH] Migrated ${migrationSource} to bcrypt hash${context}`);
+    options.logger.log(`[AUTH] Migrated ${migrationSource} to argon2id hash${context}`);
   }
 
   return {

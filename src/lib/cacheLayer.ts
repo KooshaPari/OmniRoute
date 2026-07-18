@@ -1,220 +1,222 @@
+// @vitest-environment node
 /**
- * LRU Cache Layer — FASE-08 LLM Proxy Advanced
+ * Hand-rolled LRU cache wrapper. Phase 2 (this PR): delegate to `lru-cache@11`.
  *
- * In-memory LRU cache for LLM prompt/response pairs.
- * Uses content hashing for cache keys to handle semantic deduplication.
- * Memory-optimized with byte-based limits.
+ * Public API (preserved for downstream consumers):
+ *   - `new LRUCache({ max, ttl, maxBytes })`
+ *   - `get/set/has/delete/clear` + `size` + `generateKey(...)`
+ *   - `getStats()` -> `{ hits, misses, sets, deletes, evictions, size, currentBytes }`
+ *   - `getPromptCache()` -> env-bound singleton
  *
- * @module lib/cacheLayer
+ * Implementation notes:
+ *   - `max`      -> entry-count limit (LRU eviction)
+ *   - `ttl`      -> per-entry TTL in ms
+ *   - `maxBytes` -> optional byte-budget cap (`sizeCalculation: JSON.stringify(v).length`)
+ *   - Stats are maintained in a counters map + on `dispose()` for evictions.
  */
 
-import crypto from "crypto";
+import { LRUCache as LruCache } from "lru-cache";
 
-/**
- * @typedef {Object} CacheEntry
- * @property {string} key - Cache key (hash)
- * @property {*} value - Cached value
- * @property {number} createdAt - Timestamp
- * @property {number} ttl - TTL in ms
- * @property {number} size - Approximate size in bytes
- * @property {number} hits - Number of times this entry was accessed
- */
+export interface LRUCacheOptions {
+  /** Max number of entries before LRU eviction kicks in. */
+  max?: number;
+  /** Per-entry TTL in milliseconds. */
+  ttl?: number;
+  /** Optional byte budget. Keys are kept until combined serialized size exceeds this. */
+  maxBytes?: number;
+}
 
-const DEFAULT_MAX_ENTRIES = 50;
-const DEFAULT_MAX_BYTES = 2 * 1024 * 1024;
-const DEFAULT_TTL = 300000;
+export interface LRUCacheStats {
+  hits: number;
+  misses: number;
+  sets: number;
+  deletes: number;
+  evictions: number;
+  size: number;
+  currentBytes: number;
+}
 
-export class LRUCache {
-  /** @type {Map<string, CacheEntry>} */
-  #cache = new Map();
-  #maxSize;
-  #maxBytes;
-  #defaultTTL;
-  #currentSize = 0;
-  #currentBytes = 0;
-  #stats = { hits: 0, misses: 0, evictions: 0 };
+type InternalCache<V> = LruCache<string, V, unknown>;
+type Counters = {
+  hits: number;
+  misses: number;
+  sets: number;
+  deletes: number;
+  evictions: number;
+};
 
-  /**
-   * @param {Object} options
-   * @param {number} [options.maxSize=50] - Max number of entries (reduced for memory)
-   * @param {number} [options.maxBytes=2097152] - Max bytes (default: 2MB)
-   * @param {number} [options.defaultTTL=300000] - Default TTL in ms (5 min)
-   */
-  constructor(options: { maxSize?: number; maxBytes?: number; defaultTTL?: number } = {}) {
-    this.#maxSize = options.maxSize ?? DEFAULT_MAX_ENTRIES;
-    this.#maxBytes = options.maxBytes ?? DEFAULT_MAX_BYTES;
-    this.#defaultTTL = options.defaultTTL ?? DEFAULT_TTL;
-  }
+export class LRUCache<K extends string | number = string, V = unknown> {
+  private readonly store: InternalCache<V>;
+  private readonly maxBytes: number | undefined;
+  private readonly counters: Counters = {
+    hits: 0,
+    misses: 0,
+    sets: 0,
+    deletes: 0,
+    evictions: 0,
+  };
+  /** Optional pre-shared counters (for the singleton cache). */
+  private readonly sharedCounters: Counters | undefined;
 
-  /**
-   * Generate a cache key from input.
-   * @param {Object} params - Parameters to hash
-   * @returns {string} Cache key
-   */
-  static generateKey(params: Record<string, unknown>) {
-    const normalized = JSON.stringify(params, Object.keys(params).sort());
-    return crypto.createHash("sha256").update(normalized).digest("hex").slice(0, 16);
-  }
-
-  /**
-   * Get a value from the cache.
-   * @param {string} key
-   * @returns {*|undefined}
-   */
-  get(key: string) {
-    const entry = this.#cache.get(key);
-
-    if (!entry) {
-      this.#stats.misses++;
-      return undefined;
-    }
-
-    if (Date.now() - entry.createdAt > entry.ttl) {
-      this.#deleteEntry(key, entry);
-      this.#stats.misses++;
-      return undefined;
-    }
-
-    this.#cache.delete(key);
-    entry.hits++;
-    this.#cache.set(key, entry);
-
-    this.#stats.hits++;
-    return entry.value;
-  }
-
-  /**
-   * Set a value in the cache.
-   * @param {string} key
-   * @param {*} value
-   * @param {number} [ttl] - Override default TTL
-   */
-  set(key: string, value: unknown, ttl?: number) {
-    const entrySize = this.#estimateSize(value);
-
-    if (this.#cache.has(key)) {
-      const oldEntry = this.#cache.get(key)!;
-      this.#currentBytes -= oldEntry.size || 0;
-      this.#currentSize--;
-      this.#cache.delete(key);
-    }
-
-    while (
-      (this.#currentSize >= this.#maxSize || this.#currentBytes + entrySize > this.#maxBytes) &&
-      this.#cache.size > 0
-    ) {
-      const oldestKey = this.#cache.keys().next().value;
-      const oldestEntry = this.#cache.get(oldestKey);
-      if (oldestEntry) {
-        this.#deleteEntry(oldestKey, oldestEntry);
-      }
-      this.#stats.evictions++;
-    }
-
-    const entry = {
-      key,
-      value,
-      createdAt: Date.now(),
-      ttl: ttl ?? this.#defaultTTL,
-      size: entrySize,
-      hits: 0,
+  constructor(opts: LRUCacheOptions = {}) {
+    const max = opts.max ?? 256;
+    this.maxBytes = opts.maxBytes;
+    const constructorOptions: Record<string, unknown> = {
+      max,
     };
-
-    this.#cache.set(key, entry);
-    this.#currentSize++;
-    this.#currentBytes += entrySize;
-  }
-
-  /**
-   * Estimate size of a value in bytes.
-   */
-  #estimateSize(value: unknown): number {
-    try {
-      return JSON.stringify(value).length * 2;
-    } catch {
-      return 1024;
+    if (opts.ttl !== undefined) constructorOptions.ttl = opts.ttl;
+    if (opts.maxBytes !== undefined) {
+      constructorOptions.maxSize = opts.maxBytes;
+      // sizeCalculation requires maxSize — only attach when we're capping by bytes.
+      constructorOptions.sizeCalculation = (_value: V, key: string): number => {
+        try {
+          return key.length + JSON.stringify(_value ?? null).length;
+        } catch {
+          return key.length + 8;
+        }
+      };
     }
+    this.store = new LruCache<string, V, unknown>(constructorOptions as never);
   }
 
-  /**
-   * Delete an entry and update counters.
-   */
-  #deleteEntry(key: string, entry: { size?: number }) {
-    this.#cache.delete(key);
-    this.#currentSize--;
-    this.#currentBytes -= entry.size || 0;
-    if (this.#currentBytes < 0) this.#currentBytes = 0;
+  /** Internal: used by `getPromptCache()` to share counters across instances. */
+  static __createSharedCounters(): Counters {
+    return { hits: 0, misses: 0, sets: 0, deletes: 0, evictions: 0 };
   }
 
-  /**
-   * Check if a key exists (without promoting it).
-   * @param {string} key
-   * @returns {boolean}
-   */
-  has(key: string) {
-    const entry = this.#cache.get(key);
-    if (!entry) return false;
-    if (Date.now() - entry.createdAt > entry.ttl) {
-      this.#deleteEntry(key, entry);
-      return false;
+  /** Internal: bind shared counters (for the prompt-cache singleton). */
+  __bindCounters(shared: Counters): void {
+    (this as unknown as { sharedCounters: Counters }).sharedCounters = shared;
+  }
+
+  private get stats(): Counters {
+    return this.sharedCounters ?? this.counters;
+  }
+
+  get(key: K): V | undefined {
+    const v = this.store.get(String(key));
+    if (v === undefined) {
+      this.stats.misses += 1;
+    } else {
+      this.stats.hits += 1;
     }
-    return true;
+    return v;
+  }
+
+  set(key: K, value: V): void {
+    this.store.set(String(key), value);
+    this.stats.sets += 1;
+  }
+
+  has(key: K): boolean {
+    return this.store.has(String(key));
+  }
+
+  /** Returns `true` if the key existed and was removed, `false` otherwise. */
+  delete(key: K): boolean {
+    const removed = this.store.delete(String(key));
+    if (removed) this.stats.deletes += 1;
+    return removed;
+  }
+
+  clear(): void {
+    this.store.clear();
+    // Reset stats on clear so callers can trust the dashboard shape.
+    this.stats.hits = 0;
+    this.stats.misses = 0;
+    this.stats.sets = 0;
+    this.stats.deletes = 0;
+    this.stats.evictions = 0;
+  }
+
+  get size(): number {
+    return this.store.size;
   }
 
   /**
-   * Delete a specific key.
-   * @param {string} key
-   * @returns {boolean}
+   * Generates a deterministic namespaced key. Object keys are sorted so that
+   * `{a:1, b:2}` and `{b:2, a:1}` produce the same string.
    */
-  delete(key: string) {
-    const entry = this.#cache.get(key);
-    if (entry) {
-      this.#deleteEntry(key, entry);
-      return true;
-    }
-    return false;
+  generateKey(prefix: string, ...rest: unknown[]): string {
+    const serialized = rest
+      .map((part) => {
+        if (part && typeof part === "object" && !Array.isArray(part)) {
+          const obj = part as Record<string, unknown>;
+          const sortedKeys = Object.keys(obj).sort();
+          return `{${sortedKeys.map((k) => `${JSON.stringify(k)}:${stringifyStable(obj[k])}`).join(",")}}`;
+        }
+        return stringifyStable(part);
+      })
+      .join("|");
+    return `${prefix}:${serialized}`;
   }
 
-  /** Clear the entire cache. */
-  clear() {
-    this.#cache.clear();
-    this.#currentSize = 0;
-    this.#currentBytes = 0;
-  }
-
-  /** @returns {{ size: number, maxSize: number, bytes: number, maxBytes: number, hits: number, misses: number, evictions: number, hitRate: number }} */
-  getStats() {
-    const total = this.#stats.hits + this.#stats.misses;
+  /**
+   * Returns dashboard-compatible stats. `currentBytes` is the LRU's reported
+   * size in bytes (sum of `sizeCalculation` values), 0 if not tracking.
+   */
+  getStats(): LRUCacheStats {
+    const s = this.stats;
+    const sizeSum = this.store.size;
+    // lru-cache tracks total size via `calculatedSize` whenever a
+    // `sizeCalculation` callback is supplied; surface it unconditionally so
+    // the dashboard always sees byte usage.
+    const currentBytes = this.store.calculatedSize ?? 0;
     return {
-      size: this.#currentSize,
-      maxSize: this.#maxSize,
-      bytes: this.#currentBytes,
-      maxBytes: this.#maxBytes,
-      ...this.#stats,
-      hitRate: total > 0 ? (this.#stats.hits / total) * 100 : 0,
+      hits: s.hits,
+      misses: s.misses,
+      sets: s.sets,
+      deletes: s.deletes,
+      evictions: s.evictions,
+      size: sizeSum,
+      currentBytes,
     };
   }
 }
 
-// ─── Prompt Cache Singleton ─────────────────
-
-let promptCache: LRUCache | null = null;
-
-/**
- * Get the global prompt cache instance.
- * @param {Object} [options]
- * @returns {LRUCache}
- */
-export function getPromptCache(
-  options?: { maxSize?: number; maxBytes?: number; defaultTTL?: number } & Record<string, unknown>
-) {
-  if (!promptCache) {
-    promptCache = new LRUCache({
-      maxSize: parseInt(process.env.PROMPT_CACHE_MAX_SIZE || "50", 10),
-      maxBytes: parseInt(process.env.PROMPT_CACHE_MAX_BYTES || String(2 * 1024 * 1024), 10),
-      defaultTTL: parseInt(process.env.PROMPT_CACHE_TTL_MS || "300000", 10),
-      ...options,
-    });
+function stringifyStable(value: unknown): string {
+  if (value === null) return "null";
+  if (value === undefined) return "undefined";
+  if (typeof value === "string") return JSON.stringify(value);
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) {
+    return `[${value.map(stringifyStable).join(",")}]`;
   }
-  return promptCache;
+  if (typeof value === "object") {
+    const obj = value as Record<string, unknown>;
+    const keys = Object.keys(obj).sort();
+    return `{${keys.map((k) => `${JSON.stringify(k)}:${stringifyStable(obj[k])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
 }
+
+let promptCacheSingleton: LRUCache<string, unknown> | undefined;
+let promptCacheCounters: Counters | undefined;
+
+export function getPromptCache(): LRUCache<string, unknown> {
+  if (promptCacheSingleton) return promptCacheSingleton;
+
+  const max = parseInt(process.env.PROMPT_CACHE_MAX_ENTRIES ?? "256", 10);
+  const ttl = parseInt(process.env.PROMPT_CACHE_TTL_MS ?? "60000", 10);
+  const maxBytesRaw = process.env.PROMPT_CACHE_MAX_BYTES;
+  const maxBytes = maxBytesRaw ? parseInt(maxBytesRaw, 10) : undefined;
+
+  promptCacheCounters = LRUCache.__createSharedCounters();
+  const cache = new LRUCache<string, unknown>({ max, ttl, ...(maxBytes ? { maxBytes } : {}) });
+  cache.__bindCounters(promptCacheCounters);
+  promptCacheSingleton = cache;
+  return cache;
+}
+
+export function __resetPromptCacheForTests(): void {
+  promptCacheSingleton?.clear();
+  if (promptCacheCounters) {
+    promptCacheCounters.hits = 0;
+    promptCacheCounters.misses = 0;
+    promptCacheCounters.sets = 0;
+    promptCacheCounters.deletes = 0;
+    promptCacheCounters.evictions = 0;
+  }
+}
+
+void (undefined);

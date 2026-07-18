@@ -1,0 +1,396 @@
+name: Auto Release (channel resolver)
+
+# Auto-builds the most primitive / unstable release channel whose CI gates
+# are satisfied for the current main HEAD.
+#
+#   trigger   — 24hr OR adds>=5000 OR removes>=5000 (per
+#               config/release/channels.json#autoTrigger)
+#   resolver  — walks channels.json#promotionOrder from `nightly` upward,
+#               stopping at the first channel whose blocking-gates list is
+#               fully satisfied by recent green check-runs
+#
+# Output:
+#   - GitHub release tagged with the resolved version (prerelease for
+#     nightly/canary/alpha/beta/rc, full release for stable)
+#   - npm dist-tag (`nightly`, `canary`, `alpha`, `beta`, `next`, `latest`)
+#   - Docker image push to the resolved tag
+#
+# This workflow is the auto-half. Manual promotion (alpha → beta → rc →
+# stable, or LTS cut) lives in release-channels.yml.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Daily at 07:00 UTC — the time-based trigger (24h since last release)
+    # AND a catch-up for any pushes that didn't pass the time-based check.
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+    inputs:
+      max-channel:
+        description: "Cap the resolved channel (e.g. force rc even if stable would pass)"
+        required: false
+        type: choice
+        default: "stable"
+        options: [nightly, canary, alpha, beta, rc, stable]
+      force:
+        description: "Bypass the trigger evaluator and publish anyway"
+        required: false
+        type: boolean
+        default: false
+      sha:
+        description: "Override SHA (defaults to GITHUB_SHA). Used for back-fills."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+  packages: write
+  pull-requests: read
+
+concurrency:
+  # One auto-release in flight per ref. Cancels the previous attempt so a
+  # long-running push that finally passes doesn't queue behind an earlier
+  # one that's stuck on flaky CI.
+  group: auto-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trigger:
+    name: Evaluate trigger (24hr OR 5k-LOC delta)
+    runs-on: ubuntu-24.04
+    outputs:
+      fire: ${{ steps.trigger.outputs.fire }}
+      reason: ${{ steps.trigger.outputs.reason }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+
+      - name: Find last release timestamp + SHA
+        id: last
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Prefer the LATEST release (any channel). If none exist, fall back
+          # to the most recent successful workflow run that produced a tag.
+          LAST_JSON="$(gh api -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/releases/latest" 2>/dev/null || echo '{}')"
+          PUBLISHED_AT="$(echo "$LAST_JSON" | node -e '
+            let s=""; process.stdin.on("data",c=>s+=c).on("end",()=>{
+              try { const j=JSON.parse(s); process.stdout.write(j.published_at || ""); }
+              catch { process.stdout.write(""); }
+            });')"
+          LAST_SHA="$(echo "$LAST_JSON" | node -e '
+            let s=""; process.stdin.on("data",c=>s+=c).on("end",()=>{
+              try { const j=JSON.parse(s); process.stdout.write(j.target_commitish || ""); }
+              catch { process.stdout.write(""); }
+            });')"
+          if [[ -n "$PUBLISHED_AT" ]]; then
+            LAST_TS="$(node -e "process.stdout.write(String(Date.parse(process.argv[1])))" "$PUBLISHED_AT")"
+            echo "last_ts=$LAST_TS" >> "$GITHUB_OUTPUT"
+            echo "last_sha=$LAST_SHA" >> "$GITHUB_OUTPUT"
+            echo "Found latest release: $(echo "$LAST_JSON" | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>process.stdout.write(JSON.parse(s).tag_name||""))') @ $PUBLISHED_AT"
+          else
+            echo "last_ts=0" >> "$GITHUB_OUTPUT"
+            echo "last_sha=" >> "$GITHUB_OUTPUT"
+            echo "No previous release found — treating as 'never released' (will always fire on time condition)."
+          fi
+
+      - name: Compute diff vs last release
+        id: diff
+        env:
+          LAST_SHA: ${{ steps.last.outputs.last_sha }}
+        run: |
+          set -euo pipefail
+          HEAD_SHA="${{ github.sha }}"
+          # If LAST_SHA is empty (no previous release), diff against the root
+          # commit. Otherwise diff against LAST_SHA.
+          if [[ -z "$LAST_SHA" ]] || ! git cat-file -e "$LAST_SHA" 2>/dev/null; then
+            DIFF_BASE="$(git rev-list --max-parents=0 HEAD | head -1)"
+            echo "No valid LAST_SHA — diffing from root commit $DIFF_BASE"
+          else
+            DIFF_BASE="$LAST_SHA"
+            echo "Diffing from LAST_SHA=$DIFF_BASE"
+          fi
+          # shortstat output: "<N> files changed, <X> insertions(+), <Y> deletions(-)"
+          # Tolerate merge commits by using --first-parent.
+          SHORTSTAT="$(git diff --shortstat --first-parent "$DIFF_BASE..$HEAD_SHA" || echo "")"
+          echo "shortstat: $SHORTSTAT"
+          ADDED="$(echo "$SHORTSTAT" | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo 0)"
+          REMOVED="$(echo "$SHORTSTAT" | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo 0)"
+          echo "added=$ADDED" >> "$GITHUB_OUTPUT"
+          echo "removed=$REMOVED" >> "$GITHUB_OUTPUT"
+
+      - name: Run trigger evaluator (or honor FORCE)
+        id: trigger
+        env:
+          LAST_RELEASE_TS: ${{ steps.last.outputs.last_ts }}
+          ADDED_LINES: ${{ steps.diff.outputs.added }}
+          REMOVED_LINES: ${{ steps.diff.outputs.removed }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          set -euo pipefail
+          # If FORCE=true, bypass and assume the trigger fired. Otherwise parse
+          # the evaluator's JSON decision.
+          FIRE="false"
+          if [[ "${FORCE:-false}" == "true" ]]; then
+            FIRE="true"
+            REASON="manual dispatch with force=true"
+          else
+            DECISION=$(node scripts/release/trigger-evaluator.mjs \
+              --last-release-ts "$LAST_RELEASE_TS" \
+              --added-lines     "$ADDED_LINES" \
+              --removed-lines   "$REMOVED_LINES" \
+              --dry-run || true)
+            FIRE=$(echo "$DECISION" | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>process.stdout.write(String(JSON.parse(s||"{}").fire)))')
+            REASON=$(echo "$DECISION" | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>process.stdout.write(String((JSON.parse(s||"{}").reason||"").replace(/\n/g," "))))')
+          fi
+          echo "decision: fire=$FIRE reason=$REASON"
+          echo "fire=$FIRE" >> "$GITHUB_OUTPUT"
+          echo "reason=$REASON" >> "$GITHUB_OUTPUT"
+
+  resolve:
+    name: Resolve channel (CI-matrix-gated promotion)
+    needs: trigger
+    if: ${{ needs.trigger.outputs.fire == 'true' }}
+    runs-on: ubuntu-24.04
+    outputs:
+      resolved: ${{ steps.resolve.outputs.resolved }}
+      version: ${{ steps.resolve.outputs.version }}
+      stopReason: ${{ steps.resolve.outputs.stopReason }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+
+      - name: Fetch check-runs for HEAD SHA
+        id: runs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ inputs.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/release-artifacts
+          # Pull check-runs with pagination. The resolver tolerates up to 5
+          # pages (500 runs) which is enough for the full CI matrix.
+          gh api --paginate "/repos/${{ github.repository }}/commits/${SHA}/check-runs?per_page=100" \
+            > /tmp/release-artifacts/check-runs.json || echo '{"check_runs":[]}' > /tmp/release-artifacts/check-runs.json
+          COUNT="$(node -e 'process.stdout.write(String(JSON.parse(require("fs").readFileSync("/tmp/release-artifacts/check-runs.json","utf8")).total_count||0))')"
+          echo "Fetched $COUNT check-runs for SHA ${SHA}"
+
+      - name: Run channel resolver
+        id: resolve
+        env:
+          SHA: ${{ inputs.sha || github.sha }}
+          MAX_CHANNEL: ${{ inputs.max-channel || 'stable' }}
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
+          node scripts/release/channel-resolver.mjs \
+            --sha "$SHA" \
+            --check-runs /tmp/release-artifacts/check-runs.json \
+            --max-channel "$MAX_CHANNEL" \
+            --dry-run \
+            | tee /tmp/release-artifacts/resolution.json
+          # The script writes its own $GITHUB_OUTPUT for resolved/version/stopReason.
+
+      - name: Upload resolution artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-resolution
+          path: /tmp/release-artifacts/
+          if-no-files-found: warn
+
+  publish-github:
+    name: Publish GitHub release (${{ needs.resolve.outputs.resolved }})
+    needs: [trigger, resolve]
+    if: ${{ needs.resolve.outputs.resolved != '' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Generate release notes
+        id: cliff
+        uses: orhun/git-cliff-action@5b8303e5c346e5cc63e4478d6cc4ad4848ed5e6b
+        env:
+          OUTPUT: /tmp/CLIFF.md
+          CONFIG: cliff.toml
+        with:
+          args: --verbose --tag "${{ needs.resolve.outputs.version }}"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+          RESOLVED: ${{ needs.resolve.outputs.resolved }}
+        run: |
+          set -euo pipefail
+          PRERELEASE="false"
+          case "$RESOLVED" in
+            nightly|canary|alpha|beta|rc) PRERELEASE="true" ;;
+          esac
+          # Delete a prior release at the same tag if it exists (auto-reruns
+          # overwrite themselves — useful when the resolver re-classifies a
+          # commit into a higher channel on a subsequent run).
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "Release v$VERSION already exists — deleting before re-create."
+            gh release delete "v$VERSION" --yes --cleanup-tag
+            git tag -d "v$VERSION" 2>/dev/null || true
+            git push origin ":v$VERSION" 2>/dev/null || true
+          fi
+          BODY="$(cat /tmp/CLIFF.md 2>/dev/null || echo 'Auto-release via auto-release.yml')"
+          gh release create "v$VERSION" \
+            --title "v$VERSION ($RESOLVED)" \
+            --notes "$BODY" \
+            --prerelease="$PRERELEASE" \
+            --target "${{ inputs.sha || github.sha }}"
+
+  publish-npm:
+    name: Publish npm (${{ needs.resolve.outputs.resolved }})
+    needs: [trigger, resolve]
+    # Only publish to npm for canary and above. Nightly's dist-tag churn
+    # pollutes the registry and never gets pulled (users opt into the
+    # channel via `npm install omniroute@canary`, not `@nightly`). RC/stable
+    # are the actually-consumed tags. To force a nightly npm publish, set
+    # the repository variable NPM_FORCE_NIGHTLY=true (Settings → Secrets and
+    # variables → Variables) — used for one-off internal smoke tests.
+    if: ${{ needs.resolve.outputs.resolved != '' && (needs.resolve.outputs.resolved != 'nightly' || vars.NPM_FORCE_NIGHTLY == 'true') }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@1d0ff469b7ec7b14a9d23ca6fd7b9b6b5e8e2c30
+        with:
+          node-version-file: ".nvmrc"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install + build
+        run: |
+          npm ci
+          npm run build:cli
+
+      - name: Update package.json version (then restore on failure)
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          # Snapshot the original so we can ALWAYS restore on exit, regardless
+          # of whether the publish step succeeds or fails — otherwise the next
+          # CI run on the same checkout sees a dirty tree.
+          cp package.json /tmp/package.json.original
+          trap 'cp /tmp/package.json.original package.json && echo "Restored package.json from snapshot"' EXIT
+          node -e '
+            const fs = require("fs");
+            const p = JSON.parse(fs.readFileSync("package.json","utf8"));
+            p.version = process.env.VERSION;
+            fs.writeFileSync("package.json", JSON.stringify(p, null, 2) + "\n");
+            console.log("Updated package.json version to", p.version);
+          '
+
+      - name: Publish with channel-specific dist-tag
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          RESOLVED: ${{ needs.resolve.outputs.resolved }}
+        run: |
+          set -euo pipefail
+          # Map resolved channel → npm dist-tag. Resolver emits the channel
+          # name verbatim so we just lowercase it (npm dist-tags are
+          # case-sensitive but conventionally lower).
+          TAG="$(echo "$RESOLVED" | tr '[:upper:]' '[:lower:]')"
+          case "$TAG" in
+            stable) TAG="latest" ;;
+          esac
+          echo "Publishing with --tag=$TAG"
+          npm publish --tag "$TAG" --provenance --access public
+
+  publish-docker:
+    name: Publish Docker (${{ needs.resolve.outputs.resolved }})
+    needs: [trigger, resolve]
+    if: ${{ needs.resolve.outputs.resolved != '' && needs.resolve.outputs.resolved != 'nightly' }}
+    # Skip Docker for nightly — too much churn, tags collide on rebuilds.
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Uses the same action tags as .github/workflows/docker-publish.yml
+      # to keep a single source of truth for which Docker actions are
+      # trusted. Pinning to tags (not SHAs) here mirrors the existing
+      # docker-publish.yml convention; if you want SHA-pinning here too,
+      # see docker-publish.yml for the current SHAs.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build + push (multi-arch)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/omniroute:${{ needs.resolve.outputs.resolved }}
+            ghcr.io/${{ github.repository_owner }}/omniroute:v${{ needs.resolve.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  summary:
+    name: Release summary
+    needs: [trigger, resolve, publish-github, publish-npm, publish-docker]
+    if: ${{ always() && needs.trigger.outputs.fire == 'true' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Write summary
+        env:
+          FIRE: ${{ needs.trigger.outputs.fire }}
+          REASON: ${{ needs.trigger.outputs.reason }}
+          RESOLVED: ${{ needs.resolve.outputs.resolved || 'n/a' }}
+          VERSION: ${{ needs.resolve.outputs.version || 'n/a' }}
+          STOP: ${{ needs.resolve.outputs.stopReason || 'n/a' }}
+        run: |
+          {
+            echo "## Auto-release summary"
+            echo ""
+            echo "| Field | Value |"
+            echo "|-------|-------|"
+            echo "| Trigger fired | ${FIRE} |"
+            echo "| Trigger reason | ${REASON} |"
+            echo "| Resolved channel | ${RESOLVED} |"
+            echo "| Version | \`${VERSION}\` |"
+            echo "| Stop reason | ${STOP} |"
+            echo "| GitHub release | ${{ needs.publish-github.result }} |"
+            echo "| npm publish | ${{ needs.publish-npm.result }} |"
+            echo "| Docker publish | ${{ needs.publish-docker.result }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
