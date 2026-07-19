@@ -118,3 +118,18 @@ jobs:
         uses: github/codeql-action/upload-sarif@0daab03d71ff584ef619d027a3fd9146679c5d84
         with:
           sarif_file: results.sarif
+
+  protected-security:
+    name: ci/security
+    runs-on: ubuntu-24.04
+    if: ${{ always() }}
+    needs: [gitleaks, deps-audit, codeql, ossf-scorecard]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - name: Evaluate authoritative security jobs
+        run: node scripts/check/check-job-results.mjs
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}

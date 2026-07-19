@@ -1090,6 +1090,65 @@ jobs:
       - run: npm run check:node-runtime
       - run: npm run test:security
 
+  protected-quality:
+    name: ci/quality-gate
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs:
+      - changes
+      - lint
+      - quality-gate
+      - quality-extended
+      - docs-sync-strict
+      - i18n-ui-coverage
+      - i18n
+      - pr-test-policy
+      - build
+      - package-artifact
+      - electron-package-smoke
+      - test-unit
+      - test-vitest
+      - node-24-compat
+      - node-26-compat-build
+      - node-26-compat
+      - test-coverage
+      - sonarqube
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - run: node scripts/check/check-job-results.mjs
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          ALLOW_SKIPPED: pr-test-policy,build,package-artifact,electron-package-smoke,test-unit,test-vitest,node-24-compat,node-26-compat-build,node-26-compat,test-coverage,sonarqube
+
+  protected-e2e:
+    name: ci/e2e
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [changes, build, test-e2e, test-integration]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - run: node scripts/check/check-job-results.mjs
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          ALLOW_SKIPPED: build,test-e2e,test-integration
+
+  release-green:
+    name: release-green
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [protected-quality, protected-e2e, test-security]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - run: node scripts/check/check-job-results.mjs
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+
   ci-summary:
     name: CI Dashboard
     runs-on: ubuntu-latest
