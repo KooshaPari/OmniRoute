@@ -1,6 +1,8 @@
 ---
 title: Code Signing for OmniRoute Desktop
 description: Guidance for signing and notarizing OmniRoute desktop artifacts.
+version: 3.8.49-koosha.0
+lastUpdated: 2026-07-18
 ---
 
 # Code Signing for OmniRoute Desktop

@@ -37,7 +37,7 @@ Every user-facing or operator-facing flow should be traceable across:
 *Expected capture: invoke a representative MCP tool through OmniRoute, validate request/response schema, and attach a pass/fail verdict for FR-OMNI-MCP-001 and NFR-OMNI-CONTRACT-001.*
 
 <!-- RICH-MEDIA-STUB type="annotated-screenshot" subject="Endpoint and provider settings update" journey="endpoint-provider-settings" status="TODO" -->
-![Endpoint and provider settings — endpoint URL, provider key state, validation feedback, and save result](../assets/rich-media/omniroute/endpoint-provider-settings.png)
+<!-- Rich-media asset placeholder retained until the canonical artifact is published. -->
 
 *Expected capture: update endpoint/provider settings in the UI or CLI, show validation feedback, and prove the saved configuration affects a subsequent request.*
 
