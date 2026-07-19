@@ -19,6 +19,11 @@ test("PR workflows expose stable always-running protected contexts", () => {
   assert.match(security, /name: ci\/security[\s\S]{0,160}if: \$\{\{ always\(\) }}/);
   assert.match(ci, /NEEDS_JSON: \$\{\{ toJSON\(needs\) }}/);
   assert.match(security, /NEEDS_JSON: \$\{\{ toJSON\(needs\) }}/);
+  assert.match(
+    security,
+    /codeql:[\s\S]*?name: CodeQL Analysis[\s\S]*?timeout-minutes: 30/,
+    "CodeQL must have enough time to finish the full JavaScript query suite"
+  );
 });
 
 test("accepts skipped jobs only when explicitly allowed", () => {

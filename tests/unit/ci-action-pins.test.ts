@@ -28,3 +28,10 @@ test("dependency review scopes the Sonar LGPL exception to the pinned action", (
   );
   assert.doesNotMatch(source, /allow-licenses:.*LGPL/);
 });
+
+test("pillar scorecard stays read-only and does not commit generated reports", () => {
+  const source = readFileSync(resolve(ROOT, ".github/workflows/pillar-checks.yml"), "utf8");
+  assert.doesNotMatch(source, /contents:\s*write/);
+  assert.doesNotMatch(source, /push-scorecard\.sh|git push/);
+  assert.match(source, /persist-credentials:\s*false/);
+});

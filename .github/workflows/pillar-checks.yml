@@ -7,22 +7,20 @@ on:
 jobs:
   fleet-score:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # push-scorecard.sh commits the generated fleet artifact
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
       - run: |
           echo "pillar-checks — weekly fleet sustainment check"
-          echo "date=$(date -u +%Y-%m-%d)" >> $GITHUB_OUTPUT
+          echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
       - name: Run alert threshold check
         run: |
           bash tools/pillar-fleet/alert.sh 2>&1 || echo "ALERT: threshold breached"
       - name: Build scorecard
         run: |
-          echo "scorecard placeholder" > findings/pillar-scorecard-$(date -u +%Y-%m-%d).json
-      - name: Push scorecard to origin
-        run: |
-          bash tools/pillar-fleet/push-scorecard.sh 2>&1 || echo "WARN: push-scorecard failed"
+          scorecard_path="findings/pillar-scorecard-$(date -u +%Y-%m-%d).json"
+          echo "scorecard placeholder" > "$scorecard_path"
       - name: Check fleet mean threshold
         run: |
           echo "Fleet mean check — below 3.70 triggers new cycle"

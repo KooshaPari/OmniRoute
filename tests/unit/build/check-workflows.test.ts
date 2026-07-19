@@ -331,6 +331,7 @@ test("readBaselineZizmorValue: invalid JSON returns null (does not throw)", () =
 
 test("CI pins zizmor and compares PR findings with the base ref", () => {
   const workflow = fs.readFileSync(path.join(process.cwd(), ".github/workflows/ci.yml"), "utf8");
-  assert.match(workflow, /pipx install zizmor==1\.27\.0/);
+  assert.match(workflow, /uv tool install zizmor==1\.27\.0/);
+  assert.doesNotMatch(workflow, /pipx install zizmor|pip install.*zizmor/);
   assert.match(workflow, /--baseline-ref[ =]"?origin\/\$BASE_REF/);
 });
