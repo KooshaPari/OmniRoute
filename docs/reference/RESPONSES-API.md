@@ -189,7 +189,8 @@ The transformer is covered by:
 - `tests/unit/responses-transformer-dense-output.test.ts` — dense `output[]`
   ordering, function-call vs message index, non-numeric output_index
   normalization (3 tests, port of upstream PR #721).
-- `tests/unit/transformer/responsesTransformer.test.ts` (added in this PR) —
+- `tests/unit/responses-transformer-options.test.ts` and
+  `tests/unit/responses-transformer-streaming.test.ts` —
   40+ new tests covering: tool_use block emission, structured_outputs
   round-trip, prompt_cache_control passthrough, reasoning items, function
   call argument streaming, error path, keepalive behaviour, dense output

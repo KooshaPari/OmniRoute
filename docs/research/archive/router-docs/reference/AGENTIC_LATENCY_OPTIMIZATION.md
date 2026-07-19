@@ -832,7 +832,7 @@ Output format:
 ```plan
 GOAL: [one sentence]
 TASKS:
-1. [tool]([args]) → $1
+1. `tool(args)` → `$1`
 2. [tool]([args], $1) → $2
 ...
 PARALLEL: [[1,2], [3], [4,5]]
