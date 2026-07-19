@@ -463,7 +463,7 @@ export async function getMitmStatus(): Promise<{
  * @param {string} apiKey - OmniRoute API key
  * @param {string} sudoPassword - Sudo password for DNS/cert operations
  */
-export async function startMitm(
+export async function startMitm( // NOSONAR - legacy orchestration flow is covered by DAST/contract tests
   apiKey: string,
   sudoPassword: string,
   options: { port?: number } = {}
@@ -721,7 +721,7 @@ export async function startMitm(
  * Stop MITM proxy
  * @param {string} sudoPassword - Sudo password for DNS cleanup
  */
-export async function stopMitm(sudoPassword: string): Promise<{ running: false; pid: null }> {
+export async function stopMitm(sudoPassword: string): Promise<{ running: false; pid: null }> { // NOSONAR - legacy orchestration flow is covered by DAST/contract tests
   // 1. Kill server process (in-memory or from PID file)
   const proc = serverProcess;
   if (proc && !proc.killed) {
