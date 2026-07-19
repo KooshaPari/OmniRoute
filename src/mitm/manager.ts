@@ -379,19 +379,19 @@ export async function handleExitCleanup(
       { signal },
       "MITM parent received signal — child terminated; no cached sudo password, run Repair if DNS/CA/proxy were applied."
     );
-      return;
-    }
+    return;
+  }
 
-    try {
-      await deps.removeDNSEntry(sudoPassword);
-      const managed = deps.collectManagedHosts();
-      if (managed.length > 0) {
-        await deps.removeDNSEntries(managed, sudoPassword);
-      }
-      log.info(
-        { signal },
-        "MITM parent received signal — child terminated and privileged /etc/hosts entries reverted."
-      );
+  try {
+    await deps.removeDNSEntry(sudoPassword);
+    const managed = deps.collectManagedHosts();
+    if (managed.length > 0) {
+      await deps.removeDNSEntries(managed, sudoPassword);
+    }
+    log.info(
+      { signal },
+      "MITM parent received signal — child terminated and privileged /etc/hosts entries reverted."
+    );
   } catch (err) {
     _orphanedStateDetected = true;
     log.error(
