@@ -150,7 +150,7 @@ export function writeBypassJson(userPatterns?: string[]): void {
     // mkdir failures are non-fatal; the write below will report the real error.
   }
   const patterns =
-    Array.isArray(userPatterns) && userPatterns.length >= 0
+    Array.isArray(userPatterns) && userPatterns.length > 0
       ? userPatterns
       : getUserBypassPatterns();
   const payload = {
