@@ -206,7 +206,9 @@ export class BifrostBackendExecutor extends BaseExecutor {
     if (!bifrostProviderId) {
       // Defensive — isBifrostSupported already covered this branch, but
       // keep the explicit guard for type narrowing.
-      throw new Error(`[${BIFROST_TAG}] resolveBifrostProviderId returned null for "${this.provider}".`);
+      throw new Error(
+        `[${BIFROST_TAG}] resolveBifrostProviderId returned null for "${this.provider}".`
+      );
     }
 
     const baseUrl = await resolveBifrostBaseUrl();
@@ -344,7 +346,12 @@ export class BifrostBackendExecutor extends BaseExecutor {
    * (via refreshBifrostModels). This is the B4 wiring: sub-millisecond
    * lookup in the steady state, network roundtrip only on cache miss.
    */
-  async healthCheck(): Promise<{ ok: boolean; latencyMs: number; error?: string; version?: string }> {
+  async healthCheck(): Promise<{
+    ok: boolean;
+    latencyMs: number;
+    error?: string;
+    version?: string;
+  }> {
     const start = Date.now();
     if (!isBifrostEnabled()) {
       return {
@@ -373,6 +380,7 @@ export class BifrostBackendExecutor extends BaseExecutor {
     const baseUrl = await resolveBifrostBaseUrl();
 
     // 1. Probe /health first.
+    let healthProbeError: string | undefined;
     try {
       const res = await fetch(`${baseUrl}/health`, {
         signal: AbortSignal.timeout(HEALTH_CHECK_TIMEOUT_MS),
@@ -393,8 +401,9 @@ export class BifrostBackendExecutor extends BaseExecutor {
       if (res.status !== HTTP_STATUS.NOT_FOUND) {
         return { ok: false, latencyMs, error: `HTTP ${res.status}` };
       }
-    } catch {
+    } catch (err) {
       // /health probe failed (network/timeout); fall through to cache path.
+      healthProbeError = err instanceof Error ? err.message : String(err);
     }
 
     // 2. /health missing or unreachable: try the cache, then /v1/models.
@@ -426,7 +435,10 @@ export class BifrostBackendExecutor extends BaseExecutor {
       return {
         ok: false,
         latencyMs: Date.now() - start,
-        error: err instanceof Error ? err.message : String(err),
+        // Preserve the primary health-probe contract. The models refresh wraps
+        // transport errors with provider context, which is useful internally
+        // but must not replace the original network failure reported here.
+        error: healthProbeError ?? (err instanceof Error ? err.message : String(err)),
       };
     }
   }
@@ -449,9 +461,12 @@ export default BifrostBackendExecutor;
  * L1a implements path (1) only; path (2) requires the upstreamProxy.ts
  * module that this fork is missing (fork drift — see DAG S6 P6d).
  */
-export function shouldRouteViaBifrost(provider: string, opts?: {
-  providerSpecificData?: { bifrostMode?: boolean | null } | null;
-}): boolean {
+export function shouldRouteViaBifrost(
+  provider: string,
+  opts?: {
+    providerSpecificData?: { bifrostMode?: boolean | null } | null;
+  }
+): boolean {
   if (process.env.BIFROST_ENABLED === "1" || process.env.BIFROST_ENABLED === "true") {
     return true;
   }
@@ -489,7 +504,7 @@ export function shouldRouteViaBifrost(provider: string, opts?: {
  */
 export async function dispatchBifrostWithFallback(
   exec: BifrostBackendExecutor,
-  input: ExecuteInput,
+  input: ExecuteInput
 ): ReturnType<BifrostBackendExecutor["execute"]> {
   try {
     return await exec.execute(input);
@@ -516,16 +531,19 @@ export function createBifrostBackedExecutor(
   log?: {
     info?: (tag: string, msg: string) => void;
     warn?: (tag: string, msg: string) => void;
-  },
+  }
 ): {
   execute: (input: ExecuteInput) => ReturnType<BifrostBackendExecutor["execute"]>;
   getProvider: () => string;
 } {
   log?.info?.(
     BIFROST_TAG,
-    `${provider} → BifrostBackendExecutor (Tier-1 router, fallback-wrapped)`,
+    `${provider} → BifrostBackendExecutor (Tier-1 router, fallback-wrapped)`
   );
-  const bifrost = new BifrostBackendExecutor(provider, {} as ConstructorParameters<typeof BaseExecutor>[1]);
+  const bifrost = new BifrostBackendExecutor(
+    provider,
+    {} as ConstructorParameters<typeof BaseExecutor>[1]
+  );
   return {
     getProvider: () => bifrost.getProvider(),
     execute: (input) => dispatchBifrostWithFallback(bifrost, input),

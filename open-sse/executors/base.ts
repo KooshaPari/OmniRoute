@@ -977,7 +977,11 @@ export class BaseExecutor {
             : requestOptions;
 
           try {
-            return await fetch(requestUrl, optionsWithSignal);
+            const response = await fetch(requestUrl, optionsWithSignal);
+            if (!(response instanceof Response)) {
+              throw new TypeError(`Upstream fetch returned an invalid response for ${requestUrl}`);
+            }
+            return response;
           } finally {
             if (timeoutId) clearTimeout(timeoutId);
           }
