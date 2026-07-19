@@ -30,3 +30,11 @@ test("cross-platform workflow isolates the Windows home before Next.js tracing",
     "Windows home isolation must happen before the CLI build"
   );
 });
+
+test("cross-platform CLI builds allow cold macOS runs to finish", () => {
+  const buildJob = workflow.slice(
+    workflow.indexOf("  build-cli:\n"),
+    workflow.indexOf("  test-unit:\n")
+  );
+  assert.match(buildJob, /timeout-minutes: 30/);
+});
