@@ -49,7 +49,8 @@ jobs:
       - name: Check Node runtime
         run: npm run check:node-runtime
       - name: Clear transient Next build cache
-        run: node -e "require('node:fs').rmSync('.build/next/cache', { recursive: true, force: true })"
+        run: >-
+          node -e "require('node:fs').rmSync('.build/next/cache', { recursive: true, force: true })"
       - name: Build CLI
         run: npm run build:cli
         env:
