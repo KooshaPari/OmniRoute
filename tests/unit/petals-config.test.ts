@@ -21,3 +21,14 @@ test("Petals endpoint normalization adds generate route once", () => {
     "https://petals.example/api/v1/generate",
   );
 });
+
+test("Petals endpoint normalization preserves query parameters and fragments", () => {
+  assert.equal(
+    normalizePetalsBaseUrl("https://petals.example/api/v1/?token=secret#primary"),
+    "https://petals.example/api/v1/generate?token=secret#primary",
+  );
+  assert.equal(
+    normalizePetalsBaseUrl("https://petals.example/api/v1/generate/?token=secret#primary"),
+    "https://petals.example/api/v1/generate?token=secret#primary",
+  );
+});

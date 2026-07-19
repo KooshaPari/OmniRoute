@@ -7,7 +7,10 @@ export const PETALS_DEFAULT_MODEL = "meta-llama/Meta-Llama-3.1-8B-Instruct";
 export function normalizePetalsBaseUrl(baseUrl?: string | null): string {
   const value = typeof baseUrl === "string" ? baseUrl.trim() : "";
   if (!value) return PETALS_DEFAULT_BASE_URL;
-  const normalized = value.replace(/\/+$/, "");
-  if (/\/generate$/i.test(normalized)) return normalized;
-  return `${normalized}/generate`;
+  const suffixIndex = value.search(/[?#]/);
+  const path = suffixIndex === -1 ? value : value.slice(0, suffixIndex);
+  const suffix = suffixIndex === -1 ? "" : value.slice(suffixIndex);
+  const normalizedPath = path.replace(/\/+$/, "");
+  if (/\/generate$/i.test(normalizedPath)) return `${normalizedPath}${suffix}`;
+  return `${normalizedPath}/generate${suffix}`;
 }
