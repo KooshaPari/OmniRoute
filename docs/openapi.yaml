@@ -3729,11 +3729,13 @@ paths:
           application/json:
             schema:
               type: object
+              additionalProperties: false
               required: [password]
               properties:
                 password:
                   type: string
                   minLength: 1
+                  maxLength: 200
       responses:
         "200":
           description: JWT token returned
