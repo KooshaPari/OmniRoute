@@ -10,13 +10,30 @@
  * BFF/proxy edge, not here — this is an admin-only management surface).
  */
 import { NextResponse } from "next/server";
-import {
-  mintVirtualKey,
-  listVirtualKeysForTenant,
-  listAllVirtualKeys,
-} from "@/lib/db/virtualKeys";
+import { z } from "zod";
+import { mintVirtualKey, listVirtualKeysForTenant, listAllVirtualKeys } from "@/lib/db/virtualKeys";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import * as log from "@/sse/utils/logger";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+
+const virtualKeyCreateSchema = z
+  .object({
+    tenantId: z.string().min(1).optional(),
+    tenant_id: z.string().min(1).optional(),
+    label: z.string().optional(),
+    allowedModels: z.array(z.string().min(1)).optional(),
+    allowed_models: z.array(z.string().min(1)).optional(),
+    maxCostUsd: z.number().finite().nonnegative().nullable().optional(),
+    max_cost_usd: z.number().finite().nonnegative().nullable().optional(),
+    maxRpd: z.number().int().nonnegative().nullable().optional(),
+    max_rpd: z.number().int().nonnegative().nullable().optional(),
+    expiresAt: z.string().min(1).nullable().optional(),
+    expires_at: z.string().min(1).nullable().optional(),
+  })
+  .refine((body) => Boolean(body.tenantId ?? body.tenant_id), {
+    path: ["tenantId"],
+    message: "tenantId is required",
+  });
 
 function asString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
@@ -27,16 +44,6 @@ function asStringArrayOrUndefined(value: unknown): string[] | undefined {
   if (!Array.isArray(value)) return undefined;
   const filtered = value.filter((v): v is string => typeof v === "string");
   return filtered.length > 0 ? filtered : undefined;
-}
-
-function asNumberOrNull(value: unknown): number | null {
-  if (value === null) return null;
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return undefined as unknown as null;
 }
 
 // GET /api/virtual-keys?tenantId=X
@@ -88,17 +95,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  if (!rawBody || typeof rawBody !== "object") {
-    return NextResponse.json({ error: "Body must be a JSON object" }, { status: 400 });
+  const validation = validateBody(virtualKeyCreateSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
   }
-  const body = rawBody as Record<string, unknown>;
+  const body = validation.data;
 
   const tenantId = asString(body["tenantId"] ?? body["tenant_id"]);
   if (!tenantId) {
-    return NextResponse.json(
-      { error: "tenantId is required" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "tenantId is required" }, { status: 400 });
   }
 
   // Validate expiresAt if provided
@@ -131,15 +136,8 @@ export async function POST(request: Request) {
   const maxRpdRaw = body["maxRpd"] ?? body["max_rpd"];
   let maxRpd: number | null = null;
   if (maxRpdRaw !== undefined && maxRpdRaw !== null) {
-    if (
-      typeof maxRpdRaw !== "number" ||
-      !Number.isInteger(maxRpdRaw) ||
-      maxRpdRaw < 0
-    ) {
-      return NextResponse.json(
-        { error: "maxRpd must be a non-negative integer" },
-        { status: 400 },
-      );
+    if (typeof maxRpdRaw !== "number" || !Number.isInteger(maxRpdRaw) || maxRpdRaw < 0) {
+      return NextResponse.json({ error: "maxRpd must be a non-negative integer" }, { status: 400 });
     }
     maxRpd = maxRpdRaw;
   }
