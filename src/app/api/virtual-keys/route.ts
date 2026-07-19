@@ -18,22 +18,19 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 const virtualKeyCreateSchema = z
   .object({
-    tenantId: z.string().min(1).optional(),
-    tenant_id: z.string().min(1).optional(),
-    label: z.string().optional(),
-    allowedModels: z.array(z.string().min(1)).optional(),
-    allowed_models: z.array(z.string().min(1)).optional(),
-    maxCostUsd: z.number().finite().nonnegative().nullable().optional(),
-    max_cost_usd: z.number().finite().nonnegative().nullable().optional(),
-    maxRpd: z.number().int().nonnegative().nullable().optional(),
-    max_rpd: z.number().int().nonnegative().nullable().optional(),
-    expiresAt: z.string().min(1).nullable().optional(),
-    expires_at: z.string().min(1).nullable().optional(),
+    tenantId: z.unknown().optional(),
+    tenant_id: z.unknown().optional(),
+    label: z.unknown().optional(),
+    allowedModels: z.unknown().optional(),
+    allowed_models: z.unknown().optional(),
+    maxCostUsd: z.unknown().optional(),
+    max_cost_usd: z.unknown().optional(),
+    maxRpd: z.unknown().optional(),
+    max_rpd: z.unknown().optional(),
+    expiresAt: z.unknown().optional(),
+    expires_at: z.unknown().optional(),
   })
-  .refine((body) => Boolean(body.tenantId ?? body.tenant_id), {
-    path: ["tenantId"],
-    message: "tenantId is required",
-  });
+  .passthrough();
 
 function asString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;

@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import {
-  getDefaultThinkingBudget,
-  topUpThinkingBudget,
-} from "@omniroute/open-sse/services/thinkingBudget";
+import { capThinkingBudget, getDefaultThinkingBudget } from "@/lib/modelCapabilities";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 const topUpBudgetSchema = z.object({
-  currentBudget: z.number().finite().nonnegative(),
-  model: z.string().min(1).optional(),
-  additionalTokens: z.number().finite().int().nonnegative(),
+  currentBudget: z.number(),
+  model: z.string().optional(),
+  additionalTokens: z.number(),
 });
 
 export async function GET(request: NextRequest) {
@@ -41,7 +38,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const { currentBudget, model, additionalTokens } = validation.data;
-    const budget = topUpThinkingBudget(currentBudget, model, additionalTokens);
+    const budget = capThinkingBudget(model ?? "", currentBudget + additionalTokens);
     return NextResponse.json({ budget });
   } catch (error) {
     return NextResponse.json(
