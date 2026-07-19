@@ -695,3 +695,48 @@ Two identical copies of `AgilePlus` exist at identical HEAD `a83a7677`:
 | 4 | Re-archive temporarily unarchived repos | Fresh GitHub PAT |
 
 *Footer: post-final-closeout — 2026-07-18 15:50 PDT*
+
+## 6. Post-Wrap — Live Smoke Validation (2026-07-18)
+
+### Root cause found: `sha_pinning_required: true`
+The repository-level actions policy requires **all** action references to use commit SHAs rather than tags. This caused `startup_failure` on every workflow (not just release-system ones) since the polyglot bifrost merge introduced tag-based refs.
+
+### 13 forged/broken SHA revisions replaced across 6 workflow files:
+| Action | Old SHA | New (verified commit) SHA |
+|---|---|---|
+| `orhun/git-cliff-action` | `5b8303e5...` (forged) | `f50e1156...` (v4.8.0) |
+| `actions/setup-node` | `1d0ff469...` (forged) | `24997072...` (v6) |
+| `actions/upload-artifact` | tag `@v7` (forbidden) | `043fb46d...` (v7) |
+| `actions/download-artifact` | tag `@v8` (forbidden) | `fa0a91b8...` (v8) |
+| `softprops/action-gh-release` | `2f0f4a0b...` (forged) | `3bb12739...` (v2.6.2) |
+| `returntocorp/semgrep-action` | `efb646f4...` (forged) | `713efdd3...` (v1) |
+| `codeql-action/upload-sarif` | `b611370b...` (forged, annotated tag) | `dd903d2e...` (v3.28.14 peeled) |
+| `docker/setup-buildx-action` | tag `@v4` (forbidden) | `bb05f3f5...` (v4) |
+| `docker/login-action` | tag `@v4` (forbidden) | `af1e73f9...` (v4) |
+| `docker/build-push-action` | tag `@v7` (forbidden) | `53b7df96...` (v7) |
+| `actions/checkout` | tag `@v7`/`@v6` (forbidden, non-existent) | `11bd7190...` (v4) |
+| `docker/setup-buildx-action` (cross-platform) | tag `@v4` (forbidden) | `bb05f3f5...` (v4) |
+| `docker/login-action` (cross-platform) | tag `@v4` (forbidden) | `af1e73f9...` (v4) |
+
+### First-ever green run of auto-release.yml
+- **Workflow**: Run #29666168578 on branch `fix/action-sha-pinning`
+- **Trigger**: `workflow_dispatch` with `force=true`, `max-channel=canary`
+- **Result**: ALL 6 jobs green ✅
+  - `trigger` — fire on `force=true` ✅
+  - `resolve` — resolved to `nightly` (canary's unit/vitest/integration gates not green on this feature branch) ✅
+  - `publish-github` — created release `v3.8.49-koosha.0-nightly.20260719.447d2bb` (prerelease) ✅
+  - `publish-npm` — would publish `@koosha/omniroute@nightly` ✅
+  - `publish-docker` — skipped (correct per design for nightly) ✅
+  - `summary` — final status ✅
+- **PR**: [#404](https://github.com/KooshaPari/OmniRoute/pull/404) — ready to merge to `main`
+
+### What's still blocking
+- **NPM_TOKEN**: The publish-npm job checks for `NPM_TOKEN` via a new validation step added in `ddea9547c`. The token must be configured at repo level for npm publish to actually push the artifact.
+- **PR #404 not yet merged to `main`**: The SHA fixes currently live on `fix/action-sha-pinning` branch only. `main` still has the broken SHAs.
+- **Docker publish**: Requires `DOCKERHUB_TOKEN` and `DOCKERHUB_USERNAME` secrets.
+- **NPM_FORCE_NIGHTLY**: The default-true flip means nightly npm publishes are enabled by default — only set to `false` if you want to suppress them.
+
+### Changelog: next 3 actions
+1. Merge PR #404 to main → fixes `startup_failure` repo-wide
+2. Set `NPM_TOKEN` secret → enables npm publish
+3. Dispatch `auto-release.yml` from `main` with `force=true` → exercises the full production path
