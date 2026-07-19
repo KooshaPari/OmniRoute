@@ -32,7 +32,7 @@ export interface PolyglotEdge<TIn = unknown, TOut = unknown> {
 // ── State ──────────────────────────────────────────────────────────────
 
 const edges = new Map<string, PolyglotEdge<unknown, unknown>>();
-const tierOverrides = new Map<string, EdgeTierOverride>();
+export const tierOverrides = new Map<string, EdgeTierOverride>();
 
 // ── Registry ───────────────────────────────────────────────────────────
 
@@ -58,7 +58,8 @@ function applyEnvOverride(edgeName: string, fallback: EdgeTier): void {
     return;
   }
   if (tierOverrides.has(edgeName)) return;
-  tierOverrides.set(edgeName, { tier: fallback, source: "config" });
+  // Do NOT set a default tier override here — tierOverrides is only for
+  // reconcile-set and env-var overrides; edge.defaultTier is the baseline.
 }
 
 /**
