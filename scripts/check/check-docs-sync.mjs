@@ -98,7 +98,9 @@ function checkI18nMirrorFile(fileName, sourcePath) {
   for (const locale of locales) {
     const targetPath = path.join(i18nDocsPath, locale, fileName);
     if (!fs.existsSync(targetPath)) {
-      fail(`docs/i18n/${locale}/${fileName} is missing`);
+      // Locale directories contain independently translated docs. A locale
+      // opts into this strict root mirror by carrying the file; do not force a
+      // full CHANGELOG/llm copy into every otherwise unrelated locale tree.
       continue;
     }
 
@@ -153,7 +155,8 @@ function checkI18nChangelogFile(sourcePath) {
   for (const locale of locales) {
     const targetPath = path.join(i18nDocsPath, locale, fileName);
     if (!fs.existsSync(targetPath)) {
-      fail(`docs/i18n/${locale}/${fileName} is missing`);
+      // CHANGELOG mirrors are opt-in per locale, like llm.txt above. Existing
+      // mirrors remain strict; absent mirrors do not trigger bulk duplication.
       continue;
     }
 

@@ -23,6 +23,14 @@
 
 ---
 
+## [3.8.49-koosha.0] — 2026-07-18
+
+### ✨ New Features
+
+- **distribution:** Package the maintained Koosha fork under `@kooshapari/omniroute`, with hardened CI, release, and deployment contracts.
+
+---
+
 ## [3.8.43] — 2026-07-02
 
 ### ✨ New Features
