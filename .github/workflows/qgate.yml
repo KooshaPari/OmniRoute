@@ -64,7 +64,7 @@ jobs:
           path: _phenotype-tooling
 
       - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@4305c38b25d97ef04a54b3a52498a5f41e40895c
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4
         with:
           toolchain: stable
 
