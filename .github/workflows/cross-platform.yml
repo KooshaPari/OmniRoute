@@ -51,6 +51,12 @@ jobs:
       - name: Clear transient Next build cache
         run: >-
           node -e "require('node:fs').rmSync('.build/next/cache', { recursive: true, force: true })"
+      - name: Isolate Windows home from protected junctions
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/home"
+          echo "USERPROFILE=$RUNNER_TEMP/home" >> "$GITHUB_ENV"
       - name: Build CLI
         run: npm run build:cli
         env:

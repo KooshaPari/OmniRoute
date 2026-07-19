@@ -1,10 +1,11 @@
 # qgate quality gate for OmniRoute.
 #
-# Runs the reusable qgate workflow from KooshaPari/phenotype-tooling on a
-# Linux standard runner. Non-blocking until coverage reaches the
-# .qgate.toml threshold (per the "1 via 2" protocol).
+# Generates coverage and runs qgate in one Linux job so the gate consumes the
+# exact report produced by this checkout. qgate is built from the immutable
+# phenotype-tooling revision pinned below. Non-blocking until coverage reaches
+# the .qgate.toml threshold (per the "1 via 2" protocol).
 #
-# Spectrum categories exercised (when PR #198 lands on phenotype-tooling):
+# Spectrum categories exercised:
 #   - coverage: npm test:coverage emits lcov report
 #   - a11y:     playwright tests with axe accessibility
 #   - e2e:      playwright browser tests
@@ -52,13 +53,40 @@ jobs:
           path: coverage/lcov.info
           retention-days: 14
 
-      # qgate reusable workflow — runs the gate, emits JSON report.
-      - name: qgate quality gate
-        uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/quality-gate.yml@main
+      # A reusable workflow can only be called at job level and would run in a
+      # separate workspace, where the coverage generated above does not exist.
+      # Build the pinned qgate source and consume the report in this job.
+      - name: Checkout qgate source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          coverage-report: coverage/lcov.info
-          coverage-format: lcov
-          threshold: 60
-          not-applicable: ''
-          sast-config: 'auto'
-        secrets: inherit
+          repository: KooshaPari/phenotype-tooling
+          ref: c43cc4af2cbcc2bb2df37f3e4ab78cc5d8c1b3ad
+          path: _phenotype-tooling
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@4305c38b25d97ef04a54b3a52498a5f41e40895c
+        with:
+          toolchain: stable
+
+      - name: Build qgate
+        working-directory: _phenotype-tooling
+        run: cargo build --release -p qgate
+
+      - name: Run qgate quality gate
+        run: |
+          set -o pipefail
+          _phenotype-tooling/target/release/qgate run \
+            --coverage-report coverage/lcov.info \
+            --coverage-format lcov \
+            --threshold 60 \
+            --path . \
+            | tee qgate-report.json
+
+      - name: Upload qgate report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: qgate-report
+          path: qgate-report.json
+          if-no-files-found: warn
+          retention-days: 30
