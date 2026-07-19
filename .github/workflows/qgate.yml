@@ -46,6 +46,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # qgate invokes stack-native tools directly. npm does not add the local
+      # binary directory to PATH outside lifecycle scripts, so expose the
+      # immutable lockfile-installed bun/playwright/tsc/eslint executables.
+      - name: Expose project-local tools
+        run: echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
+
       # Generate coverage report (lcov) from existing test suite.
       - name: Generate coverage (lcov)
         id: coverage

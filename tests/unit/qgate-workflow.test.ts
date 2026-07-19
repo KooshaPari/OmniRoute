@@ -38,3 +38,14 @@ test("qgate cancels superseded runs for the same PR or branch", () => {
   );
   assert.match(workflow, /concurrency:[\s\S]*?cancel-in-progress: true/);
 });
+
+test("qgate can discover project-local quality tools", () => {
+  assert.match(
+    workflow,
+    /- name: Expose project-local tools[\s\S]*?node_modules\/\.bin["']? >> ["']?\$GITHUB_PATH/
+  );
+  assert.ok(
+    workflow.indexOf("Expose project-local tools") < workflow.indexOf("Run qgate quality gate"),
+    "local bun, playwright, tsc, and eslint binaries must be on PATH before qgate runs"
+  );
+});
