@@ -19,3 +19,12 @@ for (const relativePath of [
     }
   });
 }
+
+test("dependency review scopes the Sonar LGPL exception to the pinned action", () => {
+  const source = readFileSync(resolve(ROOT, ".github/workflows/dependency-review.yml"), "utf8");
+  assert.match(
+    source,
+    /allow-dependencies-licenses:\s*pkg:githubactions\/SonarSource\/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f/
+  );
+  assert.doesNotMatch(source, /allow-licenses:.*LGPL/);
+});
