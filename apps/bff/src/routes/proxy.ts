@@ -2,7 +2,7 @@ import { Hono, type Context } from 'hono';
 
 import { env } from '../env';
 
-const WEB_STACK_COOKIE = /(?:^|;\s*)web_stack=(svelte|next)/;
+const WEB_STACK_COOKIE = /(?:^|;\s*)web_stack=(svelte|next)(?:\s|;|$)/;
 
 const HOP_BY_HOP_HEADERS = new Set([
   'connection',
@@ -46,13 +46,15 @@ function proxyHeaders(source: Headers): Headers {
     }
   });
 
-  type HeadersWithSetCookie = Headers & { getSetCookie?: () => string[] };
-  const getSetCookie = (source as HeadersWithSetCookie).getSetCookie;
-  const cookies = getSetCookie
-    ? getSetCookie.call(source)
-    : [source.get('set-cookie')].filter((cookie): cookie is string => cookie !== null);
-  for (const cookie of cookies) {
-    headers.append('set-cookie', cookie);
+  if (!connectionHeaders.has('set-cookie')) {
+    type HeadersWithSetCookie = Headers & { getSetCookie?: () => string[] };
+    const getSetCookie = (source as HeadersWithSetCookie).getSetCookie;
+    const cookies = getSetCookie
+      ? getSetCookie.call(source)
+      : [source.get('set-cookie')].filter((cookie): cookie is string => cookie !== null);
+    for (const cookie of cookies) {
+      headers.append('set-cookie', cookie);
+    }
   }
 
   return headers;
@@ -182,9 +184,10 @@ async function forwardToUpstream(
         message: 'Upstream request timed out',
       }, 504);
     }
+    console.error({ err: error }, 'upstream proxy request failed');
     return c.json({
       error: 'upstream_unreachable',
-      message: (error as Error).message,
+      message: 'Upstream request failed',
     }, 502);
   } finally {
     clearTimeout(timeout);

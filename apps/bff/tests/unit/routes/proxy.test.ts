@@ -12,10 +12,12 @@ describe("proxy routes", () => {
   it("preserves routing, query, method, body, and rollout overrides", async () => {
     let forwardedBody = "";
     const fetchMock = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
-      forwardedBody = await new Response(init?.body).text();
-      expect(String(url)).toBe("https://upstream.test/v1/chat/completions?stream=true");
-      expect(init?.method).toBe("POST");
-      expect(new Headers(init?.headers).get("x-proxied-by")).toBe("argismonitor-bff");
+      if (String(url).includes("/v1/chat/completions")) {
+        forwardedBody = await new Response(init?.body).text();
+        expect(String(url)).toBe("https://upstream.test/v1/chat/completions?stream=true");
+        expect(init?.method).toBe("POST");
+        expect(new Headers(init?.headers).get("x-proxied-by")).toBe("argismonitor-bff");
+      }
       return new Response("upstream", { status: 201 });
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -35,7 +37,12 @@ describe("proxy routes", () => {
       headers: { cookie: "web_stack=next" },
     });
     expect(nextResponse.status).toBe(410);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    const nextgenResponse = await routes.request("http://localhost/api/v1/models", {
+      headers: { cookie: "web_stack=nextgen" },
+    });
+    expect(nextgenResponse.status).toBe(201);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("preserves public auth paths without applying web-stack rollout", async () => {
@@ -165,6 +172,24 @@ describe("proxy routes", () => {
     expect(response.status).toBe(499);
     expect(await response.text()).toBe("");
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns a stable 502 without leaking upstream error details", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new Error("dns lookup failed for secret-host.internal");
+      }),
+    );
+
+    const routes = createProxyRoutes({ upstream: "https://upstream.test" });
+    const response = await routes.request("http://localhost/api/v1/models");
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({
+      error: "upstream_unreachable",
+      message: "Upstream request failed",
+    });
   });
 
   it("applies a bounded deadline with a stable timeout response", async () => {
