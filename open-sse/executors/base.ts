@@ -12,11 +12,7 @@ import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
 import { SessionPool } from "../services/sessionPool/sessionPool.ts";
 import { PoolRegistry } from "../services/sessionPool/poolRegistry.ts";
-import {
-  getRotatingApiKey,
-  getValidApiKey,
-  resolveKeyForRequest,
-} from "../services/apiKeyRotator.ts";
+import { resolveKeyForRequest } from "../services/apiKeyRotator.ts";
 import type { KeyHealth } from "../services/apiKeyRotator.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
 import {
@@ -978,9 +974,8 @@ export class BaseExecutor {
 
           try {
             const response = await fetch(requestUrl, optionsWithSignal);
-            if (!(response instanceof Response)) {
+            if (!(response instanceof Response))
               throw new TypeError(`Upstream fetch returned an invalid response for ${requestUrl}`);
-            }
             return response;
           } finally {
             if (timeoutId) clearTimeout(timeoutId);
