@@ -246,6 +246,40 @@ test("runMigrations skips versions that are already tracked as applied", serial,
   }
 });
 
+test("runMigrations records renumbered 122-125 migrations when their tables already exist", serial, async () => {
+  const runner = await importFresh("src/lib/db/migrationRunner.ts");
+  const db = createDb();
+  const migrations = {
+    "122_virtual_keys.sql": "CREATE TABLE virtual_keys (id INTEGER);",
+    "123_fleet_config.sql": "CREATE TABLE fleet_config (id INTEGER);",
+    "124_traffic_shadow_log.sql": "CREATE TABLE traffic_shadow_log (id INTEGER);",
+    "125_traffic_shadow_config.sql": "CREATE TABLE traffic_shadow_config (id INTEGER);",
+  };
+
+  try {
+    db.exec(`
+      CREATE TABLE virtual_keys (id INTEGER);
+      CREATE TABLE fleet_config (id INTEGER);
+      CREATE TABLE traffic_shadow_log (id INTEGER);
+      CREATE TABLE traffic_shadow_config (id INTEGER);
+    `);
+
+    const firstRun = withMockedMigrationFs(migrations, () => runner.runMigrations(db));
+    const secondRun = withMockedMigrationFs(migrations, () => runner.runMigrations(db));
+
+    assert.equal(firstRun, 4);
+    assert.equal(secondRun, 0);
+    assert.deepEqual(
+      db.prepare(
+        "SELECT version FROM _omniroute_migrations WHERE version BETWEEN '122' AND '125' ORDER BY version"
+      ).all(),
+      [{ version: "122" }, { version: "123" }, { version: "124" }, { version: "125" }]
+    );
+  } finally {
+    db.close();
+  }
+});
+
 test(
   "runMigrations applies api key lifecycle migration idempotently when columns already exist",
   serial,
