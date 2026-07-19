@@ -93,7 +93,7 @@ export function resolveTier(
   if (forcedTToT1 || signals.killSwitchActive) {
     return {
       tier: "T1",
-      defaultTier: envTier,
+      defaultTier: edge.defaultTier as Tier,
       reason: "kill-switch degradation active; T1 fallback",
     };
   }
@@ -101,14 +101,14 @@ export function resolveTier(
   if (envTier === "T3" && signals.cpuPressure !== undefined && signals.cpuPressure > HIGH_CPU_THRESHOLD) {
     return {
       tier: "T2",
-      defaultTier: envTier,
+      defaultTier: edge.defaultTier as Tier,
       reason: `cpu pressure=${signals.cpuPressure.toFixed(2)} > ${HIGH_CPU_THRESHOLD}; T3->T2 downgrade`,
     };
   }
 
   return {
     tier: envTier,
-    defaultTier: envTier,
+    defaultTier: edge.defaultTier as Tier,
     reason: `default tier (env/env override = ${envTier})`,
   };
 }
@@ -212,6 +212,7 @@ export function __setKillSwitchActiveForTests(active: boolean): void {
 /** Reset edge resolution cache + kill-switch flag for test isolation. */
 export function __resetEdgeCacheForTests(): void {
   forcedTToT1 = false;
+  globalPolyglotEdgesCache = null;
 }
 
 /**
