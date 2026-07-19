@@ -17,3 +17,16 @@ test("qgate consumes coverage in the same job that generates it", () => {
     "coverage must be generated before qgate reads it"
   );
 });
+
+test("qgate continues after test failures when lcov was produced", () => {
+  assert.match(
+    workflow,
+    /- name: Generate coverage \(lcov\)[\s\S]*?id: coverage[\s\S]*?continue-on-error: true/
+  );
+  assert.match(workflow, /- name: Require generated coverage[\s\S]*?if: always\(\)/);
+  assert.match(workflow, /test -s coverage\/lcov\.info/);
+  assert.ok(
+    workflow.indexOf("Require generated coverage") < workflow.indexOf("Checkout qgate source"),
+    "coverage must be validated before qgate is built"
+  );
+});

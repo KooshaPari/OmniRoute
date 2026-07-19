@@ -42,9 +42,25 @@ jobs:
 
       # Generate coverage report (lcov) from existing test suite.
       - name: Generate coverage (lcov)
+        id: coverage
+        continue-on-error: true
         run: npm run test:coverage
         env:
           NODE_ENV: test
+
+      # The coverage command can return non-zero for test failures after c8 has
+      # already emitted a complete report. qgate should still analyze that
+      # report, but a missing/empty report is a real pipeline failure.
+      - name: Require generated coverage
+        if: always()
+        run: |
+          if ! test -s coverage/lcov.info; then
+            echo "::error::coverage/lcov.info was not generated or is empty"
+            exit 1
+          fi
+          if [ "${{ steps.coverage.outcome }}" != "success" ]; then
+            echo "::warning::coverage tests failed; qgate will analyze the generated lcov report"
+          fi
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
