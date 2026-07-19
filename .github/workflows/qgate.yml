@@ -65,12 +65,14 @@ jobs:
       # report, but a missing/empty report is a real pipeline failure.
       - name: Require generated coverage
         if: always()
+        env:
+          COVERAGE_OUTCOME: ${{ steps.coverage.outcome }}
         run: |
           if ! test -s coverage/lcov.info; then
             echo "::error::coverage/lcov.info was not generated or is empty"
             exit 1
           fi
-          if [ "${{ steps.coverage.outcome }}" != "success" ]; then
+          if [ "$COVERAGE_OUTCOME" != "success" ]; then
             echo "::warning::coverage tests failed; qgate will analyze the generated lcov report"
           fi
 
@@ -90,6 +92,7 @@ jobs:
           repository: KooshaPari/phenotype-tooling
           ref: c43cc4af2cbcc2bb2df37f3e4ab78cc5d8c1b3ad
           path: _phenotype-tooling
+          persist-credentials: false
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30

@@ -23,6 +23,7 @@ import {
   collectWorkflowFiles,
   isBinaryAvailable,
   evaluateZizmorRatchet,
+  findNewZizmorDiagnostics,
   readBaselineZizmorValue,
   // @ts-expect-error — .mjs helper has no type declarations; runtime shape is known.
 } from "../../../scripts/check/check-workflows.mjs";
@@ -33,6 +34,25 @@ const evaluateZizmor = evaluateZizmorRatchet as (
   baseline: number
 ) => RatchetVerdict;
 const readZizmorBaseline = readBaselineZizmorValue as (p?: string) => number | null;
+
+test("findNewZizmorDiagnostics compares stable identities, not line numbers", () => {
+  const finding = (pathName: string, row: number) => ({
+    ident: "artipacked",
+    locations: [{
+      symbolic: {
+        key: { Local: { verbatim_path: pathName } },
+        route: { route: [{ Key: "jobs" }, { Key: "build" }] },
+        annotation: "does not set persist-credentials: false",
+      },
+      concrete: { location: { start_point: { row, column: 1 } } },
+    }],
+  });
+  assert.deepEqual(findNewZizmorDiagnostics([finding("ci.yml", 99)], [finding("ci.yml", 4)]), []);
+  assert.equal(
+    findNewZizmorDiagnostics([finding("ci.yml", 4), finding("release.yml", 8)], [finding("ci.yml", 2)]).length,
+    1
+  );
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // parseActionlintOutput
@@ -307,4 +327,10 @@ test("readBaselineZizmorValue: invalid JSON returns null (does not throw)", () =
   withTmpBaseline("{ broken", (p) => {
     assert.equal(readZizmorBaseline(p), null);
   });
+});
+
+test("CI pins zizmor and compares PR findings with the base ref", () => {
+  const workflow = fs.readFileSync(path.join(process.cwd(), ".github/workflows/ci.yml"), "utf8");
+  assert.match(workflow, /pipx install zizmor==1\.27\.0/);
+  assert.match(workflow, /--baseline-ref[ =]"?origin\/\$BASE_REF/);
 });

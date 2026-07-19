@@ -25,9 +25,24 @@ test("qgate continues after test failures when lcov was produced", () => {
   );
   assert.match(workflow, /- name: Require generated coverage[\s\S]*?if: always\(\)/);
   assert.match(workflow, /test -s coverage\/lcov\.info/);
+  assert.match(
+    workflow,
+    /- name: Require generated coverage[\s\S]*?env:[\s\S]*?COVERAGE_OUTCOME: \$\{\{ steps\.coverage\.outcome \}\}/
+  );
+  assert.doesNotMatch(
+    workflow.match(/- name: Require generated coverage[\s\S]*?(?=\n\s+- name:)/)?.[0] ?? "",
+    /run:[\s\S]*?\$\{\{/
+  );
   assert.ok(
     workflow.indexOf("Require generated coverage") < workflow.indexOf("Checkout qgate source"),
     "coverage must be validated before qgate is built"
+  );
+});
+
+test("qgate source checkout does not persist credentials", () => {
+  assert.match(
+    workflow,
+    /- name: Checkout qgate source[\s\S]*?with:[\s\S]*?persist-credentials: false/
   );
 });
 
