@@ -6,13 +6,14 @@ import { resolve } from "node:path";
 const ROOT = resolve(import.meta.dirname, "..", "..");
 
 for (const relativePath of [
+  ".github/workflows/adr-quality-lint.yml",
   ".github/workflows/ci.yml",
   ".github/workflows/security-scan.yml",
   ".github/workflows/reusable/quality-gate.yml",
 ]) {
   test(`${relativePath} pins every external action to a full commit SHA`, () => {
     const source = readFileSync(resolve(ROOT, relativePath), "utf8");
-    for (const match of source.matchAll(/^\s*uses:\s*([^\s#]+).*/gm)) {
+    for (const match of source.matchAll(/^\s*-?\s*uses:\s*([^\s#]+).*/gm)) {
       const action = match[1];
       if (action.startsWith("./")) continue;
       assert.match(action, /@[0-9a-f]{40}$/, `${action} must use an immutable commit SHA`);
@@ -34,4 +35,10 @@ test("pillar scorecard stays read-only and does not commit generated reports", (
   assert.doesNotMatch(source, /contents:\s*write/);
   assert.doesNotMatch(source, /push-scorecard\.sh|git push/);
   assert.match(source, /persist-credentials:\s*false/);
+});
+
+test("ADR lint validates changes to its own workflow and checker", () => {
+  const source = readFileSync(resolve(ROOT, ".github/workflows/adr-quality-lint.yml"), "utf8");
+  assert.match(source, /\.github\/workflows\/adr-quality-lint\.yml/);
+  assert.match(source, /\.githooks\/adr-quality-lint\.py/);
 });

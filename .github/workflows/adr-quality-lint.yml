@@ -3,12 +3,18 @@ permissions:
   contents: read
 on:
   pull_request:
-    paths: ['docs/adr/**']
+    paths:
+      - 'docs/adr/**'
+      - '.githooks/adr-quality-lint.py'
+      - '.github/workflows/adr-quality-lint.yml'
   push:
-    paths: ['docs/adr/**']
+    paths:
+      - 'docs/adr/**'
+      - '.githooks/adr-quality-lint.py'
+      - '.github/workflows/adr-quality-lint.yml'
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - run: python3 .githooks/adr-quality-lint.py
