@@ -30,3 +30,11 @@ test("qgate continues after test failures when lcov was produced", () => {
     "coverage must be validated before qgate is built"
   );
 });
+
+test("qgate cancels superseded runs for the same PR or branch", () => {
+  assert.match(
+    workflow,
+    /concurrency:[\s\S]*?group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/
+  );
+  assert.match(workflow, /concurrency:[\s\S]*?cancel-in-progress: true/);
+});

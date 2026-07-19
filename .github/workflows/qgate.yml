@@ -20,6 +20,12 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  # PRs share a stable numeric key across synchronize events; branch runs fall
+  # back to their full ref so main and future stable/release refs stay isolated.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
