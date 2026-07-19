@@ -104,6 +104,59 @@ export function partitionDeletedRenamed(nameStatusOutput) {
 }
 
 /**
+ * Build one fail-closed aggregate record for an explicitly declared test split.
+ * Every child must be a changed test file and the detected rename destination
+ * must participate, preventing unrelated existing suites from padding counts.
+ */
+export function evaluateSplitLineage({
+  from,
+  to,
+  destinations,
+  baseSrc,
+  headSources,
+  changedPaths,
+}) {
+  const flags = [];
+  if (!Array.isArray(destinations) || destinations.length < 2) {
+    flags.push(`${from}: linhagem de split deve declarar ao menos 2 testes de destino`);
+    return { flags, aggregate: null };
+  }
+  if (new Set(destinations).size !== destinations.length) {
+    flags.push(`${from}: linhagem de split contém destinos duplicados`);
+  }
+  if (!destinations.includes(to)) {
+    flags.push(`${from}: linhagem de split não inclui o destino renomeado ${to}`);
+  }
+  for (const destination of destinations) {
+    if (!TEST_RE.test(destination)) {
+      flags.push(`${from}: destino de split não é arquivo de teste: ${destination}`);
+    } else if (!changedPaths.has(destination)) {
+      flags.push(`${from}: destino de split não pertence a este diff: ${destination}`);
+    }
+    if (typeof headSources[destination] !== "string") {
+      flags.push(`${from}: destino de split ausente ou ilegível: ${destination}`);
+    }
+  }
+  if (flags.length) return { flags, aggregate: null };
+
+  const headSrc = destinations.map((destination) => headSources[destination]).join("\n");
+  return {
+    flags,
+    aggregate: {
+      file: `${from} → [${destinations.join(", ")}]`,
+      baseAsserts: countAssertions(baseSrc),
+      headAsserts: countAssertions(headSrc),
+      baseTaut: countTautologies(baseSrc),
+      headTaut: countTautologies(headSrc),
+      baseSkips: countSkips(baseSrc),
+      headSkips: countSkips(headSrc),
+      baseExtTaut: countExtendedTautologies(baseSrc),
+      headExtTaut: countExtendedTautologies(headSrc),
+    },
+  };
+}
+
+/**
  * Avalia por-arquivo: flag em remoção líquida de asserts, nova tautologia,
  * aumento líquido de skips, ou nova tautologia extendida.
  *
@@ -174,10 +227,46 @@ function main() {
 
   const relocatedOutOfTest = [];
   const renamePerFile = [];
+  const splitPerFile = [];
+  const lineageFlags = [];
+  let splitLineage = {};
+  try {
+    splitLineage = JSON.parse(fs.readFileSync("config/quality/test-split-lineage.json", "utf8"));
+  } catch {
+    // No lineage manifest means every rename is evaluated as a single-file move.
+  }
+  const addedTests = git(["diff", "--name-only", "--diff-filter=A", `${base}...HEAD`])
+    .split("\n")
+    .map((s) => s.trim())
+    .filter((f) => TEST_RE.test(f));
+  const changedSplitPaths = new Set([...addedTests, ...renames.map(({ to }) => to)]);
+
   for (const { from, to } of renames) {
     if (!TEST_RE.test(to)) {
       // test → non-test: the test was removed from coverage.
       relocatedOutOfTest.push(from);
+      continue;
+    }
+    const declaredDestinations = splitLineage[from];
+    if (declaredDestinations !== undefined) {
+      const headSources = Object.fromEntries(
+        (Array.isArray(declaredDestinations) ? declaredDestinations : []).map((destination) => [
+          destination,
+          typeof destination === "string" && fs.existsSync(destination)
+            ? fs.readFileSync(destination, "utf8")
+            : undefined,
+        ])
+      );
+      const evaluated = evaluateSplitLineage({
+        from,
+        to,
+        destinations: declaredDestinations,
+        baseSrc: git(["show", `${base}:${from}`]),
+        headSources,
+        changedPaths: changedSplitPaths,
+      });
+      lineageFlags.push(...evaluated.flags);
+      if (evaluated.aggregate) splitPerFile.push(evaluated.aggregate);
       continue;
     }
     // test → test: compare the original (base) against the relocated (head) file so
@@ -233,7 +322,10 @@ function main() {
   }
 
   const maskingFlags = evaluateMasking(perFile, assertReductionAllowlist);
-  const allFlags = [...deletedFlags, ...maskingFlags];
+  // Declared split aggregates are never allowlisted: the manifest itself is the
+  // narrow structural accounting mechanism and must preserve total assertions.
+  const splitMaskingFlags = evaluateMasking(splitPerFile);
+  const allFlags = [...deletedFlags, ...lineageFlags, ...maskingFlags, ...splitMaskingFlags];
 
   if (allFlags.length) {
     console.error(
