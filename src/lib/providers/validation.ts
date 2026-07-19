@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { URL } from "node:url";
 import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
@@ -19,6 +20,7 @@ import {
   isOpenAICompatibleProvider,
   isSelfHostedChatProvider,
   providerAllowsOptionalApiKey,
+  WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
@@ -107,6 +109,54 @@ function normalizeAnthropicBaseUrl(baseUrl: string) {
 
 function normalizeClaudeCodeCompatibleBaseUrl(baseUrl: string) {
   return stripClaudeCodeCompatibleEndpointSuffix(baseUrl || "");
+}
+
+export async function validateWebCookieProvider({
+  provider,
+  apiKey,
+  providerSpecificData = {},
+}: any) {
+  const entry = (WEB_COOKIE_PROVIDERS as Record<string, { website?: string } | undefined>)[provider];
+  if (!entry) {
+    return { valid: false, error: "Provider validation not supported", unsupported: true };
+  }
+
+  const cookie = typeof apiKey === "string" ? apiKey.trim() : "";
+  if (!cookie) {
+    return {
+      valid: false,
+      error: "Cookie is required for web-cookie provider validation",
+      unsupported: false,
+    };
+  }
+
+  try {
+    // The host comes from the immutable provider registry, never caller input.
+    const response = await safeOutboundFetch(
+      new URL("/models", entry.website || "https://example.com").toString(),
+      {
+        ...SAFE_OUTBOUND_FETCH_PRESETS.validationRead,
+        guard: getProviderOutboundGuard(),
+        bypassProxyPatch: true,
+        method: "GET",
+        headers: applyCustomUserAgent(
+          { Accept: "application/json", Cookie: cookie },
+          providerSpecificData
+        ),
+      }
+    );
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "SESSION_EXPIRED",
+        errorCode: "AUTH_007",
+        unsupported: false,
+      };
+    }
+    return { valid: true, error: null, unsupported: false };
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
 }
 
 function addModelsSuffix(baseUrl: string) {
