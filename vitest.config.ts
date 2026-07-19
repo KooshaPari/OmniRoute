@@ -17,6 +17,8 @@ export default defineConfig({
     },
     environmentMatchGlobs: [
       ["tests/unit/**/*.test.ts", "node"],
+      ["tests/unit/**/*.test.tsx", "node"],
+      ["tests/e2e/**/*.ts", "node"],
       ["open-sse/**/__tests__/**/*.test.ts", "node"],
       ["open-sse/services/**/__tests__/**/*.test.ts", "node"],
     ],
@@ -35,6 +37,10 @@ export default defineConfig({
       "open-sse/services/**/__tests__/**/*.test.ts",
       "tests/e2e/ecosystem.test.ts",
       "tests/e2e/protocol-clients.test.ts",
+      "tests/e2e/health.e2e.ts",
+      "tests/e2e/rate-limit.e2e.ts",
+      "tests/e2e/quota-store.e2e.ts",
+      "tests/e2e/management-password.e2e.ts",
     ],
     exclude: [
       "**/node_modules/**",

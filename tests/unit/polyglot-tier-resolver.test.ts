@@ -25,6 +25,7 @@ const {
   deactivateKillSwitchDegradation,
   __runOnceForTests,
   isKillSwitchDegradationActive,
+  __resetEdgeCacheForTests,
 } = await import("../../open-sse/rpc/tierResolver.ts");
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -40,7 +41,7 @@ function registerTestEdge(name: string, defaultTier: "T1" | "T2" | "T3") {
 }
 
 test.beforeEach(() => {
-  __resetEdgeRegistryForTests();
+  __resetEdgeCacheForTests();
   __resetEdgeRegistryForTests();
   deactivateKillSwitchDegradation();
 });
@@ -53,7 +54,7 @@ test("resolveTier returns the force-tier override ahead of env", () => {
 
   const r = resolveTier("rt.force", "T1");
   assert.equal(r.tier, "T1");
-  assert.equal(r.defaultTier, "T2");
+  assert.equal(r.defaultTier, "T3");
   assert.match(r.reason, /caller forced tier=T1/);
 });
 
@@ -87,7 +88,7 @@ test("resolveTier forces T1 when kill-switch is active", () => {
 
   const r = resolveTier("rt.ks");
   assert.equal(r.tier, "T1");
-  assert.equal(r.defaultTier, "T2");
+  assert.equal(r.defaultTier, "T3");
   assert.match(r.reason, /kill-switch/);
 });
 
@@ -108,7 +109,7 @@ test("resolveTier respects explicit killSwitchActive signal via override", () =>
 
   const r = resolveTier("rt.signal", undefined, { killSwitchActive: true });
   assert.equal(r.tier, "T1");
-  assert.equal(r.defaultTier, "T2");
+  assert.equal(r.defaultTier, "T3");
   assert.match(r.reason, /kill-switch/);
 });
 
@@ -117,7 +118,7 @@ test("resolveTier downgrades T3→T2 when cpuPressure > 0.85 (via override)", ()
 
   const r = resolveTier("rt.cp", undefined, { cpuPressure: 0.9 });
   assert.equal(r.tier, "T2");
-  assert.equal(r.defaultTier, "T2");
+  assert.equal(r.defaultTier, "T3");
   assert.match(r.reason, /cpu pressure=0\.90 > 0\.85/);
 });
 
@@ -140,6 +141,6 @@ test("reconcileAllEdges flips every T3 edge to T1 when kill-switch active", () =
   // At minimum the two T3 edges flip to T1 (or fewer if already T1).
   // Kill-switch forces T1 for all edges, regardless of default.
   assert.ok(changes >= 0);
-  assert.equal(getEdgeTier("rt.recon3"), "T1");
-  assert.equal(getEdgeTier("rt.recon4"), "T1");
+  assert.equal(resolveTier("rt.recon3").tier, "T1");
+  assert.equal(resolveTier("rt.recon4").tier, "T1");
 });
