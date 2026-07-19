@@ -26,6 +26,25 @@ test("PR workflows expose stable always-running protected contexts", () => {
   );
 });
 
+test("ci/security fails when the high-severity npm audit fails", () => {
+  const security = readFileSync(".github/workflows/security-scan.yml", "utf8");
+  const dependencyAudit = security.slice(
+    security.indexOf("  deps-audit:"),
+    security.indexOf("  codeql:")
+  );
+  assert.match(dependencyAudit, /npm audit --audit-level=high/);
+  assert.doesNotMatch(
+    dependencyAudit,
+    /continue-on-error:\s*true|\|\|\s*true/,
+    "high-severity npm audit findings must fail the dependency-audit job"
+  );
+  assert.match(
+    security,
+    /protected-security:[\s\S]*?needs:\s*\[[^\]]*deps-audit[^\]]*\]/,
+    "ci/security must consume the authoritative dependency-audit result"
+  );
+});
+
 test("accepts skipped jobs only when explicitly allowed", () => {
   const needs = { build: { result: "skipped" }, lint: { result: "success" } };
   assert.deepEqual(evaluateJobResults(needs, new Set(["build"])), []);
