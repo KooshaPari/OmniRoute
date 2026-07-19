@@ -197,7 +197,8 @@ test("baseline: reasoning_content is emitted as a reasoning item", async () => {
 });
 
 test("baseline: <think>...</think> tags become reasoning items", async () => {
-  // Construct a chunk that interleaves <think> with a delta.
+  // Tag-native routing is known before the upstream stream begins. Exercise
+  // the explicit hint because some providers omit `model` from SSE chunks.
   const payload = {
     id: "chatcmpl-think",
     choices: [
@@ -207,10 +208,10 @@ test("baseline: <think>...</think> tags become reasoning items", async () => {
       },
     ],
   };
-  const output = await runTransformStream([
-    `data: ${JSON.stringify(payload)}\n\n`,
-    sse({ finishReason: "stop" }),
-  ]);
+  const output = await runTransformStream(
+    [`data: ${JSON.stringify(payload)}\n\n`, sse({ finishReason: "stop" })],
+    { parseTextualReasoningTags: true }
+  );
   const completed = getCompleted(output);
   const items = completed.output as Array<Record<string, unknown>>;
   const reasoning = items.find((i) => i.type === "reasoning") as

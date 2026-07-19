@@ -260,6 +260,25 @@ test("handleResponsesCore transforms upstream OpenAI SSE into Responses API SSE"
   assert.match(sse, /data: \[DONE\]/);
 });
 
+test("handleResponsesCore parses tag-native reasoning when upstream SSE omits model", async () => {
+  const { result } = await invokeResponsesCore({
+    provider: "openai",
+    model: "deepseek-r1",
+    body: {
+      model: "deepseek-r1",
+      input: "reason first",
+    },
+    responseFactory: () => buildOpenAISseResponse("<think>plan</think>answer"),
+  });
+
+  assert.equal(result.success, true);
+  const sse = await result.response.text();
+  assert.match(sse, /event: response\.reasoning_summary_text\.delta/);
+  assert.match(sse, /"delta":"plan"/);
+  assert.match(sse, /event: response\.output_text\.delta/);
+  assert.match(sse, /"delta":"answer"/);
+});
+
 test("handleResponsesCore transforms Command Code executor SSE through Responses shim", async () => {
   const { call, result } = await invokeResponsesCore({
     provider: "command-code",

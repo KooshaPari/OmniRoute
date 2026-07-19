@@ -24,6 +24,9 @@ export { createResponsesLogger } from "./responsesLogger.ts";
  *   request. Used to detect Anthropic-style entries (presence of
  *   `input_schema` without Chat-style `parameters`) so the transformer can
  *   auto-enable `tool_use` emission only for those.
+ * @param {boolean} [options.parseTextualReasoningTags=false] - Parse inline
+ *   reasoning tags for a route already identified as tag-native. This explicit
+ *   hint covers upstream SSE chunks that omit their model id.
  * @returns {TransformStream}
  */
 export function createResponsesApiTransformStream(
@@ -92,7 +95,7 @@ export function createResponsesApiTransformStream(
     reasoningPartAdded: false,
     reasoningDone: false,
     inThinking: false,
-    parseTextualReasoningTags: false,
+    parseTextualReasoningTags: opts.parseTextualReasoningTags === true,
     funcArgsBuf: {},
     funcNames: {},
     funcCallIds: {},
