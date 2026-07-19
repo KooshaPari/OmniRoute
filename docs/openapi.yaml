@@ -3729,7 +3729,6 @@ paths:
           application/json:
             schema:
               type: object
-              additionalProperties: false
               required: [password]
               properties:
                 password:
