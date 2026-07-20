@@ -29,7 +29,7 @@ export function discoverManifests(root) {
       if (entry.isDirectory()) {
         walk(full, depth + 1);
       } else if (entry.name === "package.json") {
-        out.push(path.relative(root, full).replace(/\\/g, "/"));
+        out.push(path.relative(root, full).replaceAll(/\\/g, "/"));
       }
     }
   }

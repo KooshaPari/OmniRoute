@@ -25,12 +25,12 @@ done
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SCRIPT_DIR="$ROOT/scripts"
 
-if [ "$SKIP_BUILD" -eq 0 ]; then
+if [[ "$SKIP_BUILD" -eq 0 ]]; then
   bash "$SCRIPT_DIR/build-cross-ffi.sh"
 fi
 
 PUBLISH_ARGS=()
-if [ "$DRY_RUN" -eq 1 ]; then PUBLISH_ARGS=(--dry-run); fi
+if [[ "$DRY_RUN" -eq 1 ]]; then PUBLISH_ARGS=(--dry-run); fi
 
 declare -a PKG_ORDER=(
   "@omniroute/ffi-linux-x64-gnu|omniroute-ffi-linux-x64-gnu"

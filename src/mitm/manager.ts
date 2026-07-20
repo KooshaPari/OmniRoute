@@ -1,6 +1,6 @@
-import { spawn, type ChildProcess } from "child_process";
-import path from "path";
-import fs from "fs";
+import { spawn, type ChildProcess } from "node:child_process";
+import path from "node:path";
+import fs from "node:fs";
 import { resolveMitmDataDir } from "./dataDir.ts";
 import { addDNSEntry, addDNSEntries, removeDNSEntry, removeDNSEntries } from "./dns/dnsConfig.ts";
 import { generateCert } from "./cert/generate.ts";
@@ -8,13 +8,7 @@ import { installCertResult, uninstallCert } from "./cert/install.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
 import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
-import { getPort } from "./getPort";
-import { logger } from "./logger";
-import { MITM_SERVER_PATH } from "./serverPath";
-import { streamProcessLines } from "./streamProcessLines";
-import { injectInspectorIngestToken } from "./token";
-import { waitForPort, waitForStderrReady } from "./util";
-import { Worker as NodeWorker } from "worker_threads";
+import { Worker as NodeWorker } from "node:worker_threads";
 
 const USE_WORKER = process.env.MITM_USE_WORKER === "1";
 
@@ -417,7 +411,7 @@ export async function getMitmStatus(): Promise<{
   if (!running) {
     try {
       if (fs.existsSync(PID_FILE)) {
-        const savedPid = parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
+        const savedPid = Number.parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
         if (savedPid && isProcessAlive(savedPid)) {
           running = true;
           pid = savedPid;
@@ -736,7 +730,7 @@ export async function stopMitm(sudoPassword: string): Promise<{ running: false; 
     // Fallback: kill by PID file
     try {
       if (fs.existsSync(PID_FILE)) {
-        const savedPid = parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
+        const savedPid = Number.parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
         if (savedPid && isProcessAlive(savedPid)) {
           log.info({ pid: savedPid }, "Killing MITM server by PID...");
           process.kill(savedPid, "SIGTERM");

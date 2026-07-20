@@ -43,7 +43,7 @@ export function getCompressionBudgetHistory(
         .all(cutoff, MAX_HISTORY_ROWS) as CompressionBudgetAnalyticsRow[]);
 
   return rows.flatMap((row) => {
-    const tsMs = row.timestamp ? Date.parse(row.timestamp) : NaN;
+    const tsMs = row.timestamp ? Date.parse(row.timestamp) : Number.NaN;
     if (!Number.isFinite(tsMs)) return [];
     const tokens = finiteNumberOrZero(row.original_tokens);
     const savedTokens = finiteNumberOrZero(row.tokens_saved);

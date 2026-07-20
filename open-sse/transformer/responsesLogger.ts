@@ -1,14 +1,15 @@
-import * as fs from "fs";
-import * as path from "path";
+import * as crypto from "node:crypto";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 /** Create a filesystem-backed logger for Responses API stream diagnostics. */
 export function createResponsesLogger(model, logsDir = null) {
-  if (typeof fs.mkdirSync !== "function") {
+  if (fs.mkdirSync === undefined) {
     return null;
   }
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "").slice(0, 15);
-  const uniqueId = Math.random().toString(36).slice(2, 8);
+  const uniqueId = crypto.randomBytes(4).toString("hex");
   const baseDir =
     logsDir || (typeof globalThis.process !== "undefined" ? globalThis.process.cwd() : ".");
   const logDir = path.join(baseDir, "logs", `responses_${model}_${timestamp}_${uniqueId}`);
