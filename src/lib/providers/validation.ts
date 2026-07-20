@@ -37,6 +37,10 @@ import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import { validateQwenWebProvider, validateKimiWebProvider } from "@/lib/providers/validation/webProvidersA";
 import { validateClaudeWebProvider, validateGeminiWebProvider, validateCopilotM365WebProvider, validateCopilotWebProvider, validateT3WebProvider } from "@/lib/providers/validation/webProvidersB";
 import { validateHuggingFaceProvider } from "@/lib/providers/validation/openaiFormat";
+import {
+  SEARCH_VALIDATOR_CONFIGS as EXTRACTED_SEARCH_VALIDATOR_CONFIGS,
+  validateSearchProvider as validateExtractedSearchProvider,
+} from "@/lib/providers/validation/searchProviders";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 import { generateTraceparent } from "@omniroute/open-sse/observability/traceparent.ts";
 import {
@@ -3862,13 +3866,13 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         return toValidationErrorResult(error);
       }
     },
-    // Search providers — use factored validator
+    // Search and web-fetch providers — use the extracted authoritative registry.
     ...Object.fromEntries(
-      Object.entries(SEARCH_VALIDATOR_CONFIGS).map(([id, configFn]) => [
+      Object.entries(EXTRACTED_SEARCH_VALIDATOR_CONFIGS).map(([id, configFn]) => [
         id,
         ({ apiKey, providerSpecificData }: any) => {
           const { url, init } = configFn(apiKey, providerSpecificData);
-          return validateSearchProvider(url, init, providerSpecificData, isLocal);
+          return validateExtractedSearchProvider(url, init, providerSpecificData, isLocal);
         },
       ])
     ),
