@@ -436,8 +436,12 @@ function isSchemaAlreadyApplied(
     case "120":
       // routing_decisions_audit renumbered 108 → 120 (upstream v3.8.43 added
       // 108_provider_quota_reset_events, causing a collision). DBs that applied
-      // it as 108 already have the routing_decisions table.
-      return hasTable(db, "routing_decisions");
+      // it as 108 already have the audit columns. Migration 002 also creates a
+      // legacy table with this name, so table existence alone is not sufficient.
+      return (
+        hasColumn(db, "routing_decisions", "provider") &&
+        hasColumn(db, "routing_decisions", "trace_id")
+      );
     case "121":
       // tenant_quotas renumbered 112 → 121 (upstream v3.8.43 added
       // 112_batch_item_checkpoints, causing a collision). Also covers DBs that

@@ -157,6 +157,10 @@ const REAL_023_FIX_MEMORY_FTS_UUID_SQL = fs.readFileSync(
   path.resolve("src/lib/db/migrations/023_fix_memory_fts_uuid.sql"),
   "utf8"
 );
+const REAL_120_ROUTING_DECISIONS_SQL = fs.readFileSync(
+  path.resolve("src/lib/db/migrations/120_routing_decisions_audit.sql"),
+  "utf8"
+);
 
 test("migration infrastructure avoids cwd-based repo tracing fallbacks", () => {
   const runnerSource = fs.readFileSync(path.resolve("src/lib/db/migrationRunner.ts"), "utf8");
@@ -279,6 +283,43 @@ test("runMigrations records renumbered 122-125 migrations when their tables alre
     db.close();
   }
 });
+
+test(
+  "runMigrations upgrades the legacy routing decisions schema before recording 120",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      const applied = withMockedMigrationFs(
+        {
+          "002_mcp_a2a_tables.sql": `
+          CREATE TABLE routing_decisions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            provider_selected TEXT,
+            model_selected TEXT
+          );
+        `,
+          "120_routing_decisions_audit.sql": REAL_120_ROUTING_DECISIONS_SQL,
+        },
+        () => runner.runMigrations(db)
+      );
+
+      const columns = db
+        .prepare("PRAGMA table_info(routing_decisions)")
+        .all()
+        .map((column: any) => column.name);
+
+      assert.equal(applied, 2);
+      assert.ok(columns.includes("provider"), "audit schema must expose provider");
+      assert.ok(columns.includes("trace_id"), "audit schema must expose trace_id");
+      assert.ok(!columns.includes("provider_selected"), "legacy schema must be replaced");
+    } finally {
+      db.close();
+    }
+  }
+);
 
 test(
   "runMigrations applies api key lifecycle migration idempotently when columns already exist",
