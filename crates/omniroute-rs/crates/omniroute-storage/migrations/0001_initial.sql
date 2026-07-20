@@ -1,8 +1,8 @@
 -- 0001_initial.sql
--- Initial schema for the OmniRoute Rust rewrite.
--- The CREATE TABLE statements below mirror the schema bootstrap in src/schema.rs
--- so the migration runner and the bootstrap stay in sync. Any divergence
--- should be resolved by editing both places.
+-- Migration marker for schema version 1.
+-- Full DDL lives in src/schema.rs (`SCHEMA_STATEMENTS`); keep both in sync
+-- when adding tables. Historical TypeScript `call_logs` is not recreated here;
+-- Rust uses `request_logs` as the canonical table name.
 
 CREATE TABLE IF NOT EXISTS schema_version (
     version INTEGER PRIMARY KEY,

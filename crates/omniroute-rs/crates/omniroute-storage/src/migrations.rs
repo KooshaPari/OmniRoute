@@ -1,12 +1,13 @@
 //! Migration runner.
 //!
-//! Maintains a `schema_version` table. Each migration is a function that
-//! takes a connection and runs its SQL. Migrations are append-only; never
-//! edit a migration that has already been applied.
+//! Maintains a `schema_version` table. Version 1 delegates to
+//! [`crate::schema::ensure_schema`] so Rust-side DDL stays canonical.
+//! Historical quota tables from the removed `backend-rust` tree are deferred;
+//! they are provenance-only and not restored here.
 
 use crate::error::StorageError;
-use crate::schema::ensure_schema;
-use sqlx::{Connection, SqliteConnection, SqlitePool};
+use crate::schema::{ensure_schema, SCHEMA_VERSION};
+use sqlx::{SqliteConnection, SqlitePool};
 
 /// A single migration.
 pub struct Migration {
@@ -29,7 +30,6 @@ pub const MIGRATIONS: &[Migration] = &[
 
 /// Apply all pending migrations.
 pub async fn run_migrations(pool: &SqlitePool) -> Result<(), StorageError> {
-    // Ensure schema_version table exists
     ensure_schema(pool).await?;
 
     let mut conn = pool.acquire().await?;
@@ -69,4 +69,41 @@ async fn run_migration(
         .await?;
     tx.commit().await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::pool::{open, PoolOptions};
+
+    #[tokio::test]
+    async fn migrations_are_idempotent() {
+        let pool = open(PoolOptions::in_memory()).await.unwrap();
+        run_migrations(&pool).await.unwrap();
+        run_migrations(&pool).await.unwrap();
+        let version: i64 = sqlx::query_scalar("SELECT MAX(version) FROM schema_version")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(version, SCHEMA_VERSION);
+    }
+
+    #[tokio::test]
+    async fn request_logs_is_canonical_log_table() {
+        let pool = open(PoolOptions::in_memory()).await.unwrap();
+        let n: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='request_logs'",
+        )
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+        assert_eq!(n, 1);
+        let legacy: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='call_logs'",
+        )
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+        assert_eq!(legacy, 0);
+    }
 }

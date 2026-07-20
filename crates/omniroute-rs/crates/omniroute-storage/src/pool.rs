@@ -81,6 +81,14 @@ impl PoolOptions {
 
 /// Open a SQLite pool with the given options and run migrations.
 pub async fn open(opts: PoolOptions) -> Result<SqlitePool, StorageError> {
+    if opts.path != Path::new(":memory:") {
+        if let Some(parent) = opts.path.parent() {
+            if !parent.as_os_str().is_empty() {
+                tokio::fs::create_dir_all(parent).await.map_err(StorageError::Io)?;
+            }
+        }
+    }
+
     let url = if opts.path == Path::new(":memory:") {
         "sqlite::memory:".to_string()
     } else {
@@ -103,13 +111,6 @@ pub async fn open(opts: PoolOptions) -> Result<SqlitePool, StorageError> {
         .await
         .map_err(|e| StorageError::Connection(e.to_string()))?;
 
-    // Ensure parent directory exists
-    if let Some(parent) = opts.path.parent() {
-        if !parent.as_os_str().is_empty() && parent != Path::new(":memory:") {
-            tokio::fs::create_dir_all(parent).await.map_err(StorageError::Io)?;
-        }
-    }
-
     ensure_schema(&pool).await?;
     Ok(pool)
 }
@@ -117,11 +118,28 @@ pub async fn open(opts: PoolOptions) -> Result<SqlitePool, StorageError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::schema::SCHEMA_VERSION;
 
     #[tokio::test]
     async fn in_memory_pool_works() {
         let pool = open(PoolOptions::in_memory()).await.unwrap();
         let v: i64 = sqlx::query_scalar("SELECT 1").fetch_one(&pool).await.unwrap();
         assert_eq!(v, 1);
+    }
+
+    #[tokio::test]
+    async fn nested_path_creates_parent_directory() {
+        let base = std::env::temp_dir().join(format!("omniroute-test-{}", uuid::Uuid::new_v4()));
+        let db_path = base.join("nested").join("omniroute.sqlite");
+        let pool = open(PoolOptions::default().with_path(&db_path)).await.unwrap();
+        let v: i64 = sqlx::query_scalar("SELECT 1").fetch_one(&pool).await.unwrap();
+        assert_eq!(v, 1);
+        let version: i64 = sqlx::query_scalar("SELECT version FROM schema_version")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(version, SCHEMA_VERSION);
+        drop(pool);
+        let _ = tokio::fs::remove_dir_all(&base).await;
     }
 }
