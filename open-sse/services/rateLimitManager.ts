@@ -514,6 +514,42 @@ function getLimiter(provider: string, connectionId: string, model: string | null
   return limiter;
 }
 
+async function scheduleWithAbort<T>(
+  limiter: Bottleneck,
+  scheduleOpts: { expiration?: number },
+  fn: () => T | Promise<T>,
+  signal: AbortSignal | null,
+): Promise<T> {
+  if (!signal) return limiter.schedule(scheduleOpts, () => Promise.resolve(fn()));
+
+  let abortListener: (() => void) | undefined;
+  const abortPromise = new Promise<never>((_, reject) => {
+    const onAbort = () => {
+      const reason = signal.reason;
+      const err = reason instanceof Error
+        ? reason
+        : new Error(typeof reason === "string" ? reason : "The operation was aborted");
+      err.name = "AbortError";
+      reject(err);
+    };
+    if (signal.aborted) {
+      onAbort();
+      return;
+    }
+    abortListener = onAbort;
+    signal.addEventListener("abort", abortListener, { once: true });
+  });
+
+  try {
+    return await Promise.race([
+      limiter.schedule(scheduleOpts, () => Promise.resolve(fn())),
+      abortPromise,
+    ]);
+  } finally {
+    if (abortListener) signal.removeEventListener("abort", abortListener);
+  }
+}
+
 /**
  * Acquire a rate limit slot before making a request.
  * If rate limiting is disabled for this connection, returns immediately.
@@ -557,39 +593,7 @@ export async function withRateLimit<T>(
   const scheduleOpts = maxWaitMs && maxWaitMs > 0 ? { expiration: maxWaitMs } : {};
 
   try {
-    if (signal) {
-      let abortListener: (() => void) | undefined;
-      const abortPromise = new Promise<never>((_, reject) => {
-        const onAbort = () => {
-          const reason = signal.reason;
-          const err =
-            reason instanceof Error
-              ? reason
-              : new Error(typeof reason === "string" ? reason : "The operation was aborted");
-          err.name = "AbortError";
-          reject(err);
-        };
-        if (signal.aborted) {
-          onAbort();
-          return;
-        }
-        abortListener = onAbort;
-        signal.addEventListener("abort", abortListener, { once: true });
-      });
-
-      try {
-        return await Promise.race([
-          limiter.schedule(scheduleOpts, () => Promise.resolve(fn())),
-          abortPromise,
-        ]);
-      } finally {
-        if (abortListener) {
-          signal.removeEventListener("abort", abortListener);
-        }
-      }
-    } else {
-      return await limiter.schedule(scheduleOpts, () => Promise.resolve(fn()));
-    }
+    return await scheduleWithAbort(limiter, scheduleOpts, fn, signal);
   } catch (err) {
     // Bottleneck's raw `This job timed out after <maxWaitMs> ms.` is
     // indistinguishable from an upstream gateway timeout, so it leaks into 502
