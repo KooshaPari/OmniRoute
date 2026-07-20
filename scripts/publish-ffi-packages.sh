@@ -33,20 +33,26 @@ PUBLISH_ARGS=()
 if [ "$DRY_RUN" -eq 1 ]; then PUBLISH_ARGS=(--dry-run); fi
 
 declare -a PKG_ORDER=(
-  "omniroute-ffi-linux-x64-gnu"
-  "omniroute-ffi-linux-arm64-gnu"
-  "omniroute-ffi-darwin-arm64"
-  "omniroute-ffi-darwin-x64"
-  "omniroute-ffi-win32-x64"
+  "@omniroute/ffi-linux-x64-gnu|omniroute-ffi-linux-x64-gnu"
+  "@omniroute/ffi-linux-arm64-gnu|omniroute-ffi-linux-arm64-gnu"
+  "@omniroute/ffi-darwin-arm64|omniroute-ffi-darwin-arm64"
+  "@omniroute/ffi-darwin-x64|omniroute-ffi-darwin-x64"
+  "@omniroute/ffi-win32-x64|omniroute-ffi-win32-x64"
 )
 
-for pkg in "${PKG_ORDER[@]}"; do
-  pkg_dir="$ROOT/packages/$pkg"
+for entry in "${PKG_ORDER[@]}"; do
+  pkg_id="${entry%%|*}"
+  pkg_dir="$ROOT/packages/${entry#*|}"
   if [ ! -d "$pkg_dir" ]; then
     echo "WARN: $pkg_dir missing — skipping"
     continue
   fi
-  echo "==> Publishing $pkg"
+  manifest_name="$(jq -er '.name' "$pkg_dir/package.json")"
+  if [ "$manifest_name" != "$pkg_id" ]; then
+    echo "ERROR: $pkg_dir/package.json declares $manifest_name; expected $pkg_id" >&2
+    exit 1
+  fi
+  echo "==> Publishing $pkg_id"
   (cd "$pkg_dir" && npm publish "${PUBLISH_ARGS[@]}")
 done
 
