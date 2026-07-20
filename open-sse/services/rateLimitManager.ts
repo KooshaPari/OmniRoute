@@ -13,6 +13,8 @@ import { parseRetryAfterFromBody } from "./accountFallback.ts";
 import { getProviderCategory } from "../config/providerRegistry.ts";
 import { getCodexRateLimitKey } from "../executors/codex.ts";
 import { awaitProviderDefaultSlot } from "./providerDefaultRateLimit.ts";
+import { TokenBucket } from "./tokenBucket.ts";
+export { TokenBucket } from "./tokenBucket.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
   resolveResilienceSettings,
@@ -946,61 +948,6 @@ export function updateFromResponseBody(provider, connectionId, responseBody, sta
   }
 }
 
-// ── TokenBucket — lightweight token-based rate limiter ────────────────────────
-//
-// Bottleneck's reservoir is request-count based, not token-count based.
-// This class provides a simple token bucket that refills continuously over time,
-// suitable for TPM (tokens-per-minute) and TPD (tokens-per-day) enforcement.
-
-export class TokenBucket {
-  private _capacity: number;
-  private _refillRatePerMs: number;
-  private _tokens: number;
-  private _lastRefillAt: number;
-
-  /**
-   * @param capacity       Maximum token count (bucket ceiling).
-   * @param refillRatePerMs Tokens added per millisecond (e.g. 1/60000 for 1 TPM).
-   */
-  constructor(capacity: number, refillRatePerMs: number) {
-    this._capacity = capacity;
-    this._refillRatePerMs = refillRatePerMs;
-    this._tokens = capacity;
-    this._lastRefillAt = Date.now();
-  }
-
-  /** Current available tokens (lazily refilled on read). */
-  get currentTokens(): number {
-    this._refill();
-    return this._tokens;
-  }
-
-  /**
-   * Attempt to consume `tokens` from the bucket.
-   * Returns `true` if successful, `false` if insufficient tokens.
-   */
-  tryConsume(tokens: number): boolean {
-    this._refill();
-    if (tokens <= 0) {
-      // Zero or negative consumption always allowed; no state change needed
-      // unless the bucket itself has zero capacity.
-      return this._capacity > 0 || this._tokens >= 0;
-    }
-    if (this._tokens < tokens) return false;
-    this._tokens -= tokens;
-    return true;
-  }
-
-  private _refill(): void {
-    if (this._refillRatePerMs <= 0) return;
-    const now = Date.now();
-    const elapsed = now - this._lastRefillAt;
-    if (elapsed <= 0) return;
-    this._tokens = Math.min(this._capacity, this._tokens + elapsed * this._refillRatePerMs);
-    this._lastRefillAt = now;
-  }
-}
-
 // Per-connection TPM/TPD token buckets (keyed by connectionId)
 const tpmBuckets = new Map<string, TokenBucket>();
 const tpdBuckets = new Map<string, TokenBucket>();
@@ -1019,7 +966,7 @@ export function tryConsumeTokens(
   _provider: string,
   connectionId: string,
   _model: string,
-  tokenCount: number,
+  tokenCount: number
 ): { allowed: true } | { allowed: false; retryAfterMs: number; reason: string } {
   if (!enabledConnections.has(connectionId)) return { allowed: true };
   if (tokenCount <= 0) return { allowed: true };
