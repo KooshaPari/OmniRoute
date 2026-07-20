@@ -29,24 +29,12 @@ import {
   type BudgetHistoryPoint,
   type BudgetForecast,
 } from "@omniroute/open-sse/services/compression/budgetForecast";
-import { getDbInstance } from "@/lib/db/core";
+import { getCompressionBudgetHistory } from "@/lib/db/compressionBudgetForecast";
 
 /** Default projection horizon: 1 hour. */
 const DEFAULT_HORIZON_MS = 60 * 60 * 1000;
 /** Default look-back window: 1 hour. */
 const DEFAULT_WINDOW_MS = 60 * 60 * 1000;
-/** Hard cap on rows pulled out of compression_analytics per request. */
-const MAX_HISTORY_ROWS = 5_000;
-
-/** Row shape from compression_analytics that we actually need. */
-interface AnalyticsRow {
-  timestamp: string | null;
-  original_tokens: number | null;
-  compressed_tokens: number | null;
-  tokens_saved: number | null;
-  provider: string | null;
-}
-
 interface ForecastResponseBody {
   success: boolean;
   windowMs: number;
@@ -64,53 +52,6 @@ function parsePositiveMs(raw: string | null, fallback: number): number {
   return Math.floor(n);
 }
 
-function readCompressionHistory(windowMs: number, provider: string | null): BudgetHistoryPoint[] {
-  const db = getDbInstance();
-  // Most-recent first; the forecaster sorts ascending internally so duplicate
-  // timestamps in the same second collapse cleanly without surprising callers.
-  const cutoff = new Date(Date.now() - Math.max(1, windowMs)).toISOString();
-
-  let rows: AnalyticsRow[];
-  if (provider) {
-    rows = db
-      .prepare(
-        `SELECT timestamp, original_tokens, compressed_tokens, tokens_saved, provider
-           FROM compression_analytics
-          WHERE timestamp >= ? AND provider = ?
-          ORDER BY timestamp DESC, id DESC
-          LIMIT ?`
-      )
-      .all(cutoff, provider, MAX_HISTORY_ROWS) as AnalyticsRow[];
-  } else {
-    rows = db
-      .prepare(
-        `SELECT timestamp, original_tokens, compressed_tokens, tokens_saved, provider
-           FROM compression_analytics
-          WHERE timestamp >= ?
-          ORDER BY timestamp DESC, id DESC
-          LIMIT ?`
-      )
-      .all(cutoff, MAX_HISTORY_ROWS) as AnalyticsRow[];
-  }
-
-  const out: BudgetHistoryPoint[] = [];
-  for (const r of rows) {
-    const tsMs = r.timestamp ? Date.parse(r.timestamp) : NaN;
-    if (!Number.isFinite(tsMs)) continue;
-    const originalTokens =
-      typeof r.original_tokens === "number" && Number.isFinite(r.original_tokens)
-        ? r.original_tokens
-        : 0;
-    const tokensSaved =
-      typeof r.tokens_saved === "number" && Number.isFinite(r.tokens_saved)
-        ? r.tokens_saved
-        : 0;
-    if (originalTokens <= 0 && tokensSaved <= 0) continue;
-    out.push({ tsMs, tokens: originalTokens, savedTokens: tokensSaved });
-  }
-  return out;
-}
-
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const horizonMs = parsePositiveMs(url.searchParams.get("horizonMs"), DEFAULT_HORIZON_MS);
@@ -120,7 +61,7 @@ export async function GET(request: Request): Promise<Response> {
 
   let history: BudgetHistoryPoint[];
   try {
-    history = readCompressionHistory(windowMs, provider);
+    history = getCompressionBudgetHistory(windowMs, provider);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[api/compression/budget/forecast] DB read failed:", msg);
