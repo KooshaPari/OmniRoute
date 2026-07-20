@@ -1030,7 +1030,6 @@ const modelCompatPerProtocolSchema = z
     upstreamHeaders: upstreamHeadersRecordSchema.optional(),
   })
   .strict();
-
 export const providerModelMutationSchema = z.object({
   provider: z.string().trim().min(1, "provider is required").max(120),
   modelId: z.string().trim().min(1, "modelId is required").max(240),
@@ -1067,8 +1066,6 @@ export const providerModelMutationSchema = z.object({
   targetFormat: z
     .enum(["openai", "openai-responses", "claude", "gemini", "gemini-cli", "antigravity"])
     .optional(),
-  // Provider-model mutations use the catalog's snake-case wire keys and the
-  // persistence layer maps them to inputTokenLimit / outputTokenLimit.
   max_input_tokens: z.number().int().positive().optional(),
   max_output_tokens: z.number().int().positive().optional(),
   normalizeToolCallId: z.boolean().optional(),
@@ -1079,7 +1076,6 @@ export const providerModelMutationSchema = z.object({
     .partialRecord(z.enum(["openai", "openai-responses", "claude"]), modelCompatPerProtocolSchema)
     .optional(),
 });
-
 const pricingFieldsSchema = z
   .object({
     input: z.number().min(0).optional(),
