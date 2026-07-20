@@ -43,6 +43,7 @@
     "@types/ws",
     "@vitejs/plugin-react",
     "@sveltejs/adapter-node",
+    "@sveltejs/adapter-vercel",
     "@sveltejs/kit",
     "@trpc/client",
     "@trpc/server",
