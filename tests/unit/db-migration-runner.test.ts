@@ -233,7 +233,7 @@ test("runMigrations skips versions that are already tracked as applied", serial,
       (
         db
           .prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?")
-          .get("001") as any
+          .get("001") as { count: number }
       ).count,
       1
     );
@@ -241,7 +241,7 @@ test("runMigrations skips versions that are already tracked as applied", serial,
       (
         db
           .prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?")
-          .get("002") as any
+          .get("002") as { count: number }
       ).count,
       1
     );
@@ -309,7 +309,7 @@ test(
       const columns = db
         .prepare("PRAGMA table_info(routing_decisions)")
         .all()
-        .map((column: any) => column.name);
+        .map((column: { name: string }) => column.name);
 
       assert.equal(applied, 2);
       assert.ok(columns.includes("provider"), "audit schema must expose provider");

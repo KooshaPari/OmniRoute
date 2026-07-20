@@ -31,13 +31,13 @@ function withMockedMigrationFs(files, fn) {
     return originalExistsSync(target);
   };
 
-  fs.readdirSync = ((target: string, options?: any) => {
+  fs.readdirSync = ((target: string, options?: Parameters<typeof originalReaddirSync>[1]) => {
     if (files && isMigrationDir(target)) {
       return Object.keys(files);
     }
 
     return originalReaddirSync(target, options);
-  }) as any;
+  }) as unknown as typeof originalReaddirSync;
 
   fs.readFileSync = (target, options) => {
     const fileName = path.basename(String(target));
