@@ -19,17 +19,10 @@ import { join } from "node:path";
 const scriptPath = new URL("../../scripts/check/tier-matrix-verify.mjs", import.meta.url).pathname;
 
 describe("tier-matrix-verify", { concurrency: 1 }, () => {
-  it("exits 0 when matrix is missing (soft-fail)", () => {
-    const dir = mkdtempSync(join(tmpdir(), "tmv-"));
-    try {
-      // Run the script with BENCH_RESULTS_DIR override — but actually the
-      // script reads `bench-results/polyglot-tier-matrix*.json` from repo
-      // root. Instead, confirm the existing matrix passes the gate.
-      const result = execFileSync("node", [scriptPath], { encoding: "utf-8" });
-      assert.match(result, /Tier matrix CI gate/);
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
+  it("accepts the repository's wrapped matrix artifact", () => {
+    const result = execFileSync("node", [scriptPath], { encoding: "utf-8" });
+    assert.match(result, /Polyglot Tier Verification Matrix/);
+    assert.match(result, /8 PASS/);
   });
 
   it("classifies PASS / FLAG / FAIL correctly via synthetic matrix", () => {

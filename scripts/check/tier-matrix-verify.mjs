@@ -36,7 +36,13 @@ function main() {
   }
 
   const raw = readFileSync(ARTIFACT, "utf-8");
-  const rows = JSON.parse(raw);
+  const artifact = JSON.parse(raw);
+  const rows = Array.isArray(artifact) ? artifact : artifact?.edges;
+  if (!Array.isArray(rows)) {
+    console.error(`FAIL: malformed tier-matrix artifact at ${ARTIFACT}`);
+    console.error("      expected an array or an object with an edges array");
+    process.exit(2);
+  }
 
   const counts = { pass: 0, fail: 0, flag: 0 };
   for (const row of rows) {
