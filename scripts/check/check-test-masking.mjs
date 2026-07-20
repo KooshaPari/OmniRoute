@@ -239,7 +239,16 @@ function main() {
     .split("\n")
     .map((s) => s.trim())
     .filter((f) => TEST_RE.test(f));
-  const changedSplitPaths = new Set([...addedTests, ...renames.map(({ to }) => to)]);
+  const modifiedTests = git(["diff", "--name-only", "--diff-filter=M", `${base}...HEAD`])
+    .split("\n")
+    .map((s) => s.trim())
+    .filter((f) => TEST_RE.test(f) && fs.existsSync(f));
+  const changedSplitPaths = new Set([
+    ...addedTests,
+    ...modifiedTests,
+    ...renames.map(({ to }) => to),
+  ]);
+  const accountedSplitSources = new Set();
 
   for (const { from, to } of renames) {
     if (!TEST_RE.test(to)) {
@@ -267,6 +276,7 @@ function main() {
       });
       lineageFlags.push(...evaluated.flags);
       if (evaluated.aggregate) splitPerFile.push(evaluated.aggregate);
+      accountedSplitSources.add(from);
       continue;
     }
     // test → test: compare the original (base) against the relocated (head) file so
@@ -289,13 +299,44 @@ function main() {
   const deletedFlags = evaluateDeletedFiles([...deletedTests, ...relocatedOutOfTest]);
 
   // Arquivos de teste modificados (subcheck original + skips + extTaut)
-  const changed = git(["diff", "--name-only", "--diff-filter=M", `${base}...HEAD`])
-    .split("\n")
-    .map((s) => s.trim())
-    .filter((f) => TEST_RE.test(f) && fs.existsSync(f));
+  const changed = modifiedTests;
+
+  // Some splits retain the original path as one child and add sibling files,
+  // so Git reports M+A instead of a rename. Activate such lineage only while
+  // a declared sibling is newly added; later ordinary edits to the retained
+  // file continue through the normal per-file reduction check.
+  for (const from of changed) {
+    const destinations = splitLineage[from];
+    if (!Array.isArray(destinations) || accountedSplitSources.has(from)) continue;
+    const hasNewSibling = destinations.some(
+      (destination) => destination !== from && addedTests.includes(destination)
+    );
+    if (!hasNewSibling) continue;
+
+    const headSources = Object.fromEntries(
+      destinations.map((destination) => [
+        destination,
+        typeof destination === "string" && fs.existsSync(destination)
+          ? fs.readFileSync(destination, "utf8")
+          : undefined,
+      ])
+    );
+    const evaluated = evaluateSplitLineage({
+      from,
+      to: from,
+      destinations,
+      baseSrc: git(["show", `${base}:${from}`]),
+      headSources,
+      changedPaths: changedSplitPaths,
+    });
+    lineageFlags.push(...evaluated.flags);
+    if (evaluated.aggregate) splitPerFile.push(evaluated.aggregate);
+    accountedSplitSources.add(from);
+  }
 
   const perFile = [...renamePerFile];
   for (const file of changed) {
+    if (accountedSplitSources.has(file)) continue;
     const baseSrc = git(["show", `${base}:${file}`]);
     const headSrc = fs.readFileSync(file, "utf8");
     perFile.push({

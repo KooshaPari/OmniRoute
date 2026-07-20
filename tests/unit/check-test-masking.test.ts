@@ -360,6 +360,27 @@ test("split lineage aggregates assertions across explicit changed children", () 
   assert.deepEqual(evaluateMasking([result.aggregate]), []);
 });
 
+test("split lineage supports a retained source path plus an added child", () => {
+  const source = "tests/unit/monolith.test.ts";
+  const child = "tests/unit/monolith.cache.test.ts";
+  const result = evaluateSplitLineage({
+    from: source,
+    to: source,
+    destinations: [source, child],
+    baseSrc: "assert.equal(a, 1); assert.equal(b, 2);",
+    headSources: {
+      [source]: "assert.equal(a, 1);",
+      [child]: "assert.equal(b, 2);",
+    },
+    changedPaths: new Set([source, child]),
+  });
+
+  assert.deepEqual(result.flags, []);
+  assert.equal(result.aggregate?.baseAsserts, 2);
+  assert.equal(result.aggregate?.headAsserts, 2);
+  assert.deepEqual(evaluateMasking([result.aggregate]), []);
+});
+
 test("split lineage fails closed when a declared child is not part of the diff", () => {
   const result = evaluateSplitLineage({
     from: "tests/unit/monolith.test.ts",

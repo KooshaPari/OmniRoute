@@ -7,5 +7,13 @@
   "tests/unit/transformer/responsesTransformer.test.ts": [
     "tests/unit/responses-transformer-streaming.test.ts",
     "tests/unit/responses-transformer-options.test.ts"
+  ],
+  "tests/unit/db-migration-runner.test.ts": [
+    "tests/unit/db-migration-runner.test.ts",
+    "tests/unit/db-migration-threshold.test.ts"
+  ],
+  "tests/unit/fleet/system-load-adapter.test.ts": [
+    "tests/unit/fleet/system-load-adapter.test.ts",
+    "tests/unit/system-load-adapter-http-cache.test.ts"
   ]
 }
