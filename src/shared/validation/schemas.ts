@@ -1067,6 +1067,10 @@ export const providerModelMutationSchema = z.object({
   targetFormat: z
     .enum(["openai", "openai-responses", "claude", "gemini", "gemini-cli", "antigravity"])
     .optional(),
+  // Provider-model mutations use the catalog's snake-case wire keys and the
+  // persistence layer maps them to inputTokenLimit / outputTokenLimit.
+  max_input_tokens: z.number().int().positive().optional(),
+  max_output_tokens: z.number().int().positive().optional(),
   normalizeToolCallId: z.boolean().optional(),
   preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
   upstreamHeaders: upstreamHeadersRecordSchema.nullable().optional(),
