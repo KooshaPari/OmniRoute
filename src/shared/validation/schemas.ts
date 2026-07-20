@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { selfHealingSettingsSchema } from "./selfHealingSchema";
 import {
   ACCOUNT_FALLBACK_STRATEGY_VALUES,
   ROUTING_STRATEGY_VALUES,
@@ -13,7 +14,6 @@ import {
   isForbiddenCustomHeaderName,
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
-
 function isHttpUrl(value: string): boolean {
   try {
     const parsed = new URL(value);
@@ -1192,6 +1192,7 @@ export const updateResilienceSchema = z
       .optional(),
     waitForCooldown: waitForCooldownSettingsSchema.optional(),
     providerCooldown: providerCooldownSettingsSchema.optional(),
+    selfHealing: selfHealingSettingsSchema.optional(),
     profiles: z
       .object({
         oauth: legacyResilienceProfileSchema.optional(),

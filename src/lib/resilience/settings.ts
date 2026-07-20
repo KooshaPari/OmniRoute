@@ -16,6 +16,10 @@ import {
   normalizeQuotaPreflightSettings,
   normalizeStreamRecoverySettings,
 } from "./settings/normalize";
+import {
+  DEFAULT_SELF_HEALING_SETTINGS,
+  normalizeSelfHealingSettings,
+} from "./selfHealingSettings";
 
 // Re-export the settings shape (moved to ./settings/types) so this module's
 // public API is unchanged.
@@ -132,6 +136,7 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
       (process.env.STREAM_RECOVERY_MIDSTREAM_ENABLED || "").trim().toLowerCase()
     ),
   },
+  selfHealing: DEFAULT_SELF_HEALING_SETTINGS,
 };
 
 function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
@@ -224,6 +229,7 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
     providerCooldown: DEFAULT_RESILIENCE_SETTINGS.providerCooldown,
     quotaPreflight: DEFAULT_RESILIENCE_SETTINGS.quotaPreflight,
     streamRecovery: streamRecoveryDefaults,
+    selfHealing: DEFAULT_SELF_HEALING_SETTINGS,
   };
 }
 
@@ -303,6 +309,7 @@ export function resolveResilienceSettings(
       current.streamRecovery,
       fallback.streamRecovery
     ),
+    selfHealing: normalizeSelfHealingSettings(current.selfHealing),
   };
 }
 
@@ -350,6 +357,7 @@ export function mergeResilienceSettings(
     ),
     quotaPreflight: normalizeQuotaPreflightSettings(updates.quotaPreflight, current.quotaPreflight),
     streamRecovery: normalizeStreamRecoverySettings(updates.streamRecovery, current.streamRecovery),
+    selfHealing: normalizeSelfHealingSettings({ ...current.selfHealing, ...updates.selfHealing }),
   };
 }
 
