@@ -31,7 +31,7 @@ jobs:
           node-version: "24"
           cache: npm
       - name: Install pinned Bun runtime
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: ${{ env.BUN_VERSION }}
       - name: Install API contract dependencies from lockfile
