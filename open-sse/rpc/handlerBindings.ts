@@ -9,8 +9,8 @@
  * TypeScript reference implementation if the crate is missing.
  */
 
-import { invoke, listEdges, registerEdge, getEdge } from "./polyglotEdges.ts";
-import type { EdgeTier } from "./polyglotEdges.ts";
+import { invoke, listEdges, registerEdge, getEdge } from "./dispatchEdges.ts";
+import type { EdgeTier } from "./dispatchEdges.ts";
 
 // Compression edges — wrapped in their own module.
 import "./edges/compressionEdges.ts";

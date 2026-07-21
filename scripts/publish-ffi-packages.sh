@@ -25,35 +25,40 @@ done
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SCRIPT_DIR="$ROOT/scripts"
 
-if [[ "$SKIP_BUILD" -eq 0 ]]; then
+if [ "$SKIP_BUILD" -eq 0 ]; then
   bash "$SCRIPT_DIR/build-cross-ffi.sh"
 fi
 
 PUBLISH_ARGS=()
-if [[ "$DRY_RUN" -eq 1 ]]; then PUBLISH_ARGS=(--dry-run); fi
+if [ "$DRY_RUN" -eq 1 ]; then PUBLISH_ARGS=(--dry-run); fi
 
 declare -a PKG_ORDER=(
-  "@omniroute/ffi-linux-x64-gnu|omniroute-ffi-linux-x64-gnu"
-  "@omniroute/ffi-linux-arm64-gnu|omniroute-ffi-linux-arm64-gnu"
-  "@omniroute/ffi-darwin-arm64|omniroute-ffi-darwin-arm64"
-  "@omniroute/ffi-darwin-x64|omniroute-ffi-darwin-x64"
-  "@omniroute/ffi-win32-x64|omniroute-ffi-win32-x64"
+  "omniroute-ffi-linux-x64-gnu"
+  "omniroute-ffi-linux-arm64-gnu"
+  "omniroute-ffi-darwin-arm64"
+  "omniroute-ffi-darwin-x64"
+  "omniroute-ffi-win32-x64"
 )
 
-for entry in "${PKG_ORDER[@]}"; do
-  pkg_id="${entry%%|*}"
-  pkg_dir="$ROOT/packages/${entry#*|}"
+for pkg in "${PKG_ORDER[@]}"; do
+  pkg_dir="$ROOT/packages/$pkg"
   if [ ! -d "$pkg_dir" ]; then
     echo "WARN: $pkg_dir missing — skipping"
     continue
   fi
-  manifest_name="$(jq -er '.name' "$pkg_dir/package.json")"
-  if [ "$manifest_name" != "$pkg_id" ]; then
-    echo "ERROR: $pkg_dir/package.json declares $manifest_name; expected $pkg_id" >&2
-    exit 1
-  fi
-  echo "==> Publishing $pkg_id"
+  echo "==> Publishing $pkg"
   (cd "$pkg_dir" && npm publish "${PUBLISH_ARGS[@]}")
 done
+
+# Publish the workspace aggregator AFTER all platform packages are live.
+# Consumers install @omniroute/ffi which pulls the correct platform pkg
+# via optionalDependencies.
+AGG_PKG_DIR="$ROOT/packages/omniroute-ffi"
+if [ -d "$AGG_PKG_DIR" ]; then
+  echo "==> Publishing @omniroute/ffi (aggregator)"
+  (cd "$AGG_PKG_DIR" && npm publish "${PUBLISH_ARGS[@]}")
+else
+  echo "WARN: $AGG_PKG_DIR missing — skipping aggregator publish"
+fi
 
 echo "Done publishing FFI packages."

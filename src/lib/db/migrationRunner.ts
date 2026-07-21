@@ -324,6 +324,20 @@ function isSchemaAlreadyApplied(
   migration: { version: string; name: string }
 ): boolean {
   switch (migration.version) {
+    // Renumbered 106–111 migrations. Existing databases may already have the
+    // old slot recorded; physical-schema sentinels make the move idempotent.
+    case "122":
+      return hasTable(db, "fleet_nodes");
+    case "123":
+      return hasTable(db, "fleet_config");
+    case "124":
+      return hasTable(db, "scaling_policies");
+    case "125":
+      return hasTable(db, "traffic_shadow_log");
+    case "126":
+      return hasTable(db, "alert_rules");
+    case "127":
+      return hasTable(db, "traffic_shadow_config");
     case "003":
       return hasColumn(db, "provider_nodes", "chat_path");
     case "095":

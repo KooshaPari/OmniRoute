@@ -1,7 +1,7 @@
 /**
- * Shared error shape for polyglot RPC edges (ADR-032).
+ * Shared error shape for dispatch RPC edges (ADR-032).
  *
- * Every transport (HTTP / UDS / FFI) throws `PolyglotEdgeError` with a
+ * Every transport (HTTP / UDS / FFI) throws `DispatchEdgeError` with a
  * stable `.code` enum so callers can branch on the failure mode without
  * parsing error strings.
  *
@@ -21,21 +21,21 @@
  * @see ADR-032 § "Consequences"
  */
 
-export class PolyglotEdgeError extends Error {
+export class DispatchEdgeError extends Error {
   code: string;
   status?: number;
   payload?: unknown;
 
   constructor(message: string, code: string, options?: { status?: number; payload?: unknown }) {
     super(message);
-    this.name = "PolyglotEdgeError";
+    this.name = "DispatchEdgeError";
     this.code = code;
     if (options?.status !== undefined) this.status = options.status;
     if (options?.payload !== undefined) this.payload = options.payload;
   }
 }
 
-export function isPolyglotEdgeError(error: unknown): error is PolyglotEdgeError {
+export function isDispatchEdgeError(error: unknown): error is DispatchEdgeError {
   return Boolean(
     error &&
       typeof error === "object" &&
@@ -45,12 +45,12 @@ export function isPolyglotEdgeError(error: unknown): error is PolyglotEdgeError 
 }
 
 /**
- * Map a polyglot edge error to a tier-degradation decision. Returns the
+ * Map a dispatch edge error to a tier-degradation decision. Returns the
  * tier to use as a fallback, or `null` if no degradation is appropriate.
  *
  * Default behavior: any non-fatal transport error degrades from T3 → T2 → T1.
  */
-export function degradationFallback(error: PolyglotEdgeError, currentTier: "T1" | "T2" | "T3"): "T1" | "T2" | "T3" | null {
+export function degradationFallback(error: DispatchEdgeError, currentTier: "T1" | "T2" | "T3"): "T1" | "T2" | "T3" | null {
   if (currentTier === "T1") return null;
 
   if (currentTier === "T3" && (error.code === "FFI_NOT_AVAILABLE" || error.code === "FFI_ABI_MISMATCH")) {

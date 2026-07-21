@@ -155,6 +155,9 @@ export class BifrostBackendExecutor extends BaseExecutor {
    *    unchanged.
    */
   async execute(input: ExecuteInput): Promise<{
+    // dispatch: resolve tier for bifrost UDS fast-path
+    const { tier: _dispatchTier } = await useDispatchForEdge("bifrost.bridge").catch(() => ({ tier: "T1" as const }));
+
     response: Response;
     url: string;
     headers: Record<string, string>;

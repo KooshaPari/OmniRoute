@@ -1,5 +1,5 @@
 /**
- * Polyglot tier-selection policy (ADR-032 § "Decision Rule").
+ * Dispatch tier-selection policy (ADR-032 § "Decision Rule").
  *
  * The per-edge default tier lives in the registry (set at `registerEdge`
  * time). At call time, the resolver applies a layered policy:
@@ -11,24 +11,13 @@
  *   5. Tier capability check (degrade if the requested tier's contract
  *      is missing: e.g. no FFI crate on disk).
  *
- * Every tier choice is auditable via the `polyglot_tier_decisions` log
+ * Every tier choice is auditable via the `dispatch_tier_decisions` log
  * lines. The resolver is the single seam where runtime tier decisions
  * are made — the registry + transports don't make policy decisions.
  */
 
-import os from "node:os";
-import { getEdgeTier, getEdge, setEdgeTier, listEdges, type EdgeTier } from "./polyglotEdges.ts";
-
-// Re-export type aliases consumed by polyglotHotPath.ts and other edges.
-export type { EdgeTier } from "./polyglotEdges.ts";
-export type Tier = "T1" | "T2" | "T3";
-export type EdgeId = string;
-
-export interface ResolvedTier {
-  tier: Tier;
-  defaultTier: Tier;
-  reason: string;
-}
+import { platform, cpus, loadavg as loadavgRaw } from "node:os";
+import { getEdgeTier, getEdge, setEdgeTier, listEdges, clearTierOverrides, tierOverrides, type EdgeTier } from "./dispatchEdges.ts";
 
 export interface ResolverSignals {
   /** Current 0..1 CPU pressure (load-avg-normalized). */
@@ -39,8 +28,8 @@ export interface ResolverSignals {
   killSwitchActive?: boolean;
 }
 
-const HIGH_CPU_THRESHOLD = 0.85;
 let forcedTToT1 = false;
+const envTierOverrides = new Map<string, string>();
 let lastSample = 0;
 const SAMPLE_INTERVAL_MS = 1000;
 let lastCpu = 0;
@@ -51,24 +40,67 @@ function sampleSystem(): ResolverSignals {
     return { cpuPressure: lastCpu };
   }
   lastSample = now;
-  // `os.loadavg` is POSIX-only; on Windows it returns [0, 0, 0]. We treat
-  // both cases as "no signal" by mapping to a fallback derived from cpus().
-  let la = 0;
-  try {
-    if (os.platform() !== "win32") {
-      const result = os.loadavg();
-      if (Array.isArray(result) && result.length > 0) {
-        la = result[0] ?? 0;
-      }
-    }
-  } catch {
-    la = 0;
-  }
-  const cores = os.cpus().length || 1;
-  lastCpu = Math.max(0, Math.min(1, la / cores));
+  // Cheap-and-correct CPU sample: load average / #cores, clamped to [0,1].
+  const load = (platform() === "win32" ? 0 : loadavg()[0]) ?? 0;
+  const cores = cpus().length || 1;
+  lastCpu = Math.max(0, Math.min(1, load / cores));
   return { cpuPressure: lastCpu };
 }
 
+function loadavg(): number[] | null {
+  // `os.loadavg` is POSIX-only; on Windows it returns [0, 0, 0]. We treat
+  // both cases as "no signal" by mapping to null and falling back to the
+  // CPU-pressure derived from cpus() length.
+  try {
+    const v = loadavgRaw();
+    return Array.isArray(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Apply kill-switch degradation globally. When `true`, every dispatch
+ * edge falls back to T1 (HTTP loopback). The high-RPS fallbacks in the
+ * chat pipeline still run — but via Next.js route handlers instead of
+ * UDS/FFI.
+ */
+export function activateKillSwitchDegradation(): void {
+  forcedTToT1 = true;
+}
+
+export function deactivateKillSwitchDegradation(): void {
+  forcedTToT1 = false;
+  clearTierOverrides();
+  envTierOverrides.clear();
+  reconcileAllEdges({ killSwitchActive: false, cpuPressure: 0, memPressure: 0 });
+}
+
+export function isKillSwitchDegradationActive(): boolean {
+  return forcedTToT1;
+}
+
+const HIGH_CPU_THRESHOLD = 0.85;
+
+export interface ResolvedTier {
+  /** Final tier chosen for this call. */
+  tier: EdgeTier;
+  /** Original default tier (before pressure adjustments). */
+  defaultTier: EdgeTier;
+  /** Reason for the tier choice — for logging + audit. */
+  reason: string;
+}
+
+/**
+ * Resolve the effective tier for an edge given the current signals.
+ *
+ * Resolution order:
+ *   1. Caller forced tier (`forceTier`).
+ *   2. Env override via registry.
+ *   3. Kill-switch active → T1.
+ *   4. CPU pressure > 0.85 → downgrade T3 → T2.
+ *   5. Default tier returned as-is.
+ */
 export function resolveTier(
   edgeName: string,
   forceTier?: EdgeTier,
@@ -81,19 +113,19 @@ export function resolveTier(
 
   if (forceTier) {
     return {
-      tier: forceTier as Tier,
-      defaultTier: edge.defaultTier as Tier,
+      tier: forceTier,
+      defaultTier: edge.defaultTier,
       reason: `caller forced tier=${forceTier}`,
     };
   }
 
-  const envTier = (getEdgeTier(edgeName) ?? edge.defaultTier) as Tier;
+  const envTier = getEdgeTier(edgeName);
   const signals = signalsOverride ?? sampleSystem();
 
   if (forcedTToT1 || signals.killSwitchActive) {
     return {
       tier: "T1",
-      defaultTier: envTier,
+      defaultTier: edge.defaultTier,
       reason: "kill-switch degradation active; T1 fallback",
     };
   }
@@ -101,14 +133,14 @@ export function resolveTier(
   if (envTier === "T3" && signals.cpuPressure !== undefined && signals.cpuPressure > HIGH_CPU_THRESHOLD) {
     return {
       tier: "T2",
-      defaultTier: envTier,
-      reason: `cpu pressure=${signals.cpuPressure.toFixed(2)} > ${HIGH_CPU_THRESHOLD}; T3->T2 downgrade`,
+      defaultTier: edge.defaultTier,
+      reason: `cpu pressure=${signals.cpuPressure.toFixed(2)} > ${HIGH_CPU_THRESHOLD}; T3→T2 downgrade`,
     };
   }
 
   return {
     tier: envTier,
-    defaultTier: envTier,
+    defaultTier: edge.defaultTier,
     reason: `default tier (env/env override = ${envTier})`,
   };
 }
@@ -126,11 +158,9 @@ export function resolveTier(
 export function reconcileAllEdges(signals: ResolverSignals = sampleSystem()): number {
   // Apply the kill-switch signal BEFORE the resolution loop so the per-edge
   // resolveTier() call inside the loop sees the up-to-date flag.
-  if (signals.killSwitchActive !== undefined) forcedTToT1 = signals.killSwitchActive;
-  // Also flip every edge in the registry so callers that ask for a specific
-  // edge post-cascade see T1 (not the stale `defaultTier` from polyglotEdges).
+  if (signals.killSwitchActive) forcedTToT1 = true;
   let changes = 0;
-  for (const edge of globalPolyglotEdges()) {
+  for (const edge of globalDispatchEdges()) {
     const { tier } = resolveTier(edge.name, undefined, signals);
     const current = getEdgeTier(edge.name);
     if (current !== tier) {
@@ -141,21 +171,21 @@ export function reconcileAllEdges(signals: ResolverSignals = sampleSystem()): nu
   return changes;
 }
 
-let globalPolyglotEdgesCache: Array<{ name: string }> | null = null;
+let globalDispatchEdgesCache: Array<{ name: string }> | null = null;
 
 /**
- * Lazy accessor for the edge list. We avoid calling `listEdges` at module
- * load so that `polyglotEdges.ts` -> transport imports don't cycle back
+ * Lazy accessor for the edge list. We avoid importing `listEdges` at module
+ * load so that `dispatchEdges.ts` → transport imports don't cycle back
  * into this file during cold start in tests.
  */
-function globalPolyglotEdges(): Array<{ name: string }> {
-  if (globalPolyglotEdgesCache) return globalPolyglotEdgesCache;
+function globalDispatchEdges(): Array<{ name: string }> {
+  if (globalDispatchEdgesCache) return globalDispatchEdgesCache;
   try {
-    globalPolyglotEdgesCache = listEdges();
+    globalDispatchEdgesCache = listEdges();
   } catch {
-    globalPolyglotEdgesCache = [];
+    globalDispatchEdgesCache = [];
   }
-  return globalPolyglotEdgesCache;
+  return globalDispatchEdgesCache;
 }
 
 export function __runOnceForTests(signals?: ResolverSignals): number {
@@ -163,66 +193,22 @@ export function __runOnceForTests(signals?: ResolverSignals): number {
 }
 
 /**
- * Public cascade API: flip the global kill-switch degradation flag and
- * immediately re-resolve all edges so every registered edge's `tier`
- * falls back to `T1` regardless of its `defaultTier` / env override.
- *
- * Called by `killSwitchBridge.ts` after a Bifrost provider trip and
- * before any subsequent edges can dispatch into the now-degraded path.
- * @public
+ * Test-only: clear the cached edge list so the next reconcileAllEdges
+ * call sees the current registry state. Required when tests call
+ * `__resetEdgeRegistryForTests` between cases.
  */
-export function activateKillSwitchDegradation(): void {
-  forcedTToT1 = true;
-  try {
-    globalPolyglotEdgesCache = null;
-    reconcileAllEdges({
-      cpuPressure: 0,
-      memPressure: 0,
-      killSwitchActive: true,
-    });
-  } catch {
-    // reconcile is best-effort — the per-call fallback in `resolveTier`
-    // still observes `forcedTToT1` even if reconcile throws.
-  }
-}
-
-/**
- * Public cascade API: clear the kill-switch degradation flag and let
- * every edge fall back to its configured default tier on the next call.
- *
- * Called by `killSwitchBridge.ts` after a Bifrost provider recovery
- * (kill-switch reset). Note: reconciler boot path also calls this on
- * warm-start to ensure no stale state from a prior run.
- */
-export function deactivateKillSwitchDegradation(): void {
-    try {
-    forcedTToT1 = false;
-    globalPolyglotEdgesCache = null;
-    reconcileAllEdges({ killSwitchActive: false, cpuPressure: 0, memPressure: 0 });
-    } catch {
-    // best-effort; per-call resolveTier will observe the cleared flag.
-    }
-}
-
-/** Test-only: kill-switch simulation flag. */
-export function __setKillSwitchActiveForTests(active: boolean): void {
-  forcedTToT1 = active;
-}
-
-/** Reset edge resolution cache + kill-switch flag for test isolation. */
 export function __resetEdgeCacheForTests(): void {
+  globalDispatchEdgesCache = null;
   forcedTToT1 = false;
+  clearTierOverrides();
+  envTierOverrides.clear();
 }
 
 /**
- * Public read-only accessor for the global kill-switch degradation flag.
- * Returns true while a Bifrost provider is in the tripped state and every
- * edge must degrade to T1 (HTTP fallback).
+ * Test-only: invalidate the cached edge list. Must be called after
+ * `__resetEdgeRegistryForTests()` in the same test to ensure the resolver
+ * doesn't iterate over a stale list of edge names.
  */
-export function isKillSwitchDegradationActive(): boolean {
-  return forcedTToT1;
+export function __resetResolverCacheForTests(): void {
+  globalDispatchEdgesCache = null;
 }
-
-/**
- * Force a single reconcile tick with the given signals override (test helper).
- */

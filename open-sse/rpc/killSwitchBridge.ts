@@ -1,14 +1,14 @@
 /**
  * Bridging the Bifrost kill-switch (`open-sse/services/bifrostKillSwitch.ts`)
- * to the polyglot tier resolver.
+ * to the dispatch tier resolver.
  *
  * Two modes:
  *
- *  1. **Global** — `syncPolyglotToKillSwitch(active)` flips every edge to T1.
+ *  1. **Global** — `syncDispatchToKillSwitch(active)` flips every edge to T1.
  *     Used when the kill-switch trips globally (manual override, ALL providers
  *     reporting degraded health, etc.).
  *
- *  2. **Per-provider cascade** — `syncPolyglotToPerProviderKillSwitch(states)`
+ *  2. **Per-provider cascade** — `syncDispatchToPerProviderKillSwitch(states)`
  *     only flips edges whose `providerScope` overlaps with the tripped-provider
  *     set. This is the granular fallback that ships by default in v8.2+: when
  *     ONE provider fails (e.g. OpenAI), the cache/scoring/SSE/compression
@@ -31,7 +31,7 @@ import {
   setEdgeTier,
   getEdgeTier,
   type EdgeTier,
-} from "./polyglotEdges.ts";
+} from "./dispatchEdges.ts";
 
 let lastGlobalState = false;
 /** Last set of tripped providers (per-provider cascade target). */
@@ -43,15 +43,15 @@ export interface KillSwitchProviderState {
 }
 
 /**
- * Sync the polyglot tier resolver with the GLOBAL kill-switch state.
+ * Sync the dispatch tier resolver with the GLOBAL kill-switch state.
  * When `active=true`, every edge is forced to T1. When `active=false`,
  * edges are restored to their default tier and the CPU-pressure
  * reconcile runs.
  *
  * This is the safe fallback when ANY provider is tripped; the granular
- * per-provider version is `syncPolyglotToPerProviderKillSwitch` below.
+ * per-provider version is `syncDispatchToPerProviderKillSwitch` below.
  */
-export function syncPolyglotToKillSwitch(active: boolean): void {
+export function syncDispatchToKillSwitch(active: boolean): void {
   if (active === lastGlobalState) return;
   lastGlobalState = active;
 
@@ -74,7 +74,7 @@ export function syncPolyglotToKillSwitch(active: boolean): void {
 }
 
 /**
- * Sync the polyglot tier resolver with the PER-PROVIDER kill-switch state.
+ * Sync the dispatch tier resolver with the PER-PROVIDER kill-switch state.
  * Only edges whose `providerScope` overlaps the tripped-provider set are
  * downgraded to T1; everything else keeps its native tier.
  *
@@ -83,7 +83,7 @@ export function syncPolyglotToKillSwitch(active: boolean): void {
  * @returns the set of edge names that were downgraded on this call
  *   (or restored to default when the cascade cleared)
  */
-export function syncPolyglotToPerProviderKillSwitch(
+export function syncDispatchToPerProviderKillSwitch(
   states: readonly KillSwitchProviderState[],
 ): { downgraded: string[]; restored: string[] } {
   const trippedNow = new Set(states.filter((s) => s.isActive).map((s) => s.provider));

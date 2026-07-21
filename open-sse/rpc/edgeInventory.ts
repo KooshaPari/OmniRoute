@@ -1,7 +1,7 @@
 /**
  * Production-rolling edge inventory (ADR-032 / Option C).
  *
- * Single source-of-truth for the 17+ polyglot edges wired into the
+ * Single source-of-truth for the 17+ dispatch edges wired into the
  * running system. Each row carries:
  *   - `name`          the stable identifier used by `setEdgeTier` / `getEdgeTier`
  *   - `defaultTier`   the resolver's starting tier
@@ -10,11 +10,11 @@
  *   - `symbol`        the FFI symbol name (null = no FFI surface)
  *   - `udsMethod`     the JSON-RPC method on the UDS server (null = no T2)
  *   - `httpPath`      the HTTP loopback path (null = no T1 — rare)
- *   - `hotPathFiles`  the production callsites using `usePolyglotForEdge`
+ *   - `hotPathFiles`  the production callsites using `useDispatchForEdge`
  *
  * Keep this list in sync with `open-sse/rpc/edges/*.ts`. CI verifies that
  * every name listed here has a corresponding `registerEdge` call in the
- * codebase; missing edges fail the build via `polyglot-edges-registry.test.ts`.
+ * codebase; missing edges fail the build via `dispatch-edges-registry.test.ts`.
  */
 
 export interface EdgeInventoryRow {

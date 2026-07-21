@@ -1,5 +1,5 @@
 /**
- * T3 — Native ABI FFI transport for polyglot edges (ADR-032 / F3-F6).
+ * T3 — Native ABI FFI transport for dispatch edges (ADR-032 / F3-F6).
  *
  * Wraps `node-ffi-napi` / `koffi` / `napi-rs` shape behind a single
  * interface so call sites stay decoupled from the FFI binding library.
@@ -10,7 +10,7 @@
  *   - On boot, `loadFfiCrate` resolves the crate path for the current
  *     platform via `@derp/architectures` (matches Electron's runtime).
  *   - If the crate is missing, `loadFfiCrate` returns `null` instead of
- *     throwing — the polyglot resolver falls back to T2 (or T1) per the
+ *     throwing — the dispatch resolver falls back to T2 (or T1) per the
  *     ADR-032 decision rule.
  *
  * Per-edge FFI surface (CDD):
@@ -33,8 +33,8 @@
  */
 
 import { arch, platform } from "node:os";
-import type { FfiEdgeContract, InvokeOptions } from "./polyglotEdges.ts";
-import type { PolyglotEdgeError } from "./errors.ts";
+import type { FfiEdgeContract, InvokeOptions } from "./dispatchEdges.ts";
+import type { DispatchEdgeError } from "./errors.ts";
 
 const EXPECTED_ABI_VERSION = process.env.OMNIROUTE_FFI_ABI_VERSION ?? "1";
 
@@ -158,7 +158,7 @@ export async function loadFfiCrate(crate: string): Promise<FfiDylib | null> {
       const raw = versionFn() as { ptr?: unknown; toString(): string };
       const actual = typeof raw === "string" ? raw : raw.toString();
       if (actual.trim() !== EXPECTED_ABI_VERSION) {
-        const err: PolyglotEdgeError = new Error(
+        const err: DispatchEdgeError = new Error(
           `FFI crate ${crate} ABI version mismatch: actual=${actual.trim()} expected=${EXPECTED_ABI_VERSION}`
         );
         err.code = "FFI_ABI_MISMATCH";
@@ -182,7 +182,7 @@ export async function invokeFfiEdge<TIn, TOut>(
   const timeoutMs = options.timeoutMs ?? contract.timeoutMs ?? 50;
   const dylib = await loadFfiCrate(contract.crate);
   if (!dylib) {
-    const err: PolyglotEdgeError = new Error(
+    const err: DispatchEdgeError = new Error(
       `FFI crate ${contract.crate} unavailable; check dist/ffi/ for prebuilt artifacts`
     );
     err.code = "FFI_NOT_AVAILABLE";
@@ -198,7 +198,7 @@ export async function invokeFfiEdge<TIn, TOut>(
   try {
     const fn = dylib.func(contract.symbol, { in: "char *", in_len: "size_t", out: "char *", out_len: "size_t" }, {});
     if (typeof fn !== "function") {
-      const err: PolyglotEdgeError = new Error(`FFI symbol ${contract.symbol} not found`);
+      const err: DispatchEdgeError = new Error(`FFI symbol ${contract.symbol} not found`);
       err.code = "FFI_SYMBOL_NOT_FOUND";
       throw err;
     }
@@ -207,12 +207,12 @@ export async function invokeFfiEdge<TIn, TOut>(
     // Account for time budget on quick-return edges; longer edges are bounded by the C-side timeout.
     if (timeoutMs > 0 && Date.now() - start > timeoutMs) {
       // eslint-disable-next-line no-console
-      console.warn(`[polyglot/ffi] ${contract.crate}.${contract.symbol} exceeded ${timeoutMs}ms budget`);
+      console.warn(`[dispatch/ffi] ${contract.crate}.${contract.symbol} exceeded ${timeoutMs}ms budget`);
     }
     return result;
   } catch (error) {
     if ((error as { code?: string })?.code) throw error;
-    const err: PolyglotEdgeError = new Error(
+    const err: DispatchEdgeError = new Error(
       `FFI call ${contract.crate}.${contract.symbol} failed: ${error instanceof Error ? error.message : String(error)}`
     );
     err.code = "FFI_CALL_FAILED";

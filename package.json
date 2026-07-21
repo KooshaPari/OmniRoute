@@ -220,7 +220,14 @@
     "check:npm-publish:remote": "node scripts/quality/validate-npm-publish.mjs --check-remote",
     "check:npm-publish:strict": "node scripts/quality/validate-npm-publish.mjs --strict-advisory",
     "release:preflight": "npm run check:release-green --silent && npm run check:npm-publish --silent",
-    "release:preflight:remote": "npm run check:release-green --silent && npm run check:npm-publish:remote --silent"
+    "release:preflight:remote": "npm run check:release-green --silent && npm run check:npm-publish:remote --silent",
+    "bench:dispatch": "node benches/dispatch/combo-scorer.bench.ts && node benches/dispatch/sse-chunking.bench.ts && node benches/dispatch/semantic-lookup.bench.ts && node benches/dispatch/compression-lite.bench.ts && node benches/dispatch/guardrails-pii.bench.ts && node benches/dispatch/uds-vs-http.bench.ts",
+    "tier-matrix:generate": "node benches/dispatch/matrix-generator.ts",
+    "tier-matrix:verify": "node scripts/check/tier-matrix-verify.mjs",
+    "tier-matrix:verify:strict": "node scripts/check/tier-matrix-verify.mjs --strict",
+    "ffi:build": "cargo build --release --manifest-path crates/omniroute-ffi/Cargo.toml",
+    "ffi:test": "cargo test --manifest-path crates/omniroute-ffi/Cargo.toml",
+    "ffi:cross": "bash scripts/build-cross-ffi.sh"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1073.0",

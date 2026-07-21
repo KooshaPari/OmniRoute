@@ -1,12 +1,12 @@
 /**
  * Prometheus-shaped counters and a /metrics text-exposition endpoint for
- * polyglot tier decisions. Wired to the same audit-log sink so the production
+ * dispatch tier decisions. Wired to the same audit-log sink so the production
  * observability stack (Prometheus + Grafana / Loki / vendor exporters) gets
  * the same data as the SOC2 / FedRAMP audit trail.
  *
  * Counter naming follows the OpenMetrics convention:
- *   polyglot_tier_decisions_total{old_tier,new_tier,reason,actor,edge} = N
- *   polyglot_tier_decisions_seconds_sum{...} = total seconds spent
+ *   dispatch_tier_decisions_total{old_tier,new_tier,reason,actor,edge} = N
+ *   dispatch_tier_decisions_seconds_sum{...} = total seconds spent
  *
  * The /metrics endpoint produces the standard text-exposition format
  * consumable by `promtool check metrics` and `prometheus.io/docs/instrumenting/exposition_formats/`.
@@ -17,6 +17,7 @@
 
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import type { TierChangeReason } from "./tierResolver";
+import { trace, metrics as otelMetrics, type Counter, type Histogram } from "@opentelemetry/api";
 
 type Tier = "T1" | "T2" | "T3";
 
@@ -35,6 +36,33 @@ interface TierDecisionMetrics {
 }
 
 let metrics: TierDecisionMetrics | null = null;
+
+// --- OTel Meter API bridge ---
+// Lazily-created OTel counter so dispatch_tier_decisions_total is visible
+// to any OTel-compatible collector (Prometheus, Grafana Agent, etc.) even
+// when the in-process Prometheus scrape endpoint is also running.
+let otelDecisionCounter: Counter | null = null;
+let otelDecisionDurationHistogram: Histogram | null = null;
+
+function ensureOtelCounter(): Counter | null {
+  if (otelDecisionCounter) return otelDecisionCounter;
+  try {
+    const meter = otelMetrics.getMeter("omniroute.dispatch", "1.0.0");
+    otelDecisionCounter = meter.createCounter("dispatch_tier_decisions_total", {
+      description: "Number of dispatch edge tier-change decisions.",
+    });
+    otelDecisionDurationHistogram = meter.createHistogram(
+      "dispatch_tier_decision_duration_us",
+      {
+        description: "Latency of dispatch edge resolution (microseconds).",
+        unit: "us",
+      },
+    );
+  } catch {
+    // OTel SDK not initialised — return null; callers skip OTel recording.
+  }
+  return otelDecisionCounter;
+}
 
 function ensureMetrics(): TierDecisionMetrics {
   if (!metrics) {
@@ -80,6 +108,22 @@ export function recordTierDecision(params: {
     entry.totalMs += params.elapsedMs ?? 0;
     m.decisionsByLabel.set(key, entry);
 
+    // --- OTel Meter API bridge ---
+    try {
+      const counter = ensureOtelCounter();
+      if (counter) {
+        counter.add(1, {
+          edge: params.edge,
+          old_tier: params.oldTier ?? "none",
+          new_tier: params.newTier,
+          reason: params.reason,
+          actor: params.actor,
+        });
+      }
+    } catch {
+      // Never block — OTel is best-effort.
+    }
+
     if (typeof params.elapsedMs === "number") {
       const obsKey = labelKey({ edge: params.edge, new_tier: params.newTier });
       const h = m.observeMs.get(obsKey) ?? { buckets: new Array(LATENCY_BUCKETS_US.length).fill(0), count: 0, sum: 0 };
@@ -91,6 +135,18 @@ export function recordTierDecision(params: {
       }
       // +Inf bucket = total count.
       m.observeMs.set(obsKey, h);
+
+      // --- OTel Meter API bridge (duration histogram) ---
+      try {
+        if (otelDecisionDurationHistogram) {
+          otelDecisionDurationHistogram.record(params.elapsedMs * 1000, {
+            edge: params.edge,
+            new_tier: params.newTier,
+          });
+        }
+      } catch {
+        // Never block — OTel is best-effort.
+      }
     }
   } catch {
     // Never block — metrics are best-effort.
@@ -118,10 +174,10 @@ export function recordReconcileSweep(input: ReconcileSweepInput): void {
   const now = Date.now();
   const elapsedMs =
     typeof input === "number"
-      ? now - polyglotReconcileLastTick
+      ? now - dispatchReconcileLastTick
       : input.durationMs;
-  polyglotReconcileLastTick = now;
-  polyglotReconcileSweptGauge = swept;
+  dispatchReconcileLastTick = now;
+  dispatchReconcileSweptGauge = swept;
 
   // Record into the metrics sink as a "reconcile.sweep" edge decision.
   const m = ensureMetrics();
@@ -134,25 +190,25 @@ export function recordReconcileSweep(input: ReconcileSweepInput): void {
     if (us <= LATENCY_BUCKETS_US[i]) h.buckets[i] += 1;
   }
   m.observeMs.set(obsKey, h);
-  polyglotReconcileLastDurationMs = elapsedMs;
-  polyglotReconcileLastActor = typeof input === "number" ? "reconciler" : input.actor ?? "reconciler";
+  dispatchReconcileLastDurationMs = elapsedMs;
+  dispatchReconcileLastActor = typeof input === "number" ? "reconciler" : input.actor ?? "reconciler";
 }
 
 /** Internal: last reconcile-tick timestamp for duration calculations. */
-let polyglotReconcileLastTick = Date.now();
+let dispatchReconcileLastTick = Date.now();
 
 /** Internal gauge: highest edge count swept on the last reconcile tick. */
-let polyglotReconcileSweptGauge = 0;
+let dispatchReconcileSweptGauge = 0;
 
 /** Internal: last duration observed (ms). */
-let polyglotReconcileLastDurationMs = 0;
+let dispatchReconcileLastDurationMs = 0;
 
 /** Internal: actor for the last reconcile observation. */
-let polyglotReconcileLastActor = "reconciler";
+let dispatchReconcileLastActor = "reconciler";
 
 /**
  * Per-edge current-tier gauge. Used by `renderPrometheusText` and by the OTel
- * bridge to expose `polyglot_current_tier{edge_name="..."}`.
+ * bridge to expose `dispatch_current_tier{edge_name="..."}`.
  */
 const currentTierByEdge: Map<string, Tier> = new Map();
 
@@ -197,8 +253,8 @@ export function listMetricSnapshots(): MetricSnapshot[] {
       Object.fromEntries(key.split("|").map((kv) => kv.split("=", 2)) as Array<[string, string]>),
     );
     out.push({
-      name: "polyglot_tier_decisions_total",
-      help: "Number of polyglot edge tier-change decisions.",
+      name: "dispatch_tier_decisions_total",
+      help: "Number of dispatch edge tier-change decisions.",
       type: "counter",
       labels,
       value: value.count,
@@ -206,8 +262,8 @@ export function listMetricSnapshots(): MetricSnapshot[] {
   }
   for (const [edge, tier] of currentTierByEdge.entries()) {
     out.push({
-      name: "polyglot_current_tier",
-      help: "Current tier per polyglot edge (1=T1, 2=T2, 3=T3).",
+      name: "dispatch_current_tier",
+      help: "Current tier per dispatch edge (1=T1, 2=T2, 3=T3).",
       type: "gauge",
       labels: [{ name: "edge", value: edge }],
       value: tier === "T1" ? 1 : tier === "T2" ? 2 : 3,
@@ -218,8 +274,8 @@ export function listMetricSnapshots(): MetricSnapshot[] {
       Object.fromEntries(key.split("|").map((kv) => kv.split("=", 2)) as Array<[string, string]>),
     );
     out.push({
-      name: "polyglot_tier_decision_duration_us",
-      help: "Latency buckets per polyglot edge resolution.",
+      name: "dispatch_tier_decision_duration_us",
+      help: "Latency buckets per dispatch edge resolution.",
       type: "histogram",
       labels,
       count: value.count,
@@ -236,9 +292,11 @@ export function listMetricSnapshots(): MetricSnapshot[] {
 export function __resetMetricsForTests(): void {
   metrics = null;
   currentTierByEdge.clear();
-  polyglotReconcileLastTick = Date.now();
-  polyglotReconcileLastDurationMs = 0;
-  polyglotReconcileSweptGauge = 0;
+  dispatchReconcileLastTick = Date.now();
+  dispatchReconcileLastDurationMs = 0;
+  dispatchReconcileSweptGauge = 0;
+  otelDecisionCounter = null;
+  otelDecisionDurationHistogram = null;
 }
 
 /**
@@ -249,8 +307,8 @@ export function renderPrometheusText(): string {
   const m = ensureMetrics();
   const lines: string[] = [];
   // # HELP / # TYPE
-  lines.push("# HELP polyglot_tier_decisions_total Number of polyglot edge tier-change decisions.");
-  lines.push("# TYPE polyglot_tier_decisions_total counter");
+  lines.push("# HELP dispatch_tier_decisions_total Number of dispatch edge tier-change decisions.");
+  lines.push("# TYPE dispatch_tier_decisions_total counter");
   for (const [key, value] of m.decisionsByLabel.entries()) {
     const labels = key
       .split("|")
@@ -259,11 +317,11 @@ export function renderPrometheusText(): string {
         return `${k}="${escapeLabelValue(v)}"`;
       })
       .join(",");
-    lines.push(`polyglot_tier_decisions_total{${labels}} ${value.count}`);
+    lines.push(`dispatch_tier_decisions_total{${labels}} ${value.count}`);
   }
 
-  lines.push("# HELP polyglot_tier_decision_seconds Sum of seconds spent in tier decisions.");
-  lines.push("# TYPE polyglot_tier_decision_seconds counter");
+  lines.push("# HELP dispatch_tier_decision_seconds Sum of seconds spent in tier decisions.");
+  lines.push("# TYPE dispatch_tier_decision_seconds counter");
   for (const [key, value] of m.decisionsByLabel.entries()) {
     const labels = key
       .split("|")
@@ -272,11 +330,11 @@ export function renderPrometheusText(): string {
         return `${k}="${escapeLabelValue(v)}"`;
       })
       .join(",");
-    lines.push(`polyglot_tier_decision_seconds_total{${labels}} ${(value.totalMs / 1000).toFixed(6)}`);
+    lines.push(`dispatch_tier_decision_seconds_total{${labels}} ${(value.totalMs / 1000).toFixed(6)}`);
   }
 
-  lines.push("# HELP polyglot_tier_decision_duration_us Latency buckets per edge/new_tier.");
-  lines.push("# TYPE polyglot_tier_decision_duration_us histogram");
+  lines.push("# HELP dispatch_tier_decision_duration_us Latency buckets per edge/new_tier.");
+  lines.push("# TYPE dispatch_tier_decision_duration_us histogram");
   for (const [key, value] of m.observeMs.entries()) {
     const labels = key
       .split("|")
@@ -287,11 +345,11 @@ export function renderPrometheusText(): string {
       .join(",");
     for (let i = 0; i < LATENCY_BUCKETS_US.length; i++) {
       const bucketLabel = `${labels},le="${LATENCY_BUCKETS_US[i]}"`;
-      lines.push(`polyglot_tier_decision_duration_us_bucket{${bucketLabel}} ${value.buckets[i]}`);
+      lines.push(`dispatch_tier_decision_duration_us_bucket{${bucketLabel}} ${value.buckets[i]}`);
     }
-    lines.push(`polyglot_tier_decision_duration_us_bucket{${labels},le="+Inf"} ${value.count}`);
-    lines.push(`polyglot_tier_decision_duration_us_sum{${labels}} ${(value.sum * 1000).toFixed(3)}`);
-    lines.push(`polyglot_tier_decision_duration_us_count{${labels}} ${value.count}`);
+    lines.push(`dispatch_tier_decision_duration_us_bucket{${labels},le="+Inf"} ${value.count}`);
+    lines.push(`dispatch_tier_decision_duration_us_sum{${labels}} ${(value.sum * 1000).toFixed(3)}`);
+    lines.push(`dispatch_tier_decision_duration_us_count{${labels}} ${value.count}`);
   }
 
   return lines.join("\n") + "\n";

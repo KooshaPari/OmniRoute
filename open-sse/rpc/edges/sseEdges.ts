@@ -13,12 +13,12 @@
  *     framing via `simd-json`).
  *   - In-process TypeScript fast-path when the crate is missing.
  *
- * See `polyglot.omniidc` "service sse" for the wire shape.
+ * See `dispatch.omniidc` "service sse" for the wire shape.
  * See `crates/omniroute-ffi/crates/sse-chunking/src/lib.rs` for the crate.
  */
 
-import { registerEdge } from "../polyglotEdges.ts";
-import type { EdgeTier } from "../polyglotEdges.ts";
+import { registerEdge } from "../dispatchEdges.ts";
+import type { EdgeTier } from "../dispatchEdges.ts";
 
 export const SSE_CHUNKING_EDGE_TIER: EdgeTier = "T3";
 

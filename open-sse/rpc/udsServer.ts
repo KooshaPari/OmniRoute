@@ -1,5 +1,5 @@
 /**
- * T2 — Unix-domain-socket RPC server for polyglot edges (ADR-032 / F1).
+ * T2 — Unix-domain-socket RPC server for dispatch edges (ADR-032 / F1).
  *
  * The server-side complement to `udsClient.ts`. Listens on a UDS socket,
  * dispatches incoming JSON-RPC frames to registered handlers, and writes
@@ -7,7 +7,7 @@
  * is type-safe via a generic key.
  *
  * Lifecycle:
- *   - Singleton (`getPolyglotUdsServer`) ensures only one server per process.
+ *   - Singleton (`getDispatchUdsServer`) ensures only one server per process.
  *   - `start()` binds the UDS socket (lazy on first `register`).
  *   - `stop()` unlinks the socket and closes connections.
  *   - On graceful shutdown (SIGTERM, SIGINT), the server stops cleanly.
@@ -25,10 +25,10 @@
 import { existsSync, mkdirSync, unlinkSync, chmodSync } from "node:fs";
 import { createServer, type Server, type Socket } from "node:net";
 import { dirname } from "node:path";
-import type { PolyglotEdgeError } from "./errors.ts";
+import type { DispatchEdgeError } from "./errors.ts";
 
 const UDS_DEFAULT = () =>
-  process.env.OMNIROUTE_UDS_SOCKET ?? `${process.env.DATA_DIR ?? "~/.omniroute"}/polyglot.sock`;
+  process.env.OMNIROUTE_UDS_SOCKET ?? `${process.env.DATA_DIR ?? "~/.omniroute"}/dispatch.sock`;
 
 type Handler<Params = unknown, Result = unknown> = (params: Params) => Promise<Result> | Result;
 
@@ -46,7 +46,7 @@ function getOrCreateServer(socketPath: string): UdsServerState {
   if (singleton && singleton.socketPath === socketPath) return singleton;
   if (singleton && singleton.socketPath !== socketPath) {
     throw new Error(
-      `Polyglot UDS server already bound to ${singleton.socketPath}; cannot rebind to ${socketPath}`
+      `Dispatch UDS server already bound to ${singleton.socketPath}; cannot rebind to ${socketPath}`
     );
   }
   singleton = {
@@ -71,7 +71,7 @@ export function registerUdsHandler<TParams, TResult>(
       // Reset so a retry is possible.
       startingPromise = null;
       // eslint-disable-next-line no-console
-      console.error(`[polyglot/uds] failed to start: ${error.message}`);
+      console.error(`[dispatch/uds] failed to start: ${error.message}`);
     });
   }
 }
@@ -229,7 +229,7 @@ async function handleFrame(
     const result = await handler(request.params);
     writeResult(socket, request.id ?? null, result);
   } catch (error) {
-    const err: PolyglotEdgeError = new Error(error instanceof Error ? error.message : String(error));
+    const err: DispatchEdgeError = new Error(error instanceof Error ? error.message : String(error));
     err.code = "HANDLER_ERROR";
     writeError(socket, request.id ?? null, -32000, err.message);
   }
@@ -258,7 +258,7 @@ export function callHandlerInProcess<TParams, TResult>(
 ): Promise<TResult> {
   const state = singleton;
   if (!state) {
-    return Promise.reject(new Error("Polyglot UDS server not initialized"));
+    return Promise.reject(new Error("Dispatch UDS server not initialized"));
   }
   const handler = state.handlers.get(method);
   if (!handler) {
@@ -267,6 +267,6 @@ export function callHandlerInProcess<TParams, TResult>(
   return Promise.resolve(handler(params));
 }
 
-export function getPolyglotUdsServer(): UdsServerState | null {
+export function getDispatchUdsServer(): UdsServerState | null {
   return singleton;
 }

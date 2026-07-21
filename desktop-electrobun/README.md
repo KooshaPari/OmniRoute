@@ -16,11 +16,11 @@ present.
 
 Prototype must demonstrate all three before replacing Electron / absorbing vibeproxy client work:
 
-| # | Gate | Pass criteria |
-|---|------|----------------|
-| 1 | **Tray / menu-bar UX** | CLI proxy control (start/stop/status) from a native tray or menu-bar affordance — harvest patterns from [vibeproxy `apps/macos/`](https://github.com/automazeio/vibeproxy/tree/main/src) (menu-bar OAuth, status, local endpoint copy) |
-| 2 | **Local OpenAI endpoint** | App exposes or surfaces an OpenAI-compatible local base URL wired to phenotype-gateway planes (cliproxy++ / router), consumable by coding tools without extra config |
-| 3 | **macOS build** | Reproducible signed or ad-hoc `.app` from `bun run build:release` on macOS (P0). Linux build optional (P1) |
+| #   | Gate                      | Pass criteria                                                                                                                                                                                                                          |
+| --- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Tray / menu-bar UX**    | CLI proxy control (start/stop/status) from a native tray or menu-bar affordance — harvest patterns from [vibeproxy `apps/macos/`](https://github.com/automazeio/vibeproxy/tree/main/src) (menu-bar OAuth, status, local endpoint copy) |
+| 2   | **Local OpenAI endpoint** | App exposes or surfaces an OpenAI-compatible local base URL wired to phenotype-gateway planes (cliproxy++ / router), consumable by coding tools without extra config                                                                   |
+| 3   | **macOS build**           | Reproducible signed or ad-hoc `.app` from `bun run build:release` on macOS (P0). Linux build optional (P1)                                                                                                                             |
 
 Checklist:
 
@@ -33,11 +33,11 @@ Checklist:
 
 Per ADR-ECO-015, **vibeproxy is ABSORB (redirect only)** — no third canonical desktop repo. Harvest reference UX from vibeproxy macOS client sources; do not fork or duplicate large Swift trees here.
 
-| Harvest | Source |
-|---------|--------|
+| Harvest                  | Source                                                                                                                             |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Menu-bar / tray patterns | [automazeio/vibeproxy](https://github.com/automazeio/vibeproxy) — `src/` (Swift menu-bar app; registry audit label: `apps/macos/`) |
-| OAuth + proxy UX flows | Same repo — status indicators, local endpoint surfacing |
-| Router UI + deploy | OmniRoute dashboard + existing `electron/` integration |
+| OAuth + proxy UX flows   | Same repo — status indicators, local endpoint surfacing                                                                            |
+| Router UI + deploy       | OmniRoute dashboard + existing `electron/` integration                                                                             |
 
 ## Quick start
 
@@ -61,18 +61,21 @@ bun run build           # dev bundle
 bun run build:release   # release .app (macOS)
 ```
 
-From the repository root, prepare the frontend first (`npm run build`), then
-run the Electrobun release command. Override `OMNIROUTE_STANDALONE_DIR` when
-the Next output is staged elsewhere.
+The Svelte frontend has a stable handoff for the desktop shell: build it with
+`bun --cwd apps/web run build`, then run `bun run prepare:web` from this
+directory. The script copies `.vercel/output/static` to the ignored
+`generated/web/` directory and fails if `index.html` is absent; Electrobun's
+production view points only at that staged output. Override
+`OMNIROUTE_STANDALONE_DIR` when the separate Next output is staged elsewhere.
 
 ## Layout
 
-| Path | Role |
-|------|------|
-| `src/main.ts` | Electrobun main process — window, menu, optional process-compose boot |
-| `src/views/` | Bundled fallback renderer (polls dev server) |
-| `electrobun.config.ts` | App identity, views entrypoint |
-| `.env.example` | `RENDERER_URL`, `SERVICES_COMPOSE_FILE`, window overrides |
+| Path                   | Role                                                                  |
+| ---------------------- | --------------------------------------------------------------------- |
+| `src/main.ts`          | Electrobun main process — window, menu, optional process-compose boot |
+| `src/views/`           | Bundled fallback renderer (polls dev server)                          |
+| `electrobun.config.ts` | App identity, views entrypoint                                        |
+| `.env.example`         | `RENDERER_URL`, `SERVICES_COMPOSE_FILE`, window overrides             |
 
 ## Related
 

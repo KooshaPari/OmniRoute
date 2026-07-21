@@ -4,8 +4,8 @@
  * dispatch: network-bound HTTP call → T1 (no FFI benefit).
  * sign: HMAC signing, CPU-bound → T2 candidate for UDS RPC.
  */
-import { registerEdge, getEdgeTier } from "../polyglotEdges.ts";
-import type { PolyglotEdgeResult } from "../polyglotEdges.ts";
+import { registerEdge, getEdgeTier } from "../dispatchEdges.ts";
+import type { DispatchEdgeResult } from "../dispatchEdges.ts";
 
 registerEdge({ name: "webhook.dispatch", defaultTier: 1, providerScope: ["*"] });
 registerEdge({ name: "webhook.sign", defaultTier: 2, providerScope: ["*"] });
@@ -13,7 +13,7 @@ registerEdge({ name: "webhook.sign", defaultTier: 2, providerScope: ["*"] });
 export async function webhookDispatchHandler(
   event: string,
   payload: unknown,
-): Promise<PolyglotEdgeResult<{ delivered: number; failed: number }>> {
+): Promise<DispatchEdgeResult<{ delivered: number; failed: number }>> {
   const { dispatchWebhook } = await import("../../lib/webhookDispatcher.ts");
   const result = await dispatchWebhook(event, payload);
   return { ok: true, value: result };
@@ -22,7 +22,7 @@ export async function webhookDispatchHandler(
 export async function webhookSignHandler(
   payload: string,
   secret: string,
-): Promise<PolyglotEdgeResult<{ signature: string }>> {
+): Promise<DispatchEdgeResult<{ signature: string }>> {
   const tier = getEdgeTier("webhook.sign");
   if (tier <= 2) {
     const { createHmac } = await import("node:crypto");

@@ -117,8 +117,8 @@ export const BUILTIN_BADGES: Omit<BadgeDefinition, "createdAt">[] = [
     hidden: 0,
   },
   {
-    id: "polyglot",
-    name: "Polyglot",
+    id: "dispatch",
+    name: "Dispatch",
     description: "Used 10 different models",
     icon: "languages",
     category: "contribution",

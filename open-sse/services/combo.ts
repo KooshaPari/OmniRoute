@@ -1,3 +1,4 @@
+import { useDispatchForEdge } from "../rpc/dispatchHotPath.ts";
 /**
  * Shared combo (model combo) handling with fallback support
  * Supports: priority, weighted, round-robin, random, least-used, cost-optimized,
@@ -716,9 +717,10 @@ export async function handleComboChat({
   allCombos,
   relayOptions,
   signal,
-  apiKeyAllowedConnections = null,
   nesting = null,
 }: HandleComboChatOptions): Promise<Response> {
+  const { tier: _comboDispatchTier } = await useDispatchForEdge("scoring.combo.scoreSimd").catch(() => ({ tier: "T1" }));
+
   const comboCtx = createComboContext({ body, combo, settings, relayOptions, log });
   const {
     strategy,

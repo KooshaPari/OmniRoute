@@ -23,20 +23,15 @@ jobs:
     name: SvelteKit + Hono/Bun quality
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+      - uses: actions/setup-node@v6
         with:
           node-version: "24"
           cache: npm
       - name: Install pinned Bun runtime
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
-        with:
-          bun-version: ${{ env.BUN_VERSION }}
-      - name: Install API contract dependencies from lockfile
-        working-directory: packages/api-contracts
-        run: bun install --frozen-lockfile --ignore-scripts
+        run: npm install --global "bun@${BUN_VERSION}" --ignore-scripts --no-audit --no-fund
       - name: Install BFF dependencies from lockfile
         working-directory: apps/bff
         run: bun install --frozen-lockfile --ignore-scripts

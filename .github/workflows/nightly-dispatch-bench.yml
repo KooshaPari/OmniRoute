@@ -1,0 +1,53 @@
+name: Nightly Dispatch Benchmarks
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  ts-benchmarks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --ignore-scripts --legacy-peer-deps
+      - name: Run dispatch benchmarks
+        run: node scripts/check/tier-matrix-verify.mjs --strict
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ts-bench-results
+          path: bench-results/
+
+  rust-benchmarks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release --manifest-path crates/omniroute-ffi/Cargo.toml
+      - run: cargo test --manifest-path crates/omniroute-ffi/Cargo.toml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rust-build
+          path: crates/omniroute-ffi/target/release/
+
+  notify:
+    needs: [ts-benchmarks, rust-benchmarks]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report
+        if: contains(needs.*.result, 'failure')
+        run: echo "::error::Dispatch nightly benchmark failed"
+      - name: Slack notification
+        if: contains(needs.*.result, 'failure')
+        run: |
+          curl -s -X POST "$SLACK_WEBHOOK_URL" \
+            -H 'Content-type: application/json' \
+            -d '{"text":"Dispatch nightly bench FAILED"}' || true

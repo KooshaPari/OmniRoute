@@ -1,5 +1,5 @@
 /**
- * Polyglot tier reconciler — boot-time + 1-second tick loop (ADR-032 § "Wiring").
+ * Dispatch tier reconciler — boot-time + 1-second tick loop (ADR-032 § "Wiring").
  *
  * Runs alongside the other periodic jobs in `src/server-init.ts`
  * (`startBudgetResetJob`, `startReasoningCacheCleanupJob`, `startCleanupScheduler`).
@@ -7,28 +7,28 @@
  *
  *   1. Aggregates the per-provider Bifrost kill-switch state via
  *      `isAnyKillSwitchActive()` (true when ANY provider's switch is tripped).
- *   2. Feeds the result into `syncPolyglotToKillSwitch(...)` which flips
- *      every registered polyglot edge to T1 (HTTP loopback) — the safest
+ *   2. Feeds the result into `syncDispatchToKillSwitch(...)` which flips
+ *      every registered dispatch edge to T1 (HTTP loopback) — the safest
  *      fallback because it only depends on the in-process Next.js server.
  *   3. Calls `reconcileAllEdges(signals)` to re-resolve every edge against
  *      the latest CPU-pressure sample.
  *
- * Env-gated by `OMNIROUTE_POLYGLOT_RECONCILER_ENABLED` (default `true`).
+ * Env-gated by `OMNIROUTE_DISPATCH_RECONCILER_ENABLED` (default `true`).
  * Set to `false` to disable the 1-second timer in tests or constrained
  * environments (e.g. serverless).
  *
- * Idempotent: calling `startPolyglotReconciler()` twice returns the existing
+ * Idempotent: calling `startDispatchReconciler()` twice returns the existing
  * handle without spawning a second timer.
  *
  * See ADR-032 § "Wiring" for the kill-switch bridge contract.
  */
 
 import { resolveTier, reconcileAllEdges, activateKillSwitchDegradation, deactivateKillSwitchDegradation, __resetEdgeCacheForTests, type ResolverSignals } from "./tierResolver.ts";
-import { syncPolyglotToKillSwitch, syncPolyglotToPerProviderKillSwitch, __resetKillSwitchBridgeForTests, type KillSwitchProviderState } from "./killSwitchBridge.ts";
+import { syncDispatchToKillSwitch, syncDispatchToPerProviderKillSwitch, __resetKillSwitchBridgeForTests, type KillSwitchProviderState } from "./killSwitchBridge.ts";
 import { emitTierChangeAudit } from "./audit.ts";
 import { recordTierDecision, recordReconcileSweep } from "./metrics.ts";
 
-export interface PolyglotReconcilerHandle {
+export interface DispatchReconcilerHandle {
   /** Stop the 1-second tick loop. Idempotent. */
   stop: () => void;
   /** Force an immediate reconcile (skips the tick). Returns the number of edges whose tier changed. */
@@ -49,9 +49,9 @@ const DEFAULT_TICK_MS = 1000;
  *
  * @returns the per-provider states AND a boolean summary. The per-provider
  *          payload drives the **cascading** kill-switch bridge
- *          (`syncPolyglotToPerProviderKillSwitch`); the boolean summary
+ *          (`syncDispatchToPerProviderKillSwitch`); the boolean summary
  *          drives the **global** bridge for backward-compat with the
- *          v8.1 B9 semantics (`syncPolyglotToKillSwitch`).
+ *          v8.1 B9 semantics (`syncDispatchToKillSwitch`).
  */
 async function aggregateKillSwitchState(): Promise<{
   states: KillSwitchProviderState[];
@@ -71,26 +71,26 @@ async function aggregateKillSwitchState(): Promise<{
   }
 }
 
-let cachedHandle: PolyglotReconcilerHandle | null = null;
-/** Track the last known kill-switch state across ticks (@module-level so __resetPolyglotReconcilerForTests can nuke it). */
+let cachedHandle: DispatchReconcilerHandle | null = null;
+/** Track the last known kill-switch state across ticks (@module-level so __resetDispatchReconcilerForTests can nuke it). */
 let lastKsState: boolean | null = null;
 
 /**
- * Start the polyglot tier reconciler. Idempotent — calling twice returns
+ * Start the dispatch tier reconciler. Idempotent — calling twice returns
  * the existing handle.
  *
  * @param options.tickMs override the 1-second tick (test-only; default 1000)
  * @param options.logger optional structured logger; defaults to console
  */
-export function startPolyglotReconciler(options: {
+export function startDispatchReconciler(options: {
   tickMs?: number;
   logger?: { info: (msg: string, meta?: Record<string, unknown>) => void; warn: (msg: string, meta?: Record<string, unknown>) => void };
-} = {}): PolyglotReconcilerHandle {
+} = {}): DispatchReconcilerHandle {
   if (cachedHandle) return cachedHandle;
 
   // Opt-out via env so constrained environments can disable the timer.
-  if (process.env.OMNIROUTE_POLYGLOT_RECONCILER_ENABLED === "false") {
-    const noopHandle: PolyglotReconcilerHandle = {
+  if (process.env.OMNIROUTE_DISPATCH_RECONCILER_ENABLED === "false") {
+    const noopHandle: DispatchReconcilerHandle = {
       stop: () => {},
       tickNow: () => 0,
       running: false,
@@ -111,14 +111,14 @@ export function startPolyglotReconciler(options: {
     // Per-provider cascade (granular): downgrade ONLY edges whose
     // providerScope overlaps a tripped provider. Returns the diff so we can
     // emit a single per-tick audit-log entry summarizing the changes.
-    const cascade = syncPolyglotToPerProviderKillSwitch(ks.states);
+    const cascade = syncDispatchToPerProviderKillSwitch(ks.states);
 
     // Global bridge (kept for backward-compat). Only call when the GLOBAL
-    // flag transitions — internal `syncPolyglotToKillSwitch` is idempotent.
+    // flag transitions — internal `syncDispatchToKillSwitch` is idempotent.
     if (ks.anyActive !== lastKsState) {
       lastKsState = ks.anyActive;
-      syncPolyglotToKillSwitch(ks.anyActive);
-      logger.info("polyglot_kill_switch_state_change", {
+      syncDispatchToKillSwitch(ks.anyActive);
+      logger.info("dispatch_kill_switch_state_change", {
         killSwitchActive: ks.anyActive,
         trippedProviders: ks.states
           .filter((s) => s.isActive)
@@ -127,8 +127,8 @@ export function startPolyglotReconciler(options: {
     }
 
     // Per-edge audit + metric emission. Loops through the diffs to land
-    // every `polyglot.tier_change` event in the compliance log AND increment
-    // the `polyglot_tier_decisions_total{old_tier,new_tier,reason}` counter
+    // every `dispatch.tier_change` event in the compliance log AND increment
+    // the `dispatch_tier_decisions_total{old_tier,new_tier,reason}` counter
     // so Prometheus scrapes can alert on tier-flip rate.
     const auditEdgeChange = (
       edge: string,
@@ -144,7 +144,7 @@ export function startPolyglotReconciler(options: {
         oldTier,
         newTier,
         reason,
-        actor: "polyglot_reconciler",
+        actor: "dispatch_reconciler",
         ts: Date.now(),
         detail,
       });
@@ -153,7 +153,7 @@ export function startPolyglotReconciler(options: {
 
     // Audit log + counter: every edge flip emitted by the cascade.
     if (cascade.downgraded.length > 0) {
-      logger.info("polyglot_tier_decisions", {
+      logger.info("dispatch_tier_decisions", {
         direction: "downgrade",
         reason: "kill_switch_cascade",
         edges: cascade.downgraded,
@@ -170,7 +170,7 @@ export function startPolyglotReconciler(options: {
       }
     }
     if (cascade.restored.length > 0) {
-      logger.info("polyglot_tier_decisions", {
+      logger.info("dispatch_tier_decisions", {
         direction: "restore",
         reason: "kill_switch_cascade_cleared",
         edges: cascade.restored,
@@ -191,11 +191,11 @@ export function startPolyglotReconciler(options: {
     reconcile()
       .then((changes) => {
         if (changes > 0) {
-          logger.info("polyglot_reconcile", { changes });
+          logger.info("dispatch_reconcile", { changes });
         }
       })
       .catch((err) => {
-        logger.warn("polyglot_reconcile_failed", {
+        logger.warn("dispatch_reconcile_failed", {
           error: err instanceof Error ? err.message : String(err),
         });
       });
@@ -216,12 +216,12 @@ export function startPolyglotReconciler(options: {
     get running() {
       return !stopped;
     },
-  } as PolyglotReconcilerHandle;
+  } as DispatchReconcilerHandle;
 
   // Eagerly run one tick on boot so kill-switch state is propagated before
   // the first request lands.
   reconcile().catch((err) => {
-    logger.warn("polyglot_initial_reconcile_failed", {
+    logger.warn("dispatch_initial_reconcile_failed", {
       error: err instanceof Error ? err.message : String(err),
     });
   });
@@ -234,7 +234,7 @@ export function startPolyglotReconciler(options: {
  * Must be called between test cases that exercise the reconciler to avoid
  * lingering timers.
  */
-export function __resetPolyglotReconcilerForTests(): void {
+export function __resetDispatchReconcilerForTests(): void {
   if (cachedHandle) {
     cachedHandle.stop();
   }

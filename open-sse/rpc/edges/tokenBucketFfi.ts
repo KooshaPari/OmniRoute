@@ -5,12 +5,12 @@
  * token consumption + refill. Falls back to TS implementation on
  * `FFI_NOT_AVAILABLE`.
  *
- * @see docs/adr/0032-polyglot-binding-tiers.md § F5 DEBT-001
+ * @see docs/adr/0032-dispatch-binding-tiers.md § F5 DEBT-001
  * @see docs/TECH_DEBT.md DEBT-001
  * @see crates/omniroute-ffi/crates/token-bucket/src/lib.rs
  */
 import { loadFfiBinding } from "../ffi";
-import { PolyglotEdgeError } from "../errors";
+import { DispatchEdgeError } from "../errors";
 
 /** JS shim for token-bucket consume */
 export interface TokenBucketFfi {
@@ -98,7 +98,7 @@ export function consumeTokenBucketTs(
 }
 
 /**
- * Try FFI first, fall back to TS. Throws `PolyglotEdgeError` with
+ * Try FFI first, fall back to TS. Throws `DispatchEdgeError` with
  * `code = "FFI_NOT_AVAILABLE"` if FFI was attempted and failed.
  */
 export async function consumeTokenBucket(
@@ -108,7 +108,7 @@ export async function consumeTokenBucket(
 ): Promise<{ allowed: boolean; retryAfterMs: number }> {
   const ffi = await loadTokenBucketFfi();
   if (!ffi) {
-    throw new PolyglotEdgeError(
+    throw new DispatchEdgeError(
       "FFI_NOT_AVAILABLE",
       "token-bucket",
       "libomniroute_ffi_token_bucket not loaded",

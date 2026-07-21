@@ -1,9 +1,10 @@
 [workspace]
 members = [
-    "combo-scorer",
-    "signature-cache",
-    "sse-chunking",
-    "bifrost-bridge",
+    "crates/combo-scorer",
+    "crates/combo-scorer-napi",
+    "crates/signature-cache",
+    "crates/sse-chunking",
+    "crates/bifrost-bridge",
 ]
 resolver = "2"
 
@@ -15,6 +16,10 @@ license = "MIT"
 [workspace.dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+parking_lot = "0.12"
+dashmap = "6"
+crossbeam = "0.8"
+bytes = "1"
 
 [profile.release]
 opt-level = 3

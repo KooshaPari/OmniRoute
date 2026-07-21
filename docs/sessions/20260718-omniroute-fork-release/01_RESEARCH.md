@@ -4,7 +4,7 @@
 
 The 2026-07-18 audit observed three Git worktree records: the canonical
 `OmniRoute` checkout on `main`, this reconciliation worktree, and a prunable
-detached `/private/tmp/polyglot-restore` worktree whose gitdir no longer
+detached `/private/tmp/dispatch-restore` worktree whose gitdir no longer
 exists. The reconciliation worktree was clean (`git status --porcelain` had
 no entries).
 
@@ -18,15 +18,15 @@ claim that every ref should be merged.
 
 The prior local-checkout sweep already published these preservation anchors:
 
-| checkout family | ref tip |
-| --- | --- |
-| `5218-mcp-auth` | `a59f05f114da937269ee812167f64f68cb9f470d` |
-| `5452-tls-options-packaging` | `e2e00647805de4a41279518f8c573476a5f04411` |
-| `fix-5211-mcp-auth` | `1a6308f4e25fa78adeb320adfafb13ff1f60aad9` |
-| `issue-agent-5980` | `261ca3e4bc43319bedcafc78d3b885f13bcebc9a` |
-| `feature-polyglot-bifrost-2026-07-17` | `e0ddbed7b396ab7e6f1e65106524fa2d5cad5760` |
-| `restore-polyglot-binding-tiers` | `26e34d296fd2675f36174c6dd36bfb795f3b7eba` |
-| `main` | `9b1927a2c8683756562bf644855b1105cc986d04` |
+| checkout family                       | ref tip                                    |
+| ------------------------------------- | ------------------------------------------ |
+| `5218-mcp-auth`                       | `a59f05f114da937269ee812167f64f68cb9f470d` |
+| `5452-tls-options-packaging`          | `e2e00647805de4a41279518f8c573476a5f04411` |
+| `fix-5211-mcp-auth`                   | `1a6308f4e25fa78adeb320adfafb13ff1f60aad9` |
+| `issue-agent-5980`                    | `261ca3e4bc43319bedcafc78d3b885f13bcebc9a` |
+| `feature-dispatch-bifrost-2026-07-17` | `e0ddbed7b396ab7e6f1e65106524fa2d5cad5760` |
+| `restore-dispatch-binding-tiers`      | `26e34d296fd2675f36174c6dd36bfb795f3b7eba` |
+| `main`                                | `9b1927a2c8683756562bf644855b1105cc986d04` |
 
 ## Dirty-diff artifact and hash
 
@@ -49,7 +49,7 @@ Its sync merge used `origin/main` at
 `4a12a49106649ad7a02f3a652bef00d6f810bbd8`; the fetched remote-tracking ref
 now points at `9272e9ad1210a12785619c1f030b47d1a125dde1` and must be refreshed
 before release merge. Reachability checks confirm that the `main`,
-`feature/polyglot-bifrost-2026-07-17`, and `restore/polyglot-binding-tiers`
+`feature/dispatch-bifrost-2026-07-17`, and `restore/dispatch-binding-tiers`
 preservation tips are already contained. Five preservation refs remain held;
 fresh merge-tree probes report 130, 413, 107, 128, and 666 conflict records
 respectively (full breakdown and reasons are in `03_DAG_WBS.md`). The probes

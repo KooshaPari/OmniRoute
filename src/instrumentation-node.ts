@@ -61,6 +61,10 @@ let __otelInitAttempted = false;
 /** B10 — Result of the first `initOtel` call (or `null` if not yet attempted). */
 let __otelInitResult: boolean | null = null;
 
+/** Idempotency latch for `initOtelMeter`. */
+let __otelMeterInitAttempted = false;
+let __otelMeterInitResult: boolean | null = null;
+
 /**
  * B10 (test-only) — Reset the idempotency latch so `initOtel` can run again.
  * Production code should never call this. Exported only so vitest's
@@ -69,6 +73,8 @@ let __otelInitResult: boolean | null = null;
 export function __resetOtelInitForTests(): void {
   __otelInitAttempted = false;
   __otelInitResult = null;
+  __otelMeterInitAttempted = false;
+  __otelMeterInitResult = null;
 }
 
 /**
@@ -154,6 +160,69 @@ export async function initOtel(): Promise<boolean> {
   }
 }
 
+/**
+ * Initialize an OTel MeterProvider with a Prometheus exporter.
+ *
+ * This creates a `MeterProvider` backed by `PrometheusExporter` and
+ * registers it as the global meter provider via `@opentelemetry/api`.
+ * All subsequent `otelMetrics.getMeter(...)` calls (e.g. from the
+ * dispatch metrics bridge) will produce metrics that are scrape-able
+ * from the OTel Prometheus endpoint.
+ *
+ * Gated on `OTEL_EXPORTER_OTLP_ENDPOINT` being set (same as trace).
+ * On failure, stays no-op; the request path is never blocked.
+ *
+ * @returns true iff the meter SDK was successfully initialized.
+ */
+export async function initOtelMeter(): Promise<boolean> {
+  if (__otelMeterInitAttempted) return __otelMeterInitResult === true;
+  __otelMeterInitAttempted = true;
+
+  if (!isOtelOptIn()) {
+    __otelMeterInitResult = false;
+    return false;
+  }
+
+  try {
+    const [
+      { MeterProvider },
+      { PrometheusExporter },
+      api,
+    ] = await Promise.all([
+      import("@opentelemetry/sdk-metrics"),
+      import("@opentelemetry/exporter-prometheus"),
+      import("@opentelemetry/api"),
+    ]);
+
+    // Prometheus exporter exposes /metrics on its own HTTP server.
+    // Default port: 9464. Override via OTEL_EXPORTER_PROMETHEUS_PORT.
+    const port = Number.parseInt(
+      process.env.OTEL_EXPORTER_PROMETHEUS_PORT ?? "9464",
+      10,
+    );
+    const exporter = new PrometheusExporter({ port });
+
+    const meterProvider = new MeterProvider({
+      readers: [exporter],
+    });
+
+    api.metrics.setGlobalMeterProvider(meterProvider);
+
+    console.log(
+      `[OTEL] MeterProvider initialized (Prometheus exporter on :${port})`
+    );
+    __otelMeterInitResult = true;
+    return true;
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(
+      `[OTEL] MeterProvider init failed (continuing without metrics export): ${msg}. To enable, install: @opentelemetry/sdk-metrics, @opentelemetry/exporter-prometheus`
+    );
+    __otelMeterInitResult = false;
+    return false;
+  }
+}
+
 async function ensureSecrets(): Promise<void> {
   let getPersistedSecret = (_key: string): string | null => null;
   let persistSecret = (_key: string, _value: string): void => {};
@@ -208,6 +277,9 @@ export async function registerNodejs(): Promise<void> {
   // B10 — Initialize OpenTelemetry SDK if OTEL_EXPORTER_OTLP_ENDPOINT is set.
   // No-op otherwise. Never blocks the request path.
   await initOtel();
+
+  // MeterProvider + Prometheus exporter — same gate as trace SDK.
+  await initOtelMeter();
 
   await ensureSecrets();
   const { enforceWebRuntimeEnv } = await import("@/lib/env/runtimeEnv");

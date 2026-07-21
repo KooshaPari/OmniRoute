@@ -2,7 +2,7 @@
 
 ## Active holds
 
-- `/private/tmp/polyglot-restore` is a prunable detached worktree with a
+- `/private/tmp/dispatch-restore` is a prunable detached worktree with a
   missing gitdir. It is evidence-only until independently recovered; do not
   prune it during this release.
 - `5218-mcp-auth` was previously dirty. Its content is preserved at

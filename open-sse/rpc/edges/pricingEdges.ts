@@ -3,8 +3,8 @@
  *
  * Runs once per hour on the scheduler — network and DB bound, no FFI benefit.
  */
-import { registerEdge, getEdgeTier } from "../polyglotEdges.ts";
-import type { PolyglotEdgeResult } from "../polyglotEdges.ts";
+import { registerEdge, getEdgeTier } from "../dispatchEdges.ts";
+import type { DispatchEdgeResult } from "../dispatchEdges.ts";
 
 registerEdge({
   name: "pricing.sync",
@@ -13,7 +13,7 @@ registerEdge({
 });
 
 export async function pricingSyncHandler(): Promise<
-  PolyglotEdgeResult<{ synced: number; durationMs: number }>
+  DispatchEdgeResult<{ synced: number; durationMs: number }>
 > {
   const tier = getEdgeTier("pricing.sync");
   if (tier <= 1) {
