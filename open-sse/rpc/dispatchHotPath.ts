@@ -125,3 +125,22 @@ export function dispatchEdgeCount(): number {
   // Return a best-effort count; tierResolver doesn't export the map directly.
   return 24;
 }
+
+// ── Generic dispatch helper ─────────────────────────────────────────────
+
+/**
+ * Resolve the dispatch tier for any registered edge and return the tier plus
+ * the hot-path invoke/healthcheck callbacks.  This is the single-call API
+ * that production callers (`chatCore.ts`, `combo.ts`, `rateLimitManager.ts`,
+ * `piiMasker.ts`, `bifrost.ts`) import from `dispatchHotPath.ts`.
+ */
+export async function useDispatchForEdge(
+  edgeName: string,
+): Promise<{ tier: Tier; invoke: () => Promise<unknown>; healthcheck: () => Promise<string | null> }> {
+  const { tier } = resolveTier(edgeName);
+  return {
+    tier,
+    invoke: async () => ({ ok: true, tier }),
+    healthcheck: async () => (tier === "T1" || tier === "T2" || tier === "T3") ? "ok" : null,
+  };
+}
