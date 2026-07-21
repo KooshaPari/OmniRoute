@@ -85,5 +85,6 @@
     description = "Field names + public Anthropic beta-header value (não são segredos)"
     regexes = [
       '''latencyP\d{2}Ms''',
+      '''p95LatencyMs''',
       '''interleaved-thinking-2025-05-14''',
     ]
