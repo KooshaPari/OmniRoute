@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "electrobun dev",
-    "build": "electrobun build",
-    "build:release": "electrobun build --release",
+    "prepare:web": "node ../scripts/build/prepare-electrobun-web.mjs",
+    "build": "bun run prepare:web && electrobun build",
+    "build:release": "bun run prepare:web && electrobun build --release",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

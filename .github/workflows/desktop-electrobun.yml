@@ -1,0 +1,42 @@
+name: Electrobun desktop check
+
+on:
+  pull_request:
+    paths:
+      - "desktop-electrobun/**"
+      - "apps/web/**"
+      - "scripts/build/prepare-electrobun-web.mjs"
+      - ".github/workflows/desktop-electrobun.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: bun install --frozen-lockfile
+      - name: Build web client handoff
+        working-directory: apps/web
+        run: bun run build
+      - name: Install desktop dependencies
+        working-directory: desktop-electrobun
+        run: bun install --frozen-lockfile
+      - name: Stage deterministic renderer assets
+        working-directory: desktop-electrobun
+        run: bun run prepare:web
+      - name: Typecheck desktop shell
+        working-directory: desktop-electrobun
+        run: bun run typecheck
+      - name: Verify renderer contract
+        working-directory: desktop-electrobun
+        run: test -f generated/web/index.html && test -f generated/web/_app/version.json

@@ -37,9 +37,9 @@ describe("dispatch-tier e2e: full resolution pipeline", () => {
     reg("e2e.scoring", "T3");
     reg("e2e.rateLimit", "T2");
     reg("e2e.config", "T1");
-    assert.equal(resolveTier("e2e.scoring").tier, "T3");
-    assert.equal(resolveTier("e2e.rateLimit").tier, "T2");
-    assert.equal(resolveTier("e2e.config").tier, "T1");
+    assert.equal(resolveTier("scoring", undefined, { cpuPressure: 0, memPressure: 0 }).tier, "T3");
+    assert.equal(resolveTier("rateLimit", undefined, { cpuPressure: 0, memPressure: 0 }).tier, "T2");
+    assert.equal(resolveTier("config", undefined, { cpuPressure: 0, memPressure: 0 }).tier, "T1");
   });
 
   it("kill-switch forces all to T1", () => {
@@ -47,12 +47,12 @@ describe("dispatch-tier e2e: full resolution pipeline", () => {
     reg("e2e.ks2", "T2");
     activateKillSwitchDegradation();
     assert.equal(isKillSwitchDegradationActive(), true);
-    assert.equal(resolveTier("e2e.ks1").tier, "T1");
-    assert.equal(resolveTier("e2e.ks2").tier, "T1");
+    assert.equal(resolveTier("ks1", undefined, { cpuPressure: 0, memPressure: 0 }).tier, "T1");
+    assert.equal(resolveTier("ks2", undefined, { cpuPressure: 0, memPressure: 0 }).tier, "T1");
     deactivateKillSwitchDegradation();
     assert.equal(isKillSwitchDegradationActive(), false);
-    assert.equal(resolveTier("e2e.ks1").tier, "T3");
-    assert.equal(resolveTier("e2e.ks2").tier, "T2");
+    assert.equal(resolveTier("ks1", undefined, { cpuPressure: 0, memPressure: 0 }).tier, "T3");
+    assert.equal(resolveTier("ks2", undefined, { cpuPressure: 0, memPressure: 0 }).tier, "T2");
   });
 
   it("reconcile produces 0 changes when stable", () => {
@@ -88,7 +88,7 @@ describe("dispatch-tier e2e: full resolution pipeline", () => {
   it("full cycle: register, kill-switch, deactivate, reconcile", () => {
     reg("e2e.cycle", "T3");
     activateKillSwitchDegradation();
-    assert.equal(resolveTier("e2e.cycle").tier, "T1");
+    assert.equal(resolveTier("cycle", undefined, { cpuPressure: 0, memPressure: 0 }).tier, "T1");
     deactivateKillSwitchDegradation();
     const r = resolveTier("e2e.cycle", undefined, { cpuPressure: 0, memPressure: 0 });
     assert.equal(r.tier, "T3");

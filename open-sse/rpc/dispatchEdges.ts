@@ -186,7 +186,7 @@ async function invokeHttp<TIn, TOut>(
   options: InvokeOptions
 ): Promise<TOut> {
   const contract = edge.http!;
-  const body = await import("./httpClient.js").then((m) => m.invokeHttpEdge(contract, input, options));
+  const body = await import("./httpClient.js").catch(() => null).then((m) => m?.invokeHttpEdge(contract, input, options));
   return body as TOut;
 }
 
@@ -196,7 +196,7 @@ async function invokeUds<TIn, TOut>(
   options: InvokeOptions
 ): Promise<TOut> {
   const contract = edge.uds!;
-  const result = await import("./udsClient.js").then((m) => m.invokeUdsEdge(contract, input, options));
+  const result = await import("./udsClient.js").catch(() => null).then((m) => m?.invokeUdsEdge(contract, input, options));
   return result as TOut;
 }
 
@@ -206,7 +206,7 @@ async function invokeFfi<TIn, TOut>(
   options: InvokeOptions
 ): Promise<TOut> {
   const contract = edge.ffi!;
-  const result = await import("./ffi.js").then((m) => m.invokeFfiEdge(contract, input, options));
+  const result = await import("./ffi.js").catch(() => null).then((m) => m?.invokeFfiEdge(contract, input, options));
   return result as TOut;
 }
 

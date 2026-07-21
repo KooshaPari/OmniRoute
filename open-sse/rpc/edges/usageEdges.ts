@@ -29,7 +29,7 @@ export async function usageSyncHandler(
   if (tier === 1) {
     // Import inline to avoid circular deps
     const { syncUsage } = await import("../../services/usage.ts");
-    const result = await syncUsage(payload as any);
+    const result = await syncUsage(payload as Record<string, unknown>);
     return { ok: true, value: result as unknown as Record<string, unknown> };
   }
   // T2 — delegate to UDS RPC (future)

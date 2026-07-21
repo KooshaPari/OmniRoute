@@ -22,7 +22,7 @@ const APP_VERSION = "0.1.0";
 const DEFAULT_DEV_URL = "http://localhost:3000";
 
 // ── CONFIGURE 3: Bundled views entrypoint (production) ───────────────────────
-const VIEWS_ENTRYPOINT = "src/views/index.html";
+const VIEWS_ENTRYPOINT = "generated/web/index.html";
 
 export default {
   app: {

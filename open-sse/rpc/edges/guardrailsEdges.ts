@@ -71,7 +71,7 @@ function t1PiiMaskHandler(input: PiiMaskRequest): PiiMaskResponse {
   const guardrail = new PIIMaskerGuardrail();
   // Synthesize a payload shape the guardrail understands.
   const payload = { messages: [{ role: "user", content: input.text }] };
-  void guardrail.preCall(payload, input.context ?? {}).then((result: GuardrailResult<unknown> | void) => {
+  void guardrail.preCall(payload, input.context ?? {}).catch(() => null).then((result: GuardrailResult<unknown> | void) => {
     // The guardrail runs async — but the edge is sync for perf in the
     // in-process fast path. We assume the synchronous `processPII` path
     // is already covered by the guardrail's underlying call chain in
