@@ -455,6 +455,18 @@ function isSchemaAlreadyApplied(
       // exists the rebuild ran — skip re-executing the rename/copy/drop, which
       // would fail on the missing proxy_assignments_pre117 table.
       return hasColumn(db, "proxy_assignments", "position");
+    case "123":
+      // fleet_nodes was previously shipped in the colliding 102 slot.
+      return hasTable(db, "fleet_nodes");
+    case "124":
+      // fleet_config was previously shipped in the colliding 103 slot.
+      return hasTable(db, "fleet_config");
+    case "125":
+      // scaling_policies was previously shipped in the colliding 104 slot.
+      return hasTable(db, "scaling_policies");
+    case "126":
+      // alert_rules was previously shipped in the colliding 105 slot.
+      return hasTable(db, "alert_rules");
     default:
       return false;
   }

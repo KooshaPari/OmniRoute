@@ -70,8 +70,8 @@ describe("migrationRunner/constants — exact small-table snapshots", () => {
 // ── large tables — count + shape + spot-checks (corruption guard) ─────────────
 
 describe("migrationRunner/constants — large-table integrity", () => {
-  it("RENAMED_MIGRATION_COMPATIBILITY has 10 well-formed entries", () => {
-    assert.equal(RENAMED_MIGRATION_COMPATIBILITY.length, 10);
+  it("RENAMED_MIGRATION_COMPATIBILITY has 14 well-formed entries", () => {
+    assert.equal(RENAMED_MIGRATION_COMPATIBILITY.length, 14);
     for (const e of RENAMED_MIGRATION_COMPATIBILITY) {
       assert.equal(typeof e.fromVersion, "string");
       assert.equal(typeof e.fromName, "string");
@@ -91,6 +91,25 @@ describe("migrationRunner/constants — large-table integrity", () => {
     // both manifest_routing collisions (052→059 and 056→059) must survive
     const manifest = RENAMED_MIGRATION_COMPATIBILITY.filter((e) => e.toName === "manifest_routing");
     assert.deepEqual(manifest.map((e) => e.fromVersion).sort(), ["052", "056"]);
+  });
+
+  it("pins fleet compatibility to the first free migration slots", () => {
+    assert.deepEqual(
+      RENAMED_MIGRATION_COMPATIBILITY.filter((entry) =>
+        ["123", "124", "125", "126"].includes(entry.toVersion)
+      ),
+      [
+        { fromVersion: "102", fromName: "fleet_nodes", toVersion: "123", toName: "fleet_nodes" },
+        { fromVersion: "103", fromName: "fleet_config", toVersion: "124", toName: "fleet_config" },
+        {
+          fromVersion: "104",
+          fromName: "scaling_policies",
+          toVersion: "125",
+          toName: "scaling_policies",
+        },
+        { fromVersion: "105", fromName: "alert_rules", toVersion: "126", toName: "alert_rules" },
+      ]
+    );
   });
 
   it("PHYSICAL_SCHEMA_SENTINELS has 15 well-formed entries incl. the newest 064", () => {

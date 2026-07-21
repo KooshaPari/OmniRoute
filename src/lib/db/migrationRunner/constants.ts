@@ -69,6 +69,15 @@ export const RENAMED_MIGRATION_COMPATIBILITY = [
     toVersion: "059",
     toName: "manifest_routing",
   },
+  { fromVersion: "102", fromName: "fleet_nodes", toVersion: "123", toName: "fleet_nodes" },
+  { fromVersion: "103", fromName: "fleet_config", toVersion: "124", toName: "fleet_config" },
+  {
+    fromVersion: "104",
+    fromName: "scaling_policies",
+    toVersion: "125",
+    toName: "scaling_policies",
+  },
+  { fromVersion: "105", fromName: "alert_rules", toVersion: "126", toName: "alert_rules" },
 ] as const;
 
 export const LEGACY_VERSION_SLOT_MIGRATIONS = [
