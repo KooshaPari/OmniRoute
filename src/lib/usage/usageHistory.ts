@@ -680,9 +680,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
         entry.status || null,
         entry.success === false ? 0 : 1,
         Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
-        Number.isFinite(Number(entry.timeToFirstTokenMs))
-          ? Number(entry.timeToFirstTokenMs)
-          : 0,
+        Number.isFinite(Number(entry.timeToFirstTokenMs)) ? Number(entry.timeToFirstTokenMs) : 0,
         entry.errorCode || null,
         entry.comboStrategy || entry.combo_strategy || null,
         entry.endpoint || null,
