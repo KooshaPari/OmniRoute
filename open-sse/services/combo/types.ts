@@ -106,9 +106,15 @@ export type HandleRoundRobinOptions = Omit<
 
 export type HistoricalLatencyStatsEntry = {
   totalRequests?: number;
+  latencySampleCount?: number;
+  avgLatencyMs?: number;
   p95LatencyMs?: number;
   latencyStdDev?: number;
   successRate?: number;
+  ttftSampleCount?: number;
+  avgTtftMs?: number;
+  tpsSampleCount?: number;
+  avgTokensPerSecond?: number;
 };
 
 export type AutoProviderCandidate = ProviderCandidate & {

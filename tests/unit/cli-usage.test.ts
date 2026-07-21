@@ -62,6 +62,27 @@ const HISTORY_DATA = { items: [{ id: "a", model: "gpt-4o", provider: "openai", c
 const PROXY_LOGS_DATA = {
   logs: [{ id: "p1", path: "/v1/chat/completions", method: "POST", status: 200 }],
 };
+const MODEL_LATENCY_DATA = {
+  windowHours: 24,
+  entries: [
+    {
+      provider: "openai",
+      model: "gpt-4o",
+      connectionId: "openai-primary",
+      key: "openai/gpt-4o/openai-primary",
+      totalRequests: 12,
+      successfulRequests: 11,
+      successRate: 11 / 12,
+      avgLatencyMs: 240,
+      avgTtftMs: 120,
+      avgTokensPerSecond: 38.5,
+      p50LatencyMs: 220,
+      p95LatencyMs: 390,
+      p99LatencyMs: 410,
+      latencyStdDev: 35,
+    },
+  ],
+};
 
 function makeResp(data: unknown, status = 200) {
   const obj = {
@@ -79,6 +100,8 @@ function makeResp(data: unknown, status = 200) {
 
 function mockFetch(overrides: Record<string, unknown> = {}) {
   return (url: string) => {
+    if (url.includes("/api/usage/model-latency-stats"))
+      return Promise.resolve(makeResp(overrides.modelLatency ?? MODEL_LATENCY_DATA));
     if (url.includes("/api/usage/analytics"))
       return Promise.resolve(makeResp(overrides.analytics ?? ANALYTICS_DATA));
     if (url.includes("/api/usage/budget"))
@@ -196,6 +219,45 @@ test("runUsageHistory exibe histórico", async () => {
   const parsed = JSON.parse(out);
   assert.ok(Array.isArray(parsed));
   assert.ok(parsed.length >= 1);
+});
+
+test("runUsageModelLatencyStats preserves connection and routing evidence fields", async () => {
+  let capturedUrl = "";
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = ((url: string) => {
+    capturedUrl = url;
+    return mockFetch()(url);
+  }) as any;
+
+  const { runUsageModelLatencyStats } = await import("../../bin/cli/commands/usage.mjs");
+  const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
+  const out = await captureStdout(() =>
+    runUsageModelLatencyStats(
+      {
+        windowHours: 24,
+        minSamples: 2,
+        maxRows: 500,
+        provider: "openai",
+        model: "gpt-4o",
+        connectionId: "openai-primary",
+      },
+      cmd as any
+    )
+  );
+
+  globalThis.fetch = origFetch;
+  const parsed = JSON.parse(out);
+  assert.ok(capturedUrl.includes("windowHours=24"));
+  assert.ok(capturedUrl.includes("minSamples=2"));
+  assert.ok(capturedUrl.includes("maxRows=500"));
+  assert.ok(capturedUrl.includes("connectionId=openai-primary"));
+  assert.ok(capturedUrl.includes("keyByConnectionId=true"));
+  assert.equal(parsed[0].connectionId, "openai-primary");
+  assert.equal(parsed[0].requests, 12);
+  assert.equal(parsed[0].successfulRequests, 11);
+  assert.equal(parsed[0].avgTtftMs, 120);
+  assert.equal(parsed[0].avgTokensPerSecond, 38.5);
+  assert.equal(parsed[0].p95LatencyMs, 390);
 });
 
 test("runBudgetSet envia POST com amount, scope e period", async () => {
