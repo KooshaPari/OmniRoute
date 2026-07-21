@@ -392,6 +392,7 @@
     "protobufjs": "^7.6.3",
     "@babel/core": "^7.29.6",
     "hono": "^4.12.25",
+    "shell-quote": "^1.10.0",
     "@yarnpkg/parsers": {
       "js-yaml": "^4.2.0"
     },
