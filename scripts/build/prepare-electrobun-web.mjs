@@ -3,7 +3,7 @@
 import { cp, mkdir, rm, access, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const root = process.cwd();
+const root = path.resolve(import.meta.dirname, "../..");
 const source = path.join(root, "apps/web/.svelte-kit/output/client");
 const destination = path.join(root, "desktop-electrobun/generated/web");
 
