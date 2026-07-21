@@ -31,10 +31,10 @@ jobs:
           node-version: "24"
           cache: npm
       - name: Install pinned Bun runtime
-        run: npm install --global "bun@${BUN_VERSION}"
+        run: npm install --global "bun@${BUN_VERSION}" --ignore-scripts --no-audit --no-fund
       - name: Install BFF dependencies from lockfile
         working-directory: apps/bff
-        run: bun install --frozen-lockfile
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: BFF typecheck
         working-directory: apps/bff
         run: bun run typecheck
@@ -46,7 +46,7 @@ jobs:
         run: bun run build
       - name: Install web dependencies from lockfile
         working-directory: apps/web
-        run: bun install --frozen-lockfile
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Web typecheck
         working-directory: apps/web
         run: bun run typecheck
