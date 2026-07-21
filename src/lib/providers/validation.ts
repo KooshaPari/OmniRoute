@@ -28,7 +28,14 @@ import {
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import {
+  getProviderOutboundGuard,
+  getProviderValidationGuard,
+} from "@/shared/network/outboundUrlGuard";
+import {
+  isRetryableProxyTarget,
+  isSecurityBlockError,
+} from "@/lib/providers/validation/transport";
 import { extractCookieValue, normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
@@ -328,7 +335,8 @@ function buildTokenHeaders(apiKey: string, providerSpecificData: any = {}) {
 async function validationRead(url: string, init: RequestInit, isLocal: boolean = false) {
   return safeOutboundFetch(url, {
     ...SAFE_OUTBOUND_FETCH_PRESETS.validationRead,
-    guard: isLocal ? "none" : getProviderOutboundGuard(),
+    // #5066: local-first validation uses block-metadata, not public-only
+    guard: isLocal ? "none" : getProviderValidationGuard(),
     ...init,
   });
 }
@@ -336,7 +344,8 @@ async function validationRead(url: string, init: RequestInit, isLocal: boolean =
 async function validationWrite(url: string, init: RequestInit, isLocal: boolean = false) {
   return safeOutboundFetch(url, {
     ...SAFE_OUTBOUND_FETCH_PRESETS.validationWrite,
-    guard: isLocal ? "none" : getProviderOutboundGuard(),
+    // #5066: local-first validation uses block-metadata, not public-only
+    guard: isLocal ? "none" : getProviderValidationGuard(),
     ...init,
   });
 }
@@ -2553,7 +2562,8 @@ async function validateSearchProvider(
   try {
     const response = await safeOutboundFetch(url, {
       ...SAFE_OUTBOUND_FETCH_PRESETS.validationWrite,
-      guard: isLocal ? "none" : getProviderOutboundGuard(),
+      // #5066: local-first validation uses block-metadata, not public-only
+      guard: isLocal ? "none" : getProviderValidationGuard(),
       ...withCustomUserAgent(init, providerSpecificData),
     });
     if (response.ok) return { valid: true, error: null, unsupported: false };
@@ -3960,3 +3970,6 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     return toValidationErrorResult(error);
   }
 }
+
+// Public surface expected by SSRF / proxy-fallback unit tests (transport extraction)
+export { isRetryableProxyTarget, isSecurityBlockError };
