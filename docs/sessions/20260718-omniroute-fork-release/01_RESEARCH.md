@@ -18,15 +18,15 @@ claim that every ref should be merged.
 
 The prior local-checkout sweep already published these preservation anchors:
 
-| checkout family | ref tip |
-| --- | --- |
-| `5218-mcp-auth` | `a59f05f114da937269ee812167f64f68cb9f470d` |
-| `5452-tls-options-packaging` | `e2e00647805de4a41279518f8c573476a5f04411` |
-| `fix-5211-mcp-auth` | `1a6308f4e25fa78adeb320adfafb13ff1f60aad9` |
-| `issue-agent-5980` | `261ca3e4bc43319bedcafc78d3b885f13bcebc9a` |
+| checkout family                       | ref tip                                    |
+| ------------------------------------- | ------------------------------------------ |
+| `5218-mcp-auth`                       | `a59f05f114da937269ee812167f64f68cb9f470d` |
+| `5452-tls-options-packaging`          | `e2e00647805de4a41279518f8c573476a5f04411` |
+| `fix-5211-mcp-auth`                   | `1a6308f4e25fa78adeb320adfafb13ff1f60aad9` |
+| `issue-agent-5980`                    | `261ca3e4bc43319bedcafc78d3b885f13bcebc9a` |
 | `feature-dispatch-bifrost-2026-07-17` | `e0ddbed7b396ab7e6f1e65106524fa2d5cad5760` |
-| `restore-dispatch-binding-tiers` | `26e34d296fd2675f36174c6dd36bfb795f3b7eba` |
-| `main` | `9b1927a2c8683756562bf644855b1105cc986d04` |
+| `restore-dispatch-binding-tiers`      | `26e34d296fd2675f36174c6dd36bfb795f3b7eba` |
+| `main`                                | `9b1927a2c8683756562bf644855b1105cc986d04` |
 
 ## Dirty-diff artifact and hash
 

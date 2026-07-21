@@ -23,15 +23,15 @@ others consume.
 
 ## Cluster Members & Convergence Verdict
 
-| Repo | What it is | Verdict |
-|------|-----------|---------|
-| **OmniRoute** (this repo) | Canonical gateway (TS, ~220K src LOC) | **KEEP — canonical** |
-| **helios-router** | 44-file shell, `index.ts` = `console.log("Hello via Bun!")`, **0 inbound code refs** | **ARCHIVE-CANDIDATE** (proof: org-grep finds only inventory/governance doc mentions, no package/Cargo dep). Marked 2026-06-02. |
-| **bifrost** (`KooshaPari/bifrost`) | **Vendored fork of maximhq/bifrost** (3rd-party Go gateway) | **NOT a peer framework.** Future: thin Go adapter over OmniRoute's contract, or drop. Low priority; do not archive a vendored fork. |
-| **Tokn** | TokenLedger (Rust, hexagonal routing substrate) | **MIGRATE-IN-PROGRESS.** `Tokn::tokenledger::routing` (pareto_router/ports/adapters) is the canonical Rust substrate per 2026-06-03 disambiguation. Extraction to `OmniRoute/crates/tokn` in flight (see `PLAN.md` § 5). |
-| **phenoRouterMonitor** | Mislabeled mega-shelf (`name = phenotype-infrakit`); carries `bifrost-routing` crate + agileplus-dashboard + ~11 crates DUPLICATED with HexaKit | **NEEDS DESIGN DECISION** — see naming-collision note below. The `bifrost-routing` crate inside is a **DEPRECATED stub** (no Cargo.toml) and is NOT a peer. |
-| **phenoAI** | Phenotype AI agent workspace and tooling | **MIGRATE-PENDING.** Agent tooling → `OmniRoute/workspace/`. |
-| **cliproxy** | Proxy/policy layer (dom-cli-ax domain) | **COORDINATE.** Candidate OmniRoute-contract adapter. Not claimed here. |
+| Repo                               | What it is                                                                                                                                      | Verdict                                                                                                                                                                                                                  |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **OmniRoute** (this repo)          | Canonical gateway (TS, ~220K src LOC)                                                                                                           | **KEEP — canonical**                                                                                                                                                                                                     |
+| **helios-router**                  | 44-file shell, `index.ts` = `console.log("Hello via Bun!")`, **0 inbound code refs**                                                            | **ARCHIVE-CANDIDATE** (proof: org-grep finds only inventory/governance doc mentions, no package/Cargo dep). Marked 2026-06-02.                                                                                           |
+| **bifrost** (`KooshaPari/bifrost`) | **Vendored fork of maximhq/bifrost** (3rd-party Go gateway)                                                                                     | **NOT a peer framework.** Future: thin Go adapter over OmniRoute's contract, or drop. Low priority; do not archive a vendored fork.                                                                                      |
+| **Tokn**                           | TokenLedger (Rust, hexagonal routing substrate)                                                                                                 | **MIGRATE-IN-PROGRESS.** `Tokn::tokenledger::routing` (pareto_router/ports/adapters) is the canonical Rust substrate per 2026-06-03 disambiguation. Extraction to `OmniRoute/crates/tokn` in flight (see `PLAN.md` § 5). |
+| **phenoRouterMonitor**             | Mislabeled mega-shelf (`name = phenotype-infrakit`); carries `bifrost-routing` crate + agileplus-dashboard + ~11 crates DUPLICATED with HexaKit | **NEEDS DESIGN DECISION** — see naming-collision note below. The `bifrost-routing` crate inside is a **DEPRECATED stub** (no Cargo.toml) and is NOT a peer.                                                              |
+| **phenoAI**                        | Phenotype AI agent workspace and tooling                                                                                                        | **MIGRATE-PENDING.** Agent tooling → `OmniRoute/workspace/`.                                                                                                                                                             |
+| **cliproxy**                       | Proxy/policy layer (dom-cli-ax domain)                                                                                                          | **COORDINATE.** Candidate OmniRoute-contract adapter. Not claimed here.                                                                                                                                                  |
 
 ---
 
@@ -39,13 +39,14 @@ others consume.
 
 This is the most common source of cross-repo confusion. Per **ADR-009** (2026-06-18):
 
-| # | Referent | Status | Canonical name to use |
-|---|----------|--------|------------------------|
-| 1 | `KooshaPari/bifrost` repo | Vendored **maximhq** Go gateway fork. **NON-peer.** | **`KooshaPari/bifrost`** (always with full path) |
-| 2 | ADR-001's "bifrost" = Phenotype routing substrate | Canonical Rust substrate; lives in `pheno` monorepo as `Tokn::tokenledger::routing` (hexagonal: pareto_router/ports/adapters) | **`phenotype-routing`** (proposed rename) or **`Tokn::tokenledger::routing`** |
-| 3 | `crates/bifrost-routing` inside `phenoRouterMonitor` | **DEPRECATED stub** (no Cargo.toml). NOT a peer. | **`@deprecated bifrost-routing`** |
+| #   | Referent                                             | Status                                                                                                                        | Canonical name to use                                                         |
+| --- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| 1   | `KooshaPari/bifrost` repo                            | Vendored **maximhq** Go gateway fork. **NON-peer.**                                                                           | **`KooshaPari/bifrost`** (always with full path)                              |
+| 2   | ADR-001's "bifrost" = Phenotype routing substrate    | Canonical Rust substrate; lives in `pheno` monorepo as `Tokn::tokenledger::routing` (hexagonal: pareto_router/ports/adapters) | **`phenotype-routing`** (proposed rename) or **`Tokn::tokenledger::routing`** |
+| 3   | `crates/bifrost-routing` inside `phenoRouterMonitor` | **DEPRECATED stub** (no Cargo.toml). NOT a peer.                                                                              | **`@deprecated bifrost-routing`**                                             |
 
 **Recommended actions**:
+
 - Rename (2) to `phenotype-routing` and document the alias in
   `phenotype-routing/README.md`. Track in `PLAN.md` § 5.
 - Mark (3) with `@deprecated` annotation in the stub's source; remove from
@@ -60,6 +61,7 @@ This is the most common source of cross-repo confusion. Per **ADR-009** (2026-06
 OmniRoute's consumable contract = its OpenAI-compatible API surface + routing/provider/fallback config.
 
 **For consumers (Phenoservices)**:
+
 - HTTP: `POST /v1/chat/completions`, `POST /v1/responses`,
   `POST /v1/embeddings`, `POST /v1/images/generations`,
   `POST /v1/audio/{transcriptions,speech}`, `POST /v1/videos/generations`,
@@ -70,6 +72,7 @@ OmniRoute's consumable contract = its OpenAI-compatible API surface + routing/pr
 - A2A: `POST /a2a` (JSON-RPC 2.0) or `GET /.well-known/agent.json`.
 
 **For operators**:
+
 - See [`docs/architecture/REPOSITORY_MAP.md`](./architecture/REPOSITORY_MAP.md)
   for the canonical repo navigation.
 - See [`docs/architecture/ARCHITECTURE.md`](./architecture/ARCHITECTURE.md)
@@ -93,14 +96,14 @@ OmniRoute's consumable contract = its OpenAI-compatible API surface + routing/pr
 
 ## Cluster Convergence Plan
 
-| Source | Migration target | Status | Owner |
-|--------|------------------|--------|-------|
-| `phenoAI` agent tooling | `OmniRoute/workspace/` | pending | phenoAI team |
-| `phenoRouterMonitor` Pareto dashboard | `OmniRoute/monitoring/` | pending | monitor team |
-| `Tokn` TokenLedger | `OmniRoute/crates/tokn` | **in flight** | tokn team |
-| `helios-router` primitives | `phenotype-routing` crate | pending | bifrost team |
-| `KooshaPari/bifrost` (vendored fork) | keep tagged, optional thin Go adapter | parked | — |
-| `cliproxy` policy layer | OmniRoute-contract adapter | coordinate | cliproxy team |
+| Source                                | Migration target                      | Status        | Owner         |
+| ------------------------------------- | ------------------------------------- | ------------- | ------------- |
+| `phenoAI` agent tooling               | `OmniRoute/workspace/`                | pending       | phenoAI team  |
+| `phenoRouterMonitor` Pareto dashboard | `OmniRoute/monitoring/`               | pending       | monitor team  |
+| `Tokn` TokenLedger                    | `OmniRoute/crates/tokn`               | **in flight** | tokn team     |
+| `helios-router` primitives            | `phenotype-routing` crate             | pending       | bifrost team  |
+| `KooshaPari/bifrost` (vendored fork)  | keep tagged, optional thin Go adapter | parked        | —             |
+| `cliproxy` policy layer               | OmniRoute-contract adapter            | coordinate    | cliproxy team |
 
 These migrations are **follow-on initiatives**. Source repos remain intact
 until migration is complete. Archive decisions are deferred to the user after
@@ -113,12 +116,13 @@ migration.
 OmniRoute's underlying Tier-1 router infrastructure is **migrating** to
 `maximhq/bifrost` (Go, MIT). The split:
 
-| Tier | Owner | Responsibility |
-|------|-------|----------------|
+| Tier              | Owner                                                     | Responsibility                                                                                                                                                                        |
+| ----------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Tier-1 router** | `KooshaPari/bifrost` (vendored fork of `maximhq/bifrost`) | 23+ provider dispatch, format translation, fallback, load balancing, virtual keys, budget mgmt, semantic cache, MCP client, observability. **All hot-path / provider-mesh concerns.** |
-| **Tier-2 engine** | `OmniRoute` (this repo) | A2A agent orchestration, MCP-router dispatch facade, ACP registry, skill registry, policy engine, guardrails, dashboard. **All higher-level value-add concerns.** |
+| **Tier-2 engine** | `OmniRoute` (this repo)                                   | A2A agent orchestration, MCP-router dispatch facade, ACP registry, skill registry, policy engine, guardrails, dashboard. **All higher-level value-add concerns.**                     |
 
 **Why Bifrost?** Per `docs/adr/0031-bifrost-tier1-router.md`:
+
 - ~6k LOC Go vs LiteLLM's ~100k LOC Python.
 - Native MCP client + virtual keys + budget mgmt built-in (we'd re-implement in 2+ months otherwise).
 - 100% upstream-compatible OpenAI API surface (no OmniRoute fork needed).
@@ -132,6 +136,7 @@ OmniRoute's underlying Tier-1 router infrastructure is **migrating** to
 **Why not hand-rolled Rust / Zig / Mojo?** 6+ months dev to match Bifrost feature parity. Not justified unless Bifrost is abandoned upstream.
 
 **Drop-in swap strategy**:
+
 - Phase 1 (B1–B3, this turn): vendor Bifrost, add `BifrostBackend` executor + provider map (backwards-compat default = current `open-sse/handlers/chatCore.ts`).
 - Phase 2 (B4–B5, Q3 2026): add `bifrostModels` SQL table + virtual-key UI.
 - Phase 3 (B6, Q3 2026): traffic shadow (5% → 25% → 100% over 14 days).

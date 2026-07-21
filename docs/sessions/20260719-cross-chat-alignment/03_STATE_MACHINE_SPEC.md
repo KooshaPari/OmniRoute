@@ -36,7 +36,7 @@ States:
 export function deactivateKillSwitchDegradation(): void {
   forcedTToT1 = false;
   clearTierOverrides();
-  reconcileAllEdges({ killSwitchActive: false, cpuPressure: 0, memPressure: 0 });  // ← add this
+  reconcileAllEdges({ killSwitchActive: false, cpuPressure: 0, memPressure: 0 }); // ← add this
 }
 ```
 

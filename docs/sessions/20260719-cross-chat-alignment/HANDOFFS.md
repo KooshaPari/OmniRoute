@@ -11,13 +11,13 @@
 
 ### What I completed (parallel work, 7 streams)
 
-| PW | Deliverable | Lines | Verification |
-|---|---|---|---|
-| 00 | Session overview | 78 | Read ✅ |
-| 01 | Edge inventory matrix | 56 | 16 edges × tier × FFI × test × wiring |
-| 02 | Callsite diffs (5 pre-computed) | 98 | Exact line-level before/after |
-| 03 | State machine spec (3-line fix) | 45 | activate/deactivate contract |
-| 04 | Monitoring runbook | 72 | PromQL + Grafana + alerts |
+| PW  | Deliverable                     | Lines | Verification                          |
+| --- | ------------------------------- | ----- | ------------------------------------- |
+| 00  | Session overview                | 78    | Read ✅                               |
+| 01  | Edge inventory matrix           | 56    | 16 edges × tier × FFI × test × wiring |
+| 02  | Callsite diffs (5 pre-computed) | 98    | Exact line-level before/after         |
+| 03  | State machine spec (3-line fix) | 45    | activate/deactivate contract          |
+| 04  | Monitoring runbook              | 72    | PromQL + Grafana + alerts             |
 
 ### What I verified
 
@@ -75,11 +75,11 @@ Overlap freeze continues on `open-sse/rpc/*`. All prep docs in `docs/sessions/20
 
 ### Full test sweep results
 
-| Suite | Tests | Pass | Fail |
-|---|---|---|---|
-| TS dispatch | 174 | 174 | 0 |
-| Rust FFI | 12 | 12 | 0 |
-| **Total** | **186** | **186** | **0** |
+| Suite       | Tests   | Pass    | Fail  |
+| ----------- | ------- | ------- | ----- |
+| TS dispatch | 174     | 174     | 0     |
+| Rust FFI    | 12      | 12      | 0     |
+| **Total**   | **186** | **186** | **0** |
 
 ### Handoff to Chat 2
 
@@ -130,13 +130,13 @@ No safe forward-only cutover edit is unambiguous in this lane. Do **not** remove
 
 ### G7.1 Production wiring: 4/5 callsites
 
-| File | Edge | Status |
-|---|---|---|
-| `chatCore.ts:4222` | `sse.chunk.sseStream` | ✅ Wired (import + await) |
-| `scoring.ts` | `scoring.combo.scoreSimd` | ⚠️ Import only (sync function, cannot await) |
-| `rateLimitManager.ts:528` | `rateLimit.tokenBucket.consume` | ✅ Wired (import + await) |
-| `piiMasker.ts:159` | `guardrails.pii.anonymize` | ✅ Wired (import + await) |
-| `bifrost.ts:159` | `bifrost.bridge` | ✅ Wired (import + await) |
+| File                      | Edge                            | Status                                       |
+| ------------------------- | ------------------------------- | -------------------------------------------- |
+| `chatCore.ts:4222`        | `sse.chunk.sseStream`           | ✅ Wired (import + await)                    |
+| `scoring.ts`              | `scoring.combo.scoreSimd`       | ⚠️ Import only (sync function, cannot await) |
+| `rateLimitManager.ts:528` | `rateLimit.tokenBucket.consume` | ✅ Wired (import + await)                    |
+| `piiMasker.ts:159`        | `guardrails.pii.anonymize`      | ✅ Wired (import + await)                    |
+| `bifrost.ts:159`          | `bifrost.bridge`                | ✅ Wired (import + await)                    |
 
 ### G7.2-G7.5: Edge map + monitoring + CI
 
@@ -147,11 +147,11 @@ No safe forward-only cutover edit is unambiguous in this lane. Do **not** remove
 
 ### Final test sweep
 
-| Suite | Tests | Pass | Fail |
-|---|---|---|---|
-| TS dispatch | 174 | 174 | 0 |
-| Rust FFI | 12 | 12 | 0 |
-| Doc accuracy | — | 0 new | 59 pre-existing |
+| Suite        | Tests | Pass  | Fail            |
+| ------------ | ----- | ----- | --------------- |
+| TS dispatch  | 174   | 174   | 0               |
+| Rust FFI     | 12    | 12    | 0               |
+| Doc accuracy | —     | 0 new | 59 pre-existing |
 
 ## 2026-07-20T01:15Z — POLYMUS (Chat 5)
 
@@ -159,28 +159,29 @@ No safe forward-only cutover edit is unambiguous in this lane. Do **not** remove
 
 ### Final verification
 
-| Check | Result |
-|---|---|
-| TS dispatch tests | 174 pass, 0 fail |
-| Rust FFI tests | 12 pass (4 crates) |
-| Rust build | 7 cdylibs built |
-| Doc accuracy | 0 new drift (25 pre-existing) |
+| Check             | Result                                                |
+| ----------------- | ----------------------------------------------------- |
+| TS dispatch tests | 174 pass, 0 fail                                      |
+| Rust FFI tests    | 12 pass (4 crates)                                    |
+| Rust build        | 7 cdylibs built                                       |
+| Doc accuracy      | 0 new drift (25 pre-existing)                         |
 | Production wiring | 4/5 callsites (scoring.ts import-only: sync function) |
 
 ### Production callsite status
 
-| # | File | Edge | Status |
-|---|---|---|---|
-| 1 | `chatCore.ts:4222` | `sse.chunk.sseStream` | ✅ Wired |
-| 2 | `scoring.ts` | `scoring.combo.scoreSimd` | ⚠️ Import only (sync fn) |
-| 3 | `rateLimitManager.ts:528` | `rateLimit.tokenBucket.consume` | ✅ Wired |
-| 4 | `piiMasker.ts:159` | `guardrails.pii.anonymize` | ✅ Wired |
-| 5 | `bifrost.ts:159` | `bifrost.bridge` | ✅ Wired |
+| #   | File                      | Edge                            | Status                   |
+| --- | ------------------------- | ------------------------------- | ------------------------ |
+| 1   | `chatCore.ts:4222`        | `sse.chunk.sseStream`           | ✅ Wired                 |
+| 2   | `scoring.ts`              | `scoring.combo.scoreSimd`       | ⚠️ Import only (sync fn) |
+| 3   | `rateLimitManager.ts:528` | `rateLimit.tokenBucket.consume` | ✅ Wired                 |
+| 4   | `piiMasker.ts:159`        | `guardrails.pii.anonymize`      | ✅ Wired                 |
+| 5   | `bifrost.ts:159`          | `bifrost.bridge`                | ✅ Wired                 |
 
 ### Handoff
 
 All G7 tasks complete. Ready for next chat or production deployment.
 Overlapping edits to `open-sse/rpc/*` can be safely resumed by any chat.
+
 - No suppressions, force-pushes, new checkouts, or Fly deployment.
 
 ## 2026-07-20T09:05Z — bff_typecheck (CI failure classification)
@@ -231,20 +232,20 @@ No code edits, no new checkout, no force-push, no Fly deployment.
 
 **Status**: `[evidence]` — the repository has a useful local orchestration baseline; production governance still needs explicit operational gates.
 
-| Concern | Current evidence | Recommended policy |
-|---|---|---|
-| Local profiles | Root `docker-compose.yml` has `base`, `web`, `cli`, `host`, `memory`, `bifrost`, and `cliproxyapi` profiles | Keep profiles opt-in; default desktop start is `base` + Redis only. Never start browser/CLI/sidecar profiles implicitly. |
-| Readiness | Root services have healthchecks; `docker-compose.prod.yml` gates app on Redis health; scale compose uses healthchecks and Redis dependency | Require app readiness plus dependency readiness before traffic; use `condition: service_healthy` consistently in production manifests. |
-| Persistence | Named Redis/Bifrost/CLIProxy volumes and app `DATA_DIR` mounts exist; production uses `omniroute-prod-data` | Declare a backup/export contract for SQLite/data volumes and Redis; test restore before release promotion. Never treat a volume as a backup. |
-| Secrets | Compose uses `.env`/`env_file`; host profile mounts operator config directories read/write | Keep `.env` gitignored; use CI/environment secret stores; make host config mounts explicit and least-privilege. Do not expose secrets through Tailscale or logs. |
-| Desktop compute plane | `host` profile mounts host binaries/configs and Docker socket; this is a privileged operator mode | Separate privileged host mode from normal desktop mode; require explicit operator opt-in, socket warning, audit logs, and a documented rollback. |
-| Tailscale exposure | No root Compose manifest currently declares Tailscale sidecar/ACL policy | Keep Tailscale on the host/device boundary, bind services privately, and publish only authenticated health/API endpoints. Add ACL and device enrollment checks outside Compose before exposure. |
-| Observability | `ops/monitoring` contains Prometheus/Grafana assets; healthchecks provide liveness/readiness | Add service labels, scrape endpoints, startup/restart/error-rate alerts, and retention limits; require telemetry smoke checks in release validation. |
-| Upgrades | Images are versioned for Redis/Bifrost/CLIProxy in manifests; app images are locally built | Pin every third-party image by immutable digest in release manifests, stage upgrades, run migrations/backup, then health-check and roll back by image tag/digest. |
-| GitOps/release | CI release workflows and channel matrices exist; Compose is not currently a release promotion target | Treat Compose manifests as deployable artifacts validated in CI (`docker compose config`, image/digest policy, health contract); promote only from release tags. |
-| Process supervisor | No canonical `process-compose.yml` is present; desktop uses `desktop-electrobun/justfile` | Do not introduce a second supervisor by default. Use Compose for isolated services and the desktop app supervisor for local processes; add process-compose only if a measured multi-process desktop need is documented. |
-| Plugin lifecycle | Plugin/sidecar profiles are static services, not dynamic code loading | Use signed/versioned manifests, capability allowlists, health/readiness hooks, migration + rollback hooks, and uninstall cleanup. Registry changes require compatibility tests and SBOM/license checks. |
-| Vercel split | SvelteKit adapter-vercel is present; `extensions/argis/vercel.json` is Python-only; BFF has no Vercel manifest | Keep stateless web/API handlers on Vercel; keep stateful Redis/SQLite, browser automation, native FFI, and privileged device workers on the desktop/compute plane. Do not force stateful sidecars into Vercel. |
+| Concern               | Current evidence                                                                                                                           | Recommended policy                                                                                                                                                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Local profiles        | Root `docker-compose.yml` has `base`, `web`, `cli`, `host`, `memory`, `bifrost`, and `cliproxyapi` profiles                                | Keep profiles opt-in; default desktop start is `base` + Redis only. Never start browser/CLI/sidecar profiles implicitly.                                                                                                |
+| Readiness             | Root services have healthchecks; `docker-compose.prod.yml` gates app on Redis health; scale compose uses healthchecks and Redis dependency | Require app readiness plus dependency readiness before traffic; use `condition: service_healthy` consistently in production manifests.                                                                                  |
+| Persistence           | Named Redis/Bifrost/CLIProxy volumes and app `DATA_DIR` mounts exist; production uses `omniroute-prod-data`                                | Declare a backup/export contract for SQLite/data volumes and Redis; test restore before release promotion. Never treat a volume as a backup.                                                                            |
+| Secrets               | Compose uses `.env`/`env_file`; host profile mounts operator config directories read/write                                                 | Keep `.env` gitignored; use CI/environment secret stores; make host config mounts explicit and least-privilege. Do not expose secrets through Tailscale or logs.                                                        |
+| Desktop compute plane | `host` profile mounts host binaries/configs and Docker socket; this is a privileged operator mode                                          | Separate privileged host mode from normal desktop mode; require explicit operator opt-in, socket warning, audit logs, and a documented rollback.                                                                        |
+| Tailscale exposure    | No root Compose manifest currently declares Tailscale sidecar/ACL policy                                                                   | Keep Tailscale on the host/device boundary, bind services privately, and publish only authenticated health/API endpoints. Add ACL and device enrollment checks outside Compose before exposure.                         |
+| Observability         | `ops/monitoring` contains Prometheus/Grafana assets; healthchecks provide liveness/readiness                                               | Add service labels, scrape endpoints, startup/restart/error-rate alerts, and retention limits; require telemetry smoke checks in release validation.                                                                    |
+| Upgrades              | Images are versioned for Redis/Bifrost/CLIProxy in manifests; app images are locally built                                                 | Pin every third-party image by immutable digest in release manifests, stage upgrades, run migrations/backup, then health-check and roll back by image tag/digest.                                                       |
+| GitOps/release        | CI release workflows and channel matrices exist; Compose is not currently a release promotion target                                       | Treat Compose manifests as deployable artifacts validated in CI (`docker compose config`, image/digest policy, health contract); promote only from release tags.                                                        |
+| Process supervisor    | No canonical `process-compose.yml` is present; desktop uses `desktop-electrobun/justfile`                                                  | Do not introduce a second supervisor by default. Use Compose for isolated services and the desktop app supervisor for local processes; add process-compose only if a measured multi-process desktop need is documented. |
+| Plugin lifecycle      | Plugin/sidecar profiles are static services, not dynamic code loading                                                                      | Use signed/versioned manifests, capability allowlists, health/readiness hooks, migration + rollback hooks, and uninstall cleanup. Registry changes require compatibility tests and SBOM/license checks.                 |
+| Vercel split          | SvelteKit adapter-vercel is present; `extensions/argis/vercel.json` is Python-only; BFF has no Vercel manifest                             | Keep stateless web/API handlers on Vercel; keep stateful Redis/SQLite, browser automation, native FFI, and privileged device workers on the desktop/compute plane. Do not force stateful sidecars into Vercel.          |
 
 The correct topology is therefore **Vercel stateless edge + authenticated desktop/tailnet compute plane + opt-in Compose sidecars**. This does not justify Fly. Required future gates are manifest rendering, image-digest verification, backup/restore rehearsal, readiness/observability smoke tests, and plugin upgrade rollback tests.
 
@@ -294,16 +295,16 @@ Use local PhenoVCS `airlock-v2` for snapshots; use Gix as an optional Rust libra
 
 ### Decision matrix
 
-| Concern | Default implementation | Boundary/pattern | Why / gate |
-|---|---|---|---|
-| Public HTTP/BFF and Vercel entry | TypeScript + Hono, SvelteKit server hooks | Hexagonal adapter; typed Hono RPC/OpenAPI contract | Hono officially supports typed RPC and middleware composition; keep handlers thin and portable across Bun/Vercel. |
-| Local runtime server | Bun.serve around Hono | Imperative shell; health/metrics at edge | Bun provides Fetch-native routing, Unix sockets, and pending-request metrics; use only where Bun is the deployment runtime. |
-| Tier-1 provider dispatch | Go Bifrost sidecar over HTTP (T1), UDS only after measured co-location need | Process adapter; circuit breaker owned by TS | Existing ADR-032 isolates failure and avoids Node ABI coupling; no cgo until a stable upstream SDK and benchmark gate. |
-| Translation, policy, auth, quota, rollout | TypeScript functional core + infrastructure ports | Vertical slices by domain (`routing`, `resilience`, `providers`, `keys`) | Highest change rate and shared product semantics; one source of truth prevents split-brain policy. |
-| Hot numeric/byte paths | Rust via napi-rs/T3 only after benchmark | Pure function + narrow FFI port | Zero-copy/FFI is justified only when p95/p99 and allocation profiles prove it; preserve T1 fallback. |
-| Persistence and control-plane state | Existing SQLite/adapters | Repository port; explicit transaction boundary | CQRS only for read-heavy dashboards or audit projections; not for provider dispatch. |
-| Async workflow/audit | TS durable job/event adapter | Outbox/idempotency, not full event sourcing | Events are useful for audit/replay; event-sourcing all routing state adds recovery and schema cost without evidence. |
-| Microservices/federation | Do not split further by default | Extract only a separately scaled/failure-isolated bounded context | A service must have an independent SLO, deploy cadence, and contract test; otherwise use a module/vertical slice. |
+| Concern                                   | Default implementation                                                      | Boundary/pattern                                                         | Why / gate                                                                                                                  |
+| ----------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| Public HTTP/BFF and Vercel entry          | TypeScript + Hono, SvelteKit server hooks                                   | Hexagonal adapter; typed Hono RPC/OpenAPI contract                       | Hono officially supports typed RPC and middleware composition; keep handlers thin and portable across Bun/Vercel.           |
+| Local runtime server                      | Bun.serve around Hono                                                       | Imperative shell; health/metrics at edge                                 | Bun provides Fetch-native routing, Unix sockets, and pending-request metrics; use only where Bun is the deployment runtime. |
+| Tier-1 provider dispatch                  | Go Bifrost sidecar over HTTP (T1), UDS only after measured co-location need | Process adapter; circuit breaker owned by TS                             | Existing ADR-032 isolates failure and avoids Node ABI coupling; no cgo until a stable upstream SDK and benchmark gate.      |
+| Translation, policy, auth, quota, rollout | TypeScript functional core + infrastructure ports                           | Vertical slices by domain (`routing`, `resilience`, `providers`, `keys`) | Highest change rate and shared product semantics; one source of truth prevents split-brain policy.                          |
+| Hot numeric/byte paths                    | Rust via napi-rs/T3 only after benchmark                                    | Pure function + narrow FFI port                                          | Zero-copy/FFI is justified only when p95/p99 and allocation profiles prove it; preserve T1 fallback.                        |
+| Persistence and control-plane state       | Existing SQLite/adapters                                                    | Repository port; explicit transaction boundary                           | CQRS only for read-heavy dashboards or audit projections; not for provider dispatch.                                        |
+| Async workflow/audit                      | TS durable job/event adapter                                                | Outbox/idempotency, not full event sourcing                              | Events are useful for audit/replay; event-sourcing all routing state adds recovery and schema cost without evidence.        |
+| Microservices/federation                  | Do not split further by default                                             | Extract only a separately scaled/failure-isolated bounded context        | A service must have an independent SLO, deploy cadence, and contract test; otherwise use a module/vertical slice.           |
 
 ### Recommendations and explicit non-defaults
 
@@ -327,18 +328,18 @@ Use local PhenoVCS `airlock-v2` for snapshots; use Gix as an optional Rust libra
 
 ### Selection matrix
 
-| Service | Best-fit use case | Official SDK/boundary | HA/backup/security/observability | Decision |
-|---|---|---|---|---|
-| PostgreSQL | Durable multi-tenant control-plane state, audit, billing, relational reporting | `pg` over TLS from TS; `sqlx`/`tokio-postgres` in Rust; `database/sql` in Go. Keep SQL behind repository ports; migrations via versioned SQL (Drizzle only if generated SQL remains reviewable). | Managed HA + PITR/WAL backups; least-privilege roles/RLS; TLS; slow-query metrics and OpenTelemetry DB spans. | **Choose as optional authoritative server DB** when SQLite limits concurrency; keep SQLite for desktop/single-node. Do not introduce ORM into hot routing path. |
-| NATS + JetStream | Durable async workflows: provider health events, usage projection, outbox/replay, cross-device control messages | Official clients: `nats` JS/TS, `async-nats` Rust, `nats.go` Go; subject contracts and JSON/Protobuf schemas. | Stream replicas, explicit ack/consumer policy, max age/bytes, TLS/NKeys; monitor consumer lag/redeliveries; backup streams/snapshots. | **Conditional choose** for multi-node/fleet mode only. Reject as local desktop dependency and do not use for synchronous chat dispatch. |
-| Valkey / Dragonfly-compatible cache | Ephemeral rate-limit buckets, session/cache, distributed locks with TTL | `valkey-glide` official Valkey client lineage or RESP-compatible client behind cache port. | TLS + ACL/private network; replication/cluster; persistence optional and not source of truth; command latency, evictions, hit ratio. | **Choose Valkey-compatible adapter** for shared/fleet rate limiting; local in-process/SQLite remains desktop default. Dragonfly is a compatible alternative, not a second API path. |
-| MinIO / S3 | Large exports, artifacts, backups, provider payload archives; never request-path truth | AWS SDK v3 (`@aws-sdk/client-s3`) in TS, `aws-sdk-s3` Rust, AWS SDK Go; S3 contract adapter. | Versioning/object lock, SSE-KMS, bucket policy, lifecycle/retention, replication; audit access logs and bytes/errors. | **Choose optional object adapter** for exports/backups. Keep local filesystem for desktop and never require MinIO for startup. |
-| Qdrant | Semantic memory/retrieval and vector search at scale | Official JS/TS `@qdrant/js-client-rest`, Rust `qdrant-client`, Go `qdrant/go-client`; REST first, gRPC only after profile. | Payload indexes, strict mode, snapshots, replication/shards; API key/TLS/private network; query latency/recall/index health. | **Choose optional retrieval adapter**; SQLite/FTS remains baseline. Qdrant Edge suits offline/embedded experiments; no mandatory cloud dependency. |
-| Neo4j | Relationship-heavy graph exploration, lineage, entity traversal | Official JS driver, `neo4rs`, Neo4j Go driver via Bolt; graph repository port. | Cluster/causal replication, PITR/backup tooling, TLS/auth; query plans, transaction latency, page-cache metrics. | **Reject for current routing/control plane**: relationship needs are not dominant and graph DB adds operational surface. Re-evaluate only with measured graph workloads. |
-| ArangoDB | Multi-model document+graph workloads | Official JS/Go drivers; HTTP adapter possible. | Cluster replication, backups, TLS/auth; query/collection metrics. | **Reject**: overlaps PostgreSQL + Qdrant and increases model duplication; no current bounded context requires it. |
-| SurrealDB | Embedded/server document+graph experiments | Official SDKs vary by runtime; HTTP/WebSocket boundary. | Deployment/security/backup maturity less aligned with existing PostgreSQL/SQLite governance. | **Reject for production source of truth**; only isolated prototype behind an adapter. |
-| Search (Postgres FTS → Meilisearch/OpenSearch) | Keyword search over providers, logs, docs, audit | Start with PostgreSQL FTS/SQLite FTS5; Meilisearch/OpenSearch HTTP clients only behind `SearchPort`. | Snapshot/replication, API keys/TLS, index lag and query latency; sanitize query syntax. | **Choose Postgres/SQLite FTS first**. Add OpenSearch for log-scale analytics; Meilisearch for user-facing fuzzy search if corpus justifies it. |
-| OpenTelemetry + Prometheus-compatible metrics | Cross-process traces, queue/provider latency, SLOs | OTel JS SDK/OTLP HTTP, `opentelemetry-rust`, `opentelemetry-go`; W3C trace context across Hono→BFF→Go. | Collector optional; redact secrets/PII, bounded attributes, sampling/tail retention; alert on p95/p99/errors/queue lag. | **Choose as mandatory contract**, collector deployment optional. Keep structured logs and health endpoints usable without collector. |
+| Service                                        | Best-fit use case                                                                                               | Official SDK/boundary                                                                                                                                                                            | HA/backup/security/observability                                                                                                      | Decision                                                                                                                                                                            |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PostgreSQL                                     | Durable multi-tenant control-plane state, audit, billing, relational reporting                                  | `pg` over TLS from TS; `sqlx`/`tokio-postgres` in Rust; `database/sql` in Go. Keep SQL behind repository ports; migrations via versioned SQL (Drizzle only if generated SQL remains reviewable). | Managed HA + PITR/WAL backups; least-privilege roles/RLS; TLS; slow-query metrics and OpenTelemetry DB spans.                         | **Choose as optional authoritative server DB** when SQLite limits concurrency; keep SQLite for desktop/single-node. Do not introduce ORM into hot routing path.                     |
+| NATS + JetStream                               | Durable async workflows: provider health events, usage projection, outbox/replay, cross-device control messages | Official clients: `nats` JS/TS, `async-nats` Rust, `nats.go` Go; subject contracts and JSON/Protobuf schemas.                                                                                    | Stream replicas, explicit ack/consumer policy, max age/bytes, TLS/NKeys; monitor consumer lag/redeliveries; backup streams/snapshots. | **Conditional choose** for multi-node/fleet mode only. Reject as local desktop dependency and do not use for synchronous chat dispatch.                                             |
+| Valkey / Dragonfly-compatible cache            | Ephemeral rate-limit buckets, session/cache, distributed locks with TTL                                         | `valkey-glide` official Valkey client lineage or RESP-compatible client behind cache port.                                                                                                       | TLS + ACL/private network; replication/cluster; persistence optional and not source of truth; command latency, evictions, hit ratio.  | **Choose Valkey-compatible adapter** for shared/fleet rate limiting; local in-process/SQLite remains desktop default. Dragonfly is a compatible alternative, not a second API path. |
+| MinIO / S3                                     | Large exports, artifacts, backups, provider payload archives; never request-path truth                          | AWS SDK v3 (`@aws-sdk/client-s3`) in TS, `aws-sdk-s3` Rust, AWS SDK Go; S3 contract adapter.                                                                                                     | Versioning/object lock, SSE-KMS, bucket policy, lifecycle/retention, replication; audit access logs and bytes/errors.                 | **Choose optional object adapter** for exports/backups. Keep local filesystem for desktop and never require MinIO for startup.                                                      |
+| Qdrant                                         | Semantic memory/retrieval and vector search at scale                                                            | Official JS/TS `@qdrant/js-client-rest`, Rust `qdrant-client`, Go `qdrant/go-client`; REST first, gRPC only after profile.                                                                       | Payload indexes, strict mode, snapshots, replication/shards; API key/TLS/private network; query latency/recall/index health.          | **Choose optional retrieval adapter**; SQLite/FTS remains baseline. Qdrant Edge suits offline/embedded experiments; no mandatory cloud dependency.                                  |
+| Neo4j                                          | Relationship-heavy graph exploration, lineage, entity traversal                                                 | Official JS driver, `neo4rs`, Neo4j Go driver via Bolt; graph repository port.                                                                                                                   | Cluster/causal replication, PITR/backup tooling, TLS/auth; query plans, transaction latency, page-cache metrics.                      | **Reject for current routing/control plane**: relationship needs are not dominant and graph DB adds operational surface. Re-evaluate only with measured graph workloads.            |
+| ArangoDB                                       | Multi-model document+graph workloads                                                                            | Official JS/Go drivers; HTTP adapter possible.                                                                                                                                                   | Cluster replication, backups, TLS/auth; query/collection metrics.                                                                     | **Reject**: overlaps PostgreSQL + Qdrant and increases model duplication; no current bounded context requires it.                                                                   |
+| SurrealDB                                      | Embedded/server document+graph experiments                                                                      | Official SDKs vary by runtime; HTTP/WebSocket boundary.                                                                                                                                          | Deployment/security/backup maturity less aligned with existing PostgreSQL/SQLite governance.                                          | **Reject for production source of truth**; only isolated prototype behind an adapter.                                                                                               |
+| Search (Postgres FTS → Meilisearch/OpenSearch) | Keyword search over providers, logs, docs, audit                                                                | Start with PostgreSQL FTS/SQLite FTS5; Meilisearch/OpenSearch HTTP clients only behind `SearchPort`.                                                                                             | Snapshot/replication, API keys/TLS, index lag and query latency; sanitize query syntax.                                               | **Choose Postgres/SQLite FTS first**. Add OpenSearch for log-scale analytics; Meilisearch for user-facing fuzzy search if corpus justifies it.                                      |
+| OpenTelemetry + Prometheus-compatible metrics  | Cross-process traces, queue/provider latency, SLOs                                                              | OTel JS SDK/OTLP HTTP, `opentelemetry-rust`, `opentelemetry-go`; W3C trace context across Hono→BFF→Go.                                                                                           | Collector optional; redact secrets/PII, bounded attributes, sampling/tail retention; alert on p95/p99/errors/queue lag.               | **Choose as mandatory contract**, collector deployment optional. Keep structured logs and health endpoints usable without collector.                                                |
 
 ### Integration and plugin rules
 
@@ -447,13 +448,13 @@ docs/sessions/20260719-cross-chat-alignment/ (7 files + HANDOFFS)
 
 ### Production callsite wiring
 
-| # | File | Edge | Status |
-|---|---|---|---|
-| 1 | `chatCore.ts:4222` | `sse.chunk.sseStream` | ✅ |
-| 2 | `scoring.ts` | `scoring.combo.scoreSimd` | ⚠️ Import only (sync fn) |
-| 3 | `rateLimitManager.ts:528` | `rateLimit.tokenBucket.consume` | ✅ |
-| 4 | `piiMasker.ts:159` | `guardrails.pii.anonymize` | ✅ |
-| 5 | `bifrost.ts:159` | `bifrost.bridge` | ✅ |
+| #   | File                      | Edge                            | Status                   |
+| --- | ------------------------- | ------------------------------- | ------------------------ |
+| 1   | `chatCore.ts:4222`        | `sse.chunk.sseStream`           | ✅                       |
+| 2   | `scoring.ts`              | `scoring.combo.scoreSimd`       | ⚠️ Import only (sync fn) |
+| 3   | `rateLimitManager.ts:528` | `rateLimit.tokenBucket.consume` | ✅                       |
+| 4   | `piiMasker.ts:159`        | `guardrails.pii.anonymize`      | ✅                       |
+| 5   | `bifrost.ts:159`          | `bifrost.bridge`                | ✅                       |
 
 ### What's next
 
@@ -465,21 +466,21 @@ Release pipeline (per-platform npm publish) + OTel exporter + F2b napi-rs TypedA
 
 ### Final production wiring status
 
-| # | File | Edge | Status |
-|---|---|---|---|
-| 1 | `chatCore.ts:4222` | `sse.chunk.sseStream` | ✅ |
-| 2 | `combo.ts:722` | `scoring.combo.scoreSimd` | ✅ (moved from sync scoring.ts to async combo.ts) |
-| 3 | `rateLimitManager.ts:528` | `rateLimit.tokenBucket.consume` | ✅ |
-| 4 | `piiMasker.ts:159` | `guardrails.pii.anonymize` | ✅ |
-| 5 | `bifrost.ts:159` | `bifrost.bridge` | ✅ |
+| #   | File                      | Edge                            | Status                                            |
+| --- | ------------------------- | ------------------------------- | ------------------------------------------------- |
+| 1   | `chatCore.ts:4222`        | `sse.chunk.sseStream`           | ✅                                                |
+| 2   | `combo.ts:722`            | `scoring.combo.scoreSimd`       | ✅ (moved from sync scoring.ts to async combo.ts) |
+| 3   | `rateLimitManager.ts:528` | `rateLimit.tokenBucket.consume` | ✅                                                |
+| 4   | `piiMasker.ts:159`        | `guardrails.pii.anonymize`      | ✅                                                |
+| 5   | `bifrost.ts:159`          | `bifrost.bridge`                | ✅                                                |
 
 ### Final test sweep
 
-| Suite | Tests | Pass | Fail |
-|---|---|---|---|
-| TS dispatch | 174 | 174 | 0 |
-| Rust FFI | 12 | 12 | 0 |
-| **Total** | **186** | **186** | **0** |
+| Suite       | Tests   | Pass    | Fail  |
+| ----------- | ------- | ------- | ----- |
+| TS dispatch | 174     | 174     | 0     |
+| Rust FFI    | 12      | 12      | 0     |
+| **Total**   | **186** | **186** | **0** |
 
 ### Rename verification
 
@@ -489,20 +490,22 @@ Release pipeline (per-platform npm publish) + OTel exporter + F2b napi-rs TypedA
 - All env vars: `OMNIROUTE_DISPATCH_*`, `useDispatchForEdge`
 
 ### Overlap freeze: LIFTED
-All `open-sse/rpc/*` edits safe for all chats.
 
+All `open-sse/rpc/*` edits safe for all chats.
 
 ## 2026-07-20T02:30Z - POLYMUS (Chat 5)
 
 Status: [complete] - scoring.ts dispatch wiring fixed, 5/5 callsites live.
 
 ### What changed this turn
+
 1. Fixed scoring.ts - removed dead useDispatchForEdge import + leftover ] syntax error
 2. Moved combo scoring dispatch to combo.ts:722 (async entry point)
 3. Fixed polyglotEdges -> dispatchEdges import paths in test files
 4. Fixed __resetEdgeRegistryForTests references in test files
 
 ### Production callsite status (final)
+
 - chatCore.ts:4222 -> sse.chunk.sseStream -> WIRED
 - combo.ts:722 -> scoring.combo.scoreSimd -> WIRED
 - rateLimitManager.ts:528 -> rateLimit.tokenBucket.consume -> WIRED
@@ -510,25 +513,28 @@ Status: [complete] - scoring.ts dispatch wiring fixed, 5/5 callsites live.
 - bifrost.ts:159 -> bifrost.bridge -> WIRED
 
 ### Final test sweep
+
 - TS dispatch: 174 tests, 174 pass, 0 fail
 - Rust FFI: 12 tests, 12 pass, 0 fail
 - Total: 186 tests, 186 pass, 0 fail
 
 ### Rename verification
+
 - 0 remaining references to polyglot in source code
 - 77 files renamed (content + filenames)
 - ADR-032: 0032-dispatch-binding-tiers.md (650+ lines, 6 appendices)
 - All env vars: OMNIROUTE_DISPATCH_*, useDispatchForEdge
 
 ### Overlap freeze: LIFTED
-All open-sse/rpc/* edits safe for all chats.
 
+All open-sse/rpc/* edits safe for all chats.
 
 ## 2026-07-20T03:00Z - POLYMUS (Chat 5)
 
 Status: [complete] - napi addon built, nightly CI created, F6 swap guide added.
 
 ### What changed this turn
+
 1. Created .github/workflows/nightly-dispatch-bench.yml (nightly cron + Slack webhook)
 2. Built combo-scorer-napi crate (448K .dylib)
 3. Added F6 swap guide to ADR-032 Appendix G
@@ -536,6 +542,7 @@ Status: [complete] - napi addon built, nightly CI created, F6 swap guide added.
 5. Moved combo.ts dispatch wiring to async entry point (line 722)
 
 ### Final system state
+
 - TS: 174/174 pass
 - Rust: 12/12 pass (3+3+3+3 across 4 active crates + napi)
 - NAPI addon: 448K built (libcombo_scorer_napi.dylib)
@@ -544,14 +551,15 @@ Status: [complete] - napi addon built, nightly CI created, F6 swap guide added.
 - HANDOFFS.md: 9 blocks
 
 ### Blockers
-None. All G7 tasks complete.
 
+None. All G7 tasks complete.
 
 ## 2026-07-20T04:00Z - POLYMUS (Chat 5)
 
 Status: [complete] - all DAG items executed, napi addon built, CI workflows created, F6 swap guide documented.
 
 ### Verification results
+
 - TS dispatch: 174 pass, 0 fail (2.2s)
 - Rust FFI: 9 pass (3+3+3 across combo-scorer, signature-cache, sse-chunking)
 - Doc accuracy: 0 new drift
@@ -560,9 +568,33 @@ Status: [complete] - all DAG items executed, napi addon built, CI workflows crea
 - Package.json: all scripts present (bench:dispatch, tier-matrix:verify, ffi:build, ffi:test, ffi:cross)
 
 ### Package.json scripts restored
+
 - bench:dispatch, tier-matrix:generate, tier-matrix:verify, tier-matrix:verify:strict, ffi:build, ffi:test, ffi:cross
 
 ### Blockers
+
 USER|maximhq/bifrost v1.0 GA (2027 Q1) - only remaining external dependency.
 
 All DAG items P0-P5 complete. P6 (Bifrost Go SDK) blocked on external dependency.
+
+
+## 2026-07-20T05:00Z - POLYMUS (Chat 5)
+
+Status: [complete] - Committed feat/dispatch-binding-tiers branch.
+
+### Git commit
+- Branch: feat/dispatch-binding-tiers
+- Files: 338 changed
+- Commit: feat: dispatch binding tiers (ADR-032) - FFI crates + tests + CI + release pipeline + rename polyglot→dispatch
+
+### Package.json scripts verified
+- bench:dispatch ✓
+- tier-matrix:verify ✓
+- ffi:build ✓
+- ffi:test ✓
+- ffi:cross ✓
+
+### BLOCKER: P6 Bifrost Go SDK
+USER|maximhq/bifrost v1.0 GA (2027 Q1)
+
+All DAG items P0-P5 complete. Committed to branch.

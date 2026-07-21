@@ -108,6 +108,7 @@ All diffs below are **exact line-level** — apply after Chat 2's #386 merge SHA
 ## Guard: env gate
 
 All 5 diffs above are gated by:
+
 ```ts
 if (process.env.OMNIROUTE_DISPATCH_HOT_PATH_ENABLED !== "true") {
   // skip dispatch, use existing behavior

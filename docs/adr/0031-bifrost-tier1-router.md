@@ -84,7 +84,7 @@ This is a **2-tier** architecture (same pattern as Envoy AI Gateway's two-tier m
 
 ### Option D: sglang direct (Python+Rust, Apache-2.0, 17k stars) — REJECTED
 
-- Same analysis as vLLM. Inference engine with model-gateway *mode*; not a multi-provider router.
+- Same analysis as vLLM. Inference engine with model-gateway _mode_; not a multi-provider router.
 
 ### Option E: LiteLLM (Python, MIT, 50.8k stars) — REJECTED
 
@@ -118,16 +118,16 @@ This is a **2-tier** architecture (same pattern as Envoy AI Gateway's two-tier m
 
 ## Decision Matrix
 
-| Criterion | Bifrost (A) | sgl-model-gateway (B) | vLLM/sglang (C/D) | LiteLLM (E) | Envoy AI (F) | Hand-roll Rust/Zig/Mojo (G/H/I) |
-|---|---|---|---|---|---|---|
-| Fit for multi-provider router | ✅ High | ❌ Workers-only | ❌ Inference engine | ✅ High | ⚠️ General | ⚠️ TBD |
-| Latency overhead | <100µs | low (Rust) | n/a (wrong role) | ~8ms (Python) | low (Go) | low (after months of work) |
-| Provider coverage | 23+ (matches tier-1) | 1 (SGLang) | 1 (per model) | 100+ | n/a (lower-level) | n/a |
-| Ecosystem reuse | ✅ (vendored) | ⚠️ (specialized) | ❌ (wrong role) | ✅ (mature) | ✅ (CNCF) | ❌ (none) |
-| Implementation effort | 1-2 weeks (executor + map) | 3-6 months (fork) | 12 months | 3-6 months (Python integration) | 3-6 months (custom config) | 6-12 months (build) |
-| License compatibility | MIT | Apache-2.0 | Apache-2.0 | MIT | Apache-2.0 | n/a |
-| Fleet language alignment | ✅ Go (matches fleet) | ⚠️ Rust (1 repo) | ⚠️ Python (2 repos) | ❌ Python-heavy | ✅ Go (matches fleet) | ❌ New language (Zig/Mojo) or redundant (Rust) |
-| Already vendored locally | ✅ (5 copies) | ❌ | ❌ | ❌ | ❌ | n/a |
+| Criterion                     | Bifrost (A)                | sgl-model-gateway (B) | vLLM/sglang (C/D)   | LiteLLM (E)                     | Envoy AI (F)               | Hand-roll Rust/Zig/Mojo (G/H/I)                |
+| ----------------------------- | -------------------------- | --------------------- | ------------------- | ------------------------------- | -------------------------- | ---------------------------------------------- |
+| Fit for multi-provider router | ✅ High                    | ❌ Workers-only       | ❌ Inference engine | ✅ High                         | ⚠️ General                 | ⚠️ TBD                                         |
+| Latency overhead              | <100µs                     | low (Rust)            | n/a (wrong role)    | ~8ms (Python)                   | low (Go)                   | low (after months of work)                     |
+| Provider coverage             | 23+ (matches tier-1)       | 1 (SGLang)            | 1 (per model)       | 100+                            | n/a (lower-level)          | n/a                                            |
+| Ecosystem reuse               | ✅ (vendored)              | ⚠️ (specialized)      | ❌ (wrong role)     | ✅ (mature)                     | ✅ (CNCF)                  | ❌ (none)                                      |
+| Implementation effort         | 1-2 weeks (executor + map) | 3-6 months (fork)     | 12 months           | 3-6 months (Python integration) | 3-6 months (custom config) | 6-12 months (build)                            |
+| License compatibility         | MIT                        | Apache-2.0            | Apache-2.0          | MIT                             | Apache-2.0                 | n/a                                            |
+| Fleet language alignment      | ✅ Go (matches fleet)      | ⚠️ Rust (1 repo)      | ⚠️ Python (2 repos) | ❌ Python-heavy                 | ✅ Go (matches fleet)      | ❌ New language (Zig/Mojo) or redundant (Rust) |
+| Already vendored locally      | ✅ (5 copies)              | ❌                    | ❌                  | ❌                              | ❌                         | n/a                                            |
 
 **A (Bifrost) wins on every dimension except provider count (Bifrost 23 vs LiteLLM 100+), but Bifrost's 23 covers all of OmniRoute's tier-1 surface.**
 
@@ -151,17 +151,17 @@ This is a **2-tier** architecture (same pattern as Envoy AI Gateway's two-tier m
 
 ### Neutral
 
-- The existing 232-provider catalog and 15-routing-strategy policy engine stay in OmniRoute. Bifrost is a *new tier*, not a *replacement* of OmniRoute's higher layers.
+- The existing 232-provider catalog and 15-routing-strategy policy engine stay in OmniRoute. Bifrost is a _new tier_, not a _replacement_ of OmniRoute's higher layers.
 - The A2A server, MCP-router, ACP registry, skill registry, and policy engine are unchanged. The 2-tier model is additive.
 
 ## Rollout Plan
 
-| Milestone | Version | Date | Action |
-|---|---|---|---|
-| **M1 (this turn)** | v8.1 | 2026-06-18 | Land `BifrostBackend` executor + provider map + tests. Opt-in per-combo. |
-| **M2** | v8.2 | Q3 2026 | Default to Bifrost for the 23+ tier-1 providers; keep OmniRoute's executors as fallback for tier-2/tier-3. |
-| **M3** | v8.3 | Q4 2026 | Move semantic cache upstream-of-OmniRoute (Bifrost owns the cache key, OmniRoute reads via metadata). |
-| **M4** | v9.0 | 2027 Q1 | Evaluate in-process Go SDK vs sidecar; pick based on benchmark. |
+| Milestone          | Version | Date       | Action                                                                                                     |
+| ------------------ | ------- | ---------- | ---------------------------------------------------------------------------------------------------------- |
+| **M1 (this turn)** | v8.1    | 2026-06-18 | Land `BifrostBackend` executor + provider map + tests. Opt-in per-combo.                                   |
+| **M2**             | v8.2    | Q3 2026    | Default to Bifrost for the 23+ tier-1 providers; keep OmniRoute's executors as fallback for tier-2/tier-3. |
+| **M3**             | v8.3    | Q4 2026    | Move semantic cache upstream-of-OmniRoute (Bifrost owns the cache key, OmniRoute reads via metadata).      |
+| **M4**             | v9.0    | 2027 Q1    | Evaluate in-process Go SDK vs sidecar; pick based on benchmark.                                            |
 
 ## Cross-References
 
