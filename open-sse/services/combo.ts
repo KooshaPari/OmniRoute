@@ -429,9 +429,16 @@ export async function buildAutoCandidates(
       const model = parsed.model || modelStr;
       const historicalKey = `${provider}/${model}`;
       const historicalModelMetric = historicalLatencyStats[historicalKey] || null;
-      const historicalTotal = Number(historicalModelMetric?.totalRequests);
-      const hasHistoricalSignal =
-        Number.isFinite(historicalTotal) && historicalTotal >= MIN_HISTORY_SAMPLES;
+      const historicalLatencySamples = Number(historicalModelMetric?.latencySampleCount);
+      const historicalTtftSamples = Number(historicalModelMetric?.ttftSampleCount);
+      const historicalTpsSamples = Number(historicalModelMetric?.tpsSampleCount);
+      const hasLatencySignal =
+        Number.isFinite(historicalLatencySamples) &&
+        historicalLatencySamples >= MIN_HISTORY_SAMPLES;
+      const hasTtftSignal =
+        Number.isFinite(historicalTtftSamples) && historicalTtftSamples >= MIN_HISTORY_SAMPLES;
+      const hasTpsSignal =
+        Number.isFinite(historicalTpsSamples) && historicalTpsSamples >= MIN_HISTORY_SAMPLES;
 
       let costPer1MTokens = 1;
       try {
@@ -454,10 +461,13 @@ export async function buildAutoCandidates(
       const avgLatency = Number(modelMetric?.avgLatencyMs);
       const successRate = Number(modelMetric?.successRate);
       const historicalP95Latency = Number(historicalModelMetric?.p95LatencyMs);
+      const historicalAvgLatency = Number(historicalModelMetric?.avgLatencyMs);
+      const historicalAvgTtft = Number(historicalModelMetric?.avgTtftMs);
+      const historicalAvgTokensPerSecond = Number(historicalModelMetric?.avgTokensPerSecond);
       const historicalStdDev = Number(historicalModelMetric?.latencyStdDev);
       const historicalSuccessRate = Number(historicalModelMetric?.successRate); // 0..1
 
-      const p95LatencyMs = hasHistoricalSignal
+      const p95LatencyMs = hasLatencySignal
         ? Number.isFinite(historicalP95Latency) && historicalP95Latency > 0
           ? historicalP95Latency
           : getBootstrapLatencyMs(model)
@@ -465,7 +475,7 @@ export async function buildAutoCandidates(
           ? avgLatency
           : getBootstrapLatencyMs(model);
 
-      const errorRate = hasHistoricalSignal
+      const errorRate = hasLatencySignal
         ? Number.isFinite(historicalSuccessRate) &&
           historicalSuccessRate >= 0 &&
           historicalSuccessRate <= 1
@@ -475,9 +485,23 @@ export async function buildAutoCandidates(
           ? 1 - successRate / 100
           : 0.05;
       const latencyStdDev =
-        hasHistoricalSignal && Number.isFinite(historicalStdDev) && historicalStdDev > 0
+        hasLatencySignal && Number.isFinite(historicalStdDev) && historicalStdDev > 0
           ? Math.max(10, historicalStdDev)
           : Math.max(10, p95LatencyMs * 0.1);
+      const avgE2ELatencyMs =
+        hasLatencySignal && Number.isFinite(historicalAvgLatency) && historicalAvgLatency > 0
+          ? historicalAvgLatency
+          : undefined;
+      const avgTtftMs =
+        hasTtftSignal && Number.isFinite(historicalAvgTtft) && historicalAvgTtft > 0
+          ? historicalAvgTtft
+          : undefined;
+      const avgTokensPerSecond =
+        hasTpsSignal &&
+        Number.isFinite(historicalAvgTokensPerSecond) &&
+        historicalAvgTokensPerSecond > 0
+          ? historicalAvgTokensPerSecond
+          : undefined;
 
       const breakerStateRaw = getCircuitBreaker(provider)?.getStatus?.()?.state;
       const circuitBreakerState: ProviderCandidate["circuitBreakerState"] =
@@ -557,6 +581,9 @@ export async function buildAutoCandidates(
         circuitBreakerState,
         costPer1MTokens,
         p95LatencyMs,
+        avgTtftMs,
+        avgE2ELatencyMs,
+        avgTokensPerSecond,
         latencyStdDev,
         errorRate,
         accountTier: "standard" as const,

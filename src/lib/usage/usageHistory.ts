@@ -680,9 +680,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
         Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
         Number.isFinite(Number(entry.timeToFirstTokenMs))
           ? Number(entry.timeToFirstTokenMs)
-          : Number.isFinite(Number(entry.latencyMs))
-            ? Number(entry.latencyMs)
-            : 0,
+          : 0,
         entry.errorCode || null,
         entry.comboStrategy || entry.combo_strategy || null,
         entry.endpoint || null,
@@ -774,6 +772,8 @@ export interface ModelLatencyStatsEntry {
   provider: string;
   model: string;
   key: string;
+  /** Present when stats were requested with connection-qualified keys. */
+  connectionId?: string;
   totalRequests: number;
   successfulRequests: number;
   successRate: number; // 0..1
@@ -782,6 +782,16 @@ export interface ModelLatencyStatsEntry {
   p95LatencyMs: number;
   p99LatencyMs: number;
   latencyStdDev: number;
+  /** Number of valid latency samples used for the latency aggregates. */
+  latencySampleCount: number;
+  /** Average positive streaming TTFT, when telemetry is available. */
+  avgTtftMs?: number;
+  /** Number of valid TTFT samples used for avgTtftMs. */
+  ttftSampleCount: number;
+  /** Average output tokens per second, when output, TTFT, and generation duration are valid. */
+  avgTokensPerSecond?: number;
+  /** Number of valid TPS samples used for avgTokensPerSecond. */
+  tpsSampleCount: number;
   windowHours: number;
 }
 
@@ -790,7 +800,15 @@ export interface ModelLatencyStatsEntry {
  * Used by auto-combo routing to incorporate real-world latency and reliability.
  */
 export async function getModelLatencyStats(
-  options: { windowHours?: number; minSamples?: number; maxRows?: number } = {}
+  options: {
+    windowHours?: number;
+    minSamples?: number;
+    maxRows?: number;
+    /** Restrict the aggregate to one connection without changing its key shape. */
+    connectionId?: string | null;
+    /** Opt in to `${provider}/${model}/${connectionId}` keys for connection history. */
+    keyByConnectionId?: boolean;
+  } = {}
 ): Promise<Record<string, ModelLatencyStatsEntry>> {
   const windowHours =
     Number.isFinite(Number(options.windowHours)) && Number(options.windowHours) > 0
@@ -811,33 +829,50 @@ export async function getModelLatencyStats(
   type LatencyRow = {
     provider: string | null;
     model: string | null;
+    connection_id: string | null;
     success: number | null;
     latency_ms: number | null;
+    ttft_ms: number | null;
+    tokens_output: number | null;
   };
 
+  const connectionFilter =
+    typeof options.connectionId === "string" && options.connectionId.length > 0
+      ? " AND connection_id = @connectionId"
+      : "";
   const rows = db
     .prepare(
       `
-      SELECT provider, model, success, latency_ms
+      SELECT provider, model, connection_id, success, latency_ms, ttft_ms, tokens_output
       FROM usage_history
       WHERE timestamp >= @sinceIso
         AND provider IS NOT NULL
         AND model IS NOT NULL
+        ${connectionFilter}
       ORDER BY timestamp DESC
       LIMIT @maxRows
     `
     )
-    .all({ sinceIso, maxRows }) as LatencyRow[];
+    .all({
+      sinceIso,
+      maxRows,
+      ...(connectionFilter ? { connectionId: options.connectionId } : {}),
+    }) as LatencyRow[];
 
   const grouped = new Map<
     string,
     {
       provider: string;
       model: string;
+      connectionId: string | null;
       totalRequests: number;
       successfulRequests: number;
       successfulLatencies: number[];
       allLatencies: number[];
+      successfulTtfts: number[];
+      allTtfts: number[];
+      successfulTokensPerSecond: number[];
+      allTokensPerSecond: number[];
     }
   >();
 
@@ -846,15 +881,24 @@ export async function getModelLatencyStats(
     const model = toStringOrNull(row.model);
     if (!provider || !model) continue;
 
-    const key = `${provider}/${model}`;
+    const connectionId = toStringOrNull(row.connection_id);
+    const key =
+      options.keyByConnectionId && connectionId
+        ? `${provider}/${model}/${connectionId}`
+        : `${provider}/${model}`;
     if (!grouped.has(key)) {
       grouped.set(key, {
         provider,
         model,
+        connectionId,
         totalRequests: 0,
         successfulRequests: 0,
         successfulLatencies: [],
         allLatencies: [],
+        successfulTtfts: [],
+        allTtfts: [],
+        successfulTokensPerSecond: [],
+        allTokensPerSecond: [],
       });
     }
 
@@ -869,6 +913,22 @@ export async function getModelLatencyStats(
     if (latency > 0) {
       bucket.allLatencies.push(latency);
       if (isSuccess) bucket.successfulLatencies.push(latency);
+    }
+
+    const ttft = toNumber(row.ttft_ms);
+    if (ttft > 0) {
+      bucket.allTtfts.push(ttft);
+      if (isSuccess) bucket.successfulTtfts.push(ttft);
+    }
+
+    const outputTokens = toNumber(row.tokens_output);
+    const generationDurationMs = latency - ttft;
+    if (outputTokens > 0 && ttft > 0 && generationDurationMs > 0) {
+      const tokensPerSecond = (outputTokens * 1000) / generationDurationMs;
+      if (Number.isFinite(tokensPerSecond) && tokensPerSecond > 0) {
+        bucket.allTokensPerSecond.push(tokensPerSecond);
+        if (isSuccess) bucket.successfulTokensPerSecond.push(tokensPerSecond);
+      }
     }
   }
 
@@ -885,11 +945,20 @@ export async function getModelLatencyStats(
     const avg = sorted.reduce((acc, n) => acc + n, 0) / sorted.length;
     const successRate =
       bucket.totalRequests > 0 ? bucket.successfulRequests / bucket.totalRequests : 0;
+    const ttfts =
+      bucket.successfulTtfts.length >= minSamples ? bucket.successfulTtfts : bucket.allTtfts;
+    const tokensPerSecond =
+      bucket.successfulTokensPerSecond.length >= minSamples
+        ? bucket.successfulTokensPerSecond
+        : bucket.allTokensPerSecond;
 
     stats[key] = {
       provider: bucket.provider,
       model: bucket.model,
       key,
+      ...(options.keyByConnectionId && bucket.connectionId
+        ? { connectionId: bucket.connectionId }
+        : {}),
       totalRequests: bucket.totalRequests,
       successfulRequests: bucket.successfulRequests,
       successRate,
@@ -898,6 +967,19 @@ export async function getModelLatencyStats(
       p95LatencyMs: Math.round(percentile(sorted, 0.95)),
       p99LatencyMs: Math.round(percentile(sorted, 0.99)),
       latencyStdDev: Math.round(stdDev(sorted, avg)),
+      latencySampleCount: baseLatencies.length,
+      ...(ttfts.length > 0
+        ? { avgTtftMs: Math.round(ttfts.reduce((acc, n) => acc + n, 0) / ttfts.length) }
+        : {}),
+      ...(tokensPerSecond.length > 0
+        ? {
+            avgTokensPerSecond: Number(
+              (tokensPerSecond.reduce((acc, n) => acc + n, 0) / tokensPerSecond.length).toFixed(3)
+            ),
+          }
+        : {}),
+      ttftSampleCount: ttfts.length,
+      tpsSampleCount: tokensPerSecond.length,
       windowHours,
     };
   }
