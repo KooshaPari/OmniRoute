@@ -39,11 +39,10 @@ export default {
     bun: {
       entrypoint: "src/main.ts",
     },
-    views: [
-      {
-        name: "app",
+    views: {
+      app: {
         entrypoint: VIEWS_ENTRYPOINT,
       },
-    ],
+    },
   },
 } satisfies ElectrobunConfig;

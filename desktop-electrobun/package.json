@@ -12,7 +12,8 @@
     "electrobun": "^1.18.1"
   },
   "devDependencies": {
-    "typescript": "^5.7.0",
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/three": "^0.185.1",
+    "typescript": "^5.7.0"
   }
 }
