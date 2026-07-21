@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { normalizePetalsBaseUrl, PETALS_DEFAULT_BASE_URL } from "../petals.ts";
+import { normalizePetalsBaseUrl, PETALS_DEFAULT_BASE_URL } from "../../open-sse/config/petals.ts";
 
 describe("normalizePetalsBaseUrl", () => {
   it("appends the generate endpoint to a normal URL", () => {
