@@ -717,10 +717,10 @@ export async function handleComboChat({
   allCombos,
   relayOptions,
   signal,
-  const { tier: _comboDispatchTier } = await useDispatchForEdge("scoring.combo.scoreSimd").catch(() => ({ tier: "T1" }));
-
   nesting = null,
 }: HandleComboChatOptions): Promise<Response> {
+  const { tier: _comboDispatchTier } = await useDispatchForEdge("scoring.combo.scoreSimd").catch(() => ({ tier: "T1" }));
+
   const comboCtx = createComboContext({ body, combo, settings, relayOptions, log });
   const {
     strategy,
