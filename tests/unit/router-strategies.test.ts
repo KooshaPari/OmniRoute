@@ -16,6 +16,7 @@ import {
   type RoutingContext,
 } from "../../open-sse/services/autoCombo/routerStrategy.ts";
 import type { ProviderCandidate } from "../../open-sse/services/autoCombo/scoring.ts";
+import { rankBySpeed } from "../../open-sse/services/autoCombo/speedRanking.ts";
 
 function cand(p: Partial<ProviderCandidate> & { provider: string }): ProviderCandidate {
   return {
@@ -105,6 +106,79 @@ test("latency — uses TTFT, TPS, and E2E metrics to pick the fastest provider-m
   assert.equal(decision.provider, "fast-streaming");
   assert.match(decision.reason, /ttft=40ms/);
   assert.match(decision.reason, /tps=120/);
+});
+
+test("latency — TPS breaks an otherwise comparable latency tie", () => {
+  const pool = [
+    cand({ provider: "slower-generation", avgTokensPerSecond: 40 }),
+    cand({ provider: "faster-generation", avgTokensPerSecond: 80 }),
+  ];
+  assert.equal(getStrategy("latency").select(pool, ctx).provider, "faster-generation");
+});
+
+test("latency — nonpositive or malformed TPS evidence cannot manufacture a score", () => {
+  const pool = [
+    cand({ provider: "invalid-evidence", avgTokensPerSecond: Number.NaN }),
+    cand({ provider: "known-latency", p95LatencyMs: 90 }),
+  ];
+  assert.equal(getStrategy("latency").select(pool, ctx).provider, "known-latency");
+});
+
+test("latency — historical TTFT/E2E evidence can change the selected candidate", () => {
+  const pool = [
+    cand({ provider: "low-p95", p95LatencyMs: 100 }),
+    cand({
+      provider: "historically-fast-stream",
+      p95LatencyMs: 200,
+      avgTtftMs: 30,
+      avgE2ELatencyMs: 300,
+      latencyStdDev: 10,
+    }),
+  ];
+
+  assert.equal(getStrategy("latency").select(pool, ctx).provider, "historically-fast-stream");
+});
+
+test("latency — zero or missing TTFT has no false fast advantage", () => {
+  const pool = [
+    cand({ provider: "zero-ttft", p95LatencyMs: 300, avgTtftMs: 0 }),
+    cand({ provider: "known-ttft", p95LatencyMs: 200, avgTtftMs: 100 }),
+  ];
+
+  assert.equal(getStrategy("latency").select(pool, ctx).provider, "known-ttft");
+});
+
+test("latency — preserves every documented speed-ranking weight", () => {
+  const cases = [
+    ["ttft", { avgTtftMs: 10 }, { avgTtftMs: 100 }],
+    ["tps", { avgTokensPerSecond: 100 }, { avgTokensPerSecond: 10 }],
+    ["e2e", { avgE2ELatencyMs: 100 }, { avgE2ELatencyMs: 1_000 }],
+    ["p95", { p95LatencyMs: 100 }, { p95LatencyMs: 1_000 }],
+    ["reliability", { failureRate: 0 }, { failureRate: 0.9 }],
+    ["health", { circuitBreakerState: "CLOSED" }, { circuitBreakerState: "HALF_OPEN" }],
+    ["stability", { latencyStdDev: 10 }, { latencyStdDev: 1_000 }],
+  ] as const;
+
+  for (const [factor, preferred, other] of cases) {
+    const weights = {
+      ttft: 0,
+      tps: 0,
+      e2e: 0,
+      p95: 0,
+      health: 0,
+      reliability: 0,
+      stability: 0,
+      [factor]: 1,
+    };
+    const ranked = rankBySpeed(
+      [
+        cand({ provider: "preferred", ...preferred }),
+        cand({ provider: "other", ...other }),
+      ],
+      weights
+    );
+    assert.equal(ranked[0]?.provider, "preferred", `${factor} weight must affect ranking`);
+  }
 });
 
 test("latency — failure rate can outweigh excellent raw speed", () => {
