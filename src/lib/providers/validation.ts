@@ -44,6 +44,7 @@ import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import { validateQwenWebProvider, validateKimiWebProvider } from "@/lib/providers/validation/webProvidersA";
 import { validateClaudeWebProvider, validateGeminiWebProvider, validateCopilotM365WebProvider, validateCopilotWebProvider, validateT3WebProvider } from "@/lib/providers/validation/webProvidersB";
 import { validateHuggingFaceProvider } from "@/lib/providers/validation/openaiFormat";
+import { directHttpsRequest } from "@/lib/providers/validation/headers";
 import {
   SEARCH_VALIDATOR_CONFIGS as EXTRACTED_SEARCH_VALIDATOR_CONFIGS,
   validateSearchProvider as validateExtractedSearchProvider,
@@ -3770,6 +3771,62 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
           return { valid: false, error: "Invalid API key" };
         }
         // Any non-auth response (200, 400, 422) means auth passed
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return toValidationErrorResult(error);
+      }
+    },
+    // Z.AI (#3905) — Anthropic-wire probe via directHttpsRequest (bypass undici
+    // keep-alive pool: api.z.ai drops idle sockets without RST after 502s).
+    // Status map: 401/403 invalid key; 404/405 unsupported endpoint; 502 queue
+    // timeout counts as auth-ok; other 5xx = unavailable.
+    zai: async ({ apiKey, providerSpecificData }: any) => {
+      try {
+        const entry = getRegistryEntry("zai");
+        const suffix = entry?.urlSuffix || "?beta=true";
+        const baseRaw =
+          (typeof providerSpecificData?.baseUrl === "string" &&
+            providerSpecificData.baseUrl.trim()) ||
+          entry?.baseUrl ||
+          "https://api.z.ai/api/anthropic/v1/messages";
+        const chatUrl = baseRaw.includes("?") ? baseRaw : `${baseRaw}${suffix}`;
+        const modelId =
+          (typeof providerSpecificData?.validationModelId === "string" &&
+            providerSpecificData.validationModelId.trim()) ||
+          "glm-5.1";
+        const headers = applyCustomUserAgent(
+          {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+          },
+          providerSpecificData
+        );
+        const res = await directHttpsRequest(
+          chatUrl,
+          {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              model: modelId,
+              max_tokens: 1,
+              messages: [{ role: "user", content: "test" }],
+            }),
+          },
+          15_000
+        );
+        if (res.status === 401 || res.status === 403) {
+          return { valid: false, error: "Invalid API key" };
+        }
+        if (res.status === 404 || res.status === 405) {
+          return { valid: false, error: "Provider validation endpoint not supported" };
+        }
+        if (res.status === 502) {
+          return { valid: true, error: null };
+        }
+        if (res.status >= 500) {
+          return { valid: false, error: `Provider unavailable (${res.status})` };
+        }
         return { valid: true, error: null };
       } catch (error: any) {
         return toValidationErrorResult(error);

@@ -73,6 +73,7 @@ export const orcarouterProvider: RegistryEntry = {
       name: "MiniMax M3",
       toolCalling: true,
       supportsReasoning: true,
+      supportsVision: true,
       contextLength: 204800,
       maxOutputTokens: 2048,
     },

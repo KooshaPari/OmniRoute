@@ -12,12 +12,14 @@ test("partitions top-level unit tests by imported runner API", () => {
   fs.mkdirSync(unit, { recursive: true });
   fs.writeFileSync(path.join(unit, "native.test.ts"), `import test from "node:test";`);
   fs.writeFileSync(path.join(unit, "vitest.test.ts"), `import { test } from "vitest";`);
+  fs.writeFileSync(path.join(unit, "bun.test.ts"), `import { test } from "bun:test";`);
   fs.writeFileSync(path.join(unit, "implicit.test.ts"), `test("global", () => {});`);
   fs.writeFileSync(path.join(unit, "ignored.spec.ts"), `import { test } from "vitest";`);
 
   assert.deepEqual(discoverTopLevelUnitTests(root), {
     node: ["tests/unit/implicit.test.ts", "tests/unit/native.test.ts"],
     vitest: ["tests/unit/vitest.test.ts"],
+    bun: ["tests/unit/bun.test.ts"],
   });
   fs.rmSync(root, { recursive: true, force: true });
 });
@@ -25,13 +27,17 @@ test("partitions top-level unit tests by imported runner API", () => {
 test("the repository manifest is disjoint and classifies every top-level .test.ts", () => {
   const manifest = discoverTopLevelUnitTests(process.cwd());
   const expected = fs.readdirSync("tests/unit").filter((file) => file.endsWith(".test.ts"));
-  const classified = [...manifest.node, ...manifest.vitest];
+  const classified = [...manifest.node, ...manifest.vitest, ...manifest.bun];
   assert.equal(new Set(classified).size, classified.length);
   assert.equal(classified.length, expected.length);
   assert.ok(manifest.vitest.some((file) => file.endsWith("a2a-mint-virtual-key.test.ts")));
+  assert.ok(manifest.bun.includes("tests/unit/combos-routes-regression.test.ts"));
+  assert.ok(manifest.bun.includes("tests/unit/combos-routes.test.ts"));
+  assert.ok(!manifest.node.includes("tests/unit/combos-routes-regression.test.ts"));
+  assert.ok(!manifest.node.includes("tests/unit/combos-routes.test.ts"));
 });
 
-test("fails closed when a test imports both runner APIs", () => {
+test("fails closed when a test imports more than one runner API", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "unit-manifest-overlap-"));
   const unit = path.join(root, "tests/unit");
   fs.mkdirSync(unit, { recursive: true });
@@ -39,7 +45,10 @@ test("fails closed when a test imports both runner APIs", () => {
     path.join(unit, "ambiguous.test.ts"),
     `import test from "node:test"; import { expect } from "vitest";`
   );
-  assert.throws(() => discoverTopLevelUnitTests(root), /imports both Vitest and node:test/);
+  assert.throws(
+    () => discoverTopLevelUnitTests(root),
+    /imports more than one of Vitest, node:test, and bun:test/
+  );
   fs.rmSync(root, { recursive: true, force: true });
 });
 

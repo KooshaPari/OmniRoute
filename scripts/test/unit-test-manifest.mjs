@@ -6,10 +6,11 @@ import { pathToFileURL } from "node:url";
 
 const VITEST_IMPORT = /(?:from\s+|import\s*)["']vitest["']/;
 const NODE_TEST_IMPORT = /(?:from\s+|import\s*)["']node:test["']/;
+const BUN_TEST_IMPORT = /(?:from\s+|import\s*)["']bun:test["']/;
 
 export function discoverTopLevelUnitTests(root = process.cwd()) {
   const unitDir = path.join(root, "tests/unit");
-  const manifest = { node: [], vitest: [] };
+  const manifest = { node: [], vitest: [], bun: [] };
   if (!fs.existsSync(unitDir)) return manifest;
 
   for (const name of fs.readdirSync(unitDir).sort()) {
@@ -18,10 +19,16 @@ export function discoverTopLevelUnitTests(root = process.cwd()) {
     const source = fs.readFileSync(path.join(unitDir, name), "utf8");
     const importsVitest = VITEST_IMPORT.test(source);
     const importsNodeTest = NODE_TEST_IMPORT.test(source);
-    if (importsVitest && importsNodeTest) {
-      throw new Error(`${relativePath} imports both Vitest and node:test`);
+    const importsBunTest = BUN_TEST_IMPORT.test(source);
+    const runnerCount = [importsVitest, importsNodeTest, importsBunTest].filter(Boolean).length;
+    if (runnerCount > 1) {
+      throw new Error(
+        `${relativePath} imports more than one of Vitest, node:test, and bun:test`
+      );
     }
-    manifest[importsVitest ? "vitest" : "node"].push(relativePath);
+    if (importsVitest) manifest.vitest.push(relativePath);
+    else if (importsBunTest) manifest.bun.push(relativePath);
+    else manifest.node.push(relativePath);
   }
   return manifest;
 }
@@ -31,8 +38,9 @@ function main() {
   const runner = process.argv[2];
   if (runner === "--node") console.log(manifest.node.join("\n"));
   else if (runner === "--vitest") console.log(manifest.vitest.join("\n"));
+  else if (runner === "--bun") console.log(manifest.bun.join("\n"));
   else {
-    console.error("Usage: unit-test-manifest.mjs --node|--vitest");
+    console.error("Usage: unit-test-manifest.mjs --node|--vitest|--bun");
     process.exitCode = 2;
   }
 }
