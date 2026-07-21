@@ -7,6 +7,13 @@ Electrobun + Bun shell that wraps the OmniRoute web UI (`RENDERER_URL`, default 
 
 ## Selection gate
 
+The release shell prefers the real Next standalone output at
+`OMNIROUTE_STANDALONE_DIR/server.js`, starts it on loopback, waits for readiness,
+and navigates the native window to that server. The bundled HTML is only an
+explicit fallback when no standalone build is available. Set `RENDERER_URL` for
+dev/HMR; it is not used as the production renderer when a standalone bundle is
+present.
+
 Prototype must demonstrate all three before replacing Electron / absorbing vibeproxy client work:
 
 | # | Gate | Pass criteria |
@@ -53,6 +60,10 @@ Build:
 bun run build           # dev bundle
 bun run build:release   # release .app (macOS)
 ```
+
+From the repository root, prepare the frontend first (`npm run build`), then
+run the Electrobun release command. Override `OMNIROUTE_STANDALONE_DIR` when
+the Next output is staged elsewhere.
 
 ## Layout
 
