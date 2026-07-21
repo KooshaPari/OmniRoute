@@ -126,7 +126,12 @@ test("latency — nonpositive or malformed TPS evidence cannot manufacture a sco
 
 test("latency — historical TTFT/E2E evidence can change the selected candidate", () => {
   const pool = [
-    cand({ provider: "low-p95", p95LatencyMs: 100 }),
+    cand({
+      provider: "low-p95",
+      p95LatencyMs: 100,
+      avgTtftMs: 100,
+      avgE2ELatencyMs: 1_000,
+    }),
     cand({
       provider: "historically-fast-stream",
       p95LatencyMs: 200,
@@ -171,10 +176,7 @@ test("latency — preserves every documented speed-ranking weight", () => {
       [factor]: 1,
     };
     const ranked = rankBySpeed(
-      [
-        cand({ provider: "preferred", ...preferred }),
-        cand({ provider: "other", ...other }),
-      ],
+      [cand({ provider: "preferred", ...preferred }), cand({ provider: "other", ...other })],
       weights
     );
     assert.equal(ranked[0]?.provider, "preferred", `${factor} weight must affect ranking`);
