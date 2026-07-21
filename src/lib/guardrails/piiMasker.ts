@@ -1,3 +1,5 @@
+import { useDispatchForEdge } from "../../open-sse/rpc/dispatchHotPath.ts";
+
 import { BaseGuardrail, type GuardrailContext, type GuardrailResult } from "./base";
 import { processPII } from "@/shared/utils/inputSanitizer";
 import { sanitizePII, sanitizePIIResponse } from "@/lib/piiSanitizer";

@@ -1,0 +1,10 @@
+/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/crates/omniroute-ffi/target/debug/deps/napi_build-e4fc876d422cbc0b.d: /Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/lib.rs /Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/android.rs /Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/wasi.rs /Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/windows.rs
+
+/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/crates/omniroute-ffi/target/debug/deps/libnapi_build-e4fc876d422cbc0b.rlib: /Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/lib.rs /Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/android.rs /Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/wasi.rs /Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/windows.rs
+
+/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/crates/omniroute-ffi/target/debug/deps/libnapi_build-e4fc876d422cbc0b.rmeta: /Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/lib.rs /Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/android.rs /Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/wasi.rs /Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/windows.rs
+
+/Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/lib.rs:
+/Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/android.rs:
+/Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/wasi.rs:
+/Users/kooshapari/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/napi-build-2.3.2/src/windows.rs:

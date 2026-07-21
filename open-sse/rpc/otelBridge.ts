@@ -1,7 +1,7 @@
 /**
  * OTel-compatible Prometheus exporter bridge (ADR-032 / Option A).
  *
- * Polls the in-process `polyglot` metrics sink on a fixed interval and
+ * Polls the in-process `dispatch` metrics sink on a fixed interval and
  * pushes the snapshot to an OTLP HTTP endpoint. Mirrors the `/metrics`
  * text scrape that `metricsRoute.ts` already exposes, but in push-mode for
  * environments without a Prometheus scraper.
@@ -18,12 +18,12 @@
  *     "resourceMetrics": [{
  *       "resource": { "attributes": [{ "key": "service.name", "value": { "stringValue": "omniroute" } }] },
  *       "scopeMetrics": [{
- *         "scope": { "name": "omniroute.polyglot" },
+ *         "scope": { "name": "omniroute.dispatch" },
  *         "metrics": [
- *           { "name": "polyglot_tier_decisions_total",
+ *           { "name": "dispatch_tier_decisions_total",
  *             "sum": { "dataPoints": [{ "asInt": "12", "attributes": [...] }] } },
- *           { "name": "polyglot_current_tier", "gauge": ... },
- *           { "name": "polyglot_tier_decisions_duration_seconds",
+ *           { "name": "dispatch_current_tier", "gauge": ... },
+ *           { "name": "dispatch_tier_decisions_duration_seconds",
  *             "histogram": { "dataPoints": [{ "count": "1", "sum": 0.001, "bucketCounts": [...], "explicitBounds": [...] }] } }
  *         ]
  *       }]
@@ -36,6 +36,7 @@
  */
 
 import { renderPrometheusText, listMetricSnapshots, type MetricSnapshot } from "./metrics.ts";
+import type { Counter, Meter } from "@opentelemetry/api";
 
 export interface OtelPushConfig {
   endpoint: string;
@@ -142,7 +143,7 @@ function buildOtelRequest(config: OtelPushConfig, snapshots: MetricSnapshot[]): 
         },
         scopeMetrics: [
           {
-            scope: { name: "omniroute.polyglot", version: "1.0.0" },
+            scope: { name: "omniroute.dispatch", version: "1.0.0" },
             metrics: snapshots.map(toOtelMetric),
           },
         ],

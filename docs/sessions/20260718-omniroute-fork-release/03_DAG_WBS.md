@@ -41,8 +41,8 @@ so the branch must be refreshed before final release admission.
 | Candidate | SHA | Decision | Evidence |
 | --- | --- | --- | --- |
 | `preserve/.../main-9b1927a2c868` | `9b1927a2c868` | contained | ancestor of `HEAD` |
-| `preserve/.../feature-polyglot-bifrost-2026-07-17-e0ddbed7b396` | `e0ddbed7b396` | contained/integrated | merge commit `150aa02e7` |
-| `preserve/.../restore-polyglot-binding-tiers-26e34d296fd2` | `26e34d296fd2` | contained | ancestor of `HEAD` |
+| `preserve/.../feature-dispatch-bifrost-2026-07-17-e0ddbed7b396` | `e0ddbed7b396` | contained/integrated | merge commit `150aa02e7` |
+| `preserve/.../restore-dispatch-binding-tiers-26e34d296fd2` | `26e34d296fd2` | contained | ancestor of `HEAD` |
 | `preserve/.../5218-mcp-auth-a59f05f114da` | `a59f05f114da` | held | 130 conflicts: 65 content, 41 modify/delete, 23 add/add, 1 rename collision |
 | `preserve/.../5452-tls-options-packaging-e2e00647805d` | `e2e00647805d` | held | 413 conflicts: 197 content, 200 modify/delete, 15 add/add, 1 rename collision |
 | `preserve/.../bailian-quota-a77910d89663` | `a77910d89663` | held | 107 conflicts: 56 content, 40 modify/delete, 11 add/add |

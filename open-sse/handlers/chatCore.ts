@@ -1,3 +1,4 @@
+import { useDispatchForEdge } from "../rpc/dispatchHotPath.ts";
 import { injectMemoryAndSkills } from "./chatCore/memorySkillsInjection.ts";
 import { resolveChatCoreRequestSetup } from "./chatCore/requestSetup.ts";
 import { buildFailureUsageRecord } from "./chatCore/failureUsage.ts";
@@ -4217,6 +4218,9 @@ export async function handleChatCore({
     !isResponsesEndpoint &&
     !isDroidCLI;
   const streamStateBody = finalBody || body;
+    // dispatch: resolve tier for SSE chunking hot-path
+    const { tier: _dispatchTier } = await useDispatchForEdge("sse.chunk.sseStream").catch(() => ({ tier: "T1" as const }));
+
 
   if (needsResponsesTranslation) {
     // Provider returns openai-responses, translate to openai (Chat Completions) that clients expect

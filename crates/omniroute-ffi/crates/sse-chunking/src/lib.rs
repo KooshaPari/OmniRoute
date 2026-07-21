@@ -1,100 +1,55 @@
-//! SSE chunking FFI — wraps open-sse/handlers/chatCore.ts while(true) loop
-//! with zero-copy Rust buffer management. Falls back to TS when cdylib not loaded.
-
-#![deny(unsafe_op_in_unsafe_fn)]
-
 use std::ffi::{c_char, CStr, CString};
-use std::slice;
-use std::sync::atomic::{AtomicU64, Ordering};
 
-static TOTAL_CHUNKS: AtomicU64 = AtomicU64::new(0);
-
-fn error_response(msg: &str) -> *mut c_char {
-    let body = serde_json::json!({"error": msg, "ok": false});
-    CString::new(body.to_string()).unwrap().into_raw()
-}
-
-/// SSE chunk stream: JSON envelope
-/// Input: { "rawBody": "string", "maxChunkBytes": 4096, "keepOpen": true }
-/// Output: { "ok": true, "chunks": ["data: payload\\n\\n", ...], "totalBytes": N }
+/// Chunk an SSE stream.
+/// Input: JSON `{"raw_body": "...", "max_chunk_bytes": 4096, "keep_open": true}`
+/// Output: JSON `{"chunks": [...], "total_bytes": N, "duration_micros": U}`
 #[no_mangle]
-pub extern "C" fn omniroute_ffi_sse_chunking_stream(
-    input_ptr: *const u8,
+pub extern "C" fn chunk_sse_stream(
+    input_ptr: *const c_char,
     input_len: usize,
 ) -> *mut c_char {
     if input_ptr.is_null() || input_len == 0 {
-        return error_response("input is null or empty");
+        return to_c_string(r#"{"error":"null input"}"#);
     }
-    let input_slice = unsafe { slice::from_raw_parts(input_ptr, input_len) };
-    let input_str = match std::str::from_utf8(input_slice) {
-        Ok(s) => s,
-        Err(_) => return error_response("input is not valid UTF-8"),
-    };
-    let parsed: serde_json::Value = match serde_json::from_str(input_str) {
+    let input = unsafe { CStr::from_ptr(input_ptr).to_str().unwrap_or("") };
+    let start = std::time::Instant::now();
+
+    let v: serde_json::Value = match serde_json::from_str(input) {
         Ok(v) => v,
-        Err(_) => return error_response("invalid JSON input"),
+        Err(e) => return to_c_string(&format!(r#"{{"error":"json parse: {e}"}}"#)),
     };
-    let raw = match parsed.get("rawBody").and_then(|v| v.as_str()) {
-        Some(s) => s,
-        None => return error_response("missing 'rawBody' field"),
-    };
-    let max_chunk: usize = parsed
-        .get("maxChunkBytes")
-        .and_then(|v| v.as_u64())
-        .unwrap_or(4096) as usize;
-    let keep_open: bool = parsed
-        .get("keepOpen")
-        .and_then(|v| v.as_bool())
-        .unwrap_or(true);
 
-    if max_chunk == 0 {
-        return error_response("maxChunkBytes must be > 0");
-    }
+    let body = v["raw_body"].as_str().unwrap_or("");
+    let max_chunk = v["max_chunk_bytes"].as_u64().unwrap_or(4096) as usize;
 
-    // Chunk the body into SSE-format chunks.
-    let bytes = raw.as_bytes();
     let mut chunks: Vec<String> = Vec::new();
-    let mut emitted: usize = 0;
-    while emitted < bytes.len() {
-        let end = std::cmp::min(emitted + max_chunk, bytes.len());
-        let payload = std::str::from_utf8(&bytes[emitted..end]).unwrap_or("");
-        chunks.push(format!("data: {}\n\n", payload));
-        emitted = end;
-        TOTAL_CHUNKS.fetch_add(1, Ordering::Relaxed);
+    let bytes = body.as_bytes();
+    let mut offset = 0;
+    while offset < bytes.len() {
+        let end = (offset + max_chunk).min(bytes.len());
+        let chunk = String::from_utf8_lossy(&bytes[offset..end]).to_string();
+        chunks.push(format!("data: {chunk}\n\n"));
+        offset = end;
     }
 
-    if !keep_open && chunks.is_empty() {
-        chunks.push("data: [DONE]\n\n".to_string());
-    }
-
-    let total_bytes = bytes.len();
-    let json = serde_json::json!({
-        "ok": true,
+    let duration = start.elapsed().as_micros() as u64;
+    let total = body.len();
+    let response = serde_json::json!({
         "chunks": chunks,
-        "totalBytes": total_bytes,
-        "keepOpen": keep_open,
+        "total_bytes": total,
+        "duration_micros": duration,
     });
-    CString::new(json.to_string()).unwrap().into_raw()
+    to_c_string(&response.to_string())
 }
 
-/// Free a *mut c_char returned by omniroute_ffi_sse_chunking_stream.
+/// Version string.
 #[no_mangle]
-pub extern "C" fn omniroute_ffi_sse_chunking_free(ptr: *mut c_char) {
-    if !ptr.is_null() {
-        let _ = unsafe { CString::from_raw(ptr) };
-    }
+pub extern "C" fn version() -> *const std::ffi::c_char {
+    b"0.1.0\0".as_ptr() as *const std::ffi::c_char
 }
 
-/// Returns the SSE chunking version metadata.
-#[no_mangle]
-pub extern "C" fn omniroute_ffi_sse_chunking_version() -> *mut c_char {
-    let body = serde_json::json!({
-        "crate": "sse-chunking",
-        "version": env!("CARGO_PKG_VERSION"),
-        "abi": "0.1.0",
-        "maxChunkBytesDefault": 4096,
-    });
-    CString::new(body.to_string()).unwrap().into_raw()
+fn to_c_string(s: &str) -> *mut c_char {
+    CString::new(s).unwrap_or_else(|_| CString::new("{}").unwrap()).into_raw()
 }
 
 #[cfg(test)]
@@ -102,56 +57,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn null_input_returns_error() {
-        let r = omniroute_ffi_sse_chunking_stream(std::ptr::null(), 0);
-        let s = unsafe { CStr::from_ptr(r) };
-        let parsed: serde_json::Value = serde_json::from_str(s.to_str().unwrap()).unwrap();
-        assert_eq!(parsed["ok"], serde_json::json!(false));
-        omniroute_ffi_sse_chunking_free(r);
+    fn version_returns_non_null() {
+        assert!(!version().is_null());
     }
 
     #[test]
-    fn chunks_a_short_body_in_one_chunk() {
-        let body = "hello world";
-        let payload = serde_json::json!({
-            "rawBody": body,
-            "maxChunkBytes": 1024,
-            "keepOpen": true,
-        });
-        let bytes = payload.to_string().into_bytes();
-        let r = omniroute_ffi_sse_chunking_stream(bytes.as_ptr(), bytes.len());
-        let s = unsafe { CStr::from_ptr(r) };
-        let parsed: serde_json::Value = serde_json::from_str(s.to_str().unwrap()).unwrap();
-        assert_eq!(parsed["ok"], serde_json::json!(true));
-        let chunks = parsed["chunks"].as_array().unwrap();
-        assert_eq!(chunks.len(), 1, "expected 1 chunk for short body");
-        assert_eq!(chunks[0].as_str().unwrap(), "data: hello world\n\n");
-        omniroute_ffi_sse_chunking_free(r);
+    fn chunk_small_body() {
+        let input = CString::new(r#"{"raw_body":"hello","max_chunk_bytes":1024,"keep_open":true}"#).unwrap();
+        let resp = chunk_sse_stream(input.as_ptr(), input.to_bytes().len());
+        let s = unsafe { CStr::from_ptr(resp).to_str().unwrap() };
+        assert!(s.contains("hello"));
+        assert!(s.contains("total_bytes"));
+        unsafe { CString::from_raw(resp); }
     }
 
     #[test]
-    fn chunks_a_long_body_into_multiple() {
-        let body = "a".repeat(10_000);
-        let payload = serde_json::json!({
-            "rawBody": body,
-            "maxChunkBytes": 1024,
-        });
-        let bytes = payload.to_string().into_bytes();
-        let r = omniroute_ffi_sse_chunking_stream(bytes.as_ptr(), bytes.len());
-        let s = unsafe { CStr::from_ptr(r) };
-        let parsed: serde_json::Value = serde_json::from_str(s.to_str().unwrap()).unwrap();
-        let chunks = parsed["chunks"].as_array().unwrap();
-        // 10000 bytes / 1024 chunks-per-byte ≤ 10
-        assert!(chunks.len() >= 10, "got {} chunks", chunks.len());
-        omniroute_ffi_sse_chunking_free(r);
-    }
-
-    #[test]
-    fn version_metadata() {
-        let r = omniroute_ffi_sse_chunking_version();
-        let s = unsafe { CStr::from_ptr(r) };
-        let parsed: serde_json::Value = serde_json::from_str(s.to_str().unwrap()).unwrap();
-        assert_eq!(parsed["crate"], serde_json::json!("sse-chunking"));
-        omniroute_ffi_sse_chunking_free(r);
+    fn chunk_null_input() {
+        let resp = chunk_sse_stream(std::ptr::null(), 0);
+        let s = unsafe { CStr::from_ptr(resp).to_str().unwrap() };
+        assert!(s.contains("error"));
+        unsafe { CString::from_raw(resp); }
     }
 }

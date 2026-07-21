@@ -1,12 +1,12 @@
 /**
- * T1 — HTTP loopback transport for polyglot edges.
+ * T1 — HTTP loopback transport for dispatch edges.
  *
- * Wraps `fetch` with the polyglot-edge conventions:
+ * Wraps `fetch` with the dispatch-edge conventions:
  *   - JSON request/response bodies.
  *   - Per-edge timeout (defaults to 5s, well above the 1-2ms loopback budget).
  *   - AbortSignal propagation.
  *   - Error enrichment: surfaces the upstream status code in the thrown
- *     `PolyglotEdgeError` so callers can distinguish 4xx (caller's fault)
+ *     `DispatchEdgeError` so callers can distinguish 4xx (caller's fault)
  *     vs 5xx (binding's fault).
  *
  * Loopback URIs default to `http://127.0.0.1:${process.env.OMNIROUTE_HTTP_PORT ?? "20128"}`,
@@ -15,8 +15,8 @@
  * multi-node deployments (test clusters, fleet sharding).
  */
 
-import type { HttpEdgeContract, InvokeOptions } from "./polyglotEdges.ts";
-import type { PolyglotEdgeError } from "./errors.ts";
+import type { HttpEdgeContract, InvokeOptions } from "./dispatchEdges.ts";
+import type { DispatchEdgeError } from "./errors.ts";
 
 const DEFAULT_HTTP_PORT = "20128";
 const DEFAULT_HTTP_BASE = () =>
@@ -53,7 +53,7 @@ export async function invokeHttpEdge<TIn, TOut>(
 
     if (!response.ok) {
       const errorPayload = await safeReadJson(response);
-      const err: PolyglotEdgeError = new Error(
+      const err: DispatchEdgeError = new Error(
         `HTTP edge ${contract.path} returned ${response.status}: ${JSON.stringify(errorPayload).slice(0, 256)}`
       );
       err.code = `HTTP_${response.status}`;
@@ -67,9 +67,9 @@ export async function invokeHttpEdge<TIn, TOut>(
     if (error instanceof Error && error.name === "AbortError") {
       throw error;
     }
-    if ((error as { code?: string })?.code) throw error; // Already a PolyglotEdgeError.
+    if ((error as { code?: string })?.code) throw error; // Already a DispatchEdgeError.
 
-    const err: PolyglotEdgeError = new Error(
+    const err: DispatchEdgeError = new Error(
       `HTTP edge ${contract.path} failed: ${error instanceof Error ? error.message : String(error)}`
     );
     err.code = "HTTP_TRANSPORT_ERROR";
@@ -89,7 +89,7 @@ async function safeReadJson(response: Response): Promise<unknown> {
 
 /**
  * Smoke-test an HTTP edge. Returns null on success or a string error.
- * Used by `PolyglotEdge.healthcheck`.
+ * Used by `DispatchEdge.healthcheck`.
  */
 export async function healthcheckHttpEdge(contract: HttpEdgeContract<unknown, unknown>): Promise<string | null> {
   try {

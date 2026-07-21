@@ -16,9 +16,5 @@ bytes = { workspace = true }
 opt-level = 3
 lto = "thin"
 
-[[bench]]
-name = "chunking"
-harness = false
-
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }

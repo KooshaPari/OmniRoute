@@ -201,7 +201,7 @@ function checkI18nChangelogFile(sourcePath) {
 }
 
 try {
-  // package.json is optional in this polyglot monorepo (no root package.json).
+  // package.json is optional in this dispatch monorepo (no root package.json).
   // Guard the Tight coupling block; still run OpenAPI/CHANGELOG independence checks.
   const packageJsonExists = fs.existsSync(packageJsonPath);
   const packageVersion = packageJsonExists ? JSON.parse(readText(packageJsonPath)).version : null;
@@ -228,7 +228,7 @@ try {
     console.log(`[docs-sync] openapi.yaml info.version: ${openApiVersion}`);
   }
 
-  // CHANGELOG.md checks run independently of package.json (polyglot checkout
+  // CHANGELOG.md checks run independently of package.json (dispatch checkout
   // may have docs but not a root package.json).
   if (!fs.existsSync(changelogPath)) {
     fail("CHANGELOG.md is missing");

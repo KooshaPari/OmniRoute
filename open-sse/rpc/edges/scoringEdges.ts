@@ -16,15 +16,14 @@
  *   1. If FFI enabled + loaded → invoke Rust `score_combo_simd` (T3).
  *   2. Otherwise → TS reference implementation (T1 fast-path fallback).
  *
- * See `polyglot.omniidc` "service scoring" for the wire shape.
+ * See `dispatch.omniidc` "service scoring" for the wire shape.
  * See `crates/omniroute-ffi/crates/combo-scorer/` for the FFI crate.
  */
 
-import { registerEdge } from "../polyglotEdges.ts";
-import type { EdgeTier } from "../polyglotEdges.ts";
+import { registerEdge } from "../dispatchEdges.ts";
+import type { EdgeTier } from "../dispatchEdges.ts";
 import {
   calculateScore,
-  scorePool,
   validateWeights,
   type ProviderCandidate,
   type ScoringWeights,
@@ -35,7 +34,7 @@ import {
   scoreBatchViaFfi,
   __resetComboScorerLoaderForTests,
 } from "./scoringFfi.ts";
-import { PolyglotEdgeError } from "../errors.ts";
+import { DispatchEdgeError } from "../errors.ts";
 
 export const SCORING_EDGE_TIER: EdgeTier = "T3";
 
@@ -120,7 +119,7 @@ async function t1ScoreSimdHandler(input: ComboScoreRequest): Promise<ComboScoreR
       ];
       ffiScores = await scoreBatchViaFfi(batch, weightsVec);
     } catch (err: unknown) {
-      if (!(err instanceof PolyglotEdgeError)) {
+      if (!(err instanceof DispatchEdgeError)) {
         // Unexpected error — log and fall back, but don't swallow silently.
         console.warn(
           "scoring_ffi_failed; falling back to TS",
@@ -209,4 +208,4 @@ export const SCORING_COMBO_SIMD = registerEdge<ComboScoreRequest, ComboScoreResp
 });
 
 // Re-export validation helper so callers can pre-check weights before invoking.
-export { validateWeights, scorePool };
+export { validateWeights };

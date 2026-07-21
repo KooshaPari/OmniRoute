@@ -28,7 +28,7 @@
  * Memory is owned by the caller (TS).
  */
 
-import { PolyglotEdgeError } from "../errors.ts";
+import { DispatchEdgeError } from "../errors.ts";
 import { existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -111,7 +111,7 @@ async function tryLoadNapiAddon(): Promise<NapiComboScorer | null> {
     // Node.js native addons loaded via dynamic import.
     const raw = (await import(napiPath)) as Record<string, unknown>;
     if (typeof raw.scoreSimdBatch !== "function") {
-      console.warn(`[polyglot] napi-rs addon at ${napiPath} missing scoreSimdBatch`);
+      console.warn(`[dispatch] napi-rs addon at ${napiPath} missing scoreSimdBatch`);
       return null;
     }
     napiModule = raw as unknown as NapiComboScorer;
@@ -147,7 +147,7 @@ async function tryLoadCdylib(): Promise<ComboScorerNative> {
   if (cdylibError) throw cdylibError;
   const path = resolveCdylibPath();
   if (!path || !existsSync(path)) {
-    const err = new PolyglotEdgeError(
+    const err = new DispatchEdgeError(
       `combo_scorer cdylib not found at ${path ?? "(no path)"}`,
       "FFI_NOT_AVAILABLE"
     );
@@ -159,7 +159,7 @@ async function tryLoadCdylib(): Promise<ComboScorerNative> {
     return cdylibModule;
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
-    const err = new PolyglotEdgeError(
+    const err = new DispatchEdgeError(
       `combo_scorer cdylib load failed: ${msg}`,
       "FFI_NOT_AVAILABLE"
     );

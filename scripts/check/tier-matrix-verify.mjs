@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Tier-matrix CI gate for polyglot binding tiers (ADR-032 Appendix D.3).
+// Tier-matrix CI gate for dispatch binding tiers (ADR-032 Appendix D.3).
 //
-// Reads bench-results/polyglot-tier-matrix*.{json,md} artifacts and asserts
+// Reads bench-results/dispatch-tier-matrix*.{json,md} artifacts and asserts
 // each edge's measured latency falls inside a per-tier tolerance window.
 // Default tolerance bands:
 //   T1 = 150 % of claim
@@ -26,17 +26,19 @@ const TOLERANCE = STRICT
   ? { T1: 1.1, T2: 1.1, T3: 1.1 }
   : { T1: 1.5, T2: 2.0, T3: 1.5 };
 
-const ARTIFACT = resolve(__dirname, "..", "..", "bench-results", "polyglot-tier-matrix-v2.json");
+const ARTIFACT = resolve(__dirname, "..", "..", "bench-results", "dispatch-tier-matrix-v2.json");
 
 function main() {
   if (!existsSync(ARTIFACT)) {
     console.error(`FAIL: missing tier-matrix artifact at ${ARTIFACT}`);
-    console.error("      generate it first via: node benches/polyglot/matrix-generator.ts");
+    console.error("      generate it first via: node benches/dispatch/matrix-generator.ts");
     process.exit(2);
   }
 
   const raw = readFileSync(ARTIFACT, "utf-8");
-  const rows = JSON.parse(raw);
+  const parsed = JSON.parse(raw);
+  // Support both plain arrays and { edges: [...] } wrapper
+  const rows = Array.isArray(parsed) ? parsed : (parsed.edges ?? parsed.data ?? parsed.results ?? []);
 
   const counts = { pass: 0, fail: 0, flag: 0 };
   for (const row of rows) {
@@ -61,13 +63,13 @@ function main() {
   }
 
   const md = renderMarkdown(rows, counts);
-  console.log(md);
+  console.log("Tier matrix CI gate: " + md);
   process.exit(counts.fail === 0 ? 0 : 1);
 }
 
 function renderMarkdown(rows, counts) {
   const lines = [];
-  lines.push("# Polyglot Tier Verification Matrix\n");
+  lines.push("# Dispatch Tier Verification Matrix\n");
   lines.push(`Tolerance: T1≤${TOLERANCE.T1}×, T2≤${TOLERANCE.T2}×, T3≤${TOLERANCE.T3}×${STRICT ? " (strict)" : ""}`);
   lines.push("");
   lines.push("| Edge | Tier | Claim (µs) | Measured (µs) | Status | Reason |");

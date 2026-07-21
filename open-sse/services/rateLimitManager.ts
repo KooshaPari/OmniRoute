@@ -1,3 +1,5 @@
+import { useDispatchForEdge } from "../rpc/dispatchHotPath.ts";
+
 /**
  * Rate Limit Manager — Adaptive rate limiting using Bottleneck
  *
@@ -522,6 +524,9 @@ function getLimiter(provider, connectionId, model = null) {
  * @returns {Promise<unknown>} Result of fn()
  */
 export async function withRateLimit(provider, connectionId, model, fn, signal = null) {
+  // dispatch: resolve tier for rate-limit token-bucket hot-path
+  const { tier: _dispatchTier } = await useDispatchForEdge("rateLimit.tokenBucket.consume").catch(() => ({ tier: "T1" as const }));
+
   if (!enabledConnections.has(connectionId)) {
     return fn();
   }

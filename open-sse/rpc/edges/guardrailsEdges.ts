@@ -10,15 +10,15 @@
  *   - prompt-injection runs pre-call on user-supplied text.
  *   - vision-bridge wraps chat-form transcoding; called less frequently.
  *
- * Each guardrail exposes a single `PolyglotEdge` named
+ * Each guardrail exposes a single `DispatchEdge` named
  * `guardrails.<short>.<action>` for logging and kill-switch targeting.
  *
- * See `polyglot.omniidc` "service guardrails" for the wire shape.
+ * See `dispatch.omniidc` "service guardrails" for the wire shape.
  * See `src/lib/guardrails/index.ts` for the canonical TS implementation.
  */
 
-import { registerEdge } from "../polyglotEdges.ts";
-import type { EdgeTier } from "../polyglotEdges.ts";
+import { registerEdge } from "../dispatchEdges.ts";
+import type { EdgeTier } from "../dispatchEdges.ts";
 import {
   detectPiiViaFfi,
   isGuardrailsPiiFfiAvailable,
@@ -111,10 +111,10 @@ function t1PiiMaskHandler(input: PiiMaskRequest): PiiMaskResponse {
 /**
  * Lightweight PII regex sweep for the in-process fast path. The full TS
  * guardrail uses `processPII` from `@/shared/utils/inputSanitizer` which
- * may pull in DB-backed locale lists; for the polyglot edge we keep this
+ * may pull in DB-backed locale lists; for the dispatch edge we keep this
  * self-contained so the UDS round-trip stays minimal.
  *
- * Exported so the polyglot-guardrails-edges test suite can verify the
+ * Exported so the dispatch-guardrails-edges test suite can verify the
  * regex patterns without spinning up a full guardrail pipeline.
  */
 export function redactPiiFastPath(text: string): string {
@@ -225,7 +225,7 @@ export interface VisionBridgeResponse {
 function t1VisionBridgeHandler(input: VisionBridgeRequest): VisionBridgeResponse {
   const start = performance.now();
   const guardrail = new VisionBridgeGuardrail();
-  // The TS implementation is async; for the polyglot sync fast path we
+  // The TS implementation is async; for the dispatch sync fast path we
   // probe the guardrail's enabled flag and return synchronous pass-through.
   if (!guardrail.enabled) {
     return {

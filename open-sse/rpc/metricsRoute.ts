@@ -2,7 +2,7 @@
  * F — Wire Prometheus /metrics endpoint.
  *
  * Mounted at /metrics by the Next.js App Router.
- * Delegates to metricsEdges for polyglot-specific counters.
+ * Delegates to metricsEdges for dispatch-specific counters.
  */
 import { metricsRenderHandler } from "./edges/metricsEdges.ts";
 
@@ -13,7 +13,7 @@ export async function handleMetricsRequest(): Promise<Response> {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   }
-  return new Response("# polyglot metrics temporarily unavailable", {
+  return new Response("# dispatch metrics temporarily unavailable", {
     status: 503,
   });
 }

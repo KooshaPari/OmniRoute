@@ -116,7 +116,7 @@ OmniRoute's underlying Tier-1 router infrastructure is **migrating** to
 | Tier | Owner | Responsibility |
 |------|-------|----------------|
 | **Tier-1 router** | `KooshaPari/bifrost` (vendored fork of `maximhq/bifrost`) | 23+ provider dispatch, format translation, fallback, load balancing, virtual keys, budget mgmt, semantic cache, MCP client, observability. **All hot-path / provider-mesh concerns.** |
-| **Tier-2 engine** | `OmniRoute` (this repo) | A2A agent orchestration, MCP-router polyglot facade, ACP registry, skill registry, policy engine, guardrails, dashboard. **All higher-level value-add concerns.** |
+| **Tier-2 engine** | `OmniRoute` (this repo) | A2A agent orchestration, MCP-router dispatch facade, ACP registry, skill registry, policy engine, guardrails, dashboard. **All higher-level value-add concerns.** |
 
 **Why Bifrost?** Per `docs/adr/0031-bifrost-tier1-router.md`:
 - ~6k LOC Go vs LiteLLM's ~100k LOC Python.

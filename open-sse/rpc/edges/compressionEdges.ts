@@ -5,13 +5,13 @@
  * process over UDS, with an in-process TypeScript fast-path fallback for
  * low-RPS deployments (no UDS server = no benefit).
  *
- * See `polyglot.omniidc` "service compression" for the wire shape.
+ * See `dispatch.omniidc` "service compression" for the wire shape.
  * See `open-sse/services/compression/lite.ts` for the TS reference impl.
  * See ADR-032 § "Prompt compression (lite / caveman / rtk)" — T2 tier.
  */
 
-import { registerEdge } from "../polyglotEdges.ts";
-import type { EdgeTier } from "../polyglotEdges.ts";
+import { registerEdge } from "../dispatchEdges.ts";
+import type { EdgeTier } from "../dispatchEdges.ts";
 import type { LiteCompressionOptions } from "../../services/compression/lite.ts";
 import {
   collapseWhitespace,

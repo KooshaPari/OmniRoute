@@ -1,11 +1,11 @@
 /**
- * T2 — Unix-domain-socket RPC transport for polyglot edges (ADR-032 / F1).
+ * T2 — Unix-domain-socket RPC transport for dispatch edges (ADR-032 / F1).
  *
  * Implements a JSON-RPC 2.0 framed-over-UDS protocol. This is intentionally
  * the simplest battle-tested RPC format (no Protobuf compilation step, no
  * Cap'n Proto runtime) — easy to migrate to Cap'n Proto or FlatBuffers
  * later as a wire-format swap (zero call-site change thanks to
- * `polyglotEdges.ts`).
+ * `dispatchEdges.ts`).
  *
  * Wire format (line-delimited JSON-RPC):
  *   → request:  `{"jsonrpc":"2.0","id":<u64>,"method":"<name>","params":<obj>}\n`
@@ -13,7 +13,7 @@
  *
  * Socket discovery:
  *   - `OMNIROUTE_UDS_SOCKET` env override (canonical cross-process coord).
- *   - Default: `${DATA_DIR}/polyglot.sock` (DATA_DIR defaults to ~/.omniroute/).
+ *   - Default: `${DATA_DIR}/dispatch.sock` (DATA_DIR defaults to ~/.omniroute/).
  *   - Per-edge contract `.socket` field overrides.
  *
  * Connection pooling:
@@ -21,13 +21,13 @@
  *     via u64 request IDs (JSON-RPC standard).
  *   - Reconciles on socket failure (auto-reconnects with backoff).
  *   - Falls back to throwing on `invokeUdsEdge` if the server is missing —
- *     callers (the polyglot resolver) then degrade to T1.
+ *     callers (the dispatch resolver) then degrade to T1.
  */
 
 import { existsSync } from "node:fs";
 import { connect, type Socket } from "node:net";
-import type { UdsEdgeContract, InvokeOptions } from "./polyglotEdges.ts";
-import type { PolyglotEdgeError } from "./errors.ts";
+import type { UdsEdgeContract, InvokeOptions } from "./dispatchEdges.ts";
+import type { DispatchEdgeError } from "./errors.ts";
 
 interface PendingRequest {
   resolve: (value: unknown) => void;
@@ -36,7 +36,7 @@ interface PendingRequest {
 }
 
 const UDS_DEFAULT = () =>
-  process.env.OMNIROUTE_UDS_SOCKET ?? `${process.env.DATA_DIR ?? "~/.omniroute"}/polyglot.sock`;
+  process.env.OMNIROUTE_UDS_SOCKET ?? `${process.env.DATA_DIR ?? "~/.omniroute"}/dispatch.sock`;
 
 interface UdsClientState {
   socket: Socket | null;
@@ -112,7 +112,7 @@ function handleSocketData(state: UdsClientState, socketPath: string, chunk: stri
     state.pending.delete(msg.id);
     clearTimeout(pending.timer);
     if (msg.error) {
-      const err: PolyglotEdgeError = new Error(msg.error.message ?? "UDS RPC error");
+      const err: DispatchEdgeError = new Error(msg.error.message ?? "UDS RPC error");
       err.code = `UDS_${msg.error.code ?? "ERROR"}`;
       pending.reject(err);
     } else {
@@ -125,7 +125,7 @@ function handleSocketClose(state: UdsClientState, socketPath: string): void {
   // Reject any pending requests with a transport error.
   for (const [id, pending] of state.pending.entries()) {
     clearTimeout(pending.timer);
-    const err: PolyglotEdgeError = new Error("UDS socket closed before response");
+    const err: DispatchEdgeError = new Error("UDS socket closed before response");
     err.code = "UDS_CLOSED";
     pending.reject(err);
     state.pending.delete(id);
@@ -169,7 +169,7 @@ export async function invokeUdsEdge<TIn, TOut>(
   return new Promise<TOut>((resolve, reject) => {
     const timer = setTimeout(() => {
       state.pending.delete(id);
-      const err: PolyglotEdgeError = new Error(`UDS RPC ${contract.method} timed out after ${timeoutMs}ms`);
+      const err: DispatchEdgeError = new Error(`UDS RPC ${contract.method} timed out after ${timeoutMs}ms`);
       err.code = "UDS_TIMEOUT";
       reject(err);
     }, timeoutMs);
@@ -184,7 +184,7 @@ export async function invokeUdsEdge<TIn, TOut>(
       if (error) {
         clearTimeout(timer);
         state.pending.delete(id);
-        const err: PolyglotEdgeError = new Error(`UDS RPC write failed: ${error.message}`);
+        const err: DispatchEdgeError = new Error(`UDS RPC write failed: ${error.message}`);
         err.code = "UDS_WRITE_ERROR";
         reject(err);
       }
@@ -192,8 +192,8 @@ export async function invokeUdsEdge<TIn, TOut>(
   });
 }
 
-function createUdsTransportError(message: string, socketPath: string): PolyglotEdgeError {
-  const err: PolyglotEdgeError = new Error(`${message} (socket=${socketPath})`);
+function createUdsTransportError(message: string, socketPath: string): DispatchEdgeError {
+  const err: DispatchEdgeError = new Error(`${message} (socket=${socketPath})`);
   err.code = "UDS_NO_CONNECTION";
   return err;
 }

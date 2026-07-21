@@ -18,6 +18,8 @@ import { ensurePersistentManagementPasswordHash } from "./lib/auth/managementPas
 import { skillExecutor } from "./lib/skills/executor";
 import { registerBuiltinSkills } from "./lib/skills/builtins";
 import { createLogger } from "./shared/utils/logger";
+import { startMetricsEndpoint } from "@omniroute/open-sse/rpc/metrics";
+import { startOtelPush } from "@omniroute/open-sse/rpc/otelBridge";
 
 const startupLog = createLogger("server-init");
 
@@ -169,6 +171,31 @@ async function startServer() {
     await initArenaEloSync();
   } catch (err) {
     startupLog.warn({ error: getErrorMessage(err) }, "Arena ELO sync could not initialize");
+  }
+
+  // --- /metrics endpoint (Prometheus scrape) ---
+  // Starts an HTTP server on OMNIROUTE_METRICS_PORT (default 9095) that
+  // serves the dispatch tier-decision counters in Prometheus text format.
+  try {
+    const metricsServer = await startMetricsEndpoint();
+    if (metricsServer) {
+      startupLog.info(
+        `Prometheus /metrics endpoint listening on :${metricsServer.port}`,
+      );
+    } else {
+      startupLog.debug("Metrics endpoint skipped (port busy or disabled)");
+    }
+  } catch (err) {
+    startupLog.warn({ error: getErrorMessage(err) }, "Metrics endpoint failed to start (non-fatal)");
+  }
+
+  // --- OTel push bridge (OTLP HTTP) ---
+  // Pushes dispatch metrics to OTEL_EXPORTER_OTLP_ENDPOINT when configured.
+  // No-op when OMNIROUTE_OTLP_ENDPOINT is unset.
+  try {
+    startOtelPush();
+  } catch (err) {
+    startupLog.warn({ error: getErrorMessage(err) }, "OTel push bridge failed to start (non-fatal)");
   }
 }
 

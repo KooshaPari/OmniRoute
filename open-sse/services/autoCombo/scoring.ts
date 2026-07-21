@@ -1,3 +1,4 @@
+
 /**
  * Auto-Combo Scoring Function
  *
@@ -97,6 +98,7 @@ export interface ScoredProvider {
  */
 export function calculateScore(factors: ScoringFactors, weights: ScoringWeights): number {
   // clamp01 bounds the result to [0,1] and maps a non-finite sum (a NaN factor)
+
   // to 0, so a single bad input can't yield NaN (which sorts nondeterministically)
   // or a score >1 from float drift in weights that nominally sum to 1.
   return clamp01(
@@ -212,26 +214,7 @@ export function calculateFactors(
   };
 }
 
-export function scorePool(
-  pool: ProviderCandidate[],
-  taskType: string,
-  weights: ScoringWeights = DEFAULT_WEIGHTS,
-  getTaskFitness: (model: string, taskType: string) => number = () => 0.5,
-  manifestHint?: RoutingHint | null
-): ScoredProvider[] {
-  return pool
-    .map((candidate) => {
-      const factors = calculateFactors(candidate, pool, taskType, getTaskFitness, manifestHint);
-      return {
-        provider: candidate.provider,
-        model: candidate.model,
-        score: calculateScore(factors, weights),
-        factors,
-        connectionId: candidate.connectionId,
-      };
-    })
-    .sort((a, b) => b.score - a.score);
-}
+
 
 /**
  * Validate that weights sum to 1.0 (±0.01 tolerance).

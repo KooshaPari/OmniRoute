@@ -4,14 +4,14 @@
  * The /metrics endpoint cycles through all counters and produces a text
  * representation. CPU-bound on JSON serialization + string concatenation.
  */
-import { registerEdge, getEdgeTier } from "../polyglotEdges.ts";
-import type { PolyglotEdgeResult } from "../polyglotEdges.ts";
+import { registerEdge, getEdgeTier } from "../dispatchEdges.ts";
+import type { DispatchEdgeResult } from "../dispatchEdges.ts";
 
 registerEdge({ name: "metrics.render", defaultTier: 2, providerScope: ["*"] });
 
 export async function metricsRenderHandler(
   format: "prometheus" | "json" = "prometheus",
-): Promise<PolyglotEdgeResult<string>> {
+): Promise<DispatchEdgeResult<string>> {
   const tier = getEdgeTier("metrics.render");
   if (tier <= 2) {
     const { renderPrometheusText } = await import("../metrics.ts");
@@ -20,5 +20,5 @@ export async function metricsRenderHandler(
       : await renderPrometheusText();
     return { ok: true, value: body };
   }
-  return { ok: true, value: "# polyglot metrics (tier: T3 placeholder)" };
+  return { ok: true, value: "# dispatch metrics (tier: T3 placeholder)" };
 }

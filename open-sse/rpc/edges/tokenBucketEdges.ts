@@ -1,4 +1,4 @@
-import { registerEdge, type EdgeDefinition } from "../polyglotEdges";
+import { registerEdge, type EdgeDefinition } from "../dispatchEdges";
 
 /**
  * Per-provider rate-limit token-bucket edge.

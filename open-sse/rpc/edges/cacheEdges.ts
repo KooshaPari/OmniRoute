@@ -10,12 +10,12 @@
  *     (Rust + `simhash` Hamming-distance search + `dashmap` sharding).
  *   - In-process TypeScript fast-path when the crate is missing.
  *
- * See `polyglot.omniidc` "service cache" for the wire shape.
+ * See `dispatch.omniidc` "service cache" for the wire shape.
  * See `src/lib/db/reasoningCache.ts` for the SQLite-backed reasoning cache.
  */
 
-import { registerEdge } from "../polyglotEdges.ts";
-import type { EdgeTier } from "../polyglotEdges.ts";
+import { registerEdge } from "../dispatchEdges.ts";
+import type { EdgeTier } from "../dispatchEdges.ts";
 import {
   getSignatures,
   detectAndLearn,

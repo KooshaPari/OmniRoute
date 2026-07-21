@@ -50,4 +50,15 @@ for pkg in "${PKG_ORDER[@]}"; do
   (cd "$pkg_dir" && npm publish "${PUBLISH_ARGS[@]}")
 done
 
+# Publish the workspace aggregator AFTER all platform packages are live.
+# Consumers install @omniroute/ffi which pulls the correct platform pkg
+# via optionalDependencies.
+AGG_PKG_DIR="$ROOT/packages/omniroute-ffi"
+if [ -d "$AGG_PKG_DIR" ]; then
+  echo "==> Publishing @omniroute/ffi (aggregator)"
+  (cd "$AGG_PKG_DIR" && npm publish "${PUBLISH_ARGS[@]}")
+else
+  echo "WARN: $AGG_PKG_DIR missing — skipping aggregator publish"
+fi
+
 echo "Done publishing FFI packages."

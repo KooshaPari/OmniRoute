@@ -1,16 +1,16 @@
 /**
- * Test fixtures for polyglot edge coverage verification (ADR-032 / Option C).
+ * Test fixtures for dispatch edge coverage verification (ADR-032 / Option C).
  *
  * The 6 expanded edges (`usage.sync`, `pricing.sync`, `webhook.dispatch`,
  * `metrics.render`, `scheduler.tick`, `config.reload`) are registered in
- * `open-sse/rpc/polyglotEdges.ts` and each has a T1/T2/T3 handler in its
+ * `open-sse/rpc/dispatchEdges.ts` and each has a T1/T2/T3 handler in its
  * respective edge module. This file provides:
  *   - `seedMetrics()` — populates the in-process metrics sink with sample
  *     counter/gauge/histogram values so the test can render text + assert.
  *   - `makeWebhookEvent()` / `makeUsageRecord()` / etc. — input factories
  *     that match the per-edge `TIn` contract exactly.
  *
- * Tests live in `tests/unit/polyglot-expanded-edges.test.ts`.
+ * Tests live in `tests/unit/dispatch-expanded-edges.test.ts`.
  */
 
 import { recordTierDecision, recordReconcileSweep, setCurrentTier } from "../metrics.ts";
@@ -33,11 +33,11 @@ export function seedMetrics(): void {
   });
   // Histogram — reconcile sweep durations
   recordReconcileSweep({
-    actor: "polyglot_reconciler",
+    actor: "dispatch_reconciler",
     durationMs: 2.1,
   });
   recordReconcileSweep({
-    actor: "polyglot_reconciler",
+    actor: "dispatch_reconciler",
     durationMs: 3.4,
   });
   // Gauge — current tier per edge
