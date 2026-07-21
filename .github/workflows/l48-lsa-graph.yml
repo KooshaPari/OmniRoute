@@ -1,4 +1,6 @@
 name: l48-lsa-graph
+permissions:
+  contents: read
 on:
   schedule: [{cron: '0 13 * * 1'}]
   workflow_dispatch: {}

@@ -1,0 +1,19 @@
+{
+  "_comment": "Exact old-to-children lineage for active test splits. Children must all be changed test files in the same diff.",
+  "open-sse/executors/__tests__/codexPayload.test.ts": [
+    "open-sse/executors/__tests__/codexPayload.executor.test.ts",
+    "open-sse/executors/__tests__/codexPayload.utilities.test.ts"
+  ],
+  "tests/unit/transformer/responsesTransformer.test.ts": [
+    "tests/unit/responses-transformer-streaming.test.ts",
+    "tests/unit/responses-transformer-options.test.ts"
+  ],
+  "tests/unit/db-migration-runner.test.ts": [
+    "tests/unit/db-migration-runner.test.ts",
+    "tests/unit/db-migration-threshold.test.ts"
+  ],
+  "tests/unit/fleet/system-load-adapter.test.ts": [
+    "tests/unit/fleet/system-load-adapter.test.ts",
+    "tests/unit/system-load-adapter-http-cache.test.ts"
+  ]
+}

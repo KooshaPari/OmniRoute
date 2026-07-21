@@ -110,10 +110,10 @@ npm run lint
 
 | Problem | Cause | Solution |
 |---------|-------|----------|
-| `ERR_INVALID_PACKAGE` | Cache miss | Re-seed cache online for missing package(s) |
+| Invalid-package error | Cache miss | Re-seed cache online for missing package(s) |
 | `ETIMEDOUT` during build | Process attempting network | Check for postinstall scripts with network calls |
 | Missing optional dep | Platform-specific dep not cached | Seed cache on matching OS/arch |
-| `BUILD_SHA` mismatch | Different source | Re-package source from the same commit |
+| `dist/BUILD_SHA` mismatch | Different source | Re-package source from the same commit |
 
 ## CI/CD Integration
 

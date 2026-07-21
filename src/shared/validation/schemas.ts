@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { selfHealingSettingsSchema } from "./selfHealingSchema";
 import {
   ACCOUNT_FALLBACK_STRATEGY_VALUES,
   ROUTING_STRATEGY_VALUES,
@@ -13,7 +14,6 @@ import {
   isForbiddenCustomHeaderName,
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
-
 function isHttpUrl(value: string): boolean {
   try {
     const parsed = new URL(value);
@@ -1030,7 +1030,6 @@ const modelCompatPerProtocolSchema = z
     upstreamHeaders: upstreamHeadersRecordSchema.optional(),
   })
   .strict();
-
 export const providerModelMutationSchema = z.object({
   provider: z.string().trim().min(1, "provider is required").max(120),
   modelId: z.string().trim().min(1, "modelId is required").max(240),
@@ -1067,6 +1066,8 @@ export const providerModelMutationSchema = z.object({
   targetFormat: z
     .enum(["openai", "openai-responses", "claude", "gemini", "gemini-cli", "antigravity"])
     .optional(),
+  max_input_tokens: z.number().int().positive().optional(),
+  max_output_tokens: z.number().int().positive().optional(),
   normalizeToolCallId: z.boolean().optional(),
   preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
   upstreamHeaders: upstreamHeadersRecordSchema.nullable().optional(),
@@ -1075,7 +1076,6 @@ export const providerModelMutationSchema = z.object({
     .partialRecord(z.enum(["openai", "openai-responses", "claude"]), modelCompatPerProtocolSchema)
     .optional(),
 });
-
 const pricingFieldsSchema = z
   .object({
     input: z.number().min(0).optional(),
@@ -1192,6 +1192,7 @@ export const updateResilienceSchema = z
       .optional(),
     waitForCooldown: waitForCooldownSettingsSchema.optional(),
     providerCooldown: providerCooldownSettingsSchema.optional(),
+    selfHealing: selfHealingSettingsSchema.optional(),
     profiles: z
       .object({
         oauth: legacyResilienceProfileSchema.optional(),

@@ -93,4 +93,5 @@ Total: 26 markers (15 in src/open-sse, 7 in tests/unit, 4 in shared).
 
 - ADR-009: A2A Skill Registry and `src/lib/a2a/skills/*` placement
 - ADR-010: `pheno-otel` integration deadline 2026-06-30 (drives DEBT-011)
-- [30-pillar framework L10 — Tech Debt Management](../../repos/findings/30-pillar-2026-06-16.md#l10-tech-debt-management)
+- Historical source: `findings/30-pillar-2026-06-16.md`, L10 — Tech Debt
+  Management (organization audit workspace; not part of this repository).

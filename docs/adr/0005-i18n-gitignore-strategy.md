@@ -1,6 +1,6 @@
 # 0005 — i18n gitignore strategy
 
-> Status: **Proposed**
+> Status: **Accepted**
 > Date: 2026-06-08
 > Deciders: OmniRoute maintainers
 
@@ -48,11 +48,11 @@ Add to `.gitignore`:
 
 ```gitignore
 # i18n is auto-generated, not authored
-docs/i18n/
+/docs/i18n/
 # Sidecar files from the i18n pipeline
-docs/_audit.json
-docs/_pending-keys.json
-scripts/i18n/_cache/
+/docs/_audit.json
+/docs/_pending-keys.json
+/scripts/i18n/_cache/
 ```
 
 The existing 682K LOC of tracked i18n content is removed from the index in a

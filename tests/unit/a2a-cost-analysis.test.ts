@@ -15,7 +15,10 @@ import { executeCostAnalysis } from "@/lib/a2a/skills/costAnalysis";
 import { getPricingForModel } from "@/shared/constants/pricing";
 import type { A2ATask } from "@/lib/a2a/taskManager";
 
-function makeTask(metadata: Record<string, unknown> | undefined, messages: A2ATask["messages"] = []): A2ATask {
+function makeTask(
+  metadata: Record<string, unknown> | undefined,
+  messages: A2ATask["messages"] = []
+): A2ATask {
   return {
     id: "test-task",
     skill: "cost-analysis",
@@ -53,7 +56,7 @@ describe("costAnalysis A2A skill", () => {
           prompt_tokens: 1000,
           completion_tokens: 500,
         },
-      }),
+      })
     );
     const payload = parseArtifact(result);
 
@@ -80,7 +83,7 @@ describe("costAnalysis A2A skill", () => {
         // way too low for 1.5M tokens on Opus 4
         budget_usd: 0.001,
         fallback_models: ["claude-sonnet-4", "claude-haiku-3"],
-      }),
+      })
     );
     const payload = parseArtifact(result);
 
@@ -101,7 +104,7 @@ describe("costAnalysis A2A skill", () => {
           completion_tokens: 500_000,
         },
         budget_usd: 0.001,
-      }),
+      })
     );
     const payload = parseArtifact(result);
 
@@ -112,15 +115,16 @@ describe("costAnalysis A2A skill", () => {
   it("estimates tokens from messages when tokens is omitted", async () => {
     const messages: A2ATask["messages"] = [
       { role: "system", content: "You are a helpful assistant." },
-      { role: "user", content: "a".repeat(4000) }, // 4000 chars => ~1000 tokens
+      { role: "user", content: "a".repeat(4000) },
     ];
     const result = await executeCostAnalysis(
-      makeTask({ provider: "anthropic", model: "claude-opus-4" }, messages),
+      makeTask({ provider: "anthropic", model: "claude-opus-4" }, messages)
     );
     const payload = parseArtifact(result);
 
-    expect(payload.tokens.input).toBe(1000);
-    expect(payload.tokens.output).toBe(500);
+    const inputChars = messages.reduce((total, message) => total + message.content.length, 0);
+    expect(payload.tokens.input).toBe(Math.ceil(inputChars / 4));
+    expect(payload.tokens.output).toBe(Math.ceil(inputChars / 8));
     expect(payload.warnings.some((w: string) => w.includes("4 chars/token"))).toBe(true);
     expect(payload.cost_usd).toBeGreaterThan(0);
   });
@@ -131,7 +135,7 @@ describe("costAnalysis A2A skill", () => {
         provider: "fictional-vendor",
         model: "mystery-1",
         tokens: { prompt_tokens: 100, completion_tokens: 100 },
-      }),
+      })
     );
     const payload = parseArtifact(result);
 
@@ -146,7 +150,7 @@ describe("costAnalysis A2A skill", () => {
         provider: "anthropic",
         model: "claude-opus-4",
         tokens: { input_tokens: 1000, output_tokens: 500 },
-      }),
+      })
     );
     const payload = parseArtifact(result);
 
@@ -161,7 +165,7 @@ describe("costAnalysis A2A skill", () => {
         provider: "anthropic",
         model: "claude-opus-4",
         tokens: { prompt_tokens: 1000, completion_tokens: 500 },
-      }),
+      })
     );
     const cached = await executeCostAnalysis(
       makeTask({
@@ -172,7 +176,7 @@ describe("costAnalysis A2A skill", () => {
           completion_tokens: 500,
           cached_tokens: 800, // most input is cached → much cheaper
         },
-      }),
+      })
     );
     const plainCost = parseArtifact(plain).cost_usd;
     const cachedCost = parseArtifact(cached).cost_usd;

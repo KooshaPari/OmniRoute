@@ -31,7 +31,7 @@ jobs:
           persist-credentials: false
 
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@25c0c5ec309e0043bd9a3fb03da1eee4b1426b35
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_COMMENTS: false
@@ -58,12 +58,11 @@ jobs:
 
       - name: Run npm audit
         run: npm audit --audit-level=high
-        continue-on-error: true
 
   codeql:
     name: CodeQL Analysis
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
     permissions:
       security-events: write
       actions: read
@@ -118,3 +117,18 @@ jobs:
         uses: github/codeql-action/upload-sarif@0daab03d71ff584ef619d027a3fd9146679c5d84
         with:
           sarif_file: results.sarif
+
+  protected-security:
+    name: ci/security
+    runs-on: ubuntu-24.04
+    if: ${{ always() }}
+    needs: [gitleaks, deps-audit, codeql, ossf-scorecard]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - name: Evaluate authoritative security jobs
+        run: node scripts/check/check-job-results.mjs
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}

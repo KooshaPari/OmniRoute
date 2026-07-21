@@ -8,6 +8,7 @@ import {
   evaluateMasking,
   evaluateDeletedFiles,
   partitionDeletedRenamed,
+  evaluateSplitLineage,
 } from "../../scripts/check/check-test-masking.mjs";
 
 // ─── Existing tests (must stay green) ────────────────────────────────────────
@@ -336,6 +337,102 @@ test("a rename that DROPS asserts still fires (gutting-via-rename)", () => {
   ]);
   assert.equal(r.length, 1);
   assert.match(r[0], /REMO/);
+});
+
+test("split lineage aggregates assertions across explicit changed children", () => {
+  const result = evaluateSplitLineage({
+    from: "tests/unit/monolith.test.ts",
+    to: "tests/unit/monolith.streaming.test.ts",
+    destinations: ["tests/unit/monolith.streaming.test.ts", "tests/unit/monolith.options.test.ts"],
+    baseSrc: "assert.equal(a, 1); assert.equal(b, 2);",
+    headSources: {
+      "tests/unit/monolith.streaming.test.ts": "assert.equal(a, 1);",
+      "tests/unit/monolith.options.test.ts": "assert.equal(b, 2);",
+    },
+    changedPaths: new Set([
+      "tests/unit/monolith.streaming.test.ts",
+      "tests/unit/monolith.options.test.ts",
+    ]),
+  });
+  assert.deepEqual(result.flags, []);
+  assert.equal(result.aggregate?.baseAsserts, 2);
+  assert.equal(result.aggregate?.headAsserts, 2);
+  assert.deepEqual(evaluateMasking([result.aggregate]), []);
+});
+
+test("split lineage supports a retained source path plus an added child", () => {
+  const source = "tests/unit/monolith.test.ts";
+  const child = "tests/unit/monolith.cache.test.ts";
+  const result = evaluateSplitLineage({
+    from: source,
+    to: source,
+    destinations: [source, child],
+    baseSrc: "assert.equal(a, 1); assert.equal(b, 2);",
+    headSources: {
+      [source]: "assert.equal(a, 1);",
+      [child]: "assert.equal(b, 2);",
+    },
+    changedPaths: new Set([source, child]),
+  });
+
+  assert.deepEqual(result.flags, []);
+  assert.equal(result.aggregate?.baseAsserts, 2);
+  assert.equal(result.aggregate?.headAsserts, 2);
+  assert.deepEqual(evaluateMasking([result.aggregate]), []);
+});
+
+test("split lineage fails closed when a declared child is not part of the diff", () => {
+  const result = evaluateSplitLineage({
+    from: "tests/unit/monolith.test.ts",
+    to: "tests/unit/monolith.streaming.test.ts",
+    destinations: ["tests/unit/monolith.streaming.test.ts", "tests/unit/monolith.options.test.ts"],
+    baseSrc: "assert.equal(a, 1);",
+    headSources: {
+      "tests/unit/monolith.streaming.test.ts": "assert.equal(a, 1);",
+      "tests/unit/monolith.options.test.ts": "assert.equal(a, 1);",
+    },
+    changedPaths: new Set(["tests/unit/monolith.streaming.test.ts"]),
+  });
+  assert.equal(result.aggregate, null);
+  assert.ok(result.flags.some((flag) => /não pertence a este diff/.test(flag)));
+});
+
+test("split lineage fails closed when the detected rename destination is omitted", () => {
+  const result = evaluateSplitLineage({
+    from: "tests/unit/monolith.test.ts",
+    to: "tests/unit/monolith.streaming.test.ts",
+    destinations: ["tests/unit/monolith.options.test.ts", "tests/unit/monolith.utilities.test.ts"],
+    baseSrc: "assert.equal(a, 1);",
+    headSources: {
+      "tests/unit/monolith.options.test.ts": "assert.equal(a, 1);",
+      "tests/unit/monolith.utilities.test.ts": "assert.equal(a, 1);",
+    },
+    changedPaths: new Set([
+      "tests/unit/monolith.options.test.ts",
+      "tests/unit/monolith.utilities.test.ts",
+    ]),
+  });
+  assert.equal(result.aggregate, null);
+  assert.ok(result.flags.some((flag) => /não inclui o destino renomeado/.test(flag)));
+});
+
+test("split lineage aggregate still flags net assertion removal", () => {
+  const result = evaluateSplitLineage({
+    from: "tests/unit/monolith.test.ts",
+    to: "tests/unit/monolith.streaming.test.ts",
+    destinations: ["tests/unit/monolith.streaming.test.ts", "tests/unit/monolith.options.test.ts"],
+    baseSrc: "assert.equal(a, 1); assert.equal(b, 2); assert.equal(c, 3);",
+    headSources: {
+      "tests/unit/monolith.streaming.test.ts": "assert.equal(a, 1);",
+      "tests/unit/monolith.options.test.ts": "assert.equal(b, 2);",
+    },
+    changedPaths: new Set([
+      "tests/unit/monolith.streaming.test.ts",
+      "tests/unit/monolith.options.test.ts",
+    ]),
+  });
+  assert.equal(result.flags.length, 0);
+  assert.equal(evaluateMasking([result.aggregate]).length, 1);
 });
 
 test("evaluateMasking: allowlist exempts ONLY reduction — tautology/skip still flagged", () => {

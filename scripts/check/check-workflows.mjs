@@ -40,6 +40,7 @@
 
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -51,6 +52,7 @@ const BASELINE_PATH = path.join(ROOT, "config/quality/quality-baseline.json");
 const STRICT = process.argv.includes("--strict");
 const RATCHET = process.argv.includes("--ratchet");
 const QUIET = process.argv.includes("--quiet");
+const BASELINE_REF = process.argv.find((arg) => arg.startsWith("--baseline-ref="))?.split("=", 2)[1];
 
 // ---------------------------------------------------------------------------
 // Utility: resolve binary from PATH (cross-platform)
@@ -139,6 +141,25 @@ export function parseZizmorOutput(stdout) {
     const lines = trimmed.split("\n").filter(Boolean);
     return { count: lines.length, diagnostics: [] };
   }
+}
+
+/** Build a stable finding identity that ignores line/column drift. */
+export function zizmorDiagnosticKey(diagnostic) {
+  const location = diagnostic?.locations?.[0]?.symbolic;
+  const rawSource = location?.key?.Local?.verbatim_path ?? location?.key?.Remote?.url ?? "unknown";
+  const source = rawSource.replace(/^.*(?=\.github\/workflows\/)/, "");
+  return JSON.stringify([
+    diagnostic?.ident ?? diagnostic?.id ?? "unknown",
+    source,
+    location?.route?.route ?? [],
+    location?.annotation ?? "",
+  ]);
+}
+
+/** Return only diagnostics whose stable identity is absent from the base tree. */
+export function findNewZizmorDiagnostics(current, baseline) {
+  const known = new Set(baseline.map(zizmorDiagnosticKey));
+  return current.filter((diagnostic) => !known.has(zizmorDiagnosticKey(diagnostic)));
 }
 
 // ---------------------------------------------------------------------------
@@ -235,10 +256,10 @@ export function runActionlint(files) {
  * @param {string} workflowsDir - Path to .github/workflows
  * @returns {{ count: number, diagnostics: unknown[], skipped: boolean }}
  */
-export function runZizmor(workflowsDir) {
+export function runZizmor(workflowsDir, configPath = ZIZMOR_CONFIG) {
   const args = ["--format", "json"];
-  if (fs.existsSync(ZIZMOR_CONFIG)) {
-    args.push("--config", ZIZMOR_CONFIG);
+  if (fs.existsSync(configPath)) {
+    args.push("--config", configPath);
   }
   args.push(workflowsDir);
 
@@ -252,6 +273,22 @@ export function runZizmor(workflowsDir) {
     const stdout = (err && typeof err === "object" && "stdout" in err ? err.stdout : "") || "";
     return { ...parseZizmorOutput(String(stdout)), skipped: false };
   }
+}
+
+/** Materialize only workflow audit inputs from a git ref into an isolated temp tree. */
+export function materializeWorkflowRef(ref) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-workflow-base-"));
+  const output = execFileSync(
+    "git",
+    ["ls-tree", "-r", "--name-only", ref, "--", ".github/workflows", ".zizmor.yml"],
+    { encoding: "utf8" }
+  );
+  for (const relativePath of output.split("\n").filter(Boolean)) {
+    const target = path.join(root, relativePath);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, execFileSync("git", ["show", `${ref}:${relativePath}`]));
+  }
+  return root;
 }
 
 // ---------------------------------------------------------------------------
@@ -292,6 +329,7 @@ function main() {
 
   let actionlintCount = 0;
   let zizmorCount = 0;
+  let zizmorDiagnostics = [];
 
   // ── actionlint ────────────────────────────────────────────────────────────
   if (hasActionlint) {
@@ -320,6 +358,7 @@ function main() {
     }
     const result = runZizmor(WORKFLOWS_DIR);
     zizmorCount = result.count;
+    zizmorDiagnostics = result.diagnostics;
 
     if (result.count > 0 && !QUIET) {
       console.error(`[check-workflows] zizmor: ${result.count} finding(s).`);
@@ -355,6 +394,42 @@ function main() {
         );
       }
       process.exit(0);
+    }
+
+    if (BASELINE_REF) {
+      let baselineRoot;
+      try {
+        baselineRoot = materializeWorkflowRef(BASELINE_REF);
+        const baseline = runZizmor(
+          path.join(baselineRoot, ".github", "workflows"),
+          path.join(baselineRoot, ".zizmor.yml")
+        );
+        const introduced = findNewZizmorDiagnostics(zizmorDiagnostics, baseline.diagnostics);
+        if (introduced.length > 0) {
+          const summary = introduced
+            .map((finding) => zizmorDiagnosticKey(finding))
+            .slice(0, 20)
+            .join("\n  ");
+          console.error(
+            `\n[check-workflows] REGRESSION — ${introduced.length} new zizmor finding(s) versus ${BASELINE_REF}:\n  ${summary}`
+          );
+          process.exitCode = 1;
+          return;
+        }
+        if (!QUIET) {
+          process.stderr.write(
+            `[check-workflows] --ratchet OK — no new normalized findings versus ${BASELINE_REF} ` +
+              `(${zizmorCount} current, ${baseline.count} base).\n`
+          );
+        }
+        return;
+      } catch (error) {
+        console.error(`[check-workflows] unable to audit baseline ref ${BASELINE_REF}: ${error}`);
+        process.exitCode = 1;
+        return;
+      } finally {
+        if (baselineRoot) fs.rmSync(baselineRoot, { recursive: true, force: true });
+      }
     }
 
     const baselineValue = readBaselineZizmorValue(BASELINE_PATH);

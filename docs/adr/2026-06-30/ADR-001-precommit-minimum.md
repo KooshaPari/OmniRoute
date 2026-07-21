@@ -39,8 +39,8 @@ security (secret-scan), and CI-gate preflight (test/check).
 
 ## Enforcement
 
-- **New repos**: minimum 4 hooks REQUIRED at creation (via `just init-pre-commit`
-  or `scripts/init-pre-commit.sh` template).
+- **New repos**: minimum 4 hooks REQUIRED at creation; install the tracked
+  `.pre-commit-config.yaml` with `pre-commit install`.
 - **Existing repos**: RECOMMENDED, not enforced. Migration is per-repo as
   maintainers adopt the template.
 - **CI gate**: optional `.pre-commit-hooks-validator.yml` workflow that checks
@@ -84,4 +84,3 @@ coverage**, not tool-specific.
 - `plans/2026-06-30-v46-post-standby-resume.md` — v46 plan (T3)
 - ADR-023 (app-substrate governance) — enforcement model permits
   "new repos REQUIRED, existing RECOMMENDED"
-

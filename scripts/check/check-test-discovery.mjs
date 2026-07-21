@@ -47,7 +47,14 @@ const TEST_FILE_RE = /\.(test|spec)\.(ts|tsx)$/;
 // glob) deve aparecer textualmente — se o runner mudar, este gate exige o sync.
 export const COLLECTORS = [
   // Node native runner — test:unit / test:unit:fast / shards / test:coverage + CI (8 shards, node24, node26)
-  { glob: "tests/unit/*.test.ts", sources: ["package.json", ".github/workflows/ci.yml"] },
+  {
+    glob: "tests/unit/*.test.ts",
+    sources: ["package.json", ".github/workflows/ci.yml"],
+    anchors: {
+      "package.json": "unit-test-manifest.mjs --node",
+      ".github/workflows/ci.yml": "unit-test-manifest.mjs --node",
+    },
+  },
   // Node native runner — subdiretórios religados pela 6A.1c (2026-06-09). Braces
   // explícitos para NÃO incluir tests/unit/autoCombo/** (testes vitest — importam
   // "vitest" e explodem no node runner). Subdir novo: adicione aqui E nos scripts

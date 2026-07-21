@@ -142,6 +142,18 @@ export function detect(
   return out;
 }
 
+export interface AnomalyDetector {
+  detect(
+    latest: ProviderHealthSample,
+    prior: readonly ProviderHealthSample[],
+    config?: AnomalyDetectorConfig,
+  ): AnomalySignal[];
+}
+
+export function createAnomalyDetector(): AnomalyDetector {
+  return { detect };
+}
+
 /**
  * Score a window in-place. Convenience wrapper for callers that already
  * have a sorted window. Does NOT touch the DB. Returns at most

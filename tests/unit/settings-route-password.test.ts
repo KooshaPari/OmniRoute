@@ -51,7 +51,8 @@ test("settings route password update requires the current INITIAL_PASSWORD after
   const settings = await settingsDb.getSettings();
 
   assert.equal(response.status, 200);
-  assert.equal(managementPassword.isBcryptHash(settings.password), true);
+  assert.equal(managementPassword.isArgon2idHash(settings.password), true);
+  assert.equal(managementPassword.isBcryptHash(settings.password), false);
   assert.equal(
     await managementPassword.verifyManagementPassword("rotated-secret", (settings as any).password),
     true

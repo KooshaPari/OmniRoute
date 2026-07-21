@@ -22,7 +22,7 @@ Six channels, in stability order. Each one is a separate `npm dist-tag`, a separ
 | `stable` | 5 | + `cross-platform`, `a11y`, `release-green` | `latest` | `latest` | no | auto-promote |
 | `lts-{n}` | past stable | `core` matrix only | `lts-{n}` | `lts-{n}` | no | manual cut |
 
-Canonical definition: [`config/release/channels.json`](../config/release/channels.json). Runtime gate lookup: [`config/release/ci-matrix.json`](../config/release/ci-matrix.json).
+Canonical definition: [`config/release/channels.json`](../../config/release/channels.json). Runtime gate lookup: [`config/release/ci-matrix.json`](../../config/release/ci-matrix.json).
 
 ## How a release happens
 
@@ -66,7 +66,8 @@ The trigger fires when **any** of these is true:
 
 The trigger always produces a `nightly` build (the most primitive channel). Higher channels are reached by promotion, not re-trigger.
 
-Tunable in `config/release/channels.json#autoTrigger.conditions`. CLI: `npm run release:trigger`.
+Tunable in [`config/release/channels.json`](../../config/release/channels.json) under
+`autoTrigger.conditions`. CLI: `npm run release:trigger`.
 
 ### 2. Channel resolution
 
@@ -162,7 +163,7 @@ Runs `trigger-evaluator --dry-run` then `channel-resolver --dry-run` against syn
 | Script | Purpose |
 |--------|---------|
 | `npm run release:matrix` | Print gate-ID alignment between `channels.json` and `ci-matrix.json`. |
-| `npm run release:trigger` | Run trigger evaluator with env vars (use `LAST_RELEASE_TS`, `ADDED_LINES`, `REMOVED_LINES`, `TRIGGER_NOW`). |
+| `npm run release:trigger` | Run the trigger evaluator with `--last-release-ts`, `--added-lines`, and `--removed-lines`. |
 | `npm run release:trigger:json` | Same, JSON output only (for piping). |
 | `npm run release:resolve` | Run channel resolver for a SHA. Reads `gh api .../check-runs` by default; pass `--check-runs file.json` or `--gate-status '{...}'` for offline runs. |
 | `npm run release:resolve:test` | Run resolver against a synthetic check-runs file. |
@@ -170,9 +171,9 @@ Runs `trigger-evaluator --dry-run` then `channel-resolver --dry-run` against syn
 
 ## Adding a new channel
 
-1. Add the channel definition to [`config/release/channels.json`](../config/release/channels.json).
+1. Add the channel definition to [`config/release/channels.json`](../../config/release/channels.json).
 2. Add the new gate IDs to `config/release/channels.json#gates` with workflow + check-run names.
-3. Mirror them in [`config/release/ci-matrix.json`](../config/release/ci-matrix.json) with the freshness window.
+3. Mirror them in [`config/release/ci-matrix.json`](../../config/release/ci-matrix.json) with the freshness window.
 4. Insert into `promotionOrder`.
 5. Run `npm run release:matrix` to verify alignment.
 6. If the channel needs a new artifact destination (e.g. an apt repo), extend `auto-release.yml#publish-*` jobs.

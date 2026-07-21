@@ -187,6 +187,12 @@ http-client.private.env.json
 scripts/i18n/_audit.json
 scripts/i18n/_pending-keys.json
 
+# Generated documentation translations and pipeline sidecars (ADR-0005)
+/docs/i18n/
+/docs/_audit.json
+/docs/_pending-keys.json
+/scripts/i18n/_cache/
+
 # Private workflow / skill / command implementations
 # These contain proprietary multi-phase logic and should not be committed
 .agents/workflows/implement-features-ag.md

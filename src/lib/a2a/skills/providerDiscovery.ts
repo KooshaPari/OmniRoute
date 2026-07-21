@@ -43,9 +43,9 @@
  *     stats: { total, bySource, byVendor }
  *   }
  *
- * Note: same vendor found via different sources is reported as multiple
- * providers (different `source`). This is intentional — each source is a
- * different origin and may carry different metadata.
+ * The catalog is de-duplicated by normalized vendor + provider id. When the
+ * same provider is found through multiple sources, requested source order
+ * determines which source and metadata win while capability flags are merged.
  */
 
 import { promises as fs, Dirent, Stats } from "node:fs";
@@ -173,7 +173,7 @@ function discoverFromEnv(
     { hasApiKey: boolean; hasBaseUrl: boolean; rawKeys: string[] }
   >();
 
-  for (const key of Object.keys(env)) {
+  for (const key of Object.keys(env).toSorted()) {
     const upper = key.toUpperCase();
     const matchedSuffix = ENV_SUFFIXES.find((s) => upper.endsWith("_" + s));
     if (!matchedSuffix) continue;
@@ -205,7 +205,7 @@ function discoverFromEnv(
       discoveredAt,
       hasApiKey: info.hasApiKey,
       hasBaseUrl: info.hasBaseUrl,
-      metadata: { envKeys: info.rawKeys.sort() },
+      metadata: { envKeys: info.rawKeys.toSorted() },
     });
   }
   return providers;
@@ -292,7 +292,9 @@ async function discoverFromFilesystem(
     const dir = path.join(baseDir, sub);
     let entries: Dirent[];
     try {
-      entries = await fs.readdir(dir, { withFileTypes: true });
+      entries = (await fs.readdir(dir, { withFileTypes: true })).toSorted((left, right) =>
+        left.name.localeCompare(right.name),
+      );
     } catch {
       continue; // missing dir is not an error
     }
@@ -429,6 +431,31 @@ function matchesVendorFilter(
   );
 }
 
+function providerIdentity(provider: DiscoveredProvider): string {
+  return `${normalizeVendor(provider.vendor)}\0${normalizeVendor(provider.id)}`;
+}
+
+/**
+ * Collapse repeated sightings of the same logical provider. Source scan order
+ * is intentional precedence, so the first sighting owns provenance/metadata.
+ * Capability flags are additive because later sources may reveal credentials
+ * or an endpoint that the preferred source omitted.
+ */
+function deduplicateProviders(providers: DiscoveredProvider[]): DiscoveredProvider[] {
+  const unique = new Map<string, DiscoveredProvider>();
+  for (const provider of providers) {
+    const key = providerIdentity(provider);
+    const existing = unique.get(key);
+    if (!existing) {
+      unique.set(key, provider);
+      continue;
+    }
+    existing.hasApiKey ||= provider.hasApiKey;
+    existing.hasBaseUrl ||= provider.hasBaseUrl;
+  }
+  return [...unique.values()];
+}
+
 function buildStats(providers: DiscoveredProvider[]): ProviderDiscoveryOutput["stats"] {
   const bySource: Record<string, number> = {};
   const byVendor: Record<string, number> = {};
@@ -508,7 +535,9 @@ export async function executeProviderDiscovery(task: A2ATask): Promise<A2ASkillR
     }
   }
 
-  const filtered = collected.filter((p) => matchesVendorFilter(p, inputs.vendor));
+  const filtered = deduplicateProviders(collected).filter((p) =>
+    matchesVendorFilter(p, inputs.vendor),
+  );
   const stats = buildStats(filtered);
   const output: ProviderDiscoveryOutput = { providers: filtered, stats };
 

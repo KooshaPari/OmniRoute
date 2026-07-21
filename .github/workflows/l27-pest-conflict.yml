@@ -1,4 +1,6 @@
 name: l27-pest-conflict
+permissions:
+  contents: read
 on:
   schedule: [{cron: '0 7 * * 1'}]
   workflow_dispatch: {}

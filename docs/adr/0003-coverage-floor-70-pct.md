@@ -34,7 +34,7 @@ that:
    "this button does nothing" class of bugs.
 
 3. **Per-component targets** — vitest supports per-file thresholds. The
-   router (`src/lib/router.ts`) gets 90%, the providers get 80%, the auth
+   tag router (`src/domain/tagRouter.ts`) gets 90%, the providers get 80%, the auth
    gets 90%, etc. (see SPEC.md § Test & Coverage Roadmap).
 
 ## Consequences

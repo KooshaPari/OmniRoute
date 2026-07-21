@@ -9,12 +9,12 @@
  */
 import { BrowserWindow, ApplicationMenu } from "electrobun/bun";
 import { $ } from "bun";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const APP_NAME = process.env.APP_NAME ?? "OmniRoute";
 // Bundled fallback page (polls + redirects to the live dev server).
-const RENDERER_URL = "views://app/index.html";
+const FALLBACK_RENDERER_URL = "views://app/index.html";
 // Live dev server (HMR) the window navigates to once reachable.
 const DEV_URL = process.env.RENDERER_URL ?? "http://localhost:3000";
 
@@ -25,6 +25,34 @@ const DEV_URL = process.env.RENDERER_URL ?? "http://localhost:3000";
  * Leave unset to skip service boot.
  */
 const SERVICES_COMPOSE_FILE = process.env.SERVICES_COMPOSE_FILE;
+const STANDALONE_DIR = resolve(process.env.OMNIROUTE_STANDALONE_DIR ?? "../.build/next/standalone");
+const SERVER_PORT = Number(process.env.OMNIROUTE_PORT ?? "20128");
+let nextServer: ReturnType<typeof Bun.spawn> | undefined;
+
+async function bootNextServer(): Promise<string | undefined> {
+  const serverEntry = join(STANDALONE_DIR, "server.js");
+  if (!(await Bun.file(serverEntry).exists())) {
+    console.warn(`[${APP_NAME}] No Next standalone bundle at ${serverEntry}; using bundled fallback`);
+    return undefined;
+  }
+  nextServer = Bun.spawn([process.env.OMNIROUTE_NODE ?? "node", serverEntry], {
+    cwd: STANDALONE_DIR,
+    env: { ...process.env, PORT: String(SERVER_PORT), HOSTNAME: "127.0.0.1" },
+    stdout: "inherit",
+    stderr: "inherit",
+  });
+  const url = `http://127.0.0.1:${SERVER_PORT}`;
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(500) });
+      if (response.status < 500) return url;
+    } catch {
+      await Bun.sleep(250);
+    }
+  }
+  console.warn(`[${APP_NAME}] Next standalone server did not become ready; using bundled fallback`);
+  return undefined;
+}
 
 // ── Service boot ─────────────────────────────────────────────────────────────
 async function bootServices(): Promise<void> {
@@ -48,7 +76,7 @@ async function bootServices(): Promise<void> {
 function createMainWindow(): BrowserWindow {
   const win = new BrowserWindow({
     title: APP_NAME,
-    url: RENDERER_URL,
+    url: FALLBACK_RENDERER_URL,
     frame: {
       x: 0,
       y: 0,
@@ -122,11 +150,14 @@ function setupMenu(win: BrowserWindow): void {
 // ── Bootstrap ────────────────────────────────────────────────────────────────
 async function main(): Promise<void> {
   await bootServices();
+  const bundledUrl = await bootNextServer();
   const win = createMainWindow();
+  if (bundledUrl) win.webview.loadURL(bundledUrl);
   setupMenu(win);
-  console.log(`[${APP_NAME}] Launched → ${DEV_URL} (fallback ${RENDERER_URL})`);
+  console.log(`[${APP_NAME}] Launched → ${bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`);
 }
 
+process.on("exit", () => nextServer?.kill());
 main().catch((err) => {
   console.error(`[${APP_NAME}] Fatal:`, err);
   process.exit(1);

@@ -13,6 +13,8 @@ import { parseRetryAfterFromBody } from "./accountFallback.ts";
 import { getProviderCategory } from "../config/providerRegistry.ts";
 import { getCodexRateLimitKey } from "../executors/codex.ts";
 import { awaitProviderDefaultSlot } from "./providerDefaultRateLimit.ts";
+import { TokenBucket } from "./tokenBucket.ts";
+export { TokenBucket } from "./tokenBucket.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
   resolveResilienceSettings,
@@ -24,6 +26,7 @@ import {
   parseResetTime,
   toPlainHeaders,
 } from "./rateLimitManager/headers";
+import { scheduleWithAbort } from "./rateLimitManager/scheduler.ts";
 
 interface LearnedLimitEntry {
   provider: string;
@@ -387,14 +390,14 @@ export async function applyRequestQueueSettings(nextSettings: RequestQueueSettin
 /**
  * Get or create a limiter for a given provider+connection combination
  */
-export function enableRateLimitProtection(connectionId) {
+export function enableRateLimitProtection(connectionId: string): void {
   enabledConnections.add(connectionId);
 }
 
 /**
  * Disable rate limit protection for a connection
  */
-export function disableRateLimitProtection(connectionId) {
+export function disableRateLimitProtection(connectionId: string): void {
   enabledConnections.delete(connectionId);
   // Evict limiters for this connection from the cache. Do NOT call limiter.stop() —
   // it permanently rejects future .schedule() calls with "This limiter has been stopped",
@@ -417,7 +420,7 @@ export function disableRateLimitProtection(connectionId) {
 /**
  * Check if rate limit protection is enabled for a connection
  */
-export function isRateLimitEnabled(connectionId) {
+export function isRateLimitEnabled(connectionId: string): boolean {
   return enabledConnections.has(connectionId);
 }
 
@@ -431,7 +434,9 @@ export function isRateLimitEnabled(connectionId) {
  * @param {string} connectionId
  * @param {Record<string, number> | null} overrides - New overrides (null/undefined clears)
  */
-export function refreshConnectionRateLimits(connectionId, overrides) {
+export function refreshConnectionRateLimits(
+  connectionId: string, overrides: Record<string, number> | null | undefined
+): void {
   if (overrides === null || overrides === undefined) {
     connectionRateLimitOverrides.delete(connectionId);
   } else {
@@ -451,7 +456,7 @@ export function refreshConnectionRateLimits(connectionId, overrides) {
 /**
  * Get or create a limiter for a given provider+connection combination
  */
-function getLimiterKey(provider, connectionId, model = null) {
+function getLimiterKey(provider: string, connectionId: string, model: string | null = null): string {
   if (provider === "codex" && model) {
     return `${provider}:${getCodexRateLimitKey(connectionId, model)}`;
   }
@@ -463,10 +468,10 @@ function getLimiterKey(provider, connectionId, model = null) {
   return `${provider}:${connectionId}`;
 }
 
-function getLimiter(provider, connectionId, model = null) {
+function getLimiter(provider: string, connectionId: string, model: string | null = null): Bottleneck {
   const key = getLimiterKey(provider, connectionId, model);
-
-  if (!limiters.has(key)) {
+  let limiter = limiters.get(key);
+  if (!limiter) {
     const defaults = buildLimiterDefaults();
     const overrides = connectionRateLimitOverrides.get(connectionId);
     if (overrides) {
@@ -490,7 +495,7 @@ function getLimiter(provider, connectionId, model = null) {
       // separation (Bottleneck's reservoir is request-count, not token-count).
       // When added, treat 0/missing the same way: fall through to system default.
     }
-    const limiter = new Bottleneck({
+    limiter = new Bottleneck({
       ...defaults,
       id: key,
     });
@@ -507,7 +512,7 @@ function getLimiter(provider, connectionId, model = null) {
   }
 
   limiterLastUsed.set(key, Date.now());
-  return limiters.get(key);
+  return limiter;
 }
 
 /**
@@ -521,7 +526,12 @@ function getLimiter(provider, connectionId, model = null) {
  * @param {AbortSignal} signal - Optional abort signal to cancel waiting
  * @returns {Promise<unknown>} Result of fn()
  */
-export async function withRateLimit(provider, connectionId, model, fn, signal = null) {
+export async function withRateLimit<T>(
+  provider: string,
+  connectionId: string,
+  model: string | null, fn: () => T | Promise<T>,
+  signal: AbortSignal | null = null
+): Promise<T> {
   if (!enabledConnections.has(connectionId)) {
     return fn();
   }
@@ -548,36 +558,7 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
   const scheduleOpts = maxWaitMs && maxWaitMs > 0 ? { expiration: maxWaitMs } : {};
 
   try {
-    if (signal) {
-      let abortListener: (() => void) | undefined;
-      const abortPromise = new Promise<never>((_, reject) => {
-        const onAbort = () => {
-          const reason = signal.reason;
-          const err =
-            reason instanceof Error
-              ? reason
-              : new Error(typeof reason === "string" ? reason : "The operation was aborted");
-          err.name = "AbortError";
-          reject(err);
-        };
-        if (signal.aborted) {
-          onAbort();
-          return;
-        }
-        abortListener = onAbort;
-        signal.addEventListener("abort", abortListener, { once: true });
-      });
-
-      try {
-        return await Promise.race([limiter.schedule(scheduleOpts, fn), abortPromise]);
-      } finally {
-        if (abortListener) {
-          signal.removeEventListener("abort", abortListener);
-        }
-      }
-    } else {
-      return await limiter.schedule(scheduleOpts, fn);
-    }
+    return await scheduleWithAbort(limiter, scheduleOpts, fn, signal);
   } catch (err) {
     // Bottleneck's raw `This job timed out after <maxWaitMs> ms.` is
     // indistinguishable from an upstream gateway timeout, so it leaks into 502
@@ -585,7 +566,7 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
     // (#4165). Rewrite it into a clear, OmniRoute-owned error (knob named,
     // upstream disclaimed, original kept as `cause`, `code` for classification).
     // Behavior is unchanged — the job is still dropped so combo can fall back.
-    if (err?.message?.includes("This job timed out")) {
+    if (err instanceof Error && err.message.includes("This job timed out")) {
       const key = getLimiterKey(provider, connectionId, model);
       logRateLimit(
         `⏰ [RATE-LIMIT] ${key} — job expired after ${Math.ceil((maxWaitMs || 0) / 1000)}s in queue, dropping`
@@ -614,7 +595,13 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
  * @param {number} status - HTTP status code
  * @param {string} model - Model name
  */
-export function updateFromHeaders(provider, connectionId, headers, status, model = null) {
+export function updateFromHeaders(
+  provider: string,
+  connectionId: string,
+  headers: unknown,
+  status: number,
+  model: string | null = null
+): void {
   if (!enabledConnections.has(connectionId)) return;
   if (!headers) return;
 
@@ -628,8 +615,8 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     return plainHeaders[name.toLowerCase()] || null;
   };
 
-  const limit = parseInt(getHeader(headerMap.limit));
-  const remaining = parseInt(getHeader(headerMap.remaining));
+  const limit = Number.parseInt(getHeader(headerMap.limit) ?? "", 10);
+  const remaining = Number.parseInt(getHeader(headerMap.remaining) ?? "", 10);
   const resetStr = getHeader(headerMap.reset);
   const retryAfterStr = getHeader(headerMap.retryAfter);
   const overLimit = getHeader(STANDARD_HEADERS.overLimit);
@@ -713,7 +700,7 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
 /**
  * Get current rate limit status for a provider+connection (for dashboard display)
  */
-export function getRateLimitStatus(provider, connectionId) {
+export function getRateLimitStatus(provider: string, connectionId: string) {
   const key = `${provider}:${connectionId}`;
   const limiter = limiters.get(key);
 
@@ -846,7 +833,9 @@ export async function __resetRateLimitManagerForTests() {
   }
 }
 
-export async function __getLimiterStateForTests(provider, connectionId, model = null) {
+export async function __getLimiterStateForTests(
+  provider: string, connectionId: string, model: string | null = null
+) {
   const key = getLimiterKey(provider, connectionId, model);
   const limiter = limiters.get(key);
   if (!limiter) return null;
@@ -927,7 +916,13 @@ async function loadPersistedLimits() {
  * @param {number} status - HTTP status code
  * @param {string} model - Model name (for per-model lockouts)
  */
-export function updateFromResponseBody(provider, connectionId, responseBody, status, model = null) {
+export function updateFromResponseBody(
+  provider: string,
+  connectionId: string,
+  responseBody: unknown,
+  status: number,
+  model: string | null = null
+): void {
   if (!enabledConnections.has(connectionId)) return;
 
   const { retryAfterMs, reason } = parseRetryAfterFromBody(responseBody);
@@ -943,61 +938,6 @@ export function updateFromResponseBody(provider, connectionId, responseBody, sta
       reservoirRefreshAmount: 60,
       reservoirRefreshInterval: retryAfterMs,
     });
-  }
-}
-
-// ── TokenBucket — lightweight token-based rate limiter ────────────────────────
-//
-// Bottleneck's reservoir is request-count based, not token-count based.
-// This class provides a simple token bucket that refills continuously over time,
-// suitable for TPM (tokens-per-minute) and TPD (tokens-per-day) enforcement.
-
-export class TokenBucket {
-  private _capacity: number;
-  private _refillRatePerMs: number;
-  private _tokens: number;
-  private _lastRefillAt: number;
-
-  /**
-   * @param capacity       Maximum token count (bucket ceiling).
-   * @param refillRatePerMs Tokens added per millisecond (e.g. 1/60000 for 1 TPM).
-   */
-  constructor(capacity: number, refillRatePerMs: number) {
-    this._capacity = capacity;
-    this._refillRatePerMs = refillRatePerMs;
-    this._tokens = capacity;
-    this._lastRefillAt = Date.now();
-  }
-
-  /** Current available tokens (lazily refilled on read). */
-  get currentTokens(): number {
-    this._refill();
-    return this._tokens;
-  }
-
-  /**
-   * Attempt to consume `tokens` from the bucket.
-   * Returns `true` if successful, `false` if insufficient tokens.
-   */
-  tryConsume(tokens: number): boolean {
-    this._refill();
-    if (tokens <= 0) {
-      // Zero or negative consumption always allowed; no state change needed
-      // unless the bucket itself has zero capacity.
-      return this._capacity > 0 || this._tokens >= 0;
-    }
-    if (this._tokens < tokens) return false;
-    this._tokens -= tokens;
-    return true;
-  }
-
-  private _refill(): void {
-    if (this._refillRatePerMs <= 0) return;
-    const now = Date.now();
-    const elapsed = now - this._lastRefillAt;
-    if (elapsed <= 0) return;
-    this._tokens = Math.min(this._capacity, this._tokens + elapsed * this._refillRatePerMs);
-    this._lastRefillAt = now;
   }
 }
 
@@ -1019,7 +959,7 @@ export function tryConsumeTokens(
   _provider: string,
   connectionId: string,
   _model: string,
-  tokenCount: number,
+  tokenCount: number
 ): { allowed: true } | { allowed: false; retryAfterMs: number; reason: string } {
   if (!enabledConnections.has(connectionId)) return { allowed: true };
   if (tokenCount <= 0) return { allowed: true };

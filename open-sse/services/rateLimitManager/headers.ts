@@ -31,7 +31,7 @@ export const ANTHROPIC_HEADERS = {
  * Parse a reset time string into milliseconds.
  * Formats: "1s", "1m", "1h", "1ms", "60", ISO date, Unix timestamp
  */
-export function parseResetTime(value) {
+export function parseResetTime(value: string | null | undefined): number | null {
   if (!value) return null;
 
   // Duration strings: "1s", "500ms", "1m30s"
@@ -39,8 +39,8 @@ export function parseResetTime(value) {
   if (durationMatch) {
     const [, h, m, s, ms] = durationMatch;
     return (
-      (parseInt(h || 0) * 3600 + parseInt(m || 0) * 60 + parseInt(s || 0)) * 1000 +
-      parseInt(ms || 0)
+      (parseInt(h ?? "0") * 3600 + parseInt(m ?? "0") * 60 + parseInt(s ?? "0")) * 1000 +
+      parseInt(ms ?? "0")
     );
   }
 

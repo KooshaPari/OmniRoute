@@ -122,7 +122,7 @@ export async function ensurePersistentManagementPasswordHash(
   const settings = options.settings ?? ((await getSettings()) as JsonRecord);
   const storedPassword = getStoredManagementPassword(settings);
 
-  if (isBcryptHash(storedPassword)) {
+  if (isArgon2idHash(storedPassword) || isBcryptHash(storedPassword)) {
     return {
       hash: storedPassword,
       migrated: false,

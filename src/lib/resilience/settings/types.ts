@@ -167,6 +167,7 @@ export interface ResilienceSettings {
   providerCooldown: ProviderCooldownSettings;
   quotaPreflight: QuotaPreflightSettings;
   streamRecovery: StreamRecoverySettings;
+  selfHealing: import("../selfHealingSettings").SelfHealingSettings;
 }
 
 export interface ResilienceSettingsPatch {
@@ -179,4 +180,5 @@ export interface ResilienceSettingsPatch {
   providerCooldown?: Partial<ProviderCooldownSettings>;
   quotaPreflight?: Partial<QuotaPreflightSettings>;
   streamRecovery?: Partial<StreamRecoverySettings>;
+  selfHealing?: Partial<import("../selfHealingSettings").SelfHealingSettings>;
 }

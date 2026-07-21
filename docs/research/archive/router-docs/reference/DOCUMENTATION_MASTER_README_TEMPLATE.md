@@ -8,33 +8,33 @@ Welcome to the unified documentation hub for all projects. This is your starting
 
 ### Core Projects
 
-#### [Bifrost Extensions](./bifrost-extensions/)
+#### Bifrost Extensions (`./bifrost-extensions/`)
 Multi-provider LLM gateway with intelligent routing and prompt adaptation.
 - **Status**: 70% complete
-- **Quick Start**: [Getting Started](./bifrost-extensions/docs/cli/GUIDE.md)
-- **Architecture**: [Design Principles](./bifrost-extensions/docs/architecture/PRINCIPLES.md)
-- **Deployment**: [Quick Start](./bifrost-extensions/docs/deployment/QUICK_START.md)
+- **Quick Start**: Getting Started (`./bifrost-extensions/docs/cli/GUIDE.md`)
+- **Architecture**: Design Principles (`./bifrost-extensions/docs/architecture/PRINCIPLES.md`)
+- **Deployment**: Quick Start (`./bifrost-extensions/docs/deployment/QUICK_START.md`)
 
-#### [VibeProxy](./vibeproxy/)
+#### VibeProxy (`./vibeproxy/`)
 Cross-platform proxy application with macOS, Windows, and Linux support.
 - **Status**: 60% complete
-- **Quick Start**: [Installation](./vibeproxy/docs/setup/INSTALLATION.md)
-- **Architecture**: [Monorepo Structure](./vibeproxy/docs/architecture/MONOREPO_MIGRATION.md)
-- **Setup**: [Development Setup](./vibeproxy/docs/setup/DEV_SETUP.md)
+- **Quick Start**: Installation (`./vibeproxy/docs/setup/INSTALLATION.md`)
+- **Architecture**: Monorepo Structure (`./vibeproxy/docs/architecture/MONOREPO_MIGRATION.md`)
+- **Setup**: Development Setup (`./vibeproxy/docs/setup/DEV_SETUP.md`)
 
-#### [CLIProxyAPI](./CLIProxyAPI/)
+#### CLIProxyAPI (`./CLIProxyAPI/`)
 Comprehensive CLI proxy API with dual router implementation.
 - **Status**: 80% complete
-- **Quick Start**: [Getting Started](./CLIProxyAPI/docs/getting-started/QUICK_START.md)
-- **Architecture**: [Complete Architecture](./CLIProxyAPI/docs/architecture/COMPLETE.md)
-- **Implementation**: [Implementation Guide](./CLIProxyAPI/docs/implementation/GUIDE.md)
+- **Quick Start**: Getting Started (`./CLIProxyAPI/docs/getting-started/QUICK_START.md`)
+- **Architecture**: Complete Architecture (`./CLIProxyAPI/docs/architecture/COMPLETE.md`)
+- **Implementation**: Implementation Guide (`./CLIProxyAPI/docs/implementation/GUIDE.md`)
 
-#### [SmartCP Router](./smartcp/router/)
+#### SmartCP Router (`./smartcp/router/`)
 Advanced model routing and classification system.
 - **Status**: 85% complete
-- **Quick Start**: [Quick Start](./smartcp/router/docs/README.md)
-- **Architecture**: [System Design](./smartcp/router/docs/architecture/)
-- **Implementation**: [Implementation Guide](./smartcp/router/docs/implementation/)
+- **Quick Start**: Quick Start (`./smartcp/router/docs/README.md`)
+- **Architecture**: System Design (`./smartcp/router/docs/architecture/`)
+- **Implementation**: Implementation Guide (`./smartcp/router/docs/implementation/`)
 
 ---
 
@@ -63,73 +63,73 @@ project/
 ### I want to...
 
 **Get Started**
-- [Bifrost Extensions Quick Start](./bifrost-extensions/docs/cli/GUIDE.md)
-- [VibeProxy Installation](./vibeproxy/docs/setup/INSTALLATION.md)
-- [CLIProxyAPI Quick Start](./CLIProxyAPI/docs/getting-started/QUICK_START.md)
+- Bifrost Extensions Quick Start (`./bifrost-extensions/docs/cli/GUIDE.md`)
+- VibeProxy Installation (`./vibeproxy/docs/setup/INSTALLATION.md`)
+- CLIProxyAPI Quick Start (`./CLIProxyAPI/docs/getting-started/QUICK_START.md`)
 
 **Understand Architecture**
-- [Bifrost Architecture](./bifrost-extensions/docs/architecture/)
-- [VibeProxy Architecture](./vibeproxy/docs/architecture/)
-- [CLIProxyAPI Architecture](./CLIProxyAPI/docs/architecture/)
-- [SmartCP Router Architecture](./smartcp/router/docs/architecture/)
+- Bifrost Architecture (`./bifrost-extensions/docs/architecture/`)
+- VibeProxy Architecture (`./vibeproxy/docs/architecture/`)
+- CLIProxyAPI Architecture (`./CLIProxyAPI/docs/architecture/`)
+- SmartCP Router Architecture (`./smartcp/router/docs/architecture/`)
 
 **Deploy to Production**
-- [Bifrost Deployment](./bifrost-extensions/docs/deployment/)
-- [VibeProxy Setup](./vibeproxy/docs/setup/)
-- [CLIProxyAPI Deployment](./CLIProxyAPI/docs/deployment/)
-- [SmartCP Router Deployment](./smartcp/router/docs/deployment/)
+- Bifrost Deployment (`./bifrost-extensions/docs/deployment/`)
+- VibeProxy Setup (`./vibeproxy/docs/setup/`)
+- CLIProxyAPI Deployment (`./CLIProxyAPI/docs/deployment/`)
+- SmartCP Router Deployment (`./smartcp/router/docs/deployment/`)
 
 **Integrate with Other Systems**
-- [Bifrost Integration](./bifrost-extensions/docs/cli/GUIDE.md)
-- [CLIProxyAPI Integration](./CLIProxyAPI/docs/integration/)
-- [SmartCP Router Integration](./smartcp/router/docs/implementation/)
+- Bifrost Integration (`./bifrost-extensions/docs/cli/GUIDE.md`)
+- CLIProxyAPI Integration (`./CLIProxyAPI/docs/integration/`)
+- SmartCP Router Integration (`./smartcp/router/docs/implementation/`)
 
 **Troubleshoot Issues**
-- [Bifrost Troubleshooting](./bifrost-extensions/docs/)
-- [VibeProxy Troubleshooting](./vibeproxy/docs/)
-- [CLIProxyAPI Troubleshooting](./CLIProxyAPI/docs/reference/)
-- [SmartCP Router Troubleshooting](./smartcp/router/docs/reference/)
+- Bifrost Troubleshooting (`./bifrost-extensions/docs/`)
+- VibeProxy Troubleshooting (`./vibeproxy/docs/`)
+- CLIProxyAPI Troubleshooting (`./CLIProxyAPI/docs/reference/`)
+- SmartCP Router Troubleshooting (`./smartcp/router/docs/reference/`)
 
 ---
 
 ## 📖 Documentation Categories
 
 ### Architecture & Design
-- [Bifrost Architecture](./bifrost-extensions/docs/architecture/)
-- [VibeProxy Architecture](./vibeproxy/docs/architecture/)
-- [CLIProxyAPI Architecture](./CLIProxyAPI/docs/architecture/)
-- [SmartCP Router Architecture](./smartcp/router/docs/architecture/)
+- Bifrost Architecture (`./bifrost-extensions/docs/architecture/`)
+- VibeProxy Architecture (`./vibeproxy/docs/architecture/`)
+- CLIProxyAPI Architecture (`./CLIProxyAPI/docs/architecture/`)
+- SmartCP Router Architecture (`./smartcp/router/docs/architecture/`)
 
 ### Getting Started
-- [Bifrost CLI Guide](./bifrost-extensions/docs/cli/GUIDE.md)
-- [VibeProxy Installation](./vibeproxy/docs/setup/INSTALLATION.md)
-- [CLIProxyAPI Quick Start](./CLIProxyAPI/docs/getting-started/QUICK_START.md)
-- [SmartCP Router Quick Start](./smartcp/router/docs/README.md)
+- Bifrost CLI Guide (`./bifrost-extensions/docs/cli/GUIDE.md`)
+- VibeProxy Installation (`./vibeproxy/docs/setup/INSTALLATION.md`)
+- CLIProxyAPI Quick Start (`./CLIProxyAPI/docs/getting-started/QUICK_START.md`)
+- SmartCP Router Quick Start (`./smartcp/router/docs/README.md`)
 
 ### Implementation Guides
-- [Bifrost Implementation](./bifrost-extensions/docs/cli/)
-- [VibeProxy Setup](./vibeproxy/docs/setup/)
-- [CLIProxyAPI Implementation](./CLIProxyAPI/docs/implementation/)
-- [SmartCP Router Implementation](./smartcp/router/docs/implementation/)
+- Bifrost Implementation (`./bifrost-extensions/docs/cli/`)
+- VibeProxy Setup (`./vibeproxy/docs/setup/`)
+- CLIProxyAPI Implementation (`./CLIProxyAPI/docs/implementation/`)
+- SmartCP Router Implementation (`./smartcp/router/docs/implementation/`)
 
 ### Deployment
-- [Bifrost Deployment](./bifrost-extensions/docs/deployment/)
-- [VibeProxy Deployment](./vibeproxy/docs/setup/)
-- [CLIProxyAPI Deployment](./CLIProxyAPI/docs/deployment/)
-- [SmartCP Router Deployment](./smartcp/router/docs/deployment/)
+- Bifrost Deployment (`./bifrost-extensions/docs/deployment/`)
+- VibeProxy Deployment (`./vibeproxy/docs/setup/`)
+- CLIProxyAPI Deployment (`./CLIProxyAPI/docs/deployment/`)
+- SmartCP Router Deployment (`./smartcp/router/docs/deployment/`)
 
 ### API Reference
-- [Bifrost API](./bifrost-extensions/docs/)
-- [CLIProxyAPI Reference](./CLIProxyAPI/docs/reference/API.md)
-- [SmartCP Router API](./smartcp/router/docs/sdk/)
+- Bifrost API (`./bifrost-extensions/docs/`)
+- CLIProxyAPI Reference (`./CLIProxyAPI/docs/reference/API.md`)
+- SmartCP Router API (`./smartcp/router/docs/sdk/`)
 
 ---
 
 ## 🔍 Research & Planning
 
-- [Research Documents](./docs/research/)
-- [Planning Documents](./plans/)
-- [Session Notes](./docs/sessions/)
+- Research Documents (`./docs/research/`)
+- Planning Documents (`./plans/`)
+- Session Notes (`./docs/sessions/`)
 
 ---
 
@@ -147,10 +147,10 @@ project/
 ## 🤝 Contributing
 
 Each project has its own contribution guidelines:
-- [Bifrost Contributing](./bifrost-extensions/docs/)
-- [VibeProxy Contributing](./vibeproxy/docs/)
-- [CLIProxyAPI Contributing](./CLIProxyAPI/CONTRIBUTING.md)
-- [SmartCP Router Contributing](./smartcp/router/docs/)
+- Bifrost Contributing (`./bifrost-extensions/docs/`)
+- VibeProxy Contributing (`./vibeproxy/docs/`)
+- CLIProxyAPI Contributing (`./CLIProxyAPI/CONTRIBUTING.md`)
+- SmartCP Router Contributing (`./smartcp/router/docs/`)
 
 ---
 
@@ -230,5 +230,5 @@ This documentation is organized hierarchically:
 
 ---
 
-**Start with**: [Bifrost Extensions](./bifrost-extensions/) or [VibeProxy](./vibeproxy/)
+**Start with**: Bifrost Extensions (`./bifrost-extensions/`) or VibeProxy (`./vibeproxy/`)
 

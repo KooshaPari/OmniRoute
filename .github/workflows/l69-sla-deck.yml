@@ -1,4 +1,6 @@
 name: l69-sla-deck
+permissions:
+  contents: read
 on:
   schedule: [{cron: '0 15 * * 1'}]
   workflow_dispatch: {}

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { URL } from "node:url";
 import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
@@ -19,6 +20,7 @@ import {
   isOpenAICompatibleProvider,
   isSelfHostedChatProvider,
   providerAllowsOptionalApiKey,
+  WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
@@ -35,6 +37,10 @@ import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import { validateQwenWebProvider, validateKimiWebProvider } from "@/lib/providers/validation/webProvidersA";
 import { validateClaudeWebProvider, validateGeminiWebProvider, validateCopilotM365WebProvider, validateCopilotWebProvider, validateT3WebProvider } from "@/lib/providers/validation/webProvidersB";
 import { validateHuggingFaceProvider } from "@/lib/providers/validation/openaiFormat";
+import {
+  SEARCH_VALIDATOR_CONFIGS as EXTRACTED_SEARCH_VALIDATOR_CONFIGS,
+  validateSearchProvider as validateExtractedSearchProvider,
+} from "@/lib/providers/validation/searchProviders";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 import { generateTraceparent } from "@omniroute/open-sse/observability/traceparent.ts";
 import {
@@ -107,6 +113,54 @@ function normalizeAnthropicBaseUrl(baseUrl: string) {
 
 function normalizeClaudeCodeCompatibleBaseUrl(baseUrl: string) {
   return stripClaudeCodeCompatibleEndpointSuffix(baseUrl || "");
+}
+
+export async function validateWebCookieProvider({
+  provider,
+  apiKey,
+  providerSpecificData = {},
+}: any) {
+  const entry = (WEB_COOKIE_PROVIDERS as Record<string, { website?: string } | undefined>)[provider];
+  if (!entry) {
+    return { valid: false, error: "Provider validation not supported", unsupported: true };
+  }
+
+  const cookie = typeof apiKey === "string" ? apiKey.trim() : "";
+  if (!cookie) {
+    return {
+      valid: false,
+      error: "Cookie is required for web-cookie provider validation",
+      unsupported: false,
+    };
+  }
+
+  try {
+    // The host comes from the immutable provider registry, never caller input.
+    const response = await safeOutboundFetch(
+      new URL("/models", entry.website || "https://example.com").toString(),
+      {
+        ...SAFE_OUTBOUND_FETCH_PRESETS.validationRead,
+        guard: getProviderOutboundGuard(),
+        bypassProxyPatch: true,
+        method: "GET",
+        headers: applyCustomUserAgent(
+          { Accept: "application/json", Cookie: cookie },
+          providerSpecificData
+        ),
+      }
+    );
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "SESSION_EXPIRED",
+        errorCode: "AUTH_007",
+        unsupported: false,
+      };
+    }
+    return { valid: true, error: null, unsupported: false };
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
 }
 
 function addModelsSuffix(baseUrl: string) {
@@ -3812,13 +3866,13 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         return toValidationErrorResult(error);
       }
     },
-    // Search providers — use factored validator
+    // Search and web-fetch providers — use the extracted authoritative registry.
     ...Object.fromEntries(
-      Object.entries(SEARCH_VALIDATOR_CONFIGS).map(([id, configFn]) => [
+      Object.entries(EXTRACTED_SEARCH_VALIDATOR_CONFIGS).map(([id, configFn]) => [
         id,
         ({ apiKey, providerSpecificData }: any) => {
           const { url, init } = configFn(apiKey, providerSpecificData);
-          return validateSearchProvider(url, init, providerSpecificData, isLocal);
+          return validateExtractedSearchProvider(url, init, providerSpecificData, isLocal);
         },
       ])
     ),

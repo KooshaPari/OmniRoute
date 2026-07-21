@@ -292,15 +292,27 @@ describe("API Routes — dashboard and tool consumers", () => {
     assert.doesNotMatch(requestLogger, /\/api\/logs\/active/);
   });
 
-  it("keeps usage quota wired through A2A and MCP tools", () => {
+  it("keeps tenant quota A2A and provider quota HTTP/MCP wiring distinct", () => {
     const quotaSkill = readProjectFile("src/lib/a2a/skills/quotaManagement.ts");
+    const taskExecution = readProjectFile("src/lib/a2a/taskExecution.ts");
     const mcpAdvancedTools = readProjectFile("open-sse/mcp-server/tools/advancedTools.ts");
     const mcpServer = readProjectFile("open-sse/mcp-server/server.ts");
 
     assert.ok(quotaSkill, "quotaManagement skill should exist");
+    assert.ok(taskExecution, "A2A task execution registry should exist");
     assert.ok(mcpAdvancedTools, "advanced MCP tools should exist");
     assert.ok(mcpServer, "MCP server should exist");
-    assert.match(quotaSkill, /\/api\/usage\/quota/);
+
+    // A2A quota-management owns the tenant ledger directly. It must stay wired
+    // through the handler registry rather than self-fetching the provider quota API.
+    assert.match(taskExecution, /"quota-management"\s*:\s*async/);
+    assert.match(taskExecution, /executeQuotaManagement\(task\)/);
+    assert.match(quotaSkill, /getDbInstance/);
+    assert.match(quotaSkill, /tenant_quotas/);
+    assert.match(quotaSkill, /export async function executeQuotaManagement/);
+    assert.doesNotMatch(quotaSkill, /\/api\/usage\/quota/);
+
+    // MCP quota tools expose provider/account quota through the HTTP route.
     assert.match(mcpAdvancedTools, /\/api\/usage\/quota/);
     assert.match(mcpServer, /\/api\/usage\/quota/);
     assertRouteMethods("src/app/api/usage/quota/route.ts", ["GET"]);

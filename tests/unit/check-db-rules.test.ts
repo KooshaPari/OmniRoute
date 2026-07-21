@@ -85,6 +85,28 @@ test("live repo: no NEW unexported db modules beyond the frozen allowlist", asyn
   );
 });
 
+test("localDb facade exposes the fleet, routing, Bifrost, and virtual-key domains", () => {
+  const reexported = extractReexportedModules(fs.readFileSync(LOCAL_DB, "utf8")) as Set<string>;
+  const expectedDomains = [
+    "alertRules",
+    "bifrostModels",
+    "bifrostShadow",
+    "compressionBudgetForecast",
+    "costTracking",
+    "fleetConfig",
+    "fleetNodes",
+    "providerHealthHistory",
+    "routingDecisions",
+    "scalingPolicies",
+    "trafficShadow",
+    "virtualKeys",
+  ];
+  assert.deepEqual(
+    expectedDomains.filter((domain) => !reexported.has(domain)),
+    []
+  );
+});
+
 // ---------- (b) localDb has no logic ----------
 
 test("hasLogic: false for a pure re-export layer", () => {

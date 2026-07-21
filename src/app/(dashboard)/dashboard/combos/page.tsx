@@ -49,6 +49,11 @@ import {
 } from "@/lib/combos/intelligentRouting";
 import { resolveServerErrorMessage } from "@/lib/api/serverErrorMessage";
 import { useTranslations } from "next-intl";
+import {
+  msToOptionalSecondsInput,
+  secondsInputToOptionalMs,
+  updateFusionTuning,
+} from "./comboFormInputs";
 
 const ModelSelectModal = dynamic(() => import("@/shared/components/ModelSelectModal"), {
   ssr: false,
@@ -211,21 +216,6 @@ function getAllowedComboConfigKeys(): Set<string> {
   }
   return ALLOWED_COMBO_CONFIG_KEYS_CACHE;
 }
-const MS_PER_SECOND = 1000;
-
-function msToOptionalSecondsInput(value) {
-  const ms = Number(value);
-  if (!Number.isFinite(ms) || ms <= 0) return "";
-  return String(Math.round(ms / MS_PER_SECOND));
-}
-
-function secondsInputToOptionalMs(value, maxSeconds = 86400) {
-  if (!value) return undefined;
-  const seconds = Number(value);
-  if (!Number.isFinite(seconds) || seconds <= 0) return undefined;
-  return Math.min(maxSeconds, Math.round(seconds)) * MS_PER_SECOND;
-}
-
 function sanitizeComboRuntimeConfig(config) {
   if (!config || typeof config !== "object") return {};
   const allowed = getAllowedComboConfigKeys();
@@ -238,19 +228,6 @@ function sanitizeComboRuntimeConfig(config) {
         (allowed.size === 0 || allowed.has(key))
     )
   );
-}
-
-// Build the next combo config when a Fusion tuning field changes. Prunes empty /
-// non-finite entries and drops the whole `fusionTuning` object when no field is
-// set, so an empty `{}` is never persisted (sanitizeComboRuntimeConfig keeps any
-// non-null object as-is).
-function updateFusionTuning(config, field, rawValue) {
-  const value = rawValue === "" ? undefined : Number(rawValue);
-  const next = { ...(config.fusionTuning || {}), [field]: value };
-  const pruned = Object.fromEntries(
-    Object.entries(next).filter(([, v]) => typeof v === "number" && Number.isFinite(v))
-  );
-  return { ...config, fusionTuning: Object.keys(pruned).length > 0 ? pruned : undefined };
 }
 
 const STRATEGY_RECOMMENDATIONS_FALLBACK = {
