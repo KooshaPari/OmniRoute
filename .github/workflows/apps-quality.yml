@@ -31,7 +31,7 @@ jobs:
           node-version: "24"
           cache: npm
       - name: Install pinned Bun runtime
-        run: npm install --global "bun@${BUN_VERSION}" --ignore-scripts --no-audit --no-fund
+        run: npm install --global "bun@${BUN_VERSION}" --no-audit --no-fund
       - name: Install API contract dependencies from lockfile
         working-directory: packages/api-contracts
         run: bun install --frozen-lockfile
