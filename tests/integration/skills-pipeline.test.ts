@@ -793,7 +793,7 @@ test("web_search fallback converts built-in tools for unsupported providers and 
     const urlStr = String(url);
     const body = init.body ? JSON.parse(String(init.body)) : null;
 
-    if (urlStr.includes("google.serper.dev/search")) {
+    if (new URL(urlStr).hostname === "google.serper.dev") {
       searchCalls.push({ url: urlStr, init, body });
       return new Response(
         JSON.stringify({
@@ -855,7 +855,7 @@ test("web_search fallback preserves Responses API output by appending function_c
 
   globalThis.fetch = async (url, init = {}) => {
     const urlStr = String(url);
-    if (urlStr.includes("google.serper.dev/search")) {
+    if (new URL(urlStr).hostname === "google.serper.dev") {
       return new Response(
         JSON.stringify({
           organic: [

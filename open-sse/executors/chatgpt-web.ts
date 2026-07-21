@@ -19,7 +19,7 @@ import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "./bas
 import { describeChatGptWebHttpError } from "./chatgptWebErrors.ts";
 import { prepareToolMessages } from "../translator/webTools.ts";
 import { buildToolModeResponse } from "./chatgptWebTools.ts";
-import { createHash, randomUUID, randomBytes } from "node:crypto";
+import { createHmac, randomUUID, randomBytes } from "node:crypto";
 import { sha3_512Hex } from "../utils/sha3-512.ts";
 import {
   tlsFetchChatGpt,
@@ -64,11 +64,10 @@ function deviceIdFor(cookie: string): string {
   const key = cookieKey(cookie);
   let id = deviceIdCache.get(key);
   if (!id) {
-    // Synthesize a UUID v4-shaped string from a SHA-256 of the cookie. Stable,
+    // Synthesize a UUID v4-shaped string from a keyed cookie fingerprint. Stable,
     // deterministic per cookie, no PII (the cookie's already secret).
-    // Not a password hash — SHA-256 is used to derive a stable UUID from the
-    // session cookie for device-id fingerprinting. The output is a cache key.
-    const h = createHash("sha256").update(cookie).digest("hex"); // lgtm[js/insufficient-password-hash]
+    // This is a keyed, deterministic device fingerprint, not a password hash.
+    const h = createHmac("sha256", "omniroute-chatgpt-device-id").update(cookie).digest("hex");
     id =
       `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-` +
       `${((parseInt(h.slice(16, 17), 16) & 0x3) | 0x8).toString(16)}${h.slice(17, 20)}-` +
@@ -133,9 +132,11 @@ function cookieKey(cookie: string): string {
   // birthday-paradox collision could surface one user's cached accessToken
   // to another's request. 64 bits is overkill for the 200-entry cache but
   // costs essentially nothing.
-  // Not a password hash — SHA-256 is used to derive a short, collision-resistant
-  // cache key from the session cookie. The output is a map lookup key.
-  return createHash("sha256").update(cookie).digest("hex").slice(0, 16); // lgtm[js/insufficient-password-hash]
+  // A keyed HMAC is used only as a deterministic, non-password cache key.
+  return createHmac("sha256", "omniroute-chatgpt-cache-key")
+    .update(cookie)
+    .digest("hex")
+    .slice(0, 16);
 }
 
 function tokenLookup(cookie: string): TokenEntry | null {
