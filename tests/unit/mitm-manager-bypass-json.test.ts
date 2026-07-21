@@ -62,6 +62,7 @@ test("writeBypassJson — creates mitm/ dir and writes JSON file", () => {
 });
 
 test("writeBypassJson — empty array writes empty patterns", () => {
+  bypassDb.replaceUserBypassPatterns(["*.from-db.example.com"]);
   manager.writeBypassJson([]);
   const file = path.join(TEST_DATA_DIR, "mitm", "bypass.json");
   const payload = JSON.parse(fs.readFileSync(file, "utf-8"));

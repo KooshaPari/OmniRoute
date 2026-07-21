@@ -100,7 +100,7 @@ export function recentSamplesFor(
 ): ProviderHealthSample[] {
   const db = getDbInstance();
   const rows = db
-    .prepare<RawSampleRow>(RECENT_SQL)
+    .prepare(RECENT_SQL)
     .all(providerKey, limit) as RawSampleRow[];
   return rows.map(rowToCamel).map(toProviderHealthSample);
 }

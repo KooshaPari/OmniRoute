@@ -2144,7 +2144,7 @@ class ProjectNERExtractor:
         self.import_patterns = [
             r'import\s+([a-zA-Z0-9_\.]+)',
             r'from\s+([a-zA-Z0-9_\.]+)\s+import',
-            r'require\(["\']([a-zA-Z0-9_\-/@]+)["\']\)',
+            r'require\(["\'](?P<package>[a-zA-Z0-9_\-/@]+)["\']\)',
         ]
 
     def extract_file_references(self, text: str) -> List[str]:

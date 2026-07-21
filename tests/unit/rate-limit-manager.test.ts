@@ -59,6 +59,31 @@ test("rate limit manager bypasses disabled connections and exposes inactive stat
   assert.deepEqual(rateLimitManager.getAllRateLimitStatus(), {});
 });
 
+test("rate limit manager preserves synchronous results and rejects pre-aborted work", async () => {
+  rateLimitManager.enableRateLimitProtection("conn-contract");
+
+  const result = await rateLimitManager.withRateLimit(
+    "openai",
+    "conn-contract",
+    null,
+    () => ({ accepted: true })
+  );
+  assert.deepEqual(result, { accepted: true });
+
+  const controller = new AbortController();
+  controller.abort("cancelled before queueing");
+  await assert.rejects(
+    rateLimitManager.withRateLimit(
+      "openai",
+      "conn-contract",
+      null,
+      () => "must not run",
+      controller.signal
+    ),
+    (error) => error instanceof Error && error.name === "AbortError"
+  );
+});
+
 test("rate limit manager handles soft over-limit warnings and normal header learning", async () => {
   rateLimitManager.enableRateLimitProtection("conn-over-limit");
   rateLimitManager.updateFromHeaders(

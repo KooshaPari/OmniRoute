@@ -89,8 +89,9 @@ OmniRoute's consumable contract = its OpenAI-compatible API surface + routing/pr
   for the 7-skill A2A surface (now incl. `agentDispatch` per ADR-004).
 - See [`docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`](./frameworks/AGENT_PROTOCOLS_GUIDE.md)
   for MCP / A2A / ACP / Cloud Agent protocols together.
-- See [`AGENTROUTER.md`](./AGENTROUTER.md) for the agent-routing framing.
-- See [`PROVIDERS.md`](./PROVIDERS.md) for the 232-provider catalog summary.
+- See [`providers/AGENTROUTER.md`](./providers/AGENTROUTER.md) for the agent-routing framing.
+- See [`getting-started/PROVIDERS-GUIDE.md`](./getting-started/PROVIDERS-GUIDE.md)
+  for provider setup and catalog navigation.
 
 ---
 
@@ -171,7 +172,7 @@ based on the org-grep of all `bifrost*` / `router*` / `gateway*` repo names.
 - [`ADR.md`](../ADR.md) — Top-level ADR index (ADR-007, ADR-009)
 - [`SPEC.md`](../SPEC.md) § 13 — Convergence section
 - [`PLAN.md`](../PLAN.md) § 5 — Convergence plan
-- [`docs/AGENTROUTER.md`](./AGENTROUTER.md) — Agent-routing framing
-- [`docs/PROVIDERS.md`](./PROVIDERS.md) — Provider catalog summary
+- [`docs/providers/AGENTROUTER.md`](./providers/AGENTROUTER.md) — Agent-routing framing
+- [`docs/getting-started/PROVIDERS-GUIDE.md`](./getting-started/PROVIDERS-GUIDE.md) — Provider setup and catalog navigation
 - [`docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`](./frameworks/AGENT_PROTOCOLS_GUIDE.md) — Agent protocols guide
 - [`docs/architecture/REPOSITORY_MAP.md`](./architecture/REPOSITORY_MAP.md) — Repo navigation

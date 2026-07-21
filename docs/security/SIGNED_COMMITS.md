@@ -1,3 +1,10 @@
+---
+title: Signed Commits Guide
+description: Configure and verify signed commits for OmniRoute.
+version: 3.8.49-koosha.0
+lastUpdated: 2026-07-18
+---
+
 # Signed Commits Guide
 
 > OmniRoute requires GPG-signed commits on the `main` branch.

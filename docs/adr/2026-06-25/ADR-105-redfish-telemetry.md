@@ -149,7 +149,7 @@ OTEL events.
 |---|---|---|---|
 | **1 — Crate scaffold** | `cargo init` in `pheno/telemetry/poller-redfish/` with dependencies: `reqwest`, `serde`, `opentelemetry`, `opentelemetry-otlp`, `tokio`, `tracing`. Define `RedfishSensorReading` / `RedfishChassisThermal` / `RedfishChassisPower` types. | pheno-ops | ☐ |
 | **2 — Poller loop** | `tokio::interval(60s)` loop: `GET /redfish/v1/Chassis/{id}/Thermal`, `GET /redfish/v1/Chassis/{id}/Power`, parse JSON, collect readings. Support multiple BMC targets from a config file. | pheno-ops | ☐ |
-| **3 — OTEL metric bridge** | Map Redfish readings to OTel instruments: `hw.temperature` (gauge, °C), `hw.fan_rpm` (gauge, RPM), `hw.power_watts` (gauge, W). Export via `opentelemetry-otlp` (grpc) to `COLLECTOR_ENDPOINT`. | pheno-ops | ☐ |
+| **3 — OTEL metric bridge** | Map Redfish readings to OTel instruments: `hw.temperature` (gauge, °C), `hw.fan_rpm` (gauge, RPM), `hw.power_watts` (gauge, W). Export via `opentelemetry-otlp` (grpc) to the configured collector endpoint. | pheno-ops | ☐ |
 | **4 — CI probe** | `docker-compose` test with a mock Redfish server (`/redfish/v1/Chassis/1/Thermal` returns canned JSON). Assert metrics emitted to an OTel test collector. Gate on parse-error count == 0. | pheno-ops | ☐ |
 | **5 — Operations docs** | `docs/operations/redfish-poller.md`: deployment topology, Vault credential setup, dashboards (fan-failure prediction, power-capping cap threshold, thermal throttling last-24h). | pheno-ops | ☐ |
 

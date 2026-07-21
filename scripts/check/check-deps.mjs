@@ -27,52 +27,22 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { execFileSync } from "node:child_process";
 import { assertNoStale } from "./lib/allowlist.mjs";
+import {
+  classifyDependency,
+  collectDependencyRecords,
+  collectLocalPackages,
+  discoverManifests,
+} from "./lib/dependency-policy.mjs";
+
+export {
+  classifyDependency,
+  collectDependencyRecords,
+  collectLocalPackages,
+  discoverManifests,
+} from "./lib/dependency-policy.mjs";
 
 const ROOT = process.cwd();
 const ALLOWLIST_PATH = path.join(ROOT, "config/quality/dependency-allowlist.json");
-
-// Directories to exclude when discovering package.json files.
-// Using a set of path segment prefixes (relative to ROOT, forward slashes).
-const EXCLUDED_SEGMENTS = new Set([
-  "node_modules",
-  ".next",
-  ".build",
-  "dist",
-  "dist-electron",
-  ".claude",
-  "_references",
-  "_mono_repo",
-]);
-
-/**
- * 6A.8: Discover all package.json files in the repo, excluding build artefacts,
- * reference code, and agent worktrees. Returns relative paths (forward slashes).
- */
-export function discoverManifests(root) {
-  const out = [];
-
-  function walk(dir, depth) {
-    if (depth > 5) return; // guard against very deep nesting
-    let entries;
-    try {
-      entries = fs.readdirSync(dir, { withFileTypes: true });
-    } catch {
-      return;
-    }
-    for (const e of entries) {
-      if (EXCLUDED_SEGMENTS.has(e.name)) continue;
-      const full = path.join(dir, e.name);
-      if (e.isDirectory()) {
-        walk(full, depth + 1);
-      } else if (e.name === "package.json") {
-        out.push(path.relative(root, full).replace(/\\/g, "/"));
-      }
-    }
-  }
-
-  walk(root, 0);
-  return out.sort();
-}
 
 /** Nomes de deps no manifesto que não estão na allowlist (de-dup, ordem preservada). */
 export function findUnapprovedDeps(depNames, allowlist) {
@@ -84,27 +54,6 @@ export function findUnapprovedDeps(depNames, allowlist) {
     if (!allowlist.has(name)) out.push(name);
   }
   return out;
-}
-
-function depNamesFromManifest(root, rel) {
-  const full = path.join(root, rel);
-  if (!fs.existsSync(full)) return [];
-  let pkg;
-  try {
-    pkg = JSON.parse(fs.readFileSync(full, "utf8"));
-  } catch {
-    return []; // skip malformed manifests (e.g. reference code)
-  }
-  return [
-    ...Object.keys(pkg.dependencies || {}),
-    ...Object.keys(pkg.devDependencies || {}),
-    ...Object.keys(pkg.optionalDependencies || {}),
-    ...Object.keys(pkg.peerDependencies || {}),
-  ];
-}
-
-function collectDepNames(root) {
-  return discoverManifests(root).flatMap((rel) => depNamesFromManifest(root, rel));
 }
 
 // ─── Task 7.8: registry-existence + age-cooldown ──────────────────────────────
@@ -223,8 +172,13 @@ function main() {
     );
     process.exit(1);
   }
-  const allowlist = new Set(JSON.parse(fs.readFileSync(ALLOWLIST_PATH, "utf8")).allowed || []);
-  const allDepNames = collectDepNames(ROOT);
+  const policy = JSON.parse(fs.readFileSync(ALLOWLIST_PATH, "utf8"));
+  const allowlist = new Set(policy.allowed || []);
+  const aliases = new Map(Object.entries(policy.aliases || {}));
+  const records = collectDependencyRecords(ROOT);
+  const allDepNames = records.map(({ name }) => name);
+  const localPackages = collectLocalPackages(ROOT);
+  const context = { publicAllowlist: allowlist, localPackages, aliases, root: ROOT };
 
   // 6A.8: stale-allowlist enforcement.
   // A dep in the allowlist that is no longer used in ANY manifest is stale — the dep
@@ -232,10 +186,21 @@ function main() {
   // re-appear without triggering the review gate (regression risk).
   // Note: only flag entries that appear in NO manifest; a dep may be in the allowlist
   // but only transitively installed, so we check against what manifests declare.
-  const liveDepSet = new Set(allDepNames);
-  assertNoStale(allowlist, liveDepSet, "check-deps");
+  const livePublicSet = new Set();
+  for (const record of records) {
+    const category = classifyDependency(record, context);
+    if (category === "public") livePublicSet.add(record.name);
+    if (category === "alias") livePublicSet.add(aliases.get(record.name));
+  }
+  assertNoStale(allowlist, livePublicSet, "check-deps public allowlist");
+  assertNoStale(new Set(aliases.keys()), new Set(allDepNames), "check-deps alias map");
 
-  const unapproved = findUnapprovedDeps(allDepNames, allowlist);
+  const unapproved = findUnapprovedDeps(
+    records
+      .filter((record) => classifyDependency(record, context) === null)
+      .map(({ name }) => name),
+    new Set()
+  );
   if (unapproved.length) {
     // Task 7.8: For each new dep, run registry-existence + age-cooldown checks.
     // This enriches the error message — tells the reviewer whether the package

@@ -37,10 +37,8 @@
 
 import { A2ATask } from "../taskManager";
 import { A2ASkillResult } from "../taskExecution";
-import {
-  getPricingForModel,
-  calculateCostFromTokens,
-} from "@/shared/constants/pricing";
+import { getPricingForModel } from "@/shared/constants/pricing";
+import { computeCostFromPricing } from "@/lib/usage/costCalculator";
 
 interface TokenUsageLite {
   input_tokens?: number;
@@ -82,8 +80,7 @@ interface CostAnalysisOutput {
  */
 function normalizeTokens(raw: TokenUsageLite | undefined) {
   const inputTokens = raw?.prompt_tokens ?? raw?.input_tokens ?? 0;
-  const cachedTokens =
-    raw?.cached_tokens ?? raw?.cache_read_input_tokens ?? 0;
+  const cachedTokens = raw?.cached_tokens ?? raw?.cache_read_input_tokens ?? 0;
   const outputTokens = raw?.completion_tokens ?? raw?.output_tokens ?? 0;
   const reasoningTokens = raw?.reasoning_tokens ?? 0;
   const cacheCreationTokens = raw?.cache_creation_input_tokens ?? 0;
@@ -101,9 +98,10 @@ function normalizeTokens(raw: TokenUsageLite | undefined) {
  * Uses a 4-chars-per-token heuristic — accurate enough for a guard, not
  * for billing. The caller should pass real token counts when available.
  */
-function estimateTokensFromMessages(
-  messages: Array<{ role: string; content: string }>,
-): { inputTokens: number; outputTokens: number } {
+function estimateTokensFromMessages(messages: Array<{ role: string; content: string }>): {
+  inputTokens: number;
+  outputTokens: number;
+} {
   const CHARS_PER_TOKEN = 4;
   const inputChars = messages
     .filter((m) => m.role === "user" || m.role === "system")
@@ -132,16 +130,12 @@ function extractInput(metadata: Record<string, unknown> | undefined): CostAnalys
         ? metadata.budget_usd
         : undefined,
     fallback_models: Array.isArray(metadata.fallback_models)
-      ? (metadata.fallback_models as unknown[]).filter(
-          (m): m is string => typeof m === "string",
-        )
+      ? (metadata.fallback_models as unknown[]).filter((m): m is string => typeof m === "string")
       : undefined,
   };
 }
 
-function shapePricing(
-  raw: Record<string, unknown> | null,
-): CostAnalysisOutput["pricing"] {
+function shapePricing(raw: Record<string, unknown> | null): CostAnalysisOutput["pricing"] {
   if (!raw) return null;
   return {
     input: typeof raw.input === "number" ? raw.input : 0,
@@ -162,8 +156,7 @@ export async function executeCostAnalysis(task: A2ATask): Promise<A2ASkillResult
           type: "text",
           content: JSON.stringify({
             error: "missing_metadata",
-            message:
-              "cost-analysis requires task.metadata.provider and task.metadata.model",
+            message: "cost-analysis requires task.metadata.provider and task.metadata.model",
           }),
         },
       ],
@@ -172,9 +165,7 @@ export async function executeCostAnalysis(task: A2ATask): Promise<A2ASkillResult
 
   const pricingRaw = getPricingForModel(input.provider, input.model);
   if (!pricingRaw) {
-    warnings.push(
-      `No pricing entry for ${input.provider}/${input.model}; cost estimate is 0.`,
-    );
+    warnings.push(`No pricing entry for ${input.provider}/${input.model}; cost estimate is 0.`);
   }
 
   const tokens = input.tokens
@@ -182,7 +173,7 @@ export async function executeCostAnalysis(task: A2ATask): Promise<A2ASkillResult
     : (() => {
         const est = estimateTokensFromMessages(task.messages ?? []);
         warnings.push(
-          "Token counts not supplied; estimated from message length using 4 chars/token heuristic.",
+          "Token counts not supplied; estimated from message length using 4 chars/token heuristic."
         );
         return {
           inputTokens: est.inputTokens,
@@ -193,18 +184,15 @@ export async function executeCostAnalysis(task: A2ATask): Promise<A2ASkillResult
         };
       })();
 
-  // calculateCostFromTokens accepts the pricing row and the canonical
-  // TokenUsage shape; we pass through only the fields it reads.
-  const cost = calculateCostFromTokens(
-    {
-      prompt_tokens: tokens.inputTokens,
-      completion_tokens: tokens.outputTokens,
-      cached_tokens: tokens.cachedTokens,
-      reasoning_tokens: tokens.reasoningTokens,
-      cache_creation_input_tokens: tokens.cacheCreationTokens,
-    },
-    (pricingRaw as Parameters<typeof calculateCostFromTokens>[1]) ?? null,
-  );
+  // Keep cost computation in the usage domain. The pricing constants module
+  // intentionally exposes catalog lookups only, not calculator behavior.
+  const cost = computeCostFromPricing(pricingRaw, {
+    prompt_tokens: tokens.inputTokens,
+    completion_tokens: tokens.outputTokens,
+    cached_tokens: tokens.cachedTokens,
+    reasoning_tokens: tokens.reasoningTokens,
+    cache_creation_input_tokens: tokens.cacheCreationTokens,
+  });
 
   const budget = input.budget_usd ?? null;
   const overBudget = budget !== null && cost > budget;

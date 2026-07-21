@@ -179,6 +179,21 @@ test("runEnvDocSync: ignore set skips a code-referenced var", () => {
   assert.equal(result.ok, true);
 });
 
+test("repository scan excludes CI check plumbing and test fixture variables", () => {
+  const result = runEnvDocSync({
+    envExampleText: "",
+    envDocText: "",
+    ignore: new Set(),
+    docOnlyAllowlist: new Set(),
+    envOnlyAllowlist: new Set(),
+  });
+
+  assert.equal(result.problems.codeMissingEnv.includes("ALLOW_SKIPPED"), false);
+  assert.equal(result.problems.codeMissingEnv.includes("NEEDS_JSON"), false);
+  assert.equal(result.problems.codeMissingEnv.includes("T11_STRICT"), false);
+  assert.equal(result.problems.codeMissingEnv.includes("OPENAI_COMPATIBLE_FOO_USER_AGENT"), false);
+});
+
 test("repository contract is in sync (live data)", () => {
   // Uses the real .env.example, docs/ENVIRONMENT.md, and the bundled
   // allowlists. This is the same check that runs in pre-commit / CI.

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSettings, updateSettings } from "@/lib/localDb";
 import {
   buildLegacyResilienceCompat,
@@ -151,7 +151,7 @@ export async function GET() {
 /**
  * PATCH /api/resilience — Update resilience configuration
  */
-export async function PATCH(request) {
+export async function PATCH(request: NextRequest) {
   let rawBody;
   try {
     rawBody = await request.json();

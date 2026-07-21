@@ -1,5 +1,8 @@
 import { defineConfig } from "vitest/config";
 import path from "path";
+import { discoverTopLevelUnitTests } from "./scripts/test/unit-test-manifest.mjs";
+
+const topLevelVitestTests = discoverTopLevelUnitTests().vitest;
 
 export default defineConfig({
   test: {
@@ -17,6 +20,7 @@ export default defineConfig({
       "open-sse/services/combo/__tests__/**/*.test.ts",
       "tests/unit/autoCombo/**/*.test.ts",
       "tests/unit/encryption.spec.ts",
+      ...topLevelVitestTests,
     ],
     exclude: [
       "**/node_modules/**",

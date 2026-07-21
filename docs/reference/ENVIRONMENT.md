@@ -1105,6 +1105,45 @@ that should be able to run the docs translator.
 
 ---
 
+## 27. Polyglot Runtime and Observability
+
+These optional controls configure native/sidecar execution, shadow routing,
+cross-process RPC, and telemetry. Secret-bearing values are unset by default.
+
+| Variable | Default | Source | Description |
+| --- | --- | --- | --- |
+| `BIFROST_KILLSWITCH_DISABLED` | `false` | `open-sse/executors/bifrost.ts` | Emergency override that bypasses the Bifrost provider kill switch. |
+| `BIFROST_SHADOW_ENABLED` | `false` | `open-sse/services/trafficShadow.ts` | Enables non-serving shadow comparisons against Bifrost. |
+| `BIFROST_SHADOW_SAMPLE_RATE` | `0.05` | `open-sse/executors/bifrostShadow.ts` | Fraction of eligible requests sampled for shadow execution, from 0 through 1. |
+| `BIFROST_SHADOW_COST_OR_LATENCY_WINS` | `true` | `open-sse/services/trafficShadow.ts` | Allows cost or latency wins to trigger early Bifrost cutover. |
+| `MITM_USE_WORKER` | `false` | `src/mitm/manager.ts` | Set to `1` to run the MITM service in a worker thread. |
+| `OMNIROUTE_EDGE_HTTP_BASE` | loopback HTTP endpoint | `open-sse/rpc/httpClient.ts` | Full base URL override for polyglot HTTP edge calls. |
+| `OMNIROUTE_HTTP_PORT` | `20128` | `open-sse/rpc/httpClient.ts` | Loopback port used when the edge HTTP base URL is unset. |
+| `OMNIROUTE_FFI_ABI_VERSION` | `1` | `open-sse/rpc/ffi.ts` | ABI version required from native edge libraries. |
+| `OMNIROUTE_FFI_PATH` | bundled platform directory | `open-sse/rpc/ffi.ts` | Directory override containing native edge libraries. |
+| `OMNIROUTE_FFI_COMBO_SCORER_ENABLED` | `false` | `open-sse/rpc/edges/scoringFfi.ts` | Opts the combo scorer into native FFI execution. |
+| `OMNIROUTE_FFI_COMBO_SCORER_DISABLE_NAPI` | `false` | `open-sse/rpc/edges/scoringFfi.ts` | Set to `1` to skip the N-API scorer and use the fallback native loader. |
+| `OMNIROUTE_FFI_COMBO_SCORER_NAPI_PATH` | auto-discovered | `open-sse/rpc/edges/scoringFfi.ts` | Explicit path to the combo scorer N-API module. |
+| `OMNIROUTE_FFI_COMBO_SCORER_PATH` | auto-discovered | `open-sse/rpc/edges/scoringFfi.ts` | Explicit path to the combo scorer shared library. |
+| `OMNIROUTE_FFI_GUARDRAILS_PII_PATH` | auto-discovered | `open-sse/rpc/edges/guardrailsPiiFfi.ts` | Explicit path to the PII guardrails shared library. |
+| `OMNIROUTE_POLYGLOT_RECONCILER_ENABLED` | `true` | `open-sse/rpc/reconciler.ts` | Set to `false` to disable periodic edge health reconciliation. |
+| `OMNIROUTE_UDS_SOCKET` | data-directory socket | `open-sse/rpc/udsServer.ts` | Unix-domain socket path for same-host polyglot RPC. |
+| `OMNIROUTE_UDS_REQUIRE_AUTH` | `false` | `open-sse/rpc/udsServer.ts` | Set to `1` to require the UDS shared-secret handshake. |
+| `OMNIROUTE_UDS_SHARED_SECRET` | _(unset)_ | `open-sse/rpc/udsServer.ts` | Shared secret required when UDS authentication is enabled. Keep this private. |
+| `OMNIROUTE_METRICS_HOST` | `127.0.0.1` | `open-sse/rpc/metrics.ts` | Bind host for the polyglot Prometheus metrics server. |
+| `OMNIROUTE_METRICS_PORT` | `9095` | `open-sse/rpc/metrics.ts` | Bind port for the polyglot Prometheus metrics server. |
+| `OMNIROUTE_OTLP_ENDPOINT` | _(unset)_ | `open-sse/rpc/otelBridge.ts` | OTLP/HTTP metrics endpoint; enables the metrics push bridge when set. |
+| `OMNIROUTE_OTLP_PUSH_INTERVAL_MS` | `10000` | `open-sse/rpc/otelBridge.ts` | Interval between metrics pushes. |
+| `OMNIROUTE_OTLP_PUSH_TIMEOUT_MS` | `5000` | `open-sse/rpc/otelBridge.ts` | Timeout for each metrics push. |
+| `OMNIROUTE_OTLP_RESOURCE_ATTRIBUTES` | service name only | `open-sse/rpc/otelBridge.ts` | JSON object merged into OTLP metrics resource attributes. |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | _(unset)_ | `src/instrumentation-node.ts` | Standard OTLP base endpoint; enables trace export when set. |
+| `OTEL_SDK_DISABLED` | `false` | `src/instrumentation-node.ts` | Standard OpenTelemetry switch that disables SDK initialization. |
+| `OTEL_SERVICE_NAME` | `omniroute` | `src/instrumentation-node.ts` | Service name attached to exported traces. |
+| `PROMPT_CACHE_MAX_ENTRIES` | `256` | `src/lib/cacheLayer.ts` | Maximum entries in the runtime prompt cache. |
+| `QUOTA_STORE_KEYV_URL` | embedded Keyv store | `src/lib/quota/storeFactory.ts` | Keyv connection URI used when the quota store driver is `keyv`. Credentials may be embedded; keep it private. |
+| `SUBSTRATE_HTTP_URL` | _(unset)_ | `open-sse/mcp-server/tools/dispatchTools.ts` | Base URL for dispatching MCP work to a Substrate HTTP service. |
+| `SUBSTRATE_BIN` | `cargo` | `src/lib/a2a/skills/agentDispatch.ts` | Driver executable override; otherwise runs the workspace `driver-cli` through Cargo. |
+
 ## Audit: Removed / Dead Variables
 
 The following variables appeared in previous versions of `.env.example` but have **no runtime references** in the current codebase. They have been removed:

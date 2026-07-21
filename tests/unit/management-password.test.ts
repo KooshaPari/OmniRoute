@@ -76,7 +76,26 @@ test.after(() => {
   }
 });
 
-test("ensurePersistentManagementPasswordHash migrates INITIAL_PASSWORD into a persisted bcrypt hash", async () => {
+test("ensurePersistentManagementPasswordHash preserves an existing argon2id hash", async () => {
+  const passwordHash = await managementPassword.hashManagementPassword("existing-secret");
+  await settingsDb.updateSettings({
+    password: passwordHash,
+    requireLogin: true,
+    setupComplete: true,
+  });
+
+  const result = await managementPassword.ensurePersistentManagementPasswordHash({
+    source: "test",
+  });
+  const settings = await settingsDb.getSettings();
+
+  assert.equal(result.migrated, false);
+  assert.equal(result.source, "stored_hash");
+  assert.equal(result.hash, passwordHash);
+  assert.equal(settings.password, passwordHash);
+});
+
+test("ensurePersistentManagementPasswordHash migrates INITIAL_PASSWORD into a persisted argon2id hash", async () => {
   process.env.INITIAL_PASSWORD = "bootstrap-secret";
 
   const result = await managementPassword.ensurePersistentManagementPasswordHash({
@@ -86,7 +105,7 @@ test("ensurePersistentManagementPasswordHash migrates INITIAL_PASSWORD into a pe
 
   assert.equal(result.migrated, true);
   assert.equal(result.source, "env");
-  assert.equal(managementPassword.isBcryptHash(settings.password), true);
+  assert.equal(managementPassword.isArgon2idHash(settings.password), true);
   assert.notEqual(settings.password, "bootstrap-secret");
   assert.equal(
     await managementPassword.verifyManagementPassword(
@@ -113,7 +132,7 @@ test("ensurePersistentManagementPasswordHash migrates legacy plaintext settings 
 
   assert.equal(result.migrated, true);
   assert.equal(result.source, "stored_plaintext");
-  assert.equal(managementPassword.isBcryptHash(settings.password), true);
+  assert.equal(managementPassword.isArgon2idHash(settings.password), true);
   assert.notEqual(settings.password, "legacy-password");
   assert.equal(
     await managementPassword.verifyManagementPassword(
