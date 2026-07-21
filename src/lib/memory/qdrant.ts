@@ -1,104 +1,155 @@
 /**
- * Qdrant API Facade
+ * Qdrant → sqlite-vec Facade
  *
- * All vector operations now delegate to sqlite-vec via vectorStore.ts.
- * The Qdrant sidecar has been removed from docker-compose.yml.
- * This file preserves the public API surface for backward compatibility.
+ * The Qdrant sidecar was removed from docker-compose (PR-O).
+ * All functions below delegate to vectorStore.ts which uses sqlite-vec.
+ *
+ * Public API surface preserved for all consumers:
+ *   - src/app/api/settings/qdrant/{search,cleanup,health}/route.ts
+ *   - src/lib/memory/retrieval.ts
+ *   - src/lib/memory/store.ts
  */
-
 import {
-  upsertMemory,
   searchMemory,
   deleteMemory,
+  upsertMemory,
   cleanupExpiredMemory,
-  type VectorSearchHit,
+  getVectorStore,
 } from "./vectorStore";
 
-// ─── Re-export types ───
-export type { VectorSearchHit };
+// ─── Config ─────────────────────────────────────────────────────────────────
+
+interface QdrantConfig {
+  enabled: boolean;
+  host: string;
+  port: number;
+  apiKey?: string;
+}
+
+// ─── Health ─────────────────────────────────────────────────────────────────
 
 export interface QdrantHealth {
-  status: "ok" | "degraded";
-  backend: "sqlite-vec";
-  embeddingDim?: number;
+  ok: boolean;
+  latencyMs?: number;
+  error?: string;
+  version?: string;
+  status?: string;
+  pointCount?: number;
+  collections?: Array<{
+    name: string;
+    vectorCount: number;
+    distance: string;
+  }>;
 }
 
-export interface QdrantConfig {
-  url: string;
-  apiKey?: string;
-  collection?: string;
-}
-
-// ─── Public API (delegates to sqlite-vec) ───
-
-export async function getQdrantConfig(): Promise<QdrantConfig | null> {
-  return { url: "embedded://sqlite-vec", collection: "memories" };
+export async function getQdrantConfig(): Promise<QdrantConfig> {
+  return { enabled: true, host: "sqlite-vec", port: 0 };
 }
 
 export async function checkQdrantHealth(): Promise<QdrantHealth> {
-  // Qdrant sidecar was removed — always report healthy (sqlite-vec is embedded)
-  return {
-    status: "ok",
-    collections: ["vec_memories"],
-    url: "embedded-sqlite-vec",
-    version: "embedded",
-    latencyMs: 0,
-    collectionInfo: { count: 0 },
-  };
+  const start = Date.now();
+  try {
+    await getVectorStore();
+    const latencyMs = Date.now() - start;
+    return {
+      ok: true,
+      latencyMs,
+      version: "sqlite-vec",
+      status: "ok",
+      pointCount: 0,
+      collections: [{ name: "default", vectorCount: 0, distance: "cosine" }],
+    };
+  } catch (err: unknown) {
+    return { ok: false, error: String(err) };
+  }
 }
 
-export async function upsertSemanticMemoryPoint(params: {
+// ─── Search ─────────────────────────────────────────────────────────────────
+
+interface SearchResult {
+  ok: boolean;
+  results: Array<{ id: string; score: number }>;
+  error?: string;
+}
+
+export async function searchSemanticMemory(
+  query: string,
+  limit: number,
+  opts?: { apiKeyId?: string; sessionId?: string; collection?: string },
+): Promise<SearchResult> {
+  try {
+    const res = await searchMemory({
+      query,
+      topK: limit,
+      apiKeyId: opts?.apiKeyId,
+      sessionId: opts?.sessionId,
+    });
+    if (!res.ok) {
+      return { results: [], ok: false, error: res.error };
+    }
+    return {
+      results: (res.results ?? []).map((r) => ({ id: r.id, score: r.score })),
+      ok: true,
+    };
+  } catch (err: unknown) {
+    return { results: [], ok: false, error: String(err) };
+  }
+}
+
+// ─── Upsert ─────────────────────────────────────────────────────────────────
+
+export async function upsertSemanticMemoryPoint(point: {
   id: string;
   vector: number[];
-  metadata?: Record<string, unknown>;
-}): Promise<void> {
-  await upsertMemory({
-    content: (params.metadata?.content as string) ?? "",
-    metadata: params.metadata,
-  });
+  payload: Record<string, unknown>;
+}): Promise<{ status: string }> {
+  try {
+    const res = await upsertMemory({
+      id: point.id,
+      apiKeyId: (point.payload.apiKeyId as string) ?? "",
+      sessionId: (point.payload.sessionId as string) ?? "",
+      content: (point.payload.content as string) ?? "",
+      metadata: point.payload,
+      kind: (point.payload.kind as string) ?? "memory",
+      type: (point.payload.type as string) ?? "semantic",
+      key: (point.payload.key as string) ?? "",
+    });
+    return { status: res.ok ? "ok" : "error" };
+  } catch {
+    return { status: "error" };
+  }
 }
 
-export async function searchSemanticMemory(params: {
-  vector: number[];
-  topK?: number;
-  filter?: Record<string, unknown>;
-}): Promise<{ ok: boolean; results: VectorSearchHit[]; usedFallback: boolean }> {
-  const query = (params.filter?.content as string) ?? "";
-  const results = await searchMemory({ query, topK: params.topK ?? 10 });
-  return { ok: true, results, usedFallback: true };
-}
+// ─── Delete ─────────────────────────────────────────────────────────────────
 
 export async function deleteSemanticMemoryPoint(
-  _id: string,
-): Promise<number> {
-  // sqlite-vec manages its own cleanup; return 1 as "accepted"
-  return 1;
+  id: string,
+): Promise<{ deleted: number }> {
+  try {
+    const res = await deleteMemory(id);
+    return { deleted: res.ok ? 1 : 0 };
+  } catch {
+    return { deleted: 0 };
+  }
 }
+
+// ─── Cleanup ────────────────────────────────────────────────────────────────
 
 export async function cleanupSemanticMemoryPoints(
-  olderThanMs?: number,
-): Promise<number> {
-  return cleanupExpiredMemory(olderThanMs);
+  olderThanDays: number,
+): Promise<{ deleted: number }> {
+  try {
+    const res = await cleanupExpiredMemory(olderThanDays);
+    return { deleted: res.deletedCount };
+  } catch {
+    return { deleted: 0 };
+  }
 }
 
-export async function getQdrantCollectionInfo(): Promise<{
-  vectorCount: number;
-  indexedVectors: number;
-  status: string;
-}> {
-  return { vectorCount: 0, indexedVectors: 0, status: "sqlite-vec embedded" };
-}
+// ─── Embedding Models ───────────────────────────────────────────────────────
 
-export async function getQdrantEmbeddingModels(): Promise<string[]> {
-  return ["embedded"];
-}
-
-// ─── Legacy compatibility (no-ops) ───
-
-export function isQdrantConfigured(): boolean {
-  return true; // always available (sqlite-vec is embedded)
-}
-
-export async function resetQdrantCollection(): Promise<void> {
-  // No-op — sqlite-vec is managed by vectorStore
+export async function listEmbeddingModels(): Promise<
+  Array<{ name: string; dimensions: number; provider: string }>
+> {
+  return [{ name: "default", dimensions: 1536, provider: "sqlite-vec" }];
 }
