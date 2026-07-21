@@ -331,7 +331,7 @@ jobs:
           # actionlint — official download script
           bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) latest "$HOME/.local/bin"
           # zizmor — PyPI (pipx preferred, pip --user fallback); lands in ~/.local/bin
-          pipx install zizmor || pip install --user zizmor
+          pipx install zizmor==1.25.2 || pip install --user zizmor==1.25.2
           # oasdiff — download latest linux amd64 tarball via gh (authed), extract binary
           rm -rf /tmp/oasd && mkdir -p /tmp/oasd
           gh release download --repo oasdiff/oasdiff --pattern '*linux_amd64.tar.gz' --dir /tmp/oasd
