@@ -15,9 +15,14 @@ export async function scheduleWithAbort<T>(
   const abortPromise = new Promise<never>((_, reject) => {
     const onAbort = () => {
       const reason = signal.reason;
-      const err = reason instanceof Error
-        ? reason
-        : new Error(typeof reason === "string" ? reason : "The operation was aborted");
+      let err: Error;
+      if (reason instanceof Error) {
+        err = reason;
+      } else if (typeof reason === "string") {
+        err = new Error(reason);
+      } else {
+        err = new Error("The operation was aborted");
+      }
       err.name = "AbortError";
       reject(err);
     };

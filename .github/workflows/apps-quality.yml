@@ -31,10 +31,12 @@ jobs:
           node-version: "24"
           cache: npm
       - name: Install pinned Bun runtime
-        run: npm install --global "bun@${BUN_VERSION}" --no-audit --no-fund
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
       - name: Install API contract dependencies from lockfile
         working-directory: packages/api-contracts
-        run: bun install --frozen-lockfile
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Install BFF dependencies from lockfile
         working-directory: apps/bff
         run: bun install --frozen-lockfile --ignore-scripts
