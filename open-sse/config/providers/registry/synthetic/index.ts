@@ -11,7 +11,7 @@ export const syntheticProvider: RegistryEntry = {
   authHeader: "bearer",
   models: [
     { id: "hf:nvidia/Kimi-K2.5-NVFP4", name: "Kimi K2.5 (NVFP4)" },
-    { id: "hf:MiniMaxAI/MiniMax-M3", name: "MiniMax M3" },
+    { id: "hf:MiniMaxAI/MiniMax-M3", name: "MiniMax M3", supportsVision: true },
     { id: "hf:zai-org/GLM-4.7-Flash", name: "GLM 4.7 Flash" },
     { id: "hf:zai-org/GLM-4.7", name: "GLM 4.7" },
     { id: "hf:moonshotai/Kimi-K2.5", name: "Kimi K2.5" },

@@ -249,7 +249,12 @@ export const KIMI_CODING_SHARED = {
 } as const;
 
 export const buildModels = (ids: readonly string[]): RegistryModel[] =>
-  ids.map((id) => ({ id, name: id }));
+  ids.map((id) => {
+    const model: RegistryModel = { id, name: id };
+    // #3328: MiniMax M3 is multimodal — flag so vision requests aren't gated/stripped.
+    if (/minimax-m3/i.test(id)) model.supportsVision = true;
+    return model;
+  });
 
 export const ALIBABA_DASHSCOPE_MODELS: RegistryModel[] = [
   { id: "qwen-max", name: "Qwen Max" },
@@ -614,12 +619,14 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
       name: "MiniMax M3",
       contextLength: 196608,
       maxOutputTokens: 131072,
+      supportsVision: true,
     },
     {
       id: "MiniMaxAI/MiniMax-M3",
       name: "MiniMax M3",
       contextLength: 196608,
       maxOutputTokens: 131072,
+      supportsVision: true,
     },
     {
       id: "Qwen/Qwen3.6-Max-Preview",

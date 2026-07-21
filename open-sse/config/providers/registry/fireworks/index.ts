@@ -29,7 +29,7 @@ export const fireworksProvider: RegistryEntry = {
     { id: "kimi-k2p5", name: "Kimi K2.5" },
     { id: "kimi-k2p6", name: "Kimi K2.6" },
     { id: "minimax-m2p5", name: "MiniMax M3" },
-    { id: "minimax-m3", name: "MiniMax M3" },
+    { id: "minimax-m3", name: "MiniMax M3", supportsVision: true },
     { id: "qwen3p6-plus", name: "Qwen3.6 Plus" },
   ],
 };

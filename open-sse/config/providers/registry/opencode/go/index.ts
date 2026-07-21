@@ -35,8 +35,8 @@ export const opencode_goProvider: RegistryEntry = {
       contextLength: 1048576,
       supportsVision: true,
     },
-    { id: "minimax-m3", name: "MiniMax M3", targetFormat: "claude" },
-    { id: "minimax-m3", name: "MiniMax M3", targetFormat: "claude" },
+    { id: "minimax-m3", name: "MiniMax M3", targetFormat: "claude", supportsVision: true },
+    { id: "minimax-m3", name: "MiniMax M3", targetFormat: "claude", supportsVision: true },
     // Issue #2292: Qwen models on opencode-go reject oa-compat format
     // ("Model qwen3.x-* is not supported for format oa-compat") — same
     // upstream behavior already declared for opencode-zen. Route them
