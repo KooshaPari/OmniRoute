@@ -66,7 +66,7 @@ export async function checkQdrantHealth(): Promise<QdrantHealth> {
 
 // ─── Search ─────────────────────────────────────────────────────────────────
 
-interface SearchResult {
+export interface SearchResult {
   ok: boolean;
   results: Array<{ id: string; score: number }>;
   error?: string;
@@ -98,25 +98,41 @@ export async function searchSemanticMemory(
 
 // ─── Upsert ─────────────────────────────────────────────────────────────────
 
+export interface UpsertResult {
+  ok: boolean;
+  status: string;
+  latencyMs: number;
+  error?: string;
+}
+
 export async function upsertSemanticMemoryPoint(point: {
   id: string;
-  vector: number[];
-  payload: Record<string, unknown>;
-}): Promise<{ status: string }> {
+  apiKeyId?: string;
+  sessionId?: string;
+  key?: string;
+  content?: string;
+  metadata?: Record<string, unknown>;
+  createdAt?: string;
+  expiresAt?: string | null;
+  vector?: number[];
+}): Promise<UpsertResult> {
+  const start = Date.now();
   try {
     const res = await upsertMemory({
       id: point.id,
-      apiKeyId: (point.payload.apiKeyId as string) ?? "",
-      sessionId: (point.payload.sessionId as string) ?? "",
-      content: (point.payload.content as string) ?? "",
-      metadata: point.payload,
-      kind: (point.payload.kind as string) ?? "memory",
-      type: (point.payload.type as string) ?? "semantic",
-      key: (point.payload.key as string) ?? "",
+      apiKeyId: point.apiKeyId ?? "",
+      sessionId: point.sessionId ?? "",
+      content: point.content ?? "",
+      metadata: point.metadata ?? {},
+      kind: (point.metadata?.kind as string) ?? "memory",
+      type: (point.metadata?.type as string) ?? "semantic",
+      key: point.key ?? "",
+      createdAt: point.createdAt ?? new Date().toISOString(),
+      expiresAt: point.expiresAt ?? null,
     });
-    return { status: res.ok ? "ok" : "error" };
-  } catch {
-    return { status: "error" };
+    return { ok: res.ok, status: res.ok ? "ok" : "error", latencyMs: Date.now() - start };
+  } catch (err: unknown) {
+    return { ok: false, status: "error", latencyMs: Date.now() - start, error: String(err) };
   }
 }
 
