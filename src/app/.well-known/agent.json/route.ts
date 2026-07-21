@@ -80,6 +80,17 @@ export async function GET() {
           "Run this coding task through the forge engine",
         ],
       },
+      {
+        id: "mint-virtual-key",
+        name: "Mint Virtual Key",
+        description:
+          "Mints a per-tenant virtual API key (keys:write scope). Raw key is shown once.",
+        tags: ["keys", "virtual-key", "auth", "tenant"],
+        examples: [
+          "Mint a virtual key for tenant acme with keys:write scope",
+          "Create a labeled virtual key with a daily request cap",
+        ],
+      },
     ],
     authentication: {
       schemes: ["bearer"],
