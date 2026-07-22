@@ -1,0 +1,37 @@
+version: "0.5"
+
+# Device compute plane. Docker Compose remains the containerized production
+# source of truth; this file is for native desktop/process-compose installs.
+processes:
+  omniroute:
+    command: "npm run start"
+    working_dir: "${OMNIROUTE_REPO_DIR:-.}"
+    environment:
+      - NODE_ENV=production
+      - HOSTNAME=${OMNIROUTE_HOSTNAME:-127.0.0.1}
+      - PORT=${OMNIROUTE_PORT:-20128}
+      - DATA_DIR=${OMNIROUTE_DATA_DIR:-.data}
+      - BFF_API_KEY=${BFF_API_KEY}
+    readiness_probe:
+      exec:
+        command: "node scripts/dev/healthcheck.mjs"
+      initial_delay_seconds: 5
+      period_seconds: 5
+      timeout_seconds: 3
+      failure_threshold: 12
+    availability:
+      restart: always
+      max_restarts: 10
+  redis:
+    command: "mkdir -p \"${OMNIROUTE_REDIS_DIR:-.data/redis}\" && redis-server --dir \"${OMNIROUTE_REDIS_DIR:-.data/redis}\" --save 60 1 --loglevel warning"
+    working_dir: "${OMNIROUTE_REDIS_DIR:-.data/redis}"
+    readiness_probe:
+      exec:
+        command: "redis-cli ping"
+      initial_delay_seconds: 2
+      period_seconds: 5
+      timeout_seconds: 3
+      failure_threshold: 12
+    availability:
+      restart: always
+      max_restarts: 10
