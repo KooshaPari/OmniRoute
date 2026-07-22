@@ -562,7 +562,7 @@ const _opossumPrimaryEnabled = process.env.CIRCUIT_BREAKER_OPOSSUM_PRIMARY === "
 
 export function getCircuitBreaker(name: string, options?: CircuitBreakerOptions): CircuitBreaker {
   if (_opossumPrimaryEnabled) {
-    return getOrCreateOpossumBreaker(name, options);
+    return getOrCreateOpossumBreaker(name, options) as unknown as CircuitBreaker;
   }
   if (!registry.has(name)) {
     evictColdBreakersIfNeeded();
@@ -668,8 +668,8 @@ interface OpossumOptions {
 
 /** Opossum-backed circuit breaker — drop-in replacement for hand-rolled impl. */
 export class OpossumCircuitBreaker {
-  private readonly breakers: Map<string, OpossumBreaker<unknown>>;
-  private readonly primary: OpossumBreaker<unknown>;
+  private readonly breakers: Map<string, OpossumBreaker>;
+  private readonly primary: OpossumBreaker;
   private degraded = false;
   private failureCount = 0;
   private highWatermark = 5;
@@ -687,7 +687,7 @@ export class OpossumCircuitBreaker {
     this.primary = new OpossumBreaker(async () => {}, { ...oOpts, name });
     this.breakers = new Map();
     for (const kind of ["rate_limit", "transient", "quota", "auth"] as const) {
-      this.breakers.set(kind, new OpossumBreaker(async () => {}, { ...oOpts, name: `${name}:${kind}` }) as OpossumBreaker<unknown>);
+      this.breakers.set(kind, new OpossumBreaker(async () => {}, { ...oOpts, name: `${name}:${kind}` }) as OpossumBreaker);
     }
     this.primary.on("open", () => { this.failureCount++; if (this.failureCount >= this.highWatermark) this.degraded = true; });
     this.primary.on("halfOpen", () => { if (this.failureCount < this.highWatermark) this.degraded = false; });
@@ -708,9 +708,6 @@ export class OpossumCircuitBreaker {
   }
 }
 
-// ─── Opossum primary dispatch ──────────────────────────────────────────────
-
-const _opossumPrimaryEnabled = process.env.CIRCUIT_BREAKER_OPOSSUM_PRIMARY === "1";
 const _opossumRegistry = new Map<string, OpossumCircuitBreaker>();
 
 function getOrCreateOpossumBreaker(

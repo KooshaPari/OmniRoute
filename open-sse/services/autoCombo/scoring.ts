@@ -221,35 +221,6 @@ export function calculateFactors(
 export function scorePool(
   pool: ProviderCandidate[],
   taskType: string,
-  weights: ScoringWeights = DEFAULT_WEIGHTS,
-  getTaskFitness: (model: string, taskType: string) => number = () => 0.5,
-  manifestHint?: RoutingHint | null
-): ScoredProvider[] {
-  return pool
-    .map((candidate) => {
-      const factors = calculateFactors(candidate, pool, taskType, getTaskFitness, manifestHint);
-      return {
-        provider: candidate.provider,
-        model: candidate.model,
-        score: calculateScore(factors, weights),
-        factors,
-        connectionId: candidate.connectionId,
-      };
-    })
-    .sort((a, b) => b.score - a.score);
-}
-
-/**
- * Validate that weights sum to 1.0 (±0.01 tolerance).
- */
-export function validateWeights(weights: ScoringWeights): boolean {
-  const sum = Object.values(weights).reduce((a, b) => a + b, 0);
-  return Math.abs(sum - 1.0) < 0.01;
-}
-
-export function scorePool(
-  pool: ProviderCandidate[],
-  taskType: string,
   weights?: ScoringWeights | undefined,
   getTaskFitness: (model: string, taskType: string) => number = () => 0.5
 ): ScoredProvider[] {
@@ -268,4 +239,23 @@ export function scorePool(
       };
     })
     .sort((a, b) => b.score - a.score);
+}
+
+/**
+ * Validate weight configuration — ensures all weights are non-negative
+ * and at least one weight is > 0.
+ */
+export function validateWeights(weights: Partial<ScoringWeights>): {
+  valid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  const keys = Object.keys(weights) as (keyof ScoringWeights)[];
+  for (const key of keys) {
+    const val = weights[key];
+    if (val !== undefined && (typeof val !== "number" || val < 0)) {
+      errors.push(`${key} must be a non-negative number, got ${String(val)}`);
+    }
+  }
+  return { valid: errors.length === 0, errors };
 }
