@@ -710,7 +710,6 @@ export class OpossumCircuitBreaker {
 
 // ─── Opossum primary dispatch ──────────────────────────────────────────────
 
-const _opossumPrimaryEnabled = process.env.CIRCUIT_BREAKER_OPOSSUM_PRIMARY === "1";
 const _opossumRegistry = new Map<string, OpossumCircuitBreaker>();
 
 function getOrCreateOpossumBreaker(
@@ -749,14 +748,3 @@ export function __getOpossumShadowStats() {
 export function __resetOpossumShadowStats() {
   _opossumShadowStats = { enabled: false, fires: 0, divergences: 0, opossumOpens: 0, primaryOpens: 0 };
 }
-
-// ─── Wire primary dispatch into getCircuitBreaker ─────────────────────────
-// @ts-ignore — dynamic assignment into function body is intentional for env-gated dispatch
-const _getCircuitBreakerOrig = getCircuitBreaker;
-// @ts-ignore
-getCircuitBreaker = function(name: string, options?: CircuitBreakerOptions) {
-  if (_opossumPrimaryEnabled) {
-    return getOrCreateOpossumBreaker(name, options) as unknown as CircuitBreaker;
-  }
-  return _getCircuitBreakerOrig(name, options);
-};
