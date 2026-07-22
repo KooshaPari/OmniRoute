@@ -7,7 +7,7 @@
 
 use crate::error::StorageError;
 use crate::schema::{ensure_schema, SCHEMA_VERSION};
-use sqlx::{SqliteConnection, SqlitePool};
+use sqlx::{Connection, SqliteConnection, SqlitePool};
 
 /// A single migration.
 pub struct Migration {
