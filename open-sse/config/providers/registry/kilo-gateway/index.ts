@@ -14,7 +14,7 @@ export const kilo_gatewayProvider: RegistryEntry = {
     { id: "kilo-auto/balanced", name: "Kilo Auto Balanced" },
     { id: "kilo-auto/free", name: "Kilo Auto Free" },
     { id: "nvidia/nemotron-3-super-120b-a12b:free", name: "Nemotron 3 Super 120B (Free)" },
-    { id: "minimax/minimax-m3:free", name: "MiniMax M3 (Free)" },
+    { id: "minimax/minimax-m3:free", name: "MiniMax M3 (Free)", supportsVision: true },
     { id: "arcee-ai/trinity-large-preview:free", name: "Trinity Large Preview (Free)" },
   ],
   passthroughModels: true,

@@ -16,7 +16,7 @@
  *  11. large-file skip — a 2 MB JSON file is skipped and counted as an error.
  *  12. symlink skip — a symlinked file is skipped (not followed).
  *  13. prefix grouping — `OPENAI_API_KEY` + `OPENAI_BASE_URL` → one `openai` provider.
- *  14. multi-source dedup — same vendor in env + config yields 2 entries (different sources).
+ *  14. multi-source dedup — same provider in env + config yields one merged entry.
  */
 
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
@@ -356,7 +356,7 @@ describe("providerDiscovery A2A skill", () => {
     ]);
   });
 
-  it("reports same vendor from env AND config as two separate providers", async () => {
+  it("deduplicates the same provider across sources using requested source precedence", async () => {
     const cfg = {
       providers: [
         { id: "openai", vendor: "openai", apiKey: "from-config" },
@@ -373,12 +373,12 @@ describe("providerDiscovery A2A skill", () => {
     );
     const payload = parseArtifact(result);
 
-    expect(payload.providers).toHaveLength(2);
-    const sources = payload.providers.map((p) => p.source).sort();
-    expect(sources).toEqual(["config", "env"]);
-    expect(payload.providers.every((p) => p.vendor === "openai")).toBe(true);
-    expect(payload.stats.byVendor.openai).toBe(2);
+    expect(payload.providers).toHaveLength(1);
+    expect(payload.providers[0].vendor).toBe("openai");
+    expect(payload.providers[0].source).toBe("env");
+    expect(payload.providers[0].hasApiKey).toBe(true);
+    expect(payload.stats.byVendor.openai).toBe(1);
     expect(payload.stats.bySource.env).toBe(1);
-    expect(payload.stats.bySource.config).toBe(1);
+    expect(payload.stats.bySource.config).toBeUndefined();
   });
 });

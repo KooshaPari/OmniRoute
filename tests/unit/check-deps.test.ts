@@ -9,6 +9,9 @@ import {
   discoverManifests,
   evaluateDepAge,
   auditNewDepsRegistry,
+  classifyDependency,
+  collectDependencyRecords,
+  collectLocalPackages,
 } from "../../scripts/check/check-deps.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -25,6 +28,101 @@ test("flags a dependency not on the allowlist (potential slopsquat)", () => {
 
 test("flags multiple new deps, preserves order, de-dupes", () => {
   assert.deepEqual(findUnapprovedDeps(["a", "b", "a", "c"], new Set(["a"])), ["b", "c"]);
+});
+
+const publicAllowlist = new Set(["react", "typescript"]);
+const localPackages = new Map([
+  [
+    "@example/contracts",
+    { manifest: "packages/contracts/package.json", private: true, os: [], cpu: [] },
+  ],
+  [
+    "@example/ffi-darwin-arm64",
+    {
+      manifest: "packages/ffi-darwin-arm64/package.json",
+      private: true,
+      os: ["darwin"],
+      cpu: ["arm64"],
+    },
+  ],
+]);
+const aliases = new Map([["typescript-7", "typescript"]]);
+
+test("classifies explicitly reviewed public packages", () => {
+  assert.equal(
+    classifyDependency(
+      { name: "react", spec: "^19.0.0", section: "dependencies", manifest: "package.json" },
+      { publicAllowlist, localPackages, aliases, root: "/repo" }
+    ),
+    "public"
+  );
+});
+
+test("classifies exact file-linked private packages", () => {
+  assert.equal(
+    classifyDependency(
+      {
+        name: "@example/contracts",
+        spec: "file:../../packages/contracts",
+        section: "dependencies",
+        manifest: "apps/bff/package.json",
+      },
+      { publicAllowlist, localPackages, aliases, root: "/repo" }
+    ),
+    "workspace-private"
+  );
+});
+
+test("classifies private platform artifacts only as optional FFI dependencies", () => {
+  const context = { publicAllowlist, localPackages, aliases, root: "/repo" };
+  const dependency = {
+    name: "@example/ffi-darwin-arm64",
+    spec: "1.0.0",
+    section: "optionalDependencies",
+    manifest: "packages/ffi/package.json",
+  };
+  assert.equal(classifyDependency(dependency, context), "optional-platform");
+  assert.equal(
+    classifyDependency({ ...dependency, section: "dependencies" }, context),
+    null,
+    "a local package name alone must not bypass registry governance"
+  );
+});
+
+test("classifies only explicitly mapped npm aliases whose target is public-approved", () => {
+  const context = { publicAllowlist, localPackages, aliases, root: "/repo" };
+  const dependency = {
+    name: "typescript-7",
+    spec: "npm:typescript@7.0.2",
+    section: "devDependencies",
+    manifest: "apps/bff/package.json",
+  };
+  assert.equal(classifyDependency(dependency, context), "alias");
+  assert.equal(
+    classifyDependency({ ...dependency, name: "typescript-next" }, context),
+    null,
+    "unreviewed aliases must fail closed"
+  );
+  assert.equal(
+    classifyDependency({ ...dependency, spec: "npm:not-typescript@7.0.2" }, context),
+    null,
+    "alias target must match its reviewed mapping"
+  );
+});
+
+test("fails closed for unknown public-looking package names", () => {
+  assert.equal(
+    classifyDependency(
+      {
+        name: "reactt-router",
+        spec: "^1.0.0",
+        section: "dependencies",
+        manifest: "package.json",
+      },
+      { publicAllowlist, localPackages, aliases, root: "/repo" }
+    ),
+    null
+  );
 });
 
 // --- 6A.8: automatic workspace discovery ---
@@ -61,21 +159,19 @@ test("6A.8: discoverManifests does NOT include node_modules, .next, or deep refe
 
 test("6A.8: all workspace package deps are in the allowlist (gate exits 0 with expanded scope)", () => {
   const allowlistPath = path.join(repoRoot, "config/quality/dependency-allowlist.json");
-  const allowlist = new Set(JSON.parse(fs.readFileSync(allowlistPath, "utf8")).allowed || []);
-  const manifests = discoverManifests(repoRoot);
-  const allDeps: string[] = [];
-  for (const rel of manifests) {
-    const abs = path.join(repoRoot, rel);
-    if (!fs.existsSync(abs)) continue;
-    const pkg = JSON.parse(fs.readFileSync(abs, "utf8"));
-    allDeps.push(
-      ...Object.keys(pkg.dependencies || {}),
-      ...Object.keys(pkg.devDependencies || {}),
-      ...Object.keys(pkg.optionalDependencies || {}),
-      ...Object.keys(pkg.peerDependencies || {})
-    );
-  }
-  const unapproved = findUnapprovedDeps(allDeps, allowlist);
+  const policy = JSON.parse(fs.readFileSync(allowlistPath, "utf8"));
+  const context = {
+    publicAllowlist: new Set(policy.allowed || []),
+    aliases: new Map(Object.entries(policy.aliases || {})),
+    localPackages: collectLocalPackages(repoRoot),
+    root: repoRoot,
+  };
+  const unapproved = collectDependencyRecords(repoRoot)
+    .filter(
+      (dependency: Parameters<typeof classifyDependency>[0]) =>
+        classifyDependency(dependency, context) === null
+    )
+    .map((dependency: { name: string }) => dependency.name);
   assert.deepEqual(
     unapproved,
     [],

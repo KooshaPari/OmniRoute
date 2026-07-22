@@ -113,7 +113,6 @@ import type {
   ComboRuntimeStep,
   HistoricalLatencyStatsEntry,
 } from "./combo/types.ts";
-
 import {
   MAX_RR_COUNTERS,
   rrCounters,
@@ -202,7 +201,6 @@ import {
   isTaskRoutingStrategy,
   reorderByTaskWeight,
 } from "./taskAwareRouting.ts";
-
 export { RESET_WINDOW_NAMES };
 export { QUOTA_SOFT_DEPRIORITIZE_FACTOR, setCandidateQuotaSoftPenalty };
 export { scoreAutoTargets, expandAutoComboCandidatePool };
@@ -690,7 +688,7 @@ async function isPinnedModelDurablyUnhealthy(pinnedModel: string): Promise<boole
 // output limits, so the request should fall through to the next target instead of
 // being short-circuited. Exported as pure predicates so the guard is unit-testable.
 /** @param {string} errorText */
-export function isContextOverflow400(errorText) {
+export function isContextOverflow400(errorText: string): boolean {
   return (
     /\bcontext.*(?:length_exceeded|too long|overflow|exceeded|window|limit)\b/i.test(errorText) ||
     /exceeds.*context/i.test(errorText) ||
@@ -698,7 +696,7 @@ export function isContextOverflow400(errorText) {
   );
 }
 /** @param {string} errorText */
-export function isParamValidation400(errorText) {
+export function isParamValidation400(errorText: string): boolean {
   return (
     /\bmax_tokens\b.*(?:illegal|must|range|invalid)/i.test(errorText) ||
     /\bparameter is illegal\b/i.test(errorText) ||

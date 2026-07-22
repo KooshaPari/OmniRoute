@@ -74,7 +74,9 @@ describe("bifrostProviderMap", () => {
     expect(applyBifrostModelOverride("azure-gpt4", "gpt-4o-deployment-prod")).toBe("gpt-4o");
     expect(applyBifrostModelOverride("azure-gpt4", "GPT-4-TURBO-0613")).toBe("gpt-4-turbo");
     expect(applyBifrostModelOverride("azure-gpt4", "gpt-35-turbo-version-2")).toBe("gpt-35-turbo");
-    expect(applyBifrostModelOverride("azure-gpt4", "unknown-model-name")).toBe("unknown-model-name");
+    expect(applyBifrostModelOverride("azure-gpt4", "unknown-model-name")).toBe(
+      "unknown-model-name"
+    );
   });
 
   it("returns input unchanged when no model override is defined", () => {
@@ -186,7 +188,7 @@ describe("Bifrost dispatcher-facing helpers", () => {
     expect(
       shouldRouteViaBifrost("openai", {
         providerSpecificData: { bifrostMode: true },
-      }),
+      })
     ).toBe(true);
 
     process.env.BIFROST_ENABLED = "1";
@@ -224,9 +226,11 @@ describe("BifrostBackend executor (healthCheck)", () => {
 
   it("probes /health when Bifrost is enabled and reachable", async () => {
     process.env.BIFROST_ENABLED = "1";
-    const mockFetch = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ status: "ok", version: "1.2.3" }), { status: 200 })
-    );
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ status: "ok", version: "1.2.3" }), { status: 200 })
+      );
     globalThis.fetch = mockFetch as unknown as typeof fetch;
 
     const exec = new BifrostBackendExecutor("openai", {});
@@ -278,9 +282,9 @@ describe("BifrostBackend executor (execute body shape)", () => {
   });
 
   it("POSTs to /v1/chat/completions with the expected URL and headers", async () => {
-    const mockFetch = vi.fn().mockResolvedValue(
-      new Response('{"id":"x","choices":[]}', { status: 200 })
-    );
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValue(new Response('{"id":"x","choices":[]}', { status: 200 }));
     globalThis.fetch = mockFetch as unknown as typeof fetch;
 
     const exec = new BifrostBackendExecutor("openai", {});
@@ -394,9 +398,8 @@ describe("BifrostBackend executor (execute body shape)", () => {
     const mockFetch = vi.fn();
     globalThis.fetch = mockFetch as unknown as typeof fetch;
 
-    const { forceActivate, forceDeactivate, isActive } = await import(
-      "../../open-sse/services/bifrostKillSwitch.ts"
-    );
+    const { forceActivate, forceDeactivate, isActive } =
+      await import("../../open-sse/services/bifrostKillSwitch.ts");
     forceDeactivate("openai");
     forceActivate("openai");
 
@@ -419,14 +422,13 @@ describe("BifrostBackend executor (execute body shape)", () => {
 
   it("B9: records an observation after a successful dispatch (windowStats.totalSamples incremented, ok rate reflects success)", async () => {
     process.env.BIFROST_ENABLED = "1";
-    const mockFetch = vi.fn().mockResolvedValue(
-      new Response('{"id":"x","choices":[]}', { status: 200 })
-    );
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValue(new Response('{"id":"x","choices":[]}', { status: 200 }));
     globalThis.fetch = mockFetch as unknown as typeof fetch;
 
-    const { resetProvider, getState } = await import(
-      "../../open-sse/services/bifrostKillSwitch.ts"
-    );
+    const { resetProvider, getState } =
+      await import("../../open-sse/services/bifrostKillSwitch.ts");
     resetProvider("anthropic");
 
     const exec = new BifrostBackendExecutor("anthropic", {});
@@ -468,11 +470,15 @@ describe("dispatchBifrostWithFallback", () => {
 
   it("falls back to the legacy executor when the kill switch trips for the resolved provider", async () => {
     process.env.BIFROST_ENABLED = "1";
-    globalThis.fetch = vi.fn(); // BifrostBackendExecutor must NOT call fetch
-
-    const { forceActivate, forceDeactivate, resetProvider } = await import(
-      "../../open-sse/services/bifrostKillSwitch.ts"
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ id: "chatcmpl-fallback", choices: [] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })
     );
+
+    const { forceActivate, forceDeactivate, resetProvider } =
+      await import("../../open-sse/services/bifrostKillSwitch.ts");
     forceDeactivate("openai");
     forceActivate("openai");
 
@@ -491,8 +497,33 @@ describe("dispatchBifrostWithFallback", () => {
     expect(result.response).toBeInstanceOf(Response);
     expect(result.url).toContain("openai");
 
-    // fetch must NOT have been called by BifrostBackendExecutor (kill switch threw)
-    expect(globalThis.fetch).not.toHaveBeenCalled();
+    // Only the legacy OpenAI executor may call fetch; Bifrost must be skipped.
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect(String((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0]?.[0])).toContain(
+      "openai.com"
+    );
+
+    forceDeactivate("openai");
+    resetProvider("openai");
+  });
+
+  it("reports an invalid legacy fetch result without dereferencing response.status", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(undefined);
+    const { forceActivate, forceDeactivate, resetProvider } =
+      await import("../../open-sse/services/bifrostKillSwitch.ts");
+    forceActivate("openai");
+
+    const exec = new BifrostBackendExecutor("openai", {});
+    const input = {
+      model: "gpt-4o",
+      body: { model: "gpt-4o", messages: [] },
+      stream: false,
+      credentials: { apiKey: "sk-test" },
+    };
+
+    await expect(dispatchBifrostWithFallback(exec, input)).rejects.toThrow(
+      /Upstream fetch returned an invalid response/
+    );
 
     forceDeactivate("openai");
     resetProvider("openai");
@@ -511,7 +542,7 @@ describe("dispatchBifrostWithFallback", () => {
     };
 
     await expect(dispatchBifrostWithFallback(exec, input)).rejects.toThrow(
-      /Bifrost is not enabled/,
+      /Bifrost is not enabled/
     );
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });

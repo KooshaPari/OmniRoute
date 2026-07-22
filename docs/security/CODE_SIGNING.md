@@ -1,3 +1,10 @@
+---
+title: Code Signing for OmniRoute Desktop
+description: Guidance for signing and notarizing OmniRoute desktop artifacts.
+version: 3.8.49-koosha.0
+lastUpdated: 2026-07-18
+---
+
 # Code Signing for OmniRoute Desktop
 
 > How to sign and notarize the Electron desktop app for macOS and Windows.
@@ -16,10 +23,8 @@
 # Install rcodesign
 brew install rcodesign
 
-# Store credentials
-export APPLE_ID="developer@example.com"
-export APPLE_APP_SPECIFIC_PASSWORD="xxxx-xxxx-xxxx-xxxx"
-export APPLE_TEAM_ID="TEAM123456"
+# Configure rcodesign credentials in the local keychain or pass its
+# documented API issuer/key flags when submitting for notarization.
 ```
 
 ### Build signed app
@@ -44,13 +49,9 @@ rcodesign notary-submit \
 
 ### CI Integration
 
-The `.github/workflows/codesign.yml` workflow signs on macOS runners.
-Secrets needed:
-- `APPLE_CERT_P12` — base64-encoded certificate
-- `APPLE_CERT_PASSWORD` — certificate password
-- `APPLE_ID` — Apple Developer account email
-- `APPLE_APP_SPECIFIC_PASSWORD` — app-specific password
-- `APPLE_TEAM_ID` — team ID
+Automated signing is not currently configured in the tracked workflows.
+Release builds remain unsigned until a dedicated macOS signing job and its
+repository secrets are provisioned.
 
 ## Windows
 

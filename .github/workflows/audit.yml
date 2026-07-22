@@ -19,7 +19,9 @@ jobs:
   analyze:
     name: Analyze (JavaScript / TypeScript)
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # The JavaScript/TypeScript database exceeds 15 minutes on ubuntu-24.04;
+    # allow CodeQL to finish instead of uploading a cancelled SARIF run.
+    timeout-minutes: 30
     permissions:
       security-events: write
       actions: read

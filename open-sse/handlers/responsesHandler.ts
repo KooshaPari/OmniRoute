@@ -7,6 +7,7 @@ import { CORS_HEADERS } from "../utils/cors.ts";
 import { handleChatCore } from "./chatCore.ts";
 import { convertResponsesApiFormat } from "../translator/helpers/responsesApiHelper.ts";
 import { createResponsesApiTransformStream } from "../transformer/responsesTransformer.ts";
+import { shouldParseTextualReasoningTags } from "./responseSanitizer.ts";
 import { createSseHeartbeatTransform, HEARTBEAT_SHAPES } from "../utils/sseHeartbeat.ts";
 import { SSE_HEARTBEAT_INTERVAL_MS } from "../config/constants.ts";
 
@@ -80,6 +81,10 @@ export async function handleResponsesCore({
   const transformStream = createResponsesApiTransformStream(null, 3000, {
     request: body,
     tools: Array.isArray(body?.tools) ? body.tools : [],
+    parseTextualReasoningTags: shouldParseTextualReasoningTags(
+      modelInfo?.provider,
+      modelInfo?.model
+    ),
   });
   const transformedBody = response.body.pipeThrough(transformStream).pipeThrough(
     createSseHeartbeatTransform({

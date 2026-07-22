@@ -1,4 +1,6 @@
 name: perf-weekly
+permissions:
+  contents: read
 on:
   schedule: [{cron: '0 8 * * 6'}]
   workflow_dispatch: {}

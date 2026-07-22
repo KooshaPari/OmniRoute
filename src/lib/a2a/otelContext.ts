@@ -35,6 +35,7 @@ export interface OtelSpanContext {
 // ---------------------------------------------------------------------------
 
 type OtelGetter = () => OtelSpanContext | null;
+const PHENO_OTEL_PACKAGE = "@pheno-otel/tracing";
 
 let _getter: OtelGetter | undefined;
 let _initDone = false;
@@ -42,10 +43,15 @@ let _initDone = false;
 async function _resolveOtelBinding(): Promise<void> {
   // Tier 1 — @pheno-otel/tracing (sibling Rust-to-JS bridge)
   try {
-    const mod = await import("@pheno-otel/tracing");
-    if (typeof mod.getActiveSpanContext === "function") {
+    // Keep the unpublished bridge optional: a variable specifier prevents the
+    // compiler from requiring a package that is resolved only at runtime.
+    const mod = (await import(PHENO_OTEL_PACKAGE)) as {
+      getActiveSpanContext?: () => OtelSpanContext | null;
+    };
+    const getActiveSpanContext = mod.getActiveSpanContext;
+    if (typeof getActiveSpanContext === "function") {
       _getter = () => {
-        const ctx = mod.getActiveSpanContext();
+        const ctx = getActiveSpanContext();
         return ctx?.traceId && ctx?.spanId
           ? { traceId: ctx.traceId, spanId: ctx.spanId }
           : null;

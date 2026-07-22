@@ -103,6 +103,8 @@ export function normalizeSelfHealingSettings(
   };
 }
 
+export const resolveSelfHealingSettings = normalizeSelfHealingSettings;
+
 export function selfHealingSettingsToJson(
   settings: SelfHealingSettings
 ): JsonRecord {

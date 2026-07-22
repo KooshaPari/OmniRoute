@@ -33,11 +33,11 @@ import {
   APP_STAGING_REMOVAL_PATHS,
   findUnexpectedArtifactPaths,
 } from "./pack-artifact-policy.ts";
+import { runPackageTool } from "./package-tool.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..", "..");
-const NPX_BIN = process.platform === "win32" ? "npx.cmd" : "npx";
 
 const DIST_DIR = join(ROOT, "dist");
 const METHOD_GUARD_REQUIRE = 'require("./http-method-guard.cjs").installHttpMethodGuard();\n';
@@ -205,7 +205,7 @@ if (existsSync(mitmSrc)) {
   writeFileSync(tmpTsconfigPath, JSON.stringify(mitmTsconfig, null, 2));
 
   try {
-    execFileSync(NPX_BIN, ["tsc", "-p", "tsconfig.mitm.tmp.json"], {
+    runPackageTool("npx", ["tsc", "-p", "tsconfig.mitm.tmp.json"], {
       cwd: ROOT,
       stdio: "inherit",
     });
@@ -235,8 +235,8 @@ if (existsSync(mcpSrcFile)) {
   console.log("  🔨 Bundling MCP Server (TypeScript → JavaScript)...");
   mkdirSync(mcpDestDir, { recursive: true });
   try {
-    execFileSync(
-      NPX_BIN,
+    runPackageTool(
+      "npx",
       [
         "esbuild",
         "open-sse/mcp-server/server.ts",
@@ -281,8 +281,8 @@ if (existsSync(llmWorkerSrc)) {
   console.log("  🔨 Bundling LLMLingua ONNX worker (TypeScript → JavaScript)...");
   mkdirSync(llmWorkerDestDir, { recursive: true });
   try {
-    execFileSync(
-      NPX_BIN,
+    runPackageTool(
+      "npx",
       [
         "esbuild",
         "open-sse/services/compression/engines/llmlingua/onnxWorker.ts",
@@ -309,8 +309,8 @@ const cliDestFile = join(ROOT, "bin", "omniroute.mjs");
 if (existsSync(cliSrcFile)) {
   console.log("  🔨 Bundling CLI Entrypoint (TypeScript → JavaScript)...");
   try {
-    execFileSync(
-      NPX_BIN,
+    runPackageTool(
+      "npx",
       [
         "esbuild",
         "bin/omniroute.ts",
@@ -349,13 +349,12 @@ if (existsSync(opencodePluginSrc) && existsSync(join(opencodePluginSrc, "package
       // needs the plugin's own devDependencies (typescript, @opencode-ai/plugin
       // types). Without this install a fresh CI publish fails at this step.
       if (!existsSync(join(opencodePluginSrc, "node_modules"))) {
-        const NPM_BIN = process.platform === "win32" ? "npm.cmd" : "npm";
-        execFileSync(NPM_BIN, ["install", "--no-audit", "--no-fund"], {
+        runPackageTool("npm", ["install", "--no-audit", "--no-fund"], {
           cwd: opencodePluginSrc,
           stdio: "inherit",
         });
       }
-      execFileSync(NPX_BIN, ["tsup"], {
+      runPackageTool("npx", ["tsup"], {
         cwd: opencodePluginSrc,
         stdio: "inherit",
         env: { ...process.env, NODE_ENV: "production" },

@@ -18,7 +18,7 @@ export const ollama_cloudProvider: RegistryEntry = {
     { id: "glm-5.1", name: "GLM 5.1" },
     // #3110: MiniMax M3 via Ollama
     { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576, supportsVision: true },
-    { id: "minimax-m3", name: "MiniMax M3" },
+    { id: "minimax-m3", name: "MiniMax M3", supportsVision: true },
     { id: "gemma4:31b", name: "Gemma 4 31B" },
     { id: "nemotron-3-super", name: "NVIDIA Nemotron 3 Super" },
     { id: "qwen3.5:397b", name: "Qwen 3.5 397B" },

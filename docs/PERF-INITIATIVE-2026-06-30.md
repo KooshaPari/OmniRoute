@@ -51,7 +51,7 @@
 **Hot Paths**:
 1. **Request routing** (`src/app/api/v1/chat/completions`): Zod validation → auth → policy check → `handleChatCore()` → combo decision → upstream dispatch. **P50 budget 400ms, critical at scale.**
 2. **Combo routing** (`open-sse/services/combo.ts`): 17 strategies (priority, weighted, fusion, context-relay). **Fusion fans out to N models in parallel, judge synthesizes. Hot on 80% of requests.**
-3. **Cache lookup** (`open-sse/services/cache.ts`): Redis/SQLite two-tier, MD5 hash key generation. **Cache hit cuts latency 60–80%.**
+3. **Cache configuration** (`open-sse/services/compression/cacheAwareConfig.ts`): cache-aware compression policy and bounded lookup configuration.
 4. **Translator** (`open-sse/translator/`): OpenAI ↔ Claude ↔ Gemini ↔ custom formats. **Deep object traversal, allocations per request.**
 5. **Executor dispatch** (`open-sse/executors/`): HTTP fetch + retry logic, backoff. **Upstream variance dominates but executor queuing measurable at scale.**
 
@@ -858,4 +858,3 @@ START: Foundation Phase
 **Prepared by**: Research agent (read-only analysis).  
 **Target Audience**: Implementation teams (codex exec / forge / subagents).  
 **Confidence**: High — based on memory feedback (zig_for_lowlevel, no_memory_scare, stack_prefs), existing perf budgets (PERF_BUDGETS.md), and 8-project landscape scan.
-

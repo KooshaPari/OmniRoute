@@ -1,4 +1,6 @@
 name: lfs-weekly
+permissions:
+  contents: read
 on:
   schedule: [{cron: '0 4 * * 6'}]
   workflow_dispatch: {}

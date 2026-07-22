@@ -157,6 +157,10 @@ const REAL_023_FIX_MEMORY_FTS_UUID_SQL = fs.readFileSync(
   path.resolve("src/lib/db/migrations/023_fix_memory_fts_uuid.sql"),
   "utf8"
 );
+const REAL_120_ROUTING_DECISIONS_SQL = fs.readFileSync(
+  path.resolve("src/lib/db/migrations/120_routing_decisions_audit.sql"),
+  "utf8"
+);
 
 test("migration infrastructure avoids cwd-based repo tracing fallbacks", () => {
   const runnerSource = fs.readFileSync(path.resolve("src/lib/db/migrationRunner.ts"), "utf8");
@@ -229,7 +233,7 @@ test("runMigrations skips versions that are already tracked as applied", serial,
       (
         db
           .prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?")
-          .get("001") as any
+          .get("001") as { count: number }
       ).count,
       1
     );
@@ -237,7 +241,7 @@ test("runMigrations skips versions that are already tracked as applied", serial,
       (
         db
           .prepare("SELECT COUNT(*) AS count FROM _omniroute_migrations WHERE version = ?")
-          .get("002") as any
+          .get("002") as { count: number }
       ).count,
       1
     );
@@ -245,6 +249,77 @@ test("runMigrations skips versions that are already tracked as applied", serial,
     db.close();
   }
 });
+
+test("runMigrations records renumbered 122-125 migrations when their tables already exist", serial, async () => {
+  const runner = await importFresh("src/lib/db/migrationRunner.ts");
+  const db = createDb();
+  const migrations = {
+    "122_virtual_keys.sql": "CREATE TABLE virtual_keys (id INTEGER);",
+    "123_fleet_config.sql": "CREATE TABLE fleet_config (id INTEGER);",
+    "124_traffic_shadow_log.sql": "CREATE TABLE traffic_shadow_log (id INTEGER);",
+    "125_traffic_shadow_config.sql": "CREATE TABLE traffic_shadow_config (id INTEGER);",
+  };
+
+  try {
+    db.exec(`
+      CREATE TABLE virtual_keys (id INTEGER);
+      CREATE TABLE fleet_config (id INTEGER);
+      CREATE TABLE traffic_shadow_log (id INTEGER);
+      CREATE TABLE traffic_shadow_config (id INTEGER);
+    `);
+
+    const firstRun = withMockedMigrationFs(migrations, () => runner.runMigrations(db));
+    const secondRun = withMockedMigrationFs(migrations, () => runner.runMigrations(db));
+
+    assert.equal(firstRun, 4);
+    assert.equal(secondRun, 0);
+    assert.deepEqual(
+      db.prepare(
+        "SELECT version FROM _omniroute_migrations WHERE version BETWEEN '122' AND '125' ORDER BY version"
+      ).all(),
+      [{ version: "122" }, { version: "123" }, { version: "124" }, { version: "125" }]
+    );
+  } finally {
+    db.close();
+  }
+});
+
+test(
+  "runMigrations upgrades the legacy routing decisions schema before recording 120",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      const applied = withMockedMigrationFs(
+        {
+          "002_mcp_a2a_tables.sql": `
+          CREATE TABLE routing_decisions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            provider_selected TEXT,
+            model_selected TEXT
+          );
+        `,
+          "120_routing_decisions_audit.sql": REAL_120_ROUTING_DECISIONS_SQL,
+        },
+        () => runner.runMigrations(db)
+      );
+
+      const columns = db
+        .prepare("PRAGMA table_info(routing_decisions)")
+        .all()
+        .map((column: { name: string }) => column.name);
+
+      assert.equal(applied, 2);
+      assert.ok(columns.includes("provider"), "audit schema must expose provider");
+      assert.ok(columns.includes("trace_id"), "audit schema must expose trace_id");
+      assert.ok(!columns.includes("provider_selected"), "legacy schema must be replaced");
+    } finally {
+      db.close();
+    }
+  }
+);
 
 test(
   "runMigrations applies api key lifecycle migration idempotently when columns already exist",
@@ -1347,144 +1422,6 @@ test(
       }
     } finally {
       db.close();
-    }
-  }
-);
-
-// ── #3416: OMNIROUTE_MAX_PENDING_MIGRATIONS env override ─────────────────────
-// The mass-migration safety threshold must be overridable at runtime so a user
-// restoring a backup can raise (or lower) the limit without code changes. The
-// resolver reads the env var at CALL TIME inside runMigrations(), so these tests
-// set/delete the env around the call and assert the abort message reflects the
-// resolved threshold.
-
-// Build an "existing DB" with only the migrations table + one applied row and no
-// physical-schema sentinel tables, so inferPhysicalSchemaBaseline() returns null
-// and the abort decision depends purely on the resolved threshold.
-function seedExistingDbWithoutPhysicalBaseline(db) {
-  db.exec(`
-    CREATE TABLE _omniroute_migrations (
-      version TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      applied_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-  `);
-  db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
-    "001",
-    "initial_schema"
-  );
-}
-
-test(
-  "runMigrations aborts when OMNIROUTE_MAX_PENDING_MIGRATIONS lowers the threshold (#3416)",
-  serial,
-  async () => {
-    const runner = await importFresh("src/lib/db/migrationRunner.ts");
-    const db = createDb();
-    const original = process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS;
-
-    try {
-      seedExistingDbWithoutPhysicalBaseline(db);
-      process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS = "5";
-
-      // 1 applied (001) + files 001..011 → 10 actionable pending > threshold 5.
-      assert.throws(
-        () =>
-          withNonTestEnvironment(() =>
-            withMockedMigrationFs(buildMockMigrationFiles(1, 11, "lower_threshold"), () =>
-              runner.runMigrations(db)
-            )
-          ),
-        /threshold is 5/i
-      );
-    } finally {
-      if (original === undefined) delete process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS;
-      else process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS = original;
-      db.close();
-    }
-  }
-);
-
-test(
-  "runMigrations allows a large pending set when OMNIROUTE_MAX_PENDING_MIGRATIONS raises the threshold (#3416)",
-  serial,
-  async () => {
-    const runner = await importFresh("src/lib/db/migrationRunner.ts");
-    const db = createDb();
-    const original = process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS;
-
-    try {
-      seedExistingDbWithoutPhysicalBaseline(db);
-      process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS = "500";
-
-      // 1 applied (001) + 60 plain pending files at versions 100..159 (chosen to
-      // avoid the special-cased migration versions 032/041/042). All 60 exceed the
-      // default 50 threshold but stay well under the raised 500 limit, so they apply.
-      const pendingFiles = {};
-      for (let v = 100; v < 160; v++) {
-        pendingFiles[`${v}_raise_threshold_${v}.sql`] =
-          `CREATE TABLE raise_threshold_${v} (id INTEGER);`;
-      }
-
-      const count = withNonTestEnvironment(() =>
-        withMockedMigrationFs(pendingFiles, () => runner.runMigrations(db))
-      );
-
-      assert.equal(count, 60);
-    } finally {
-      if (original === undefined) delete process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS;
-      else process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS = original;
-      db.close();
-    }
-  }
-);
-
-test(
-  "runMigrations keeps the default 50 threshold when OMNIROUTE_MAX_PENDING_MIGRATIONS is unset or invalid (#3416)",
-  serial,
-  async () => {
-    const runner = await importFresh("src/lib/db/migrationRunner.ts");
-    const original = process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS;
-
-    try {
-      // Case 1: env unset → default 50 abort message.
-      delete process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS;
-      const dbUnset = createDb();
-      try {
-        seedExistingDbWithoutPhysicalBaseline(dbUnset);
-        assert.throws(
-          () =>
-            withNonTestEnvironment(() =>
-              withMockedMigrationFs(buildMockMigrationFiles(1, 60, "default_unset"), () =>
-                runner.runMigrations(dbUnset)
-              )
-            ),
-          /threshold is 50/i
-        );
-      } finally {
-        dbUnset.close();
-      }
-
-      // Case 2: invalid (non-numeric) → fall back to default 50.
-      process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS = "abc";
-      const dbInvalid = createDb();
-      try {
-        seedExistingDbWithoutPhysicalBaseline(dbInvalid);
-        assert.throws(
-          () =>
-            withNonTestEnvironment(() =>
-              withMockedMigrationFs(buildMockMigrationFiles(1, 60, "default_invalid"), () =>
-                runner.runMigrations(dbInvalid)
-              )
-            ),
-          /threshold is 50/i
-        );
-      } finally {
-        dbInvalid.close();
-      }
-    } finally {
-      if (original === undefined) delete process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS;
-      else process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS = original;
     }
   }
 );

@@ -19,18 +19,22 @@
  * completed provider request.
  */
 
-import type { AnomalyDetector, DetectorConfig } from "./anomalyDetector";
+import type { AnomalyDetector } from "./anomalyDetector";
 import type { SelfHealingSettings } from "./selfHealingSettings";
 import {
-  type HealthSample,
-  type ProviderHealthRecord,
+  type ProviderHealthSample,
   appendHealthSample,
-  getRecentHealthSamples,
-  pruneHealthSamplesOlderThan,
-  recordAnomaly,
-  recordPlaybook,
+  recentSamplesFor,
+  pruneSamplesBefore,
 } from "@/lib/db/providerHealthHistory";
-import type { Playbook } from "@/learning/types";
+import type { Playbook } from "./playbooks";
+
+export interface HealthSample {
+  providerId: string;
+  metric: "latency" | "error_rate";
+  value: number;
+  timestamp: number;
+}
 
 export interface ProviderProbe {
   /**
@@ -66,13 +70,13 @@ const NOOP_PROBE: ProviderProbe = {
 };
 
 export class SelfHealingManager {
-  private readonly settings: SelfHealingSettings;
+  private settings: SelfHealingSettings;
   private readonly detector: AnomalyDetector;
   private readonly probe: ProviderProbe;
   private readonly clock: () => number;
 
   /** Per-provider ring buffer of recent samples (in addition to DB). */
-  private readonly windows = new Map<string, HealthSample[]>();
+  private readonly windows = new Map<string, ProviderHealthSample[]>();
 
   /** Providers currently being acted on so we don't double-dispatch. */
   private readonly inflight = new Set<string>();
@@ -93,16 +97,15 @@ export class SelfHealingManager {
     this.settings = next;
     return (
       prev.windowSize !== next.windowSize ||
-      prev.zScoreThreshold !== next.zScoreThreshold ||
-      prev.dryRun !== next.dryRun ||
-      prev.maxActionsPerProviderPerHour !== next.maxActionsPerProviderPerHour ||
-      prev.minSamplesBeforeAlert !== next.minSamplesBeforeAlert
+      prev.warnThreshold !== next.warnThreshold ||
+      prev.criticalThreshold !== next.criticalThreshold ||
+      prev.minSamplesForDetection !== next.minSamplesForDetection
     );
   }
 
   /** Hydrate the in-memory window for a provider from the DB. */
   async hydrateProvider(providerId: string): Promise<void> {
-    const samples = await getRecentHealthSamples(providerId, this.settings.windowSize);
+    const samples = recentSamplesFor(providerId, this.settings.windowSize);
     this.windows.set(providerId, samples);
   }
 
@@ -113,46 +116,30 @@ export class SelfHealingManager {
     }
 
     // 1. Append to DB and in-memory window
-    await appendHealthSample(sample);
+    const persistedSample = toProviderHealthSample(sample);
+    appendHealthSample(persistedSample);
     const window = this.windows.get(sample.providerId) ?? [];
-    window.push(sample);
+    window.push(persistedSample);
     while (window.length > this.settings.windowSize) window.shift();
     this.windows.set(sample.providerId, window);
 
     // 2. Detect
-    if (window.length < this.settings.minSamplesBeforeAlert) return null;
-    const detectorCfg: DetectorConfig = {
+    if (window.length < this.settings.minSamplesForDetection) return null;
+    const prior = window.slice(0, -1);
+    const signals = this.detector.detect(persistedSample, prior, {
       windowSize: this.settings.windowSize,
-      zScoreThreshold: this.settings.zScoreThreshold,
-      minSamples: this.settings.minSamplesBeforeAlert,
-    };
-    const detected = this.detector.detect(window, detectorCfg, sample.metric);
+      warnThreshold: this.settings.warnThreshold,
+      criticalThreshold: this.settings.criticalThreshold,
+      minSamplesForDetection: this.settings.minSamplesForDetection,
+    });
+    const detected = signals[0];
     if (!detected) return null;
 
     // 3. Build playbook
     const playbook = buildPlaybookFor(sample, detected);
     if (!playbook) return null;
 
-    // 4. Persist anomaly + playbook (regardless of dryRun)
-    await recordAnomaly({
-      providerId: sample.providerId,
-      metric: sample.metric,
-      zScore: detected.zScore,
-      value: sample.value,
-      detectedAt: sample.timestamp,
-      playbook,
-      reason: detected.reason,
-    });
-    await recordPlaybook({
-      providerId: sample.providerId,
-      action: playbook,
-      detectedAt: sample.timestamp,
-      reason: detected.reason,
-      dryRun: this.settings.dryRun,
-    });
-
-    // 5. Dispatch unless in dryRun or already inflight
-    if (this.settings.dryRun || this.inflight.has(sample.providerId)) {
+    if (!this.settings.playbookEnabled || this.inflight.has(sample.providerId)) {
       return playbook;
     }
     this.inflight.add(sample.providerId);
@@ -185,7 +172,7 @@ export class SelfHealingManager {
 
   /** Prune DB rows older than the configured TTL. Returns rows pruned. */
   async pruneStale(ttlSec: number): Promise<number> {
-    return pruneHealthSamplesOlderThan(this.clock() / 1000 - ttlSec);
+    return pruneSamplesBefore(this.clock() / 1000 - ttlSec);
   }
 
   /** Prune DB rows older than the manager's configured retentionSeconds.
@@ -196,21 +183,21 @@ export class SelfHealingManager {
   }
 
   /** Read-only snapshot of in-memory windows for tests. */
-  peekWindow(providerId: string): readonly HealthSample[] {
+  peekWindow(providerId: string): readonly ProviderHealthSample[] {
     return this.windows.get(providerId) ?? [];
   }
 }
 
 function buildPlaybookFor(
   sample: HealthSample,
-  detected: { zScore: number; reason: string },
+  detected: { zScore: number; dimension: string },
 ): Playbook | null {
   const cooloffSec = DEFAULT_COOLOFF_SEC;
   if (sample.metric === "latency") {
     return {
       action: "force-proxy-rotation",
       providerId: sample.providerId,
-      reason: detected.reason,
+      reason: `anomaly:${detected.dimension}:z=${detected.zScore.toFixed(2)}`,
       rotateCount: 2,
     };
   }
@@ -218,9 +205,21 @@ function buildPlaybookFor(
     return {
       action: "degrade-provider",
       providerId: sample.providerId,
-      reason: detected.reason,
+      reason: `anomaly:${detected.dimension}:z=${detected.zScore.toFixed(2)}`,
       cooloffSec,
     };
   }
   return null;
+}
+
+function toProviderHealthSample(sample: HealthSample): ProviderHealthSample {
+  return {
+    providerKey: sample.providerId,
+    sampledAt: sample.timestamp,
+    errorRate: sample.metric === "error_rate" ? sample.value : 0,
+    p95LatencyMs: sample.metric === "latency" ? sample.value : 0,
+    activeComboCount: 0,
+    consecutiveFailures: 0,
+    samplesWindow: 1,
+  };
 }

@@ -1771,7 +1771,6 @@ export function applyErrorState<T extends AccountState | null | undefined>(
     status: "error",
   };
 }
-
 /**
  * Get account health score (0-100) for P2C selection (Phase 9)
  * @param {object} account

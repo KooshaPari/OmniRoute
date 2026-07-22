@@ -84,6 +84,7 @@ describe("resilience/settings normalize split-guard", () => {
       "quotaPreflight",
       "quotaShareConcurrencyLimit",
       "requestQueue",
+      "selfHealing",
       "streamRecovery",
       "waitForCooldown",
     ]);

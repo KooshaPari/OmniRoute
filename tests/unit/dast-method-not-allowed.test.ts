@@ -89,6 +89,7 @@ test("OpenAPI documents high-risk route auth and setup responses", () => {
   const loginStart = spec.indexOf("  /api/auth/login:");
   const loginEnd = spec.indexOf("\n  /api/auth/logout:", loginStart);
   const login = spec.slice(loginStart, loginEnd);
+  assert.match(login, /maxLength: 200/);
   assert.match(login, /"400":\n\s+description: Invalid login request/);
   assert.match(login, /"401":\n\s+description: Invalid password/);
   assert.match(login, /"403":\n\s+description: Password setup required/);

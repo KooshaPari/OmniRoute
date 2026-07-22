@@ -72,7 +72,7 @@ export const siliconflowProvider: RegistryEntry = buildOpenAiCompatibleRegistryE
     { id: "tencent/Hunyuan-MT-7B", name: "Hunyuan MT 7B" },
     { id: "tencent/Hy3-preview", name: "Hunyuan Hy3 Preview" },
     { id: "meta-llama/Meta-Llama-3.1-8B-Instruct", name: "Llama 3.1 8B" },
-    { id: "MiniMaxAI/MiniMax-M3", name: "MiniMax M3" },
+    { id: "MiniMaxAI/MiniMax-M3", name: "MiniMax M3", supportsVision: true },
     { id: "inclusionAI/Ling-flash-2.0", name: "Ling Flash 2.0" },
     { id: "inclusionAI/Ling-mini-2.0", name: "Ling Mini 2.0" },
     { id: "inclusionAI/Ring-flash-2.0", name: "Ring Flash 2.0" },

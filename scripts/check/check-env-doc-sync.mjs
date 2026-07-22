@@ -256,8 +256,12 @@ export function parseEnvDocVars(text) {
 function scanCodeVars({ cwd } = {}) {
   const repoRoot = cwd ?? REPO_ROOT;
   const stdout = execSync(
-    "grep -rhoE 'process\\.env\\.[A-Z][A-Z0-9_]+' " +
-      "src/ open-sse/ bin/ scripts/ electron/main.js electron/preload.js 2>/dev/null || true",
+    // The runtime contract deliberately excludes test fixtures and scripts/check:
+    // those variables are inputs to tests/CI jobs, not operator configuration.
+    "{ grep -rhoE --exclude-dir=__tests__ --exclude='*.test.*' " +
+      "'process\\.env\\.[A-Z][A-Z0-9_]+' src/ open-sse/ bin/ electron/main.js electron/preload.js; " +
+      "grep -rhoE --exclude-dir=__tests__ --exclude-dir=check --exclude='*.test.*' " +
+      "'process\\.env\\.[A-Z][A-Z0-9_]+' scripts/; } 2>/dev/null || true",
     { cwd: repoRoot, encoding: "utf8", maxBuffer: 20 * 1024 * 1024 }
   );
   const vars = new Set();

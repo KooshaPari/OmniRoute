@@ -2248,13 +2248,11 @@ export async function markAccountUnavailable(
 
 /**
  * Clear account error status (only if currently has error)
- * Optimized to avoid unnecessary DB updates
  */
 export async function clearAccountError(
   connectionId: string,
   currentConnection: Partial<RecoverableConnectionState>
 ) {
-  // Only update if currently has error status
   const hasError =
     (currentConnection.testStatus && currentConnection.testStatus !== "active") ||
     currentConnection.lastError ||
@@ -2263,7 +2261,7 @@ export async function clearAccountError(
     currentConnection.lastErrorType ||
     currentConnection.lastErrorSource;
 
-  if (!hasError) return; // Skip if already clean
+  if (!hasError) return;
 
   await updateProviderConnection(connectionId, {
     testStatus: "active",

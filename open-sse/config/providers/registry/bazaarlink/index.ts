@@ -34,8 +34,8 @@ export const bazaarlinkProvider: RegistryEntry = {
     { id: "mimo-v2.5", name: "MiMo-V2.5" },
     // #3110: MiniMax M3 via OpenCode Zen
     { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576, supportsVision: true },
-    { id: "minimax-m3", name: "MiniMax M3" },
-    { id: "minimax-m3", name: "MiniMax M3" },
+    { id: "minimax-m3", name: "MiniMax M3", supportsVision: true },
+    { id: "minimax-m3", name: "MiniMax M3", supportsVision: true },
     { id: "llama-4-maverick", name: "Llama 4 Maverick" },
     { id: "llama-4-scout", name: "Llama 4 Scout" },
     { id: "llama-3.3-70b-instruct", name: "Llama 3.3 70B" },

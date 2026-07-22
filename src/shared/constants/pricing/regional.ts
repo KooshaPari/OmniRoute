@@ -87,20 +87,6 @@ export const DEFAULT_PRICING_REGIONAL = {
       reasoning: 3.0,
       cache_creation: 0.5,
     },
-    "minimax-m3": {
-      input: 0.5,
-      output: 2.0,
-      cached: 0.25,
-      reasoning: 3.0,
-      cache_creation: 0.5,
-    },
-    "MiniMax-M3": {
-      input: 0.5,
-      output: 2.0,
-      cached: 0.25,
-      reasoning: 3.0,
-      cache_creation: 0.5,
-    },
     // MiniMax M3 — frontier coding model, 1M context (sub2api PR #1120)
     // Upgraded from M2.5/M2.7, same API endpoint api.minimax.io
     // Pricing estimated, check https://platform.minimaxi.com/document/Price

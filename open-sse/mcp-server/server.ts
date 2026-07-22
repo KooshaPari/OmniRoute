@@ -46,7 +46,7 @@ import {
   resolveCallerScopeContext,
   type McpToolExtraLike,
 } from "./scopeEnforcement.ts";
-import { getMcpHttpAuthHeadersForInternalFetch } from "./httpAuthContext.ts";
+import { omniRouteFetch } from "./omniRouteFetch.ts";
 
 import {
   handleSimulateRoute,
@@ -91,9 +91,6 @@ import { getProviderConnections } from "../../src/lib/db/providers.ts";
 import { getCodexRequestDefaults } from "../../src/lib/providers/requestDefaults.ts";
 import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
 import { AI_PROVIDERS, NOAUTH_PROVIDERS } from "../../src/shared/constants/providers.ts";
-import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
-
-const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
 const MCP_ENFORCE_SCOPES = process.env.OMNIROUTE_MCP_ENFORCE_SCOPES === "true";
 const MCP_ALLOWED_SCOPES = new Set(
   (process.env.OMNIROUTE_MCP_SCOPES || "")
@@ -206,33 +203,6 @@ function normalizeComboModels(
       priority: toNumber(modelRecord.priority, index + 1),
     };
   });
-}
-
-function getOmniRouteApiKey(): string {
-  return process.env.OMNIROUTE_API_KEY || "";
-}
-
-async function omniRouteFetch(path: string, options: RequestInit = {}): Promise<unknown> {
-  const url = `${OMNIROUTE_BASE_URL}${path}`;
-  const apiKey = getOmniRouteApiKey();
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    // Static env key is only a fallback; the per-caller MCP identity forwarded via
-    // withMcpHttpAuthContext must win over it (#5819).
-    ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-    ...getMcpHttpAuthHeadersForInternalFetch(),
-    ...((options.headers as Record<string, string>) || {}),
-  };
-
-  const signal = options.signal || AbortSignal.timeout(10000);
-  const response = await fetch(url, { ...options, headers, signal });
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "Unknown error");
-    throw new Error(`OmniRoute API error [${response.status}]: ${errorText}`);
-  }
-
-  return response.json();
 }
 
 function buildProviderAliasMap(): Record<string, string> {
@@ -1319,19 +1289,18 @@ export function createMcpServer(): McpServer {
         description: toolDef.description,
         inputSchema: toolDef.inputSchema as unknown as z.ZodTypeAny,
       },
-      withScopeEnforcement(
-        toolDef.name,
-        async (args) => {
-          try {
-            const parsedArgs = (toolDef.inputSchema as unknown as z.ZodTypeAny).parse(args ?? {}) as Record<string, unknown>;
-            const result = await toolDef.handler(parsedArgs);
-            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-          } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
-            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-          }
+      withScopeEnforcement(toolDef.name, async (args) => {
+        try {
+          const parsedArgs = (toolDef.inputSchema as unknown as z.ZodTypeAny).parse(
+            args ?? {}
+          ) as Record<string, unknown>;
+          const result = await toolDef.handler(parsedArgs);
+          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
         }
-      )
+      })
     );
   });
 

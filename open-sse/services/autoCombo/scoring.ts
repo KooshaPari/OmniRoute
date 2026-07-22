@@ -214,7 +214,30 @@ export function calculateFactors(
   };
 }
 
-
+/**
+ * Score every candidate in the pool and return them sorted best-first.
+ * Restored after ADR-032 accidentally dropped the export while callers remained.
+ */
+export function scorePool(
+  pool: ProviderCandidate[],
+  taskType: string,
+  weights: ScoringWeights = DEFAULT_WEIGHTS,
+  getTaskFitness: (model: string, taskType: string) => number = () => 0.5,
+  manifestHint?: RoutingHint | null
+): ScoredProvider[] {
+  return pool
+    .map((candidate) => {
+      const factors = calculateFactors(candidate, pool, taskType, getTaskFitness, manifestHint);
+      return {
+        provider: candidate.provider,
+        model: candidate.model,
+        score: calculateScore(factors, weights),
+        factors,
+        connectionId: candidate.connectionId,
+      };
+    })
+    .sort((a, b) => b.score - a.score);
+}
 
 /**
  * Validate that weights sum to 1.0 (±0.01 tolerance).
