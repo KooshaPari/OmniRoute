@@ -16,7 +16,7 @@
  */
 
 import type { HttpEdgeContract, InvokeOptions } from "./dispatchEdges.ts";
-import type { DispatchEdgeError } from "./errors.ts";
+import { DispatchEdgeError } from "./errors.ts";
 
 const DEFAULT_HTTP_PORT = "20128";
 const DEFAULT_HTTP_BASE = () =>
@@ -53,12 +53,11 @@ export async function invokeHttpEdge<TIn, TOut>(
 
     if (!response.ok) {
       const errorPayload = await safeReadJson(response);
-      const err: DispatchEdgeError = new Error(
-        `HTTP edge ${contract.path} returned ${response.status}: ${JSON.stringify(errorPayload).slice(0, 256)}`
+      const err = new DispatchEdgeError(
+        `HTTP edge ${contract.path} returned ${response.status}: ${JSON.stringify(errorPayload).slice(0, 256)}`,
+        `HTTP_${response.status}`,
+        { status: response.status, payload: errorPayload }
       );
-      err.code = `HTTP_${response.status}`;
-      err.status = response.status;
-      err.payload = errorPayload;
       throw err;
     }
 
@@ -69,10 +68,10 @@ export async function invokeHttpEdge<TIn, TOut>(
     }
     if ((error as { code?: string })?.code) throw error; // Already a DispatchEdgeError.
 
-    const err: DispatchEdgeError = new Error(
-      `HTTP edge ${contract.path} failed: ${error instanceof Error ? error.message : String(error)}`
+    const err = new DispatchEdgeError(
+      `HTTP edge ${contract.path} failed: ${error instanceof Error ? error.message : String(error)}`,
+      "HTTP_TRANSPORT_ERROR"
     );
-    err.code = "HTTP_TRANSPORT_ERROR";
     throw err;
   } finally {
     clearTimeout(timeoutHandle);

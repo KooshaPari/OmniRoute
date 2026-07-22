@@ -24,7 +24,7 @@ export interface DispatchEdge<TIn, TOut> {
   /** Stable identifier used for env-var lookup + logging + kill-switch targeting. */
   readonly name: string;
   /** Default tier set at registration time. */
-  readonly defaultTier: EdgeTier;
+  defaultTier: EdgeTier;
   /**
    * Optional per-provider scope for the cascading kill-switch
    * (ADR-032 § "Per-provider cascading kill-switch", Appendix C).

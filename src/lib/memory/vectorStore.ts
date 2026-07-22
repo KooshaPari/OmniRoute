@@ -9,6 +9,8 @@
 
 import { createRequire } from "module";
 import type { EmbeddingResolution } from "./embedding/types";
+import { embed, resolveEmbeddingSource } from "./embedding";
+import { getMemorySettings } from "./settings";
 import {
   getMemoryVecMeta,
   setMemoryVecMeta,
@@ -422,4 +424,173 @@ export function getVectorStore(): VectorStore | null {
  */
 export function _resetVectorStoreSingleton(): void {
   _instance = undefined;
+}
+
+// ──────────────── High-level CRUD helpers (used by qdrant.ts facade) ────────────────
+
+/** Embed + upsert a memory vector. Input uses the qdrant-style shape. */
+export async function upsertMemory(input: {
+  id: string;
+  apiKeyId: string;
+  sessionId: string;
+  content: string;
+  metadata: Record<string, unknown>;
+  kind: string;
+  type: string;
+  key: string;
+  createdAt: string;
+  expiresAt: string | null;
+}): Promise<{ ok: boolean; latencyMs: number; error?: string }> {
+  const start = Date.now();
+  try {
+    const settings = await getMemorySettings();
+    const resolution = resolveEmbeddingSource(settings);
+    if (!resolution.source) {
+      return { ok: false, latencyMs: 0, error: "no_embedding_source" };
+    }
+
+    const embeddingResult = await embed(input.content, settings);
+    if (!("vector" in embeddingResult)) {
+      return { ok: false, latencyMs: Date.now() - start, error: "embedding_failed" };
+    }
+
+    const vec = getVectorStore();
+    if (!vec) {
+      return { ok: false, latencyMs: 0, error: "vec_not_available" };
+    }
+
+    await vec.ensureReady(resolution);
+    await vec.upsertVector(input.id, embeddingResult.vector);
+    return { ok: true, latencyMs: Date.now() - start };
+  } catch (err: unknown) {
+    return {
+      ok: false,
+      latencyMs: Date.now() - start,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+/** Embed query + KNN search. Returns results in qdrant-compatible shape. */
+export async function searchMemory(input: {
+  query: string;
+  topK: number;
+  apiKeyId?: string;
+  sessionId?: string;
+}): Promise<{
+  ok: boolean;
+  latencyMs: number;
+  results?: Array<{ id: string; score: number; payload?: Record<string, unknown> }>;
+  error?: string;
+}> {
+  const start = Date.now();
+  try {
+    const settings = await getMemorySettings();
+    const resolution = resolveEmbeddingSource(settings);
+    if (!resolution.source) {
+      return { ok: false, latencyMs: 0, error: "no_embedding_source" };
+    }
+
+    const embeddingResult = await embed(input.query, settings);
+    if (!("vector" in embeddingResult)) {
+      return { ok: false, latencyMs: Date.now() - start, error: "embedding_failed" };
+    }
+
+    const vec = getVectorStore();
+    if (!vec) {
+      return { ok: false, latencyMs: 0, error: "vec_not_available" };
+    }
+
+    await vec.ensureReady(resolution);
+    const hits = await vec.searchVector(
+      embeddingResult.vector,
+      input.topK,
+      input.apiKeyId,
+    );
+
+    return {
+      ok: true,
+      latencyMs: Date.now() - start,
+      results: hits.map((h) => ({
+        id: h.memoryId,
+        score: h.score,
+      })),
+    };
+  } catch (err: unknown) {
+    return {
+      ok: false,
+      latencyMs: Date.now() - start,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+/** Delete a memory vector (best-effort — no-op if vec not loaded). */
+export async function deleteMemory(
+  id: string,
+): Promise<{ ok: boolean; latencyMs: number; error?: string }> {
+  const start = Date.now();
+  try {
+    const vec = getVectorStore();
+    if (vec) {
+      await vec.deleteVector(id);
+    }
+    return { ok: true, latencyMs: Date.now() - start };
+  } catch (err: unknown) {
+    return {
+      ok: false,
+      latencyMs: Date.now() - start,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+/** Delete expired memories (by retentionDays) and their vectors. */
+export async function cleanupExpiredMemory(
+  retentionDays: number,
+): Promise<{ ok: boolean; deletedCount: number; latencyMs: number; error?: string }> {
+  const start = Date.now();
+  try {
+    const days =
+      typeof retentionDays === "number" && Number.isFinite(retentionDays)
+        ? Math.max(1, Math.min(3650, Math.round(retentionDays)))
+        : 30;
+
+    const db = getDbInstance();
+    const now = new Date().toISOString();
+    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+    // Find expired memories
+    const expired = db
+      .prepare(
+        "SELECT id FROM memories WHERE (expires_at IS NOT NULL AND expires_at < ?) OR created_at < ?",
+      )
+      .all(now, cutoff) as { id: string }[];
+
+    if (expired.length === 0) {
+      return { ok: true, deletedCount: 0, latencyMs: Date.now() - start };
+    }
+
+    // Delete vectors (best-effort)
+    const vec = getVectorStore();
+    if (vec) {
+      for (const row of expired) {
+        await vec.deleteVector(row.id).catch(() => {});
+      }
+    }
+
+    // Delete from SQLite
+    const ids = expired.map((r) => r.id);
+    const ph = ids.map(() => "?").join(", ");
+    db.prepare(`DELETE FROM memories WHERE id IN (${ph})`).run(...ids);
+
+    return { ok: true, deletedCount: expired.length, latencyMs: Date.now() - start };
+  } catch (err: unknown) {
+    return {
+      ok: false,
+      deletedCount: 0,
+      latencyMs: Date.now() - start,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
 }
