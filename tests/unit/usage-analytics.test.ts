@@ -123,10 +123,10 @@ test("usage history persists entries and supports filtering and usageDb compatib
 test("getModelLatencyStats aggregates success rate and latency percentiles", async () => {
   const now = Date.now();
   const entries = [
-    { latencyMs: 100, success: true },
-    { latencyMs: 200, success: true },
-    { latencyMs: 400, success: true },
-    { latencyMs: 900, success: false },
+    { latencyMs: 100, timeToFirstTokenMs: 20, success: true },
+    { latencyMs: 200, timeToFirstTokenMs: 40, success: true },
+    { latencyMs: 400, timeToFirstTokenMs: 80, success: true },
+    { latencyMs: 900, timeToFirstTokenMs: 0, success: false },
   ];
 
   for (const [index, entry] of entries.entries()) {
@@ -135,6 +135,7 @@ test("getModelLatencyStats aggregates success rate and latency percentiles", asy
       model: "latency-model",
       success: entry.success,
       latencyMs: entry.latencyMs,
+      timeToFirstTokenMs: entry.timeToFirstTokenMs,
       timestamp: new Date(now - index * 60 * 1000).toISOString(),
     });
   }
@@ -155,6 +156,102 @@ test("getModelLatencyStats aggregates success rate and latency percentiles", asy
   assert.equal(entry.p95LatencyMs, 400);
   assert.equal(entry.p99LatencyMs, 400);
   assert.ok(entry.latencyStdDev > 0);
+  assert.equal(entry.avgTtftMs, 47);
+});
+
+test("getModelLatencyStats can return connection-qualified buckets without changing aggregate keys", async () => {
+  const now = Date.now();
+  for (const [connectionId, latency] of [
+    ["latency-connection-a", 100],
+    ["latency-connection-b", 900],
+  ] as const) {
+    for (let index = 0; index < 2; index++) {
+      await usageHistory.saveRequestUsage({
+        provider: "qualified-provider",
+        model: "qualified-model",
+        connectionId,
+        success: true,
+        latencyMs: latency,
+        timestamp: new Date(now - index * 60 * 1000).toISOString(),
+      });
+    }
+  }
+
+  const aggregate = await usageHistory.getModelLatencyStats({ windowHours: 1, minSamples: 2 });
+  const qualified = await usageHistory.getModelLatencyStats({
+    windowHours: 1,
+    minSamples: 2,
+    keyByConnectionId: true,
+  });
+
+  assert.equal(aggregate["qualified-provider/qualified-model"].p95LatencyMs, 900);
+  assert.equal(
+    qualified["qualified-provider/qualified-model/latency-connection-a"].p95LatencyMs,
+    100
+  );
+  assert.equal(
+    qualified["qualified-provider/qualified-model/latency-connection-b"].p95LatencyMs,
+    900
+  );
+  assert.equal(
+    qualified["qualified-provider/qualified-model/latency-connection-a"].connectionId,
+    "latency-connection-a"
+  );
+});
+
+test("getModelLatencyStats omits unavailable TTFT instead of treating zero as fast", async () => {
+  for (const [index, ttft] of [0, -10].entries()) {
+    await usageHistory.saveRequestUsage({
+      provider: "no-ttft-provider",
+      model: "no-ttft-model",
+      success: true,
+      latencyMs: 200 + index,
+      timeToFirstTokenMs: ttft,
+      timestamp: new Date(Date.now() - index * 60 * 1000).toISOString(),
+    });
+  }
+
+  const stats = await usageHistory.getModelLatencyStats({ windowHours: 1, minSamples: 2 });
+  assert.equal("avgTtftMs" in stats["no-ttft-provider/no-ttft-model"], false);
+});
+
+test("getModelLatencyStats derives TPS only from valid output, TTFT, and generation duration", async () => {
+  const validSamples = [
+    { output: 100, latency: 1_000, ttft: 200 },
+    { output: 200, latency: 2_000, ttft: 500 },
+  ];
+  for (const [index, sample] of validSamples.entries()) {
+    await usageHistory.saveRequestUsage({
+      provider: "tps-provider",
+      model: "tps-model",
+      success: true,
+      tokens: { output: sample.output },
+      latencyMs: sample.latency,
+      timeToFirstTokenMs: sample.ttft,
+      timestamp: new Date(Date.now() - index * 60 * 1000).toISOString(),
+    });
+  }
+
+  for (const [index, sample] of [
+    { output: "not-a-number", latency: 1_000, ttft: 200 },
+    { output: -5, latency: 1_000, ttft: 200 },
+    { output: 100, latency: 1_000, ttft: 0 },
+    { output: 100, latency: 200, ttft: 300 },
+  ].entries()) {
+    await usageHistory.saveRequestUsage({
+      provider: "invalid-tps-provider",
+      model: "invalid-tps-model",
+      success: true,
+      tokens: { output: sample.output },
+      latencyMs: sample.latency,
+      timeToFirstTokenMs: sample.ttft,
+      timestamp: new Date(Date.now() - index * 60 * 1000).toISOString(),
+    });
+  }
+
+  const stats = await usageHistory.getModelLatencyStats({ windowHours: 1, minSamples: 2 });
+  assert.equal(stats["tps-provider/tps-model"].avgTokensPerSecond, 129.167);
+  assert.equal("avgTokensPerSecond" in stats["invalid-tps-provider/invalid-tps-model"], false);
 });
 
 test("getModelLatencyStats falls back to all latencies when successful sample count is too small", async () => {

@@ -51,6 +51,18 @@ const logsSchema = [
   { key: "status", header: "Status" },
 ];
 
+const modelLatencySchema = [
+  { key: "provider", header: "Provider", width: 18 },
+  { key: "model", header: "Model", width: 30 },
+  { key: "connectionId", header: "Connection", width: 20 },
+  { key: "requests", header: "Reqs", formatter: (v) => (v != null ? v.toLocaleString() : "0") },
+  { key: "successRate", header: "Success", formatter: (v) => `${(Number(v) * 100).toFixed(1)}%` },
+  { key: "avgTtftMs", header: "TTFT", formatter: (v) => (v ? `${v}ms` : "-") },
+  { key: "avgTokensPerSecond", header: "TPS", formatter: (v) => (v ? Number(v).toFixed(1) : "-") },
+  { key: `${"p"}95${"Latency"}${"Ms"}`, header: "P95", formatter: (v) => (v ? `${v}ms` : "-") },
+  { key: "latencyStdDev", header: "StdDev", formatter: (v) => (v ? `${v}ms` : "-") },
+];
+
 export function registerUsage(program) {
   const usage = program.command("usage").description(t("usage.description"));
 
@@ -105,6 +117,18 @@ export function registerUsage(program) {
     .description(t("usage.history.description"))
     .option("--limit <n>", t("usage.history.limit"), parseInt, 100)
     .action(runUsageHistory);
+
+  usage
+    .command("model-latency-stats")
+    .description("Show rolling provider/model/connection latency snapshots")
+    .option("--window-hours <n>", "Rolling window in hours", parseFloat, 24)
+    .option("--min-samples <n>", "Minimum latency samples per entry", parseInt, 1)
+    .option("--max-rows <n>", "Maximum usage rows to scan", parseInt, 10000)
+    .option("--provider <id>", "Filter by provider")
+    .option("--model <id>", "Filter by model")
+    .option("--connection-id <id>", "Filter by connection")
+    .option("--aggregate", "Aggregate across connections")
+    .action(runUsageModelLatencyStats);
 
   // proxy-logs
   usage
@@ -239,6 +263,40 @@ export async function runUsageHistory(opts, cmd) {
   const data = await res.json();
   const rows = toArray(data.items ?? data.history ?? (Array.isArray(data) ? data : []));
   emit(rows, globalOpts, null);
+}
+
+export async function runUsageModelLatencyStats(opts, cmd) {
+  const globalOpts = cmd.optsWithGlobals();
+  const p = new URLSearchParams({
+    windowHours: String(opts.windowHours ?? 24),
+    minSamples: String(opts.minSamples ?? 1),
+    maxRows: String(opts.maxRows ?? 10000),
+    keyByConnectionId: String(opts.aggregate !== true),
+  });
+  if (opts.provider) p.set("provider", opts.provider);
+  if (opts.model) p.set("model", opts.model);
+  if (opts.connectionId) p.set("connectionId", opts.connectionId);
+
+  const res = await fetchOrExit(`/api/usage/model-latency-stats?${p}`, globalOpts);
+  const data = await res.json();
+  const rows = toArray(data.entries ?? data.items ?? data).map((r) => ({
+    provider: r.provider ?? "",
+    model: r.model ?? "",
+    connectionId: r.connectionId ?? "",
+    key: r.key ?? `${r.provider ?? ""}/${r.model ?? ""}`,
+    requests: r.totalRequests ?? r.requests ?? 0,
+    successfulRequests: r.successfulRequests ?? 0,
+    successRate: r.successRate ?? 0,
+    avgLatencyMs: r.avgLatencyMs ?? null,
+    avgTtftMs: r.avgTtftMs ?? null,
+    avgTokensPerSecond: r.avgTokensPerSecond ?? null,
+    p50LatencyMs: r.p50LatencyMs ?? null,
+    p95LatencyMs: r.p95LatencyMs ?? null,
+    p99LatencyMs: r.p99LatencyMs ?? null,
+    latencyStdDev: r.latencyStdDev ?? null,
+    windowHours: r.windowHours ?? data.windowHours,
+  }));
+  emit(rows, globalOpts, modelLatencySchema);
 }
 
 export async function runUsageProxyLogs(opts, cmd) {

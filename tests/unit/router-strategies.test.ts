@@ -71,6 +71,44 @@ test("latency — selects the lowest p95 candidate", () => {
   assert.equal(getStrategy("latency").select(pool, ctx).provider, "fast");
 });
 
+test("latency — sparse evidence cannot outrank mature evidence", () => {
+  const pool = [
+    cand({
+      provider: "sparse-fast",
+      p95LatencyMs: 50,
+      avgTtftMs: 20,
+      avgE2ELatencyMs: 200,
+      avgTokensPerSecond: 200,
+      historicalRequestCount: 3,
+    }),
+    cand({
+      provider: "mature-steady",
+      p95LatencyMs: 300,
+      avgTtftMs: 100,
+      avgE2ELatencyMs: 600,
+      avgTokensPerSecond: 80,
+      historicalRequestCount: 10,
+    }),
+  ];
+  assert.equal(getStrategy("latency").select(pool, ctx).provider, "mature-steady");
+});
+
+test("latency — missing or malformed evidence counts remain unknown", () => {
+  const base = [
+    cand({ provider: "fast", p95LatencyMs: 100 }),
+    cand({ provider: "slow", p95LatencyMs: 300 }),
+  ];
+  const baseline = getStrategy("latency").select(base, ctx);
+  const withUnknownCounts = getStrategy("latency").select(
+    [
+      cand({ provider: "fast", p95LatencyMs: 100, historicalRequestCount: Number.NaN }),
+      cand({ provider: "slow", p95LatencyMs: 300, historicalRequestCount: 0 }),
+    ],
+    ctx
+  );
+  assert.equal(withUnknownCounts.provider, baseline.provider);
+});
+
 test("latency — error rate penalizes a fast-but-flaky candidate", () => {
   // flaky: 100ms + 0.5*1000 = 600 effective; steady: 400ms + 0 = 400 → steady wins.
   const pool = [
@@ -105,6 +143,51 @@ test("latency — uses TTFT, TPS, and E2E metrics to pick the fastest provider-m
   assert.equal(decision.provider, "fast-streaming");
   assert.match(decision.reason, /ttft=40ms/);
   assert.match(decision.reason, /tps=120/);
+});
+
+test("latency — TPS breaks an otherwise comparable latency tie", () => {
+  const pool = [
+    cand({ provider: "slower-generation", avgTokensPerSecond: 40 }),
+    cand({ provider: "faster-generation", avgTokensPerSecond: 80 }),
+  ];
+  assert.equal(getStrategy("latency").select(pool, ctx).provider, "faster-generation");
+});
+
+test("latency — nonpositive or malformed TPS evidence cannot manufacture a score", () => {
+  const pool = [
+    cand({ provider: "invalid-evidence", avgTokensPerSecond: Number.NaN }),
+    cand({ provider: "known-latency", p95LatencyMs: 90 }),
+  ];
+  assert.equal(getStrategy("latency").select(pool, ctx).provider, "known-latency");
+});
+
+test("latency — historical TTFT/E2E evidence can change the selected candidate", () => {
+  const pool = [
+    cand({
+      provider: "low-p95",
+      p95LatencyMs: 100,
+      avgTtftMs: 140,
+      avgE2ELatencyMs: 800,
+    }),
+    cand({
+      provider: "historically-fast-stream",
+      p95LatencyMs: 200,
+      avgTtftMs: 30,
+      avgE2ELatencyMs: 300,
+      latencyStdDev: 10,
+    }),
+  ];
+
+  assert.equal(getStrategy("latency").select(pool, ctx).provider, "historically-fast-stream");
+});
+
+test("latency — zero or missing TTFT has no false fast advantage", () => {
+  const pool = [
+    cand({ provider: "zero-ttft", p95LatencyMs: 300, avgTtftMs: 0 }),
+    cand({ provider: "known-ttft", p95LatencyMs: 200, avgTtftMs: 100 }),
+  ];
+
+  assert.equal(getStrategy("latency").select(pool, ctx).provider, "known-ttft");
 });
 
 test("latency — failure rate can outweigh excellent raw speed", () => {

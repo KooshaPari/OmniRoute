@@ -4237,7 +4237,9 @@ export async function handleChatCore({
       onStreamComplete,
       apiKeyInfo,
       handleStreamFailure,
-      copilotCompatibleReasoning
+      copilotCompatibleReasoning,
+      false,
+      startTime
     );
   } else if (needsTranslation(targetFormat, clientResponseFormat)) {
     // Standard translation for other providers
@@ -4262,7 +4264,8 @@ export async function handleChatCore({
       resolveSuppressThinkClose({
         userAgent: streamUserAgent,
         thinkingMarkerHeader,
-      })
+      }),
+      startTime
     );
   } else {
     log?.debug?.("STREAM", `Standard passthrough mode`);
@@ -4276,7 +4279,8 @@ export async function handleChatCore({
       onStreamComplete,
       apiKeyInfo,
       handleStreamFailure,
-      clientResponseFormat
+      clientResponseFormat,
+      startTime
     );
   }
 

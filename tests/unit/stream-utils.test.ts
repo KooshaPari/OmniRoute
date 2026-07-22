@@ -55,6 +55,41 @@ async function readWithTransform(chunks, transformStream) {
   return new Response(source.pipeThrough(transformStream)).text();
 }
 
+test("createSSEStream captures positive TTFT from the first emitted token", async () => {
+  let completion;
+  await readTransformed(
+    [`data: ${JSON.stringify({ choices: [{ delta: { content: "hello" } }] })}\n\n`],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      requestStartedAt: Date.now() - 25,
+      onComplete(payload) {
+        completion = payload;
+      },
+    }
+  );
+
+  assert.ok(completion.ttft > 0);
+  assert.ok(completion.ttft <= 1000);
+});
+
+test("createSSEStream leaves TTFT unset when the stream has no token", async () => {
+  let completion;
+  await readTransformed(
+    [`data: ${JSON.stringify({ choices: [{ delta: {}, finish_reason: "stop" }] })}\n\n`],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.OPENAI,
+      requestStartedAt: Date.now() - 25,
+      onComplete(payload) {
+        completion = payload;
+      },
+    }
+  );
+
+  assert.equal(completion.ttft, null);
+});
+
 function multilineDataEvent(payload, splitBeforeKey) {
   const json = JSON.stringify(payload);
   const splitAt = json.indexOf(`"${splitBeforeKey}"`) - 1;

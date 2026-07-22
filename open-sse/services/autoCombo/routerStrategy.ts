@@ -131,6 +131,17 @@ function throughputMetricScore(value: number | null, maxValue: number): number {
   return clamp01(value / Math.max(maxValue, 0.000_001));
 }
 
+// Keep the existing auto-candidate history gate as the point at which
+// evidence is considered established. Smaller samples are still carried for
+// diagnostics and receive only a bounded confidence adjustment here.
+const MATURE_LATENCY_EVIDENCE_SAMPLES = 10;
+
+function latencyEvidenceConfidence(candidate: ProviderCandidate): number | null {
+  const count = candidate.historicalRequestCount;
+  if (typeof count !== "number" || !Number.isSafeInteger(count) || count <= 0) return null;
+  return Math.min(1, count / MATURE_LATENCY_EVIDENCE_SAMPLES);
+}
+
 class LatencyStrategyImpl implements RouterStrategy {
   readonly name = "latency";
   readonly description =
@@ -181,7 +192,34 @@ class LatencyStrategyImpl implements RouterStrategy {
         const reliabilityMultiplier = Math.max(0.05, reliabilityScore * reliabilityScore);
         const score = rawScore * reliabilityMultiplier * Math.max(0.25, healthScore);
 
-        return { candidate, score, ttft, e2e, tps, failureRate };
+        return {
+          candidate,
+          score,
+          confidence: latencyEvidenceConfidence(candidate),
+          ttft,
+          e2e,
+          tps,
+          failureRate,
+        };
+      })
+      .map((entry, _index, all) => {
+        // Unknown counts are deliberately neutral: callers that do not have
+        // historical telemetry retain the pre-confidence behavior. Evidence
+        // below the mature threshold is conservative, while mature evidence
+        // is byte-for-byte equivalent to the prior score.
+        if (entry.confidence == null || entry.confidence >= 1) return entry;
+        const adjustedScore = entry.score * entry.confidence;
+        const bestMatureScore = Math.max(
+          ...all
+            .filter((other) => other.confidence != null && other.confidence >= 1)
+            .map((other) => other.score),
+          0
+        );
+        return {
+          ...entry,
+          score:
+            bestMatureScore > 0 ? Math.min(adjustedScore, bestMatureScore * 0.999) : adjustedScore,
+        };
       })
       .sort((a, b) => b.score - a.score);
 

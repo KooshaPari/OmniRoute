@@ -231,6 +231,10 @@ const DEFAULT_MODEL_P95_MS: Record<string, number> = {
 const MIN_HISTORY_SAMPLES = 10;
 const OUTPUT_TOKEN_RATIO = 0.4;
 
+function validHistoricalSampleCount(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isSafeInteger(value) && value > 0 ? value : undefined;
+}
+
 function normalizeNestedComboMode(value: unknown): NestedComboMode {
   return value === "execute" ? "execute" : "flatten";
 }
@@ -455,10 +459,27 @@ export async function buildAutoCandidates(
       const provider = target.provider || parsed.provider || parsed.providerAlias || "unknown";
       const model = parsed.model || modelStr;
       const historicalKey = `${provider}/${model}`;
-      const historicalModelMetric = historicalLatencyStats[historicalKey] || null;
-      const historicalTotal = Number(historicalModelMetric?.totalRequests);
+      const aggregateHistoricalMetric = historicalLatencyStats[historicalKey] || null;
+      const connectionHistoricalKey = target.connectionId
+        ? `${provider}/${model}/${target.connectionId}`
+        : null;
+      const connectionHistoricalMetric = connectionHistoricalKey
+        ? connectionHistoricalLatencyStats[connectionHistoricalKey] || null
+        : null;
+      const connectionHistoricalTotal = validHistoricalSampleCount(
+        connectionHistoricalMetric?.totalRequests
+      );
+      const hasConnectionHistoricalSignal =
+        connectionHistoricalTotal !== undefined && connectionHistoricalTotal >= MIN_HISTORY_SAMPLES;
+      const historicalModelMetric = hasConnectionHistoricalSignal
+        ? connectionHistoricalMetric
+        : aggregateHistoricalMetric;
+      const historicalTotal = validHistoricalSampleCount(historicalModelMetric?.totalRequests);
       const hasHistoricalSignal =
-        Number.isFinite(historicalTotal) && historicalTotal >= MIN_HISTORY_SAMPLES;
+        historicalTotal !== undefined && historicalTotal >= MIN_HISTORY_SAMPLES;
+      const historicalSuccessful = validHistoricalSampleCount(
+        historicalModelMetric?.successfulRequests
+      );
 
       let costPer1MTokens = 1;
       try {
@@ -481,6 +502,9 @@ export async function buildAutoCandidates(
       const avgLatency = Number(modelMetric?.avgLatencyMs);
       const successRate = Number(modelMetric?.successRate);
       const historicalP95Latency = Number(historicalModelMetric?.p95LatencyMs);
+      const historicalAvgLatency = Number(historicalModelMetric?.avgLatencyMs);
+      const historicalAvgTtft = Number(historicalModelMetric?.avgTtftMs);
+      const historicalAvgTokensPerSecond = Number(historicalModelMetric?.avgTokensPerSecond);
       const historicalStdDev = Number(historicalModelMetric?.latencyStdDev);
       const historicalSuccessRate = Number(historicalModelMetric?.successRate); // 0..1
 
@@ -505,6 +529,20 @@ export async function buildAutoCandidates(
         hasHistoricalSignal && Number.isFinite(historicalStdDev) && historicalStdDev > 0
           ? Math.max(10, historicalStdDev)
           : Math.max(10, p95LatencyMs * 0.1);
+      const avgE2ELatencyMs =
+        hasHistoricalSignal && Number.isFinite(historicalAvgLatency) && historicalAvgLatency > 0
+          ? historicalAvgLatency
+          : undefined;
+      const avgTtftMs =
+        hasHistoricalSignal && Number.isFinite(historicalAvgTtft) && historicalAvgTtft > 0
+          ? historicalAvgTtft
+          : undefined;
+      const avgTokensPerSecond =
+        hasHistoricalSignal &&
+        Number.isFinite(historicalAvgTokensPerSecond) &&
+        historicalAvgTokensPerSecond > 0
+          ? historicalAvgTokensPerSecond
+          : undefined;
 
       const breakerStateRaw = getCircuitBreaker(provider)?.getStatus?.()?.state;
       const circuitBreakerState: ProviderCandidate["circuitBreakerState"] =
@@ -584,6 +622,15 @@ export async function buildAutoCandidates(
         circuitBreakerState,
         costPer1MTokens,
         p95LatencyMs,
+        avgTtftMs,
+        avgE2ELatencyMs,
+        avgTokensPerSecond,
+        ...(hasHistoricalSignal && historicalTotal !== undefined
+          ? { historicalRequestCount: historicalTotal }
+          : {}),
+        ...(hasHistoricalSignal && historicalSuccessful !== undefined
+          ? { historicalSuccessfulRequestCount: historicalSuccessful }
+          : {}),
         latencyStdDev,
         errorRate,
         accountTier: "standard" as const,
