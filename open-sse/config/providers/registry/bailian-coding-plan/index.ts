@@ -22,6 +22,6 @@ export const bailian_coding_planProvider: RegistryEntry = {
     { id: "qwen3-max-2026-01-23", name: "Qwen3 Max" },
     { id: "kimi-k2.5", name: "Kimi K2.5(vision)" },
     { id: "glm-5", name: "GLM 5" },
-    { id: "MiniMax-M3", name: "MiniMax M3" },
+    { id: "MiniMax-M3", name: "MiniMax M3", supportsVision: true },
   ],
 };

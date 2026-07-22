@@ -28,7 +28,14 @@ import {
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import {
+  getProviderOutboundGuard,
+  getProviderValidationGuard,
+} from "@/shared/network/outboundUrlGuard";
+import {
+  isRetryableProxyTarget,
+  isSecurityBlockError,
+} from "@/lib/providers/validation/transport";
 import { extractCookieValue, normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
@@ -37,6 +44,7 @@ import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import { validateQwenWebProvider, validateKimiWebProvider } from "@/lib/providers/validation/webProvidersA";
 import { validateClaudeWebProvider, validateGeminiWebProvider, validateCopilotM365WebProvider, validateCopilotWebProvider, validateT3WebProvider } from "@/lib/providers/validation/webProvidersB";
 import { validateHuggingFaceProvider } from "@/lib/providers/validation/openaiFormat";
+import { directHttpsRequest } from "@/lib/providers/validation/headers";
 import {
   SEARCH_VALIDATOR_CONFIGS as EXTRACTED_SEARCH_VALIDATOR_CONFIGS,
   validateSearchProvider as validateExtractedSearchProvider,
@@ -328,7 +336,8 @@ function buildTokenHeaders(apiKey: string, providerSpecificData: any = {}) {
 async function validationRead(url: string, init: RequestInit, isLocal: boolean = false) {
   return safeOutboundFetch(url, {
     ...SAFE_OUTBOUND_FETCH_PRESETS.validationRead,
-    guard: isLocal ? "none" : getProviderOutboundGuard(),
+    // #5066: local-first validation uses block-metadata, not public-only
+    guard: isLocal ? "none" : getProviderValidationGuard(),
     ...init,
   });
 }
@@ -336,7 +345,8 @@ async function validationRead(url: string, init: RequestInit, isLocal: boolean =
 async function validationWrite(url: string, init: RequestInit, isLocal: boolean = false) {
   return safeOutboundFetch(url, {
     ...SAFE_OUTBOUND_FETCH_PRESETS.validationWrite,
-    guard: isLocal ? "none" : getProviderOutboundGuard(),
+    // #5066: local-first validation uses block-metadata, not public-only
+    guard: isLocal ? "none" : getProviderValidationGuard(),
     ...init,
   });
 }
@@ -2553,7 +2563,8 @@ async function validateSearchProvider(
   try {
     const response = await safeOutboundFetch(url, {
       ...SAFE_OUTBOUND_FETCH_PRESETS.validationWrite,
-      guard: isLocal ? "none" : getProviderOutboundGuard(),
+      // #5066: local-first validation uses block-metadata, not public-only
+      guard: isLocal ? "none" : getProviderValidationGuard(),
       ...withCustomUserAgent(init, providerSpecificData),
     });
     if (response.ok) return { valid: true, error: null, unsupported: false };
@@ -3765,6 +3776,62 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         return toValidationErrorResult(error);
       }
     },
+    // Z.AI (#3905) — Anthropic-wire probe via directHttpsRequest (bypass undici
+    // keep-alive pool: api.z.ai drops idle sockets without RST after 502s).
+    // Status map: 401/403 invalid key; 404/405 unsupported endpoint; 502 queue
+    // timeout counts as auth-ok; other 5xx = unavailable.
+    zai: async ({ apiKey, providerSpecificData }: any) => {
+      try {
+        const entry = getRegistryEntry("zai");
+        const suffix = entry?.urlSuffix || "?beta=true";
+        const baseRaw =
+          (typeof providerSpecificData?.baseUrl === "string" &&
+            providerSpecificData.baseUrl.trim()) ||
+          entry?.baseUrl ||
+          "https://api.z.ai/api/anthropic/v1/messages";
+        const chatUrl = baseRaw.includes("?") ? baseRaw : `${baseRaw}${suffix}`;
+        const modelId =
+          (typeof providerSpecificData?.validationModelId === "string" &&
+            providerSpecificData.validationModelId.trim()) ||
+          "glm-5.1";
+        const headers = applyCustomUserAgent(
+          {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+          },
+          providerSpecificData
+        );
+        const res = await directHttpsRequest(
+          chatUrl,
+          {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              model: modelId,
+              max_tokens: 1,
+              messages: [{ role: "user", content: "test" }],
+            }),
+          },
+          15_000
+        );
+        if (res.status === 401 || res.status === 403) {
+          return { valid: false, error: "Invalid API key" };
+        }
+        if (res.status === 404 || res.status === 405) {
+          return { valid: false, error: "Provider validation endpoint not supported" };
+        }
+        if (res.status === 502) {
+          return { valid: true, error: null };
+        }
+        if (res.status >= 500) {
+          return { valid: false, error: `Provider unavailable (${res.status})` };
+        }
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return toValidationErrorResult(error);
+      }
+    },
     // NVIDIA NIM (#2463) — bypass the /models probe in favor of a direct
     // chat/completions probe. NVIDIA NIM's /models endpoint returns model
     // catalogs that vary by region and key-tier, and some keys 404 on it,
@@ -3960,3 +4027,6 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     return toValidationErrorResult(error);
   }
 }
+
+// Public surface expected by SSRF / proxy-fallback unit tests (transport extraction)
+export { isRetryableProxyTarget, isSecurityBlockError };

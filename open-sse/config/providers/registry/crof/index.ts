@@ -30,7 +30,7 @@ export const crofProvider: RegistryEntry = {
     { id: "mimo-v2.5-pro-precision", name: "Mimo 2.5 Pro (Precision)", supportsReasoning: true },
     { id: "mimo-v2.5-pro", name: "Mimo 2.5 Pro", supportsReasoning: true },
     { id: "gemma-4-31b-it", name: "Gemma 4 31B", supportsReasoning: true },
-    { id: "minimax-m3", name: "MiniMax M3" },
+    { id: "minimax-m3", name: "MiniMax M3", supportsVision: true },
     { id: "qwen3.6-27b", name: "Qwen3.6 27B", supportsReasoning: true },
     { id: "qwen3.5-397b-a17b", name: "Qwen3.5 397B A17B", supportsReasoning: true },
     { id: "qwen3.5-9b", name: "Qwen3.5 9B", supportsReasoning: true },

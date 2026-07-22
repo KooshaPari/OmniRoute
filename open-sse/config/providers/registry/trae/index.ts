@@ -16,7 +16,7 @@ export const traeProvider: RegistryEntry = {
     { id: "gemini-3-flash-solo", name: "Gemini 3 Flash" },
     // #3110: MiniMax M3 via Trae
     { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576, supportsVision: true },
-    { id: "minimax-m3", name: "MiniMax M3" },
+    { id: "minimax-m3", name: "MiniMax M3", supportsVision: true },
     { id: "kimi-k2.5", name: "Kimi K2.5" },
     { id: "gpt-5.4", name: "GPT 5.4" },
     { id: "gpt-5.2", name: "GPT 5.2" },

@@ -267,10 +267,9 @@ function validateProviderSpecificData(
   }
 }
 
-// Re-export validation helpers from dedicated module to avoid webpack barrel-file
-// optimization bug that truncates exports from large files.
+// Helpers + oauthPasteCredentialsSchema re-exports (webpack barrel truncation).
 export { validateBody, isValidationFailure } from "./helpers";
-
+export { oauthPasteCredentialsSchema } from "./schemas/auth";
 // ──── Provider Schemas ────
 
 export const createProviderSchema = z
@@ -2344,6 +2343,7 @@ export const v1SearchSchema = z
         "youcom-search",
         "searxng-search",
         "zai-search",
+        "duckduckgo-free",
       ])
       .optional(),
     max_results: z.coerce.number().int().min(1).max(100).default(5),

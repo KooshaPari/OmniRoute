@@ -13,7 +13,6 @@ export const nvidiaProvider: RegistryEntry = {
     // #3329: minimaxai/minimax-m3 removed — NVIDIA NIM does not host it yet
     // (every request 404s), while minimax-m3 on the same provider works.
     // Re-add only once NVIDIA actually serves it.
-    { id: "minimaxai/minimax-m3", name: "MiniMax M3" },
     { id: "google/gemma-4-31b-it", name: "Gemma 4 31B" },
     { id: "mistralai/mistral-small-4-119b-2603", name: "Mistral Small 4 2603" },
     { id: "mistralai/mistral-large-3-675b-instruct-2512", name: "Mistral Large 3 675B" },
@@ -25,8 +24,8 @@ export const nvidiaProvider: RegistryEntry = {
     { id: "deepseek-ai/deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
     { id: "deepseek-ai/deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
     // Sweep 2026-06-19: verified present in the live NVIDIA NIM /v1/models catalog.
-    // minimaxai/minimax-m3 is now listed too, but left out per #3329 until inference
-    // (not just listing) is confirmed — re-add when a real request stops 404ing.
+    // minimaxai/minimax-m3 still omitted per #3329 until inference (not just listing)
+    // is confirmed — re-add when a real request stops 404ing.
     { id: "moonshotai/kimi-k2.6", name: "Kimi K2.6" },
     { id: "openai/gpt-oss-120b", name: "GPT OSS 120B", toolCalling: false },
     { id: "openai/gpt-oss-20b", name: "GPT OSS 20B", toolCalling: false },

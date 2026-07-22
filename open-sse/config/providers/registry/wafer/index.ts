@@ -12,7 +12,7 @@ export const waferProvider: RegistryEntry = {
   headers: getAnthropicCompatHeaders(),
   models: [
     { id: "DeepSeek-V4-Pro", name: "DeepSeek V4 Pro" },
-    { id: "MiniMax-M3", name: "MiniMax M3" },
+    { id: "MiniMax-M3", name: "MiniMax M3", supportsVision: true },
     { id: "Qwen3.5-397B-A17B", name: "Qwen3.5 397B A17B" },
     { id: "GLM-5.1", name: "GLM 5.1" },
   ],
