@@ -555,7 +555,15 @@ function evictColdBreakersIfNeeded(): void {
   }
 }
 
+
+// Opossum primary mode: when CIRCUIT_BREAKER_OPOSSUM_PRIMARY=1, getCircuitBreaker returns
+// an OpossumCircuitBreaker wrapper that delegates to opossum under the hood.
+const _opossumPrimaryEnabled = process.env.CIRCUIT_BREAKER_OPOSSUM_PRIMARY === "1";
+
 export function getCircuitBreaker(name: string, options?: CircuitBreakerOptions): CircuitBreaker {
+  if (_opossumPrimaryEnabled) {
+    return getOrCreateOpossumBreaker(name, options);
+  }
   if (!registry.has(name)) {
     evictColdBreakersIfNeeded();
     registry.set(name, new CircuitBreaker(name, options));
@@ -632,5 +640,105 @@ export function resetAllCircuitBreakers() {
     deleteAllCircuitBreakerStates();
   } catch {
     // Non-critical
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PR-E: Opossum step-2 — primary circuit breaker adapter
+//
+// When CIRCUIT_BREAKER_OPOSSUM_PRIMARY=1, opossum runs as the primary circuit
+// breaker. The hand-rolled CircuitBreaker remains as a fallback and for
+// consumers that depend on DEGRADED state or per-kind thresholds.
+//
+// Enable: CIRCUIT_BREAKER_OPOSSUM_PRIMARY=1
+// ─────────────────────────────────────────────────────────────────────────────
+
+let Opossum: typeof import("opossum").default | null = null;
+try {
+  Opossum = (await import("opossum")).default;
+} catch {
+  // opossum not installed — fallback to hand-rolled only
+}
+
+const opossumPrimaryEnabled =
+  process.env.CIRCUIT_BREAKER_OPOSSUM_PRIMARY === "1" && Opossum !== null;
+
+/**
+ * Execute through opossum when enabled, falling back to the primary
+ * CircuitBreaker when disabled or opossum is unavailable.
+ */
+export async function executeWithOpossum<T>(
+  name: string,
+  fn: () => Promise<T>,
+  opts?: {
+    timeout?: number;
+    errorThresholdPercentage?: number;
+    resetTimeout?: number;
+    volumeThreshold?: number;
+  },
+): Promise<T> {
+  if (!opossumPrimaryEnabled) {
+    const cb = getCircuitBreaker(name);
+    return cb.execute(fn);
+  }
+  const breaker = new Opossum!(fn, {
+    timeout: opts?.timeout ?? 10_000,
+    errorThresholdPercentage: opts?.errorThresholdPercentage ?? 50,
+    resetTimeout: opts?.resetTimeout ?? 30_000,
+    volumeThreshold: opts?.volumeThreshold ?? 5,
+    name,
+  });
+  return breaker.fire();
+}
+import CircuitBreaker from "opossum";
+
+let opossumPrimaryEnabled = false;
+try { opossumPrimaryEnabled = process.env.CIRCUIT_BREAKER_OPOSSUM_PRIMARY === "1"; } catch {}
+
+interface OpossumOptions {
+  timeout?: number;
+  errorThresholdPercentage?: number;
+  resetTimeout?: number;
+  volumeThreshold?: number;
+}
+
+export class OpossumCircuitBreaker {
+  private readonly breakers: Map<string, CircuitBreaker>;
+  private readonly primary: CircuitBreaker;
+  private degraded = false;
+  private failureCount = 0;
+  private highWatermark = 5;
+
+  constructor(
+    public readonly name: string,
+    opts: OpossumOptions = {},
+  ) {
+    const oOpts = {
+      timeout: opts.timeout ?? 30_000,
+      errorThresholdPercentage: opts.errorThresholdPercentage ?? 50,
+      resetTimeout: opts.resetTimeout ?? 30_000,
+      volumeThreshold: opts.volumeThreshold ?? 5,
+    };
+    this.primary = new CircuitBreaker(async () => {}, { ...oOpts, name });
+    this.breakers = new Map();
+    for (const kind of ["rate_limit", "transient", "quota", "auth"] as const) {
+      this.breakers.set(kind, new CircuitBreaker(async () => {}, { ...oOpts, name: `${name}:${kind}` }));
+    }
+    this.primary.on("open", () => { this.failureCount++; if (this.failureCount >= this.highWatermark) this.degraded = true; });
+    this.primary.on("halfOpen", () => { if (this.failureCount < this.highWatermark) this.degraded = false; });
+    this.primary.on("close", () => { this.failureCount = 0; this.degraded = false; });
+  }
+
+  getState(): "CLOSED" | "OPEN" | "HALF_OPEN" | "DEGRADED" {
+    if (this.degraded) return "DEGRADED";
+    if (this.primary.opened) return "OPEN";
+    if (this.primary.halfOpen) return "HALF_OPEN";
+    return "CLOSED";
+  }
+
+  get name_(): string { return this.name; }
+
+  async execute<T>(fn: () => Promise<T>): Promise<T> {
+    return this.primary.fire(fn);
   }
 }

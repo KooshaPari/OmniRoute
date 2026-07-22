@@ -665,3 +665,11 @@ Status: [complete] - Real Bifrost Go SDK integrated, no mock bridge.
 
 ### No blockers remaining
 All DAG items P0-P6 complete.
+
+## 2026-07-22T00:39Z — checkout hygiene audit (checkout_hygiene)
+
+- Enumerated four local OmniRoute worktrees; no additional OmniRoute checkout was found under the Phenotype tree.
+- Canonical checkout `/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute` is dirty and ahead of `main` by 15 commits; preserve all nine modified files and untracked `.agileplus/`.
+- Clean active checkout `.worktrees/token-permissions` is at `d86e3cfc6` and synced to `origin/chore/token-permissions-20260718`.
+- Clean auxiliary checkouts `worktrees/OmniRoute/feat-dispatch-rebase` (`829a54947`) and `worktrees/OmniRoute/fix-ci-unit-blockers-post-386` (`b956146d0`) each track their remote branch; do not remove until PR/agent ownership is confirmed.
+- No mutations or deletions performed. Cleanup can proceed only after merge/ownership confirmation, using `git worktree remove` and branch deletion deliberately.

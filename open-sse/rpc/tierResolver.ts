@@ -41,7 +41,7 @@ function sampleSystem(): ResolverSignals {
   }
   lastSample = now;
   // Cheap-and-correct CPU sample: load average / #cores, clamped to [0,1].
-  const load = (platform() === "win32" ? 0 : loadavg()[0]) ?? 0;
+  const load = (platform() === "win32" ? 0 : (loadavg()?.[0] ?? 0));
   const cores = cpus().length || 1;
   lastCpu = Math.max(0, Math.min(1, load / cores));
   return { cpuPressure: lastCpu };
@@ -171,14 +171,14 @@ export function reconcileAllEdges(signals: ResolverSignals = sampleSystem()): nu
   return changes;
 }
 
-let globalDispatchEdgesCache: Array<{ name: string }> | null = null;
+let globalDispatchEdgesCache: readonly { name: string }[] | null = null;
 
 /**
  * Lazy accessor for the edge list. We avoid importing `listEdges` at module
  * load so that `dispatchEdges.ts` → transport imports don't cycle back
  * into this file during cold start in tests.
  */
-function globalDispatchEdges(): Array<{ name: string }> {
+function globalDispatchEdges(): readonly { name: string }[] {
   if (globalDispatchEdgesCache) return globalDispatchEdgesCache;
   try {
     globalDispatchEdgesCache = listEdges();

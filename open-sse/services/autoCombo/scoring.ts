@@ -223,3 +223,26 @@ export function validateWeights(weights: ScoringWeights): boolean {
   const sum = Object.values(weights).reduce((a, b) => a + b, 0);
   return Math.abs(sum - 1.0) < 0.01;
 }
+
+export function scorePool(
+  pool: ProviderCandidate[],
+  taskType: string,
+  weights?: ScoringWeights | undefined,
+  getTaskFitness: (model: string, taskType: string) => number = () => 0.5
+): ScoredProvider[] {
+  const effectiveWeights = weights ?? DEFAULT_WEIGHTS;
+
+  return pool
+    .map((candidate) => {
+      const factors = calculateFactors(candidate, pool, taskType, getTaskFitness);
+      const score = calculateScore(factors, effectiveWeights);
+      return {
+        provider: candidate.provider,
+        model: candidate.model,
+        score,
+        factors,
+        connectionId: candidate.connectionId,
+      };
+    })
+    .sort((a, b) => b.score - a.score);
+}
