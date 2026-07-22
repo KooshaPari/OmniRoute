@@ -653,6 +653,7 @@ Provider-level circuit breaker tuning. Defaults reflect the scaled values used s
 | `OMNIROUTE_CIRCUIT_BREAKER_API_KEY_RESET_MS`  | `30000` | `open-sse/config/constants.ts` | Reset window (ms) for API-key provider breaker.                                                                        |
 | `OMNIROUTE_CIRCUIT_BREAKER_LOCAL_THRESHOLD`   | `2`     | `open-sse/config/constants.ts` | Consecutive failure threshold for local providers (Ollama, LM Studio, ...).                                            |
 | `OMNIROUTE_CIRCUIT_BREAKER_LOCAL_RESET_MS`    | `15000` | `open-sse/config/constants.ts` | Reset window (ms) for local provider breaker.                                                                          |
+| `CIRCUIT_BREAKER_OPOSSUM_PRIMARY`             | `0`     | `src/shared/utils/circuitBreaker.ts` | Set to `1` to make the Opossum circuit-breaker implementation primary.                                      |
 | `PIN_DROP_BACKOFF_LEVEL`                      | `2`     | `open-sse/services/combo.ts`   | Backoff depth at which a context-cache pin's provider is deemed durably unhealthy and the pin is dropped for failover. |
 | `PIN_DROP_GRACE_MS`                           | `20000` | `open-sse/services/combo.ts`   | Anti-flap window (ms) tolerating brief transient cooldowns before dropping a context-cache pin.                        |
 
@@ -1127,6 +1128,7 @@ cross-process RPC, and telemetry. Secret-bearing values are unset by default.
 | `OMNIROUTE_FFI_COMBO_SCORER_PATH` | auto-discovered | `open-sse/rpc/edges/scoringFfi.ts` | Explicit path to the combo scorer shared library. |
 | `OMNIROUTE_FFI_GUARDRAILS_PII_PATH` | auto-discovered | `open-sse/rpc/edges/guardrailsPiiFfi.ts` | Explicit path to the PII guardrails shared library. |
 | `OMNIROUTE_POLYGLOT_RECONCILER_ENABLED` | `true` | `open-sse/rpc/reconciler.ts` | Set to `false` to disable periodic edge health reconciliation. |
+| `OMNIROUTE_DISPATCH_RECONCILER_ENABLED` | `true` | `open-sse/rpc/reconciler.ts` | Set to `false` to disable periodic dispatch-worker state reconciliation. |
 | `OMNIROUTE_UDS_SOCKET` | data-directory socket | `open-sse/rpc/udsServer.ts` | Unix-domain socket path for same-host polyglot RPC. |
 | `OMNIROUTE_UDS_REQUIRE_AUTH` | `false` | `open-sse/rpc/udsServer.ts` | Set to `1` to require the UDS shared-secret handshake. |
 | `OMNIROUTE_UDS_SHARED_SECRET` | _(unset)_ | `open-sse/rpc/udsServer.ts` | Shared secret required when UDS authentication is enabled. Keep this private. |
@@ -1137,6 +1139,7 @@ cross-process RPC, and telemetry. Secret-bearing values are unset by default.
 | `OMNIROUTE_OTLP_PUSH_TIMEOUT_MS` | `5000` | `open-sse/rpc/otelBridge.ts` | Timeout for each metrics push. |
 | `OMNIROUTE_OTLP_RESOURCE_ATTRIBUTES` | service name only | `open-sse/rpc/otelBridge.ts` | JSON object merged into OTLP metrics resource attributes. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | _(unset)_ | `src/instrumentation-node.ts` | Standard OTLP base endpoint; enables trace export when set. |
+| `OTEL_EXPORTER_PROMETHEUS_PORT` | `9464` | `src/instrumentation-node.ts` | Listen port for the OpenTelemetry Prometheus exporter. |
 | `OTEL_SDK_DISABLED` | `false` | `src/instrumentation-node.ts` | Standard OpenTelemetry switch that disables SDK initialization. |
 | `OTEL_SERVICE_NAME` | `omniroute` | `src/instrumentation-node.ts` | Service name attached to exported traces. |
 | `PROMPT_CACHE_MAX_ENTRIES` | `256` | `src/lib/cacheLayer.ts` | Maximum entries in the runtime prompt cache. |
