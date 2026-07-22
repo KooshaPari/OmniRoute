@@ -139,7 +139,7 @@ pub extern "C" fn omniroute_ffi_combo_scorer_free(ptr: *mut c_char) {
 fn error_response(msg: &str) -> *mut c_char {
     let resp = serde_json::json!({"error": msg});
     CString::new(resp.to_string())
-        .unwrap_or_else(|_| CString::new("{}").unwrap())
+        .unwrap_or_else(|_| CString::new("{}").unwrap_or_default())
         .into_raw()
 }
 

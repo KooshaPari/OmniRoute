@@ -49,7 +49,7 @@ pub extern "C" fn version() -> *const std::ffi::c_char {
 }
 
 fn to_c_string(s: &str) -> *mut c_char {
-    CString::new(s).unwrap_or_else(|_| CString::new("{}").unwrap()).into_raw()
+    CString::new(s).unwrap_or_else(|_| CString::new("{}").unwrap_or_default()).into_raw()
 }
 
 #[cfg(test)]

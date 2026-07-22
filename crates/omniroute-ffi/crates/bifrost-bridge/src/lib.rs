@@ -30,7 +30,7 @@ pub extern "C" fn bifrost_init(config_json: *const c_char, len: c_int) -> c_int 
     let config = unsafe { CStr::from_ptr(config_json) };
     let config_str = config.to_str().unwrap_or("{}");
     let _ = config_str; // parsed config available for future use
-    let mut guard = get_instance().lock().unwrap();
+    let mut guard = match get_instance().lock() { Ok(g) => g, Err(_) => return -1 };
     *guard = Some(BifrostHandle { active: true });
     0
 }
@@ -38,19 +38,19 @@ pub extern "C" fn bifrost_init(config_json: *const c_char, len: c_int) -> c_int 
 #[no_mangle]
 pub extern "C" fn bifrost_chat(request_json: *const c_char, len: c_int) -> *mut c_char {
     if request_json.is_null() || len <= 0 {
-        return CString::new(r#"{"error":"invalid request"}"#).unwrap().into_raw();
+        return CString::new(r#"{"error":"invalid request"}"#).unwrap_or_default().into_raw();
     }
     let request = unsafe { CStr::from_ptr(request_json) };
     let req_str = request.to_str().unwrap_or("{}");
     let resp = format!(r#"{{"status":"ok","echo":{}}}"#, req_str);
-    CString::new(resp).unwrap().into_raw()
+    CString::new(resp).unwrap_or_default().into_raw()
 }
 
 #[no_mangle]
 pub extern "C" fn bifrost_health() -> c_int {
-    let guard = get_instance().lock().unwrap();
-    if guard.is_some() && guard.as_ref().unwrap().active {
-        0
+    let guard = match get_instance().lock() { Ok(g) => g, Err(_) => return -1 };
+    if let Some(h) = guard.as_ref() {
+        if h.active { 0 } else { -1 }
     } else {
         -1
     }
