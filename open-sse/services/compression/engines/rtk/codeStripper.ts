@@ -1,4 +1,7 @@
-import ts from "typescript";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+// @ts-ignore — TS7 ships version.cjs, not version.js
+const tsVersion = require("typescript/lib/version.cjs");
 
 export type CodeLanguage =
   | "javascript"
