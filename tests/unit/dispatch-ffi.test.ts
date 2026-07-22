@@ -8,7 +8,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { platform, arch } from "node:os";
+import { platform } from "node:os";
 
 const { resolveFfiCratePath, __closeAllFfiCratesForTests, healthcheckFfiEdge } = await import(
   "../../open-sse/rpc/ffi.ts"
@@ -103,15 +103,12 @@ test("Rust combo-scorer crate exposes the FFVv1 surface", async () => {
   );
   assert.ok(fs.existsSync(crateDir), `expected crate source at ${crateDir}`);
   const src = fs.readFileSync(crateDir, "utf-8");
+  // Crates export the short ABI names the JS loader invokes (score_combo_simd).
+  assert.match(src, /pub extern "C" fn version\(/, "missing combo-scorer version symbol");
   assert.match(
     src,
-    /pub extern "C" fn omniroute_ffi_combo_scorer_version\(/,
-    "missing omniroute_ffi_combo_scorer_version symbol"
-  );
-  assert.match(
-    src,
-    /pub extern "C" fn omniroute_ffi_combo_scorer_score\(/,
-    "missing omniroute_ffi_combo_scorer_score symbol"
+    /pub extern "C" fn score_combo_simd\(/,
+    "missing score_combo_simd symbol"
   );
   assert.match(src, /pub extern "C" fn omniroute_ffi_combo_scorer_free\(/, "missing free symbol");
 });
@@ -130,21 +127,13 @@ test("Rust signature-cache crate exposes the FFVv1 surface", async () => {
   );
   assert.ok(fs.existsSync(crateDir), `expected crate source at ${crateDir}`);
   const src = fs.readFileSync(crateDir, "utf-8");
+  assert.match(src, /pub extern "C" fn version\(/, "missing signature-cache version symbol");
   assert.match(
     src,
-    /pub extern "C" fn omniroute_ffi_signature_cache_version\(/,
-    "missing omniroute_ffi_signature_cache_version symbol"
+    /pub extern "C" fn semantic_lookup_simd\(/,
+    "missing semantic_lookup_simd"
   );
-  assert.match(
-    src,
-    /pub extern "C" fn omniroute_ffi_signature_cache_lookup\(/,
-    "missing omniroute_ffi_signature_cache_lookup"
-  );
-  assert.match(
-    src,
-    /pub extern "C" fn omniroute_ffi_signature_cache_seed\(/,
-    "missing omniroute_ffi_signature_cache_seed"
-  );
+  assert.match(src, /pub extern "C" fn insert_entry\(/, "missing insert_entry");
 });
 
 test("Rust sse-chunking crate exposes the FFVv1 surface", async () => {
@@ -161,14 +150,6 @@ test("Rust sse-chunking crate exposes the FFVv1 surface", async () => {
   );
   assert.ok(fs.existsSync(crateDir), `expected crate source at ${crateDir}`);
   const src = fs.readFileSync(crateDir, "utf-8");
-  assert.match(
-    src,
-    /pub extern "C" fn omniroute_ffi_sse_chunking_version\(/,
-    "missing omniroute_ffi_sse_chunking_version symbol"
-  );
-  assert.match(
-    src,
-    /pub extern "C" fn omniroute_ffi_sse_chunking_stream\(/,
-    "missing omniroute_ffi_sse_chunking_stream"
-  );
+  assert.match(src, /pub extern "C" fn version\(/, "missing sse-chunking version symbol");
+  assert.match(src, /pub extern "C" fn chunk_sse_stream\(/, "missing chunk_sse_stream");
 });

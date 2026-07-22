@@ -267,12 +267,9 @@ function validateProviderSpecificData(
   }
 }
 
-// Re-export validation helpers from dedicated module to avoid webpack barrel-file
-// optimization bug that truncates exports from large files.
+// Helpers + oauthPasteCredentialsSchema re-exports (webpack barrel truncation).
 export { validateBody, isValidationFailure } from "./helpers";
-// Paste-credentials route imports from this barrel; schema lives in schemas/auth.ts
 export { oauthPasteCredentialsSchema } from "./schemas/auth";
-
 // ──── Provider Schemas ────
 
 export const createProviderSchema = z
