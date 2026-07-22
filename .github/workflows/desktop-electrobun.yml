@@ -42,4 +42,11 @@ jobs:
         run: test -f generated/web/index.html && test -f generated/web/_app/version.json
       - name: Build Electrobun shell
         working-directory: desktop-electrobun
-        run: bun run build
+        run: ./node_modules/.bin/electrobun build
+      - name: Upload Electrobun build output
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: omniroute-electrobun-build-${{ github.sha }}
+          path: desktop-electrobun/build/
+          if-no-files-found: error
+          retention-days: 7
