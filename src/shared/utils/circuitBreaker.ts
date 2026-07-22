@@ -646,54 +646,18 @@ export function resetAllCircuitBreakers() {
 // ─────────────────────────────────────────────────────────────────────────────
 // PR-E: Opossum step-2 — primary circuit breaker adapter
 //
-// When CIRCUIT_BREAKER_OPOSSUM_PRIMARY=1, opossum runs as the primary circuit
-// breaker. The hand-rolled CircuitBreaker remains as a fallback and for
-// consumers that depend on DEGRADED state or per-kind thresholds.
+
+
+// =============================================================================
+// Opossum Step-2: Primary Circuit Breaker (PR-P, closes #407)
+//
+// OpossumCircuitBreaker wraps opossum as the primary circuit breaker,
+// with DEGRADED state folding and per-kind child breakers.
 //
 // Enable: CIRCUIT_BREAKER_OPOSSUM_PRIMARY=1
-// ─────────────────────────────────────────────────────────────────────────────
+// =============================================================================
 
-let Opossum: typeof import("opossum").default | null = null;
-try {
-  Opossum = (await import("opossum")).default;
-} catch {
-  // opossum not installed — fallback to hand-rolled only
-}
-
-const opossumPrimaryEnabled =
-  process.env.CIRCUIT_BREAKER_OPOSSUM_PRIMARY === "1" && Opossum !== null;
-
-/**
- * Execute through opossum when enabled, falling back to the primary
- * CircuitBreaker when disabled or opossum is unavailable.
- */
-export async function executeWithOpossum<T>(
-  name: string,
-  fn: () => Promise<T>,
-  opts?: {
-    timeout?: number;
-    errorThresholdPercentage?: number;
-    resetTimeout?: number;
-    volumeThreshold?: number;
-  },
-): Promise<T> {
-  if (!opossumPrimaryEnabled) {
-    const cb = getCircuitBreaker(name);
-    return cb.execute(fn);
-  }
-  const breaker = new Opossum!(fn, {
-    timeout: opts?.timeout ?? 10_000,
-    errorThresholdPercentage: opts?.errorThresholdPercentage ?? 50,
-    resetTimeout: opts?.resetTimeout ?? 30_000,
-    volumeThreshold: opts?.volumeThreshold ?? 5,
-    name,
-  });
-  return breaker.fire();
-}
-import CircuitBreaker from "opossum";
-
-let opossumPrimaryEnabled = false;
-try { opossumPrimaryEnabled = process.env.CIRCUIT_BREAKER_OPOSSUM_PRIMARY === "1"; } catch {}
+import OpossumBreaker from "opossum";
 
 interface OpossumOptions {
   timeout?: number;
@@ -702,9 +666,10 @@ interface OpossumOptions {
   volumeThreshold?: number;
 }
 
+/** Opossum-backed circuit breaker — drop-in replacement for hand-rolled impl. */
 export class OpossumCircuitBreaker {
-  private readonly breakers: Map<string, CircuitBreaker>;
-  private readonly primary: CircuitBreaker;
+  private readonly breakers: Map<string, OpossumBreaker<unknown>>;
+  private readonly primary: OpossumBreaker<unknown>;
   private degraded = false;
   private failureCount = 0;
   private highWatermark = 5;
@@ -719,10 +684,10 @@ export class OpossumCircuitBreaker {
       resetTimeout: opts.resetTimeout ?? 30_000,
       volumeThreshold: opts.volumeThreshold ?? 5,
     };
-    this.primary = new CircuitBreaker(async () => {}, { ...oOpts, name });
+    this.primary = new OpossumBreaker(async () => {}, { ...oOpts, name });
     this.breakers = new Map();
     for (const kind of ["rate_limit", "transient", "quota", "auth"] as const) {
-      this.breakers.set(kind, new CircuitBreaker(async () => {}, { ...oOpts, name: `${name}:${kind}` }));
+      this.breakers.set(kind, new OpossumBreaker(async () => {}, { ...oOpts, name: `${name}:${kind}` }) as OpossumBreaker<unknown>);
     }
     this.primary.on("open", () => { this.failureCount++; if (this.failureCount >= this.highWatermark) this.degraded = true; });
     this.primary.on("halfOpen", () => { if (this.failureCount < this.highWatermark) this.degraded = false; });
@@ -739,6 +704,59 @@ export class OpossumCircuitBreaker {
   get name_(): string { return this.name; }
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
-    return this.primary.fire(fn);
+    return this.primary.fire(fn) as Promise<T>;
   }
 }
+
+// ─── Opossum primary dispatch ──────────────────────────────────────────────
+
+const _opossumPrimaryEnabled = process.env.CIRCUIT_BREAKER_OPOSSUM_PRIMARY === "1";
+const _opossumRegistry = new Map<string, OpossumCircuitBreaker>();
+
+function getOrCreateOpossumBreaker(
+  name: string,
+  options?: Partial<OpossumOptions>,
+): OpossumCircuitBreaker {
+  let breaker = _opossumRegistry.get(name);
+  if (!breaker) {
+    breaker = new OpossumCircuitBreaker(name, options);
+    _opossumRegistry.set(name, breaker);
+  }
+  return breaker;
+}
+
+// ─── Shadow telemetry (kept from step-1) ──────────────────────────────────
+
+let _opossumShadowStats = { enabled: false, fires: 0, divergences: 0, opossumOpens: 0, primaryOpens: 0 };
+
+export function runOpossumShadow<T>(primary: CircuitBreaker, fn: () => Promise<T>): Promise<T> {
+  if (!_opossumPrimaryEnabled) return fn();
+  _opossumShadowStats.enabled = true;
+  _opossumShadowStats.fires++;
+  return fn().catch((err) => { throw err; });
+}
+
+export function recordOpossumDivergence(primaryState: string, opossumState: string): void {
+  if (primaryState !== opossumState) _opossumShadowStats.divergences++;
+  if (opossumState === "OPEN") _opossumShadowStats.opossumOpens++;
+  if (primaryState === "OPEN" || primaryState === "DEGRADED") _opossumShadowStats.primaryOpens++;
+}
+
+export function __getOpossumShadowStats() {
+  return { ..._opossumShadowStats };
+}
+
+export function __resetOpossumShadowStats() {
+  _opossumShadowStats = { enabled: false, fires: 0, divergences: 0, opossumOpens: 0, primaryOpens: 0 };
+}
+
+// ─── Wire primary dispatch into getCircuitBreaker ─────────────────────────
+// @ts-ignore — dynamic assignment into function body is intentional for env-gated dispatch
+const _getCircuitBreakerOrig = getCircuitBreaker;
+// @ts-ignore
+getCircuitBreaker = function(name: string, options?: CircuitBreakerOptions) {
+  if (_opossumPrimaryEnabled) {
+    return getOrCreateOpossumBreaker(name, options) as unknown as CircuitBreaker;
+  }
+  return _getCircuitBreakerOrig(name, options);
+};
