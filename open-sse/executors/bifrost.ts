@@ -155,14 +155,14 @@ export class BifrostBackendExecutor extends BaseExecutor {
    *    unchanged.
    */
   async execute(input: ExecuteInput): Promise<{
-    // dispatch: resolve tier for bifrost UDS fast-path
-    const { tier: _dispatchTier } = await useDispatchForEdge("bifrost.bridge").catch(() => ({ tier: "T1" as const }));
-
     response: Response;
     url: string;
     headers: Record<string, string>;
     transformedBody: unknown;
   }> {
+    // dispatch: resolve tier for bifrost UDS fast-path
+    const { tier: _dispatchTier } = await useDispatchForEdge("bifrost.bridge").catch(() => ({ tier: "T1" as const }));
+
     if (!isBifrostEnabled()) {
       throw new Error(
         `[${BIFROST_TAG}] Bifrost is not enabled. Set BIFROST_ENABLED=1 and BIFROST_BASE_URL to use the Tier-1 router. ` +
