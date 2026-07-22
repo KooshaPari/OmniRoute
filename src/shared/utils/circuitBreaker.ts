@@ -668,8 +668,8 @@ interface OpossumOptions {
 
 /** Opossum-backed circuit breaker — drop-in replacement for hand-rolled impl. */
 export class OpossumCircuitBreaker {
-  private readonly breakers: Map<string, OpossumBreaker<unknown>>;
-  private readonly primary: OpossumBreaker<unknown>;
+  private readonly breakers: Map<string, OpossumBreaker<[], unknown>>;
+  private readonly primary: OpossumBreaker<[() => Promise<unknown>], unknown>;
   private degraded = false;
   private failureCount = 0;
   private highWatermark = 5;
@@ -684,10 +684,19 @@ export class OpossumCircuitBreaker {
       resetTimeout: opts.resetTimeout ?? 30_000,
       volumeThreshold: opts.volumeThreshold ?? 5,
     };
-    this.primary = new OpossumBreaker(async () => {}, { ...oOpts, name });
+    this.primary = new OpossumBreaker<[() => Promise<unknown>], unknown>(
+      async (fn) => fn(),
+      { ...oOpts, name },
+    );
     this.breakers = new Map();
     for (const kind of ["rate_limit", "transient", "quota", "auth"] as const) {
-      this.breakers.set(kind, new OpossumBreaker(async () => {}, { ...oOpts, name: `${name}:${kind}` }) as OpossumBreaker<unknown>);
+      this.breakers.set(
+        kind,
+        new OpossumBreaker<[], unknown>(async () => {}, {
+          ...oOpts,
+          name: `${name}:${kind}`,
+        }),
+      );
     }
     this.primary.on("open", () => { this.failureCount++; if (this.failureCount >= this.highWatermark) this.degraded = true; });
     this.primary.on("halfOpen", () => { if (this.failureCount < this.highWatermark) this.degraded = false; });
