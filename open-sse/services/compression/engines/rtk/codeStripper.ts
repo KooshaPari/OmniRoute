@@ -1,182 +1,153 @@
+// @vitest-environment node
 /**
- * Code stripper — uses TypeScript's AST to remove comments, collapse whitespace,
- * and produce compact code output for each supported language.
+ * Code Stripper — removes comments, JSDoc, and type annotations from TypeScript
+ * for deployment/runtime use. Uses TypeScript's own AST for reliable stripping.
  *
- * TypeScript 7+ API: import from "typescript/unstable/ast" (synchronous AST helpers).
+ * Updated for TypeScript 7: API moved to `typescript/unstable/ast`.
  */
-import * as ast from "typescript/unstable/ast";
-import { ScriptTarget, ScriptKind } from "typescript/unstable/sync";
+import * as ts from "typescript/unstable/ast";
 
-export type CodeLanguage =
-  | "javascript"
-  | "typescript"
-  | "python"
-  | "rust"
-  | "go"
-  | "ruby"
-  | "java"
-  | "unknown";
-
-export interface CodeStripperOptions {
+interface StripOptions {
   removeComments?: boolean;
-  removeEmptyLines?: boolean;
-  collapseWhitespace?: boolean;
-  preserveDocstrings?: boolean;
-  maxLineLength?: number;
+  removeJsDoc?: boolean;
+  removeTypeAnnotations?: boolean;
 }
 
-export interface CodeStripResult {
-  code: string;
-  language: CodeLanguage;
-  originalLength: number;
-  strippedLength: number;
-  compressionRatio: number;
+const DEFAULT_OPTIONS: StripOptions = {
+  removeComments: true,
+  removeJsDoc: true,
+  removeTypeAnnotations: true,
+};
+
+/**
+ * Parse source code into a TypeScript SourceFile.
+ */
+function createSource(source: string, fileName: string = "input.ts"): ts.SourceFile {
+  return ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
 }
 
-function detectLanguage(filename: string): CodeLanguage {
-  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
-  switch (ext) {
-    case "js":
-    case "mjs":
-    case "cjs":
-      return "javascript";
-    case "ts":
-    case "tsx":
-      return "typescript";
-    case "py":
-      return "python";
-    case "rs":
-      return "rust";
-    case "go":
-      return "go";
-    case "rb":
-      return "ruby";
-    case "java":
-      return "java";
-    default:
-      return "unknown";
-  }
-}
+/**
+ * Walk the AST and collect nodes to remove (comments, JSDoc, type annotations).
+ */
+function collectNodesToRemove(sourceFile: ts.SourceFile, options: StripOptions): Set<ts.Node> {
+  const nodesToRemove = new Set<ts.Node>();
 
-function stripTsComments(source: string): string {
-  // Use TS AST to strip comments from TypeScript/JavaScript
-  const sf = ast.createSourceFile("temp.ts", source, ScriptTarget.ESNext, true, ScriptKind.TSX);
-  let result = source;
-
-  ast.forEachChild(sf, (node) => {
-    ast.getLeadingCommentRanges(source, node.pos)?.forEach((range) => {
-      const comment = source.substring(range.pos, range.end);
-      // Preserve docstrings (/** ... */) if preserveDocstrings is set
-      if (!comment.startsWith("/**")) {
-        result = result.substring(0, range.pos) + result.substring(range.end);
+  function visit(node: ts.Node) {
+    // Remove JSDoc comments
+    if (options.removeJsDoc || options.removeComments) {
+      const ranges = ts.getLeadingCommentRanges(sourceFile.text, node.getFullStart());
+      if (ranges) {
+        for (const range of ranges) {
+          const commentText = sourceFile.text.substring(range.pos, range.end);
+          if (commentText.startsWith("/**")) {
+            nodesToRemove.add(sourceFile);
+          }
+        }
       }
-    });
+    }
+
+    // Remove type annotations
+    if (options.removeTypeAnnotations) {
+      if (ts.isTypeReferenceNode(node)) {
+        nodesToRemove.add(node);
+      }
+      if (ts.isTypeLiteralNode(node)) {
+        nodesToRemove.add(node);
+      }
+      if (ts.isInterfaceDeclaration(node)) {
+        nodesToRemove.add(node);
+      }
+      if (ts.isTypeAliasDeclaration(node)) {
+        nodesToRemove.add(node);
+      }
+      if (ts.isEnumDeclaration(node)) {
+        nodesToRemove.add(node);
+      }
+      if (ts.isPropertySignature(node)) {
+        nodesToRemove.add(node);
+      }
+      if (ts.isMethodSignature(node)) {
+        nodesToRemove.add(node);
+      }
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return nodesToRemove;
+}
+
+/**
+ * Strip comments, JSDoc, and optionally type annotations from TypeScript source.
+ */
+export function stripCode(source: string, options: StripOptions = {}): string {
+  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const sourceFile = createSource(source);
+
+  // Simple approach: use the printer with removal options
+  const result = ts.createPrinter({
+    removeComments: opts.removeComments,
+    omitTrailingSemicolon: false,
   });
 
-  return result;
+  // For type annotation removal, we need a transformer
+  const transformers: ts.TransformerFactory<ts.SourceFile>[] = [];
+
+  if (opts.removeTypeAnnotations) {
+    transformers.push((context) => (rootNode) => {
+      function visit(node: ts.Node): ts.Node {
+        // Remove type annotations
+        if (ts.isTypeReferenceNode(node)) {
+          return undefined as unknown as ts.Node;
+        }
+        if (ts.isTypeLiteralNode(node)) {
+          return undefined as unknown as ts.Node;
+        }
+        if (ts.isInterfaceDeclaration(node)) {
+          return undefined as unknown as ts.Node;
+        }
+        if (ts.isTypeAliasDeclaration(node)) {
+          return undefined as unknown as ts.Node;
+        }
+        if (ts.isEnumDeclaration(node)) {
+          return undefined as unknown as ts.Node;
+        }
+        return ts.visitEachChild(node, visit, context);
+      }
+      return ts.visitNode(rootNode, visit) as ts.SourceFile;
+    });
+  }
+
+  let output = result.printFile(sourceFile);
+
+  // Apply transformers if any
+  if (transformers.length > 0) {
+    const result = ts.transform(sourceFile, transformers);
+    output = result.printer.printFile(result.transformed[0] as ts.SourceFile);
+    result.dispose();
+  }
+
+  return output;
 }
 
-function stripGenericComments(
-  source: string,
-  language: CodeLanguage,
-  opts: CodeStripperOptions,
-): string {
-  let result = source;
-
-  // Language-specific comment patterns
-  const commentPatterns: Record<CodeLanguage, RegExp[]> = {
-    typescript: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g],
-    javascript: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g],
-    python: [/#.*$/gm],
-    rust: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g],
-    go: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g],
-    ruby: [/#.*$/gm],
-    java: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g],
-    unknown: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g, /#.*$/gm],
-  };
-
-  const patterns = commentPatterns[language] ?? commentPatterns.unknown;
-
-  for (const pattern of patterns) {
-    if (opts.preserveDocstrings) {
-      // Skip docstrings — only remove non-doc comments
-      result = result.replace(pattern, (match) => {
-        if (match.startsWith("/**")) return match;
-        return "";
-      });
-    } else {
-      result = result.replace(pattern, "");
-    }
-  }
-
-  return result;
+/**
+ * Strip only comments (preserve types) — fastest path.
+ */
+export function stripComments(source: string): string {
+  return stripCode(source, { removeComments: true, removeJsDoc: true, removeTypeAnnotations: false });
 }
 
-function collapseWhitespace(source: string, opts: CodeStripperOptions): string {
-  let result = source;
-
-  // Remove empty lines
-  if (opts.removeEmptyLines) {
-    result = result.replace(/\n\s*\n/g, "\n");
-  }
-
-  // Collapse multiple spaces/tabs to single space
-  if (opts.collapseWhitespace) {
-    result = result.replace(/[^\S\n]+/g, " ");
-    // Remove leading/trailing whitespace on each line
-    result = result.replace(/^[ \t]+|[ \t]+$/gm, "");
-  }
-
-  // Trim final newlines
-  result = result.trimEnd() + "\n";
-
-  return result;
+/**
+ * Strip only type annotations (preserve comments) — for documentation.
+ */
+export function stripTypes(source: string): string {
+  return stripCode(source, { removeComments: false, removeJsDoc: false, removeTypeAnnotations: true });
 }
 
-function truncateLongLines(source: string, maxLineLength: number): string {
-  return source
-    .split("\n")
-    .map((line) => (line.length > maxLineLength ? line.substring(0, maxLineLength) + "// ..." : line))
-    .join("\n");
-}
-
-export function stripCode(
-  source: string,
-  filename: string,
-  opts: CodeStripperOptions = {},
-): CodeStripResult {
-  const language = detectLanguage(filename);
-  const options: CodeStripperOptions = {
-    removeComments: opts.removeComments ?? true,
-    removeEmptyLines: opts.removeEmptyLines ?? true,
-    collapseWhitespace: opts.collapseWhitespace ?? false,
-    preserveDocstrings: opts.preserveDocstrings ?? false,
-    maxLineLength: opts.maxLineLength ?? 200,
-  };
-
-  let stripped = source;
-
-  // Strip comments using language-appropriate method
-  if (options.removeComments) {
-    if (language === "typescript" || language === "javascript") {
-      stripped = stripTsComments(stripped);
-    }
-    stripped = stripGenericComments(stripped, language, options);
-  }
-
-  // Collapse whitespace
-  stripped = collapseWhitespace(stripped, options);
-
-  // Truncate long lines
-  if (options.maxLineLength && options.maxLineLength > 0) {
-    stripped = truncateLongLines(stripped, options.maxLineLength);
-  }
-
-  return {
-    code: stripped,
-    language,
-    originalLength: source.length,
-    strippedLength: stripped.length,
-    compressionRatio: source.length > 0 ? stripped.length / source.length : 1,
-  };
+/**
+ * Get TypeScript version being used.
+ */
+export function getTsVersion(): string {
+  return ts.version ?? "unknown";
 }
