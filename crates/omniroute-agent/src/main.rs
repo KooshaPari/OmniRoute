@@ -70,12 +70,12 @@ struct Args {
 }
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> Result<(), anyhow::Error> {
     let args = Args::parse();
 
     // Initialize tracing subscriber.
     tracing_subscriber::fmt()
-        .with_env_filter(&args.log_level)
+        .with_env_filter(tracing_subscriber::EnvFilter::new(&args.log_level))
         .with_target(true)
         .with_thread_ids(false)
         .with_file(false)

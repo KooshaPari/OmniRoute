@@ -72,7 +72,7 @@ impl MetricsCollector {
 
         // Initial refresh to populate hostname, CPU count etc.
         system.refresh_memory();
-        system.refresh_cpu();
+        system.refresh_cpu_all();
 
         let hostname = sysinfo::System::host_name()
             .unwrap_or_else(|| "unknown".to_string());
@@ -132,7 +132,7 @@ impl MetricsCollector {
         let now_millis = chrono::Utc::now().timestamp_millis();
 
         // Refresh all metrics on the shared system handle.
-        self.system.refresh_cpu();
+        self.system.refresh_cpu_all();
         self.system.refresh_memory();
 
         // --- CPU ---
