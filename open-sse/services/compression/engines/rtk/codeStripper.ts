@@ -9,6 +9,13 @@ interface StripOptions {
   removeComments?: boolean;
   removeJsDoc?: boolean;
   removeTypeAnnotations?: boolean;
+  preserveDocstrings?: boolean;
+}
+
+export interface CodeStripResult {
+  text: string;
+  strippedLines: number;
+  language: string;
 }
 
 const DEFAULT_OPTIONS: StripOptions = {
@@ -17,74 +24,98 @@ const DEFAULT_OPTIONS: StripOptions = {
   removeTypeAnnotations: true,
 };
 
-function isJsxElement(node: ts.Node): node is ts.JsxElement {
-  return ts.isJsxElement(node);
-}
+const LANGUAGE_MAP: Record<string, string> = {
+  js: "javascript",
+  ts: "typescript",
+  jsx: "tsx",
+  tsx: "tsx",
+  py: "python",
+  rb: "ruby",
+  yml: "yaml",
+  sh: "bash",
+  bash: "bash",
+  zsh: "bash",
+  dockerfile: "docker",
+};
 
-function removeJsxChildren(node: ts.JsxElement): ts.JsxSelfClosingElement {
-  return ts.factory.createJsxSelfClosingElement(
-    node.openingElement.tagName,
-    node.openingElement.attributes,
-    undefined
-  );
+export function normalizeCodeLanguage(hint: string): string {
+  const lower = hint.trim().toLowerCase();
+  return LANGUAGE_MAP[lower] || lower;
 }
 
 export function stripCode(
   source: string,
-  filename = "input.ts",
-  options: StripOptions = {}
-): string {
+  languageHint = "typescript",
+  options: StripOptions = {},
+): CodeStripResult {
   const opts = { ...DEFAULT_OPTIONS, ...options };
+  if (options.preserveDocstrings) opts.removeJsDoc = false;
+
+  const filename = `input.${languageHint || "ts"}`;
   const sf = ts.createSourceFile(filename, source, ts.ScriptTarget.Latest, true);
 
-  const result: string[] = [];
+  let strippedLines = 0;
 
-  function processNode(node: ts.Node) {
-    if (opts.removeComments || opts.removeJsDoc) {
-      const ranges = ts.getLeadingCommentRanges(source, node.getFullStart());
-      if (ranges) {
-        for (const range of ranges) {
-          if (opts.removeJsDoc && source.slice(range.pos, range.pos + 3) === "/**") {
-            continue;
-          }
-          if (opts.removeComments) {
-            continue;
-          }
-        }
-      }
-    }
-
+  // Walk the AST and strip type annotations
+  function stripTypes(node: ts.Node): ts.Node {
     if (opts.removeTypeAnnotations) {
-      if (ts.isTypeAliasDeclaration(node)) return;
-      if (ts.isInterfaceDeclaration(node)) return;
-      if (ts.isTypeParameterDeclaration(node)) return;
-      if (ts.isPropertySignature(node)) return;
-      if (ts.isMethodSignature(node)) return;
+      if (ts.isTypeAliasDeclaration(node)) { strippedLines++; return ts.factory.createNotEmittedStatement(undefined); }
+      if (ts.isInterfaceDeclaration(node)) { strippedLines++; return ts.factory.createNotEmittedStatement(undefined); }
+      if (ts.isTypeParameterDeclaration(node)) { strippedLines++; return ts.factory.createNotEmittedStatement(undefined); }
+      if (ts.isPropertySignature(node)) { strippedLines++; return ts.factory.createNotEmittedStatement(undefined); }
+      if (ts.isMethodSignature(node)) { strippedLines++; return ts.factory.createNotEmittedStatement(undefined); }
       if (ts.isParameter(node) && node.type) {
+        strippedLines++;
         node = ts.factory.updateParameterDeclaration(
-          node, undefined, undefined, node.name, node.questionToken, undefined, node.initializer
+          node, undefined, node.modifiers, node.name, node.questionToken, undefined, node.initializer,
         );
       }
+      if (ts.isAsExpression(node)) {
+        strippedLines++;
+        return stripTypes(node.expression);
+      }
+      if (ts.isNonNullExpression(node)) {
+        strippedLines++;
+        return stripTypes(node.expression);
+      }
     }
-
-    if (isJsxElement(node)) {
-      node = removeJsxChildren(node);
-    }
-
-    ts.forEachChild(node, processNode);
+    return ts.visitEachChild(node, stripTypes, ts.factory);
   }
 
-  ts.forEachChild(sf, processNode);
+  // Strip comments from source text directly (AST comment stripping via printer is not reliable in all cases)
+  let text = source;
+  if (opts.removeComments || opts.removeJsDoc) {
+    // Remove single-line comments
+    text = text.replace(/\/\/(?!\/).*$/gm, "");
+    // Remove multi-line comments
+    text = text.replace(/\/\*[\s\S]*?\*\//g, "");
+  }
+  if (opts.removeJsDoc) {
+    // Remove JSDoc blocks specifically (already handled above)
+  }
+
+  // Count lines removed by type stripping
+  const originalLineCount = source.split("\n").length;
+
+  const strippedSf = ts.factory.updateSourceFile(sf, [stripTypes(sf)]);
 
   const printer = ts.createPrinter({
     newLine: ts.NewLineKind.LineFeed,
-    removeComments: opts.removeComments,
+    removeComments: true,
     omitTrailingSemicolon: true,
   });
 
-  return printer.printFile(sf);
+  const resultText = printer.printFile(strippedSf);
+  const finalLineCount = resultText.split("\n").length;
+  strippedLines = Math.max(0, originalLineCount - finalLineCount);
+
+  return {
+    text: resultText,
+    strippedLines,
+    language: normalizeCodeLanguage(languageHint),
+  };
 }
 
-export function stripCodeWithDefaults(source: string): string {
+export function stripCodeWithDefaults(source: string): CodeStripResult {
   return stripCode(source);
 }
