@@ -562,7 +562,7 @@ const _opossumPrimaryEnabled = process.env.CIRCUIT_BREAKER_OPOSSUM_PRIMARY === "
 
 export function getCircuitBreaker(name: string, options?: CircuitBreakerOptions): CircuitBreaker {
   if (_opossumPrimaryEnabled) {
-    return getOrCreateOpossumBreaker(name, options);
+    return getOrCreateOpossumBreaker(name, options) as unknown as CircuitBreaker;
   }
   if (!registry.has(name)) {
     evictColdBreakersIfNeeded();

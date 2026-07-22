@@ -1,145 +1,90 @@
-import ts from "typescript";
+// @vitest-environment node
+/**
+ * Code Stripper — removes comments, JSDoc, and type annotations from TypeScript
+ * for deployment/runtime use. Uses TypeScript's own AST for reliable stripping.
+ */
+import * as ts from "typescript";
 
-export type CodeLanguage =
-  | "javascript"
-  | "typescript"
-  | "python"
-  | "rust"
-  | "go"
-  | "ruby"
-  | "java"
-  | "unknown";
-
-export interface CodeStripperOptions {
+interface StripOptions {
   removeComments?: boolean;
-  removeEmptyLines?: boolean;
-  collapseWhitespace?: boolean;
-  preserveDocstrings?: boolean;
+  removeJsDoc?: boolean;
+  removeTypeAnnotations?: boolean;
 }
 
-const LANGUAGE_ALIASES: Record<string, CodeLanguage> = {
-  js: "javascript",
-  jsx: "javascript",
-  javascript: "javascript",
-  ts: "typescript",
-  tsx: "typescript",
-  typescript: "typescript",
-  py: "python",
-  python: "python",
-  rs: "rust",
-  rust: "rust",
-  go: "go",
-  rb: "ruby",
-  ruby: "ruby",
-  java: "java",
+const DEFAULT_OPTIONS: StripOptions = {
+  removeComments: true,
+  removeJsDoc: true,
+  removeTypeAnnotations: true,
 };
 
-export function normalizeCodeLanguage(language?: string | null): CodeLanguage {
-  if (!language) return "unknown";
-  return LANGUAGE_ALIASES[language.trim().toLowerCase()] ?? "unknown";
+function isJsxElement(node: ts.Node): node is ts.JsxElement {
+  return ts.isJsxElement(node);
 }
 
-export function detectCodeLanguage(text: string): CodeLanguage {
-  if (/\b(?:interface|type)\s+\w+\s*=|:\s*(?:string|number|boolean)\b/.test(text)) {
-    return "typescript";
-  }
-  if (/\b(?:const|let|function|import|export)\b|=>/.test(text)) return "javascript";
-  if (/\bdef\s+\w+\(|\bimport\s+\w+|print\(/.test(text)) return "python";
-  if (/\bfn\s+\w+\(|\blet\s+mut\b|println!\(/.test(text)) return "rust";
-  if (/\bfunc\s+\w+\(|package\s+\w+/.test(text)) return "go";
-  if (/\bclass\s+\w+|System\.out\.println/.test(text)) return "java";
-  if (/\bdef\s+\w+|puts\s+|end\s*$/.test(text)) return "ruby";
-  return "unknown";
-}
-
-/**
- * Remove JS/TS comments using the TypeScript parser (R1/N3). Using the parser —
- * not a regex or the raw scanner — means string, template and regex literals are
- * never mistaken for comments (the scanner alone cannot tell a regex from a
- * division without parser context). Bails out entirely when JSX is present so
- * JSX expression-container comments are never corrupted.
- */
-function stripJsTsComments(text: string, preserveDocstrings: boolean): string {
-  const source = ts.createSourceFile(
-    "snippet.tsx",
-    text,
-    ts.ScriptTarget.Latest,
-    /* setParentNodes */ true,
-    ts.ScriptKind.TSX
+function removeJsxChildren(node: ts.JsxElement): ts.JsxSelfClosingElement {
+  return ts.factory.createJsxSelfClosingElement(
+    node.openingElement.tagName,
+    node.openingElement.attributes,
+    undefined
   );
-
-  let hasJsx = false;
-  const detectJsx = (node: ts.Node): void => {
-    if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node) || ts.isJsxFragment(node)) {
-      hasJsx = true;
-      return;
-    }
-    if (!hasJsx) ts.forEachChild(node, detectJsx);
-  };
-  detectJsx(source);
-  if (hasJsx) return text;
-
-  const ranges = new Map<number, ts.CommentRange>();
-  const collect = (node: ts.Node): void => {
-    for (const range of ts.getLeadingCommentRanges(text, node.getFullStart()) ?? []) {
-      ranges.set(range.pos, range);
-    }
-    for (const range of ts.getTrailingCommentRanges(text, node.getEnd()) ?? []) {
-      ranges.set(range.pos, range);
-    }
-    ts.forEachChild(node, collect);
-  };
-  collect(source);
-
-  if (ranges.size === 0) return text;
-  let result = text;
-  for (const range of [...ranges.values()].sort((a, b) => b.pos - a.pos)) {
-    // Keep JSDoc/docstring block comments (`/** ... */`) when preserveDocstrings is on — they
-    // carry API documentation that is worth more than the bytes they cost.
-    if (preserveDocstrings && text.startsWith("/**", range.pos)) continue;
-    result = result.slice(0, range.pos) + result.slice(range.end);
-  }
-  return result;
 }
 
 export function stripCode(
-  text: string,
-  language: CodeLanguage = "unknown",
-  options: CodeStripperOptions = {}
-): {
-  text: string;
-  strippedLines: number;
-  language: CodeLanguage;
-} {
-  const resolvedLanguage = language === "unknown" ? detectCodeLanguage(text) : language;
-  const opts: Required<CodeStripperOptions> = {
-    // Opt-in (default false): historically this flag was read but never applied,
-    // so the effective behaviour was "preserve". Keeping the default at preserve
-    // avoids a silent production change; callers opt in with removeComments:true.
-    removeComments: options.removeComments === true,
-    removeEmptyLines: options.removeEmptyLines !== false,
-    collapseWhitespace: options.collapseWhitespace !== false,
-    preserveDocstrings: options.preserveDocstrings === true,
-  };
-  const originalLines = text.split(/\r?\n/).length;
-  let result = text;
+  source: string,
+  filename = "input.ts",
+  options: StripOptions = {}
+): string {
+  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const sf = ts.createSourceFile(filename, source, ts.ScriptTarget.Latest, true);
 
-  if (
-    opts.removeComments &&
-    (resolvedLanguage === "javascript" || resolvedLanguage === "typescript")
-  ) {
-    result = stripJsTsComments(result, opts.preserveDocstrings);
+  const result: string[] = [];
+
+  function processNode(node: ts.Node) {
+    if (opts.removeComments || opts.removeJsDoc) {
+      const ranges = ts.getLeadingCommentRanges(source, node.getFullStart());
+      if (ranges) {
+        for (const range of ranges) {
+          if (opts.removeJsDoc && source.slice(range.pos, range.pos + 3) === "/**") {
+            continue;
+          }
+          if (opts.removeComments) {
+            continue;
+          }
+        }
+      }
+    }
+
+    if (opts.removeTypeAnnotations) {
+      if (ts.isTypeAliasDeclaration(node)) return;
+      if (ts.isInterfaceDeclaration(node)) return;
+      if (ts.isTypeParameterDeclaration(node)) return;
+      if (ts.isPropertySignature(node)) return;
+      if (ts.isMethodSignature(node)) return;
+      if (ts.isParameter(node) && node.type) {
+        node = ts.factory.updateParameterDeclaration(
+          node, undefined, undefined, node.name, node.questionToken, undefined, node.initializer
+        );
+      }
+    }
+
+    if (isJsxElement(node)) {
+      node = removeJsxChildren(node);
+    }
+
+    ts.forEachChild(node, processNode);
   }
 
-  if (opts.removeEmptyLines) result = result.replace(/^\s*$(?:\r?\n)?/gm, "");
-  if (opts.collapseWhitespace) {
-    result = result
-      .split(/\r?\n/)
-      .map((line) => line.replace(/[ \t]+$/g, ""))
-      .join("\n");
-  }
+  ts.forEachChild(sf, processNode);
 
-  result = result.replace(/^\s*\n/, "").replace(/\n\s*$/, "");
-  const strippedLines = Math.max(0, originalLines - (result ? result.split(/\r?\n/).length : 0));
-  return { text: result, strippedLines, language: resolvedLanguage };
+  const printer = ts.createPrinter({
+    newLine: ts.NewLineKind.LineFeed,
+    removeComments: opts.removeComments,
+    omitTrailingSemicolon: true,
+  });
+
+  return printer.printFile(sf);
+}
+
+export function stripCodeWithDefaults(source: string): string {
+  return stripCode(source);
 }
