@@ -1,7 +1,11 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-// @ts-ignore — TS7 ships version.cjs, not version.js
-const tsVersion = require("typescript/lib/version.cjs");
+/**
+ * Code stripper — uses TypeScript's AST to remove comments, collapse whitespace,
+ * and produce compact code output for each supported language.
+ *
+ * TypeScript 7+ API: import from "typescript/unstable/ast" (synchronous AST helpers).
+ */
+import * as ast from "typescript/unstable/ast";
+import { ScriptTarget, ScriptKind } from "typescript/unstable/sync";
 
 export type CodeLanguage =
   | "javascript"
@@ -18,131 +22,161 @@ export interface CodeStripperOptions {
   removeEmptyLines?: boolean;
   collapseWhitespace?: boolean;
   preserveDocstrings?: boolean;
+  maxLineLength?: number;
 }
 
-const LANGUAGE_ALIASES: Record<string, CodeLanguage> = {
-  js: "javascript",
-  jsx: "javascript",
-  javascript: "javascript",
-  ts: "typescript",
-  tsx: "typescript",
-  typescript: "typescript",
-  py: "python",
-  python: "python",
-  rs: "rust",
-  rust: "rust",
-  go: "go",
-  rb: "ruby",
-  ruby: "ruby",
-  java: "java",
-};
-
-export function normalizeCodeLanguage(language?: string | null): CodeLanguage {
-  if (!language) return "unknown";
-  return LANGUAGE_ALIASES[language.trim().toLowerCase()] ?? "unknown";
+export interface CodeStripResult {
+  code: string;
+  language: CodeLanguage;
+  originalLength: number;
+  strippedLength: number;
+  compressionRatio: number;
 }
 
-export function detectCodeLanguage(text: string): CodeLanguage {
-  if (/\b(?:interface|type)\s+\w+\s*=|:\s*(?:string|number|boolean)\b/.test(text)) {
-    return "typescript";
+function detectLanguage(filename: string): CodeLanguage {
+  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
+  switch (ext) {
+    case "js":
+    case "mjs":
+    case "cjs":
+      return "javascript";
+    case "ts":
+    case "tsx":
+      return "typescript";
+    case "py":
+      return "python";
+    case "rs":
+      return "rust";
+    case "go":
+      return "go";
+    case "rb":
+      return "ruby";
+    case "java":
+      return "java";
+    default:
+      return "unknown";
   }
-  if (/\b(?:const|let|function|import|export)\b|=>/.test(text)) return "javascript";
-  if (/\bdef\s+\w+\(|\bimport\s+\w+|print\(/.test(text)) return "python";
-  if (/\bfn\s+\w+\(|\blet\s+mut\b|println!\(/.test(text)) return "rust";
-  if (/\bfunc\s+\w+\(|package\s+\w+/.test(text)) return "go";
-  if (/\bclass\s+\w+|System\.out\.println/.test(text)) return "java";
-  if (/\bdef\s+\w+|puts\s+|end\s*$/.test(text)) return "ruby";
-  return "unknown";
 }
 
-/**
- * Remove JS/TS comments using the TypeScript parser (R1/N3). Using the parser —
- * not a regex or the raw scanner — means string, template and regex literals are
- * never mistaken for comments (the scanner alone cannot tell a regex from a
- * division without parser context). Bails out entirely when JSX is present so
- * JSX expression-container comments are never corrupted.
- */
-function stripJsTsComments(text: string, preserveDocstrings: boolean): string {
-  const source = ts.createSourceFile(
-    "snippet.tsx",
-    text,
-    ts.ScriptTarget.Latest,
-    /* setParentNodes */ true,
-    ts.ScriptKind.TSX
-  );
+function stripTsComments(source: string): string {
+  // Use TS AST to strip comments from TypeScript/JavaScript
+  const sf = ast.createSourceFile("temp.ts", source, ScriptTarget.ESNext, true, ScriptKind.TSX);
+  let result = source;
 
-  let hasJsx = false;
-  const detectJsx = (node: ts.Node): void => {
-    if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node) || ts.isJsxFragment(node)) {
-      hasJsx = true;
-      return;
-    }
-    if (!hasJsx) ts.forEachChild(node, detectJsx);
-  };
-  detectJsx(source);
-  if (hasJsx) return text;
+  ast.forEachChild(sf, (node) => {
+    ast.getLeadingCommentRanges(source, node.pos)?.forEach((range) => {
+      const comment = source.substring(range.pos, range.end);
+      // Preserve docstrings (/** ... */) if preserveDocstrings is set
+      if (!comment.startsWith("/**")) {
+        result = result.substring(0, range.pos) + result.substring(range.end);
+      }
+    });
+  });
 
-  const ranges = new Map<number, ts.CommentRange>();
-  const collect = (node: ts.Node): void => {
-    for (const range of ts.getLeadingCommentRanges(text, node.getFullStart()) ?? []) {
-      ranges.set(range.pos, range);
-    }
-    for (const range of ts.getTrailingCommentRanges(text, node.getEnd()) ?? []) {
-      ranges.set(range.pos, range);
-    }
-    ts.forEachChild(node, collect);
-  };
-  collect(source);
-
-  if (ranges.size === 0) return text;
-  let result = text;
-  for (const range of [...ranges.values()].sort((a, b) => b.pos - a.pos)) {
-    // Keep JSDoc/docstring block comments (`/** ... */`) when preserveDocstrings is on — they
-    // carry API documentation that is worth more than the bytes they cost.
-    if (preserveDocstrings && text.startsWith("/**", range.pos)) continue;
-    result = result.slice(0, range.pos) + result.slice(range.end);
-  }
   return result;
 }
 
-export function stripCode(
-  text: string,
-  language: CodeLanguage = "unknown",
-  options: CodeStripperOptions = {}
-): {
-  text: string;
-  strippedLines: number;
-  language: CodeLanguage;
-} {
-  const resolvedLanguage = language === "unknown" ? detectCodeLanguage(text) : language;
-  const opts: Required<CodeStripperOptions> = {
-    // Opt-in (default false): historically this flag was read but never applied,
-    // so the effective behaviour was "preserve". Keeping the default at preserve
-    // avoids a silent production change; callers opt in with removeComments:true.
-    removeComments: options.removeComments === true,
-    removeEmptyLines: options.removeEmptyLines !== false,
-    collapseWhitespace: options.collapseWhitespace !== false,
-    preserveDocstrings: options.preserveDocstrings === true,
+function stripGenericComments(
+  source: string,
+  language: CodeLanguage,
+  opts: CodeStripperOptions,
+): string {
+  let result = source;
+
+  // Language-specific comment patterns
+  const commentPatterns: Record<CodeLanguage, RegExp[]> = {
+    typescript: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g],
+    javascript: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g],
+    python: [/#.*$/gm],
+    rust: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g],
+    go: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g],
+    ruby: [/#.*$/gm],
+    java: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g],
+    unknown: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g, /#.*$/gm],
   };
-  const originalLines = text.split(/\r?\n/).length;
-  let result = text;
 
-  if (
-    opts.removeComments &&
-    (resolvedLanguage === "javascript" || resolvedLanguage === "typescript")
-  ) {
-    result = stripJsTsComments(result, opts.preserveDocstrings);
+  const patterns = commentPatterns[language] ?? commentPatterns.unknown;
+
+  for (const pattern of patterns) {
+    if (opts.preserveDocstrings) {
+      // Skip docstrings — only remove non-doc comments
+      result = result.replace(pattern, (match) => {
+        if (match.startsWith("/**")) return match;
+        return "";
+      });
+    } else {
+      result = result.replace(pattern, "");
+    }
   }
 
-  if (opts.removeEmptyLines) result = result.replace(/^\s*$(?:\r?\n)?/gm, "");
+  return result;
+}
+
+function collapseWhitespace(source: string, opts: CodeStripperOptions): string {
+  let result = source;
+
+  // Remove empty lines
+  if (opts.removeEmptyLines) {
+    result = result.replace(/\n\s*\n/g, "\n");
+  }
+
+  // Collapse multiple spaces/tabs to single space
   if (opts.collapseWhitespace) {
-    result = result
-      .split(/\r?\n/)
-      .map((line) => line.replace(/[ \t]+$/g, ""))
-      .join("\n");
+    result = result.replace(/[^\S\n]+/g, " ");
+    // Remove leading/trailing whitespace on each line
+    result = result.replace(/^[ \t]+|[ \t]+$/gm, "");
   }
 
-  result = result.replace(/^\s*\n/, "").replace(/\n\s*$/, "");
-  const strippedLines = Math.max(0, originalLines - (result ? result.split(/\r?\n/).length : 0));
-  return { text: result, strippedLines, language: resolvedLanguage };
+  // Trim final newlines
+  result = result.trimEnd() + "\n";
+
+  return result;
+}
+
+function truncateLongLines(source: string, maxLineLength: number): string {
+  return source
+    .split("\n")
+    .map((line) => (line.length > maxLineLength ? line.substring(0, maxLineLength) + "// ..." : line))
+    .join("\n");
+}
+
+export function stripCode(
+  source: string,
+  filename: string,
+  opts: CodeStripperOptions = {},
+): CodeStripResult {
+  const language = detectLanguage(filename);
+  const options: CodeStripperOptions = {
+    removeComments: opts.removeComments ?? true,
+    removeEmptyLines: opts.removeEmptyLines ?? true,
+    collapseWhitespace: opts.collapseWhitespace ?? false,
+    preserveDocstrings: opts.preserveDocstrings ?? false,
+    maxLineLength: opts.maxLineLength ?? 200,
+  };
+
+  let stripped = source;
+
+  // Strip comments using language-appropriate method
+  if (options.removeComments) {
+    if (language === "typescript" || language === "javascript") {
+      stripped = stripTsComments(stripped);
+    }
+    stripped = stripGenericComments(stripped, language, options);
+  }
+
+  // Collapse whitespace
+  stripped = collapseWhitespace(stripped, options);
+
+  // Truncate long lines
+  if (options.maxLineLength && options.maxLineLength > 0) {
+    stripped = truncateLongLines(stripped, options.maxLineLength);
+  }
+
+  return {
+    code: stripped,
+    language,
+    originalLength: source.length,
+    strippedLength: stripped.length,
+    compressionRatio: source.length > 0 ? stripped.length / source.length : 1,
+  };
 }

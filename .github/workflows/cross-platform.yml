@@ -95,3 +95,14 @@ jobs:
         env:
           JWT_SECRET: ci-cross-test-secret
           API_KEY_SECRET: ci-cross-test-api-key
+
+  rust-ffi-crates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build FFI crates
+        run: cargo build --release --manifest-path crates/omniroute-ffi/Cargo.toml
+      - name: Test FFI crates
+        run: cargo test --manifest-path crates/omniroute-ffi/Cargo.toml
