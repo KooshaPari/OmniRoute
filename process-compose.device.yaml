@@ -19,8 +19,11 @@ processes:
       period_seconds: 5
       timeout_seconds: 3
       failure_threshold: 12
+    availability:
+      restart: always
+      max_restarts: 10
   redis:
-    command: "redis-server --save 60 1 --loglevel warning"
+    command: "mkdir -p \"${OMNIROUTE_REDIS_DIR:-.data/redis}\" && redis-server --dir \"${OMNIROUTE_REDIS_DIR:-.data/redis}\" --save 60 1 --loglevel warning"
     working_dir: "${OMNIROUTE_REDIS_DIR:-.data/redis}"
     readiness_probe:
       exec:
@@ -29,3 +32,6 @@ processes:
       period_seconds: 5
       timeout_seconds: 3
       failure_threshold: 12
+    availability:
+      restart: always
+      max_restarts: 10
