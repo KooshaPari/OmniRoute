@@ -10,6 +10,14 @@ members = [
     "crates/omniroute-api",
     "crates/omniroute-cli",
     "crates/omniroute-bifrost",
+
+    # Dispatch FFI crates (ADR-032)
+    "../omniroute-ffi/crates/combo-scorer",
+    "../omniroute-ffi/crates/signature-cache",
+    "../omniroute-ffi/crates/sse-chunking",
+    "../omniroute-ffi/crates/bifrost-bridge",
+    "../omniroute-ffi/crates/combo-scorer-napi",
+
 ]
 
 [workspace.package]

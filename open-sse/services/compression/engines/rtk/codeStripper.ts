@@ -2,10 +2,8 @@
 /**
  * Code Stripper — removes comments, JSDoc, and type annotations from TypeScript
  * for deployment/runtime use. Uses TypeScript's own AST for reliable stripping.
- *
- * Updated for TypeScript 7: API moved to `typescript/unstable/ast`.
  */
-import * as ts from "typescript/unstable/ast";
+import * as ts from "typescript";
 
 interface StripOptions {
   removeComments?: boolean;
@@ -19,135 +17,74 @@ const DEFAULT_OPTIONS: StripOptions = {
   removeTypeAnnotations: true,
 };
 
-/**
- * Parse source code into a TypeScript SourceFile.
- */
-function createSource(source: string, fileName: string = "input.ts"): ts.SourceFile {
-  return ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+function isJsxElement(node: ts.Node): node is ts.JsxElement {
+  return ts.isJsxElement(node);
 }
 
-/**
- * Walk the AST and collect nodes to remove (comments, JSDoc, type annotations).
- */
-function collectNodesToRemove(sourceFile: ts.SourceFile, options: StripOptions): Set<ts.Node> {
-  const nodesToRemove = new Set<ts.Node>();
+function removeJsxChildren(node: ts.JsxElement): ts.JsxSelfClosingElement {
+  return ts.factory.createJsxSelfClosingElement(
+    node.openingElement.tagName,
+    node.openingElement.attributes,
+    undefined
+  );
+}
 
-  function visit(node: ts.Node) {
-    // Remove JSDoc comments
-    if (options.removeJsDoc || options.removeComments) {
-      const ranges = ts.getLeadingCommentRanges(sourceFile.text, node.getFullStart());
+export function stripCode(
+  source: string,
+  filename = "input.ts",
+  options: StripOptions = {}
+): string {
+  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const sf = ts.createSourceFile(filename, source, ts.ScriptTarget.Latest, true);
+
+  const result: string[] = [];
+
+  function processNode(node: ts.Node) {
+    if (opts.removeComments || opts.removeJsDoc) {
+      const ranges = ts.getLeadingCommentRanges(source, node.getFullStart());
       if (ranges) {
         for (const range of ranges) {
-          const commentText = sourceFile.text.substring(range.pos, range.end);
-          if (commentText.startsWith("/**")) {
-            nodesToRemove.add(sourceFile);
+          if (opts.removeJsDoc && source.slice(range.pos, range.pos + 3) === "/**") {
+            continue;
+          }
+          if (opts.removeComments) {
+            continue;
           }
         }
       }
     }
 
-    // Remove type annotations
-    if (options.removeTypeAnnotations) {
-      if (ts.isTypeReferenceNode(node)) {
-        nodesToRemove.add(node);
-      }
-      if (ts.isTypeLiteralNode(node)) {
-        nodesToRemove.add(node);
-      }
-      if (ts.isInterfaceDeclaration(node)) {
-        nodesToRemove.add(node);
-      }
-      if (ts.isTypeAliasDeclaration(node)) {
-        nodesToRemove.add(node);
-      }
-      if (ts.isEnumDeclaration(node)) {
-        nodesToRemove.add(node);
-      }
-      if (ts.isPropertySignature(node)) {
-        nodesToRemove.add(node);
-      }
-      if (ts.isMethodSignature(node)) {
-        nodesToRemove.add(node);
+    if (opts.removeTypeAnnotations) {
+      if (ts.isTypeAliasDeclaration(node)) return;
+      if (ts.isInterfaceDeclaration(node)) return;
+      if (ts.isTypeParameterDeclaration(node)) return;
+      if (ts.isPropertySignature(node)) return;
+      if (ts.isMethodSignature(node)) return;
+      if (ts.isParameter(node) && node.type) {
+        node = ts.factory.updateParameterDeclaration(
+          node, undefined, undefined, node.name, node.questionToken, undefined, node.initializer
+        );
       }
     }
 
-    ts.forEachChild(node, visit);
+    if (isJsxElement(node)) {
+      node = removeJsxChildren(node);
+    }
+
+    ts.forEachChild(node, processNode);
   }
 
-  visit(sourceFile);
-  return nodesToRemove;
-}
+  ts.forEachChild(sf, processNode);
 
-/**
- * Strip comments, JSDoc, and optionally type annotations from TypeScript source.
- */
-export function stripCode(source: string, options: StripOptions = {}): string {
-  const opts = { ...DEFAULT_OPTIONS, ...options };
-  const sourceFile = createSource(source);
-
-  // Simple approach: use the printer with removal options
-  const result = ts.createPrinter({
+  const printer = ts.createPrinter({
+    newLine: ts.NewLineKind.LineFeed,
     removeComments: opts.removeComments,
-    omitTrailingSemicolon: false,
+    omitTrailingSemicolon: true,
   });
 
-  // For type annotation removal, we need a transformer
-  const transformers: ts.TransformerFactory<ts.SourceFile>[] = [];
-
-  if (opts.removeTypeAnnotations) {
-    transformers.push((context) => (rootNode) => {
-      function visit(node: ts.Node): ts.Node {
-        // Remove type annotations
-        if (ts.isTypeReferenceNode(node)) {
-          return undefined as unknown as ts.Node;
-        }
-        if (ts.isTypeLiteralNode(node)) {
-          return undefined as unknown as ts.Node;
-        }
-        if (ts.isInterfaceDeclaration(node)) {
-          return undefined as unknown as ts.Node;
-        }
-        if (ts.isTypeAliasDeclaration(node)) {
-          return undefined as unknown as ts.Node;
-        }
-        if (ts.isEnumDeclaration(node)) {
-          return undefined as unknown as ts.Node;
-        }
-        return ts.visitEachChild(node, visit, context);
-      }
-      return ts.visitNode(rootNode, visit) as ts.SourceFile;
-    });
-  }
-
-  let output = result.printFile(sourceFile);
-
-  // Apply transformers if any
-  if (transformers.length > 0) {
-    const result = ts.transform(sourceFile, transformers);
-    output = result.printer.printFile(result.transformed[0] as ts.SourceFile);
-    result.dispose();
-  }
-
-  return output;
+  return printer.printFile(sf);
 }
 
-/**
- * Strip only comments (preserve types) — fastest path.
- */
-export function stripComments(source: string): string {
-  return stripCode(source, { removeComments: true, removeJsDoc: true, removeTypeAnnotations: false });
-}
-
-/**
- * Strip only type annotations (preserve comments) — for documentation.
- */
-export function stripTypes(source: string): string {
-  return stripCode(source, { removeComments: false, removeJsDoc: false, removeTypeAnnotations: true });
-}
-
-/**
- * Get TypeScript version being used.
- */
-export function getTsVersion(): string {
-  return ts.version ?? "unknown";
+export function stripCodeWithDefaults(source: string): string {
+  return stripCode(source);
 }
