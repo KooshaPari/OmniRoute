@@ -240,3 +240,4 @@ omniroute.md
 mise.toml
 bench-results/
 desktop-electrobun/generated/
+crates/omniroute-ffi/target/
