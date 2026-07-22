@@ -8,7 +8,11 @@
  * ADR-032 § 4.2 — Decision rule: force > env > kill-switch > pressure > default
  */
 
-import { resolveTier, reconcileAllEdges, EdgeId, Tier } from "./tierResolver.ts";
+import { resolveTier, reconcileAllEdges } from "./tierResolver.ts";
+import type { EdgeTier } from "./dispatchEdges.ts";
+
+type Tier = EdgeTier;
+type EdgeId = string;
 
 // ── SSE chunking hot path ────────────────────────────────────────────────
 

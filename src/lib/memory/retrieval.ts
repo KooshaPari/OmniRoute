@@ -1004,7 +1004,7 @@ export async function engineStatus(): Promise<MemoryEngineStatus> {
     if (qdrantEnabled) {
       const health = await checkQdrantHealth();
       qdrantHealthy = health.ok;
-      qdrantLatencyMs = health.latencyMs;
+      qdrantLatencyMs = health.latencyMs ?? null;
       qdrantError = health.error ? sanitizeErrorMessage(health.error) : null;
 
       // Plan 21 FAIL #2 fix: only claim vectorStore=qdrant when the user

@@ -715,6 +715,7 @@ export async function handleComboChat({
   allCombos,
   relayOptions,
   signal,
+  apiKeyAllowedConnections,
   nesting = null,
 }: HandleComboChatOptions): Promise<Response> {
   const { tier: _comboDispatchTier } = await useDispatchForEdge("scoring.combo.scoreSimd").catch(() => ({ tier: "T1" }));

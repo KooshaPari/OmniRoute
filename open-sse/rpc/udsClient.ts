@@ -27,7 +27,7 @@
 import { existsSync } from "node:fs";
 import { connect, type Socket } from "node:net";
 import type { UdsEdgeContract, InvokeOptions } from "./dispatchEdges.ts";
-import type { DispatchEdgeError } from "./errors.ts";
+import { DispatchEdgeError } from "./errors.ts";
 
 interface PendingRequest {
   resolve: (value: unknown) => void;
@@ -112,8 +112,7 @@ function handleSocketData(state: UdsClientState, socketPath: string, chunk: stri
     state.pending.delete(msg.id);
     clearTimeout(pending.timer);
     if (msg.error) {
-      const err: DispatchEdgeError = new Error(msg.error.message ?? "UDS RPC error");
-      err.code = `UDS_${msg.error.code ?? "ERROR"}`;
+      const err = new DispatchEdgeError(msg.error.message ?? "UDS RPC error", `UDS_${msg.error.code ?? "ERROR"}`);
       pending.reject(err);
     } else {
       pending.resolve(msg.result);
@@ -125,8 +124,7 @@ function handleSocketClose(state: UdsClientState, socketPath: string): void {
   // Reject any pending requests with a transport error.
   for (const [id, pending] of state.pending.entries()) {
     clearTimeout(pending.timer);
-    const err: DispatchEdgeError = new Error("UDS socket closed before response");
-    err.code = "UDS_CLOSED";
+    const err = new DispatchEdgeError("UDS socket closed before response", "UDS_CLOSED");
     pending.reject(err);
     state.pending.delete(id);
   }
@@ -169,8 +167,7 @@ export async function invokeUdsEdge<TIn, TOut>(
   return new Promise<TOut>((resolve, reject) => {
     const timer = setTimeout(() => {
       state.pending.delete(id);
-      const err: DispatchEdgeError = new Error(`UDS RPC ${contract.method} timed out after ${timeoutMs}ms`);
-      err.code = "UDS_TIMEOUT";
+      const err = new DispatchEdgeError(`UDS RPC ${contract.method} timed out after ${timeoutMs}ms`, "UDS_TIMEOUT");
       reject(err);
     }, timeoutMs);
 
@@ -184,8 +181,7 @@ export async function invokeUdsEdge<TIn, TOut>(
       if (error) {
         clearTimeout(timer);
         state.pending.delete(id);
-        const err: DispatchEdgeError = new Error(`UDS RPC write failed: ${error.message}`);
-        err.code = "UDS_WRITE_ERROR";
+        const err = new DispatchEdgeError(`UDS RPC write failed: ${error.message}`, "UDS_WRITE_ERROR");
         reject(err);
       }
     });
@@ -193,9 +189,7 @@ export async function invokeUdsEdge<TIn, TOut>(
 }
 
 function createUdsTransportError(message: string, socketPath: string): DispatchEdgeError {
-  const err: DispatchEdgeError = new Error(`${message} (socket=${socketPath})`);
-  err.code = "UDS_NO_CONNECTION";
-  return err;
+  return new DispatchEdgeError(`${message} (socket=${socketPath})`, "UDS_NO_CONNECTION");
 }
 
 /**

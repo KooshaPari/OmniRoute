@@ -34,7 +34,7 @@
 
 import { arch, platform } from "node:os";
 import type { FfiEdgeContract, InvokeOptions } from "./dispatchEdges.ts";
-import type { DispatchEdgeError } from "./errors.ts";
+import { DispatchEdgeError } from "./errors.ts";
 
 const EXPECTED_ABI_VERSION = process.env.OMNIROUTE_FFI_ABI_VERSION ?? "1";
 
@@ -152,16 +152,16 @@ export async function loadFfiCrate(crate: string): Promise<FfiDylib | null> {
 
   const path = resolveFfiCratePath(crate);
   try {
-    const dylib = loader.open(path);
+    const dylib = 'open' in loader && typeof loader.open === 'function' ? loader.open(path) : (loader as NodeModulesKoffi).load(path);
     const versionFn = dylib.func("version", "char *", {});
     if (typeof versionFn === "function") {
       const raw = versionFn() as { ptr?: unknown; toString(): string };
       const actual = typeof raw === "string" ? raw : raw.toString();
       if (actual.trim() !== EXPECTED_ABI_VERSION) {
-        const err: DispatchEdgeError = new Error(
-          `FFI crate ${crate} ABI version mismatch: actual=${actual.trim()} expected=${EXPECTED_ABI_VERSION}`
+        const err = new DispatchEdgeError(
+          `FFI crate ${crate} ABI version mismatch: actual=${actual.trim()} expected=${EXPECTED_ABI_VERSION}`,
+          "FFI_ABI_MISMATCH"
         );
-        err.code = "FFI_ABI_MISMATCH";
         throw err;
       }
     }
@@ -182,10 +182,10 @@ export async function invokeFfiEdge<TIn, TOut>(
   const timeoutMs = options.timeoutMs ?? contract.timeoutMs ?? 50;
   const dylib = await loadFfiCrate(contract.crate);
   if (!dylib) {
-    const err: DispatchEdgeError = new Error(
-      `FFI crate ${contract.crate} unavailable; check dist/ffi/ for prebuilt artifacts`
+    const err = new DispatchEdgeError(
+      `FFI crate ${contract.crate} unavailable; check dist/ffi/ for prebuilt artifacts`,
+      "FFI_NOT_AVAILABLE"
     );
-    err.code = "FFI_NOT_AVAILABLE";
     throw err;
   }
 
@@ -198,8 +198,7 @@ export async function invokeFfiEdge<TIn, TOut>(
   try {
     const fn = dylib.func(contract.symbol, { in: "char *", in_len: "size_t", out: "char *", out_len: "size_t" }, {});
     if (typeof fn !== "function") {
-      const err: DispatchEdgeError = new Error(`FFI symbol ${contract.symbol} not found`);
-      err.code = "FFI_SYMBOL_NOT_FOUND";
+      const err = new DispatchEdgeError(`FFI symbol ${contract.symbol} not found`, "FFI_SYMBOL_NOT_FOUND");
       throw err;
     }
     const outBuffer = fn(inputBuffer, inputBuffer.byteLength) as Buffer;
@@ -212,10 +211,10 @@ export async function invokeFfiEdge<TIn, TOut>(
     return result;
   } catch (error) {
     if ((error as { code?: string })?.code) throw error;
-    const err: DispatchEdgeError = new Error(
-      `FFI call ${contract.crate}.${contract.symbol} failed: ${error instanceof Error ? error.message : String(error)}`
+    const err = new DispatchEdgeError(
+      `FFI call ${contract.crate}.${contract.symbol} failed: ${error instanceof Error ? error.message : String(error)}`,
+      "FFI_CALL_FAILED"
     );
-    err.code = "FFI_CALL_FAILED";
     throw err;
   } finally {
     if (timeoutHandle) clearTimeout(timeoutHandle);
