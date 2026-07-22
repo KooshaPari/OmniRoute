@@ -7,6 +7,9 @@
 use crate::error::StorageError;
 use sqlx::SqlitePool;
 
+/// Current schema version (monotonic integer; not the crate semver).
+pub const SCHEMA_VERSION: i64 = 1;
+
 /// All schema statements, in dependency order.
 pub const SCHEMA_STATEMENTS: &[&str] = &[
     // Schema version (for upgrade tracking)
@@ -79,7 +82,7 @@ pub const SCHEMA_STATEMENTS: &[&str] = &[
     r#"CREATE INDEX IF NOT EXISTS idx_api_keys_key_hash ON api_keys(key_hash)"#,
     r#"CREATE INDEX IF NOT EXISTS idx_api_keys_status ON api_keys(status)"#,
 
-    // Request log
+    // Request log (canonical name; historical TS `call_logs` rows are not auto-imported)
     r#"CREATE TABLE IF NOT EXISTS request_logs (
         id TEXT PRIMARY KEY,
         request_id TEXT NOT NULL,
@@ -203,7 +206,7 @@ pub async fn ensure_schema(pool: &SqlitePool) -> Result<(), StorageError> {
     }
     // Record schema version if not present
     sqlx::query("INSERT OR IGNORE INTO schema_version (version, description) VALUES (?, ?)")
-        .bind(env!("CARGO_PKG_VERSION"))
+        .bind(SCHEMA_VERSION)
         .bind("OmniRoute Rust rewrite initial schema")
         .execute(pool)
         .await?;
@@ -225,6 +228,11 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(count, 1);
+        let version: i64 = sqlx::query_scalar("SELECT version FROM schema_version")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+        assert_eq!(version, SCHEMA_VERSION);
     }
 
     #[tokio::test]

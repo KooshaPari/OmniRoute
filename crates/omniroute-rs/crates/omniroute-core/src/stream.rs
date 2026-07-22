@@ -161,7 +161,7 @@ mod tests {
                 logprobs: None,
             }],
             system_fingerprint: None,
-            usage: Some(Usage { prompt_tokens: 1, completion_tokens: 2, total_tokens: 3 }),
+            usage: Some(Usage::new(1, 2)),
             request_id: None,
         };
         let v = serde_json::to_value(&c).unwrap();
