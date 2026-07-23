@@ -43,12 +43,14 @@
 </script>
 
 {#if prefs}
+  {@const channelKeys = Object.keys(prefs.channels) as Array<keyof Prefs['channels']>}
+  {@const eventKeys = Object.keys(prefs.events) as Array<keyof Prefs['events']>}
   <Card title="Notification preferences">
     <div class="grid grid-cols-2 gap-6 max-w-3xl">
       <div>
         <h3 class="text-sm font-semibold text-gray-700 mb-2">Channels</h3>
         <div class="space-y-2">
-          {#each Object.entries(prefs.channels) as [k, v]}
+          {#each channelKeys as k (k)}
             <label class="flex items-center gap-2">
               <input type="checkbox" bind:checked={prefs.channels[k]} class="rounded" />
               <span class="text-sm capitalize">{k}</span>
@@ -60,7 +62,7 @@
       <div>
         <h3 class="text-sm font-semibold text-gray-700 mb-2">Events</h3>
         <div class="space-y-2">
-          {#each Object.entries(prefs.events) as [k, v]}
+          {#each eventKeys as k (k)}
             <label class="flex items-center gap-2">
               <input type="checkbox" bind:checked={prefs.events[k]} class="rounded" />
               <span class="text-sm capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</span>

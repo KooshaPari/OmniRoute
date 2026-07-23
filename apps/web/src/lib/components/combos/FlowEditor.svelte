@@ -19,10 +19,12 @@ import RejectNode from './nodes/RejectNode.svelte';
   let {
     primaryModel,
     fallbackModels = [],
+    costBudget = 0,
     onchange,
   }: {
     primaryModel: string;
     fallbackModels: string[];
+    costBudget?: number;
     onchange?: (nodes: ComboNode[], edges: Edge[]) => void;
   } = $props();
 
@@ -69,8 +71,15 @@ import RejectNode from './nodes/RejectNode.svelte';
     return edges;
   });
 
-  let nodes = $state(initialNodes);
-  let edges = $state(initialEdges);
+  // The flow editor's nodes/edges are seeded from derived inputs once and then
+  // mutated by the user. `bind:nodes` / `bind:edges` keep the local state in
+  // sync with the canvas; `onchange` notifies the parent form of edits.
+  // The `$state(initialNodes)` reference intentionally captures the initial
+  // snapshot — SvelteFlow owns subsequent updates via two-way bindings.
+  // eslint-disable-next-line svelte/no-reactive-reassign
+  let nodes = $state<ComboNode[]>(initialNodes);
+  // eslint-disable-next-line svelte/no-reactive-reassign
+  let edges = $state<Edge[]>(initialEdges);
   $effect(() => { onchange?.(nodes, edges); });
 
   const nodeTypes = {
@@ -90,8 +99,6 @@ import RejectNode from './nodes/RejectNode.svelte';
     {nodeTypes}
     fitView
     class="bg-gray-50"
-    onnodeschange={(e) => { nodes = e.nodes; onchange?.(nodes, edges); }}
-    onedgeschange={(e) => { edges = e.edges; onchange?.(nodes, edges); }}
   >
     <Background />
     <Controls />
