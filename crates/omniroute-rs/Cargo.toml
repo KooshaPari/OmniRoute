@@ -11,13 +11,8 @@ members = [
     "crates/omniroute-cli",
     "crates/omniroute-bifrost",
 
-    # Dispatch FFI crates (ADR-032)
-    "../omniroute-ffi/crates/combo-scorer",
-    "../omniroute-ffi/crates/signature-cache",
-    "../omniroute-ffi/crates/sse-chunking",
-    "../omniroute-ffi/crates/bifrost-bridge",
-    "../omniroute-ffi/crates/combo-scorer-napi",
-
+    # Dispatch FFI crates live in crates/omniroute-ffi (own workspace). Do not
+    # dual-list them here — cargo rejects members of another workspace.
 ]
 
 [workspace.package]
