@@ -3,7 +3,7 @@
 > **Status:** Selection-gate spike (ADR-ECO-015 hybrid gateway app layer)  
 > **Registry choice:** FFI + Electrobun → canonical path `apps/desktop/` (this tree promoted from repo root)
 
-Electrobun + Bun shell that wraps the OmniRoute web UI (`RENDERER_URL`, default `http://localhost:3000`) with optional one-click `process-compose` service boot. Existing Electron shell remains in [`../electron/`](../electron/) until this spike passes the gate below.
+Electrobun + Bun shell that wraps the OmniRoute web UI (`RENDERER_URL`, default `http://localhost:3000`) with optional one-click `process-compose` service boot. This is the **canonical desktop spike** (not Electron, not Tauri-on-main). Legacy Electron remains in [`../electron/`](../electron/) for packaging until this spike passes the gate below; CI Electron smoke is path-filtered and is not the required desktop gate.
 
 ## Selection gate
 

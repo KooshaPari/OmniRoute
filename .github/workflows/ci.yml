@@ -29,6 +29,7 @@ jobs:
       docs: ${{ steps.classify.outputs.docs }}
       i18n: ${{ steps.classify.outputs.i18n }}
       workflow: ${{ steps.classify.outputs.workflow }}
+      electron: ${{ steps.classify.outputs.electron }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
@@ -46,6 +47,7 @@ jobs:
               echo "docs=true"
               echo "i18n=true"
               echo "workflow=true"
+              echo "electron=true"
             } >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -54,6 +56,9 @@ jobs:
           docs=false
           i18n=false
           workflow=false
+          # Legacy Electron shell — only required when electron/ or its smoke path changes.
+          # Canonical desktop spike is desktop-electrobun/ (ADR-ECO-015); see desktop-electrobun.yml.
+          electron=false
 
           git diff --name-only "$BASE_SHA" "$HEAD_SHA" > changed-files.txt
 
@@ -70,7 +75,11 @@ jobs:
                 i18n=true
                 code=true
                 ;;
-              src/*|open-sse/*|bin/*|electron/*|tests/*|scripts/*|package.json|package-lock.json|tsconfig*.json|next.config.*|vitest*.config.*|playwright.config.*)
+              electron/*|scripts/dev/smoke-electron*|electron-package-smoke*)
+                electron=true
+                code=true
+                ;;
+              src/*|open-sse/*|bin/*|tests/*|scripts/*|package.json|package-lock.json|tsconfig*.json|next.config.*|vitest*.config.*|playwright.config.*)
                 code=true
                 ;;
               db/*|config/*)
@@ -87,6 +96,7 @@ jobs:
             echo "docs=$docs"
             echo "i18n=$i18n"
             echo "workflow=$workflow"
+            echo "electron=$electron"
           } >> "$GITHUB_OUTPUT"
 
   lint:
@@ -575,7 +585,10 @@ jobs:
     name: Electron Package Smoke
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    needs: build
+    # Legacy Electron path only. Canonical desktop gate is Electrobun
+    # (.github/workflows/desktop-electrobun.yml). Skip on PRs that do not touch electron/.
+    needs: [changes, build]
+    if: ${{ github.event_name != 'pull_request' || needs.changes.outputs.electron == 'true' }}
     env:
       JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
       CSC_IDENTITY_AUTO_DISCOVERY: "false"

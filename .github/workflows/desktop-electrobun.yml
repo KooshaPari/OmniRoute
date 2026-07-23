@@ -4,7 +4,15 @@ on:
   pull_request:
     paths:
       - "desktop-electrobun/**"
+      - "apps/desktop/**"
       - "apps/web/**"
+      - "scripts/build/prepare-electrobun-web.mjs"
+      - ".github/workflows/desktop-electrobun.yml"
+  push:
+    branches: [main]
+    paths:
+      - "desktop-electrobun/**"
+      - "apps/desktop/**"
       - "scripts/build/prepare-electrobun-web.mjs"
       - ".github/workflows/desktop-electrobun.yml"
   workflow_dispatch:
