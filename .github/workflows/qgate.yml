@@ -32,6 +32,7 @@ permissions:
 jobs:
   qgate:
     continue-on-error: true   # remove once coverage ≥60%
+    timeout-minutes: 45       # bound npm/coverage/Rust stalls; preserve a terminal gate result
 
     runs-on: ubuntu-latest   # Linux standard only — no billed runners
 
