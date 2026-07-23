@@ -6,6 +6,7 @@ on:
       - "desktop-electrobun/**"
       - "apps/desktop/**"
       - "apps/web/**"
+      - "apps/bff/**"
       - "scripts/build/prepare-electrobun-web.mjs"
       - ".github/workflows/desktop-electrobun.yml"
   push:
@@ -13,6 +14,7 @@ on:
     paths:
       - "desktop-electrobun/**"
       - "apps/desktop/**"
+      - "apps/bff/**"
       - "scripts/build/prepare-electrobun-web.mjs"
       - ".github/workflows/desktop-electrobun.yml"
   workflow_dispatch:
@@ -36,6 +38,9 @@ jobs:
       - name: Build web client handoff
         working-directory: apps/web
         run: bun run build
+      - name: Install Hono/Bun backend dependencies
+        working-directory: apps/bff
+        run: bun install --frozen-lockfile
       - name: Install desktop dependencies
         working-directory: desktop-electrobun
         run: bun install --ignore-scripts
