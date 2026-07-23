@@ -1,0 +1,138 @@
+name: proccompose-deploy-gate
+
+# The deploy plane's CI gate.
+# Runs `proccompose ci` (test + validate + doctor + dry-run) on every PR
+# touching proccompose/, bin/, scripts/cutover.sh, scripts/deploy-to-desktop.sh.
+# If the gate fails, deploy/ref/cutover/release subcommands will refuse to
+# run in production (cmd_deploy runs cmd_test as a pre-deploy gate).
+#
+# Sponsor action items: this workflow does NOT need Vercel secrets or
+# WorkOS secrets - it's hermetic. It only invokes commands that work
+# without external network access.
+
+on:
+  push:
+    branches: [feat/v4-svelte-hono-monorepo, main]
+  pull_request:
+    branches: [feat/v4-svelte-hono-monorepo, main]
+  workflow_dispatch:
+
+jobs:
+  proccompose-gate:
+    name: proccompose ci gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+
+      - name: Install proccompose deps
+        run: |
+          if [[ -f proccompose/package.json ]]; then
+            cd proccompose && bun install
+          else
+            echo "no proccompose/package.json - skipping bun install"
+          fi
+
+      - name: Make proccompose executable
+        run: chmod +x proccompose/proccompose
+
+      - name: Install proccompose python deps
+        run: |
+          python3 -m pip install --quiet pyyaml 2>/dev/null || \
+            python3 -c "import yaml" 2>/dev/null || \
+            (echo "::warning::PyYAML not available; install pyyaml for full gate" && \
+             sudo apt-get update -qq && sudo apt-get install -y python3-yaml)
+
+      - name: Stub external CLIs for hermetic test
+        run: |
+          mkdir -p /tmp/proccompose-stubs
+          cat > /tmp/proccompose-stubs/pheno <<'PHENO_EOF'
+          #!/usr/bin/env bash
+          case "${1:-}" in
+            run)
+              case "${2:-}" in
+                *tailscale*) echo '{}' ;;
+                *curl*)      exit 1 ;;
+                *launchctl*) echo no ;;
+                *)           echo stub ;;
+              esac ;;
+            ts) echo "100.64.0.1" ;;
+            *)  echo stub ;;
+          esac
+          PHENO_EOF
+          cat > /tmp/proccompose-stubs/vercel <<'VERCEL_EOF'
+          #!/usr/bin/env bash
+          echo "stub vercel $*"
+          VERCEL_EOF
+          cat > /tmp/proccompose-stubs/tailscale <<'TS_EOF'
+          #!/usr/bin/env bash
+          case "${1:-}" in
+            status) echo '{}' ;;
+            funnel) echo stub ;;
+            *) echo stub ;;
+          esac
+          TS_EOF
+          cat > /tmp/proccompose-stubs/yq <<'EOF
+          #!/usr/bin/env bash
+          python3 -c "import sys,yaml,json;print(json.dumps(yaml.safe_load(open(sys.argv[1]))))" "$1"
+          EOF
+          chmod +x /tmp/proccompose-stubs/*
+          echo "/tmp/proccompose-stubs added to PATH for next steps"
+
+      - name: Run proccompose test suite (8 steps / 31 assertions)
+        run: bash proccompose/tests/proccompose.test.sh
+        env:
+          PATH: /tmp/proccompose-stubs:$PATH
+          PROCCOMPOSE_HOME: /tmp/proccompose-home
+
+      - name: Run proccompose ci (test + validate + doctor + dry-run)
+        run: proccompose/proccompose ci
+        env:
+          PATH: /tmp/proccompose-stubs:$PATH
+
+      - name: Verify pre-deploy test gate refuses on broken YAML
+        run: |
+          cp proccompose/proccompose.yaml /tmp/proccompose.yaml.bak
+          echo "this is: not: valid: yaml: [" > proccompose/proccompose.yaml
+          if proccompose/proccompose deploy origin/feat/v4-svelte-hono-monorepo 2>&1 | grep -q "pre-deploy test gate FAILED"; then
+            echo "OK: cmd_deploy refused to deploy when tests fail"
+          else
+            echo "FAIL: cmd_deploy did NOT refuse on broken yaml"
+            exit 1
+          fi
+          cp /tmp/proccompose.yaml.bak proccompose/proccompose.yaml
+
+      - name: Verify MCP stdio transport (initialize + tools/list)
+        run: |
+          printf '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{}}\n{"jsonrpc":"2.0","id":"2","method":"tools/list","params":{}}\n' \
+            | proccompose/proccompose serve-stdio 2>/dev/null \
+            | tee /tmp/proc-stdio.log
+          grep -q '"tools":' /tmp/proc-stdio.log || (echo "FAIL: tools/list missing"; exit 1)
+          echo "OK: stdio transport round-trip works"
+
+      - name: Verify MCP SSE transport (/health + /tools)
+        run: |
+          proccompose/proccompose serve-sse 14399 > /tmp/proc-sse.log 2>&1 &
+          SSE_PID=$!
+          for i in 1 2 3 4 5 6; do
+            curl -fsS --max-time 1 http://127.0.0.1:14399/health >/dev/null 2>&1 && break
+            sleep 0.5
+          done
+          curl -fsS http://127.0.0.1:14399/health
+          echo
+          TOOLS=$(curl -fsS http://127.0.0.1:14399/tools | python3 -c "import sys,json;print(len(json.load(sys.stdin)['tools']))")
+          [[ "$TOOLS" -ge 10 ]] || (echo "FAIL: only $TOOLS tools via SSE"; kill $SSE_PID; exit 1)
+          echo "OK: $TOOLS tools exposed via SSE"
+          kill $SSE_PID 2>/dev/null || true
+          wait $SSE_PID 2>/dev/null || true
+
+      - name: Install proccompose to /usr/local/bin for downstream steps
+        if: success()
+        run: |
+          sudo cp proccompose/proccompose /usr/local/bin/proccompose
+          sudo chmod +x /usr/local/bin/proccompose
+          proccompose help | head -5
