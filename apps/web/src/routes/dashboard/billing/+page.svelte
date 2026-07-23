@@ -1,11 +1,12 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
   type Plan = { name: string; pricePerMonth: number; seats: number; renewsAt: string };
   let plan = $state<Plan | null>(null);
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/billing');
+    const r = await fetch(bffApiUrl('/api/dashboard/billing'));
     if (r.ok) plan = await r.json();
   });
 </script>

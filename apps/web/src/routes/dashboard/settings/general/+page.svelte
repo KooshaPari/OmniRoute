@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
 
@@ -17,7 +18,7 @@
     error = null;
     saved = false;
     try {
-      const res = await fetch('http://localhost:4322/api/dashboard/settings', {
+      const res = await fetch(bffApiUrl('/api/dashboard/settings'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         credentials: 'include',

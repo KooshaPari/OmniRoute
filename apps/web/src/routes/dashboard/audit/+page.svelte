@@ -1,10 +1,11 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import { onMount } from 'svelte';
   type Audit = { id: string; ts: string; actor: string; action: string; target: string; ip: string; result: 'success' | 'failure' };
   let events = $state<Audit[]>([]);
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/audit');
+    const r = await fetch(bffApiUrl('/api/dashboard/audit'));
     if (r.ok) events = (await r.json()).events ?? [];
   });
 </script>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
@@ -12,7 +13,7 @@
   let testResult = $state<string | null>(null);
 
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/sso');
+    const r = await fetch(bffApiUrl('/api/dashboard/sso'));
     if (r.ok) sso = await r.json();
   });
 
@@ -20,7 +21,7 @@
     if (!sso) return;
     saving = true;
     try {
-      await fetch('http://localhost:4322/api/dashboard/sso', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(sso) });
+      await fetch(bffApiUrl('/api/dashboard/sso'), { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(sso) });
       saved = true;
     } finally { saving = false; }
   }
@@ -39,7 +40,7 @@
     testing = true;
     testResult = null;
     try {
-      const r = await fetch('http://localhost:4322/api/dashboard/sso/test', { method: 'POST' });
+      const r = await fetch(bffApiUrl('/api/dashboard/sso/test'), { method: 'POST' });
       if (r.ok) testResult = 'OK - SSO endpoint reachable';
       else testResult = `Failed: ${r.status}`;
     } finally { testing = false; }

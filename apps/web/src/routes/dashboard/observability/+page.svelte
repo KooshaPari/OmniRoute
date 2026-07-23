@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import { unavailableMessage } from '$lib/observability/unavailable';
   import { onMount } from 'svelte';
@@ -18,9 +19,9 @@
 
   onMount(async () => {
     const [a, b, c] = await Promise.all([
-      fetch('http://localhost:4322/api/dashboard/observability/overview').then((r) => r.ok ? r.json() : null),
-      fetch('http://localhost:4322/api/dashboard/observability/timeseries').then((r) => r.ok ? r.json() : null),
-      fetch('http://localhost:4322/api/dashboard/observability/top-endpoints').then((r) => r.ok ? r.json() : null),
+      fetch(bffApiUrl('/api/dashboard/observability/overview')).then((r) => r.ok ? r.json() : null),
+      fetch(bffApiUrl('/api/dashboard/observability/timeseries')).then((r) => r.ok ? r.json() : null),
+      fetch(bffApiUrl('/api/dashboard/observability/top-endpoints')).then((r) => r.ok ? r.json() : null),
     ]);
     overview = a; series = b?.points ?? []; topEndpoints = c?.endpoints ?? [];
   });
