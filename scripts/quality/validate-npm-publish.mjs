@@ -10,66 +10,53 @@
 //     already published, etc.)
 //   - Polluting the registry with malformed tarballs (missing files, bad
 //     engines, bad bin entries)
-//   - Leaving the working tree dirty (broken package.json, missing exports)
+//   - Burning CI minutes on oversized tarballs (npm hard limit is 100 MB
+//     unpacked, 1 MB tarball for non-provenance scoped packages)
 //
-// This validator runs entirely locally — no network calls. It checks:
+// Modes:
+//   --check-remote        additionally verifies the version hasn't been published
+//   --strict-advisory     promotes ADVISORY failures to REQUIRED (for final gates)
+//   --max-tarball-mb N    override the tarball limit (default 1.0 MB)
+//   --max-unpacked-mb N   override the unpacked limit (default 100 MB)
 //
-//   REQUIRED (hard fail):
-//     - package.json parses
-//     - "name" matches /^@?omniroute\// and is < 214 chars
-//     - "version" parses as semver
-//     - "private" is NOT true (publishing a private package is forbidden)
-//     - "license" is set
-//     - "files" field, if present, points to existing paths
-//     - "bin" entries, if present, point to existing files (after build)
-//     - "engines.node" parses as a valid range
-//     - "main"/"exports" point to existing paths
-//     - Working tree is clean (no uncommitted changes that would be excluded)
-//     - Version hasn't already been published to npm (this requires network —
-//       skipped by default; --check-remote enables it)
-//
-//   ADVISORY (report only, never blocks):
-//     - README.md / LICENSE exist at the package root
-//     - "repository" field is set
-//     - "homepage" is set
-//     - "bugs" field is set
+// Exit codes:
+//   0   all REQUIRED checks pass (advisories may fail unless --strict-advisory)
+//   1   one or more REQUIRED checks failed
+//   2   unexpected runtime error (uncaught exception)
 //
 // Usage:
 //   node scripts/quality/validate-npm-publish.mjs [--json] [--check-remote]
-//     --json          machine-readable output (report on stderr, JSON on stdout)
-//     --check-remote  also query the npm registry to check version is unpublished
-//     --package=PATH  validate a different package.json (default: ./package.json)
-//
-// Exit codes:
-//   0  — package is publishable (or --check-remote confirmed unpublished)
-//   1  — hard failure (at least one REQUIRED check failed)
-//   2  — advisory issues only (warnings printed, exit 0 normally; exit 2 with
-//        --strict-advisory)
-//
-// This script is wired into the release workflows as a pre-step before
-// `npm publish` so failures surface in the workflow run summary instead of as
-// a half-finished publish attempt.
+//     [--strict-advisory] [--max-tarball-mb N] [--max-unpacked-mb N] [--package=PATH]
 
-import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
-const { argv } = process;
 
 // ─── CLI ────────────────────────────────────────────────────────────────────
 
 function parseArgs(argv) {
-  const out = { json: false, checkRemote: false, strictAdvisory: false, package: null };
+  const out = {
+    json: false,
+    checkRemote: false,
+    strictAdvisory: false,
+    package: null,
+    maxTarballMb: 1.0,
+    maxUnpackedMb: 100.0,
+  };
   for (const arg of argv.slice(2)) {
     if (arg === "--json") out.json = true;
     else if (arg === "--check-remote") out.checkRemote = true;
     else if (arg === "--strict-advisory") out.strictAdvisory = true;
     else if (arg.startsWith("--package=")) out.package = arg.slice("--package=".length);
+    else if (arg.startsWith("--max-tarball-mb=")) out.maxTarballMb = parseFloat(arg.slice("--max-tarball-mb=".length));
+    else if (arg.startsWith("--max-unpacked-mb=")) out.maxUnpackedMb = parseFloat(arg.slice("--max-unpacked-mb=".length));
     else if (arg === "--help" || arg === "-h") {
-      console.log("Usage: validate-npm-publish.mjs [--json] [--check-remote] [--strict-advisory] [--package=PATH]");
+      console.log("Usage: validate-npm-publish.mjs [--json] [--check-remote] [--strict-advisory]");
+      console.log("                              [--max-tarball-mb N] [--max-unpacked-mb N] [--package=PATH]");
       process.exit(0);
     }
   }
@@ -78,10 +65,11 @@ function parseArgs(argv) {
 
 // ─── Pure helpers (exported for tests) ──────────────────────────────────────
 
-/** Parse a semver string, returning the major.minor.patch core plus any prerelease tag. */
+/**
+ * Parse a semver string, returning the major.minor.patch core plus any prerelease tag.
+ */
 export function parseSemver(v) {
   if (typeof v !== "string") return null;
-  // Semver regex from semver.org: MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]
   const m = v.match(/^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-.]+))?(?:\+([0-9A-Za-z-.]+))?$/);
   if (!m) return null;
   return {
@@ -94,7 +82,9 @@ export function parseSemver(v) {
   };
 }
 
-/** Validate that a package is publish-ready. Returns { required: [...], advisory: [...] }. */
+/**
+ * Validate that a package is publish-ready. Returns { required: [...], advisory: [...] }.
+ */
 export function validatePackage(pkg, options = {}) {
   const required = [];
   const advisory = [];
@@ -107,13 +97,10 @@ export function validatePackage(pkg, options = {}) {
     if (pkg.name.length > 214) {
       required.push({ field: "name", message: `name is ${pkg.name.length} chars (max 214)` });
     }
-    if (!/^@?[a-z0-9][a-z0-9-_.]*\/?[a-z0-9][a-z0-9-_.]*$/.test(pkg.name) && !/^@?[a-z0-9][a-z0-9-_.]*$/.test(pkg.name)) {
-      // scoped names: @scope/name; unscoped: name
-      const scopeOk = /^@[a-z0-9][a-z0-9-_.]*\/[a-z0-9][a-z0-9-_.]*$/.test(pkg.name);
-      const unscopedOk = /^[a-z0-9][a-z0-9-_.]*$/.test(pkg.name);
-      if (!scopeOk && !unscopedOk) {
-        required.push({ field: "name", message: `name "${pkg.name}" contains invalid characters` });
-      }
+    const scopeOk = /^@[a-z0-9][a-z0-9-_.]*\/[a-z0-9][a-z0-9-_.]*$/.test(pkg.name);
+    const unscopedOk = /^[a-z0-9][a-z0-9-_.]*$/.test(pkg.name);
+    if (!scopeOk && !unscopedOk) {
+      required.push({ field: "name", message: `name "${pkg.name}" contains invalid characters` });
     }
   }
 
@@ -129,38 +116,32 @@ export function validatePackage(pkg, options = {}) {
     required.push({ field: "private", message: "private:true — cannot publish a private package" });
   }
 
-  // Required: license (allow UNLICENSED/SEE-LICENSE-IN but warn if missing)
+  // Required: license
   if (!pkg.license && !pkg.licenses) {
     required.push({ field: "license", message: "license is required" });
   }
 
-  // Required: files field — if present, every entry must point to existing path
-  // (skip negation patterns starting with `!` — npm-packlist treats those as
-  // exclusions, not includes, so existence is irrelevant).
+  // Required: files field — every entry must point to existing path
   if (Array.isArray(pkg.files)) {
     for (const f of pkg.files) {
       if (typeof f !== "string") {
         required.push({ field: "files", message: `files entry "${f}" is not a string` });
         continue;
       }
-      // Negation pattern (npm exclude) — skip path validation entirely.
-      if (f.startsWith("!")) continue;
+      if (f.startsWith("!")) continue; // negation pattern
       if (f.startsWith("/") || f.includes("..")) {
-        required.push({ field: "files", message: `files entry "${f}" has unsafe path (absolute or contains ..)` });
+        required.push({ field: "files", message: `files entry "${f}" has unsafe path` });
         continue;
       }
+      if (f.endsWith("/")) continue; // directory entries are valid
       const abs = resolve(root, f);
-      // Directory entries (ending in `/`) are valid even if the directory
-      // doesn't exist locally — npm creates the dir on publish if matching
-      // files are found inside it.
-      if (f.endsWith("/")) continue;
       if (!existsSync(abs)) {
         required.push({ field: "files", message: `files entry "${f}" does not exist` });
       }
     }
   }
 
-  // Required: bin entries — must point to existing files (relative to package.json)
+  // Required: bin entries — must point to existing files
   if (pkg.bin) {
     const bins = typeof pkg.bin === "string" ? { [pkg.name]: pkg.bin } : pkg.bin;
     for (const [binName, binPath] of Object.entries(bins)) {
@@ -175,7 +156,7 @@ export function validatePackage(pkg, options = {}) {
     }
   }
 
-  // Required: engines.node parses as a valid range (semver-ish)
+  // Required: engines.node parses as a valid range
   if (pkg.engines?.node) {
     if (typeof pkg.engines.node !== "string" || !/^[~^>=<| \d.*x-]+$/.test(pkg.engines.node)) {
       required.push({ field: "engines.node", message: `engines.node "${pkg.engines.node}" is not a valid range` });
@@ -192,7 +173,6 @@ export function validatePackage(pkg, options = {}) {
   if (pkg.exports && typeof pkg.exports === "object") {
     const checkExportTarget = (target, ctx) => {
       if (typeof target === "string") {
-        // "." or "./something" — only check if it looks like a file path
         if (target.startsWith("./") && !target.endsWith("/")) {
           const abs = resolve(root, target);
           if (!existsSync(abs)) {
@@ -210,44 +190,37 @@ export function validatePackage(pkg, options = {}) {
     }
   }
 
-  // Advisory: README + LICENSE at package root
+  // Advisory: README + LICENSE
   if (!existsSync(join(root, "README.md")) && !existsSync(join(root, "README"))) {
     advisory.push({ field: "README", message: "README.md/README not found at package root" });
   }
   if (!existsSync(join(root, "LICENSE")) && !existsSync(join(root, "LICENSE.md"))) {
     advisory.push({ field: "LICENSE", message: "LICENSE/LICENSE.md not found at package root" });
   }
-
-  // Advisory: repository field
-  if (!pkg.repository) {
-    advisory.push({ field: "repository", message: "repository field is not set" });
-  }
-
-  // Advisory: homepage
-  if (!pkg.homepage) {
-    advisory.push({ field: "homepage", message: "homepage field is not set" });
-  }
-
-  // Advisory: bugs field
-  if (!pkg.bugs) {
-    advisory.push({ field: "bugs", message: "bugs field is not set" });
-  }
+  if (!pkg.repository) advisory.push({ field: "repository", message: "repository field is not set" });
+  if (!pkg.homepage) advisory.push({ field: "homepage", message: "homepage field is not set" });
+  if (!pkg.bugs) advisory.push({ field: "bugs", message: "bugs field is not set" });
 
   return { required, advisory };
 }
 
-/** Check whether a version is already published to the npm registry. Returns null on network error. */
+/**
+ * Check whether a version is already published to the npm registry.
+ * Returns null on network error.
+ */
 export async function isVersionPublished(name, version) {
   const url = `https://registry.npmjs.org/${encodeURIComponent(name)}/${version}`;
   try {
     const res = await fetch(url, { method: "HEAD" });
     return res.status === 200;
   } catch {
-    return null; // unknown
+    return null;
   }
 }
 
-/** Check that the working tree has no uncommitted changes to publishable paths. */
+/**
+ * Check that the working tree has no uncommitted changes to publishable paths.
+ */
 export function checkWorkingTreeClean(root = ROOT) {
   try {
     const out = execFileSync("git", ["status", "--porcelain", "--", "package.json", "package-lock.json"], {
@@ -258,6 +231,52 @@ export function checkWorkingTreeClean(root = ROOT) {
   } catch (e) {
     return { clean: false, output: e.message };
   }
+}
+
+/**
+ * Run `npm pack --dry-run` and return the declared tarball + unpacked sizes.
+ * npm's publish hard limit is 100 MB unpacked and ~1 MB tarball for non-provenance
+ * scoped packages, 4 MB tarball for provenance.
+ *
+ * @param {object} opts
+ * @param {number} [opts.limitTarballMb=1.0] tarball size cap in MB
+ * @param {number} [opts.limitUnpackedMb=100.0] unpacked size cap in MB
+ * @param {string} [opts.cwd=process.cwd()]
+ * @returns {Promise<{ok: boolean, tarballMb: number, unpackedMb: number, fileCount: number, errors: string[], warnings: string[]}>}
+ */
+export async function checkTarballSize({ limitTarballMb = 1.0, limitUnpackedMb = 100.0, cwd = process.cwd() } = {}) {
+  const result = { ok: true, tarballMb: 0, unpackedMb: 0, fileCount: 0, errors: [], warnings: [] };
+  try {
+    const out = spawnSync("npm", ["pack", "--dry-run", "--json"], { cwd, encoding: "utf8" });
+    if (out.status !== 0) {
+      result.ok = false;
+      result.errors.push(`npm pack --dry-run exited ${out.status}: ${(out.stderr || "").trim().slice(0, 300)}`);
+      return result;
+    }
+    const json = JSON.parse(out.stdout || "[]");
+    if (!Array.isArray(json) || json.length === 0) {
+      result.warnings.push("npm pack --dry-run produced no entries");
+      return result;
+    }
+    const entry = json[0];
+    result.fileCount = (entry.entryCount != null) ? entry.entryCount : (Array.isArray(entry.files) ? entry.files.length : 0);
+    result.tarballMb  = Number(entry.tarballSize  || 0) / (1024 * 1024);
+    result.unpackedMb = Number(entry.unpackedSize || 0) / (1024 * 1024);
+    if (result.tarballMb > limitTarballMb) {
+      result.ok = false;
+      result.errors.push(`Tarball size ${result.tarballMb.toFixed(2)} MB exceeds limit ${limitTarballMb} MB (npm non-provenance cap). Tighten the "files" array in package.json or enable provenance (--provenance).`);
+    } else if (result.tarballMb > limitTarballMb * 0.8) {
+      result.warnings.push(`Tarball size ${result.tarballMb.toFixed(2)} MB is approaching limit ${limitTarballMb} MB.`);
+    }
+    if (result.unpackedMb > limitUnpackedMb) {
+      result.ok = false;
+      result.errors.push(`Unpacked size ${result.unpackedMb.toFixed(2)} MB exceeds npm hard limit ${limitUnpackedMb} MB.`);
+    }
+  } catch (e) {
+    result.ok = false;
+    result.errors.push(`checkTarballSize threw: ${e.message}`);
+  }
+  return result;
 }
 
 // ─── Main ───────────────────────────────────────────────────────────────────
@@ -282,13 +301,30 @@ async function main() {
 
   const report = validatePackage(pkg, { root: pkgDir });
   const treeStatus = checkWorkingTreeClean(pkgDir);
+
+  // Tarball-size check (catches E413 Payload Too Large BEFORE publish).
+  // Per npm publish-policies: max tarball is 1 MB for non-provenance packages
+  // and 100 MB for provenance-enabled. We default to the stricter limit and
+  // allow override via --max-tarball-mb / --max-unpacked-mb.
+  const packResult = await checkTarballSize({
+    limitTarballMb: cli.maxTarballMb,
+    limitUnpackedMb: cli.maxUnpackedMb,
+    cwd: pkgDir,
+  });
+  if (!packResult.ok) {
+    for (const err of packResult.errors) {
+      report.required.push({ field: "tarball-size", message: err });
+    }
+  }
+  for (const warn of packResult.warnings) {
+    report.advisory.push({ field: "tarball-size", message: warn });
+  }
+
   if (!treeStatus.clean) {
     // Working-tree dirty is reported as ADVISORY not REQUIRED, because in CI
     // the checkout is always dirty (release workflows bump package.json before
     // calling this validator, and the version-bump is a legitimate in-flight
     // edit). The version-bump trap in the workflow restores the tree on EXIT.
-    // If you want a strict tree-clean check (e.g. for local manual publish),
-    // use --strict-advisory to elevate advisory to exit 2.
     report.advisory.push({ field: "working-tree", message: `uncommitted changes in package.json/lock: ${treeStatus.output}` });
   }
 
@@ -305,6 +341,11 @@ async function main() {
 
   const result = {
     package: { name: pkg.name, version: pkg.version, private: pkg.private ?? false },
+    tarball: {
+      sizeMb: packResult.tarballMb,
+      unpackedMb: packResult.unpackedMb,
+      fileCount: packResult.fileCount,
+    },
     required: report.required,
     advisory: report.advisory,
     summary: {
@@ -320,6 +361,7 @@ async function main() {
   } else {
     console.log(`\n=== npm-publish preflight ===`);
     console.log(`package: ${result.package.name}@${result.package.version}`);
+    console.log(`tarball: ${result.tarball.sizeMb.toFixed(2)} MB (${result.tarball.fileCount} files, ${result.tarball.unpackedMb.toFixed(1)} MB unpacked)`);
     if (result.summary.remoteChecked) {
       console.log(`remote:  ${result.summary.remotePublished === false ? "unpublished" : result.summary.remotePublished === true ? "ALREADY PUBLISHED" : "unknown"}`);
     }
@@ -348,10 +390,10 @@ async function main() {
   process.exit(0);
 }
 
-if (argv[1] && import.meta.url === `file://${argv[1]}`) {
-  const { argv } = process;
+const isCli = import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith("validate-npm-publish.mjs");
+if (isCli) {
   main().catch((e) => {
     console.error(`validate-npm-publish: ${e.message}`);
-    process.exit(1);
+    process.exit(2);
   });
 }
