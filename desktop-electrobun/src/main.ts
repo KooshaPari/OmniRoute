@@ -7,7 +7,7 @@
  *  - Standard window with hiddenInset title bar, 1400x900 default
  *  - Minimal app menu wired to webview JS dispatch
  */
-import { BrowserWindow, ApplicationMenu } from "electrobun/bun";
+import { BrowserWindow, ApplicationMenu, Tray, Utils } from "electrobun/bun";
 import { $ } from "bun";
 import { join, resolve } from "node:path";
 
@@ -25,7 +25,10 @@ const DEV_URL = process.env.RENDERER_URL ?? "http://localhost:3000";
  * Leave unset to skip service boot.
  */
 const SERVICES_COMPOSE_FILE = process.env.SERVICES_COMPOSE_FILE;
-const STANDALONE_DIR = resolve(process.env.OMNIROUTE_STANDALONE_DIR ?? "../.build/next/standalone");
+const STANDALONE_DIR = resolve(
+  process.env.OMNIROUTE_STANDALONE_DIR ??
+    resolve(import.meta.dir, "../../.build/next/standalone"),
+);
 const SERVER_PORT = Number(process.env.OMNIROUTE_PORT ?? "20128");
 let nextServer: ReturnType<typeof Bun.spawn> | undefined;
 
@@ -85,12 +88,42 @@ function createMainWindow(): BrowserWindow {
     },
     titleBarStyle: "hiddenInset",
   });
+  // Electrobun does not guarantee activation from the constructor when launched
+  // by Finder/LaunchServices. Explicitly show and focus the window.
+  win.show();
   try {
     win.webview.executeJavascript(`window.__RENDERER_URL__ = ${JSON.stringify(DEV_URL)};`);
   } catch {
     /* webview not ready yet — fallback page uses its baked-in default */
   }
   return win;
+}
+
+function setupTray(win: BrowserWindow): Tray | undefined {
+  try {
+    const tray = new Tray({ title: "OmniRoute", template: true });
+    tray.setMenu([
+      { type: "normal", label: "Open OmniRoute", action: "open" },
+      { type: "normal", label: "Reload", action: "reload" },
+      { type: "separator" },
+      { type: "normal", label: "Quit OmniRoute", action: "quit" },
+    ]);
+    tray.on("tray-clicked", (event: any) => {
+      const action = event?.data?.action ?? event?.action;
+      if (action === "open") {
+        win.show();
+        win.focus();
+      } else if (action === "reload") {
+        win.webview.loadURL(win.webview.url ?? FALLBACK_RENDERER_URL);
+      } else if (action === "quit") {
+        Utils.quit();
+      }
+    });
+    return tray;
+  } catch (error) {
+    console.warn(`[${APP_NAME}] Tray unavailable; application menu remains available`, error);
+    return undefined;
+  }
 }
 
 // ── Menu ─────────────────────────────────────────────────────────────────────
@@ -154,6 +187,7 @@ async function main(): Promise<void> {
   const win = createMainWindow();
   if (bundledUrl) win.webview.loadURL(bundledUrl);
   setupMenu(win);
+  setupTray(win);
   console.log(`[${APP_NAME}] Launched → ${bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`);
 }
 
