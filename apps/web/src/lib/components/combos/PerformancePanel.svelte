@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import { unavailableMessage } from '$lib/observability/unavailable';
   import { onMount } from 'svelte';
@@ -12,7 +13,7 @@
   let loading = $state(true);
 
   onMount(async () => {
-    const r = await fetch(`http://localhost:4322/api/dashboard/performance?range=${range}`);
+    const r = await fetch(bffApiUrl(`/api/dashboard/performance?range=${range}`));
     if (r.ok) {
       const j = await r.json() as PerformanceResponse;
       unavailable = unavailableMessage(j, 'Runtime model aggregation');

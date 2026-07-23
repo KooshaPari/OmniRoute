@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import { onMount } from 'svelte';
   type Row = { day: string; cost: number; tokens: number; requests: number };
@@ -6,7 +7,7 @@
   let total = $derived(rows.reduce((s, r) => s + r.cost, 0));
   let max = $derived(Math.max(1, ...rows.map((r) => r.cost)));
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/cost');
+    const r = await fetch(bffApiUrl('/api/dashboard/cost'));
     if (r.ok) rows = (await r.json()).rows ?? [];
   });
 </script>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
@@ -16,7 +17,7 @@
   let testResult = $state<string | null>(null);
 
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/notifications');
+    const r = await fetch(bffApiUrl('/api/dashboard/notifications'));
     if (r.ok) prefs = await r.json();
   });
 
@@ -24,7 +25,7 @@
     if (!prefs) return;
     saving = true;
     try {
-      await fetch('http://localhost:4322/api/dashboard/notifications', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(prefs) });
+      await fetch(bffApiUrl('/api/dashboard/notifications'), { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(prefs) });
       saved = true;
     } finally { saving = false; }
   }
@@ -33,7 +34,7 @@
     testing = true;
     testResult = null;
     try {
-      const r = await fetch('http://localhost:4322/api/dashboard/notifications/test', { method: 'POST' });
+      const r = await fetch(bffApiUrl('/api/dashboard/notifications/test'), { method: 'POST' });
       if (r.ok) {
         const j = await r.json();
         testResult = `Test sent to ${j.sentTo}`;

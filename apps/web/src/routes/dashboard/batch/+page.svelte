@@ -1,10 +1,11 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import { onMount } from 'svelte';
   type Batch = { id: string; name: string; status: 'queued'|'running'|'done'|'failed'; progress: number; createdAt: string; totalItems: number };
   let batches = $state<Batch[]>([]);
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/batch');
+    const r = await fetch(bffApiUrl('/api/dashboard/batch'));
     if (r.ok) batches = (await r.json()).batches ?? [];
   });
   const statusColor = { queued: 'bg-gray-200', running: 'bg-blue-500', done: 'bg-green-500', failed: 'bg-red-500' } as const;

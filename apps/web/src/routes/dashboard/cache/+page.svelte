@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import { unavailableMessage } from '$lib/observability/unavailable';
   import { onMount } from 'svelte';
@@ -12,7 +13,7 @@
   };
   let stats = $state<CacheStats | null>(null);
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/cache');
+    const r = await fetch(bffApiUrl('/api/dashboard/cache'));
     if (r.ok) stats = await r.json();
   });
   const unavailable = $derived(unavailableMessage(stats, 'Cache metrics'));

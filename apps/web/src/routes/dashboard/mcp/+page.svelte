@@ -1,11 +1,12 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
   type McpServer = { id: string; name: string; transport: 'stdio'|'http'|'sse'; endpoint: string; enabled: boolean; tools: number };
   let servers = $state<McpServer[]>([]);
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/mcp');
+    const r = await fetch(bffApiUrl('/api/dashboard/mcp'));
     if (r.ok) servers = (await r.json()).servers ?? [];
   });
 </script>

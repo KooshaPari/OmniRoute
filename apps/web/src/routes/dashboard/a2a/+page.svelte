@@ -1,10 +1,11 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import { onMount } from 'svelte';
   type Agent = { id: string; name: string; endpoint: string; version: string; lastSeen: string; status: 'online'|'offline'|'degraded' };
   let agents = $state<Agent[]>([]);
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/a2a');
+    const r = await fetch(bffApiUrl('/api/dashboard/a2a'));
     if (r.ok) agents = (await r.json()).agents ?? [];
   });
   const statusColor = { online: 'bg-green-100 text-green-800', offline: 'bg-gray-200 text-gray-700', degraded: 'bg-yellow-100 text-yellow-800' } as const;

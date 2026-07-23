@@ -1,8 +1,9 @@
+import { bffUrl } from '$lib/server/bff';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ fetch }) => {
   try {
-    const res = await fetch('http://localhost:4322/api/dashboard/health');
+    const res = await fetch(bffUrl('/api/dashboard/health').toString());
     if (res.ok) {
       return { bffHealthy: true, ts: new Date().toISOString() };
     }

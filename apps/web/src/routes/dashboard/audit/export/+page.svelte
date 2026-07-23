@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
 
@@ -16,7 +17,7 @@
     exportError = null;
     lastExport = null;
     try {
-      const r = await fetch('http://localhost:4322/api/dashboard/audit/export', {
+      const r = await fetch(bffApiUrl('/api/dashboard/audit/export'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ from, to, actor, action, format }),

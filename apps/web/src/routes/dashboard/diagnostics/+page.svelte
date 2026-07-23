@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { unavailableMessage } from '$lib/observability/unavailable';
@@ -25,7 +26,7 @@
   async function run() {
     running = true;
     try {
-      const r = await fetch('http://localhost:4322/api/dashboard/diagnostics/full');
+      const r = await fetch(bffApiUrl('/api/dashboard/diagnostics/full'));
       if (r.ok) { data = await r.json(); lastRun = new Date().toISOString(); }
     } finally { running = false; }
   }

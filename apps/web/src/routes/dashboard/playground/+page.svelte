@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
@@ -16,7 +17,7 @@
   let cost = $state<number | null>(null);
 
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/playground/models');
+    const r = await fetch(bffApiUrl('/api/dashboard/playground/models'));
     if (r.ok) {
       const j = await r.json();
       models = j.models ?? [];
@@ -30,7 +31,7 @@
     response = '';
     const start = performance.now();
     try {
-      const r = await fetch('http://localhost:4322/api/dashboard/playground/stream', {
+      const r = await fetch(bffApiUrl('/api/dashboard/playground/stream'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ model, systemPrompt, userPrompt, temperature }),

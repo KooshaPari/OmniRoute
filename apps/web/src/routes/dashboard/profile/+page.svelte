@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
@@ -10,7 +11,7 @@
   let saved = $state(false);
 
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/profile');
+    const r = await fetch(bffApiUrl('/api/dashboard/profile'));
     if (r.ok) profile = await r.json();
   });
 
@@ -18,7 +19,7 @@
     if (!profile) return;
     saving = true;
     try {
-      await fetch('http://localhost:4322/api/dashboard/profile', {
+      await fetch(bffApiUrl('/api/dashboard/profile'), {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(profile),

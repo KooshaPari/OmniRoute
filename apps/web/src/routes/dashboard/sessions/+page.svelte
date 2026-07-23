@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
@@ -12,7 +13,7 @@
   let unavailable = $state<string | null>(null);
 
   async function load() {
-    const r = await fetch('http://localhost:4322/api/dashboard/sessions');
+    const r = await fetch(bffApiUrl('/api/dashboard/sessions'));
     if (r.ok) {
       const j = await r.json();
       if (j.status === 'unavailable') unavailable = unavailableMessage(j, 'Sessions');
@@ -24,7 +25,7 @@
 
   async function revoke(id: string) {
     if (!confirm('Revoke this session?')) return;
-    await fetch(`http://localhost:4322/api/dashboard/sessions/${id}`, { method: 'DELETE' });
+    await fetch(bffApiUrl(`/api/dashboard/sessions/${id}`), { method: 'DELETE' });
     sessions = sessions.filter((s) => s.id !== id);
   }
 
@@ -34,7 +35,7 @@
     const current = sessions.find((s) => s.current);
     try {
       for (const s of sessions) {
-        if (!s.current) await fetch(`http://localhost:4322/api/dashboard/sessions/${s.id}`, { method: 'DELETE' });
+        if (!s.current) await fetch(bffApiUrl(`/api/dashboard/sessions/${s.id}`), { method: 'DELETE' });
       }
       sessions = current ? [current] : [];
     } finally { signingOut = false; }

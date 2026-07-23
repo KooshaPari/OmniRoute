@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import { onMount, onDestroy } from 'svelte';
   type Log = { ts: string; level: 'debug'|'info'|'warn'|'error'; service: string; message: string };
@@ -7,7 +8,7 @@
   let timer: ReturnType<typeof setInterval> | null = null;
   async function poll() {
     try {
-      const r = await fetch(`http://localhost:4322/api/dashboard/logs?level=${level}`);
+      const r = await fetch(bffApiUrl(`/api/dashboard/logs?level=${level}`));
       if (r.ok) logs = (await r.json()).logs ?? [];
     } catch {}
   }

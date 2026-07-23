@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import FlowEditor from '$lib/components/combos/FlowEditor.svelte';
@@ -28,7 +29,7 @@
 
   onMount(async () => {
     id = $page.params.id ?? '';
-    const r = await fetch('http://localhost:4322/api/dashboard/combos');
+    const r = await fetch(bffApiUrl('/api/dashboard/combos'));
     if (r.ok) {
       const j = await r.json();
       const found = (j.combos ?? []).find((c: { id: string }) => c.id === id);
@@ -37,7 +38,7 @@
         fallbacks = (found.fallbacks ?? []).map((m: string, i: number) => ({ model: m, condition: 'on-error' as const, priority: i + 1 }));
       }
     }
-    const m = await fetch('http://localhost:4322/api/dashboard/playground/models');
+    const m = await fetch(bffApiUrl('/api/dashboard/playground/models'));
     if (m.ok) available = (await m.json()).models ?? [];
   });
 
@@ -68,7 +69,7 @@
     saved = false;
     saveError = null;
     try {
-      const response = await fetch('http://localhost:4322/api/dashboard/combos', {
+      const response = await fetch(bffApiUrl('/api/dashboard/combos'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ id, name, primary, fallbacks: fallbacks.map((f) => f.model), strategy }),
