@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import Card from '$lib/components/ui/Card.svelte';
+  import { bffApiUrl } from '$lib/bff-origin';
 
   let status = $state<'pending' | 'success' | 'error'>('pending');
   let message = $state('Processing OAuth callback...');
@@ -25,7 +26,7 @@
     }
 
     try {
-      const res = await fetch('http://localhost:4322/api/auth/callback', {
+      const res = await fetch(bffApiUrl('/api/auth/callback'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         credentials: 'include',
