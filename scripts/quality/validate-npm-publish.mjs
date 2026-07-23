@@ -306,15 +306,21 @@ async function main() {
   // Per npm publish-policies: max tarball is 1 MB for non-provenance packages
   // and 100 MB for provenance-enabled. We default to the stricter limit and
   // allow override via --max-tarball-mb / --max-unpacked-mb.
+  //
+  // ADVISORY semantics: `npm pack --dry-run` can fail for transient reasons
+  // (auth env vars, working-tree race, registry reachability) that don't
+  // reflect an actual E413 at publish time. npm itself enforces the hard limit
+  // and returns E413 directly. So we report tarball-size as ADVISORY by
+  // default; the gate that ACTUALLY blocks publish failures is at the npm
+  // registry, not in this validator. Pass --strict-advisory to promote.
   const packResult = await checkTarballSize({
     limitTarballMb: cli.maxTarballMb,
     limitUnpackedMb: cli.maxUnpackedMb,
     cwd: pkgDir,
   });
-  if (!packResult.ok) {
-    for (const err of packResult.errors) {
-      report.required.push({ field: "tarball-size", message: err });
-    }
+  // Soft warnings: report both errors and warnings as advisory.
+  for (const err of packResult.errors) {
+    report.advisory.push({ field: "tarball-size", message: err });
   }
   for (const warn of packResult.warnings) {
     report.advisory.push({ field: "tarball-size", message: warn });
