@@ -587,6 +587,24 @@ cmd_watch_all() {
   $PHENO_BIN run "tail -F \$HOME/.argismonitor/{bff,gateway,nextjs}.log"
 }
 
+# cmd_logs_all: dump last N lines of every service log (no follow mode)
+cmd_logs_all() {
+  log "last 50 lines of all service logs:"
+  python3 <<PY
+import yaml, subprocess
+d = yaml.safe_load(open("$YAML_FILE"))
+for name, svc in d.get("services", {}).items():
+    log = svc.get("run", {}).get("log")
+    if not log: continue
+    print(f"\n--- [{name}] {log} ---")
+    try:
+        out = subprocess.run(["tail", "-n", "50", log], capture_output=True, text=True, timeout=10)
+        print(out.stdout or "(empty)")
+    except Exception as e:
+        print(f"(error: {e})")
+PY
+}
+
 cmd_auto_rollback() {
   local slot="${PROCCOMPOSE_SLOT:-dev}"
   local current_pct="${1:-}"
@@ -783,6 +801,7 @@ case "${1:-help}" in
   mcp-server) mcp_server "${@}" ;;
   mcp-call)   shift; mcp_call "$@" ;;
   watch-all) cmd_watch_all ;;
+  logs-all)   cmd_logs_all ;;
   auto-rollback) cmd_auto_rollback "${@}" ;;
   matrix)         shift; cmd_matrix "${@}" ;;
   releases)   cmd_releases "${@}" ;;
@@ -810,7 +829,8 @@ USAGE:
   proccompose init           bootstrap a fresh host into the deploy plane
   proccompose mcp-server \[stdio\|sse\]  expose proccompose as MCP tools (12 tools: deploy/release/cutover/rollback/...)
   proccompose mcp-call \<tool\>   invoke a single MCP tool directly from CLI
-  proccompose watch-all       tail BFF + gateway + legacy Next.js in parallel
+  proccompose watch-all       tail BFF + gateway + legacy Next.js in parallel (follow)
+  proccompose logs-all         dump last 50 lines of all service logs (one-shot)
   proccompose auto-rollback [pct]  poll SLOs, revert if breach (error_rate > 1% or p95 > 800ms)
   proccompose test           run the v4 BFF test suite (pre-deploy verifier)
   proccompose diff [slot]   show plan-vs-current-state for a slot (forensics)

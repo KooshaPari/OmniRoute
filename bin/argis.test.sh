@@ -69,9 +69,9 @@ PATH="$TEST_STUBS:$PATH" doctor_out=$("$ARGIS" doctor 2>&1)
 echo "$doctor_out" | grep -q "prerequisites met" && report "argis doctor: prerequisites met" ok || report "argis doctor: prerequisites met" fail
 echo "$doctor_out" | grep -q "pheno present" && report "argis doctor: pheno check" ok || report "argis doctor: pheno check" fail
 
-echo "[3/4] argis test proxies to cmd_test (5 gates)"
+echo "[3/4] argis test proxies to cmd_test (6 gates)"
 PATH="$TEST_STUBS:$PATH" test_out=$("$ARGIS" test 2>&1)
-echo "$test_out" | grep -q "all 5 gates passed" && report "argis test: 5 gates pass" ok || report "argis test: 5 gates pass" fail
+echo "$test_out" | grep -q "all 6 gates passed" && report "argis test: 6 gates pass" ok || report "argis test: 6 gates pass" fail
 echo "$test_out" | grep -q "v4 test suite complete" && report "argis test: suite complete message" ok || report "argis test: suite complete message" fail
 
 echo "[4/4] argis proccompose <sub> passes through"
