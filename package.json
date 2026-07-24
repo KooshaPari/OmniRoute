@@ -34,13 +34,11 @@
     "!**/*.spec.ts",
     "!**/*.spec.tsx",
     "!dist/src/**",
-    "!dist/open-sse/**",
     "!dist/lib/**",
     "!dist/domain/**",
     "!dist/models/**",
     "!dist/mitm/**",
     "!dist/server/**",
-    "!dist/shared/**",
     "!dist/sse/**",
     "!dist/types/**",
     "!dist/node_modules/**",
@@ -48,7 +46,12 @@
     "!dist/**/*.test.*",
     "!dist/**/*.spec.*",
     "!dist/**/*.snap",
-    "!dist/**/*.map"
+    "!dist/**/*.map",
+    "!dist/open-sse/**",
+    "!dist/shared/**",
+    "dist/open-sse/services/compression/engines/rtk/filters/generic-output.json",
+    "dist/open-sse/services/compression/rules/en/filler.json",
+    "src/shared/utils/nodeRuntimeSupport.ts"
   ],
   "workspaces": [
     "open-sse"
