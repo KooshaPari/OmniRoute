@@ -586,12 +586,12 @@ cmd_test() {
   local fail=0
   local sublog
 
-  # 1. proccompose tests (the most important - covers the deploy plane itself)
-  log "  [1/3] proccompose unit tests"
+  # 1. proccompose tests (covers the deploy plane itself)
+  log "  [1/5] proccompose unit tests"
   if [[ -f "$(dirname "$0")/tests/proccompose.test.sh" ]]; then
     sublog=$(bash "$(dirname "$0")/tests/proccompose.test.sh" 2>&1)
     local rc=$?
-    echo "$sublog"
+    echo "$sublog" | tail -15
     if (( rc != 0 )); then
       err "proccompose tests FAILED (exit $rc)"
       fail=1
@@ -599,42 +599,71 @@ cmd_test() {
   fi
 
   # 2. BFF tests - only run if there are actual test files
-  if [[ -d "$V4_DIR/apps/bff" ]]; then
-    log "  [2/3] BFF tests"
+  if [[ -d "$V4_DIR/apps/bff" ]] && command -v bun >/dev/null; then
+    log "  [2/5] BFF tests"
     local bff_tests
     bff_tests=$(find "$V4_DIR/apps/bff" -maxdepth 4 \( -name "*.test.*" -o -name "*_test.*" -o -name "*.spec.*" \) 2>/dev/null | head -3)
     if [[ -z "$bff_tests" ]]; then
       log "  (no test files in BFF - skipping)"
-    elif command -v bun >/dev/null; then
+    else
       sublog=$(cd "$V4_DIR/apps/bff" && bun test 2>&1)
-      echo "$sublog"
-      if echo "$sublog" | grep -qE "(failed|FAIL|✗)"; then
+      echo "$sublog" | tail -10
+      if echo "$sublog" | grep -qE "(failed|FAIL|error TS)"; then
         err "BFF tests FAILED"
         fail=1
       fi
-    else
-      log "  (bun not on PATH - skipping BFF tests)"
     fi
   fi
 
-  # 3. Web typecheck - only run if package.json declares a check script
-  if [[ -d "$V4_DIR/apps/web" ]]; then
-    log "  [3/3] web typecheck"
-    if [[ -f "$V4_DIR/apps/web/package.json" ]] && command -v bun >/dev/null && grep -q '"check"' "$V4_DIR/apps/web/package.json" 2>/dev/null; then
-      sublog=$(cd "$V4_DIR/apps/web" && bun run check 2>&1)
-      echo "$sublog"
+  # 3. BFF typecheck (always runs - catches TS regressions)
+  if [[ -d "$V4_DIR/apps/bff" ]] && command -v bun >/dev/null; then
+    log "  [3/5] BFF typecheck"
+    sublog=$(cd "$V4_DIR/apps/bff" && bun run typecheck 2>&1)
+    local rc=$?
+    echo "$sublog" | tail -10
+    if (( rc != 0 )); then
+      err "BFF typecheck FAILED (exit $rc)"
+      fail=1
+    fi
+  fi
+
+  # 4. Web typecheck (always runs - catches Svelte regressions)
+  if [[ -d "$V4_DIR/apps/web" ]] && command -v bun >/dev/null; then
+    log "  [4/5] web typecheck"
+    sublog=$(cd "$V4_DIR/apps/web" && bun run typecheck 2>&1)
+    local rc=$?
+    echo "$sublog" | tail -10
+    if (( rc != 0 )); then
+      err "web typecheck FAILED (exit $rc)"
+      fail=1
+    fi
+  fi
+
+  # 5. Web tests - only run if there are actual test files
+  if [[ -d "$V4_DIR/apps/web" ]] && command -v bun >/dev/null; then
+    log "  [5/5] web tests"
+    local web_tests
+    web_tests=$(find "$V4_DIR/apps/web" -maxdepth 4 \( -name "*.test.*" -o -name "*_test.*" -o -name "*.spec.*" \) 2>/dev/null | head -3)
+    if [[ -n "$web_tests" ]]; then
+      sublog=$(cd "$V4_DIR/apps/web" && bun test 2>&1)
+      echo "$sublog" | tail -10
+      if echo "$sublog" | grep -qE "(failed|FAIL)"; then
+        err "web tests FAILED"
+        fail=1
+      fi
     else
-      log "  (no check script declared - skipping)"
+      log "  (no test files in web - skipping)"
     fi
   fi
 
   if (( fail == 0 )); then
-    ok "v4 test suite complete - all gates passed"
+    ok "v4 test suite complete - all 5 gates passed"
   else
     err "v4 test suite FAILED - $fail gate(s) failed"
   fi
   return $fail
 }
+
 
 cmd_diff() {
   local slot="${1:-dev}"

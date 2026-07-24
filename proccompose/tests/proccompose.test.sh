@@ -77,28 +77,29 @@ if python3 -c "import ast; ast.parse(open('$(dirname "$0")/../lib/mcp_sse_server
 if [[ -f "$(dirname "$0")/../lib/mcp_sse_server.py" ]]; then report "mcp_sse_server.py exists" ok; else report "mcp_sse_server.py exists" fail; fi
 if [[ -f "$(dirname "$0")/../lib/mcp-sse-transport.sh" ]]; then report "mcp-sse-transport.sh exists" ok; else report "mcp-sse-transport.sh exists" fail; fi
 
-echo "[9/9] pre-deploy test gate (cmd_deploy refuses when tests fail)"
+echo "[9/10] pre-deploy test gate (cmd_deploy refuses when tests fail)"
 # Skip this section if already nested in an inner test run (recursion guard)
 if [[ "${PROCCOMPOSE_TEST_INNER:-0}" == "1" ]]; then
   log "  (nested test context - skipping deploy-gate recursion guard)"
 else
-  # We do NOT break yaml because cmd_test's recursion via cmd_deploy needs
-  # the yaml intact for the gate check to actually run the test suite (we
-  # use PROCCOMPOSE_TEST_INNER=1 so the inner test 9 skips itself). The
-  # real gate verification happens in the GitHub Actions workflow
-  # (proccompose-deploy-gate.yml) where the broken-yaml path is also tested.
-  # Here we verify the gate LOGIC by inspecting cmd_deploy source code.
-  deploy_src=$(grep -A 25 "^cmd_deploy()" "$PROCCOMPOSE_BIN" 2>/dev/null)
+  deploy_src=$(grep -A 30 "^cmd_deploy()" "$PROCCOMPOSE_BIN" 2>/dev/null)
   echo "$deploy_src" | grep -q "running pre-deploy verifier" && report "gate: cmd_deploy runs cmd_test first" ok || report "gate: cmd_deploy runs cmd_test first" fail
   echo "$deploy_src" | grep -q "PROCCOMPOSE_SKIP_TESTS=1" && report "gate: cmd_deploy has SKIP_TESTS escape hatch" ok || report "gate: cmd_deploy has SKIP_TESTS escape hatch" fail
   echo "$deploy_src" | grep -q "pre-deploy test gate FAILED" && report "gate: cmd_deploy refuses on test failure" ok || report "gate: cmd_deploy refuses on test failure" fail
-  # And verify the skip hatch actually bypasses by running deploy with the flag
   skip_out=$(PROCCOMPOSE_TEST_INNER=1 PROCCOMPOSE_SKIP_TESTS=1 timeout 8 "$PROCCOMPOSE_BIN" deploy origin/feat/v4-svelte-hono-monorepo 2>&1 || true)
   echo "$skip_out" | grep -q "skipping pre-deploy test gate" && report "gate: PROCCOMPOSE_SKIP_TESTS=1 bypasses with warning" ok || report "gate: PROCCOMPOSE_SKIP_TESTS=1 bypasses with warning" fail
   echo "$skip_out" | grep -q "NOT recommended" && report "gate: PROCCOMPOSE_SKIP_TESTS=1 logs warning" ok || report "gate: PROCCOMPOSE_SKIP_TESTS=1 logs warning" fail
 fi
 
-echo "[10/10] matrix canary (proccompose matrix status + help)"
+echo "[10/11] cmd_test runs BFF + web typecheck gates"
+# Verify cmd_test invokes the actual typecheck scripts (not just stubbed tests)
+test_src=$(grep -A 80 "^cmd_test()" "$PROCCOMPOSE_BIN" 2>/dev/null)
+echo "$test_src" | grep -q "BFF typecheck" && report "test: cmd_test runs BFF typecheck" ok || report "test: cmd_test runs BFF typecheck" fail
+echo "$test_src" | grep -q "web typecheck" && report "test: cmd_test runs web typecheck" ok || report "test: cmd_test runs web typecheck" fail
+echo "$test_src" | grep -q "bun run typecheck" && report "test: cmd_test invokes bun run typecheck" ok || report "test: cmd_test invokes bun run typecheck" fail
+echo "$test_src" | grep -qE "\\[1/5\\]|\\[2/5\\]|\\[3/5\\]|\\[4/5\\]|\\[5/5\\]" && report "test: cmd_test has 5 gates" ok || report "test: cmd_test has 5 gates" fail
+
+echo "[11/12] matrix canary (proccompose matrix status + help)"
 status_out=$(PROCCOMPOSE_HOME="/tmp/.proccompose-test" "$PROCCOMPOSE_BIN" matrix status 2>&1 || true)
 echo "$status_out" | grep -q "current matrix state" && report "matrix: status reports state" ok || report "matrix: status reports state" fail
 help_out=$("$PROCCOMPOSE_BIN" help 2>&1)
@@ -108,7 +109,7 @@ done
 canary_help=$(echo "$help_out" | grep -A 1 "matrix canary" | head -1)
 echo "$canary_help" | grep -qE "1\\.\\.[0-9]+|pct|traffic" && report "matrix: canary help mentions pct/traffic" ok || report "matrix: canary help mentions pct/traffic" fail
 
-echo "[11/11] GitHub Actions CI workflow exists"
+echo "[12/12] GitHub Actions CI workflow exists"
 WF="$(dirname "$0")/../../.github/workflows/proccompose-deploy-gate.yml"
 if [[ -f "$WF" ]]; then report "ci: proccompose-deploy-gate.yml exists" ok; else report "ci: proccompose-deploy-gate.yml exists" fail; fi
 grep -q "proccompose ci" "$WF" && report "ci: workflow runs proccompose ci" ok || report "ci: workflow runs proccompose ci" fail
