@@ -739,3 +739,57 @@ Tighten `APP_STAGING_REMOVAL_PATHS` to include `dist/src/lib/**`, `dist/src/doma
 ---
 
 *Resumption closeout — 2026-07-23*
+
+## 8. Post-Resumption: E413 Tarball Tightening (2026-07-23 continued)
+
+### Three-round surgical fix — landed on `main`
+
+**Round 1 (PR #461, commit `ab3e3380c`)**: Narrowed `PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES` in `scripts/build/pack-artifact-policy.ts:127-142` to ship only `@omniroute/opencode-plugin/`, `@omniroute/opencode-provider/`, `bin/cli/`, `dist/`. Two runtime-critical `.ts` files (`src/shared/utils/nodeRuntimeSupport.ts`, `open-sse/utils/setupPolyfill.ts`) survive via `PACK_ARTIFACT_REQUIRED_PATHS`.
+
+**Round 2 (PR #462, commit `5aade61dd`)**: Re-added `src/shared/` and `open-sse/utils/` to `PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES` because `validate-pack-artifact.ts` runs `npm pack --dry-run` BEFORE `prepublish.ts` prune runs — the runtime `.ts` files needed in the allowlist directly.
+
+**Round 3 (PRs #463+#464, commits `887ddb8ba` + `93c2c6ab6`)**: Added negation patterns to `package.json#files` mirroring `PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES` (`!dist/src/**`, `!dist/open-sse/**`, etc.) so `npm pack --dry-run` excludes the bloated intermediate `dist/` rebuild from `src/`. Then re-included 3 specific required runtime paths the negation over-pruned: `dist/open-sse/services/compression/engines/rtk/filters/generic-output.json`, `dist/open-sse/services/compression/rules/en/filler.json`, `src/shared/utils/nodeRuntimeSupport.ts`.
+
+### Verified result (run `30063787792`)
+
+| Metric | Before | After |
+|---|---|---|
+| Packed size | 352 MB | **37.5 MB** (90% reduction) |
+| Unpacked size | 776 MB | **156.5 MB** |
+| Total files | 8,441 | **3,794** |
+| E413 error | Yes (every run) | **Gone** |
+
+### Final blocker (was previously misidentified)
+
+E413 is resolved. The current failure is now **`npm error code E404: Not found - PUT https://registry.npmjs.org/@kooshapari/omniroute`**.
+
+The token has correct publish auth (`Signed provenance statement` succeeded, `Publishing to https://registry.npmjs.org/` reached), but `@kooshapari/omniroute` has **never been created** on the npm registry. It needs to be created via `npm init --scope=@kooshapari` or via the npm UI before `npm publish` can create it.
+
+### Ground truth on `main` now
+
+| Item | Reality |
+|---|---|
+| HEAD | `93c2c6ab6` |
+| `package.json#files` | Tightened with negation patterns + required-file inclusions |
+| `pack-artifact-policy.ts` | Narrowed `PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES` |
+| Local validator | exit 0 (advisory warnings only) |
+| Local npm pack | 264 files / 1.8 MB unpacked |
+| GHA pack (run 30063787792) | 3,794 files / 156.5 MB unpacked |
+| Latest GHA run | trigger ✅, resolve ✅, publish-github ✅, docker ⏭️ (correct skip), publish-npm **❌** on E404 |
+| Branch protection | Restored |
+| Releases on main | 1 (the SHA-pinning-era one from prior session) |
+| `omniroute@latest` on npm | 3.8.48 (existing) |
+| `omniroute@nightly` on npm | **Never published** (E404) |
+
+### Single remaining action (human setup)
+
+**Create `@kooshapari/omniroute` on the npm registry** (one-time):
+1. https://www.npmjs.com/package/create → choose `@kooshapari/omniroute` as name
+2. OR via CLI: `npm init --scope=@kooshapari` then `npm publish --access=public`
+3. Then re-dispatch `auto-release.yml -f force=true -f max-channel=canary`
+
+Once the scoped package is created on npm, the publish pipeline is end-to-end green. The release-system work is fully done — only an org-level npm setup step remains.
+
+---
+
+*Session closeout — 2026-07-23*
