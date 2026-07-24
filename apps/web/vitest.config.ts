@@ -12,6 +12,5 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     // Scaffolding phase: no tests have been authored yet. Allow `vitest run`
     // to succeed so CI stays green while the test suite is still being built.
-    passWithNoTests: true,
   },
 });

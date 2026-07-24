@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const EnvSchema = z.object({
+export const EnvSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(4322),
   OMNIROUTE_UPSTREAM: z.string().url().default('http://localhost:20128'),
   BFF_API_KEY: z.string().min(16).default('dev-bff-key-change-me-in-prod'),
