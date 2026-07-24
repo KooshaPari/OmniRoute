@@ -60,6 +60,9 @@ help_out=$("$ARGIS" 2>&1)
 for sub in "argis test" "argis doctor" "argis release" "argis matrix" "argis proccompose"; do
   echo "$help_out" | grep -qF "$sub" && report "help lists '$sub'" ok || report "help lists '$sub'" fail
 done
+for sub in "argis install" "argis restart" "argis desktop"; do
+  echo "$help_out" | grep -qF "$sub" && report "help lists '$sub'" ok || report "help lists '$sub'" fail
+done
 
 echo "[2/4] argis doctor proxies to proccompose doctor"
 PATH="$TEST_STUBS:$PATH" doctor_out=$("$ARGIS" doctor 2>&1)
@@ -74,6 +77,15 @@ echo "$test_out" | grep -q "v4 test suite complete" && report "argis test: suite
 echo "[4/4] argis proccompose <sub> passes through"
 PATH="$TEST_STUBS:$PATH" pass_out=$("$ARGIS" proccompose help 2>&1)
 echo "$pass_out" | grep -q "argismonitor v4 process composition" && report "argis proccompose: passthrough works" ok || report "argis proccompose: passthrough works" fail
+
+echo "[5/5] argis desktop commands are wired (source inspection)"
+argis_src=$(grep -E "^cmd_|^  [a-z][a-z0-9-]+\)" "$ARGIS")
+for fn in cmd_install cmd_restart cmd_desktop_status; do
+  echo "$argis_src" | grep -qE "^$fn\(\)" && report "argis: $fn is defined" ok || report "argis: $fn is defined" fail
+done
+for sub in "install" "restart" "desktop"; do
+  echo "$help_out" | grep -qE "argis $sub[ ]+" && report "argis: '$sub' is a subcommand (not alias)" ok || report "argis: '$sub' is a subcommand (not alias)" fail
+done
 
 rm -rf "$TEST_STUBS"
 

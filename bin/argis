@@ -187,6 +187,32 @@ cmd_dev() {
   cmd_url
 }
 
+# cmd_install: install the launchd supervisor plists on the desktop so the BFF
+# and gateway auto-restart. The plists live in apps/desktop/launchd/. This is the
+# desktop-specific counterpart to proccompose's session management.
+cmd_install() {
+  log "installing launchd supervisor plists on desktop..."
+  desktop_run "mkdir -p ~/Library/LaunchAgents"
+  desktop_run "cp ~/argismonitor-monorepo/apps/desktop/launchd/online.phenotype.argismonitor.*.plist ~/Library/LaunchAgents/ 2>/dev/null || true"
+  desktop_run "launchctl load ~/Library/LaunchAgents/online.phenotype.argismonitor.bff.plist 2>/dev/null || true"
+  desktop_run "launchctl load ~/Library/LaunchAgents/online.phenotype.argismonitor.gateway.plist 2>/dev/null || true"
+  ok "supervisors installed"
+}
+
+# cmd_restart: bounce the supervised services without a full redeploy.
+cmd_restart() {
+  log "restarting BFF + gateway on desktop..."
+  desktop_run "launchctl kickstart -k gui/$(id -u)/online.phenotype.argismonitor.bff 2>/dev/null || true"
+  desktop_run "launchctl kickstart -k gui/$(id -u)/online.phenotype.argismonitor.gateway 2>/dev/null || true"
+  ok "services restarted"
+}
+
+# cmd_desktop_status: list launchd services matching argismonitor on the desktop.
+cmd_desktop_status() {
+  log "desktop launchd services matching argismonitor:"
+  desktop_run "launchctl list | grep -E 'argismonitor|bff|gateway' || echo 'no supervisor services loaded'"
+}
+
 case "${1:-help}" in
   dev)        cmd_dev ;;
   deploy)    cmd_deploy ;;
