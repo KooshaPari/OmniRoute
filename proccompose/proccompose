@@ -6,7 +6,9 @@
 # Usage:
 #   proccompose up                 # deploy + serve + expose + vercel env
 #   proccompose down               # stop desktop services
-#   proccompose status             # health snapshot
+#   proccompose status             # health snapshot (human-readable)
+#   proccompose status-json        # structured JSON for monitoring/dashboards
+#   proccompose status --json       # alias for status-json
 #   proccompose cutover <pct>      # flip OMNI_WEB_STACK_ROLLOUT
 #   proccompose url                # print current BFF URL
 #   proccompose logs <service>     # tail a service log
@@ -119,6 +121,11 @@ cmd_down() {
 }
 
 cmd_status() {
+  if [[ "${1:-}" == "--json" ]]; then
+    shift
+    cmd_status_json
+    return $?
+  fi
   log "health snapshot:"
   BFF_URL=$($PHENO_BIN run "tailscale status --self --json" 2>/dev/null | jq -r .Self.DNSName | sed 's/\.$//' || echo "localhost")
   for s in 4322 20128; do
@@ -240,15 +247,54 @@ cmd_doctor() {
 }
 
 cmd_status_json() {
-  cmd_status | python3 -c "
-import sys, json
-out = {'services': {}}
-for line in sys.stdin:
-    if 'responding' in line: out['services']['healthy'] = out['services'].get('healthy', 0) + 1
-    if 'down' in line: out['services']['unhealthy'] = out['services'].get('unhealthy', 0) + 1
-out['yaml_file'] = '$YAML_FILE'
-print(json.dumps(out, indent=2))
-"
+  # Structured status for monitoring/dashboards. Probes actual services and
+  # reports machine-readable JSON. Excludes the human-readable cmd_status.
+  local bff_url
+  bff_url=$($PHENO_BIN run "tailscale status --self --json" 2>/dev/null | jq -r .Self.DNSName 2>/dev/null | sed "s/\\.\$//" || echo "localhost")
+  local services_json="{"
+  local first=1
+  for port in 4322 20128; do
+    local status="down" latency_ms="null"
+    local start_ms=$(($(date +%s%N 2>/dev/null || date +%s) / 1000000))
+    if $PHENO_BIN run "curl -fsS --max-time 3 http://localhost:$port/healthz" >/dev/null 2>&1; then
+      status="up"
+      local end_ms=$(($(date +%s%N 2>/dev/null || date +%s) / 1000000))
+      latency_ms=$((end_ms - start_ms))
+    fi
+    local svc_name
+    if [[ $port == 4322 ]]; then svc_name="bff"; else svc_name="nextjs"; fi
+    if [[ $first -eq 0 ]]; then services_json+=","; fi
+    first=0
+    services_json+="\"${svc_name}\": {\"port\": $port, \"status\": \"${status}\", \"latency_ms\": ${latency_ms}}"
+  done
+  services_json+="}"
+
+  local release_count=0
+  if [[ -d "${RELEASE_DIR:-$HOME/.argismonitor/releases}" ]]; then
+    release_count=$(ls -1 "${RELEASE_DIR:-$HOME/.argismonitor/releases}"/*.json 2>/dev/null | wc -l | tr -d " ")
+  fi
+
+  local last_sha="none"
+  if [[ -n "${LAST_DEPLOY:-}" && -f "$LAST_DEPLOY" ]]; then
+    last_sha=$(cat "$LAST_DEPLOY" 2>/dev/null | tr -d "\n" || echo "none")
+  fi
+
+  local lock_held="false"
+  if [[ -n "${LOCK_FILE:-}" && -e "$LOCK_FILE" ]]; then
+    lock_held="true"
+  fi
+
+  cat <<JSON
+{
+  "ts": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "yaml_file": "$YAML_FILE",
+  "bff_host": "$bff_url",
+  "services": $services_json,
+  "release_count": $release_count,
+  "last_deploy_sha": "$last_sha",
+  "deploy_lock_held": $lock_held
+}
+JSON
 }
 
 cmd_dry_run() {
@@ -714,6 +760,7 @@ case "${1:-help}" in
   up)        cmd_up ;;
   down)      cmd_down ;;
   status)    cmd_status ;;
+  status-json) cmd_status_json ;;
   cutover)   shift; cmd_cutover "${@}" ;;
   url)       cmd_url ;;
   logs)      shift; cmd_logs "${@}" ;;

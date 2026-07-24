@@ -1,10 +1,19 @@
 name: proccompose-deploy-gate
 
 # The deploy plane's CI gate.
-# Runs `proccompose ci` (test + validate + doctor + dry-run) on every PR
-# touching proccompose/, bin/, scripts/cutover.sh, scripts/deploy-to-desktop.sh.
+# Runs `proccompose test` (the 6-gate pre-deploy verifier) on every PR
+# touching proccompose/, bin/, scripts/cutover.sh, scripts/deploy-to-desktop.sh,
+# apps/, packages/.
 # If the gate fails, deploy/ref/cutover/release subcommands will refuse to
 # run in production (cmd_deploy runs cmd_test as a pre-deploy gate).
+#
+# The 6 gates enforced here:
+#   [1/6] proccompose unit tests        (deploy plane itself)
+#   [2/6] BFF tests                    (vitest + Hono app.request integration)
+#   [3/6] BFF typecheck                (tsc --noEmit)
+#   [4/6] web typecheck                (svelte-check)
+#   [5/6] web tests                    (vitest)
+#   [6/6] shared package tests         (api-contracts + design-tokens)
 #
 # Sponsor action items: this workflow does NOT need Vercel secrets or
 # WorkOS secrets - it's hermetic. It only invokes commands that work
@@ -89,10 +98,19 @@ jobs:
           PATH: /tmp/proccompose-stubs:$PATH
           PROCCOMPOSE_HOME: /tmp/proccompose-home
 
-      - name: Run proccompose ci (test + validate + doctor + dry-run)
-        run: proccompose/proccompose ci
+      - name: Install BFF + web + package deps (for 6-gate verifier)
+        run: |
+          cd apps/bff && bun install --silent 2>/dev/null || true
+          cd ../web && bun install --silent 2>/dev/null || true
+          cd ../../packages/api-contracts && bun install --silent 2>/dev/null || true
+          cd ../design-tokens && bun install --silent 2>/dev/null || true
+          cd ../../../
+
+      - name: Run proccompose test (6-gate pre-deploy verifier)
+        run: proccompose/proccompose test
         env:
           PATH: /tmp/proccompose-stubs:$PATH
+          PROCCOMPOSE_HOME: /tmp/proccompose-home
 
       - name: Verify pre-deploy test gate refuses on broken YAML
         run: |

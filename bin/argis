@@ -97,6 +97,31 @@ cmd_doctor() {
   cmd_proccompose doctor
 }
 
+# cmd_preflight: dry-run preview of what the next deploy would do.
+# Runs validate + plan + doctor + test (the four quick gates that do not
+# require external services) and prints a summary. Designed to be the
+# command an operator runs BEFORE invoking the actual deploy/release/cutover.
+cmd_preflight() {
+  log "running preflight checks (validate + plan + doctor + test)..."
+  local fail=0
+  local sub
+  for sub in validate plan doctor test; do
+    log "  preflight: $sub"
+    if ! cmd_proccompose "$sub" > /tmp/argis-preflight-$sub.log 2>&1; then
+      err "preflight gate '$sub' FAILED - see /tmp/argis-preflight-$sub.log"
+      fail=1
+    else
+      ok "preflight: $sub"
+    fi
+  done
+  if (( fail == 0 )); then
+    ok "all preflight gates passed - safe to run 'argis deploy' or 'argis release'"
+  else
+    err "$fail preflight gate(s) failed - DO NOT deploy until fixed"
+  fi
+  return $fail
+}
+
 cmd_deploy() {
   log "deploying v4 to desktop (ref: $V4_REF)..."
   # Sync the v4 monorepo to the desktop via rsync
@@ -237,6 +262,7 @@ case "${1:-help}" in
   validate)  cmd_validate ;;
   plan)      cmd_plan ;;
   doctor)    cmd_doctor ;;
+  preflight) cmd_preflight ;;
   supervise)  cmd_install ;;
   restart)    cmd_restart ;;
   desktop)    cmd_desktop_status ;;
@@ -265,6 +291,7 @@ Deploy plane (proxied to proccompose, see ./proccompose/proccompose help):
   argis validate        validate proccompose.yaml against the current state
   argis plan            print the resolved execution plan
   argis doctor          check prerequisites (pheno + Tailscale + vercel + yq)
+  argis preflight       dry-run validate + plan + doctor + test (safe preview before deploy)
   argis release <ref>  [pct]  deploy + cutover in one shot (test-gated)
   argis releases        show atomic release history
   argis rollback        atomic rollback to previous release

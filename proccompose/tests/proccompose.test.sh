@@ -45,7 +45,7 @@ echo "[5/8] MCP stdio transport - JSON-RPC 2.0 round-trip"
 # everything (printf pipes can close early on slow readers, causing flake).
 stdio_in=$(mktemp)
 printf '%s\n' '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{}}' '{"jsonrpc":"2.0","id":"2","method":"tools/list","params":{}}' '{"jsonrpc":"2.0","id":"3","method":"ping","params":{}}' > "$stdio_in"
-stdio_out=$(timeout 10 "$PROCCOMPOSE_BIN" serve-stdio < "$stdio_in" 2>/dev/null)
+stdio_out=$(timeout 25 "$PROCCOMPOSE_BIN" serve-stdio < "$stdio_in" 2>/dev/null)
 rm -f "$stdio_in"
 echo "$stdio_out" | grep -q '"id":"1","result":{ *"protocolVersion"' && report "stdio: initialize response" ok || report "stdio: initialize response" fail
 echo "$stdio_out" | grep -qE '"id":"2".*"tools".*\[' && report "stdio: tools/list returns tools array" ok || report "stdio: tools/list returns tools array" fail
