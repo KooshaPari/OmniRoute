@@ -38,6 +38,65 @@ desktop_scp_from() {
   $PHENO scp-from "$@"
 }
 
+PROCCOMPOSE_BIN="${PROCCOMPOSE_BIN:-$V4_DIR/proccompose/proccompose}"
+
+# Run any proccompose subcommand verbatim. This is the master CLI''s primary
+# entry point for the deploy plane - test, deploy, release, matrix, serve-sse,
+# mcp-server, etc. all flow through here. Designed for agent and operator use.
+cmd_proccompose() {
+  "$PROCCOMPOSE_BIN" "$@"
+}
+
+# Convenience aliases - common proccompose verbs exposed as natural argis verbs.
+# These run the underlying proccompose subcommand with the same exit code.
+cmd_test() {
+  cmd_proccompose test
+}
+
+cmd_init() {
+  cmd_proccompose init
+}
+
+cmd_release() {
+  cmd_proccompose release "$@"
+}
+
+cmd_matrix() {
+  cmd_proccompose matrix "$@"
+}
+
+cmd_lock() {
+  cmd_proccompose lock "$@"
+}
+
+cmd_unlock() {
+  cmd_proccompose unlock "$@"
+}
+
+cmd_releases() {
+  cmd_proccompose releases "$@"
+}
+
+cmd_rollback() {
+  cmd_proccompose rollback "$@"
+}
+
+cmd_diff() {
+  cmd_proccompose diff "$@"
+}
+
+cmd_validate() {
+  cmd_proccompose validate
+}
+
+cmd_plan() {
+  cmd_proccompose plan
+}
+
+cmd_doctor() {
+  cmd_proccompose doctor
+}
+
 cmd_deploy() {
   log "deploying v4 to desktop (ref: $V4_REF)..."
   # Sync the v4 monorepo to the desktop via rsync
@@ -138,7 +197,20 @@ case "${1:-help}" in
   logs)      shift; cmd_logs "${@}" ;;
   cutover)   shift; cmd_cutover "${@}" ;;
   rollback)  cmd_cutover 0 ;;
-  install)   cmd_install ;;
+  proccompose) shift; cmd_proccompose "${@}" ;;
+  # Convenience aliases - common proccompose verbs as natural argis verbs
+  test)      cmd_test ;;
+  init)      cmd_init ;;
+  release)   shift; cmd_release "${@}" ;;
+  releases)  cmd_releases ;;
+  matrix)    shift; cmd_matrix "${@}" ;;
+  lock)      shift; cmd_lock "${@}" ;;
+  unlock)    cmd_unlock ;;
+  rollback)  cmd_rollback ;;
+  diff)      shift; cmd_diff "${@}" ;;
+  validate)  cmd_validate ;;
+  plan)      cmd_plan ;;
+  doctor)    cmd_doctor ;;
   supervise)  cmd_install ;;
   restart)    cmd_restart ;;
   desktop)    cmd_desktop_status ;;
@@ -161,6 +233,23 @@ USAGE:
   argis cutover <0|1|10|50|100>    flip OMNI_WEB_STACK_ROLLOUT in all Vercel prod envs
   argis rollback        alias for 'argis cutover 0'
   argis ssh             open shell on desktop
+
+Deploy plane (proxied to proccompose, see ./proccompose/proccompose help):
+  argis test            run the pre-deploy gate (5 gates: BFF + web typecheck + tests)
+  argis validate        validate proccompose.yaml against the current state
+  argis plan            print the resolved execution plan
+  argis doctor          check prerequisites (pheno + Tailscale + vercel + yq)
+  argis release <ref>  [pct]  deploy + cutover in one shot (test-gated)
+  argis releases        show atomic release history
+  argis rollback        atomic rollback to previous release
+  argis matrix canary <pct>     traffic-shift to argismonitor-app-canary
+  argis matrix full            tear down canary, roll main to 100%
+  argis matrix status           show current matrix state
+  argis lock                  acquire deploy lock
+  argis unlock                release deploy lock
+  argis diff                  active plan vs last release snapshot
+  argis init                  scaffold a fresh proccompose.yaml
+  argis proccompose <sub>...   pass any proccompose subcommand through (28 total)
 
 ENV:
   PHENO_BIN     pheno CLI (default ~/bin/pheno)
