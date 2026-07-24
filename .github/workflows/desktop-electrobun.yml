@@ -58,3 +58,48 @@ jobs:
           path: desktop-electrobun/build/
           if-no-files-found: error
           retention-days: 7
+
+  macos-app:
+    name: macOS .app bundle
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.3.14
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: bun install --frozen-lockfile
+      - name: Build web client handoff
+        working-directory: apps/web
+        run: bun run build
+      - name: Install desktop dependencies
+        working-directory: desktop-electrobun
+        run: bun install --ignore-scripts
+      - name: Build macOS release bundle
+        working-directory: desktop-electrobun
+        run: bun run build:release
+      - name: Stage macOS app artifact
+        working-directory: desktop-electrobun
+        shell: bash
+        run: |
+          set -euo pipefail
+          app_path="$(find build -type d -name '*.app' -print -quit)"
+          if [[ -z "$app_path" ]]; then
+            echo "::error::Electrobun did not produce a macOS .app bundle"
+            find build -maxdepth 3 -print 2>/dev/null || true
+            exit 1
+          fi
+          rm -rf artifacts
+          mkdir -p artifacts
+          cp -R "$app_path" artifacts/OmniRoute.app
+          ditto -c -k --sequesterRsrc --keepParent artifacts/OmniRoute.app artifacts/OmniRoute-macos.zip
+      - name: Upload macOS app artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: omniroute-electrobun-macos-${{ github.sha }}
+          path: desktop-electrobun/artifacts/
+          if-no-files-found: error
+          retention-days: 14
