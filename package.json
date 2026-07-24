@@ -32,7 +32,23 @@
     "!**/*.test.js",
     "!**/*.test.mjs",
     "!**/*.spec.ts",
-    "!**/*.spec.tsx"
+    "!**/*.spec.tsx",
+    "!dist/src/**",
+    "!dist/open-sse/**",
+    "!dist/lib/**",
+    "!dist/domain/**",
+    "!dist/models/**",
+    "!dist/mitm/**",
+    "!dist/server/**",
+    "!dist/shared/**",
+    "!dist/sse/**",
+    "!dist/types/**",
+    "!dist/node_modules/**",
+    "!dist/coverage/**",
+    "!dist/**/*.test.*",
+    "!dist/**/*.spec.*",
+    "!dist/**/*.snap",
+    "!dist/**/*.map"
   ],
   "workspaces": [
     "open-sse"
