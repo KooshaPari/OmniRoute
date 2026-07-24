@@ -135,6 +135,14 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
   // are pinned individually in PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS /
   // PACK_ARTIFACT_REQUIRED_PATHS; do NOT re-widen src/* or open-sse/ here,
   // otherwise the rebuild inflates the tarball past the npm registry limit.
+  // Runtime-loaded .ts entries via tsx from bin/omniroute.mjs:
+  //   src/shared/utils/nodeRuntimeSupport.ts (Node <22 polyfill)
+  //   open-sse/utils/setupPolyfill.ts (open-sse runtime setup)
+  // Both are explicitly pinned in PACK_ARTIFACT_REQUIRED_PATHS too, but
+  // listing the parent prefix as well lets the prune walk include them when
+  // they get moved during the rebuild.
+  "src/shared/utils/",
+  "open-sse/utils/",
   "dist/",
 ];
 
