@@ -587,7 +587,7 @@ cmd_test() {
   local sublog
 
   # 1. proccompose tests (covers the deploy plane itself)
-  log "  [1/5] proccompose unit tests"
+  log "  [1/6] proccompose unit tests"
   if [[ -f "$(dirname "$0")/tests/proccompose.test.sh" ]]; then
     sublog=$(bash "$(dirname "$0")/tests/proccompose.test.sh" 2>&1)
     local rc=$?
@@ -600,7 +600,7 @@ cmd_test() {
 
   # 2. BFF tests - only run if there are actual test files
   if [[ -d "$V4_DIR/apps/bff" ]] && command -v bun >/dev/null; then
-    log "  [2/5] BFF tests"
+    log "  [2/6] BFF tests"
     local bff_tests
     bff_tests=$(find "$V4_DIR/apps/bff" -maxdepth 4 \( -name "*.test.*" -o -name "*_test.*" -o -name "*.spec.*" \) 2>/dev/null | head -3)
     if [[ -z "$bff_tests" ]]; then
@@ -617,7 +617,7 @@ cmd_test() {
 
   # 3. BFF typecheck (always runs - catches TS regressions)
   if [[ -d "$V4_DIR/apps/bff" ]] && command -v bun >/dev/null; then
-    log "  [3/5] BFF typecheck"
+    log "  [3/6] BFF typecheck"
     sublog=$(cd "$V4_DIR/apps/bff" && bun run typecheck 2>&1)
     local rc=$?
     echo "$sublog" | tail -10
@@ -629,7 +629,7 @@ cmd_test() {
 
   # 4. Web typecheck (always runs - catches Svelte regressions)
   if [[ -d "$V4_DIR/apps/web" ]] && command -v bun >/dev/null; then
-    log "  [4/5] web typecheck"
+    log "  [4/6] web typecheck"
     sublog=$(cd "$V4_DIR/apps/web" && bun run typecheck 2>&1)
     local rc=$?
     echo "$sublog" | tail -10
@@ -641,7 +641,7 @@ cmd_test() {
 
   # 5. Web tests - only run if there are actual test files
   if [[ -d "$V4_DIR/apps/web" ]] && command -v bun >/dev/null; then
-    log "  [5/5] web tests"
+    log "  [5/6] web tests"
     local web_tests
     web_tests=$(find "$V4_DIR/apps/web" -maxdepth 4 \( -name "*.test.*" -o -name "*_test.*" -o -name "*.spec.*" \) 2>/dev/null | head -3)
     if [[ -n "$web_tests" ]]; then
@@ -656,8 +656,30 @@ cmd_test() {
     fi
   fi
 
+  # 6. Shared package tests (api-contracts + design-tokens) - catches contract drift
+  if command -v bun >/dev/null; then
+    log "  [6/6] shared package tests (api-contracts + design-tokens)"
+    local pkg_fail=0
+    local pkg
+    for pkg in "$V4_DIR/packages/api-contracts" "$V4_DIR/packages/design-tokens"; do
+      if [[ -d "$pkg" ]] && grep -q '"test"' "$pkg/package.json" 2>/dev/null; then
+        sublog=$(cd "$pkg" && bun test 2>&1)
+        local rc=$?
+        local pkg_name=$(basename "$pkg")
+        echo "$sublog" | tail -8
+        if (( rc != 0 )); then
+          err "$pkg_name tests FAILED (exit $rc)"
+          pkg_fail=1
+        fi
+      fi
+    done
+    if (( pkg_fail != 0 )); then
+      fail=1
+    fi
+  fi
+
   if (( fail == 0 )); then
-    ok "v4 test suite complete - all 5 gates passed"
+    ok "v4 test suite complete - all 6 gates passed"
   else
     err "v4 test suite FAILED - $fail gate(s) failed"
   fi

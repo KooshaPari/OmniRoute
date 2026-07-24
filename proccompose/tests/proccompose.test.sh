@@ -40,7 +40,13 @@ echo "[4/8] example.yaml is also valid"
 if python3 -c "import yaml; yaml.safe_load(open('$EXAMPLE_FILE'))" 2>/dev/null; then report "example.yaml parses" ok; else report "example.yaml parses" fail; fi
 
 echo "[5/8] MCP stdio transport - JSON-RPC 2.0 round-trip"
-stdio_out=$(printf '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{}}\n{"jsonrpc":"2.0","id":"2","method":"tools/list","params":{}}\n{"jsonrpc":"2.0","id":"3","method":"ping","params":{}}\n' | timeout 5 "$PROCCOMPOSE_BIN" serve-stdio 2>/dev/null)
+# Three requests over stdin/stdout, all must return valid single-line JSON.
+# Use a temp file so the input stream stays open until the subprocess reads
+# everything (printf pipes can close early on slow readers, causing flake).
+stdio_in=$(mktemp)
+printf '%s\n' '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{}}' '{"jsonrpc":"2.0","id":"2","method":"tools/list","params":{}}' '{"jsonrpc":"2.0","id":"3","method":"ping","params":{}}' > "$stdio_in"
+stdio_out=$(timeout 10 "$PROCCOMPOSE_BIN" serve-stdio < "$stdio_in" 2>/dev/null)
+rm -f "$stdio_in"
 echo "$stdio_out" | grep -q '"id":"1","result":{ *"protocolVersion"' && report "stdio: initialize response" ok || report "stdio: initialize response" fail
 echo "$stdio_out" | grep -qE '"id":"2".*"tools".*\[' && report "stdio: tools/list returns tools array" ok || report "stdio: tools/list returns tools array" fail
 echo "$stdio_out" | grep -q '"id":"3","result":{}' && report "stdio: ping response" ok || report "stdio: ping response" fail
@@ -97,7 +103,7 @@ test_src=$(grep -A 80 "^cmd_test()" "$PROCCOMPOSE_BIN" 2>/dev/null)
 echo "$test_src" | grep -q "BFF typecheck" && report "test: cmd_test runs BFF typecheck" ok || report "test: cmd_test runs BFF typecheck" fail
 echo "$test_src" | grep -q "web typecheck" && report "test: cmd_test runs web typecheck" ok || report "test: cmd_test runs web typecheck" fail
 echo "$test_src" | grep -q "bun run typecheck" && report "test: cmd_test invokes bun run typecheck" ok || report "test: cmd_test invokes bun run typecheck" fail
-echo "$test_src" | grep -qE "\\[1/5\\]|\\[2/5\\]|\\[3/5\\]|\\[4/5\\]|\\[5/5\\]" && report "test: cmd_test has 5 gates" ok || report "test: cmd_test has 5 gates" fail
+echo "$test_src" | grep -qE "\\[1/6\\]|\\[2/6\\]|\\[3/6\\]|\\[4/6\\]|\\[5/6\\]|\\[6/6\\]" && report "test: cmd_test has 6 gates" ok || report "test: cmd_test has 5 gates" fail
 
 echo "[11/12] matrix canary (proccompose matrix status + help)"
 status_out=$(PROCCOMPOSE_HOME="/tmp/.proccompose-test" "$PROCCOMPOSE_BIN" matrix status 2>&1 || true)
