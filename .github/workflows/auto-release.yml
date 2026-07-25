@@ -356,7 +356,42 @@ jobs:
             }
           '
 
+      - name: Guard npm scope ownership
+        id: ownership
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          PKG_NAME=$(node -e "console.log(require('./package.json').name)")
+          echo "Verifying npm publish ownership for package: $PKG_NAME"
+          if [[ -z "${NPM_TOKEN:-}" ]]; then
+            echo "::warning::NPM_TOKEN secret is not configured; skipping npm publish."
+            echo "publish_to_npm=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Probe the package. 401/403/404 all mean "you can't write here" — stop
+          # cleanly instead of letting `npm publish` corrupt dist-tags we don't
+          # own (e.g. writing to upstream omniroute as a fork).
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${NPM_TOKEN}" \
+            -H "Accept: application/json" \
+            "https://registry.npmjs.org/${PKG_NAME//\//%2F}")
+          echo "npm registry responded: HTTP $STATUS"
+          if [[ "$STATUS" != "200" && "$STATUS" != "404" ]]; then
+            echo "::error::Unexpected npm registry response: HTTP $STATUS"
+            exit 1
+          fi
+          if [[ "$STATUS" == "404" ]]; then
+            echo "::warning::Package '$PKG_NAME' not found on npm registry."
+            echo "::warning::Scoped packages must be created once (e.g. via npm web UI)"
+            echo "::warning::before they can be published to. Skipping npm publish."
+            echo "publish_to_npm=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "publish_to_npm=true" >> "$GITHUB_OUTPUT"
+
       - name: Publish with channel-specific dist-tag
+        if: ${{ steps.ownership.outputs.publish_to_npm == 'true' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           RESOLVED: ${{ needs.resolve.outputs.resolved }}
