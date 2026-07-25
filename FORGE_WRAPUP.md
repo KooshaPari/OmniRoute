@@ -793,3 +793,84 @@ Once the scoped package is created on npm, the publish pipeline is end-to-end gr
 ---
 
 *Session closeout — 2026-07-23*
+## 10. NPM Token Detection + Scope-Ownership Guard (2026-07-25)
+
+### Course correction
+
+The previous "single remaining action" diagnosis was wrong. The actual root cause of the npm publish E404 had **two layers**:
+
+1. **No `NPM_TOKEN` secret** — `gh secret list` returns only `SONAR_TOKEN`. The workflow's `NODE_AUTH_TOKEN` env var is empty (`NPM_TOKEN: `).
+2. **Wrong package name** — `package.json#name` was `@kooshapari/omniroute` (scoped, never created on npm). The unscoped `omniroute` is owned by upstream `diegosouza.pw`.
+
+Naive fix attempt (PR #470) was to change `name` to `omniroute` — incorrect, because:
+- `KooshaPari/OmniRoute` is a **fork** of `diegosouzapw/OmniRoute`
+- Publishing to `omniroute` would have failed with E404 (no permission)
+- If auth ever succeeded, it would corrupt upstream's dist-tags
+
+### Real fix (PR #474, merged at `bd3e4d008`)
+
+**Two parts**:
+
+1. **Reverted** `package.json#name` from `omniroute` back to `@kooshapari/omniroute` (safe)
+2. **Added scope-ownership guard** in `auto-release.yml` (`Publish npm` job):
+   - Runs **before** `npm publish`
+   - Checks if `NPM_TOKEN` is set → if empty, skip with warning
+   - Probes `https://registry.npmjs.org/{name}` via `curl`
+   - **404** (scope doesn't exist) → skip with warning
+   - **200** (package exists) → proceed to publish
+   - **401/403** (no permission) → fail with clear error
+   - **other** (rate limit, etc.) → fail with clear error
+
+### Verified result (run 30144174368)
+
+Every job green:
+
+| Job | Status |
+|---|---|
+| `Evaluate trigger` | ✅ |
+| `Resolve channel` | ✅ |
+| `Publish npm (nightly)` | ✅ — guard skipped cleanly with `::warning::NPM_TOKEN secret is not configured; skipping npm publish.` |
+| `Publish GitHub release` | ✅ — created `v3.8.49-koosha.0-nightly.20260725.bd3e4d0` |
+| `Publish Docker` | ✅ skipped (correct for nightly) |
+| `Release summary` | ✅ |
+
+The guard output (from the run log):
+
+```
+Verifying npm publish ownership for package: @kooshapari/omniroute
+##[warning]NPM_TOKEN secret is not configured; skipping npm publish.
+```
+
+The pipeline is **safe by default** — no more E404 corruption, no more surprise dist-tag writes to upstream's package. The release system ships GitHub releases correctly; npm publish is gated behind explicit human setup.
+
+### Ground truth on `main` now
+
+| Item | Reality |
+|---|---|
+| HEAD | `bd3e4d008` |
+| `package.json#name` | `@kooshapari/omniroute` (safe scoped) |
+| Tarball size | 1.5 MB packed / 4.0 MB unpacked / 379 files |
+| GitHub release | Working — created every dispatch |
+| npm publish | **Gated by scope-ownership guard** — skips cleanly when scope missing or NPM_TOKEN absent |
+| `omniroute@latest` on npm | `3.8.48` (untouched by our fork) |
+| `omniroute@nightly` on npm | Never published (still requires human setup) |
+| Branch protection | Restored |
+
+### Single Human Setup (for nightly npm publish to start)
+
+To flip the gate from "skip" to "publish":
+
+1. **Create the `@kooshapari/omniroute` scope on npm** (one-time, ~30s)
+   - https://www.npmjs.com/package/create → name: `@kooshapari/omniroute`, public
+2. **Add `NPM_TOKEN` secret** to the repo (Settings → Secrets → Actions)
+   - Automation token from https://www.npmjs.com/settings/~/tokens
+3. **Verify** the guard now passes:
+   ```bash
+   gh workflow run auto-release.yml -f force=true -f max-channel=canary
+   ```
+
+After both are done, the next dispatch will publish `omniroute@nightly` (the `@kooshapari/omniroute` package) end-to-end with the 1.5 MB tarball, signed provenance, and a transparency log entry.
+
+---
+
+*Final session closeout — 2026-07-25*
