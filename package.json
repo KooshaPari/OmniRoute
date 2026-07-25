@@ -1,5 +1,5 @@
 {
-  "name": "omniroute",
+  "name": "@kooshapari/omniroute",
   "version": "3.8.49-koosha.0",
   "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
