@@ -115,6 +115,39 @@ done
 canary_help=$(echo "$help_out" | grep -A 1 "matrix canary" | head -1)
 echo "$canary_help" | grep -qE "1\\.\\.[0-9]+|pct|traffic" && report "matrix: canary help mentions pct/traffic" ok || report "matrix: canary help mentions pct/traffic" fail
 
+echo "[11b/12] proccompose releases subcommand (release history)"
+# Test the releases subcommand runs without error (no args = 'dev' slot)
+releases_out=$("$PROCCOMPOSE_BIN" releases 2>&1 || true)
+echo "$releases_out" | grep -qE "release history|releases" && report "releases: cmd_releases outputs release header" ok || report "releases: cmd_releases outputs release header" fail
+# Test releases with explicit slot arg works
+releases_slot_out=$("$PROCCOMPOSE_BIN" releases dev 2>&1 || true)
+echo "$releases_slot_out" | grep -qE "release history|releases" && report "releases: cmd_releases slot arg works" ok || report "releases: cmd_releases slot arg works" fail
+# Test releases is documented in help
+releases_help=$("$PROCCOMPOSE_BIN" help 2>&1)
+echo "$releases_help" | grep -q "releases" && report "releases: documented in help" ok || report "releases: documented in help" fail
+# Test record_release creates a file. Use absolute path to lib since
+# PROCCOMPOSE_BIN/../lib fails on macOS bash (PROCCOMPOSE_BIN is a file, not dir).
+PROCCOMPOSE_LIB="$(cd "$(dirname "$0")/.." && pwd)/lib/release-state.sh"
+TEST_RECORD_DIR="$(mktemp -d)"
+HOME_OLD="$HOME"
+(
+  export HOME="$TEST_RECORD_DIR/fakehome"
+  export RELEASE_DIR="$TEST_RECORD_DIR/releases"
+  mkdir -p "$RELEASE_DIR" "$HOME/.argismonitor/releases"
+  . "$PROCCOMPOSE_LIB"
+  record_release test-slot origin/test v-test
+) >/dev/null 2>&1
+[ -f "$TEST_RECORD_DIR/fakehome/.argismonitor/releases/test-slot."*.json ] || [ -f "$TEST_RECORD_DIR/releases/test-slot."*.json ] && report "releases: record_release creates release file" ok || report "releases: record_release creates release file" fail
+release_file=$(ls "$TEST_RECORD_DIR/fakehome/.argismonitor/releases/test-slot."*.json "$TEST_RECORD_DIR/releases/test-slot."*.json 2>/dev/null | head -1)
+[ -n "$release_file" ] && python3 -c "
+import json, sys
+d = json.load(open('$release_file'))
+assert d['slot'] == 'test-slot', f'expected test-slot got {d["slot"]}'
+assert d['ref'] == 'origin/test'
+assert d['version'] == 'v-test'
+" >/dev/null 2>&1 && report "releases: record_release JSON has correct fields" ok || report "releases: record_release JSON has correct fields" fail
+export HOME="$HOME_OLD"
+
 echo "[12/12] GitHub Actions CI workflow exists"
 WF="$(dirname "$0")/../../.github/workflows/proccompose-deploy-gate.yml"
 if [[ -f "$WF" ]]; then report "ci: proccompose-deploy-gate.yml exists" ok; else report "ci: proccompose-deploy-gate.yml exists" fail; fi

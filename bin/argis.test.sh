@@ -57,7 +57,7 @@ chmod +x "$TEST_STUBS"/*
 
 echo "[1/4] argis help shows the deploy-plane aliases"
 help_out=$("$ARGIS" 2>&1)
-for sub in "argis test" "argis doctor" "argis release" "argis matrix" "argis proccompose"; do
+for sub in "argis test" "argis doctor" "argis release" "argis matrix" "argis proccompose" "argis status" "argis status-json"; do
   echo "$help_out" | grep -qF "$sub" && report "help lists '$sub'" ok || report "help lists '$sub'" fail
 done
 for sub in "argis install" "argis restart" "argis desktop"; do

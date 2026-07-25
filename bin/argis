@@ -263,6 +263,7 @@ case "${1:-help}" in
   plan)      cmd_plan ;;
   doctor)    cmd_doctor ;;
   preflight) cmd_preflight ;;
+  status-json) shift; cmd_proccompose status-json "$@" ;;
   supervise)  cmd_install ;;
   restart)    cmd_restart ;;
   desktop)    cmd_desktop_status ;;
@@ -290,6 +291,8 @@ Deploy plane (proxied to proccompose, see ./proccompose/proccompose help):
   argis test            run the pre-deploy gate (5 gates: BFF + web typecheck + tests)
   argis validate        validate proccompose.yaml against the current state
   argis plan            print the resolved execution plan
+  argis status           health snapshot (human-readable, via proccompose)
+  argis status-json     structured JSON for monitoring/dashboards
   argis doctor          check prerequisites (pheno + Tailscale + vercel + yq)
   argis preflight       dry-run validate + plan + doctor + test (safe preview before deploy)
   argis release <ref>  [pct]  deploy + cutover in one shot (test-gated)
