@@ -1,5 +1,5 @@
 {
-  "name": "@kooshapari/omniroute",
+  "name": "omniroute",
   "version": "3.8.49-koosha.0",
   "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
@@ -241,7 +241,9 @@
     "tier-matrix:verify:strict": "node scripts/check/tier-matrix-verify.mjs --strict",
     "ffi:build": "cargo build --release --manifest-path crates/omniroute-ffi/Cargo.toml",
     "ffi:test": "cargo test --manifest-path crates/omniroute-ffi/Cargo.toml",
-    "ffi:cross": "bash scripts/build-cross-ffi.sh"
+    "ffi:cross": "bash scripts/build-cross-ffi.sh",
+    "audit:prod": "npm audit --omit=dev --audit-level=moderate",
+    "audit:full": "npm audit --audit-level=moderate"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1073.0",
