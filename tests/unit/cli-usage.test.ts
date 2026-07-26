@@ -287,3 +287,84 @@ test("runBudgetSet envia POST com amount, scope e period", async () => {
   assert.ok(capturedBody !== null);
   assert.deepEqual(capturedBody, { amount: 50, scope: "global", period: "monthly" });
 });
+
+test("runBudgetGet filtra por scope e exibe o budget normalizado", async () => {
+  let capturedUrl = "";
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = ((input: RequestInfo | URL) => {
+    capturedUrl = String(input);
+    return mockFetch()(input);
+  }) as MockFetch;
+
+  const { runBudgetGet } = await import("../../bin/cli/commands/usage.mjs");
+  const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
+  const out = await captureStdout(() => runBudgetGet("global", {}, cmd as CliCommand));
+
+  globalThis.fetch = origFetch;
+  const parsed = JSON.parse(out);
+  assert.ok(capturedUrl.includes("/api/usage/budget?scope=global"));
+  assert.equal(parsed[0].scope, "global");
+  assert.equal(parsed[0].remaining, 57.5);
+});
+
+test("runBudgetReset envia DELETE com scope e confirma a operação", async () => {
+  let capturedMethod = "";
+  let capturedBody: unknown = null;
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+    if (String(input).includes("/api/usage/budget")) {
+      capturedMethod = init?.method ?? "";
+      capturedBody = typeof init?.body === "string" ? JSON.parse(init.body) : null;
+    }
+    return Promise.resolve(makeResp({ ok: true }));
+  }) as MockFetch;
+
+  const { runBudgetReset } = await import("../../bin/cli/commands/usage.mjs");
+  const cmd = { optsWithGlobals: () => ({ output: "table", quiet: false }) };
+  const out = await captureStdout(() => runBudgetReset("team", {}, cmd as CliCommand));
+
+  globalThis.fetch = origFetch;
+  assert.equal(capturedMethod, "DELETE");
+  assert.deepEqual(capturedBody, { scope: "team" });
+  assert.match(out, /Budget reset: team/);
+});
+
+test("runUsageUtilization filtra por API key e exibe os dados", async () => {
+  let capturedUrl = "";
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = ((input: RequestInfo | URL) => {
+    capturedUrl = String(input);
+    return mockFetch()(input);
+  }) as MockFetch;
+
+  const { runUsageUtilization } = await import("../../bin/cli/commands/usage.mjs");
+  const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
+  const out = await captureStdout(() =>
+    runUsageUtilization({ apiKey: "sk-test-key" }, cmd as CliCommand)
+  );
+
+  globalThis.fetch = origFetch;
+  const parsed = JSON.parse(out);
+  assert.ok(capturedUrl.includes("/api/usage/utilization?apiKey=sk-test-key"));
+  assert.equal(parsed[0].apiKey, "sk-test-key");
+  assert.equal(parsed[0].requests, 150);
+});
+
+test("runUsageProxyLogs envia limit e exibe os logs do proxy", async () => {
+  let capturedUrl = "";
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = ((input: RequestInfo | URL) => {
+    capturedUrl = String(input);
+    return mockFetch()(input);
+  }) as MockFetch;
+
+  const { runUsageProxyLogs } = await import("../../bin/cli/commands/usage.mjs");
+  const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
+  const out = await captureStdout(() => runUsageProxyLogs({ limit: 25 }, cmd as CliCommand));
+
+  globalThis.fetch = origFetch;
+  const parsed = JSON.parse(out);
+  assert.ok(capturedUrl.includes("/api/usage/proxy-logs?limit=25"));
+  assert.equal(parsed[0].id, "p1");
+  assert.equal(parsed[0].path, "/v1/chat/completions");
+});
