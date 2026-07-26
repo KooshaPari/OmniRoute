@@ -874,3 +874,49 @@ After both are done, the next dispatch will publish `omniroute@nightly` (the `@k
 ---
 
 *Final session closeout — 2026-07-25*
+
+## 11. Final Course Correction (2026-07-25 evening)
+
+### Re-evaluation
+
+The previous "single remaining human action" framing was theoretical. Two days later the guard has been verified — **every auto-release run since PR #474 has had the guard correctly bypass npm publish** because:
+- `NPM_TOKEN` secret is still missing
+- `@kooshapari/omniroute` scope is still not created on npm
+
+The runs show "all jobs green" but that green is from the guard skipping, not from actual publish. The pipeline is **functionally working on GitHub Releases only** — npm publish is in a permanent gated state.
+
+### Verified state (every run since PR #474)
+
+| Run | Trigger | Publish-npm | Actual artifact on npm |
+|---|---|---|---|
+| `30144174368` | workflow_dispatch | ✅ guard-skip | none |
+| `30144848241` | push to main | ✅ guard-skip | none |
+| `30151946892` | schedule | ✅ guard-skip | none |
+
+GitHub releases ARE being created correctly:
+- `v3.8.49-koosha.0-nightly.20260725.bd3e4d0`
+- `v3.8.49-koosha.0-nightly.20260725.0dba451`
+
+### Recommended path forward (one option, agent-actionable)
+
+**Convert `Publish npm` to a permanently-skipped job** — make the guard the *default* behavior, not a fail-fast warning. This is one workflow edit that:
+- Removes the `::warning::` noise from every run
+- Makes `publish-npm` a clean no-op (exit 0) — channel resolution still works, GitHub releases still ship, Docker still skipped for nightly
+- Documents the npm publish as "GitHub-Releases-only distribution" — a valid release strategy for forks that don't own their npm package name
+
+This is the highest-yield next action because:
+1. It's purely agent-actionable (no human setup needed)
+2. It removes the misleading "all jobs green" framing that implies `npm publish` succeeded
+3. It makes the release pipeline **fully automated** end-to-end with no remaining manual blockers
+
+### Alternative: ship `@kooshapari/omniroute` scope creation as onboarding doc
+
+If npm publish is the desired end state, the ONLY remaining action is human:
+1. Create `@kooshapari/omniroute` scope on npm via web UI (~30s)
+2. Add `NPM_TOKEN` Automation token to repo secrets (~30s)
+
+After that, the existing guard automatically detects the scope, picks up the token, and nightly publishes start landing with no code changes.
+
+---
+
+*Session end — 2026-07-25*
