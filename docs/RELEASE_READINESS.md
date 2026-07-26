@@ -9,29 +9,29 @@
 
 ## Modernization Stack (21+ PRs)
 
-| Layer | Replacement | Status |
-|---|---|---|
-| Linter | oxlint | 3s on 3,148 files |
-| Formatter | oxfmt | drop-in for Prettier |
-| LRU cache | `lru-cache@11` | 9/9 tests |
-| Hashing | `@node-rs/argon2` (OWASP Argon2id) | 6/6 tests |
-| Color | `picocolors` | 200KB → 16KB |
-| Breaker | `opossum@10` (shadow adapter) | telemetry |
-| Crypto | `crypto.timingSafeEqual` | 2 CVE fixes |
-| Quota | `KeyvQuotaStore` (keyv+SQLite) | 6/6 tests |
-| Rate limit | `KeyvRateLimitStore` (keyv) | ioredis-free |
-| Vector | `sqlite-vec` facade | 521→165 LOC |
-| Logger | `oxlint`/`oxfmt` | 0 chalk imports |
-| Sidecars | Redis removed, Qdrant removed, MITM in-process | -29 docker lines |
+| Layer      | Replacement                                    | Status               |
+| ---------- | ---------------------------------------------- | -------------------- |
+| Linter     | oxlint                                         | 3s on 3,148 files    |
+| Formatter  | oxfmt                                          | drop-in for Prettier |
+| LRU cache  | `lru-cache@11`                                 | 9/9 tests            |
+| Hashing    | `@node-rs/argon2` (OWASP Argon2id)             | 6/6 tests            |
+| Color      | `picocolors`                                   | 200KB → 16KB         |
+| Breaker    | `opossum@10` (shadow adapter)                  | telemetry            |
+| Crypto     | `crypto.timingSafeEqual`                       | 2 CVE fixes          |
+| Quota      | `KeyvQuotaStore` (keyv+SQLite)                 | 6/6 tests            |
+| Rate limit | `KeyvRateLimitStore` (keyv)                    | ioredis-free         |
+| Vector     | `sqlite-vec` facade                            | 521→165 LOC          |
+| Logger     | `oxlint`/`oxfmt`                               | 0 chalk imports      |
+| Sidecars   | Redis removed, Qdrant removed, MITM in-process | -29 docker lines     |
 
 ## Decompositions
 
-| Module | From | LOC | Tests |
-|---|---|---|---|
-| `open-sse/services/tokenBucket.ts` | `rateLimitManager.ts:491` | 95 | 10 |
-| `src/lib/db/apiKeyCache.ts` | `apiKeys.ts` (1412→1279) | 145 | 24 |
-| `src/lib/memory/retrievalStrategy.ts` | `retrieval.ts` (1072→998) | 124 | 26 |
-| `open-sse/services/batchProcessor/retryPolicy.ts` | `batchProcessor.ts` (914→851) | 60 | — |
+| Module                                            | From                          | LOC | Tests |
+| ------------------------------------------------- | ----------------------------- | --- | ----- |
+| `open-sse/services/tokenBucket.ts`                | `rateLimitManager.ts:491`     | 95  | 10    |
+| `src/lib/db/apiKeyCache.ts`                       | `apiKeys.ts` (1412→1279)      | 145 | 24    |
+| `src/lib/memory/retrievalStrategy.ts`             | `retrieval.ts` (1072→998)     | 124 | 26    |
+| `open-sse/services/batchProcessor/retryPolicy.ts` | `batchProcessor.ts` (914→851) | 60  | —     |
 
 ## Dead Code Removed
 
@@ -47,6 +47,7 @@
 ## Backlog (Open GH Issues)
 
 Requires dedicated sessions:
+
 - #341 zero-loss Oxc typed-lint matrix
 - #392 v4 compatibility-shell auth/transport gaps
 - #394 restore immutable provenance contract

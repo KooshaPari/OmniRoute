@@ -8,11 +8,11 @@
 
 ## Local line
 
-| Branch | Last commit | Purpose |
-|---|---|---|
-| `fix/omniroute-unscoped` | `f08104d61` | active modernization stack |
-| `feat/dispatch-binding-tiers` | `87c8068f5` | polyglot FFI/binding tier work |
-| `fix/electrobun-contract-deps` | `bf69ea09d` | electrobun contract refresh |
+| Branch                         | Last commit | Purpose                        |
+| ------------------------------ | ----------- | ------------------------------ |
+| `fix/omniroute-unscoped`       | `f08104d61` | active modernization stack     |
+| `feat/dispatch-binding-tiers`  | `87c8068f5` | polyglot FFI/binding tier work |
+| `fix/electrobun-contract-deps` | `bf69ea09d` | electrobun contract refresh    |
 
 ## Modernization lineage (since 2026-07-05)
 
