@@ -62,6 +62,7 @@ export async function checkQdrantHealth(): Promise<QdrantHealth> {
   } catch (err: unknown) {
     return { ok: false, error: String(err) };
   }
+  return result.vector;
 }
 
 // ─── Search ─────────────────────────────────────────────────────────────────
