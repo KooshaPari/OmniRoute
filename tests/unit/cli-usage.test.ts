@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+type CliCommand = {
+  optsWithGlobals: () => { output: "json" | "table"; quiet: boolean };
+};
+
 const ANALYTICS_DATA = {
   byProvider: [
     {
@@ -137,11 +141,11 @@ async function captureStdout(fn: () => Promise<void>): Promise<string> {
 
 test("runUsageAnalytics exibe providers em json", async () => {
   const origFetch = globalThis.fetch;
-  globalThis.fetch = mockFetch() as any;
+  globalThis.fetch = mockFetch() as unknown as typeof globalThis.fetch;
 
   const { runUsageAnalytics } = await import("../../bin/cli/commands/usage.mjs");
-  const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
-  const out = await captureStdout(() => runUsageAnalytics({ period: "30d" }, cmd as any));
+  const cmd: CliCommand = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
+  const out = await captureStdout(() => runUsageAnalytics({ period: "30d" }, cmd));
 
   globalThis.fetch = origFetch;
   const parsed = JSON.parse(out);
@@ -152,11 +156,11 @@ test("runUsageAnalytics exibe providers em json", async () => {
 
 test("runBudgetList exibe budgets", async () => {
   const origFetch = globalThis.fetch;
-  globalThis.fetch = mockFetch() as any;
+  globalThis.fetch = mockFetch() as unknown as typeof globalThis.fetch;
 
   const { runBudgetList } = await import("../../bin/cli/commands/usage.mjs");
-  const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
-  const out = await captureStdout(() => runBudgetList({}, cmd as any));
+  const cmd: CliCommand = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
+  const out = await captureStdout(() => runBudgetList({}, cmd));
 
   globalThis.fetch = origFetch;
   const parsed = JSON.parse(out);
@@ -167,11 +171,11 @@ test("runBudgetList exibe budgets", async () => {
 
 test("runUsageQuota exibe providers de quota", async () => {
   const origFetch = globalThis.fetch;
-  globalThis.fetch = mockFetch() as any;
+  globalThis.fetch = mockFetch() as unknown as typeof globalThis.fetch;
 
   const { runUsageQuota } = await import("../../bin/cli/commands/usage.mjs");
-  const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
-  const out = await captureStdout(() => runUsageQuota({}, cmd as any));
+  const cmd: CliCommand = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
+  const out = await captureStdout(() => runUsageQuota({}, cmd));
 
   globalThis.fetch = origFetch;
   const parsed = JSON.parse(out);
@@ -181,11 +185,11 @@ test("runUsageQuota exibe providers de quota", async () => {
 
 test("runUsageLogs exibe logs com mascaramento de API key", async () => {
   const origFetch = globalThis.fetch;
-  globalThis.fetch = mockFetch() as any;
+  globalThis.fetch = mockFetch() as unknown as typeof globalThis.fetch;
 
   const { runUsageLogs } = await import("../../bin/cli/commands/usage.mjs");
-  const cmd = { optsWithGlobals: () => ({ output: "table", quiet: false }) };
-  const out = await captureStdout(() => runUsageLogs({ limit: 10 }, cmd as any));
+  const cmd: CliCommand = { optsWithGlobals: () => ({ output: "table", quiet: false }) };
+  const out = await captureStdout(() => runUsageLogs({ limit: 10 }, cmd));
 
   globalThis.fetch = origFetch;
   assert.ok(!out.includes("sk-test-key") || out.includes("***"));
@@ -193,11 +197,11 @@ test("runUsageLogs exibe logs com mascaramento de API key", async () => {
 
 test("runUsageLogs --output json retorna rows com campos esperados", async () => {
   const origFetch = globalThis.fetch;
-  globalThis.fetch = mockFetch() as any;
+  globalThis.fetch = mockFetch() as unknown as typeof globalThis.fetch;
 
   const { runUsageLogs } = await import("../../bin/cli/commands/usage.mjs");
-  const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
-  const out = await captureStdout(() => runUsageLogs({ limit: 10 }, cmd as any));
+  const cmd: CliCommand = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
+  const out = await captureStdout(() => runUsageLogs({ limit: 10 }, cmd));
 
   globalThis.fetch = origFetch;
   const parsed = JSON.parse(out);
@@ -209,11 +213,11 @@ test("runUsageLogs --output json retorna rows com campos esperados", async () =>
 
 test("runUsageHistory exibe histórico", async () => {
   const origFetch = globalThis.fetch;
-  globalThis.fetch = mockFetch() as any;
+  globalThis.fetch = mockFetch() as unknown as typeof globalThis.fetch;
 
   const { runUsageHistory } = await import("../../bin/cli/commands/usage.mjs");
-  const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
-  const out = await captureStdout(() => runUsageHistory({ limit: 50 }, cmd as any));
+  const cmd: CliCommand = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
+  const out = await captureStdout(() => runUsageHistory({ limit: 50 }, cmd));
 
   globalThis.fetch = origFetch;
   const parsed = JSON.parse(out);
@@ -227,10 +231,10 @@ test("runUsageModelLatencyStats preserves connection and routing evidence fields
   globalThis.fetch = ((url: string) => {
     capturedUrl = url;
     return mockFetch()(url);
-  }) as any;
+  }) as unknown as typeof globalThis.fetch;
 
   const { runUsageModelLatencyStats } = await import("../../bin/cli/commands/usage.mjs");
-  const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
+  const cmd: CliCommand = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
   const out = await captureStdout(() =>
     runUsageModelLatencyStats(
       {
@@ -241,7 +245,7 @@ test("runUsageModelLatencyStats preserves connection and routing evidence fields
         model: "gpt-4o",
         connectionId: "openai-primary",
       },
-      cmd as any
+      cmd
     )
   );
 
@@ -263,19 +267,20 @@ test("runUsageModelLatencyStats preserves connection and routing evidence fields
 test("runBudgetSet envia POST com amount, scope e period", async () => {
   let capturedBody: unknown = null;
   const origFetch = globalThis.fetch;
-  globalThis.fetch = ((url: string, init: any) => {
+  globalThis.fetch = ((url: string, init?: RequestInit) => {
     if (url.includes("/api/usage/budget") && init?.method === "POST") {
-      capturedBody = JSON.parse(init.body);
+      const body = typeof init.body === "string" ? JSON.parse(init.body) : null;
+      if (body && typeof body === "object") capturedBody = body as Record<string, unknown>;
     }
     return Promise.resolve(makeResp({ ok: true }));
-  }) as any;
+  }) as unknown as typeof globalThis.fetch;
 
   const { runBudgetSet } = await import("../../bin/cli/commands/usage.mjs");
-  const cmd = { optsWithGlobals: () => ({ output: "table", quiet: false }) };
-  await captureStdout(() => runBudgetSet("50", { scope: "global", period: "monthly" }, cmd as any));
+  const cmd: CliCommand = { optsWithGlobals: () => ({ output: "table", quiet: false }) };
+  await captureStdout(() => runBudgetSet("50", { scope: "global", period: "monthly" }, cmd));
 
   globalThis.fetch = origFetch;
   assert.ok(capturedBody !== null);
-  assert.equal((capturedBody as any).amount, 50);
-  assert.equal((capturedBody as any).scope, "global");
+  assert.equal((capturedBody as Record<string, unknown>).amount, 50);
+  assert.equal((capturedBody as Record<string, unknown>).scope, "global");
 });
