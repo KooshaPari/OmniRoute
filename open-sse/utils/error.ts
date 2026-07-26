@@ -2,6 +2,7 @@ import { CORS_HEADERS } from "./cors.ts";
 import { getDefaultErrorMessage, getErrorInfo } from "../config/errorConfig.ts";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
+import { buildPassthroughErrorResponse } from "./upstreamErrorPassthrough.ts";
 
 /**
  * Sanitize an error message to prevent stack trace exposure in API responses.
@@ -308,7 +309,8 @@ export function createErrorResult(
   retryAfterMs: number | null = null,
   errorCode?: string,
   errorType?: string,
-  upstreamDetails?: unknown
+  upstreamDetails?: unknown,
+  opts?: { passthrough?: boolean }
 ) {
   const body = buildErrorBody(statusCode, message, upstreamDetails);
   if (errorCode) {
@@ -341,6 +343,22 @@ export function createErrorResult(
   // Add retryAfterMs if available (for Antigravity quota errors)
   if (retryAfterMs) {
     result.retryAfterMs = retryAfterMs;
+  }
+
+  // Opt-in relay of the verbatim upstream error body (Claude Code auto-recover
+  // contract — see upstreamErrorPassthrough.ts). Only swaps `result.response`;
+  // `result.error`/`rawMessage`/`errorType`/`errorCode` stay untouched so
+  // server-side classification (checkFallbackError, combo retry logic, etc.)
+  // never sees a different value depending on this flag.
+  if (opts?.passthrough) {
+    const passthroughResponse = buildPassthroughErrorResponse(
+      statusCode,
+      upstreamDetails,
+      retryAfterMs ? { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } : undefined
+    );
+    if (passthroughResponse) {
+      result.response = passthroughResponse;
+    }
   }
 
   return result;

@@ -3327,7 +3327,8 @@ export async function handleChatCore({
               retryAfterMs,
               upstreamErrorCode,
               upstreamErrorType,
-              upstreamErrorBody
+              upstreamErrorBody,
+              { passthrough: sourceFormat === FORMATS.CLAUDE }
             );
           }
         } catch {
@@ -3346,7 +3347,8 @@ export async function handleChatCore({
             retryAfterMs,
             upstreamErrorCode,
             upstreamErrorType,
-            upstreamErrorBody
+            upstreamErrorBody,
+            { passthrough: sourceFormat === FORMATS.CLAUDE }
           );
         }
       } else {
@@ -3365,7 +3367,8 @@ export async function handleChatCore({
           retryAfterMs,
           upstreamErrorCode,
           upstreamErrorType,
-          upstreamErrorBody
+          upstreamErrorBody,
+          { passthrough: sourceFormat === FORMATS.CLAUDE }
         );
       }
     } else if (isContextOverflowError(statusCode, message)) {
@@ -3413,7 +3416,8 @@ export async function handleChatCore({
               retryAfterMs,
               upstreamErrorCode,
               upstreamErrorType,
-              upstreamErrorBody
+              upstreamErrorBody,
+              { passthrough: sourceFormat === FORMATS.CLAUDE }
             );
           }
         } catch {
@@ -3432,7 +3436,8 @@ export async function handleChatCore({
             retryAfterMs,
             upstreamErrorCode,
             upstreamErrorType,
-            upstreamErrorBody
+            upstreamErrorBody,
+            { passthrough: sourceFormat === FORMATS.CLAUDE }
           );
         }
       } else {
@@ -3451,7 +3456,8 @@ export async function handleChatCore({
           retryAfterMs,
           upstreamErrorCode,
           upstreamErrorType,
-          upstreamErrorBody
+          upstreamErrorBody,
+          { passthrough: sourceFormat === FORMATS.CLAUDE }
         );
       }
     } else {
@@ -3477,7 +3483,8 @@ export async function handleChatCore({
         retryAfterMs,
         upstreamErrorCode,
         upstreamErrorType,
-        upstreamErrorBody
+        upstreamErrorBody,
+        { passthrough: sourceFormat === FORMATS.CLAUDE }
       );
     }
     // ── End T5 ───────────────────────────────────────────────────────────────
