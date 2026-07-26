@@ -243,7 +243,11 @@
     "ffi:test": "cargo test --manifest-path crates/omniroute-ffi/Cargo.toml",
     "ffi:cross": "bash scripts/build-cross-ffi.sh",
     "audit:prod": "npm audit --omit=dev --audit-level=moderate",
-    "audit:full": "npm audit --audit-level=moderate"
+    "audit:full": "npm audit --audit-level=moderate",
+    "identity:check": "node -p \"JSON.stringify(JSON.parse(require('fs').readFileSync('.fork-identity.json','utf8')), null, 2)\"",
+    "identity:diff": "git diff -- .fork-identity.json",
+    "check:fail-open": "bash scripts/check-fail-open.sh",
+    "ci:startup-determinism": "bash scripts/check-fail-open.sh && npm run audit:prod"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1073.0",
