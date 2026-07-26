@@ -25,20 +25,18 @@ const DEV_URL = process.env.RENDERER_URL ?? "http://localhost:3000";
  * Leave unset to skip service boot.
  */
 const SERVICES_COMPOSE_FILE = process.env.SERVICES_COMPOSE_FILE;
-const STANDALONE_DIR = resolve(
-  process.env.OMNIROUTE_STANDALONE_DIR ??
-    resolve(import.meta.dir, "../../.build/next/standalone"),
-);
+const BUNDLED_BACKEND_DIR = resolve(import.meta.dir, "../backend");
+const STANDALONE_DIR = resolve(process.env.OMNIROUTE_BFF_DIR ?? BUNDLED_BACKEND_DIR);
 const SERVER_PORT = Number(process.env.OMNIROUTE_PORT ?? "20128");
 let nextServer: ReturnType<typeof Bun.spawn> | undefined;
 
 async function bootNextServer(): Promise<string | undefined> {
-  const serverEntry = join(STANDALONE_DIR, "server.js");
+  const serverEntry = join(STANDALONE_DIR, "server.mjs");
   if (!(await Bun.file(serverEntry).exists())) {
     console.warn(`[${APP_NAME}] No Next standalone bundle at ${serverEntry}; using bundled fallback`);
     return undefined;
   }
-  nextServer = Bun.spawn([process.env.OMNIROUTE_NODE ?? "node", serverEntry], {
+  nextServer = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, serverEntry], {
     cwd: STANDALONE_DIR,
     env: { ...process.env, PORT: String(SERVER_PORT), HOSTNAME: "127.0.0.1" },
     stdout: "inherit",
