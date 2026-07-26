@@ -740,7 +740,7 @@ Tighten `APP_STAGING_REMOVAL_PATHS` to include `dist/src/lib/**`, `dist/src/doma
 
 *Resumption closeout — 2026-07-23*
 
-## 8. Post-Resumption: E413 Tarball Tightening (2026-07-23 continued)
+## 9. Post-Resumption: E413 Tarball Tightening (2026-07-23 continued)
 
 ### Three-round surgical fix — landed on `main`
 

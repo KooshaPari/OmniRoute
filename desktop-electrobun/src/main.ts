@@ -26,7 +26,11 @@ const DEV_URL = process.env.RENDERER_URL ?? "http://localhost:3000";
  */
 const SERVICES_COMPOSE_FILE = process.env.SERVICES_COMPOSE_FILE;
 const BUNDLED_BACKEND_DIR = resolve(import.meta.dir, "../backend");
-const STANDALONE_DIR = resolve(process.env.OMNIROUTE_BFF_DIR ?? BUNDLED_BACKEND_DIR);
+const STANDALONE_DIR = resolve(
+  process.env.OMNIROUTE_STANDALONE_DIR ??
+    process.env.OMNIROUTE_BFF_DIR ??
+    BUNDLED_BACKEND_DIR,
+);
 const SERVER_PORT = Number(process.env.OMNIROUTE_PORT ?? "20128");
 let nextServer: ReturnType<typeof Bun.spawn> | undefined;
 
