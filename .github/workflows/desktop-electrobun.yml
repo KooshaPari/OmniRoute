@@ -46,7 +46,7 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Install desktop dependencies
         working-directory: desktop-electrobun
-        run: bun install --ignore-scripts
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Stage deterministic renderer assets
         working-directory: desktop-electrobun
         run: bun run prepare:web
@@ -85,7 +85,7 @@ jobs:
         run: bun run build
       - name: Install desktop dependencies
         working-directory: desktop-electrobun
-        run: bun install --ignore-scripts
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Build macOS release bundle
         working-directory: desktop-electrobun
         run: bun run build:release

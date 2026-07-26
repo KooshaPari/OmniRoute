@@ -24,6 +24,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const { buildAutoCandidates, handleComboChat } = await import("../../open-sse/services/combo.ts");
 const { getProviderCredentials } = await import("../../src/sse/services/auth.ts");
 const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
@@ -55,6 +56,19 @@ async function seedConn(name: string, tags?: string[]) {
     isActive: true,
     ...(tags ? { providerSpecificData: { tags } } : {}),
   });
+}
+
+async function seedLatencyHistory(connectionId: string, latencyMs: number, count: number) {
+  for (let index = 0; index < count; index++) {
+    await usageHistory.saveRequestUsage({
+      provider: "openai",
+      model: "gpt-4o-mini",
+      connectionId,
+      success: true,
+      latencyMs,
+      timestamp: new Date(Date.now() - index * 60 * 1000).toISOString(),
+    });
+  }
 }
 
 test.beforeEach(async () => {
