@@ -1,3 +1,8 @@
+// @vitest-environment node
+/**
+ * Code Stripper — removes comments, JSDoc, and type annotations from TypeScript
+ * for deployment/runtime use. Uses TypeScript's own AST for reliable stripping.
+ */
 import ts from "typescript";
 
 export type CodeLanguage =
