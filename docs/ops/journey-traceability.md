@@ -19,34 +19,34 @@ Every user-facing or operator-facing flow should be traceable across:
 
 ## User-Facing Flows
 
-| Flow | Requirement | Implementation surface | Autograder gates | Evidence status |
-| --- | --- | --- | --- | --- |
-| Chat request routes through fallback providers | FR-OMNI-CHAT-001, NFR-OMNI-RELIABILITY-001 | `src/app/api/v1/`, `open-sse/handlers/`, provider executors | unit tests, provider fixture tests, typecheck, BDD journey, eval verdict | Stubbed |
-| Operator reviews provider health and routing state | FR-OMNI-HEALTH-001, NFR-OMNI-OBSERVABILITY-001 | dashboard health screens, provider status docs, routing metrics/logs | UI smoke, metric/log assertions, journey manifest | Stubbed |
-| MCP tool invocation succeeds through the gateway | FR-OMNI-MCP-001, NFR-OMNI-CONTRACT-001 | MCP Server tools, API handlers, tool registry | MCP contract tests, schema validation, journey eval | Stubbed |
-| Desktop/user config updates endpoint and provider settings | FR-OMNI-CONFIG-001, NFR-OMNI-USABILITY-001 | Electron/Desktop UI, settings screen, CLI config path | config tests, screenshot journey, accessibility checks | Stubbed |
+| Flow                                                       | Requirement                                    | Implementation surface                                               | Autograder gates                                                         | Evidence status |
+| ---------------------------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------ | --------------- |
+| Chat request routes through fallback providers             | FR-OMNI-CHAT-001, NFR-OMNI-RELIABILITY-001     | `src/app/api/v1/`, `open-sse/handlers/`, provider executors          | unit tests, provider fixture tests, typecheck, BDD journey, eval verdict | Stubbed         |
+| Operator reviews provider health and routing state         | FR-OMNI-HEALTH-001, NFR-OMNI-OBSERVABILITY-001 | dashboard health screens, provider status docs, routing metrics/logs | UI smoke, metric/log assertions, journey manifest                        | Stubbed         |
+| MCP tool invocation succeeds through the gateway           | FR-OMNI-MCP-001, NFR-OMNI-CONTRACT-001         | MCP Server tools, API handlers, tool registry                        | MCP contract tests, schema validation, journey eval                      | Stubbed         |
+| Desktop/user config updates endpoint and provider settings | FR-OMNI-CONFIG-001, NFR-OMNI-USABILITY-001     | Electron/Desktop UI, settings screen, CLI config path                | config tests, screenshot journey, accessibility checks                   | Stubbed         |
 
 ## Rich Media Stubs
 
 <!-- RICH-MEDIA-STUB type="animated-gif" subject="Chat fallback routing journey" journey="chat-fallback-routing" status="TODO" -->
 <!-- Chat fallback routing — request, primary provider failure, fallback provider success, and final response (asset stub: ../assets/rich-media/omniroute/chat-fallback-routing.gif) -->
 
-*Expected capture: send an OpenAI-compatible chat request, simulate or fixture a primary-provider failure, show fallback selection, and verify final response plus provider trace metadata.*
+_Expected capture: send an OpenAI-compatible chat request, simulate or fixture a primary-provider failure, show fallback selection, and verify final response plus provider trace metadata._
 
 <!-- RICH-MEDIA-STUB type="annotated-screenshot" subject="Provider health dashboard" journey="provider-health-dashboard" status="TODO" -->
 <!-- Provider health dashboard — available providers, degraded providers, routing policy, and last-check timestamp (asset stub: ../assets/rich-media/omniroute/provider-health-dashboard.png) -->
 
-*Expected capture: open the dashboard health/provider view, annotate stale/degraded provider states, freshness timestamp, and operator remediation action.*
+_Expected capture: open the dashboard health/provider view, annotate stale/degraded provider states, freshness timestamp, and operator remediation action._
 
 <!-- RICH-MEDIA-STUB type="journey-eval" subject="MCP tool invocation contract verdict" journey="mcp-tool-invocation" status="TODO" -->
 <!-- MCP tool invocation verdict — tool request, schema validation, response, and eval verdict (asset stub: ../assets/rich-media/omniroute/mcp-tool-invocation.png) -->
 
-*Expected capture: invoke a representative MCP tool through OmniRoute, validate request/response schema, and attach a pass/fail verdict for FR-OMNI-MCP-001 and NFR-OMNI-CONTRACT-001.*
+_Expected capture: invoke a representative MCP tool through OmniRoute, validate request/response schema, and attach a pass/fail verdict for FR-OMNI-MCP-001 and NFR-OMNI-CONTRACT-001._
 
 <!-- RICH-MEDIA-STUB type="annotated-screenshot" subject="Endpoint and provider settings update" journey="endpoint-provider-settings" status="TODO" -->
 <!-- Endpoint and provider settings — endpoint URL, provider key state, validation feedback, and save result (asset stub: ../assets/rich-media/omniroute/endpoint-provider-settings.png) -->
 
-*Expected capture: update endpoint/provider settings in the UI or CLI, show validation feedback, and prove the saved configuration affects a subsequent request.*
+_Expected capture: update endpoint/provider settings in the UI or CLI, show validation feedback, and prove the saved configuration affects a subsequent request._
 
 ## Journey Manifests
 
