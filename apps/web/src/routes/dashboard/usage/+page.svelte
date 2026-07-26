@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import { onMount } from 'svelte';
 
@@ -20,7 +21,7 @@
 
   onMount(async () => {
     try {
-      const res = await fetch('http://localhost:4322/api/dashboard/usage', { credentials: 'include' });
+      const res = await fetch(bffApiUrl('/api/dashboard/usage'), { credentials: 'include' });
       if (res.ok) {
         const j = await res.json();
         rows = j.rows ?? [];

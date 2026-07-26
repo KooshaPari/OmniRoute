@@ -1,6 +1,7 @@
 <script lang="ts">
   import Button from '$lib/components/ui/Button.svelte';
   import Card from '$lib/components/ui/Card.svelte';
+  import { bffApiUrl } from '$lib/bff-origin';
 
   let email = $state('');
   let password = $state('');
@@ -12,7 +13,7 @@
     submitting = true;
     error = null;
     try {
-      const res = await fetch('http://localhost:4322/api/auth/login', {
+      const res = await fetch(bffApiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         credentials: 'include',

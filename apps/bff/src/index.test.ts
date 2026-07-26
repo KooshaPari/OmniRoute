@@ -135,3 +135,50 @@ describe("BFF observability placeholders", () => {
     });
   });
 });
+
+describe("BFF tRPC honesty", () => {
+  it("does not fabricate provider persistence", async () => {
+    const response = await app.request("http://localhost/api/trpc/providers.create", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: "p1",
+        name: "Test",
+        type: "openai",
+        config: {},
+      }),
+    });
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).toMatchObject({
+      result: {
+        data: {
+          ok: false,
+          status: "unavailable",
+          source: "no-provider-store",
+          provider: null,
+        },
+      },
+    });
+  });
+
+  it("does not fabricate key creation", async () => {
+    const response = await app.request("http://localhost/api/trpc/keys.create", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: "k1" }),
+    });
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).toMatchObject({
+      result: {
+        data: {
+          ok: false,
+          status: "unavailable",
+          source: "no-key-store",
+          key: null,
+        },
+      },
+    });
+  });
+});

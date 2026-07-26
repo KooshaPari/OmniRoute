@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
@@ -15,7 +16,7 @@
   let saved = $state(false);
 
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/router');
+    const r = await fetch(bffApiUrl('/api/dashboard/router'));
     if (r.ok) router = await r.json();
   });
 
@@ -24,7 +25,7 @@
     saving = true;
     saved = false;
     try {
-      await fetch('http://localhost:4322/api/dashboard/router', {
+      await fetch(bffApiUrl('/api/dashboard/router'), {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(router),

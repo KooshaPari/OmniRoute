@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
@@ -8,7 +9,7 @@
   let saving = $state<string | null>(null);
 
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/flags');
+    const r = await fetch(bffApiUrl('/api/dashboard/flags'));
     if (r.ok) flags = (await r.json()).flags ?? [];
   });
 
@@ -16,7 +17,7 @@
     saving = f.key;
     try {
       const newValue = !(f.userOverride ?? f.default);
-      await fetch(`http://localhost:4322/api/dashboard/flags/${encodeURIComponent(f.key)}`, {
+      await fetch(bffApiUrl(`/api/dashboard/flags/${encodeURIComponent(f.key)}`), {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ userOverride: newValue }),

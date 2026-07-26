@@ -7,3 +7,5 @@ Implementation lives at the repo root until promotion is complete:
 **→ [`../../desktop-electrobun/`](../../desktop-electrobun/)**
 
 Work there; this directory is a redirect only (no duplicated source).
+
+**Not Electron.** The legacy `electron/` tree remains for release packaging until the Electrobun selection gate passes; CI Electron Package Smoke is path-filtered to `electron/**` only. Prefer ElectroBun (or a Tauri spike branch) for new desktop work.

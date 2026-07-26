@@ -45,6 +45,7 @@ interface LimiterUpdateSettings {
 }
 
 type JsonRecord = Record<string, unknown>;
+type RateLimitFn<T = unknown> = () => Promise<T>;
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -389,14 +390,14 @@ export async function applyRequestQueueSettings(nextSettings: RequestQueueSettin
 /**
  * Get or create a limiter for a given provider+connection combination
  */
-export function enableRateLimitProtection(connectionId) {
+export function enableRateLimitProtection(connectionId: string): void {
   enabledConnections.add(connectionId);
 }
 
 /**
  * Disable rate limit protection for a connection
  */
-export function disableRateLimitProtection(connectionId) {
+export function disableRateLimitProtection(connectionId: string): void {
   enabledConnections.delete(connectionId);
   // Evict limiters for this connection from the cache. Do NOT call limiter.stop() —
   // it permanently rejects future .schedule() calls with "This limiter has been stopped",
@@ -419,7 +420,7 @@ export function disableRateLimitProtection(connectionId) {
 /**
  * Check if rate limit protection is enabled for a connection
  */
-export function isRateLimitEnabled(connectionId) {
+export function isRateLimitEnabled(connectionId: string): boolean {
   return enabledConnections.has(connectionId);
 }
 
@@ -433,7 +434,10 @@ export function isRateLimitEnabled(connectionId) {
  * @param {string} connectionId
  * @param {Record<string, number> | null} overrides - New overrides (null/undefined clears)
  */
-export function refreshConnectionRateLimits(connectionId, overrides) {
+export function refreshConnectionRateLimits(
+  connectionId: string,
+  overrides: Record<string, number> | null | undefined,
+): void {
   if (overrides === null || overrides === undefined) {
     connectionRateLimitOverrides.delete(connectionId);
   } else {
@@ -453,7 +457,7 @@ export function refreshConnectionRateLimits(connectionId, overrides) {
 /**
  * Get or create a limiter for a given provider+connection combination
  */
-function getLimiterKey(provider, connectionId, model = null) {
+function getLimiterKey(provider: string, connectionId: string, model: string | null = null): string {
   if (provider === "codex" && model) {
     return `${provider}:${getCodexRateLimitKey(connectionId, model)}`;
   }
@@ -465,7 +469,7 @@ function getLimiterKey(provider, connectionId, model = null) {
   return `${provider}:${connectionId}`;
 }
 
-function getLimiter(provider, connectionId, model = null) {
+function getLimiter(provider: string, connectionId: string, model: string | null = null): Bottleneck {
   const key = getLimiterKey(provider, connectionId, model);
 
   if (!limiters.has(key)) {
@@ -509,7 +513,7 @@ function getLimiter(provider, connectionId, model = null) {
   }
 
   limiterLastUsed.set(key, Date.now());
-  return limiters.get(key);
+  return limiters.get(key)!;
 }
 
 /**
@@ -523,7 +527,13 @@ function getLimiter(provider, connectionId, model = null) {
  * @param {AbortSignal} signal - Optional abort signal to cancel waiting
  * @returns {Promise<unknown>} Result of fn()
  */
-export async function withRateLimit(provider, connectionId, model, fn, signal = null) {
+export async function withRateLimit<T>(
+  provider: string,
+  connectionId: string,
+  model: string | null,
+  fn: RateLimitFn<T>,
+  signal: AbortSignal | null = null,
+): Promise<T> {
   // dispatch: resolve tier for rate-limit token-bucket hot-path
   const { tier: _dispatchTier } = await useDispatchForEdge("rateLimit.tokenBucket.consume").catch(() => ({ tier: "T1" as const }));
 
@@ -619,7 +629,13 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
  * @param {number} status - HTTP status code
  * @param {string} model - Model name
  */
-export function updateFromHeaders(provider, connectionId, headers, status, model = null) {
+export function updateFromHeaders(
+  provider: string,
+  connectionId: string,
+  headers: unknown,
+  status: number,
+  model: string | null = null,
+): void {
   if (!enabledConnections.has(connectionId)) return;
   if (!headers) return;
 
@@ -633,8 +649,8 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     return plainHeaders[name.toLowerCase()] || null;
   };
 
-  const limit = parseInt(getHeader(headerMap.limit));
-  const remaining = parseInt(getHeader(headerMap.remaining));
+  const limit = parseInt(getHeader(headerMap.limit) ?? "", 10);
+  const remaining = parseInt(getHeader(headerMap.remaining) ?? "", 10);
   const resetStr = getHeader(headerMap.reset);
   const retryAfterStr = getHeader(headerMap.retryAfter);
   const overLimit = getHeader(STANDARD_HEADERS.overLimit);
@@ -718,7 +734,7 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
 /**
  * Get current rate limit status for a provider+connection (for dashboard display)
  */
-export function getRateLimitStatus(provider, connectionId) {
+export function getRateLimitStatus(provider: string, connectionId: string) {
   const key = `${provider}:${connectionId}`;
   const limiter = limiters.get(key);
 
@@ -851,7 +867,11 @@ export async function __resetRateLimitManagerForTests() {
   }
 }
 
-export async function __getLimiterStateForTests(provider, connectionId, model = null) {
+export async function __getLimiterStateForTests(
+  provider: string,
+  connectionId: string,
+  model: string | null = null,
+) {
   const key = getLimiterKey(provider, connectionId, model);
   const limiter = limiters.get(key);
   if (!limiter) return null;
@@ -932,7 +952,13 @@ async function loadPersistedLimits() {
  * @param {number} status - HTTP status code
  * @param {string} model - Model name (for per-model lockouts)
  */
-export function updateFromResponseBody(provider, connectionId, responseBody, status, model = null) {
+export function updateFromResponseBody(
+  provider: string,
+  connectionId: string,
+  responseBody: unknown,
+  status: number,
+  model: string | null = null,
+): void {
   if (!enabledConnections.has(connectionId)) return;
 
   const { retryAfterMs, reason } = parseRetryAfterFromBody(responseBody);

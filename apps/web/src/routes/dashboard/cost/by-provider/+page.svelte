@@ -1,11 +1,12 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import { onMount } from 'svelte';
   type Provider = { provider: string; total: number; trend: 'up' | 'down' | 'flat'; daily: { day: string; cost: number }[] };
   let providers = $state<Provider[]>([]);
   let loading = $state(true);
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/cost/by-provider');
+    const r = await fetch(bffApiUrl('/api/dashboard/cost/by-provider'));
     if (r.ok) { providers = (await r.json()).providers ?? []; }
     loading = false;
   });

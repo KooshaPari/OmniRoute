@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import { onMount, onDestroy } from 'svelte';
 
@@ -9,7 +10,7 @@
 
   function start() {
     try {
-      eventSource = new EventSource('http://localhost:4322/api/dashboard/health/stream');
+      eventSource = new EventSource(bffApiUrl('/api/dashboard/health/stream'));
       eventSource.onopen = () => { connected = true; };
       eventSource.onerror = () => { connected = false; };
       eventSource.onmessage = (e) => {

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
@@ -19,8 +20,8 @@
   onMount(async () => {
     const id = $page.params.id;
     const [a, b] = await Promise.all([
-      fetch(`http://localhost:4322/api/dashboard/keys/${id}`).then((r) => r.ok ? r.json() : null),
-      fetch(`http://localhost:4322/api/dashboard/keys/${id}/usage`).then((r) => r.ok ? r.json() : null),
+      fetch(bffApiUrl(`/api/dashboard/keys/${id}`)).then((r) => r.ok ? r.json() : null),
+      fetch(bffApiUrl(`/api/dashboard/keys/${id}/usage`)).then((r) => r.ok ? r.json() : null),
     ]);
     key = a?.key ?? (a?.status === 'unavailable' ? null : a);
     if (a?.status === 'unavailable') keyUnavailable = unavailableMessage(a, 'API key');
@@ -32,7 +33,7 @@
   async function revoke() {
     if (!key) return;
     if (!confirm(`Revoke key "${key.name}"?`)) return;
-    await fetch(`http://localhost:4322/api/dashboard/keys/${key.id}/revoke`, { method: 'POST' });
+    await fetch(bffApiUrl(`/api/dashboard/keys/${key.id}/revoke`), { method: 'POST' });
     key.revoked = true;
   }
   const usageUnavailable = $derived(unavailableMessage(usageResponse, 'Key usage metrics'));

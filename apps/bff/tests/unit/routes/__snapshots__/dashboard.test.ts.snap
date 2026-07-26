@@ -1,0 +1,242 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`dashboard route manifest > registers the current unique method-path manifest 1`] = `
+[
+  {
+    "method": "GET",
+    "path": "/a2a",
+  },
+  {
+    "method": "GET",
+    "path": "/audit",
+  },
+  {
+    "method": "POST",
+    "path": "/audit/export",
+  },
+  {
+    "method": "GET",
+    "path": "/batch",
+  },
+  {
+    "method": "GET",
+    "path": "/billing",
+  },
+  {
+    "method": "GET",
+    "path": "/billing/invoices",
+  },
+  {
+    "method": "GET",
+    "path": "/cache",
+  },
+  {
+    "method": "GET",
+    "path": "/combos",
+  },
+  {
+    "method": "POST",
+    "path": "/combos",
+  },
+  {
+    "method": "POST",
+    "path": "/combos/:id/flow",
+  },
+  {
+    "method": "POST",
+    "path": "/compression/ab",
+  },
+  {
+    "method": "GET",
+    "path": "/compression/stats",
+  },
+  {
+    "method": "GET",
+    "path": "/cost",
+  },
+  {
+    "method": "GET",
+    "path": "/cost/by-provider",
+  },
+  {
+    "method": "GET",
+    "path": "/diagnostics/full",
+  },
+  {
+    "method": "GET",
+    "path": "/flags",
+  },
+  {
+    "method": "PUT",
+    "path": "/flags/:key",
+  },
+  {
+    "method": "GET",
+    "path": "/health",
+  },
+  {
+    "method": "GET",
+    "path": "/health/stream",
+  },
+  {
+    "method": "GET",
+    "path": "/keys",
+  },
+  {
+    "method": "POST",
+    "path": "/keys",
+  },
+  {
+    "method": "POST",
+    "path": "/keys-rotation",
+  },
+  {
+    "method": "GET",
+    "path": "/keys/:id",
+  },
+  {
+    "method": "POST",
+    "path": "/keys/:id/revoke",
+  },
+  {
+    "method": "GET",
+    "path": "/keys/:id/usage",
+  },
+  {
+    "method": "GET",
+    "path": "/logs",
+  },
+  {
+    "method": "GET",
+    "path": "/mcp",
+  },
+  {
+    "method": "GET",
+    "path": "/memory",
+  },
+  {
+    "method": "GET",
+    "path": "/notifications",
+  },
+  {
+    "method": "PUT",
+    "path": "/notifications",
+  },
+  {
+    "method": "POST",
+    "path": "/notifications/test",
+  },
+  {
+    "method": "GET",
+    "path": "/observability/overview",
+  },
+  {
+    "method": "GET",
+    "path": "/observability/timeseries",
+  },
+  {
+    "method": "GET",
+    "path": "/observability/top-endpoints",
+  },
+  {
+    "method": "GET",
+    "path": "/performance",
+  },
+  {
+    "method": "GET",
+    "path": "/playground/models",
+  },
+  {
+    "method": "POST",
+    "path": "/playground/stream",
+  },
+  {
+    "method": "GET",
+    "path": "/profile",
+  },
+  {
+    "method": "PUT",
+    "path": "/profile",
+  },
+  {
+    "method": "GET",
+    "path": "/providers",
+  },
+  {
+    "method": "POST",
+    "path": "/providers",
+  },
+  {
+    "method": "GET",
+    "path": "/quotas",
+  },
+  {
+    "method": "PUT",
+    "path": "/quotas",
+  },
+  {
+    "method": "GET",
+    "path": "/router",
+  },
+  {
+    "method": "PUT",
+    "path": "/router",
+  },
+  {
+    "method": "GET",
+    "path": "/rules",
+  },
+  {
+    "method": "PUT",
+    "path": "/rules",
+  },
+  {
+    "method": "GET",
+    "path": "/security",
+  },
+  {
+    "method": "GET",
+    "path": "/sessions",
+  },
+  {
+    "method": "DELETE",
+    "path": "/sessions/:id",
+  },
+  {
+    "method": "GET",
+    "path": "/settings",
+  },
+  {
+    "method": "POST",
+    "path": "/settings",
+  },
+  {
+    "method": "GET",
+    "path": "/skills",
+  },
+  {
+    "method": "GET",
+    "path": "/sso",
+  },
+  {
+    "method": "PUT",
+    "path": "/sso",
+  },
+  {
+    "method": "POST",
+    "path": "/sso/test",
+  },
+  {
+    "method": "GET",
+    "path": "/usage",
+  },
+  {
+    "method": "GET",
+    "path": "/usage/by-model",
+  },
+  {
+    "method": "GET",
+    "path": "/webhooks",
+  },
+]
+`;

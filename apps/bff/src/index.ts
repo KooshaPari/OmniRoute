@@ -5,18 +5,31 @@ import { dashboardRoutes } from './routes/dashboard';
 import { authProxyRoutes, proxyRoutes } from './routes/proxy';
 import { gatewayRoutes } from './routes/gateway/proxy';
 import { trpcRoutes } from './trpc/hono';
-import { requireAuth } from './middleware/auth';
+import { requireAuthOrSession } from './middleware/auth';
+import { parseCorsOrigins } from './cors-origins';
 import { env } from './env';
 import { z } from 'zod';
 
 const app = new Hono();
+const corsOrigins = parseCorsOrigins(env.BFF_CORS_ORIGINS);
 
 app.use('*', logger());
-app.use('*', cors({ origin: ['http://localhost:4321'], credentials: true }));
+app.use(
+  '*',
+  cors({
+    origin: corsOrigins.length > 0 ? corsOrigins : ['http://localhost:4321'],
+    credentials: true,
+  }),
+);
 
 app.get('/healthz', (c) => c.json({ status: 'ok', service: 'argismonitor-bff' }));
 
-const authenticate = requireAuth();
+/**
+ * Production trust boundary (#392):
+ * - Machine clients: Bearer / x-api-key == BFF_API_KEY
+ * - Browser clients: session cookie from /api/auth/* (never BFF_API_KEY in the browser)
+ */
+const authenticate = requireAuthOrSession();
 const protectInProduction = async (
   c: Parameters<typeof authenticate>[0],
   next: Parameters<typeof authenticate>[1],

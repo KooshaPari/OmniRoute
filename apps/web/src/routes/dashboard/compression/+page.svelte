@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { unavailableMessage } from '$lib/observability/unavailable';
@@ -23,7 +24,7 @@
   let sizeBudget = $state(4096);
 
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/compression/stats');
+    const r = await fetch(bffApiUrl('/api/dashboard/compression/stats'));
     if (r.ok) stats = await r.json();
   });
 
@@ -31,7 +32,7 @@
     if (!input.trim()) return;
     encoding = true;
     try {
-      const r = await fetch('http://localhost:4322/api/dashboard/compression/ab', {
+      const r = await fetch(bffApiUrl('/api/dashboard/compression/ab'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ text: input }),

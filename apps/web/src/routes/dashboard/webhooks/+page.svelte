@@ -1,11 +1,12 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
   type Webhook = { id: string; url: string; events: string[]; enabled: boolean; lastDelivery: string | null; lastStatus: number | null };
   let webhooks = $state<Webhook[]>([]);
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/webhooks');
+    const r = await fetch(bffApiUrl('/api/dashboard/webhooks'));
     if (r.ok) webhooks = (await r.json()).webhooks ?? [];
   });
 </script>

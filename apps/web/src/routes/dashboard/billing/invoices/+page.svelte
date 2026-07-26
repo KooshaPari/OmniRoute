@@ -1,11 +1,12 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import { onMount } from 'svelte';
   type Invoice = { id: string; number: string; date: string; amount: number; status: 'paid' | 'pending' | 'failed'; pdfUrl: string | null };
   let invoices = $state<Invoice[]>([]);
   let loading = $state(true);
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/billing/invoices');
+    const r = await fetch(bffApiUrl('/api/dashboard/billing/invoices'));
     if (r.ok) { const j = await r.json(); invoices = j.invoices ?? []; }
     loading = false;
   });

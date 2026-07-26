@@ -40,3 +40,35 @@ jobs:
             exit 1
           fi
           echo "✅ package-lock.json is deterministic."
+      - name: Reject vulnerable nested DOMPurify versions
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm ls dompurify --all --json > /tmp/omniroute-npm-ls.json 2>/dev/null || true
+          node <<'NODE'
+          const fs = require("node:fs");
+          const tree = JSON.parse(fs.readFileSync("/tmp/omniroute-npm-ls.json", "utf8"));
+          const vulnerable = [];
+          const minimum = [3, 4, 12];
+          const compare = (version) => {
+            const parts = String(version).replace(/^[^0-9]*/, "").split(".").map(Number);
+            for (let i = 0; i < minimum.length; i += 1) {
+              if ((parts[i] || 0) !== minimum[i]) return (parts[i] || 0) - minimum[i];
+            }
+            return 0;
+          };
+          const visit = (node, path) => {
+            if (!node || typeof node !== "object") return;
+            if (node.name === "dompurify" && node.version && compare(node.version) < 0) {
+              vulnerable.push(`${path}/dompurify@${node.version}`);
+            }
+            for (const [name, dependency] of Object.entries(node.dependencies || {})) {
+              visit(dependency, `${path}/${name}`);
+            }
+          };
+          visit(tree, "root");
+          if (vulnerable.length) {
+            console.error(`::error::Vulnerable DOMPurify versions found (<3.4.12): ${vulnerable.join(", ")}`);
+            process.exit(1);
+          }
+          console.log("DOMPurify invariant passed: every installed version is >=3.4.12.");
+          NODE

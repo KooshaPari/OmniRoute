@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import { onMount } from 'svelte';
   type Row = { model: string; provider: string; requests: number; tokens: number; cost: number };
@@ -8,7 +9,7 @@
   let loading = $state(true);
 
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/usage/by-model');
+    const r = await fetch(bffApiUrl('/api/dashboard/usage/by-model'));
     if (r.ok) { rows = (await r.json()).rows ?? []; }
     loading = false;
   });

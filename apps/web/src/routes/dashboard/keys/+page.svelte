@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
@@ -21,7 +22,7 @@
 
   onMount(async () => {
     try {
-      const res = await fetch('http://localhost:4322/api/dashboard/keys', { credentials: 'include' });
+      const res = await fetch(bffApiUrl('/api/dashboard/keys'), { credentials: 'include' });
       if (res.ok) {
         const j = await res.json();
         keys = j.keys ?? [];
@@ -35,7 +36,7 @@
 
   async function createKey() {
     if (!newKeyName.trim()) return;
-    const res = await fetch('http://localhost:4322/api/dashboard/keys', {
+    const res = await fetch(bffApiUrl('/api/dashboard/keys'), {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       credentials: 'include',
@@ -54,7 +55,7 @@
   }
 
   async function revoke(id: string) {
-    await fetch(`http://localhost:4322/api/dashboard/keys/${id}/revoke`, { method: 'POST', credentials: 'include' });
+    await fetch(bffApiUrl(`/api/dashboard/keys/${id}/revoke`), { method: 'POST', credentials: 'include' });
     keys = keys.map((k) => (k.id === id ? { ...k, revoked: true } : k));
   }
 </script>

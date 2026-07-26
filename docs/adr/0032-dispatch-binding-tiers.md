@@ -5,8 +5,7 @@
 > Deciders: OmniRoute core team + Phenotype platform team
 > Driver: continuation of `chore/l5-109-omniroute-fork-cleanup-2026-06-18` (L5-114)
 > Verified: 2026-07-05 (7/9 PASS — see [Appendix A](#appendix-a--benchmark-verification-2026-07-05))
-> Rust FFI verified: 2026-07-06 — see [Appendix B](#appendix-b--rust-ffi-tier-measurements-2026-07-06) and
-> [`bench-results/dispatch-tier-matrix-v2.json`](../../bench-results/dispatch-tier-matrix-v2.json).
+> Rust FFI verified: 2026-07-06 — see [Appendix B](#appendix-b--rust-ffi-tier-measurements-2026-07-06).
 > Supersedes: None (extends ADR-031 § "Adoption mode (long-term, post-v9)" with a fleet-wide binding-tier policy)
 > Companion top-level: [`ADR.md § ADR-032`](../../ADR.md)
 
@@ -254,8 +253,7 @@ The FLAG at `compression.lite.replaceImageUrls` has no ADR claim — it was capt
 bench but not independently mapped in the per-edge table. Consider adding a claim or
 moving it to a "not yet assigned" category.
 
-Full raw data at `bench-results/dispatch-tier-matrix.json` and
-`bench-results/dispatch-tier-matrix.md`. Re-run with:
+The raw benchmark artifacts were retained outside the repository. Re-run with:
 ```bash
 npm run bench:dispatch
 ```
@@ -291,7 +289,8 @@ handoff (callbacks via `napi-rs`-shaped `extern "C"` ABI).
 | `sse_chunking_token_stream` | ns | **60.27** | 57.13 | 64.31 | 1000-10000 ns | ✓ PASS (sub-µs) |
 | `sse_chunking_128k_scan` | µs | 152.94 | 145.05 | 162.25 | 1000-10000 µs | ✓ PASS (10× throughput vs TS `while(true)`) |
 
-Raw data: [`bench-results/dispatch-tier-matrix-v2.json`](../../bench-results/dispatch-tier-matrix-v2.json).
+Raw benchmark data was retained outside the repository; the table above records
+the verified measurements used for this ADR.
 
 ### Per-crate analysis
 

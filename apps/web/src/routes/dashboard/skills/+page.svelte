@@ -1,11 +1,12 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { onMount } from 'svelte';
   type Skill = { id: string; name: string; description: string; version: string; installed: boolean; category: string };
   let skills = $state<Skill[]>([]);
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/skills');
+    const r = await fetch(bffApiUrl('/api/dashboard/skills'));
     if (r.ok) skills = (await r.json()).skills ?? [];
   });
 </script>

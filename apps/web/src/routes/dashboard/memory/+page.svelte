@@ -1,11 +1,12 @@
 <script lang="ts">
+  import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
   import { onMount } from 'svelte';
   type Memory = { id: string; key: string; value: string; updatedAt: string; scope: 'global'|'user'|'session' };
   let entries = $state<Memory[]>([]);
   let scope = $state<'all' | 'global' | 'user' | 'session'>('all');
   onMount(async () => {
-    const r = await fetch('http://localhost:4322/api/dashboard/memory');
+    const r = await fetch(bffApiUrl('/api/dashboard/memory'));
     if (r.ok) entries = (await r.json()).entries ?? [];
   });
   const filtered = $derived(scope === 'all' ? entries : entries.filter((e) => e.scope === scope));

@@ -62,7 +62,9 @@ jobs:
   codeql:
     name: CodeQL Analysis
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    # CodeQL query runtime varies substantially across the TypeScript surface;
+    # allow the slowest CWE queries to finish instead of canceling mid-analysis.
+    timeout-minutes: 45
     permissions:
       security-events: write
       actions: read
