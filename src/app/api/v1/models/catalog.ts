@@ -74,6 +74,12 @@ import {
 import { getVisionCapabilityFields, getCustomVisionCapabilityFields } from "./catalogVision";
 import { FALLBACK_ALIAS_TO_PROVIDER, buildAliasMaps } from "./catalogProviderMaps";
 import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catalogRequest";
+<<<<<<< HEAD
+=======
+import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
+import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+>>>>>>> 6706d5ff7 (fix(api): serve /v1/models stale-first and sanitize its error bodies (#8703))
 
 // Public API of this module is preserved after the catalog helper extraction:
 // `isVisionModelId` (vision-detection-consistency.test.ts) and
@@ -82,6 +88,26 @@ import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catal
 export { isVisionModelId } from "@/shared/constants/visionModels";
 export { getCustomVisionCapabilityFields };
 
+<<<<<<< HEAD
+=======
+// The response cache (coalescing, short-TTL memoization and stale-while-revalidate)
+// lives in ./catalogCache. Re-exported here because the existing tests import the
+// hooks from this module, and CATALOG_STALE_WHILE_REVALIDATE_MS is part of the
+// documented behavior of this endpoint.
+import { CATALOG_CACHE_TTL_MS_DEFAULT, resolveCachedCatalogResponse } from "./catalogCache";
+
+export {
+  CATALOG_STALE_WHILE_REVALIDATE_MS,
+  __resetCatalogBuilderRunsForTest,
+  __getCatalogBuilderRunsForTest,
+  __expireCatalogCacheForTest,
+  __setCatalogCacheEntryForTest,
+  __flushCatalogBackgroundRefreshForTest,
+  __forceCatalogInFlightRejectionForTest,
+} from "./catalogCache";
+export type { CachedCatalog } from "./catalogCache";
+
+>>>>>>> 6706d5ff7 (fix(api): serve /v1/models stale-first and sanitize its error bodies (#8703))
 /**
  * Build unified OpenAI-compatible model catalog response.
  * Reused by `/api/v1/models` and `/api/v1` to avoid semantic drift (T09).
@@ -91,6 +117,77 @@ export async function getUnifiedModelsResponse(
   corsHeaders: Record<string, string> = {}
 ) {
   const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
+<<<<<<< HEAD
+=======
+
+  // #6408 fast path: reject unauthorized callers first (auth state is per-request
+  // and MUST NOT be cached), then coalesce identical concurrent requests + short-
+  // TTL memoize the serialized JSON body.
+  try {
+    let settingsForAuth: Record<string, any> = {};
+    try {
+      settingsForAuth = await getSettings();
+    } catch {}
+    const authRejection = await getModelCatalogAuthRejection(request, settingsForAuth, {
+      ...corsHeaders,
+      ...diagnosticHeaders,
+    });
+    if (authRejection) return authRejection;
+  } catch {
+    // Fall through to full builder on auth-check failure; core handles errors.
+  }
+
+  try {
+    return await resolveCachedCatalogResponse(
+      request,
+      { corsHeaders, diagnosticHeaders },
+      buildCatalogPayload
+    );
+  } catch (err) {
+    // Hard rule #12: never put a raw err.message/err.stack in a response body.
+    // Route it through the shared sanitizer instead — same status/type/code as
+    // before, minus the stack-trace/path leak.
+    const message = err instanceof Error ? err.message : String(err);
+    return Response.json(
+      buildErrorBody(500, message, undefined, {
+        type: "server_error",
+        code: INTERNAL_PROXY_ERROR,
+      }),
+      { status: 500, headers: { ...corsHeaders, ...diagnosticHeaders } }
+    );
+  }
+}
+
+async function buildCatalogPayload(
+  request: Request
+): Promise<{ body: string; headers: Record<string, string>; status: number; cacheTTL: number }> {
+  const built = await buildUnifiedModelsResponseCore(request);
+  const body = await built.text();
+  const headers: Record<string, string> = {};
+  built.headers.forEach((value, key) => {
+    headers[key] = value;
+  });
+  // Read the configurable cache TTL from database settings.
+  // Falls back to the hardcoded default if not set or on error.
+  let cacheTTL = CATALOG_CACHE_TTL_MS_DEFAULT;
+  try {
+    const dbSettings = await getDatabaseSettings();
+    cacheTTL = dbSettings.cache?.modelCatalogCacheTtlMs ?? CATALOG_CACHE_TTL_MS_DEFAULT;
+  } catch {
+    // Swallow — use default TTL on DB error
+  }
+  return { body, headers, status: built.status, cacheTTL };
+}
+
+/**
+ * Original catalog builder. Runs once per unique cache key per TTL window.
+ */
+async function buildUnifiedModelsResponseCore(
+  request: Request,
+  corsHeaders: Record<string, string> = {}
+) {
+  const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
+>>>>>>> 6706d5ff7 (fix(api): serve /v1/models stale-first and sanitize its error bodies (#8703))
   try {
     let settings: Record<string, any> = {};
     try {
@@ -1325,14 +1422,14 @@ export async function getUnifiedModelsResponse(
     });
   } catch (error) {
     console.log("Error fetching models:", error);
+    // Hard rule #12 — this is the realistically reachable 500 for the endpoint
+    // (the wrapper's catch only fires on an in-flight rejection), so it must go
+    // through the shared sanitizer too. Same status/type/code as before.
     return Response.json(
-      {
-        error: {
-          message: error instanceof Error ? error.message : String(error),
-          type: "server_error",
-          code: INTERNAL_PROXY_ERROR,
-        },
-      },
+      buildErrorBody(500, error instanceof Error ? error.message : String(error), undefined, {
+        type: "server_error",
+        code: INTERNAL_PROXY_ERROR,
+      }),
       {
         status: 500,
         headers: {
