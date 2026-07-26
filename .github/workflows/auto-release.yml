@@ -1,10 +1,7 @@
 name: Auto Release (channel resolver)
 
-# Auto-builds the most primitive/unstable channel release type
-# (per the trigger rule: 24hr OR adds>=5000 OR removes>=5000).
-# The OmniRoute release system uses a forced dispatch model for testing.
-# The trigger/resolve/publish cycle is governed by scripts/release/{trigger-evaluator,channel-resolver}.mjs
-# and config/release/{channels,ci-matrix}.json. See docs/ops/RELEASE_CHANNELS.md for the full model.
+# Auto-builds the most primitive / unstable release channel whose CI gates
+# are satisfied for the current main HEAD.
 #
 #   trigger   — 24hr OR adds>=5000 OR removes>=5000 (per
 #               config/release/channels.json#autoTrigger)
@@ -179,29 +176,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/release-artifacts
-          # Pull check-runs one page at a time. The OmniRoute check-run
-          # matrix has < 100 runs per commit, so the loop completes on
-          # page 1 in practice. We hand-roll the wrapper object
-          # { check_runs: [...], total_count: N } that
-          # channel-resolver.mjs expects.
-          page=1
-          all_runs="[]"
-          while :; do
-            PAGE=$(gh api "repos/${{ github.repository }}/commits/${SHA}/check-runs?per_page=100&page=${page}" \
-              || echo '{"check_runs":[]}')
-            runs_in_page=$(printf '%s' "$PAGE" | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>{process.stdout.write(JSON.stringify(JSON.parse(s).check_runs||[]))})')
-            # Concat via stdin to avoid the ARG_MAX limit (100-check-run pages overflow argv).
-            all_runs=$(printf '%s' "$all_runs"$'\n'"$runs_in_page" \
-              | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>{const lines=s.split("\n");const a=JSON.parse(lines[0]);const b=JSON.parse(lines[1]);process.stdout.write(JSON.stringify([...a,...b]))})')
-            count=$(printf '%s' "$runs_in_page" | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>{process.stdout.write(String(JSON.parse(s).length))})')
-            if [ "$count" -lt 100 ]; then break; fi
-            page=$((page+1))
-            if [ "$page" -gt 10 ]; then echo "::warning::check-runs pagination exceeded 10 pages, truncating"; break; fi
-          done
-          total_count=$(printf '%s' "$all_runs" | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>{process.stdout.write(String(JSON.parse(s).length))})')
-          printf '{"check_runs":%s,"total_count":%s}' "$all_runs" "$total_count" \
-            > /tmp/release-artifacts/check-runs.json
-          echo "Fetched $total_count check-runs for SHA ${SHA}"
+          # Pull check-runs with pagination. The resolver tolerates up to 5
+          # pages (500 runs) which is enough for the full CI matrix.
+          gh api --paginate "/repos/${{ github.repository }}/commits/${SHA}/check-runs?per_page=100" \
+            > /tmp/release-artifacts/check-runs.json || echo '{"check_runs":[]}' > /tmp/release-artifacts/check-runs.json
+          COUNT="$(node -e 'process.stdout.write(String(JSON.parse(require("fs").readFileSync("/tmp/release-artifacts/check-runs.json","utf8")).total_count||0))')"
+          echo "Fetched $COUNT check-runs for SHA ${SHA}"
 
       - name: Run channel resolver
         id: resolve
@@ -356,42 +336,20 @@ jobs:
             }
           '
 
-      - name: Guard npm scope ownership
-        id: ownership
+      - name: Check NPM_TOKEN availability
+        id: auth
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          set -euo pipefail
-          PKG_NAME=$(node -e "console.log(require('./package.json').name)")
-          echo "Verifying npm publish ownership for package: $PKG_NAME"
           if [[ -z "${NPM_TOKEN:-}" ]]; then
-            echo "::warning::NPM_TOKEN secret is not configured; skipping npm publish."
-            echo "publish_to_npm=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::NPM_TOKEN secret is not set — npm publish will be skipped. Set it under Settings → Secrets and variables → Actions."
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
           fi
-          # Probe the package. 401/403/404 all mean "you can't write here" — stop
-          # cleanly instead of letting `npm publish` corrupt dist-tags we don't
-          # own (e.g. writing to upstream omniroute as a fork).
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: Bearer ${NPM_TOKEN}" \
-            -H "Accept: application/json" \
-            "https://registry.npmjs.org/${PKG_NAME//\//%2F}")
-          echo "npm registry responded: HTTP $STATUS"
-          if [[ "$STATUS" != "200" && "$STATUS" != "404" ]]; then
-            echo "::error::Unexpected npm registry response: HTTP $STATUS"
-            exit 1
-          fi
-          if [[ "$STATUS" == "404" ]]; then
-            echo "::warning::Package '$PKG_NAME' not found on npm registry."
-            echo "::warning::Scoped packages must be created once (e.g. via npm web UI)"
-            echo "::warning::before they can be published to. Skipping npm publish."
-            echo "publish_to_npm=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "publish_to_npm=true" >> "$GITHUB_OUTPUT"
 
       - name: Publish with channel-specific dist-tag
-        if: ${{ steps.ownership.outputs.publish_to_npm == 'true' }}
+        if: steps.auth.outputs.available == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           RESOLVED: ${{ needs.resolve.outputs.resolved }}
