@@ -246,3 +246,6 @@ crates/omniroute-ffi/target/
 target/
 **/OUT_DIR/SHA.txt
 **/OUT_DIR/**
+
+# Cargo build cache leak (shell-expanded OUT_DIR)
+\$OUT_DIR/
