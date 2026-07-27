@@ -12,16 +12,16 @@ Copy the `examples/plugins/langfuse/` directory to your OmniRoute plugins path, 
 
 Fill these fields in the plugin config panel:
 
-| Key | Required | Default | Notes |
-|---|---|---|---|
-| `publicKey` | Yes | `""` | Langfuse public key (`pk-lf-...`) |
-| `secretKey` | Yes | `""` | Langfuse secret key (`sk-lf-...`) |
-| `host` | No | `https://cloud.langfuse.com` | Also `https://us.cloud.langfuse.com` or self-hosted URL |
-| `enabled` | No | `true` | Set to `false` to make the plugin a no-op without uninstalling |
-| `sampleRate` | No | `1.0` | `0.1` = trace 10% of requests |
-| `flushAt` | No | `15` | Events to buffer before flushing |
-| `flushInterval` | No | `10000` | Max ms between flushes |
-| `redactBody` | No | `false` | Set `true` to strip prompt + completion from traces (metadata still recorded) |
+| Key             | Required | Default                      | Notes                                                                         |
+| --------------- | -------- | ---------------------------- | ----------------------------------------------------------------------------- |
+| `publicKey`     | Yes      | `""`                         | Langfuse public key (`pk-lf-...`)                                             |
+| `secretKey`     | Yes      | `""`                         | Langfuse secret key (`sk-lf-...`)                                             |
+| `host`          | No       | `https://cloud.langfuse.com` | Also `https://us.cloud.langfuse.com` or self-hosted URL                       |
+| `enabled`       | No       | `true`                       | Set to `false` to make the plugin a no-op without uninstalling                |
+| `sampleRate`    | No       | `1.0`                        | `0.1` = trace 10% of requests                                                 |
+| `flushAt`       | No       | `15`                         | Events to buffer before flushing                                              |
+| `flushInterval` | No       | `10000`                      | Max ms between flushes                                                        |
+| `redactBody`    | No       | `false`                      | Set `true` to strip prompt + completion from traces (metadata still recorded) |
 
 Get keys at [cloud.langfuse.com](https://cloud.langfuse.com) → Settings → API keys.
 
