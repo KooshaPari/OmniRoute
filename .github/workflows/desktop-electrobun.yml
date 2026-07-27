@@ -38,6 +38,9 @@ jobs:
       - name: Build web client handoff
         working-directory: apps/web
         run: bun run build
+      - name: Install API contract dependencies
+        working-directory: packages/api-contracts
+        run: bun install --frozen-lockfile
       - name: Install Hono/Bun backend dependencies
         working-directory: apps/bff
         run: bun install --frozen-lockfile
@@ -83,6 +86,9 @@ jobs:
       - name: Build web client handoff
         working-directory: apps/web
         run: bun run build
+      - name: Install API contract dependencies
+        working-directory: packages/api-contracts
+        run: bun install --frozen-lockfile
       - name: Install Hono/Bun backend dependencies
         working-directory: apps/bff
         run: bun install --frozen-lockfile
