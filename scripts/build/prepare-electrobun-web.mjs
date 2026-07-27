@@ -8,6 +8,9 @@ import path from "node:path";
 const execFileAsync = promisify(execFile);
 
 const root = path.resolve(import.meta.dirname, "../..");
+const bunExecutable = path.basename(process.env.npm_execpath ?? "").startsWith("bun")
+  ? process.env.npm_execpath
+  : "bun";
 const source = path.join(root, "apps/web/.svelte-kit/output/client");
 const destination = path.join(root, "desktop-electrobun/generated/web");
 
@@ -36,7 +39,13 @@ console.log(`[electrobun] staged apps/web static output at ${path.relative(root,
 const backendSource = path.join(root, "apps/bff/dist/index.js");
 const backendDestination = path.join(root, "desktop-electrobun/generated/backend");
 try {
-  await execFileAsync("bun", ["run", "build"], { cwd: path.join(root, "apps/bff") });
+  // Invoke Bun's compiler directly instead of re-entering its package-script
+  // runner. The desktop CI deliberately installs dependencies with
+  // --ignore-scripts; `bun run build` can then attempt to initialize Bun's
+  // package-manager shim and fail before the BFF build command runs.
+  await execFileAsync(bunExecutable, ["build", "src/index.ts", "--target=bun", "--outdir=dist"], {
+    cwd: path.join(root, "apps/bff"),
+  });
   await access(backendSource);
 } catch (error) {
   console.error("[electrobun] failed to build Hono/Bun backend:", error);
