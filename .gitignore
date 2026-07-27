@@ -241,3 +241,8 @@ mise.toml
 bench-results/
 desktop-electrobun/generated/
 crates/omniroute-ffi/target/
+
+# Rust build artifacts
+target/
+**/OUT_DIR/SHA.txt
+**/OUT_DIR/**
