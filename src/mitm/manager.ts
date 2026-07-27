@@ -709,8 +709,6 @@ export async function startMitm( // NOSONAR - legacy orchestration flow is cover
   }
 }
 
-}
-
 /**
  * Stop MITM proxy
  * @param {string} sudoPassword - Sudo password for DNS cleanup
