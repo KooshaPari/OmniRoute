@@ -287,9 +287,14 @@ jobs:
           node-version-file: ".nvmrc"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Install + build
+      - name: Install + build (skip native build steps)
         run: |
-          npm ci
+          # --ignore-scripts skips the postinstall hooks of native packages like
+          # better-sqlite3@7.6.2 whose prebuilt binaries don't match V8 12.4
+          # (Node 24) APIs. The tarball we publish to npm/dockers has none of
+          # this — npm install without --ignore-scripts only matters for the
+          # build environment, not the published artifact.
+          npm ci --ignore-scripts
           npm run build:cli
 
       - name: "Pre-flight: validate npm-publish readiness"
