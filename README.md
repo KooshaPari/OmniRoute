@@ -6,6 +6,17 @@
 
 # 🚀 OmniRoute — The Free AI Gateway
 
+## Fork identity and provenance
+
+This repository is maintained by **KooshaPari** at
+[`KooshaPari/OmniRoute`](https://github.com/KooshaPari/OmniRoute). It is a fork
+of [`diegosouzapw/OmniRoute`](https://github.com/diegosouzapw/OmniRoute);
+upstream attribution and external artifacts remain explicitly identified below.
+
+Audited source snapshot anchor (tree/blob evidence; not a commit-proof
+substitute and not a claim that this candidate README is in that tree): tree
+`3125e13a84c24780253787e6c34ab082611e864f`, audited 2026-07-27.
+
 ### Never stop coding. Connect every AI tool to **237 providers** — **90+ free** — through one endpoint.
 
 **Plug Claude Code, Codex, Cursor, Cline, Copilot & Antigravity into FREE Claude / GPT / Gemini. Auto-fallback.**
@@ -21,7 +32,7 @@
 
 <h3>
 
-⭐ Star the repo if OMNIROUTE helped you save money and make your work easier. [![Stars](https://img.shields.io/github/stars/diegosouzapw/OmniRoute?style=social)](https://github.com/diegosouzapw/OmniRoute)
+⭐ Star the repo if OMNIROUTE helped you save money and make your work easier. [![Stars](https://img.shields.io/github/stars/KooshaPari/OmniRoute?style=social)](https://github.com/KooshaPari/OmniRoute)
 </h3>
 
 <a href="https://trendshift.io/repositories/23589" target="_blank"><img src="https://trendshift.io/api/badge/repositories/23589" alt="diegosouzapw%2FOmniRoute | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
@@ -946,8 +957,8 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 > 💬 **Chat with the community** — Discord, Telegram & WhatsApp (🌍 / 🇧🇷) links are at the [top of this README](#-join-the-community).
 
 - 🌍 **Website**: [omniroute.online](https://omniroute.online)
-- 🐙 **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- 🐛 **Issues**: [report a bug](https://github.com/diegosouzapw/OmniRoute/issues) (attach `npm run system-info` output)
+- 🐙 **GitHub**: [github.com/KooshaPari/OmniRoute](https://github.com/KooshaPari/OmniRoute)
+- 🐛 **Issues**: [report a bug](https://github.com/KooshaPari/OmniRoute/issues) (attach `npm run system-info` output)
 - 🤝 **Contributing**: see [CONTRIBUTING.md](CONTRIBUTING.md) or pick a `good first issue`
 
 </div>
@@ -1123,7 +1134,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 </div>
 
-[![Contributors](https://contrib.rocks/image?repo=diegosouzapw/OmniRoute&max=200&columns=20&anon=1)](https://github.com/diegosouzapw/OmniRoute/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=KooshaPari/OmniRoute&max=200&columns=20&anon=1)](https://github.com/KooshaPari/OmniRoute/graphs/contributors)
 
 ### How to Contribute
 
@@ -1148,11 +1159,11 @@ gh release create v3.8.2 --title "v3.8.2" --generate-notes
 
 ## 📊 Stars
 
-<a href="https://www.star-history.com/?repos=diegosouzapw%2Fomniroute&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=KooshaPari%2FOmniRoute&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=KooshaPari/OmniRoute&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=KooshaPari/OmniRoute&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=KooshaPari/OmniRoute&type=date&legend=top-left" />
  </picture>
 </a>
 </div>
@@ -1163,11 +1174,11 @@ gh release create v3.8.2 --title "v3.8.2" --generate-notes
 
 ## 🌍 StarMapper
 
-<a href="https://starmapper.bruniaux.com/diegosouzapw/omniroute">
+<a href="https://starmapper.bruniaux.com/KooshaPari/OmniRoute">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=light" />
-    <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://starmapper.bruniaux.com/api/map-image/KooshaPari/OmniRoute?theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://starmapper.bruniaux.com/api/map-image/KooshaPari/OmniRoute?theme=light" />
+    <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/KooshaPari/OmniRoute" />
   </picture>
 </a>
 </div>
