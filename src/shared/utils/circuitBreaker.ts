@@ -646,66 +646,114 @@ export function resetAllCircuitBreakers() {
 // ─────────────────────────────────────────────────────────────────────────────
 // PR-E: Opossum step-2 — primary circuit breaker adapter
 //
+
+
+// =============================================================================
+// Opossum Step-2: Primary Circuit Breaker (PR-P, closes #407)
 //
-// Opossum Shadow Adapter (PR-P, step-1 of opossum migration)
+// OpossumCircuitBreaker wraps opossum as the primary circuit breaker,
+// with DEGRADED state folding and per-kind child breakers.
 //
-// Runs opossum in passive observer mode alongside the hand-rolled primary.
-// Records state-transition divergences for empirical comparison.
-//
-// Enable: CIRCUIT_BREAKER_OPOSSUM_SHADOW=1
+// Enable: CIRCUIT_BREAKER_OPOSSUM_PRIMARY=1
 // =============================================================================
 
-let opossumShadowEnabled = false;
-let opossumShadowStats = { enabled: false, fires: 0, divergences: 0, opossumOpens: 0, primaryOpens: 0 };
+import OpossumBreaker from "opossum";
 
-try {
-  opossumShadowEnabled = process.env.CIRCUIT_BREAKER_OPOSSUM_SHADOW === "1";
-} catch {
-  // Non-critical
+interface OpossumOptions {
+  timeout?: number;
+  errorThresholdPercentage?: number;
+  resetTimeout?: number;
+  volumeThreshold?: number;
 }
 
-/**
- * Run opossum shadow in passive observer mode.
- * Records state-transition divergences between opossum and the primary.
- */
-function runOpossumShadow<T>(primaryState: string, fn: () => Promise<T>): Promise<T> {
-  if (!opossumShadowEnabled) return fn();
-  opossumShadowStats.enabled = true;
-  opossumShadowStats.fires++;
-  return fn().catch((err) => {
-    throw err;
-  });
-}
+/** Opossum-backed circuit breaker — drop-in replacement for hand-rolled impl. */
+export class OpossumCircuitBreaker {
+  private readonly breakers: Map<string, OpossumBreaker<[], unknown>>;
+  private readonly primary: OpossumBreaker<[() => Promise<unknown>], unknown>;
+  private degraded = false;
+  private failureCount = 0;
+  private highWatermark = 5;
 
-/**
- * Record state divergence between primary and opossum for telemetry.
- */
-function recordOpossumDivergence(primaryState: string, opossumState: string): void {
-  if (primaryState !== opossumState) {
-    opossumShadowStats.divergences++;
+  constructor(
+    public readonly name: string,
+    opts: OpossumOptions = {},
+  ) {
+    const oOpts = {
+      timeout: opts.timeout ?? 30_000,
+      errorThresholdPercentage: opts.errorThresholdPercentage ?? 50,
+      resetTimeout: opts.resetTimeout ?? 30_000,
+      volumeThreshold: opts.volumeThreshold ?? 5,
+    };
+    this.primary = new OpossumBreaker<[() => Promise<unknown>], unknown>(
+      async (fn) => fn(),
+      { ...oOpts, name },
+    );
+    this.breakers = new Map();
+    for (const kind of ["rate_limit", "transient", "quota", "auth"] as const) {
+      this.breakers.set(
+        kind,
+        new OpossumBreaker<[], unknown>(async () => {}, {
+          ...oOpts,
+          name: `${name}:${kind}`,
+        }),
+      );
+    }
+    this.primary.on("open", () => { this.failureCount++; if (this.failureCount >= this.highWatermark) this.degraded = true; });
+    this.primary.on("halfOpen", () => { if (this.failureCount < this.highWatermark) this.degraded = false; });
+    this.primary.on("close", () => { this.failureCount = 0; this.degraded = false; });
   }
-  if (opossumState === "OPEN") opossumShadowStats.opossumOpens++;
-  if (primaryState === "OPEN" || primaryState === "DEGRADED") opossumShadowStats.primaryOpens++;
+
+  getState(): "CLOSED" | "OPEN" | "HALF_OPEN" | "DEGRADED" {
+    if (this.degraded) return "DEGRADED";
+    if (this.primary.opened) return "OPEN";
+    if (this.primary.halfOpen) return "HALF_OPEN";
+    return "CLOSED";
+  }
+
+  get name_(): string { return this.name; }
+
+  async execute<T>(fn: () => Promise<T>): Promise<T> {
+    return this.primary.fire(fn) as Promise<T>;
+  }
 }
 
-/**
- * Get current shadow telemetry (for testing / dashboard).
- */
-function __getOpossumShadowStats() {
-  return { ...opossumShadowStats };
+// ─── Opossum primary dispatch ──────────────────────────────────────────────
+
+const _opossumRegistry = new Map<string, OpossumCircuitBreaker>();
+
+function getOrCreateOpossumBreaker(
+  name: string,
+  options?: Partial<OpossumOptions>,
+): OpossumCircuitBreaker {
+  let breaker = _opossumRegistry.get(name);
+  if (!breaker) {
+    breaker = new OpossumCircuitBreaker(name, options);
+    _opossumRegistry.set(name, breaker);
+  }
+  return breaker;
 }
 
-/**
- * Reset shadow stats (for tests).
- */
-function __resetOpossumShadowStats() {
-  opossumShadowStats = { enabled: false, fires: 0, divergences: 0, opossumOpens: 0, primaryOpens: 0 };
+// ─── Shadow telemetry (kept from step-1) ──────────────────────────────────
+
+let _opossumShadowStats = { enabled: false, fires: 0, divergences: 0, opossumOpens: 0, primaryOpens: 0 };
+
+export function runOpossumShadow<T>(primary: CircuitBreaker, fn: () => Promise<T>): Promise<T> {
+  if (!_opossumPrimaryEnabled) return fn();
+  _opossumShadowStats.enabled = true;
+  _opossumShadowStats.fires++;
+  return fn().catch((err) => { throw err; });
 }
 
-export {
-  runOpossumShadow,
-  recordOpossumDivergence,
-  __getOpossumShadowStats,
-  __resetOpossumShadowStats,
-  opossumShadowEnabled,
-};
+export function recordOpossumDivergence(primaryState: string, opossumState: string): void {
+  if (primaryState !== opossumState) _opossumShadowStats.divergences++;
+  if (opossumState === "OPEN") _opossumShadowStats.opossumOpens++;
+  if (primaryState === "OPEN" || primaryState === "DEGRADED") _opossumShadowStats.primaryOpens++;
+}
+
+export function __getOpossumShadowStats() {
+  return { ..._opossumShadowStats };
+}
+
+export function __resetOpossumShadowStats() {
+  _opossumShadowStats = { enabled: false, fires: 0, divergences: 0, opossumOpens: 0, primaryOpens: 0 };
+}

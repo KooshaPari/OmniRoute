@@ -419,26 +419,11 @@
     ]
   },
   "overrides": {
-    "dompurify": "^3.4.12",
-    "postcss": "^8.5.14",
-    "ip-address": "10.2.0",
-    "qs": "^6.15.2",
-    "uuid": "^14.0.0",
-    "form-data": "^4.0.6",
-    "vite": "^8.0.16",
-    "protobufjs": "^7.6.3",
-    "@babel/core": "^7.29.6",
-    "hono": "^4.12.31",
-    "shell-quote": "^1.10.0",
-    "@yarnpkg/parsers": {
-      "js-yaml": "^4.2.0"
-    },
-    "jsdom": {
-      "undici": "^7.28.0"
-    },
-    "node-gyp": {
-      "undici": "^6.27.0"
-    },
-    "sqlite3": "6.0.1"
+    "@eslint/config-array": "0.23.1",
+    "@eslint/eslintrc": "3.3.1",
+    "brace-expansion": "5.1.1",
+    "cacache": "19.0.2",
+    "@cyclonedx/cyclonedx-npm": "4.0.1",
+    "@hono/node-server": "2.1.0"
   }
 }

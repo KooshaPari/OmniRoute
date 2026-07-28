@@ -1,55 +1,47 @@
 /**
  * KeyvQuotaStore — fully-embedded alternative to SqliteQuotaStore.
  *
- * Uses Keyv (https://keyv.js.org) as the storage backend. Default backing
- * is an in-memory Map; pass a URI string (e.g. `keyv://sqlite:/tmp/quota.db`
- * or `redis://...`) at construction time for cross-process / persistent use.
- *
- * Implements the `QuotaStore` interface from `./types` so it can be dropped
- * into `storeFactory.ts` as a third option alongside `sqlite` and `redis`.
+ * Uses Keyv as the storage backend. Default backing is an in-memory Map;
+ * pass a URI string (e.g. `keyv://sqlite:/tmp/quota.db`) for persistence.
+ * Implements the `QuotaStore` interface from `./types`.
  */
 import { Keyv } from "keyv";
-import type { ProviderPlan, QuotaPool } from "./dimensions";
-import type { DimensionKey } from "./dimensions";
+import { KeyvSqlite } from "@keyv/sqlite";
+import type { DimensionKey, QuotaDimension } from "./dimensions";
 import { dimensionKeyToString, WINDOW_MS } from "./dimensions";
-import type {
-  QuotaStore,
-  PoolUsage,
-  PoolUsageWithDimensions,
-  PlanPoolUsage,
-} from "./types";
+import type { QuotaStore, PoolUsageSnapshot, ConsumeResult } from "./types";
 
 export interface KeyvQuotaStoreOptions {
-  /** Keyv URI: `memory://`, `keyv://sqlite:/path.db`, `redis://host:port`, etc. */
   uri?: string;
-  /** Optional Keyv namespace to partition keys from other Keyv instances. */
   namespace?: string;
 }
 
-function poolKey(poolId: string): string {
-  return `pool:${poolId}`;
-}
 function dimKey(apiKeyId: string, dim: DimensionKey): string {
-  return `consumed:${apiKeyId}:${dimensionKeyToString(dim)}`;
+  return `${apiKeyId}:${dimensionKeyToString(dim)}`;
 }
-function poolDimKey(poolId: string, dim: DimensionKey): string {
+function poolKey(poolId: string, dim: DimensionKey): string {
   return `pool:${poolId}:${dimensionKeyToString(dim)}`;
 }
-function planKey(connectionId: string, provider: string): string {
-  return `plan:${connectionId}:${provider}`;
+
+interface BucketState {
+  value: number;
+  expiresAt: number;
 }
 
 export class KeyvQuotaStore implements QuotaStore {
   private readonly kv: Keyv;
-  private readonly buckets = new Map<string, { value: number; expiresAt: number }>();
-  private readonly cleanupTimer: NodeJS.Timeout;
+  private readonly buckets = new Map<string, BucketState>();
+  private cleanupTimer: NodeJS.Timeout | null = null;
 
   constructor(options: KeyvQuotaStoreOptions = {}) {
     const uri = options.uri ?? "memory://";
-    const ns = options.namespace ? { namespace: options.namespace } : undefined;
-    this.kv = ns ? new Keyv(uri, ns) : new Keyv(uri);
+    if (uri !== "memory://") {
+      const store = new KeyvSqlite(uri);
+      this.kv = new Keyv({ store, namespace: options.namespace ?? "quota" });
+    } else {
+      this.kv = new Keyv({ store: undefined, namespace: options.namespace ?? "quota" });
+    }
 
-    // Lightweight sweep for any TTL-keyed values the backend honors.
     this.cleanupTimer = setInterval(() => {
       const now = Date.now();
       for (const [k, b] of this.buckets) {
@@ -59,29 +51,40 @@ export class KeyvQuotaStore implements QuotaStore {
     if (typeof this.cleanupTimer.unref === "function") this.cleanupTimer.unref();
   }
 
-  async consume(apiKeyId: string, dim: DimensionKey, cost: number): Promise<number> {
-    const k = dimKey(apiKeyId, dim);
-    const ttlMs = WINDOW_MS[dim.window];
+  private async getBucket(key: string, ttlMs: number): Promise<BucketState> {
     const now = Date.now();
-    const current = this.buckets.get(k);
-    const next = (current && current.expiresAt > now ? current.value : 0) + cost;
-    this.buckets.set(k, { value: next, expiresAt: now + ttlMs });
+    const cached = this.buckets.get(key);
+    if (cached && cached.expiresAt > now) return cached;
+    const fromKv = ((await this.kv.get<number>(key)) as number) ?? 0;
+    const state: BucketState = { value: fromKv, expiresAt: now + ttlMs };
+    this.buckets.set(key, state);
+    return state;
+  }
+
+  async consume(apiKeyId: string, dim: DimensionKey, cost: number): Promise<number> {
+    const ttlMs = WINDOW_MS[dim.window] ?? 3600_000;
+    const k = dimKey(apiKeyId, dim);
+    const state = await this.getBucket(k, ttlMs);
+    const next = state.value + cost;
+    state.value = next;
+    state.expiresAt = Date.now() + ttlMs;
     await this.kv.set(k, next, ttlMs);
-    // Mirror to pool bucket (used for `poolUsage` aggregates).
-    const pk = poolDimKey(dim.poolId, dim);
-    const pCurrent = this.buckets.get(pk);
-    const pNext = (pCurrent && pCurrent.expiresAt > now ? pCurrent.value : 0) + cost;
-    this.buckets.set(pk, { value: pNext, expiresAt: now + ttlMs });
+
+    // Mirror to pool bucket for aggregate queries
+    const pk = poolKey(dim.poolId, dim);
+    const pState = await this.getBucket(pk, ttlMs);
+    const pNext = pState.value + cost;
+    pState.value = pNext;
+    pState.expiresAt = Date.now() + ttlMs;
     await this.kv.set(pk, pNext, ttlMs);
+
     return next;
   }
 
   async peek(apiKeyId: string, dim: DimensionKey): Promise<number> {
-    const k = dimKey(apiKeyId, dim);
-    const current = this.buckets.get(k);
-    if (current && current.expiresAt > Date.now()) return current.value;
-    const fromKv = (await this.kv.get<number>(k)) ?? 0;
-    return fromKv;
+    const ttlMs = WINDOW_MS[dim.window] ?? 3600_000;
+    const state = await this.getBucket(dimKey(apiKeyId, dim), ttlMs);
+    return state.value;
   }
 
   async clear(apiKeyId: string, dim: DimensionKey): Promise<void> {
@@ -91,83 +94,70 @@ export class KeyvQuotaStore implements QuotaStore {
   }
 
   async poolConsumedTotal(poolId: string, dim: DimensionKey): Promise<number> {
-    const pk = poolDimKey(poolId, dim);
-    const current = this.buckets.get(pk);
-    if (current && current.expiresAt > Date.now()) return current.value;
-    return (await this.kv.get<number>(pk)) ?? 0;
+    const ttlMs = WINDOW_MS[dim.window] ?? 3600_000;
+    const state = await this.getBucket(poolKey(poolId, dim), ttlMs);
+    return state.value;
   }
 
-  async poolUsage(poolId: string): Promise<PoolUsage> {
-    const pool = await this.kv.get<QuotaPool>(poolKey(poolId));
-    const usage: PoolUsage = {};
-    if (!pool) return usage;
-    for (const alloc of pool.allocations) {
-      const dim: DimensionKey = { poolId, unit: "tokens", window: "hourly" };
-      const consumed = await this.poolConsumedTotal(poolId, dim);
-      usage[alloc.apiKeyId] = consumed;
-    }
-    return usage;
+  async poolUsage(poolId: string): Promise<PoolUsageSnapshot> {
+    const dims: QuotaDimension[] = [
+      { unit: "tokens", window: "hourly", limit: 0 },
+      { unit: "requests", window: "hourly", limit: 0 },
+      { unit: "usd", window: "daily", limit: 0 },
+    ];
+    return this.poolUsageWithDimensions(
+      poolId,
+      dims.map((d) => ({ unit: d.unit, window: d.window, limit: d.limit })),
+    );
   }
 
   async poolUsageWithDimensions(
     poolId: string,
-    planDimensions: Array<{ unit: import("./dimensions").QuotaUnit; window: import("./dimensions").QuotaWindow }>,
-  ): Promise<PoolUsageWithDimensions> {
-    const usage: PoolUsageWithDimensions = {};
-    for (const planDim of planDimensions) {
-      const dim: DimensionKey = { poolId, unit: planDim.unit, window: planDim.window };
-      usage[`${planDim.unit}:${planDim.window}`] = await this.poolConsumedTotal(poolId, dim);
+    planDimensions: Array<{ unit: string; window: string; limit: number }>,
+  ): Promise<PoolUsageSnapshot> {
+    const dimensionEntries: PoolUsageSnapshot["dimensions"] = [];
+
+    for (const pd of planDimensions) {
+      const dim: DimensionKey = {
+        poolId,
+        unit: pd.unit as QuotaDimension["unit"],
+        window: pd.window as QuotaDimension["window"],
+      };
+      const consumedTotal = await this.poolConsumedTotal(poolId, dim);
+      dimensionEntries.push({
+        unit: pd.unit as QuotaDimension["unit"],
+        window: pd.window as QuotaDimension["window"],
+        limit: pd.limit,
+        consumedTotal,
+        perKey: [],
+      });
     }
-    return usage;
-  }
 
-  async recordPlanUsage(
-    connectionId: string,
-    provider: string,
-    poolId: string,
-    _dimensions: Array<{ unit: import("./dimensions").QuotaUnit; window: import("./dimensions").QuotaWindow }>,
-    consumed: number,
-  ): Promise<PlanPoolUsage> {
-    const k = planKey(connectionId, provider);
-    const ttlMs = 7 * 24 * 60 * 60 * 1000;
-    const existing = ((await this.kv.get<PlanPoolUsage>(k)) ?? {}) as PlanPoolUsage;
-    const rollup: PlanPoolUsage = {
-      ...existing,
-      totalConsumed: (existing.totalConsumed ?? 0) + consumed,
-      lastUpdatedAt: Date.now(),
+    return {
+      poolId,
+      generatedAt: new Date().toISOString(),
+      dimensions: dimensionEntries,
     };
-    await this.kv.set(k, rollup, ttlMs);
-    void poolId;
-    return rollup;
-  }
-
-  async upsertProviderPlan(plan: ProviderPlan): Promise<void> {
-    const k = planKey(plan.connectionId ?? "", plan.provider);
-    await this.kv.set(k, plan);
-  }
-
-  async listProviderPlans(): Promise<ProviderPlan[]> {
-    return [];
-  }
-
-  async setPools(pools: QuotaPool[]): Promise<void> {
-    for (const pool of pools) await this.kv.set(poolKey(pool.id), pool);
-  }
-
-  async getPool(poolId: string): Promise<QuotaPool | undefined> {
-    return await this.kv.get<QuotaPool>(poolKey(poolId));
   }
 
   async dispose(): Promise<void> {
-    clearInterval(this.cleanupTimer);
-    await this.kv.disconnect();
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = null;
+    }
   }
 }
 
 let defaultStore: KeyvQuotaStore | null = null;
 
-export function getKeyvQuotaStore(opts?: KeyvQuotaStoreOptions): KeyvQuotaStore {
-  if (!defaultStore) defaultStore = new KeyvQuotaStore(opts);
+export function getKeyvQuotaStore(
+  uriOrOpts?: string | KeyvQuotaStoreOptions,
+): KeyvQuotaStore {
+  if (!defaultStore) {
+    const opts =
+      typeof uriOrOpts === "string" ? { uri: uriOrOpts } : (uriOrOpts ?? {});
+    defaultStore = new KeyvQuotaStore(opts);
+  }
   return defaultStore;
 }
 
