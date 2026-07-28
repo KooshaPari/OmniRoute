@@ -9,7 +9,7 @@
  */
 import { BrowserWindow, ApplicationMenu, Tray, Utils } from "electrobun/bun";
 import { $ } from "bun";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const APP_NAME = process.env.APP_NAME ?? "OmniRoute";
@@ -25,19 +25,38 @@ const DEV_URL = process.env.RENDERER_URL ?? "http://localhost:3000";
  * Leave unset to skip service boot.
  */
 const SERVICES_COMPOSE_FILE = process.env.SERVICES_COMPOSE_FILE;
-const BUNDLED_BACKEND_DIR = resolve(import.meta.dir, "../backend");
-const STANDALONE_DIR = resolve(process.env.OMNIROUTE_BFF_DIR ?? BUNDLED_BACKEND_DIR);
 const SERVER_PORT = Number(process.env.OMNIROUTE_PORT ?? "20128");
 let nextServer: ReturnType<typeof Bun.spawn> | undefined;
 
+/** Resolve the backend from both Bun's worker path and the native launcher path.
+ *
+ * Electrobun starts the app entrypoint in a Worker. Depending on whether the
+ * app was opened by Finder or launched from the terminal, `import.meta.dir`
+ * and `process.argv0` can refer to different bundle roots. Keep the lookup
+ * deterministic and fail closed when no packaged server is present.
+ */
+async function resolveBundledBackendDir(): Promise<string | undefined> {
+  const candidates = [
+    process.env.OMNIROUTE_BFF_DIR,
+    resolve(import.meta.dir, "../backend"),
+    resolve(dirname(process.argv0), "../Resources/app/backend"),
+  ].filter((candidate): candidate is string => Boolean(candidate));
+
+  for (const candidate of candidates) {
+    if (await Bun.file(join(candidate, "server.mjs")).exists()) return candidate;
+  }
+  return undefined;
+}
+
 async function bootNextServer(): Promise<string | undefined> {
-  const serverEntry = join(STANDALONE_DIR, "server.mjs");
-  if (!(await Bun.file(serverEntry).exists())) {
-    console.warn(`[${APP_NAME}] No Next standalone bundle at ${serverEntry}; using bundled fallback`);
+  const standaloneDir = await resolveBundledBackendDir();
+  if (!standaloneDir) {
+    console.warn(`[${APP_NAME}] No bundled backend server.mjs found; using bundled fallback`);
     return undefined;
   }
+  const serverEntry = join(standaloneDir, "server.mjs");
   nextServer = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, serverEntry], {
-    cwd: STANDALONE_DIR,
+    cwd: standaloneDir,
     env: { ...process.env, PORT: String(SERVER_PORT), HOSTNAME: "127.0.0.1" },
     stdout: "inherit",
     stderr: "inherit",

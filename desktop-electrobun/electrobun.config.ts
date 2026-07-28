@@ -37,7 +37,7 @@ export default {
   },
   build: {
     bun: {
-      entrypoint: "src/main.ts",
+      entrypoint: "src/bun/index.ts",
     },
     views: {
       app: {
