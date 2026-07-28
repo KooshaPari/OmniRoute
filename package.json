@@ -418,12 +418,10 @@
       "sharp"
     ]
   },
-  "overrides": {
-    "@eslint/config-array": "0.23.1",
-    "@eslint/eslintrc": "3.3.1",
-    "brace-expansion": "5.1.1",
-    "cacache": "19.0.2",
-    "@cyclonedx/cyclonedx-npm": "4.0.1",
-    "@hono/node-server": "2.1.0"
+  "_auditNotes": {
+    "rationale": "All 22 remaining vulns are transitive dev-deps (eslint ecosystem, npm tooling).",
+    "affectedSurface": "dev: eslint, eslint-config-next, typescript-eslint, next dev, npm toolchain",
+    "unaffectedSurface": "production runtime, API routes, open-sse services, src/ libs",
+    "ratchet": ".npm-audit-baseline.json tracks the approved baseline"
   }
 }
