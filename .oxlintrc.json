@@ -9,7 +9,13 @@
     "restriction": "off",
     "perf": "off"
   },
-  "plugins": ["react", "typescript", "import", "jsdoc", "unicorn"],
+  "plugins": ["react", "typescript", "import", "jsdoc", "unicorn", "oxc"],
+  "settings": {
+    "tsconfig": {
+      "strict": true,
+      "configPath": "./tsconfig.typecheck-core.json"
+    }
+  },
   "rules": {
     "no-unused-vars": "error",
     "no-undef": "error",

@@ -119,6 +119,7 @@ jobs:
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - run: npm run audit:deps
+      - run: npm run check:fail-open
       - run: npm run lint
       - run: npm run check:cycles
       - run: npm run check:route-validation:t06
