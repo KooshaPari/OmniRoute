@@ -55,7 +55,7 @@ jobs:
         run: bun run typecheck
       - name: Verify renderer contract
         working-directory: desktop-electrobun
-        run: test -f generated/web/index.html && test -f generated/web/_app/version.json
+        run: test -f generated/renderer/index.js && test -f generated/web/_app/version.json
       - name: Build Electrobun shell
         working-directory: desktop-electrobun
         run: ./node_modules/.bin/electrobun build
