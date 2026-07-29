@@ -29,8 +29,39 @@ await rm(destination, { recursive: true, force: true });
 await mkdir(destination, { recursive: true });
 await cp(source, destination, { recursive: true });
 await access(path.join(rendererBuild, "index.js"));
-await cp(rendererBuild, path.join(root, "desktop-electrobun/generated/renderer"), { recursive: true });
-console.log(`[electrobun] staged apps/web renderer at ${path.relative(root, "desktop-electrobun/generated/renderer")}`);
+const rendererDestination = path.join(root, "desktop-electrobun/generated/renderer");
+await cp(rendererBuild, rendererDestination, { recursive: true });
+// adapter-node serves browser assets from a sibling `client` directory.
+// Keep the same immutable asset tree in the SSR bundle; the Electrobun static
+// copy remains for diagnostics and future native-shell consumers.
+await cp(source, path.join(rendererDestination, "client"), { recursive: true });
+
+// adapter-node intentionally leaves framework runtime packages external. The
+// desktop artifact must carry those packages; relying on a developer's
+// workspace node_modules makes the installed app fail with a blank/404 page.
+// Install only the SSR runtime closure (not the full web development tree).
+const webPackage = JSON.parse(
+  await (await import("node:fs/promises")).readFile(path.join(root, "apps/web/package.json"), "utf8"),
+);
+const runtimePackage = {
+  name: "@argismonitor/desktop-renderer-runtime",
+  private: true,
+  type: "module",
+  dependencies: {
+    "@sveltejs/kit": webPackage.dependencies["@sveltejs/kit"],
+    "@trpc/client": webPackage.dependencies["@trpc/client"],
+  },
+};
+await writeFile(path.join(rendererDestination, "package.json"), JSON.stringify(runtimePackage, null, 2));
+try {
+  await execFileAsync(bunExecutable, ["install", "--production", "--no-save"], {
+    cwd: rendererDestination,
+  });
+} catch (error) {
+  console.error("[electrobun] failed to install renderer runtime dependencies:", error);
+  process.exit(1);
+}
+console.log(`[electrobun] staged apps/web renderer at ${path.relative(root, rendererDestination)}`);
 
 // The desktop app owns its local control plane: package the Hono/Bun BFF next
 // to the static Svelte renderer so the app does not depend on a dev server.
