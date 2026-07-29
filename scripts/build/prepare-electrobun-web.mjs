@@ -50,6 +50,7 @@ const runtimePackage = {
   dependencies: {
     "@sveltejs/kit": webPackage.dependencies["@sveltejs/kit"],
     "@trpc/client": webPackage.dependencies["@trpc/client"],
+    "web-vitals": webPackage.dependencies["web-vitals"],
   },
 };
 await writeFile(path.join(rendererDestination, "package.json"), JSON.stringify(runtimePackage, null, 2));
