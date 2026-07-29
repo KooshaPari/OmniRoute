@@ -10,6 +10,7 @@
 import { BrowserWindow, ApplicationMenu, Tray, Utils } from "electrobun/bun";
 import { $ } from "bun";
 import { join, resolve } from "node:path";
+import { resolveServerEntry } from "./serverEntry";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const APP_NAME = process.env.APP_NAME ?? "OmniRoute";
@@ -26,16 +27,17 @@ const DEV_URL = process.env.RENDERER_URL ?? "http://localhost:3000";
  */
 const SERVICES_COMPOSE_FILE = process.env.SERVICES_COMPOSE_FILE;
 const STANDALONE_DIR = resolve(
-  process.env.OMNIROUTE_STANDALONE_DIR ??
-    resolve(import.meta.dir, "../../.build/next/standalone"),
+  process.env.OMNIROUTE_STANDALONE_DIR ?? resolve(import.meta.dir, "../../.build/next/standalone")
 );
-const SERVER_ENTRY = join(STANDALONE_DIR, "server.js");
+const SERVER_ENTRY = join(STANDALONE_DIR, resolveServerEntry(STANDALONE_DIR));
 const SERVER_PORT = Number(process.env.OMNIROUTE_PORT ?? "20128");
 let nextServer: ReturnType<typeof Bun.spawn> | undefined;
 
 async function bootNextServer(): Promise<string | undefined> {
   if (!(await Bun.file(SERVER_ENTRY).exists())) {
-    console.warn(`[${APP_NAME}] No Next standalone bundle at ${SERVER_ENTRY}; using bundled fallback`);
+    console.warn(
+      `[${APP_NAME}] No Next standalone bundle at ${SERVER_ENTRY}; using bundled fallback`
+    );
     return undefined;
   }
   nextServer = Bun.spawn([process.env.OMNIROUTE_NODE ?? "node", SERVER_ENTRY], {
@@ -188,7 +190,9 @@ async function main(): Promise<void> {
   if (bundledUrl) win.webview.loadURL(bundledUrl);
   setupMenu(win);
   setupTray(win);
-  console.log(`[${APP_NAME}] Launched → ${bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`);
+  console.log(
+    `[${APP_NAME}] Launched → ${bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`
+  );
 }
 
 process.on("exit", () => nextServer?.kill());
