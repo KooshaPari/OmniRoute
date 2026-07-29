@@ -1,8 +1,0 @@
-# CODEOWNERS — pheno-port-adapter ownership
-# Auto-generated template; update as team evolves.
-
-# Default: crate owner
-* @KooshaPari
-
-# GitHub workflows
-/.github/workflows/* @KooshaPari
