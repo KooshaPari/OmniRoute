@@ -13,6 +13,7 @@ const bunExecutable = path.basename(process.env.npm_execpath ?? "").startsWith("
   : "bun";
 const source = path.join(root, "apps/web/.svelte-kit/output/client");
 const destination = path.join(root, "desktop-electrobun/generated/web");
+const rendererBuild = path.join(root, "apps/web/build");
 
 try {
   await access(path.join(source, "_app/version.json"));
@@ -27,12 +28,9 @@ try {
 await rm(destination, { recursive: true, force: true });
 await mkdir(destination, { recursive: true });
 await cp(source, destination, { recursive: true });
-await writeFile(
-  path.join(destination, "index.html"),
-  '<!doctype html><meta charset="utf-8"><title>OmniRoute</title>' +
-    '<script>location.replace(window.__OMNIROUTE_SERVER_URL__ || "http://127.0.0.1:20128");</script>\n'
-);
-console.log(`[electrobun] staged apps/web static output at ${path.relative(root, destination)}`);
+await access(path.join(rendererBuild, "index.js"));
+await cp(rendererBuild, path.join(root, "desktop-electrobun/generated/renderer"), { recursive: true });
+console.log(`[electrobun] staged apps/web renderer at ${path.relative(root, "desktop-electrobun/generated/renderer")}`);
 
 // The desktop app owns its local control plane: package the Hono/Bun BFF next
 // to the static Svelte renderer so the app does not depend on a dev server.

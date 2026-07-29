@@ -27,6 +27,7 @@ const DEV_URL = process.env.RENDERER_URL ?? "http://localhost:3000";
 const SERVICES_COMPOSE_FILE = process.env.SERVICES_COMPOSE_FILE;
 const SERVER_PORT = Number(process.env.OMNIROUTE_PORT ?? "20128");
 let nextServer: ReturnType<typeof Bun.spawn> | undefined;
+let rendererServer: ReturnType<typeof Bun.spawn> | undefined;
 
 /** Resolve the backend from both Bun's worker path and the native launcher path.
  *
@@ -45,6 +46,41 @@ async function resolveBundledBackendDir(): Promise<string | undefined> {
   for (const candidate of candidates) {
     if (await Bun.file(join(candidate, "server.mjs")).exists()) return candidate;
   }
+  return undefined;
+}
+
+async function bootRendererServer(): Promise<string | undefined> {
+  const candidates = [
+    process.env.OMNIROUTE_RENDERER_DIR,
+    resolve(import.meta.dir, "../renderer"),
+    resolve(dirname(process.argv0), "../Resources/app/renderer"),
+  ].filter((candidate): candidate is string => Boolean(candidate));
+  let rendererDir: string | undefined;
+  for (const candidate of candidates) {
+    if (await Bun.file(join(candidate, "index.js")).exists()) {
+      rendererDir = candidate;
+      break;
+    }
+  }
+  if (!rendererDir) return undefined;
+  const port = Number(process.env.OMNIROUTE_RENDERER_PORT ?? "20129");
+  rendererServer = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, join(rendererDir, "index.js")], {
+    cwd: rendererDir,
+    env: { ...process.env, PORT: String(port), HOST: "127.0.0.1", ORIGIN: `http://127.0.0.1:${port}` },
+    stdout: "inherit",
+    stderr: "inherit",
+  });
+  const url = `http://127.0.0.1:${port}`;
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(500) });
+      if (response.status < 500) return url;
+    } catch {
+      await Bun.sleep(250);
+    }
+  }
+  rendererServer.kill();
+  rendererServer = undefined;
   return undefined;
 }
 
@@ -201,14 +237,15 @@ function setupMenu(win: BrowserWindow): void {
 async function main(): Promise<void> {
   await bootServices();
   const bundledUrl = await bootNextServer();
+  const rendererUrl = await bootRendererServer();
   const win = createMainWindow();
-  if (bundledUrl) win.webview.loadURL(bundledUrl);
+  if (rendererUrl) win.webview.loadURL(rendererUrl);
   setupMenu(win);
   setupTray(win);
-  console.log(`[${APP_NAME}] Launched → ${bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`);
+  console.log(`[${APP_NAME}] Launched → ${rendererUrl ?? bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`);
 }
 
-process.on("exit", () => nextServer?.kill());
+process.on("exit", () => { nextServer?.kill(); rendererServer?.kill(); });
 main().catch((err) => {
   console.error(`[${APP_NAME}] Fatal:`, err);
   process.exit(1);
