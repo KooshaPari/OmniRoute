@@ -11,17 +11,17 @@
   onMount(() => { initWebVitals(); });
 
   const nav = [
-    { href: '/dashboard', key: 'nav.dashboard' },
+    { href: '/home', key: 'nav.dashboard' },
     { href: '/dashboard/providers', key: 'nav.providers' },
     { href: '/dashboard/combos', key: 'nav.combos' },
     { href: '/dashboard/keys', key: 'nav.keys' },
     { href: '/dashboard/usage', key: 'nav.usage' },
-    { href: '/dashboard/cost', key: 'nav.cost' },
+    { href: '/dashboard/costs', key: 'nav.cost' },
     { href: '/dashboard/billing', key: 'nav.billing' },
     { href: '/dashboard/compression', key: 'nav.cost' },
     { href: '/dashboard/playground', key: 'nav.usage' },
-    { href: '/dashboard/router', key: 'nav.settings' },
-    { href: '/dashboard/observability', key: 'nav.health' },
+    { href: '/dashboard/settings/routing', key: 'nav.settings' },
+    { href: '/dashboard/analytics', key: 'nav.health' },
     { href: '/dashboard/diagnostics', key: 'nav.health' },
     { href: '/dashboard/logs', key: 'nav.logs' },
     { href: '/dashboard/memory', key: 'nav.memory' },
@@ -31,9 +31,9 @@
     { href: '/dashboard/audit', key: 'nav.audit' },
     { href: '/dashboard/mcp', key: 'nav.mcp' },
     { href: '/dashboard/a2a', key: 'nav.a2a' },
-    { href: '/dashboard/skills', key: 'nav.skills' },
-    { href: '/dashboard/flags', key: 'nav.settings' },
-    { href: '/dashboard/security', key: 'nav.security' },
+    { href: '/dashboard/agent-skills', key: 'nav.skills' },
+    { href: '/dashboard/settings/feature-flags', key: 'nav.settings' },
+    { href: '/dashboard/settings/security', key: 'nav.security' },
     { href: '/dashboard/settings/general', key: 'nav.settings' },
   ];
 
