@@ -59,6 +59,9 @@ jobs:
       - name: Verify renderer contract
         working-directory: desktop-electrobun
         run: test -f generated/renderer/index.js && test -f generated/web/_app/version.json
+      - name: Smoke-test isolated renderer runtime
+        working-directory: desktop-electrobun
+        run: bun run smoke:renderer
       - name: Build Electrobun shell
         working-directory: desktop-electrobun
         run: ./node_modules/.bin/electrobun build
