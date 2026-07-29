@@ -492,9 +492,8 @@ function getLimiter(provider: string, connectionId: string, model: string | null
         defaults.reservoirRefreshAmount = overrides.rpm;
         defaults.reservoirRefreshInterval = 60 * 1000;
       }
-      // TODO: TPM/TPD integration — requires a token-bucket vs request-bucket
-      // separation (Bottleneck's reservoir is request-count, not token-count).
-      // When added, treat 0/missing the same way: fall through to system default.
+      // TPM/TPD integration: see `tpmBuckets`/`tpdBuckets` below (lines ~1036).
+      // Treat 0/missing the same way: fall through to system default.
     }
     const limiter = new Bottleneck({
       ...defaults,
