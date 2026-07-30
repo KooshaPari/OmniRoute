@@ -49,8 +49,15 @@ env:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    # Same dynamic-runner rule as ci.yml's `build`/`test-unit`: `build:cli` falls back to a
+    # full `next build`, whose working set outgrew the 16 GB hosted runner during the
+    # v3.8.49 cycle — the publish died with "The runner has received a shutdown signal"
+    # mid-"Creating an optimized production build" while v3.8.48 had still fit in 16min.
+    # This job never runs on `pull_request`, so the fork-safety clause is always true here;
+    # it is kept verbatim so the expression stays greppable against ci.yml.
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
     permissions:
+      actions: read # find + download the CI run's next-build artifact for this SHA
       contents: write # gh release upload (attach SBOM to the GitHub Release)
       id-token: write # npm provenance
       packages: write # publish to npm.pkg.github.com
@@ -143,6 +150,41 @@ jobs:
           VERSION: ${{ steps.resolve.outputs.version }}
         run: |
           npm version "$VERSION" --no-git-tag-version --allow-same-version
+
+      # Fast path: CI already built the standalone tree for THIS commit and uploaded it as
+      # `next-build`. `build:cli` (scripts/build/prepublish.ts) only shells out to a full
+      # `next build` when `.build/next/standalone/server.js` is missing — restoring the
+      # artifact turns the heaviest step of the publish into a download. Matching on
+      # `head_sha` is the tree-equality guarantee: same commit, same tree.
+      # Best-effort by design (retention is 1 day): every miss falls through to the build
+      # step below, which is why the dynamic runner above matters as the backstop.
+      - name: Reuse CI's next-build artifact (skips the heavy rebuild)
+        if: steps.resolve.outputs.skip != 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -uo pipefail
+          RUN=$(gh api "repos/$REPO/actions/runs?head_sha=$HEAD_SHA&per_page=100" \
+            --jq '[.workflow_runs[] | select(.name == "CI" and .conclusion == "success")] | .[0].id // empty') || RUN=""
+          if [ -z "$RUN" ]; then
+            echo "::notice::no successful CI run for $HEAD_SHA — falling back to a full build"
+            exit 0
+          fi
+          if ! gh run download "$RUN" --repo "$REPO" --name next-build --dir /tmp/next-build; then
+            echo "::notice::next-build artifact unavailable for run $RUN (expired?) — falling back to a full build"
+            exit 0
+          fi
+          tar -xzf /tmp/next-build/e2e-build.tar.gz -C .
+          rm -rf /tmp/next-build
+          if [ -f .build/next/standalone/server.js ]; then
+            echo "✅ standalone tree restored from CI run $RUN — build:cli will skip next build"
+          else
+            echo "::notice::extract did not yield .build/next/standalone — falling back to a full build"
+            rm -rf .build
+          fi
 
       - name: Build CLI bundle (standalone app)
         if: steps.resolve.outputs.skip != 'true'
