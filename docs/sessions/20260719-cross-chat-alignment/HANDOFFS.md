@@ -733,3 +733,9 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Added the safe catch-all `apps/web/src/routes/api/auth/[...path]/+server.ts`, returning the existing credential-free 503 `BFF_NOT_CONFIGURED` envelope for all common auth methods. Deployment documentation now includes auth alongside dashboard and tRPC paths.
 - Fresh evidence: typecheck, production build, production Playwright smoke (1/1), and diff check pass. A no-BFF adapter-node artifact returned HTTP 503 plus `BFF_NOT_CONFIGURED` for `/api/auth/login`, `/api/dashboard/usage`, and `/api/trpc/example`.
 - Security review found no secret-like literals in the release-surface diff and no browser-exposed BFF key. Public BFF origin remains configuration-only; BFF API keys remain server-side.
+
+## 2026-07-31T01:03Z - Preserve-first integration promotion (route_smoke_contract)
+
+- Created `integration/pr481-web-release-20260731` from the unchanged PR #481 head `46e03229a` and merged browser-CI-green `a742aa146` with a normal no-fast-forward merge after a clean merge-tree proof.
+- Integration merge: `c2d915b34`. It retains #481's separate package-lock synchronization and the full green web/desktop release lineage; no rebase, force-push, or mutation of #481 occurred.
+- Browser CI proof belongs to ancestor `a742aa146`; a separate native artifact worker owns any integration-head native rerun. Do not represent this new integration SHA as CI-green until its own required checks report on that SHA.
