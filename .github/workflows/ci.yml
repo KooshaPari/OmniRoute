@@ -7,7 +7,9 @@
 # Runners: Blacksmith (fast) → GitHub-hosted fallback
 # =============================================================================
 
-name: CI
+# Keep this workflow name lowercase: branch protection requires the exact
+# check-run prefixes `ci / lint` and `ci / test`.
+name: ci
 
 on:
   push:
@@ -309,3 +311,74 @@ jobs:
           echo "  Security:    ${{ needs.security.result }}"
           echo "  Dep review:  ${{ needs.dependency-review.result }}"
           echo "  Trunk:       ${{ needs.trunk-check.result }}"
+
+  # ===========================================================================
+  # STAGE 6: Exact branch-protection contexts
+  # ===========================================================================
+  # These jobs intentionally do not execute another lint/test suite. They are
+  # status-only aggregators over the existing per-language jobs above, keeping
+  # the current fail-tolerant CI semantics while emitting the exact contexts
+  # required by main branch protection: `ci / lint` and `ci / test`.
+  lint:
+    name: lint
+    if: always()
+    needs:
+      - detect
+      - rust
+      - python
+      - go
+      - typescript
+      - trunk-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate lint and format jobs
+        env:
+          RESULTS: >-
+            ${{ needs.detect.result }}
+            ${{ needs.rust.result }}
+            ${{ needs.python.result }}
+            ${{ needs.go.result }}
+            ${{ needs.typescript.result }}
+            ${{ needs.trunk-check.result }}
+        run: |
+          set -euo pipefail
+          printf 'lint aggregate: %s\n' "$RESULTS"
+          for result in $RESULTS; do
+            case "$result" in
+              failure|cancelled)
+                echo "lint prerequisite ended with $result"
+                exit 1
+                ;;
+            esac
+          done
+
+  test:
+    name: test
+    if: always()
+    needs:
+      - detect
+      - rust
+      - python
+      - go
+      - typescript
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate test jobs
+        env:
+          RESULTS: >-
+            ${{ needs.detect.result }}
+            ${{ needs.rust.result }}
+            ${{ needs.python.result }}
+            ${{ needs.go.result }}
+            ${{ needs.typescript.result }}
+        run: |
+          set -euo pipefail
+          printf 'test aggregate: %s\n' "$RESULTS"
+          for result in $RESULTS; do
+            case "$result" in
+              failure|cancelled)
+                echo "test prerequisite ended with $result"
+                exit 1
+                ;;
+            esac
+          done
