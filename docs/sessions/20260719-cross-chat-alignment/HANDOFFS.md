@@ -764,3 +764,10 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - The Trunk `v0.1` config now keeps the official `trunk` plugin `v1.9.0`, removes the `configs` plugin source (which pins ESLint 8 and Prettier 3.8.1), explicitly enables the repository-locked `prettier@3.9.4`, disables ESLint, and ignores this append-only handoff file.
 - Validation: `npx --no-install prettier --check .trunk/trunk.yaml` passed; YAML policy parse passed; package-lock parity confirms Prettier `3.9.4`. Trunk CLI is not installed locally, so remote CI remains the authoritative execution proof.
 - This entry is append-only. Config commit `8069bcc6d` is already reachable from PR #484 head `d8ff1d5ad`; the handoff append is ready to be promoted with the PR branch fast-forward.
+
+## 2026-07-31T08:56Z - PR #485 native dependency failure cascade (security_failure_triage)
+
+- PR #485 head `f4aab348f` fails `DAST smoke (PR)` run `30615100983`, `qgate` run `30615100996`, and `Dependency Audit (npm)` job `91106368955` during `npm ci`; all resolve the stale nested `@keyv/sqlite@3.0.1` dependency to `better-sqlite3@7.6.2`.
+- GitHub-hosted Node `24.18.0` has no prebuilt binary for that addon, and its fallback `node-gyp rebuild` fails against the Node 24 V8 headers (`CopyablePersistentTraits`/`AccessorGetterCallback` compile errors). `ci/security` job `91107578767` is only the protected aggregate and reports `deps-audit: failure`; it has no independent finding.
+- Evidence-backed repair is lockfile synchronization commit `46e03229a`: it resolves `@keyv/sqlite@3.6.7` to `sqlite3@5.1.7` and removes the nested `better-sqlite3@7.6.2`; the same lock repair is already in the PR #484 integration lineage. Re-run DAST, qgate, and npm audit on a head containing that commit before changing workflows.
+- External Mergify/Summary checks remain provider-owned. This entry is append-only.
