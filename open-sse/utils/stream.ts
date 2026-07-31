@@ -706,10 +706,11 @@ export function createSSEStream(options: StreamOptions = {}) {
       const delta = asRecord(asRecord(choice).delta);
       return (
         (typeof delta.content === "string" && delta.content.length > 0) ||
-        (Object.keys(delta).some((key) =>
-          ["reasoning", "reasoning_content", "reasoningContent"].includes(key)
-        ) &&
-          Boolean(delta[key])) ||
+        Object.keys(delta).some(
+          (key) =>
+            ["reasoning", "reasoning_content", "reasoningContent"].includes(key) &&
+            Boolean(delta[key])
+        ) ||
         (Array.isArray(delta.tool_calls) && delta.tool_calls.length > 0)
       );
     }
