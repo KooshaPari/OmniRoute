@@ -750,3 +750,10 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 
 - Merge-tree proof was clean before a normal no-fast-forward merge of `1116a75d` into the PR integration branch.
 - Added only `workflow_dispatch` to Trunk Check so its policy-valid v1.3.1 action can be validated on the exact PR head; existing pull-request, push, and schedule triggers remain unchanged.
+
+## 2026-07-31T05:36Z - Exact-head qgate runtime repair (root)
+
+- Audited PR #483 head `f802de807` and confirmed the first actionable qgate cascade: `src/shared/utils/rateLimiter.ts` imported a nonexistent named `KeyvSqlite` export from locked `@keyv/sqlite@3.6.7` (CommonJS default export).
+- Applied the minimal default-import repair and fixed a separate verified `ReferenceError: key is not defined` in `open-sse/utils/stream.ts` first-token reasoning detection.
+- Focused stream regression proof: three previously failing reasoning/alias tests pass on the repaired source. Rate-limiter module import now loads successfully; full dependency installation was network-blocked (`ECONNRESET`, then offline cache miss for `next@16.2.11`), so exact-head qgate is not claimed green.
+- Commit `4323a4634`; Airlock snapshot pushed as `wip/20260731T0536-18c7491fadfc9360`. Do not merge until exact-head CI validates the same commit.
