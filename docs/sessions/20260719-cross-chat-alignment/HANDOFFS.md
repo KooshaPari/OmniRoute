@@ -739,3 +739,9 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Created `integration/pr481-web-release-20260731` from the unchanged PR #481 head `46e03229a` and merged browser-CI-green `a742aa146` with a normal no-fast-forward merge after a clean merge-tree proof.
 - Integration merge: `c2d915b34`. It retains #481's separate package-lock synchronization and the full green web/desktop release lineage; no rebase, force-push, or mutation of #481 occurred.
 - Browser CI proof belongs to ancestor `a742aa146`; a separate native artifact worker owns any integration-head native rerun. Do not represent this new integration SHA as CI-green until its own required checks report on that SHA.
+
+## 2026-07-31T02:31Z - Trunk action policy-compatible remediation (route_smoke_contract)
+
+- Exact-head Trunk failure occurred before Trunk configuration execution: legacy action SHA `22e948f...` expands to `actions/cache@v2`, which selected-actions policy correctly rejects.
+- Migrated only workflow semantics required for policy-approved Trunk v1.3.1 SHA `04ba50e...`: CI and Trunk Check use that SHA, and the scheduled input is renamed from legacy `trunk-args` to v1.3.1 `arguments`.
+- The v1.3.1 action expands to GitHub-owned immutable `actions/cache@27d5...`, permitted by repository policy. `actionlint` passes for `trunk-check.yml`; full CI workflow lint retains pre-existing custom Blacksmith runner-label diagnostics.
