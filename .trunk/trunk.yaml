@@ -15,3 +15,9 @@ plugins:
     - id: configs
       ref: v1.2.1
       uri: https://github.com/trunk-io/configs
+
+lint:
+  ignore:
+    - linters: [ALL]
+      paths:
+        - docs/sessions/20260719-cross-chat-alignment/HANDOFFS.md

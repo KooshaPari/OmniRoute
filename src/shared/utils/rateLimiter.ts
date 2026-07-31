@@ -23,11 +23,21 @@ function getKeyvStore(): Keyv {
 }
 
 /** Legacy shim — always returns a no-op Redis stub for apiKeys.ts dead-code paths. */
-export function getRedisClient(): { del: (...args: any[]) => Promise<any>; get: (...args: any[]) => Promise<any>; set: (...args: any[]) => Promise<any> } {
+export function getRedisClient(): {
+  del: (...args: any[]) => Promise<any>;
+  get: (...args: any[]) => Promise<any>;
+  set: (...args: any[]) => Promise<any>;
+} {
   return {
-    async del() { return 1; },
-    async get() { return null; },
-    async set() { return "OK"; },
+    async del() {
+      return 1;
+    },
+    async get() {
+      return null;
+    },
+    async set() {
+      return "OK";
+    },
   };
 }
 
@@ -52,7 +62,7 @@ interface RateLimitEntry {
 async function incrementKeyvCounter(
   key: string,
   windowMs: number,
-  limit: number,
+  limit: number
 ): Promise<{ allowed: boolean; remaining: number; resetMs: number }> {
   const kv = getKeyvStore();
   const now = Date.now();
@@ -62,9 +72,10 @@ async function incrementKeyvCounter(
 
   try {
     const raw = await kv.get(entryKey);
-    const entry: RateLimitEntry = raw && typeof raw === "object" && "count" in (raw as any)
-      ? (raw as RateLimitEntry)
-      : { count: 0, windowStart };
+    const entry: RateLimitEntry =
+      raw && typeof raw === "object" && "count" in (raw as any)
+        ? (raw as RateLimitEntry)
+        : { count: 0, windowStart };
     entry.count += 1;
     await kv.set(entryKey, entry, resetMs - now + 1000); // TTL = window remainder + buffer
     const remaining = Math.max(0, limit - entry.count);
@@ -82,7 +93,7 @@ const inMemoryCounters = new Map<string, RateLimitEntry>();
 function incrementInMemoryCounter(
   key: string,
   windowMs: number,
-  limit: number,
+  limit: number
 ): { allowed: boolean; remaining: number; resetMs: number } {
   const now = Date.now();
   const windowStart = Math.floor(now / windowMs) * windowMs;
@@ -120,7 +131,7 @@ export interface RateLimitResult {
 export async function checkRateLimit(
   keyId: string,
   limit: number,
-  windowMs: number,
+  windowMs: number
 ): Promise<RateLimitResult> {
   if (USE_KEYV) {
     const result = await incrementKeyvCounter(`rl:${keyId}`, windowMs, limit);
@@ -136,7 +147,7 @@ export async function checkRateLimit(
 export async function checkRateLimitSingleRule(
   keyId: string,
   limit: number,
-  windowMs: number,
+  windowMs: number
 ): Promise<RateLimitResult> {
   return checkRateLimit(keyId, limit, windowMs);
 }
