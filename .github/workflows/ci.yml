@@ -40,7 +40,7 @@ jobs:
       typescript: ${{ steps.detect.outputs.typescript }}
       has_ci_lint: ${{ steps.detect.outputs.rust_ci || steps.detect.outputs.python_ci || steps.detect.outputs.go_ci || steps.detect.outputs.ts_ci }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - id: detect
         run: |
           # Smart-discover: only set true if relevant tooling files exist
@@ -86,11 +86,11 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2204
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
         with:
           components: clippy, rustfmt
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae # v2
         with:
           shared-key: phen-ci-rust
       - name: fmt check
@@ -120,8 +120,8 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2204
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
       - name: Install ruff
@@ -154,8 +154,8 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2204
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: "stable"
       - name: go vet
@@ -172,8 +172,8 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2204
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
           cache: npm
@@ -225,9 +225,9 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Trivy scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: "fs"
           scan-ref: "."
@@ -237,7 +237,7 @@ jobs:
         continue-on-error: true
       - name: Upload Trivy results
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@47be0dbd5113ab1b79fe2dd3f68bdf7e426cdc87 # v3
         with:
           sarif_file: "trivy-results.sarif"
         continue-on-error: true
@@ -249,8 +249,8 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/dependency-review-action@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5
         with:
           fail-on-severity: moderate
 
@@ -265,7 +265,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Run trunk only if configured
         run: |
           if [ -f "trunk.yaml" ] && [ -d ".trunk" ]; then
@@ -275,7 +275,7 @@ jobs:
             echo "Trunk not configured (no trunk.yaml + .trunk/) — skipping"
             exit 0
           fi
-      - uses: trunk-io/trunk-action@v1
+      - uses: trunk-io/trunk-action@d90b9166660d5e5afae248a58172a3a0e99d56d5 # v1.0.4
         if: hashFiles('trunk.yaml', '.trunk/trunk.yaml') != ''
 
   # ===========================================================================
