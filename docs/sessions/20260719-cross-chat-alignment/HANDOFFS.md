@@ -757,3 +757,10 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Applied the minimal default-import repair and fixed a separate verified `ReferenceError: key is not defined` in `open-sse/utils/stream.ts` first-token reasoning detection.
 - Focused stream regression proof: three previously failing reasoning/alias tests pass on the repaired source. Rate-limiter module import now loads successfully; full dependency installation was network-blocked (`ECONNRESET`, then offline cache miss for `next@16.2.11`), so exact-head qgate is not claimed green.
 - Commit `4323a4634`; Airlock snapshot pushed as `wip/20260731T0536-18c7491fadfc9360`. Do not merge until exact-head CI validates the same commit.
+
+## 2026-07-31T08:07Z - Trunk formatter source alignment (trunk_config_retry)
+
+- Audited the exact PR #484 lineage: current PR head `d8ff1d5ad` contains config commit `8069bcc6d` and the required CI-context commit; no source or handoff rewrite was needed.
+- The Trunk `v0.1` config now keeps the official `trunk` plugin `v1.9.0`, removes the `configs` plugin source (which pins ESLint 8 and Prettier 3.8.1), explicitly enables the repository-locked `prettier@3.9.4`, disables ESLint, and ignores this append-only handoff file.
+- Validation: `npx --no-install prettier --check .trunk/trunk.yaml` passed; YAML policy parse passed; package-lock parity confirms Prettier `3.9.4`. Trunk CLI is not installed locally, so remote CI remains the authoritative execution proof.
+- This entry is append-only. Config commit `8069bcc6d` is already reachable from PR #484 head `d8ff1d5ad`; the handoff append is ready to be promoted with the PR branch fast-forward.
