@@ -745,3 +745,8 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Exact-head Trunk failure occurred before Trunk configuration execution: legacy action SHA `22e948f...` expands to `actions/cache@v2`, which selected-actions policy correctly rejects.
 - Migrated only workflow semantics required for policy-approved Trunk v1.3.1 SHA `04ba50e...`: CI and Trunk Check use that SHA, and the scheduled input is renamed from legacy `trunk-args` to v1.3.1 `arguments`.
 - The v1.3.1 action expands to GitHub-owned immutable `actions/cache@27d5...`, permitted by repository policy. `actionlint` passes for `trunk-check.yml`; full CI workflow lint retains pre-existing custom Blacksmith runner-label diagnostics.
+
+## 2026-07-31T03:10Z - PR #483 exact-head Trunk dispatch enablement (route_smoke_contract)
+
+- Merge-tree proof was clean before a normal no-fast-forward merge of `1116a75d` into the PR integration branch.
+- Added only `workflow_dispatch` to Trunk Check so its policy-valid v1.3.1 action can be validated on the exact PR head; existing pull-request, push, and schedule triggers remain unchanged.
