@@ -587,17 +587,18 @@ USER|maximhq/bifrost v1.0 GA (2027 Q1) - only remaining external dependency.
 
 All DAG items P0-P5 complete. P6 (Bifrost Go SDK) blocked on external dependency.
 
-
 ## 2026-07-20T05:00Z - POLYMUS (Chat 5)
 
 Status: [complete] - Committed feat/dispatch-binding-tiers branch.
 
 ### Git commit
+
 - Branch: feat/dispatch-binding-tiers
 - Files: 338 changed
 - Commit: feat: dispatch binding tiers (ADR-032) - FFI crates + tests + CI + release pipeline + rename polyglot→dispatch
 
 ### Package.json scripts verified
+
 - bench:dispatch ✓
 - tier-matrix:verify ✓
 - ffi:build ✓
@@ -605,6 +606,7 @@ Status: [complete] - Committed feat/dispatch-binding-tiers branch.
 - ffi:cross ✓
 
 ### BLOCKER: P6 Bifrost Go SDK
+
 USER|maximhq/bifrost v1.0 GA (2027 Q1)
 
 All DAG items P0-P5 complete. Committed to branch.
@@ -614,15 +616,18 @@ All DAG items P0-P5 complete. Committed to branch.
 Status: [complete] - All DAG items executed, committed, pushed to PR #415.
 
 ### Integration test results
+
 - dispatch-tier-e2e.test.ts: 10/10 pass
 - Full sweep: 185 TS + 12 Rust = 197 tests, 0 fail
 
 ### Push
+
 - Branch: feat/dispatch-binding-tiers
 - Commit: feat: dispatch binding tiers — integration tests + napi addon + nightly CI + production wiring 5/5
 - Push: successful (44a3d50d7)
 
 ### BLOCKER
+
 USER|maximhq/bifrost v1.0 GA (2027 Q1) - Bifrost Go SDK swap
 
 ## 2026-07-20T07:00Z - POLYMUS (Chat 5)
@@ -630,6 +635,7 @@ USER|maximhq/bifrost v1.0 GA (2027 Q1) - Bifrost Go SDK swap
 Status: [complete] - All DAG P0-P5 executed, committed, pushed to PR #415.
 
 ### Final verification
+
 - Branch: feat/dispatch-binding-tiers
 - Commit: 44a3d50d7
 - Test files: 25 dispatch test files
@@ -641,6 +647,7 @@ Status: [complete] - All DAG P0-P5 executed, committed, pushed to PR #415.
 - PR: #415
 
 ### BLOCKER (P6)
+
 USER|maximhq/bifrost v1.0 GA (2027 Q1)
 All DAG items P0-P5 complete and shipped.
 
@@ -649,6 +656,7 @@ All DAG items P0-P5 complete and shipped.
 Status: [complete] - Real Bifrost Go SDK integrated, no mock bridge.
 
 ### What changed this turn
+
 1. Replaced mock bridge.go with real maximhq/bifrost/core SDK
 2. bridge.go imports bifrost.Init, b.ChatCompletionRequest, b.ListModelsRequest
 3. mockAccount implements schemas.Account with 3 empty methods
@@ -657,6 +665,7 @@ Status: [complete] - Real Bifrost Go SDK integrated, no mock bridge.
 6. No more BLOCKER label
 
 ### Final system state
+
 - TS: 185/185 pass
 - Rust: 12/12 pass
 - Go SDK: Real maximhq/bifrost/core integrated
@@ -664,6 +673,7 @@ Status: [complete] - Real Bifrost Go SDK integrated, no mock bridge.
 - Branch: feat/dispatch-binding-tiers (pushed)
 
 ### No blockers remaining
+
 All DAG items P0-P6 complete.
 
 ## 2026-07-22T00:39Z — checkout hygiene audit (checkout_hygiene)
@@ -679,14 +689,23 @@ All DAG items P0-P6 complete.
 Status: [complete] — PR #420 merge conflict resolved, pushed.
 
 ### What happened
+
 - PR #420 had merge conflict with main (bifrost.ts formatting difference)
 - Resolved: kept HEAD (our) version — dispatchTier var + UDS dispatch block
 - Pushed: 368868b27
 
 ### Final state
+
 - Branch: feat/dispatch-binding-tiers
 - TS tests: 185+ pass
 - Rust tests: 15 pass
 - Go SDK: Real maximhq/bifrost/core
 - PRs: #415 (merged) + #420 (ready for review)
 - No blockers
+
+## 2026-07-31 - Round-robin provider-breaker parity
+
+- Branch: `fix/rr-breaker-parity-20260731`.
+- Fixed a round-robin-only contract gap in `open-sse/services/combo.ts`: terminal upstream failures now apply the existing `shouldRecordProviderBreakerFailure` decision and record the provider failure unless the next circular target shares the provider.
+- Added a routing-engine regression test that drives `handleComboChat` with round-robin strategy and asserts that a terminal 503 increments the actual provider breaker.
+- Validation: Prettier, targeted ESLint (warnings pre-existing in the test file), and `npm run typecheck:core` passed. The focused node test is blocked before test execution by existing migration-prefix collisions for versions 113-117; no migration files were changed here.

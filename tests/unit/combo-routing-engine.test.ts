@@ -29,7 +29,8 @@ const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
 const { getComboMetrics, recordComboRequest, resetAllComboMetrics } =
   await import("../../open-sse/services/comboMetrics.ts");
 const { resetEvalRoutingCache } = await import("../../open-sse/services/evalRouting.ts");
-const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
+const { getCircuitBreaker, resetAllCircuitBreakers } =
+  await import("../../src/shared/utils/circuitBreaker.ts");
 const { acquire: acquireSemaphore, resetAll: resetAllSemaphores } =
   await import("../../open-sse/services/rateLimitSemaphore.ts");
 const { _resetAllDecks } = await import("../../src/shared/utils/shuffleDeck.ts");
@@ -2628,6 +2629,28 @@ test("handleComboChat round-robin treats provider circuit breaker responses as o
 
   assert.equal(result.ok, true);
   assert.deepEqual(calls, ["openai/model-a", "openai/model-b"]);
+});
+
+test("handleComboChat round-robin records a terminal upstream failure in the provider breaker", async () => {
+  const provider = "rr-breaker-wiring";
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "rr-breaker-wiring",
+      strategy: "round-robin",
+      models: [`${provider}/model-a`],
+      config: { maxRetries: 0 },
+    },
+    handleSingleModel: async () => errorResponse(503, "upstream unavailable"),
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.status, 503);
+  assert.equal(getCircuitBreaker(provider).getStatus().failureCount, 1);
 });
 
 test("handleComboChat round-robin retries a transient failure on the same model before succeeding", async () => {

@@ -770,7 +770,9 @@ export async function handleComboChat({
   apiKeyAllowedConnections,
   nesting = null,
 }: HandleComboChatOptions): Promise<Response> {
-  const { tier: _comboDispatchTier } = await useDispatchForEdge("scoring.combo.scoreSimd").catch(() => ({ tier: "T1" }));
+  const { tier: _comboDispatchTier } = await useDispatchForEdge("scoring.combo.scoreSimd").catch(
+    () => ({ tier: "T1" })
+  );
 
   const comboCtx = createComboContext({ body, combo, settings, relayOptions, log });
   const {
@@ -3316,6 +3318,22 @@ async function handleRoundRobinCombo({
           exhaustedLogLevel: "debug",
           structuredError,
         });
+
+        // Match the primary combo path: a terminal upstream failure should trip
+        // the provider breaker unless the next round-robin target shares it.
+        const nextTarget = filteredTargets[(modelIndex + 1) % modelCount];
+        const sameProviderNext =
+          typeof nextTarget?.provider === "string" && nextTarget.provider === provider;
+        if (
+          shouldRecordProviderBreakerFailure({
+            isStreamReadinessFailure,
+            status: result.status,
+            sameProviderNext,
+            skipProviderBreaker: fallbackResult.skipProviderBreaker,
+          })
+        ) {
+          recordProviderFailure(provider, log, targetWithConnection.connectionId, profile);
+        }
 
         // Transient errors → mark in semaphore so round-robin stops stampeding this target.
         if (
