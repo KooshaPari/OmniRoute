@@ -1,99 +1,17 @@
-# Trunk.io — unified linting, formatting, and security configuration.
-# Keep this file in the v0.1 schema consumed by current trunk-action releases.
+# Trunk.io Code Quality configuration.
+# The v0.1 schema is required by current trunk-action releases.
 # https://docs.trunk.io/check/reference
 
 version: 0.1
 
 cli:
-  version: 1.22.12
+  version: 1.25.0
 
 plugins:
   sources:
     - id: trunk
-      ref: v1.6.6
-    - id: trunk-fmt
+      ref: v1.9.0
+      uri: https://github.com/trunk-io/plugins
+    - id: configs
       ref: v1.2.1
-
-linters:
-  - name: rustfmt
-    enabled: true
-    direct_configs:
-      - rustfmt.toml
-      - .rustfmt.toml
-  - name: clippy
-    enabled: true
-    direct_configs:
-      - clippy.toml
-      - .clippy.toml
-  - name: black
-    enabled: true
-    direct_configs:
-      - pyproject.toml
-      - ruff.toml
-  - name: ruff
-    enabled: true
-    direct_configs:
-      - ruff.toml
-      - pyproject.toml
-  - name: mypy
-    enabled: true
-    direct_configs:
-      - mypy.ini
-      - pyproject.toml
-  - name: golangci-lint
-    enabled: true
-    direct_configs:
-      - .golangci.yml
-      - .golangci.yaml
-  - name: taplo
-    enabled: true
-  - name: eslint
-    enabled: true
-    direct_configs:
-      - .eslintrc.*
-      - eslint.config.*
-  - name: prettier
-    enabled: true
-    direct_configs:
-      - .prettierrc
-      - .prettierrc.json
-      - .prettierrc.yml
-      - prettier.config.*
-  - name: shellcheck
-    enabled: true
-  - name: actionlint
-    enabled: true
-  - name: yamllint
-    enabled: true
-  - name: markdownlint
-    enabled: true
-  - name: gitleaks
-    enabled: true
-
-formatters:
-  - name: rustfmt
-    enabled: true
-    direct_configs:
-      - rustfmt.toml
-      - .rustfmt.toml
-  - name: prettier
-    enabled: true
-    direct_configs:
-      - .prettierrc
-      - .prettierrc.json
-      - .prettierrc.yml
-      - prettier.config.*
-
-ignore:
-  - paths:
-      - node_modules/
-      - .venv/
-      - venv/
-      - __pycache__/
-      - target/
-      - dist/
-      - build/
-      - .git/
-      - vendor/
-      - "*.lock"
-    type: include
+      uri: https://github.com/trunk-io/configs
