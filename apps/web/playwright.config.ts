@@ -38,7 +38,10 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
     },
     {
-      command: 'node build',
+      // PUBLIC_ variables are compiled into the SvelteKit client bundle. Build
+      // inside the fixture after setting the isolated BFF origin, then serve
+      // that same production artifact.
+      command: `${JSON.stringify(bunBinary)} run build && node build`,
       cwd: '.',
       env: {
         HOST: '127.0.0.1',
