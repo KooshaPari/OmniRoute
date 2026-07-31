@@ -33,6 +33,11 @@ jobs:
           # The application manifest is the canonical version contract for all
           # SvelteKit/Hono quality gates.
           bun-version-file: apps/web/package.json
+      - name: Install API contract dependencies from lockfile
+        # The BFF imports this independent file: package. Its own dependency
+        # graph must be installed before TypeScript resolves its Zod exports.
+        working-directory: packages/api-contracts
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Install BFF dependencies from lockfile
         working-directory: apps/bff
         run: bun install --frozen-lockfile --ignore-scripts

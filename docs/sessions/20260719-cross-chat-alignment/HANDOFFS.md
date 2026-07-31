@@ -690,3 +690,46 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Go SDK: Real maximhq/bifrost/core
 - PRs: #415 (merged) + #420 (ready for review)
 - No blockers
+
+## 2026-07-30T08:34Z - Svelte dashboard route smoke repair (route_smoke_contract)
+
+- Removed twelve untracked `+page.ts` redirect loaders that shadowed existing Svelte dashboard pages and redirected to Next-only, absent Svelte routes. Existing Svelte feature pages remain authoritative.
+- Retained the intended server redirect: `/dashboard` returns a 307 to the implemented `/home` route.
+- Static route graph now finds 41 Svelte pages; dashboard redirect and all five home operator links resolve to present routes with no self-loop.
+- Validation: `bun run typecheck` in `apps/web` passed (`svelte-check found 0 errors and 0 warnings`); `git diff --check` passed.
+- Runtime smoke remains blocked independently: Vite dependency prebundling exits under Node 26 because `@xyflow/svelte` imports `.svelte` files without a configured esbuild loader. This is assigned to the web dependency-health lane.
+
+## 2026-07-30T09:16Z - Svelte Vite runtime smoke repair (route_smoke_contract)
+
+- Added `optimizeDeps.exclude: ['@xyflow/svelte']` in `apps/web/vite.config.ts`. This leaves the ESM package to Svelte's transform pipeline rather than Vite's JavaScript-only dependency prebundler, resolving the prior 28 `.svelte` loader errors.
+- `bun run dev -- --host 127.0.0.1 --force` started successfully. HTTP smoke: `/dashboard` returned 307 and followed once to `/home`; `/home`, `/dashboard/providers`, `/dashboard/settings/general`, `/dashboard/health`, `/dashboard/usage`, and the XYFlow-backed `/dashboard/combos` each returned 200.
+- `bun run build` passed end-to-end. The only output was existing upstream unused-import warnings from XYFlow and SvelteKit internals.
+- Real Playwright browser smoke is environment-blocked: neither Chrome nor another supported local browser is installed; Playwright reports `Chromium distribution 'chrome' is not found at /Applications/Google Chrome.app/...`. Curl-level black-box smoke and production build are green.
+
+## 2026-07-30T11:15Z - Production browser proof and focused accessibility repair (route_smoke_contract)
+
+- Started the already-built SvelteKit adapter-node artifact directly (`HOST=127.0.0.1 PORT=4322 node build`), avoiding Vite dev prebundling. Cached Playwright Chromium was used without installation.
+- Browser smoke passed: `/dashboard` followed once to `/home`; `/home`, `/dashboard/providers`, `/dashboard/settings/general`, `/dashboard/health`, `/dashboard/usage`, and `/dashboard/combos` rendered their expected content at HTTP 200.
+- Corrected three verified WCAG defects without visual/layout behavior changes: Home status text now meets contrast; Providers and Combos each expose a level-one page heading for assistive technology.
+- Validation: `bun run build`, `bun run typecheck`, and `git diff --check` passed. Axe browser scans report zero violations for Home, Providers, and Combos.
+- Production web-only mode correctly shows degraded BFF state rather than a blank or 404 document. BFF API requests are 404 when no BFF process is present; do not mask this with same-origin fallback. The packaged desktop adapter must inject or run the BFF endpoint.
+
+## 2026-07-30T12:00Z - Standalone web BFF configuration contract (route_smoke_contract)
+
+- Public web now exposes an explicit alert when `PUBLIC_OMNIROUTE_BFF_URL` (or desktop's injected equivalent) is absent outside Vite's local `4321` topology.
+- Same-origin dashboard and tRPC fallback requests now return JSON HTTP 503 `BFF_NOT_CONFIGURED`, not ambiguous 404. The response gives safe remediation and does not expose credentials.
+- Added `apps/web/.env.example` and `docs/deployment/web-bff-contract.md`; desktop's existing renderer injection remains the configured local path.
+- Validation: web typecheck/build/diff checks passed; adapter-node browser smoke confirmed the alert and 503 contract.
+
+## 2026-07-30T23:27Z - Svelte route resilience boundary (route_smoke_contract)
+
+- Added the framework-native root route error boundary (`apps/web/src/routes/+error.svelte`) for 404 and route-render failures. It supplies a clear status, accessible heading, Home recovery link, and a retry action for non-404 failures.
+- Added a polite navigation-progress status in the root layout using SvelteKit's `$navigating` store. Existing client data-loading states and the explicit BFF configuration alert are preserved.
+- Validation: `bun run typecheck`, `bun run build`, and `git diff --check` passed. Adapter-node browser smoke: `/home` 200 with the BFF configuration alert; unknown route 404 with the new error boundary; `/api/dashboard/usage` 503 `BFF_NOT_CONFIGURED`; Axe scan of the 404 boundary reported zero violations.
+
+## 2026-07-31T00:09Z - Web release-quality audit and BFF auth correction (route_smoke_contract)
+
+- Audited the shared BFF configuration, route recovery, and production-smoke surfaces at `cc7ec9b3e`. Found one concrete contract gap: absent-BFF login and OAuth callback traffic falls back to `/api/auth/*`, which had retained an ambiguous 404.
+- Added the safe catch-all `apps/web/src/routes/api/auth/[...path]/+server.ts`, returning the existing credential-free 503 `BFF_NOT_CONFIGURED` envelope for all common auth methods. Deployment documentation now includes auth alongside dashboard and tRPC paths.
+- Fresh evidence: typecheck, production build, production Playwright smoke (1/1), and diff check pass. A no-BFF adapter-node artifact returned HTTP 503 plus `BFF_NOT_CONFIGURED` for `/api/auth/login`, `/api/dashboard/usage`, and `/api/trpc/example`.
+- Security review found no secret-like literals in the release-surface diff and no browser-exposed BFF key. Public BFF origin remains configuration-only; BFF API keys remain server-side.
