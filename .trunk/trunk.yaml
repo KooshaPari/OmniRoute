@@ -17,6 +17,10 @@ plugins:
       uri: https://github.com/trunk-io/configs
 
 lint:
+  disabled:
+    - eslint
+  enabled:
+    - prettier@3.9.4
   ignore:
     - linters: [ALL]
       paths:
