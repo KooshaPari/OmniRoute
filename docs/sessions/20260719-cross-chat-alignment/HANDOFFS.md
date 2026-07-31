@@ -739,3 +739,9 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Created `integration/pr481-web-release-20260731` from the unchanged PR #481 head `46e03229a` and merged browser-CI-green `a742aa146` with a normal no-fast-forward merge after a clean merge-tree proof.
 - Integration merge: `c2d915b34`. It retains #481's separate package-lock synchronization and the full green web/desktop release lineage; no rebase, force-push, or mutation of #481 occurred.
 - Browser CI proof belongs to ancestor `a742aa146`; a separate native artifact worker owns any integration-head native rerun. Do not represent this new integration SHA as CI-green until its own required checks report on that SHA.
+
+## 2026-07-31T01:29Z - PR #483 Opossum primary safety correction (route_smoke_contract)
+
+- Validated Codex review P2 against the refreshed PR head `d746df61a`: `CIRCUIT_BREAKER_OPOSSUM_PRIMARY=1` returned an adapter lacking `canExecute`, `getStatus`, `getRetryAfterMs`, and `reset`, while live combo/chat paths call that contract.
+- Removed unsafe primary dispatch. `getCircuitBreaker` remains authoritative on the native, full-contract breaker even if the experimental environment flag is set; the incomplete Opossum adapter is explicitly documented as non-selectable until it has complete contract coverage.
+- Added an isolated child-process regression test that imports with `CIRCUIT_BREAKER_OPOSSUM_PRIMARY=1` and verifies the request-path methods. Focused test passed; root TypeScript no-emit check passed. This change is pending commit/push and normal PR re-review; no bot thread was dismissed or resolved.

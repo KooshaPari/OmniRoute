@@ -557,14 +557,7 @@ function evictColdBreakersIfNeeded(): void {
 }
 
 
-// Opossum primary mode: when CIRCUIT_BREAKER_OPOSSUM_PRIMARY=1, getCircuitBreaker returns
-// an OpossumCircuitBreaker wrapper that delegates to opossum under the hood.
-const _opossumPrimaryEnabled = process.env.CIRCUIT_BREAKER_OPOSSUM_PRIMARY === "1";
-
 export function getCircuitBreaker(name: string, options?: CircuitBreakerOptions): CircuitBreaker {
-  if (_opossumPrimaryEnabled) {
-    return getOrCreateOpossumBreaker(name, options) as unknown as CircuitBreaker;
-  }
   if (!registry.has(name)) {
     evictColdBreakersIfNeeded();
     registry.set(name, new CircuitBreaker(name, options));
@@ -645,18 +638,11 @@ export function resetAllCircuitBreakers() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PR-E: Opossum step-2 — primary circuit breaker adapter
-//
-
-
-// =============================================================================
-// Opossum Step-2: Primary Circuit Breaker (PR-P, closes #407)
-//
-// OpossumCircuitBreaker wraps opossum as the primary circuit breaker,
-// with DEGRADED state folding and per-kind child breakers.
-//
-// Enable: CIRCUIT_BREAKER_OPOSSUM_PRIMARY=1
-// =============================================================================
+// Experimental Opossum adapter. It is intentionally not selected by
+// getCircuitBreaker: request paths depend on the full CircuitBreaker contract
+// (including canExecute, getStatus, reset, and retry helpers), which this
+// adapter does not yet implement. Keep the proven native breaker authoritative
+// until a complete, independently tested adapter is available.
 
 interface OpossumOptions {
   timeout?: number;
@@ -665,7 +651,7 @@ interface OpossumOptions {
   volumeThreshold?: number;
 }
 
-/** Opossum-backed circuit breaker — drop-in replacement for hand-rolled impl. */
+/** Experimental Opossum-backed breaker; not a CircuitBreaker replacement yet. */
 export class OpossumCircuitBreaker {
   private readonly breakers: Map<string, OpossumBreaker<[], unknown>>;
   private readonly primary: OpossumBreaker<[() => Promise<unknown>], unknown>;
@@ -716,22 +702,6 @@ export class OpossumCircuitBreaker {
   }
 }
 
-// ─── Opossum primary dispatch ──────────────────────────────────────────────
-
-const _opossumRegistry = new Map<string, OpossumCircuitBreaker>();
-
-function getOrCreateOpossumBreaker(
-  name: string,
-  options?: Partial<OpossumOptions>,
-): OpossumCircuitBreaker {
-  let breaker = _opossumRegistry.get(name);
-  if (!breaker) {
-    breaker = new OpossumCircuitBreaker(name, options);
-    _opossumRegistry.set(name, breaker);
-  }
-  return breaker;
-}
-
 // ─── Shadow telemetry (kept from step-1) ──────────────────────────────────
 const _opossumShadowEnabled = (() => {
   try {
@@ -746,7 +716,7 @@ export const opossumShadowEnabled = _opossumShadowEnabled;
 let _opossumShadowStats = { enabled: false, fires: 0, divergences: 0, opossumOpens: 0, primaryOpens: 0 };
 
 export function runOpossumShadow<T>(_primary: CircuitBreaker, fn: () => Promise<T>): Promise<T> {
-  if (!_opossumPrimaryEnabled && !_opossumShadowEnabled) return fn();
+  if (!_opossumShadowEnabled) return fn();
   _opossumShadowStats.enabled = true;
   _opossumShadowStats.fires++;
   return fn().catch((err) => {
