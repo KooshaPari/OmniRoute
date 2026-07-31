@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { cp, mkdir, rm, access, writeFile } from "node:fs/promises";
+import { cp, mkdir, rm, access, writeFile, readFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import path from "node:path";
@@ -40,27 +40,58 @@ await cp(source, path.join(rendererDestination, "client"), { recursive: true });
 // desktop artifact must carry those packages; relying on a developer's
 // workspace node_modules makes the installed app fail with a blank/404 page.
 // Install only the SSR runtime closure (not the full web development tree).
-const webPackage = JSON.parse(
-  await (await import("node:fs/promises")).readFile(path.join(root, "apps/web/package.json"), "utf8"),
-);
+const webLock = await readFile(path.join(root, "apps/web/bun.lock"), "utf8");
+
+// Resolve exact versions from the web lockfile instead of carrying caret ranges
+// into the installed desktop artifact. This keeps the renderer/runtime pair
+// reproducible even when the workspace lockfile is refreshed later.
+const pinnedVersion = (name) => {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = webLock.match(new RegExp(`\\"${escaped}\\": \\[\\"${escaped}@([^\\"]+)`));
+  if (!match) throw new Error(`missing locked version for renderer dependency ${name}`);
+  return match[1];
+};
+const runtimeDependencies = {
+  "@sveltejs/kit": pinnedVersion("@sveltejs/kit"),
+  "@trpc/client": pinnedVersion("@trpc/client"),
+  "web-vitals": pinnedVersion("web-vitals"),
+};
 const runtimePackage = {
   name: "@argismonitor/desktop-renderer-runtime",
   private: true,
   type: "module",
-  dependencies: {
-    "@sveltejs/kit": webPackage.dependencies["@sveltejs/kit"],
-    "@trpc/client": webPackage.dependencies["@trpc/client"],
-  },
+  dependencies: runtimeDependencies,
 };
-await writeFile(path.join(rendererDestination, "package.json"), JSON.stringify(runtimePackage, null, 2));
+await writeFile(
+  path.join(rendererDestination, "package.json"),
+  JSON.stringify(runtimePackage, null, 2)
+);
 try {
-  await execFileAsync(bunExecutable, ["install", "--production", "--no-save"], {
-    cwd: rendererDestination,
-  });
+  // Generate a lock for the reduced runtime package, then install strictly
+  // from that lock. `--no-save` does not emit a lockfile with Bun, so retain the
+  // generated lock alongside node_modules in the packaged renderer.
+  await execFileAsync(
+    bunExecutable,
+    ["install", "--production", "--lockfile-only", "--ignore-scripts"],
+    {
+      cwd: rendererDestination,
+    }
+  );
+  await execFileAsync(
+    bunExecutable,
+    ["install", "--production", "--frozen-lockfile", "--ignore-scripts"],
+    {
+      cwd: rendererDestination,
+    }
+  );
 } catch (error) {
   console.error("[electrobun] failed to install renderer runtime dependencies:", error);
   process.exit(1);
 }
+for (const dependency of Object.keys(runtimeDependencies)) {
+  await access(path.join(rendererDestination, "node_modules", dependency));
+}
+await access(path.join(rendererDestination, "bun.lock"));
 console.log(`[electrobun] staged apps/web renderer at ${path.relative(root, rendererDestination)}`);
 
 // The desktop app owns its local control plane: package the Hono/Bun BFF next
@@ -88,6 +119,6 @@ await writeFile(
   `import app from "./index.js";\n` +
     `const port = Number(process.env.PORT ?? 20128);\n` +
     `const server = Bun.serve({ hostname: "127.0.0.1", port, fetch: app.fetch });\n` +
-    `console.log("[omniroute-bff] listening on http://127.0.0.1:" + server.port);\n`,
+    `console.log("[omniroute-bff] listening on http://127.0.0.1:" + server.port);\n`
 );
 console.log(`[electrobun] staged Hono/Bun backend at ${path.relative(root, backendDestination)}`);

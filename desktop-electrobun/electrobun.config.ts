@@ -22,7 +22,10 @@ const APP_VERSION = "0.1.0";
 const DEFAULT_DEV_URL = "http://localhost:3000";
 
 // ── CONFIGURE 3: Bundled views entrypoint (production) ───────────────────────
-const VIEWS_ENTRYPOINT = "generated/web/index.html";
+// The SvelteKit adapter-node renderer is launched as the production UI. Keep a
+// static in-bundle fallback for renderer boot failures; adapter-node does not
+// emit a root `index.html` in `generated/web`.
+const VIEWS_ENTRYPOINT = "src/views/index.html";
 
 export default {
   app: {

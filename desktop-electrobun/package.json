@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "electrobun dev",
     "prepare:web": "node ../scripts/build/prepare-electrobun-web.mjs",
+    "smoke:renderer": "node ../scripts/build/smoke-electrobun-renderer.mjs",
     "build": "bun run prepare:web && electrobun build",
     "build:release": "bun run prepare:web && electrobun build --release",
     "typecheck": "tsc --noEmit"
