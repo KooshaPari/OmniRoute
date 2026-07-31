@@ -275,7 +275,7 @@ jobs:
             echo "Trunk not configured (no trunk.yaml + .trunk/) — skipping"
             exit 0
           fi
-      - uses: trunk-io/trunk-action@d90b9166660d5e5afae248a58172a3a0e99d56d5 # v1.0.4
+      - uses: trunk-io/trunk-action@04ba50e7658c81db7356da96657e6e77f220bfa3 # v1.3.1
         if: hashFiles('trunk.yaml', '.trunk/trunk.yaml') != ''
 
   # ===========================================================================
