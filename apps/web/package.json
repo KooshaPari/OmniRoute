@@ -13,6 +13,7 @@
     "preview": "vite preview",
     "pretest": "svelte-kit sync",
     "test": "vitest run",
+    "test:production-smoke": "playwright test --config playwright.config.ts",
     "test:ssr-i18n": "node scripts/check/verify-ssr-i18n.mjs",
     "pretypecheck": "svelte-kit sync",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json",
@@ -33,6 +34,7 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.61.1",
     "@tailwindcss/postcss": "^4.1.0",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^22.0.0",

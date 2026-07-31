@@ -40,6 +40,7 @@
   }
 </script>
 
+<h1 class="sr-only">Providers</h1>
 <Card title="Providers (tRPC)">
   <div class="flex items-center gap-3 mb-4">
     <input

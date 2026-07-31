@@ -40,6 +40,7 @@
   };
 </script>
 
+<h1 class="sr-only">Combos</h1>
 <Card title="Combos">
   <p class="text-sm text-gray-600 mb-4">Combos orchestrate fallback across multiple providers/models. The current Next.js editor is 4,629 LoC; this is the Svelte 5 rewrite.</p>
 

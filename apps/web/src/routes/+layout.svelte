@@ -3,12 +3,18 @@
   import CommandPalette from '$lib/components/foundation/CommandPalette.svelte';
   import { initWebVitals } from '$lib/observability/web-vitals';
   import { onMount } from 'svelte';
-  import { page } from '$app/stores';
+  import { navigating, page } from '$app/stores';
   import { t, getLocale, setLocale, supportedLanguages } from '$lib/i18n/index.svelte';
+  import { bffConfigurationIssue } from '$lib/bff-origin';
 
   let { children } = $props();
 
-  onMount(() => { initWebVitals(); });
+  let bffIssue = $state<string | null>(null);
+
+  onMount(() => {
+    initWebVitals();
+    bffIssue = bffConfigurationIssue();
+  });
 
   const nav = [
     { href: '/dashboard', key: 'nav.dashboard' },
@@ -42,6 +48,16 @@
 <CommandPalette />
 
 <main class="min-h-screen bg-[var(--color-surface)]">
+  {#if $navigating}
+    <div role="status" aria-live="polite" class="border-b border-indigo-200 bg-indigo-50 px-4 py-2 text-sm text-indigo-950">
+      Loading next view…
+    </div>
+  {/if}
+  {#if bffIssue}
+    <div role="alert" class="border-b border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+      {bffIssue}
+    </div>
+  {/if}
   <header class="border-b border-gray-200 bg-white">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-6 flex-wrap">
       <a href="/dashboard" class="text-xl font-bold" style="color: var(--color-primary)">{t('app.title')}</a>

@@ -26,6 +26,7 @@ const DEV_URL = process.env.RENDERER_URL ?? "http://localhost:3000";
  */
 const SERVICES_COMPOSE_FILE = process.env.SERVICES_COMPOSE_FILE;
 const SERVER_PORT = Number(process.env.OMNIROUTE_PORT ?? "20128");
+const SERVER_URL = `http://127.0.0.1:${SERVER_PORT}`;
 let nextServer: ReturnType<typeof Bun.spawn> | undefined;
 let rendererServer: ReturnType<typeof Bun.spawn> | undefined;
 
@@ -66,7 +67,13 @@ async function bootRendererServer(): Promise<string | undefined> {
   const port = Number(process.env.OMNIROUTE_RENDERER_PORT ?? "20129");
   rendererServer = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, join(rendererDir, "index.js")], {
     cwd: rendererDir,
-    env: { ...process.env, PORT: String(port), HOST: "127.0.0.1", ORIGIN: `http://127.0.0.1:${port}` },
+    env: {
+      ...process.env,
+      PORT: String(port),
+      HOST: "127.0.0.1",
+      ORIGIN: `http://127.0.0.1:${port}`,
+      PUBLIC_OMNIROUTE_BFF_URL: SERVER_URL,
+    },
     stdout: "inherit",
     stderr: "inherit",
   });
@@ -84,20 +91,25 @@ async function bootRendererServer(): Promise<string | undefined> {
   return undefined;
 }
 
-async function bootNextServer(): Promise<string | undefined> {
+async function bootBffServer(): Promise<string | undefined> {
   const standaloneDir = await resolveBundledBackendDir();
   if (!standaloneDir) {
-    console.warn(`[${APP_NAME}] No bundled backend server.mjs found; using bundled fallback`);
+    console.warn(`[${APP_NAME}] No bundled BFF server.mjs found; using bundled fallback`);
     return undefined;
   }
   const serverEntry = join(standaloneDir, "server.mjs");
   nextServer = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, serverEntry], {
     cwd: standaloneDir,
-    env: { ...process.env, PORT: String(SERVER_PORT), HOSTNAME: "127.0.0.1" },
+    env: {
+      ...process.env,
+      PORT: String(SERVER_PORT),
+      HOSTNAME: "127.0.0.1",
+      BFF_CORS_ORIGINS: `http://127.0.0.1:${process.env.OMNIROUTE_RENDERER_PORT ?? "20129"}`,
+    },
     stdout: "inherit",
     stderr: "inherit",
   });
-  const url = `http://127.0.0.1:${SERVER_PORT}`;
+  const url = `${SERVER_URL}/healthz`;
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
       const response = await fetch(url, { signal: AbortSignal.timeout(500) });
@@ -106,7 +118,7 @@ async function bootNextServer(): Promise<string | undefined> {
       await Bun.sleep(250);
     }
   }
-  console.warn(`[${APP_NAME}] Next standalone server did not become ready; using bundled fallback`);
+  console.warn(`[${APP_NAME}] Bundled BFF did not become ready; using bundled fallback`);
   return undefined;
 }
 
@@ -236,7 +248,7 @@ function setupMenu(win: BrowserWindow): void {
 // ── Bootstrap ────────────────────────────────────────────────────────────────
 async function main(): Promise<void> {
   await bootServices();
-  const bundledUrl = await bootNextServer();
+  const bundledUrl = await bootBffServer();
   const rendererUrl = await bootRendererServer();
   const win = createMainWindow();
   if (rendererUrl) win.webview.loadURL(rendererUrl);
