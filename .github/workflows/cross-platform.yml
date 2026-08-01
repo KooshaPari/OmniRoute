@@ -91,7 +91,9 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Run unit tests
-        run: node --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 tests/unit/*.test.ts
+        run:
+          node --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit
+          --test-concurrency=4 tests/unit/*.test.ts
         env:
           JWT_SECRET: ci-cross-test-secret
           API_KEY_SECRET: ci-cross-test-api-key
