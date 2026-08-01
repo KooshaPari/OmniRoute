@@ -3,18 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "electrobun dev",
-    "prepare:web": "node ../scripts/build/prepare-electrobun-web.mjs",
     "build": "bun run prepare:web && electrobun build",
     "build:release": "bun run prepare:web && electrobun build --release",
+    "dev": "electrobun dev",
+    "prepare:web": "node ../scripts/build/prepare-electrobun-web.mjs",
+    "smoke:gateway": "node ../scripts/build/smoke-electrobun-gateway.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "electrobun": "^1.18.1"
   },
   "devDependencies": {
-    "typescript": "^5.7.0",
     "@types/bun": "1.3.14",
-    "@types/three": "^0.181.0"
+    "@types/three": "^0.181.0",
+    "typescript": "^5.7.0"
   }
 }

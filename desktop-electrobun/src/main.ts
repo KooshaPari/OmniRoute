@@ -9,7 +9,7 @@
  */
 import { BrowserWindow, ApplicationMenu, Tray, Utils } from "electrobun/bun";
 import { $ } from "bun";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const APP_NAME = process.env.APP_NAME ?? "OmniRoute";
@@ -25,35 +25,58 @@ const DEV_URL = process.env.RENDERER_URL ?? "http://localhost:3000";
  * Leave unset to skip service boot.
  */
 const SERVICES_COMPOSE_FILE = process.env.SERVICES_COMPOSE_FILE;
-const STANDALONE_DIR = resolve(
-  process.env.OMNIROUTE_STANDALONE_DIR ??
-    resolve(import.meta.dir, "../../.build/next/standalone"),
-);
-const SERVER_ENTRY = join(STANDALONE_DIR, "server.js");
 const SERVER_PORT = Number(process.env.OMNIROUTE_PORT ?? "20128");
-let nextServer: ReturnType<typeof Bun.spawn> | undefined;
+const SERVER_URL = `http://127.0.0.1:${SERVER_PORT}`;
+let gatewayProcess: ReturnType<typeof Bun.spawn> | undefined;
 
-async function bootNextServer(): Promise<string | undefined> {
-  if (!(await Bun.file(SERVER_ENTRY).exists())) {
-    console.warn(`[${APP_NAME}] No Next standalone bundle at ${SERVER_ENTRY}; using bundled fallback`);
+async function resolveGatewayEntry(): Promise<string | undefined> {
+  const candidates = [
+    process.env.OMNIROUTE_BFF_DIR,
+    resolve(import.meta.dir, "../backend"),
+    resolve(dirname(process.argv0), "../Resources/app/backend"),
+  ].filter((candidate): candidate is string => Boolean(candidate));
+  for (const directory of candidates) {
+    const entry = join(directory, "server.mjs");
+    if (await Bun.file(entry).exists()) return entry;
+  }
+  return undefined;
+}
+
+async function bootGateway(): Promise<string | undefined> {
+  const entry = await resolveGatewayEntry();
+  if (!entry) {
+    console.warn(
+      `[${APP_NAME}] No bundled Hono/Svelte gateway at ${resolve(import.meta.dir, "../backend")}; using bundled fallback`,
+    );
     return undefined;
   }
-  nextServer = Bun.spawn([process.env.OMNIROUTE_NODE ?? "node", SERVER_ENTRY], {
-    cwd: STANDALONE_DIR,
-    env: { ...process.env, PORT: String(SERVER_PORT), HOSTNAME: "127.0.0.1" },
+  gatewayProcess = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, entry], {
+    cwd: dirname(entry),
+    env: {
+      ...process.env,
+      PORT: String(SERVER_PORT),
+      HOSTNAME: "127.0.0.1",
+      BFF_ORIGIN: SERVER_URL,
+      PUBLIC_OMNIROUTE_BFF_URL: SERVER_URL,
+    },
     stdout: "inherit",
     stderr: "inherit",
   });
-  const url = `http://127.0.0.1:${SERVER_PORT}`;
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(500) });
-      if (response.status < 500) return url;
+      const response = await fetch(`${SERVER_URL}/healthz`, {
+        signal: AbortSignal.timeout(500),
+      });
+      if (response.ok) return SERVER_URL;
     } catch {
       await Bun.sleep(250);
     }
   }
-  console.warn(`[${APP_NAME}] Next standalone server did not become ready; using bundled fallback`);
+  gatewayProcess.kill();
+  gatewayProcess = undefined;
+  console.warn(
+    `[${APP_NAME}] Bundled Hono/Svelte gateway did not become ready; using bundled fallback`,
+  );
   return undefined;
 }
 
@@ -70,16 +93,16 @@ async function bootServices(): Promise<void> {
   } catch (err) {
     console.warn(
       `[${APP_NAME}] process-compose boot skipped (not found or services already running):`,
-      (err as Error).message
+      (err as Error).message,
     );
   }
 }
 
 // ── Window ───────────────────────────────────────────────────────────────────
-function createMainWindow(): BrowserWindow {
+function createMainWindow(url: string): BrowserWindow {
   const win = new BrowserWindow({
     title: APP_NAME,
-    url: FALLBACK_RENDERER_URL,
+    url,
     frame: {
       x: 0,
       y: 0,
@@ -91,11 +114,6 @@ function createMainWindow(): BrowserWindow {
   // Electrobun does not guarantee activation from the constructor when launched
   // by Finder/LaunchServices. Explicitly show and focus the window.
   win.show();
-  try {
-    win.webview.executeJavascript(`window.__RENDERER_URL__ = ${JSON.stringify(DEV_URL)};`);
-  } catch {
-    /* webview not ready yet — fallback page uses its baked-in default */
-  }
   return win;
 }
 
@@ -183,15 +201,16 @@ function setupMenu(win: BrowserWindow): void {
 // ── Bootstrap ────────────────────────────────────────────────────────────────
 async function main(): Promise<void> {
   await bootServices();
-  const bundledUrl = await bootNextServer();
-  const win = createMainWindow();
-  if (bundledUrl) win.webview.loadURL(bundledUrl);
+  const gatewayUrl = await bootGateway();
+  const win = createMainWindow(gatewayUrl ?? FALLBACK_RENDERER_URL);
   setupMenu(win);
   setupTray(win);
-  console.log(`[${APP_NAME}] Launched → ${bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`);
+  console.log(
+    `[${APP_NAME}] Launched → ${gatewayUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`,
+  );
 }
 
-process.on("exit", () => nextServer?.kill());
+process.on("exit", () => gatewayProcess?.kill());
 main().catch((err) => {
   console.error(`[${APP_NAME}] Fatal:`, err);
   process.exit(1);
