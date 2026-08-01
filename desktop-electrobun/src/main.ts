@@ -64,10 +64,10 @@ async function bootGateway(): Promise<string | undefined> {
       stderr: "inherit",
     });
   } catch (error) {
-    console.warn(
-      `[${APP_NAME}] Failed to start bundled Hono/Svelte gateway; using bundled fallback`,
+    console.warn("Failed to start bundled Hono/Svelte gateway; using bundled fallback", {
+      app: APP_NAME,
       error,
-    );
+    });
     return undefined;
   }
   for (let attempt = 0; attempt < 60; attempt += 1) {
