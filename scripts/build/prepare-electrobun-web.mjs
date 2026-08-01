@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { cp, mkdir, rm, access, writeFile } from "node:fs/promises";
+import { cp, mkdir, rm, access, rename, writeFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import path from "node:path";
@@ -48,6 +48,12 @@ try {
 await rm(rendererDestination, { recursive: true, force: true });
 await cp(rendererSource, rendererDestination, { recursive: true });
 await cp(staticSource, path.join(rendererDestination, "static"), { recursive: true });
+// Electrobun's copy packer ignores dot-directories. Keep the generated SSR
+// runtime visible in the app bundle while retaining SvelteKit's output shape.
+await rename(
+  path.join(rendererDestination, ".svelte-kit"),
+  path.join(rendererDestination, "svelte-kit"),
+);
 console.log(
   `[electrobun] staged apps/web SSR renderer at ${path.relative(root, rendererDestination)}`,
 );
@@ -74,7 +80,7 @@ await writeFile(
     `process.env.PUBLIC_OMNIROUTE_BFF_URL ??= origin;\n` +
     `const [{ default: app }, { default: renderer }] = await Promise.all([\n` +
     `  import("./index.js"),\n` +
-    `  import("../renderer/.svelte-kit/vercel-tmp/index.js"),\n` +
+    `  import("../renderer/svelte-kit/vercel-tmp/index.js"),\n` +
     `]);\n` +
     `const staticRoot = new URL("../renderer/static/", import.meta.url);\n` +
     `const contentTypes = new Map([\n` +
