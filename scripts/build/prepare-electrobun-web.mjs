@@ -103,7 +103,10 @@ await writeFile(
     `}\n` +
     `const server = Bun.serve({ hostname: "127.0.0.1", port, fetch: async (request) => {\n` +
     `  const url = new URL(request.url);\n` +
-    `  if (url.pathname === "/api/bff/healthz") return renderer.fetch(request);\n` +
+    `  if (url.pathname === "/api/bff/healthz") {\n` +
+    `    const healthRequest = new Request(new URL("/healthz", request.url), request);\n` +
+    `    return app.fetch(healthRequest);\n` +
+    `  }\n` +
     `  if (url.pathname === "/healthz" || url.pathname.startsWith("/api/")) return app.fetch(request);\n` +
     `  const asset = await staticAsset(url.pathname);\n` +
     `  return asset ?? renderer.fetch(request);\n` +

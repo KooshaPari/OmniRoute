@@ -50,18 +50,26 @@ async function bootGateway(): Promise<string | undefined> {
     );
     return undefined;
   }
-  gatewayProcess = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, entry], {
-    cwd: dirname(entry),
-    env: {
-      ...process.env,
-      PORT: String(SERVER_PORT),
-      HOSTNAME: "127.0.0.1",
-      BFF_ORIGIN: SERVER_URL,
-      PUBLIC_OMNIROUTE_BFF_URL: SERVER_URL,
-    },
-    stdout: "inherit",
-    stderr: "inherit",
-  });
+  try {
+    gatewayProcess = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, entry], {
+      cwd: dirname(entry),
+      env: {
+        ...process.env,
+        PORT: String(SERVER_PORT),
+        HOSTNAME: "127.0.0.1",
+        BFF_ORIGIN: SERVER_URL,
+        PUBLIC_OMNIROUTE_BFF_URL: SERVER_URL,
+      },
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+  } catch (error) {
+    console.warn(
+      `[${APP_NAME}] Failed to start bundled Hono/Svelte gateway; using bundled fallback`,
+      error,
+    );
+    return undefined;
+  }
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
       const response = await fetch(`${SERVER_URL}/healthz`, {
@@ -69,8 +77,9 @@ async function bootGateway(): Promise<string | undefined> {
       });
       if (response.ok) return SERVER_URL;
     } catch {
-      await Bun.sleep(250);
+      // The gateway may still be starting; retry after the bounded delay below.
     }
+    await Bun.sleep(250);
   }
   gatewayProcess.kill();
   gatewayProcess = undefined;
