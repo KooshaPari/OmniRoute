@@ -104,7 +104,7 @@ jobs:
           cargo clippy --all-targets -- -D warnings 2>&1 || echo "::warning::clippy issues (advisory)"
       - name: cargo test
         run: |
-          cargo test --workspace --no-fail-fast 2>&1 || echo "::warning::test failures (advisory)"
+          cargo test --locked --workspace --no-fail-fast 2>&1 || echo "::warning::test failures (advisory)"
 
   cargo-deny:
     name: Cargo Deny (Advisories + Licenses)
