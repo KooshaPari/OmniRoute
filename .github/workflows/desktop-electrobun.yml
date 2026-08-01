@@ -53,6 +53,9 @@ jobs:
       - name: Stage deterministic renderer assets
         working-directory: desktop-electrobun
         run: bun run prepare:web
+      - name: Smoke local Svelte/Hono gateway
+        working-directory: desktop-electrobun
+        run: bun run smoke:gateway
       - name: Typecheck desktop shell
         working-directory: desktop-electrobun
         run: bun run typecheck
@@ -98,6 +101,9 @@ jobs:
       - name: Build macOS release bundle
         working-directory: desktop-electrobun
         run: bun run build:release
+      - name: Smoke packaged Svelte/Hono gateway
+        working-directory: desktop-electrobun
+        run: bun run smoke:gateway
       - name: Stage macOS app artifact
         working-directory: desktop-electrobun
         shell: bash
