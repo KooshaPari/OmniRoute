@@ -716,3 +716,11 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Fresh workflow dispatch `30679440357` on `c475e32b1` created real jobs: `Detect Languages` succeeded; Rust, TS/JS, and Security Scan entered execution; no startup failure occurred.
 - Airlock snapshot: `wip/20260801T0209-18c78c69331e1050`.
 - This entry is append-only.
+
+## 2026-08-01T02:44Z - Dependency Review license/action-cache follow-up (dependency_audit_remediation)
+
+- Replaced the CI Rust cache action `Swatinem/rust-cache` (LGPL-3.0) with the pinned GitHub-owned `actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8` (v6.0.0, MIT), preserving Cargo registry/git/target caching with a lockfile-keyed cache.
+- Validation for `.github/workflows/ci.yml`: `actionlint`, `yq eval`, `git diff --check`, and a no-`Swatinem` audit all pass.
+- Current npm metadata leaves no policy-safe version substitution for the flagged transitive packages: patched `tar` 7.5.20, 7.5.21, and 7.5.22 all declare BlueOak-1.0.0; `isexe` 4.0.0 is required by `which@6` ranges, while the ISC `isexe@3.1.1` cannot satisfy those `^4.0.0` constraints. Downgrading would violate semver and risks reintroducing the tar advisory.
+- Existing lock graph remains security-clean: `npm audit --audit-level=high` and `npm audit --omit=optional --audit-level=high` report zero vulnerabilities; `npm ci --dry-run --ignore-scripts --no-audit --no-fund` exits 0. No broad license allowlist or unrelated package changes were made.
+- This entry is append-only.
