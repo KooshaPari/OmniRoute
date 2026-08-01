@@ -690,3 +690,11 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Go SDK: Real maximhq/bifrost/core
 - PRs: #415 (merged) + #420 (ready for review)
 - No blockers
+
+## 2026-07-31T09:15Z - CI runner label portability (runner_label_fix)
+
+- PR #485's four language jobs used `blacksmith-2vcpu-ubuntu-2204`, which cannot start on the current GitHub-hosted runner path when the Blacksmith organization integration is unavailable.
+- Replaced only those four labels with GitHub-hosted `ubuntu-24.04`; status-only `ci / lint` and `ci / test` aggregators and fail-tolerant language-job semantics are unchanged.
+- Validation: `actionlint .github/workflows/ci.yml`, YAML parse via `yq`, `git diff --check`, and a zero-result Blacksmith-label audit all passed.
+- Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
+- This entry is append-only.
