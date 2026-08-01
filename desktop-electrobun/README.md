@@ -1,18 +1,22 @@
 # OmniRoute desktop — Electrobun spike
 
 > **Status:** Selection-gate spike (ADR-ECO-015 hybrid gateway app layer)  
-> **Registry choice:** FFI + Electrobun → canonical path `apps/desktop/` (this tree promoted from repo root)
+> **Registry choice:** FFI + Electrobun → canonical path `apps/desktop/` (this tree promoted from
+> repo root)
 
-Electrobun + Bun shell that wraps the OmniRoute web UI (`RENDERER_URL`, default `http://localhost:3000`) with optional one-click `process-compose` service boot. This is the **canonical desktop spike** (not Electron, not Tauri-on-main). Legacy Electron remains in [`../electron/`](../electron/) for packaging until this spike passes the gate below; CI Electron smoke is path-filtered and is not the required desktop gate.
+Electrobun + Bun shell that wraps the OmniRoute web UI (`RENDERER_URL`, default
+`http://localhost:3000`) with optional one-click `process-compose` service boot. This is the
+**canonical desktop spike** (not Electron, not Tauri-on-main). Legacy Electron remains in
+[`../electron/`](../electron/) for packaging until this spike passes the gate below; CI Electron
+smoke is path-filtered and is not the required desktop gate.
 
 ## Selection gate
 
-The release shell prefers the real Next standalone output at
-`OMNIROUTE_STANDALONE_DIR/server.js`, starts it on loopback, waits for readiness,
-and navigates the native window to that server. The bundled HTML is only an
-explicit fallback when no standalone build is available. Set `RENDERER_URL` for
-dev/HMR; it is not used as the production renderer when a standalone bundle is
-present.
+The release shell packages the SvelteKit SSR output and Hono BFF into one local Bun gateway. It
+starts the gateway on loopback, waits for `/healthz`, serves the Svelte shell and immutable assets,
+and navigates the native window to that URL. The bundled HTML is only an explicit fallback when the
+gateway bundle is absent. Set `RENDERER_URL` for dev/HMR; it is not used as the production renderer
+when a gateway bundle is present.
 
 Prototype must demonstrate all three before replacing Electron / absorbing vibeproxy client work:
 
@@ -31,7 +35,8 @@ Checklist:
 
 ## vibeproxy disposition
 
-Per ADR-ECO-015, **vibeproxy is ABSORB (redirect only)** — no third canonical desktop repo. Harvest reference UX from vibeproxy macOS client sources; do not fork or duplicate large Swift trees here.
+Per ADR-ECO-015, **vibeproxy is ABSORB (redirect only)** — no third canonical desktop repo. Harvest
+reference UX from vibeproxy macOS client sources; do not fork or duplicate large Swift trees here.
 
 | Harvest                  | Source                                                                                                                             |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
@@ -62,23 +67,24 @@ bun run build:release   # release .app (macOS)
 ```
 
 The Svelte frontend has a stable handoff for the desktop shell: build it with
-`bun --cwd apps/web run build`, then run `bun run prepare:web` from this
-directory. The script copies `.vercel/output/static` to the ignored
-`generated/web/` directory and fails if `index.html` is absent; Electrobun's
-production view points only at that staged output. Override
-`OMNIROUTE_STANDALONE_DIR` when the separate Next output is staged elsewhere.
+`bun --cwd apps/web run build`, then run `bun run prepare:web` from this directory. The script
+copies `.vercel/output/static` and the self-contained SSR function into ignored `generated/web/` and
+`generated/renderer/` directories, then stages the Hono gateway at `generated/backend/`. The
+production view keeps only a fallback page; the running gateway serves the actual Svelte app.
 
 ## Layout
 
-| Path                   | Role                                                                  |
-| ---------------------- | --------------------------------------------------------------------- |
-| `src/main.ts`          | Electrobun main process — window, menu, optional process-compose boot |
-| `src/views/`           | Bundled fallback renderer (polls dev server)                          |
-| `electrobun.config.ts` | App identity, views entrypoint                                        |
-| `.env.example`         | `RENDERER_URL`, `SERVICES_COMPOSE_FILE`, window overrides             |
+| Path                   | Role                                                                 |
+| ---------------------- | -------------------------------------------------------------------- |
+| `src/main.ts`          | Electrobun main process — gateway boot/readiness, window, menu, tray |
+| `src/views/`           | Bundled fallback renderer (polls dev server)                         |
+| `electrobun.config.ts` | App identity, fallback view, bundled gateway copies                  |
+| `.env.example`         | `RENDERER_URL`, `SERVICES_COMPOSE_FILE`, window overrides            |
 
 ## Related
 
-- Registry: [ADR-ECO-015 hybrid gateway app layer](https://github.com/KooshaPari/phenotype-registry/blob/main/docs/adrs/ADR-ECO-015-hybrid-gateway-app-layer.md)
-- Spike matrix: [DESKTOP_CLIENT_SPIKE_MATRIX.md](https://github.com/KooshaPari/phenotype-registry/blob/main/docs/rationalization/DESKTOP_CLIENT_SPIKE_MATRIX.md)
+- Registry:
+  [ADR-ECO-015 hybrid gateway app layer](https://github.com/KooshaPari/phenotype-registry/blob/main/docs/adrs/ADR-ECO-015-hybrid-gateway-app-layer.md)
+- Spike matrix:
+  [DESKTOP_CLIENT_SPIKE_MATRIX.md](https://github.com/KooshaPari/phenotype-registry/blob/main/docs/rationalization/DESKTOP_CLIENT_SPIKE_MATRIX.md)
 - Canonical entry: [`../apps/desktop/`](../apps/desktop/) (redirect only — no duplicate code)

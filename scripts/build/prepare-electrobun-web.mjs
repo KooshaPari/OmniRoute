@@ -87,7 +87,17 @@ await writeFile(
   path.join(backendDestination, "server.mjs"),
   `import app from "./index.js";\n` +
     `const port = Number(process.env.PORT ?? 20128);\n` +
-    `const server = Bun.serve({ hostname: "127.0.0.1", port, fetch: app.fetch });\n` +
-    `console.log("[omniroute-bff] listening on http://127.0.0.1:" + server.port);\n`,
+    `const origin = \`http://127.0.0.1:\${port}\`;\n` +
+    `process.env.BFF_ORIGIN ??= origin;\n` +
+    `process.env.PUBLIC_OMNIROUTE_BFF_URL ??= origin;\n` +
+    `const server = Bun.serve({ hostname: "127.0.0.1", port, fetch: async (request) => {\n` +
+    `  const url = new URL(request.url);\n` +
+    `  if (url.pathname === "/api/bff/healthz") {\n` +
+    `    const healthRequest = new Request(new URL("/healthz", request.url), request);\n` +
+    `    return app.fetch(healthRequest);\n` +
+    `  }\n` +
+    `  return app.fetch(request);\n` +
+    `} });\n` +
+    `console.log("[omniroute-bff] listening on " + origin);\n`,
 );
 console.log(`[electrobun] staged Hono/Bun backend at ${path.relative(root, backendDestination)}`);
