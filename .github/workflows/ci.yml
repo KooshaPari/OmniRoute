@@ -102,6 +102,9 @@ jobs:
       - name: cargo clippy
         run: |
           cargo clippy --all-targets -- -D warnings 2>&1 || echo "::warning::clippy issues (advisory)"
+      - name: cargo build
+        run: |
+          cargo build --locked --workspace 2>&1 || cargo build --locked 2>&1 || echo "::warning::build failed (advisory)"
       - name: cargo test
         run: |
           cargo test --locked --workspace --no-fail-fast 2>&1 || echo "::warning::test failures (advisory)"
