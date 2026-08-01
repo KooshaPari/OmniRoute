@@ -187,6 +187,10 @@ jobs:
     name: TS/JS
     needs: detect
     if: needs.detect.outputs.typescript == 'true'
+    # The repository-wide npm test suite has exceeded the CI window in recent
+    # runs. Bound this advisory lane so protected aggregate contexts are never
+    # held pending indefinitely.
+    timeout-minutes: 45
     runs-on: ubuntu-24.04
     continue-on-error: true
     steps:
