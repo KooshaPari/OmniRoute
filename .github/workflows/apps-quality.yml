@@ -34,6 +34,9 @@ jobs:
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
+      - name: Install API contract dependencies from lockfile
+        working-directory: packages/api-contracts
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Install BFF dependencies from lockfile
         working-directory: apps/bff
         run: bun install --frozen-lockfile --ignore-scripts
@@ -46,9 +49,6 @@ jobs:
       - name: BFF production build
         working-directory: apps/bff
         run: bun run build
-      - name: Install API contract dependencies from lockfile
-        working-directory: packages/api-contracts
-        run: bun install --frozen-lockfile --ignore-scripts
       - name: Install web dependencies from lockfile
         working-directory: apps/web
         run: bun install --frozen-lockfile --ignore-scripts
