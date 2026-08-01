@@ -13,8 +13,8 @@
  * live in tests/unit/db/api-keys.test.ts.
  */
 
-import { describe, it, beforeEach, after } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, beforeEach, afterAll } from "vitest";
+import { expect } from "vitest";
 
 const apiKeyCache = await import("../../../src/lib/db/apiKeyCache.ts");
 const {
@@ -48,22 +48,22 @@ const ORIGINAL_ENV = {
 
 describe("apiKeyCache — TTL & size constants", () => {
   it("CACHE_TTL is 60 seconds (validation/metadata/model-permission TTL)", () => {
-    assert.equal(CACHE_TTL, 60 * 1000);
+    expect(CACHE_TTL, 60 * 1000);
   });
 
   it("LAST_USED_UPDATE_TTL is 5 minutes (last_used_at throttle window)", () => {
-    assert.equal(LAST_USED_UPDATE_TTL, 5 * 60 * 1000);
+    expect(LAST_USED_UPDATE_TTL, 5 * 60 * 1000);
   });
 
   it("MAX_CACHE_SIZE is 1000 (per-cache cap)", () => {
-    assert.equal(MAX_CACHE_SIZE, 1000);
+    expect(MAX_CACHE_SIZE, 1000);
   });
 
   it("REDIS_AUTH_CACHE_PREFIX and TTL are stable across releases", () => {
     // The Redis key shape and the cache TTL are part of the cross-instance
     // contract; a regression here breaks every OmniRoute deployment in a fleet.
-    assert.equal(REDIS_AUTH_CACHE_PREFIX, "auth:api_key:");
-    assert.equal(REDIS_AUTH_CACHE_TTL_SECONDS, 3600);
+    expect(REDIS_AUTH_CACHE_PREFIX, "auth:api_key:");
+    expect(REDIS_AUTH_CACHE_TTL_SECONDS, 3600);
   });
 });
 
@@ -75,17 +75,17 @@ describe("apiKeyCache — validation cache accessor", () => {
   it("setValidationCache/getValidationCache round-trips the entry", () => {
     setValidationCache("hash-1", { valid: true, timestamp: 1000 });
     const got = getValidationCache("hash-1");
-    assert.deepEqual(got, { valid: true, timestamp: 1000 });
+    expect(got, { valid: true, timestamp: 1000 });
   });
 
   it("setValidationCache overwrites previous entries for the same key", () => {
     setValidationCache("hash-1", { valid: true, timestamp: 1000 });
     setValidationCache("hash-1", { valid: false, timestamp: 2000 });
-    assert.deepEqual(getValidationCache("hash-1"), { valid: false, timestamp: 2000 });
+    expect(getValidationCache("hash-1"), { valid: false, timestamp: 2000 });
   });
 
   it("getValidationCache returns undefined for unknown keys", () => {
-    assert.equal(getValidationCache("never-seen"), undefined);
+    expect(getValidationCache("never-seen"), undefined);
   });
 });
 
@@ -130,13 +130,13 @@ describe("apiKeyCache — metadata & model-permission cache accessors", () => {
     };
     setMetadataCache("hash-x", fakeMetadata, 12345);
     const got = getMetadataCache("hash-x");
-    assert.equal(got?.timestamp, 12345);
-    assert.equal(got?.value.id, "key-1");
+    expect(got?.timestamp, 12345);
+    expect(got?.value.id, "key-1");
   });
 
   it("setModelPermissionCache/getModelPermissionCache round-trips the decision", () => {
     setModelPermissionCache("api-key:model-1", { allowed: true, timestamp: 5000 });
-    assert.deepEqual(getModelPermissionCache("api-key:model-1"), {
+    expect(getModelPermissionCache("api-key:model-1"), {
       allowed: true,
       timestamp: 5000,
     });
@@ -150,16 +150,16 @@ describe("apiKeyCache — LRU eviction", () => {
     for (let i = 0; i <= MAX_CACHE_SIZE; i++) {
       map.set(i, i);
     }
-    assert.equal(map.size, MAX_CACHE_SIZE + 1);
+    expect(map.size, MAX_CACHE_SIZE + 1);
     evictIfNeeded(map);
     // Should have evicted floor(MAX_CACHE_SIZE * 0.2) = 200 of the oldest entries,
     // leaving MAX_CACHE_SIZE + 1 - 200 entries behind.
-    assert.equal(map.size, MAX_CACHE_SIZE + 1 - 200);
+    expect(map.size, MAX_CACHE_SIZE + 1 - 200);
     // The first 200 keys (insertion order) must be gone; the rest must remain.
-    assert.equal(map.has(0), false);
-    assert.equal(map.has(199), false);
-    assert.equal(map.has(200), true);
-    assert.equal(map.has(MAX_CACHE_SIZE), true);
+    expect(map.has(0), false);
+    expect(map.has(199), false);
+    expect(map.has(200), true);
+    expect(map.has(MAX_CACHE_SIZE), true);
   });
 
   it("evictIfNeeded is a no-op when the map is at or below MAX_CACHE_SIZE", () => {
@@ -168,8 +168,8 @@ describe("apiKeyCache — LRU eviction", () => {
       map.set(i, i);
     }
     evictIfNeeded(map);
-    assert.equal(map.size, MAX_CACHE_SIZE);
-    assert.equal(map.has(0), true);
+    expect(map.size, MAX_CACHE_SIZE);
+    expect(map.has(0), true);
   });
 });
 
@@ -219,9 +219,9 @@ describe("apiKeyCache — clearApiKeyCaches resets every owned map", () => {
     );
     setModelPermissionCache("api:model", { allowed: true, timestamp: 1 });
     clearApiKeyCaches();
-    assert.equal(getValidationCache("hash-1"), undefined);
-    assert.equal(getMetadataCache("hash-2"), undefined);
-    assert.equal(getModelPermissionCache("api:model"), undefined);
+    expect(getValidationCache("hash-1"), undefined);
+    expect(getMetadataCache("hash-2"), undefined);
+    expect(getModelPermissionCache("api:model"), undefined);
   });
 });
 
@@ -247,8 +247,8 @@ describe("apiKeyCache — markApiKeyUsed throttle", () => {
     markApiKeyUsed(db, "key-1", 1500); // 500ms later — inside LAST_USED_UPDATE_TTL
     markApiKeyUsed(db, "key-1", 2000);
 
-    assert.equal(calls.length, 1);
-    assert.match(calls[0].sql, /UPDATE api_keys SET last_used_at/);
+    expect(calls.length, 1);
+    expect(calls[0].sql, /UPDATE api_keys SET last_used_at/);
   });
 
   it("issues a second UPDATE after the throttle window expires", () => {
@@ -267,7 +267,7 @@ describe("apiKeyCache — markApiKeyUsed throttle", () => {
     markApiKeyUsed(db, "key-1", 1000);
     // Jump well past LAST_USED_UPDATE_TTL (5 minutes).
     markApiKeyUsed(db, "key-1", 1000 + LAST_USED_UPDATE_TTL + 1);
-    assert.equal(calls.length, 2);
+    expect(calls.length, 2);
   });
 
   it("ignores non-string or empty ids without touching the DB", () => {
@@ -286,7 +286,7 @@ describe("apiKeyCache — markApiKeyUsed throttle", () => {
     markApiKeyUsed(db, null, 1000);
     markApiKeyUsed(db, undefined, 1000);
     markApiKeyUsed(db, 12345 as unknown as string, 1000);
-    assert.equal(calls.length, 0);
+    expect(calls.length, 0);
   });
 });
 
@@ -298,7 +298,7 @@ describe("apiKeyCache — Redis auth-cache feature flags", () => {
     process.env.DISABLE_SQLITE_AUTO_BACKUP = ORIGINAL_ENV.DISABLE_SQLITE_AUTO_BACKUP;
   });
 
-  after(() => {
+  afterAll(() => {
     for (const [key, value] of Object.entries(ORIGINAL_ENV)) {
       if (value === undefined) delete process.env[key];
       else process.env[key] = value;
@@ -309,22 +309,22 @@ describe("apiKeyCache — Redis auth-cache feature flags", () => {
     delete process.env.OMNIROUTE_DISABLE_REDIS_AUTH_CACHE;
     delete process.env.NODE_ENV;
     delete process.env.DISABLE_SQLITE_AUTO_BACKUP;
-    assert.equal(isRedisAuthCacheEnabled(), true);
+    expect(isRedisAuthCacheEnabled(), true);
   });
 
   it("isRedisAuthCacheEnabled is disabled when OMNIROUTE_DISABLE_REDIS_AUTH_CACHE=1", () => {
     process.env.OMNIROUTE_DISABLE_REDIS_AUTH_CACHE = "1";
-    assert.equal(isRedisAuthCacheEnabled(), false);
+    expect(isRedisAuthCacheEnabled(), false);
   });
 
   it("isRedisAuthCacheEnabled is disabled under NODE_ENV=test", () => {
     process.env.NODE_ENV = "test";
-    assert.equal(isRedisAuthCacheEnabled(), false);
+    expect(isRedisAuthCacheEnabled(), false);
   });
 
   it("isRedisAuthCacheEnabled is disabled under DISABLE_SQLITE_AUTO_BACKUP=true", () => {
     process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
-    assert.equal(isRedisAuthCacheEnabled(), false);
+    expect(isRedisAuthCacheEnabled(), false);
   });
 });
 
@@ -334,7 +334,7 @@ describe("apiKeyCache — Redis auth-cache helpers are no-ops when disabled", ()
     process.env.OMNIROUTE_DISABLE_REDIS_AUTH_CACHE = "1";
   });
 
-  after(() => {
+  afterAll(() => {
     process.env.OMNIROUTE_DISABLE_REDIS_AUTH_CACHE = ORIGINAL_ENV.OMNIROUTE_DISABLE_REDIS_AUTH_CACHE;
   });
 
@@ -359,12 +359,12 @@ describe("apiKeyCache — Redis auth-cache helpers are no-ops when disabled", ()
     };
     await deleteRedisAuthCacheForKeyId(db, "key-1");
     // The implementation short-circuits before the DB read when Redis is disabled.
-    assert.equal(called, false);
+    expect(called, false);
   });
 
   it("readRedisAuthCache returns null when Redis is disabled", async () => {
     const decision = await readRedisAuthCache("hash-1");
-    assert.equal(decision, null);
+    expect(decision, null);
   });
 
   it("writeRedisAuthCache no-ops when Redis is disabled", async () => {
