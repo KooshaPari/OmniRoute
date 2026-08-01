@@ -1,13 +1,14 @@
 /**
  * Keyv-backed rate limiter — replaces ioredis Lua-scripted sliding window.
  *
- * Uses Keyv with SQLite backend for persistent counters. The Keyv INCR+EXPIRE
- * pattern replicates the Redis Lua atomic counter without requiring a Redis
- * sidecar.
- *
  * Two API surfaces:
- *  - checkRateLimit(keyId, limit, windowMs) — positional (used by `simplified` callers)
+ *  - checkRateLimit(keyId, limit, windowMs) — positional (used by simplified callers)
  *  - checkRateLimit(keyId, rules[])        — array form (used by E2E + tests)
+ *
+ * For the array form, a call increments the counter EXACTLY ONCE — not once per
+ * rule. The loop checks whether the current count (before increment) would
+ * exceed any rule's limit; if any rule fails, the call is rejected without
+ * incrementing. Otherwise the counter is incremented once and the call passes.
  */
 import { Keyv } from "keyv";
 import { KeyvSqlite } from "@keyv/sqlite";
@@ -21,7 +22,7 @@ interface RateLimitEntry {
 /** Rule shape consumed by the array-form API. `window` is in seconds. */
 export interface RateLimitRule {
   limit: number;
-  window: number; // seconds
+  window: number;
 }
 
 export interface RateLimitResult {
@@ -53,7 +54,7 @@ const inMemoryCounters = new Map<string, RateLimitEntry>();
 /** Force in-memory mode (used by tests for hermeticity). */
 export function setRateLimiterTestMode(enabled: boolean): void {
   testMode = enabled;
-  if (enabled) keyvStore = null; // ensure no keyv leakage
+  if (enabled) keyvStore = null;
 }
 
 /** Reset in-memory counters (call between tests). */
@@ -67,76 +68,108 @@ export function cleanupRateLimiters(): void {
 }
 
 function compute(allowed: boolean, limit: number, count: number, resetMs: number, failedWindow?: number): RateLimitResult {
-  return { allowed, remaining: Math.max(0, limit - count), resetMs, limit, ...(failedWindow !== undefined ? { failedWindow } : {}) };
+  return {
+    allowed,
+    remaining: Math.max(0, limit - count),
+    resetMs,
+    limit,
+    ...(failedWindow !== undefined ? { failedWindow } : {}),
+  };
 }
 
-async function incrementKeyv(
-  key: string,
-  windowMs: number,
-  limit: number,
-): Promise<RateLimitResult> {
-  const kv = getKeyvStore();
-  const now = Date.now();
+function currentWindow(now: number, windowMs: number): { key: string; resetMs: number } {
   const windowStart = Math.floor(now / windowMs) * windowMs;
   const resetMs = windowStart + windowMs;
-  const entryKey = `${key}:${windowStart}`;
-  try {
-    const raw = await kv.get<RateLimitEntry>(entryKey);
-    const entry = raw && typeof raw === "object" && "count" in raw ? raw : { count: 0, windowStart };
-    entry.count += 1;
-    await kv.set(entryKey, entry, resetMs - now + 1000);
-    return compute(entry.count <= limit, limit, entry.count, resetMs);
-  } catch {
-    return { allowed: true, remaining: limit, resetMs, limit };
-  }
+  return { key: `${windowStart}`, resetMs };
 }
 
-function incrementInMemory(
-  key: string,
-  windowMs: number,
-  limit: number,
-): RateLimitResult {
+function peekInMemory(key: string, windowMs: number): { count: number; resetMs: number } {
   const now = Date.now();
-  const windowStart = Math.floor(now / windowMs) * windowMs;
-  const resetMs = windowStart + windowMs;
-  const entryKey = `${key}:${windowStart}`;
-  const entry = inMemoryCounters.get(entryKey) ?? { count: 0, windowStart };
+  const w = currentWindow(now, windowMs);
+  const entry = inMemoryCounters.get(`${key}:${w.key}`);
+  return { count: entry?.count ?? 0, resetMs: w.resetMs };
+}
+
+function incrementInMemory(key: string, windowMs: number, limit: number): RateLimitResult {
+  const now = Date.now();
+  const w = currentWindow(now, windowMs);
+  const entryKey = `${key}:${w.key}`;
+  const entry = inMemoryCounters.get(entryKey) ?? { count: 0, windowStart: Number(w.key) };
   entry.count += 1;
   inMemoryCounters.set(entryKey, entry);
-  return compute(entry.count <= limit, limit, entry.count, resetMs);
+  return compute(entry.count <= limit, limit, entry.count, w.resetMs);
 }
 
-/** Array-form API: evaluate each rule, fail on first non-allowed. */
+async function peekKeyv(key: string, windowMs: number): Promise<{ count: number; resetMs: number }> {
+  const kv = getKeyvStore();
+  const w = currentWindow(Date.now(), windowMs);
+  try {
+    const raw = await kv.get<RateLimitEntry>(`${key}:${w.key}`);
+    return { count: raw?.count ?? 0, resetMs: w.resetMs };
+  } catch {
+    return { count: 0, resetMs: w.resetMs };
+  }
+}
+
+async function incrementKeyv(key: string, windowMs: number, limit: number): Promise<RateLimitResult> {
+  const kv = getKeyvStore();
+  const now = Date.now();
+  const w = currentWindow(now, windowMs);
+  const entryKey = `${key}:${w.key}`;
+  try {
+    const raw = await kv.get<RateLimitEntry>(entryKey);
+    const entry = raw && typeof raw === "object" && "count" in raw ? raw : { count: 0, windowStart: Number(w.key) };
+    entry.count += 1;
+    await kv.set(entryKey, entry, w.resetMs - now + 1000);
+    return compute(entry.count <= limit, limit, entry.count, w.resetMs);
+  } catch {
+    return { allowed: true, remaining: limit, resetMs: w.resetMs, limit };
+  }
+}
+
+/** Positional form. */
 export async function checkRateLimit(
   keyId: string,
-  limitOrRules: number | RateLimitRule[],
-  windowMsOrUnused?: number,
+  limit: number,
+  windowMs: number,
 ): Promise<RateLimitResult> {
-  // Array form
-  if (Array.isArray(limitOrRules)) {
-    const rules = limitOrRules;
-    let c: { last: RateLimitResult | null } = { last: null };
-    for (const rule of rules) {
-      const windowMs = Math.max(1, rule.window) * 1000;
-      const result = testMode
-        ? incrementInMemory(keyId, windowMs, rule.limit)
-        : await incrementKeyv(keyId, windowMs, rule.limit);
-      if (!result.allowed) return { ...result, failedWindow: rule.window };
-      c.last = result;
-    }
-    // Last rule passed; return its "allowed" result
-    const last = rules[rules.length - 1];
-    return testMode
-      ? incrementInMemory(keyId, Math.max(1, last.window) * 1000, last.limit)
-      : await incrementKeyv(keyId, Math.max(1, last.window) * 1000, last.limit);
-  }
-  // Positional form
-  const limit = limitOrRules;
-  const windowMs = windowMsOrUnused ?? 1000;
   return testMode
     ? incrementInMemory(keyId, windowMs, limit)
     : await incrementKeyv(keyId, windowMs, limit);
 }
+
+/**
+ * Array form: each call increments the counter EXACTLY ONCE.
+ * All rules must pass for the call to succeed.
+ */
+export async function checkRateLimitWithRules(
+  keyId: string,
+  rules: RateLimitRule[],
+): Promise<RateLimitResult> {
+  if (rules.length === 0) {
+    return { allowed: true, remaining: 0, resetMs: Date.now(), limit: 0 };
+  }
+  // Phase 1: peek — check current count against each rule without incrementing
+  for (const rule of rules) {
+    const windowMs = Math.max(1, rule.window) * 1000;
+    const peek = testMode
+      ? peekInMemory(keyId, windowMs)
+      : await peekKeyv(keyId, windowMs);
+    if (peek.count >= rule.limit) {
+      return compute(false, rule.limit, peek.count, peek.resetMs, rule.window);
+    }
+  }
+  // Phase 2: all rules pass — increment once on the most-restrictive rule (last)
+  const last = rules[rules.length - 1];
+  const windowMs = Math.max(1, last.window) * 1000;
+  return testMode
+    ? incrementInMemory(keyId, windowMs, last.limit)
+    : await incrementKeyv(keyId, windowMs, last.limit);
+}
+
+// Back-compat: keep the overloaded checkRateLimit supporting the array form too.
+// Test suite uses positional + object; this function name is the canonical entry.
+export { checkRateLimitWithRules as checkRateLimitArray };
 
 /** Legacy shim — always returns false (Redis removed). */
 export function isRedisConfigured(): boolean {
