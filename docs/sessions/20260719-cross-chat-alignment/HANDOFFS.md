@@ -699,6 +699,14 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-01T05:27Z - PR #485 terminal gate and desktop dogfood audit (terminal_gate_dogfood)
+
+- PR #485 current head is `254f34c70666f61dd175b7aac52a8be47f3860de` on `fix/main-required-ci-contexts-20260731`; `main` protection is strict and requires exact contexts `ci / lint` and `ci / test`. Neither protected context has emitted on this head yet.
+- Successful current-head checks include SvelteKit + Hono/Bun quality, dedicated and embedded Dependency Review, Analyze, Contract Tests, CLI macOS/Ubuntu/Windows, Rust FFI, Rust, security/DAST, npm audit, and secrets scans. qgate `30684015555` failed; TS/JS `30684015590` was cancelled while its test step was running; Mergify Merge Queue and Summary remain failures.
+- Desktop 404 path is source-confirmed: `scripts/build/prepare-electrobun-web.mjs` stages Svelte static output and writes `generated/web/index.html` to redirect to `http://127.0.0.1:20128`, and stages Hono at `generated/backend/{index.js,server.mjs}`. `desktop-electrobun/src/main.ts` only starts `.build/next/standalone/server.js` and never starts `generated/backend/server.mjs`; Hono also has no `/` static route. Therefore the current shell can land on 404 when no Next standalone server exists. The Svelte root fetches `/api/bff/healthz`, while BFF exposes `/healthz`, producing a second deterministic health mismatch. Required next gate: wire one local backend/static gateway, align health path, then run `bun run build:release` and installed-app smoke. Existing `/Applications/OmniRoute.app` is stale dev/native (`0.1.0`, `hash=dev`, arm64 adhoc) and is not current Svelte+Hono evidence.
+- qgate logs show systemic baseline failures (`evictStaleRateLimitWindows` missing export, REDIS_URL fallback/strict contract failures, heap flag expectation, pricing/model spec drift). None of the affected rate-limiter/model files are in `git diff 43f133f9972ef0683fe1cec3cb1ef7e4ab8d347c..254f34c`; qgate is a valid release blocker because red, but not PR-introduced. Mac Unit Tests in `30684015604` fail under raw Node test invocation because Vitest suites crash with runner/mocker initialization errors, plus baseline assertion drift; this is separate test-command/baseline debt.
+- This entry is append-only.
+
 ## 2026-08-01T03:00Z - Exact BlueOak dependency-review exceptions (dependency_audit_remediation)
 
 - Added package/version-scoped `allow-dependencies-licenses` entries for `pkg:npm/isexe@4.0.0` and `pkg:npm/tar@7.5.22` to both the dedicated and CI-embedded Dependency Review workflows.

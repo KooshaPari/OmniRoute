@@ -28,7 +28,7 @@ const REQUEST_DEFAULT_SERVICE_TIER_VALUES = new Set(["default", "priority", "fas
 
 function validateProviderSpecificData(
   data: Record<string, unknown> | undefined,
-  ctx: z.RefinementCtx
+  ctx: z.RefinementCtx,
 ): void {
   if (!data) return;
 
@@ -204,7 +204,7 @@ function validateProviderSpecificData(
       });
     } else if (
       routingTags.some(
-        (tag) => typeof tag !== "string" || tag.trim().length === 0 || tag.trim().length > 64
+        (tag) => typeof tag !== "string" || tag.trim().length === 0 || tag.trim().length > 64,
       )
     ) {
       ctx.addIssue({
@@ -238,7 +238,7 @@ function validateProviderSpecificData(
           typeof pattern !== "string" ||
           pattern.trim().length === 0 ||
           pattern.trim().length > 200 ||
-          pattern.trim() === "**"
+          pattern.trim() === "**",
       )
     ) {
       ctx.addIssue({
@@ -323,7 +323,7 @@ export const bulkCreateProviderSchema = z
         z.object({
           name: z.string().min(1).max(200),
           apiKey: z.string().min(1).max(10000),
-        })
+        }),
       )
       .min(1, "entries must contain at least 1 item")
       .max(200, "entries must contain at most 200 items"),
@@ -365,7 +365,7 @@ export const bulkWebSessionImportSchema = z.object({
           .string()
           .min(1)
           .max(64 * 1024, "Credential must be under 64 KB"),
-      })
+      }),
     )
     .min(1, "entries must contain at least 1 item")
     .max(50, "entries must contain at most 50 items"),
@@ -397,7 +397,7 @@ export const importCodexAuthBulkSchema = z.object({
         json: z.unknown(),
         name: z.string().min(1).max(200).optional(),
         email: z.string().email("Must be a valid email").optional(),
-      })
+      }),
     )
     .min(1, "At least one entry is required")
     .max(50, "At most 50 entries per bulk import"),
@@ -428,7 +428,7 @@ export const importClaudeAuthBulkSchema = z.object({
         json: z.unknown(),
         name: z.string().min(1).max(200).optional(),
         email: z.string().email("Must be a valid email").optional(),
-      })
+      }),
     )
     .min(1, "At least one entry is required")
     .max(50, "At most 50 entries per bulk import"),
@@ -484,7 +484,7 @@ export const importGeminiAuthBulkSchema = z.object({
         json: z.unknown(),
         name: z.string().min(1).max(200).optional(),
         email: z.string().email("Must be a valid email").optional(),
-      })
+      }),
     )
     .min(1, "At least one entry is required")
     .max(50, "At most 50 entries per bulk import"),
@@ -500,7 +500,7 @@ export const importAgyAuthBulkSchema = z.object({
         json: z.unknown(),
         name: z.string().min(1).max(200).optional(),
         email: z.string().email("Must be a valid email").optional(),
-      })
+      }),
     )
     .min(1, "At least one entry is required")
     .max(50, "At most 50 entries per bulk import"),
@@ -713,7 +713,7 @@ const comboNameSchema = z
   .max(100)
   .regex(
     /^[a-zA-Z0-9_/.\-\[\] ]+$/,
-    "Name can only contain letters, numbers, spaces, -, _, /, ., [ and ]."
+    "Name can only contain letters, numbers, spaces, -, _, /, ., [ and ].",
   );
 
 export const createComboSchema = z.object({
@@ -839,7 +839,7 @@ const countTokensMessageSchema = z
               type: z.string().optional(),
               text: z.string().optional(),
             })
-            .catchall(z.unknown())
+            .catchall(z.unknown()),
         )
         .min(1, "messages[].content must contain at least one item"),
     ]),
@@ -1057,7 +1057,7 @@ export const providerModelMutationSchema = z.object({
         "audio-transcriptions",
         "audio-speech",
         "images-generations",
-      ])
+      ]),
     )
     .default(["chat"]),
   // #2905: optional per-model wire format override for custom models (e.g. a
@@ -1087,7 +1087,7 @@ const pricingFieldsSchema = z
 
 export const updatePricingSchema = z.record(
   z.string().trim().min(1),
-  z.record(z.string().trim().min(1), pricingFieldsSchema)
+  z.record(z.string().trim().min(1), pricingFieldsSchema),
 );
 
 export const toggleRateLimitSchema = z.object({
@@ -1490,7 +1490,7 @@ export const proxyConfigSchema = z
     type: z
       .preprocess(
         (value) => (typeof value === "string" ? value.trim().toLowerCase() : value),
-        z.enum(["http", "https", "socks5"])
+        z.enum(["http", "https", "socks5"]),
       )
       .optional(),
     host: z.string().trim().min(1).optional(),
@@ -1577,7 +1577,7 @@ const proxyRegistryFieldsSchema = z
     type: z
       .preprocess(
         (value) => (typeof value === "string" ? value.trim().toLowerCase() : value),
-        z.enum(["http", "https", "socks5", "vercel"])
+        z.enum(["http", "https", "socks5", "vercel"]),
       )
       .optional()
       .default("http"),
@@ -1658,7 +1658,7 @@ export const bulkProxyAssignmentSchema = z
 const jsonRecordSchema = z.record(z.string(), z.unknown());
 const nonEmptyJsonRecordSchema = jsonRecordSchema.refine(
   (value) => Object.keys(value).length > 0,
-  "Body must be a non-empty object"
+  "Body must be a non-empty object",
 );
 
 export const translatorDetectSchema = z.object({
@@ -1941,7 +1941,7 @@ export const updateKeyPermissionsSchema = z
       .union([
         z
           .array(
-            z.object({ limit: z.number().int().positive(), window: z.number().int().positive() })
+            z.object({ limit: z.number().int().positive(), window: z.number().int().positive() }),
           )
           .max(50),
         z.null(),
@@ -2087,7 +2087,7 @@ export const updateProviderConnectionSchema = z
           // bound for defense-in-depth so a malicious payload can't ship
           // megabyte-long keys that would bloat the DB row.
           z.string().min(1).max(64),
-          z.union([z.null(), z.coerce.number().int().min(0).max(100)])
+          z.union([z.null(), z.coerce.number().int().min(0).max(100)]),
         ),
       ])
       .optional(),
@@ -2472,7 +2472,7 @@ export const v1SearchResponseSchema = z.object({
         provider: z.string(),
         code: z.string(),
         message: z.string(),
-      })
+      }),
     )
     .optional(),
 });

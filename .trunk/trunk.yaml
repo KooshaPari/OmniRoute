@@ -33,3 +33,9 @@ lint:
     # Trunk's isolated linter runtime cannot resolve this repo's flat-config
     # imports (eslint-config-next and typescript-eslint) without project setup.
     - eslint
+  ignore:
+    # This append-only board is a durable cross-agent handoff channel; do not
+    # rewrite or reflow prior entries just to satisfy a formatter.
+    - linters: [ALL]
+      paths:
+        - docs/sessions/20260719-cross-chat-alignment/HANDOFFS.md
