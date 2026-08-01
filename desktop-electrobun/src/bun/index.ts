@@ -72,7 +72,10 @@ async function bootRendererServer(): Promise<string | undefined> {
       stderr: "inherit",
     });
   } catch (error) {
-    console.warn(`[${APP_NAME}] Failed to start bundled Svelte renderer; using bundled fallback`, error);
+    console.warn("Failed to start bundled Svelte renderer; using bundled fallback", {
+      app: APP_NAME,
+      error,
+    });
     return undefined;
   }
   const url = `http://127.0.0.1:${port}`;
@@ -112,7 +115,10 @@ async function bootNextServer(): Promise<string | undefined> {
       stderr: "inherit",
     });
   } catch (error) {
-    console.warn(`[${APP_NAME}] Failed to start bundled Hono/Bun backend; using bundled fallback`, error);
+    console.warn("Failed to start bundled Hono/Bun backend; using bundled fallback", {
+      app: APP_NAME,
+      error,
+    });
     return undefined;
   }
   const url = `http://127.0.0.1:${SERVER_PORT}`;
