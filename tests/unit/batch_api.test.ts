@@ -32,6 +32,7 @@ const {
   waitForAllBatches,
   resetBatchProcessorState,
 } = await import("../../open-sse/services/batchProcessor.ts");
+const { dispatch } = await import("../../src/lib/batches/dispatch.ts");
 const batchesRoute = await import("../../src/app/api/v1/batches/route.ts");
 const batchByIdRoute = await import("../../src/app/api/v1/batches/[id]/route.ts");
 const batchCancelRoute = await import("../../src/app/api/v1/batches/[id]/cancel/route.ts");
@@ -39,7 +40,17 @@ const filesRoute = await import("../../src/app/api/v1/files/route.ts");
 const fileByIdRoute = await import("../../src/app/api/v1/files/[id]/route.ts");
 const fileContentRoute = await import("../../src/app/api/v1/files/[id]/content/route.ts");
 
+type BatchDispatchArgs = Parameters<typeof dispatch.dispatchBatchApiRequest>[0];
+const originalBatchDispatch = dispatch.dispatchBatchApiRequest;
+
+function stubBatchDispatch(
+  handler: (args: BatchDispatchArgs) => Response | Promise<Response>
+): void {
+  dispatch.dispatchBatchApiRequest = handler;
+}
+
 test.afterEach(async () => {
+  dispatch.dispatchBatchApiRequest = originalBatchDispatch;
   stopBatchProcessor();
   await waitForAllBatches();
   if (typeof resetBatchProcessorState === "function") {
@@ -58,6 +69,25 @@ test.afterEach(async () => {
 });
 
 test("Batch API and Processing", async () => {
+  // Keep this unit test deterministic: provider credentials are not a test
+  // fixture, and a real 502 would otherwise enter the production 24h retry
+  // policy. Route-handler behavior is covered by the dedicated dispatch tests.
+  stubBatchDispatch(async () =>
+    Response.json({
+      id: "chatcmpl-batch-test",
+      object: "chat.completion",
+      model: "gpt-4o-mini",
+      choices: [
+        {
+          index: 0,
+          message: { role: "assistant", content: "deterministic batch response" },
+          finish_reason: "stop",
+        },
+      ],
+      usage: { prompt_tokens: 2, completion_tokens: 3, total_tokens: 5 },
+    })
+  );
+
   // 0. Setup environment, mock provider and API key
   process.env.API_KEY_SECRET = "test-secret-123";
 
@@ -206,6 +236,12 @@ test("Batch API and Processing", async () => {
 });
 
 test("Batch handles and counts failures correctly", async () => {
+  // Exercise failure accounting without sending an invalid model through the
+  // live provider route. A 502 would enter the production 24h retry policy.
+  stubBatchDispatch(async () =>
+    Response.json({ error: { message: "invalid provider/model" } }, { status: 400 })
+  );
+
   initBatchProcessor();
   try {
     // 1. Create a file with a request that will fail (invalid provider/model)
@@ -394,6 +430,24 @@ test("Batch rejects input lines whose url does not match the batch endpoint", as
 });
 
 test("Batch forces stream: false for all requests", async () => {
+  let dispatchedBody: Record<string, unknown> | undefined;
+  stubBatchDispatch(async ({ body }) => {
+    dispatchedBody = body;
+    return Response.json({
+      id: "chatcmpl-stream-flag-test",
+      object: "chat.completion",
+      model: "gpt-4o-mini",
+      choices: [
+        {
+          index: 0,
+          message: { role: "assistant", content: "stream flag checked" },
+          finish_reason: "stop",
+        },
+      ],
+      usage: { prompt_tokens: 1, completion_tokens: 2, total_tokens: 3 },
+    });
+  });
+
   initBatchProcessor();
   try {
     const batchItems = [
@@ -437,6 +491,7 @@ test("Batch forces stream: false for all requests", async () => {
     }
 
     assert.strictEqual(currentBatch?.status, "completed", "Batch should be completed");
+    assert.strictEqual(dispatchedBody?.stream, false, "Batch requests must disable streaming");
     const outputFileId = currentBatch?.outputFileId || currentBatch?.errorFileId;
     assert.ok(outputFileId, "Should have output or error file ID");
     const outputContent = getFileContent(outputFileId!);
@@ -1163,6 +1218,17 @@ test("File metadata helpers do not load content blobs", async () => {
 });
 
 test("Batch dispatches to embeddings handler for /v1/embeddings URL", async () => {
+  let dispatchedEndpoint: string | undefined;
+  stubBatchDispatch(async ({ endpoint }) => {
+    dispatchedEndpoint = endpoint;
+    return Response.json({
+      object: "list",
+      data: [{ object: "embedding", embedding: [0.1, 0.2], index: 0 }],
+      model: "mistral/mistral-embed",
+      usage: { prompt_tokens: 2, total_tokens: 2 },
+    });
+  });
+
   initBatchProcessor();
   try {
     const batchItems = [
@@ -1205,11 +1271,12 @@ test("Batch dispatches to embeddings handler for /v1/embeddings URL", async () =
       currentBatch?.status === "completed" || currentBatch?.status === "failed",
       "Batch should reach a terminal state"
     );
+    assert.strictEqual(dispatchedEndpoint, "/v1/embeddings");
     assert.strictEqual(currentBatch?.requestCountsTotal, 1);
 
-    // Verify the batch item was dispatched to the embeddings handler, not the chat handler.
-    // The chat handler would return errors about missing "messages", "Missing model", etc.
-    // The embeddings handler returns errors about missing credentials or invalid embedding models.
+    // Verify the batch item selected the embeddings endpoint. The dedicated
+    // non-chat route test above exercises the actual route-handler dispatch;
+    // this test keeps the processor path deterministic.
     const outputFileId = currentBatch?.outputFileId || currentBatch?.errorFileId;
     assert.ok(outputFileId, "Should have an output or error file");
     const outputContent = getFileContent(outputFileId!);
