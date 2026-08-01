@@ -18,15 +18,15 @@ pull_request_rules:
         method: squash
         commit_message_template: |
           {{ title }} (#{{ number }})
-          
+
           Co-authored-by: {{ author }}
-      post_merge:
-        action: close
 
   # Auto-merge dependabot/Renovate PRs when CI passes
   - name: Auto-merge dependency updates
     conditions:
-      - author=dependabot[bot] | renovate[bot]
+      - or:
+          - author = dependabot[bot]
+          - author = renovate[bot]
       - check-success=ci
       - -conflict
       - -closed
@@ -35,15 +35,16 @@ pull_request_rules:
         method: squash
         commit_message_template: |
           {{ title }} (#{{ number }})
-          
+
           Co-authored-by: {{ author }}
-      post_merge:
-        action: close
 
   # Auto-merge bot PRs (CI configs, formatting) when CI passes
   - name: Auto-merge bot housekeeping PRs
     conditions:
-      - author=trunk-io[bot] | mergify[bot] | github-actions[bot]
+      - or:
+          - author = trunk-io[bot]
+          - author = mergify[bot]
+          - author = github-actions[bot]
       - check-success=ci
       - check-success=lint
       - -conflict
@@ -61,7 +62,7 @@ pull_request_rules:
       request_reviews:
         teams:
           - phenotype/core
-        github_accounts:
+        users:
           - KooshaPari
 
   # Label PRs based on changed files
@@ -102,13 +103,13 @@ pull_request_rules:
     conditions:
       - -closed
       - -draft
-      - age>=30d
+      - created-at <= 30 days ago
       - "#review-requested=0"
     actions:
       comment:
         message: >
-          This PR has been automatically closed after 30 days of inactivity.
-          Feel free to reopen if still relevant.
+          This PR has been automatically closed after 30 days of inactivity. Feel free to reopen if
+          still relevant.
       close: {}
 
   # Warn on large PRs
@@ -120,8 +121,8 @@ pull_request_rules:
     actions:
       comment:
         message: >
-          **Large PR Alert**: This PR touches {{ number }} files.
-          Consider splitting into smaller PRs for easier review.
+          **Large PR Alert**: This PR touches {{ number }} files. Consider splitting into smaller
+          PRs for easier review.
 
   # Add ready-to-merge label when all checks pass
   - name: Add ready-to-merge label

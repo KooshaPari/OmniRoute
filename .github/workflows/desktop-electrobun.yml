@@ -34,16 +34,16 @@ jobs:
           bun-version: 1.3.14
       - name: Install web dependencies
         working-directory: apps/web
-        run: bun install --frozen-lockfile
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Build web client handoff
         working-directory: apps/web
         run: bun run build
       - name: Install Hono/Bun backend dependencies
         working-directory: apps/bff
-        run: bun install --frozen-lockfile
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Install shared API contract dependencies
         working-directory: packages/api-contracts
-        run: bun install --frozen-lockfile
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Install desktop dependencies
         working-directory: desktop-electrobun
         run: bun install --ignore-scripts
@@ -82,16 +82,16 @@ jobs:
           bun-version: 1.3.14
       - name: Install web dependencies
         working-directory: apps/web
-        run: bun install --frozen-lockfile
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Build web client handoff
         working-directory: apps/web
         run: bun run build
       - name: Install Hono/Bun backend dependencies
         working-directory: apps/bff
-        run: bun install --frozen-lockfile
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Install shared API contract dependencies
         working-directory: packages/api-contracts
-        run: bun install --frozen-lockfile
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Install desktop dependencies
         working-directory: desktop-electrobun
         run: bun install --ignore-scripts

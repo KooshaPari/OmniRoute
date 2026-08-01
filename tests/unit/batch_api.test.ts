@@ -1284,8 +1284,12 @@ test("Batch dispatches to embeddings handler for /v1/embeddings URL", async () =
     const result = JSON.parse(outputContent.toString());
     const errorMsg = result.response?.body?.error?.message || "";
     assert.ok(
-      !errorMsg.includes("messages") && !errorMsg.includes("Missing model"),
-      `Error should not be a chat-specific error. Got: ${errorMsg}`,
+      !errorMsg.includes("messages"),
+      `Error should not mention messages. Got: ${errorMsg}`,
+    );
+    assert.ok(
+      !errorMsg.includes("Missing model"),
+      `Error should not mention a missing model. Got: ${errorMsg}`,
     );
   } finally {
     stopBatchProcessor();

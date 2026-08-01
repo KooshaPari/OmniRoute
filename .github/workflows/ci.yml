@@ -121,7 +121,7 @@ jobs:
       - name: test
         run: |
           if [ -f "Cargo.lock" ]; then
-            cargo test --workspace --no-fail-fast 2>&1 || cargo test --no-fail-fast 2>&1 || echo "::warning::tests failed (non-blocking)"
+            cargo test --locked --workspace --no-fail-fast 2>&1 || cargo test --locked --no-fail-fast 2>&1 || echo "::warning::tests failed (non-blocking)"
           else
             echo "No Cargo.lock — skipping tests"
           fi
