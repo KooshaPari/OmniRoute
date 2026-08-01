@@ -707,3 +707,12 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Validation on the resulting lock graph: `npm audit --audit-level=high` and `npm audit --omit=optional --audit-level=high` both return zero vulnerabilities; `npm ci --dry-run` exits 0; focused Transformers, Next config, and isolated-build tests pass 17/17.
 - The generated lock is larger because npm flattens platform-specific sharp optional packages; no `npm audit fix --force` or Next downgrade was used.
 - This entry is append-only.
+
+## 2026-08-01T02:10Z - CI action allowlist startup repair (ci_startup_investigation)
+
+- Run `30675377106` on `c707f58da` remained `startup_failure` with zero jobs after the Blacksmith labels were replaced; the GitHub run annotation identified the actual cause: repository Actions policy rejects unapproved mutable `uses:` refs when SHA pinning is required.
+- Pinned every `.github/workflows/ci.yml` action to an immutable full SHA. GitHub-owned refs use the approved repository set; third-party refs use the exact selected-action allowlist (`dtolnay/rust-toolchain`, `Swatinem/rust-cache`, `aquasecurity/trivy-action`, and `trunk-io/trunk-action`).
+- Validation: `actionlint`, `yq` YAML parse, `git diff --check`, and no mutable external refs. Commit `c475e32b1` is pushed to `fix/main-required-ci-contexts-20260731`.
+- Fresh workflow dispatch `30679440357` on `c475e32b1` created real jobs: `Detect Languages` succeeded; Rust, TS/JS, and Security Scan entered execution; no startup failure occurred.
+- Airlock snapshot: `wip/20260801T0209-18c78c69331e1050`.
+- This entry is append-only.
