@@ -37,7 +37,10 @@ export default {
   },
   build: {
     bun: {
-      entrypoint: "src/bun/index.ts",
+      // Electrobun's native launcher loads the flat bundle as
+      // `Resources/app/bun/index.js`; keep the emitted entrypoint aligned
+      // with that contract while retaining the readable main-process module.
+      entrypoint: "src/index.ts",
     },
     views: {
       app: {
