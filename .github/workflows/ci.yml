@@ -116,8 +116,8 @@ jobs:
           (non-blocking)"
       - name: build
         run:
-          cargo build --locked --workspace 2>&1 || cargo build --locked 2>&1 || echo "::warning::build failed
-          (non-blocking)"
+          cargo build --locked --workspace 2>&1 || cargo build --locked 2>&1 || echo
+          "::warning::build failed (non-blocking)"
       - name: test
         run: |
           if [ -f "Cargo.lock" ]; then
