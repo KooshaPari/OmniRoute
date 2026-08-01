@@ -64,20 +64,26 @@ async function bootRendererServer(): Promise<string | undefined> {
   }
   if (!rendererDir) return undefined;
   const port = Number(process.env.OMNIROUTE_RENDERER_PORT ?? "20129");
-  rendererServer = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, join(rendererDir, "index.js")], {
-    cwd: rendererDir,
-    env: { ...process.env, PORT: String(port), HOST: "127.0.0.1", ORIGIN: `http://127.0.0.1:${port}` },
-    stdout: "inherit",
-    stderr: "inherit",
-  });
+  try {
+    rendererServer = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, join(rendererDir, "index.js")], {
+      cwd: rendererDir,
+      env: { ...process.env, PORT: String(port), HOST: "127.0.0.1", ORIGIN: `http://127.0.0.1:${port}` },
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+  } catch (error) {
+    console.warn(`[${APP_NAME}] Failed to start bundled Svelte renderer; using bundled fallback`, error);
+    return undefined;
+  }
   const url = `http://127.0.0.1:${port}`;
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
       const response = await fetch(url, { signal: AbortSignal.timeout(500) });
       if (response.ok) return url;
     } catch {
-      await Bun.sleep(250);
+      // The gateway may still be starting; retry after the bounded delay below.
     }
+    await Bun.sleep(250);
   }
   rendererServer.kill();
   rendererServer = undefined;
@@ -92,26 +98,32 @@ async function bootNextServer(): Promise<string | undefined> {
   }
   const serverEntry = join(standaloneDir, "server.mjs");
   const serverUrl = `http://127.0.0.1:${SERVER_PORT}`;
-  nextServer = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, serverEntry], {
-    cwd: standaloneDir,
-    env: {
-      ...process.env,
-      PORT: String(SERVER_PORT),
-      HOSTNAME: "127.0.0.1",
-      BFF_ORIGIN: serverUrl,
-      PUBLIC_OMNIROUTE_BFF_URL: serverUrl,
-    },
-    stdout: "inherit",
-    stderr: "inherit",
-  });
+  try {
+    nextServer = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, serverEntry], {
+      cwd: standaloneDir,
+      env: {
+        ...process.env,
+        PORT: String(SERVER_PORT),
+        HOSTNAME: "127.0.0.1",
+        BFF_ORIGIN: serverUrl,
+        PUBLIC_OMNIROUTE_BFF_URL: serverUrl,
+      },
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+  } catch (error) {
+    console.warn(`[${APP_NAME}] Failed to start bundled Hono/Bun backend; using bundled fallback`, error);
+    return undefined;
+  }
   const url = `http://127.0.0.1:${SERVER_PORT}`;
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
       const response = await fetch(url, { signal: AbortSignal.timeout(500) });
       if (response.ok) return url;
     } catch {
-      await Bun.sleep(250);
+      // The backend may still be starting; retry after the bounded delay below.
     }
+    await Bun.sleep(250);
   }
   console.warn(`[${APP_NAME}] Next standalone server did not become ready; using bundled fallback`);
   return undefined;
