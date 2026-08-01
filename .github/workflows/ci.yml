@@ -262,6 +262,12 @@ jobs:
       - uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
         with:
           fail-on-severity: moderate
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, Unlicense, 0BSD, CC0-1.0
+          # Keep the same narrow package/version exceptions as the dedicated
+          # review workflow; unrelated BlueOak licenses remain denied.
+          allow-dependencies-licenses: >-
+            pkg:npm/isexe@4.0.0,
+            pkg:npm/tar@7.5.22
 
   # ===========================================================================
   # STAGE 4: Trunk.io (only if repo has trunk config)

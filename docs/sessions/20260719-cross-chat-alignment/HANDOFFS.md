@@ -699,6 +699,14 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-01T03:00Z - Exact BlueOak dependency-review exceptions (dependency_audit_remediation)
+
+- Added package/version-scoped `allow-dependencies-licenses` entries for `pkg:npm/isexe@4.0.0` and `pkg:npm/tar@7.5.22` to both the dedicated and CI-embedded Dependency Review workflows.
+- The general `allow-licenses` list remains unchanged and excludes BlueOak-1.0.0; the exceptions do not permit other BlueOak packages or versions. The existing immutable Sonar LGPL exception is preserved.
+- Rationale: these are transitive `which`/`node-gyp` dependencies; all patched tar versions currently published in the required range declare BlueOak, and `which@6` requires `isexe@^4.0.0`. Replacing either package would violate semver or reintroduce the tar advisory. npm audit remains clean and no package-lock override was introduced.
+- Workflow validation: `actionlint` on both workflows, `yq` parse on both workflows, and `git diff --check` pass.
+- This entry is append-only.
+
 ## 2026-08-01T01:40Z - PR #485 npm audit remediation (dependency_audit_remediation)
 
 - PR #485 audit run `30618031361` reported 22 vulnerabilities (3 moderate, 19 high), including nested `sharp@0.34.5` under Next and Transformers.
