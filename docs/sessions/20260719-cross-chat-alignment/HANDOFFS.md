@@ -698,3 +698,12 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Validation: `actionlint .github/workflows/ci.yml`, YAML parse via `yq`, `git diff --check`, and a zero-result Blacksmith-label audit all passed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
+
+## 2026-08-01T01:40Z - PR #485 npm audit remediation (dependency_audit_remediation)
+
+- PR #485 audit run `30618031361` reported 22 vulnerabilities (3 moderate, 19 high), including nested `sharp@0.34.5` under Next and Transformers.
+- Non-forced `npm audit fix --package-lock-only` resolved all Hono/MCP, tar, brace-expansion, and PostCSS findings; remaining three high findings were nested sharp.
+- Scoped npm overrides for Next/Transformers did not affect nested sharp under npm 11. A validated global override `sharp: "$sharp"` pins every sharp consumer to the existing direct `sharp@0.35.3`, with no API source changes.
+- Validation on the resulting lock graph: `npm audit --audit-level=high` and `npm audit --omit=optional --audit-level=high` both return zero vulnerabilities; `npm ci --dry-run` exits 0; focused Transformers, Next config, and isolated-build tests pass 17/17.
+- The generated lock is larger because npm flattens platform-specific sharp optional packages; no `npm audit fix --force` or Next downgrade was used.
+- This entry is append-only.
