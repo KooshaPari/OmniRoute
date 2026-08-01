@@ -74,7 +74,7 @@ async function bootRendererServer(): Promise<string | undefined> {
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
       const response = await fetch(url, { signal: AbortSignal.timeout(500) });
-      if (response.status < 500) return url;
+      if (response.ok) return url;
     } catch {
       await Bun.sleep(250);
     }
@@ -101,7 +101,7 @@ async function bootNextServer(): Promise<string | undefined> {
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
       const response = await fetch(url, { signal: AbortSignal.timeout(500) });
-      if (response.status < 500) return url;
+      if (response.ok) return url;
     } catch {
       await Bun.sleep(250);
     }
