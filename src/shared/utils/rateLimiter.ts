@@ -1,16 +1,32 @@
-import Redis from "ioredis";
+import { Keyv } from "keyv";
+import { KeyvSqlite } from "@keyv/sqlite";
+import { join } from "node:path";
+import { getDataDir } from "./paths";
 
-// Redis is optional. When REDIS_URL is unset, use a process-local fallback
-// instead of probing localhost on every API request.
+// Keyv-backed rate limiter: drop-in replacement for ioredis.
+// When REDIS_URL is set, keep ioredis path for backward compat.
+// When REDIS_URL is unset (default), use embedded SQLite via keyv.
 const REDIS_URL = process.env.REDIS_URL?.trim() || "";
+const USE_KEYV = !REDIS_URL;
+
 if (process.env.NODE_ENV === "production" && !REDIS_URL) {
-  console.warn("[REDIS] REDIS_URL is not set in production. Using in-memory rate limiting.");
+  console.warn("[RATE_LIMITER] REDIS_URL not set. Using embedded Keyv/SQLite rate limiting.");
+}
+
+let keyvInstance: Keyv | null = null;
+
+function getKeyvInstance(): Keyv {
+  if (!keyvInstance) {
+    const dbPath = join(getDataDir(), "rate-limiter-keyv.sqlite");
+    keyvInstance = new Keyv({ store: new KeyvSqlite({ uri: dbPath }) });
+  }
+  return keyvInstance;
 }
 
 let redisClient: Redis | null = null;
 
 export function isRedisConfigured(): boolean {
-  return REDIS_URL.length > 0;
+  return !USE_KEYV;
 }
 
 /**
@@ -213,11 +229,37 @@ export async function checkRateLimit(
   }
 
   if (!isRedisConfigured()) {
-    return checkInMemoryRateLimit(FALLBACK_MEMORY_STORE, keyId, rules);
+    // Keyv path: use get/set with TTL for each window key
+    try {
+      const kv = getKeyvInstance();
+      const now = Math.floor(Date.now() / 1000);
+
+      // Check all rules first
+      for (const rule of rules) {
+        const windowKey = `rl:${keyId}:${rule.window}:${Math.floor(now / rule.window)}`;
+        const count = ((await kv.get<number>(windowKey)) ?? 0);
+        if (count >= rule.limit) {
+          return { allowed: false, failedWindow: rule.window };
+        }
+      }
+
+      // Increment all rules
+      for (const rule of rules) {
+        const windowKey = `rl:${keyId}:${rule.window}:${Math.floor(now / rule.window)}`;
+        const current = ((await kv.get<number>(windowKey)) ?? 0);
+        await kv.set(windowKey, current + 1, rule.window * 2 * 1000);
+      }
+
+      return { allowed: true };
+    } catch (err) {
+      // Fail-open on Keyv errors
+      console.warn("[RATE_LIMITER] Keyv store failed, bypassing rate limit:", err);
+      return { allowed: true };
+    }
   }
 
+  // Redis path (legacy, only when REDIS_URL is set)
   const redis = getRedisClient();
-
   const args: (string | number)[] = [Math.floor(Date.now() / 1000)];
 
   for (const rule of rules) {
@@ -236,7 +278,6 @@ export async function checkRateLimit(
 
     return { allowed: true };
   } catch (error) {
-    // Fail-open strategy if Redis goes down to prevent complete API outage
     console.error("[RATE_LIMITER] Redis eval failed, bypassing rate limit:", error);
     return { allowed: true };
   }
