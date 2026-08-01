@@ -699,6 +699,40 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-01T10:35Z - qgate report-preservation unblock (desktop_runtime_fix_push)
+
+- PR #486 qgate runs `30688811301` (38m42s) and `30694340318` (36m04s) both generated valid LCOV, then exited from baseline test assertions; because the coverage step was a failed default-success step, qgate itself never ran and no `qgate-report.json` was emitted.
+- Commit `4c96d0af58` adds `continue-on-error: true` only to `Generate coverage (lcov)` in `.github/workflows/qgate.yml`. `Require generated coverage` remains hard-fail when LCOV is missing, and the qgate 60% threshold/test set are unchanged.
+- Workflow validation: yq parse and git diff check pass; commit hooks passed. Airlock snapshot: `wip/20260801T1034-18c7a7fe7f2457d8`.
+- This entry is append-only.
+
+## 2026-08-01T10:28Z - Trunk semgrep startup warning fix (desktop_runtime_fix_push)
+
+- Trunk run `30695656301` identified `desktop-electrobun/src/main.ts:68` as `unsafe-formatstring` because the warning's first argument interpolated `APP_NAME`.
+- Commit `e5c2d3acb5` replaces the dynamic format string with a literal warning plus structured `{ app, error }` metadata; no behavior change to fallback handling.
+- Validation: desktop TypeScript check and gateway smoke pass; local Trunk binary is unavailable, so remote Trunk remains the authoritative lint check.
+- Airlock snapshot: `wip/20260801T1028-18c7a7a2d96cc600`.
+- This entry is append-only.
+
+## 2026-08-01T10:25Z - Electrobun gateway review hardening (desktop_runtime_fix_push)
+
+- Verified CodeRabbit/Codex findings against PR #486 source and pushed commit `c9a2160d06`.
+- `desktop-electrobun/src/main.ts`: synchronous `Bun.spawn` failures now return the bundled fallback; readiness polling waits 250ms after every failed/non-OK response.
+- `scripts/build/prepare-electrobun-web.mjs`: `/api/bff/healthz` now rewrites to Hono `/healthz` via `app.fetch`, avoiding Svelte renderer same-origin recursion.
+- `.github/workflows/ci.yml`: `has_ci_lint` now consumes the output actually emitted by the detect step.
+- Validation: prepare:web, gateway smoke (`/healthz`, `/api/bff/healthz`, renderer root, bundled asset), desktop TypeScript check, yq workflow parse, and git diff check all pass.
+- Airlock snapshot: `wip/20260801T1024-18c7a772d7c68cf8`.
+- This entry is append-only.
+
+## 2026-08-01T10:18Z - qgate coverage timing audit (desktop_runtime_fix_push)
+
+- qgate run `30688811301` on `35aa8bf52` ran from `06:59:31Z` to `07:38:13Z` (38m42s); the job's only completed job was `qgate`.
+- `npm ci` completed at `07:00:27Z`; `npm run test:coverage` started at `07:00:28Z`, emitted the coverage summary at `07:38:07Z`, then exited 1 at `07:38:11Z` after baseline test assertion failures. The report was still present and non-empty: statements 79.41%, branches 77.43%, functions 84.83%, lines 79.41%.
+- No `Build qgate` or `Run qgate quality gate` log lines were emitted. The failed coverage step caused subsequent default-success steps to skip; `Require generated coverage` was `if: always()` but could not restore the job's success state. This contradicts the workflow comment that qgate analyzes a complete report after test failures.
+- Safe correctness fix: mark `Generate coverage (lcov)` `continue-on-error: true` (or use an explicit non-failing wrapper) so a valid report reaches qgate. This does not lower the 60% threshold or omit tests. A performance fix requires measured parallel test shards plus deterministic LCOV merge; no concurrency change is evidence-backed yet.
+- Current PR #486 run `30694340318` at `09:44:57Z` remained in progress at audit time; its qgate job had not yet emitted step logs. External run state is not a pass.
+- This entry is append-only.
+
 ## 2026-08-01T06:45Z - qgate baseline contract-debt audit (qgate_debt_plan)
 
 - Scope: PR #485 head `ca8de34d11be591995242c0cb9755c6f91bf4a71`; failed coverage evidence from qgate run `30684015555` (head `254f34c70666f61dd175b7aac52a8be47f3860de`) and run `30685347815` (head `e79447a2c49026e8965c113a1b659cdb6629f454`). No affected rate-limiter/model files are changed by the CI-only PR delta.

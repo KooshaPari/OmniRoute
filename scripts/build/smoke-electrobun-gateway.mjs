@@ -48,7 +48,7 @@ try {
   if (!bffHealth.ok)
     throw new Error(`Svelte BFF health route failed with HTTP ${bffHealth.status}`);
 
-  const rawAssetPath = rootHtml.match(/(?:href|src)=["']((?:\.\/|\/)\_app\/[^"']+)["']/)?.[1];
+  const rawAssetPath = /(?:href|src)=["']((?:\.\/|\/)[_]app\/[^"']+)["']/.exec(rootHtml)?.[1];
   const assetPath = rawAssetPath?.replace(/^\.\//, "/");
   if (!assetPath) throw new Error("renderer root did not reference a bundled asset");
   const asset = await request(assetPath);

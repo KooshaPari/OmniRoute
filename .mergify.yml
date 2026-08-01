@@ -108,8 +108,8 @@ pull_request_rules:
     actions:
       comment:
         message: >
-          This PR has been automatically closed after 30 days of inactivity.
-          Feel free to reopen if still relevant.
+          This PR has been automatically closed after 30 days of inactivity. Feel free to reopen if
+          still relevant.
       close: {}
 
   # Warn on large PRs
@@ -121,8 +121,8 @@ pull_request_rules:
     actions:
       comment:
         message: >
-          **Large PR Alert**: This PR touches {{ number }} files.
-          Consider splitting into smaller PRs for easier review.
+          **Large PR Alert**: This PR touches {{ number }} files. Consider splitting into smaller
+          PRs for easier review.
 
   # Add ready-to-merge label when all checks pass
   - name: Add ready-to-merge label
