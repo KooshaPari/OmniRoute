@@ -44,7 +44,7 @@ type BatchDispatchArgs = Parameters<typeof dispatch.dispatchBatchApiRequest>[0];
 const originalBatchDispatch = dispatch.dispatchBatchApiRequest;
 
 function stubBatchDispatch(
-  handler: (args: BatchDispatchArgs) => Response | Promise<Response>
+  handler: (args: BatchDispatchArgs) => Response | Promise<Response>,
 ): void {
   dispatch.dispatchBatchApiRequest = handler;
 }
@@ -85,7 +85,7 @@ test("Batch API and Processing", async () => {
         },
       ],
       usage: { prompt_tokens: 2, completion_tokens: 3, total_tokens: 5 },
-    })
+    }),
   );
 
   // 0. Setup environment, mock provider and API key
@@ -163,7 +163,7 @@ test("Batch API and Processing", async () => {
       ? `${currentBatch.requestCountsCompleted}/${currentBatch.requestCountsTotal}`
       : "not started";
     console.log(
-      `[TEST] Current status: ${currentBatch?.status}, completed: ${progress}, failed: ${currentBatch?.requestCountsFailed || 0}`
+      `[TEST] Current status: ${currentBatch?.status}, completed: ${progress}, failed: ${currentBatch?.requestCountsFailed || 0}`,
     );
     maxAttempts--;
   }
@@ -174,25 +174,25 @@ test("Batch API and Processing", async () => {
   if (maxAttempts === 0) {
     console.error(
       "[TEST] Polling timed out. Final batch state:",
-      JSON.stringify(currentBatch, null, 2)
+      JSON.stringify(currentBatch, null, 2),
     );
   }
 
   assert.ok(
     currentBatch?.status === "completed" || currentBatch?.status === "failed",
-    "Batch should reach a terminal state"
+    "Batch should reach a terminal state",
   );
 
   // In test environment, the mock key might fail, which is fine for this test as long as it finishes
   if (currentBatch?.status === "failed" || currentBatch?.requestCountsFailed > 0) {
     console.warn(
-      "[TEST] Batch finished with failures (likely due to mock credentials). This is acceptable for this test."
+      "[TEST] Batch finished with failures (likely due to mock credentials). This is acceptable for this test.",
     );
     assert.strictEqual(currentBatch?.requestCountsTotal, 2, "Total requests should be 2");
     assert.strictEqual(
       (currentBatch?.requestCountsCompleted || 0) + (currentBatch?.requestCountsFailed || 0),
       2,
-      "Total processed should be 2"
+      "Total processed should be 2",
     );
     return;
   }
@@ -227,11 +227,11 @@ test("Batch API and Processing", async () => {
   assert.strictEqual(
     typeof currentBatch.usage.total_tokens,
     "number",
-    "usage.total_tokens should be a number"
+    "usage.total_tokens should be a number",
   );
   assert.ok(
     currentBatch.model || currentBatch.requestCountsFailed > 0,
-    "Batch should have model populated if at least one request succeeded"
+    "Batch should have model populated if at least one request succeeded",
   );
 });
 
@@ -239,7 +239,7 @@ test("Batch handles and counts failures correctly", async () => {
   // Exercise failure accounting without sending an invalid model through the
   // live provider route. A 502 would enter the production 24h retry policy.
   stubBatchDispatch(async () =>
-    Response.json({ error: { message: "invalid provider/model" } }, { status: 400 })
+    Response.json({ error: { message: "invalid provider/model" } }, { status: 400 }),
   );
 
   initBatchProcessor();
@@ -298,7 +298,7 @@ test("Batch handles and counts failures correctly", async () => {
       const result = JSON.parse(errorContent.toString());
       assert.ok(
         result.response.status_code >= 400,
-        `Status code ${result.response.status_code} should be >= 400`
+        `Status code ${result.response.status_code} should be >= 400`,
       );
       assert.ok(result.response.body.error, "Should contain error in body");
     }
@@ -319,7 +319,7 @@ test("Batch dispatches non-chat endpoints through the matching route handler", a
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
 
   initBatchProcessor();
@@ -422,7 +422,7 @@ test("Batch rejects input lines whose url does not match the batch endpoint", as
     assert.strictEqual(currentBatch?.status, "failed");
     assert.match(
       String(currentBatch?.errors?.[0]?.message || ""),
-      /does not match batch endpoint/i
+      /does not match batch endpoint/i,
     );
   } finally {
     stopBatchProcessor();
@@ -500,12 +500,12 @@ test("Batch forces stream: false for all requests", async () => {
     // It shouldn't have "Unexpected token d" error which happens if it tries to parse SSE stream as JSON
     assert.ok(
       result.response.status_code !== 200 || result.response.body.choices,
-      "Should be a valid chat completion response"
+      "Should be a valid chat completion response",
     );
     if (result.response.body.error) {
       assert.ok(
         !result.response.body.error.message.includes("Unexpected token"),
-        "Should not have JSON parsing error from SSE stream"
+        "Should not have JSON parsing error from SSE stream",
       );
     }
   } finally {
@@ -783,7 +783,7 @@ test("Batch processor recovers orphaned finalizing batches during startup recove
           },
         },
       },
-    }
+    },
   );
 
   const originalFetch = globalThis.fetch;
@@ -811,14 +811,14 @@ test("Files upload route stores multipart content", async () => {
   formData.set("purpose", "batch");
   formData.set(
     "file",
-    new File([Buffer.from(fileContent)], "upload.jsonl", { type: "application/json" })
+    new File([Buffer.from(fileContent)], "upload.jsonl", { type: "application/json" }),
   );
 
   const response = await filesRoute.POST(
     new Request("http://localhost/api/v1/files", {
       method: "POST",
       body: formData,
-    })
+    }),
   );
   const json = await response.json();
 
@@ -844,7 +844,7 @@ test("Files and batches routes expose explicit CORS preflight handlers", async (
     assert.strictEqual(response.headers.get("Access-Control-Allow-Origin"), null);
     assert.match(
       String(response.headers.get("Access-Control-Allow-Headers") || ""),
-      /Authorization/i
+      /Authorization/i,
     );
   }
 });
@@ -866,7 +866,7 @@ test("Batch by-id route exposes ownerless records to anonymous requests", async 
 
   const response = await batchByIdRoute.GET(
     new Request(`http://localhost/api/v1/batches/${batch.id}`),
-    { params: Promise.resolve({ id: batch.id }) }
+    { params: Promise.resolve({ id: batch.id }) },
   );
   const body = await response.json();
 
@@ -1094,7 +1094,7 @@ test("File upload with expiration and spec-compliant response", async () => {
   assert.strictEqual(
     "status" in response,
     false,
-    `Response should not contain status (marker: ${new Error().stack})`
+    `Response should not contain status (marker: ${new Error().stack})`,
   );
   assert.ok(!("content" in response), "Response should not contain content");
   assert.ok(!("apiKeyId" in response), "Response should not contain apiKeyId");
@@ -1163,7 +1163,7 @@ test("File deletion", async () => {
 test("Retrieve file content spec compliance", async () => {
   const apiKey = await createApiKey("File Content Test Key", "test-machine");
   const content = Buffer.from(
-    '{"id":"req_1","custom_id":"request-1","response":{"status_code":200,"body":{"choices":[{"message":{"content":"Hello"}}]}}}'
+    '{"id":"req_1","custom_id":"request-1","response":{"status_code":200,"body":{"choices":[{"message":{"content":"Hello"}}]}}}',
   );
 
   const record = createFile({
@@ -1269,7 +1269,7 @@ test("Batch dispatches to embeddings handler for /v1/embeddings URL", async () =
 
     assert.ok(
       currentBatch?.status === "completed" || currentBatch?.status === "failed",
-      "Batch should reach a terminal state"
+      "Batch should reach a terminal state",
     );
     assert.strictEqual(dispatchedEndpoint, "/v1/embeddings");
     assert.strictEqual(currentBatch?.requestCountsTotal, 1);
@@ -1285,7 +1285,7 @@ test("Batch dispatches to embeddings handler for /v1/embeddings URL", async () =
     const errorMsg = result.response?.body?.error?.message || "";
     assert.ok(
       !errorMsg.includes("messages") && !errorMsg.includes("Missing model"),
-      `Error should not be a chat-specific error. Got: ${errorMsg}`
+      `Error should not be a chat-specific error. Got: ${errorMsg}`,
     );
   } finally {
     stopBatchProcessor();
@@ -1362,7 +1362,7 @@ test("getTerminalBatches returns only terminal statuses ordered oldest first", a
   for (const b of terminal) {
     assert.ok(
       ["completed", "failed", "cancelled", "expired"].includes(b.status),
-      `Unexpected status: ${b.status}`
+      `Unexpected status: ${b.status}`,
     );
   }
 
@@ -1370,21 +1370,21 @@ test("getTerminalBatches returns only terminal statuses ordered oldest first", a
   for (const id of terminalIds) {
     assert.ok(
       terminal.some((b) => b.id === id),
-      `Missing terminal batch ${id}`
+      `Missing terminal batch ${id}`,
     );
   }
 
   // The pending batch must not appear
   assert.ok(
     !terminal.some((b) => b.id === pendingBatch.id),
-    "Pending batch should not be in terminal list"
+    "Pending batch should not be in terminal list",
   );
 
   // Results must be ordered oldest first (created_at ASC)
   for (let i = 1; i < terminal.length; i++) {
     assert.ok(
       terminal[i].createdAt >= terminal[i - 1].createdAt,
-      "Results should be ordered oldest first"
+      "Results should be ordered oldest first",
     );
   }
 });
