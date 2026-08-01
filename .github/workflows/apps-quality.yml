@@ -46,6 +46,9 @@ jobs:
       - name: BFF production build
         working-directory: apps/bff
         run: bun run build
+      - name: Install API contract dependencies from lockfile
+        working-directory: packages/api-contracts
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Install web dependencies from lockfile
         working-directory: apps/web
         run: bun install --frozen-lockfile --ignore-scripts
