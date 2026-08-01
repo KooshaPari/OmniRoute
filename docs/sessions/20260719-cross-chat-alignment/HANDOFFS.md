@@ -699,6 +699,21 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-01T22:09Z - qgate terminal budget and Trunk YAML cleanup (desktop_runtime_fix_push)
+
+- qgate run `30696755631` on head `2cb0da12d7` generated coverage and reached qgate at `12:15:42Z`, then the 45-minute job budget killed it with exit 143 at `12:20:50Z`; the analyzer had no terminal result. This is a proven insufficient timeout, not a gate failure to suppress.
+- `.github/workflows/qgate.yml` now uses `timeout-minutes: 90`; coverage, qgate checks, thresholds, and hard-fail behavior are unchanged.
+- Remote Trunk identified the only new issue at `.github/workflows/apps-quality.yml:35:24`: redundant quotes around the Bun version. The value is now the equivalent unquoted YAML scalar `1.3.14`.
+- Validation: yq parses both workflows and `git diff --check` passes; local actionlint is unavailable. This entry is append-only.
+
+## 2026-08-01T10:59Z - Scorecard workflow parse failure (desktop_runtime_fix_push)
+
+- Scorecard run `30696477108` for PR #486 head `aa36086bf3` completed `failure` with zero jobs and `gh run view --verbose` reported: `This run likely failed because of a workflow file issue.`
+- The workflow had an unsupported job-level `security:` key under `jobs.analysis`; default `main` contains the same invalid shape, so this is repository governance debt rather than a source regression. Main branch protection remains configured with required contexts `ci / lint` and `ci / test`, one approval, and non-enforced admins.
+- Commit `2cb0da12d7` removes the invalid key and replaces broad `read-all` with explicit `contents: read`, `id-token: write`, and `security-events: write` needed for Scorecard publication/SARIF upload. yq parse and git diff checks pass.
+- Airlock snapshot: `wip/20260801T1058-18c7a947325bdfa8`.
+- This entry is append-only.
+
 ## 2026-08-01T10:35Z - qgate report-preservation unblock (desktop_runtime_fix_push)
 
 - PR #486 qgate runs `30688811301` (38m42s) and `30694340318` (36m04s) both generated valid LCOV, then exited from baseline test assertions; because the coverage step was a failed default-success step, qgate itself never ran and no `qgate-report.json` was emitted.
@@ -783,4 +798,14 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Validation for `.github/workflows/ci.yml`: `actionlint`, `yq eval`, `git diff --check`, and a no-`Swatinem` audit all pass.
 - Current npm metadata leaves no policy-safe version substitution for the flagged transitive packages: patched `tar` 7.5.20, 7.5.21, and 7.5.22 all declare BlueOak-1.0.0; `isexe` 4.0.0 is required by `which@6` ranges, while the ISC `isexe@3.1.1` cannot satisfy those `^4.0.0` constraints. Downgrading would violate semver and risks reintroducing the tar advisory.
 - Existing lock graph remains security-clean: `npm audit --audit-level=high` and `npm audit --omit=optional --audit-level=high` report zero vulnerabilities; `npm ci --dry-run --ignore-scripts --no-audit --no-fund` exits 0. No broad license allowlist or unrelated package changes were made.
+- This entry is append-only.
+
+## 2026-08-01T22:44Z - Packaged Electrobun macOS dogfood (desktop_artifact_install)
+
+- Downloaded the successful macOS artifact from run `30720668042`: `omniroute-electrobun-macos-659b47fa1f4a7d538ed4d36347f2198d3cc8822b` (artifact id `8824756954`). Extracted app at `/tmp/omniroute-8e/OmniRoute.app`; `OmniRoute-macos.zip` SHA256 is `ac01fff88514cbae081c752b4fac88e8579d50ca857229b6989c337d6581ef25`.
+- Package assertions passed for `Contents/Resources/app/bun/index.js`, `Contents/Resources/app/backend/server.mjs`, and `Contents/Resources/app/renderer/svelte-kit/vercel-tmp/index.js`.
+- Preserved prior installed bundle at `/Applications/OmniRoute.app.previous-20260801154355`; installed the artifact with `ditto --rsrc --extattr` and launched via `open -a /Applications/OmniRoute.app`.
+- App-owned process chain is live: launcher PID `72110` -> Bun main PID `72119` -> bundled backend PID `72128`; `lsof` confirms PID `72128` listening on `127.0.0.1:20128`.
+- Endpoint dogfood: `/healthz` and `/api/bff/healthz` each return HTTP 200 JSON `{"status":"ok","service":"argismonitor-bff"}`; `/` returns HTTP 200 `text/html` (6129 bytes, title `argismonitor v4`); `/_app/immutable/assets/0.Axv2mgFR.css` returns HTTP 200 `text/css` (25435 bytes).
+- This is the first verified packaged-app gateway/UI proof; the manually launched backend is not part of this evidence.
 - This entry is append-only.
