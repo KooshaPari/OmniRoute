@@ -31,7 +31,7 @@ permissions:
 
 jobs:
   qgate:
-    timeout-minutes: 45 # bound npm/coverage/Rust stalls; preserve a terminal gate result
+    timeout-minutes: 90 # bound npm/coverage/Rust stalls; preserve a terminal gate result
 
     runs-on: ubuntu-latest # Linux standard only — no billed runners
 
