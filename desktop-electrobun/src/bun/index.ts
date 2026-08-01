@@ -91,9 +91,16 @@ async function bootNextServer(): Promise<string | undefined> {
     return undefined;
   }
   const serverEntry = join(standaloneDir, "server.mjs");
+  const serverUrl = `http://127.0.0.1:${SERVER_PORT}`;
   nextServer = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, serverEntry], {
     cwd: standaloneDir,
-    env: { ...process.env, PORT: String(SERVER_PORT), HOSTNAME: "127.0.0.1" },
+    env: {
+      ...process.env,
+      PORT: String(SERVER_PORT),
+      HOSTNAME: "127.0.0.1",
+      BFF_ORIGIN: serverUrl,
+      PUBLIC_OMNIROUTE_BFF_URL: serverUrl,
+    },
     stdout: "inherit",
     stderr: "inherit",
   });
