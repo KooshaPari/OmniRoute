@@ -115,6 +115,18 @@ jobs:
             find build -maxdepth 3 -print 2>/dev/null || true
             exit 1
           fi
+          required_paths=(
+            "$app_path/Contents/Resources/app/bun/index.js"
+            "$app_path/Contents/Resources/app/backend/server.mjs"
+            "$app_path/Contents/Resources/app/renderer/svelte-kit/vercel-tmp/index.js"
+          )
+          for required_path in "${required_paths[@]}"; do
+            if [[ ! -f "$required_path" ]]; then
+              echo "::error::Missing packaged Electrobun runtime asset: $required_path"
+              exit 1
+            fi
+          done
+          echo "Packaged runtime assets verified: bun/index.js, backend/server.mjs, renderer SSR entry"
           rm -rf artifacts
           mkdir -p artifacts
           cp -R "$app_path" artifacts/OmniRoute.app
