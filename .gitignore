@@ -249,3 +249,6 @@ target/
 
 # Cargo build cache leak (shell-expanded OUT_DIR)
 \$OUT_DIR/
+
+# Nested worktrees (cloned via scripts/clone_worktree.sh)
+worktrees/
