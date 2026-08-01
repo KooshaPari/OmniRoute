@@ -101,7 +101,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
       - name: Build FFI crates
         run: cargo build --release --manifest-path crates/omniroute-ffi/Cargo.toml
       - name: Test FFI crates
