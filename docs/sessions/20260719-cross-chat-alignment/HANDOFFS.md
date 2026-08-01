@@ -690,3 +690,11 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Go SDK: Real maximhq/bifrost/core
 - PRs: #415 (merged) + #420 (ready for review)
 - No blockers
+
+## 2026-07-30T06:19Z - Home shell parity (home_shell_parity)
+
+- Reworked the Svelte `/home` static link grid into the upstream-aligned four-step operator funnel:
+  providers -> routing combo -> playground request -> request logs.
+- This is presentation-only and uses existing Svelte routes; it introduces no new BFF/API dependency or contract.
+- Added ordinal step affordances, an explicit Quick start goal, and preserved keyboard focus treatment.
+- Validation: `apps/web bun run typecheck` passed (`svelte-check`: 0 errors, 0 warnings); `git diff --check` passed.

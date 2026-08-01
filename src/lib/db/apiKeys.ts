@@ -18,6 +18,23 @@ import { setNoLog } from "../compliance/noLog";
 import { resolveModelAlias } from "@omniroute/open-sse/services/modelDeprecation.ts";
 import { getSyncedAvailableModelsByConnection, getCustomModels, getModelIsHidden } from "./models";
 import {
+  CACHE_TTL,
+  clearApiKeyCaches,
+  deleteRedisAuthCacheEntry,
+  deleteRedisAuthCacheEntries,
+  deleteRedisAuthCacheForKeyId,
+  getMetadataCache,
+  getModelPermissionCache,
+  getValidationCache,
+  isRedisAuthCacheEnabled,
+  markApiKeyUsed,
+  readRedisAuthCache,
+  setMetadataCache,
+  setModelPermissionCache,
+  setValidationCache,
+  writeRedisAuthCache,
+} from "./apiKeyCache";
+import {
   CLAUDE_CODE_PROVIDER_PREFIXES,
   preferClaudeCodeForUnprefixedClaudeModels,
   stripExtendedContextSuffix,
@@ -44,58 +61,19 @@ import {
   parseIsBanned,
   parseStreamDefaultMode,
 } from "./apiKeys/rowParsers";
-import type { AccessSchedule, RateLimitRule } from "./apiKeys/types";
+import type { AccessSchedule, ApiKeyMetadata, RateLimitRule } from "./apiKeys/types";
 
 // ──────────────── Performance Optimizations ────────────────
 
 // Schema check memoization - only run once
 let _schemaChecked = false;
 
+// `clearApiKeyCaches` is defined in `./apiKeyCache`; re-export it here so the
+// 41+ existing consumers (`localDb.ts`, the api-keys test suite, the
+// rate-limit test fixtures) keep working without any import-path changes.
+export { clearApiKeyCaches } from "./apiKeyCache";
+
 type JsonRecord = Record<string, unknown>;
-
-interface CacheEntry<TValue> {
-  timestamp: number;
-  value: TValue;
-}
-
-// Re-exported for the historical public surface (moved to ./apiKeys/types).
-export type { AccessSchedule, RateLimitRule } from "./apiKeys/types";
-
-interface ApiKeyMetadata {
-  id: string;
-  name: string;
-  machineId: string | null;
-  allowedModels: string[];
-  blockedModels: string[];
-  allowedCombos: string[];
-  allowedConnections: string[];
-  allowedQuotas: string[];
-  noLog: boolean;
-  autoResolve: boolean;
-  isActive: boolean;
-  accessSchedule: AccessSchedule | null;
-  maxRequestsPerDay: number | null;
-  maxRequestsPerMinute: number | null;
-  throttleDelayMs: number | null;
-  rateLimits: RateLimitRule[] | null;
-  // T08: Per-key max concurrent sticky sessions (0 = unlimited)
-  maxSessions: number;
-  // Phase 3 lifecycle/policy fields
-  revokedAt: string | null;
-  expiresAt: string | null;
-  ipAllowlist: string[];
-  scopes: string[];
-  isBanned: boolean;
-  keyHash: string | null;
-  proxyId: string | null;
-  allowedEndpoints: string[];
-  streamDefaultMode: "legacy" | "json";
-  disableNonPublicModels: boolean;
-  allowUsageCommand: boolean;
-  usageLimitEnabled: boolean;
-  dailyUsageLimitUsd: number | null;
-  weeklyUsageLimitUsd: number | null;
-}
 
 interface ApiKeyRow extends JsonRecord {
   id?: unknown;
@@ -182,19 +160,9 @@ interface ApiKeyView extends JsonRecord {
   weeklyUsageLimitUsd?: number | null;
 }
 
-// LRU cache for API key validation (valid keys only)
-const _keyValidationCache = new Map<string, { valid: boolean; timestamp: number }>();
-const _keyMetadataCache = new Map<string, CacheEntry<ApiKeyMetadata>>();
-const _lastUsedUpdateCache = new Map<string, number>();
-const CACHE_TTL = 60 * 1000; // 1 minute TTL
-const LAST_USED_UPDATE_TTL = 5 * 60 * 1000;
-const MAX_CACHE_SIZE = 1000;
-
-// Wildcard scope matching is now handled by `matchesWildcardPattern`
-// (deterministic, no RegExp from dynamic strings).
-
-// Cache for model permission checks
-const _modelPermissionCache = new Map<string, { allowed: boolean; timestamp: number }>();
+// LRU caches (validation / metadata / model-permission / last-used) and the
+// Redis auth-cache helpers live in `./apiKeyCache` (see file header). This
+// module only talks to them through the named accessors re-exported there.
 
 // Prepared statements cache
 let _stmtGetAllKeys: ApiKeysStatements["getAllKeys"] | null = null;
@@ -205,14 +173,13 @@ let _stmtInsertKey: ApiKeysStatements["insertKey"] | null = null;
 let _stmtDeleteKey: ApiKeysStatements["deleteKey"] | null = null;
 
 /**
- * Clear all caches (called on key create/update/delete)
+ * Local alias for `clearApiKeyCaches` from `./apiKeyCache`. Kept so the
+ * CRUD helpers below (`regenerateApiKey`, `deleteApiKey`, `revokeApiKey`,
+ * `setApiKeyExpiry`, `updateApiKeyPermissions`) read as if they were
+ * invalidating the host module's cache — the implementation is in
+ * `./apiKeyCache`, but the call-site stays the same.
  */
-function invalidateCaches() {
-  _keyValidationCache.clear();
-  _keyMetadataCache.clear();
-  _modelPermissionCache.clear();
-  _lastUsedUpdateCache.clear();
-}
+const invalidateCaches = clearApiKeyCaches;
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" ? (value as JsonRecord) : {};
@@ -221,68 +188,6 @@ function toRecord(value: unknown): JsonRecord {
 function isConfiguredEnvApiKey(key: string): boolean {
   const envKey = process.env.OMNIROUTE_API_KEY || process.env.ROUTER_API_KEY;
   return Boolean(envKey && key === envKey);
-}
-
-function isRedisAuthCacheEnabled(): boolean {
-  return (
-    process.env.OMNIROUTE_DISABLE_REDIS_AUTH_CACHE !== "1" &&
-    process.env.NODE_ENV !== "test" &&
-    process.env.DISABLE_SQLITE_AUTO_BACKUP !== "true"
-  );
-}
-
-async function deleteRedisAuthCacheEntry(keyHash: unknown): Promise<void> {
-  if (!isRedisAuthCacheEnabled() || typeof keyHash !== "string" || keyHash.trim() === "") return;
-
-  try {
-    const { getRedisClient, isRedisConfigured } = await import("@/shared/utils/rateLimiter");
-    if (!isRedisConfigured()) return;
-    const redis = getRedisClient();
-    await redis.del(`auth:api_key:${keyHash}`);
-  } catch {
-    // Redis is an optimization for auth caching; SQLite remains authoritative.
-  }
-}
-
-async function deleteRedisAuthCacheEntries(...keyHashes: unknown[]): Promise<void> {
-  await Promise.all(keyHashes.map((keyHash) => deleteRedisAuthCacheEntry(keyHash)));
-}
-
-async function deleteRedisAuthCacheForKeyId(db: ApiKeysDbLike, id: string): Promise<void> {
-  if (!isRedisAuthCacheEnabled()) return;
-
-  const row = db
-    .prepare<{ key_hash: string | null }>("SELECT key_hash FROM api_keys WHERE id = ?")
-    .get(id);
-  await deleteRedisAuthCacheEntry(row?.key_hash);
-}
-
-function markApiKeyUsed(db: ApiKeysDbLike, id: unknown, now: number): void {
-  if (typeof id !== "string" || id.trim() === "") return;
-
-  const lastUpdate = _lastUsedUpdateCache.get(id);
-  if (lastUpdate && now - lastUpdate < LAST_USED_UPDATE_TTL) return;
-
-  db.prepare("UPDATE api_keys SET last_used_at = @lastUsedAt WHERE id = @id").run({
-    id,
-    lastUsedAt: new Date(now).toISOString(),
-  });
-  _lastUsedUpdateCache.set(id, now);
-}
-
-/**
- * LRU eviction for cache
- */
-function evictIfNeeded<TKey, TValue>(cache: Map<TKey, TValue>) {
-  if (cache.size > MAX_CACHE_SIZE) {
-    // Remove oldest 20% of entries
-    const entriesToRemove = Math.floor(MAX_CACHE_SIZE * 0.2);
-    let i = 0;
-    for (const key of cache.keys()) {
-      if (i++ >= entriesToRemove) break;
-      cache.delete(key);
-    }
-  }
 }
 
 async function getModelPermissionCandidates(modelId: string): Promise<string[]> {
@@ -1036,37 +941,23 @@ export async function validateApiKey(key: string | null | undefined) {
   const hashedKey = await hashKey(key);
   const cacheKey = hashedKey;
 
-  const cached = _keyValidationCache.get(cacheKey);
+  const cached = getValidationCache(cacheKey);
   if (cached && now - cached.timestamp < CACHE_TTL) {
     return cached.valid;
   }
 
   if (isRedisAuthCacheEnabled()) {
     // Try Redis cache for multi-instance consistency
-    try {
-      const { getRedisClient, isRedisConfigured } = await import("@/shared/utils/rateLimiter");
-      if (isRedisConfigured()) {
-        const redis = getRedisClient();
-        const redisKey = `auth:api_key:${hashedKey}`;
-        const redisData = await redis.get(redisKey);
-        if (redisData) {
-          const data = JSON.parse(redisData);
-          const isBanned = !!data.isBanned;
-          const isActive = !!data.isActive;
-          const revokedAt = data.revokedAt;
-          const expiresAt = data.expiresAt;
-
-          if (isBanned || !isActive) return false;
-          if (typeof revokedAt === "string" && revokedAt.trim() !== "") return false;
-          if (typeof expiresAt === "string" && expiresAt.trim() !== "") {
-            const expiresMs = Date.parse(expiresAt);
-            if (Number.isFinite(expiresMs) && expiresMs <= now) return false;
-          }
-          return true;
-        }
+    const redisDecision = await readRedisAuthCache(hashedKey);
+    if (redisDecision) {
+      if (redisDecision.isBanned || !redisDecision.isActive) return false;
+      if (typeof redisDecision.revokedAt === "string" && redisDecision.revokedAt.trim() !== "")
+        return false;
+      if (typeof redisDecision.expiresAt === "string" && redisDecision.expiresAt.trim() !== "") {
+        const expiresMs = Date.parse(redisDecision.expiresAt);
+        if (Number.isFinite(expiresMs) && expiresMs <= now) return false;
       }
-    } catch {
-      // Redis lookup failures fall through to SQLite.
+      return true;
     }
   }
 
@@ -1091,32 +982,19 @@ export async function validateApiKey(key: string | null | undefined) {
     if (Number.isFinite(expiresMs) && expiresMs <= now) return false;
   }
 
-  evictIfNeeded(_keyValidationCache);
-  _keyValidationCache.set(cacheKey, { valid: true, timestamp: now });
+  // Cache the result in the in-memory LRU; `./apiKeyCache` runs eviction
+  // internally before each insert so the Map stays bounded by MAX_CACHE_SIZE.
+  setValidationCache(cacheKey, { valid: true, timestamp: now });
 
   if (isRedisAuthCacheEnabled()) {
     // Update Redis cache for fast validation
-    try {
-      const { getRedisClient, isRedisConfigured } = await import("@/shared/utils/rateLimiter");
-      if (isRedisConfigured()) {
-        const redis = getRedisClient();
-        const redisKey = `auth:api_key:${hashedKey}`;
-        await redis.set(
-          redisKey,
-          JSON.stringify({
-            id: row.id,
-            isBanned: parseIsBanned(row.is_banned),
-            isActive: parseIsActive(row.is_active),
-            expiresAt: row.expires_at,
-            revokedAt: row.revoked_at,
-          }),
-          "EX",
-          3600 // 1 hour cache
-        );
-      }
-    } catch {
-      // Redis cache update failures do not block successful SQLite validation.
-    }
+    await writeRedisAuthCache(hashedKey, {
+      id: row.id,
+      isBanned: parseIsBanned(row.is_banned),
+      isActive: parseIsActive(row.is_active),
+      expiresAt: typeof row.expires_at === "string" ? row.expires_at : null,
+      revokedAt: typeof row.revoked_at === "string" ? row.revoked_at : null,
+    });
   }
 
   markApiKeyUsed(db, row.id, now);
@@ -1195,7 +1073,7 @@ export async function getApiKeyMetadata(
 
   // Check cache first
   const hashedKey = await hashKey(key);
-  const cached = _keyMetadataCache.get(hashedKey);
+  const cached = getMetadataCache(hashedKey);
   if (cached && now - cached.timestamp < CACHE_TTL) {
     return cached.value;
   }
@@ -1272,9 +1150,8 @@ export async function getApiKeyMetadata(
 
   setNoLog(metadata.id, metadata.noLog === true);
 
-  // Cache the result
-  evictIfNeeded(_keyMetadataCache);
-  _keyMetadataCache.set(hashedKey, { value: metadata, timestamp: now });
+  // Cache the result; `./apiKeyCache` runs eviction internally.
+  setMetadataCache(hashedKey, metadata, now);
 
   return metadata;
 }
@@ -1300,7 +1177,7 @@ export async function isModelAllowedForKey(
   const usesSettingDependentClaudeRouting = isPotentialUnprefixedClaudeCodeModel(modelId);
 
   // Check permission cache
-  const cached = _modelPermissionCache.get(cacheKey);
+  const cached = getModelPermissionCache(cacheKey);
   if (!usesSettingDependentClaudeRouting && cached && now - cached.timestamp < CACHE_TTL) {
     return cached.allowed;
   }
@@ -1367,10 +1244,9 @@ export async function isModelAllowedForKey(
       allowed = false;
     }
   }
-  // Cache the result
+  // Cache the result; `./apiKeyCache` runs eviction internally.
   if (!usesSettingDependentClaudeRouting) {
-    evictIfNeeded(_modelPermissionCache);
-    _modelPermissionCache.set(cacheKey, { allowed, timestamp: now });
+    setModelPermissionCache(cacheKey, { allowed, timestamp: now });
   }
 
   return allowed;
@@ -1389,15 +1265,6 @@ function clearPreparedStatementCache() {
   _stmtInsertKey = null;
   _stmtDeleteKey = null;
   _schemaChecked = false; // Also reset schema check for new connection
-}
-
-/**
- * Clear all caches (exported for testing/debugging)
- */
-export function clearApiKeyCaches() {
-  invalidateCaches();
-  _lastUsedUpdateCache.clear();
-  _modelPermissionCache.clear();
 }
 
 /**

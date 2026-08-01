@@ -5,26 +5,26 @@
 
   let { data }: { data: PageData } = $props();
 
-  const quickLinks = [
+  const quickStart = [
     {
       href: '/dashboard/providers',
-      title: 'Providers',
+      title: 'Connect providers',
       description: 'Configure upstream model providers and connection details.',
     },
     {
       href: '/dashboard/combos',
-      title: 'Routing combos',
-      description: 'Define fallback routing across configured providers.',
+      title: 'Create a routing combo',
+      description: 'Define the fallback path across your configured providers.',
     },
     {
-      href: '/dashboard/usage',
-      title: 'Usage',
-      description: 'Inspect routed requests, token usage, and cost.',
+      href: '/dashboard/playground',
+      title: 'Test a request',
+      description: 'Use the playground to confirm a model route end to end.',
     },
     {
-      href: '/dashboard/health',
-      title: 'Health',
-      description: 'Monitor the local control plane through its live event stream.',
+      href: '/dashboard/logs',
+      title: 'Inspect routed traffic',
+      description: 'Review request logs after your first routed request.',
     },
   ];
 
@@ -53,16 +53,27 @@
     </div>
   </Card>
 
-  <section aria-labelledby="quick-links-heading">
-    <h2 id="quick-links-heading" class="text-lg font-semibold">Quick access</h2>
+  <section aria-labelledby="quick-start-heading">
+    <div>
+      <h2 id="quick-start-heading" class="text-lg font-semibold">Quick start</h2>
+      <p class="mt-1 text-sm text-gray-600">Set up a working route, verify it, then inspect the result.</p>
+    </div>
     <div class="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
-      {#each quickLinks as link}
+      {#each quickStart as step, index}
         <a
-          href={link.href}
-          class="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-[var(--color-primary)] hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+          href={step.href}
+          class="group rounded-lg border border-gray-200 bg-white p-4 transition hover:border-[var(--color-primary)] hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
         >
-          <h3 class="font-semibold text-[var(--color-primary)]">{link.title}</h3>
-          <p class="mt-1 text-sm text-gray-600">{link.description}</p>
+          <div class="flex items-start gap-3">
+            <span
+              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-xs font-bold text-white"
+              aria-hidden="true"
+            >{index + 1}</span>
+            <div>
+              <h3 class="font-semibold text-[var(--color-primary)] group-hover:underline">{step.title}</h3>
+              <p class="mt-1 text-sm text-gray-600">{step.description}</p>
+            </div>
+          </div>
         </a>
       {/each}
     </div>
