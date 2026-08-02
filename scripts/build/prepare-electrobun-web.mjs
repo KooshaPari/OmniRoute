@@ -43,14 +43,17 @@ await cp(source, path.join(rendererDestination, "client"), { recursive: true });
 const webPackage = JSON.parse(
   await (await import("node:fs/promises")).readFile(path.join(root, "apps/web/package.json"), "utf8"),
 );
+const runtimeDependencies = Object.fromEntries(
+  Object.entries(webPackage.dependencies ?? {}).filter(
+    ([, version]) =>
+      typeof version === "string" && !version.startsWith("file:") && !version.startsWith("workspace:"),
+  ),
+);
 const runtimePackage = {
   name: "@argismonitor/desktop-renderer-runtime",
   private: true,
   type: "module",
-  dependencies: {
-    "@sveltejs/kit": webPackage.dependencies["@sveltejs/kit"],
-    "@trpc/client": webPackage.dependencies["@trpc/client"],
-  },
+  dependencies: runtimeDependencies,
 };
 await writeFile(path.join(rendererDestination, "package.json"), JSON.stringify(runtimePackage, null, 2));
 try {

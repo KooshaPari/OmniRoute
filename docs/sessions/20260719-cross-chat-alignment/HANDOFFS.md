@@ -699,6 +699,13 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-02T22:14Z - Renderer runtime closure repair (root)
+
+- PR #492 desktop smoke reached the renderer but returned HTTP 500. Local reproduction with Node exposed `ERR_MODULE_NOT_FOUND: web-vitals` from the compiled Svelte layout; the generated runtime package only installed two hand-selected dependencies.
+- Updated `scripts/build/prepare-electrobun-web.mjs` to derive the renderer runtime dependency closure from all external `apps/web` dependencies while excluding local `file:`/`workspace:` packages.
+- Local proof after restaging: `bun run prepare:web` succeeded and `bun run smoke:gateway` passed BFF health, renderer HTML, BFF route, and immutable CSS asset checks.
+- This entry is append-only.
+
 ## 2026-08-02T21:29Z - Rebase onto current main CI repair (root)
 
 - Main advanced to `92fafe865c5291aae2c17c1b9c88fc0a6a47407f` via PR #489 while PR #491 was running. The clean desktop branch was forward-rebased onto that SHA; the only conflict was the informational detect-step echo and was resolved in favor of main's equivalent output.
