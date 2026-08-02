@@ -699,6 +699,14 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-02T20:18Z - PR #491 desktop CI regression repair (root)
+
+- Fresh PR #491 CI exposed two concrete regressions after the semantic rebase: Electrobun built `src/index.ts` importing deleted `./main`, and the gateway smoke assumed the BFF served renderer HTML even though the packaged architecture runs BFF and Svelte SSR as separate processes.
+- Fixed in `525a57176`: Electrobun now emits from `src/bun/index.ts`; the obsolete launcher shim was removed; smoke starts backend and renderer independently, probes BFF health and renderer HTML/assets, and retains the packaged `_app/version.json` assertion.
+- Local validation: `node --check scripts/build/smoke-electrobun-gateway.mjs` and `git diff --check` passed. Airlock snapshot `wip/20260802T2018-18c81667339814a8` preserves the uncommitted repair before commit/push.
+- Pushed to PR #491 branch; fresh CI is required. External Scorecard/request-review failures remain governance gates, not bypassed.
+- This entry is append-only.
+
 ## 2026-08-01T22:09Z - qgate terminal budget and Trunk YAML cleanup (desktop_runtime_fix_push)
 
 - qgate run `30696755631` on head `2cb0da12d7` generated coverage and reached qgate at `12:15:42Z`, then the 45-minute job budget killed it with exit 143 at `12:20:50Z`; the analyzer had no terminal result. This is a proven insufficient timeout, not a gate failure to suppress.
