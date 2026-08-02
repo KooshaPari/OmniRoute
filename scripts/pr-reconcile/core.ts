@@ -82,6 +82,7 @@ export interface ReconcilePayloadInput {
   };
   files: string[];
   feedback: NormalizedFeedback[];
+  eventId?: string;
   collectedAt?: string;
 }
 
@@ -213,7 +214,7 @@ export function buildReconcilePayload(input: ReconcilePayloadInput): ReconcilePa
     truncated: false,
   };
 
-  if (JSON.stringify(payload).length <= MAX_PAYLOAD_CHARS) return payload;
+  if (Buffer.byteLength(JSON.stringify(payload), "utf8") <= MAX_PAYLOAD_CHARS) return payload;
 
   payload = {
     ...payload,
@@ -224,15 +225,24 @@ export function buildReconcilePayload(input: ReconcilePayloadInput): ReconcilePa
     })),
   };
 
-  while (JSON.stringify(payload).length > MAX_PAYLOAD_CHARS && payload.feedback.length > 1) {
+  while (Buffer.byteLength(JSON.stringify(payload), "utf8") > MAX_PAYLOAD_CHARS && payload.feedback.length > 1) {
     payload.feedback = payload.feedback.slice(0, -1);
   }
 
-  if (JSON.stringify(payload).length > MAX_PAYLOAD_CHARS && payload.feedback[0]) {
+  if (Buffer.byteLength(JSON.stringify(payload), "utf8") > MAX_PAYLOAD_CHARS && payload.feedback[0]) {
     payload.feedback[0] = {
       ...payload.feedback[0],
       body: trimMiddle(payload.feedback[0].body, 400),
     };
+  }
+
+  while (Buffer.byteLength(JSON.stringify(payload), "utf8") > MAX_PAYLOAD_CHARS && payload.files.length > 0) {
+    payload.files = payload.files.slice(0, -1);
+  }
+
+  if (Buffer.byteLength(JSON.stringify(payload), "utf8") > MAX_PAYLOAD_CHARS) {
+    payload.feedback = [];
+    payload.files = [];
   }
 
   return payload;

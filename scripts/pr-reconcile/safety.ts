@@ -1,6 +1,8 @@
 import { Buffer } from "node:buffer";
 
 export interface DispatchDecisionInput {
+  dryRun?: boolean;
+  webhookConfigured?: boolean;
   skip?: boolean;
   skipReason?: string;
   duplicate?: boolean;
@@ -61,6 +63,10 @@ export function isDuplicateEvent(
 
 /** Apply dispatch safety gates in a stable order before any webhook call. */
 export function getDispatchDecision(input: DispatchDecisionInput): DispatchDecision {
+  if (input.dryRun) return { dispatch: false, reason: "dry_run" };
+  if (input.webhookConfigured === false) {
+    return { dispatch: false, reason: "missing_webhook_url" };
+  }
   if (input.skip) return { dispatch: false, reason: input.skipReason ?? "policy_skip" };
   if (input.duplicate || input.isDuplicate) return { dispatch: false, reason: "duplicate_event" };
   if (typeof input.headShaMatches === "boolean" && !input.headShaMatches) {
