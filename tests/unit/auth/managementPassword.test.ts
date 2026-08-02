@@ -43,7 +43,7 @@ describe("managementPassword", () => {
 
   it("verifyManagementPassword still accepts legacy bcrypt hashes (no upgrade required)", async () => {
     const bcrypt = await import("bcryptjs");
-    const legacyHash = await bcrypt.hash(STRONG_PASSWORD, 10);
+    const legacyHash = await bcrypt.hash(STRONG_PASSWORD, 4);
     expect(isBcryptHash(legacyHash)).toBe(true);
     expect(await verifyManagementPassword(STRONG_PASSWORD, legacyHash)).toBe(true);
     expect(await verifyManagementPassword(WRONG_PASSWORD, legacyHash)).toBe(false);

@@ -1,0 +1,8 @@
+# .lefthook/pre-commit — wire identity:check into pre-commit
+# Catches accidental drift between .fork-identity.json and package.json#name/version
+# before it can be committed.
+
+if [ -d .git ]; then
+  echo "→ pnpm run identity:check"
+  pnpm run identity:check
+fi

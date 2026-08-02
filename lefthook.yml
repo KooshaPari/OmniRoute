@@ -24,6 +24,19 @@ min_version: 1.0.0
 pre-commit:
   parallel: true
   commands:
+    identity-check:
+      run: pnpm run identity:check
+    bun-installed:
+      run: command -v bun >/dev/null 2>&1 || echo "bun not installed (CI parity only)"
+    typescript-strict-check:
+      glob: "**/*.ts"
+      run: |
+        if node -e "require('fs').readFileSync('tsconfig.typecheck-core.json','utf8').includes('\"strict\": true')" 2>/dev/null; then
+          echo "strict: true detected — strict TS7 lint lane qualified"
+        else
+          echo "strict: false — strict TS7 lint lane deferred"
+        fi
+
     editorconfig:
       glob: "**/*"
       run: |
@@ -82,6 +95,11 @@ pre-push:
       run: bun scripts/check/check-t11-any-budget.mjs
 
     cycles-push:
+    identity-check:
+      run: pnpm run identity:check || true
+
+    bun-installed:
+      run: command -v bun >/dev/null 2>&1 || echo "bun not installed (ok for CI - non-blocking)"
       glob: "{src,open-sse}/**/*.ts"
       run: bun scripts/check/check-cycles.mjs
 

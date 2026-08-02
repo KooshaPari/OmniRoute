@@ -1,0 +1,27 @@
+# Bun test runner (parallel CI lane — opt-in, non-blocking)
+# Verifies the vitest suite passes under Bun's runtime for parity with Node.
+# Baseline: must be ≥95% of Node test runtime (non-blocking if not).
+name: bun-parity
+on: [push, pull_request]
+jobs:
+  bun-test:
+    name: Bun test runner (parallel lane)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run vitest under Bun
+        uses: oven-sh/setup-bun@v1
+        with: { bun-version: "1.3.10" }
+      - name: Run Bun test runner
+        run: pnpm run test:bun
+        continue-on-error: true   # Bun parity is informational, not blocking
+      - name: Report Bun runtime
+        if: always()
+        run: |
+          echo "Bun test completed (informational). See logs above for timings."

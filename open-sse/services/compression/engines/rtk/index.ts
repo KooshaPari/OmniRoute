@@ -281,7 +281,7 @@ export function processRtkText(
         const stripped = stripCode(code, normalizeCodeLanguage(languageHint), {
           // Opt-in comment removal (default off = no silent production change). Docstrings/JSDoc
           // are preserved unless explicitly disabled.
-          removeComments: config.stripCodeComments === true,
+          removeJsDoc: config.stripCodeComments === true,
           preserveDocstrings: config.preserveDocstrings !== false,
         });
         if (stripped.strippedLines <= 0 && stripped.text === code.trim()) return match;

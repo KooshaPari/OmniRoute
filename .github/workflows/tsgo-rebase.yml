@@ -1,0 +1,37 @@
+# Weekly tsgo rebase (microsoft/typescript-go main)
+# Tracks upstream milestone-6 fixes. Auto-rebuilds the vendored binary.
+# tsc remains the source-of-truth gate in CI.
+name: tsgo-rebase
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # every Monday at 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  rebase:
+    name: Pull microsoft/typescript-go main + rebuild tsgo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Pull upstream + rebuild tsgo
+        run: |
+          cd vendor/typescript-go
+          git pull origin main
+          go build -o tsgo ./cmd/tsgo
+      - name: TS7 typecheck via rebuilt tsgo
+        run: |
+          ./vendor/typescript-go/tsgo -p tsconfig.typecheck-core.json --noEmit
+          echo "tsgo rebase + typecheck complete"
+      - name: TS6 typecheck (source-of-truth)
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run typecheck:ts6
