@@ -49,7 +49,7 @@ async function resolveBundledBackendDir(): Promise<string | undefined> {
   return undefined;
 }
 
-async function bootRendererServer(): Promise<string | undefined> {
+async function bootRendererServer(backendUrl?: string): Promise<string | undefined> {
   const candidates = [
     process.env.OMNIROUTE_RENDERER_DIR,
     resolve(import.meta.dir, "../renderer"),
@@ -65,12 +65,21 @@ async function bootRendererServer(): Promise<string | undefined> {
   if (!rendererDir) return undefined;
   const port = Number(process.env.OMNIROUTE_RENDERER_PORT ?? "20129");
   try {
-    rendererServer = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, join(rendererDir, "index.js")], {
-      cwd: rendererDir,
-      env: { ...process.env, PORT: String(port), HOST: "127.0.0.1", ORIGIN: `http://127.0.0.1:${port}` },
-      stdout: "inherit",
-      stderr: "inherit",
-    });
+    rendererServer = Bun.spawn(
+      [process.env.OMNIROUTE_BUN ?? process.execPath, join(rendererDir, "index.js")],
+      {
+        cwd: rendererDir,
+        env: {
+          ...process.env,
+          ...(backendUrl ? { BFF_ORIGIN: backendUrl, PUBLIC_OMNIROUTE_BFF_URL: backendUrl } : {}),
+          PORT: String(port),
+          HOST: "127.0.0.1",
+          ORIGIN: `http://127.0.0.1:${port}`,
+        },
+        stdout: "inherit",
+        stderr: "inherit",
+      },
+    );
   } catch (error) {
     console.warn("Failed to start bundled Svelte renderer; using bundled fallback", {
       app: APP_NAME,
@@ -81,7 +90,7 @@ async function bootRendererServer(): Promise<string | undefined> {
   const url = `http://127.0.0.1:${port}`;
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(500) });
+      const response = await fetch(`${url}/healthz`, { signal: AbortSignal.timeout(500) });
       if (response.ok) return url;
     } catch {
       // The gateway may still be starting; retry after the bounded delay below.
@@ -124,7 +133,7 @@ async function bootNextServer(): Promise<string | undefined> {
   const url = `http://127.0.0.1:${SERVER_PORT}`;
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(500) });
+      const response = await fetch(`${url}/healthz`, { signal: AbortSignal.timeout(500) });
       if (response.ok) return url;
     } catch {
       // The backend may still be starting; retry after the bounded delay below.
@@ -132,6 +141,8 @@ async function bootNextServer(): Promise<string | undefined> {
     await Bun.sleep(250);
   }
   console.warn(`[${APP_NAME}] Next standalone server did not become ready; using bundled fallback`);
+  nextServer.kill();
+  nextServer = undefined;
   return undefined;
 }
 
@@ -148,7 +159,7 @@ async function bootServices(): Promise<void> {
   } catch (err) {
     console.warn(
       `[${APP_NAME}] process-compose boot skipped (not found or services already running):`,
-      (err as Error).message
+      (err as Error).message,
     );
   }
 }
@@ -262,15 +273,20 @@ function setupMenu(win: BrowserWindow): void {
 async function main(): Promise<void> {
   await bootServices();
   const bundledUrl = await bootNextServer();
-  const rendererUrl = await bootRendererServer();
+  const rendererUrl = await bootRendererServer(bundledUrl);
   const win = createMainWindow();
   if (rendererUrl) win.webview.loadURL(rendererUrl);
   setupMenu(win);
   setupTray(win);
-  console.log(`[${APP_NAME}] Launched → ${rendererUrl ?? bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`);
+  console.log(
+    `[${APP_NAME}] Launched → ${rendererUrl ?? bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`,
+  );
 }
 
-process.on("exit", () => { nextServer?.kill(); rendererServer?.kill(); });
+process.on("exit", () => {
+  nextServer?.kill();
+  rendererServer?.kill();
+});
 main().catch((err) => {
   console.error(`[${APP_NAME}] Fatal:`, err);
   process.exit(1);

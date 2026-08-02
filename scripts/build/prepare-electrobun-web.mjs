@@ -20,7 +20,7 @@ try {
 } catch {
   console.error(
     `[electrobun] apps/web client build output is missing at ${source}. ` +
-      "Run `bun --cwd apps/web run build` before preparing the desktop shell."
+      "Run `bun --cwd apps/web run build` before preparing the desktop shell.",
   );
   process.exit(1);
 }
@@ -41,7 +41,9 @@ await cp(source, path.join(rendererDestination, "client"), { recursive: true });
 // workspace node_modules makes the installed app fail with a blank/404 page.
 // Install only the SSR runtime closure (not the full web development tree).
 const webPackage = JSON.parse(
-  await (await import("node:fs/promises")).readFile(path.join(root, "apps/web/package.json"), "utf8"),
+  await (
+    await import("node:fs/promises")
+  ).readFile(path.join(root, "apps/web/package.json"), "utf8"),
 );
 const runtimePackage = {
   name: "@argismonitor/desktop-renderer-runtime",
@@ -52,7 +54,10 @@ const runtimePackage = {
     "@trpc/client": webPackage.dependencies["@trpc/client"],
   },
 };
-await writeFile(path.join(rendererDestination, "package.json"), JSON.stringify(runtimePackage, null, 2));
+await writeFile(
+  path.join(rendererDestination, "package.json"),
+  JSON.stringify(runtimePackage, null, 2),
+);
 try {
   await execFileAsync(bunExecutable, ["install", "--production", "--no-save"], {
     cwd: rendererDestination,

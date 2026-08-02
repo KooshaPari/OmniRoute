@@ -29,7 +29,7 @@ export function asRecord(value: unknown): JsonRecord {
 export function toInteger(
   value: unknown,
   fallback: number,
-  options: { min?: number; max?: number } = {}
+  options: { min?: number; max?: number } = {},
 ): number {
   const min = options.min ?? 0;
   const max = options.max ?? Number.MAX_SAFE_INTEGER;
@@ -72,7 +72,7 @@ export function resolveBooleanFeatureFlag(key: string, fallback: boolean): boole
     }
     console.error(
       `[resilience] Failed to resolve ${key}, falling back to ${String(fallback)}:`,
-      error instanceof Error ? error.message : error
+      error instanceof Error ? error.message : error,
     );
     return fallback;
   }
@@ -87,7 +87,7 @@ export function resolveStreamRecoveryDefaults(): StreamRecoverySettings {
 
 export function normalizeRequestQueueSettings(
   next: unknown,
-  fallback: RequestQueueSettings
+  fallback: RequestQueueSettings,
 ): RequestQueueSettings {
   const record = asRecord(next);
   const requestsPerMinute = toInteger(record.requestsPerMinute, fallback.requestsPerMinute, {
@@ -97,7 +97,7 @@ export function normalizeRequestQueueSettings(
   const minTimeBetweenRequestsMs = toInteger(
     record.minTimeBetweenRequestsMs,
     fallback.minTimeBetweenRequestsMs,
-    { min: 0, max: 60 * 60 * 1000 }
+    { min: 0, max: 60 * 60 * 1000 },
   );
   const concurrentRequests = toInteger(record.concurrentRequests, fallback.concurrentRequests, {
     min: 1,
@@ -111,7 +111,7 @@ export function normalizeRequestQueueSettings(
   return {
     autoEnableApiKeyProviders: toBoolean(
       record.autoEnableApiKeyProviders,
-      fallback.autoEnableApiKeyProviders
+      fallback.autoEnableApiKeyProviders,
     ),
     requestsPerMinute,
     minTimeBetweenRequestsMs,
@@ -122,7 +122,7 @@ export function normalizeRequestQueueSettings(
 
 export function normalizeConnectionCooldownProfile(
   next: unknown,
-  fallback: ConnectionCooldownProfileSettings
+  fallback: ConnectionCooldownProfileSettings,
 ): ConnectionCooldownProfileSettings {
   const record = asRecord(next);
   // useUpstream429BreakerHints uses a 3-state input contract:
@@ -164,7 +164,7 @@ export function normalizeConnectionCooldownProfile(
 
 export function normalizeLegacyConnectionCooldownProfile(
   next: unknown,
-  fallback: ConnectionCooldownProfileSettings
+  fallback: ConnectionCooldownProfileSettings,
 ): ConnectionCooldownProfileSettings {
   const record = asRecord(next);
   const transientCooldown = toInteger(record.transientCooldown, fallback.baseCooldownMs, {
@@ -194,7 +194,7 @@ export function normalizeLegacyConnectionCooldownProfile(
 
 export function normalizeProviderBreakerProfile(
   next: unknown,
-  fallback: ProviderBreakerProfileSettings
+  fallback: ProviderBreakerProfileSettings,
 ): ProviderBreakerProfileSettings {
   const record = asRecord(next);
   const failureThreshold = toInteger(record.failureThreshold, fallback.failureThreshold, {
@@ -206,7 +206,7 @@ export function normalizeProviderBreakerProfile(
       min: 1,
       max: 1000,
     }),
-    failureThreshold <= 1 ? 1 : failureThreshold - 1
+    failureThreshold <= 1 ? 1 : failureThreshold - 1,
   );
 
   return {
@@ -221,7 +221,7 @@ export function normalizeProviderBreakerProfile(
 
 export function normalizeProviderWindowDefaults(
   next: unknown,
-  fallback: Record<string, Record<string, number>>
+  fallback: Record<string, Record<string, number>>,
 ): Record<string, Record<string, number>> {
   // Accept either an explicit object or fall back. Drop providers/windows
   // whose values are not a valid 0-100 integer so a malformed setting can't
@@ -253,7 +253,7 @@ export function normalizeProviderWindowDefaults(
 
 export function normalizeQuotaPreflightSettings(
   next: unknown,
-  fallback: QuotaPreflightSettings
+  fallback: QuotaPreflightSettings,
 ): QuotaPreflightSettings {
   const record = asRecord(next);
   // Remaining-% semantics: cutoff is the lowest acceptable remaining %, warn
@@ -263,7 +263,7 @@ export function normalizeQuotaPreflightSettings(
   const defaultThresholdPercent = toInteger(
     record.defaultThresholdPercent,
     fallback.defaultThresholdPercent,
-    { min: 0, max: 99 }
+    { min: 0, max: 99 },
   );
   const warnRaw = toInteger(record.warnThresholdPercent, fallback.warnThresholdPercent, {
     min: 0,
@@ -273,7 +273,7 @@ export function normalizeQuotaPreflightSettings(
     warnRaw <= defaultThresholdPercent ? Math.min(100, defaultThresholdPercent + 1) : warnRaw;
   const providerWindowDefaults = normalizeProviderWindowDefaults(
     record.providerWindowDefaults,
-    fallback.providerWindowDefaults
+    fallback.providerWindowDefaults,
   );
   const enabled = typeof record.enabled === "boolean" ? record.enabled : fallback.enabled;
   return { enabled, defaultThresholdPercent, warnThresholdPercent, providerWindowDefaults };
@@ -281,7 +281,7 @@ export function normalizeQuotaPreflightSettings(
 
 export function normalizeWaitForCooldownSettings(
   next: unknown,
-  fallback: WaitForCooldownSettings
+  fallback: WaitForCooldownSettings,
 ): WaitForCooldownSettings {
   const record = asRecord(next);
   const maxRetryWaitSec = toInteger(record.maxRetryWaitSec, fallback.maxRetryWaitSec, {
@@ -302,7 +302,7 @@ export function normalizeWaitForCooldownSettings(
 
 export function normalizeComboCooldownWaitSettings(
   next: unknown,
-  fallback: ComboCooldownWaitSettings
+  fallback: ComboCooldownWaitSettings,
 ): ComboCooldownWaitSettings {
   const record = asRecord(next);
   // Hard ceiling of 30s on a single wait — this layer only ever exists for
@@ -323,7 +323,7 @@ export function normalizeComboCooldownWaitSettings(
 
 export function normalizeQuotaShareConcurrencyLimitSettings(
   next: unknown,
-  fallback: QuotaShareConcurrencyLimitSettings
+  fallback: QuotaShareConcurrencyLimitSettings,
 ): QuotaShareConcurrencyLimitSettings {
   const record = asRecord(next);
   return { enabled: toBoolean(record.enabled, fallback.enabled) };
@@ -331,7 +331,7 @@ export function normalizeQuotaShareConcurrencyLimitSettings(
 
 export function normalizeProviderCooldownSettings(
   next: unknown,
-  fallback: ProviderCooldownSettings
+  fallback: ProviderCooldownSettings,
 ): ProviderCooldownSettings {
   const record = asRecord(next);
   const enabled = toBoolean(record.enabled, fallback.enabled);
@@ -339,17 +339,20 @@ export function normalizeProviderCooldownSettings(
     min: 0,
     max: 60 * 60 * 1000,
   });
-  const maxRetryCooldownMs = toInteger(record.maxRetryCooldownMs, fallback.maxRetryCooldownMs, {
-    min: minRetryCooldownMs,
-    max: 24 * 60 * 60 * 1000,
-  });
+  const maxRetryCooldownMs = Math.max(
+    minRetryCooldownMs,
+    toInteger(record.maxRetryCooldownMs, fallback.maxRetryCooldownMs, {
+      min: minRetryCooldownMs,
+      max: 24 * 60 * 60 * 1000,
+    }),
+  );
 
   return { enabled, minRetryCooldownMs, maxRetryCooldownMs };
 }
 
 export function normalizeStreamRecoverySettings(
   next: unknown,
-  fallback: StreamRecoverySettings
+  fallback: StreamRecoverySettings,
 ): StreamRecoverySettings {
   const record = asRecord(next);
   return {

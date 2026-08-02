@@ -59,7 +59,7 @@ try {
     throw new Error(`renderer root failed with HTTP ${rootResponse.status}`);
   }
 
-  const bffHealth = await request(backendBase, "/api/bff/healthz");
+  const bffHealth = await request(rendererBase, "/api/bff/healthz");
   if (!bffHealth.ok)
     throw new Error(`Svelte BFF health route failed with HTTP ${bffHealth.status}`);
 
@@ -72,7 +72,9 @@ try {
   // Ensure the staging contract remains explicit even when a build has no
   // generated asset in the root HTML (for example, a minimal CI fixture).
   await readFile(join(cwd.pathname, "generated/web/_app/version.json"));
-  console.log(`[electrobun] gateway + renderer smoke passed: ${backendBase}, ${rendererBase}, ${assetPath}`);
+  console.log(
+    `[electrobun] gateway + renderer smoke passed: ${backendBase}, ${rendererBase}, ${assetPath}`,
+  );
 } finally {
   backend.kill("SIGTERM");
   renderer.kill("SIGTERM");

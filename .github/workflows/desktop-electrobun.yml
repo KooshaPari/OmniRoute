@@ -40,12 +40,9 @@ jobs:
         run: bun run build
       - name: Install API contract dependencies
         working-directory: packages/api-contracts
-        run: bun install --frozen-lockfile
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Install Hono/Bun backend dependencies
         working-directory: apps/bff
-        run: bun install --frozen-lockfile --ignore-scripts
-      - name: Install shared API contract dependencies
-        working-directory: packages/api-contracts
         run: bun install --frozen-lockfile --ignore-scripts
       - name: Install desktop dependencies
         working-directory: desktop-electrobun
