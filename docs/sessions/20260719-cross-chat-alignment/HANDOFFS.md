@@ -699,6 +699,12 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-02T21:13Z - CI startup failure hardening (root)
+
+- PR #491's fresh push exposed a `CI` workflow `startup_failure`; inspection found the aggregate lint job referenced nonexistent `needs.dependency-review.result` while the job is named `dep-review`, and the detect step interpolated its own not-yet-emitted outputs.
+- Fixed `.github/workflows/ci.yml` by using `needs.dep-review.result`, removing the invalid self-reference, quoting `GITHUB_OUTPUT`, and grouping initial output writes. `yq`, `actionlint`, and `git diff --check` now pass locally.
+- This entry is append-only.
+
 ## 2026-08-02T20:29Z - Installed app relaunch after CI repair (root)
 
 - Relaunched `/Applications/OmniRoute.app` with `open -a`; local packaged runtime returned HTTP 200 for `/healthz` and `/`, with health payload `{"status":"ok","service":"argismonitor-bff"}` and title `argismonitor v4`.

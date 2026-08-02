@@ -34,43 +34,45 @@ jobs:
         run: |
           set +e
           # Initialize all outputs to false (critical: every output must be set)
-          echo "has_rust=false" >> $GITHUB_OUTPUT
-          echo "has_deny=false" >> $GITHUB_OUTPUT
-          echo "has_python=false" >> $GITHUB_OUTPUT
-          echo "has_go=false" >> $GITHUB_OUTPUT
-          echo "has_typescript=false" >> $GITHUB_OUTPUT
-          echo "has_security=false" >> $GITHUB_OUTPUT
-          echo "has_trunk=false" >> $GITHUB_OUTPUT
+          {
+            echo "has_rust=false"
+            echo "has_deny=false"
+            echo "has_python=false"
+            echo "has_go=false"
+            echo "has_typescript=false"
+            echo "has_security=false"
+            echo "has_trunk=false"
+          } >> "$GITHUB_OUTPUT"
 
           # Rust: needs Cargo.toml AND deny.toml
           if [ -f "Cargo.toml" ] || [ -f "**/Cargo.toml" ]; then
-            echo "has_rust=true" >> $GITHUB_OUTPUT
+            echo "has_rust=true" >> "$GITHUB_OUTPUT"
             if [ -f "deny.toml" ]; then
-              echo "has_deny=true" >> $GITHUB_OUTPUT
+              echo "has_deny=true" >> "$GITHUB_OUTPUT"
             fi
           fi
 
           # Python: needs pyproject.toml, setup.py, requirements.txt, or *.py
           if [ -f "pyproject.toml" ] || [ -f "setup.py" ] || [ -f "requirements.txt" ] || find . -maxdepth 3 -name "*.py" -type f 2>/dev/null | head -1 | grep -q .; then
-            echo "has_python=true" >> $GITHUB_OUTPUT
+            echo "has_python=true" >> "$GITHUB_OUTPUT"
           fi
 
           # Go: needs go.mod
           if [ -f "go.mod" ]; then
-            echo "has_go=true" >> $GITHUB_OUTPUT
+            echo "has_go=true" >> "$GITHUB_OUTPUT"
           fi
 
           # TypeScript / JS: needs package.json (with type=module or tsconfig or js files)
           if [ -f "package.json" ]; then
-            echo "has_typescript=true" >> $GITHUB_OUTPUT
+            echo "has_typescript=true" >> "$GITHUB_OUTPUT"
           fi
 
           # Security: always run (bandit/gitleaks/dependency-review)
-          echo "has_security=true" >> $GITHUB_OUTPUT
+          echo "has_security=true" >> "$GITHUB_OUTPUT"
 
           # Trunk: only if trunk.yaml exists
           if [ -f "trunk.yaml" ]; then
-            echo "has_trunk=true" >> $GITHUB_OUTPUT
+            echo "has_trunk=true" >> "$GITHUB_OUTPUT"
           fi
 
           echo ""
