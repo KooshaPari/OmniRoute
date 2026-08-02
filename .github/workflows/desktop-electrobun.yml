@@ -38,6 +38,9 @@ jobs:
       - name: Build web client handoff
         working-directory: apps/web
         run: bun run build
+      - name: Install API contract dependencies
+        working-directory: packages/api-contracts
+        run: bun install --frozen-lockfile
       - name: Install Hono/Bun backend dependencies
         working-directory: apps/bff
         run: bun install --frozen-lockfile
@@ -46,7 +49,7 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Install desktop dependencies
         working-directory: desktop-electrobun
-        run: bun install --ignore-scripts
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Stage deterministic renderer assets
         working-directory: desktop-electrobun
         run: bun run prepare:web
@@ -55,7 +58,7 @@ jobs:
         run: bun run typecheck
       - name: Verify renderer contract
         working-directory: desktop-electrobun
-        run: test -f generated/web/index.html && test -f generated/web/_app/version.json
+        run: test -f generated/renderer/index.js && test -f generated/web/_app/version.json
       - name: Build Electrobun shell
         working-directory: desktop-electrobun
         run: ./node_modules/.bin/electrobun build
@@ -83,9 +86,15 @@ jobs:
       - name: Build web client handoff
         working-directory: apps/web
         run: bun run build
+      - name: Install API contract dependencies
+        working-directory: packages/api-contracts
+        run: bun install --frozen-lockfile
+      - name: Install Hono/Bun backend dependencies
+        working-directory: apps/bff
+        run: bun install --frozen-lockfile
       - name: Install desktop dependencies
         working-directory: desktop-electrobun
-        run: bun install --ignore-scripts
+        run: bun install --frozen-lockfile --ignore-scripts
       - name: Build macOS release bundle
         working-directory: desktop-electrobun
         run: bun run build:release

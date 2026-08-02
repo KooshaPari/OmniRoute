@@ -18,7 +18,7 @@ pull_request_rules:
         method: squash
         commit_message_template: |
           {{ title }} (#{{ number }})
-          
+
           Co-authored-by: {{ author }}
       post_merge:
         action: close
@@ -35,7 +35,7 @@ pull_request_rules:
         method: squash
         commit_message_template: |
           {{ title }} (#{{ number }})
-          
+
           Co-authored-by: {{ author }}
       post_merge:
         action: close

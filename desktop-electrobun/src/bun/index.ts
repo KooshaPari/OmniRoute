@@ -9,7 +9,7 @@
  */
 import { BrowserWindow, ApplicationMenu, Tray, Utils } from "electrobun/bun";
 import { $ } from "bun";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const APP_NAME = process.env.APP_NAME ?? "OmniRoute";
@@ -25,21 +25,74 @@ const DEV_URL = process.env.RENDERER_URL ?? "http://localhost:3000";
  * Leave unset to skip service boot.
  */
 const SERVICES_COMPOSE_FILE = process.env.SERVICES_COMPOSE_FILE;
-const STANDALONE_DIR = resolve(
-  process.env.OMNIROUTE_STANDALONE_DIR ??
-    resolve(import.meta.dir, "../../.build/next/standalone"),
-);
-const SERVER_ENTRY = join(STANDALONE_DIR, "server.js");
 const SERVER_PORT = Number(process.env.OMNIROUTE_PORT ?? "20128");
 let nextServer: ReturnType<typeof Bun.spawn> | undefined;
+let rendererServer: ReturnType<typeof Bun.spawn> | undefined;
+
+/** Resolve the backend from both Bun's worker path and the native launcher path.
+ *
+ * Electrobun starts the app entrypoint in a Worker. Depending on whether the
+ * app was opened by Finder or launched from the terminal, `import.meta.dir`
+ * and `process.argv0` can refer to different bundle roots. Keep the lookup
+ * deterministic and fail closed when no packaged server is present.
+ */
+async function resolveBundledBackendDir(): Promise<string | undefined> {
+  const candidates = [
+    process.env.OMNIROUTE_BFF_DIR,
+    resolve(import.meta.dir, "../backend"),
+    resolve(dirname(process.argv0), "../Resources/app/backend"),
+  ].filter((candidate): candidate is string => Boolean(candidate));
+
+  for (const candidate of candidates) {
+    if (await Bun.file(join(candidate, "server.mjs")).exists()) return candidate;
+  }
+  return undefined;
+}
+
+async function bootRendererServer(): Promise<string | undefined> {
+  const candidates = [
+    process.env.OMNIROUTE_RENDERER_DIR,
+    resolve(import.meta.dir, "../renderer"),
+    resolve(dirname(process.argv0), "../Resources/app/renderer"),
+  ].filter((candidate): candidate is string => Boolean(candidate));
+  let rendererDir: string | undefined;
+  for (const candidate of candidates) {
+    if (await Bun.file(join(candidate, "index.js")).exists()) {
+      rendererDir = candidate;
+      break;
+    }
+  }
+  if (!rendererDir) return undefined;
+  const port = Number(process.env.OMNIROUTE_RENDERER_PORT ?? "20129");
+  rendererServer = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, join(rendererDir, "index.js")], {
+    cwd: rendererDir,
+    env: { ...process.env, PORT: String(port), HOST: "127.0.0.1", ORIGIN: `http://127.0.0.1:${port}` },
+    stdout: "inherit",
+    stderr: "inherit",
+  });
+  const url = `http://127.0.0.1:${port}`;
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(500) });
+      if (response.ok) return url;
+    } catch {
+      await Bun.sleep(250);
+    }
+  }
+  rendererServer.kill();
+  rendererServer = undefined;
+  return undefined;
+}
 
 async function bootNextServer(): Promise<string | undefined> {
-  if (!(await Bun.file(SERVER_ENTRY).exists())) {
-    console.warn(`[${APP_NAME}] No Next standalone bundle at ${SERVER_ENTRY}; using bundled fallback`);
+  const standaloneDir = await resolveBundledBackendDir();
+  if (!standaloneDir) {
+    console.warn(`[${APP_NAME}] No bundled backend server.mjs found; using bundled fallback`);
     return undefined;
   }
-  nextServer = Bun.spawn([process.env.OMNIROUTE_NODE ?? "node", SERVER_ENTRY], {
-    cwd: STANDALONE_DIR,
+  const serverEntry = join(standaloneDir, "server.mjs");
+  nextServer = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, serverEntry], {
+    cwd: standaloneDir,
     env: { ...process.env, PORT: String(SERVER_PORT), HOSTNAME: "127.0.0.1" },
     stdout: "inherit",
     stderr: "inherit",
@@ -48,7 +101,7 @@ async function bootNextServer(): Promise<string | undefined> {
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
       const response = await fetch(url, { signal: AbortSignal.timeout(500) });
-      if (response.status < 500) return url;
+      if (response.ok) return url;
     } catch {
       await Bun.sleep(250);
     }
@@ -184,14 +237,15 @@ function setupMenu(win: BrowserWindow): void {
 async function main(): Promise<void> {
   await bootServices();
   const bundledUrl = await bootNextServer();
+  const rendererUrl = await bootRendererServer();
   const win = createMainWindow();
-  if (bundledUrl) win.webview.loadURL(bundledUrl);
+  if (rendererUrl) win.webview.loadURL(rendererUrl);
   setupMenu(win);
   setupTray(win);
-  console.log(`[${APP_NAME}] Launched → ${bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`);
+  console.log(`[${APP_NAME}] Launched → ${rendererUrl ?? bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`);
 }
 
-process.on("exit", () => nextServer?.kill());
+process.on("exit", () => { nextServer?.kill(); rendererServer?.kill(); });
 main().catch((err) => {
   console.error(`[${APP_NAME}] Fatal:`, err);
   process.exit(1);

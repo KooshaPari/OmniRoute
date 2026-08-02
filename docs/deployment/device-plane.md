@@ -21,5 +21,10 @@ after an unexpected exit. Its readiness probes are local-only and bounded;
 `npm run start` must pass the production environment validation, including
 `BFF_API_KEY`.
 
+The process file creates the Redis data directory and restarts either process
+after an unexpected exit. Its readiness probes are local-only and bounded;
+`npm run start` must pass the production environment validation, including
+`BFF_API_KEY`.
+
 Docker Compose remains the canonical production container topology. Use
 `docker-compose.prod.yml` when isolation or reproducible images are required.
