@@ -3,268 +3,302 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const cwd = process.cwd();
-const packageJsonPath = path.resolve(cwd, "package.json");
-const openApiPath = path.resolve(cwd, "docs/openapi.yaml");
-const changelogPath = path.resolve(cwd, "CHANGELOG.md");
-const llmPath = path.resolve(cwd, "llm.txt");
-const i18nDocsPath = path.resolve(cwd, "docs/i18n");
+const ROOT = process.cwd();
+const DEFAULT_MANIFEST = "config/release/release-contract.json";
+const SCOPES = new Set(["release", "mirrors", "all"]);
+const SOURCE_KINDS = new Set(["package", "openapi", "changelog"]);
+const LOWERCASE_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 
-function readText(filePath) {
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`File not found: ${path.relative(cwd, filePath)}`);
-  }
-  return fs.readFileSync(filePath, "utf8");
+function fail(message) {
+  throw new Error(message);
 }
 
-function extractOpenApiVersion(content) {
-  const lines = content.split(/\r?\n/);
-  let inInfoBlock = false;
+function parseArgs(argv = process.argv.slice(2)) {
+  const options = { scope: "all", manifest: DEFAULT_MANIFEST, product: null, json: false };
+  const seen = new Set();
 
-  for (const line of lines) {
-    const trimmed = line.trim();
-
-    if (!inInfoBlock) {
-      if (trimmed === "info:") {
-        inInfoBlock = true;
-      }
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index];
+    if (argument === "--help" || argument === "-h") {
+      return { ...options, help: true };
+    }
+    if (argument === "--json") {
+      if (seen.has("json")) fail("duplicate option: --json");
+      seen.add("json");
+      options.json = true;
       continue;
     }
 
-    if (line.length > 0 && !line.startsWith(" ")) {
-      break;
-    }
-
-    const match = line.match(/^\s{2}version:\s*["']?([^"'\s]+)["']?\s*$/);
-    if (match) {
-      return match[1];
-    }
+    const match = argument.match(/^--(scope|manifest|product)(?:=(.*))?$/);
+    if (!match) fail(`unknown option: ${argument}`);
+    const [, key, inlineValue] = match;
+    if (seen.has(key)) fail(`duplicate option: --${key}`);
+    seen.add(key);
+    const value = inlineValue ?? argv[++index];
+    if (!value || value.startsWith("--")) fail(`missing value for --${key}`);
+    options[key] = value;
   }
 
+  if (!SCOPES.has(options.scope)) {
+    fail(
+      `invalid --scope value: ${JSON.stringify(options.scope)} (expected release, mirrors, or all)`
+    );
+  }
+  if (options.product !== null && !LOWERCASE_ID.test(options.product)) {
+    fail(
+      `invalid --product value: ${JSON.stringify(options.product)} (expected lowercase kebab-case)`
+    );
+  }
+  return options;
+}
+
+function normalizeRelativePath(value, label) {
+  if (typeof value !== "string" || value.length === 0) fail(`${label} must be a non-empty path`);
+  const portable = value.replaceAll("\\", "/");
+  if (portable.startsWith("/") || /^[A-Za-z]:\//.test(portable)) {
+    fail(`${label} must be repository-relative: ${value}`);
+  }
+  const segments = portable.split("/");
+  if (segments.includes("..") || portable === "." || portable.startsWith("../")) {
+    fail(`${label} must not traverse parent directories: ${value}`);
+  }
+  if (portable.includes("\0")) fail(`${label} contains a NUL byte`);
+  return portable;
+}
+
+function isInside(root, candidate) {
+  const relative = path.relative(root, candidate);
+  return (
+    relative === "" ||
+    (relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative))
+  );
+}
+
+function resolveDeclaredPath(relativePath, label, { mustExist = false } = {}) {
+  const normalized = normalizeRelativePath(relativePath, label);
+  const absolute = path.resolve(ROOT, normalized);
+  const rootReal = fs.realpathSync(ROOT);
+  if (fs.existsSync(absolute)) {
+    const resolved = fs.realpathSync(absolute);
+    if (!isInside(rootReal, resolved))
+      fail(`${label} resolves outside repository: ${relativePath}`);
+  } else if (mustExist) {
+    fail(`${label} does not exist: ${relativePath}`);
+  }
+  return absolute;
+}
+
+function readText(relativePath, label) {
+  const absolute = resolveDeclaredPath(relativePath, label, { mustExist: true });
+  if (!fs.statSync(absolute).isFile()) fail(`${label} is not a file: ${relativePath}`);
+  return fs.readFileSync(absolute, "utf8");
+}
+
+function readJson(relativePath, label) {
+  try {
+    return JSON.parse(readText(relativePath, label));
+  } catch (error) {
+    if (error instanceof SyntaxError) fail(`${label} is not valid JSON: ${error.message}`);
+    throw error;
+  }
+}
+
+function assertObject(value, label) {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    fail(`${label} must be an object`);
+  }
+}
+
+function assertString(value, label) {
+  if (typeof value !== "string" || value.length === 0) fail(`${label} must be a non-empty string`);
+}
+
+function loadManifest(relativePath) {
+  const manifest = readJson(relativePath, "release manifest");
+  assertObject(manifest, "release manifest");
+  if (manifest.schemaVersion !== 1) fail("release manifest schemaVersion must be 1");
+  assertObject(manifest.product, "release manifest product");
+  assertString(manifest.product.id, "release manifest product.id");
+  if (!LOWERCASE_ID.test(manifest.product.id)) {
+    fail(`release manifest product.id must be lowercase kebab-case: ${manifest.product.id}`);
+  }
+  assertString(manifest.product.name, "release manifest product.name");
+  assertString(manifest.product.packageName, "release manifest product.packageName");
+
+  if (!Array.isArray(manifest.versionSources) || manifest.versionSources.length === 0) {
+    fail("release manifest versionSources must be a non-empty array");
+  }
+  const sources = new Map();
+  for (const [index, source] of manifest.versionSources.entries()) {
+    assertObject(source, `release manifest versionSources[${index}]`);
+    assertString(source.path, `release manifest versionSources[${index}].path`);
+    assertString(source.kind, `release manifest versionSources[${index}].kind`);
+    if (!SOURCE_KINDS.has(source.kind)) fail(`unsupported release source kind: ${source.kind}`);
+    if (sources.has(source.kind)) fail(`duplicate release source kind: ${source.kind}`);
+    resolveDeclaredPath(source.path, `release source ${source.kind}`);
+    sources.set(source.kind, source.path);
+  }
+  for (const kind of SOURCE_KINDS) {
+    if (!sources.has(kind)) fail(`release manifest is missing ${kind} version source`);
+  }
+
+  assertObject(manifest.i18n, "release manifest i18n");
+  for (const field of ["configPath", "messagesPath", "generatedDocsPath"]) {
+    assertString(manifest.i18n[field], `release manifest i18n.${field}`);
+    normalizeRelativePath(manifest.i18n[field], `release manifest i18n.${field}`);
+  }
+  if (manifest.i18n.statePath !== undefined) {
+    assertString(manifest.i18n.statePath, "release manifest i18n.statePath");
+    normalizeRelativePath(manifest.i18n.statePath, "release manifest i18n.statePath");
+  }
+  const stateMode = manifest.i18n.stateMode ?? "optional-artifact";
+  if (!new Set(["optional-artifact", "required"]).has(stateMode)) {
+    fail(`unsupported i18n stateMode: ${stateMode}`);
+  }
+  if (stateMode === "required" && manifest.i18n.statePath === undefined) {
+    fail("release manifest i18n.statePath is required when stateMode is required");
+  }
+  if (manifest.i18n.policy !== "generated-docs-ignored") {
+    fail("release manifest i18n.policy must be generated-docs-ignored");
+  }
+  return { ...manifest, versionSources: sources, stateMode };
+}
+
+function extractOpenApiVersion(content) {
+  let inInfo = false;
+  for (const line of content.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!inInfo) {
+      if (trimmed === "info:") inInfo = true;
+      continue;
+    }
+    if (line.length > 0 && !line.startsWith(" ")) break;
+    const match = line.match(/^\s{2}version:\s*["']?([^"'\s]+)["']?\s*$/);
+    if (match) return match[1];
+  }
   return null;
 }
 
 function extractChangelogSections(content) {
-  const headings = [...content.matchAll(/^##\s+\[([^\]]+)\](?:\s+[-—–].*)?$/gm)];
-  return headings.map((match) => match[1]);
+  return [...content.matchAll(/^##\s+\[([^\]]+)\](?:\s+[-—–].*)?$/gm)].map((match) => match[1]);
 }
 
-function stripTopHeading(content) {
-  return content.replace(/^# .+\r?\n+/, "");
-}
-
-function extractI18nMirrorBody(content) {
-  const separator = content.match(/^---\s*$/m);
-  if (!separator || separator.index === undefined) {
-    return null;
-  }
-
-  return content.slice(separator.index + separator[0].length).replace(/^\r?\n+/, "");
-}
-
-function normalizeMirrorBody(content) {
-  return content.replace(/\r\n/g, "\n").trim();
-}
-
-function isSemver(value) {
-  // Accept X.Y.Z and X.Y.Z-prerelease.N (e.g. 3.0.0-rc.1, 3.0.0-beta.2)
-  return /^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$/.test(value);
-}
-
-let hasFailure = false;
-
-function fail(message) {
-  hasFailure = true;
-  console.error(`[docs-sync] FAIL - ${message}`);
-}
-
-function checkI18nMirrorFile(fileName, sourcePath) {
-  if (!fs.existsSync(i18nDocsPath)) {
-    fail("docs/i18n directory is missing");
-    return;
-  }
-
-  const sourceBody = normalizeMirrorBody(stripTopHeading(readText(sourcePath)));
-  const locales = fs
-    .readdirSync(i18nDocsPath, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .sort();
-
-  let checked = 0;
-  for (const locale of locales) {
-    const targetPath = path.join(i18nDocsPath, locale, fileName);
-    if (!fs.existsSync(targetPath)) {
-      fail(`docs/i18n/${locale}/${fileName} is missing`);
-      continue;
-    }
-
-    const body = extractI18nMirrorBody(readText(targetPath));
-    if (body === null) {
-      fail(`docs/i18n/${locale}/${fileName} is missing the i18n mirror separator`);
-      continue;
-    }
-
-    if (normalizeMirrorBody(body) !== sourceBody) {
-      fail(`docs/i18n/${locale}/${fileName} differs from root ${fileName}`);
-      continue;
-    }
-
-    checked += 1;
-  }
-
-  if (checked > 0) {
-    console.log(`[docs-sync] ${fileName} i18n mirrors match root content: ${checked} locales`);
-  }
-}
-
-/**
- * Check i18n CHANGELOG mirrors by verifying that all version sections from the
- * root CHANGELOG exist in each translation. Unlike strict mirror files (llm.txt),
- * CHANGELOG translations have translated section headings (e.g. "Security" →
- * "Segurança"), so byte-for-byte comparison is intentionally skipped.
- *
- * Validates:
- * 1. File exists in each locale
- * 2. Has the i18n mirror separator (---)
- * 3. Contains all version sections (## [X.Y.Z]) from root, in the same order
- * 4. Body is non-empty and within a reasonable size tolerance of the source
- */
-function checkI18nChangelogFile(sourcePath) {
-  const fileName = "CHANGELOG.md";
-  if (!fs.existsSync(i18nDocsPath)) {
-    fail("docs/i18n directory is missing");
-    return;
-  }
-
-  const sourceContent = readText(sourcePath);
-  const sourceBody = normalizeMirrorBody(stripTopHeading(sourceContent));
-  const sourceVersions = extractChangelogSections(sourceContent);
-  const locales = fs
-    .readdirSync(i18nDocsPath, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .sort();
-
-  let checked = 0;
-  for (const locale of locales) {
-    const targetPath = path.join(i18nDocsPath, locale, fileName);
-    if (!fs.existsSync(targetPath)) {
-      fail(`docs/i18n/${locale}/${fileName} is missing`);
-      continue;
-    }
-
-    const targetContent = readText(targetPath);
-    const body = extractI18nMirrorBody(targetContent);
-    if (body === null) {
-      fail(`docs/i18n/${locale}/${fileName} is missing the i18n mirror separator`);
-      continue;
-    }
-
-    const normalizedBody = normalizeMirrorBody(body);
-    if (normalizedBody.length === 0) {
-      fail(`docs/i18n/${locale}/${fileName} has empty body after separator`);
-      continue;
-    }
-
-    // Verify all version sections from root exist in the translation
-    const targetVersions = extractChangelogSections(targetContent);
-    const missingVersions = sourceVersions.filter((v) => !targetVersions.includes(v));
-    if (missingVersions.length > 0) {
-      fail(
-        `docs/i18n/${locale}/${fileName} is missing version sections: ${missingVersions.slice(0, 3).join(", ")}${missingVersions.length > 3 ? ` (+${missingVersions.length - 3} more)` : ""}`
-      );
-      continue;
-    }
-
-    // Verify body line count is within 25% tolerance of source (translations
-    // should preserve structure — drastic line-count differences indicate
-    // stale or missing content)
-    const sourceLines = sourceBody.split("\n").length;
-    const targetLines = normalizedBody.split("\n").length;
-    const sizeDiff = Math.abs(targetLines - sourceLines) / sourceLines;
-    if (sizeDiff > 0.25) {
-      fail(
-        `docs/i18n/${locale}/${fileName} body line count differs by ${(sizeDiff * 100).toFixed(0)}% from root (expected within 25%)`
-      );
-      continue;
-    }
-
-    checked += 1;
-  }
-
-  if (checked > 0) {
-    console.log(
-      `[docs-sync] ${fileName} i18n translations validated: ${checked} locales (version sections + size check)`
+function checkRelease(manifest) {
+  const packageData = readJson(manifest.versionSources.get("package"), "package version source");
+  assertObject(packageData, "package version source");
+  if (packageData.name !== manifest.product.packageName) {
+    fail(
+      `package identity differs from release manifest: ${packageData.name} (expected ${manifest.product.packageName})`
     );
   }
+  assertString(packageData.version, "package.json version");
+  if (!SEMVER.test(packageData.version))
+    fail(`package.json version is not valid semver: ${packageData.version}`);
+  const version = packageData.version;
+
+  const openApiVersion = extractOpenApiVersion(
+    readText(manifest.versionSources.get("openapi"), "OpenAPI version source")
+  );
+  if (!openApiVersion) fail("could not extract OpenAPI info.version");
+  if (openApiVersion !== version)
+    fail(`OpenAPI version (${openApiVersion}) differs from package.json (${version})`);
+
+  const changelogSections = extractChangelogSections(
+    readText(manifest.versionSources.get("changelog"), "CHANGELOG version source")
+  );
+  if (changelogSections[0] !== "Unreleased")
+    fail('CHANGELOG.md first section must be "## [Unreleased]"');
+  const releases = changelogSections.filter((section) => SEMVER.test(section));
+  if (releases.length === 0) fail("CHANGELOG.md has no semver release section");
+  if (releases[0] !== version)
+    fail(`latest changelog release (${releases[0]}) differs from package.json (${version})`);
+
+  console.log(`[docs-sync] release identity: ${manifest.product.id} ${version}`);
+  console.log(
+    `[docs-sync] declared sources: package, openapi, changelog (${releases.length} changelog releases)`
+  );
+  return version;
 }
+
+function localeCodes(config) {
+  if (!Array.isArray(config.locales) || config.locales.length === 0)
+    fail("i18n config locales must be a non-empty array");
+  const codes = config.locales.map((entry, index) => {
+    const code = typeof entry === "string" ? entry : entry?.code;
+    assertString(code, `i18n config locales[${index}].code`);
+    if (code.includes("/") || code.includes("\\") || code === "." || code === "..") {
+      fail(`i18n locale code is not a safe path segment: ${code}`);
+    }
+    return code;
+  });
+  if (new Set(codes).size !== codes.length) fail("i18n config locales contains duplicates");
+  return codes;
+}
+
+function checkMirrors(manifest) {
+  const config = readJson(manifest.i18n.configPath, "i18n config");
+  assertObject(config, "i18n config");
+  const codes = localeCodes(config);
+  const messageRoot = resolveDeclaredPath(manifest.i18n.messagesPath, "i18n messages directory", {
+    mustExist: true,
+  });
+  if (!fs.statSync(messageRoot).isDirectory()) fail("i18n messages path is not a directory");
+  for (const code of codes) {
+    const localePath = path.join(manifest.i18n.messagesPath, `${code}.json`);
+    readJson(localePath, `i18n locale ${code}`);
+  }
+  if (config.default !== undefined && !codes.includes(config.default)) {
+    fail(`i18n default locale is not configured: ${config.default}`);
+  }
+  if (manifest.i18n.stateMode === "required") {
+    readJson(manifest.i18n.statePath, "i18n state");
+  } else if (manifest.i18n.statePath) {
+    resolveDeclaredPath(manifest.i18n.statePath, "i18n state");
+  }
+  console.log(
+    `[docs-sync] i18n configured locales: ${codes.length}; generated docs ignored per ADR-0005`
+  );
+  return codes.length;
+}
+
+function main(argv = process.argv.slice(2)) {
+  const options = parseArgs(argv);
+  if (options.help) {
+    console.log(
+      "Usage: node scripts/check/check-docs-sync.mjs [--scope release|mirrors|all] [--manifest PATH] [--product ID]"
+    );
+    return { ok: true, help: true };
+  }
+  const manifest = loadManifest(options.manifest);
+  if (options.product !== null && options.product !== manifest.product.id) {
+    fail(
+      `requested product ${options.product} differs from manifest product ${manifest.product.id}`
+    );
+  }
+  const result = { product: manifest.product.id, scope: options.scope };
+  if (options.scope === "release" || options.scope === "all")
+    result.version = checkRelease(manifest);
+  if (options.scope === "mirrors" || options.scope === "all")
+    result.locales = checkMirrors(manifest);
+  console.log(`[docs-sync] PASS - ${options.scope} contract is consistent.`);
+  return result;
+}
+
+export {
+  checkMirrors,
+  checkRelease,
+  extractChangelogSections,
+  extractOpenApiVersion,
+  loadManifest,
+  main,
+  parseArgs,
+};
 
 try {
-  const packageJson = JSON.parse(readText(packageJsonPath));
-  const packageVersion = packageJson.version;
-
-  if (!isSemver(packageVersion)) {
-    fail(`package.json version is not valid semver: "${packageVersion}"`);
-  } else {
-    console.log(`[docs-sync] package.json version: ${packageVersion}`);
-  }
-
-  const openApiVersion = extractOpenApiVersion(readText(openApiPath));
-  if (!openApiVersion) {
-    fail("could not extract docs/openapi.yaml info.version");
-  } else if (openApiVersion !== packageVersion) {
-    fail(`OpenAPI version (${openApiVersion}) differs from package.json (${packageVersion})`);
-  } else {
-    console.log(`[docs-sync] openapi.yaml info.version matches: ${openApiVersion}`);
-  }
-
-  const changelogSections = extractChangelogSections(readText(changelogPath));
-  if (changelogSections.length === 0) {
-    fail("CHANGELOG.md has no version sections");
-  } else {
-    if (changelogSections[0] !== "Unreleased") {
-      fail('CHANGELOG.md first section must be "## [Unreleased]"');
-    } else {
-      console.log("[docs-sync] changelog has top Unreleased section");
-    }
-
-    const semverSections = changelogSections.filter((section) => isSemver(section));
-    if (semverSections.length === 0) {
-      fail("CHANGELOG.md has no semver release section");
-    } else if (semverSections[0] !== packageVersion) {
-      fail(
-        `Latest changelog release (${semverSections[0]}) differs from package.json (${packageVersion})`
-      );
-    } else {
-      console.log(
-        `[docs-sync] latest changelog release matches package version: ${packageVersion}`
-      );
-    }
-  }
-
-  // llm.txt mirrors must be exact copies (no translation)
-  checkI18nMirrorFile("llm.txt", llmPath);
-  // CHANGELOG.md mirrors are translations — check version sections and size, not exact content
-  checkI18nChangelogFile(changelogPath);
-
-  // Anti-regression: legacy duplicate docs that have been superseded must not return.
-  // Use docs/reference/* as the source of truth.
-  const supersededDocs = [{ legacy: "docs/CLI-TOOLS.md", current: "docs/reference/CLI-TOOLS.md" }];
-  for (const { legacy, current } of supersededDocs) {
-    const legacyAbs = path.resolve(cwd, legacy);
-    if (fs.existsSync(legacyAbs)) {
-      fail(
-        `legacy duplicate ${legacy} reappeared — use ${current} instead (single source of truth)`
-      );
-    }
-  }
+  main();
 } catch (error) {
-  fail(error instanceof Error ? error.message : String(error));
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`[docs-sync] FAIL - ${message}`);
+  process.exitCode = 1;
 }
-
-if (hasFailure) {
-  process.exit(1);
-}
-
-console.log("[docs-sync] PASS - documentation version sync is consistent.");
