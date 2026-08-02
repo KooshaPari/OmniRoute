@@ -49,7 +49,7 @@ async function resolveBundledBackendDir(): Promise<string | undefined> {
   return undefined;
 }
 
-async function bootRendererServer(): Promise<string | undefined> {
+async function bootRendererServer(backendUrl?: string): Promise<string | undefined> {
   const candidates = [
     process.env.OMNIROUTE_RENDERER_DIR,
     resolve(import.meta.dir, "../renderer"),
@@ -71,6 +71,7 @@ async function bootRendererServer(): Promise<string | undefined> {
         cwd: rendererDir,
         env: {
           ...process.env,
+          ...(backendUrl ? { BFF_ORIGIN: backendUrl, PUBLIC_OMNIROUTE_BFF_URL: backendUrl } : {}),
           PORT: String(port),
           HOST: "127.0.0.1",
           ORIGIN: `http://127.0.0.1:${port}`,
@@ -89,7 +90,7 @@ async function bootRendererServer(): Promise<string | undefined> {
   const url = `http://127.0.0.1:${port}`;
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(500) });
+      const response = await fetch(`${url}/healthz`, { signal: AbortSignal.timeout(500) });
       if (response.ok) return url;
     } catch {
       // The gateway may still be starting; retry after the bounded delay below.
@@ -132,7 +133,7 @@ async function bootNextServer(): Promise<string | undefined> {
   const url = `http://127.0.0.1:${SERVER_PORT}`;
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(500) });
+      const response = await fetch(`${url}/healthz`, { signal: AbortSignal.timeout(500) });
       if (response.ok) return url;
     } catch {
       // The backend may still be starting; retry after the bounded delay below.
@@ -140,6 +141,8 @@ async function bootNextServer(): Promise<string | undefined> {
     await Bun.sleep(250);
   }
   console.warn(`[${APP_NAME}] Next standalone server did not become ready; using bundled fallback`);
+  nextServer.kill();
+  nextServer = undefined;
   return undefined;
 }
 
@@ -270,7 +273,7 @@ function setupMenu(win: BrowserWindow): void {
 async function main(): Promise<void> {
   await bootServices();
   const bundledUrl = await bootNextServer();
-  const rendererUrl = await bootRendererServer();
+  const rendererUrl = await bootRendererServer(bundledUrl);
   const win = createMainWindow();
   if (rendererUrl) win.webview.loadURL(rendererUrl);
   setupMenu(win);

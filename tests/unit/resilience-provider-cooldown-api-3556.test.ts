@@ -65,6 +65,32 @@ describe("providerCooldown roundtrip through mergeResilienceSettings", () => {
     assert.ok(merged.providerCooldown.maxRetryCooldownMs > 0);
   });
 
+  it("normalizes a stored maximum when a minimum-only patch raises the floor", () => {
+    const base = resolveResilienceSettings({
+      resilienceSettings: {
+        providerCooldown: { enabled: true, minRetryCooldownMs: 1000, maxRetryCooldownMs: 2000 },
+      },
+    });
+    const merged = mergeResilienceSettings(base, {
+      providerCooldown: { minRetryCooldownMs: 5000 },
+    });
+    assert.equal(merged.providerCooldown.minRetryCooldownMs, 5000);
+    assert.equal(merged.providerCooldown.maxRetryCooldownMs, 5000);
+  });
+
+  it("preserves a valid minimum when a maximum-only patch is applied", () => {
+    const base = resolveResilienceSettings({
+      resilienceSettings: {
+        providerCooldown: { enabled: true, minRetryCooldownMs: 5000, maxRetryCooldownMs: 6000 },
+      },
+    });
+    const merged = mergeResilienceSettings(base, {
+      providerCooldown: { maxRetryCooldownMs: 20000 },
+    });
+    assert.equal(merged.providerCooldown.minRetryCooldownMs, 5000);
+    assert.equal(merged.providerCooldown.maxRetryCooldownMs, 20000);
+  });
+
   it("resolveResilienceSettings returns providerCooldown field", () => {
     const settings = resolveResilienceSettings({});
     assert.ok("providerCooldown" in settings, "providerCooldown missing from resolved settings");
