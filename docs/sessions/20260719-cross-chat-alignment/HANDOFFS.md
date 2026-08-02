@@ -809,3 +809,11 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Endpoint dogfood: `/healthz` and `/api/bff/healthz` each return HTTP 200 JSON `{"status":"ok","service":"argismonitor-bff"}`; `/` returns HTTP 200 `text/html` (6129 bytes, title `argismonitor v4`); `/_app/immutable/assets/0.Axv2mgFR.css` returns HTTP 200 `text/css` (25435 bytes).
 - This is the first verified packaged-app gateway/UI proof; the manually launched backend is not part of this evidence.
 - This entry is append-only.
+
+## 2026-08-02T09:15Z - PR #486 semantic rebase onto current main (rebase_execute)
+
+- Rebased the isolated PR #486 work onto `origin/main` at `d3776803692522dfd3b7a046b15316d280b24a36`; final HEAD is `76cde63e889fe88cfeb53ff9bce6929b9154ad5d`, with `git merge-base HEAD origin/main` equal to that main SHA.
+- Resolved desktop conflicts by preserving main's dual-process SSR layout (BFF/backend on 20128 plus Svelte renderer on 20129), carrying BFF origin/public URL environment, `/api/bff/healthz` rewrite, bounded spawn/readiness handling, launcher-compatible `src/index.ts`, and packaged renderer/backend assertions.
+- Resolved CI conflicts by retaining main's pinned actions, Scorecard permissions, Trunk/qgate semantics, and desktop assertions; cargo test/build remain lockfile-bound. `yq` parses changed workflows, non-CI `actionlint` passes, desktop `bun run typecheck` passes, Node syntax checks pass, and `git diff --check` passes.
+- Full CI actionlint still reports pre-existing `.github/workflows/ci.yml` detect-output shellcheck/property diagnostics; these were not broadened during the semantic rebase and remain a follow-up hardening lane.
+- This entry is append-only.
