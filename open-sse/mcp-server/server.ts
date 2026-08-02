@@ -799,6 +799,11 @@ async function handleWebFetch(args: {
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
 }
+<<<<<<< HEAD
+=======
+
+// ============ MCP Server Setup ============
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 
 export function createMcpServer(): McpServer {
   const server = new McpServer({
@@ -1114,7 +1119,13 @@ export function createMcpServer(): McpServer {
         "Fetches and extracts content from a URL using OmniRoute's web fetch gateway. Supports multiple providers (Firecrawl, Jina Reader, Tavily) with automatic failover. Returns the page content as markdown, HTML, links, or screenshot, along with metadata.",
       inputSchema: webFetchInput,
     },
+<<<<<<< HEAD
     withScopeEnforcement("omniroute_web_fetch", (args) => handleWebFetch(webFetchInput.parse(args)))
+=======
+    withScopeEnforcement("omniroute_web_fetch", (args) =>
+      handleWebFetch(webFetchInput.parse(args))
+    )
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   );
 
   server.registerTool(

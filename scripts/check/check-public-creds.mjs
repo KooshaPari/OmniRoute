@@ -81,7 +81,11 @@ const ENV_KEY_RE = /(clientId|clientSecret|apiKey)Env\s*:/;
 //
 // 6A.8: Expanded scope to open-sse/** + src/lib/oauth/**. Newly discovered FPs:
 //
+<<<<<<< HEAD
 //   open-sse/services/usage/minimax.ts L213: `getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn")`
+=======
+//   open-sse/services/usage.ts L582: `getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn")`
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 //   The CRED_KEY_RE matches `apiKey:` in the TypeScript function-parameter type annotation.
 //   "minimax" and "minimax-cn" are provider-name strings in the type annotation, NOT credentials.
 //   This is a false positive (the gate was designed for object-literal assignments, not fn params).
@@ -90,8 +94,13 @@ const ENV_KEY_RE = /(clientId|clientSecret|apiKey)Env\s*:/;
 //   The MiniMax family was extracted from services/usage.ts into services/usage/minimax.ts
 //   (god-file decomposition), so the FP moved with the getMiniMaxUsage signature.
 export const KNOWN_LITERAL_CREDS = new Set([
+<<<<<<< HEAD
   "open-sse/services/usage/minimax.ts:213:minimax", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (getMiniMaxUsage signature)
   "open-sse/services/usage/minimax.ts:213:minimax-cn", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (getMiniMaxUsage signature)
+=======
+  "open-sse/services/usage.ts:582:minimax", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (moved 543→547 by #3838/#4293, then 547→582 by the v3.8.33 usage.ts growth)
+  "open-sse/services/usage.ts:582:minimax-cn", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (moved 543→547 by #3838/#4293, then 547→582 by the v3.8.33 usage.ts growth)
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 ]);
 
 /**

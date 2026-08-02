@@ -2568,7 +2568,15 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   // identity).
   const handleDeselectModel = (model) => {
     const value =
+<<<<<<< HEAD
       typeof model?.value === "string" ? model.value : typeof model === "string" ? model : "";
+=======
+      typeof model?.value === "string"
+        ? model.value
+        : typeof model === "string"
+          ? model
+          : "";
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     if (!value) return;
     setModels(models.filter((m) => m.model !== value));
     setBuilderError("");
@@ -2765,6 +2773,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     if (strategy === "weighted" && config.stickyWeightedLimit !== undefined) {
       configToSave.stickyWeightedLimit = config.stickyWeightedLimit;
     }
+<<<<<<< HEAD
     if (
       usesIntelligentBuilderStage &&
       !isExpertMode &&
@@ -2775,6 +2784,8 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
         configToSave.candidatePool = derivedCandidatePool;
       }
     }
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     const hasConfigToSave = Object.keys(configToSave).length > 0;
     const hadExistingConfig = Object.keys(sanitizeComboRuntimeConfig(combo?.config)).length > 0;
     if (hasConfigToSave || (isEdit && hadExistingConfig)) {

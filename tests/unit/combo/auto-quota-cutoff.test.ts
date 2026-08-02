@@ -4,7 +4,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { scoreAutoTargets } from "../../../open-sse/services/combo/autoStrategy.ts";
+<<<<<<< HEAD
 import { getConnectionStatusQuotaCutoffReason } from "../../../open-sse/services/combo.ts";
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 import type {
   AutoProviderCandidate,
   ResolvedComboTarget,
@@ -122,6 +125,7 @@ test("blocked quota candidates are not included in the scoring pool", () => {
     "the blocked GLM latency must not inflate surviving candidates' scores"
   );
 });
+<<<<<<< HEAD
 
 test("connection terminal status maps to quota cutoff reason", () => {
   assert.equal(
@@ -197,3 +201,5 @@ test("terminal-status cutoff is consulted only when quota cutoff is enabled", ()
   assert.equal(gated(true), "credits_exhausted", "enabled: terminal status blocks the candidate");
   assert.equal(gated(false), undefined, "disabled: terminal status must NOT pre-block (opt-in)");
 });
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf

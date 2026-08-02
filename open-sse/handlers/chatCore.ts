@@ -64,8 +64,12 @@ import { checkHeapPressureGuard } from "../utils/heapPressure.ts";
 import { normalizeHeaders } from "../utils/headers.ts";
 import { resolveChatCoreRequestFormat } from "./chatCore/requestFormat.ts";
 import { resolveChatCoreTargetFormat } from "./chatCore/targetFormat.ts";
+<<<<<<< HEAD
 import { defaultClaudeToolType } from "./chatCore/claudeToolDefaults.ts";
 import { injectSystemPrompt, injectCustomSystemPrompt } from "../services/systemPrompt.ts";
+=======
+import { injectSystemPrompt } from "../services/systemPrompt.ts";
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 import { translateRequest, needsTranslation } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
 import { sanitizeKiroTools } from "../utils/kiroSanitizer.ts";
@@ -146,6 +150,7 @@ import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/pr
 import { wasRefreshTokenRotated } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import { connectionHasExtraKeys } from "../services/apiKeyRotator.ts";
 import { recordKeyHealthStatus as recordKeyHealthStatusFor } from "./chatCore/keyHealth.ts";
+<<<<<<< HEAD
 import { getSkillsModelIdForFormat } from "./chatCore/skillsFormat.ts";
 import { readNonStreamingResponseBody } from "./chatCore/nonStreamingResponseBody.ts";
 import {
@@ -168,6 +173,8 @@ import { stageTrace } from "./chatCore/stageTrace.ts";
 import { attachCompressionUsageReceiptAfterAnalytics as attachCompressionUsageReceiptAfterAnalyticsFor } from "./chatCore/compressionUsageReceipt.ts";
 import { prepareUpstreamBody } from "./chatCore/upstreamBody.ts";
 import { getQuotaScopeLabelForProvider } from "../services/antigravityQuotaFamily.ts";
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 
 import {
   getCallLogPipelineCaptureStreamChunks,
@@ -221,7 +228,14 @@ import {
   normalizeExecutorResult,
   executeWithUpstreamStartTimeout,
 } from "./chatCore/upstreamTimeouts.ts";
+<<<<<<< HEAD
 import { getModelNormalizeToolCallId, getModelPreserveOpenAIDeveloperRole } from "@/lib/localDb";
+=======
+import {
+  getModelNormalizeToolCallId,
+  getModelPreserveOpenAIDeveloperRole,
+} from "@/lib/localDb";
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 import { getProviderCredentials, extractSessionAffinityKey } from "@/sse/services/auth";
 import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
@@ -343,6 +357,36 @@ import { isSmallEnoughForSemanticCache } from "../utils/estimateSize.ts";
  * @param {string} options.connectionId - Connection ID for settings lookup
  */
 
+<<<<<<< HEAD
+=======
+function buildExecutorClientHeaders(
+  headers: Headers | Record<string, unknown> | null | undefined,
+  userAgent?: string | null
+) {
+  const normalized: Record<string, string> = {};
+
+  if (headers instanceof Headers) {
+    headers.forEach((value, key) => {
+      normalized[key] = value;
+    });
+  } else if (headers && typeof headers === "object") {
+    for (const [key, value] of Object.entries(headers)) {
+      if (typeof value === "string") {
+        normalized[key] = value;
+      }
+    }
+  }
+
+  const normalizedUserAgent = typeof userAgent === "string" ? userAgent.trim() : "";
+  if (normalizedUserAgent && !normalized["user-agent"] && !normalized["User-Agent"]) {
+    normalized["user-agent"] = normalizedUserAgent;
+    normalized["User-Agent"] = normalizedUserAgent;
+  }
+
+  return Object.keys(normalized).length > 0 ? normalized : null;
+}
+
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 // extractSystemRoleMessages extracted to chatCore/claudeSystemRole.ts (#3501); re-exported above so
 // existing importers (e.g. tests/unit/system-role-extraction.test.ts) keep resolving it from here.
 
@@ -479,7 +523,11 @@ export async function handleChatCore({
       buildFailureUsageRecord({
         provider,
         model,
+<<<<<<< HEAD
         connectionId: getCurrentConnectionId(),
+=======
+        connectionId,
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
         apiKeyInfo,
         effectiveServiceTier,
         isCombo,
@@ -487,7 +535,10 @@ export async function handleChatCore({
         statusCode,
         errorCode,
         latencyMs: Date.now() - startTime,
+<<<<<<< HEAD
         endpoint: endpointPath,
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
       })
     ).catch(() => {});
   };
@@ -520,6 +571,7 @@ export async function handleChatCore({
 
       if (built.exhaustionLog) {
         log?.debug?.("CODEX", built.exhaustionLog);
+<<<<<<< HEAD
       }
 
       // Invalidate the preflight cache for this connection so the next
@@ -529,6 +581,17 @@ export async function handleChatCore({
       }
 
       await updateProviderConnection(currentConnectionId, {
+=======
+      }
+
+      // Invalidate the preflight cache for this connection so the next
+      // isModelAvailable check fetches fresh quota data.
+      if (status === 429) {
+        invalidateCodexQuotaCache(connectionId);
+      }
+
+      await updateProviderConnection(connectionId, {
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
         providerSpecificData: built.nextProviderData,
       });
 
@@ -1098,26 +1161,37 @@ export async function handleChatCore({
       let namedCombos: Record<string, CompressionPipelineStep[]> = {};
       try {
         const { listCompressionCombos } = await import("../../src/lib/db/compressionCombos.ts");
+<<<<<<< HEAD
         namedCombos = buildNamedComboLookup(listCompressionCombos());
+=======
+        namedCombos = Object.fromEntries(listCompressionCombos().map((c) => [c.id, c.pipeline]));
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
       } catch (err) {
         log?.debug?.(
           "COMPRESSION",
           "Named combos load skipped: " + (err instanceof Error ? err.message : String(err))
         );
       }
+<<<<<<< HEAD
       // Phase 3: per-request override. Unknown values fall through in the resolver (never error).
       const compressionHeader = resolveCompressionHeader(clientRawRequest?.headers ?? null);
       if (compressionHeader) {
         log?.debug?.("COMPRESSION", `x-omniroute-compression header: ${compressionHeader}`);
       }
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
       const modeBeforeOutputTransform = selectCompressionStrategy(
         config,
         compressionComboKey,
         estimatedTokens,
         body as Record<string, unknown>,
         { provider, targetFormat, model: effectiveModel },
+<<<<<<< HEAD
         namedCombos,
         compressionHeader
+=======
+        namedCombos
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
       );
       if (
         modeBeforeOutputTransform === "stacked" &&
@@ -1215,6 +1289,7 @@ export async function handleChatCore({
         estimatedTokens,
         compressionInputBody,
         { provider, targetFormat, model: effectiveModel },
+<<<<<<< HEAD
         namedCombos,
         compressionHeader,
         {
@@ -1224,6 +1299,9 @@ export async function handleChatCore({
             adaptiveTelemetry = t;
           },
         }
+=======
+        namedCombos
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
       );
       const mode = compressionPlan.mode as CompressionConfig["defaultMode"];
       if (adaptiveTelemetry && adaptiveTelemetry.fit === false) {

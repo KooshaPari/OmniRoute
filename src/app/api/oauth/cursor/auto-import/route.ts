@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 import { access, constants, readFile } from "fs/promises";
 import { homedir } from "os";
 import { join } from "path";
+<<<<<<< HEAD
 import { execFile } from "child_process";
 import { promisify } from "util";
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 
 const execFileAsync = promisify(execFile);
@@ -59,6 +62,111 @@ export async function verifyLinuxCursorInstalled(
       return false;
     }
   }
+}
+
+/**
+ * Known key names Cursor IDE has used over time to persist the auth token
+ * and machine id in the local `state.vscdb`. Order matters — the first
+ * exact match wins.
+ */
+const ACCESS_TOKEN_KEYS = ["cursorAuth/accessToken", "cursorAuth/token"] as const;
+const MACHINE_ID_KEYS = [
+  "storage.serviceMachineId",
+  "storage.machineId",
+  "telemetry.machineId",
+] as const;
+
+/**
+ * Normalize a value read from Cursor's `state.vscdb`. Some entries are
+ * stored as JSON-encoded strings (e.g. `'"abc"'`) — unwrap one level when
+ * the decoded payload is itself a string. Anything else is returned as-is.
+ */
+export function normalizeVscDbValue<T>(value: T): T | string {
+  if (typeof value !== "string") return value;
+  try {
+    const parsed = JSON.parse(value);
+    return typeof parsed === "string" ? parsed : value;
+  } catch {
+    return value;
+  }
+}
+
+interface VscDbRow {
+  key: string;
+  value: string;
+}
+
+interface ExtractedCursorTokens {
+  accessToken?: string;
+  machineId?: string;
+}
+
+/**
+ * Pick the first matching access-token / machine-id from a set of rows.
+ * Pure function — easy to unit-test without a SQLite handle.
+ */
+export function extractCursorTokensFromRows(rows: VscDbRow[]): ExtractedCursorTokens {
+  const tokens: ExtractedCursorTokens = {};
+  for (const row of rows) {
+    if (!tokens.accessToken && (ACCESS_TOKEN_KEYS as readonly string[]).includes(row.key)) {
+      const v = normalizeVscDbValue(row.value);
+      if (typeof v === "string") tokens.accessToken = v;
+    } else if (!tokens.machineId && (MACHINE_ID_KEYS as readonly string[]).includes(row.key)) {
+      const v = normalizeVscDbValue(row.value);
+      if (typeof v === "string") tokens.machineId = v;
+    }
+  }
+  return tokens;
+}
+
+/**
+ * Fuzzy-match access-token / machine-id from any rows whose key vaguely
+ * resembles the expected pattern (e.g. `cursorAuth/someOtherAccessTokenKey`,
+ * `storage.someMachineId`). Used only when the exact-key lookup yielded
+ * nothing — guards against silent breakage when Cursor renames a key.
+ */
+export function fuzzyExtractCursorTokensFromRows(
+  rows: VscDbRow[],
+  existing: ExtractedCursorTokens = {}
+): ExtractedCursorTokens {
+  const tokens: ExtractedCursorTokens = { ...existing };
+  for (const row of rows) {
+    const key = row.key || "";
+    const lower = key.toLowerCase();
+    const value = normalizeVscDbValue(row.value);
+    if (typeof value !== "string") continue;
+    if (!tokens.accessToken && lower.includes("accesstoken")) tokens.accessToken = value;
+    if (!tokens.machineId && lower.includes("machineid")) tokens.machineId = value;
+  }
+  return tokens;
+}
+
+/**
+ * Resolve the candidate state.vscdb paths to probe for a given platform.
+ * macOS now probes both the standard install and the Insiders channel
+ * (port: 9router#161 — fixes false "Cursor database not found" on Macs
+ * that only have Cursor Insiders installed).
+ */
+export function cursorDbCandidatePaths(
+  platform: NodeJS.Platform,
+  env: { home: string; appdata?: string }
+): string[] {
+  if (platform === "darwin") {
+    return [
+      join(env.home, "Library/Application Support/Cursor/User/globalStorage/state.vscdb"),
+      join(
+        env.home,
+        "Library/Application Support/Cursor - Insiders/User/globalStorage/state.vscdb"
+      ),
+    ];
+  }
+  if (platform === "linux") {
+    return [join(env.home, ".config/Cursor/User/globalStorage/state.vscdb")];
+  }
+  if (platform === "win32") {
+    return [join(env.appdata || "", "Cursor/User/globalStorage/state.vscdb")];
+  }
+  return [];
 }
 
 /**
@@ -241,6 +349,7 @@ async function tryIdeAuth(): Promise<{
       };
     }
   } else {
+<<<<<<< HEAD
     // On Linux, verify Cursor is actually installed before trusting leftover
     // config files — a removed install can leave ~/.config/Cursor behind and
     // would otherwise create a phantom Cursor connection (port: 9router#313).
@@ -252,6 +361,8 @@ async function tryIdeAuth(): Promise<{
           "installed. Skipping auto-import.",
       };
     }
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     dbPath = candidates[0];
   }
 

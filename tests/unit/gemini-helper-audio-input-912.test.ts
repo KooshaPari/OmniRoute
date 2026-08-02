@@ -23,6 +23,10 @@ test("convertOpenAIContentToParts maps input_audio (mp3) and strips a data: pref
   const parts = gemini.convertOpenAIContentToParts([
     { type: "input_audio", input_audio: { data: "data:audio/mp3;base64,QUJDRA==", format: "mp3" } },
   ]);
+<<<<<<< HEAD
+=======
+  // mp3 normalizes to the canonical audio/mpeg (matches the #913 translator test).
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   assert.deepEqual(parts, [{ inlineData: { mimeType: "audio/mpeg", data: "QUJDRA==" } }]);
 });
 

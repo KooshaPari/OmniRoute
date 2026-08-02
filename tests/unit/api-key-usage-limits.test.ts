@@ -231,6 +231,7 @@ test("getApiKeyUsageLimitStatus cuts weekly USD spend at observed provider quota
     null,
     "2026-06-20T02:10:00.000Z"
   );
+<<<<<<< HEAD
   db.prepare(
     `
     INSERT INTO provider_quota_reset_events
@@ -252,6 +253,8 @@ test("getApiKeyUsageLimitStatus cuts weekly USD spend at observed provider quota
     0,
     null
   );
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 
   const metadata = await apiKeysDb.getApiKeyMetadata(created.key);
   assert.ok(metadata);
@@ -312,21 +315,34 @@ test("buildApiKeyUsageLimitText returns API-key quota spend percentage and reset
       "$10.00",
       "Daily spent",
       "$2.00",
+<<<<<<< HEAD
       "Daily used",
       "20%",
       "Resets in 7h 0m",
+=======
+      "Uso diario",
+      "20%",
+      "Resets in 7h",
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
       "",
       "Weekly quota",
       "$50.00",
       "Weekly spent",
       "$5.25",
+<<<<<<< HEAD
       "Weekly used",
       "11%",
       "Resets in 6d 0h 0m",
+=======
+      "Uso semanal",
+      "11%",
+      "Resets in 6d",
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     ].join("\n")
   );
 });
 
+<<<<<<< HEAD
 test("buildApiKeyUsageLimitPercentText returns remaining percentages only", () => {
   const text = usageLimits.buildApiKeyUsageLimitPercentText(
     {
@@ -353,6 +369,8 @@ test("buildApiKeyUsageLimitPercentText returns remaining percentages only", () =
   );
 });
 
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 test("buildApiKeyUsageLimitRejection includes over-quota percentage and reset hint", async () => {
   const response = usageLimits.buildApiKeyUsageLimitRejection(
     new Request("http://localhost/v1/messages", {
@@ -378,6 +396,7 @@ test("buildApiKeyUsageLimitRejection includes over-quota percentage and reset hi
   const body = (await response.json()) as { error: { message: string } };
   assert.equal(
     body.error.message,
+<<<<<<< HEAD
     "This API key reached its weekly USD usage quota ($1.09 of $1.00, 109%). Resets in 6d 0h 0m. Choose another allowed model after reset."
   );
 });
@@ -409,6 +428,9 @@ test("buildApiKeyUsageLimitRejection can hide USD amounts for client-facing poli
   assert.equal(
     body.error.message,
     "This API key reached its weekly usage quota (109%). Resets in 6d 0h 0m. Choose another allowed model after reset."
+=======
+    "This API key reached its weekly USD usage quota ($1.09 of $1.00, 109%). Resets in 6d. Choose another allowed model after reset."
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   );
 });
 

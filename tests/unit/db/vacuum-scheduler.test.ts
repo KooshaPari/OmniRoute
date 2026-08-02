@@ -4,10 +4,19 @@
  * Covers:
  * 1. Module exports the expected public API.
  * 2. getState() returns the documented shape before any init/run.
+<<<<<<< HEAD
  * 3. init() honors Storage's scheduledVacuum/vacuumHour settings.
  * 4. refresh() applies Storage setting changes without a restart.
  * 5. runNow() succeeds on a healthy DB, persists lastRunAt, clears isRunning.
  * 6. lastRunAt survives a simulated restart (__resetForTests + init reloads the
+=======
+ * 3. init() is idempotent (safe to call from instrumentation-node.ts).
+ * 4. stop() is safe before init() and idempotent.
+ * 5. runNow() succeeds on a healthy DB, persists lastRunAt, clears isRunning.
+ * 6. runNow() called twice concurrently yields exactly one success and one
+ *    "already_running".
+ * 7. lastRunAt survives a simulated restart (__resetForTests + init reloads the
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
  *    persisted state from key_value).
  *
  * Rebuild note (PR #4480): the original PR test was authored against the Vitest
@@ -27,14 +36,23 @@ import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-vacuum-scheduler-"));
 const originalDataDir = process.env.DATA_DIR;
+<<<<<<< HEAD
 
 process.env.DATA_DIR = TEST_DATA_DIR;
+=======
+const originalEnabled = process.env.OMNIROUTE_VACUUM_ENABLED;
+
+process.env.DATA_DIR = TEST_DATA_DIR;
+// Keep the scheduler from arming a real interval timer during unit tests.
+process.env.OMNIROUTE_VACUUM_ENABLED = "0";
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 
 const core = await import("../../../src/lib/db/core.ts");
 core.resetDbInstance();
 
 const scheduler = await import("../../../src/lib/db/vacuumScheduler.ts");
 
+<<<<<<< HEAD
 function setOptimizationSettings(values: { scheduledVacuum?: string; vacuumHour?: number }) {
   const db = core.getDbInstance();
   const insert = db.prepare(
@@ -49,6 +67,10 @@ test.beforeEach(() => {
   scheduler.__resetForTests();
   const db = core.getDbInstance();
   db.prepare("DELETE FROM key_value WHERE namespace IN ('scheduler', 'databaseSettings')").run();
+=======
+test.beforeEach(() => {
+  scheduler.__resetForTests();
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 });
 
 test.after(() => {
@@ -57,6 +79,11 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   if (originalDataDir === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = originalDataDir;
+<<<<<<< HEAD
+=======
+  if (originalEnabled === undefined) delete process.env.OMNIROUTE_VACUUM_ENABLED;
+  else process.env.OMNIROUTE_VACUUM_ENABLED = originalEnabled;
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 });
 
 test("module loads and exports the expected public API", () => {
@@ -64,8 +91,11 @@ test("module loads and exports the expected public API", () => {
   assert.equal(typeof scheduler.stop, "function");
   assert.equal(typeof scheduler.runNow, "function");
   assert.equal(typeof scheduler.getState, "function");
+<<<<<<< HEAD
   assert.equal(typeof scheduler.refresh, "function");
   assert.equal(typeof scheduler.resolveNextRunAt, "function");
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 });
 
 test("getState() returns the documented shape before any init/run", () => {
@@ -79,6 +109,7 @@ test("getState() returns the documented shape before any init/run", () => {
   assert.equal(state.nextRunAt, null);
 });
 
+<<<<<<< HEAD
 test("resolveNextRunAt respects Storage frequency and vacuumHour", () => {
   const nowBeforeHour = new Date(2026, 0, 1, 1, 30, 0, 0).getTime();
   const todayAtTwo = new Date(2026, 0, 1, 2, 0, 0, 0).getTime();
@@ -135,13 +166,19 @@ test("refresh() applies Storage setting changes without restart", () => {
 
 test("init() is idempotent — calling it twice does not throw", () => {
   setOptimizationSettings({ scheduledVacuum: "never" });
+=======
+test("init() is idempotent — calling it twice does not throw", () => {
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   assert.doesNotThrow(() => scheduler.init());
   assert.doesNotThrow(() => scheduler.init());
   scheduler.stop();
 });
 
 test("stop() is safe to call before init() and is idempotent", () => {
+<<<<<<< HEAD
   setOptimizationSettings({ scheduledVacuum: "never" });
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   assert.doesNotThrow(() => scheduler.stop());
   scheduler.init();
   assert.doesNotThrow(() => scheduler.stop());
@@ -149,7 +186,10 @@ test("stop() is safe to call before init() and is idempotent", () => {
 });
 
 test("runNow() succeeds on a healthy DB and persists lastRunAt", async () => {
+<<<<<<< HEAD
   setOptimizationSettings({ scheduledVacuum: "never" });
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   scheduler.init();
   try {
     const result = await scheduler.runNow();
@@ -171,7 +211,10 @@ test("runNow() can be called repeatedly; each run succeeds and refreshes lastRun
   // run — the isRunning guard (which returns "already_running") cannot be
   // triggered by overlapping awaits in-process. The realistic contract is that
   // sequential runs each succeed and update lastRunAt.
+<<<<<<< HEAD
   setOptimizationSettings({ scheduledVacuum: "never" });
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   scheduler.init();
   try {
     const first = await scheduler.runNow();
@@ -186,7 +229,10 @@ test("runNow() can be called repeatedly; each run succeeds and refreshes lastRun
 });
 
 test("lastRunAt survives a simulated restart (state reloaded from key_value)", async () => {
+<<<<<<< HEAD
   setOptimizationSettings({ scheduledVacuum: "never" });
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   scheduler.init();
   await scheduler.runNow();
   const beforeRestart = scheduler.getState().lastRunAt;

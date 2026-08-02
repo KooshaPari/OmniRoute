@@ -122,6 +122,7 @@ export type AutoProviderCandidate = ProviderCandidate & {
   quotaCutoffBlocked?: boolean;
   /** Diagnostic reason for quotaCutoffBlocked. */
   quotaCutoffReason?: string;
+<<<<<<< HEAD
   /**
    * #4540: True when this candidate's connection is in a terminal/transient
    * unavailable status (credits_exhausted / rate_limited / banned / expired /
@@ -134,6 +135,8 @@ export type AutoProviderCandidate = ProviderCandidate & {
   statusPenalty?: boolean;
   /** Diagnostic reason for statusPenalty (the connection testStatus that triggered it). */
   statusPenaltyReason?: string;
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 };
 
 export type ResolvedComboTarget = {

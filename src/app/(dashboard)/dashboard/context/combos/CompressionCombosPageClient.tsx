@@ -49,7 +49,10 @@ function NamedCombosManager() {
   const [assignmentIds, setAssignmentIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [activeComboId, setActiveComboId] = useState<string | null>(null);
+<<<<<<< HEAD
   const [error, setError] = useState<string | null>(null);
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 
   const refresh = () => {
     fetch("/api/context/combos")
@@ -159,6 +162,23 @@ function NamedCombosManager() {
     if (res.ok) refresh();
   };
 
+<<<<<<< HEAD
+=======
+  const updateStep = (index: number, patch: Partial<PipelineStep>) => {
+    setPipeline((current) =>
+      current.map((step, stepIndex) => {
+        if (stepIndex !== index) return step;
+        const next = { ...step, ...patch };
+        const allowed = ENGINE_INTENSITIES[next.engine] ?? ["standard"];
+        return {
+          ...next,
+          intensity: allowed.includes(next.intensity ?? "") ? next.intensity : allowed[0],
+        };
+      })
+    );
+  };
+
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   const togglePack = (language: string, enabled: boolean) => {
     setSelectedPacks((current) =>
       enabled

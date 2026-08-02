@@ -95,7 +95,11 @@ test("applyNoThinkingAlias ignores a malformed prefix-only model", () => {
   assert.equal(res.applied, false);
   assert.equal(
     body.model,
+<<<<<<< HEAD
     "no-think/",
+=======
+    "claude-3-omniroute-no-thinking/",
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     "left untouched when nothing follows the prefix"
   );
 });
@@ -128,6 +132,7 @@ test("appendNoThinkingVariants adds one variant per eligible model and preserves
   const out = appendNoThinkingVariants(models);
   const ids = out.map((m) => m.id);
   assert.ok(
+<<<<<<< HEAD
     ids.includes("no-think/claude-opus-4-5"),
     "eligible model gets a variant"
   );
@@ -137,6 +142,17 @@ test("appendNoThinkingVariants adds one variant per eligible model and preserves
   );
   assert.ok(
     !ids.includes("no-think/claude-fable-5"),
+=======
+    ids.includes("claude-3-omniroute-no-thinking/claude-opus-4-5"),
+    "eligible model gets a variant"
+  );
+  assert.ok(
+    !ids.includes("claude-3-omniroute-no-thinking/gpt-4o"),
+    "non-thinking model has no variant"
+  );
+  assert.ok(
+    !ids.includes("claude-3-omniroute-no-thinking/claude-fable-5"),
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     "reject-disabled model has no variant"
   );
   assert.equal(out.length, models.length + 1, "exactly one variant appended");
@@ -155,11 +171,19 @@ test("appendNoThinkingVariants normalizes alias prefix to canonical when aliasTo
   const out = appendNoThinkingVariants(models, aliasToCanonical);
   const ids = out.map((m) => m.id);
   assert.ok(
+<<<<<<< HEAD
     ids.includes("no-think/claude/claude-opus-4-5"),
     "uses canonical prefix"
   );
   assert.ok(
     !ids.includes("no-think/cc/claude-opus-4-5"),
+=======
+    ids.includes("claude-3-omniroute-no-thinking/claude/claude-opus-4-5"),
+    "uses canonical prefix"
+  );
+  assert.ok(
+    !ids.includes("claude-3-omniroute-no-thinking/cc/claude-opus-4-5"),
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     "alias prefix not used"
   );
 });
@@ -169,7 +193,11 @@ test("appendNoThinkingVariants keeps alias prefix when no map is provided", () =
   const out = appendNoThinkingVariants(models);
   const ids = out.map((m) => m.id);
   assert.ok(
+<<<<<<< HEAD
     ids.includes("no-think/cc/claude-opus-4-5"),
+=======
+    ids.includes("claude-3-omniroute-no-thinking/cc/claude-opus-4-5"),
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     "alias prefix preserved"
   );
 });

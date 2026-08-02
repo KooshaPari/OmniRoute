@@ -22,9 +22,15 @@ describe("MCP Essential Tools", () => {
   });
 
   describe("Tool schema validation", () => {
+<<<<<<< HEAD
     it("should have exactly 11 essential tools (includes web_search + web_fetch + tool_search)", () => {
       const schemas = MCP_ESSENTIAL_TOOLS;
       expect(schemas).toHaveLength(11);
+=======
+    it("should have exactly 10 essential tools (includes web_search + web_fetch)", () => {
+      const schemas = MCP_ESSENTIAL_TOOLS;
+      expect(schemas).toHaveLength(10);
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     });
 
     it("all tools should have omniroute_ prefix", () => {

@@ -409,6 +409,7 @@ export function getNextResetSummary(quotas: any[] | undefined): string | null {
   return soonestIso ? formatCountdown(soonestIso) : null;
 }
 
+<<<<<<< HEAD
 function addQuotaModelIdVariants(out: Set<string>, provider: string, modelId: string) {
   const raw = modelId.trim().toLowerCase();
   const providerId = provider.trim().toLowerCase();
@@ -471,6 +472,8 @@ export function filterHiddenModelQuotas(
   });
 }
 
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 // --- Provider dropdown filter (PR #769 port) -----------------------------
 // Pure helpers extracted from <ProviderLimits/> so the filter+dropdown logic
 // can be exercised by unit tests without rendering React. Keep them free of

@@ -259,6 +259,7 @@ const MALFORMED_REQUEST_PATTERNS = [
   /tool_call.*name.*(?:blank|empty|missing)/i,
 ];
 
+<<<<<<< HEAD
 // Rate-limit text on a 400 — some providers (e.g. MiMoCode) signal throttling with a
 // non-standard 400 status whose body carries rate-limit semantics instead of a 429
 // (#4976). When detected, the request is fallback-worthy at connection-cooldown scope
@@ -273,6 +274,8 @@ const RATE_LIMIT_TEXT_PATTERNS = [
   /频率/, // "frequency" (zh) — request-frequency throttling
 ];
 
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 // Parameter validation errors — model-specific constraints (different models = different limits)
 const PARAM_VALIDATION_PATTERNS = [
   /max_tokens.*illegal/i,

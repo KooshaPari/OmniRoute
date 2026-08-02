@@ -52,7 +52,10 @@ interface UsageCostRow {
 
 interface WeeklyResetCandidate {
   connectionId: string;
+<<<<<<< HEAD
   provider: string;
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   resetAtIso: string;
   observedWindowStartIso: string | null;
 }
@@ -106,11 +109,14 @@ function formatUsagePercent(percent: number | null): string {
   return `${Math.round(percent)}%`;
 }
 
+<<<<<<< HEAD
 function formatLeftPercent(percent: number | null): string {
   if (percent === null || !Number.isFinite(percent)) return "Unavailable";
   return `${Math.round(100 - clampPercent(percent))}% left`;
 }
 
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 function formatResetIn(resetAt: string | null, now = Date.now()): string {
   if (!resetAt) return "unknown";
   const resetMs = Date.parse(resetAt);
@@ -120,6 +126,7 @@ function formatResetIn(resetAt: string | null, now = Date.now()): string {
   if (deltaMs <= 0) return "now";
 
   const minuteMs = 60_000;
+<<<<<<< HEAD
   const totalMinutes = Math.max(1, Math.ceil(deltaMs / minuteMs));
   const dayMinutes = 24 * 60;
   const days = Math.floor(totalMinutes / dayMinutes);
@@ -129,6 +136,14 @@ function formatResetIn(resetAt: string | null, now = Date.now()): string {
   if (days > 0) return `${days}d ${hours}h ${minutes}m`;
   if (hours > 0) return `${hours}h ${minutes}m`;
   return `${minutes}m`;
+=======
+  const hourMs = 60 * minuteMs;
+  const dayMs = 24 * hourMs;
+
+  if (deltaMs < hourMs) return `${Math.max(1, Math.ceil(deltaMs / minuteMs))}m`;
+  if (deltaMs < dayMs) return `${Math.max(1, Math.ceil(deltaMs / hourMs))}h`;
+  return `${Math.max(1, Math.ceil(deltaMs / dayMs))}d`;
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 }
 
 function resetDay(value: string | null): string | null {
@@ -276,6 +291,7 @@ function getObservedWeeklyWindowStartIso(
   }
 }
 
+<<<<<<< HEAD
 // Prefer the persisted, provider-observed window start (recorded by
 // quotaResetEvents on real reset transitions); fall back to inferring it from
 // historical snapshots when no observed event is available yet.
@@ -290,6 +306,8 @@ function getWeeklyWindowStartIso(
   );
 }
 
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 async function resolveDeps(deps: ApiKeyUsageLimitDeps): Promise<Required<ApiKeyUsageLimitDeps>> {
   const providers =
     deps.getProviderConnectionById && deps.getProviderConnections
@@ -332,9 +350,14 @@ async function getProviderWeeklyWindow(
       if (resetAt) {
         resetCandidates.push({
           connectionId: connection.id,
+<<<<<<< HEAD
           provider: connection.provider,
           resetAtIso: resetAt,
           observedWindowStartIso: getWeeklyWindowStartIso(connection.id, resetAt, nowMs),
+=======
+          resetAtIso: resetAt,
+          observedWindowStartIso: getObservedWeeklyWindowStartIso(connection.id, resetAt, nowMs),
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
         });
       }
     }
@@ -348,14 +371,20 @@ async function getProviderWeeklyWindow(
       if (resetAt) {
         resetCandidates.push({
           connectionId: connection.id,
+<<<<<<< HEAD
           provider: connection.provider,
           resetAtIso: resetAt,
           observedWindowStartIso: getWeeklyWindowStartIso(connection.id, resetAt, nowMs),
+=======
+          resetAtIso: resetAt,
+          observedWindowStartIso: getObservedWeeklyWindowStartIso(connection.id, resetAt, nowMs),
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
         });
       }
     }
   }
 
+<<<<<<< HEAD
   const preferredProvider = normalizeProvider(metadata.preferredProvider);
   const scopedCandidates = preferredProvider
     ? resetCandidates.filter(
@@ -365,6 +394,10 @@ async function getProviderWeeklyWindow(
   const candidates = scopedCandidates.length > 0 ? scopedCandidates : resetCandidates;
   const selected =
     candidates
+=======
+  const selected =
+    resetCandidates
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
       .sort((left, right) => Date.parse(left.resetAtIso) - Date.parse(right.resetAtIso))
       .at(0) ?? null;
   return {
@@ -472,7 +505,11 @@ export function buildApiKeyUsageLimitText(
     formatUsd(status.dailyLimitUsd),
     "Daily spent",
     formatUsd(status.dailySpentUsd),
+<<<<<<< HEAD
     "Daily used",
+=======
+    "Uso diario",
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     formatUsagePercent(getUsagePercent(status.dailySpentUsd, status.dailyLimitUsd)),
     `Resets in ${formatResetIn(status.dailyResetAtIso, now)}`,
     "",
@@ -480,12 +517,17 @@ export function buildApiKeyUsageLimitText(
     formatUsd(status.weeklyLimitUsd),
     "Weekly spent",
     formatUsd(status.weeklySpentUsd),
+<<<<<<< HEAD
     "Weekly used",
+=======
+    "Uso semanal",
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     formatUsagePercent(getUsagePercent(status.weeklySpentUsd, status.weeklyLimitUsd)),
     `Resets in ${formatResetIn(status.weeklyResetAtIso, now)}`,
   ].join("\n");
 }
 
+<<<<<<< HEAD
 export function buildApiKeyUsageLimitPercentText(
   status: ApiKeyUsageLimitStatus,
   now = Date.now()
@@ -512,15 +554,23 @@ function buildUsageLimitExceededMessage(
     if (!showUsd) {
       return `This API key reached its daily usage quota (${percent}). Resets in ${formatResetIn(status.dailyResetAtIso, now)}. Choose another allowed model after reset.`;
     }
+=======
+function buildUsageLimitExceededMessage(status: ApiKeyUsageLimitStatus, now = Date.now()): string {
+  if (status.dailyExceeded && status.dailyLimitUsd !== null) {
+    const percent = formatUsagePercent(getUsagePercent(status.dailySpentUsd, status.dailyLimitUsd));
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     return `This API key reached its daily USD usage quota (${formatUsd(status.dailySpentUsd)} of ${formatUsd(status.dailyLimitUsd)}, ${percent}). Resets in ${formatResetIn(status.dailyResetAtIso, now)}. Choose another allowed model after reset.`;
   }
   if (status.weeklyExceeded && status.weeklyLimitUsd !== null) {
     const percent = formatUsagePercent(
       getUsagePercent(status.weeklySpentUsd, status.weeklyLimitUsd)
     );
+<<<<<<< HEAD
     if (!showUsd) {
       return `This API key reached its weekly usage quota (${percent}). Resets in ${formatResetIn(status.weeklyResetAtIso, now)}. Choose another allowed model after reset.`;
     }
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     return `This API key reached its weekly USD usage quota (${formatUsd(status.weeklySpentUsd)} of ${formatUsd(status.weeklyLimitUsd)}, ${percent}). Resets in ${formatResetIn(status.weeklyResetAtIso, now)}. Choose another allowed model after reset.`;
   }
   return showUsd
@@ -540,10 +590,16 @@ function isAnthropicMessagesRequest(request: Request): boolean {
 export function buildApiKeyUsageLimitRejection(
   request: Request,
   status: ApiKeyUsageLimitStatus,
+<<<<<<< HEAD
   now = Date.now(),
   options: { showUsd?: boolean } = {}
 ): Response {
   const message = sanitizeErrorMessage(buildUsageLimitExceededMessage(status, now, options));
+=======
+  now = Date.now()
+): Response {
+  const message = sanitizeErrorMessage(buildUsageLimitExceededMessage(status, now));
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   if (isAnthropicMessagesRequest(request)) {
     return new Response(
       JSON.stringify({

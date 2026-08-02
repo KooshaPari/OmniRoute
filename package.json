@@ -1,6 +1,11 @@
 {
+<<<<<<< HEAD
   "name": "@kooshapari/omniroute",
   "version": "3.8.49-koosha.0",
+=======
+  "name": "omniroute",
+  "version": "3.8.33",
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
   "bin": {
@@ -11,6 +16,19 @@
     "bin/",
     "dist/",
     "@omniroute/",
+<<<<<<< HEAD
+=======
+    "open-sse/",
+    "src/domain/",
+    "src/lib/",
+    "src/models/",
+    "src/mitm/",
+    "src/server/",
+    "src/shared/",
+    "src/sse/",
+    "src/types/",
+    ".env.example",
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     "scripts/build/postinstall.mjs",
     "scripts/postinstall.mjs",
     "scripts/build/postinstallSupport.mjs",
@@ -154,7 +172,11 @@
     "check:cli-i18n": "node scripts/check/check-cli-i18n.mjs",
     "check:openapi-coverage": "node scripts/check/check-openapi-coverage.mjs",
     "check:openapi-security-tiers": "node scripts/check/check-openapi-security-tiers.mjs",
+<<<<<<< HEAD
     "check:provider-consistency": "bun scripts/check/check-provider-consistency.ts",
+=======
+    "check:provider-consistency": "node --import tsx scripts/check/check-provider-consistency.ts",
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     "check:provider-assets": "node scripts/check/check-provider-assets.mjs",
     "check:fetch-targets": "node scripts/check/check-fetch-targets.mjs",
     "check:openapi-routes": "node scripts/check/check-openapi-routes.mjs",

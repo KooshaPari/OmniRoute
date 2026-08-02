@@ -123,6 +123,7 @@ test("buildUsageCommandText formats API key USD limits as personal percentages",
     },
     {
       now: () => NOW,
+<<<<<<< HEAD
       getApiKeyUsageLimitStatus: async (metadata) => {
         usageStatusPreferredProvider = metadata.preferredProvider;
         return {
@@ -138,6 +139,26 @@ test("buildUsageCommandText formats API key USD limits as personal percentages",
           dailyExceeded: false,
           weeklyExceeded: false,
         };
+=======
+      getApiKeyUsageLimitStatus: async () => ({
+        enabled: true,
+        dailyLimitUsd: 10,
+        weeklyLimitUsd: 50,
+        dailySpentUsd: 2,
+        weeklySpentUsd: 5.25,
+        dailyWindowStartIso: "2026-06-16T03:00:00.000Z",
+        dailyResetAtIso: "2026-06-17T03:00:00.000Z",
+        weeklyWindowStartIso: "2026-06-09T12:00:00.000Z",
+        weeklyResetAtIso: "2026-06-23T12:00:00.000Z",
+        dailyExceeded: false,
+        weeklyExceeded: false,
+      }),
+      getProviderConnectionById: async () => {
+        throw new Error("provider connection lookup must not run for fair usage output");
+      },
+      getProviderConnections: async () => {
+        throw new Error("provider connection lookup must not run for fair usage output");
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
       },
       getProviderConnectionById: async () => null,
       getProviderConnections: async () => [],
@@ -218,6 +239,7 @@ test("buildUsageCommandText scales provider quota remaining by configured cutoff
   assert.equal(
     text,
     [
+<<<<<<< HEAD
       "Provider quota",
       "Session",
       "100% left",
@@ -226,6 +248,23 @@ test("buildUsageCommandText scales provider quota remaining by configured cutoff
       "Weekly",
       "0% left",
       "⏱ reset in 1d 0h 44m",
+=======
+      "Cota diaria",
+      "$10.00",
+      "Gasto diario",
+      "$2.00",
+      "Uso diario",
+      "20%",
+      "Resets in 15h",
+      "",
+      "Cota semanal",
+      "$50.00",
+      "Gasto semanal",
+      "$5.25",
+      "Uso semanal",
+      "11%",
+      "Resets in 7d",
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     ].join("\n")
   );
 });

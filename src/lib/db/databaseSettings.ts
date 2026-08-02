@@ -6,7 +6,11 @@ import { backupDbFile } from "./backup";
 import { DATA_DIR, SQLITE_FILE, applyDatabaseOptimizationSettings, getDbInstance } from "./core";
 import { invalidateDbCache } from "./readCache";
 import { getDatabaseStats } from "./stats";
+<<<<<<< HEAD
 import { getState as getVacuumSchedulerState, refreshVacuumScheduler } from "./vacuumScheduler";
+=======
+import { getState as getVacuumSchedulerState } from "./vacuumScheduler";
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 
 const DATABASE_SETTINGS_NAMESPACE = "databaseSettings";
 
@@ -250,8 +254,12 @@ export function getDatabaseSettings(): DatabaseSettings {
       databaseSizeBytes: dbStats.totalSize,
       pageCount: dbStats.pageCount,
       freelistCount: getFreelistCount(),
+<<<<<<< HEAD
       lastVacuumAt:
         vacuumState.lastRunAt !== null ? new Date(vacuumState.lastRunAt).toISOString() : null,
+=======
+      lastVacuumAt: vacuumState.lastRunAt !== null ? new Date(vacuumState.lastRunAt).toISOString() : null,
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
       lastOptimizationAt: null,
       integrityCheck: getIntegrityCheck(),
     },

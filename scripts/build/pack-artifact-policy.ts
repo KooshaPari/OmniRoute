@@ -130,6 +130,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
   "@omniroute/opencode-provider/",
   // CLI entrypoints + their bundled runtime helpers (not bin/cli/runtime/).
   "bin/cli/",
+<<<<<<< HEAD
   // Compiled server bundles only — never raw source. Runtime-loaded .ts files
   // (open-sse/utils/setupPolyfill.ts, src/shared/utils/nodeRuntimeSupport.ts)
   // are pinned individually in PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS /
@@ -144,6 +145,19 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
   "src/shared/utils/",
   "open-sse/utils/",
   "dist/",
+=======
+  // Broad open-sse + src source dirs added to package.json "files" in v3.8.21
+  // to allow TypeScript-first imports from the published package.
+  "open-sse/",
+  "src/domain/",
+  "src/lib/",
+  "src/models/",
+  "src/mitm/",
+  "src/server/",
+  "src/shared/",
+  "src/sse/",
+  "src/types/",
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 ];
 
 export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [

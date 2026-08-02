@@ -533,6 +533,7 @@ export async function buildUsageCommandText(
   const resolvedDeps = await normalizeDeps(deps);
   const sections: string[] = [];
   if (metadata.usageLimitEnabled === true) {
+<<<<<<< HEAD
     const usageMetadata: UsageCommandApiKeyMetadata = {
       ...metadata,
       preferredProvider: selection.preferredProvider ?? metadata.preferredProvider ?? null,
@@ -542,6 +543,12 @@ export async function buildUsageCommandText(
     });
     const now = resolvedDeps.now();
     sections.push(["Personal quota", buildApiKeyUsageLimitPercentText(status, now)].join("\n"));
+=======
+    return buildApiKeyUsageLimitText(
+      await resolvedDeps.getApiKeyUsageLimitStatus(metadata, { now: resolvedDeps.now }),
+      resolvedDeps.now()
+    );
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   }
 
   const snapshot = selectUsageSnapshot(

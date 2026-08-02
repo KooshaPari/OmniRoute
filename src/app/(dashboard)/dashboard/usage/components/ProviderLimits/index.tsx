@@ -705,7 +705,11 @@ export default function ProviderLimits({
     statusByConnection,
     envFilter,
     providerFilter,
+<<<<<<< HEAD
     visibleQuotaData,
+=======
+    quotaData,
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   ]);
 
   // Distinct provider keys present in the current connection set (after the

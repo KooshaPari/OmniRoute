@@ -7,8 +7,11 @@
  * (apiKeyRotator) for the connection's currently-selected key, and persists the change to the
  * provider connection so it survives process restarts:
  *   - 401 → record a failure (warning, then invalid at the threshold), always persisted.
+<<<<<<< HEAD
  *   - 402 → terminal (insufficient balance); mark the current key invalid immediately (#5239),
  *           persisted on the active→invalid transition.
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
  *   - 2xx → record a success, persisted only when recovering from a warning/invalid state.
  * Any other status only refreshes the tracked extra-key set. The handler binds its `log` once and
  * delegates here, keeping the existing call sites unchanged.
@@ -17,7 +20,10 @@
 import {
   recordKeyFailure,
   recordKeySuccess,
+<<<<<<< HEAD
   recordKeyTerminal,
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   trackConnectionExtraKeys,
   type KeyHealth,
 } from "../../services/apiKeyRotator.ts";
@@ -67,6 +73,7 @@ export function recordKeyHealthStatus(
         );
       });
     }
+<<<<<<< HEAD
   } else if (status === 402) {
     // 402 "Insufficient account balance" is terminal for this key — the balance
     // won't recover mid-session, so mark the current key invalid immediately
@@ -93,6 +100,8 @@ export function recordKeyHealthStatus(
         );
       });
     }
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   } else if (status >= 200 && status < 300) {
     const updatedHealth = recordKeySuccess(connId, currentKeyId);
     const prevStatus = health?.[currentKeyId]?.status;

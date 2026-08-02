@@ -111,7 +111,10 @@ export function formatUsdCost(value: number, locale: string): string {
  */
 export function maskKey(fullKey: string | null | undefined): string {
   if (!fullKey) return "";
+<<<<<<< HEAD
   if (fullKey.includes("****")) return fullKey;
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   return fullKey.length > 8 ? `${fullKey.slice(0, 8)}...` : fullKey;
 }
 

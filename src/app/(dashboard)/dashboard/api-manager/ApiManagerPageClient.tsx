@@ -16,6 +16,10 @@ import {
   computeApiKeyCounts,
   formatUsdCost,
   toLocalDateTimeInputValue,
+<<<<<<< HEAD
+=======
+  maskKey,
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   toggleKeyVisibility,
 } from "./apiManagerPageUtils";
 import type { KeyStatus, KeyType } from "./apiManagerPageUtils";
@@ -985,7 +989,13 @@ export default function ApiManagerPageClient() {
                   </div>
                   <div className="col-span-3 flex items-center gap-1.5">
                     <code className="text-sm text-text-muted font-mono truncate">
+<<<<<<< HEAD
                       {visibleKeys.has(key.id) ? (revealedKeys.get(key.id) ?? key.key) : key.key}
+=======
+                      {visibleKeys.has(key.id)
+                        ? (revealedKeys.get(key.id) ?? key.key)
+                        : maskKey(key.key)}
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
                     </code>
                     {allowKeyReveal ? (
                       <>

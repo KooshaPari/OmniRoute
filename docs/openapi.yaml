@@ -1,7 +1,11 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
+<<<<<<< HEAD:docs/openapi.yaml
   version: 3.8.49-koosha.0
+=======
+  version: 3.8.33
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf:docs/reference/openapi.yaml
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
