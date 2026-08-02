@@ -56,7 +56,8 @@ export function isDuplicateEvent(
   event: string | { id?: string; eventId?: string; deliveryId?: string },
   seen: ReadonlySet<string> | readonly string[]
 ): boolean {
-  const eventId = typeof event === "string" ? event : event.eventId ?? event.deliveryId ?? event.id;
+  const eventId =
+    typeof event === "string" ? event : (event.eventId ?? event.deliveryId ?? event.id);
   if (typeof eventId !== "string" || eventId.length === 0) return false;
   return Array.isArray(seen) ? seen.includes(eventId) : seen.has(eventId);
 }
