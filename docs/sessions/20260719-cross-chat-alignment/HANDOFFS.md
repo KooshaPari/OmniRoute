@@ -690,3 +690,9 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Go SDK: Real maximhq/bifrost/core
 - PRs: #415 (merged) + #420 (ready for review)
 - No blockers
+
+## 2026-08-02T04:34Z - qgate forensic and Node 24 dependency hardening (qgate_forensics)
+
+- qgate run `30723715920` at head `7cad4aa3c` generated, validated, and uploaded coverage; qgate built successfully, then received SIGTERM (exit 143) with no report. A newer PR workflow run superseded it through the shared concurrency group; this was cancellation, not a test or threshold failure.
+- Rerun attempt 2 remained queued for 25 minutes and was canceled at 04:33Z because GitHub reported the workflow already running. Rerun attempt 3 is queued as job `91455431257` at head `7cad4aa3c`; result pending runner assignment.
+- Separate current qgate run `30730577221` failed at `npm ci` because `@keyv/sqlite@3.0.1` installs nested `better-sqlite3@7.6.2`, which cannot compile on Node 24. Branch `fix/qgate-keyv-node24-20260802`, commit `b7d7445b73`, updates `@keyv/sqlite` to `^3.6.7`; local `npm ci --ignore-scripts`, sqlite3 rebuild, and in-memory `select 1` passed. Branch and Airlock snapshots were pushed for integration review.
