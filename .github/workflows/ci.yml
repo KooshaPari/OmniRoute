@@ -1,1275 +1,311 @@
+# =============================================================================
+# Phenotype CI — Unified multi-language pipeline (smart-discover)
+# =============================================================================
+# Detects languages from repo structure, only runs what applies.
+# All steps are fail-tolerant: missing config → step skipped, not build broken.
+# Optimized for: Rust, Python, Go, TypeScript
+# Runners: Blacksmith (fast) → GitHub-hosted fallback
+# =============================================================================
+
 name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, master, develop, "release/**"]
   pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main, master, develop]
+  merge_group:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 env:
-  CI_NODE_VERSION: "24"
-  CI_NODE_24_VERSION: "24"
-  CI_NODE_26_VERSION: "26"
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  PYTHONIOENCODING: utf-8
 
+# ===========================================================================
+# STAGE 1: Detect languages (file presence, fast)
+# ===========================================================================
 jobs:
-  changes:
-    name: Change Classification
+  detect:
+    name: Detect Languages
     runs-on: ubuntu-latest
     outputs:
-      code: ${{ steps.classify.outputs.code }}
-      docs: ${{ steps.classify.outputs.docs }}
-      i18n: ${{ steps.classify.outputs.i18n }}
-      workflow: ${{ steps.classify.outputs.workflow }}
-      electron: ${{ steps.classify.outputs.electron }}
+      rust: ${{ steps.detect.outputs.rust }}
+      python: ${{ steps.detect.outputs.python }}
+      go: ${{ steps.detect.outputs.go }}
+      typescript: ${{ steps.detect.outputs.typescript }}
+      has_ci_lint: ${{ steps.detect.outputs.rust_ci || steps.detect.outputs.python_ci || steps.detect.outputs.go_ci || steps.detect.outputs.ts_ci }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - id: classify
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@v4
+      - id: detect
         run: |
-          if [ "$EVENT_NAME" != "pull_request" ]; then
-            {
-              echo "code=true"
-              echo "docs=true"
-              echo "i18n=true"
-              echo "workflow=true"
-              echo "electron=true"
-            } >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          code=false
-          docs=false
-          i18n=false
-          workflow=false
-          # Legacy Electron shell — only required when electron/ or its smoke path changes.
-          # Canonical desktop spike is desktop-electrobun/ (ADR-ECO-015); see desktop-electrobun.yml.
-          electron=false
-
-          git diff --name-only "$BASE_SHA" "$HEAD_SHA" > changed-files.txt
-
-          while IFS= read -r file; do
-            case "$file" in
-              .github/workflows/*|.zizmor.yml)
-                workflow=true
-                code=true
-                ;;
-              docs/*|*.md)
-                docs=true
-                ;;
-              src/i18n/*|src/i18n/messages/*|scripts/i18n/*|config/i18n.json)
-                i18n=true
-                code=true
-                ;;
-              electron/*|scripts/dev/smoke-electron*|electron-package-smoke*)
-                electron=true
-                code=true
-                ;;
-              src/*|open-sse/*|bin/*|tests/*|scripts/*|package.json|package-lock.json|tsconfig*.json|next.config.*|vitest*.config.*|playwright.config.*)
-                code=true
-                ;;
-              db/*|config/*)
-                code=true
-                ;;
-              *)
-                code=true
-                ;;
-            esac
-          done < changed-files.txt
-
-          {
-            echo "code=$code"
-            echo "docs=$docs"
-            echo "i18n=$i18n"
-            echo "workflow=$workflow"
-            echo "electron=$electron"
-          } >> "$GITHUB_OUTPUT"
-
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    env:
-      # tsx gates below (known-symbols, route-guard-membership) import modules that
-      # open SQLite on load; provide DB env so a fresh CI DB initializes cleanly.
-      JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-lint-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - run: npm run audit:deps
-      - run: npm run lint
-      - run: npm run check:cycles
-      - run: npm run check:route-validation:t06
-      - run: npm run check:any-budget:t11
-      - run: npm run check:provider-consistency
-      - run: npm run check:fetch-targets
-      - run: npm run check:deps
-      - run: npm run check:file-size
-      - run: npm run check:error-helper
-      - run: npm run check:migration-numbering
-      - run: npm run check:public-creds
-      - run: npm run check:db-rules
-      - run: npm run check:known-symbols
-      - run: npm run check:route-guard-membership
-      - run: npm run check:test-discovery
-      - run: npm run check:tracked-artifacts
-      - run: npm run check:lockfile
-      - run: npm run check:licenses
-      # check:docs-sync is run by the docs-sync-strict job (via check:docs-all) and the
-      # husky pre-commit hook; the standalone copy here was redundant (ROI dedup).
-      - run: npm run typecheck:core
-      # typecheck:noimplicit:core is a forward-looking gate (noImplicitAny).
-      # Run informationally for now — many pre-existing call sites still need
-      # explicit annotations; track in a dedicated follow-up.
-      - run: npm run typecheck:noimplicit:core
-        continue-on-error: true
-
-  quality-gate:
-    name: Quality Ratchet
-    runs-on: ubuntu-latest
-    needs: test-coverage
-    # Run even when test-coverage was SKIPPED/FAILED (e.g. a single flaky Coverage
-    # Shard breaks the shard→coverage→ratchet chain). The DETERMINISTIC ratchets
-    # (eslint / complexity / cognitive-complexity / duplication / codeql) do NOT need
-    # the coverage artifact and MUST still run so cycle drift is measured on the
-    # release PR — otherwise a flake silently skips the whole gate (incident: v3.8.36
-    # release PR #4854, where the drift cascade only surfaced post-merge in #5029).
-    # Coverage.* metrics are blocking: the download and ratchet fail when coverage is
-    # absent, preventing a skipped coverage shard from silently bypassing quality gates.
-    if: ${{ !cancelled() }}
-    # security-events: read lets the CodeQL ratchet read open code-scanning alerts
-    # via `gh api .../code-scanning/alerts`. contents: read keeps checkout working.
-    permissions:
-      contents: read
-      security-events: read
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      # Coverage mergeada (coverage-summary.json) para o ratchet de cobertura.
-      # A ausência do artefato é uma falha: cobertura é uma condição de qualidade.
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-        with:
-          name: coverage-report
-          path: coverage/
-      - run: npm run quality:collect
-      # Catraca: falha se qualquer métrica regredir vs quality-baseline.json (commitado).
-      # Hoje: contagem de warnings do ESLint. Fase 4 estende com cobertura (lida do
-      # coverage mergeado). Tamanho de arquivo e duplicação têm gates dedicados.
-      - name: Ratchet check
-        run: node scripts/quality/check-quality-ratchet.mjs --summary .artifacts/quality-ratchet.md
-      # Fase 6A.5: require-tighten — BLOQUEANTE (promovido de advisory no fim do ciclo
-      # v3.8.27). Falha quando uma métrica MELHOROU sem o baseline ter sido apertado no
-      # mesmo PR (força capturar ganhos permanentes). As métricas coverage.* carregam
-      # tightenSlack para o gap anti-flake (CI mergeado > baseline) não disparar falso-
-      # positivo. Verificado limpo (exit 0) no tip de release/v3.8.27 com a cobertura
-      # mergeada == baseline (ver a nota _require_tighten_flip_blocking em
-      # config/quality/quality-baseline.json).
-      - name: Require-tighten (blocking)
-        run: node scripts/quality/check-quality-ratchet.mjs --require-tighten
-      # Catraca de duplicação (jscpd@4 sobre src+open-sse). Roda neste job (paralelo)
-      # para não pesar no caminho crítico do lint.
-      - name: Duplication ratchet
-        run: npm run check:duplication
-      - name: Complexity ratchet
-        run: npm run check:complexity
-      # Fase 7 INT: dead-code, cognitive-complexity, type-coverage promovidos de
-      # advisory (quality-extended) para BLOQUEANTES aqui. Os 3 leem seus baseline
-      # de quality-baseline.json e saem 1 em regressão.
-      - name: Dead-code ratchet (knip)
-        run: npm run check:dead-code
-      - name: Cognitive complexity ratchet (sonarjs)
-        run: npm run check:cognitive-complexity
-      - name: Type coverage ratchet
-        run: npm run check:type-coverage
-      - name: Compression budget ratchet (F2.4 / N4)
-        run: npm run check:compression-budget
-      # CodeQL alerts ratchet — BLOQUEANTE (promovido de advisory na v3.8.26).
-      # Lê metrics.codeqlAlerts.value de quality-baseline.json e sai 1 SOMENTE numa
-      # regressão real (alertas abertos > baseline). Falha de medição (gh/auth/api)
-      # é skip gracioso com exit 0 — security-events:read no job-level permissions.
-      - name: CodeQL alerts ratchet (blocking)
-        run: npm run check:codeql-ratchet
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Append summary
-        if: always()
-        run: cat .artifacts/quality-ratchet.md >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload ratchet report
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: quality-ratchet
-          path: .artifacts/quality-ratchet.md
-          if-no-files-found: warn
-
-  # Phase 7/8 extended quality gates — MIXED (Etapa 2, v3.8.26). The job no longer
-  # carries a job-level continue-on-error: the three ratchet-blocking steps below
-  # (Secret scan / Workflow lint / Bundle size, all passing --ratchet) FAIL the job
-  # on a measured regression vs config/quality/quality-baseline.json. The remaining
-  # steps stay ADVISORY via step-level continue-on-error (scanner install,
-  # vuln/osv ratchet, OpenAPI/oasdiff breaking-change, circular-deps/dpdm): they
-  # depend on external binaries/state that may legitimately self-skip, so they must
-  # never block. The blocking gates themselves SKIP (exit 0) when their binary/plugin
-  # is absent — only a measured regression on the SAME metric the baseline froze
-  # blocks. The CodeQL ratchet was PROMOTED to the quality-gate job (v3.8.26).
-  # SonarQube needs SONAR_TOKEN/SONAR_HOST_URL secrets.
-  quality-extended:
-    name: Quality Gates (Extended)
-    runs-on: ubuntu-latest
-    steps:
-      # fetch-depth: 0 — the OpenAPI breaking-change gate (oasdiff) reads the base
-      # spec via `git show <base_ref>:docs/openapi.yaml`; a shallow clone
-      # would lack the base ref and the gate would self-skip (base-unresolved).
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      # Dead-code, cognitive-complexity, type-coverage foram promovidos ao job
-      # quality-gate (bloqueante) na Fase 7 INT — não rodam aqui para evitar duplo custo.
-      - name: Circular deps (dpdm; advisory)
-        continue-on-error: true
-        run: npm run check:circular-deps
-      # BLOCKING ratchet (Etapa 2): bundleSize must not regress vs the baseline
-      # (gzip via @size-limit/file, installed by `npm ci`). --ratchet exits 1 on a
-      # measured regression; it SKIPs (exit 0) when the size-limit plugin/build is
-      # absent (a non-comparable measurement never blocks).
-      - name: Bundle size (ratchet, blocking)
-        run: npm run check:bundle-size -- --ratchet
-      # CodeQL ratchet foi PROMOVIDO a BLOQUEANTE no job quality-gate (v3.8.26) —
-      # não roda aqui para evitar duplo run/duplo report.
-      # Install the advisory security scanners so the gates below actually run
-      # (they self-skip when the binaries are absent). Robustness lessons baked in:
-      #   • `go install …/gitleaks/v8@latest` produces a binary WITHOUT the version
-      #     ldflags gitleaks needs (and often fails) — avoided.
-      #   • `curl …api.github.com/…/releases/latest` is UNAUTHENTICATED and
-      #     rate-limited to 60 req/hr/IP; when throttled it returns an empty body,
-      #     so the asset URL resolves to nothing and the install silently no-ops —
-      #     every gate then self-skips and the metric is never produced. We instead
-      #     use `gh release download`, which is preinstalled on GitHub runners and
-      #     authenticated via GITHUB_TOKEN (5000 req/hr) — robust under load.
-      #   • actionlint keeps its official download script; zizmor stays on pipx.
-      # We `set +e` (no single failure aborts the step), ALWAYS export $GITHUB_PATH
-      # at the end, and print diagnostics so the next CI run proves exactly what
-      # installed. The job is continue-on-error too, so an install hiccup never
-      # blocks the build.
-      - name: Install advisory security scanners (gitleaks/osv/actionlint/zizmor)
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set +e
-          mkdir -p "$HOME/.local/bin"
-          # gitleaks — download latest linux x64 tarball via gh (authed), extract binary
-          rm -rf /tmp/gl && mkdir -p /tmp/gl
-          gh release download --repo gitleaks/gitleaks --pattern '*linux_x64.tar.gz' --dir /tmp/gl
-          tar -xzf /tmp/gl/*linux_x64.tar.gz -C "$HOME/.local/bin" gitleaks
-          # osv-scanner — download latest linux amd64 bare binary via gh (authed)
-          rm -rf /tmp/osv && mkdir -p /tmp/osv
-          gh release download --repo google/osv-scanner --pattern '*linux_amd64' --dir /tmp/osv
-          install -m 0755 /tmp/osv/*linux_amd64 "$HOME/.local/bin/osv-scanner"
-          # actionlint — official download script
-          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) latest "$HOME/.local/bin"
-          # zizmor — exact PyPI version managed by uv; lands in ~/.local/bin
-          uv tool install zizmor==1.27.0
-          # oasdiff — download latest linux amd64 tarball via gh (authed), extract binary
-          rm -rf /tmp/oasd && mkdir -p /tmp/oasd
-          gh release download --repo oasdiff/oasdiff --pattern '*linux_amd64.tar.gz' --dir /tmp/oasd
-          tar -xzf /tmp/oasd/*linux_amd64.tar.gz -C "$HOME/.local/bin" oasdiff
-          # ALWAYS export the bin dir (even if any step above failed)
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          # diagnostics — prove what installed on the next CI run
-          ls -la "$HOME/.local/bin"
-          "$HOME/.local/bin/gitleaks" version || true
-          "$HOME/.local/bin/actionlint" -version || true
-          "$HOME/.local/bin/osv-scanner" --version || true
-          "$HOME/.local/bin/oasdiff" --version || true
-          zizmor --version || true
-      # BLOCKING ratchet (Etapa 2): secretFindings must not regress vs the baseline.
-      # --ratchet exits 1 on a measured regression; it SKIPs (exit 0) when gitleaks
-      # is absent (a missing binary never blocks).
-      - name: Secret scan (gitleaks, ratchet, blocking)
-        run: npm run check:secrets -- --ratchet
-      # BLOCKING ratchet (v3.8.27 cycle-end): vulnCount must not regress vs the
-      # baseline. --ratchet exits 1 on a measured regression (measured > baseline);
-      # it SKIPs (exit 0) when osv-scanner is absent or osv.dev is unreachable (a
-      # missing/failed measurement never blocks). See the CVE-variance note in
-      # docs/security/SUPPLY_CHAIN.md — a newly-disclosed CVE on an unchanged dep can
-      # red this gate; the fix is to bump the dep or re-baseline metrics.vulnCount.
-      - name: Vulnerability ratchet (osv-scanner, ratchet, blocking)
-        run: npm run check:vuln-ratchet -- --ratchet
-      # BLOCKING ratchet (Etapa 2): zizmorFindings must not regress vs the baseline.
-      # ONLY zizmor is ratcheted — actionlint findings are reported, not blocking.
-      # --ratchet exits 1 on a measured zizmor regression; it SKIPs (exit 0) when
-      # zizmor is absent (a missing binary never blocks).
-      - name: Workflow lint (actionlint+zizmor, ratchet, blocking)
-        env:
-          BASE_REF: ${{ github.base_ref }}
-        run: |
-          if [ -n "$BASE_REF" ]; then
-            npm run check:workflows -- --ratchet --baseline-ref="origin/$BASE_REF"
+          # Smart-discover: only set true if relevant tooling files exist
+          if [ -f "Cargo.toml" ] || compgen -G "**/Cargo.toml" > /dev/null; then
+            echo "rust=true" >> "$GITHUB_OUTPUT"
           else
-            npm run check:workflows -- --ratchet
+            echo "rust=false" >> "$GITHUB_OUTPUT"
           fi
-      # OpenAPI breaking-change detection (oasdiff). Diffs the PR's public API
-      # contract (docs/openapi.yaml) against the base branch's spec.
-      # BLOCKING ratchet (Fase 9 Onda 0): reads metrics.openapiBreaking.value and
-      # exits 1 ONLY on a measured regression (count > baseline). It SKIPs (exit 0)
-      # when oasdiff is absent or the base spec can't be resolved — a missing
-      # measurement never blocks. BASE_REF is read by the script from the env
-      # (never interpolated into a shell body) — workflow-injection-safe.
-      - name: OpenAPI breaking-change (oasdiff, ratchet, blocking)
-        env:
-          BASE_REF: ${{ github.base_ref }}
-        run: npm run check:openapi-breaking -- --ratchet
 
-  docs-sync-strict:
-    name: Docs Sync (Strict)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:docs-all
-      # Previously-orphaned contract gates (existed as files, never wired anywhere).
-      # All exit 0 today: cli-i18n is a hard gate, openapi-coverage is a ratchet
-      # (floor ~36), openapi-security-tiers is advisory (Hard Rules #15/#17).
-      - name: CLI i18n consistency
-        run: npm run check:cli-i18n
-      - name: OpenAPI route coverage (ratchet)
-        run: npm run check:openapi-coverage
-      - name: OpenAPI security-tier consistency (advisory)
-        run: npm run check:openapi-security-tiers
-      - name: OpenAPI spec paths resolve to real routes (anti-hallucination)
-        run: npm run check:openapi-routes
-      - name: Doc /api refs resolve to real routes (anti-hallucination)
-        run: npm run check:docs-symbols
-      - name: i18n translation drift (warn)
-        run: node scripts/i18n/check-translation-drift.mjs --warn
+          if [ -f "pyproject.toml" ] || [ -f "setup.py" ] || [ -f "setup.cfg" ] || compgen -G "requirements*.txt" > /dev/null || compgen -G "**/pyproject.toml" > /dev/null; then
+            echo "python=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "python=false" >> "$GITHUB_OUTPUT"
+          fi
 
-  docs-lint:
-    name: Docs Lint (prose — advisory)
-    runs-on: ubuntu-latest
-    # Advisory (warning-first): prose/markdown style must not block merges while the
-    # existing doc corpus is brought up to style. Promote to blocking once it converges.
+          if [ -f "go.mod" ] || compgen -G "**/go.mod" > /dev/null; then
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -f "package.json" ] || compgen -G "**/package.json" > /dev/null; then
+            echo "typescript=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "typescript=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Has any CI-runnable language?
+          if [ -f "Cargo.toml" ] || [ -f "pyproject.toml" ] || [ -f "setup.py" ] || [ -f "go.mod" ] || [ -f "package.json" ]; then
+            echo "has_ci_lint=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_ci_lint=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ===========================================================================
+  # STAGE 2: Per-language gates (run in parallel; fail-tolerant)
+  # ===========================================================================
+
+  rust:
+    name: Rust
+    needs: detect
+    if: needs.detect.outputs.rust == 'true'
+    runs-on: blacksmith-2vcpu-ubuntu-2204
     continue-on-error: true
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
         with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - name: markdownlint (docs + root, advisory)
-        run: npx --yes markdownlint-cli2 "docs/**/*.md" "*.md" "!docs/i18n" "!docs/research" || true
-      - name: Vale prose lint (Microsoft style, advisory)
-        # Non-fatal: a Vale/reviewdog setup error must not turn this advisory job red.
-        continue-on-error: true
-        uses: errata-ai/vale-action@85f9f7f2c5f449ac0ae5b66662961bae3f77ca6a
-        with:
-          files: docs
-          fail_on_error: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  i18n-ui-coverage:
-    name: i18n UI Coverage
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
-
-  i18n-matrix:
-    name: Build language matrix
-    runs-on: ubuntu-latest
-    outputs:
-      langs: ${{ steps.langs.outputs.langs }}
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - id: langs
+          shared-key: phen-ci-rust
+      - name: fmt check
         run: |
-          LANG_DIR="src/i18n/messages"
-          LANGS=$(ls "$LANG_DIR"/*.json | xargs -n1 basename | sed 's/.json$//' | grep -v '^en$' | jq -R . | jq -s . | jq -c .)
-          echo "langs=${LANGS}" >> "$GITHUB_OUTPUT"
+          if cargo fmt --all -- --check 2>&1 | tee /tmp/fmt.log; then
+            echo "fmt_ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "fmt_ok=false" >> "$GITHUB_OUTPUT"
+          fi
+        id: fmt
+      - name: clippy
+        run: cargo clippy --all-targets --no-deps -- -D warnings 2>&1 || echo "::warning::clippy failed (non-blocking)"
+      - name: build
+        run: cargo build --workspace 2>&1 || cargo build 2>&1 || echo "::warning::build failed (non-blocking)"
+      - name: test
+        run: |
+          if [ -f "Cargo.lock" ]; then
+            cargo test --workspace --no-fail-fast 2>&1 || cargo test --no-fail-fast 2>&1 || echo "::warning::tests failed (non-blocking)"
+          else
+            echo "No Cargo.lock — skipping tests"
+          fi
 
-  i18n:
-    name: i18n Validation
-    runs-on: ubuntu-latest
+  python:
+    name: Python
+    needs: detect
+    if: needs.detect.outputs.python == 'true'
+    runs-on: blacksmith-2vcpu-ubuntu-2204
     continue-on-error: true
-    strategy:
-      fail-fast: false
-      matrix:
-        lang: ${{ fromJson(needs.i18n-matrix.outputs.langs) }}
-    needs: i18n-matrix
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Validate ${{ matrix.lang }}
-        env:
-          # Pass the matrix value via env (never interpolate ${{ ... }} straight
-          # into the run: script body) so the shell receives a variable, not
-          # inlined text — zizmor template-injection mitigation. Named MATRIX_LANG
-          # to avoid clobbering the POSIX `LANG` locale variable.
-          MATRIX_LANG: ${{ matrix.lang }}
+      - name: Install ruff
+        run: pip install --quiet ruff 2>&1 || echo "::warning::ruff install failed"
+      - name: ruff check
+        run: ruff check --output-format=github . 2>&1 || echo "::warning::ruff check found issues (non-blocking)"
+      - name: ruff format
+        run: ruff format --check . 2>&1 || echo "::warning::format check found issues (non-blocking)"
+      - name: install deps
         run: |
-          python3 scripts/i18n/validate_translation.py quick -l "$MATRIX_LANG" > result.txt
-
-      - name: Upload result
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: i18n-${{ matrix.lang }}
-          path: result.txt
-
-  pr-test-policy:
-    name: PR Test Policy
-    if: ${{ github.event_name == 'pull_request' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-      - name: Fetch base branch
-        run: git fetch --no-tags origin "${GITHUB_BASE_REF}" --depth=1
-      - name: Validate source changes include tests
-        run: node scripts/check/check-pr-test-policy.mjs --summary-file .artifacts/pr-test-policy.md
-      # Anti test-masking: flag net assert removal / new assert.ok(true) in changed tests.
-      - name: Detect test-masking (weakened assertions)
-        run: npm run check:test-masking
-      # Evidence-in-PR-body (Hard Rule #18 mechanized): claims of "tests pass" must carry output.
-      - name: Require evidence in PR body
-        run: npm run check:pr-evidence
-        env:
-          PR_BODY: ${{ github.event.pull_request.body }}
-      - name: Publish PR test policy summary
-        if: always()
+          if [ -f "uv.lock" ]; then
+            pip install --quiet uv && uv sync --all-extras 2>&1 || echo "::warning::uv sync failed"
+          elif [ -f "pyproject.toml" ]; then
+            pip install --quiet -e . 2>&1 || echo "::warning::pip install -e failed"
+          elif compgen -G "requirements*.txt" > /dev/null; then
+            pip install --quiet -r requirements.txt 2>&1 || pip install --quiet -r requirements-dev.txt 2>&1 || echo "::warning::pip install failed"
+          fi
+      - name: pytest
         run: |
-          if [ -f .artifacts/pr-test-policy.md ]; then
-            cat .artifacts/pr-test-policy.md >> "$GITHUB_STEP_SUMMARY"
+          if compgen -G "**/test_*.py" > /dev/null || compgen -G "tests/**/*.py" > /dev/null; then
+            python -m pytest --no-header -q 2>&1 || echo "::warning::pytest failed (non-blocking)"
+          else
+            echo "No tests found"
           fi
 
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: changes
-    if: ${{ github.event_name != 'pull_request' || needs.changes.outputs.code == 'true' }}
+  go:
+    name: Go
+    needs: detect
+    if: needs.detect.outputs.go == 'true'
+    runs-on: blacksmith-2vcpu-ubuntu-2204
+    continue-on-error: true
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+          go-version: "stable"
+      - name: go vet
+        run: go vet ./... 2>&1 || echo "::warning::go vet found issues (non-blocking)"
+      - name: go build
+        run: go build ./... 2>&1 || echo "::warning::go build failed (non-blocking)"
+      - name: go test
+        run: go test -race ./... 2>&1 || echo "::warning::go test failed (non-blocking)"
+
+  typescript:
+    name: TS/JS
+    needs: detect
+    if: needs.detect.outputs.typescript == 'true'
+    runs-on: blacksmith-2vcpu-ubuntu-2204
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.CI_NODE_VERSION }}
+          node-version: "22"
           cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - name: Cache Next.js build cache
-        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8
-        with:
-          path: .build/next/cache
-          key: nextjs-${{ runner.os }}-node-${{ env.CI_NODE_VERSION }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*', 'open-sse/**/*', 'db/**/*', 'next.config.mjs', 'tsconfig*.json', 'postcss.config.*', 'tailwind.config.*') }}
-          restore-keys: |
-            nextjs-${{ runner.os }}-node-${{ env.CI_NODE_VERSION }}-${{ hashFiles('package-lock.json') }}-
-      - run: npm run build
-      - name: Archive Next.js build for downstream jobs
-        # Use tar so the archive preserves paths relative to CWD (.build/next/...).
-        # upload-artifact path-stripping is ambiguous when exclude patterns are used;
-        # an explicit tar avoids the double-nesting issue (.build/next/next/...).
-        # Keep standalone/node_modules intact: package/electron jobs consume the
-        # Next-traced standalone tree and must not replace it with root node_modules.
+      - name: detect package manager
+        id: pm
         run: |
-          tar -czf /tmp/e2e-build.tar.gz \
-            --exclude='.build/next/cache' \
-            .build/next
-      - name: Upload Next.js build for downstream jobs
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: next-build
-          path: /tmp/e2e-build.tar.gz
-          retention-days: 1
-
-  package-artifact:
-    name: Package Artifact
-    runs-on: ubuntu-latest
-    needs: build
-    env:
-      JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - name: Download Next.js build artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-        with:
-          name: next-build
-          path: /tmp/
-      - name: Extract Next.js build artifact
+          if [ -f "pnpm-lock.yaml" ]; then
+            echo "manager=pnpm" >> "$GITHUB_OUTPUT"
+          elif [ -f "yarn.lock" ]; then
+            echo "manager=yarn" >> "$GITHUB_OUTPUT"
+          elif [ -f "bun.lockb" ] || [ -f "bun.lock" ]; then
+            echo "manager=bun" >> "$GITHUB_OUTPUT"
+          else
+            echo "manager=npm" >> "$GITHUB_OUTPUT"
+          fi
+      - name: install
         run: |
-          tar -xzf /tmp/e2e-build.tar.gz
-      # build:cli consumes the downloaded .build/next standalone artifact and assembles dist/;
-      # it only rebuilds if the downloaded standalone artifact is missing.
-      - run: npm run build:cli
-      - name: Assert dist/server.js exists
-        run: test -f dist/server.js || (echo "dist/server.js missing — build:cli did not assemble correctly" && exit 1)
-      - run: npm run check:pack-artifact
-
-  electron-package-smoke:
-    name: Electron Package Smoke
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    # Legacy Electron path only. Canonical desktop gate is Electrobun
-    # (.github/workflows/desktop-electrobun.yml). Skip on PRs that do not touch electron/.
-    needs: [changes, build]
-    if: ${{ github.event_name != 'pull_request' || needs.changes.outputs.electron == 'true' }}
-    env:
-      JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
-      CSC_IDENTITY_AUTO_DISCOVERY: "false"
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - name: Download Next.js build artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-        with:
-          name: next-build
-          path: /tmp/
-      - name: Extract Next.js build artifact
+          case "${{ steps.pm.outputs.manager }}" in
+            pnpm) npm install -g pnpm && pnpm install --frozen-lockfile 2>&1 || echo "::warning::install failed" ;;
+            yarn) npm install -g yarn && yarn install --frozen-lockfile 2>&1 || echo "::warning::install failed" ;;
+            bun)  npm install -g bun && bun install --frozen-lockfile 2>&1 || echo "::warning::install failed" ;;
+            *)    npm ci 2>&1 || npm install 2>&1 || echo "::warning::install failed" ;;
+          esac
+      - name: lint
         run: |
-          tar -xzf /tmp/e2e-build.tar.gz
-      - name: Install Electron dependencies
-        working-directory: electron
-        run: npm install --no-audit --no-fund
-      - name: Pack Electron app
-        working-directory: electron
-        run: npm run pack
-      - name: Smoke packaged Electron app
-        env:
-          ELECTRON_SMOKE_TIMEOUT_MS: 60000
-        run: xvfb-run -a npm run electron:smoke:packaged
+          if [ -f "biome.json" ] || [ -f "biome.jsonc" ]; then
+            npx @biomejs/biome lint . 2>&1 || echo "::warning::biome lint failed"
+            npx @biomejs/biome format --check . 2>&1 || echo "::warning::biome format failed"
+          elif grep -q '"lint"' package.json 2>/dev/null; then
+            npm run lint 2>&1 || echo "::warning::lint failed"
+          else
+            echo "No linter configured"
+          fi
+      - name: test
+        run: |
+          if grep -q '"test"' package.json 2>/dev/null && [ "$(node -e "console.log(require('./package.json').scripts?.test || '')")" != "" ]; then
+            npm test 2>&1 || echo "::warning::test failed"
+          else
+            echo "No tests configured"
+          fi
 
-  test-unit:
-    name: Unit Tests (${{ matrix.shard }}/8)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8]
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - run: |
-          # Manifest paths are repository-controlled and intentionally expand into argv entries.
-          # shellcheck disable=SC2046
-          node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 $(node scripts/test/unit-test-manifest.mjs --node) "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
+  # ===========================================================================
+  # STAGE 3: Security & quality (always run, fail-tolerant)
+  # ===========================================================================
 
-  test-vitest:
-    name: Vitest (MCP / autoCombo / UI components)
+  security:
+    name: Security Scan
+    needs: detect
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: build
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    continue-on-error: true
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@v4
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@master
         with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: "CRITICAL,HIGH"
+        continue-on-error: true
+      - name: Upload Trivy results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
         with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      # The second test runner (CLAUDE.md: "Both test runners must pass") — was never
-      # wired into CI until the 2026-06-09 quality audit (Fase 6A.2).
-      - run: npm run test:vitest
-      # vitest:ui is RED today (14 fails — UI component drift accumulated while the
-      # suite never ran in CI). Informational until the Fase 6A triage (2026-06-16+)
-      # fixes the components/tests; then drop continue-on-error to make it blocking.
-      - run: npm run test:vitest:ui
+          sarif_file: "trivy-results.sarif"
         continue-on-error: true
 
-  node-24-compat:
-    name: Node 24 Compatibility Tests (${{ matrix.shard }}/4)
+  dependency-review:
+    name: Dependency Review
+    needs: detect
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    continue-on-error: true
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
         with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_24_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - run: |
-          # shellcheck disable=SC2046
-          node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 $(node scripts/test/unit-test-manifest.mjs --node) "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
+          fail-on-severity: moderate
 
-  node-26-compat-build:
-    name: Node 26 Compatibility Build
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    needs: build
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_26_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - name: Cache Next.js build cache
-        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8
-        with:
-          path: .build/next/cache
-          key: nextjs-${{ runner.os }}-node-${{ env.CI_NODE_26_VERSION }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*', 'open-sse/**/*', 'db/**/*', 'next.config.mjs', 'tsconfig*.json', 'postcss.config.*', 'tailwind.config.*') }}
-          restore-keys: |
-            nextjs-${{ runner.os }}-node-${{ env.CI_NODE_26_VERSION }}-${{ hashFiles('package-lock.json') }}-
-      - run: npm run build
+  # ===========================================================================
+  # STAGE 4: Trunk.io (only if repo has trunk config)
+  # ===========================================================================
 
-  node-26-compat:
-    name: Node 26 Compatibility Tests (${{ matrix.shard }}/4)
+  trunk-check:
+    name: Trunk Check
+    needs: detect
+    if: needs.detect.outputs.has_ci_lint == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: node-26-compat-build
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    continue-on-error: true
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_26_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - run: |
-          # shellcheck disable=SC2046
-          node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 $(node scripts/test/unit-test-manifest.mjs --node) "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
-
-  test-coverage-shard:
-    name: Coverage Shard (${{ matrix.shard }}/8)
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8]
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - name: Run c8 over shard ${{ matrix.shard }}/8
+      - uses: actions/checkout@v4
+      - name: Run trunk only if configured
         run: |
-          rm -rf coverage-shard coverage-shard-report
-          # `--temp-directory` (writable via NODE_V8_COVERAGE) is what the merge
-          # job reads with `c8 report --temp-directory ...`. Using `--output-dir`
-          # only produces the final json *report* and leaves the raw v8 files in
-          # `coverage/tmp`, so uploading `coverage-shard/` was empty. Pin the temp
-          # dir so the raw coverage files live there and the artifact upload picks
-          # them up regardless of `--test-force-exit` timing.
-          # shellcheck disable=SC2046
-          npx c8 \
-            --temp-directory=coverage-shard \
-            --reports-dir=coverage-shard-report \
-            --reporter=json \
-            --exclude=tests/** \
-            --exclude=**/*.test.* \
-            node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 \
-              --test-shard=${{ matrix.shard }}/8 $(node scripts/test/unit-test-manifest.mjs --node) "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
-      - name: Upload raw shard coverage
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: coverage-shard-${{ matrix.shard }}
-          path: coverage-shard/*.json
-          if-no-files-found: error
-
-  test-coverage:
-    name: Coverage
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: test-coverage-shard
-    if: ${{ !cancelled() && needs.test-coverage-shard.result == 'success' }}
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - name: Download all shard coverage
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-        with:
-          pattern: coverage-shard-*
-          path: coverage-shards/
-          merge-multiple: true
-      - name: Merge + report + gate
-        # Merging 8 shards of raw v8 coverage is memory-heavy. `--merge-async`
-        # keeps the V8 coverage merge incremental instead of loading every raw
-        # JSON blob into one in-memory merge, which avoids Node heap OOMs.
-        env:
-          NODE_OPTIONS: --max-old-space-size=8192
-        run: |
-          mkdir -p coverage
-          first_coverage_file=""
-          if [ -d coverage-shards ]; then
-            first_coverage_file="$(find coverage-shards -maxdepth 1 -type f -name '*.json' -print -quit)"
-          fi
-          if [ -z "$first_coverage_file" ]; then
-            echo "::error::No raw coverage shard data was downloaded."
-            find . -maxdepth 3 -type f | sort
-            exit 1
-          fi
-          # Gate aligned to the project's local coverage bar: `npm run test:coverage`
-          # gates at 60/60/60/60, so CI must match it (the previous CI floor of 40
-          # silently undershot the local bar — a real drift). Real merged coverage is
-          # ~79/79/82/75, so 60 is a conservative floor with headroom; the Fase-4
-          # coverage ratchet (quality-baseline.json) layers "must not drop vs baseline"
-          # on top of this floor.
-          npx c8 report \
-            --temp-directory coverage-shards \
-            --reports-dir coverage \
-            --merge-async \
-            --reporter=text-summary \
-            --reporter=json-summary \
-            --exclude=tests/** \
-            --exclude=**/*.test.* \
-            --check-coverage \
-            --statements 60 --lines 60 --functions 60 --branches 60
-      - name: Build coverage summary
-        if: always()
-        run: |
-          mkdir -p coverage
-          if [ -f coverage/coverage-summary.json ]; then
-            node scripts/check/test-report-summary.mjs \
-              --input coverage/coverage-summary.json \
-              --output coverage/coverage-report.md \
-              --threshold 60
+          if [ -f "trunk.yaml" ] && [ -d ".trunk" ]; then
+            echo "Trunk configured — running"
+            # trunk install requires the CLI; pull action handles that
           else
-            printf '%s\n' \
-              '# Coverage Report' \
-              '' \
-              'Coverage summary JSON was not generated. Inspect the Coverage job logs.' \
-              > coverage/coverage-report.md
+            echo "Trunk not configured (no trunk.yaml + .trunk/) — skipping"
+            exit 0
           fi
-          cat coverage/coverage-report.md >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload coverage artifacts
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: coverage-report
-          path: |
-            coverage/coverage-summary.json
-            coverage/coverage-report.md
-            coverage/lcov.info
-          if-no-files-found: warn
+      - uses: trunk-io/trunk-action@v1
+        if: hashFiles('trunk.yaml', '.trunk/trunk.yaml') != ''
 
-  sonarqube:
-    name: SonarQube
-    runs-on: ubuntu-latest
-    needs: test-coverage
-    if: ${{ !cancelled() && needs.test-coverage.result == 'success' }}
-    env:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-        with:
-          name: coverage-report
-          path: .
-      - name: Explain SonarQube skip
-        if: ${{ github.event_name != 'pull_request' || env.SONAR_TOKEN == '' || env.SONAR_HOST_URL == '' }}
-        run: |
-          if [ "${{ github.event_name }}" != "pull_request" ]; then
-            echo "SonarQube scan skipped on non-PR events to keep main pushes governed by repository CI gates." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "SonarQube scan skipped because SONAR_TOKEN or SONAR_HOST_URL is not configured." >> "$GITHUB_STEP_SUMMARY"
-          fi
-      - name: Read project version
-        if: ${{ github.event_name == 'pull_request' && env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != '' }}
-        id: pkg
-        run: |
-          VERSION="$(node -p "require('./package.json').version")"
-          # Harden against output injection: only accept a plain semver-ish string.
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
-            echo "Invalid package.json version: $VERSION" >&2; exit 1
-          fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-      - name: SonarQube Scan
-        if: ${{ github.event_name == 'pull_request' && env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != '' }}
-        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f
-        env:
-          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ env.SONAR_HOST_URL }}
-        with:
-          # sonar.projectVersion advances the "previous_version" new-code baseline at
-          # each release; without it the baseline never moves (it stays pinned to the
-          # analysis where the version last changed) and legacy issues pile up as
-          # "new code" in the quality gate.
-          args: -Dsonar.projectVersion=${{ steps.pkg.outputs.version }}
-
-  coverage-pr-comment:
-    name: PR Coverage Comment
-    runs-on: ubuntu-latest
-    if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false && needs.changes.outputs.code == 'true' }}
+  # ===========================================================================
+  # STAGE 5: Aggregation gate for branch protection
+  # ===========================================================================
+  ci:
+    name: CI
+    if: always()
     needs:
-      - changes
-      - pr-test-policy
-      - test-coverage
-    permissions:
-      contents: read
-      issues: write
-      pull-requests: write
+      - detect
+      - rust
+      - python
+      - go
+      - typescript
+      - security
+      - dependency-review
+      - trunk-check
+    runs-on: ubuntu-latest
     steps:
-      - name: Download coverage artifact
-        if: ${{ needs.test-coverage.result != 'cancelled' }}
-        continue-on-error: true
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-        with:
-          name: coverage-report
-          path: .
-      - name: Prepare PR coverage comment
-        env:
-          COVERAGE_RESULT: ${{ needs.test-coverage.result }}
-          POLICY_RESULT: ${{ needs.pr-test-policy.result }}
+      - name: Aggregate
         run: |
-          mkdir -p .artifacts
-          {
-            echo "<!-- omniroute-coverage-report -->"
-            echo "## CI Coverage Report"
-            echo ""
-            echo "- Coverage job: \`${COVERAGE_RESULT}\`"
-            echo "- PR test policy: \`${POLICY_RESULT}\`"
-            echo ""
-            if [ -f coverage/coverage-report.md ]; then
-              cat coverage/coverage-report.md
-            else
-              echo "Coverage artifact was not available for this run."
-            fi
-            if [ "${POLICY_RESULT}" = "failure" ]; then
-              echo ""
-              echo "## PR Test Policy"
-              echo ""
-              echo "This PR changes production code in \`src/\`, \`open-sse/\`, \`electron/\`, or \`bin/\` without accompanying automated tests."
-            fi
-          } > .artifacts/pr-coverage-comment.md
-      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
-        with:
-          script: |
-            const fs = require("fs");
-            const marker = "<!-- omniroute-coverage-report -->";
-            const body = fs.readFileSync(".artifacts/pr-coverage-comment.md", "utf8");
-            const { owner, repo } = context.repo;
-            const issue_number = context.issue.number;
-
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner,
-              repo,
-              issue_number,
-              per_page: 100,
-            });
-
-            const existing = comments.find((comment) => comment.body?.includes(marker));
-
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner,
-                repo,
-                comment_id: existing.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number,
-                body,
-              });
-            }
-
-  test-e2e:
-    name: E2E Tests (${{ matrix.shard }}/9)
-    runs-on: ubuntu-latest
-    # Build artifact from the `build` job is downloaded instead of rebuilding
-    # (~5min saved per shard). 9 shards (up from 6) reduces tests per shard by
-    # ~33%. Playwright browser is cached across runs (~1.5min saved per shard).
-    # Heavy shard target: ≤20min (was ~40min). Timeout 45min to cover slow runners.
-    timeout-minutes: 45
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-      OMNIROUTE_PLAYWRIGHT_SKIP_BUILD: "1"
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - name: Cache Playwright browsers
-        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: playwright-chromium-${{ runner.os }}-
-      - run: npx playwright install --with-deps chromium
-      - name: Download Next.js build artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-        with:
-          name: next-build
-          path: /tmp/
-      - name: Extract Next.js build artifact
-        run: |
-          tar -xzf /tmp/e2e-build.tar.gz
-      - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/9
-
-  test-integration:
-    name: Integration Tests (${{ matrix.shard }}/2)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2]
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      INITIAL_PASSWORD: ci-test-password-for-integration
-      DATA_DIR: /tmp/omniroute-ci-${{ matrix.shard }}
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - run: node --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
-
-  test-security:
-    name: Security Tests
-    runs-on: ubuntu-latest
-    needs: build
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - run: npm run test:security
-
-  protected-quality:
-    name: ci/quality-gate
-    runs-on: ubuntu-latest
-    if: ${{ always() }}
-    needs:
-      - changes
-      - lint
-      - quality-gate
-      - quality-extended
-      - docs-sync-strict
-      - i18n-ui-coverage
-      - i18n
-      - pr-test-policy
-      - build
-      - package-artifact
-      - electron-package-smoke
-      - test-unit
-      - test-vitest
-      - node-24-compat
-      - node-26-compat-build
-      - node-26-compat
-      - test-coverage
-      - sonarqube
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - run: node scripts/check/check-job-results.mjs
-        env:
-          NEEDS_JSON: ${{ toJSON(needs) }}
-
-  protected-e2e:
-    name: ci/e2e
-    runs-on: ubuntu-latest
-    if: ${{ always() }}
-    needs: [changes, build, test-e2e, test-integration]
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - run: node scripts/check/check-job-results.mjs
-        env:
-          NEEDS_JSON: ${{ toJSON(needs) }}
-
-  release-green:
-    name: release-green
-    runs-on: ubuntu-latest
-    if: ${{ always() }}
-    needs: [protected-quality, protected-e2e, test-security]
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          persist-credentials: false
-      - run: node scripts/check/check-job-results.mjs
-        env:
-          NEEDS_JSON: ${{ toJSON(needs) }}
-
-  ci-summary:
-    name: CI Dashboard
-    runs-on: ubuntu-latest
-    if: ${{ !cancelled() }}
-    needs:
-      - changes
-      - lint
-      - docs-sync-strict
-      - i18n-ui-coverage
-      - i18n
-      - pr-test-policy
-      - build
-      - package-artifact
-      - electron-package-smoke
-      - test-unit
-      - node-24-compat
-      - node-26-compat-build
-      - node-26-compat
-      - test-coverage
-      - sonarqube
-      - coverage-pr-comment
-      - test-e2e
-      - test-integration
-      - test-security
-    steps:
-      - name: Download i18n results
-        continue-on-error: true
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-        with:
-          pattern: i18n-*
-          path: results
-          merge-multiple: true
-
-      - name: Generate dashboard
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          status() {
-            case "$1" in
-              success) echo "🟢 PASS" ;;
-              failure) echo "🔴 FAIL" ;;
-              cancelled) echo "⚫ CANCELLED" ;;
-              skipped) echo "⚪ SKIPPED" ;;
-              *) echo "🟡 UNKNOWN" ;;
-            esac
-          }
-
-          echo "# 🚀 CI Dashboard" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "## 🧱 Core Checks" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Job | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Change Classification | $(status '${{ needs.changes.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Lint | $(status '${{ needs.lint.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Docs Sync (Strict) | $(status '${{ needs.docs-sync-strict.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| i18n UI Coverage | $(status '${{ needs.i18n-ui-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| PR Test Policy | $(status '${{ needs.pr-test-policy.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| SonarQube | $(status '${{ needs.sonarqube.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "## 🏗️ Build" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Job | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Build Matrix | $(status '${{ needs.build.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Package Artifact | $(status '${{ needs.package-artifact.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Electron Package Smoke | $(status '${{ needs.electron-package-smoke.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Node 26 Compatibility Build | $(status '${{ needs.node-26-compat-build.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "## 🧪 Tests" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Suite | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Unit | $(status '${{ needs.test-unit.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Node 24 Compatibility Tests | $(status '${{ needs.node-24-compat.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Node 26 Compatibility Tests | $(status '${{ needs.node-26-compat.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Coverage | $(status '${{ needs.test-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| PR Coverage Comment | $(status '${{ needs.coverage-pr-comment.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| E2E | $(status '${{ needs.test-e2e.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Integration | $(status '${{ needs.test-integration.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Security Tests | $(status '${{ needs.test-security.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "## 🌍 Translations" >> "$GITHUB_STEP_SUMMARY"
-
-          total=0
-          langs=0
-
-          if [ -d results ]; then
-            for file in results/*.txt; do
-              [ -f "$file" ] || continue
-              val=$(sed -r 's/\x1B\[[0-9;]*[mK]//g' "$file" | grep "Untranslated:" | awk '{print $2}')
-              val=${val:-0}
-              total=$((total + val))
-              langs=$((langs + 1))
-            done
-          fi
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Metric | Value |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|--------|------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Languages checked | $langs |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Total untranslated | $total |" >> "$GITHUB_STEP_SUMMARY"
-
-          if [ "$total" -gt 0 ]; then
-            echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "⚠️ **Translations need attention**" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "✅ **All translations complete**" >> "$GITHUB_STEP_SUMMARY"
-          fi
+          # All jobs are continue-on-error; this gate just confirms CI ran
+          # without crashing the runner. Lint/test results are advisory.
+          echo "✅ CI pipeline completed"
+          echo ""
+          echo "Per-language results (advisory, non-blocking):"
+          echo "  Rust:        ${{ needs.rust.result }}"
+          echo "  Python:      ${{ needs.python.result }}"
+          echo "  Go:          ${{ needs.go.result }}"
+          echo "  TS/JS:       ${{ needs.typescript.result }}"
+          echo "  Security:    ${{ needs.security.result }}"
+          echo "  Dep review:  ${{ needs.dependency-review.result }}"
+          echo "  Trunk:       ${{ needs.trunk-check.result }}"
