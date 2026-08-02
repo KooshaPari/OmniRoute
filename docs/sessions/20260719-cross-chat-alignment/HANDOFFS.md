@@ -699,6 +699,13 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-02T21:29Z - Rebase onto current main CI repair (root)
+
+- Main advanced to `92fafe865c5291aae2c17c1b9c88fc0a6a47407f` via PR #489 while PR #491 was running. The clean desktop branch was forward-rebased onto that SHA; the only conflict was the informational detect-step echo and was resolved in favor of main's equivalent output.
+- Final local validation after rebase: `git merge-base HEAD origin/main` equals `92fafe865c5291aae2c17c1b9c88fc0a6a47407f`; `yq`, `actionlint`, and `git diff --check` pass.
+- Airlock snapshot: `wip/20260802T2128-18c81a4271530aa8`. Publish the rebased state on a new branch; do not force-push PR #491's old history.
+- This entry is append-only.
+
 ## 2026-08-02T21:13Z - CI startup failure hardening (root)
 
 - PR #491's fresh push exposed a `CI` workflow `startup_failure`; inspection found the aggregate lint job referenced nonexistent `needs.dependency-review.result` while the job is named `dep-review`, and the detect step interpolated its own not-yet-emitted outputs.
