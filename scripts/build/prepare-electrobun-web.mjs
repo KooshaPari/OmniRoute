@@ -41,13 +41,17 @@ await cp(source, path.join(rendererDestination, "client"), { recursive: true });
 // workspace node_modules makes the installed app fail with a blank/404 page.
 // Install only the SSR runtime closure (not the full web development tree).
 const webPackage = JSON.parse(
-  await (await import("node:fs/promises")).readFile(path.join(root, "apps/web/package.json"), "utf8"),
+  await (
+    await import("node:fs/promises")
+  ).readFile(path.join(root, "apps/web/package.json"), "utf8")
 );
 const runtimeDependencies = Object.fromEntries(
   Object.entries(webPackage.dependencies ?? {}).filter(
     ([, version]) =>
-      typeof version === "string" && !version.startsWith("file:") && !version.startsWith("workspace:"),
-  ),
+      typeof version === "string" &&
+      !version.startsWith("file:") &&
+      !version.startsWith("workspace:")
+  )
 );
 const runtimePackage = {
   name: "@argismonitor/desktop-renderer-runtime",
@@ -55,7 +59,10 @@ const runtimePackage = {
   type: "module",
   dependencies: runtimeDependencies,
 };
-await writeFile(path.join(rendererDestination, "package.json"), JSON.stringify(runtimePackage, null, 2));
+await writeFile(
+  path.join(rendererDestination, "package.json"),
+  JSON.stringify(runtimePackage, null, 2)
+);
 try {
   await execFileAsync(bunExecutable, ["install", "--production", "--no-save"], {
     cwd: rendererDestination,
@@ -101,6 +108,6 @@ await writeFile(
     `  }\n` +
     `  return app.fetch(request);\n` +
     `} });\n` +
-    `console.log("[omniroute-bff] listening on " + origin);\n`,
+    `console.log("[omniroute-bff] listening on " + origin);\n`
 );
 console.log(`[electrobun] staged Hono/Bun backend at ${path.relative(root, backendDestination)}`);

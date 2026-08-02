@@ -699,6 +699,13 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-02T22:40Z - Desktop artifact contract and formatter repair (root)
+
+- PR #492's macOS job built the app but rejected the stale Vercel assertion; the adapter-node bundle emits `Contents/Resources/app/renderer/index.js`. Updated the artifact gate to assert that runtime path.
+- Trunk reported five unformatted files. Applied repository-compatible Prettier/sort-package-json formatting across the changed workflows, desktop entrypoint, runtime staging, smoke, and package manifest.
+- Local validation: two-process smoke passed with BFF and renderer, `yq`, `actionlint`, Prettier check, sort-package-json check, and `git diff --check` all pass.
+- This entry is append-only.
+
 ## 2026-08-02T22:14Z - Renderer runtime closure repair (root)
 
 - PR #492 desktop smoke reached the renderer but returned HTTP 500. Local reproduction with Node exposed `ERR_MODULE_NOT_FOUND: web-vitals` from the compiled Svelte layout; the generated runtime package only installed two hand-selected dependencies.

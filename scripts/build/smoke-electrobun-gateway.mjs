@@ -72,7 +72,9 @@ try {
   // Ensure the staging contract remains explicit even when a build has no
   // generated asset in the root HTML (for example, a minimal CI fixture).
   await readFile(join(cwd.pathname, "generated/web/_app/version.json"));
-  console.log(`[electrobun] gateway + renderer smoke passed: ${backendBase}, ${rendererBase}, ${assetPath}`);
+  console.log(
+    `[electrobun] gateway + renderer smoke passed: ${backendBase}, ${rendererBase}, ${assetPath}`
+  );
 } finally {
   backend.kill("SIGTERM");
   renderer.kill("SIGTERM");

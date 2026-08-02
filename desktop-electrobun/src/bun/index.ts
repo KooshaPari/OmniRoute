@@ -65,12 +65,20 @@ async function bootRendererServer(): Promise<string | undefined> {
   if (!rendererDir) return undefined;
   const port = Number(process.env.OMNIROUTE_RENDERER_PORT ?? "20129");
   try {
-    rendererServer = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, join(rendererDir, "index.js")], {
-      cwd: rendererDir,
-      env: { ...process.env, PORT: String(port), HOST: "127.0.0.1", ORIGIN: `http://127.0.0.1:${port}` },
-      stdout: "inherit",
-      stderr: "inherit",
-    });
+    rendererServer = Bun.spawn(
+      [process.env.OMNIROUTE_BUN ?? process.execPath, join(rendererDir, "index.js")],
+      {
+        cwd: rendererDir,
+        env: {
+          ...process.env,
+          PORT: String(port),
+          HOST: "127.0.0.1",
+          ORIGIN: `http://127.0.0.1:${port}`,
+        },
+        stdout: "inherit",
+        stderr: "inherit",
+      }
+    );
   } catch (error) {
     console.warn("Failed to start bundled Svelte renderer; using bundled fallback", {
       app: APP_NAME,
@@ -267,10 +275,15 @@ async function main(): Promise<void> {
   if (rendererUrl) win.webview.loadURL(rendererUrl);
   setupMenu(win);
   setupTray(win);
-  console.log(`[${APP_NAME}] Launched → ${rendererUrl ?? bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`);
+  console.log(
+    `[${APP_NAME}] Launched → ${rendererUrl ?? bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`
+  );
 }
 
-process.on("exit", () => { nextServer?.kill(); rendererServer?.kill(); });
+process.on("exit", () => {
+  nextServer?.kill();
+  rendererServer?.kill();
+});
 main().catch((err) => {
   console.error(`[${APP_NAME}] Fatal:`, err);
   process.exit(1);
