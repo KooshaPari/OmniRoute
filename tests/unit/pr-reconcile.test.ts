@@ -1,5 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const core = await import("../../scripts/pr-reconcile/core.ts");
 
@@ -255,4 +259,74 @@ test("getDispatchDecision applies policy, dedupe, and head gates", () => {
   assert.deepEqual(core.getDispatchDecision({ expectedHeadSha: "abc", actualHeadSha: "ABC" }), {
     dispatch: true,
   });
+  assert.deepEqual(core.getDispatchDecision({ dryRun: true, webhookConfigured: true }), {
+    dispatch: false,
+    reason: "dry_run",
+  });
+  assert.deepEqual(core.getDispatchDecision({ webhookConfigured: false }), {
+    dispatch: false,
+    reason: "missing_webhook_url",
+  });
+});
+
+test("payload budget is enforced in UTF-8 bytes", () => {
+  const payload = core.buildReconcilePayload({
+    repository: "org/repo",
+    pullRequest: {
+      number: 1,
+      title: "Emoji",
+      url: "https://github.test/org/repo/pull/1",
+      headRef: "feature",
+      headSha: "abc",
+      baseRef: "main",
+      author: "dev",
+      labels: [],
+      draft: false,
+      isFork: false,
+      authorAssociation: "MEMBER",
+    },
+    attempt: { count: 1, max: 5 },
+    files: [],
+    feedback: [
+      {
+        id: "emoji",
+        kind: "bot_comment",
+        source: "review-bot",
+        severity: "actionable",
+        summary: "emoji",
+        body: "😀".repeat(core.MAX_PAYLOAD_CHARS),
+      },
+    ],
+  });
+  assert.ok(Buffer.byteLength(JSON.stringify(payload), "utf8") <= core.MAX_PAYLOAD_CHARS);
+});
+
+test("CLI refuses dispatch when dry-run or webhook secret is absent", () => {
+  const directory = mkdtempSync(join(tmpdir(), "omniroute-reconcile-"));
+  const payloadPath = join(directory, "payload.json");
+  writeFileSync(payloadPath, JSON.stringify({ version: 1 }));
+  const run = (extra: string[]) =>
+    execFileSync(
+      "node",
+      [
+        "--import",
+        "tsx/esm",
+        "scripts/pr-reconcile/cli.ts",
+        "dispatch",
+        "--payload",
+        payloadPath,
+        ...extra,
+      ],
+      {
+        cwd: join(import.meta.dirname, "../.."),
+        env: { ...process.env, KILO_RECONCILE_WEBHOOK_URL: "" },
+        encoding: "utf8",
+      }
+    );
+  try {
+    assert.match(run(["--dry-run"]), /\"dispatched\": false/);
+    assert.match(run([]), /missing_webhook_url|invalid_payload_provenance/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
