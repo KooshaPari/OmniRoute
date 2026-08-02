@@ -699,6 +699,12 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-02T20:29Z - Installed app relaunch after CI repair (root)
+
+- Relaunched `/Applications/OmniRoute.app` with `open -a`; local packaged runtime returned HTTP 200 for `/healthz` and `/`, with health payload `{"status":"ok","service":"argismonitor-bff"}` and title `argismonitor v4`.
+- This confirms the existing installed artifact remains locally dogfoodable while PR #491's repaired artifact is under fresh CI.
+- This entry is append-only.
+
 ## 2026-08-02T20:18Z - PR #491 desktop CI regression repair (root)
 
 - Fresh PR #491 CI exposed two concrete regressions after the semantic rebase: Electrobun built `src/index.ts` importing deleted `./main`, and the gateway smoke assumed the BFF served renderer HTML even though the packaged architecture runs BFF and Svelte SSR as separate processes.
