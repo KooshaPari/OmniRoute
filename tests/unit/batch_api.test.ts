@@ -178,28 +178,10 @@ test("Batch API and Processing", async () => {
     );
   }
 
-  assert.ok(
-    currentBatch?.status === "completed" || currentBatch?.status === "failed",
-    "Batch should reach a terminal state",
-  );
-
-  // In test environment, the mock key might fail, which is fine for this test as long as it finishes
-  if (currentBatch?.status === "failed" || currentBatch?.requestCountsFailed > 0) {
-    console.warn(
-      "[TEST] Batch finished with failures (likely due to mock credentials). This is acceptable for this test.",
-    );
-    assert.strictEqual(currentBatch?.requestCountsTotal, 2, "Total requests should be 2");
-    assert.strictEqual(
-      (currentBatch?.requestCountsCompleted || 0) + (currentBatch?.requestCountsFailed || 0),
-      2,
-      "Total processed should be 2",
-    );
-    return;
-  }
-
   assert.strictEqual(currentBatch?.status, "completed", "Batch should be completed");
   assert.strictEqual(currentBatch?.requestCountsTotal, 2);
   assert.strictEqual(currentBatch?.requestCountsCompleted, 2);
+  assert.strictEqual(currentBatch?.requestCountsFailed, 0);
   assert.ok(currentBatch?.outputFileId, "Should have output file ID");
 
   const inputFileAfter = getFile(file.id);
