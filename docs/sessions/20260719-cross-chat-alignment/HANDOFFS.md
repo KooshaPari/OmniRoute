@@ -876,3 +876,10 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Local validation: no mutable action refs remain in `.github/workflows/ci.yml`; `actionlint`, `yq`, Trunk 1.22.2 Prettier check (`23 modified files`, no new issues), and `git diff --check` pass.
 - Airlock snapshot before this repair commit is required and will be recorded with the pushed SHA in the next entry.
 - This entry is append-only.
+
+## 2026-08-03T00:48Z - Selected-actions policy closure (ci_action_allowlist_repair)
+
+- Repository policy evidence from `GET /actions/permissions`: `allowed_actions=selected`, `sha_pinning_required=true`; selected patterns permit `gitleaks/gitleaks-action@ff98106e...` but do not permit `dcedce...` or `EmbarkStudios/cargo-deny-action`.
+- Replaced the unapproved gitleaks SHA with the selected `ff98106e4c7b2bc287b24eaf42907196329070c7` pin. Replaced the unapproved cargo-deny action with an equivalent pinned `cargo install cargo-deny --version 0.20.2 --locked` followed by `cargo deny check --all-features`; the Cargo Deny gate remains present and advisory/fail-open behavior is unchanged.
+- Local validation: the CI workflow contains no mutable refs, `actionlint`, `yq`, Trunk 1.22.2 Prettier check (`23 modified files`, no new issues), and `git diff --check` pass. The next Airlock snapshot and commit will preserve this selected-actions repair.
+- This entry is append-only.
