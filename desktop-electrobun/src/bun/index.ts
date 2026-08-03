@@ -77,7 +77,7 @@ async function bootRendererServer(): Promise<string | undefined> {
         },
         stdout: "inherit",
         stderr: "inherit",
-      }
+      },
     );
   } catch (error) {
     console.warn("Failed to start bundled Svelte renderer; using bundled fallback", {
@@ -156,7 +156,7 @@ async function bootServices(): Promise<void> {
   } catch (err) {
     console.warn(
       `[${APP_NAME}] process-compose boot skipped (not found or services already running):`,
-      (err as Error).message
+      (err as Error).message,
     );
   }
 }
@@ -276,7 +276,7 @@ async function main(): Promise<void> {
   setupMenu(win);
   setupTray(win);
   console.log(
-    `[${APP_NAME}] Launched → ${rendererUrl ?? bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`
+    `[${APP_NAME}] Launched → ${rendererUrl ?? bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`,
   );
 }
 

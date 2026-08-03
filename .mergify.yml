@@ -60,8 +60,6 @@ pull_request_rules:
       - -draft
     actions:
       request_reviews:
-        teams:
-          - phenotype/core
         users:
           - KooshaPari
 

@@ -699,6 +699,16 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-02T23:55Z - Current-head gate repair and governance hardening (pr492_gate_repair)
+
+- PR #492 replacement head remains `ed48c56c8256730bb6facc9c350be29e5de34055`, rebased on `main` `92fafe865c5291aae2c17c1b9c88fc0a6a47407f`; the isolated worktree is the only mutation surface.
+- Trunk 1.22.2 reproduced the CI formatter failure and its exact `trunk fmt --filter prettier` repair was applied to `.github/workflows/ci.yml`, `desktop-electrobun/src/bun/index.ts`, `scripts/build/prepare-electrobun-web.mjs`, and `scripts/build/smoke-electrobun-gateway.mjs`. Full local Trunk check reports `Checked 22 modified files`, `No new issues` (48 existing baseline issues remain).
+- Cross-platform macOS unit tests failed because the workflow used a raw top-level glob that loaded Vitest/Bun suites through `node:test`; the workflow now invokes the repository's `npm run test:unit:ci` manifest-bound Node runner, and its manifest contract test asserts this boundary.
+- External Mergify request-review failure was traced to invalid org team `phenotype/core`; the rule now requests the configured `KooshaPari` user only. Scorecard permissions now follow the canonical least-privilege shape: top-level `read-all`, job-scoped `contents: read`, `id-token: write`, and `security-events: write`.
+- Exact-head CI evidence already green: macOS `.app` bundle, desktop gateway/renderer smoke, Apps Quality, Contract Tests, DAST, CodeQL, dependency review, gitleaks, semgrep, latency, CLI builds, Rust FFI, and official Scorecard. qgate remains running; the old installed `/Applications/OmniRoute.app` is live but stale (pre-adapter-node artifact) and is not current-release proof.
+- Validation in this slice: `yq` + `actionlint` on changed workflows, Node unit-manifest counts (2033 Node / 13 Vitest / 2 Bun top-level files), `git diff --check`, and full local Trunk check. Airlock snapshot: `wip/20260802T2328-18c820cfbfdd57f8`.
+- This entry is append-only.
+
 ## 2026-08-02T22:40Z - Desktop artifact contract and formatter repair (root)
 
 - PR #492's macOS job built the app but rejected the stale Vercel assertion; the adapter-node bundle emits `Contents/Resources/app/renderer/index.js`. Updated the artifact gate to assert that runtime path.

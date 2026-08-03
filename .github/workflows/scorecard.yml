@@ -14,15 +14,16 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: read
-  id-token: write
-  security-events: write
+permissions: read-all
 
 jobs:
   analysis:
     name: Scorecard analysis
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      security-events: write
 
     steps:
       - name: Checkout

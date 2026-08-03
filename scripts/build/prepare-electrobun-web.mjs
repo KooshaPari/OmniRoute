@@ -20,7 +20,7 @@ try {
 } catch {
   console.error(
     `[electrobun] apps/web client build output is missing at ${source}. ` +
-      "Run `bun --cwd apps/web run build` before preparing the desktop shell."
+      "Run `bun --cwd apps/web run build` before preparing the desktop shell.",
   );
   process.exit(1);
 }
@@ -43,15 +43,15 @@ await cp(source, path.join(rendererDestination, "client"), { recursive: true });
 const webPackage = JSON.parse(
   await (
     await import("node:fs/promises")
-  ).readFile(path.join(root, "apps/web/package.json"), "utf8")
+  ).readFile(path.join(root, "apps/web/package.json"), "utf8"),
 );
 const runtimeDependencies = Object.fromEntries(
   Object.entries(webPackage.dependencies ?? {}).filter(
     ([, version]) =>
       typeof version === "string" &&
       !version.startsWith("file:") &&
-      !version.startsWith("workspace:")
-  )
+      !version.startsWith("workspace:"),
+  ),
 );
 const runtimePackage = {
   name: "@argismonitor/desktop-renderer-runtime",
@@ -61,7 +61,7 @@ const runtimePackage = {
 };
 await writeFile(
   path.join(rendererDestination, "package.json"),
-  JSON.stringify(runtimePackage, null, 2)
+  JSON.stringify(runtimePackage, null, 2),
 );
 try {
   await execFileAsync(bunExecutable, ["install", "--production", "--no-save"], {
@@ -108,6 +108,6 @@ await writeFile(
     `  }\n` +
     `  return app.fetch(request);\n` +
     `} });\n` +
-    `console.log("[omniroute-bff] listening on " + origin);\n`
+    `console.log("[omniroute-bff] listening on " + origin);\n`,
 );
 console.log(`[electrobun] staged Hono/Bun backend at ${path.relative(root, backendDestination)}`);

@@ -90,10 +90,12 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Run unit tests
-        run:
-          node --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit
-          --test-concurrency=4 tests/unit/*.test.ts
+      - name: Run Node unit tests
+        # Keep this gate aligned with the repository's runner manifest. A raw
+        # top-level unit-test glob also loads Vitest/Bun suites through
+        # node:test, producing runner-initialisation failures before those
+        # suites can execute under their dedicated runners.
+        run: npm run test:unit:ci
         env:
           JWT_SECRET: ci-cross-test-secret
           API_KEY_SECRET: ci-cross-test-api-key

@@ -43,11 +43,11 @@ test("fails closed when a test imports more than one runner API", () => {
   fs.mkdirSync(unit, { recursive: true });
   fs.writeFileSync(
     path.join(unit, "ambiguous.test.ts"),
-    `import test from "node:test"; import { expect } from "vitest";`
+    `import test from "node:test"; import { expect } from "vitest";`,
   );
   assert.throws(
     () => discoverTopLevelUnitTests(root),
-    /imports more than one of Vitest, node:test, and bun:test/
+    /imports more than one of Vitest, node:test, and bun:test/,
   );
   fs.rmSync(root, { recursive: true, force: true });
 });
@@ -55,11 +55,14 @@ test("fails closed when a test imports more than one runner API", () => {
 test("all native unit consumers use the manifest and Vitest consumes its partition", () => {
   const packageJson = fs.readFileSync("package.json", "utf8");
   const workflow = fs.readFileSync(".github/workflows/ci.yml", "utf8");
+  const crossPlatformWorkflow = fs.readFileSync(".github/workflows/cross-platform.yml", "utf8");
   const vitestConfig = fs.readFileSync("vitest.mcp.config.ts", "utf8");
   assert.doesNotMatch(packageJson, /tests\/unit\/\*\.test\.ts/);
   assert.doesNotMatch(workflow, /tests\/unit\/\*\.test\.ts/);
   assert.equal(packageJson.match(/unit-test-manifest\.mjs --node/g)?.length, 8);
   assert.equal(workflow.match(/unit-test-manifest\.mjs --node/g)?.length, 4);
+  assert.match(crossPlatformWorkflow, /run: npm run test:unit:ci/);
+  assert.doesNotMatch(crossPlatformWorkflow, /tests\/unit\/\*\.test\.ts/);
   assert.match(vitestConfig, /discoverTopLevelUnitTests\(\)\.vitest/);
   assert.match(vitestConfig, /\.\.\.topLevelVitestTests/);
 });
