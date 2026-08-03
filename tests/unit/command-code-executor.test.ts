@@ -294,41 +294,63 @@ test("Command Code executor surfaces upstream and streamed errors", async () => 
   }, /boom/);
 });
 
+<<<<<<< HEAD
 test("Command Code executor omits max_tokens when the client does not supply one (GLM-5.x)", async () => {
+=======
+test("Command Code executor caps max_tokens to the registered per-model limit (GLM-5.x)", async () => {
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   const calls: FetchCall[] = [];
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init, body: JSON.parse(String(init.body)) });
     return commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }]);
   };
 
+<<<<<<< HEAD
   // No client max_tokens: we must NOT fabricate one. Omitting the field lets
   // Command Code's upstream apply the model's own native default.
+=======
+  // GLM-5 and GLM-5.1 are registered with maxOutputTokens: 131072.
+  // Without per-model capping, the upstream rejects with
+  // "限制数值范围[1,131072]".
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   await getExecutor("command-code").execute({
     model: "zai-org/GLM-5.1",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
     body: { messages: [{ role: "user", content: "Hi" }] },
   });
+<<<<<<< HEAD
   assert.ok(!("max_tokens" in calls[0].body.params));
 });
 
 test("Command Code executor omits max_tokens for DeepSeek v4 when the client does not supply one", async () => {
+=======
+  assert.equal(calls[0].body.params.max_tokens, 131072);
+});
+
+test("Command Code executor caps max_tokens to the registered per-model limit (DeepSeek v4)", async () => {
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   const calls: FetchCall[] = [];
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init, body: JSON.parse(String(init.body)) });
     return commandCodeStream([{ type: "text-delta", text: "ok" }, { type: "finish" }]);
   };
 
+<<<<<<< HEAD
   // Regression: previously the executor invented max_tokens from the registry
   // (384000), which /alpha/generate rejects with a 400
   // "Too big: expected number to be <=200000". With no client value we now omit
   // the field entirely, so the request succeeds and upstream picks the default.
+=======
+  // DeepSeek v4 pro is registered with maxOutputTokens: 384000.
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   await getExecutor("command-code").execute({
     model: "deepseek/deepseek-v4-pro",
     stream: false,
     credentials: { apiKey: "cc_test_key" },
     body: { messages: [{ role: "user", content: "Hi" }] },
   });
+<<<<<<< HEAD
   assert.ok(!("max_tokens" in calls[0].body.params));
 });
 
@@ -348,6 +370,9 @@ test("Command Code executor clamps an oversized client-supplied max_tokens to th
     body: { messages: [{ role: "user", content: "Hi" }], max_tokens: 500000 },
   });
   assert.equal(calls[0].body.params.max_tokens, 200000);
+=======
+  assert.equal(calls[0].body.params.max_tokens, 384000);
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 });
 
 test("Command Code executor honors a smaller client-provided max_tokens under the per-model cap", async () => {

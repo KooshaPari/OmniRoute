@@ -2022,9 +2022,13 @@ export async function markAccountUnavailable(
         {
           ...modelLockoutOptions,
           exactCooldownMs:
+<<<<<<< HEAD
             fallbackResult.usedUpstreamRetryHint === true
               ? fallbackResult.cooldownMs
               : (fallbackResult.quotaResetHintMs ?? null),
+=======
+            fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
           maxCooldownMs: mlSettings.maxCooldownMs,
         }
       );

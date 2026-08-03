@@ -116,11 +116,27 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
       if (rec.type === "text") {
         parts.push({ text: rec.text });
       } else if (rec.type === "input_audio" || rec.type === "audio") {
+<<<<<<< HEAD
         const audio = toRecord(rec.input_audio || rec.audio);
         if (typeof audio.data === "string" && audio.data) {
           parts.push({
             inlineData: {
               mimeType: normalizeAudioMimeType(audio.format),
+=======
+        // OpenAI Chat Completions audio input shape (ports decolua/9router#912 + #913):
+        // { type:"input_audio", input_audio:{data,format} } — some clients use the
+        // { type:"audio", audio:{data,format} } shape — -> Gemini
+        // `inlineData: { mimeType: "audio/<format>", data }`. mp3 normalizes to the
+        // canonical `audio/mpeg`; a leading `data:<mime>;base64,` prefix is stripped so
+        // Gemini receives raw base64.
+        const audio = toRecord(rec.input_audio || rec.audio);
+        if (typeof audio.data === "string" && audio.data) {
+          const format = typeof audio.format === "string" && audio.format ? audio.format : "wav";
+          const mimeType = format === "mp3" ? "audio/mpeg" : `audio/${format}`;
+          parts.push({
+            inlineData: {
+              mimeType,
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
               data: audio.data.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, ""),
             },
           });

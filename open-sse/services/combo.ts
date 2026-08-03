@@ -231,10 +231,13 @@ const DEFAULT_MODEL_P95_MS: Record<string, number> = {
 const MIN_HISTORY_SAMPLES = 10;
 const OUTPUT_TOKEN_RATIO = 0.4;
 
+<<<<<<< HEAD
 function validHistoricalSampleCount(value: unknown): number | undefined {
   return typeof value === "number" && Number.isSafeInteger(value) && value > 0 ? value : undefined;
 }
 
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 function normalizeNestedComboMode(value: unknown): NestedComboMode {
   return value === "execute" ? "execute" : "flatten";
 }
@@ -332,6 +335,7 @@ function quotaRemainingPercentFromQuota(quota: unknown): number {
   return 100;
 }
 
+<<<<<<< HEAD
 const QUOTA_BLOCKING_CONNECTION_STATUSES = new Set([
   "banned",
   "credits_exhausted",
@@ -362,6 +366,8 @@ export function getConnectionStatusQuotaCutoffReason(
   return undefined;
 }
 
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 export async function buildAutoCandidates(
   targets: ResolvedComboTarget[],
   comboName: string,
@@ -559,6 +565,7 @@ export async function buildAutoCandidates(
       let quotaCutoffReason: string | undefined;
       const fetcher = getQuotaFetcher(provider);
       const connection = target.connectionId ? connectionById.get(target.connectionId) : undefined;
+<<<<<<< HEAD
       // Gate the terminal-status cutoff behind the same opt-in as the quota-percent
       // cutoff (#4483): when quota cutoff is disabled, a connection in a terminal
       // testStatus must still fall through to normal connection-cooldown / model-lockout
@@ -583,6 +590,8 @@ export async function buildAutoCandidates(
         statusPenalty = true;
         statusPenaltyReason = connectionStatusReason;
       }
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
       if (fetcher && target.connectionId) {
         const quotaKey = `${provider}:${target.connectionId}`;
         if (!quotaPromises.has(quotaKey)) {
@@ -601,10 +610,15 @@ export async function buildAutoCandidates(
         }
         const quota = await quotaPromises.get(quotaKey)!;
         resetWindowAffinity = calculateResetWindowAffinity(quota, resetWindowConfig);
+<<<<<<< HEAD
         if (!quotaCutoffBlocked) {
           quotaRemaining = quotaRemainingPercentFromQuota(quota);
         }
         if (!quotaCutoffBlocked && quotaCutoffEnabled) {
+=======
+        quotaRemaining = quotaRemainingPercentFromQuota(quota);
+        if (quotaCutoffEnabled) {
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
           const cutoffDecision = evaluateQuotaCutoff(
             quota as QuotaInfo | null,
             buildAutoQuotaThresholds(provider, connection, resilienceSettings)
@@ -644,8 +658,11 @@ export async function buildAutoCandidates(
         resetWindowAffinity,
         quotaCutoffBlocked,
         quotaCutoffReason,
+<<<<<<< HEAD
         statusPenalty,
         statusPenaltyReason,
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
         connectionPoolSize: connectionPoolCounts.get(provider) ?? 1,
         connectionId: target.connectionId ?? undefined,
       };
@@ -657,6 +674,7 @@ export async function buildAutoCandidates(
     const hiddenModels = hiddenModelsMap.get(c.provider);
     return !hiddenModels?.has(c.model);
   });
+<<<<<<< HEAD
 }
 
 const TERMINAL_PIN_STATUSES = new Set(["credits_exhausted", "banned", "expired"]);
@@ -723,6 +741,8 @@ async function isPinnedModelDurablyUnhealthy(pinnedModel: string): Promise<boole
   } catch {
     return false;
   }
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 }
 
 /**
@@ -740,7 +760,11 @@ async function isPinnedModelDurablyUnhealthy(pinnedModel: string): Promise<boole
 // output limits, so the request should fall through to the next target instead of
 // being short-circuited. Exported as pure predicates so the guard is unit-testable.
 /** @param {string} errorText */
+<<<<<<< HEAD
 export function isContextOverflow400(errorText: string): boolean {
+=======
+export function isContextOverflow400(errorText) {
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   return (
     /\bcontext.*(?:length_exceeded|too long|overflow|exceeded|window|limit)\b/i.test(errorText) ||
     /exceeds.*context/i.test(errorText) ||
@@ -748,7 +772,11 @@ export function isContextOverflow400(errorText: string): boolean {
   );
 }
 /** @param {string} errorText */
+<<<<<<< HEAD
 export function isParamValidation400(errorText: string): boolean {
+=======
+export function isParamValidation400(errorText) {
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   return (
     /\bmax_tokens\b.*(?:illegal|must|range|invalid)/i.test(errorText) ||
     /\bparameter is illegal\b/i.test(errorText) ||
@@ -767,7 +795,11 @@ export async function handleComboChat({
   allCombos,
   relayOptions,
   signal,
+<<<<<<< HEAD
   apiKeyAllowedConnections,
+=======
+  apiKeyAllowedConnections = null,
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   nesting = null,
 }: HandleComboChatOptions): Promise<Response> {
   const { tier: _comboDispatchTier } = await useDispatchForEdge("scoring.combo.scoreSimd").catch(() => ({ tier: "T1" }));
@@ -895,6 +927,7 @@ export async function handleComboChat({
     return handleSingleModelWithTimeout(body, pinnedModel);
   }
 
+<<<<<<< HEAD
   // Fusion strategy: parallel panel + judge synthesis. Handled in a separate module
   // because it neither iterates targets in order nor needs the failover/retry/credential
   // gate machinery that follows — it fans out, then synthesizes once.
@@ -926,6 +959,8 @@ export async function handleComboChat({
     });
   }
 
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   const nestingContext = nesting || {
     depth: 0,
     maxDepth: clampComboDepth(config.maxComboDepth),
@@ -1074,8 +1109,12 @@ export async function handleComboChat({
 
   const isTargetSelectableForWeighted = async (target: ResolvedComboTarget): Promise<boolean> => {
     const rawModel = parseModel(target.modelStr).model || target.modelStr;
+<<<<<<< HEAD
     if (target.provider && getCircuitBreaker(target.provider).getStatus().state === "OPEN")
       return false;
+=======
+    if (target.provider && getCircuitBreaker(target.provider).getStatus().state === "OPEN") return false;
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     if (
       resilienceSettings.providerCooldown.enabled &&
       Boolean(target.provider && target.provider !== "unknown") &&
@@ -1153,21 +1192,31 @@ export async function handleComboChat({
       : null;
   const getWeightedStepKeyForTarget = (target: ResolvedComboTarget): string | null => {
     if (!weightedResolution?.orderedSteps) return null;
+<<<<<<< HEAD
     const step = weightedResolution.orderedSteps.find(
       (entry) =>
         target.executionKey === entry.executionKey ||
         target.executionKey.startsWith(entry.executionKey + ">")
+=======
+    const step = weightedResolution.orderedSteps.find((entry) =>
+      target.executionKey === entry.executionKey ||
+      target.executionKey.startsWith(entry.executionKey + ">")
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     );
     return step?.executionKey || null;
   };
   let orderedTargets =
     strategy === "weighted"
       ? weightedResolution?.orderedTargets || []
+<<<<<<< HEAD
       : resolveComboTargets(
           expandedCombo,
           expandedAllCombos,
           clampComboDepth(config.maxComboDepth)
         );
+=======
+      : resolveComboTargets(expandedCombo, expandedAllCombos, clampComboDepth(config.maxComboDepth));
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 
   orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
 
@@ -1346,7 +1395,11 @@ export async function handleComboChat({
       combo.name,
       relayOptions?.sessionId,
       resetWindowConfig,
+<<<<<<< HEAD
       autoCandidateResilienceSettings
+=======
+      resilienceSettings
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     );
     const routableCandidates = candidates.filter(
       (candidate) => candidate.quotaCutoffBlocked !== true
@@ -2034,12 +2087,16 @@ export async function handleComboChat({
               undefined;
             const effectiveConnectionId = selectedConnectionId || target.connectionId || "";
 
+<<<<<<< HEAD
             const quality = await validateResponseQuality(
               result,
               clientRequestedStream,
               log,
               config.responseValidation
             );
+=======
+            const quality = await validateResponseQuality(result, clientRequestedStream, log);
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
             if (!quality.valid) {
               log.warn(
                 "COMBO",
@@ -2416,7 +2473,12 @@ export async function handleComboChat({
             fallbackResult.shouldFallback &&
             !isContextOverflow400(errorText) &&
             !isParamValidation400(errorText) &&
+<<<<<<< HEAD
             (errorText.toLowerCase().includes("context") ||
+=======
+            (fallbackResult.reason === RateLimitReason.MODEL_CAPACITY ||
+              errorText.toLowerCase().includes("context") ||
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
               errorText.toLowerCase().includes("prompt") ||
               errorText.toLowerCase().includes("token") ||
               errorText.toLowerCase().includes("malformed") ||
@@ -2866,8 +2928,12 @@ async function handleRoundRobinCombo({
       if (stickyTarget) {
         const rawModel = parseModel(stickyTarget.modelStr).model || stickyTarget.modelStr;
         const stickyAvailable =
+<<<<<<< HEAD
           (!stickyTarget.provider ||
             getCircuitBreaker(stickyTarget.provider).getStatus().state !== "OPEN") &&
+=======
+          (!stickyTarget.provider || getCircuitBreaker(stickyTarget.provider).getStatus().state !== "OPEN") &&
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
           !(
             resilienceSettings.providerCooldown.enabled &&
             Boolean(stickyTarget.provider && stickyTarget.provider !== "unknown") &&

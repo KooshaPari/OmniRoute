@@ -332,6 +332,7 @@ export function isComposerModel(model: string | undefined | null): boolean {
   return /^composer(?:-|$)/i.test(id ?? "");
 }
 
+<<<<<<< HEAD
 // Composer's protobuf sometimes wraps the visible suffix in sentinel tags:
 // `<｜final｜>` (full-width pipes) or `<|final|>` (ASCII), optionally closed
 // with a matching `<｜/final｜>` / `<|/final|>`. These are protocol-internal
@@ -341,10 +342,13 @@ const COMPOSER_CLOSE_MARKER = /\s*<[｜|]\s*\/\s*final\s*[｜|]>\s*$/i;
 const COMPOSER_PARTIAL_OPEN = /^\s*<(?![｜|/])/;
 const COMPOSER_PARTIAL_OPEN_PIPE = /^\s*<[｜|][^>]*$/;
 
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 export function visibleComposerContentFromThinking(thinking: string): string {
   if (!thinking) return "";
   const endIdx = thinking.lastIndexOf(COMPOSER_THINK_END);
   if (endIdx < 0) return "";
+<<<<<<< HEAD
   let visible = thinking.slice(endIdx + COMPOSER_THINK_END.length).trimStart();
   if (COMPOSER_OPEN_MARKER.test(visible)) {
     visible = visible.replace(COMPOSER_OPEN_MARKER, "");
@@ -358,6 +362,9 @@ export function visibleComposerContentFromThinking(thinking: string): string {
     return "";
   }
   return visible.replace(COMPOSER_CLOSE_MARKER, "").trim();
+=======
+  return thinking.slice(endIdx + COMPOSER_THINK_END.length).trimStart();
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 }
 
 export function composerReasoningRemainder(thinking: string): string {
@@ -410,6 +417,7 @@ export type StreamCtx = {
   // the visible suffix (after the last `</think>`) has already been streamed
   // out as `content` deltas, so we only emit the incremental tail per frame.
   composerVisibleEmittedLength: number;
+<<<<<<< HEAD
   // Composer DeepSeek-format inline tool-call parser state (decolua/9router#1335).
   // Null for non-Composer models (no overhead). When set, the streaming parser
   // holds back text inside `<｜tool▁calls▁begin｜>...<｜tool▁calls▁end｜>` markers
@@ -418,6 +426,8 @@ export type StreamCtx = {
   // True once we've emitted structured tool_calls from the inline Composer parser
   // (to avoid double-emitting if the block appears in multiple accumulated frames).
   composerInlineToolCallsEmitted: boolean;
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 };
 
 export function newStreamCtx(model: string, emit: (chunk: string) => void): StreamCtx {
@@ -438,8 +448,11 @@ export function newStreamCtx(model: string, emit: (chunk: string) => void): Stre
     toolCalls: [],
     pendingToolCalls: new Map(),
     composerVisibleEmittedLength: 0,
+<<<<<<< HEAD
     composerToolParserState: isComposerModel(model) ? createStreamingState() : null,
     composerInlineToolCallsEmitted: false,
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   };
 }
 
@@ -662,6 +675,7 @@ export function processFrame(
       if (isComposerModel(ctx.model)) {
         const visible = visibleComposerContentFromThinking(ctx.thinkingText);
         if (visible.length > ctx.composerVisibleEmittedLength) {
+<<<<<<< HEAD
           // Feed the full accumulated visible text into the DeepSeek inline
           // tool-call streaming parser (decolua/9router#1335). It tracks how
           // much has already been safely emitted and returns only the new
@@ -701,6 +715,12 @@ export function processFrame(
             ctx.totalText += deltaContent;
             emitChunk(ctx, { content: deltaContent });
           }
+=======
+          const deltaContent = visible.slice(ctx.composerVisibleEmittedLength);
+          ctx.composerVisibleEmittedLength = visible.length;
+          ctx.totalText += deltaContent;
+          emitChunk(ctx, { content: deltaContent });
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
         }
       } else {
         emitChunk(ctx, { reasoning_content: d.text });

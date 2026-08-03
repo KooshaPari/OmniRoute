@@ -19,7 +19,10 @@ export function buildFailureUsageRecord(opts: {
   statusCode: number;
   errorCode: string | null | undefined;
   latencyMs: number;
+<<<<<<< HEAD
   endpoint?: string | null | undefined;
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 }) {
   return {
     provider: opts.provider || "unknown",
@@ -36,6 +39,9 @@ export function buildFailureUsageRecord(opts: {
     apiKeyName: opts.apiKeyInfo?.name || undefined,
     serviceTier: opts.effectiveServiceTier,
     comboStrategy: opts.isCombo ? opts.comboStrategy || undefined : undefined,
+<<<<<<< HEAD
     endpoint: opts.endpoint || undefined,
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   };
 }

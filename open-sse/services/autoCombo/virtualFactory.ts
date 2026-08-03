@@ -257,6 +257,10 @@ export async function createVirtualAutoCombo(
     const hiddenModels = hiddenModelsMap.get(conn.provider);
     if (hiddenModels?.has(modelId)) continue;
 
+    // Skip models that the user has hidden in the dashboard
+    const hiddenModels = hiddenModelsMap.get(conn.provider);
+    if (hiddenModels?.has(modelId)) continue;
+
     candidatePool.push({
       provider: conn.provider,
       connectionId: conn.id,

@@ -623,7 +623,14 @@ export function handleNoCredentials(
     // all disabled. log level is `warn` rather than `error` because zero active
     // credentials is an expected operator-driven state, not a server fault.
     log.warn("AUTH", `No active credentials for provider: ${provider}`);
+<<<<<<< HEAD
     return errorResponse(HTTP_STATUS.NOT_FOUND, `No active credentials for provider: ${provider}`);
+=======
+    return errorResponse(
+      HTTP_STATUS.NOT_FOUND,
+      `No active credentials for provider: ${provider}`
+    );
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   }
   log.warn("CHAT", "No more accounts available", { provider });
   return errorResponse(
@@ -803,6 +810,7 @@ export function withSessionHeader(response: Response, sessionId: string | null):
   }
 }
 
+<<<<<<< HEAD
 export function withCorrelationId(response: Response, correlationId: string | null): Response {
   if (!response || !correlationId) return response;
 
@@ -820,6 +828,8 @@ export function withCorrelationId(response: Response, correlationId: string | nu
   }
 }
 
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 export function withSelectedConnectionHeader(
   response: Response,
   connectionId: string | null | undefined

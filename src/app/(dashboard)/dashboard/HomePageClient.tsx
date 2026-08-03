@@ -72,6 +72,12 @@ type ProviderModelSummary = {
   model?: string;
 };
 
+type TopologyProvider = {
+  id: string;
+  provider: string;
+  name?: string;
+};
+
 const PROVIDER_ALIAS_TO_ID = new Map(
   Object.entries(AI_PROVIDERS)
     .flatMap(([providerId, providerInfo]) =>
@@ -115,12 +121,15 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     Array<{ id?: string; prefix?: string; name?: string }>
   >([]);
 
+<<<<<<< HEAD
   // The live in-flight request feed for the Provider Topology pulse animation is owned by
   // <HomeProviderTopologySection>, which subscribes to it (gated by the `enabled` prop)
   // only when the topology is actually shown. HomePageClient must NOT open its own
   // unconditional live socket: the binding here was unused (ReferenceError in prod,
   // #4759/#4745) and the socket opened even when topology was hidden (#4596).
 
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [updating, setUpdating] = useState(false);
 
@@ -1173,12 +1182,41 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       )}
 
       {showProviderTopologyOnHome && (
+<<<<<<< HEAD
         <HomeProviderTopologySection
           providers={topologyProviders}
           lastProvider={lastProvider}
           errorProvider={errorProvider}
           enabled={showProviderTopologyOnHome}
         />
+=======
+        <Card>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-base font-semibold">{t("providerTopology")}</h2>
+              <p className="text-xs text-text-muted">
+                Connected providers routing through OmniRoute in real time
+              </p>
+            </div>
+            <div className="flex items-center gap-3 text-[11px] text-text-muted">
+              <span className="flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-green-500" /> Active
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-amber-500" /> Recent
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-red-500" /> Error
+              </span>
+            </div>
+          </div>
+          <ProviderTopologySection
+            providers={topologyProviders}
+            lastProvider={lastProvider}
+            errorProvider={errorProvider}
+          />
+        </Card>
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
       )}
 
       {/* Provider Models Modal */}
@@ -1190,6 +1228,28 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
         />
       )}
     </div>
+  );
+}
+
+function ProviderTopologySection({
+  providers,
+  lastProvider,
+  errorProvider,
+}: {
+  providers: TopologyProvider[];
+  lastProvider: string;
+  errorProvider: string;
+}) {
+  // Live in-flight requests are only needed while the topology widget is mounted.
+  const { activeRequests: liveActiveRequests } = useLiveRequests();
+
+  return (
+    <ProviderTopology
+      providers={providers}
+      activeRequests={selectActiveRequests(liveActiveRequests)}
+      lastProvider={lastProvider}
+      errorProvider={errorProvider}
+    />
   );
 }
 

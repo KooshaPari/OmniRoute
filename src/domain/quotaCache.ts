@@ -237,6 +237,7 @@ export function setQuotaCache(
         (quotaInfo.total > 0
           ? Math.round(((quotaInfo.total - (quotaInfo.used || 0)) / quotaInfo.total) * 100)
           : 0);
+<<<<<<< HEAD
       recordProviderQuotaResetEventIfChanged({
         provider,
         connectionId,
@@ -250,6 +251,8 @@ export function setQuotaCache(
             }
           : null,
       });
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
       // #4438 — only persist on the first observation or a real change.
       if (!quotaSnapshotChanged(prior, windowKey, remainingPercentage, entry.exhausted)) continue;
       try {

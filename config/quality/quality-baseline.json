@@ -2,6 +2,7 @@
   "_comment": "Catraca de qualidade. 'down' = nao pode aumentar; 'up' = nao pode cair. Atualize via 'npm run quality:ratchet -- --update' (somente quando melhora). Cada valor e um numero REAL medido, nunca um chute. Cobertura entra na Fase 4 a partir de um run de cobertura mergeada no CI.",
   "metrics": {
     "eslintWarnings": {
+<<<<<<< HEAD
       "value": 4199,
       "_rebaseline_2026_07_02_v3843_release_close": "4158->4199 (+41). v3.8.43 release-close drift measured by the release-green pre-flight (the Quality Ratchet does NOT run on PR->release fast-gates, so warnings accrued unmeasured across the ~120 commits merged after the mid-cycle 4158 rebaseline — the compression T02/T05/T06/T07/T08/T10 engine families, memory typed decay, provider adds Ollama/SenseNova, ~55 SSE/translator/kiro/oauth/dashboard fixes, and the god-file decomposition wave). Trust-but-verify: measured 4199 via `npm run lint` on the release-finalize working tree INCLUDING my changes (CHANGELOG/i18n/README docs + kiro pricing data entry + the 3 base-red CODE fixes: opencode fabrication removal, resolveEffectiveKey type-widen, openai-to-claude claudeFinishEmitted flag + 4 test-alignment files + golden snapshot regen) — the code fixes NET-REMOVE lines and add no `any`/unused, and lint reported 4199 both before and after them, so all +41 is inherited cycle drift (`any` warn-allowed in open-sse/ + tests/). Tighten via --require-tighten next cycle.",
       "direction": "down",
@@ -16,6 +17,10 @@
       "_rebaseline_2026_06_22_v3834_release": "v3.8.34 cycle drift surfaced by the release-green pre-flight (the Quality Ratchet does NOT run on PR→release fast-gates, so warnings accrued across this cycle's parallel-session merges — #4583-4586/#4588-4593/#4606-4621/#4644/#4647/#4696/etc.). 3900→3907 (+7). Verified my release-finalize working tree touches ONLY CHANGELOG.md (git status: 0 code changes), so all +7 is inherited contributor drift. No coverage/openapi/i18n regressions.",
       "_rebaseline_2026_06_22_v3833_release": "Cumulative cycle drift surfaced by the release PR full CI. 3867→3900 (+33).",
       "_rebaseline_2026_06_26_v3837_release": "3970->3987. v3.8.37 cycle drift surfaced by the release-green pre-flight (the Quality Ratchet does NOT run on PR->release fast-gates, so warnings/complexity accrued unmeasured across this cycle's 76 commits — provider adds DGrid/Pioneer/xAI, headroom proxy lifecycle #4649, ~50 SSE/translator fixes, Engine Combos #5062). Trust-but-verify: this release-finalize working tree touches ONLY CHANGELOG.md, docs/i18n/*/CHANGELOG.md mirrors, and these baselines — 0 production-code change, so all drift is inherited cycle drift (`any` warn-allowed in open-sse/ + tests/). Tighten via --require-tighten next cycle."
+=======
+      "value": 3867,
+      "direction": "down"
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     },
     "eslintErrors": {
       "value": 0,
@@ -114,8 +119,12 @@
       "_rebaseline_2026_06_26_v3837_release": "343->345. v3.8.37 cycle drift surfaced by the release-green pre-flight (the Quality Ratchet does NOT run on PR->release fast-gates, so warnings/complexity accrued unmeasured across this cycle's 76 commits — provider adds DGrid/Pioneer/xAI, headroom proxy lifecycle #4649, ~50 SSE/translator fixes, Engine Combos #5062). Trust-but-verify: this release-finalize working tree touches ONLY CHANGELOG.md, docs/i18n/*/CHANGELOG.md mirrors, and these baselines — 0 production-code change, so all drift is inherited cycle drift (`any` warn-allowed in open-sse/ + tests/). Tighten via --require-tighten next cycle."
     },
     "cognitiveComplexity": {
+<<<<<<< HEAD
       "value": 856,
       "_rebaseline_2026_07_02_5798_release_green": "845->856 (+11). Inherited v3.8.43 cycle drift surfaced by the release-green unblock #5798 / PR #5896: check:cognitive-complexity measures 856 on BOTH the pristine release tip (0d3875a98) and this PR's HEAD — identical, so the PR is cognitive-net-zero (it touches only gate scripts, docs, baselines and test files). Drift from the 2026-07-01/02 merge burst. Tighten via --update next cycle.",
+=======
+      "value": 793,
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
       "direction": "down",
       "_rebaseline_2026_07_01_v3843_release": "842->845 (+3). v3.8.43 cycle drift, surfaced after check:mutation-test-coverage was fixed (masked behind it in the Fast Quality Gates chain). 845 = measured by check:cognitive-complexity on BOTH fce85136c and 6d7060e21 (identical) — all +3 is inherited cycle drift; the 5 CI fixes add 0 (safeHttpHref cognitive ~2, under the 15 threshold). Tighten via --update next cycle.",
       "dedicatedGate": true,

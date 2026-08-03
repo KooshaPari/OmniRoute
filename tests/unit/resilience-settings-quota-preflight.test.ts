@@ -116,6 +116,7 @@ test("#4483: auto-routing quota cutoff is OFF by default (opt-in)", () => {
   assert.equal(resolveResilienceSettings({}).quotaPreflight.enabled, false);
 });
 
+<<<<<<< HEAD
 test("#4483: quota cutoff stored enabled values must be booleans", () => {
   const resolved = resolveResilienceSettings({
     resilienceSettings: {
@@ -132,6 +133,8 @@ test("#4483: quota cutoff stored enabled values must be booleans", () => {
   );
 });
 
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 test("#4483: enabling the quota cutoff round-trips and preserves the other thresholds", () => {
   const next = mergeResilienceSettings(cloneDefaults(), {
     quotaPreflight: { enabled: true },

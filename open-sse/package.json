@@ -1,6 +1,10 @@
 {
   "name": "@omniroute/open-sse",
+<<<<<<< HEAD
   "version": "3.8.43",
+=======
+  "version": "3.8.33",
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   "description": "Express SSE sidecar for OmniRoute — handles streaming, protocol translation, and provider orchestration",
   "type": "module",
   "main": "index.js",

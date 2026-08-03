@@ -1,7 +1,11 @@
 // Regression for upstream PR decolua/9router#913 — OpenAI `input_audio` and
 // `audio_url` content parts must be forwarded as Gemini `inlineData` audio parts
 // (instead of being silently dropped) so that callers can send audio (WAV/MP3/etc.)
+<<<<<<< HEAD
 // to Gemini models via the Antigravity / Gemini translation paths.
+=======
+// to Gemini models via the Antigravity / Gemini / Gemini-CLI translation paths.
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 
 import test from "node:test";
 import assert from "node:assert/strict";

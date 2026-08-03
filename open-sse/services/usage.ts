@@ -586,6 +586,40 @@ export async function getUsageForProvider(
  * Parse reset date/time to ISO string
  * Handles multiple formats: Unix timestamp (ms), ISO date string, etc.
  */
+<<<<<<< HEAD
+=======
+function parseResetTime(resetValue: unknown): string | null {
+  if (!resetValue) return null;
+
+  try {
+    let date: Date;
+    if (resetValue instanceof Date) {
+      date = resetValue;
+    } else if (typeof resetValue === "number") {
+      date = new Date(resetValue < 1e12 ? resetValue * 1000 : resetValue);
+    } else if (typeof resetValue === "string") {
+      // Numeric strings are Unix timestamps too (seconds or milliseconds).
+      // `new Date("1700000000")` otherwise returns Invalid Date.
+      if (/^\d+$/.test(resetValue)) {
+        const ts = Number(resetValue);
+        date = new Date(ts < 1e12 ? ts * 1000 : ts);
+      } else {
+        date = new Date(resetValue);
+      }
+    } else {
+      return null;
+    }
+
+    // Epoch-zero (1970-01-01) means no scheduled reset — treat as null
+    if (date.getTime() <= 0) return null;
+
+    return date.toISOString();
+  } catch (error) {
+    return null;
+  }
+}
+
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 /**
  * GitHub Copilot Usage
  * Uses GitHub accessToken (not copilotToken) to call copilot_internal/user API
@@ -789,6 +823,1309 @@ function inferGitHubPlanName(data: JsonRecord, premiumQuota: UsageQuota | null):
     return label ? `Copilot ${label}` : "GitHub Copilot";
   }
   return "GitHub Copilot";
+}
+
+<<<<<<< HEAD
+=======
+// ── Gemini CLI subscription info cache ──────────────────────────────────────
+// Prevents duplicate loadCodeAssist calls within the same quota cycle.
+// Key: accessToken → { data, fetchedAt }
+const _geminiCliSubCache = new Map<string, SubscriptionCacheEntry>();
+const GEMINI_CLI_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Normalize a Cloud Code project value into a trimmed string (or null).
+ * The upstream `loadCodeAssist` endpoint returns the project either as a bare
+ * string or as an object of the form `{ id: "..." }`, and stored connection
+ * project ids can carry stray whitespace. Centralized here so the Gemini CLI
+ * usage path matches the executor/oauth normalization already shipped in
+ * `open-sse/executors/gemini-cli.ts` and `src/lib/oauth/services/gemini.ts`.
+ */
+function normalizeCloudCodeProjectId(project: unknown): string | null {
+  if (typeof project === "string") return project.trim() || null;
+  if (project && typeof project === "object") {
+    const candidate = (project as { id?: unknown }).id;
+    if (typeof candidate === "string") return candidate.trim() || null;
+  }
+  return null;
+}
+
+/**
+ * Gemini CLI Usage — fetch per-model quota from Cloud Code Assist API.
+ * Gemini CLI and Antigravity share the same upstream (cloudcode-pa.googleapis.com),
+ * so this follows the same pattern as getAntigravityUsage().
+ */
+async function getGeminiUsage(
+  accessToken?: string,
+  providerSpecificData?: JsonRecord,
+  connectionProjectId?: string
+) {
+  if (!accessToken) {
+    return { plan: "Free", message: "Gemini CLI access token not available." };
+  }
+
+  try {
+    // #1271: the OAuth save path stores `projectId` on the connection (not always in
+    // `providerSpecificData`), and `loadCodeAssist` may return the project either as a
+    // bare string or wrapped in `{ id: "..." }`. Normalize both so the quota lookup
+    // reuses the stored project id and skips a redundant `loadCodeAssist` round-trip
+    // when it is already known.
+    let projectId =
+      normalizeCloudCodeProjectId(connectionProjectId) ||
+      normalizeCloudCodeProjectId(providerSpecificData?.projectId);
+    let plan = "Free";
+
+    if (!projectId) {
+      const subscriptionInfo = await getGeminiCliSubscriptionInfoCached(accessToken);
+      projectId = normalizeCloudCodeProjectId(toRecord(subscriptionInfo).cloudaicompanionProject);
+      plan = getGeminiCliPlanLabel(subscriptionInfo);
+    }
+
+    if (!projectId) {
+      return {
+        plan,
+        message:
+          "Gemini CLI project ID not available. Reconnect Gemini CLI, or configure a Google Cloud project with Gemini Code Assist access before checking quota.",
+      };
+    }
+
+    // Use retrieveUserQuota (same endpoint as Gemini CLI /stats command).
+    // Returns per-model buckets with remainingFraction and resetTime.
+    const response = await fetch(
+      "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ project: projectId }),
+        signal: AbortSignal.timeout(10000),
+      }
+    );
+
+    if (!response.ok) {
+      return { plan, message: `Gemini CLI quota error (${response.status}).` };
+    }
+
+    const data = await response.json();
+    const quotas: Record<string, UsageQuota> = {};
+
+    const dataRecord = toRecord(data);
+    if (Array.isArray(dataRecord.buckets)) {
+      for (const bucketValue of dataRecord.buckets) {
+        const bucket = toRecord(bucketValue);
+        if (!bucket.modelId || bucket.remainingFraction == null) continue;
+
+        const remainingFraction = toNumber(bucket.remainingFraction, 0);
+        const remainingPercentage = remainingFraction * 100;
+        const QUOTA_NORMALIZED_BASE = 1000;
+        const total = QUOTA_NORMALIZED_BASE;
+        const remaining = Math.round(total * remainingFraction);
+        const used = Math.max(0, total - remaining);
+
+        quotas[String(bucket.modelId)] = {
+          used,
+          total,
+          resetAt: parseResetTime(bucket.resetTime),
+          remainingPercentage,
+          unlimited: false,
+        };
+      }
+    }
+
+    return { plan, quotas };
+  } catch (error) {
+    return { message: `Gemini CLI error: ${(error as Error).message}` };
+  }
+}
+
+/**
+ * Get Gemini CLI subscription info (cached, 5 min TTL)
+ */
+async function getGeminiCliSubscriptionInfoCached(accessToken: string): Promise<unknown> {
+  const cacheKey = accessToken;
+  const cached = _geminiCliSubCache.get(cacheKey);
+
+  if (cached && Date.now() - cached.fetchedAt < GEMINI_CLI_CACHE_TTL_MS) {
+    return cached.data;
+  }
+
+  const data = await getGeminiCliSubscriptionInfo(accessToken);
+  _geminiCliSubCache.set(cacheKey, { data, fetchedAt: Date.now() });
+  return data;
+}
+
+/**
+ * Get Gemini CLI subscription info using correct headers.
+ */
+async function getGeminiCliSubscriptionInfo(accessToken: string): Promise<unknown | null> {
+  try {
+    const response = await fetch(GEMINI_CLI_USAGE_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        metadata: {
+          ideType: "IDE_UNSPECIFIED",
+          platform: "PLATFORM_UNSPECIFIED",
+          pluginType: "GEMINI",
+        },
+      }),
+    });
+
+    if (!response.ok) return null;
+
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Map Gemini CLI subscription tier to display label (same tiers as Antigravity).
+ */
+function getGeminiCliPlanLabel(subscriptionInfo: unknown): string {
+  return mapCodeAssistSubscriptionToPlanLabel(subscriptionInfo);
+}
+
+// ── Antigravity subscription info cache ──────────────────────────────────────
+// Prevents duplicate loadCodeAssist calls within the same quota cycle.
+// Key: truncated accessToken → { data, fetchedAt }
+const _antigravitySubCache = new Map<string, SubscriptionCacheEntry>();
+const ANTIGRAVITY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const ANTIGRAVITY_MODELS_CACHE_TTL_MS = 60 * 1000;
+const ANTIGRAVITY_CREDIT_PROBE_TTL_MS = 5 * 60 * 1000;
+const _antigravityAvailableModelsCache = new Map<string, { data: unknown; fetchedAt: number }>();
+const _antigravityAvailableModelsInflight = new Map<string, Promise<unknown>>();
+const _antigravityUserQuotaCache = new Map<string, { data: unknown; fetchedAt: number }>();
+const _antigravityUserQuotaInflight = new Map<string, Promise<unknown>>();
+const _antigravityCreditProbeCache = new Map<string, { data: number | null; fetchedAt: number }>();
+const _antigravityCreditProbeInflight = new Map<string, Promise<number | null>>();
+
+// ── Proactive TTL purging for module-level caches ──────────────────────────
+// All 4 data caches only evict on read (passive TTL). This interval proactively
+// purges stale entries so keys accessed once and never again don't leak memory.
+// The 2 inflight Maps (availableModelsInflight, creditProbeInflight) self-clean
+// when the Promise resolves/rejects, so they are NOT touched here.
+const _usageCacheCleanupTimer = setInterval(
+  () => {
+    const now = Date.now();
+    for (const [key, entry] of _geminiCliSubCache) {
+      if (now - entry.fetchedAt > GEMINI_CLI_CACHE_TTL_MS) _geminiCliSubCache.delete(key);
+    }
+    for (const [key, entry] of _antigravitySubCache) {
+      if (now - entry.fetchedAt > ANTIGRAVITY_CACHE_TTL_MS) _antigravitySubCache.delete(key);
+    }
+    for (const [key, entry] of _antigravityAvailableModelsCache) {
+      if (now - entry.fetchedAt > ANTIGRAVITY_MODELS_CACHE_TTL_MS)
+        _antigravityAvailableModelsCache.delete(key);
+    }
+    for (const [key, entry] of _antigravityUserQuotaCache) {
+      if (now - entry.fetchedAt > ANTIGRAVITY_MODELS_CACHE_TTL_MS)
+        _antigravityUserQuotaCache.delete(key);
+    }
+    for (const [key, entry] of _antigravityCreditProbeCache) {
+      if (now - entry.fetchedAt > ANTIGRAVITY_CREDIT_PROBE_TTL_MS)
+        _antigravityCreditProbeCache.delete(key);
+    }
+  },
+  5 * 60 * 1000
+); // every 5 minutes
+_usageCacheCleanupTimer.unref?.(); // Don't prevent process exit
+
+interface AntigravityUsageOptions {
+  forceRefresh?: boolean;
+}
+
+const ANTIGRAVITY_LOCAL_USAGE_WINDOW_MS = 5 * 60 * 60 * 1000;
+const ANTIGRAVITY_LOCAL_USAGE_TOKENS_PER_UNIT = 1000;
+
+// `toClientAntigravityQuotaModelId` was an inline if-ladder here; it is now the single
+// source of truth in open-sse/config/antigravityModelAliases.ts (imported above), shared
+// with the provider-limits cache sanitizer. (#3821-review LEDGER-5)
+
+function getAntigravityLocalUsageUnits(
+  provider: "antigravity" | "agy",
+  connectionId: string | undefined,
+  modelId: string,
+  resetAt: string | null
+): number {
+  if (!connectionId || !modelId || !resetAt) return 0;
+
+  const resetMs = Date.parse(resetAt);
+  if (!Number.isFinite(resetMs)) return 0;
+
+  const windowStart = new Date(resetMs - ANTIGRAVITY_LOCAL_USAGE_WINDOW_MS).toISOString();
+  const windowEnd = new Date(resetMs).toISOString();
+
+  try {
+    const db = getDbInstance() as unknown as {
+      prepare: (sql: string) => { get: (...params: unknown[]) => unknown };
+    };
+    const row = db
+      .prepare(
+        `SELECT COALESCE(SUM(
+           COALESCE(tokens_input, 0) + COALESCE(tokens_output, 0) + COALESCE(tokens_reasoning, 0)
+         ), 0) AS tokens
+         FROM usage_history
+         WHERE provider = ?
+           AND connection_id = ?
+           AND model = ?
+           AND success = 1
+           AND timestamp >= ?
+           AND timestamp < ?`
+      )
+      .get(provider, connectionId, modelId, windowStart, windowEnd) as
+      | { tokens?: unknown }
+      | undefined;
+
+    const tokens = Number(row?.tokens || 0);
+    if (!Number.isFinite(tokens) || tokens <= 0) return 0;
+    return Math.max(1, Math.ceil(tokens / ANTIGRAVITY_LOCAL_USAGE_TOKENS_PER_UNIT));
+  } catch {
+    return 0;
+  }
+}
+
+function applyLocalUsageFallback(
+  quota: UsageQuota,
+  provider: "antigravity" | "agy",
+  connectionId: string | undefined,
+  modelId: string
+): UsageQuota {
+  if (quota.quotaSource !== "fetchAvailableModels" || quota.used > 0 || quota.unlimited) {
+    return quota;
+  }
+
+  const localUsed = getAntigravityLocalUsageUnits(provider, connectionId, modelId, quota.resetAt);
+  if (localUsed <= 0 || quota.total <= 0) return quota;
+
+  const used = Math.min(quota.total, localUsed);
+  return {
+    ...quota,
+    used,
+    remainingPercentage: Math.max(0, ((quota.total - used) / quota.total) * 100),
+    quotaSource: "localUsageHistory",
+  };
+}
+
+function buildAntigravityUsageCacheKey(accessToken: string, projectId?: string | null): string {
+  return `${accessToken.substring(0, 16)}:${projectId || "default"}`;
+}
+
+async function fetchAntigravityAvailableModelsCached(
+  accessToken: string,
+  projectId?: string | null,
+  options: AntigravityUsageOptions = {}
+): Promise<unknown> {
+  if (!accessToken) throw new Error("Access token is required");
+
+  const cacheKey = buildAntigravityUsageCacheKey(accessToken, projectId);
+  const cached = _antigravityAvailableModelsCache.get(cacheKey);
+  if (
+    !options.forceRefresh &&
+    cached &&
+    Date.now() - cached.fetchedAt < ANTIGRAVITY_MODELS_CACHE_TTL_MS
+  ) {
+    return cached.data;
+  }
+
+  const inflight = _antigravityAvailableModelsInflight.get(cacheKey);
+  if (inflight) return inflight;
+
+  const promise = (async () => {
+    let response: Response | null = null;
+    let lastError: Error | null = null;
+
+    for (const quotaApiUrl of ANTIGRAVITY_CONFIG.quotaApiUrls) {
+      try {
+        response = await fetch(quotaApiUrl, {
+          method: "POST",
+          headers: getAntigravityHeaders("fetchAvailableModels", accessToken),
+          body: JSON.stringify(projectId ? { project: projectId } : {}),
+          signal: AbortSignal.timeout(10000),
+        });
+
+        if (response.ok || response.status === 401 || response.status === 403) {
+          break;
+        }
+      } catch (error) {
+        lastError = error as Error;
+      }
+    }
+
+    if (!response) {
+      throw lastError || new Error("Antigravity API unavailable");
+    }
+
+    if (response.status === 403) {
+      return { __antigravityForbidden: true };
+    }
+
+    if (!response.ok) {
+      throw new Error(`Antigravity API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    _antigravityAvailableModelsCache.set(cacheKey, { data, fetchedAt: Date.now() });
+    return data;
+  })().finally(() => {
+    _antigravityAvailableModelsInflight.delete(cacheKey);
+  });
+
+  _antigravityAvailableModelsInflight.set(cacheKey, promise);
+  return promise;
+}
+
+async function fetchAntigravityUserQuotaCached(
+  accessToken: string,
+  projectId?: string | null,
+  options: AntigravityUsageOptions = {}
+): Promise<unknown | null> {
+  if (!accessToken || !projectId) return null;
+
+  const cacheKey = buildAntigravityUsageCacheKey(accessToken, projectId);
+  const cached = _antigravityUserQuotaCache.get(cacheKey);
+  if (
+    !options.forceRefresh &&
+    cached &&
+    Date.now() - cached.fetchedAt < ANTIGRAVITY_MODELS_CACHE_TTL_MS
+  ) {
+    return cached.data;
+  }
+
+  const inflight = _antigravityUserQuotaInflight.get(cacheKey);
+  if (inflight) return inflight;
+
+  const promise = (async () => {
+    try {
+      const response = await fetch(
+        "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuota",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ project: projectId }),
+          signal: AbortSignal.timeout(10000),
+        }
+      );
+
+      if (!response.ok) return null;
+
+      const data = await response.json();
+      _antigravityUserQuotaCache.set(cacheKey, { data, fetchedAt: Date.now() });
+      return data;
+    } catch {
+      return null;
+    }
+  })().finally(() => {
+    _antigravityUserQuotaInflight.delete(cacheKey);
+  });
+
+  _antigravityUserQuotaInflight.set(cacheKey, promise);
+  return promise;
+}
+
+function extractCodeAssistTierId(subscription: JsonRecord): string {
+  const tierId = extractCodeAssistOnboardTierId(subscription);
+  if (tierId === "legacy-tier") return "";
+  const upper = tierId.toUpperCase();
+  return mapCodeAssistTierIdToLabel(upper) ? upper : "";
+}
+
+function mapCodeAssistTierIdToLabel(tierId: string): string | null {
+  const upper = tierId.toUpperCase();
+  if (upper.includes("ULTRA")) return "Ultra";
+  if (
+    upper.includes("PRO") ||
+    upper.includes("PREMIUM") ||
+    upper.includes("GOOGLE_ONE") ||
+    upper.includes("ONE_AI")
+  )
+    return "Pro";
+  if (upper.includes("ENTERPRISE")) return "Enterprise";
+  if (upper.includes("BUSINESS") || upper.includes("STANDARD")) return "Business";
+  if (upper.includes("PLUS")) return "Plus";
+  if (upper.includes("LITE") || upper.includes("LIGHT")) return "Lite";
+  if (upper.includes("FREE") || upper.includes("INDIVIDUAL") || upper.includes("LEGACY"))
+    return "Free";
+  return null;
+}
+
+function mapSubscriptionTierStringToPlanLabel(tierText: string): string | null {
+  const upper = tierText.toUpperCase();
+  if (upper.includes("ULTRA")) return "Ultra";
+  if (upper.includes("PRO") || upper.includes("PREMIUM") || upper.includes("GOOGLE ONE"))
+    return "Pro";
+  if (upper.includes("ENTERPRISE")) return "Enterprise";
+  if (upper.includes("STANDARD") || upper.includes("BUSINESS")) return "Business";
+  if (upper.includes("PLUS")) return "Plus";
+  if (upper.includes("LITE")) return "Lite";
+  if (upper.includes("INDIVIDUAL") || upper.includes("FREE")) return "Free";
+  // Strip a trailing "(RESTRICTED)" marker. Match the fixed literal anywhere then
+  // trim, instead of /\s*\(RESTRICTED\)\s*$/ whose overlapping \s* runs backtrack
+  // polynomially on whitespace-heavy upstream input (js/polynomial-redos).
+  const normalizedId = upper.replace(/\(RESTRICTED\)/i, "").trim();
+  if (normalizedId) {
+    const mapped = mapCodeAssistTierIdToLabel(normalizedId);
+    if (mapped) return mapped;
+  }
+  return null;
+}
+
+function mapCodeAssistSubscriptionToPlanLabel(subscriptionInfo: unknown): string {
+  const subscription = toRecord(subscriptionInfo);
+  if (Object.keys(subscription).length === 0) return "Free";
+
+  const subscriptionTier = extractCodeAssistSubscriptionTier(subscriptionInfo);
+  if (subscriptionTier) {
+    const mapped = mapSubscriptionTierStringToPlanLabel(subscriptionTier);
+    if (mapped) return mapped;
+    if (subscriptionTier.toLowerCase() !== "free") {
+      return subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1).toLowerCase();
+    }
+  }
+
+  const currentTier = toRecord(subscription.currentTier);
+  const tierName = String(
+    getFieldValue(currentTier, "name", "displayName") ||
+      subscription.subscriptionType ||
+      subscription.tier ||
+      ""
+  );
+  const mappedName = tierName ? mapSubscriptionTierStringToPlanLabel(tierName) : null;
+  if (mappedName) return mappedName;
+
+  const tierId = extractCodeAssistTierId(subscription);
+  if (tierId) {
+    const mapped = mapCodeAssistTierIdToLabel(tierId);
+    if (mapped) return mapped;
+  }
+  if (currentTier.upgradeSubscriptionType) return "Free";
+  if (tierName) return tierName.charAt(0).toUpperCase() + tierName.slice(1).toLowerCase();
+  return "Free";
+}
+
+const KNOWN_ANTIGRAVITY_PLAN_LABELS = new Set([
+  "Ultra",
+  "Pro",
+  "Enterprise",
+  "Business",
+  "Plus",
+  "Lite",
+]);
+
+/**
+ * Map raw loadCodeAssist tier data to short display labels (Antigravity Manager parity).
+ */
+function getAntigravityPlanLabel(subscriptionInfo: unknown, fallbackInfo?: unknown): string {
+  const livePlan = mapCodeAssistSubscriptionToPlanLabel(subscriptionInfo);
+  const fallbackPlan = mapCodeAssistSubscriptionToPlanLabel(fallbackInfo);
+
+  if (KNOWN_ANTIGRAVITY_PLAN_LABELS.has(livePlan)) return livePlan;
+  if (KNOWN_ANTIGRAVITY_PLAN_LABELS.has(fallbackPlan)) return fallbackPlan;
+  if (livePlan !== "Free") return livePlan;
+  return fallbackPlan !== "Free" ? fallbackPlan : livePlan;
+}
+
+/**
+ * Proactive credit balance probe for Antigravity.
+ *
+ * Fires a minimal streamGenerateContent request with GOOGLE_ONE_AI credits enabled
+ * and maxOutputTokens=1 to extract the `remainingCredits` field from the SSE stream.
+ * This uses ~1 credit but lets us show the balance on the dashboard without waiting
+ * for a real user request.
+ *
+ * Returns the credit balance, or null if the probe failed.
+ */
+async function probeAntigravityCreditBalance(
+  accessToken: string,
+  accountId: string,
+  projectId?: string | null,
+  options: AntigravityUsageOptions = {},
+  providerSpecificData: JsonRecord = {}
+): Promise<number | null> {
+  if (!accessToken) return null;
+
+  const cacheKey = buildAntigravityUsageCacheKey(accessToken, projectId || accountId);
+  const cached = _antigravityCreditProbeCache.get(cacheKey);
+  if (
+    !options.forceRefresh &&
+    cached &&
+    Date.now() - cached.fetchedAt < ANTIGRAVITY_CREDIT_PROBE_TTL_MS
+  ) {
+    return cached.data;
+  }
+
+  const inflight = _antigravityCreditProbeInflight.get(cacheKey);
+  if (inflight) return inflight;
+
+  const promise = probeAntigravityCreditBalanceUncached(
+    accessToken,
+    accountId,
+    projectId,
+    providerSpecificData
+  )
+    .then(
+      (data) => {
+        _antigravityCreditProbeCache.set(cacheKey, { data, fetchedAt: Date.now() });
+        return data;
+      },
+      (error) => {
+        _antigravityCreditProbeCache.set(cacheKey, { data: null, fetchedAt: Date.now() });
+        throw error;
+      }
+    )
+    .finally(() => {
+      _antigravityCreditProbeInflight.delete(cacheKey);
+    });
+
+  _antigravityCreditProbeInflight.set(cacheKey, promise);
+  return promise;
+}
+
+async function probeAntigravityCreditBalanceUncached(
+  accessToken: string,
+  accountId: string,
+  projectId?: string | null,
+  providerSpecificData: JsonRecord = {}
+): Promise<number | null> {
+  try {
+    if (!projectId) return null;
+
+    // Try all base URLs (some accounts only work with specific endpoints)
+    for (const baseUrl of ANTIGRAVITY_BASE_URLS) {
+      const url = `${baseUrl}/v1internal:streamGenerateContent?alt=sse`;
+
+      const sessionId = getAntigravitySessionId({ connectionId: accountId, projectId });
+      const body = {
+        project: projectId,
+        model: "gemini-2-flash",
+        userAgent: "antigravity",
+        requestType: "agent",
+        requestId: generateAntigravityRequestId(),
+        enabledCreditTypes: ["GOOGLE_ONE_AI"],
+        request: {
+          model: "gemini-2-flash",
+          contents: [{ role: "user", parts: [{ text: "hi" }] }],
+          generationConfig: { maxOutputTokens: 1 },
+          sessionId,
+        },
+      };
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "text/event-stream",
+      };
+      applyAntigravityClientProfileHeaders(
+        headers,
+        { connectionId: accountId, projectId, providerSpecificData },
+        body
+      );
+
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(10_000),
+        });
+
+        if (!res.ok) continue;
+
+        // Read the full SSE response and scan for remainingCredits
+        const rawSSE = await res.text();
+        const lines = rawSSE.split("\n");
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data:")) continue;
+          const payload = trimmed.slice(5).trim();
+          if (payload === "[DONE]") break;
+          try {
+            const parsed = JSON.parse(payload);
+            if (Array.isArray(parsed?.remainingCredits)) {
+              const googleCredit = parsed.remainingCredits.find(
+                (c: { creditType?: string }) => c?.creditType === "GOOGLE_ONE_AI"
+              );
+              if (googleCredit) {
+                const balance = parseInt(googleCredit.creditAmount, 10);
+                if (!isNaN(balance)) {
+                  updateAntigravityRemainingCredits(accountId, balance);
+                  return balance;
+                }
+              }
+            }
+          } catch {
+            // Skip malformed SSE lines
+          }
+        }
+      } catch {
+        // Individual endpoint failure; try next
+      }
+    }
+
+    return null;
+  } catch {
+    // Probe is best-effort — don't let it break the usage fetch
+    return null;
+  }
+}
+
+/**
+ * Antigravity Usage - Fetch quota from Google Cloud Code API.
+ * fetchAvailableModels is catalog/eligibility data and may keep reporting full buckets
+ * after real usage. retrieveUserQuota is the consumption signal for Gemini-family
+ * buckets, so prefer it when present and fall back to fetchAvailableModels only for
+ * models that have no retrieveUserQuota entry (for example Claude/GPT OSS buckets).
+ */
+async function getAntigravityUsage(
+  provider: "antigravity" | "agy",
+  accessToken?: string,
+  providerSpecificData?: JsonRecord,
+  connectionProjectId?: string,
+  connectionId?: string,
+  options: AntigravityUsageOptions = {}
+) {
+  if (!accessToken) {
+    return { plan: "Free", message: "Antigravity access token not available." };
+  }
+
+  let subscriptionInfo: unknown = null;
+  try {
+    subscriptionInfo = await getAntigravitySubscriptionInfoCached(
+      accessToken,
+      providerSpecificData,
+      options
+    );
+    const savedProjectId =
+      typeof providerSpecificData?.projectId === "string" && providerSpecificData.projectId.trim()
+        ? providerSpecificData.projectId.trim()
+        : null;
+    const subscriptionProject = toRecord(subscriptionInfo).cloudaicompanionProject;
+    const projectId =
+      savedProjectId ||
+      connectionProjectId ||
+      (typeof subscriptionProject === "string"
+        ? subscriptionProject
+        : typeof toRecord(subscriptionProject).id === "string"
+          ? (toRecord(subscriptionProject).id as string)
+          : null);
+
+    // Derive accountId for credit balance cache.
+    // Must match executor key: credentials.connectionId
+    const accountId: string = connectionId || "unknown";
+
+    // Read cached credit balance (hydrated from DB on first access)
+    let creditBalance = getAntigravityRemainingCredits(accountId);
+
+    // If no cached balance and credits mode is enabled, fire a minimal probe
+    const creditsMode = getCreditsMode();
+    if ((options.forceRefresh || creditBalance === null) && creditsMode !== "off") {
+      creditBalance = await probeAntigravityCreditBalance(
+        accessToken,
+        accountId,
+        projectId,
+        options,
+        providerSpecificData || {}
+      );
+    }
+
+    const [data, userQuotaData] = await Promise.all([
+      fetchAntigravityAvailableModelsCached(accessToken, projectId, options),
+      fetchAntigravityUserQuotaCached(accessToken, projectId, options),
+    ]);
+    const dataObj = toRecord(data);
+    if (dataObj.__antigravityForbidden === true) {
+      return { message: "Antigravity access forbidden. Check subscription." };
+    }
+    const modelEntries = toRecord(dataObj.models);
+    const userQuotaEntries = new Map<string, JsonRecord>();
+    const userQuotaObj = toRecord(userQuotaData);
+    if (Array.isArray(userQuotaObj.buckets)) {
+      for (const bucketValue of userQuotaObj.buckets) {
+        const bucket = toRecord(bucketValue);
+        const modelId = toClientAntigravityQuotaModelId(String(bucket.modelId || "").trim());
+        if (!modelId) continue;
+        userQuotaEntries.set(modelId, bucket);
+      }
+    }
+    const quotas: Record<string, UsageQuota> = {};
+
+    // Parse per-model quota info from fetchAvailableModels response.
+    for (const [rawModelKey, infoValue] of Object.entries(modelEntries)) {
+      const info = toRecord(infoValue);
+      const quotaInfo = toRecord(info.quotaInfo);
+      const modelKey = toClientAntigravityQuotaModelId(rawModelKey);
+
+      // Skip internal, excluded, and models without quota info
+      if (
+        !modelKey ||
+        info.isInternal === true ||
+        !(provider === "agy"
+          ? isUserCallableAgyModelId(modelKey)
+          : isUserCallableAntigravityModelId(modelKey)) ||
+        Object.keys(quotaInfo).length === 0
+      ) {
+        continue;
+      }
+
+      const liveQuota = userQuotaEntries.get(modelKey);
+      const quotaSource = liveQuota || quotaInfo;
+      const rawFraction = toNumber(quotaSource.remainingFraction, -1);
+      const resetAt = parseResetTime(quotaSource.resetTime);
+      // Distinguish "upstream did not report remainingFraction" from "remaining is 0%".
+      // fetchAvailableModels is a catalog view and can be stale/full; retrieveUserQuota is
+      // the source of truth for actual Gemini consumption when it includes the model.
+      const fractionReported = rawFraction >= 0;
+      if (!fractionReported) {
+        console.warn(
+          `[Antigravity] model ${modelKey} returned no remainingFraction — quota unknown`
+        );
+      }
+      const remainingFraction = fractionReported ? Math.max(0, Math.min(1, rawFraction)) : 0;
+      // Models with no resetTime AND a reported full fraction are unlimited
+      // (e.g. tab-completion models). Unreported fraction is NEVER unlimited.
+      const isUnlimited = fractionReported && !resetAt && remainingFraction >= 1;
+      const remainingPercentage = remainingFraction * 100;
+      const QUOTA_NORMALIZED_BASE = 1000;
+      const total = QUOTA_NORMALIZED_BASE;
+      const remaining = Math.round(total * remainingFraction);
+      const used = isUnlimited ? 0 : Math.max(0, total - remaining);
+
+      quotas[modelKey] = applyLocalUsageFallback(
+        {
+          used,
+          total: isUnlimited ? 0 : total,
+          resetAt,
+          remainingPercentage: isUnlimited ? 100 : remainingPercentage,
+          unlimited: isUnlimited,
+          fractionReported,
+          quotaSource: liveQuota ? "retrieveUserQuota" : "fetchAvailableModels",
+        },
+        provider,
+        connectionId,
+        modelKey
+      );
+    }
+
+    // Include retrieveUserQuota buckets not listed in the static/public Antigravity catalog yet.
+    // This keeps Provider Limits honest when Google adds a new Gemini tier before our catalog is
+    // updated. Hidden/internal catalog entries above are still filtered by the public pass.
+    for (const [modelKey, bucket] of userQuotaEntries) {
+      if (
+        quotas[modelKey] ||
+        !(provider === "agy"
+          ? isUserCallableAgyModelId(modelKey)
+          : isUserCallableAntigravityModelId(modelKey))
+      ) {
+        continue;
+      }
+      const rawFraction = toNumber(bucket.remainingFraction, -1);
+      if (rawFraction < 0) continue;
+      const remainingFraction = Math.max(0, Math.min(1, rawFraction));
+      const resetAt = parseResetTime(bucket.resetTime);
+      const isUnlimited = !resetAt && remainingFraction >= 1;
+      const QUOTA_NORMALIZED_BASE = 1000;
+      const total = QUOTA_NORMALIZED_BASE;
+      const remaining = Math.round(total * remainingFraction);
+      quotas[modelKey] = {
+        used: isUnlimited ? 0 : Math.max(0, total - remaining),
+        total: isUnlimited ? 0 : total,
+        resetAt,
+        remainingPercentage: isUnlimited ? 100 : remainingFraction * 100,
+        unlimited: isUnlimited,
+        fractionReported: true,
+        quotaSource: "retrieveUserQuota",
+      };
+    }
+
+    return {
+      plan: getAntigravityPlanLabel(subscriptionInfo, providerSpecificData),
+      quotas: {
+        ...quotas,
+        ...(creditBalance !== null && {
+          credits: {
+            used: 0,
+            total: 0,
+            remaining: creditBalance,
+            unlimited: false,
+            resetAt: null,
+          },
+        }),
+      },
+      subscriptionInfo,
+    };
+  } catch (error) {
+    return {
+      plan: getAntigravityPlanLabel(subscriptionInfo, providerSpecificData),
+      subscriptionInfo,
+      message: `Antigravity error: ${(error as Error).message}`,
+    };
+  }
+}
+
+/**
+ * Get Antigravity subscription info (cached, 5 min TTL)
+ * Prevents duplicate loadCodeAssist calls within the same quota cycle.
+ */
+async function getAntigravitySubscriptionInfoCached(
+  accessToken: string,
+  providerSpecificData?: JsonRecord,
+  options: AntigravityUsageOptions = {}
+): Promise<unknown> {
+  const profile = getAntigravityClientProfile({ providerSpecificData });
+  const cacheKey = `${accessToken.substring(0, 16)}:${profile}`;
+
+  if (options.forceRefresh) {
+    _antigravitySubCache.delete(cacheKey);
+  } else {
+    const cached = _antigravitySubCache.get(cacheKey);
+    if (cached && Date.now() - cached.fetchedAt < ANTIGRAVITY_CACHE_TTL_MS) {
+      return cached.data;
+    }
+  }
+
+  const data = await getAntigravitySubscriptionInfo(accessToken, providerSpecificData);
+  if (data != null) {
+    _antigravitySubCache.set(cacheKey, { data, fetchedAt: Date.now() });
+  }
+  return data;
+}
+
+/**
+ * Get Antigravity subscription info using correct Antigravity headers.
+ * Must match the headers used in providers.js postExchange (not CLI headers).
+ */
+async function getAntigravitySubscriptionInfo(
+  accessToken: string,
+  providerSpecificData?: JsonRecord
+): Promise<unknown | null> {
+  try {
+    const profile = getAntigravityClientProfile({ providerSpecificData });
+    const response = await fetch(ANTIGRAVITY_CONFIG.loadProjectApiUrl, {
+      method: "POST",
+      headers:
+        profile === "harness"
+          ? getAntigravityBootstrapHeaders(profile, accessToken)
+          : getAntigravityHeaders("loadCodeAssist", accessToken),
+      body: JSON.stringify({ metadata: getAntigravityLoadCodeAssistMetadata() }),
+    });
+
+    if (!response.ok) return null;
+
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Claude Usage - Try to fetch from Anthropic API
+ */
+async function getClaudeUsage(accessToken?: string) {
+  if (!accessToken) {
+    return { message: "Claude connected. Access token not available.", bootstrap: null };
+  }
+
+  // Refresh bootstrap in parallel; best-effort, failure non-fatal.
+  const bootstrapPromise = fetchClaudeBootstrap(accessToken).catch(() => null);
+  try {
+    // Real CLI uses axios here, not Stainless — UA is `claude-code/<version>`
+    // (not `claude-cli/...`) and the shape is simpler than /v1/messages.
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10_000);
+    let oauthResponse;
+    try {
+      oauthResponse = await fetch(CLAUDE_CONFIG.oauthUsageUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          "Accept-Encoding": "gzip, compress, deflate, br",
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+          "User-Agent": `claude-code/${CLAUDE_CODE_VERSION}`,
+          "anthropic-beta": "oauth-2025-04-20",
+        },
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+
+    if (oauthResponse.ok) {
+      const data = toRecord(await oauthResponse.json());
+      const quotas: Record<string, UsageQuota> = {};
+
+      // utilization = percentage USED (e.g., 90 means 90% used, 10% remaining)
+      // Confirmed via user report #299: Claude.ai shows 87% used = OmniRoute must show 13% remaining.
+      const hasUtilization = (window: JsonRecord) =>
+        window && typeof window === "object" && safePercentage(window.utilization) !== undefined;
+
+      const createQuotaObject = (window: JsonRecord) => {
+        const used = safePercentage(window.utilization) as number; // utilization = % used
+        const remaining = Math.max(0, 100 - used);
+        return {
+          used,
+          total: 100,
+          remaining,
+          resetAt: parseResetTime(window.resets_at),
+          remainingPercentage: remaining,
+          unlimited: false,
+        };
+      };
+
+      const fiveHour = toRecord(data.five_hour);
+      if (hasUtilization(fiveHour)) {
+        quotas["session (5h)"] = createQuotaObject(fiveHour);
+      }
+
+      const sevenDay = toRecord(data.seven_day);
+      if (hasUtilization(sevenDay)) {
+        quotas["weekly (7d)"] = createQuotaObject(sevenDay);
+      }
+
+      // Map Anthropic's internal codenames (e.g., omelette → Designer) for display.
+      const MODEL_DISPLAY_NAMES: Record<string, string> = {
+        omelette: "designer",
+      };
+      for (const [key, value] of Object.entries(data)) {
+        const valueRecord = toRecord(value);
+        if (key.startsWith("seven_day_") && key !== "seven_day" && hasUtilization(valueRecord)) {
+          const codename = key.replace("seven_day_", "");
+          const modelName = MODEL_DISPLAY_NAMES[codename] || codename;
+          quotas[`weekly ${modelName} (7d)`] = createQuotaObject(valueRecord);
+        }
+      }
+
+      const bootstrap = await bootstrapPromise;
+      const plan =
+        getClaudePlanLabel(
+          typeof data.tier === "string" ? data.tier : null,
+          typeof data.plan === "string" ? data.plan : null,
+          typeof data.subscription_type === "string" ? data.subscription_type : null,
+          bootstrap?.organization_rate_limit_tier
+        ) ?? undefined;
+
+      return {
+        ...(plan ? { plan } : {}),
+        quotas,
+        extraUsage: data.extra_usage ?? null,
+        bootstrap,
+      };
+    }
+
+    // Fallback: OAuth endpoint returned non-OK, try legacy settings/org endpoint
+    console.warn(
+      `[Claude Usage] OAuth endpoint returned ${oauthResponse.status}, falling back to legacy`
+    );
+    const legacy = await getClaudeUsageLegacy(accessToken);
+    return { ...legacy, bootstrap: await bootstrapPromise };
+  } catch (error) {
+    return {
+      message: `Claude connected. Unable to fetch usage: ${(error as Error).message}`,
+      bootstrap: await bootstrapPromise,
+    };
+  }
+}
+
+/**
+ * Legacy Claude usage fetcher for API key / org admin users.
+ * Uses /v1/settings + /v1/organizations/{org_id}/usage endpoints.
+ */
+async function getClaudeUsageLegacy(accessToken?: string) {
+  try {
+    const settingsResponse = await fetch(CLAUDE_CONFIG.settingsUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "anthropic-version": CLAUDE_CONFIG.apiVersion,
+      },
+    });
+
+    if (settingsResponse.ok) {
+      const settings = toRecord(await settingsResponse.json());
+
+      const organizationId =
+        typeof settings.organization_id === "string" ? settings.organization_id : "";
+      if (organizationId) {
+        const usageResponse = await fetch(
+          CLAUDE_CONFIG.usageUrl.replace("{org_id}", organizationId),
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "anthropic-version": CLAUDE_CONFIG.apiVersion,
+            },
+          }
+        );
+
+        if (usageResponse.ok) {
+          const usage = await usageResponse.json();
+          return {
+            plan: settings.plan || "Unknown",
+            organization: settings.organization_name,
+            quotas: usage,
+          };
+        }
+      }
+
+      return {
+        plan: settings.plan || "Unknown",
+        organization: settings.organization_name,
+        message: "Claude connected. Usage details require admin access.",
+      };
+    }
+
+    return { message: "Claude connected. Usage API requires admin permissions." };
+  } catch (error) {
+    return { message: `Claude connected. Unable to fetch usage: ${(error as Error).message}` };
+  }
+}
+
+/**
+ * Codex (OpenAI) Usage - Fetch from ChatGPT backend API
+ * IMPORTANT: Uses persisted workspaceId from OAuth to ensure correct workspace binding.
+ * No fallback to other workspaces - strict binding to user's selected workspace.
+ */
+async function getCodexUsage(
+  accessToken?: string,
+  providerSpecificData: Record<string, unknown> = {}
+) {
+  try {
+    // Use persisted workspace ID from OAuth - NO FALLBACK
+    const accountId =
+      typeof providerSpecificData.workspaceId === "string"
+        ? providerSpecificData.workspaceId
+        : null;
+
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+    if (accountId) {
+      headers["chatgpt-account-id"] = accountId;
+    }
+
+    const response = await fetch(CODEX_CONFIG.usageUrl, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        return {
+          message: `Codex token expired or access denied. Please re-authenticate the connection.`,
+        };
+      }
+      throw new Error(`Codex API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    const { rateLimit, quotas } = buildCodexUsageQuotas(data);
+
+    return {
+      plan: String(getFieldValue(data, "plan_type", "planType") || "unknown"),
+      limitReached: Boolean(getFieldValue(rateLimit, "limit_reached", "limitReached")),
+      quotas,
+    };
+  } catch (error) {
+    return { message: `Failed to fetch Codex usage: ${(error as Error).message}` };
+  }
+}
+
+/**
+ * Build the Kiro usage result from a GetUsageLimits response. When the account returns no
+ * usage breakdown (some AWS IAM / Builder ID accounts don't expose per-resource quota via
+ * GetUsageLimits), return an informative message instead of empty `quotas:{}` — otherwise the
+ * dashboard renders a blank quota card with no explanation (#3506). Exported for testing.
+ */
+export function buildKiroUsageResult(
+  data: JsonRecord
+): { plan: string; quotas: Record<string, UsageQuota> } | { message: string } {
+  const usageList = Array.isArray(data.usageBreakdownList) ? data.usageBreakdownList : [];
+  const quotaInfo: Record<string, UsageQuota> = {};
+  const resetAt = parseResetTime(data.nextDateReset || data.resetDate);
+  const overageEnabled = isKiroOverageEnabled(data);
+
+  usageList.forEach((breakdownValue: unknown) => {
+    const breakdown = toRecord(breakdownValue);
+    const resourceType =
+      typeof breakdown.resourceType === "string" ? breakdown.resourceType.toLowerCase() : "unknown";
+    const used = toNumber(breakdown.currentUsageWithPrecision, 0);
+    const total = toNumber(breakdown.usageLimitWithPrecision, 0);
+
+    quotaInfo[resourceType] = buildKiroQuota(used, total, resetAt, overageEnabled);
+
+    const freeTrialInfo = toRecord(breakdown.freeTrialInfo);
+    if (Object.keys(freeTrialInfo).length > 0) {
+      const freeUsed = toNumber(freeTrialInfo.currentUsageWithPrecision, 0);
+      const freeTotal = toNumber(freeTrialInfo.usageLimitWithPrecision, 0);
+      quotaInfo[`${resourceType}_freetrial`] = buildKiroQuota(
+        freeUsed,
+        freeTotal,
+        resetAt,
+        overageEnabled
+      );
+    }
+  });
+
+  if (Object.keys(quotaInfo).length === 0) {
+    return {
+      message:
+        "Kiro connected, but the account returned no usage breakdown. Some AWS IAM / Builder ID accounts don't expose per-resource quota via GetUsageLimits.",
+    };
+  }
+
+  return {
+    plan: String(toRecord(data.subscriptionInfo).subscriptionTitle || "").trim() || "Kiro",
+    quotas: quotaInfo,
+  };
+}
+
+/**
+ * Discover a Kiro/CodeWhisperer profile ARN for an account that didn't persist one (common for
+ * AWS IAM Identity Center logins and kiro-cli imports). Calls ListAvailableProfiles on the
+ * region-matched endpoint and prefers a profile whose ARN is in the same region. Returns
+ * undefined when no profile is available (e.g. the org/token has no Kiro entitlement).
+ * Exported for testing.
+ */
+export async function discoverKiroProfileArn(
+  accessToken: string,
+  usageBaseUrl: string,
+  region: string
+): Promise<string | undefined> {
+  try {
+    const response = await fetch(usageBaseUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/x-amz-json-1.0",
+        "x-amz-target": "AmazonCodeWhispererService.ListAvailableProfiles",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ maxResults: 10 }),
+      // Don't let a hung profile lookup block the usage/quota refresh indefinitely.
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) return undefined;
+
+    const data = toRecord(await response.json());
+    const profiles = Array.isArray(data.profiles) ? data.profiles : [];
+    const normalizedRegion = region.toLowerCase();
+    const matched =
+      profiles.find((profile: unknown) => {
+        const arn = toRecord(profile).arn;
+        return typeof arn === "string" && arn.toLowerCase().includes(`:${normalizedRegion}:`);
+      }) || profiles[0];
+    const arn = toRecord(matched).arn;
+    return typeof arn === "string" && arn.length > 0 ? arn : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Kiro (AWS CodeWhisperer) Usage
+ */
+async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRecord) {
+  try {
+    let profileArn =
+      typeof providerSpecificData?.profileArn === "string"
+        ? providerSpecificData.profileArn
+        : undefined;
+
+    // Enterprise IAM Identity Center accounts are region-bound: the profileArn, token and
+    // endpoint must all match the region. Derive the region from the stored region (preferred)
+    // or the profileArn, then route to the regional Amazon Q endpoint (us-east-1 keeps the
+    // legacy codewhisperer host; codewhisperer.{region} does not resolve for other regions).
+    const regionFromArn = profileArn
+      ? profileArn.toLowerCase().match(/^arn:aws:codewhisperer:([a-z0-9-]+):/)?.[1]
+      : undefined;
+    const region =
+      (typeof providerSpecificData?.region === "string" &&
+        providerSpecificData.region.trim().toLowerCase()) ||
+      regionFromArn ||
+      "us-east-1";
+    const usageBaseUrl =
+      region === "us-east-1" ? CODEWHISPERER_BASE_URL : `https://q.${region}.amazonaws.com`;
+
+    // IAM Identity Center logins and kiro-cli imports frequently don't persist a profileArn, which
+    // previously caused the quota card to show nothing ("0 used"). Discover it on demand from
+    // ListAvailableProfiles (region-matched) so usage still resolves for those accounts.
+    if (!profileArn && accessToken) {
+      profileArn = await discoverKiroProfileArn(accessToken, usageBaseUrl, region);
+    }
+
+    if (!profileArn) {
+      return { message: "Kiro connected. Profile ARN not available for quota tracking." };
+    }
+
+    // Kiro uses AWS CodeWhisperer GetUsageLimits API
+    const payload = {
+      origin: "AI_EDITOR",
+      profileArn: profileArn,
+      resourceType: "AGENTIC_REQUEST",
+    };
+
+    const response = await fetch(usageBaseUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/x-amz-json-1.0",
+        "x-amz-target": "AmazonCodeWhispererService.GetUsageLimits",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      // Social-auth Kiro accounts (added via /api/oauth/kiro/social-exchange with provider
+      // Google or GitHub) use a different token format that AWS CodeWhisperer's GetUsageLimits
+      // routinely rejects with 401/403, even when /messages still works. Surface a clear
+      // "auth expired, chat may still work" message instead of a generic upstream-error blob
+      // so the quota card matches what users with legacy social-auth accounts already see.
+      // Inspired by https://github.com/decolua/9router/pull/620.
+      if ((response.status === 401 || response.status === 403) && isSocialAuthKiroAccount(providerSpecificData)) {
+        return {
+          message: "Kiro quota API authentication expired. Chat may still work.",
+          quotas: {},
+        };
+      }
+      const errorText = await response.text();
+      throw new Error(`Kiro API error (${response.status}): ${errorText}`);
+    }
+
+    const data = toRecord(await response.json());
+    return buildKiroUsageResult(data);
+  } catch (error) {
+    throw new Error(`Failed to fetch Kiro usage: ${error.message}`);
+  }
+}
+
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
+/**
+ * Was this Kiro connection added via the Google/GitHub social-auth device flow
+ * (POST /api/oauth/kiro/social-exchange)? That route persists
+ * `{ authMethod: "imported", provider: "Google" | "Github" }` on the connection.
+ * Builder-ID / IDC / kiro-cli imports use different markers and should keep the
+ * existing throw-on-failure behavior.
+ */
+function isSocialAuthKiroAccount(providerSpecificData?: JsonRecord): boolean {
+  if (!providerSpecificData || providerSpecificData.authMethod !== "imported") return false;
+  const provider =
+    typeof providerSpecificData.provider === "string"
+      ? providerSpecificData.provider.toLowerCase()
+      : "";
+  return provider === "google" || provider === "github";
 }
 
 /**

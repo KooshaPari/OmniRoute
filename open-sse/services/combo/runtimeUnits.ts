@@ -3,7 +3,10 @@ import { errorResponse } from "../../utils/error.ts";
 import { recordComboRequest } from "../comboMetrics.ts";
 import { resolveDelayMs } from "./comboPredicates.ts";
 import { validateResponseQuality } from "./validateQuality.ts";
+<<<<<<< HEAD
 import type { ResponseValidationConfig } from "./responseValidation.ts";
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 import type {
   ComboCollectionLike,
   ComboLike,
@@ -228,12 +231,16 @@ export async function executeRuntimeUnitCombo(args: {
           });
           return { response, unit };
         }
+<<<<<<< HEAD
         const quality = await validateResponseQuality(
           response,
           clientRequestedStream,
           args.log,
           args.config.responseValidation as ResponseValidationConfig | undefined
         );
+=======
+        const quality = await validateResponseQuality(response, clientRequestedStream, args.log);
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
         if (quality.valid) {
           recordComboRequest(args.combo.name, unit.modelStr, {
             success: true,

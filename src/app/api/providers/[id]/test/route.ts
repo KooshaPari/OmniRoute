@@ -46,6 +46,25 @@ const OAUTH_TEST_CONFIG = {
     // distinguish a revoked-but-not-yet-expired token from a working one.
     url: "https://chatgpt.com/backend-api/codex/responses",
     method: "POST",
+<<<<<<< HEAD
+=======
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    extraHeaders: {
+      "Content-Type": "application/json",
+      originator: "codex-cli",
+      "User-Agent": "codex-cli/1.0.18 (macOS; arm64)",
+    },
+    // Minimal invalid body — triggers a fast 400 without consuming quota.
+    body: JSON.stringify({ model: "gpt-5.3-codex", input: [], stream: false, store: false }),
+    // 400 = bad request, but auth was accepted; only 401/403 means the token is bad.
+    acceptStatuses: [400],
+    refreshable: true,
+  },
+  "gemini-cli": {
+    url: "https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
+    method: "GET",
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     extraHeaders: {
@@ -569,8 +588,12 @@ export async function testOAuthConnection(
     // 400 because the probe body is invalid. A 400 from such a provider means auth
     // succeeded; only 401/403 means the token is bad.
     const accepted =
+<<<<<<< HEAD
       res.ok ||
       (Array.isArray(config.acceptStatuses) && config.acceptStatuses.includes(res.status));
+=======
+      res.ok || (Array.isArray(config.acceptStatuses) && config.acceptStatuses.includes(res.status));
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
     if (accepted) {
       return {
         valid: true,

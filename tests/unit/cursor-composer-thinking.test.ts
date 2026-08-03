@@ -71,6 +71,7 @@ test("visibleComposerContentFromThinking returns suffix after last </think> (tri
   assert.equal(visibleComposerContentFromThinking("ends with</think>"), "");
 });
 
+<<<<<<< HEAD
 test("visibleComposerContentFromThinking strips `<｜final｜>` sentinel markers (full-width + ASCII)", () => {
   // Full-width pipe sentinels (decolua/9router#1316).
   assert.equal(
@@ -106,6 +107,8 @@ test("visibleComposerContentFromThinking holds back a partial opening marker unt
   );
 });
 
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 test("composerReasoningRemainder returns only the hidden portion before last </think>", () => {
   assert.equal(
     composerReasoningRemainder("private reasoning</think>OK"),
@@ -170,6 +173,7 @@ test("Composer non-streaming aggregation: thinking with </think> populates total
   assert.equal(ctx.totalText, "OK");
 });
 
+<<<<<<< HEAD
 test("Composer streaming: partial `<｜final｜>` sentinel split across chunks never leaks", () => {
   const chunks: string[] = [];
   const ctx: StreamCtx = newStreamCtx("cu/composer-2.5", (c) => chunks.push(c));
@@ -191,6 +195,8 @@ test("Composer streaming: partial `<｜final｜>` sentinel split across chunks n
   assert.ok(!chunks.join("").includes("｜"), "full-width pipe must not leak");
 });
 
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 test("Non-Composer model: thinking field stays in reasoning_content (unchanged contract)", () => {
   const chunks: string[] = [];
   const ctx: StreamCtx = newStreamCtx("gpt-5.3-codex", (c) => chunks.push(c));

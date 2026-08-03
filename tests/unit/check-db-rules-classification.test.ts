@@ -121,7 +121,11 @@ test("INTENTIONALLY_INTERNAL is exported from check-db-rules.mjs", () => {
   assert.ok(INTENTIONALLY_INTERNAL.size > 0, "INTENTIONALLY_INTERNAL must not be empty");
 });
 
+<<<<<<< HEAD
 test("INTENTIONALLY_INTERNAL contains the expected 33 audited modules", () => {
+=======
+test("INTENTIONALLY_INTERNAL contains the expected 29 audited modules", () => {
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   const expected = [
     "_rowTypes",
     "accessTokens",
@@ -155,7 +159,10 @@ test("INTENTIONALLY_INTERNAL contains the expected 33 audited modules", () => {
     "stats",
     "tierConfig",
     "vacuumScheduler",
+<<<<<<< HEAD
     "webSessionDedup",
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
   ];
   for (const mod of expected) {
     assert.ok(

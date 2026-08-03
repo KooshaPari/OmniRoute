@@ -5,7 +5,10 @@ import {
   extractCursorTokensFromRows,
   fuzzyExtractCursorTokensFromRows,
   cursorDbCandidatePaths,
+<<<<<<< HEAD
   verifyLinuxCursorInstalled,
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
 } from "../../src/app/api/oauth/cursor/auto-import/route";
 
 describe("normalizeVscDbValue", () => {
@@ -139,6 +142,7 @@ describe("cursorDbCandidatePaths", () => {
     assert.deepEqual(cursorDbCandidatePaths("freebsd" as NodeJS.Platform, { home: "/x" }), []);
   });
 });
+<<<<<<< HEAD
 
 describe("verifyLinuxCursorInstalled (port: 9router#313)", () => {
   const okExec = async () => ({ stdout: "/usr/bin/cursor\n", stderr: "" });
@@ -203,3 +207,5 @@ describe("verifyLinuxCursorInstalled (port: 9router#313)", () => {
     });
   });
 });
+=======
+>>>>>>> airlock-archive/wave10/omniroute-wt/quota-widget-perf
