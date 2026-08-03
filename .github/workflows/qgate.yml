@@ -40,7 +40,10 @@ jobs:
 
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v4.0.0
         with:
-          node-version: "24"
+          # better-sqlite3 7.6.2 in the immutable lockfile has no Node 24
+          # prebuild and fails under node-gyp; Node 22 is the supported LTS
+          # runtime for this dependency and preserves reproducible installs.
+          node-version: "22"
           cache: "npm"
 
       - name: Install dependencies

@@ -699,6 +699,13 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-03T05:53Z - Cargo Deny and qgate runtime compatibility (quality_runtime)
+
+- Local `cargo deny check` with the pinned 0.20.2 CLI exposed additional removed keys in `deny.toml`: `licenses.unlicensed`, `allow-osi-fsf-free`, and `copyleft`, after the earlier unsupported output/advisories/source keys were removed. Removed only those obsolete configuration keys; the allow/deny license list, private-crate policy, source restrictions, and duplicate-version warning remain.
+- The prior qgate run failed during `npm ci` because Node 24.18.0 cannot build lockfile-pinned `better-sqlite3@7.6.2` (`node-gyp` V8 API errors and no prebuilt binary). Pinned qgate's setup-node runtime to Node 22 LTS, the compatible supported runtime for that dependency; no lockfile or test semantics changed.
+- Local `cargo deny check` now exits 0 (`advisories ok, bans ok, licenses ok, sources ok`). Qgate workflow validation and push are pending.
+- This entry is append-only.
+
 ## 2026-08-03T01:26Z - Infisical trigger and runner hardening (infisical_ci_hardening)
 
 - Every PR head produced an `Infisical Sync` startup failure with zero jobs because the workflow targeted the optional `blacksmith-2vcpu-ubuntu-2204` runner. Pull-request secret synchronization was not needed and would expose a secret-bearing job to untrusted PR context.
