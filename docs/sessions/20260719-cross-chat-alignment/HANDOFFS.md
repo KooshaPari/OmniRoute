@@ -699,6 +699,14 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-03T01:02Z - Gitleaks PR-range checkout repair (ci_security_range)
+
+- Current PR #492 head `d5bd9bf4209c92519a3362310d54dbcc59e00874` reached runners, but `CI / Security Scan` job `91569916842` failed before scanning: gitleaks attempted `036ee75e...^..0caaf75d...` and git reported the base revision as an unknown revision.
+- Root cause is the security job's shallow checkout (`fetch-depth: 1` default). The dedicated security workflow already uses full history; this aggregate CI security job did not.
+- Added `fetch-depth: 0` and `persist-credentials: false` to only the aggregate security checkout. No scan rules, findings, or fail-open policy were changed.
+- Airlock snapshot before this edit: `wip/20260803T0102-18c825e6a99ea958`. Local `actionlint`, `yq`, Trunk 1.22.2 Prettier check (`23 modified files`, no issues), and `git diff --check` pass. Commit/push is pending current-head validation.
+- This entry is append-only.
+
 ## 2026-08-02T23:55Z - Current-head gate repair and governance hardening (pr492_gate_repair)
 
 - PR #492 replacement head remains `ed48c56c8256730bb6facc9c350be29e5de34055`, rebased on `main` `92fafe865c5291aae2c17c1b9c88fc0a6a47407f`; the isolated worktree is the only mutation surface.
