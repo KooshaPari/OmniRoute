@@ -139,3 +139,10 @@ All clauses above remain proposed until implemented and independently verified. 
 The current draft CI evidence proves a Node 24.18 `npm-ci` failure while building nested `better-sqlite3@7.6.2`. CodeQL, Gitleaks, and OSSF Scorecard completed successfully, but the native-build failure cascaded into dependency-audit/qgate failures. This is a dependency/install blocker, not evidence of a security finding or a completed remediation. See the remediation contract and evidence ledger in [#447](https://github.com/KooshaPari/OmniRoute/issues/447).
 
 Remediation acceptance requires a tested Node 24-compatible SQLite backend and reproducible lockfile, Keyv persistence/concurrency/restart-survival tests, and green npm audit, OSV, license/SBOM, and qgate/coverage evidence on the exact candidate head. Dependency overrides, vulnerability suppression, and a Node 22 fallback are explicitly rejected. Until those checks are independently green, this document and PR remain proposed and NO-GO.
+
+
+## 10. Current compatibility research (proposed / NO-GO)
+
+The compatibility research recorded in [#447 comment 5161680888](https://github.com/KooshaPari/OmniRoute/issues/447#issuecomment-5161680888) identifies better-sqlite3 v12 as the Node 24/26 prebuild line and prefers Keyv SQLite v6 backends using node:sqlite (Node) or bun:sqlite (Bun). This is research, not migration or release evidence: the backend change is not drop-in and requires explicit API and semantic validation.
+
+Acceptance remains fail-closed until clean Node 24/26 installs succeed, the lock graph removes nested better-sqlite3@7.6.2, persistence/TTL/restart-survival/concurrency/WAL tests pass, and npm audit, OSV, license/SBOM, qgate, coverage, and exact-head CI evidence are green. No dependency override, suppression, or Node 22 fallback is accepted.
