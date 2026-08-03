@@ -699,6 +699,14 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-03T01:26Z - Infisical trigger and runner hardening (infisical_ci_hardening)
+
+- Every PR head produced an `Infisical Sync` startup failure with zero jobs because the workflow targeted the optional `blacksmith-2vcpu-ubuntu-2204` runner. Pull-request secret synchronization was not needed and would expose a secret-bearing job to untrusted PR context.
+- Removed the `pull_request` trigger, moved explicit/main-branch sync to `ubuntu-24.04`, pinned checkout, disabled persisted credentials, and set workflow-level `contents: read` permissions.
+- Removed the failure artifact upload of `.env`; secrets must never be uploaded as debug artifacts. Missing-token diagnostics remain explicit in the job log without secret material.
+- Local `actionlint`, `yq`, and `git diff --check` pass. The edit is not yet committed/pushed.
+- This entry is append-only.
+
 ## 2026-08-03T01:21Z - Cargo Deny CLI compatibility repair (cargo_deny_cli)
 
 - Current-run audit found Cargo Deny 0.20.2 rejects the action-style `--all-features` flag: `cargo deny check` reports `unexpected argument '--all-features'`.

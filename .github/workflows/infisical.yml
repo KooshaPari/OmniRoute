@@ -10,17 +10,24 @@ on:
   push:
     branches: [main, master]
     paths:
-      - '.github/workflows/infisical.yml'
-  pull_request:
+      - ".github/workflows/infisical.yml"
+
+permissions:
+  contents: read
 
 jobs:
   sync-secrets:
     name: Pull secrets from Infisical
-    runs-on: blacksmith-2vcpu-ubuntu-2204
+    # Secret synchronization is an explicitly invoked/main-branch operation;
+    # keep it on a GitHub-hosted runner so an optional Blacksmith integration
+    # cannot create a startup-failure check on every pull request.
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Install Infisical CLI
         run: |
@@ -30,8 +37,12 @@ jobs:
       - name: Pull secrets to .env
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
-          INFISICAL_PROJECT_ID: ${{ vars.INFISICAL_PROJECT_ID || secrets.INFISICAL_PROJECT_ID || '8efe392e-56a6-4c3c-89f9-8141183dd7e8' }}
-          INFISICAL_ENV: ${{ vars.INFISICAL_ENV || github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/staging' && 'staging' || 'dev' }}
+          INFISICAL_PROJECT_ID:
+            ${{ vars.INFISICAL_PROJECT_ID || secrets.INFISICAL_PROJECT_ID ||
+            '8efe392e-56a6-4c3c-89f9-8141183dd7e8' }}
+          INFISICAL_ENV:
+            ${{ vars.INFISICAL_ENV || github.ref == 'refs/heads/main' && 'prod' || github.ref ==
+            'refs/heads/staging' && 'staging' || 'dev' }}
         run: |
           # Validate required secrets are present
           if [ -z "$INFISICAL_TOKEN" ]; then
@@ -49,11 +60,3 @@ jobs:
             --env "$INFISICAL_ENV" \
             --token "$INFISICAL_TOKEN" \
             -- bash -c 'echo "Secrets loaded into env successfully" && env | grep -E "^[A-Z_]+=" | grep -v -E "^(PATH|HOME|PWD|SHELL|HOSTNAME|TERM|GITHUB_|RUNNER_|CARGO_|DEPLOY_|INPUT_|IMAGE_|ACTIONS_|STEP_|BOOT_|GRUB_|LS_COLORS|INVOCATION_ID|JOURNAL_)" | head -20'
-
-      - name: Upload secrets as artifact (debug only, never published)
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: infisical-debug
-          path: .env
-          retention-days: 1
