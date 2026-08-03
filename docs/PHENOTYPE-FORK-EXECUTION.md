@@ -93,3 +93,43 @@ The candidate is NO-GO if any required evidence is missing, stale, non-reproduci
 - rollback or restart-survival is not demonstrated.
 
 Every exception requires an explicit issue decision, owner, expiry, and compensating evidence. Until all gates are green on the same commit, retain the draft state and preserve all branches and artifacts.
+
+## 8. Concrete acceptance clauses
+
+The following clauses define acceptance for this contract. They are requirements for future implementation and are not claims that they currently pass.
+
+### 8.1 Identity and capability SSOT
+
+- The canonical root manifest path is `.fork-identity.json`; no second hand-maintained identity/capability manifest is authoritative.
+- The manifest MUST be UTF-8 JSON with top-level keys `schemaVersion`, `repository`, `fork`, `release`, `provenance`, `validator`, `capabilities`, `inputs`, and `integrity`. `schemaVersion` MUST be an exact supported value (initially `1.0`); unknown versions fail closed.
+- `repository` MUST contain `owner` and `name`; `fork` MUST contain `lineage`; `release` MUST contain `channel` and `supportLevel`; `provenance` MUST contain 40-hex `sourceCommit`, 40-hex `sourceTree`, and RFC3339 `buildAt`; `validator` MUST contain `name` and `version`.
+- Every capability entry MUST contain `provider`, `model`, `serviceKind`, `auth`, `streaming`, `toolCalls`, and `availability`; unknown values MUST be explicit (for example `"unknown"`) rather than omitted.
+- `inputs` MUST list repository-relative paths and SHA-256 digests for the lockfile(s), source manifest, and each evidence artifact used to produce the manifest. Paths are normalized with forward slashes and MUST NOT escape the repository.
+- Canonical content is UTF-8 JSON with no BOM, object keys sorted lexicographically at every level, and arrays in their declared semantic order. `integrity.contentSha256` is SHA-256 of that canonical projection after removing the entire `integrity` object and the mutable `provenance.buildAt`, `provenance.sourceCommit`, and `provenance.sourceTree` fields. This exclusion is the explicit rule preventing self-referential commit/tree hashing; those fields are checked separately against the target ref.
+- `integrity` MUST contain `contentSha256` and a verifiable `attestation`. The accepted attestation is a Sigstore DSSE/cosign bundle binding the manifest digest and `provenance.sourceCommit`; an absent, unverifiable, or mismatched bundle fails closed.
+- The validator command, report schema, and mutation fixtures MUST be versioned in-repository. CI MUST validate the manifest, recompute all listed hashes, check the exact source commit/tree, and reject malformed, stale, contradictory, unsigned, or self-inconsistent data. README, generated docs, `docs/SSOT.md`, and CODEOWNERS references MUST resolve to this manifest or be marked historical.
+
+### 8.2 Docset/wiki strategy
+
+- The canonical published documentation is a pinned MkDocs Material docset built from `docs/` using the exact versions in `docs/requirements.lock` and `mkdocs.yml`; no alternate renderer is acceptance-authoritative.
+- A clean, network-disabled build MUST run `python -m mkdocs build --strict --clean` from the lockfile environment and emit a deterministic build manifest containing source SHA/tree, renderer versions, generated paths, and SHA-256 digests.
+- The build MUST fail on broken links, missing assets, duplicate routes, unexpected generated files, warnings, or nondeterministic manifest output. Wiki publication is a separate dry-run using least-privilege `contents:write`, reviewable page diff, post-write hash verification, and recorded rollback/page provenance; a wiki dry-run is not a successful deployment.
+
+### 8.3 Journeys and media
+
+- Canonical journeys MUST run with checked-in offline fixtures/mocks and an explicit network policy (default `deny`), fixed seed, locale, timezone, browser/driver, viewport, color scheme, and dependency/runtime versions.
+- Each machine-readable result MUST have sibling `.json` and `.sha256` sidecars containing journey ID, fixture ID/hash, capture command, source SHA/tree, and source-asset hash. Secret values MUST never be written.
+- A no-network verifier MUST run twice from clean worktrees and compare byte-identical result, manifest, and sidecar outputs; any variance requires a declared bounded-variance rule and remains non-release evidence until explained. Missing sidecars, placeholders, network access, or unexplained variance fail closed.
+
+### 8.4 Performance evidence
+
+- The benchmark input MUST include a canonical sorted route/provider inventory and its SHA-256. It MUST collect real (not synthetic) samples: at least 10 steady-state requests and 30 streaming requests per declared scenario.
+- Reports MUST include p50/p95/p99, TTFT/TTLT, 5xx/timeouts, raw sample digests, runtime/tool versions, and exact source SHA/tree. Missing, duplicate, partial, or synthetic samples fail closed; readiness, SSE abort/cleanup, and no-orphan-resource tests are required.
+- Baselines are immutable exact-SHA artifacts with pinned action/tool versions; comparisons against another head, mutable branch, or unverified sample are invalid.
+
+### 8.5 CI, release, and deployment provenance
+
+- CI MUST retain the complete protected-check inventory, startup logs, run IDs, runner matrix, permissions, and action SHAs. The supported matrix explicitly includes Node 24, Node 26, and Bun 1.3.10 with frozen lockfile installs; fallback installs and allow-missing behavior are prohibited.
+- Release artifacts MUST record tested source SHA/tree, artifact digest, signature/attestation verification, published URL, and representative health and journey checks. Rollback/redeploy evidence MUST identify the prior and candidate artifact digests and show restart survival. A wrapper exit code or skipped job is not proof of success.
+
+All clauses above remain proposed until implemented and independently verified. Retain this PR as draft/NO-GO until the evidence is collected on one exact commit; no merge, release, deployment, or completion claim follows from this document alone.
