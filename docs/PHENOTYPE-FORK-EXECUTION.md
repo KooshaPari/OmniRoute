@@ -133,3 +133,9 @@ The following clauses define acceptance for this contract. They are requirements
 - Release artifacts MUST record tested source SHA/tree, artifact digest, signature/attestation verification, published URL, and representative health and journey checks. Rollback/redeploy evidence MUST identify the prior and candidate artifact digests and show restart survival. A wrapper exit code or skipped job is not proof of success.
 
 All clauses above remain proposed until implemented and independently verified. Retain this PR as draft/NO-GO until the evidence is collected on one exact commit; no merge, release, deployment, or completion claim follows from this document alone.
+
+## 9. Current dependency evidence (proposed / NO-GO)
+
+The current draft CI evidence proves a Node 24.18 `npm-ci` failure while building nested `better-sqlite3@7.6.2`. CodeQL, Gitleaks, and OSSF Scorecard completed successfully, but the native-build failure cascaded into dependency-audit/qgate failures. This is a dependency/install blocker, not evidence of a security finding or a completed remediation. See the remediation contract and evidence ledger in [#447](https://github.com/KooshaPari/OmniRoute/issues/447).
+
+Remediation acceptance requires a tested Node 24-compatible SQLite backend and reproducible lockfile, Keyv persistence/concurrency/restart-survival tests, and green npm audit, OSV, license/SBOM, and qgate/coverage evidence on the exact candidate head. Dependency overrides, vulnerability suppression, and a Node 22 fallback are explicitly rejected. Until those checks are independently green, this document and PR remain proposed and NO-GO.
