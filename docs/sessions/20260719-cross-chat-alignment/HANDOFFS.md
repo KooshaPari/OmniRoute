@@ -699,6 +699,13 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-03T01:07Z - Mergify self-review guard (mergify_author_guard)
+
+- Mergify's `request_reviews` action remained `FAILURE` on PR #492 after the invalid team was removed. The repository exposes only the `KooshaPari` collaborator, which is also the PR author; GitHub rejects requesting a review from the author.
+- Added `author != KooshaPari` to the existing request-review rule. External-contributor PRs still receive the configured owner review request; owner-authored PRs no longer trigger an impossible action or a false governance failure.
+- Airlock snapshot before this edit: `wip/20260803T0107-18c8263226b0add8`. `git diff --check` passes; commit/push is pending.
+- This entry is append-only.
+
 ## 2026-08-03T01:02Z - Gitleaks PR-range checkout repair (ci_security_range)
 
 - Current PR #492 head `d5bd9bf4209c92519a3362310d54dbcc59e00874` reached runners, but `CI / Security Scan` job `91569916842` failed before scanning: gitleaks attempted `036ee75e...^..0caaf75d...` and git reported the base revision as an unknown revision.

@@ -58,6 +58,10 @@ pull_request_rules:
     conditions:
       - -closed
       - -draft
+      # GitHub rejects review requests targeting the pull-request author.
+      # Keep this automation for external contributors without making the
+      # repository owner's own PR governance check fail.
+      - author != KooshaPari
     actions:
       request_reviews:
         users:
