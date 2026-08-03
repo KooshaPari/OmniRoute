@@ -699,6 +699,14 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-03T23:22Z - QGate native-runner boundary repair (qgate_coverage_gate)
+
+- PR #492 QGate run `30788579708` / job `91607178147` built pinned QGate source successfully, then `qgate run` was terminated with exit 143 after 4m52s and left two Node child processes. The failure occurred after coverage was already generated and uploaded.
+- Root cause: pinned QGate revision `c43cc4af2cbcc2bb2df37f3e4ab78cc5d8c1b3ad` selects generic runners from root manifests. OmniRoute has both `Cargo.toml` and `package.json`; `run` therefore bypasses the repository-owned Node test manifest and Playwright wrapper, running generic Cargo/Bun/Playwright commands instead.
+- Replaced only the generic `qgate run` invocation with QGate's `coverage` subcommand over the same generated `coverage/lcov.info` and unchanged recursive threshold `60`. Dedicated native workflows retain their test, browser, security, and DAST gates. The textual coverage tree is uploaded as `qgate-coverage-report`.
+- Added a workflow contract test asserting the exact coverage-only invocation and forbidding the generic binary `qgate run` command. Validation: `git diff --check`, YAML parse, actionlint, Trunk formatting, and an equivalent Node contract assertion pass. The isolated worktree has no installed `tsx`, so the TypeScript focused test cannot execute locally; hosted CI is required for execution proof.
+- This entry is append-only.
+
 ## 2026-08-03T05:53Z - Cargo Deny and qgate runtime compatibility (quality_runtime)
 
 - Local `cargo deny check` with the pinned 0.20.2 CLI exposed additional removed keys in `deny.toml`: `licenses.unlicensed`, `allow-osi-fsf-free`, and `copyleft`, after the earlier unsupported output/advisories/source keys were removed. Removed only those obsolete configuration keys; the allow/deny license list, private-crate policy, source restrictions, and duplicate-version warning remain.
@@ -919,4 +927,12 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Repository policy evidence from `GET /actions/permissions`: `allowed_actions=selected`, `sha_pinning_required=true`; selected patterns permit `gitleaks/gitleaks-action@ff98106e...` but do not permit `dcedce...` or `EmbarkStudios/cargo-deny-action`.
 - Replaced the unapproved gitleaks SHA with the selected `ff98106e4c7b2bc287b24eaf42907196329070c7` pin. Replaced the unapproved cargo-deny action with an equivalent pinned `cargo install cargo-deny --version 0.20.2 --locked` followed by `cargo deny check --all-features`; the Cargo Deny gate remains present and advisory/fail-open behavior is unchanged.
 - Local validation: the CI workflow contains no mutable refs, `actionlint`, `yq`, Trunk 1.22.2 Prettier check (`23 modified files`, no new issues), and `git diff --check` pass. The next Airlock snapshot and commit will preserve this selected-actions repair.
+- This entry is append-only.
+
+## 2026-08-03T23:23Z - QGate native-runner boundary repair (qgate_coverage_gate)
+
+- PR #492 QGate run `30788579708` / job `91607178147` built pinned QGate source successfully, then `qgate run` was terminated with exit 143 after 4m52s and left two Node child processes. The failure occurred after coverage was already generated and uploaded.
+- Root cause: pinned QGate revision `c43cc4af2cbcc2bb2df37f3e4ab78cc5d8c1b3ad` selects generic runners from root manifests. OmniRoute has both `Cargo.toml` and `package.json`; `run` therefore bypasses the repository-owned Node test manifest and Playwright wrapper, running generic Cargo/Bun/Playwright commands instead.
+- Replaced only the generic `qgate run` invocation with QGate's `coverage` subcommand over the same generated `coverage/lcov.info` and unchanged recursive threshold `60`. Dedicated native workflows retain their test, browser, security, and DAST gates. The textual coverage tree is uploaded as `qgate-coverage-report`.
+- Added a workflow contract test asserting the exact coverage-only invocation and forbidding the generic binary `qgate run` command. Validation: `git diff --check`, YAML parse, actionlint, Trunk formatting, and an equivalent Node contract assertion pass. The isolated worktree has no installed `tsx`, so the TypeScript focused test cannot execute locally; hosted CI is required for execution proof.
 - This entry is append-only.
