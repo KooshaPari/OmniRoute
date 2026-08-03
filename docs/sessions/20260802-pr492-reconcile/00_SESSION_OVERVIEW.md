@@ -1,11 +1,12 @@
 # PR 492 Reconciliation
 
-Status: implementation in progress. Source SHA at intake:
-`fc9201feab1b12fb6df3dbb749f9bb3b1b666739`; base: `92fafe865c5291aae2c17c1b9c88fc0a6a47407f`.
+Status: reconciled and validated locally. The live PR base is `f7709a87ab`; the bounded integration
+commit is `93c5e5973b`.
 
 Scope is limited to verified runtime-contract bugs, deterministic test hardening, relay schema
 parity, and CI formatting. Heavy packaged-app smoke redesign and adapter-path assertion changes are
 deferred as separate design work.
 
-Acceptance: focused checks pass where the local environment permits; no merge or admin bypass;
-Airlock snapshot records the resulting WIP SHA.
+Acceptance: 11 focused checks passed; 39 SQLite-driver checks were host-blocked by the validation
+environment. Airlock recorded `wip/20260803T0636-18c83820dca03348`. No PR push or merge was
+performed.

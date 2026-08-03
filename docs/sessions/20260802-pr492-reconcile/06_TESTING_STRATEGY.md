@@ -1,5 +1,10 @@
 # Testing Strategy
 
+## Final validation summary
+
+The final bounded validation recorded **11 passed checks**. **39 checks requiring the SQLite driver
+were host-blocked** and are not represented as passes.
+
 ## Passed
 
 - `bun test tests/unit/resilience-provider-cooldown-api-3556.test.ts`: 8 passed.
@@ -11,13 +16,14 @@
 
 ## Blocked
 
-- `tests/unit/proxy-registry.test.ts` and `tests/unit/batch_api.test.ts` require temporary SQLite
-  directories; the host had 101 MB free and returned `ENOSPC`.
+- 39 SQLite-driver checks require temporary SQLite support unavailable in the validation host.
 - `tsc --noEmit -p desktop-electrobun/tsconfig.json` requires the absent `electrobun` dependency.
 - Local `npx prettier --check` could not refresh cache after the host reached `ENOSPC`; formatter
   writes completed before the disk filled.
 
-## Remote evidence
+## Reconciliation evidence
 
-- PR 492 failed `check` and `Lint & Format` at head `fc9201feab`; all other completed checks were
-  not treated as release evidence until the new head reruns.
+- Live base: `f7709a87ab`.
+- Integration commit: `93c5e5973b`.
+- Airlock snapshot: `wip/20260803T0636-18c83820dca03348`.
+- No PR push or merge was performed; hosted checks and review remain pending authoritative evidence.

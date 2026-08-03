@@ -11,3 +11,11 @@
 - `normalizeProviderCooldownSettings` clamped explicit maximums but returned an out-of-range
   fallback unchanged; minimum-only patches could preserve inverted stored bounds. This was verified
   with a direct merge probe and fixed.
+
+## Final reconciliation evidence
+
+- The live PR base used for reconciliation was `f7709a87ab`.
+- The resulting integration commit is `93c5e5973b`.
+- Validation recorded 11 passes and 39 checks blocked by the host's SQLite-driver environment.
+- Airlock snapshot: `wip/20260803T0636-18c83820dca03348`.
+- No PR push or merge was performed; branch protection and remote review remain authoritative.
