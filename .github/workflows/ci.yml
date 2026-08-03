@@ -125,7 +125,7 @@ jobs:
       - name: Install cargo-deny
         run: cargo install cargo-deny --version 0.20.2 --locked
       - name: cargo-deny check
-        run: cargo deny check --all-features
+        run: cargo deny check
 
   python:
     name: Python

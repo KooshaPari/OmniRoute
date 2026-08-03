@@ -699,6 +699,13 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-03T01:21Z - Cargo Deny CLI compatibility repair (cargo_deny_cli)
+
+- Current-run audit found Cargo Deny 0.20.2 rejects the action-style `--all-features` flag: `cargo deny check` reports `unexpected argument '--all-features'`.
+- Updated the replacement install-based gate to invoke the supported `cargo deny check` command. The advisory/fail-open job and aggregate gate remain intact; no dependency policy was relaxed.
+- Airlock snapshot before this edit: `wip/20260803T0121-18c826f571f661e8`. Validation and push are pending.
+- This entry is append-only.
+
 ## 2026-08-03T01:07Z - Mergify self-review guard (mergify_author_guard)
 
 - Mergify's `request_reviews` action remained `FAILURE` on PR #492 after the invalid team was removed. The repository exposes only the `KooshaPari` collaborator, which is also the PR author; GitHub rejects requesting a review from the author.
