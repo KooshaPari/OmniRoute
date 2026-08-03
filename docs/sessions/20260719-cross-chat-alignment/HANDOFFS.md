@@ -868,3 +868,11 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Resolved CI conflicts by retaining main's pinned actions, Scorecard permissions, Trunk/qgate semantics, and desktop assertions; cargo test/build remain lockfile-bound. `yq` parses changed workflows, non-CI `actionlint` passes, desktop `bun run typecheck` passes, Node syntax checks pass, and `git diff --check` passes.
 - Full CI actionlint still reports pre-existing `.github/workflows/ci.yml` detect-output shellcheck/property diagnostics; these were not broadened during the semantic rebase and remain a follow-up hardening lane.
 - This entry is append-only.
+
+## 2026-08-03T00:30Z - CI startup policy repair (ci_startup_pin_repair)
+
+- Fresh PR #492 head `c60c14cbdbabd8fe2a2ea682e4ff4280711eb931` still produced CI run `30774213748` with `startup_failure` and zero jobs. The workflow was rejected before runner allocation because `.github/workflows/ci.yml` retained mutable action refs (`actions/checkout@v4`, `dtolnay/rust-toolchain@stable`, `cargo-deny-action@v1`, setup actions, gitleaks, dependency review).
+- Pinned every action in that workflow to immutable SHAs already used by the repository's approved workflow surface. No job, gate, or advisory/fail-open semantics changed.
+- Local validation: no mutable action refs remain in `.github/workflows/ci.yml`; `actionlint`, `yq`, Trunk 1.22.2 Prettier check (`23 modified files`, no new issues), and `git diff --check` pass.
+- Airlock snapshot before this repair commit is required and will be recorded with the pushed SHA in the next entry.
+- This entry is append-only.
