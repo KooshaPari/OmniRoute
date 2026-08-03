@@ -149,8 +149,16 @@ export function __resetRateLimitManagerForTests(): void {
 }
 
 /**
- * Cleanup — no-op for Keyv (SQLite handles TTL), clears in-memory counters.
+ * Close the persistent Keyv store and clear in-memory counters.
+ *
+ * SQLite keeps an open handle until the Keyv adapter is disconnected, so
+ * callers that tear down a temporary DATA_DIR must await this cleanup before
+ * removing it.
  */
-export function cleanupRateLimiters(): void {
+export async function cleanupRateLimiters(): Promise<void> {
   inMemoryCounters.clear();
+
+  const store = keyvStore;
+  keyvStore = null;
+  if (store) await store.disconnect();
 }
