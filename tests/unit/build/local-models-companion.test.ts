@@ -89,3 +89,22 @@ test("runtime loaders resolve only the explicitly-installed companion", () => {
   assert.match(llmlinguaWorker, /localModelsLlmlinguaEntry/);
   assert.doesNotMatch(llmlinguaWorker, /dynamicImport\("@huggingface\/transformers"\)/);
 });
+
+test("release automation independently packages and publishes the companion", () => {
+  const workflow = readFileSync(join(repoRoot, ".github", "workflows", "npm-publish.yml"), "utf8");
+
+  assert.match(workflow, /^  publish-local-models:/m);
+  assert.match(workflow, /working-directory: "@omniroute\/local-models"/);
+  assert.match(workflow, /npm pack --dry-run --ignore-scripts/);
+  assert.match(workflow, /npm publish --provenance --access public --ignore-scripts/);
+});
+
+test("release checklist uses the updater's executable base install command", () => {
+  const checklist = readFileSync(join(repoRoot, "docs", "ops", "RELEASE_CHECKLIST.md"), "utf8");
+
+  assert.match(
+    checklist,
+    /npm uninstall -g omniroute --ignore-scripts \|\| true && npm install -g @kooshapari\/omniroute@latest --include=optional/
+  );
+  assert.doesNotMatch(checklist, /npm install -g … --include=optional/);
+});

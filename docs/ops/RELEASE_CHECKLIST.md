@@ -274,7 +274,7 @@ Before shipping any v3.8.x release, verify these additional items:
 - [ ] `omniroute config tray enable` creates autostart entry; disable removes it
 - [ ] `npm install -g omniroute@<this-version>` runs postinstall without fatal exit
 - [ ] Update path keeps base optional deps: `omniroute update --apply` and the auto-updater
-      run `npm install -g … --include=optional` so `optionalDependencies` (`better-sqlite3`,
+      run `npm uninstall -g omniroute --ignore-scripts || true && npm install -g @kooshapari/omniroute@latest --include=optional` so `optionalDependencies` (`better-sqlite3`,
       `keytar`, and `tls-client`) survive an update. Local embeddings and the ultra `modelPath`
       SLM tier require explicit `npm install -g @omniroute/local-models` in the same global prefix.
       Without that companion, both paths fail open; with it, TinyBERT is auto-downloaded to
