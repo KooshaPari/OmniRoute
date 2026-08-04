@@ -26,9 +26,21 @@ async function loadTransformersCompanion(): Promise<TransformersCompanion> {
   return import(/* webpackIgnore: true */ specifier) as Promise<TransformersCompanion>;
 }
 
+type TransformersCompanionLoader = () => Promise<TransformersCompanion>;
+let transformersCompanionLoader: TransformersCompanionLoader = loadTransformersCompanion;
+
 /** For testing: inject a mock pipeline factory. */
 export function _injectPipeline(fn: PipelineFn | null): void {
   _pipeline = fn;
+  _pipelineLoading = null;
+}
+
+/** For testing: replace the lazy companion loader and reset its singleton state. */
+export function _injectTransformersCompanionLoaderForTests(
+  loader: TransformersCompanionLoader | null
+): void {
+  transformersCompanionLoader = loader ?? loadTransformersCompanion;
+  _pipeline = null;
   _pipelineLoading = null;
 }
 
@@ -36,16 +48,24 @@ async function getOrLoadPipeline(): Promise<PipelineFn> {
   if (_pipeline) return _pipeline;
   if (_pipelineLoading) return _pipelineLoading;
 
-  _pipelineLoading = (async (): Promise<PipelineFn> => {
-    const companion = await loadTransformersCompanion();
+  const loading = (async (): Promise<PipelineFn> => {
+    const companion = await transformersCompanionLoader();
     const { pipeline } = await companion.loadTransformers();
     const pipe = await pipeline("feature-extraction", TRANSFORMERS_MODEL, { dtype: "q8" });
     _pipeline = pipe;
-    _pipelineLoading = null;
     return pipe;
   })();
 
-  return _pipelineLoading;
+  _pipelineLoading = loading;
+  void loading.then(
+    () => {
+      if (_pipelineLoading === loading) _pipelineLoading = null;
+    },
+    () => {
+      if (_pipelineLoading === loading) _pipelineLoading = null;
+    }
+  );
+  return loading;
 }
 
 /**

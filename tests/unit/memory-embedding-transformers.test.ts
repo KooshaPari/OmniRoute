@@ -1,6 +1,9 @@
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { _injectPipeline } from "../../src/lib/memory/embedding/transformersLocal";
+import {
+  _injectPipeline,
+  _injectTransformersCompanionLoaderForTests,
+} from "../../src/lib/memory/embedding/transformersLocal";
 
 // Note: @huggingface/transformers is NEVER imported at module level in production code.
 // This test verifies the singleton pattern and error handling using injected mocks.
@@ -9,6 +12,7 @@ describe("memory-embedding-transformers", () => {
   beforeEach(() => {
     // Reset pipeline singleton
     _injectPipeline(null);
+    _injectTransformersCompanionLoaderForTests(null);
   });
 
   it("_injectPipeline and embedTransformers use mock pipeline", async () => {
@@ -75,6 +79,30 @@ describe("memory-embedding-transformers", () => {
     assert.strictEqual(embErr.reason, "model_load_failed");
     assert.ok(typeof embErr.message === "string");
     assert.ok(!embErr.message.includes("at /"), "No stack trace in message");
+  });
+
+  it("retries a later load after an initial companion failure", async () => {
+    let attempts = 0;
+    _injectTransformersCompanionLoaderForTests(async () => {
+      attempts++;
+      if (attempts === 1) throw new Error("temporary companion failure");
+      return {
+        loadTransformers: async () => ({
+          pipeline: async () => async () => ({
+            dims: [1, 1, 2],
+            data: new Float32Array([0.25, 0.75]),
+          }),
+        }),
+      };
+    });
+
+    const { embedTransformers } = await import("../../src/lib/memory/embedding/transformersLocal");
+    const first = await embedTransformers("first attempt");
+    const second = await embedTransformers("second attempt");
+
+    assert.equal((first as { reason: string }).reason, "model_load_failed");
+    assert.ok("vector" in second, "a transient load failure must not poison later calls");
+    assert.equal(attempts, 2);
   });
 
   it("handles Tensor with 2D dims [seq_len, hidden_size]", async () => {
