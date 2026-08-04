@@ -29,6 +29,18 @@ const SERVER_PORT = Number(process.env.OMNIROUTE_PORT ?? "20128");
 let nextServer: ReturnType<typeof Bun.spawn> | undefined;
 let rendererServer: ReturnType<typeof Bun.spawn> | undefined;
 
+function stopSpawnedServer(
+  server: ReturnType<typeof Bun.spawn> | undefined
+): ReturnType<typeof Bun.spawn> | undefined {
+  if (!server) return undefined;
+  try {
+    server.kill();
+  } catch (error) {
+    console.warn(`[${APP_NAME}] Failed to stop local server`, { error });
+  }
+  return undefined;
+}
+
 /** Resolve the backend from both Bun's worker path and the native launcher path.
  *
  * Electrobun starts the app entrypoint in a Worker. Depending on whether the
@@ -77,7 +89,7 @@ async function bootRendererServer(): Promise<string | undefined> {
         },
         stdout: "inherit",
         stderr: "inherit",
-      },
+      }
     );
   } catch (error) {
     console.warn("Failed to start bundled Svelte renderer; using bundled fallback", {
@@ -87,17 +99,17 @@ async function bootRendererServer(): Promise<string | undefined> {
     return undefined;
   }
   const url = `http://127.0.0.1:${port}`;
+  const readinessUrl = `${url}/healthz`;
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(500) });
+      const response = await fetch(readinessUrl, { signal: AbortSignal.timeout(500) });
       if (response.ok) return url;
     } catch {
       // The gateway may still be starting; retry after the bounded delay below.
     }
     await Bun.sleep(250);
   }
-  rendererServer.kill();
-  rendererServer = undefined;
+  rendererServer = stopSpawnedServer(rendererServer);
   return undefined;
 }
 
@@ -130,9 +142,10 @@ async function bootNextServer(): Promise<string | undefined> {
     return undefined;
   }
   const url = `http://127.0.0.1:${SERVER_PORT}`;
+  const readinessUrl = `${url}/healthz`;
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(500) });
+      const response = await fetch(readinessUrl, { signal: AbortSignal.timeout(500) });
       if (response.ok) return url;
     } catch {
       // The backend may still be starting; retry after the bounded delay below.
@@ -140,6 +153,7 @@ async function bootNextServer(): Promise<string | undefined> {
     await Bun.sleep(250);
   }
   console.warn(`[${APP_NAME}] Next standalone server did not become ready; using bundled fallback`);
+  nextServer = stopSpawnedServer(nextServer);
   return undefined;
 }
 
@@ -156,7 +170,7 @@ async function bootServices(): Promise<void> {
   } catch (err) {
     console.warn(
       `[${APP_NAME}] process-compose boot skipped (not found or services already running):`,
-      (err as Error).message,
+      (err as Error).message
     );
   }
 }
@@ -276,13 +290,13 @@ async function main(): Promise<void> {
   setupMenu(win);
   setupTray(win);
   console.log(
-    `[${APP_NAME}] Launched → ${rendererUrl ?? bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`,
+    `[${APP_NAME}] Launched → ${rendererUrl ?? bundledUrl ?? DEV_URL} (fallback ${FALLBACK_RENDERER_URL})`
   );
 }
 
 process.on("exit", () => {
-  nextServer?.kill();
-  rendererServer?.kill();
+  nextServer = stopSpawnedServer(nextServer);
+  rendererServer = stopSpawnedServer(rendererServer);
 });
 main().catch((err) => {
   console.error(`[${APP_NAME}] Fatal:`, err);
