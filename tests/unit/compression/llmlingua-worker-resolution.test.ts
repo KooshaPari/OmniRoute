@@ -13,13 +13,14 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   firstAncestorWith,
   resolveWorkerFile,
   depsAvailable,
 } from "@omniroute/open-sse/services/compression/engines/llmlingua/worker.ts";
+import { resolveLocalModelsEntry } from "../../../open-sse/utils/localModels.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const WORKER_SRC = path.resolve(
@@ -80,4 +81,23 @@ test("resolveWorkerFile returns an existing onnxWorker file (no import.meta.url)
 
 test("depsAvailable is false until the local-model companion is explicitly installed", () => {
   assert.equal(depsAvailable(), false);
+});
+
+test("resolveLocalModelsEntry finds a global companion beside a globally installed CLI", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "slm-global-"));
+  try {
+    const prefix = path.join(tmp, "prefix");
+    const packageDir = path.join(prefix, "lib", "node_modules", "@omniroute", "local-models");
+    fs.mkdirSync(packageDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(packageDir, "package.json"),
+      JSON.stringify({ exports: { "./llmlingua": "./llmlingua.js" } })
+    );
+    fs.writeFileSync(path.join(packageDir, "llmlingua.js"), "export {};\n");
+
+    const entry = resolveLocalModelsEntry("./llmlingua", [path.join(prefix, "bin")]);
+    assert.equal(entry, pathToFileURL(path.join(packageDir, "llmlingua.js")).href);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });

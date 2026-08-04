@@ -20,7 +20,7 @@
  * constructs before calling the backend; this worker sees prose-only segments.
  */
 
-import { parentPort } from "node:worker_threads";
+import { parentPort, workerData } from "node:worker_threads";
 import {
   resolveLlmlinguaModel,
   configureTransformersEnv,
@@ -48,6 +48,13 @@ interface WorkerRequest {
   modelPath?: string;
 }
 
+interface LocalModelsWorkerData {
+  localModelsLlmlinguaEntry?: string;
+}
+
+const localModelsLlmlinguaEntry = (workerData as LocalModelsWorkerData | undefined)
+  ?.localModelsLlmlinguaEntry;
+
 /**
  * Cache of built prompt-compressors keyed by `${factory}:${hfRepo}:${modelPath||""}`.
  * Values are Promises so concurrent first-calls share one in-flight build; a failed
@@ -67,7 +74,8 @@ function cacheKey(entry: LlmlinguaModelEntry, modelPath?: string): string {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getCompressor(entry: LlmlinguaModelEntry, modelPath?: string): Promise<any> {
-  const companion = await dynamicImport("@omniroute/local-models/llmlingua");
+  if (!localModelsLlmlinguaEntry) throw new Error("local-models companion is not installed");
+  const companion = await dynamicImport(localModelsLlmlinguaEntry);
   const { env, LLMLingua2, Tiktoken, o200k_base } = await companion.loadLlmlinguaRuntime();
   configureTransformersEnv(env as TransformersEnvLike, { modelPath });
 

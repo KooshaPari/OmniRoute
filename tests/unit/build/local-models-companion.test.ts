@@ -86,6 +86,6 @@ test("runtime loaders resolve only the explicitly-installed companion", () => {
 
   assert.match(transformerLoader, /@omniroute\/local-models\/transformers/);
   assert.doesNotMatch(transformerLoader, /import\("@huggingface\/transformers"\)/);
-  assert.match(llmlinguaWorker, /@omniroute\/local-models\/llmlingua/);
+  assert.match(llmlinguaWorker, /localModelsLlmlinguaEntry/);
   assert.doesNotMatch(llmlinguaWorker, /dynamicImport\("@huggingface\/transformers"\)/);
 });

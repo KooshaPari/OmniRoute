@@ -37,6 +37,7 @@ import { pathToFileURL } from "node:url";
 
 import { LLMLINGUA_WORKER_TIMEOUT_MS, LLMLINGUA_WORKER_IDLE_MS } from "./constants.ts";
 import { resolveLlmlinguaModel } from "./modelStore.ts";
+import { resolveLocalModelsEntry } from "../../../../utils/localModels.ts";
 import type { LlmlinguaBackend } from "./index.ts";
 
 /** One-time model-load budget on the first call for a given model (tinybert ~2s, bert-base ~27s). */
@@ -56,8 +57,6 @@ const FIRST_CALL_TIMEOUT_MS = 60000;
  * gate is always false / mis-anchored in production (B-SLM). We probe the filesystem
  * from runtime anchors that survive the bundle instead.
  */
-const GATE_DEP_REL = path.join("node_modules", "@omniroute", "local-models", "package.json");
-
 /** Relative path (from an install root) to the esbuild'd / source worker entry. */
 const WORKER_JS_REL = path.join(
   "open-sse",
@@ -114,6 +113,14 @@ function runtimeAnchors(): string[] {
 // ─── optional-deps gate (memoized) ──────────────────────────────────────────────
 
 let _depsAvailable: boolean | null = null;
+let _companionEntry: string | null | undefined;
+
+function companionEntry(): string | null {
+  if (_companionEntry === undefined) {
+    _companionEntry = resolveLocalModelsEntry("./llmlingua", runtimeAnchors());
+  }
+  return _companionEntry;
+}
 
 /**
  * Lazily (and once) check whether the explicit local-model companion is installed,
@@ -121,7 +128,7 @@ let _depsAvailable: boolean | null = null;
  */
 export function depsAvailable(): boolean {
   if (_depsAvailable !== null) return _depsAvailable;
-  _depsAvailable = firstAncestorWith(runtimeAnchors(), GATE_DEP_REL) !== null;
+  _depsAvailable = companionEntry() !== null;
   return _depsAvailable;
 }
 
@@ -228,7 +235,12 @@ function ensureWorker(): Worker {
 
   const { workerFile, execArgv } = resolveWorkerFile();
   const absoluteWorkerFile = path.resolve(workerFile);
-  const w = new Worker(pathToFileURL(absoluteWorkerFile).href, { execArgv });
+  const localModelsLlmlinguaEntry = companionEntry();
+  if (!localModelsLlmlinguaEntry) throw new Error("local-models companion is not installed");
+  const w = new Worker(pathToFileURL(absoluteWorkerFile).href, {
+    execArgv,
+    workerData: { localModelsLlmlinguaEntry },
+  });
 
   w.on("message", (reply: WorkerReply) => {
     const entry = pending.get(reply.id);
@@ -369,5 +381,6 @@ export function __resetLlmlinguaWorkerForTests(): void {
   }
   resetWorker();
   _depsAvailable = null;
+  _companionEntry = undefined;
   nextId = 1;
 }
