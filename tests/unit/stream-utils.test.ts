@@ -915,6 +915,7 @@ test("createSSEStream translate mode preserves Claude text_delta thinking tags a
 });
 
 test("createSSEStream translate mode keeps native Claude thinking_delta as reasoning_content", async () => {
+  let onCompletePayload = null;
   const text = await readTransformed(
     [
       `data: ${JSON.stringify({
@@ -968,6 +969,9 @@ test("createSSEStream translate mode keeps native Claude thinking_delta as reaso
       body: {
         messages: [{ role: "user", content: "hello" }],
       },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
     }
   );
 
@@ -977,6 +981,43 @@ test("createSSEStream translate mode keeps native Claude thinking_delta as reaso
 
   assert.ok(deltas.some((delta) => delta.reasoning_content === "Native plan"));
   assert.ok(deltas.some((delta) => delta.content === "Final answer"));
+  assert.equal(onCompletePayload.responseBody.choices[0].message.reasoning_content, "Native plan");
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Final answer");
+});
+
+test("createSSEStream passthrough keeps Claude thinking out of final assistant content", async () => {
+  let onCompletePayload = null;
+  const text = await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        type: "content_block_delta",
+        index: 0,
+        delta: { type: "thinking_delta", thinking: "Private plan" },
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        type: "content_block_delta",
+        index: 1,
+        delta: { type: "text_delta", text: "Visible answer" },
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.CLAUDE,
+      clientResponseFormat: FORMATS.CLAUDE,
+      provider: "claude",
+      model: "claude-opus-4-6",
+      body: {
+        messages: [{ role: "user", content: "hello" }],
+      },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  assert.match(text, /"thinking":"Private plan"/);
+  assert.equal(onCompletePayload.responseBody.choices[0].message.reasoning_content, "Private plan");
+  assert.equal(onCompletePayload.responseBody.choices[0].message.content, "Visible answer");
 });
 
 test("createSSEStream translate mode parses multi-line SSE data events", async () => {
