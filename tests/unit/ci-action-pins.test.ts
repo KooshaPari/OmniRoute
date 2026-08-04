@@ -30,6 +30,14 @@ test("dependency review scopes the Sonar LGPL exception to the pinned action", (
   assert.doesNotMatch(source, /allow-licenses:.*LGPL/);
 });
 
+test("local-model companion publish job pins its GitHub-owned actions", () => {
+  const source = readFileSync(resolve(ROOT, ".github/workflows/npm-publish.yml"), "utf8");
+  const localModelsJob = source.slice(source.indexOf("  publish-local-models:"));
+
+  assert.match(localModelsJob, /actions\/checkout@[0-9a-f]{40}\s+# v7\.0\.1/);
+  assert.match(localModelsJob, /actions\/setup-node@[0-9a-f]{40}\s+# v6\.5\.0/);
+});
+
 test("pillar scorecard stays read-only and does not commit generated reports", () => {
   const source = readFileSync(resolve(ROOT, ".github/workflows/pillar-checks.yml"), "utf8");
   assert.doesNotMatch(source, /contents:\s*write/);
