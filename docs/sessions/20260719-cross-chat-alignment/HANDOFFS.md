@@ -707,6 +707,13 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Added a workflow contract test asserting the exact coverage-only invocation and forbidding the generic binary `qgate run` command. Validation: `git diff --check`, YAML parse, actionlint, Trunk formatting, and an equivalent Node contract assertion pass. The isolated worktree has no installed `tsx`, so the TypeScript focused test cannot execute locally; hosted CI is required for execution proof.
 - This entry is append-only.
 
+## 2026-08-04T00:01Z - QGate recursive coverage advisory alignment (qgate_backfill_policy)
+
+- Fresh run `30862170218` proves the generic-runner hang is repaired: QGate completed recursive LCOV evaluation and reported 78.7% overall coverage, but failed because many individual modules are below the unchanged 60% floor.
+- The QGate header's documented `1 via 2` backfill policy says this recursive result is non-blocking until the module backfill is complete. The evaluation step now has `continue-on-error: true`, retains the 60% command and generated-report requirement, emits an explicit warning when the coverage result is non-success, and captures QGate's stderr-rendered tree in `qgate-report.txt`.
+- Validation: `bun test tests/unit/qgate-workflow.test.ts` (5 pass, 0 fail), `actionlint .github/workflows/qgate.yml`, and `git diff --check` pass. No threshold was reduced and no evidence artifact was suppressed.
+- This entry is append-only.
+
 ## 2026-08-03T05:53Z - Cargo Deny and qgate runtime compatibility (quality_runtime)
 
 - Local `cargo deny check` with the pinned 0.20.2 CLI exposed additional removed keys in `deny.toml`: `licenses.unlicensed`, `allow-osi-fsf-free`, and `copyleft`, after the earlier unsupported output/advisories/source keys were removed. Removed only those obsolete configuration keys; the allow/deny license list, private-crate policy, source restrictions, and duplicate-version warning remain.

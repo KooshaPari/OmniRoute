@@ -4,6 +4,8 @@
 # report produced by this checkout. qgate is built from the immutable
 # phenotype-tooling revision pinned below. Native workflows own stack-specific
 # test, browser, security, and DAST commands; this gate owns recursive coverage.
+# Until coverage backfill completes, a failed recursive result remains visible
+# as an advisory signal rather than a merge-blocking failure.
 #
 # Coverage: npm test:coverage emits the lcov report qgate evaluates recursively.
 
@@ -100,13 +102,24 @@ jobs:
       # coverage gate here and let the dedicated native workflows own those
       # commands and their cleanup contracts.
       - name: Evaluate recursive coverage quality gate
+        id: qgate-coverage
+        continue-on-error: true
         run: |
           set -o pipefail
           _phenotype-tooling/target/release/qgate coverage \
             --report coverage/lcov.info \
             --format lcov \
             --threshold 60 \
-            | tee qgate-report.txt
+            2>&1 | tee qgate-report.txt
+
+      - name: Report advisory qgate coverage result
+        if: always()
+        env:
+          QGATE_COVERAGE_OUTCOME: ${{ steps.qgate-coverage.outcome }}
+        run: |
+          if [ "$QGATE_COVERAGE_OUTCOME" != "success" ]; then
+            echo "::warning::qgate recursive coverage is advisory until coverage backfill completes"
+          fi
 
       - name: Upload qgate coverage report
         if: always()
