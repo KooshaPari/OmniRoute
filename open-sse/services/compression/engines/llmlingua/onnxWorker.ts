@@ -39,6 +39,17 @@ function dynamicImport(specifier: string): Promise<any> {
   return import(/* @vite-ignore */ specifier);
 }
 
+type TiktokenConstructor = new (ranks: unknown) => unknown;
+
+interface LlmlinguaCompanion {
+  loadLlmlinguaRuntime(): Promise<{
+    env: TransformersEnvLike;
+    LLMLingua2: Record<string, unknown>;
+    Tiktoken: TiktokenConstructor;
+    o200k_base: unknown;
+  }>;
+}
+
 /** Inbound message shape from the parent. */
 interface WorkerRequest {
   id: number;
@@ -75,7 +86,7 @@ function cacheKey(entry: LlmlinguaModelEntry, modelPath?: string): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getCompressor(entry: LlmlinguaModelEntry, modelPath?: string): Promise<any> {
   if (!localModelsLlmlinguaEntry) throw new Error("local-models companion is not installed");
-  const companion = await dynamicImport(localModelsLlmlinguaEntry);
+  const companion = (await dynamicImport(localModelsLlmlinguaEntry)) as LlmlinguaCompanion;
   const { env, LLMLingua2, Tiktoken, o200k_base } = await companion.loadLlmlinguaRuntime();
   configureTransformersEnv(env as TransformersEnvLike, { modelPath });
 

@@ -3,19 +3,19 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const repoRoot = process.cwd();
-const companionDir = join(repoRoot, "@omniroute", "local-models");
+const repoRoot: string = process.cwd();
+const companionDir: string = join(repoRoot, "@omniroute", "local-models");
 
 function readJson<T>(path: string): T {
   return JSON.parse(readFileSync(path, "utf8")) as T;
 }
 
-const LOCAL_MODEL_DEPS = [
+const LOCAL_MODEL_DEPS: readonly [
   "@atjsh/llmlingua-2",
   "@huggingface/transformers",
   "@tensorflow/tfjs",
   "js-tiktoken",
-] as const;
+] = ["@atjsh/llmlingua-2", "@huggingface/transformers", "@tensorflow/tfjs", "js-tiktoken"] as const;
 
 test("local-models companion owns the optional local inference dependency closure", () => {
   assert.ok(existsSync(companionDir), "local-models companion package must exist");

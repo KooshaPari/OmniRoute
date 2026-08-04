@@ -67,11 +67,12 @@ describe("memory-embedding-transformers", () => {
   });
 
   it("returns EmbeddingError{reason:model_load_failed} when pipeline throws on load", async () => {
-    // Clear the singleton so getOrLoadPipeline() tries the optional companion.
-    _injectPipeline(null);
+    _injectTransformersCompanionLoaderForTests(async () => {
+      throw new Error("test companion unavailable");
+    });
 
     const { embedTransformers } = await import("../../src/lib/memory/embedding/transformersLocal");
-    const result = await embedTransformers("the companion is intentionally absent in base CI");
+    const result = await embedTransformers("the companion loader is unavailable");
 
     assert.ok("reason" in result, "missing companion must return a structured failure");
     const embErr = result as { source: string; reason: string; message: string };

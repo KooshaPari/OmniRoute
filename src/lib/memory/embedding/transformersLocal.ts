@@ -15,10 +15,13 @@ type PipelineFn = (text: string | string[], options?: Record<string, unknown>) =
 let _pipeline: PipelineFn | null = null;
 let _pipelineLoading: Promise<PipelineFn> | null = null;
 
+type TransformersRuntime = {
+  pipeline: (task: string, model: string, opts?: Record<string, unknown>) => Promise<PipelineFn>;
+  [exportName: string]: unknown;
+};
+
 interface TransformersCompanion {
-  loadTransformers(): Promise<{
-    pipeline: (task: string, model: string, opts?: Record<string, unknown>) => Promise<PipelineFn>;
-  }>;
+  loadTransformers(): Promise<TransformersRuntime>;
 }
 
 async function loadTransformersCompanion(): Promise<TransformersCompanion> {
