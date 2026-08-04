@@ -943,3 +943,17 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Replaced only the generic `qgate run` invocation with QGate's `coverage` subcommand over the same generated `coverage/lcov.info` and unchanged recursive threshold `60`. Dedicated native workflows retain their test, browser, security, and DAST gates. The textual coverage tree is uploaded as `qgate-coverage-report`.
 - Added a workflow contract test asserting the exact coverage-only invocation and forbidding the generic binary `qgate run` command. Validation: `git diff --check`, YAML parse, actionlint, Trunk formatting, and an equivalent Node contract assertion pass. The isolated worktree has no installed `tsx`, so the TypeScript focused test cannot execute locally; hosted CI is required for execution proof.
 - This entry is append-only.
+
+## 2026-08-04T07:44Z - P0 preservation checkpoint (p0_uncommitted_checkpoint)
+
+- The isolated OmniRoute worktree contains uncommitted P0 desktop lifecycle, proxy-schema, stream-privacy, and Undici remediation diffs. The dependency remediation resolves Undici to 6.28.0 and 8.10.0.
+- Evidence recorded so far: desktop focused checks are green; direct proxy schema validation is green; stream semantic tests are not yet complete.
+- Local capacity recovered from 116 MiB to approximately 2.5 GiB free. No Airlock snapshot has yet been created for this uncommitted batch.
+- This entry is append-only.
+
+## 2026-08-04T09:26Z - Corrected P0 Airlock preservation proof (p0_airlock_snapshot_verified)
+
+- Airlock WIP `wip/20260804T0926-18c8900238abd7d0` resolves to `965702d`, has the same object on `origin`, and has parent `f1f8a7c4a0c45b4a9162edd1c445a04c58ee1913`.
+- The snapshot captures the stream-privacy implementation and the untracked desktop lifecycle test. P0 focused gates and offline dependency gates are green.
+- Source publication may now proceed from the preserved evidence.
+- This entry is append-only.

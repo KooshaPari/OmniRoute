@@ -494,29 +494,36 @@ test("provider connection proxy toggle fields round-trip as booleans", async () 
   assert.equal((fetched as any).perKeyProxyEnabled, true);
 });
 
-test("createProxyRegistrySchema accepts type:vercel and source:vercel-relay (schema gap-06)", async () => {
+test("proxy registry validation accepts every supported relay type across create, update, and import", async () => {
   // Note: We validate the schema directly using the worktree's absolute path because
   // tests run with CWD=/OmniRoute, so `@/` aliases resolve to the main branch's src/.
   // The assertion below confirms the worktree's schema accepts the new enum values.
-  const { createProxyRegistrySchema } = await import("../../src/shared/validation/schemas.ts");
+  const { bulkImportProxiesSchema, createProxyRegistrySchema, updateProxyRegistrySchema } =
+    await import("../../src/shared/validation/schemas.ts");
 
-  const result = createProxyRegistrySchema.safeParse({
-    name: "Vercel Relay Test",
-    type: "vercel",
-    host: "omniroute-relay-abc123.vercel.app",
-    port: 443,
-    source: "vercel-relay",
-    notes: JSON.stringify({ relayAuth: "secret-relay-token" }),
-  });
+  for (const type of ["vercel", "deno", "cloudflare"] as const) {
+    const payload = {
+      name: `${type} Relay Test`,
+      type,
+      host: `${type}.relay.example.test`,
+      port: 443,
+      source: `${type}-relay`,
+    };
 
-  assert.ok(
-    result.success,
-    `schema should accept type:vercel — errors: ${JSON.stringify("error" in result ? result.error : null)}`
-  );
-  if (result.success) {
-    assert.equal(result.data.type, "vercel");
-    assert.equal(result.data.source, "vercel-relay");
+    assert.equal(createProxyRegistrySchema.parse(payload).type, type);
+    assert.equal(updateProxyRegistrySchema.parse({ id: `${type}-relay`, type }).type, type);
+    assert.equal(bulkImportProxiesSchema.parse({ items: [payload] }).items[0]?.type, type);
   }
+
+  assert.equal(
+    createProxyRegistrySchema.safeParse({
+      name: "Unsupported relay",
+      type: "wireguard",
+      host: "relay.example.test",
+      port: 443,
+    }).success,
+    false
+  );
 });
 
 test("createProxy persists type:vercel and source:vercel-relay to DB (schema gap-06)", async () => {

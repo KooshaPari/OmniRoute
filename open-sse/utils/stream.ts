@@ -142,6 +142,8 @@ type TranslateState = ReturnType<typeof initState> & {
   suppressThinkClose?: boolean;
   /** Accumulated message content for call log response body */
   accumulatedContent?: string;
+  /** Accumulated reasoning for call log response body */
+  accumulatedReasoning?: string;
   upstreamError?: {
     status: number;
     type: string;
@@ -669,6 +671,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           copilotCompatibleReasoning,
           suppressThinkClose,
           accumulatedContent: "",
+          accumulatedReasoning: "",
         }
       : null;
 
@@ -1597,9 +1600,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
                   if (parsed.delta?.thinking) {
                     totalContentLength += parsed.delta.thinking.length;
-                    passthroughAccumulatedContent = appendBoundedText(
-                      passthroughAccumulatedContent,
-                      parsed.delta.thinking,
+                    passthroughAccumulatedReasoning = appendBoundedText(
+                      passthroughAccumulatedReasoning,
+                      parsed.delta.thinking
                     );
                   }
                   if (restoredToolName) {
@@ -1982,8 +1985,8 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (parsed.delta?.thinking) {
             const t = parsed.delta.thinking;
             totalContentLength += t.length;
-            if (state?.accumulatedContent !== undefined && typeof t === "string")
-              state.accumulatedContent = appendBoundedText(state.accumulatedContent, t);
+            if (state?.accumulatedReasoning !== undefined && typeof t === "string")
+              state.accumulatedReasoning = appendBoundedText(state.accumulatedReasoning, t);
           }
 
           // OpenAI format
@@ -2643,17 +2646,15 @@ export function createSSEStream(options: StreamOptions = {}) {
               let content = (state?.accumulatedContent ?? "").trim() || "";
               const normalizedToolCalls: ToolCall[] = state?.toolCalls?.size
                 ? [...state.toolCalls.values()]
-                    .map(
-                      (tc: Record<string, unknown>): ToolCall => ({
-                        id: tc.id != null ? String(tc.id) : null,
-                        index: (tc.index as number) ?? (tc.blockIndex as number) ?? 0,
-                        type: (tc.type as string) ?? "function",
-                        function: (tc.function as ToolCall["function"]) ?? {
-                          name: (tc.name as string) ?? "",
-                          arguments: "",
-                        },
-                      }),
-                    )
+                    .map((tc: Record<string, unknown>): ToolCall => ({
+                      id: tc.id != null ? String(tc.id) : null,
+                      index: (tc.index as number) ?? (tc.blockIndex as number) ?? 0,
+                      type: (tc.type as string) ?? "function",
+                      function: (tc.function as ToolCall["function"]) ?? {
+                        name: (tc.name as string) ?? "",
+                        arguments: "",
+                      },
+                    }))
                     .sort((a, b) => a.index - b.index)
                 : [];
               const textualToolCall = parseTextualToolCallFromContent(content);
@@ -2675,6 +2676,10 @@ export function createSSEStream(options: StreamOptions = {}) {
                 role: "assistant",
                 content: content || null,
               };
+              const reasoning = (state?.accumulatedReasoning ?? "").trim();
+              if (reasoning) {
+                message.reasoning_content = reasoning;
+              }
               const hasToolCalls = normalizedToolCalls.length > 0;
               if (hasToolCalls) {
                 message.tool_calls = normalizedToolCalls;
@@ -2702,9 +2707,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                   buildStreamSummaryFromEvents(
                     providerPayloadCollector.getEvents(),
                     targetFormat,
-                    model,
+                      model,
                   ),
-                  { includeEvents: false },
+                    { includeEvents: false },
                 ),
                 clientPayload: clientPayloadCollector.build(responseBody, {
                   includeEvents: false,
