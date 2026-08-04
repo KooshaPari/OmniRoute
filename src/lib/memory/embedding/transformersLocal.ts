@@ -1,21 +1,30 @@
 /**
  * Transformers.js local embedding (D8) — Xenova/all-MiniLM-L6-v2.
  *
- * IMPORTANT: @huggingface/transformers is imported lazily (await import())
- * ONLY when this function is called. Never imported at module level.
- * This satisfies D8 + D25 (serverExternalPackages + no bundle impact).
+ * IMPORTANT: the local-model companion is imported lazily ONLY when this
+ * function is called. Never import a local-model runtime at module level.
  */
 
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import type { EmbeddingResult, EmbeddingError } from "./types";
 
-const TRANSFORMERS_MODEL =
-  process.env.MEMORY_TRANSFORMERS_MODEL || "Xenova/all-MiniLM-L6-v2";
+const TRANSFORMERS_MODEL = process.env.MEMORY_TRANSFORMERS_MODEL || "Xenova/all-MiniLM-L6-v2";
 
 // Singleton pipeline, initialized once
 type PipelineFn = (text: string | string[], options?: Record<string, unknown>) => Promise<unknown>;
 let _pipeline: PipelineFn | null = null;
 let _pipelineLoading: Promise<PipelineFn> | null = null;
+
+interface TransformersCompanion {
+  loadTransformers(): Promise<{
+    pipeline: (task: string, model: string, opts?: Record<string, unknown>) => Promise<PipelineFn>;
+  }>;
+}
+
+async function loadTransformersCompanion(): Promise<TransformersCompanion> {
+  const specifier = "@omniroute/local-models/transformers";
+  return import(/* webpackIgnore: true */ specifier) as Promise<TransformersCompanion>;
+}
 
 /** For testing: inject a mock pipeline factory. */
 export function _injectPipeline(fn: PipelineFn | null): void {
@@ -28,9 +37,8 @@ async function getOrLoadPipeline(): Promise<PipelineFn> {
   if (_pipelineLoading) return _pipelineLoading;
 
   _pipelineLoading = (async (): Promise<PipelineFn> => {
-    // Lazy import — never at module level (D8, D25)
-    const transformers = await import("@huggingface/transformers");
-    const { pipeline } = transformers as { pipeline: (task: string, model: string, opts?: Record<string, unknown>) => Promise<PipelineFn> };
+    const companion = await loadTransformersCompanion();
+    const { pipeline } = await companion.loadTransformers();
     const pipe = await pipeline("feature-extraction", TRANSFORMERS_MODEL, { dtype: "q8" });
     _pipeline = pipe;
     _pipelineLoading = null;

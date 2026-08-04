@@ -273,18 +273,12 @@ Before shipping any v3.8.x release, verify these additional items:
 - [ ] `omniroute --tray` boots on Windows (PowerShell NotifyIcon, no extra binaries)
 - [ ] `omniroute config tray enable` creates autostart entry; disable removes it
 - [ ] `npm install -g omniroute@<this-version>` runs postinstall without fatal exit
-- [ ] Update path keeps optional deps: `omniroute update --apply` and the auto-updater
-      run `npm install -g … --include=optional` so `optionalDependencies` (better-sqlite3,
-      keytar, tls-client, and the llmlingua SLM stack: `@atjsh/llmlingua-2`,
-      `@huggingface/transformers@3.5.2`, `@tensorflow/tfjs`, `js-tiktoken`) survive an update.
-      `@huggingface/transformers` stays optional so its `onnxruntime-node` CUDA provider postinstall
-      cannot abort installation on CUDA 11 hosts. The ultra `modelPath` SLM tier also needs the
-      tinybert model, auto-downloaded to `${DATA_DIR}/models/llmlingua` on first use. Postinstall
-      (`scripts/build/colocateOptionals.mjs`) then co-locates the SLM optional closure into
-      `dist/node_modules` so the worker resolves a SINGLE `@huggingface/transformers` 3.5.2
-      optional instance — the standalone trace bundles only transformers, not the dynamically-imported
-      optionals, so without this the worker would load llmlingua-2 against the root's transformers
-      and the SLM tier would silently fail-open.
+- [ ] Update path keeps base optional deps: `omniroute update --apply` and the auto-updater
+      run `npm install -g … --include=optional` so `optionalDependencies` (`better-sqlite3`,
+      `keytar`, and `tls-client`) survive an update. Local embeddings and the ultra `modelPath`
+      SLM tier require explicit `npm install -g @omniroute/local-models` in the same global prefix.
+      Without that companion, both paths fail open; with it, TinyBERT is auto-downloaded to
+      `${DATA_DIR}/models/llmlingua` on first use.
 - [ ] `omniroute status` works with no `.env` (CLI token path, loopback only)
 - [ ] `curl http://localhost:20128/api/shutdown` returns 401 (always-protected route)
 - [ ] `curl -H "host: evil.com" http://localhost:20128/api/mcp/sse` returns 401 (loopback guard)

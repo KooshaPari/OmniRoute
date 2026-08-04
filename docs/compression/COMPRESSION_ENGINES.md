@@ -126,11 +126,12 @@ downloads the selected model lazily from the HuggingFace Hub into
 `${DATA_DIR}/models/llmlingua` on the first call (`modelStore.ts`); a `modelPath` config
 override points it at a local copy instead (offline / air-gapped installs).
 
-### Optional dependencies & on-demand install
+### Optional companion & on-demand install
 
-The prunable LLMLingua runtime peer stack is **optional**. Three packages are declared as
-`optionalDependencies` in `package.json` and kept **external** by the production build
-(`scripts/build/prepublish.ts` does not bundle them):
+The local-model runtime is isolated in the publishable `@omniroute/local-models` companion.
+The base package does not declare or lock this heavy dependency closure. The production build
+keeps the worker external and dynamically resolves the companion only when local inference is
+enabled:
 
 | Package              | Version (pin) | Notes                                          |
 | -------------------- | ------------- | ---------------------------------------------- |
@@ -138,22 +139,19 @@ The prunable LLMLingua runtime peer stack is **optional**. Three packages are de
 | `@tensorflow/tfjs`   | `4.22.0`      | Heaviest dep — dominates the ~800 MB footprint |
 | `js-tiktoken`        | `^1.0.20`     | Tokenizer                                      |
 
-`@huggingface/transformers` is pinned at `3.5.2` as an **optional** dependency (shared with
-the local embeddings path and also traced into the standalone bundle). Keeping it optional prevents
-`onnxruntime-node` CUDA provider postinstall failures on CUDA 11 hosts from aborting the whole
-OmniRoute install; when the optional stack is absent, LLMLingua still fail-opens. Only the three
-packages above are prunable SLM peers. A standard `npm install` (dev) installs the optional stack
-automatically unless optional dependencies are omitted.
+`@huggingface/transformers` is pinned at `3.5.2` inside the companion and shared by local
+embeddings and LLMLingua. Its native ONNX closure is therefore installed only by an operator who
+explicitly chooses local inference; a base OmniRoute install cannot fail because that companion is
+absent.
 
 **Why on-demand:** the npm-published package, the standalone bundle, and the Docker image
-ship **without** these deps to stay slim. When they are absent, the worker's dependency
-gate (a `@atjsh/llmlingua-2` resolve probe in `worker.ts`) fails and the engine
+ship **without** these deps to stay slim. When the companion is absent, the worker's dependency
+gate fails and the engine
 **fail-opens silently** — selecting LLMLingua becomes a no-op (text returned unchanged, no
-error logged). To activate it in a pruned environment, install the optional stack:
+error logged). To activate local embeddings and LLMLingua, install the companion:
 
 ```bash
-# pin to the versions declared in package.json optionalDependencies
-npm install @atjsh/llmlingua-2@2.0.3 @tensorflow/tfjs@4.22.0 js-tiktoken
+npm install @omniroute/local-models
 ```
 
 Roughly **~800 MB** total: the TensorFlow.js + transformers runtimes dominate; the
@@ -161,20 +159,17 @@ TinyBERT model adds ~57 MB downloaded at first use (not via npm).
 
 Per environment:
 
-- **Dev / `npm install`** — installed automatically unless you passed `--omit=optional`
-  (or `--no-optional`). No action needed.
-- **Global npm (`npm i -g omniroute`) / standalone** — run the install command above inside
-  the installed package directory, or reinstall without omitting optional deps.
-- **Docker** — add the install command in a derived image layer; the published image
-  ships slim by design.
-- **VPS (PM2)** — install into the app's `node_modules`, then restart the process so the
-  worker re-probes the gate.
+- **Dev / source checkout** — install the companion at the application root.
+- **Global npm (`npm i -g omniroute`)** — run `npm install -g @omniroute/local-models` so it
+  resolves from the same global prefix.
+- **Docker** — add the companion install command in a derived image layer; the published image
+  remains slim by design.
+- **VPS (PM2)** — install the companion into the app's `node_modules`, then restart the process.
 
 **Verify it is active:** with LLMLingua selected, real prose actually shrinks (the engine
 stops fail-opening), and the first request triggers the model download into
-`${DATA_DIR}/models/llmlingua`. The gate intentionally probes only `@atjsh/llmlingua-2` —
-the other peers are ESM-only and `require.resolve` throws on them even when present — so
-the worker still fail-opens if any peer is genuinely missing at `import()` time.
+`${DATA_DIR}/models/llmlingua`. The gate probes the companion manifest; its loader imports
+the heavy runtime only on demand, so the worker still fail-opens if an internal peer is missing.
 
 ## Stacked Pipelines
 
@@ -301,12 +296,10 @@ Compression exposes five MCP tools:
 
 ## Known limitations
 
-- **LLMLingua-2 (SLM) requires co-located optional deps.** The worker only runs in a
-  production build when `@atjsh/llmlingua-2` + peers are co-located into
-  `dist/node_modules` (see `scripts/build/colocateOptionals.mjs`, #4286). Without them the
-  engine fail-opens (returns the original text). Worker resolution no longer depends on
-  `import.meta.url` (it dies in the standalone bundle) — it anchors on the runtime
-  cwd / `argv[1]`.
+- **LLMLingua-2 (SLM) requires the local-model companion.** The worker dynamically resolves
+  `@omniroute/local-models/llmlingua`; without it the engine fail-opens (returns the original
+  text). Worker resolution no longer depends on `import.meta.url` (it dies in the standalone
+  bundle) — it anchors on the runtime cwd / `argv[1]`.
 - **Caveman language packs `de` / `fr` / `ja` are partial.** They ship `context` +
   `filler` + `structural` rules but no `dedup` / `ultra` packs, so `ultra` intensity is
   no stronger than `full` for those languages (they use only their own rules — there is no

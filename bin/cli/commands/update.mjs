@@ -181,7 +181,8 @@ export async function runUpdateCommand(opts = {}) {
   try {
     const { execSync } = await import("child_process");
     // --include=optional keeps the optionalDependencies (better-sqlite3, keytar,
-    // tls-client, llmlingua SLM stack) on update so an omit=optional config can't drop them.
+    // tls-client) on update so an omit=optional config cannot drop them. The
+    // local-model companion is deliberately installed only by explicit operator choice.
     execSync(
       "npm uninstall -g omniroute --ignore-scripts || true && npm install -g @kooshapari/omniroute@latest --include=optional",
       { stdio: "inherit" }

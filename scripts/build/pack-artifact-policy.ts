@@ -111,7 +111,6 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "scripts/build/native-binary-compat.mjs",
   "scripts/build/postinstall.mjs",
   "scripts/build/postinstallSupport.mjs",
-  "scripts/build/colocateOptionals.mjs",
   // #5227: imported at runtime by bin/cli/commands/serve.mjs (heap auto-calibration).
   "scripts/build/runtime-env.mjs",
   "scripts/build/sync-env.mjs",
@@ -128,6 +127,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
   // Runtime-shipped vendor packages (compiled JS, kept narrow).
   "@omniroute/opencode-plugin/",
   "@omniroute/opencode-provider/",
+  "@omniroute/local-models/",
   // CLI entrypoints + their bundled runtime helpers (not bin/cli/runtime/).
   "bin/cli/",
   // Compiled server bundles only — never raw source. Runtime-loaded .ts files
@@ -166,7 +166,6 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "scripts/build/native-binary-compat.mjs",
   "scripts/build/postinstall.mjs",
   "scripts/build/postinstallSupport.mjs",
-  "scripts/build/colocateOptionals.mjs",
   "scripts/build/runtime-env.mjs",
   "src/shared/utils/nodeRuntimeSupport.ts",
 ];

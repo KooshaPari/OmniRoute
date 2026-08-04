@@ -78,6 +78,6 @@ test("resolveWorkerFile returns an existing onnxWorker file (no import.meta.url)
   assert.ok(/onnxWorker\.(t|j)s$/.test(workerFile), `must point at onnxWorker: ${workerFile}`);
 });
 
-test("depsAvailable is true when @atjsh/llmlingua-2 is installed (symlinked node_modules)", () => {
-  assert.equal(depsAvailable(), true);
+test("depsAvailable is false until the local-model companion is explicitly installed", () => {
+  assert.equal(depsAvailable(), false);
 });

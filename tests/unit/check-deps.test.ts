@@ -142,6 +142,10 @@ test("6A.8: discoverManifests finds root and workspace package.json files", () =
     manifests.includes("@omniroute/opencode-provider/package.json"),
     "@omniroute/opencode-provider/package.json must be included"
   );
+  assert.ok(
+    manifests.includes("@omniroute/local-models/package.json"),
+    "@omniroute/local-models/package.json must be included"
+  );
 });
 
 test("6A.8: discoverManifests does NOT include node_modules, .next, or deep reference dirs", () => {

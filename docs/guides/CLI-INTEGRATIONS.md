@@ -177,10 +177,11 @@ npm install -g omniroute@latest --include=optional
 ```
 
 This is **not** a flag you pass to `omniroute update` — it is always applied by the
-updater. It guarantees the `optionalDependencies` (`better-sqlite3`, `keytar`,
-`tls-client`, the LLMLingua SLM stack) survive the update even if your npm config
-has `omit=optional` set, which would otherwise silently drop the native SQLite
-driver and OS-keyring binding. To preview the exact command without applying:
+updater. It guarantees the base `optionalDependencies` (`better-sqlite3`, `keytar`,
+and `tls-client`) survive the update even if your npm config has `omit=optional`
+set, which would otherwise silently drop the native SQLite driver and OS-keyring
+binding. Local embeddings and LLMLingua are supplied separately by the explicit
+`@omniroute/local-models` companion. To preview the exact command without applying:
 
 ```bash
 omniroute update --dry-run

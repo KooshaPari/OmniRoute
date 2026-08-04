@@ -43,11 +43,11 @@ import type { LlmlinguaBackend } from "./index.ts";
 const FIRST_CALL_TIMEOUT_MS = 60000;
 
 /**
- * Gate probe: `@atjsh/llmlingua-2` is the entry package that declares the others
- * (`@huggingface/transformers`, `@tensorflow/tfjs`, `js-tiktoken`) as peers. We probe
- * ONLY it (by manifest existence) because the peers are ESM-only and `require.resolve`
- * throws for them even when installed; the worker still fail-opens if a peer is
- * genuinely missing at `import()` time.
+ * Gate probe: `@omniroute/local-models` owns the complete local-inference closure.
+ * Probing its manifest, rather than a stale transitive package in a developer's root
+ * `node_modules`, ensures the worker only starts after the operator explicitly
+ * installs the companion. The companion's own loader still fails open if one of its
+ * internal peers is genuinely missing at `import()` time.
  *
  * ⚠️ We do NOT use `createRequire(import.meta.url).resolve()` nor any other
  * `import.meta.url`-based resolution: the Next.js standalone bundle (webpack) replaces
@@ -56,7 +56,7 @@ const FIRST_CALL_TIMEOUT_MS = 60000;
  * gate is always false / mis-anchored in production (B-SLM). We probe the filesystem
  * from runtime anchors that survive the bundle instead.
  */
-const GATE_DEP_REL = path.join("node_modules", "@atjsh", "llmlingua-2", "package.json");
+const GATE_DEP_REL = path.join("node_modules", "@omniroute", "local-models", "package.json");
 
 /** Relative path (from an install root) to the esbuild'd / source worker entry. */
 const WORKER_JS_REL = path.join(
@@ -116,8 +116,8 @@ function runtimeAnchors(): string[] {
 let _depsAvailable: boolean | null = null;
 
 /**
- * Lazily (and once) check whether the optional LLMLingua dependency stack is installed,
- * by probing `node_modules/@atjsh/llmlingua-2/package.json` from the runtime anchors.
+ * Lazily (and once) check whether the explicit local-model companion is installed,
+ * by probing `node_modules/@omniroute/local-models/package.json` from runtime anchors.
  */
 export function depsAvailable(): boolean {
   if (_depsAvailable !== null) return _depsAvailable;

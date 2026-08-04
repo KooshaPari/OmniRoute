@@ -1,9 +1,8 @@
 /**
  * Tests for the real LLMLingua worker-thread backend (`worker.ts` + `onnxWorker.ts`).
  *
- * The four optional deps (`@atjsh/llmlingua-2`, `@huggingface/transformers`,
- * `@tensorflow/tfjs`, `js-tiktoken`) are NOT installed in this worktree, so the
- * default path MUST fail-open WITHOUT spawning a worker:
+ * The local-model companion is NOT installed in this worktree, so the default
+ * path MUST fail-open WITHOUT spawning a worker:
  *
  *  1. Deps absent → fail-open, no spawn (ALWAYS runs here): the backend returns the
  *     ORIGINAL text unchanged, fast (no model load / worker spawn).
@@ -23,13 +22,10 @@ import {
 
 const require = createRequire(import.meta.url);
 
-/** Whether all four optional deps resolve in this environment. */
-function depsResolve(): boolean {
+/** Whether the explicit local-model companion resolves in this environment. */
+function companionResolves(): boolean {
   try {
-    require.resolve("@atjsh/llmlingua-2");
-    require.resolve("@huggingface/transformers");
-    require.resolve("@tensorflow/tfjs");
-    require.resolve("js-tiktoken");
+    require.resolve("@omniroute/local-models/llmlingua");
     return true;
   } catch {
     return false;
@@ -42,9 +38,9 @@ after(() => {
 });
 
 test("deps absent → fail-open, no spawn, returns original text fast", async () => {
-  if (depsResolve()) {
-    // Premise of this test is that the optional deps are NOT installed (the CI
-    // default). When they ARE present (e.g. a local integration setup), the backend
+  if (companionResolves()) {
+    // Premise of this test is that the companion is NOT installed (the CI default).
+    // When it IS present (e.g. a local integration setup), the backend
     // legitimately spawns the worker and compresses, so this assertion no longer
     // applies — the real path is covered by the gated test below.
     console.log("skip: optional deps present — fail-open-when-absent test N/A");
@@ -75,8 +71,8 @@ test("GATED real compression (RUN_LLMLINGUA_INT=1)", async () => {
     console.log("skip: RUN_LLMLINGUA_INT!=1");
     return;
   }
-  if (!depsResolve()) {
-    console.log("skip: deps absent");
+  if (!companionResolves()) {
+    console.log("skip: companion absent");
     return;
   }
 

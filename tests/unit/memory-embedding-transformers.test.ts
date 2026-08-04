@@ -29,7 +29,12 @@ describe("memory-embedding-transformers", () => {
     const result = await embedTransformers("hello world");
 
     assert.ok("vector" in result, "Should return EmbeddingResult");
-    const r = result as { vector: Float32Array; source: string; dimensions: number; cached: boolean };
+    const r = result as {
+      vector: Float32Array;
+      source: string;
+      dimensions: number;
+      cached: boolean;
+    };
     assert.ok(r.vector instanceof Float32Array);
     assert.strictEqual(r.source, "transformers");
     assert.strictEqual(r.dimensions, 4);
@@ -50,33 +55,22 @@ describe("memory-embedding-transformers", () => {
 
     // Pipeline function was called twice (once per text), but init should
     // only happen once since _injectPipeline sets the singleton directly
-    assert.strictEqual(initCount, 2, "pipeline function called twice but init (inject) happened once");
+    assert.strictEqual(
+      initCount,
+      2,
+      "pipeline function called twice but init (inject) happened once"
+    );
   });
 
   it("returns EmbeddingError{reason:model_load_failed} when pipeline throws on load", async () => {
-    // Clear the singleton so getOrLoadPipeline() tries to load
+    // Clear the singleton so getOrLoadPipeline() tries the optional companion.
     _injectPipeline(null);
 
-    // Override dynamic import to fail
-    // We do this by testing the error-handling code path directly
-    // Since we can't easily mock dynamic imports in Node.js native test runner,
-    // we verify the error structure is correct
+    const { embedTransformers } = await import("../../src/lib/memory/embedding/transformersLocal");
+    const result = await embedTransformers("the companion is intentionally absent in base CI");
 
-    // Simulate what happens when pipeline() rejects
-    const errorSource = "transformers";
-    const errorReason = "model_load_failed";
-    const errMsg = "Network error loading model";
-
-    const { sanitizeErrorMessage } = await import("@omniroute/open-sse/utils/error.ts");
-    const sanitized = sanitizeErrorMessage(errMsg);
-
-    const embErr = {
-      source: errorSource,
-      model: "Xenova/all-MiniLM-L6-v2",
-      reason: errorReason,
-      message: sanitized,
-    };
-
+    assert.ok("reason" in result, "missing companion must return a structured failure");
+    const embErr = result as { source: string; reason: string; message: string };
     assert.strictEqual(embErr.source, "transformers");
     assert.strictEqual(embErr.reason, "model_load_failed");
     assert.ok(typeof embErr.message === "string");
@@ -86,7 +80,7 @@ describe("memory-embedding-transformers", () => {
   it("handles Tensor with 2D dims [seq_len, hidden_size]", async () => {
     _injectPipeline(async () => {
       return {
-        dims: [2, 4],  // [seq_len=2, hidden=4]
+        dims: [2, 4], // [seq_len=2, hidden=4]
         data: new Float32Array([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]),
       };
     });
@@ -105,7 +99,7 @@ describe("memory-embedding-transformers", () => {
   it("handles 3D Tensor dims [batch=1, seq_len, hidden_size]", async () => {
     _injectPipeline(async () => {
       return {
-        dims: [1, 2, 4],  // [batch=1, seq_len=2, hidden=4]
+        dims: [1, 2, 4], // [batch=1, seq_len=2, hidden=4]
         data: new Float32Array([2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0]),
       };
     });

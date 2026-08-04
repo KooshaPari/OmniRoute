@@ -249,9 +249,9 @@ test("auto update script builders generate npm, source, and docker-compose scrip
   const npmScript = autoUpdate.buildNpmUpdateScript("3.6.0");
   assert.match(npmScript, /npm uninstall -g omniroute/);
   assert.match(npmScript, /npm install -g @kooshapari\/omniroute@3.6.0/);
-  // Optional deps (better-sqlite3, keytar, tls-client, and the llmlingua SLM stack)
-  // must survive an update — install them explicitly so an `omit=optional` config
-  // cannot silently drop them.
+  // Base optional deps (better-sqlite3, keytar, tls-client) must survive an update
+  // so an `omit=optional` config cannot silently drop them. Local models are an
+  // explicitly installed companion, not an implicit update dependency.
   assert.match(npmScript, /--include=optional/);
   assert.match(npmScript, /pm2 restart omniroute \|\| true/);
   assert.match(npmScript, /Successfully updated to v3.6.0/);

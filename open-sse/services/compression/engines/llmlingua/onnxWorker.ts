@@ -2,10 +2,10 @@
  * LLMLingua-2 ONNX worker-thread entry point.
  *
  * Runs inside a `worker_threads.Worker` (spawned by `./worker.ts`). The heavy
- * optional deps (`@atjsh/llmlingua-2`, `@huggingface/transformers`, `js-tiktoken`)
- * are imported LAZILY/dynamically inside the message handler so this module LOADS
- * even when those deps are absent. The only static imports are present-by-default
- * modules: `node:worker_threads`, `./constants.ts`, `./modelStore.ts`.
+ * local-model runtime is imported LAZILY/dynamically inside the message handler
+ * through the optional companion package, so this module LOADS even when local
+ * models are absent. The only static imports are present-by-default modules:
+ * `node:worker_threads`, `./constants.ts`, `./modelStore.ts`.
  *
  * Protocol (request → reply over the worker MessageChannel):
  *   in : { id, text, model, compressionRate, modelPath }
@@ -67,12 +67,10 @@ function cacheKey(entry: LlmlinguaModelEntry, modelPath?: string): string {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getCompressor(entry: LlmlinguaModelEntry, modelPath?: string): Promise<any> {
-  const { env } = await dynamicImport("@huggingface/transformers");
+  const companion = await dynamicImport("@omniroute/local-models/llmlingua");
+  const { env, LLMLingua2, Tiktoken, o200k_base } = await companion.loadLlmlinguaRuntime();
   configureTransformersEnv(env as TransformersEnvLike, { modelPath });
 
-  const { LLMLingua2 } = await dynamicImport("@atjsh/llmlingua-2");
-  const { Tiktoken } = await dynamicImport("js-tiktoken/lite");
-  const o200k_base = (await dynamicImport("js-tiktoken/ranks/o200k_base")).default;
   const oai = new Tiktoken(o200k_base);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

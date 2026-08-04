@@ -1,0 +1,45 @@
+{
+  "name": "@omniroute/local-models",
+  "version": "0.1.0",
+  "description": "Optional local embedding and LLMLingua runtimes for OmniRoute.",
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "transformers.js",
+    "llmlingua.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    "./transformers": "./transformers.js",
+    "./llmlingua": "./llmlingua.js"
+  },
+  "keywords": [
+    "omniroute",
+    "local-models",
+    "embeddings",
+    "llmlingua"
+  ],
+  "author": "OmniRoute contributors",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/diegosouzapw/OmniRoute.git",
+    "directory": "@omniroute/local-models"
+  },
+  "bugs": {
+    "url": "https://github.com/diegosouzapw/OmniRoute/issues"
+  },
+  "homepage": "https://github.com/diegosouzapw/OmniRoute/tree/main/%40omniroute/local-models#readme",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@atjsh/llmlingua-2": "2.0.3",
+    "@huggingface/transformers": "3.5.2",
+    "@tensorflow/tfjs": "4.22.0",
+    "js-tiktoken": "^1.0.20"
+  }
+}
