@@ -706,6 +706,25 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Pending: Airlock snapshot, normal-hook commit/push, and fresh hosted CI evidence on the published exact head.
 - This entry is append-only.
 
+## 2026-08-05T06:25Z - Exact Trunk Prettier parity repair (coordinator)
+
+- Hosted Trunk evidence identifies Prettier formatting on six P0 files. The effective `.trunk/trunk.yaml` pin is Prettier `3.8.3`; `npm exec --package=prettier@3.8.3 -- prettier --check` now passes for all six files.
+- The exact formatter produced a deterministic diff only in `open-sse/utils/stream.ts`; focused Claude-thinking regression tests pass (2 pass, 0 fail; local SQLite availability warnings are non-fatal).
+- Earlier timestamped entries located before EOF are preserved as immutable handoff history; this record is the canonical EOF successor.
+- Pending: remove regenerable local Trunk cache artifacts before Airlock snapshot, normal-hook commit/push, then fresh hosted evidence.
+- This entry is append-only.
+
+## 2026-08-05T06:06Z - Trunk formatter successor (trunk_ci_repair)
+
+- Successor is running only the parent-specified official cached Trunk 1.22.2 binary against the six named TypeScript files, with 90-second bounds for format and check; it preserves all existing Handoff text and generated `.trunk` artifacts, and will snapshot only if those six source files change.
+
+## 2026-08-05T05:36Z - Exact Trunk 1.22.2 formatter repair (trunk_ci_repair)
+
+- Verified the checked-in `.trunk/trunk.yaml` pins Trunk CLI `1.22.2`; the hosted `trunk-check.yml` runs the pinned Trunk action. The legacy root `trunk.yaml` separately declares `1.22.12`.
+- Acquired the official Trunk launcher from `https://trunk.io/releases/trunk` into an isolated temporary directory and invoked it with isolated `HOME` and `XDG_CACHE_HOME`; from this worktree it resolved and reported `1.22.2`.
+- Scope is limited to the six hosted formatting findings: desktop Electrobun bun/index and lifecycle test, open-sse stream utility, shared validation schemas, and proxy-registry/stream-utils unit tests. No staging, commit, push, reset, clean, or deletion is authorized.
+- This entry is append-only.
+
 ## 2026-08-03T23:22Z - QGate native-runner boundary repair (qgate_coverage_gate)
 
 - PR #492 QGate run `30788579708` / job `91607178147` built pinned QGate source successfully, then `qgate run` was terminated with exit 143 after 4m52s and left two Node child processes. The failure occurred after coverage was already generated and uploaded.
