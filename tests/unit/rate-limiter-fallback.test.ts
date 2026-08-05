@@ -39,3 +39,18 @@ test("rate limiter uses in-memory fallback when REDIS_URL is unset", async () =>
     else process.env.DISABLE_SQLITE_AUTO_BACKUP = previousDisableBackup;
   }
 });
+
+test("rate limiter does not advertise its Keyv opt-in as a Redis client", async () => {
+  const previousRedisUrl = process.env.REDIS_URL;
+  process.env.REDIS_URL = "redis://cache.example.test:6379";
+
+  try {
+    const rateLimiter = await importFreshRateLimiter("redis-compatibility");
+
+    assert.equal(rateLimiter.isRedisConfigured(), false);
+    assert.throws(() => rateLimiter.getRedisClient(), /Redis is not configured/);
+  } finally {
+    if (previousRedisUrl === undefined) delete process.env.REDIS_URL;
+    else process.env.REDIS_URL = previousRedisUrl;
+  }
+});

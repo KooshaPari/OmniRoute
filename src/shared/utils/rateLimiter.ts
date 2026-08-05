@@ -44,6 +44,7 @@ function defaultDataDir(): string {
 
 let keyvStore: Keyv | null = null;
 let testMode = false;
+let keyvCheckTail: Promise<void> = Promise.resolve();
 
 function getKeyvStore(): Keyv {
   if (!keyvStore) {
@@ -65,6 +66,10 @@ type RedisCompatibilityClient = {
 };
 
 export function isRedisConfigured(): boolean {
+  return false;
+}
+
+function isKeyvPersistenceEnabled(): boolean {
   return REDIS_URL.length > 0;
 }
 
@@ -150,6 +155,24 @@ function checkInMemoryRateLimit(
 }
 
 async function checkKeyvRateLimit(keyId: string, rules: RateLimitRule[]): Promise<RateLimitResult> {
+  const previousCheck = keyvCheckTail;
+  let releaseCheck: () => void = () => undefined;
+  keyvCheckTail = new Promise<void>((resolve) => {
+    releaseCheck = resolve;
+  });
+  await previousCheck;
+
+  try {
+    return await checkKeyvRateLimitLocked(keyId, rules);
+  } finally {
+    releaseCheck();
+  }
+}
+
+async function checkKeyvRateLimitLocked(
+  keyId: string,
+  rules: RateLimitRule[]
+): Promise<RateLimitResult> {
   const store = getKeyvStore();
   const nowMs = Date.now();
   const nowSeconds = Math.floor(nowMs / 1000);
@@ -224,7 +247,7 @@ export async function checkRateLimitWithRules(
   const rules = validateRules(suppliedRules);
   if (rules.length === 0) return { allowed: true };
   if (testMode) return checkInMemoryRateLimit(TEST_MEMORY_STORE, keyId, rules);
-  if (!isRedisConfigured()) return checkInMemoryRateLimit(FALLBACK_MEMORY_STORE, keyId, rules);
+  if (!isKeyvPersistenceEnabled()) return checkInMemoryRateLimit(FALLBACK_MEMORY_STORE, keyId, rules);
   return checkKeyvRateLimit(keyId, rules);
 }
 
