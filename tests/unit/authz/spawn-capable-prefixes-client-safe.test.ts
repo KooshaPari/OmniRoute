@@ -72,6 +72,8 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
   // The full deny-list survived the extraction out of routeGuard.ts (Hard Rules #15/#17).
   for (const prefix of [
     "/api/cli-tools/runtime/",
+    "/api/cli-tools/omp-settings",
+    "/api/cli-tools/letta-settings",
     "/api/services/",
     "/api/tools/agent-bridge/",
     "/api/tools/traffic-inspector/",
@@ -85,5 +87,5 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
       `SPAWN_CAPABLE_PREFIXES lost the spawn-capable prefix "${prefix}" during extraction`
     );
   }
-  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 8);
+  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 10);
 });

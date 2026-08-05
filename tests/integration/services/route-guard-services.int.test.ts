@@ -145,14 +145,28 @@ describe("LOCAL_ONLY_API_PREFIXES constant integrity", () => {
     );
   });
 
+  it("includes /api/cli-tools/omp-settings (new CLI settings hardening path)", () => {
+    assert.ok(
+      LOCAL_ONLY_API_PREFIXES.includes("/api/cli-tools/omp-settings"),
+      "Expected /api/cli-tools/omp-settings in LOCAL_ONLY_API_PREFIXES"
+    );
+  });
+
+  it("includes /api/cli-tools/letta-settings (new CLI settings hardening path)", () => {
+    assert.ok(
+      LOCAL_ONLY_API_PREFIXES.includes("/api/cli-tools/letta-settings"),
+      "Expected /api/cli-tools/letta-settings in LOCAL_ONLY_API_PREFIXES"
+    );
+  });
+
   it("has exactly 5 entries (no silent regressions adding or removing prefixes)", () => {
     // 4 baseline entries (/api/mcp/, /api/cli-tools/runtime/, /api/services/,
     // /dashboard/providers/services/) + /api/copilot/ added in the v3.8.4
     // semgrep MCP hardening pass (commit 21f8dc4b3).
     assert.equal(
       LOCAL_ONLY_API_PREFIXES.length,
-      5,
-      `Expected 5 LOCAL_ONLY_API_PREFIXES, got ${LOCAL_ONLY_API_PREFIXES.length}: ${JSON.stringify(LOCAL_ONLY_API_PREFIXES)}`
+      7,
+      `Expected 7 LOCAL_ONLY_API_PREFIXES, got ${LOCAL_ONLY_API_PREFIXES.length}: ${JSON.stringify(LOCAL_ONLY_API_PREFIXES)}`
     );
   });
 });
@@ -172,11 +186,25 @@ describe("SPAWN_CAPABLE_PREFIXES constant integrity", () => {
     );
   });
 
+  it("includes /api/cli-tools/omp-settings (CLI settings hardening path)", () => {
+    assert.ok(
+      SPAWN_CAPABLE_PREFIXES.includes("/api/cli-tools/omp-settings"),
+      "Expected /api/cli-tools/omp-settings in SPAWN_CAPABLE_PREFIXES"
+    );
+  });
+
+  it("includes /api/cli-tools/letta-settings (CLI settings hardening path)", () => {
+    assert.ok(
+      SPAWN_CAPABLE_PREFIXES.includes("/api/cli-tools/letta-settings"),
+      "Expected /api/cli-tools/letta-settings in SPAWN_CAPABLE_PREFIXES"
+    );
+  });
+
   it("has exactly 2 entries (no silent regressions)", () => {
     assert.equal(
       SPAWN_CAPABLE_PREFIXES.length,
-      2,
-      `Expected 2 SPAWN_CAPABLE_PREFIXES, got ${SPAWN_CAPABLE_PREFIXES.length}: ${JSON.stringify(SPAWN_CAPABLE_PREFIXES)}`
+      4,
+      `Expected 4 SPAWN_CAPABLE_PREFIXES, got ${SPAWN_CAPABLE_PREFIXES.length}: ${JSON.stringify(SPAWN_CAPABLE_PREFIXES)}`
     );
   });
 

@@ -18,7 +18,7 @@ import {
 } from "../config/audioRegistry.ts";
 import { buildAuthHeaders } from "../config/registryUtils.ts";
 import { buildMultipartBody } from "./audioTranscription.ts";
-import { errorResponse } from "../utils/error.ts";
+import { errorResponse, sanitizeErrorMessage } from "../utils/error.ts";
 
 type TranslationCredentials = {
   apiKey?: string;
@@ -36,9 +36,9 @@ function extractUpstreamErrorMessage(errText: string, status: number): string {
       (typeof parsed?.error === "string" ? parsed.error : null) ||
       parsed?.message ||
       null;
-    return raw ? String(raw) : errText || `Upstream error (${status})`;
+    return sanitizeErrorMessage(raw ? String(raw) : errText || `Upstream error (${status})`);
   } catch {
-    return errText || `Upstream error (${status})`;
+    return sanitizeErrorMessage(errText || `Upstream error (${status})`);
   }
 }
 
@@ -104,12 +104,12 @@ export async function handleAudioTranslation({
     }
   }
 
-  const { body: multipartBody, contentType: multipartCT } = await buildMultipartBody(file, {
-    model: modelId as string,
-    ...extraFields,
-  });
-
   try {
+    const { body: multipartBody, contentType: multipartCT } = await buildMultipartBody(file, {
+      model: modelId as string,
+      ...extraFields,
+    });
+
     const res = await fetch(providerConfig.baseUrl, {
       method: "POST",
       headers: { ...buildAuthHeaders(providerConfig, token), "Content-Type": multipartCT },
@@ -130,6 +130,6 @@ export async function handleAudioTranslation({
     });
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
-    return errorResponse(500, `Translation request failed: ${error.message}`);
+    return errorResponse(500, `Translation request failed: ${sanitizeErrorMessage(error.message)}`);
   }
 }

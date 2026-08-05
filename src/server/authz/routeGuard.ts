@@ -29,6 +29,8 @@ const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/mcp/",
   "/api/cli-tools/runtime/",
+  "/api/cli-tools/omp-settings", // Hard Rules #15 + #17, found by 6A.8 route-guard gate (CLI setting detection)
+  "/api/cli-tools/letta-settings", // Hard Rules #15 + #17, found by 6A.8 route-guard gate (CLI setting detection)
   "/api/services/", // T-10: embedded service lifecycle (spawn child processes)
   "/dashboard/providers/services/", // T-07: reverse proxy to embedded service UIs
   "/api/copilot/", // unauthenticated LLM driver — CLI-only by default; admins can opt-in to remote access via manage-scope bypass
