@@ -706,6 +706,14 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Pending: Airlock snapshot, normal-hook commit/push, and fresh hosted CI evidence on the published exact head.
 - This entry is append-only.
 
+## 2026-08-05T23:28Z - Packaged renderer BFF health route repair (electrobun_bff_origin)
+
+- Exact-head packaged app evidence: renderer `/api/bff/healthz` returned HTTP 500 while the bundled backend endpoint returned HTTP 200. The Svelte server route calls `bffUrl('/healthz')`; the renderer process had no `BFF_ORIGIN`, so it fell back to `127.0.0.1:4322` instead of the bundled backend on `20128`.
+- Root cause was the Electrobun `bootRendererServer()` environment omitting `BFF_ORIGIN` and `PUBLIC_OMNIROUTE_BFF_URL`; `bootNextServer()` already starts first and owns the deterministic backend port.
+- Fix commit `e23e5a0f1a`: derive one BFF origin from `OMNIROUTE_BFF_URL`, `PUBLIC_OMNIROUTE_BFF_URL`, or `http://127.0.0.1:${OMNIROUTE_PORT}`, then pass both origin variables to the bundled renderer. Added a focused lifecycle regression test covering propagation and backend-before-renderer ordering.
+- Validation: `bun test desktop-electrobun/tests/lifecycle.test.ts` (3 passed), Prettier check on both changed files passed, and `git diff --check` passed. Airlock snapshot and hosted packaged-app verification remain pending.
+- This entry is append-only.
+
 ## 2026-08-03T23:22Z - QGate native-runner boundary repair (qgate_coverage_gate)
 
 - PR #492 QGate run `30788579708` / job `91607178147` built pinned QGate source successfully, then `qgate run` was terminated with exit 143 after 4m52s and left two Node child processes. The failure occurred after coverage was already generated and uploaded.
