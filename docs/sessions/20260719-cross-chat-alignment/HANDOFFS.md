@@ -706,6 +706,12 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Pending: Airlock snapshot, normal-hook commit/push, and fresh hosted CI evidence on the published exact head.
 - This entry is append-only.
 
+## 2026-08-05T09:18Z - Renderer readiness route investigation (renderer_health_fix)
+
+- The packaged Electrobun launcher starts the Svelte renderer on port 20129 and treats only `GET /healthz` as ready; after its bounded wait it stops the renderer process when that request is non-OK.
+- The Svelte app currently provides the BFF proxy at `/api/bff/healthz`, but no renderer-owned `/healthz` route has been found. The next change is a focused route test followed by the minimal renderer readiness endpoint.
+- This entry is append-only.
+
 ## 2026-08-05T06:25Z - Exact Trunk Prettier parity repair (coordinator)
 
 - Hosted Trunk evidence identifies Prettier formatting on six P0 files. The effective `.trunk/trunk.yaml` pin is Prettier `3.8.3`; `npm exec --package=prettier@3.8.3 -- prettier --check` now passes for all six files.
