@@ -41,14 +41,47 @@
  * the source of truth. `opossum@10` is installed but unused.
  */
 
+import opossum from "opossum";
 import {
-  saveCircuitBreakerState,
-  loadCircuitBreakerState,
-  loadAllCircuitBreakerStates,
-  deleteCircuitBreakerState,
-  deleteAllCircuitBreakerStates,
+ saveCircuitBreakerState,
+ loadCircuitBreakerState,
+ loadAllCircuitBreakerStates,
+ deleteCircuitBreakerState,
+ deleteAllCircuitBreakerStates,
 } from "../../lib/db/domainState";
-import type { FailureKind } from "./classify429";
+import type { FailureKind as FailureKindType } from "./classify429";
+
+/**
+ * FailureKind enum — mirrors the `FailureKind` type from classify429.ts
+ * but as a proper enum for use in PerKindBreaker child-key routing.
+ */
+export enum FailureKind {
+ RATE_LIMIT = "rate_limit",
+ QUOTA_EXHAUSTED = "quota_exhausted",
+ TRANSIENT = "transient",
+}
+
+/** All defined failure kinds. */
+export const ALL_FAILURE_KINDS: ReadonlyArray<FailureKind> = [
+ FailureKind.RATE_LIMIT,
+ FailureKind.QUOTA_EXHAUSTED,
+ FailureKind.TRANSIENT,
+];
+
+/** Maps a FailureKindType string to the FailureKind enum value. */
+function toFailureKind(raw: FailureKindType | string | undefined): FailureKind | undefined {
+ if (!raw) return undefined;
+ switch (raw) {
+   case "rate_limit":
+     return FailureKind.RATE_LIMIT;
+   case "quota_exhausted":
+     return FailureKind.QUOTA_EXHAUSTED;
+   case "transient":
+     return FailureKind.TRANSIENT;
+   default:
+     return undefined;
+ }
+}
 
 /**
  * #4602 — Detect a LOCAL stream-lifecycle error that must NOT count as a
@@ -97,13 +130,13 @@ interface CircuitBreakerOptions {
   halfOpenRequests?: number;
   onStateChange?: ((name: string, oldState: string, newState: string) => void) | null;
   isFailure?: (error: unknown) => boolean;
-  cooldownByKind?: Partial<Record<FailureKind, number>>;
-  classifyError?: (error: unknown) => FailureKind | undefined;
+  cooldownByKind?: Partial<Record<FailureKindType, number>>;
+  classifyError?: (error: unknown) => FailureKindType | undefined;
   /**
    * Per-failure-kind thresholds.
    * When set, different failure types have different limits.
    */
-  kindThresholds?: Partial<Record<FailureKind, Partial<FailureKindThresholds>>>;
+  kindThresholds?: Partial<Record<FailureKindType, Partial<FailureKindThresholds>>>;
   /**
    * Degradation threshold — failure count at which state becomes DEGRADED.
    * Default: 60% of failureThreshold.
@@ -140,10 +173,10 @@ export class CircuitBreaker {
   successCount: number;
   lastFailureTime: number | null;
   halfOpenAllowed: number;
-  cooldownByKind: Partial<Record<FailureKind, number>>;
-  classifyError: ((error: unknown) => FailureKind | undefined) | null;
-  lastFailureKind: FailureKind | null;
-  kindThresholds: Partial<Record<FailureKind, Partial<FailureKindThresholds>>>;
+  cooldownByKind: Partial<Record<FailureKindType, number>>;
+  classifyError: ((error: unknown) => FailureKindType | undefined) | null;
+  lastFailureKind: FailureKindType | null;
+  kindThresholds: Partial<Record<FailureKindType, Partial<FailureKindThresholds>>>;
   degradationThreshold: number;
   maxBackoffMultiplier: number;
   backoffEscalationCount: number;
@@ -285,7 +318,7 @@ export class CircuitBreaker {
       return result;
     } catch (error) {
       if (this.isFailure(error)) {
-        let kind: FailureKind | undefined;
+        let kind: FailureKindType | undefined;
         if (this.classifyError) {
           try {
             kind = this.classifyError(error);
@@ -368,7 +401,7 @@ export class CircuitBreaker {
     this._persistToDb();
   }
 
-  _onFailure(kind?: FailureKind | null) {
+  _onFailure(kind?: FailureKindType | null) {
     const failureKind = kind ?? null;
     this.failureCount++;
     this.lastFailureTime = Date.now();
@@ -425,7 +458,7 @@ export class CircuitBreaker {
     this._persistToDb();
   }
 
-  _openCircuit(kind: FailureKind | null) {
+  _openCircuit(kind: FailureKindType | null) {
     this._transition(STATE.OPEN, kind ? `kind:${kind}` : undefined);
   }
 
@@ -495,6 +528,335 @@ export class CircuitBreakerOpenError extends Error {
     this.circuitName = circuitName;
     this.retryAfterMs = retryAfterMs;
   }
+}
+
+// ─── PerKindBreaker (opossum-backed) ───────────────
+
+export interface PerKindBreakerOptions {
+ /** Time in ms before an open child breaker transitions to half-open. */
+ resetTimeout?: number;
+ /** Number of failures before a child breaker opens. */
+ errorThresholdPercentage?: number;
+ /** Rolling window in ms for opossum stats. */
+ rollingCountTimeout?: number;
+ /** Number of buckets in the rolling window. */
+ rollingCountBuckets?: number;
+ /** Max concurrent requests per child breaker. */
+ capacity?: number;
+ /** Classification function: maps an error to a FailureKind. */
+ classifyError: (error: unknown) => FailureKind | undefined;
+ /** Optional: called when any child breaker changes state. */
+ onStateChange?: (parentName: string, kind: FailureKind, oldState: string, newState: string) => void;
+}
+
+interface ChildBreakerSnapshot {
+ kind: FailureKind;
+ state: string;
+ failureCount: number;
+ lastFailureTime: number | null;
+ resetTimeout: number;
+}
+
+/**
+ * PerKindBreaker — opossum-backed circuit breaker with per-FailureKind child
+ * breakers. Each child operates independently; the parent aggregates state as
+ * `max(children.states)` where OPEN > HALF_OPEN > CLOSED.
+ *
+ * Persistence: each child is saved/loaded via `saveCircuitBreakerState` /
+ * `loadCircuitBreakerState` with keys `${parentName}:${kind}`.
+ */
+export class PerKindBreaker {
+ /** Parent breaker name (also the registry key prefix). */
+ readonly name: string;
+ /** Classification function. */
+ readonly classifyError: (error: unknown) => FailureKind | undefined;
+ /** Options forwarded to each opossum child. */
+ private readonly childOptions: {
+   resetTimeout: number;
+   errorThresholdPercentage: number;
+   rollingCountTimeout: number;
+   rollingCountBuckets: number;
+   capacity: number;
+ };
+ /** Per-kind opossum breakers. */
+ private readonly children: Map<FailureKind, opossum.CircuitBreaker>;
+ /** Optional state-change callback. */
+ private readonly onStateChange?: PerKindBreakerOptions["onStateChange"];
+
+ constructor(name: string, options: PerKindBreakerOptions) {
+   this.name = name;
+   this.classifyError = options.classifyError;
+   this.onStateChange = options.onStateChange;
+
+   this.childOptions = {
+     resetTimeout: options.resetTimeout ?? 30_000,
+     errorThresholdPercentage: options.errorThresholdPercentage ?? 50,
+     rollingCountTimeout: options.rollingCountTimeout ?? 10_000,
+     rollingCountBuckets: options.rollingCountBuckets ?? 10,
+     capacity: options.capacity ?? Number.MAX_SAFE_INTEGER,
+   };
+
+   this.children = new Map();
+   for (const kind of ALL_FAILURE_KINDS) {
+     const child = this._createChild(kind);
+     this.children.set(kind, child);
+   }
+
+   this._restoreFromDb();
+ }
+
+ /**
+  * Execute `fn` through the appropriate child breaker.
+  * On failure, the error is classified and routed to the matching child.
+  */
+ async execute<T>(fn: () => Promise<T>): Promise<T> {
+   // Check aggregate state before executing.
+   const agg = this._aggregateState();
+   if (agg === "OPEN") {
+     const retryAfter = this._maxRetryAfterMs();
+     throw new CircuitBreakerOpenError(
+       `PerKindBreaker "${this.name}" is OPEN (aggregate). Try again later.`,
+       this.name,
+       retryAfter,
+     );
+   }
+
+   try {
+     const result = await fn();
+     return result;
+   } catch (error) {
+     const kind = this.classifyError(error);
+     if (kind) {
+       const child = this.children.get(kind);
+       if (child) {
+         // Force the child to record a failure. We do this by firing a
+         // wrapper that always rejects, so opossum's stats track it.
+         try {
+           await child.fire(async () => { throw error; });
+         } catch {
+           // Expected: child fire will reject
+         }
+         this._persistChild(kind);
+       }
+     }
+     throw error;
+   }
+ }
+
+ /**
+  * Returns true if the aggregate state allows execution (not OPEN).
+  */
+ canExecute(): boolean {
+   return this._aggregateState() !== "OPEN";
+ }
+
+ /**
+  * Returns the aggregate state across all children.
+  * OPEN > HALF_OPEN > CLOSED.
+  */
+ aggregateState(): string {
+   return this._aggregateState();
+ }
+
+ /**
+  * Get the status of each child breaker.
+  */
+ getChildrenStatus(): ChildBreakerSnapshot[] {
+   return ALL_FAILURE_KINDS.map((kind) => {
+     const child = this.children.get(kind)!;
+     const status = child.status;
+     return {
+       kind,
+       state: child.opened ? "OPEN" : child.halfOpen ? "HALF_OPEN" : "CLOSED",
+       failureCount: status.failures,
+       lastFailureTime: null,
+       resetTimeout: this.childOptions.resetTimeout,
+     };
+   });
+ }
+
+ /**
+  * Get the combined status of this PerKindBreaker.
+  */
+ getStatus() {
+   return {
+     name: this.name,
+     aggregateState: this._aggregateState(),
+     children: this.getChildrenStatus(),
+   };
+ }
+
+ /**
+  * Manually open all child breakers.
+  */
+ openAll() {
+   for (const child of this.children.values()) {
+     child.open();
+   }
+ }
+
+ /**
+  * Manually close all child breakers.
+  */
+ closeAll() {
+   for (const child of this.children.values()) {
+     child.close();
+   }
+ }
+
+ /**
+  * Reset all child breakers and persist.
+  */
+ reset() {
+   for (const [kind, child] of this.children) {
+     child.close();
+     this._resetChildDb(kind);
+   }
+ }
+
+ // ─── Internal ─────────────────────────────────
+
+ private _createChild(kind: FailureKind): opossum.CircuitBreaker {
+   const child = new opossum(
+     // Action is a placeholder; real calls go through execute().
+     async () => "ok",
+     {
+       name: `${this.name}:${kind}`,
+       resetTimeout: this.childOptions.resetTimeout,
+       errorThresholdPercentage: this.childOptions.errorThresholdPercentage,
+       rollingCountTimeout: this.childOptions.rollingCountTimeout,
+       rollingCountBuckets: this.childOptions.rollingCountBuckets,
+       capacity: this.childOptions.capacity,
+       timeout: false,
+       // Do not let child auto-open from placeholder fires.
+       volumeThreshold: 0,
+     },
+   );
+
+   // Listen for state changes on each child and propagate.
+   const propagate = (oldState: string, newState: string) => {
+     this.onStateChange?.(this.name, kind, oldState, newState);
+   };
+
+   child.on("open", () => {
+     this._persistChild(kind);
+   });
+   child.on("close", () => {
+     this._persistChild(kind);
+   });
+   child.on("halfOpen", () => {
+     this._persistChild(kind);
+   });
+
+   return child;
+ }
+
+ private _childDbKey(kind: FailureKind): string {
+   return `${this.name}:${kind}`;
+ }
+
+ private _persistChild(kind: FailureKind) {
+   try {
+     const child = this.children.get(kind)!;
+     const status = child.status;
+     const state = child.opened ? "OPEN" : child.halfOpen ? "HALF_OPEN" : "CLOSED";
+     saveCircuitBreakerState(this._childDbKey(kind), {
+       state,
+       failureCount: status.failures,
+       lastFailureTime: null,
+       options: {
+         kind,
+         resetTimeout: this.childOptions.resetTimeout,
+         fires: status.fires,
+         timeouts: status.timeouts,
+       },
+     });
+   } catch {
+     // Non-critical
+   }
+ }
+
+ private _restoreFromDb() {
+   try {
+     for (const kind of ALL_FAILURE_KINDS) {
+       const saved = loadCircuitBreakerState(this._childDbKey(kind));
+       if (saved) {
+         const child = this.children.get(kind)!;
+         if (saved.state === "OPEN") {
+           child.open();
+         } else if (saved.state === "HALF_OPEN") {
+           child.open();
+         }
+         // HALF_OPEN is transient; restore to OPEN which will naturally
+         // transition to HALF_OPEN after resetTimeout.
+       }
+     }
+   } catch {
+     // DB may not be ready yet
+   }
+ }
+
+ private _resetChildDb(kind: FailureKind) {
+   try {
+     deleteCircuitBreakerState(this._childDbKey(kind));
+   } catch {
+     // Non-critical
+   }
+ }
+
+ private _aggregateState(): string {
+   let worst: string = "CLOSED";
+   for (const child of this.children.values()) {
+     const s: string = child.opened ? "OPEN" : child.halfOpen ? "HALF_OPEN" : "CLOSED";
+     if (s === "OPEN") return "OPEN";
+     if (s === "HALF_OPEN" && worst !== "OPEN") worst = "HALF_OPEN";
+   }
+   return worst;
+ }
+
+ private _maxRetryAfterMs(): number {
+   let max = 0;
+   for (const child of this.children.values()) {
+     if (child.opened) {
+       max = Math.max(max, this.childOptions.resetTimeout);
+     }
+   }
+   return max;
+ }
+}
+
+// ─── PerKindBreaker Registry ───────────────────────
+
+const perKindRegistry = new Map<string, PerKindBreaker>();
+
+/**
+ * Get or create a PerKindBreaker. Shares the same parent name key.
+ */
+export function getPerKindBreaker(
+ name: string,
+ options: PerKindBreakerOptions,
+): PerKindBreaker {
+ if (!perKindRegistry.has(name)) {
+   perKindRegistry.set(name, new PerKindBreaker(name, options));
+ }
+ return perKindRegistry.get(name)!;
+}
+
+/**
+ * Get all registered PerKindBreakers.
+ */
+export function getAllPerKindBreakers(): PerKindBreaker[] {
+ return Array.from(perKindRegistry.values());
+}
+
+/**
+ * Reset and remove all PerKindBreakers.
+ */
+export function resetAllPerKindBreakers() {
+ for (const breaker of perKindRegistry.values()) {
+   breaker.reset();
+ }
+ perKindRegistry.clear();
 }
 
 // ─── Registry ─────────────────────────────────────

@@ -85,12 +85,21 @@ const edges = new Map<string, DispatchEdge<unknown, unknown>>();
 
 export const tierOverrides = new Map<string, EdgeTierOverride>();
 
+<<<<<<< Updated upstream:open-sse/rpc/dispatchEdges.ts
 export function registerEdge<TIn, TOut>(edge: DispatchEdge<TIn, TOut>): DispatchEdge<TIn, TOut> {
   const existing = edges.get(edge.name); if (existing) {
         existing.defaultTier = edge.defaultTier;
     return edge as DispatchEdge<TIn, TOut>;
   }
   edges.set(edge.name, edge as DispatchEdge<unknown, unknown>);
+=======
+export function registerEdge<TIn, TOut>(edge: PolyglotEdge<TIn, TOut>): PolyglotEdge<TIn, TOut> {
+
+  if (edges.has(edge.name)) return edge;
+
+
+  edges.set(edge.name, edge as PolyglotEdge<unknown, unknown>);
+>>>>>>> Stashed changes:open-sse/rpc/polyglotEdges.ts
   applyEnvOverride(edge.name, edge.defaultTier);
   return edge;
 }
@@ -132,6 +141,10 @@ export function getEdge<TIn = unknown, TOut = unknown>(
 
 export function listEdges(): readonly DispatchEdge<unknown, unknown>[] {
   return Array.from(edges.values());
+}
+
+export function clearTierOverrides(): void {
+  tierOverrides.clear();
 }
 
 export interface InvokeOptions {

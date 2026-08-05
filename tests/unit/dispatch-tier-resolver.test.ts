@@ -15,8 +15,17 @@ import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+<<<<<<< Updated upstream:tests/unit/dispatch-tier-resolver.test.ts
 const { registerEdge, setEdgeTier, getEdgeTier, __resetEdgeRegistryForTests, clearTierOverrides } = await import(
   "../../open-sse/rpc/dispatchEdges.ts"
+=======
+const { registerEdge, setEdgeTier, getEdgeTimport {
+  __resetEdgeRegistryForTests,
+} from "../../open-sse/rpc/polyglotEdges.ts";
+import {
+  __resetEdgeCacheForTests,
+} from "../../open-sse/rpc/tierResolver.ts";
+>>>>>>> Stashed changes:tests/unit/polyglot-tier-resolver.test.ts
 );
 const {
   resolveTier,
