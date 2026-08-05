@@ -36,7 +36,7 @@ function stopSpawnedServer(
   try {
     server.kill();
   } catch (error) {
-    console.warn(`[${APP_NAME}] Failed to stop local server`, { error });
+    console.warn("Failed to stop local server", { app: APP_NAME, error });
   }
   return undefined;
 }
