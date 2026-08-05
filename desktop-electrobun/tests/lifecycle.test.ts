@@ -33,3 +33,17 @@ test("desktop readiness timeouts release both spawned servers before fallback", 
     /function stopSpawnedServer\([\s\S]*?try \{[\s\S]*?server\.kill\(\);[\s\S]*?catch \(error\)[\s\S]*?return undefined;/
   );
 });
+
+test("renderer receives the bundled backend origin for server-side BFF routes", async () => {
+  const source = await readEntrypoint();
+
+  assert.match(
+    source,
+    /const BFF_ORIGIN =\s*process\.env\.OMNIROUTE_BFF_URL \?\?\s*process\.env\.PUBLIC_OMNIROUTE_BFF_URL \?\?/
+  );
+  assert.match(source, /BFF_ORIGIN,\s*PUBLIC_OMNIROUTE_BFF_URL: BFF_ORIGIN,/);
+  assert.match(
+    source,
+    /const bundledUrl = await bootNextServer\(\);[\s\S]*const rendererUrl = await bootRendererServer\(\);/
+  );
+});
