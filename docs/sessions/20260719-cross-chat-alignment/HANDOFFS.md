@@ -699,6 +699,13 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Blacksmith's documented equivalent is `blacksmith-2vcpu-ubuntu-2404`, but it requires the organization integration; `ubuntu-24.04` is the portable PR #485 choice.
 - This entry is append-only.
 
+## 2026-08-05T02:39Z - Exact-head CI repair batch ready for publication
+
+- PR #492 exact head `8b325` had fresh Trunk format/Semgrep and dependency-audit failures for `fast-uri`, `hono`, and `ip-address`.
+- The local five-file CI repair is diff-clean and its `package-lock.json` offline audit passes.
+- Pending: Airlock snapshot, normal-hook commit/push, and fresh hosted CI evidence on the published exact head.
+- This entry is append-only.
+
 ## 2026-08-03T23:22Z - QGate native-runner boundary repair (qgate_coverage_gate)
 
 - PR #492 QGate run `30788579708` / job `91607178147` built pinned QGate source successfully, then `qgate run` was terminated with exit 143 after 4m52s and left two Node child processes. The failure occurred after coverage was already generated and uploaded.
@@ -956,4 +963,11 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Airlock WIP `wip/20260804T0926-18c8900238abd7d0` resolves to `965702d`, has the same object on `origin`, and has parent `f1f8a7c4a0c45b4a9162edd1c445a04c58ee1913`.
 - The snapshot captures the stream-privacy implementation and the untracked desktop lifecycle test. P0 focused gates and offline dependency gates are green.
 - Source publication may now proceed from the preserved evidence.
+- This entry is append-only.
+
+## 2026-08-05T02:39Z - Exact-head CI repair batch ready for publication
+
+- PR #492 exact head `8b325` had fresh Trunk format/Semgrep and dependency-audit failures for `fast-uri`, `hono`, and `ip-address`.
+- The local five-file CI repair is diff-clean and its `package-lock.json` offline audit passes.
+- Pending: Airlock snapshot, normal-hook commit/push, and fresh hosted CI evidence on the published exact head.
 - This entry is append-only.
