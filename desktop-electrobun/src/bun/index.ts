@@ -36,7 +36,7 @@ function stopSpawnedServer(
   try {
     server.kill();
   } catch (error) {
-    console.warn(`[${APP_NAME}] Failed to stop local server`, { error });
+    console.warn("Failed to stop local server", { app: APP_NAME, error });
   }
   return undefined;
 }
@@ -61,7 +61,7 @@ async function resolveBundledBackendDir(): Promise<string | undefined> {
   return undefined;
 }
 
-async function bootRendererServer(): Promise<string | undefined> {
+async function bootRendererServer(bffOrigin: string | undefined): Promise<string | undefined> {
   const candidates = [
     process.env.OMNIROUTE_RENDERER_DIR,
     resolve(import.meta.dir, "../renderer"),
@@ -86,6 +86,8 @@ async function bootRendererServer(): Promise<string | undefined> {
           PORT: String(port),
           HOST: "127.0.0.1",
           ORIGIN: `http://127.0.0.1:${port}`,
+          BFF_ORIGIN: bffOrigin,
+          PUBLIC_OMNIROUTE_BFF_URL: bffOrigin,
         },
         stdout: "inherit",
         stderr: "inherit",
@@ -284,7 +286,7 @@ function setupMenu(win: BrowserWindow): void {
 async function main(): Promise<void> {
   await bootServices();
   const bundledUrl = await bootNextServer();
-  const rendererUrl = await bootRendererServer();
+  const rendererUrl = await bootRendererServer(bundledUrl);
   const win = createMainWindow();
   if (rendererUrl) win.webview.loadURL(rendererUrl);
   setupMenu(win);
