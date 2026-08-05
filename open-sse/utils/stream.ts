@@ -1602,7 +1602,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     totalContentLength += parsed.delta.thinking.length;
                     passthroughAccumulatedReasoning = appendBoundedText(
                       passthroughAccumulatedReasoning,
-                      parsed.delta.thinking
+                      parsed.delta.thinking,
                     );
                   }
                   if (restoredToolName) {
@@ -2707,9 +2707,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                   buildStreamSummaryFromEvents(
                     providerPayloadCollector.getEvents(),
                     targetFormat,
-                      model,
+                    model,
                   ),
-                    { includeEvents: false },
+                  { includeEvents: false },
                 ),
                 clientPayload: clientPayloadCollector.build(responseBody, {
                   includeEvents: false,

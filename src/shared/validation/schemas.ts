@@ -1577,7 +1577,7 @@ const proxyRegistryFieldsSchema = z
     type: z
       .preprocess(
         (value) => (typeof value === "string" ? value.trim().toLowerCase() : value),
-        z.enum(["http", "https", "socks5", "vercel", "deno", "cloudflare"])
+        z.enum(["http", "https", "socks5", "vercel", "deno", "cloudflare"]),
       )
       .optional()
       .default("http"),

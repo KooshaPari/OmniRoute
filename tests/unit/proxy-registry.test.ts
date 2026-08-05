@@ -9,6 +9,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-secret";
 
 const core = await import("../../src/lib/db/core.ts");
+await core.ensureDbInitialized();
 const providersDb = await import("../../src/lib/db/providers.ts");
 const proxiesDb = await import("../../src/lib/db/proxies.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
@@ -22,6 +23,7 @@ async function resetStorage() {
   apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  await core.ensureDbInitialized();
 }
 
 test.after(async () => {
@@ -48,7 +50,7 @@ test("proxy registry blocks delete when proxy is still assigned", async () => {
       assert.equal((error as any).status, 409);
       (assert as any).equal((error as any).code, "proxy_in_use");
       return true;
-    }
+    },
   );
 });
 
@@ -64,15 +66,15 @@ test("createProxyAndAssign rolls back the registry row when assignment fails", a
           host: "rollback.local",
           port: 8080,
         },
-        { scope: "provider", scopeId: null }
+        { scope: "provider", scopeId: null },
       ),
-    /scopeId is required/i
+    /scopeId is required/i,
   );
 
   const proxies = await proxiesDb.listProxies({ includeSecrets: true });
   assert.equal(
     proxies.some((proxy: any) => proxy.name === "Rollback Proxy"),
-    false
+    false,
   );
 });
 
@@ -93,7 +95,7 @@ test("createProxyAndAssign assigns and clears matching legacy proxy atomically",
       port: 443,
       source: "dashboard-custom",
     },
-    { scope: "provider", scopeId: "openai" }
+    { scope: "provider", scopeId: "openai" },
   );
 
   assert.ok(result.proxy?.id);
@@ -122,7 +124,7 @@ test("updateProxyAndAssign clears stored credentials when blanks are explicitly 
       username: "",
       password: "",
     },
-    { scope: "provider", scopeId: "openai" }
+    { scope: "provider", scopeId: "openai" },
   );
   const withSecrets = await proxiesDb.getProxyById(created.id, { includeSecrets: true });
 
@@ -285,7 +287,7 @@ test("resolveProxyForProvider prefers legacy provider proxy over registry global
   assert.equal(
     (resolved as any).host,
     "legacy-claude-provider.local",
-    "provider-specific custom proxy must beat global registry fallback"
+    "provider-specific custom proxy must beat global registry fallback",
   );
 });
 
@@ -319,7 +321,7 @@ test("resolveProxyForConnection uses apiKey proxy before account-level proxy", a
   core
     .getDbInstance()
     .prepare(
-      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'perKeyProxyEnabled', 'true')"
+      "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'perKeyProxyEnabled', 'true')",
     )
     .run();
 
@@ -402,7 +404,7 @@ test("connection proxy toggle gates account assignments and invalidates cached r
   assert.equal((disabled as any).proxyEnabled, false);
 
   const disabledResolved = await settingsDb.resolveProxyForConnection(
-    (proxiedConnection as any).id
+    (proxiedConnection as any).id,
   );
   assert.equal(disabledResolved.level, "direct");
   assert.equal(disabledResolved.proxy, null);
@@ -522,7 +524,7 @@ test("proxy registry validation accepts every supported relay type across create
       host: "relay.example.test",
       port: 443,
     }).success,
-    false
+    false,
   );
 });
 
@@ -570,7 +572,7 @@ test("proxy registry schema accepts the IP family policy and defaults it to auto
       host: "proxy.example.com",
       port: 8080,
       family: "ipv7",
-    })
+    }),
   );
 });
 
