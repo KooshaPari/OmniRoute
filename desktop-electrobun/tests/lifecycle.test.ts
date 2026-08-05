@@ -14,11 +14,11 @@ test("desktop servers use health endpoints for successful readiness", async () =
   assert.equal(
     source.match(/const readinessUrl = `\$\{url\}\/healthz`;/g)?.length,
     2,
-    "both bundled servers should prove their own health endpoint before navigation"
+    "both bundled servers should prove their own health endpoint before navigation",
   );
   assert.equal(
     source.match(/fetch\(readinessUrl, \{ signal: AbortSignal\.timeout\(500\) \}\)/g)?.length,
-    2
+    2,
   );
   assert.match(source, /if \(response\.ok\) return url;/);
 });
@@ -30,6 +30,6 @@ test("desktop readiness timeouts release both spawned servers before fallback", 
   assert.match(source, /nextServer = stopSpawnedServer\(nextServer\);/);
   assert.match(
     source,
-    /function stopSpawnedServer\([\s\S]*?try \{[\s\S]*?server\.kill\(\);[\s\S]*?catch \(error\)[\s\S]*?return undefined;/
+    /function stopSpawnedServer\([\s\S]*?try \{[\s\S]*?server\.kill\(\);[\s\S]*?catch \(error\)[\s\S]*?return undefined;/,
   );
 });

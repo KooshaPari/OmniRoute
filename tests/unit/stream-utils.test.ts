@@ -66,7 +66,7 @@ test("createSSEStream captures positive TTFT from the first emitted token", asyn
       onComplete(payload) {
         completion = payload;
       },
-    }
+    },
   );
 
   assert.ok(completion.ttft > 0);
@@ -84,7 +84,7 @@ test("createSSEStream leaves TTFT unset when the stream has no token", async () 
       onComplete(payload) {
         completion = payload;
       },
-    }
+    },
   );
 
   assert.equal(completion.ttft, null);
@@ -169,7 +169,7 @@ test("createSSEStream leaves successful pending requests for onComplete finaliza
           clientResponse: payload.clientPayload,
         });
       },
-    }
+    },
   );
 
   assert.equal(finalizedInOnComplete, true);
@@ -241,7 +241,7 @@ test("createSSEStream passthrough normalizes tool-call finishes and reports the 
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   assert.match(text, /"content":"Hello "/);
@@ -289,7 +289,7 @@ test("createSSEStream passthrough converts textual tool-call content into struct
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   assert.equal(onCompletePayload.status, 200);
@@ -346,7 +346,7 @@ test("createSSEStream passthrough converts split textual tool-call content at co
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   assert.match(text, /"tool_calls":\[/);
@@ -409,7 +409,7 @@ test("createSSEStream passthrough handles textual tool-call content split inside
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   assert.doesNotMatch(text, /"content":"\[Tool/);
@@ -470,7 +470,7 @@ test("createSSEStream passthrough buffers fragmented textual tool-call JSON befo
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   assert.doesNotMatch(text, /\[Tool call:/);
@@ -521,7 +521,7 @@ test("createSSEStream passthrough suppresses trailing prose plus textual tool ca
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   assert.equal(onCompletePayload.status, 200);
@@ -575,7 +575,7 @@ Arguments: {"path":"/opt/OmniRoute/src","target":"files"}`;
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   const choice = onCompletePayload.responseBody.choices[0];
@@ -616,7 +616,7 @@ test("createSSEStream passthrough suppresses malformed textual tool-call content
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   const choice = onCompletePayload.responseBody.choices[0];
@@ -657,7 +657,7 @@ test("createSSEStream suppresses malformed compact textual tool-call content", a
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   const choice = onCompletePayload.responseBody.choices[0];
@@ -686,7 +686,7 @@ test("createSSEStream passthrough flushes a buffered final line without a traili
       body: {
         messages: [{ role: "user", content: "hello" }],
       },
-    }
+    },
   );
 
   assert.match(text, /tail chunk/);
@@ -704,7 +704,7 @@ test("createSSEStream passthrough merges multi-line SSE data before forwarding",
           model: "gpt-4.1-mini",
           choices: [{ index: 0, delta: { content: "hello" }, finish_reason: null }],
         },
-        "choices"
+        "choices",
       ),
       `data: [DONE]\n\n`,
     ],
@@ -716,7 +716,7 @@ test("createSSEStream passthrough merges multi-line SSE data before forwarding",
       body: {
         messages: [{ role: "user", content: "hello" }],
       },
-    }
+    },
   );
 
   assert.match(text, /"content":"hello"/);
@@ -746,7 +746,7 @@ test("createSSEStream passthrough forwards data only after the complete SSE even
       body: {
         messages: [{ role: "user", content: "hello" }],
       },
-    }
+    },
   );
 
   assert.match(text, /^event: response\.output_text\.delta\ndata: /);
@@ -779,7 +779,7 @@ test("createSSEStream passthrough preserves event metadata in a single SSE event
       body: {
         messages: [{ role: "user", content: "hello" }],
       },
-    }
+    },
   );
 
   assert.match(text, /^: upstream-note\nid: 42\ntrace: upstream-abc\ndata: /);
@@ -832,7 +832,7 @@ test("createSSEStream translate mode converts Claude SSE into OpenAI chunks and 
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   assert.match(text, /"content":"Hello Claude"/);
@@ -893,7 +893,7 @@ test("createSSEStream translate mode preserves Claude text_delta thinking tags a
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   const deltas = parseJsonDataPayloads(text)
@@ -902,15 +902,15 @@ test("createSSEStream translate mode preserves Claude text_delta thinking tags a
 
   assert.deepEqual(
     deltas.filter((delta) => typeof delta.content === "string").map((delta) => delta.content),
-    ["<thinking>\n[metacognition", "]\n\nVisible answer"]
+    ["<thinking>\n[metacognition", "]\n\nVisible answer"],
   );
   assert.equal(
     deltas.some((delta) => delta.reasoning_content !== undefined),
-    false
+    false,
   );
   assert.equal(
     onCompletePayload.responseBody.choices[0].message.content,
-    "<thinking>\n[metacognition]\n\nVisible answer"
+    "<thinking>\n[metacognition]\n\nVisible answer",
   );
 });
 
@@ -972,7 +972,7 @@ test("createSSEStream translate mode keeps native Claude thinking_delta as reaso
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   const deltas = parseJsonDataPayloads(text)
@@ -1012,7 +1012,7 @@ test("createSSEStream passthrough keeps Claude thinking out of final assistant c
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   assert.match(text, /"thinking":"Private plan"/);
@@ -1044,7 +1044,7 @@ test("createSSEStream translate mode parses multi-line SSE data events", async (
           index: 0,
           delta: { type: "text_delta", text: "Hello from multiline SSE" },
         },
-        "delta"
+        "delta",
       ),
       `data: ${JSON.stringify({
         type: "message_delta",
@@ -1067,13 +1067,13 @@ test("createSSEStream translate mode parses multi-line SSE data events", async (
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   assert.match(text, /"content":"Hello from multiline SSE"/);
   assert.equal(
     onCompletePayload.responseBody.choices[0].message.content,
-    "Hello from multiline SSE"
+    "Hello from multiline SSE",
   );
 });
 
@@ -1116,7 +1116,7 @@ Arguments: {"command":"systemctl status omniroute"}`;
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   assert.doesNotMatch(text, /\[Tool call: terminal\]/);
@@ -1128,7 +1128,7 @@ Arguments: {"command":"systemctl status omniroute"}`;
   assert.equal(onCompletePayload.responseBody.choices[0].message.content, null);
   assert.equal(
     onCompletePayload.responseBody.choices[0].message.tool_calls[0].function.name,
-    "terminal"
+    "terminal",
   );
   assert.doesNotMatch(JSON.stringify(onCompletePayload.clientPayload), /\[Tool call: terminal\]/);
 });
@@ -1165,7 +1165,7 @@ test("createSSEStream passthrough preserves Responses API events and completion 
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   assert.match(text, /response.output_text.delta/);
@@ -1234,7 +1234,7 @@ test("createSSEStream passthrough drops leaked empty chat bootstrap chunks for R
       provider: "openai",
       model: "gpt-5.4",
       body: { input: "hello" },
-    }
+    },
   );
 
   assert.doesNotMatch(text, /chatcmpl-dummy/);
@@ -1276,7 +1276,7 @@ test("buildStreamSummaryFromEvents falls back to response.output_text.delta when
       },
     ],
     FORMATS.OPENAI_RESPONSES,
-    "gpt-5.4"
+    "gpt-5.4",
   );
 
   assert.equal((summary as any).object, "response");
@@ -1327,9 +1327,9 @@ test("createSSEStream translate mode aborts on Responses failure with rate limit
         onComplete(payload) {
           onCompletePayload = payload;
         },
-      }
+      },
     ),
-    /Rate limit reached for gpt-5\.4|Upstream failure/
+    /Rate limit reached for gpt-5\.4|Upstream failure/,
   );
 
   assert.ok(onCompletePayload, "should capture completion payload before aborting");
@@ -1361,7 +1361,7 @@ test("createSSEStream passthrough restores Claude tool names from the mapping ta
       model: "claude-sonnet-4",
       toolNameMap,
       body: { messages: [{ role: "user", content: "hello" }] },
-    }
+    },
   );
 
   assert.match(text, /"name":"read_file"/);
@@ -1392,7 +1392,7 @@ test("createSSEStream passthrough fixes generic ids and preserves readable reaso
       provider: "openai",
       model: "kimi-k2.5",
       body: { messages: [{ role: "user", content: "hello" }] },
-    }
+    },
   );
 
   assert.match(text, /"id":"chatcmpl-/);
@@ -1424,7 +1424,7 @@ test("createSSEStream passthrough mirrors unsupported reasoning aliases with val
       provider: "openai",
       model: "kimi-k2.5",
       body: { messages: [{ role: "user", content: "hello" }] },
-    }
+    },
   );
 
   assert.match(text, /"reasoning_content":"Alias-only reasoning"/);
@@ -1463,7 +1463,7 @@ test("createSSEStream passthrough preserves OpenAI content thinking tags as cont
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   const deltas = parseJsonDataPayloads(text)
@@ -1473,11 +1473,11 @@ test("createSSEStream passthrough preserves OpenAI content thinking tags as cont
   assert.ok(deltas.some((delta) => delta.content === "<thinking>\nVisible prompt tag"));
   assert.equal(
     deltas.some((delta) => delta.reasoning_content !== undefined),
-    false
+    false,
   );
   assert.equal(
     onCompletePayload.responseBody.choices[0].message.content,
-    "<thinking>\nVisible prompt tag"
+    "<thinking>\nVisible prompt tag",
   );
 });
 
@@ -1519,7 +1519,7 @@ test("createSSEStream passthrough splits mixed reasoning and content deltas and 
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   const reasoningIndex = text.indexOf('"reasoning_content":"First think"');
@@ -1567,7 +1567,7 @@ test("createSSEStream passthrough output is consumable by SillyTavern-style reas
       body: {
         messages: [{ role: "user", content: "hello world" }],
       },
-    }
+    },
   );
 
   const parsed = parseSillyTavernCustomOpenAIStream(text);
@@ -1620,7 +1620,7 @@ test("createSSEStream passthrough writes complete SSE events per converted chunk
           convertedChunks.push(value);
         },
       },
-    }
+    },
   );
 
   assert.equal(convertedChunks.includes("\n"), false);
@@ -1675,7 +1675,7 @@ test("createSSEStream passthrough merges Claude usage chunks and restores mapped
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   assert.match(text, /"name":"read_file"/);
@@ -1723,9 +1723,9 @@ test("#3685 createSSEStream passthrough emits SSE error (not synthetic text) for
         onComplete(payload) {
           completePayload = payload;
         },
-      }
+      },
     ),
-    /empty response/i
+    /empty response/i,
   );
   assert.ok(failurePayload, "onFailure should be called");
   assert.equal(failurePayload.status, 502);
@@ -1785,7 +1785,7 @@ test("createSSEStream passthrough does not emit [DONE] for Claude SSE clients", 
       body: {
         messages: [{ role: "user", content: "hello" }],
       },
-    }
+    },
   );
 
   assert.match(text, /event: message_stop/);
@@ -1830,9 +1830,9 @@ test("#3685 createSSEStream translate mode emits SSE error (not synthetic text) 
         onComplete(payload) {
           completePayload = payload;
         },
-      }
+      },
     ),
-    /empty response/i
+    /empty response/i,
   );
   assert.ok(failurePayload, "onFailure should be called");
   assert.equal(failurePayload.status, 502);
@@ -1883,8 +1883,8 @@ test("createSSETransformStreamWithLogger flushes a trailing Claude usage event w
       { messages: [{ role: "user", content: "hello" }] },
       (payload) => {
         onCompletePayload = payload;
-      }
-    )
+      },
+    ),
   );
 
   assert.match(text, /Buffered tail/);
@@ -1909,7 +1909,7 @@ test("buildStreamSummaryFromEvents compacts Responses API deltas into a syntheti
       },
     ],
     FORMATS.OPENAI_RESPONSES,
-    "gpt-4.1-mini"
+    "gpt-4.1-mini",
   );
 
   assert.equal((summary as any).object, "response");
@@ -1962,7 +1962,7 @@ test("buildStreamSummaryFromEvents preserves Gemini thought parts and function c
       },
     ],
     FORMATS.GEMINI,
-    "gemini-2.5-pro"
+    "gemini-2.5-pro",
   );
 
   assert.equal((summary as any).modelVersion, "gemini-2.5-pro");
@@ -2024,8 +2024,8 @@ test("createSSETransformStreamWithLogger flushes Responses API terminal events o
       null,
       "gpt-4.1-mini",
       null,
-      { messages: [{ role: "user", content: "hello" }] }
-    )
+      { messages: [{ role: "user", content: "hello" }] },
+    ),
   );
 
   assert.match(text, /response\.created/);
@@ -2047,7 +2047,7 @@ test("createPassthroughStreamWithLogger reuses passthrough mode helpers", async 
     ],
     createPassthroughStreamWithLogger("openai", null, null, "gpt-4.1-mini", null, {
       messages: [{ role: "user", content: "hello" }],
-    })
+    }),
   );
 
   assert.match(text, /Hello again/);
@@ -2069,7 +2069,7 @@ test("createStructuredSSECollector drops excess events and compactStructuredStre
       object: "response",
       status: "completed",
     },
-    { includeEvents: false }
+    { includeEvents: false },
   );
   const compact = compactStructuredStreamPayload(built);
 
@@ -2115,7 +2115,7 @@ test("createSSEStream passthrough drops keepalive event blocks without losing Re
       provider: "openai",
       model: "gpt-4.1-mini",
       body: { input: "hello" },
-    }
+    },
   );
 
   assert.equal(text.includes("event: keepalive"), false);
@@ -2154,9 +2154,9 @@ test("createSSEStream passthrough aborts on Responses usage-limit failures and r
         onFailure(payload) {
           failurePayload = payload;
         },
-      }
+      },
     ),
-    /weekly usage limit|Upstream failure/
+    /weekly usage limit|Upstream failure/,
   );
 
   assert.ok(failurePayload, "should report the stream failure before aborting");
@@ -2187,7 +2187,7 @@ test("createRequestLogger skips disabled logs and caps retained stream chunk byt
   assert.equal(stripChunkTs(payloads.streamChunks.provider[0]), "abcde");
   assert.equal(
     payloads.streamChunks.provider[1],
-    `[stream chunk log truncated after ${STREAM_CHUNK_TS_PREFIX_LEN + 5} bytes]`
+    `[stream chunk log truncated after ${STREAM_CHUNK_TS_PREFIX_LEN + 5} bytes]`,
   );
   assert.equal(payloads.streamChunks.provider.length, 2);
 });
@@ -2252,9 +2252,9 @@ test("createSSEStream passthrough mode decrements pending requests on failure", 
         onFailure(payload) {
           failurePayload = payload;
         },
-      }
+      },
     ),
-    /Test failure|Upstream failure/
+    /Test failure|Upstream failure/,
   );
 
   assert.ok(failurePayload, "should report the stream failure");
@@ -2266,7 +2266,7 @@ test("createSSEStream passthrough mode decrements pending requests on failure", 
   assert.equal(
     count,
     0,
-    `pending request count for ${modelKey} should be 0 after failure, got ${count}`
+    `pending request count for ${modelKey} should be 0 after failure, got ${count}`,
   );
 });
 
@@ -2305,7 +2305,7 @@ test("createSSEStream passthrough drops empty choices array chunks", async () =>
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   // Empty choices WITHOUT usage are DROPPED, never replaced with a synthetic
@@ -2362,7 +2362,7 @@ test("createSSEStream passthrough forwards OpenAI usage-only empty choices chunk
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   assert.doesNotMatch(text, /\[OmniRoute\] Upstream returned an empty response/);
@@ -2417,7 +2417,7 @@ test("createSSEStream passthrough logs empty response after tool_calls completio
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   assert.match(text, /"finish_reason":"tool_calls"/);
@@ -2425,7 +2425,7 @@ test("createSSEStream passthrough logs empty response after tool_calls completio
   assert.equal(onCompletePayload.responseBody.choices[0].finish_reason, "tool_calls");
   assert.equal(
     onCompletePayload.responseBody.choices[0].message.tool_calls[0].function.name,
-    "task_complete"
+    "task_complete",
   );
   // Content should be null (empty) since no text was generated
   assert.equal(onCompletePayload.responseBody.choices[0].message.content, null);
@@ -2461,7 +2461,7 @@ test("createSSEStream passthrough does not swallow false positive textual tool c
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   const choice = onCompletePayload.responseBody.choices[0];
@@ -2509,7 +2509,7 @@ test("createSSEStream passthrough does not swallow false positive textual tool c
       onComplete(payload) {
         onCompletePayload = payload;
       },
-    }
+    },
   );
 
   const choice = onCompletePayload.responseBody.choices[0];
