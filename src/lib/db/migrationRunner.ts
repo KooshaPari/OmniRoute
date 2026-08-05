@@ -306,6 +306,51 @@ function hasColumn(db: SqliteAdapter, tableName: string, columnName: string): bo
   return columns.some((column) => column.name === columnName);
 }
 
+function hasVersionManagerTool(db: SqliteAdapter, tool: string): boolean {
+  const row = db
+    .prepare("SELECT 1 AS has_row FROM version_manager WHERE tool = ? LIMIT 1")
+    .get(tool) as { has_row?: number } | undefined;
+  return row?.has_row === 1;
+}
+
+function hasCompressionActiveComboSetting(db: SqliteAdapter): boolean {
+  const row = db
+    .prepare(
+      "SELECT 1 AS has_row FROM key_value WHERE namespace = 'compression' AND key = 'activeComboId' LIMIT 1"
+    )
+    .get() as { has_row?: number } | undefined;
+  return row?.has_row === 1;
+}
+
+function hasLegacyComboConfigKeys(db: SqliteAdapter): boolean {
+  const query = `
+    SELECT 1 AS has_row
+    FROM combos
+    WHERE EXISTS (
+      SELECT 1
+      FROM json_each(data, '$.config') AS cfg
+      WHERE cfg.key IN (
+        'queueDepth',
+        'fallbackDelayMs',
+        'handoffProviders',
+        'maxComboDepth',
+        'manifestRouting',
+        'complexityAwareRouting',
+        'pipeline_enabled',
+        'pipelineConcurrency',
+        'shadowRouting',
+        'evalRouting',
+        'resetAwareEnabled',
+        'resetAwareWindow'
+      )
+    )
+    LIMIT 1
+  `;
+
+  const row = db.prepare(query).get() as { has_row?: number } | undefined;
+  return row?.has_row === 1;
+}
+
 const renumberedMigrationTables: Record<string, string> = {
   "122": "virtual_keys",
   "123": "fleet_config",
@@ -467,6 +512,12 @@ function isSchemaAlreadyApplied(
       // scaling_policies was incorrectly parked on 124 (collided with
       // traffic_shadow_log); moved to 128.
       return hasTable(db, "scaling_policies");
+    case "129":
+      // provider_node_icon_url was parked on 113 (duplicated 113 slot).
+      return hasColumn(db, "provider_nodes", "icon_url");
+    case "130":
+      // provider_health_history was parked on 114 (duplicated 114 slot).
+      return hasTable(db, "provider_health_history");
     case "113":
       // cli_access_tokens renumbered 100 → 113 (duplicated 100 slot).
       return hasTable(db, "cli_access_tokens");
@@ -478,6 +529,15 @@ function isSchemaAlreadyApplied(
       // ALTER TABLE ADD COLUMN statements are not idempotent, so the guard is
       // required for DBs that applied the columns under the old 101 number.
       return hasColumn(db, "api_keys", "usage_limit_enabled");
+    case "131":
+      // bifrost_service was parked on 115 (duplicated 115 slot).
+      return hasVersionManagerTool(db, "bifrost");
+    case "132":
+      // compression_engines_map was parked on 116 (duplicated 116 slot).
+      return hasCompressionActiveComboSetting(db);
+    case "133":
+      // strip_legacy_combo_config_keys was parked on 117 (duplicated 117 slot).
+      return !hasLegacyComboConfigKeys(db);
     case "119":
       // usage_history_endpoint renumbered 105 → 119 (duplicated 105 slot). The
       // ALTER TABLE ADD COLUMN is not idempotent, so guard on the new column.
