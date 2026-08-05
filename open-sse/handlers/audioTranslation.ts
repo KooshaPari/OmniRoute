@@ -12,8 +12,8 @@
  */
 
 import {
-  getTranslationProvider,
-  parseTranslationModel,
+  getTranscriptionProvider,
+  parseTranscriptionModel,
   type AudioProvider,
 } from "../config/audioRegistry.ts";
 import { buildAuthHeaders } from "../config/registryUtils.ts";
@@ -40,6 +40,40 @@ function extractUpstreamErrorMessage(errText: string, status: number): string {
   } catch {
     return sanitizeErrorMessage(errText || `Upstream error (${status})`);
   }
+}
+
+function collectExtraFields(formData: FormData): Record<string, string> {
+  const extraFields: Record<string, string> = {};
+  for (const key of ["prompt", "response_format", "temperature"] as const) {
+    const value = formData.get(key);
+    if (typeof value === "string") {
+      extraFields[key] = value;
+    }
+  }
+  return extraFields;
+}
+
+function resolveProviderConfig(
+  model: string,
+  resolvedProvider: AudioProvider | null,
+  resolvedModel: string | null
+): { providerConfig: AudioProvider | null; modelId: string | null } {
+  if (resolvedProvider) {
+    return { providerConfig: resolvedProvider, modelId: resolvedModel };
+  }
+
+  const parsed = parseTranscriptionModel(model);
+  return {
+    providerConfig: parsed.provider ? getTranscriptionProvider(parsed.provider) : null,
+    modelId: parsed.model,
+  };
+}
+
+function translationEndpoint(baseUrl: string): string {
+  const suffix = "/audio/transcriptions";
+  return baseUrl.endsWith(suffix)
+    ? `${baseUrl.slice(0, -suffix.length)}/audio/translations`
+    : baseUrl;
 }
 
 /**
@@ -75,11 +109,7 @@ export async function handleAudioTranslation({
   // Use pre-resolved provider/model from route handler if available.
   let providerConfig = resolvedProvider;
   let modelId = resolvedModel;
-  if (!providerConfig) {
-    const parsed = parseTranslationModel(model);
-    providerConfig = parsed.provider ? getTranslationProvider(parsed.provider) : null;
-    modelId = parsed.model;
-  }
+  ({ providerConfig, modelId } = resolveProviderConfig(model, providerConfig, modelId));
 
   if (!providerConfig) {
     return errorResponse(
@@ -96,21 +126,17 @@ export async function handleAudioTranslation({
 
   // OpenAI Whisper translate-to-English params — no `language`, output is
   // always English regardless of the source audio language.
-  const extraFields: Record<string, string> = {};
-  for (const key of ["prompt", "response_format", "temperature"]) {
-    const val = formData.get(key);
-    if (val !== null && val !== undefined) {
-      extraFields[key] = String(val);
-    }
-  }
+  const extraFields = collectExtraFields(formData);
 
   try {
+    const endpoint = translationEndpoint(providerConfig.baseUrl);
+
     const { body: multipartBody, contentType: multipartCT } = await buildMultipartBody(file, {
       model: modelId as string,
       ...extraFields,
     });
 
-    const res = await fetch(providerConfig.baseUrl, {
+    const res = await fetch(endpoint, {
       method: "POST",
       headers: { ...buildAuthHeaders(providerConfig, token), "Content-Type": multipartCT },
       body: multipartBody,

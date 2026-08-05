@@ -3,8 +3,8 @@ export const maxDuration = 300;
 import { handleAudioTranslation } from "@omniroute/open-sse/handlers/audioTranslation.ts";
 import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
 import {
-  parseTranslationModel,
-  getTranslationProvider,
+  parseTranscriptionModel,
+  getTranscriptionProvider,
   buildDynamicAudioProvider,
   type ProviderNodeRow,
 } from "@omniroute/open-sse/config/audioRegistry.ts";
@@ -69,7 +69,7 @@ export async function POST(request) {
           return (
             hostname === "localhost" ||
             hostname === "127.0.0.1" ||
-            /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname)
+            /^172\.(?:1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname)
           );
         } catch {
           return false;
@@ -80,7 +80,7 @@ export async function POST(request) {
     // DB error — fall back to hardcoded providers only
   }
 
-  const { provider, model: resolvedModel } = parseTranslationModel(
+  const { provider, model: resolvedModel } = parseTranscriptionModel(
     model as string,
     dynamicProviders
   );
@@ -93,7 +93,7 @@ export async function POST(request) {
 
   // Check provider config — hardcoded first, then dynamic
   const providerConfig =
-    getTranslationProvider(provider) || dynamicProviders.find((dp) => dp.id === provider) || null;
+    getTranscriptionProvider(provider) || dynamicProviders.find((dp) => dp.id === provider) || null;
 
   // Get credentials — skip for local providers (authType: "none")
   let credentials = null;

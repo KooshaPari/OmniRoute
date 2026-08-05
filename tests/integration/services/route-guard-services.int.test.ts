@@ -159,14 +159,16 @@ describe("LOCAL_ONLY_API_PREFIXES constant integrity", () => {
     );
   });
 
-  it("has exactly 5 entries (no silent regressions adding or removing prefixes)", () => {
+  it("has exactly 17 entries (no silent regressions adding or removing prefixes)", () => {
     // 4 baseline entries (/api/mcp/, /api/cli-tools/runtime/, /api/services/,
     // /dashboard/providers/services/) + /api/copilot/ added in the v3.8.4
-    // semgrep MCP hardening pass (commit 21f8dc4b3).
+    // semgrep MCP hardening pass (commit 21f8dc4b3), plus newer loopback-only
+    // entries added since then (agent-bridge, traffic-inspector, plugins, db-backups,
+    // headroom, oauth cursor, and plugin/install variants).
     assert.equal(
       LOCAL_ONLY_API_PREFIXES.length,
-      7,
-      `Expected 7 LOCAL_ONLY_API_PREFIXES, got ${LOCAL_ONLY_API_PREFIXES.length}: ${JSON.stringify(LOCAL_ONLY_API_PREFIXES)}`
+      17,
+      `Expected 17 LOCAL_ONLY_API_PREFIXES, got ${LOCAL_ONLY_API_PREFIXES.length}: ${JSON.stringify(LOCAL_ONLY_API_PREFIXES)}`
     );
   });
 });
@@ -200,11 +202,11 @@ describe("SPAWN_CAPABLE_PREFIXES constant integrity", () => {
     );
   });
 
-  it("has exactly 2 entries (no silent regressions)", () => {
+  it("has exactly 10 entries (no silent regressions)", () => {
     assert.equal(
       SPAWN_CAPABLE_PREFIXES.length,
-      4,
-      `Expected 4 SPAWN_CAPABLE_PREFIXES, got ${SPAWN_CAPABLE_PREFIXES.length}: ${JSON.stringify(SPAWN_CAPABLE_PREFIXES)}`
+      10,
+      `Expected 10 SPAWN_CAPABLE_PREFIXES, got ${SPAWN_CAPABLE_PREFIXES.length}: ${JSON.stringify(SPAWN_CAPABLE_PREFIXES)}`
     );
   });
 
