@@ -14,6 +14,7 @@ import { resolve } from "node:path";
 interface RateLimitEntry {
   count: number;
   windowStart: number;
+  windowMs: number;
 }
 
 export interface RateLimitRule {
@@ -57,7 +58,7 @@ function getKeyvStore(): Keyv {
 const positionalCounters = new Map<string, RateLimitEntry>();
 const TEST_MEMORY_STORE = new Map<string, number>();
 const FALLBACK_MEMORY_STORE = new Map<string, number>();
-const EVICTION_THRESHOLD = 50;
+const MAX_LOCAL_RATE_LIMIT_ENTRIES = 10_000;
 
 type RedisCompatibilityClient = {
   del: (...args: unknown[]) => Promise<unknown>;
@@ -124,6 +125,7 @@ function ruleWindowKey(keyId: string, rule: RateLimitRule, nowSeconds: number): 
 }
 
 function validateRules(rules: RateLimitRule[]): RateLimitRule[] {
+  const windows = new Set<number>();
   return rules.map((rule) => {
     if (!Number.isFinite(rule.limit) || rule.limit < 1 || !Number.isInteger(rule.limit)) {
       throw new TypeError("Rate limit rule limit must be a positive integer");
@@ -131,6 +133,10 @@ function validateRules(rules: RateLimitRule[]): RateLimitRule[] {
     if (!Number.isFinite(rule.window) || rule.window < 1 || !Number.isInteger(rule.window)) {
       throw new TypeError("Rate limit rule window must be a positive integer in seconds");
     }
+    if (windows.has(rule.window)) {
+      throw new TypeError("Rate limit rules must not contain duplicate windows");
+    }
+    windows.add(rule.window);
     return rule;
   });
 }
@@ -141,14 +147,21 @@ function checkInMemoryRateLimit(
   rules: RateLimitRule[]
 ): RateLimitResult {
   const nowSeconds = Math.floor(Date.now() / 1000);
-  if (store.size > EVICTION_THRESHOLD) evictStaleRateLimitWindows(store, nowSeconds);
-
-  for (const rule of rules) {
-    const key = ruleWindowKey(keyId, rule, nowSeconds);
-    if ((store.get(key) ?? 0) >= rule.limit) return { allowed: false, failedWindow: rule.window };
+  const keys = rules.map((rule) => ruleWindowKey(keyId, rule, nowSeconds));
+  if (store.size >= MAX_LOCAL_RATE_LIMIT_ENTRIES) {
+    evictStaleRateLimitWindows(store, nowSeconds);
+    const missingRule = rules.find((_, index) => !store.has(keys[index]));
+    if (missingRule && store.size >= MAX_LOCAL_RATE_LIMIT_ENTRIES) {
+      return { allowed: false, failedWindow: missingRule.window };
+    }
   }
-  for (const rule of rules) {
-    const key = ruleWindowKey(keyId, rule, nowSeconds);
+
+  for (let index = 0; index < rules.length; index += 1) {
+    if ((store.get(keys[index]) ?? 0) >= rules[index].limit) {
+      return { allowed: false, failedWindow: rules[index].window };
+    }
+  }
+  for (const key of keys) {
     store.set(key, (store.get(key) ?? 0) + 1);
   }
   return { allowed: true };
@@ -173,12 +186,11 @@ async function checkKeyvRateLimitLocked(
   keyId: string,
   rules: RateLimitRule[]
 ): Promise<RateLimitResult> {
-  const store = getKeyvStore();
-  const nowMs = Date.now();
-  const nowSeconds = Math.floor(nowMs / 1000);
-  const keys = rules.map((rule) => ruleWindowKey(keyId, rule, nowSeconds));
-
   try {
+    const store = getKeyvStore();
+    const nowMs = Date.now();
+    const nowSeconds = Math.floor(nowMs / 1000);
+    const keys = rules.map((rule) => ruleWindowKey(keyId, rule, nowSeconds));
     const counts = await Promise.all(keys.map((key) => store.get<number>(key)));
     for (let index = 0; index < rules.length; index += 1) {
       if ((counts[index] ?? 0) >= rules[index].limit) {
@@ -225,7 +237,15 @@ export async function checkRateLimit(
   const windowStart = Math.floor(now / windowMs) * windowMs;
   const resetMs = windowStart + windowMs;
   const entryKey = `${keyId}:${windowStart}`;
-  const entry = positionalCounters.get(entryKey) ?? { count: 0, windowStart };
+  if (positionalCounters.size >= MAX_LOCAL_RATE_LIMIT_ENTRIES) {
+    for (const [storedKey, storedEntry] of positionalCounters) {
+      if (storedEntry.windowStart + storedEntry.windowMs <= now) positionalCounters.delete(storedKey);
+    }
+    if (!positionalCounters.has(entryKey) && positionalCounters.size >= MAX_LOCAL_RATE_LIMIT_ENTRIES) {
+      return { allowed: false, remaining: 0, resetMs, limit: rulesOrLimit };
+    }
+  }
+  const entry = positionalCounters.get(entryKey) ?? { count: 0, windowStart, windowMs };
   entry.count += 1;
   positionalCounters.set(entryKey, entry);
   return {

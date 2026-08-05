@@ -54,3 +54,29 @@ test("rate limiter does not advertise its Keyv opt-in as a Redis client", async 
     else process.env.REDIS_URL = previousRedisUrl;
   }
 });
+
+test("rate limiter rejects duplicate fixed-window rules", async () => {
+  const rateLimiter = await importFreshRateLimiter("duplicate-windows");
+
+  await assert.rejects(
+    () =>
+      rateLimiter.checkRateLimit("duplicate-window", [
+        { limit: 1, window: 60 },
+        { limit: 2, window: 60 },
+      ]),
+    /duplicate windows/,
+  );
+});
+
+test("rate limiter rejects new keys when the active fallback window reaches capacity", async () => {
+  const rateLimiter = await importFreshRateLimiter("fallback-capacity");
+  const rules = [{ limit: 20_000, window: 60 }];
+
+  for (let index = 0; index < 10_000; index += 1) {
+    const result = await rateLimiter.checkRateLimit(`active-key-${index}`, rules);
+    assert.equal(result.allowed, true);
+  }
+
+  const overflow = await rateLimiter.checkRateLimit("active-key-overflow", rules);
+  assert.deepEqual(overflow, { allowed: false, failedWindow: 60 });
+});
