@@ -53,6 +53,15 @@ try {
     throw new Error(`unexpected gateway health payload: ${JSON.stringify(healthBody)}`);
   }
 
+  const rendererHealth = await waitFor(rendererBase, "/healthz");
+  const rendererHealthBody = await rendererHealth.json();
+  if (
+    rendererHealthBody.status !== "ok" ||
+    rendererHealthBody.service !== "argismonitor-renderer"
+  ) {
+    throw new Error(`unexpected renderer health payload: ${JSON.stringify(rendererHealthBody)}`);
+  }
+
   const rootResponse = await waitFor(rendererBase, "/");
   const rootHtml = await rootResponse.text();
   if (!rootResponse.ok || !rootHtml.includes("<title>")) {
