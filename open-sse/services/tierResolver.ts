@@ -3,7 +3,9 @@ import { PROVIDER_TIER } from "./tierTypes";
 import { getModelPricing } from "./providerCostData";
 import { isExplicitlyFree } from "./providerCostData";
 import { mergeTierConfig, DEFAULT_TIER_CONFIG } from "./tierConfig";
+import { createLogger } from "@/shared/utils/logger";
 
+const log = createLogger("open-sse:tier-resolver");
 let dbPersistenceChecked = false;
 
 const tierCache = new Map<string, TierAssignment>();
@@ -112,7 +114,11 @@ export function setTierConfig(config?: Partial<TierConfig> | null): void {
     try {
       const { loadTierConfig } = require("../../src/lib/db/tierConfig");
       currentConfig = loadTierConfig();
-    } catch {
+    } catch (err) {
+      log.error(
+        { err, module: "../../src/lib/db/tierConfig" },
+        "Could not load tierConfig module; using default tier configuration"
+      );
       currentConfig = DEFAULT_TIER_CONFIG;
     }
   } else {
