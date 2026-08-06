@@ -9,7 +9,7 @@
  *     telemetry failures
  */
 
-import { isFeatureFlagEnabled } from "@/lib/featureFlags";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { resolveSelfHealingSettings } from "./selfHealingSettings";
 import { SelfHealingManager } from "./selfHealingManager";
 import { createAnomalyDetector } from "./anomalyDetector";

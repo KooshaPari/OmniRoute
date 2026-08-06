@@ -17,6 +17,9 @@ import { WebSocketServer, WebSocket } from "ws";
 import { jwtVerify } from "jose";
 import { createServer, type IncomingMessage, type ServerResponse } from "http";
 import { randomUUID } from "crypto";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("ws:live-server");
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -476,7 +479,12 @@ export async function startLiveDashboardServer(
   // does not block the event loop on a cold import — which would starve concurrent
   // WebSocket handshakes (see loadAuthModule). A failed warm is non-fatal: the
   // handler retries the import lazily.
-  await loadAuthModule().catch(() => {});
+  await loadAuthModule().catch((err) =>
+    log.error(
+      { err },
+      "liveServer: failed to warm auth module — clients may experience cold-import latency"
+    )
+  );
 
   wss.on("connection", async (ws, request) => {
     const pendingMessages: string[] = [];
