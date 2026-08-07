@@ -5,6 +5,9 @@ import {
   getAntigravityLoadCodeAssistMetadata,
 } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { extractCodeAssistOnboardTierId } from "@omniroute/open-sse/services/codeAssistSubscription.ts";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("oauth:antigravity");
 
 // Bound every Antigravity post-exchange call. Without this an unreachable/slow
 // upstream made the `/exchange` request (and therefore the whole OAuth login)
@@ -98,7 +101,13 @@ export const antigravity = {
     const userInfoRes = await fetch(`${ANTIGRAVITY_CONFIG.userInfoUrl}?alt=json`, {
       headers: { Authorization: `Bearer ${tokens.access_token}` },
       signal: AbortSignal.timeout(POSTEXCHANGE_TIMEOUT_MS),
-    }).catch(() => null);
+    }).catch((err) => {
+      log.warn(
+        { err, userInfoUrl: ANTIGRAVITY_CONFIG.userInfoUrl },
+        "Antigravity userInfo fetch failed; continuing without user info"
+      );
+      return null;
+    });
     const userInfo = userInfoRes?.ok ? await userInfoRes.json() : {};
 
     let projectId = "";
