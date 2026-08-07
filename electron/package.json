@@ -48,7 +48,7 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "diegosouzapw",
+      "owner": "KooshaPari",
       "repo": "OmniRoute"
     },
     "files": [
