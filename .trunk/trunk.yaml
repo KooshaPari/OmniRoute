@@ -31,6 +31,8 @@ lint:
     - name: actionlint
       commands:
         - name: actionlint
+          output: pass_fail
+          read_output_from: stdout
           run: actionlint ${target}
           success_codes: [0]
       direct_configs:
@@ -38,6 +40,8 @@ lint:
     - name: black
       commands:
         - name: black
+          output: pass_fail
+          read_output_from: stdout
           run: black --check --line-length 100 ${target}
           success_codes: [0]
       direct_configs:
@@ -46,16 +50,22 @@ lint:
     - name: clippy
       commands:
         - name: clippy
+          output: pass_fail
+          read_output_from: stdout
           run: cargo clippy --all-targets --all-features -- -D warnings
           success_codes: [0]
     - name: mypy
       commands:
         - name: mypy
+          output: pass_fail
+          read_output_from: stdout
           run: mypy --ignore-missing-imports ${target}
           success_codes: [0]
     - name: ruff
       commands:
         - name: ruff
+          output: pass_fail
+          read_output_from: stdout
           run: ruff check --output-format=github ${target}
           success_codes: [0]
       direct_configs:
@@ -64,6 +74,8 @@ lint:
     - name: rustfmt
       commands:
         - name: rustfmt
+          output: pass_fail
+          read_output_from: stdout
           run: rustfmt ${target}
           success_codes: [0]
       direct_configs:
