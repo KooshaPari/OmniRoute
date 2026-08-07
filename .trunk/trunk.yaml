@@ -1,3 +1,4 @@
+---
 # Trunk code-quality configuration.
 # Schema: https://docs.trunk.io/reference/trunk-yaml
 version: 0.1
@@ -21,7 +22,6 @@ lint:
     - eslint
     - golangci-lint
     - mypy
-    - prettier
     - ruff
     - rustfmt
     - shellcheck
