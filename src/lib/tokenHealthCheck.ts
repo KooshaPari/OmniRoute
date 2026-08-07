@@ -27,7 +27,7 @@ import {
 import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
 import { createLogger } from "@/shared/utils/logger";
 
-const log = createLogger("lib:token-health-check");
+const tokenHealthLogger = createLogger("lib:token-health-check");
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const TICK_MS = 60 * 1000; // sweep interval: every 60 seconds
@@ -252,19 +252,19 @@ async function shouldHideLogs(): Promise<boolean> {
 
 function log(message: string, ...args: any[]) {
   shouldHideLogs().then((hide) => {
-    if (!hide) log.info({ args }, message);
+    if (!hide) tokenHealthLogger.info({ args }, message);
   });
 }
 
 function logWarn(message: string, ...args: any[]) {
   shouldHideLogs().then((hide) => {
-    if (!hide) log.warn({ args }, message);
+    if (!hide) tokenHealthLogger.warn({ args }, message);
   });
 }
 
 function logError(message: string, ...args: any[]) {
   shouldHideLogs().then((hide) => {
-    if (!hide) log.error({ args }, message);
+    if (!hide) tokenHealthLogger.error({ args }, message);
   });
 }
 
