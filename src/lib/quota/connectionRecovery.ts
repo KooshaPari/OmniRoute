@@ -22,6 +22,9 @@
  */
 
 import { cooldownUntilMs } from "@omniroute/open-sse/services/accountFallback.ts";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("quota:connection-recovery");
 
 /**
  * The transient-cooldown status written by `markAccountUnavailable()` for a
@@ -268,19 +271,20 @@ export function initConnectionRecoveryScheduler(): void {
 
   const tickMs = resolveConnectionRecoveryIntervalMs();
   const tickLogger = {
-    info: (msg: string) => console.log(msg),
-    warn: (msg: string) => console.warn(msg),
+    info: (msg: string) => log.info({ msg }, "connection-recovery: tick"),
+    warn: (msg: string) => log.warn({ msg }, "connection-recovery: tick warning"),
   };
 
   const runTick = () => {
     runConnectionRecoveryTick({ logger: tickLogger }).catch((err: unknown) => {
       const msg = err instanceof Error ? err.message : String(err);
-      console.warn(`${RECOVERY_LOG_PREFIX} tick error (non-fatal): ${msg}`);
+      log.warn({ err: msg }, "connection-recovery: tick error (non-fatal)");
     });
   };
 
-  console.log(
-    `${RECOVERY_LOG_PREFIX} Starting proactive cooldown recovery (tick every ${Math.round(tickMs / 1000)}s)`
+  log.info(
+    { tickSec: Math.round(tickMs / 1000) },
+    "connection-recovery: starting proactive cooldown recovery"
   );
 
   // Delay the first tick a little so it never piles onto cold-start work.

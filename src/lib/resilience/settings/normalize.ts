@@ -9,6 +9,7 @@
  */
 
 import { resolveFeatureFlag } from "@/shared/utils/featureFlags";
+import { createLogger } from "@/shared/utils/logger";
 import type {
   JsonRecord,
   RequestQueueSettings,
@@ -21,6 +22,8 @@ import type {
   QuotaPreflightSettings,
   StreamRecoverySettings,
 } from "./types";
+
+const log = createLogger("resilience:settings");
 
 export function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -70,9 +73,9 @@ export function resolveBooleanFeatureFlag(key: string, fallback: boolean): boole
     if (typeof envValue === "string" && envValue.trim() !== "") {
       return parseFeatureFlagBoolean(envValue, fallback);
     }
-    console.error(
-      `[resilience] Failed to resolve ${key}, falling back to ${String(fallback)}:`,
-      error instanceof Error ? error.message : error
+    log.error(
+      { err: error, key, fallback: String(fallback) },
+      "resilience: failed to resolve feature flag"
     );
     return fallback;
   }

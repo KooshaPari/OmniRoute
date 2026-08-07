@@ -13,6 +13,9 @@
 import { getDbInstance } from "./db/core";
 import { invalidateDbCache } from "./db/readCache";
 import { backupDbFile } from "./db/backup";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("lib:pricing-sync");
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -249,7 +252,7 @@ export function getSyncedPricing(): PricingByProvider {
     try {
       synced[key] = JSON.parse(rawValue) as PricingModels;
     } catch {
-      console.warn(`[PRICING_SYNC] Corrupted data for provider "${key}", skipping`);
+      log.warn({ provider: key }, "pricing-sync: corrupted data, skipping");
     }
   }
   return synced;
@@ -356,7 +359,7 @@ export async function syncPricingFromSources(opts?: {
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.warn("[PRICING_SYNC] Sync failed:", message);
+    log.warn({ err: message }, "pricing-sync: sync failed");
     return {
       success: false,
       modelCount: 0,
@@ -378,32 +381,39 @@ export function startPeriodicSync(intervalMs?: number): void {
 
   const interval = intervalMs ?? SYNC_INTERVAL_MS;
   activeSyncIntervalMs = interval;
-  console.log(`[PRICING_SYNC] Starting periodic sync every ${interval / 1000}s`);
+  log.info({ intervalSec: interval / 1000 }, "pricing-sync: starting periodic sync");
 
   // Initial sync (non-blocking)
   syncPricingFromSources()
     .then((result) => {
       if (result.success) {
-        console.log(
-          `[PRICING_SYNC] Initial sync complete: ${result.modelCount} models from ${result.providerCount} providers`
+        log.info(
+          { models: result.modelCount, providers: result.providerCount },
+          "pricing-sync: initial sync complete"
         );
       }
     })
     .catch((err) => {
-      console.warn("[PRICING_SYNC] Initial sync error:", err instanceof Error ? err.message : err);
+      log.warn(
+        { err: err instanceof Error ? err.message : err },
+        "pricing-sync: initial sync error"
+      );
     });
 
   syncTimer = setInterval(() => {
     syncPricingFromSources()
       .then((result) => {
         if (result.success) {
-          console.log(`[PRICING_SYNC] Periodic sync complete: ${result.modelCount} models`);
+          log.info(
+            { models: result.modelCount },
+            "pricing-sync: periodic sync complete"
+          );
         }
       })
       .catch((err) => {
-        console.warn(
-          "[PRICING_SYNC] Periodic sync error:",
-          err instanceof Error ? err.message : err
+        log.warn(
+          { err: err instanceof Error ? err.message : err },
+          "pricing-sync: periodic sync error"
         );
       });
   }, interval);
@@ -420,7 +430,7 @@ export function stopPeriodicSync(): void {
   if (syncTimer) {
     clearInterval(syncTimer);
     syncTimer = null;
-    console.log("[PRICING_SYNC] Periodic sync stopped");
+    log.info("pricing-sync: periodic sync stopped");
   }
 }
 
@@ -449,7 +459,7 @@ export function getSyncStatus(): SyncStatus {
  */
 export async function initPricingSync(): Promise<void> {
   if (process.env.PRICING_SYNC_ENABLED !== "true") {
-    console.log("[PRICING_SYNC] Disabled (set PRICING_SYNC_ENABLED=true to enable)");
+    log.info("pricing-sync: disabled (set PRICING_SYNC_ENABLED=true to enable)");
     return;
   }
   startPeriodicSync();

@@ -9,7 +9,10 @@ import {
 } from "./installers/cliproxy";
 import { getOrCreateApiKey } from "./apiKey";
 import { scheduleServiceModelSync, stopServiceModelSync } from "./modelSync";
+import { createLogger } from "@/shared/utils/logger";
 import type { ServiceStatus } from "./types";
+
+const log = createLogger("services:bootstrap");
 
 const NINEROUTER_PORT = parseInt(process.env.NINEROUTER_PORT ?? "20130", 10);
 const CLIPROXY_PORT = parseInt(process.env.CLIPROXYAPI_PORT ?? String(CLIPROXY_DEFAULT_PORT), 10);
@@ -91,7 +94,7 @@ export async function bootstrapEmbeddedServices(): Promise<void> {
     if (row.autoStart) {
       supervisor.start().catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err);
-        console.warn(`[Services] Auto-start failed for ${cfg.tool}: ${msg}`);
+        log.warn({ tool: cfg.tool, err: msg }, "services: auto-start failed");
       });
     }
   }

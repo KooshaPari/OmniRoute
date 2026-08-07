@@ -8,6 +8,9 @@
 
 import { hashInput, summarizeOutput } from "./schemas/audit.ts";
 import { isNativeSqliteLoadError } from "../../src/lib/db/core.ts";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("mcp-server:audit");
 
 // ============ Database Connection ============
 
@@ -234,7 +237,7 @@ async function getDb(): Promise<AuditDatabase | null> {
       : join(homedir(), ".omniroute", "storage.sqlite");
 
     if (!existsSync(dbPath)) {
-      console.error(`[MCP Audit] Database not found at ${dbPath} — audit logging disabled`);
+      log.error({ dbPath }, "mcp-audit: database not found — audit logging disabled");
       return null;
     }
 
@@ -260,16 +263,15 @@ async function getDb(): Promise<AuditDatabase | null> {
       // message, and the bindings-loader "Could not locate the bindings file".
       // Real errors (corrupt db, permission denied) still surface to the operator.
       if (!isNativeSqliteLoadError(nativeErr)) {
-        console.error("[MCP Audit] Failed to connect to database:", nativeMessage);
+        log.error({ err: nativeMessage }, "mcp-audit: failed to connect to database");
         return null;
       }
       // Fall back to Node's built-in sqlite (Node 22.5+).
       const [maj, min] = (process.versions.node ?? "0.0").split(".").map(Number);
       if (maj < 22 || (maj === 22 && (min ?? 0) < 5)) {
-        console.error(
-          `[MCP Audit] better-sqlite3 native binding unavailable and Node ${process.version} ` +
-            "has no built-in sqlite. Audit logging disabled. Fix: run " +
-            "`npm rebuild better-sqlite3` in the omniroute install root."
+        log.error(
+          { nodeVersion: process.version },
+          "mcp-audit: better-sqlite3 unavailable and Node too old — audit logging disabled"
         );
         return null;
       }
@@ -280,20 +282,20 @@ async function getDb(): Promise<AuditDatabase | null> {
         const nodeDb = new DatabaseSync(dbPath);
         const adapter = createNodeSqliteAuditAdapter(nodeDb);
         setCachedAuditDb(adapter);
-        console.warn(
-          `[MCP Audit] better-sqlite3 binding unavailable — fell back to node:sqlite ` +
-            `(${nativeMessage.split("\n")[0]})`
+        log.warn(
+          { reason: nativeMessage.split("\n")[0] },
+          "mcp-audit: fell back to node:sqlite"
         );
         return adapter;
       } catch (nodeErr) {
         const nodeMessage = nodeErr instanceof Error ? nodeErr.message : String(nodeErr);
-        console.error("[MCP Audit] Failed to connect to database:", nodeMessage);
+        log.error({ err: nodeMessage }, "mcp-audit: failed to connect to database (node:sqlite)");
         return null;
       }
     }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error("[MCP Audit] Failed to connect to database:", message);
+    log.error({ err: message }, "mcp-audit: failed to connect to database");
     return null;
   }
 }
@@ -311,14 +313,14 @@ export function closeAuditDb(): boolean {
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      console.warn("[MCP Audit] WAL checkpoint failed during close:", message);
+      log.warn({ err: message }, "mcp-audit: WAL checkpoint failed during close");
     }
   } finally {
     try {
       database.close();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      console.warn("[MCP Audit] Failed to close database:", message);
+      log.warn({ err: message }, "mcp-audit: failed to close database");
     }
   }
 
@@ -366,7 +368,7 @@ export async function logToolCall(
   } catch (err: unknown) {
     // Never let audit failure break tool execution
     const message = err instanceof Error ? err.message : String(err);
-    console.error("[MCP Audit] Failed to log:", message);
+    log.error({ err: message }, "mcp-audit: failed to log");
   }
 }
 

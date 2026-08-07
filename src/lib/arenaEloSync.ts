@@ -11,6 +11,7 @@
  */
 
 import { isArenaEloSyncEnabled } from "@/shared/utils/featureFlags";
+import { createLogger } from "@/shared/utils/logger";
 
 import { backupDbFile } from "./db/backup";
 import {
@@ -19,6 +20,8 @@ import {
   deleteModelIntelligenceBySource,
   type ModelIntelligenceEntry,
 } from "./db/modelIntelligence";
+
+const log = createLogger("lib:arena-elo-sync");
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -185,10 +188,9 @@ function getEffectiveArenaEloSyncEnabled(): boolean {
   try {
     return isArenaEloSyncEnabled();
   } catch (error) {
-    console.warn(
-      `[ARENA_ELO_SYNC] Failed to resolve ARENA_ELO_SYNC_ENABLED feature flag: ${getErrorMessage(
-        error
-      )}`
+    log.warn(
+      { err: getErrorMessage(error) },
+      "arena-elo-sync: failed to resolve ARENA_ELO_SYNC_ENABLED feature flag"
     );
     return process.env.ARENA_ELO_SYNC_ENABLED !== "false";
   }
@@ -252,7 +254,7 @@ export async function fetchArenaLeaderboards(): Promise<ArenaLeaderboardMap> {
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.warn(`[ARENA_ELO_SYNC] Failed to fetch "${category}" leaderboard: ${message}`);
+      log.warn({ category, err: message }, "arena-elo-sync: failed to fetch leaderboard");
       errors.push(message);
     }
   });
@@ -387,7 +389,7 @@ export async function syncArenaElo(dryRun = false): Promise<SyncResult> {
         deleteExpiredIntelligence();
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        console.warn(`[ARENA_ELO_SYNC] Failed to delete expired intelligence: ${message}`);
+        log.warn({ err: message }, "arena-elo-sync: failed to delete expired intelligence");
       }
     }
 
@@ -399,7 +401,7 @@ export async function syncArenaElo(dryRun = false): Promise<SyncResult> {
         bulkUpsertModelIntelligence(entries);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        console.warn(`[ARENA_ELO_SYNC] Failed to bulk upsert intelligence: ${message}`);
+        log.warn({ err: message }, "arena-elo-sync: failed to bulk upsert intelligence");
         return {
           success: false,
           modelCount: 0,
@@ -415,8 +417,9 @@ export async function syncArenaElo(dryRun = false): Promise<SyncResult> {
     }
 
     const countLabel = dryRun ? "would sync" : "synced";
-    console.log(
-      `[ARENA_ELO_SYNC] ${countLabel} ${entries.length} model intelligence entries from Arena leaderboards`
+    log.info(
+      { countLabel, count: entries.length },
+      "arena-elo-sync: model intelligence entries processed"
     );
 
     return {
@@ -426,7 +429,7 @@ export async function syncArenaElo(dryRun = false): Promise<SyncResult> {
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.warn("[ARENA_ELO_SYNC] Sync failed:", message);
+    log.warn({ err: message }, "arena-elo-sync: sync failed");
     return {
       success: false,
       modelCount: 0,
@@ -449,7 +452,7 @@ export async function syncArenaElo(dryRun = false): Promise<SyncResult> {
  */
 export function clearSyncedIntelligence(): void {
   const deleted = deleteModelIntelligenceBySource("arena_elo");
-  console.log(`[ARENA_ELO_SYNC] Cleared ${deleted} arena_elo intelligence entries`);
+  log.info({ deleted }, "arena-elo-sync: cleared arena_elo intelligence entries");
 }
 
 // ─── Periodic sync ───────────────────────────────────────
@@ -468,21 +471,22 @@ function startPeriodicSync(intervalMs?: number): void {
 
   const interval = intervalMs ?? SYNC_INTERVAL_MS;
   activeSyncIntervalMs = interval;
-  console.log(`[ARENA_ELO_SYNC] Starting periodic sync every ${interval / 1000}s`);
+  log.info({ intervalSec: interval / 1000 }, "arena-elo-sync: starting periodic sync");
 
   // Initial sync (non-blocking)
   syncArenaElo()
     .then((result) => {
       if (result.success) {
-        console.log(
-          `[ARENA_ELO_SYNC] Initial sync complete: ${result.modelCount} model intelligence entries`
+        log.info(
+          { count: result.modelCount },
+          "arena-elo-sync: initial sync complete"
         );
       }
     })
     .catch((err) => {
-      console.warn(
-        "[ARENA_ELO_SYNC] Initial sync error:",
-        err instanceof Error ? err.message : err
+      log.warn(
+        { err: err instanceof Error ? err.message : err },
+        "arena-elo-sync: initial sync error"
       );
     });
 
@@ -490,13 +494,16 @@ function startPeriodicSync(intervalMs?: number): void {
     syncArenaElo()
       .then((result) => {
         if (result.success) {
-          console.log(`[ARENA_ELO_SYNC] Periodic sync complete: ${result.modelCount} entries`);
+          log.info(
+            { count: result.modelCount },
+            "arena-elo-sync: periodic sync complete"
+          );
         }
       })
       .catch((err) => {
-        console.warn(
-          "[ARENA_ELO_SYNC] Periodic sync error:",
-          err instanceof Error ? err.message : err
+        log.warn(
+          { err: err instanceof Error ? err.message : err },
+          "arena-elo-sync: periodic sync error"
         );
       });
   }, interval);
@@ -514,7 +521,7 @@ export function stopArenaEloSync(): void {
   if (syncTimer) {
     clearInterval(syncTimer);
     syncTimer = null;
-    console.log("[ARENA_ELO_SYNC] Periodic sync stopped");
+    log.info("arena-elo-sync: periodic sync stopped");
   }
 }
 
@@ -554,8 +561,8 @@ export function getArenaEloSyncStatus(): SyncStatus {
  */
 export async function initArenaEloSync(): Promise<boolean> {
   if (!getEffectiveArenaEloSyncEnabled()) {
-    console.log(
-      "[ARENA_ELO_SYNC] Disabled by the effective ARENA_ELO_SYNC_ENABLED feature flag. Enable it from Dashboard Feature Flags, unset the env var, or set it to true to enable."
+    log.info(
+      "arena-elo-sync: disabled by effective ARENA_ELO_SYNC_ENABLED feature flag"
     );
     return false;
   }

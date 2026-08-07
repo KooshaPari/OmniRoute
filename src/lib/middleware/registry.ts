@@ -23,6 +23,9 @@ import {
   type HookLogEntry,
   HookPriority,
 } from "./types";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("middleware:registry");
 
 // ── State (globalThis singleton) ──────────────────────────────────────────
 
@@ -278,7 +281,7 @@ export function loadHooksFromConfig(rows: HookConfig[]): void {
         const compiled = compileHookCode(row.code, row.name);
         state.middlewares.set(row.name, compiled);
       } catch (err) {
-        console.error(`[Middleware] Failed to compile hook "${row.name}":`, err);
+        log.error({ err, hook: row.name }, "middleware: failed to compile hook");
       }
     }
   }
@@ -374,7 +377,7 @@ export async function runHooks(
         timestamp: new Date().toISOString(),
       });
 
-      console.error(`[Middleware] Hook "${hook.name}" failed:`, message);
+      log.error({ hook: hook.name, err: message }, "middleware: hook failed");
     }
   }
 

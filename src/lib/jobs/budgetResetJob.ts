@@ -1,4 +1,7 @@
 import { syncAllBudgetSchedules } from "@/domain/costRules";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("jobs:budget-reset");
 
 const DEFAULT_INTERVAL_MS = 10 * 60 * 1000;
 
@@ -19,10 +22,13 @@ export function startBudgetResetJob() {
     try {
       const result = syncAllBudgetSchedules(Date.now());
       if (result.resetCount > 0) {
-        console.log(`[BudgetReset] processed=${result.processed} reset=${result.resetCount}`);
+        log.info(
+          { processed: result.processed, reset: result.resetCount },
+          "budget-reset: schedules reset"
+        );
       }
     } catch (error) {
-      console.error("[BudgetReset] Job failed:", error);
+      log.error({ err: error }, "budget-reset: job failed");
     }
   };
 

@@ -25,6 +25,9 @@ import {
   refreshCopilotToken,
 } from "@omniroute/open-sse/services/tokenRefresh.ts";
 import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("lib:token-health-check");
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const TICK_MS = 60 * 1000; // sweep interval: every 60 seconds
@@ -249,19 +252,19 @@ async function shouldHideLogs(): Promise<boolean> {
 
 function log(message: string, ...args: any[]) {
   shouldHideLogs().then((hide) => {
-    if (!hide) console.log(message, ...args);
+    if (!hide) log.info({ args }, message);
   });
 }
 
 function logWarn(message: string, ...args: any[]) {
   shouldHideLogs().then((hide) => {
-    if (!hide) console.warn(message, ...args);
+    if (!hide) log.warn({ args }, message);
   });
 }
 
 function logError(message: string, ...args: any[]) {
   shouldHideLogs().then((hide) => {
-    if (!hide) console.error(message, ...args);
+    if (!hide) log.error({ args }, message);
   });
 }
 

@@ -62,7 +62,7 @@ export function verifyCloudSignature(rawBody: string, sigHeader: string | null):
     return true;
   }
   if (!sigHeader) {
-    console.warn("[cloudSync] Cloud response missing X-Cloud-Sig — rejecting payload.");
+    log.warn("cloudSync: cloud response missing X-Cloud-Sig — rejecting payload");
     return false;
   }
   const expected = crypto.createHmac("sha256", CLOUD_SYNC_SECRET).update(rawBody).digest("hex");
@@ -120,7 +120,7 @@ export async function syncToCloud(machineId, createdKey = null) {
   if (!response.ok) {
     const errorText = await response.text();
     const truncated = errorText.length > 200 ? errorText.slice(0, 200) + "…" : errorText;
-    console.log("Cloud sync failed", { status: response.status, body: truncated });
+    log.warn({ status: response.status, body: truncated }, "cloudSync: sync failed");
     return { error: "Cloud sync failed" };
   }
 
