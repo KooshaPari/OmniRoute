@@ -55,6 +55,55 @@ export interface ConnectionFields {
 }
 
 /**
+ * Typed error thrown by strict-mode encryption functions. Carries the
+ * classification (auth-tag failure vs malformed) and a cipher prefix for
+ * debugging without leaking full ciphertext.
+ *
+ * Use `instanceof EncryptionDecryptionError` to distinguish encryption
+ * failures from generic errors in callers.
+ */
+export class EncryptionDecryptionError extends Error {
+  readonly cause?: unknown;
+  readonly ciphertextPrefix?: string;
+  readonly classification: "auth-tag-failure" | "malformed" | "not-configured" | "encrypt-failed";
+
+  constructor(
+    message: string,
+    options: {
+      cause?: unknown;
+      ciphertextPrefix?: string;
+      classification: EncryptionDecryptionError["classification"];
+    },
+  ) {
+    super(message);
+    this.name = "EncryptionDecryptionError";
+    this.cause = options.cause;
+    this.ciphertextPrefix = options.ciphertextPrefix;
+    this.classification = options.classification;
+  }
+}
+
+/**
+ * Classify a Node crypto error as an auth-tag validation failure (the
+ * most security-relevant case) vs other malformed-input errors.
+ *
+ * Node OpenSSL errors have stable codes (ERR_OSSL_BAD_DECRYPT,
+ * ERR_OSSL_GCM_NO_TAG) that map to GCM auth-tag failure. We also match
+ * on message substrings for older Node versions and other runtimes.
+ */
+function isAuthTagFailure(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const code = (err as { code?: string }).code;
+  if (code === "ERR_OSSL_BAD_DECRYPT" || code === "ERR_OSSL_GCM_NO_TAG") return true;
+  const message = (err as { message?: string }).message?.toLowerCase() ?? "";
+  return (
+    message.includes("unsupported state or unable to authenticate data") ||
+    message.includes("auth tag") ||
+    message.includes("bad decrypt")
+  );
+}
+
+/**
  * Derive the PRIMARY encryption key using the static salt.
  * This is the canonical key derivation that all new encryptions use.
  * Returns null if no encryption key is configured.
@@ -149,6 +198,43 @@ export function encrypt(plaintext: string | null | undefined): string | null | u
 }
 
 /**
+ * Strict variant of encrypt(): throws EncryptionDecryptionError on
+ * failure instead of silently falling back to plaintext.
+ *
+ * Use when the caller can usefully handle the typed error (e.g., refuse
+ * to write plaintext, surface to operator, mark row as corrupt).
+ *
+ * For most callers, prefer the lenient encrypt() which returns plaintext
+ * on failure for backward compatibility.
+ */
+export function encryptStrict(plaintext: string | null | undefined): string | null | undefined {
+  if (!plaintext || typeof plaintext !== "string") return plaintext;
+  if (plaintext.startsWith(PREFIX)) return plaintext;
+
+  const key = getStaticKey();
+  if (!key) {
+    throw new EncryptionDecryptionError(
+      "encryptStrict: STORAGE_ENCRYPTION_KEY is not set",
+      { classification: "not-configured" },
+    );
+  }
+
+  try {
+    const iv = randomBytes(IV_LENGTH);
+    const cipher = createCipheriv(ALGORITHM, key, iv);
+    let encrypted = cipher.update(plaintext, "utf8", "hex");
+    encrypted += cipher.final("hex");
+    const authTag = cipher.getAuthTag().toString("hex");
+    return `${PREFIX}${iv.toString("hex")}:${encrypted}:${authTag}`;
+  } catch (err) {
+    throw new EncryptionDecryptionError("encryptStrict: cipher pipeline failed", {
+      cause: err,
+      classification: "encrypt-failed",
+    });
+  }
+}
+
+/**
  * Decrypt a ciphertext string. Attempts static-salt key first (primary),
  * then falls back to legacy dynamic-salt key for backward compatibility.
  *
@@ -213,6 +299,118 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
     encryptionLog.error({ err }, `[Encryption] Decryption failed: ${message}`);
     return null;
   }
+}
+
+/**
+ * Strict variant of decrypt(): throws EncryptionDecryptionError on
+ * auth-tag failure or malformed ciphertext instead of returning null.
+ *
+ * Use when the caller can usefully handle the typed error (e.g., set a
+ * "corrupted" flag, refuse to overwrite, surface to operator, mark the
+ * row for manual review).
+ *
+ * For most callers, prefer the lenient decrypt() which returns null
+ * on failure for backward compatibility.
+ *
+ * The typed error includes a `classification` field (auth-tag-failure
+ * vs malformed) and a `ciphertextPrefix` (first 30 chars) for
+ * debugging without leaking full ciphertext.
+ */
+export function decryptStrict(ciphertext: string | null | undefined): string | null | undefined {
+  if (!ciphertext || typeof ciphertext !== "string") return ciphertext;
+  if (!ciphertext.startsWith(PREFIX)) return ciphertext;
+
+  const staticKey = getStaticKey();
+  if (!staticKey) {
+    encryptionLog.warn(
+      { ciphertextPrefix: ciphertext.slice(0, 30) },
+      "decryptStrict: STORAGE_ENCRYPTION_KEY not set but encrypted data found — returning null",
+    );
+    return null;
+  }
+
+  const body = ciphertext.slice(PREFIX.length);
+  const parts = body.split(":");
+  if (parts.length !== 3) {
+    throw new EncryptionDecryptionError(
+      "decryptStrict: malformed ciphertext (expected enc:v1:<iv>:<ct>:<authTag>)",
+      { ciphertextPrefix: ciphertext.slice(0, 30), classification: "malformed" },
+    );
+  }
+
+  const [ivHex, encryptedHex, authTagHex] = parts;
+  const iv = Buffer.from(ivHex, "hex");
+  const authTag = Buffer.from(authTagHex, "hex");
+
+  try {
+    const decipher = createDecipheriv(ALGORITHM, staticKey, iv, {
+      authTagLength: AUTH_TAG_LENGTH,
+    });
+    decipher.setAuthTag(authTag);
+
+    let decrypted = decipher.update(encryptedHex, "hex", "utf8");
+    decrypted += decipher.final("utf8");
+    return decrypted;
+  } catch (err) {
+    if (isAuthTagFailure(err)) {
+      encryptionLog.error(
+        { err, ciphertextPrefix: ciphertext.slice(0, 30) },
+        "decryptStrict: auth-tag validation failed (data corruption suspected)",
+      );
+      throw new EncryptionDecryptionError(
+        "decryptStrict: auth-tag validation failed (data corruption suspected)",
+        { cause: err, ciphertextPrefix: ciphertext.slice(0, 30), classification: "auth-tag-failure" },
+      );
+    }
+    encryptionLog.error(
+      { err, ciphertextPrefix: ciphertext.slice(0, 30) },
+      "decryptStrict: malformed ciphertext or key mismatch",
+    );
+    throw new EncryptionDecryptionError(
+      "decryptStrict: malformed ciphertext or key mismatch",
+      { cause: err, ciphertextPrefix: ciphertext.slice(0, 30), classification: "malformed" },
+    );
+  }
+}
+
+/**
+ * Strict variant of encryptConnectionFields(): mutates connection fields
+ * with encryptStrict(). Throws EncryptionDecryptionError if any field
+ * fails to encrypt.
+ *
+ * Use when the caller needs to ensure no plaintext is stored.
+ */
+export function encryptStrictConnectionFields<T extends ConnectionFields | null | undefined>(
+  conn: T,
+): T {
+  if (!isEncryptionEnabled()) return conn;
+  if (!conn) return conn;
+
+  if (conn.apiKey) conn.apiKey = encryptStrict(conn.apiKey);
+  if (conn.accessToken) conn.accessToken = encryptStrict(conn.accessToken);
+  if (conn.refreshToken) conn.refreshToken = encryptStrict(conn.refreshToken);
+  if (conn.idToken) conn.idToken = encryptStrict(conn.idToken);
+  return conn;
+}
+
+/**
+ * Strict variant of decryptConnectionFields(): decrypts fields with
+ * decryptStrict(). Throws EncryptionDecryptionError if any field fails
+ * to decrypt (caller can decide whether to refuse to use the row).
+ */
+export function decryptStrictConnectionFields<T extends ConnectionFields | null | undefined>(
+  row: T,
+): T {
+  if (!row) return row;
+  if (!isEncryptionEnabled()) return row;
+
+  return {
+    ...row,
+    apiKey: decryptStrict(row.apiKey),
+    accessToken: decryptStrict(row.accessToken),
+    refreshToken: decryptStrict(row.refreshToken),
+    idToken: decryptStrict(row.idToken),
+  };
 }
 
 /**
