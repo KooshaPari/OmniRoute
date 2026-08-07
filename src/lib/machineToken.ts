@@ -1,11 +1,22 @@
 import { createHash, createHmac } from "node:crypto";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("auth:machine-token");
+let fallbackLogged = false;
 
 let machineIdSync: (original?: boolean) => string;
 try {
   // Use require() to bypass webpack static analysis that breaks the default export
   const mod = require("node-machine-id");
   machineIdSync = mod.machineIdSync || mod.default?.machineIdSync;
-} catch {
+} catch (err) {
+  if (!fallbackLogged) {
+    fallbackLogged = true;
+    log.error(
+      { err },
+      "machineToken: node-machine-id unavailable — HMAC salt falls back to empty string (security-relevant, all tokens become constant-keyed)"
+    );
+  }
   machineIdSync = () => "";
 }
 
