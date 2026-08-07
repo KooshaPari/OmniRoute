@@ -250,6 +250,7 @@
     "check:crypto-failures": "node --import tsx scripts/check/crypto-failures.ts",
     "check:console-in-src": "node --import tsx scripts/check/console-in-src.ts",
     "check:broken-imports": "node --import tsx scripts/check/broken-imports.ts",
+    "check:as-cast-drift": "node --import tsx scripts/check/as-cast-drift.ts",
     "check:governance": "npm run check:fail-open && npm run check:crypto-failures && npm run check:broken-imports",
     "ci:startup-determinism": "bash scripts/check-fail-open.sh && npm run audit:prod",
     "lint:oxlint": "oxlint --config .oxlintrc.json src/ open-sse/",
