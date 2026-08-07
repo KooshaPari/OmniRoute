@@ -80,6 +80,26 @@ export type EnforceDecision =
   | { kind: "allow"; deprioritize?: boolean }
   | { kind: "block"; reason: string; httpStatus: 429; retryAfterSeconds?: number };
 
+/**
+ * Plan-level consumption rollup. Used by `KeyvQuotaStoreExtras.recordPlanUsage`
+ * (extension class, not part of the `QuotaStore` interface contract). The shape
+ * is intentionally minimal — it tracks a cumulative counter per (connection,
+ * provider) and the last write timestamp. Optional fields (`poolId`,
+ * `connectionId`, `provider`) allow future fan-out without breaking existing
+ * Keyv entries.
+ *
+ * Lives in `types.ts` (rather than `dimensions.ts` or `keyvQuotaStoreExtras.ts`)
+ * because the keying scheme `plan:<connectionId>:<provider>` references it
+ * from multiple modules.
+ */
+export interface PlanPoolUsage {
+  totalConsumed?: number;
+  lastUpdatedAt: number;
+  poolId?: string;
+  connectionId?: string;
+  provider?: string;
+}
+
 export interface RecordConsumptionInput {
   apiKeyId: string;
   connectionId: string;

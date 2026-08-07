@@ -1,10 +1,13 @@
 import { DEFAULT_DATABASE_SETTINGS, type DatabaseSettings } from "@/types/databaseSettings";
 
 import type { SqliteAdapter } from "./adapters/types";
+import { createLogger } from "@/shared/utils/logger";
 
 type SqliteDatabase = SqliteAdapter;
 type DatabaseOptimizationSettings = DatabaseSettings["optimization"];
 type AutoVacuumMode = DatabaseOptimizationSettings["autoVacuumMode"];
+
+const log = createLogger("db:optimization");
 
 const AUTO_VACUUM_MODE_TO_PRAGMA: Record<AutoVacuumMode, number> = {
   NONE: 0,
@@ -139,7 +142,7 @@ function readDatabaseOptimizationSettings(db: SqliteDatabase): DatabaseOptimizat
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.warn(`[DB] Failed to read database optimization settings; using defaults: ${message}`);
+    log.warn({ err: message }, "Failed to read database optimization settings; using defaults");
   }
 
   return settings;
@@ -151,12 +154,16 @@ export function setCacheSizeForDb(db: SqliteDatabase, cacheSizeKb: number): void
   const targetCacheSize = -normalizedCacheSizeKb;
 
   if (currentCacheSize === targetCacheSize) {
-    console.log(`[DB] cache_size already set to ${normalizedCacheSizeKb}KB`);
+    log.info({ cacheSizeKb: normalizedCacheSizeKb }, "cache_size already set");
     return;
   }
 
-  console.log(
-    `[DB] Changing cache_size from ${Math.abs(currentCacheSize)}KB to ${normalizedCacheSizeKb}KB`
+  log.info(
+    {
+      fromKb: Math.abs(currentCacheSize),
+      toKb: normalizedCacheSizeKb,
+    },
+    "Changing cache_size"
   );
   db.pragma(`cache_size = ${targetCacheSize}`);
 
@@ -166,7 +173,7 @@ export function setCacheSizeForDb(db: SqliteDatabase, cacheSizeKb: number): void
       `cache_size change did not take effect (expected ${targetCacheSize}, got ${newCacheSize})`
     );
   }
-  console.log(`[DB] cache_size changed to ${Math.abs(newCacheSize)}KB`);
+  log.info({ cacheSizeKb: Math.abs(newCacheSize) }, "cache_size changed");
 }
 
 function applyPersistentOptimizationPragmas(
@@ -188,10 +195,12 @@ function applyPersistentOptimizationPragmas(
   ).toUpperCase();
   const shouldRestoreWal = originalJournalMode === "WAL";
 
-  console.log(
-    `[DB] Applying persistent optimization settings ` +
-      `(auto_vacuum ${currentAutoVacuum}->${targetAutoVacuum}, ` +
-      `page_size ${currentPageSize}->${targetPageSize})`
+  log.info(
+    {
+      autoVacuum: { from: currentAutoVacuum, to: targetAutoVacuum },
+      pageSize: { from: currentPageSize, to: targetPageSize },
+    },
+    "Applying persistent optimization settings"
   );
 
   try {
@@ -205,7 +214,7 @@ function applyPersistentOptimizationPragmas(
         db.pragma("journal_mode = WAL");
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[DB] Failed to restore WAL mode after optimization settings: ${message}`);
+        log.warn({ err: message }, "Failed to restore WAL mode after optimization settings");
       }
     }
   }
@@ -248,7 +257,7 @@ export function setAutoVacuumForDb(db: SqliteDatabase, mode: AutoVacuumMode): vo
   const targetMode = AUTO_VACUUM_MODE_TO_PRAGMA[mode];
 
   if (currentMode === targetMode) {
-    console.log(`[DB] auto_vacuum already set to ${mode}`);
+    log.info({ mode }, "auto_vacuum already set");
     return;
   }
 
@@ -272,7 +281,7 @@ export function setPageSizeForDb(db: SqliteDatabase, pageSize: number): void {
   );
 
   if (currentPageSize === targetPageSize) {
-    console.log(`[DB] page_size already set to ${targetPageSize}`);
+    log.info({ pageSize: targetPageSize }, "page_size already set");
     return;
   }
 
