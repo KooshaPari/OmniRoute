@@ -1,7 +1,10 @@
 /** In-memory ring buffer for service log lines with optional file flush. */
 
 import fs from "node:fs";
+import { createLogger } from "@/shared/utils/logger";
 import type { LogLine } from "./types";
+
+const log = createLogger("services:ring-buffer");
 
 const DEFAULT_MAX_BYTES = 5_242_880; // 5 MB
 const FLUSH_DEBOUNCE_MS = 60_000; // 1 min
@@ -76,7 +79,7 @@ export class RingBuffer {
         this.flushWarnedOnce = true;
         const msg = err instanceof Error ? err.message : String(err);
         // Non-fatal — log once and stop trying
-        console.warn(`[RingBuffer] flush to ${this.flushPath} failed: ${msg}`);
+        log.warn({ path: this.flushPath, err: msg }, "ring-buffer: flush failed");
       }
     }
   }

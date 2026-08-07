@@ -3,9 +3,12 @@ import type { IncomingMessage, ServerResponse } from "http";
 import net from "net";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 import { getApiBridgeTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("lib:api-bridge");
 
 const API_BRIDGE_TIMEOUTS = getApiBridgeTimeoutConfig(process.env, (message) => {
-  console.warn(`[API Bridge] ${message}`);
+  log.warn({ message }, "api-bridge: runtime timeout config");
 });
 
 const OPENAI_COMPAT_PATHS = [
@@ -218,16 +221,17 @@ export function initApiBridgeServer(): void {
 
   server.on("error", (error: NodeJS.ErrnoException) => {
     if (error?.code === "EADDRINUSE") {
-      console.warn(
-        `[API Bridge] Port ${apiPort} is already in use. API bridge disabled. (dashboard: ${dashboardPort})`
+      log.warn(
+        { apiPort, dashboardPort },
+        "api-bridge: port already in use — bridge disabled"
       );
       return;
     }
-    console.warn("[API Bridge] Failed to start:", error?.message || error);
+    log.warn({ err: error?.message || String(error) }, "api-bridge: failed to start");
   });
 
   server.listen(apiPort, host, () => {
     globalThis.__omnirouteApiBridgeStarted = true;
-    console.log(`[API Bridge] Listening on ${host}:${apiPort} -> dashboard:${dashboardPort}`);
+    log.info({ host, apiPort, dashboardPort }, "api-bridge: listening");
   });
 }

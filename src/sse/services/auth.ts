@@ -2172,7 +2172,7 @@ export async function markAccountUnavailable(
       }
 
       if (status && errorMsg) {
-        console.error(`❌ ${provider} [${status}] (${scope}): ${errorMsg}`);
+        log.error("AUTH", `${provider} [${status}] (${scope}): ${errorMsg}`);
       }
 
       return { shouldFallback: true, cooldownMs: scopeCooldownMs };
@@ -2235,7 +2235,7 @@ export async function markAccountUnavailable(
     }
 
     if (provider && status && errorMsg) {
-      console.error(`❌ ${provider} [${status}]: ${errorMsg}`);
+      log.error("AUTH", `${provider} [${status}]: ${errorMsg}`);
     }
 
     return { shouldFallback: true, cooldownMs };

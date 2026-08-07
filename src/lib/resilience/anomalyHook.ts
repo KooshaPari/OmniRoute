@@ -106,8 +106,7 @@ export async function recordHealthSample(
     });
   } catch (err) {
     // Telemetry must never break the calling request path.
-    // eslint-disable-next-line no-console
-    console.warn("[self-healing] recordHealthSample swallowed error:", err);
+    log.warn({ err }, "self-healing: recordHealthSample swallowed error");
     return null;
   }
 }

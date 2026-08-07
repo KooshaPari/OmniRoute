@@ -407,14 +407,14 @@ async function seedLatestCompressionRunFromDb(): Promise<void> {
       },
       timestamp
     );
-    console.log(
-      "[LiveWS] Seeded latest compression run from analytics: %s",
-      row.request_id || row.id
+    log.info(
+      { id: row.request_id || row.id },
+      "liveServer: seeded latest compression run from analytics"
     );
   } catch (err) {
-    console.warn(
-      "[LiveWS] Could not seed compression analytics backlog: %s",
-      err instanceof Error ? err.message : String(err)
+    log.warn(
+      { err: err instanceof Error ? err.message : String(err) },
+      "liveServer: could not seed compression analytics backlog"
     );
   }
 }
@@ -554,11 +554,9 @@ export async function startLiveDashboardServer(
     // Constant format string + %s args — keeps clientId / remoteAddress out
     // of the format slot so a malicious value cannot forge log lines via
     // injected format specifiers (CWE-134).
-    console.log(
-      "[LiveWS] Client connected: %s (%s) [%d total]",
-      clientId,
-      client.remoteAddress,
-      clients.size
+    log.info(
+      { clientId, remoteAddress: client.remoteAddress, total: clients.size },
+      "liveServer: client connected"
     );
 
     // Replay any subscribe/ping frames sent while auth was still pending.
@@ -569,12 +567,12 @@ export async function startLiveDashboardServer(
     // Handle close
     ws.on("close", () => {
       clients.delete(clientId);
-      console.log("[LiveWS] Client disconnected: %s [%d remaining]", clientId, clients.size);
+      log.info({ clientId, remaining: clients.size }, "liveServer: client disconnected");
     });
 
     // Handle errors
     ws.on("error", (err) => {
-      console.error("[LiveWS] Client error %s: %s", clientId, err.message);
+      log.error({ clientId, err: err.message }, "liveServer: client error");
       clients.delete(clientId);
     });
   });
@@ -626,6 +624,6 @@ if (!isBuildOrTest() && isLiveWsEnabled()) {
   const port = parseInt(process.env.LIVE_WS_PORT || String(DEFAULT_PORT), 10);
   const host = process.env.LIVE_WS_HOST || DEFAULT_HOST;
   startLiveDashboardServer(port, host).catch((err) => {
-    console.error("[LiveWS] Failed to start: %s", err instanceof Error ? err.message : String(err));
+    log.error({ err: err instanceof Error ? err.message : String(err) }, "liveServer: failed to start");
   });
 }

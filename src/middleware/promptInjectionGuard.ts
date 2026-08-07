@@ -12,6 +12,9 @@ import {
 } from "@/lib/guardrails/promptInjection";
 import { resolveDisabledGuardrails } from "@/lib/guardrails/registry";
 import { CORS_HEADERS } from "@/shared/utils/cors";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("middleware:prompt-injection-guard");
 
 /**
  * Create a prompt injection guard middleware.
@@ -90,7 +93,7 @@ export function withInjectionGuard(handler: any, options: any = {}) {
         }
       }
     } catch (error) {
-      console.error("[SECURITY] Injection guard error:", error);
+      log.error({ err: error }, "prompt-injection-guard: security check failed");
       return new Response(JSON.stringify({ error: "Security check failed" }), {
         status: 500,
         headers: { "Content-Type": "application/json" },

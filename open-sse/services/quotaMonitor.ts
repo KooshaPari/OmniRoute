@@ -10,6 +10,9 @@
 
 import { registerQuotaFetcher, type QuotaFetcher } from "./quotaPreflight.ts";
 import { getSessionInfo } from "./sessionManager.ts";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("open-sse:quota-monitor");
 
 export { registerQuotaFetcher };
 export type { QuotaFetcher };
@@ -120,8 +123,9 @@ function suppressedAlert(
     if (oldestKey !== undefined) alertSuppression.delete(oldestKey);
   }
   alertSuppression.set(key, Date.now());
-  console.warn(
-    `[QuotaMonitor] session=${sessionId} ${provider}/${accountId}: ${(percentUsed * 100).toFixed(1)}% quota used`
+  log.warn(
+    { sessionId, provider, accountId, percentUsed },
+    "quota-monitor: session quota usage threshold reached"
   );
   return true;
 }
@@ -237,8 +241,9 @@ function scheduleNextPoll(sessionId: string, intervalMs: number): void {
           current.totalAlerts += 1;
         }
         if (emittedAlert || previousStatus !== "exhausted") {
-          console.info(
-            `[QuotaMonitor] session=${sessionId}: marking ${accountId} for next-session cooldown`
+          log.info(
+            { sessionId, accountId },
+            "quota-monitor: marking account for next-session cooldown"
           );
         }
         scheduleNextPoll(sessionId, CRITICAL_INTERVAL_MS);

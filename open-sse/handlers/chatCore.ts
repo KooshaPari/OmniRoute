@@ -76,6 +76,9 @@ import {
   COLORS,
   withBodyTimeout,
 } from "../utils/stream.ts";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("open-sse:chat-core");
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
 import { resolveSuppressThinkClose, THINKING_MARKER_HEADER } from "../utils/thinkCloseMarker.ts";
 import { resolveStreamReadinessTimeout } from "../utils/streamReadinessPolicy.ts";
@@ -3120,8 +3123,9 @@ export async function handleChatCore({
             lastError: message,
             errorCode: statusCode,
           });
-          console.warn(
-            `[provider] Node ${errorConnectionId} banned (${statusCode}) — disabling permanently`
+          log.warn(
+            { connectionId: errorConnectionId, statusCode },
+            "chat-core: provider node banned — disabling permanently"
           );
         } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
           // Plan A: if connection has extra API keys, don't disable — only the failing key is affected.
@@ -3138,8 +3142,9 @@ export async function handleChatCore({
               lastError: message,
               errorCode: statusCode,
             });
-            console.warn(
-              `[provider] Node ${errorConnectionId} account deactivated (${statusCode}) — has extra keys, keeping connection active`
+            log.warn(
+              { connectionId: errorConnectionId, statusCode },
+              "chat-core: provider node deactivated — has extra keys, keeping connection active"
             );
           } else {
             await updateProviderConnection(errorConnectionId, {
@@ -3149,8 +3154,9 @@ export async function handleChatCore({
               lastError: message,
               errorCode: statusCode,
             });
-            console.warn(
-              `[provider] Node ${errorConnectionId} account deactivated (${statusCode}) — disabling permanently`
+            log.warn(
+              { connectionId: errorConnectionId, statusCode },
+              "chat-core: provider node deactivated — disabling permanently"
             );
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
@@ -3167,8 +3173,14 @@ export async function handleChatCore({
           }
           if (isModelScope() && errorConnectionId) {
             lockModel(provider, errorConnectionId, model, "quota_exhausted", quotaCooldownMs);
-            console.warn(
-              `[provider] Node ${errorConnectionId} ModelScope model quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
+            log.warn(
+              {
+                connectionId: errorConnectionId,
+                statusCode,
+                model,
+                cooldownSec: Math.ceil(quotaCooldownMs / 1000),
+              },
+              "chat-core: ModelScope model quota exhausted (connection stays active)"
             );
           } else if (
             lockModelIfPerModelQuota(
@@ -3180,8 +3192,16 @@ export async function handleChatCore({
             )
           ) {
             const quotaScope = getQuotaScopeLabelForProvider(provider, model);
-            console.warn(
-              `[provider] Node ${errorConnectionId} ${quotaScope}-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (cooldown_scope=${quotaScope}, ttl_source=${retryAfterMs ? "upstream" : "inferred"}, connection stays active)`
+            log.warn(
+              {
+                connectionId: errorConnectionId,
+                statusCode,
+                model,
+                cooldownSec: Math.ceil(quotaCooldownMs / 1000),
+                quotaScope,
+                ttlSource: retryAfterMs ? "upstream" : "inferred",
+              },
+              "chat-core: quota-only exhausted (connection stays active)"
             );
           } else {
             await updateProviderConnection(errorConnectionId, {
@@ -3190,7 +3210,10 @@ export async function handleChatCore({
               lastError: message,
               errorCode: statusCode,
             });
-            console.warn(`[provider] Node ${errorConnectionId} exhausted quota (${statusCode})`);
+            log.warn(
+              { connectionId: errorConnectionId, statusCode },
+              "chat-core: provider node exhausted quota"
+            );
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED) {
           // Normal 401 (token/session auth issue): keep account active for refresh/re-auth.
@@ -3206,8 +3229,9 @@ export async function handleChatCore({
             lastError: message,
             errorCode: statusCode,
           });
-          console.warn(
-            `[provider] Node ${errorConnectionId} OAuth token invalid (${statusCode}) — token refresh available`
+          log.warn(
+            { connectionId: errorConnectionId, statusCode },
+            "chat-core: OAuth token invalid — token refresh available"
           );
         } else if (errorType === PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR) {
           // Cloud Code 403 with stale project: not a ban, keep account active.
@@ -3216,8 +3240,9 @@ export async function handleChatCore({
             lastError: message,
             errorCode: statusCode,
           });
-          console.warn(
-            `[provider] Node ${errorConnectionId} project routing error (${statusCode}) — not banning`
+          log.warn(
+            { connectionId: errorConnectionId, statusCode },
+            "chat-core: project routing error — not banning"
           );
         }
       } catch {
