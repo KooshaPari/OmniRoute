@@ -23,3 +23,11 @@ test("renderer receives the bundled backend origin for server-side BFF routes", 
     /const bundledUrl = await bootNextServer\(\);[\s\S]*const rendererUrl = await bootRendererServer\(\);/
   );
 });
+
+test("both packaged services use their explicit health route for readiness", async () => {
+  const source = await readEntrypoint();
+
+  assert.equal((source.match(/fetch\(`\$\{url\}\/healthz`/g) ?? []).length, 2);
+  assert.match(source, /async function bootNextServer\(\)[\s\S]*fetch\(`\$\{url\}\/healthz`/);
+  assert.match(source, /async function bootRendererServer\(\)[\s\S]*fetch\(`\$\{url\}\/healthz`/);
+});
