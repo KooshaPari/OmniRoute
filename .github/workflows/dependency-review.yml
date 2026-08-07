@@ -21,8 +21,9 @@ jobs:
         with:
           fail-on-severity: high
           comment-summary-in-pr: true
-          # BlueOak-1.0.0 is the permissive license used by isexe@4, pulled
-          # transitively by the existing Node-24 sqlite3/node-gyp toolchain.
+          # @keyv/sqlite@4 pulls sqlite3@6, whose node-gyp toolchain includes
+          # isexe@4 under BlueOak-1.0.0. Permit this transitive license while
+          # retaining the deny-by-default policy for all other unlisted licenses.
           allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, Unlicense, 0BSD, CC0-1.0, BlueOak-1.0.0
           # Sonar's pinned GitHub Action is LGPL-3.0. Exempt only this immutable
           # action dependency; LGPL remains denied for every package and action.

@@ -14,6 +14,9 @@ import {
 } from "@/models";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("oauth:connection-persistence");
 
 /**
  * Constant-time string comparison to prevent timing-oracle attacks (CWE-208).
@@ -62,7 +65,7 @@ async function syncToCloudIfEnabled(): Promise<void> {
     const machineId = await getConsistentMachineId();
     await syncToCloud(machineId);
   } catch (error) {
-    console.log("Error syncing to cloud after OAuth:", error);
+    log.error({ err: error }, "oauth: failed to sync to cloud after OAuth");
   }
 }
 

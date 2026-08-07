@@ -1,8 +1,14 @@
 import { sanitizeVscodeRequest } from "@/app/api/v1/vscode/contextSanitizer";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("vscode:tokenized-request");
 
 // Path-token endpoints carry the API key in the URL (by design, for Ollama/VS Code clients that
 // cannot send an Authorization header). URLs leak via access logs, proxies, and browser history,
 // so we alert the operator once per process when such an endpoint is exercised (Seg4 hardening).
+// `console.warn` is preserved alongside `log.warn` so tests/unit/vscode-token-in-url-warning.test.ts
+// (which captures `console.warn` to verify the once-per-process dedup) keeps passing; pino is the
+// canonical structured-log sink.
 let hasWarnedTokenInUrl = false;
 
 export const __vscodeRawInternals = {
@@ -14,6 +20,9 @@ export const __vscodeRawInternals = {
 function warnTokenInUrlOnce() {
   if (hasWarnedTokenInUrl) return;
   hasWarnedTokenInUrl = true;
+  log.warn(
+    "vscode: path-token endpoint used — API key travels in the request URL and can leak via access logs, proxies, and browser history; prefer the Authorization header where the client supports it"
+  );
   console.warn(
     "[VSCODE][SECURITY] A path-token endpoint (/api/v1/vscode/raw/[token] or /api/v1/vscode/[token]) " +
       "was used. The API key travels in the request URL and can leak via access logs, proxies, and " +

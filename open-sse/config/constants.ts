@@ -1,9 +1,12 @@
 import { getUpstreamTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
 import { loadProviderCredentials } from "./credentialLoader.ts";
 import { generateLegacyProviders } from "./providerRegistry.ts";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("open-sse:constants");
 
 const upstreamTimeouts = getUpstreamTimeoutConfig(process.env, (message) => {
-  console.warn(`[open-sse] ${message}`);
+  log.warn({ message }, "open-sse: runtime timeout config");
 });
 
 // Timeout for receiving the initial upstream response (ms).

@@ -89,8 +89,9 @@ class AutoRefreshDaemon {
     // Don't keep the process alive solely for this periodic daemon.
     (this.timerId as { unref?: () => void })?.unref?.();
 
-    console.log(
-      `[AutoRefreshDaemon] Started — checking ${this.credentialStore.size} credentials every ${this.checkIntervalMs / 1000}s`
+    log.info(
+      { credentials: this.credentialStore.size, intervalSec: this.checkIntervalMs / 1000 },
+      "auto-refresh-daemon: started"
     );
   }
 
@@ -104,7 +105,7 @@ class AutoRefreshDaemon {
       clearInterval(this.timerId);
       this.timerId = null;
     }
-    console.log("[AutoRefreshDaemon] Stopped");
+    log.info("auto-refresh-daemon: stopped");
   }
 
   /**
@@ -128,8 +129,9 @@ class AutoRefreshDaemon {
         const isValid = await this.validateCredential(providerId, config.homeUrl);
         if (!isValid) {
           newlyExpired.push(providerId);
-          console.warn(
-            `[AutoRefreshDaemon] Credential expired for "${providerId}" (${config.displayName})`
+          log.warn(
+            { providerId, displayName: config.displayName },
+            "auto-refresh-daemon: credential expired"
           );
         }
       } catch {

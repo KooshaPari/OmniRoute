@@ -8,6 +8,9 @@
  */
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, isCloud, isBuildPhase } from "./db/core";
+import { createLogger } from "@/shared/utils/logger";
+
+const logger = createLogger("lib:proxy-logger");
 
 const shouldPersistToDisk = !isCloud && !isBuildPhase;
 
@@ -92,10 +95,10 @@ function loadFromDb() {
     }
 
     if (proxyLogs.length > 0) {
-      console.log(`[proxyLogger] Loaded ${proxyLogs.length} proxy logs from SQLite`);
+      logger.info({ count: proxyLogs.length }, "proxy-logger: loaded from SQLite");
     }
   } catch (err: any) {
-    console.warn("[proxyLogger] Failed to load from DB:", err.message);
+    logger.warn({ err: err.message }, "proxy-logger: failed to load from DB");
   }
 }
 
@@ -126,10 +129,17 @@ export function logProxyEvent(entry: ProxyLogInput) {
   // Structured egress line so the operator can confirm, in the proxy logs, which
   // IP each account is entering (clientIp) and leaving (egressIp) by.
   if (log.proxy || log.egressIp) {
-    console.log(
-      `[ProxyEgress] ${log.provider || "-"}/${log.account || "-"} ` +
-        `in=${log.clientIp || "?"} out=${log.egressIp || "?"} ` +
-        `proxy=${log.level}${log.proxy ? `:${log.proxy.host}` : ""} status=${log.status}`
+    logger.info(
+      {
+        provider: log.provider,
+        account: log.account,
+        clientIp: log.clientIp,
+        egressIp: log.egressIp,
+        level: log.level,
+        proxyHost: log.proxy?.host ?? null,
+        status: log.status,
+      },
+      "proxy-logger: egress event"
     );
   }
 
@@ -170,7 +180,7 @@ export function logProxyEvent(entry: ProxyLogInput) {
         tlsFingerprint: log.tlsFingerprint ? 1 : 0,
       });
     } catch (err: any) {
-      console.warn("[proxyLogger] Failed to persist:", err.message);
+      logger.warn({ err: err.message }, "proxy-logger: failed to persist");
     }
   }
 
@@ -234,7 +244,7 @@ export function clearProxyLogs() {
       const db = getDbInstance();
       db.prepare("DELETE FROM proxy_logs").run();
     } catch (err: any) {
-      console.warn("[proxyLogger] Failed to clear DB:", err.message);
+      logger.warn({ err: err.message }, "proxy-logger: failed to clear DB");
     }
   }
 }

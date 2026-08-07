@@ -69,7 +69,7 @@ export function loadProviderCredentials<T extends Record<string, unknown>>(provi
 
   if (!existsSync(credPath)) {
     if (!credGlobals().__omnirouteCredNoFileLogged) {
-      console.log("[CREDENTIALS] No external credentials file found, using defaults.");
+      log.info("credentials: no external file found, using defaults");
       credGlobals().__omnirouteCredNoFileLogged = true;
     }
     cachedProviders = providers;
@@ -87,15 +87,14 @@ export function loadProviderCredentials<T extends Record<string, unknown>>(provi
 
     for (const [providerKey, creds] of Object.entries(external)) {
       if (!mutableProviders[providerKey]) {
-        console.log(
-          `[CREDENTIALS] Warning: unknown provider "${providerKey}" in credentials file, skipping.`
-        );
+        log.warn({ provider: providerKey }, "credentials: unknown provider, skipping");
         continue;
       }
 
       if (!creds || typeof creds !== "object") {
-        console.log(
-          `[CREDENTIALS] Warning: provider "${providerKey}" value must be an object, got ${typeof creds}. Skipping.`
+        log.warn(
+          { provider: providerKey, actualType: typeof creds },
+          "credentials: provider value must be an object, skipping"
         );
         continue;
       }
@@ -110,15 +109,16 @@ export function loadProviderCredentials<T extends Record<string, unknown>>(provi
     }
 
     const isReload = cachedProviders !== null;
-    console.log(
-      `[CREDENTIALS] ${isReload ? "Reloaded" : "Loaded"} external credentials: ${overrideCount} field(s) from ${credPath}`
+    log.info(
+      { isReload, overrideCount, path: credPath },
+      "credentials: external file loaded"
     );
   } catch (err) {
     const reason =
       err instanceof SyntaxError
         ? "Invalid JSON format"
         : (err as NodeJS.ErrnoException).code || "read error";
-    console.log(`[CREDENTIALS] Error reading credentials file (${reason}). Using defaults.`);
+    log.warn({ reason }, "credentials: error reading file, using defaults");
   }
 
   cachedProviders = providers;

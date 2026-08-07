@@ -1,3 +1,7 @@
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("lib:sse-text-transform");
+
 export type FieldCategory = "content" | "reasoning" | "toolArgs" | "partialJson";
 
 const CATEGORY_MAP: Record<string, FieldCategory> = {
@@ -191,9 +195,9 @@ export function createSseTextTransform(
           sanitizeObject(json, 0, 0);
 
           if (!matched) {
-            console.warn(
-              "[SSE-TRANSFORM] No string fields sanitized in SSE JSON chunk. Keys:",
-              Object.keys(json).slice(0, 5).join(", ")
+            log.warn(
+              { keys: Object.keys(json).slice(0, 5) },
+              "sse-text-transform: no string fields sanitized in JSON chunk"
             );
           } else {
             lastContentJson = json;
@@ -235,9 +239,9 @@ export function createSseTextTransform(
           if (err instanceof SyntaxError) {
             // JSON parsing failed. Check if it looks like JSON that failed to parse.
             if (trimmedSegment.startsWith("{") || trimmedSegment.startsWith("[")) {
-              console.warn(
-                "[SSE-TRANSFORM] Dropping malformed JSON chunk to prevent syntax injection:",
-                trimmedSegment.slice(0, 100)
+              log.warn(
+                { preview: trimmedSegment.slice(0, 100) },
+                "sse-text-transform: dropping malformed JSON chunk to prevent syntax injection"
               );
               pendingEventLine = "";
             } else {
@@ -303,7 +307,7 @@ export function createSseTextTransform(
             context = String(chunk).slice(0, 200);
           }
         }
-        console.error("[SSE-TRANSFORM] Error in transform:", err, "chunk:", context);
+        log.error({ err, context }, "sse-text-transform: error in transform");
         lineBuffer = "";
         errored = true;
         controller.error(err);
@@ -333,7 +337,7 @@ export function createSseTextTransform(
           }
         }
       } catch (err) {
-        console.error("[SSE-TRANSFORM] Error in flush:", err);
+        log.error({ err }, "sse-text-transform: error in flush");
         controller.error(err);
       }
     },

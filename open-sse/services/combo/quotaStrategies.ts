@@ -37,6 +37,9 @@ import {
   type QuotaFetchCacheConfig,
 } from "./quotaScoring.ts";
 import { rankByHeadroom, type HeadroomSaturation } from "./headroomRanking.ts";
+import { createLogger } from "../../../src/shared/utils/logger.ts";
+
+const log = createLogger("combo:quotaStrategies");
 
 const RESET_AWARE_CONNECTION_CACHE_TTL_MS = 30_000;
 const RESET_AWARE_QUOTA_FETCH_CONCURRENCY = 5;
@@ -428,7 +431,13 @@ export async function preScreenTargets(
     targets,
     PRE_SCREEN_CONCURRENCY,
     async (target): Promise<{ key: string; result: PreScreenResult }> => {
-      const profile = await getRuntimeProviderProfile(target.provider).catch(() => null);
+      const profile = await getRuntimeProviderProfile(target.provider).catch((err) => {
+        log.warn(
+          { err, provider: target.provider, model: target.modelStr },
+          "combo:quotaStrategies: failed to fetch runtime provider profile — pre-screen will proceed without profile data"
+        );
+        return null;
+      });
 
       const breaker = getCircuitBreaker(target.provider);
       if (breaker.getStatus().state === "OPEN") {

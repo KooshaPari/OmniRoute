@@ -27,6 +27,9 @@ import type { IncomingMessage } from "node:http";
 
 import { getSupervisor } from "./registry";
 import { getOrCreateApiKey } from "./apiKey";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("services:embed-ws-proxy");
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 20131;
@@ -261,15 +264,15 @@ export function initEmbedWsProxy(): void {
 
   server.on("error", (err: NodeJS.ErrnoException) => {
     if (err.code === "EADDRINUSE") {
-      console.warn(`[EmbedWsProxy] Port ${port} is already in use — embed WS proxy disabled.`);
+      log.warn({ port }, "embed-ws-proxy: port already in use — proxy disabled");
       return;
     }
-    console.warn("[EmbedWsProxy] Failed to start:", err.message);
+    log.warn({ err: err.message }, "embed-ws-proxy: failed to start");
   });
 
   server.listen(port, host, () => {
     globalThis.__omnirouteEmbedWsStarted = true;
-    console.log(`[EmbedWsProxy] Listening on ${host}:${port}`);
+    log.info({ host, port }, "embed-ws-proxy: listening");
   });
 }
 

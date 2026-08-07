@@ -12,6 +12,10 @@
  * @module lib/gracefulShutdown
  */
 
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("lib:graceful-shutdown");
+
 /** Grace period before forced exit (default 30s, configurable) */
 const SHUTDOWN_TIMEOUT_MS = parseInt(process.env.SHUTDOWN_TIMEOUT_MS || "30000", 10);
 
@@ -70,20 +74,24 @@ async function waitForDrain(): Promise<void> {
   return new Promise((resolve) => {
     const check = () => {
       if (state.activeRequests <= 0) {
-        console.log("[Shutdown] All in-flight requests drained.");
+        log.info("shutdown: all in-flight requests drained");
         resolve();
         return;
       }
 
       if (Date.now() - start > SHUTDOWN_TIMEOUT_MS) {
-        console.warn(
-          `[Shutdown] Timeout after ${SHUTDOWN_TIMEOUT_MS}ms with ${state.activeRequests} active requests. Forcing exit.`
+        log.warn(
+          { timeoutMs: SHUTDOWN_TIMEOUT_MS, activeRequests: state.activeRequests },
+          "shutdown: timeout reached — forcing exit"
         );
         resolve();
         return;
       }
 
-      console.log(`[Shutdown] Waiting for ${state.activeRequests} in-flight request(s)...`);
+      log.info(
+        { activeRequests: state.activeRequests },
+        "shutdown: waiting for in-flight requests"
+      );
       setTimeout(check, CHECK_INTERVAL_MS);
     };
 
@@ -105,20 +113,21 @@ async function cleanup(): Promise<void> {
       ]);
     const flushResult = await flushSpendBatchWriter();
     if (flushResult.flushedEntries > 0) {
-      console.log(
-        `[Shutdown] Spend batch writer flushed ${flushResult.flushedEntries} pending entry(ies).`
+      log.info(
+        { flushedEntries: flushResult.flushedEntries },
+        "shutdown: spend batch writer flushed"
       );
     }
     if (closeAuditDb()) {
-      console.log("[Shutdown] MCP audit database checkpointed and closed.");
+      log.info("shutdown: MCP audit database checkpointed and closed");
     }
     if (closeDbInstance()) {
-      console.log("[Shutdown] SQLite database checkpointed and closed.");
+      log.info("shutdown: SQLite database checkpointed and closed");
     }
     closeLogRotation();
-    console.log("[Shutdown] Log rotation timer stopped.");
+    log.info("shutdown: log rotation timer stopped");
   } catch (err) {
-    console.error("[Shutdown] Error during cleanup:", (err as Error).message);
+    log.error({ err: (err as Error).message }, "shutdown: cleanup error");
   }
 }
 
@@ -135,17 +144,20 @@ export function initGracefulShutdown(): void {
     if (state.shuttingDown) return;
     state.shuttingDown = true;
 
-    console.log(`\n[Shutdown] Received ${signal}. Draining ${state.activeRequests} request(s)...`);
+    log.info(
+      { signal, activeRequests: state.activeRequests },
+      "shutdown: received signal, draining"
+    );
 
     await waitForDrain();
     await cleanup();
 
-    console.log("[Shutdown] Bye.");
+    log.info("shutdown: complete");
     process.exit(0);
   };
 
   process.on("SIGTERM", () => shutdown("SIGTERM"));
   process.on("SIGINT", () => shutdown("SIGINT"));
 
-  console.log("[Shutdown] Graceful shutdown handlers registered.");
+  log.info("shutdown: graceful shutdown handlers registered");
 }

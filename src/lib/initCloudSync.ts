@@ -1,6 +1,9 @@
 import initializeCloudSync from "@/shared/services/initializeCloudSync";
 import { startBudgetResetJob } from "@/lib/jobs/budgetResetJob";
 import { startModelSyncScheduler } from "@/shared/services/modelSyncScheduler";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("lib:init-cloud-sync");
 
 // Initialize runtime background sync services once per server process.
 let initialized = false;
@@ -43,7 +46,7 @@ export async function ensureCloudSyncInitialized() {
       startBudgetResetJob();
       initialized = true;
     } catch (error) {
-      console.error("[ServerInit] Error initializing background sync services:", error);
+      log.error({ err: error }, "init-cloud-sync: failed to initialize background sync services");
     }
   }
   return initialized;

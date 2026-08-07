@@ -20,11 +20,14 @@
 import { getDbInstance } from "./db/core";
 import { invalidateDbCache } from "./db/readCache";
 import { backupDbFile } from "./db/backup";
+import { createLogger } from "@/shared/utils/logger";
 
 import {
   transformModelsDevToPricing,
   transformModelsDevToCapabilities,
 } from "./modelsDevSync/transform";
+
+const log = createLogger("lib:models-dev-sync");
 import type {
   PricingModels,
   PricingByProvider,
@@ -206,7 +209,7 @@ export function getModelsDevPricing(): PricingByProvider {
     try {
       synced[key] = JSON.parse(rawValue) as PricingModels;
     } catch {
-      console.warn(`[MODELS_DEV] Corrupted pricing data for provider "${key}", skipping`);
+      log.warn({ provider: key }, "models-dev-sync: corrupted pricing data, skipping");
     }
   }
   return synced;
@@ -525,9 +528,9 @@ export async function syncModelsDev(opts?: {
 
       if (attempt < maxRetries) {
         const delayMs = Math.pow(2, attempt) * 1000; // Exponential backoff: 1s, 2s, 4s
-        console.warn(
-          `[MODELS_DEV] Sync attempt ${attempt + 1} failed, retrying in ${delayMs}ms:`,
-          lastError.message
+        log.warn(
+          { attempt: attempt + 1, delayMs, err: lastError.message },
+          "models-dev-sync: retrying after failure"
         );
         try {
           await sleepWithAbort(delayMs, signal);
@@ -542,7 +545,7 @@ export async function syncModelsDev(opts?: {
   }
 
   const message = lastError?.message || "Unknown error";
-  console.warn(`[MODELS_DEV] Sync failed after ${maxRetries + 1} attempts:`, message);
+  log.warn({ attempts: maxRetries + 1, err: message }, "models-dev-sync: failed after retries");
   return {
     success: false,
     modelCount: 0,
@@ -565,7 +568,7 @@ export function startPeriodicSync(intervalMs?: number): void {
   activeSyncIntervalMs = interval;
   const syncToken = { stopped: false };
   activePeriodicSyncToken = syncToken;
-  console.log(`[MODELS_DEV] Starting periodic sync every ${interval / 1000}s`);
+  log.info({ intervalSec: interval / 1000 }, "models-dev-sync: starting periodic sync");
 
   const launchSync = () => {
     if (syncToken.stopped) {
@@ -592,24 +595,34 @@ export function startPeriodicSync(intervalMs?: number): void {
   launchSync()
     .then((result) => {
       if (result.success) {
-        console.log(
-          `[MODELS_DEV] Initial sync complete: ${result.modelCount} pricing entries, ${result.capabilityCount} capabilities from ${result.providerCount} providers`
+        log.info(
+          { models: result.modelCount, capabilities: result.capabilityCount, providers: result.providerCount },
+          "models-dev-sync: initial sync complete"
         );
       }
     })
     .catch((err) => {
-      console.warn("[MODELS_DEV] Initial sync error:", err instanceof Error ? err.message : err);
+      log.warn(
+        { err: err instanceof Error ? err.message : err },
+        "models-dev-sync: initial sync error"
+      );
     });
 
   syncTimer = setInterval(() => {
     launchSync()
       .then((result) => {
         if (result.success) {
-          console.log(`[MODELS_DEV] Periodic sync complete: ${result.modelCount} pricing entries`);
+          log.info(
+            { models: result.modelCount },
+            "models-dev-sync: periodic sync complete"
+          );
         }
       })
       .catch((err) => {
-        console.warn("[MODELS_DEV] Periodic sync error:", err instanceof Error ? err.message : err);
+        log.warn(
+          { err: err instanceof Error ? err.message : err },
+          "models-dev-sync: periodic sync error"
+        );
       });
   }, interval);
 
@@ -635,7 +648,7 @@ export function stopPeriodicSync(): void {
   if (syncTimer) {
     clearInterval(syncTimer);
     syncTimer = null;
-    console.log("[MODELS_DEV] Periodic sync stopped");
+    log.info("models-dev-sync: periodic sync stopped");
   }
 }
 
@@ -668,7 +681,7 @@ export async function initModelsDevSync(): Promise<void> {
   const settings = await getSettings();
 
   if (settings.modelsDevSyncEnabled !== true) {
-    console.log("[MODELS_DEV] Disabled (enable via Settings > AI)");
+    log.info("models-dev-sync: disabled (enable via Settings > AI)");
     return;
   }
 

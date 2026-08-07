@@ -19,6 +19,9 @@ import {
   type DashboardEventMap,
   type DashboardEventListener,
 } from "./types";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("events:bus");
 
 // ── State (globalThis singleton) ──────────────────────────────────────────
 
@@ -91,7 +94,7 @@ export function emit<E extends DashboardEventName>(event: E, payload: DashboardE
       try {
         listener(payload);
       } catch (err) {
-        console.error(`[EventBus] Error in listener for ${event}:`, err);
+        log.error({ err, event }, "events: listener threw");
       }
     }
   }
@@ -101,7 +104,7 @@ export function emit<E extends DashboardEventName>(event: E, payload: DashboardE
     try {
       listener(event, payload);
     } catch (err) {
-      console.error(`[EventBus] Error in wildcard listener for ${event}:`, err);
+      log.error({ err, event }, "events: wildcard listener threw");
     }
   }
 }

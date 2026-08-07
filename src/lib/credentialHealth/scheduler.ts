@@ -24,6 +24,9 @@ import {
   initCredentialCache,
 } from "@/lib/credentialHealth/cache";
 import { emit } from "@/lib/events/eventBus";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("credential-health:scheduler");
 
 // ── Config ────────────────────────────────────────────────────────────────
 
@@ -119,7 +122,12 @@ async function testConnection(
     const { getCredentialHealth } = await import("@/lib/credentialHealth/cache");
     const prev = getCredentialHealth(connectionId);
     oldStatus = prev?.status;
-  } catch {}
+  } catch (err) {
+    log.warn(
+      { err, connectionId, provider },
+      "credential-health:scheduler: failed to read previous health status — proceeding without transition diff"
+    );
+  }
   try {
     const result = await testSingleConnection(connectionId);
 
@@ -172,10 +180,9 @@ async function testConnection(
       // Log state transition on consecutive failures
       if (currentFailures <= 2) {
         const backoff = getNextBackoff(connectionId);
-        console.log(
-          LOG_PREFIX,
-          `❌ ${provider}/${connectionId} — ${result.error || "Connection failed"}` +
-            ` [${latencyMs}ms] (failure #${currentFailures}, next check in ${backoff / 1000}s)`
+        log.warn(
+          { provider, connectionId, err: result.error || "Connection failed", latencyMs, currentFailures, nextCheckSec: backoff / 1000 },
+          "credential-health: connection failed"
         );
       }
     }
@@ -190,9 +197,9 @@ async function testConnection(
     setCredentialHealth(connectionId, provider, "error", message);
 
     if (currentFailures <= 2) {
-      console.log(
-        LOG_PREFIX,
-        `⚠️ ${provider}/${connectionId} — ${message} [${latencyMs}ms] (failure #${currentFailures})`
+      log.warn(
+        { provider, connectionId, err: message, latencyMs, currentFailures },
+        "credential-health: scheduler error"
       );
     }
   }
@@ -224,7 +231,7 @@ export async function sweep(): Promise<void> {
         authType?: string;
       }>;
     } catch (err) {
-      console.error(LOG_PREFIX, "Failed to load provider connections:", err);
+      log.error({ err }, "credential-health: failed to load provider connections");
       return;
     }
 
@@ -246,9 +253,9 @@ export async function sweep(): Promise<void> {
 
     if (dueConnections.length === 0) return;
 
-    console.log(
-      LOG_PREFIX,
-      `Testing ${dueConnections.length}/${connections.length} connections...`
+    log.info(
+      { testing: dueConnections.length, total: connections.length },
+      "credential-health: sweep starting"
     );
 
     // Process with concurrency limit
@@ -292,13 +299,13 @@ export function initCredentialHealthCheck(): void {
   state.initialized = true;
   initCredentialCache();
 
-  console.log(
-    LOG_PREFIX,
-    `Starting credential health check (initial delay ${INITIAL_DELAY_MS / 1000}s, interval ${getSweepInterval() / 1000}s)`
+  log.info(
+    { initialDelaySec: INITIAL_DELAY_MS / 1000, intervalSec: getSweepInterval() / 1000 },
+    "credential-health: starting scheduler"
   );
 
   state.sweepTimer = setTimeout(() => {
-    sweep().catch((err) => console.error(LOG_PREFIX, "Initial sweep failed:", err));
+    sweep().catch((err) => log.error({ err }, "credential-health: initial sweep failed"));
   }, INITIAL_DELAY_MS);
 }
 
