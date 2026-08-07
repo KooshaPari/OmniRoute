@@ -67,8 +67,15 @@ async function readDbSettings(): Promise<QuotaStoreSettings> {
         kvUrl: typeof obj.kvUrl === "string" ? obj.kvUrl : undefined,
       };
     }
-  } catch {
-    // DB not available — fall through to env
+  } catch (err) {
+    // DB not available — fall through to env. Surface the failure loudly
+    // so a corrupted settings module can't silently disable the configured
+    // QuotaStore driver (fail-fast governance: do not hide TS compile /
+    // runtime errors at the DB boundary).
+    log.error(
+      { err },
+      "readDbSettings: getSettings() failed — falling back to env-only config",
+    );
   }
   return {};
 }
@@ -128,9 +135,15 @@ export async function getQuotaStore(): Promise<QuotaStore> {
         log.info({ redisUrl: redisUrl.replace(/:[^:@]*@/, ":***@") }, "QuotaStore: using Redis driver");
         return _store;
       } catch (err) {
-        log.warn(
-          { err: (err as Error)?.message },
-          "Redis QuotaStore unavailable — falling back to sqlite"
+        // Fail-fast: log.error (not warn) so a corrupted redisQuotaStore
+        // import / missing ioredis dep surfaces in monitoring. The URL is
+        // redacted to avoid leaking credentials in error logs.
+        log.error(
+          {
+            err,
+            redisUrl: redisUrl.replace(/:[^:@]*@/, ":***@"),
+          },
+          "Redis QuotaStore unavailable — falling back to sqlite",
         );
         // Fall through to sqlite
       }

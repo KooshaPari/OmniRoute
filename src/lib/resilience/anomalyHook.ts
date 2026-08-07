@@ -13,8 +13,11 @@ import { isFeatureFlagEnabled } from "@/lib/featureFlags";
 import { resolveSelfHealingSettings } from "./selfHealingSettings";
 import { SelfHealingManager } from "./selfHealingManager";
 import { createAnomalyDetector } from "./anomalyDetector";
+import { createLogger } from "@/shared/utils/logger";
 
 type Manager = SelfHealingManager;
+
+const log = createLogger("resilience:anomalyHook");
 
 let _manager: Manager | null = null;
 let _providerManagerRegistry: Map<string, unknown> | null = null;
@@ -60,7 +63,16 @@ function getProviderManagerRegistry(): Map<string, unknown> {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const mod = require("@/engine/providers") as { providerRegistry?: Map<string, unknown> };
       _providerManagerRegistry = mod.providerRegistry ?? new Map();
-    } catch {
+    } catch (err) {
+      // Fail-fast: a missing/corrupted @/engine/providers module must NOT
+      // silently leave the self-healing probe dispatching into an empty
+      // registry. Log loud, then keep an empty Map so resilience keeps
+      // running (detector + manager can still observe anomalies), but the
+      // dispatch path will no-op visibly in monitoring.
+      log.error(
+        { err },
+        "getProviderManagerRegistry: failed to load @/engine/providers — playbook dispatch will no-op",
+      );
       _providerManagerRegistry = new Map();
     }
   }

@@ -16,7 +16,9 @@
 
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
+import { createLogger } from "@/shared/utils/logger";
 
+const log = createLogger("open-sse:credential-loader");
 // Fields that can be overridden per provider
 const CREDENTIAL_FIELDS = [
   "clientId",
@@ -47,8 +49,10 @@ function resolveCredentialsPath(): string {
     resolveDataDir = require("@/lib/dataPaths").resolveDataDir;
   } catch (err) {
     const fallbackDataDir = process.env.DATA_DIR || join(process.cwd(), "data");
-    console.warn(
-      `[CREDENTIALS] Could not load dataPaths module, using fallback: ${fallbackDataDir}`
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    log.error(
+      { err, fallbackDataDir },
+      `Could not load dataPaths module (${errorMessage}); using fallback credentials path: ${fallbackDataDir}`
     );
     return join(fallbackDataDir, "provider-credentials.json");
   }
