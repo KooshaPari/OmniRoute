@@ -26,6 +26,10 @@ const DEV_URL = process.env.RENDERER_URL ?? "http://localhost:3000";
  */
 const SERVICES_COMPOSE_FILE = process.env.SERVICES_COMPOSE_FILE;
 const SERVER_PORT = Number(process.env.OMNIROUTE_PORT ?? "20128");
+const BFF_ORIGIN =
+  process.env.OMNIROUTE_BFF_URL ??
+  process.env.PUBLIC_OMNIROUTE_BFF_URL ??
+  `http://127.0.0.1:${SERVER_PORT}`;
 let nextServer: ReturnType<typeof Bun.spawn> | undefined;
 let rendererServer: ReturnType<typeof Bun.spawn> | undefined;
 
@@ -66,7 +70,14 @@ async function bootRendererServer(): Promise<string | undefined> {
   const port = Number(process.env.OMNIROUTE_RENDERER_PORT ?? "20129");
   rendererServer = Bun.spawn([process.env.OMNIROUTE_BUN ?? process.execPath, join(rendererDir, "index.js")], {
     cwd: rendererDir,
-    env: { ...process.env, PORT: String(port), HOST: "127.0.0.1", ORIGIN: `http://127.0.0.1:${port}` },
+    env: {
+      ...process.env,
+      BFF_ORIGIN,
+      PUBLIC_OMNIROUTE_BFF_URL: BFF_ORIGIN,
+      PORT: String(port),
+      HOST: "127.0.0.1",
+      ORIGIN: `http://127.0.0.1:${port}`,
+    },
     stdout: "inherit",
     stderr: "inherit",
   });
