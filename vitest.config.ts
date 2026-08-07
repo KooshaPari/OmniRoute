@@ -30,6 +30,7 @@ export default defineConfig({
       "src/shared/hooks/__tests__/**/*.test.tsx",
       "src/lib/memory/__tests__/**/*.test.ts",
       "src/lib/skills/__tests__/**/*.test.ts",
+      "src/lib/resilience/__tests__/**/*.test.ts",
       "tests/unit/encryption.test.ts",
       "tests/unit/**/*.test.ts",
       "tests/unit/**/*.test.tsx",

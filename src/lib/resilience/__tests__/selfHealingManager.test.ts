@@ -106,7 +106,11 @@ describe("selfHealingManager", () => {
       detector: createAnomalyDetector(),
       probe: new CountingProbe(),
     });
-    const changed = mgr.updateSettings(resolveSelfHealingSettings({ zScoreThreshold: 4 }));
+    // Use criticalThreshold (tracked by updateSettings) — zScoreThreshold
+    // was a misnamed placeholder from earlier drafts and is not a config field.
+    const changed = mgr.updateSettings(
+      resolveSelfHealingSettings({ criticalThreshold: 0.99 }),
+    );
     expect(changed).toBe(true);
   });
 
