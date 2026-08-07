@@ -45,7 +45,11 @@ export function getMachineTokenSync(salt?: string): string {
       cachedSalt = activeSalt;
     }
     return token;
-  } catch {
+  } catch (err) {
+    log.error(
+      { err },
+      "machineToken.getMachineTokenSync: deriveToken failed — returning empty string (security-relevant)"
+    );
     return "";
   }
 }
@@ -58,7 +62,11 @@ export function getLegacyCliTokenSync(salt?: string): string {
       .update(machineId + activeSalt)
       .digest("hex")
       .substring(0, 32);
-  } catch {
+  } catch (err) {
+    log.error(
+      { err },
+      "machineToken.getLegacyCliTokenSync: hash derivation failed — returning empty string (security-relevant)"
+    );
     return "";
   }
 }

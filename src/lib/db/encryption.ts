@@ -26,6 +26,9 @@
  */
 
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync, createHash } from "crypto";
+import { createLogger } from "@/shared/utils/logger";
+
+const encryptionLog = createLogger("db:encryption");
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16;
@@ -91,7 +94,11 @@ function getLegacyDynamicKey(): Buffer | null {
   const dynamicSalt = createHash("sha256").update(secret).digest().slice(0, 16);
   try {
     _legacyDynamicKey = scryptSync(secret, dynamicSalt, KEY_LENGTH);
-  } catch {
+  } catch (err) {
+    encryptionLog.error(
+      { err },
+      "encryption.getLegacyDynamicKey: scryptSync failed — legacy decryptions will silently fail (tokens may stall migration)"
+    );
     return null;
   }
   return _legacyDynamicKey;
