@@ -45,6 +45,51 @@ const STATIC_SALT = "omniroute-field-encryption-v1";
 
 let _staticKey: Buffer | null = null;
 let _legacyDynamicKey: Buffer | null = null;
+
+/**
+ * Classify an OpenSSL/Node crypto error from a GCM decipher operation.
+ *
+ * Returns true when the failure is an authentication-tag mismatch — i.e.
+ * the key was correct enough to attempt verification but the ciphertext
+ * has been tampered with, truncated, or stored with the wrong auth tag.
+ * This is the "data corruption" case from audit finding F8.
+ *
+ * Returns false for malformed hex, length mismatches, or any other
+ * decipher error — those are "legacy / malformed data" cases.
+ */
+function isAuthTagFailure(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const code = (err as NodeJS.ErrnoException).code;
+  if (code === "ERR_OSSL_BAD_DECRYPT" || code === "ERR_OSSL_GCM_NO_TAG") return true;
+  const msg = err.message.toLowerCase();
+  return (
+    msg.includes("auth tag") ||
+    msg.includes("bad decrypt") ||
+    msg.includes("unsupported state or unable to authenticate data")
+  );
+}
+
+/**
+ * Error thrown (or to-be-thrown in future revisions) when decryption fails.
+ *
+ * Exported for future callers that want to distinguish "key configured but
+ * cipher corrupt" from other failures. Currently NOT thrown by `decrypt()` —
+ * it still returns `null` for backward compatibility with all callers (audit
+ * finding F8 fix is observability-only at this stage).
+ *
+ * Subclass detection helpers can use `instanceof EncryptionDecryptionError`
+ * once we start throwing.
+ */
+export class EncryptionDecryptionError extends Error {
+  constructor(
+    message: string,
+    public readonly cause: unknown,
+    public readonly ciphertextPrefix: string,
+  ) {
+    super(message);
+    this.name = "EncryptionDecryptionError";
+  }
+}
 /** Connection object with potentially encrypted credential fields. */
 export interface ConnectionFields {
   apiKey?: string | null;
@@ -191,7 +236,26 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
       let decrypted = decipher.update(encryptedHex, "hex", "utf8");
       decrypted += decipher.final("utf8");
       return decrypted;
-    } catch {
+    } catch (err: unknown) {
+      const cipherPrefix = ciphertext.slice(0, 30);
+      // GCM auth-tag failure: key is right, data is corrupt (or tampered).
+      // Highest severity — this is the silent-data-loss case from audit F8.
+      if (isAuthTagFailure(err)) {
+        encryptionLog.error(
+          { err, ciphertextPrefix: cipherPrefix },
+          `[Encryption] auth-tag validation failed (data corruption suspected). ` +
+            `Ciphertext prefix: ${cipherPrefix}...`,
+        );
+      } else {
+        // Malformed ciphertext, bad hex, key mismatch on a non-GCM error path.
+        // Lower severity — likely legacy data shape, not corruption.
+        const message = err instanceof Error ? err.message : String(err);
+        encryptionLog.warn(
+          { err, ciphertextPrefix: cipherPrefix },
+          `[Encryption] malformed ciphertext or key mismatch: ${message}. ` +
+            `Ciphertext prefix: ${cipherPrefix}...`,
+        );
+      }
       return null;
     }
   };
@@ -203,14 +267,17 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
       return decrypted;
     }
 
-    encryptionLog.error(
-      `[Encryption] Decryption failed. Ciphertext prefix: ${ciphertext.slice(0, 30)}... ` +
-        `Auth tag validation likely failed.`
-    );
+    // Inner catch inside tryDecryptWithKey already logged the cause with
+    // severity distinction (auth-tag corruption vs malformed). Do not
+    // double-log here — preserves F8 fix: one structured record per failure.
     return null;
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    encryptionLog.error({ err }, `[Encryption] Decryption failed: ${message}`);
+    // Outer catch fires only on unexpected errors (e.g. synchronous throw
+    // outside the per-key try block). Log with full context for triage.
+    encryptionLog.error(
+      { err, ciphertextPrefix: ciphertext.slice(0, 30) },
+      "[Encryption] decrypt: outer catch (unexpected)",
+    );
     return null;
   }
 }
