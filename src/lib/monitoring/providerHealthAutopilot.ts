@@ -6,6 +6,9 @@ import {
   updateProviderConnection,
 } from "@/lib/db/providers";
 import { clearProviderFailure, clearModelLock } from "@omniroute/open-sse/services/accountFallback";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("monitoring:providerHealthAutopilot");
 
 type JsonRecord = Record<string, unknown>;
 
@@ -259,7 +262,13 @@ export async function buildProviderHealthAutopilotReport(
     await Promise.all([
       import("@/shared/utils/circuitBreaker"),
       import("@omniroute/open-sse/services/accountFallback"),
-      import("@omniroute/open-sse/services/quotaMonitor.ts").catch(() => null),
+      import("@omniroute/open-sse/services/quotaMonitor.ts").catch((err) => {
+        log.warn(
+          { err },
+          "monitoring:providerHealthAutopilot: optional quotaMonitor module failed to load — quota snapshots will be omitted from the autopilot report"
+        );
+        return null;
+      }),
     ]);
 
   const connections = (await getProviderConnections(

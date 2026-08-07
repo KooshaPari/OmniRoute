@@ -197,7 +197,13 @@ export async function loadPlugin(
         const killTimer = setTimeout(() => {
           try {
             child.kill("SIGKILL");
-          } catch {}
+          } catch (err) {
+            log.warn("loader.sigkill_failed", {
+              name: manifest.name,
+              hook,
+              error: err instanceof Error ? err.message : String(err),
+            });
+          }
         }, SIGKILL_GRACE_MS);
         child.once("exit", () => clearTimeout(killTimer));
         reject(new Error(`Plugin hook '${hook}' timed out after ${timeout}ms`));
@@ -298,7 +304,12 @@ export async function loadPlugin(
     const killTimer = setTimeout(() => {
       try {
         child.kill("SIGKILL");
-      } catch {}
+      } catch (err) {
+        log.warn("loader.sigkill_failed_cleanup", {
+          name: manifest.name,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }, SIGKILL_GRACE_MS);
     child.once("exit", () => clearTimeout(killTimer));
     rm(hostScriptPath, { force: true }).catch(() => {});

@@ -1,5 +1,8 @@
 import { getCodexModelScope } from "../../config/codexQuotaScopes.ts";
 import { getProviderConnectionById, updateProviderConnection } from "@/lib/db/providers";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("chat-core:codexFailover");
 
 type CodexFailoverCredentials = {
   connectionId?: string | null;
@@ -16,7 +19,13 @@ export async function markCodexScopeRateLimited(params: {
   rateLimitedUntil: string;
   credentials?: CodexFailoverCredentials | null;
 }): Promise<void> {
-  const connection = await getProviderConnectionById(params.failedConnectionId).catch(() => null);
+  const connection = await getProviderConnectionById(params.failedConnectionId).catch((err) => {
+    log.warn(
+      { err, failedConnectionId: params.failedConnectionId },
+      "chat-core:codexFailover: failed to load connection for scope-rate-limit update — falling back to in-memory credentials"
+    );
+    return null;
+  });
   const existingProviderData = connection
     ? asProviderData(connection.providerSpecificData)
     : asProviderData(params.credentials?.providerSpecificData);

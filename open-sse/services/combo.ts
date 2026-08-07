@@ -2219,7 +2219,14 @@ export async function handleComboChat({
             ) {
               const connectionId = getSessionConnection(relayOptions.sessionId);
               if (connectionId) {
-                const quotaInfo = await fetchCodexQuota(connectionId).catch(() => null);
+                const quotaInfo = await fetchCodexQuota(connectionId).catch((err) => {
+                  log.warn(
+                    "COMBO",
+                    `Failed to fetch codex quota for handoff evaluation (connection=${connectionId}) — handoff may be skipped`,
+                    { err }
+                  );
+                  return null;
+                });
                 if (quotaInfo) {
                   const resetCandidates = [
                     quotaInfo.windows?.session?.resetAt,

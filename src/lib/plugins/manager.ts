@@ -148,7 +148,14 @@ class PluginManager {
           entryPoint,
         };
       }
-    } catch {}
+    } catch (err) {
+      // Not a direct plugin dir — fall back to scanPluginDir() below.
+      // Logged at debug so the fallback is visible without spamming info/warn.
+      log.debug("manager.direct_plugin_detect_fallback", {
+        sourceDir,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
 
     const { plugins, errors } = directPlugin
       ? { plugins: [directPlugin], errors: [] }
@@ -267,7 +274,14 @@ class PluginManager {
       if (result.success) {
         discovered = { name: result.data.name, manifest: result.data, pluginDir: sourceDir };
       }
-    } catch {}
+    } catch (err) {
+      // Not a direct plugin dir — fall back to scanPluginDir() below.
+      // Logged at debug so the fallback is visible without spamming info/warn.
+      log.debug("manager.upgrade_direct_detect_fallback", {
+        sourceDir,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
 
     if (!discovered) {
       const { plugins, errors } = await scanPluginDir(sourceDir);

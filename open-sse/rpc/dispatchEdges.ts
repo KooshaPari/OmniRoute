@@ -18,6 +18,10 @@
  * See ADR-032 § "Decision Rule" for the per-edge tier selection policy.
  */
 
+import { createLogger } from "../../src/shared/utils/logger.ts";
+
+const log = createLogger("rpc:dispatchEdges");
+
 export type EdgeTier = "T1" | "T2" | "T3";
 
 export interface DispatchEdge<TIn, TOut> {
@@ -186,7 +190,13 @@ async function invokeHttp<TIn, TOut>(
   options: InvokeOptions
 ): Promise<TOut> {
   const contract = edge.http!;
-  const body = await import("./httpClient.ts").catch(() => null).then((m) => m?.invokeHttpEdge(contract, input, options));
+  const body = await import("./httpClient.ts").catch((err) => {
+    log.error(
+      { err, edge: edge.name, tier: "T1" },
+      "rpc:dispatchEdges: T1 httpClient module failed to load — response will be undefined"
+    );
+    return null;
+  }).then((m) => m?.invokeHttpEdge(contract, input, options));
   return body as TOut;
 }
 
@@ -196,7 +206,13 @@ async function invokeUds<TIn, TOut>(
   options: InvokeOptions
 ): Promise<TOut> {
   const contract = edge.uds!;
-  const result = await import("./udsClient.ts").catch(() => null).then((m) => m?.invokeUdsEdge(contract, input, options));
+  const result = await import("./udsClient.ts").catch((err) => {
+    log.error(
+      { err, edge: edge.name, tier: "T2" },
+      "rpc:dispatchEdges: T2 udsClient module failed to load — response will be undefined"
+    );
+    return null;
+  }).then((m) => m?.invokeUdsEdge(contract, input, options));
   return result as TOut;
 }
 
@@ -206,7 +222,13 @@ async function invokeFfi<TIn, TOut>(
   options: InvokeOptions
 ): Promise<TOut> {
   const contract = edge.ffi!;
-  const result = await import("./ffi.ts").catch(() => null).then((m) => m?.invokeFfiEdge(contract, input, options));
+  const result = await import("./ffi.ts").catch((err) => {
+    log.error(
+      { err, edge: edge.name, tier: "T3" },
+      "rpc:dispatchEdges: T3 ffi module failed to load — response will be undefined"
+    );
+    return null;
+  }).then((m) => m?.invokeFfiEdge(contract, input, options));
   return result as TOut;
 }
 

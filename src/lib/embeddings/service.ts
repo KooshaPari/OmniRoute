@@ -47,7 +47,13 @@ export async function createEmbeddingResponse(
         let allCombos: Awaited<ReturnType<typeof getCombos>> = [];
         try {
           allCombos = await getCombos();
-        } catch {}
+        } catch (err) {
+          log.warn(
+            "EMBED",
+            `Failed to load sibling combos for dimension-conflict guard — combo '${modelStr}' will run without cross-combo validation`,
+            { error: err }
+          );
+        }
 
         // Guard: an embedding combo whose targets span multiple vector
         // dimensions would corrupt any vector store on failover (vectors from
@@ -70,7 +76,13 @@ export async function createEmbeddingResponse(
         let settings = {};
         try {
           settings = getDatabaseSettings();
-        } catch {}
+        } catch (err) {
+          log.warn(
+            "EMBED",
+            `Failed to load database settings for embedding combo '${modelStr}' — proceeding with empty settings (combo defaults apply)`,
+            { error: err }
+          );
+        }
 
         // Inject the combo's configured dimensions into the request body so that
         // every upstream embedding call within this combo receives the same

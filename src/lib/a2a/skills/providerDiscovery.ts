@@ -53,6 +53,9 @@ import * as path from "node:path";
 import * as os from "node:os";
 import { A2ATask } from "../taskManager";
 import { A2ASkillResult } from "../taskExecution";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("a2a:providerDiscovery");
 
 export type DiscoverySource = "env" | "config" | "filesystem" | "mcp";
 
@@ -385,7 +388,13 @@ async function discoverFromMcp(discoveredAt: string): Promise<SourceScanResult> 
   // checkout; the .catch() below ensures runtime tolerance regardless).
   const mcpModuleSpec: string = "../../mcp/client.js";
   try {
-    mod = (await import(mcpModuleSpec).catch(() => undefined)) as McpClient | undefined;
+    mod = (await import(mcpModuleSpec).catch((err) => {
+      log.warn(
+        { err, mcpModuleSpec },
+        "a2a:providerDiscovery: optional MCP client module failed to load — 'mcp' source will be skipped"
+      );
+      return undefined;
+    })) as McpClient | undefined;
   } catch {
     result.errorsEncountered += 1;
     return result;

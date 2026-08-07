@@ -4,6 +4,9 @@ import fs from "fs";
 import { arch, hostname, release, type as osType, version as osVersion } from "os";
 import path from "path";
 import { resolveDataDir } from "../../dataPaths";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("oauth:kimi-coding");
 
 const PLATFORM = "kimi_cli";
 const VERSION = process.env.KIMI_CLI_VERSION || "1.36.0";
@@ -41,7 +44,14 @@ function getKimiDeviceId() {
     fs.writeFileSync(devicePath, deviceId, { encoding: "utf8", mode: 0o600 });
     try {
       fs.chmodSync(devicePath, 0o600);
-    } catch {}
+    } catch (err) {
+      // chmod best-effort: writeFileSync already set mode 0o600 on POSIX, so this
+      // is only needed for filesystems where mode is ignored. Don't fail init.
+      log.debug(
+        { err, devicePath },
+        "oauth:kimi-coding: chmodSync of device-id file failed — proceeding (writeFileSync mode flag may already apply)"
+      );
+    }
     return deviceId;
   } catch {
     return generateDeviceId();
