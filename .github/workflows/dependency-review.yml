@@ -21,7 +21,9 @@ jobs:
         with:
           fail-on-severity: high
           comment-summary-in-pr: true
-          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, Unlicense, 0BSD, CC0-1.0
+          # BlueOak-1.0.0 is the permissive license used by isexe@4, pulled
+          # transitively by the existing Node-24 sqlite3/node-gyp toolchain.
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, Unlicense, 0BSD, CC0-1.0, BlueOak-1.0.0
           # Sonar's pinned GitHub Action is LGPL-3.0. Exempt only this immutable
           # action dependency; LGPL remains denied for every package and action.
           allow-dependencies-licenses: pkg:githubactions/SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f
