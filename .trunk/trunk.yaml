@@ -32,12 +32,14 @@ lint:
       commands:
         - name: actionlint
           run: actionlint ${target}
+          success_codes: [0]
       direct_configs:
         - .github/workflows/*.yml
     - name: black
       commands:
         - name: black
           run: black --check --line-length 100 ${target}
+          success_codes: [0]
       direct_configs:
         - pyproject.toml
         - ruff.toml
@@ -45,14 +47,17 @@ lint:
       commands:
         - name: clippy
           run: cargo clippy --all-targets --all-features -- -D warnings
+          success_codes: [0]
     - name: mypy
       commands:
         - name: mypy
           run: mypy --ignore-missing-imports ${target}
+          success_codes: [0]
     - name: ruff
       commands:
         - name: ruff
           run: ruff check --output-format=github ${target}
+          success_codes: [0]
       direct_configs:
         - ruff.toml
         - pyproject.toml
@@ -60,6 +65,7 @@ lint:
       commands:
         - name: rustfmt
           run: rustfmt ${target}
+          success_codes: [0]
       direct_configs:
         - rustfmt.toml
 
