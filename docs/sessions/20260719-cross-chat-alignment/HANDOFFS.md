@@ -699,3 +699,11 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Airlock pre-rebase preservation snapshot: `wip/20260807T1002-18c97db4d4ea6e18` / `3516c2d58f372076ad46dd33e2f4f179788ca5e0`.
 - Desktop typecheck remains environment-blocked because `bun-types` is not installed in the clean worktree; install dependencies before claiming full desktop validation.
 - This entry is append-only.
+
+## 2026-08-07T11:56Z - Electrobun health readiness recovery (desktop-healthz-readiness)
+
+- Hosted artifact run `31171232383` proved the prior launcher readiness probes were wrong: the BFF returned `404` at `/` for all 60 attempts, delaying renderer startup; the renderer also returned `500` at `/` and was killed by the launcher.
+- Current-main fix changes both `bootNextServer()` and `bootRendererServer()` probes to `${url}/healthz` and adds `apps/web/src/routes/healthz/+server.ts` with a stable `{status:"ok",service:"argismonitor-renderer"}` contract.
+- Regression coverage: desktop lifecycle readiness-path test (2/2 focused tests pass), web health route test (1/1 pass), desktop typecheck pass, web typecheck pass, web production build pass.
+- Generated packaged runtime smoke (ports 22128/22129): backend `/healthz` 200, renderer `/healthz` 200, renderer `/api/bff/healthz` 200. Main has no committed packaged smoke script; this exact command remains evidence for the future CI gate.
+- This entry is append-only.
