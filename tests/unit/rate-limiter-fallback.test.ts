@@ -39,3 +39,44 @@ test("rate limiter uses in-memory fallback when REDIS_URL is unset", async () =>
     else process.env.DISABLE_SQLITE_AUTO_BACKUP = previousDisableBackup;
   }
 });
+
+test("rate limiter does not advertise its Keyv opt-in as a Redis client", async () => {
+  const previousRedisUrl = process.env.REDIS_URL;
+  process.env.REDIS_URL = "redis://cache.example.test:6379";
+
+  try {
+    const rateLimiter = await importFreshRateLimiter("redis-compatibility");
+
+    assert.equal(rateLimiter.isRedisConfigured(), false);
+    assert.throws(() => rateLimiter.getRedisClient(), /Redis is not configured/);
+  } finally {
+    if (previousRedisUrl === undefined) delete process.env.REDIS_URL;
+    else process.env.REDIS_URL = previousRedisUrl;
+  }
+});
+
+test("rate limiter rejects duplicate fixed-window rules", async () => {
+  const rateLimiter = await importFreshRateLimiter("duplicate-windows");
+
+  await assert.rejects(
+    () =>
+      rateLimiter.checkRateLimit("duplicate-window", [
+        { limit: 1, window: 60 },
+        { limit: 2, window: 60 },
+      ]),
+    /duplicate windows/,
+  );
+});
+
+test("rate limiter rejects new keys when the active fallback window reaches capacity", async () => {
+  const rateLimiter = await importFreshRateLimiter("fallback-capacity");
+  const rules = [{ limit: 20_000, window: 60 }];
+
+  for (let index = 0; index < 10_000; index += 1) {
+    const result = await rateLimiter.checkRateLimit(`active-key-${index}`, rules);
+    assert.equal(result.allowed, true);
+  }
+
+  const overflow = await rateLimiter.checkRateLimit("active-key-overflow", rules);
+  assert.deepEqual(overflow, { allowed: false, failedWindow: 60 });
+});

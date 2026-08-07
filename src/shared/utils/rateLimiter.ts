@@ -1,156 +1,274 @@
 /**
- * Keyv-backed rate limiter — replaces ioredis Lua-scripted sliding window.
+ * Keyv/SQLite-backed fixed-window rate limiter.
  *
- * Uses Keyv with SQLite backend for persistent counters. The Keyv INCR+EXPIRE
- * pattern replicates the Redis Lua atomic counter without requiring a Redis
- * sidecar. Falls back to in-memory Map when Keyv initialization fails.
+ * The public rules API is deliberately compatible with the earlier Redis
+ * implementation: each request is checked against every configured window
+ * and increments every window only when all limits allow it.  Keyv is the
+ * persistent backend when the legacy REDIS_URL opt-in is present; otherwise a
+ * bounded process-local fallback avoids probing localhost or importing Redis.
  */
 import { Keyv } from "keyv";
-import KeyvSqlite from "@keyv/sqlite";
+import { KeyvSqlite } from "@keyv/sqlite";
 import { resolve } from "node:path";
 
-// Keyv-backed store — always on (replaces REDIS_URL-gated ioredis).
-const USE_KEYV = true;
+interface RateLimitEntry {
+  count: number;
+  windowStart: number;
+  windowMs: number;
+}
+
+export interface RateLimitRule {
+  limit: number;
+  /** Fixed-window duration in seconds. */
+  window: number;
+}
+
+export interface RateLimitResult {
+  allowed: boolean;
+  failedWindow?: number;
+  /** Present for the positional API. */
+  remaining?: number;
+  resetMs?: number;
+  limit?: number;
+}
+
+/**
+ * Retain this explicit legacy opt-in rather than silently connecting to a
+ * localhost Redis instance.  The configured persistence implementation is
+ * Keyv/SQLite, not a Redis client.
+ */
+const REDIS_URL = process.env.REDIS_URL?.trim() || "";
+
+function defaultDataDir(): string {
+  return process.env.DATA_DIR || process.env.HOME || "/tmp";
+}
+
 let keyvStore: Keyv | null = null;
+let testMode = false;
+let keyvCheckTail: Promise<void> = Promise.resolve();
 
 function getKeyvStore(): Keyv {
   if (!keyvStore) {
-    const dataDir = process.env.DATA_DIR || process.env.HOME || "/tmp";
-    const dbPath = resolve(dataDir, "rate-limiter-keyv.sqlite");
+    const dbPath = resolve(defaultDataDir(), "rate-limiter-keyv.sqlite");
     keyvStore = new Keyv({ store: new KeyvSqlite({ uri: dbPath }) });
   }
   return keyvStore;
 }
 
-/** Legacy shim — always returns a no-op Redis stub for apiKeys.ts dead-code paths. */
-export function getRedisClient(): { del: (...args: any[]) => Promise<any>; get: (...args: any[]) => Promise<any>; set: (...args: any[]) => Promise<any> } {
-  return {
-    async del() { return 1; },
-    async get() { return null; },
-    async set() { return "OK"; },
-  };
-}
+const positionalCounters = new Map<string, RateLimitEntry>();
+const TEST_MEMORY_STORE = new Map<string, number>();
+const FALLBACK_MEMORY_STORE = new Map<string, number>();
+const MAX_LOCAL_RATE_LIMIT_ENTRIES = 10_000;
+
+type RedisCompatibilityClient = {
+  del: (...args: unknown[]) => Promise<unknown>;
+  get: (...args: unknown[]) => Promise<unknown>;
+  set: (...args: unknown[]) => Promise<unknown>;
+};
 
 export function isRedisConfigured(): boolean {
   return false;
 }
 
-// ---------- Keyv-backed sliding-window counter ----------
-
-interface RateLimitEntry {
-  count: number;
-  windowStart: number;
+function isKeyvPersistenceEnabled(): boolean {
+  return REDIS_URL.length > 0;
 }
 
 /**
- * Atomic sliding-window counter using Keyv.
- *
- * For single-process use this is safe (no contention). For multi-process,
- * each process counts independently — acceptable for rate limiting where
- * per-process approximation is sufficient.
+ * Redis was intentionally removed from this limiter.  Keep the historical
+ * export strict so callers cannot accidentally treat a no-op as a live cache.
  */
-async function incrementKeyvCounter(
-  key: string,
-  windowMs: number,
-  limit: number,
-): Promise<{ allowed: boolean; remaining: number; resetMs: number }> {
-  const kv = getKeyvStore();
-  const now = Date.now();
-  const windowStart = Math.floor(now / windowMs) * windowMs;
-  const resetMs = windowStart + windowMs;
-  const entryKey = `${key}:${windowStart}`;
+export function getRedisClient(): RedisCompatibilityClient {
+  if (!isRedisConfigured()) {
+    throw new Error("Redis is not configured");
+  }
+  throw new Error("Redis is not available in the Keyv rate limiter");
+}
 
-  try {
-    const raw = await kv.get(entryKey);
-    const entry: RateLimitEntry = raw && typeof raw === "object" && "count" in (raw as any)
-      ? (raw as RateLimitEntry)
-      : { count: 0, windowStart };
-    entry.count += 1;
-    await kv.set(entryKey, entry, resetMs - now + 1000); // TTL = window remainder + buffer
-    const remaining = Math.max(0, limit - entry.count);
-    return { allowed: entry.count <= limit, remaining, resetMs };
-  } catch {
-    // Keyv fallback — allow the request
-    return { allowed: true, remaining: limit, resetMs };
+/** Remove completed legacy fixed-window keys without touching unknown keys. */
+export function evictStaleRateLimitWindows(store: Map<string, number>, nowSeconds: number): void {
+  for (const key of store.keys()) {
+    const lastColon = key.lastIndexOf(":");
+    const secondLastColon = key.lastIndexOf(":", lastColon - 1);
+    if (lastColon === -1 || secondLastColon === -1) continue;
+
+    const windowNumber = Number(key.slice(lastColon + 1));
+    const windowSize = Number(key.slice(secondLastColon + 1, lastColon));
+    if (!Number.isFinite(windowNumber) || !Number.isFinite(windowSize) || windowSize <= 0) continue;
+    if ((windowNumber + 1) * windowSize <= nowSeconds) store.delete(key);
   }
 }
 
-// ---------- In-memory fallback (used when Keyv init fails) ----------
+/** Force hermetic process-local storage for tests. */
+export function setRateLimiterTestMode(enabled: boolean): void {
+  testMode = enabled;
+  if (enabled) {
+    TEST_MEMORY_STORE.clear();
+    positionalCounters.clear();
+  }
+}
 
-const inMemoryCounters = new Map<string, RateLimitEntry>();
+/** Reset all process-local limiter state between tests. */
+export function __resetRateLimitManagerForTests(): void {
+  positionalCounters.clear();
+  TEST_MEMORY_STORE.clear();
+  FALLBACK_MEMORY_STORE.clear();
+}
 
-function incrementInMemoryCounter(
-  key: string,
-  windowMs: number,
-  limit: number,
-): { allowed: boolean; remaining: number; resetMs: number } {
-  const now = Date.now();
-  const windowStart = Math.floor(now / windowMs) * windowMs;
-  const resetMs = windowStart + windowMs;
-  const entryKey = `${key}:${windowStart}`;
-  const entry = inMemoryCounters.get(entryKey) ?? { count: 0, windowStart };
-  entry.count += 1;
-  inMemoryCounters.set(entryKey, entry);
-  // Periodic cleanup of expired entries
-  if (inMemoryCounters.size > 10_000) {
-    for (const [k, v] of inMemoryCounters) {
-      if (v.windowStart + windowMs < now) inMemoryCounters.delete(k);
+export function cleanupRateLimiters(): void {
+  __resetRateLimitManagerForTests();
+  keyvStore = null;
+}
+
+function ruleWindowKey(keyId: string, rule: RateLimitRule, nowSeconds: number): string {
+  return `rl:api_key:${keyId}:${rule.window}:${Math.floor(nowSeconds / rule.window)}`;
+}
+
+function validateRules(rules: RateLimitRule[]): RateLimitRule[] {
+  const windows = new Set<number>();
+  return rules.map((rule) => {
+    if (!Number.isFinite(rule.limit) || rule.limit < 1 || !Number.isInteger(rule.limit)) {
+      throw new TypeError("Rate limit rule limit must be a positive integer");
+    }
+    if (!Number.isFinite(rule.window) || rule.window < 1 || !Number.isInteger(rule.window)) {
+      throw new TypeError("Rate limit rule window must be a positive integer in seconds");
+    }
+    if (windows.has(rule.window)) {
+      throw new TypeError("Rate limit rules must not contain duplicate windows");
+    }
+    windows.add(rule.window);
+    return rule;
+  });
+}
+
+function checkInMemoryRateLimit(
+  store: Map<string, number>,
+  keyId: string,
+  rules: RateLimitRule[]
+): RateLimitResult {
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const keys = rules.map((rule) => ruleWindowKey(keyId, rule, nowSeconds));
+  if (store.size >= MAX_LOCAL_RATE_LIMIT_ENTRIES) {
+    evictStaleRateLimitWindows(store, nowSeconds);
+    const missingRule = rules.find((_, index) => !store.has(keys[index]));
+    if (missingRule && store.size >= MAX_LOCAL_RATE_LIMIT_ENTRIES) {
+      return { allowed: false, failedWindow: missingRule.window };
     }
   }
-  const remaining = Math.max(0, limit - entry.count);
-  return { allowed: entry.count <= limit, remaining, resetMs };
+
+  for (let index = 0; index < rules.length; index += 1) {
+    if ((store.get(keys[index]) ?? 0) >= rules[index].limit) {
+      return { allowed: false, failedWindow: rules[index].window };
+    }
+  }
+  for (const key of keys) {
+    store.set(key, (store.get(key) ?? 0) + 1);
+  }
+  return { allowed: true };
 }
 
-// ---------- Public API ----------
+async function checkKeyvRateLimit(keyId: string, rules: RateLimitRule[]): Promise<RateLimitResult> {
+  const previousCheck = keyvCheckTail;
+  let releaseCheck: () => void = () => undefined;
+  keyvCheckTail = new Promise<void>((resolve) => {
+    releaseCheck = resolve;
+  });
+  await previousCheck;
 
-export interface RateLimitResult {
-  allowed: boolean;
-  remaining: number;
-  resetMs: number;
-  limit: number;
+  try {
+    return await checkKeyvRateLimitLocked(keyId, rules);
+  } finally {
+    releaseCheck();
+  }
 }
 
-/**
- * Check a rate limit rule for the given key.
- *
- * @param keyId       Unique identifier for the rate-limited resource
- * @param limit       Maximum requests per window
- * @param windowMs    Window duration in milliseconds
- */
+async function checkKeyvRateLimitLocked(
+  keyId: string,
+  rules: RateLimitRule[]
+): Promise<RateLimitResult> {
+  try {
+    const store = getKeyvStore();
+    const nowMs = Date.now();
+    const nowSeconds = Math.floor(nowMs / 1000);
+    const keys = rules.map((rule) => ruleWindowKey(keyId, rule, nowSeconds));
+    const counts = await Promise.all(keys.map((key) => store.get<number>(key)));
+    for (let index = 0; index < rules.length; index += 1) {
+      if ((counts[index] ?? 0) >= rules[index].limit) {
+        return { allowed: false, failedWindow: rules[index].window };
+      }
+    }
+    await Promise.all(
+      rules.map((rule, index) => {
+        const remainingMs = (Math.floor(nowSeconds / rule.window) + 1) * rule.window * 1000 - nowMs;
+        return store.set(keys[index], (counts[index] ?? 0) + 1, remainingMs + 1000);
+      })
+    );
+    return { allowed: true };
+  } catch {
+    // If persistence becomes unavailable, retain local protection rather than
+    // failing open or attempting an implicit Redis connection.
+    return checkInMemoryRateLimit(FALLBACK_MEMORY_STORE, keyId, rules);
+  }
+}
+
+export async function checkRateLimit(
+  keyId: string,
+  rules: RateLimitRule[]
+): Promise<RateLimitResult>;
 export async function checkRateLimit(
   keyId: string,
   limit: number,
-  windowMs: number,
-): Promise<RateLimitResult> {
-  if (USE_KEYV) {
-    const result = await incrementKeyvCounter(`rl:${keyId}`, windowMs, limit);
-    return { ...result, limit };
-  }
-  const result = incrementInMemoryCounter(`rl:${keyId}`, windowMs, limit);
-  return { ...result, limit };
-}
-
-/**
- * Legacy single-rule check (backward-compatible).
- */
-export async function checkRateLimitSingleRule(
+  windowMs: number
+): Promise<RateLimitResult>;
+export async function checkRateLimit(
   keyId: string,
-  limit: number,
-  windowMs: number,
+  rulesOrLimit: RateLimitRule[] | number,
+  windowMs?: number
 ): Promise<RateLimitResult> {
-  return checkRateLimit(keyId, limit, windowMs);
+  if (Array.isArray(rulesOrLimit)) return checkRateLimitWithRules(keyId, rulesOrLimit);
+  if (!Number.isFinite(rulesOrLimit) || rulesOrLimit < 1 || !Number.isInteger(rulesOrLimit)) {
+    throw new TypeError("Rate limit must be a positive integer");
+  }
+  if (!Number.isFinite(windowMs) || !windowMs || windowMs < 1) {
+    throw new TypeError("Rate limit window must be a positive number of milliseconds");
+  }
+
+  const now = Date.now();
+  const windowStart = Math.floor(now / windowMs) * windowMs;
+  const resetMs = windowStart + windowMs;
+  const entryKey = `${keyId}:${windowStart}`;
+  if (positionalCounters.size >= MAX_LOCAL_RATE_LIMIT_ENTRIES) {
+    for (const [storedKey, storedEntry] of positionalCounters) {
+      if (storedEntry.windowStart + storedEntry.windowMs <= now) positionalCounters.delete(storedKey);
+    }
+    if (!positionalCounters.has(entryKey) && positionalCounters.size >= MAX_LOCAL_RATE_LIMIT_ENTRIES) {
+      return { allowed: false, remaining: 0, resetMs, limit: rulesOrLimit };
+    }
+  }
+  const entry = positionalCounters.get(entryKey) ?? { count: 0, windowStart, windowMs };
+  entry.count += 1;
+  positionalCounters.set(entryKey, entry);
+  return {
+    allowed: entry.count <= rulesOrLimit,
+    remaining: Math.max(0, rulesOrLimit - entry.count),
+    resetMs,
+    limit: rulesOrLimit,
+  };
 }
 
 /**
- * Clear all in-memory rate limit counters (used in tests).
+ * Apply every fixed-window rule to one request.  This preserves the public
+ * array contract used by API-key policy and the existing E2E suite.
  */
-export function __resetRateLimitManagerForTests(): void {
-  inMemoryCounters.clear();
+export async function checkRateLimitWithRules(
+  keyId: string,
+  suppliedRules: RateLimitRule[]
+): Promise<RateLimitResult> {
+  const rules = validateRules(suppliedRules);
+  if (rules.length === 0) return { allowed: true };
+  if (testMode) return checkInMemoryRateLimit(TEST_MEMORY_STORE, keyId, rules);
+  if (!isKeyvPersistenceEnabled()) return checkInMemoryRateLimit(FALLBACK_MEMORY_STORE, keyId, rules);
+  return checkKeyvRateLimit(keyId, rules);
 }
 
-/**
- * Cleanup — no-op for Keyv (SQLite handles TTL), clears in-memory counters.
- */
-export function cleanupRateLimiters(): void {
-  inMemoryCounters.clear();
-}
+export { checkRateLimitWithRules as checkRateLimitArray };

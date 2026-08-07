@@ -29,3 +29,31 @@ test("rate limiter initializes the pinned Keyv SQLite adapter", async () => {
     else process.env.DATA_DIR = previousDataDir;
   }
 });
+
+test("rate limiter admits only one concurrent request at a limit of one", async () => {
+  const dataDir = mkdtempSync(join(tmpdir(), "omniroute-rate-limiter-concurrent-"));
+  const previousDataDir = process.env.DATA_DIR;
+  const previousRedisUrl = process.env.REDIS_URL;
+  process.env.DATA_DIR = dataDir;
+  process.env.REDIS_URL = "redis://keyv-opt-in.example.test:6379";
+
+  try {
+    const moduleUrl = `${pathToFileURL(
+      join(process.cwd(), "src/shared/utils/rateLimiter.ts"),
+    ).href}?keyv-concurrency-regression=${Date.now()}`;
+    const { checkRateLimit } = await import(moduleUrl);
+
+    const results = await Promise.all(
+      Array.from({ length: 12 }, () =>
+        checkRateLimit("keyv-sqlite-concurrency", [{ limit: 1, window: 60 }]),
+      ),
+    );
+
+    assert.equal(results.filter((result) => result.allowed).length, 1);
+  } finally {
+    if (previousDataDir === undefined) delete process.env.DATA_DIR;
+    else process.env.DATA_DIR = previousDataDir;
+    if (previousRedisUrl === undefined) delete process.env.REDIS_URL;
+    else process.env.REDIS_URL = previousRedisUrl;
+  }
+});
