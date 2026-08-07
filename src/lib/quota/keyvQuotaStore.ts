@@ -162,6 +162,27 @@ export class KeyvQuotaStore implements QuotaStore {
     clearInterval(this.cleanupTimer);
     await this.kv.disconnect();
   }
+
+  /**
+   * Set a bucket to an exact value, bypassing consume()'s additive behavior.
+   *
+   * NOT part of the `QuotaStore` interface contract (intentionally). Used
+   * only by `scripts/migrate-quota-storage.ts` for one-time counter-state
+   * migration from `SqliteQuotaStore`.
+   *
+   * Idempotent: re-seeding the same `(apiKeyId, dim)` with the same value
+   * is a no-op (the underlying Keyv set is overwrite, not increment).
+   */
+  async seed(apiKeyId: string, dim: DimensionKey, value: number): Promise<void> {
+    const k = dimKey(apiKeyId, dim);
+    const ttlMs = WINDOW_MS[dim.window];
+    const now = Date.now();
+    this.buckets.set(k, { value, expiresAt: now + ttlMs });
+    await this.kv.set(k, value, ttlMs);
+    const pk = poolDimKey(dim.poolId, dim);
+    this.buckets.set(pk, { value, expiresAt: now + ttlMs });
+    await this.kv.set(pk, value, ttlMs);
+  }
 }
 
 let defaultStore: KeyvQuotaStore | null = null;
