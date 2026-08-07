@@ -13,6 +13,9 @@ import { getPendingRequests } from "./usageHistory";
 import { getAccountDisplayName } from "@/lib/display/names";
 import { calculateCost } from "./costCalculator";
 import { getRawDataCutoffDate, isAggregationEnabled } from "./aggregateHistory";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("usage:usageStats");
 
 type JsonRecord = Record<string, unknown>;
 type UsageBucket = {
@@ -298,7 +301,12 @@ export async function getUsageStats() {
   try {
     const loadedConnections = await getProviderConnections();
     allConnections = Array.isArray(loadedConnections) ? loadedConnections : [];
-  } catch {}
+  } catch (err) {
+    log.warn(
+      { err },
+      "usage:usageStats: failed to load provider connections — account names will fall back to connection IDs in stats"
+    );
+  }
 
   const connectionMap: Record<string, string> = {};
   for (const connRaw of allConnections) {

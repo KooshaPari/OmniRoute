@@ -24,6 +24,9 @@ import {
   initCredentialCache,
 } from "@/lib/credentialHealth/cache";
 import { emit } from "@/lib/events/eventBus";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("credential-health:scheduler");
 
 // ── Config ────────────────────────────────────────────────────────────────
 
@@ -119,7 +122,12 @@ async function testConnection(
     const { getCredentialHealth } = await import("@/lib/credentialHealth/cache");
     const prev = getCredentialHealth(connectionId);
     oldStatus = prev?.status;
-  } catch {}
+  } catch (err) {
+    log.warn(
+      { err, connectionId, provider },
+      "credential-health:scheduler: failed to read previous health status — proceeding without transition diff"
+    );
+  }
   try {
     const result = await testSingleConnection(connectionId);
 
