@@ -69,7 +69,8 @@ function getStaticKey(): Buffer | null {
     _staticKey = scryptSync(secret, STATIC_SALT, KEY_LENGTH);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error(
+    encryptionLog.error(
+      { err },
       `[Encryption] Failed to derive key from STORAGE_ENCRYPTION_KEY: ${message}. ` +
         `Generate a valid key with: openssl rand -base64 32`
     );
@@ -118,7 +119,7 @@ export function encrypt(plaintext: string | null | undefined): string | null | u
 
   const key = getStaticKey();
   if (!key) {
-    console.warn(
+    encryptionLog.error(
       "[Encryption] STORAGE_ENCRYPTION_KEY not set. Storing plaintext (passthrough mode)."
     );
     return plaintext; // passthrough mode
@@ -138,7 +139,8 @@ export function encrypt(plaintext: string | null | undefined): string | null | u
     return `${PREFIX}${iv.toString("hex")}:${encrypted}:${authTag}`;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error(
+    encryptionLog.error(
+      { err },
       `[Encryption] Encryption failed: ${message}. ` +
         `Check your STORAGE_ENCRYPTION_KEY — generate one with: openssl rand -base64 32`
     );
@@ -162,7 +164,7 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
 
   const staticKey = getStaticKey();
   if (!staticKey) {
-    console.warn(
+    encryptionLog.error(
       "[Encryption] Found encrypted data but STORAGE_ENCRYPTION_KEY is not set. Cannot decrypt."
     );
     return null;
@@ -171,7 +173,7 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
   const body = ciphertext.slice(PREFIX.length);
   const parts = body.split(":");
   if (parts.length !== 3) {
-    console.error("[Encryption] Malformed encrypted value");
+    encryptionLog.error("[Encryption] Malformed encrypted value");
     return null;
   }
 
@@ -201,14 +203,14 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
       return decrypted;
     }
 
-    console.error(
+    encryptionLog.error(
       `[Encryption] Decryption failed. Ciphertext prefix: ${ciphertext.slice(0, 30)}... ` +
         `Auth tag validation likely failed.`
     );
     return null;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error("[Encryption] Decryption failed:", message);
+    encryptionLog.error({ err }, `[Encryption] Decryption failed: ${message}`);
     return null;
   }
 }

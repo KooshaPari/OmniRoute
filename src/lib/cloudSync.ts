@@ -1,6 +1,9 @@
 import crypto from "crypto";
 import { getProviderConnections, updateProviderConnection } from "@/lib/localDb";
 import { buildConfigSyncEnvelope, toLegacyCloudSyncPayload } from "@/lib/sync/bundle";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("cloud-sync");
 
 const CLOUD_URL = process.env.CLOUD_URL || process.env.NEXT_PUBLIC_CLOUD_URL;
 const CLOUD_SYNC_TIMEOUT_MS = Number(process.env.CLOUD_SYNC_TIMEOUT_MS || 12000);
@@ -40,16 +43,19 @@ function toDateMs(value: unknown): number {
 //   2. We verify the signature with `crypto.timingSafeEqual` before parsing the
 //      JSON, so a MITM on the CLOUD_URL channel — or a misconfigured CLOUD_URL
 //      pointing at an attacker — cannot inject providers/tokens.
-// If `OMNIROUTE_CLOUD_SYNC_SECRET` is unset, signature validation is logged but
-// not enforced (back-compat for users on v3.8.x who haven't issued a shared
-// secret yet). The enforce-by-default switch will flip in v3.9.
+// If `OMNIROUTE_CLOUD_SYNC_SECRET` is unset, unsigned responses remain in legacy
+// unverified mode for backwards compatibility. Responses that include a signature
+// cannot be verified without the secret and are rejected fail-closed.
 export function verifyCloudSignature(rawBody: string, sigHeader: string | null): boolean {
   if (!CLOUD_SYNC_SECRET) {
     if (sigHeader) {
-      // We can't verify, but the server is at least trying. Pass through.
-      return true;
+      log.error(
+        { signatureLength: sigHeader.length },
+        "[cloudSync] Cloud response carries X-Cloud-Sig but OMNIROUTE_CLOUD_SYNC_SECRET is not set — rejecting unverifiable signed payload."
+      );
+      return false;
     }
-    console.warn(
+    log.warn(
       "[cloudSync] OMNIROUTE_CLOUD_SYNC_SECRET is not set and the Cloud response carries no X-Cloud-Sig. " +
         "Token sync runs in legacy unverified mode — set the secret to enforce HMAC verification."
     );
