@@ -1,5 +1,6 @@
 import { getDbInstance, rowToCamel } from "./core";
 import type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
+import { createLogger } from "@/shared/utils/logger";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -12,6 +13,8 @@ interface StatementLike<TRow = unknown> {
 interface DbLike {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
 }
+
+const log = createLogger("db:quota-snapshots");
 
 let lastCleanupAt = 0;
 
@@ -38,9 +41,7 @@ export function saveQuotaSnapshot(snapshot: Omit<QuotaSnapshotRow, "id" | "creat
     );
   } catch (err: any) {
     if (err?.message?.includes("no such table")) {
-      console.warn(
-        "[QuotaSnapshots] Skipping save: quota_snapshots table not found. Awaiting migration."
-      );
+      log.warn("Skipping save: quota_snapshots table not found. Awaiting migration.");
       return;
     }
     throw err;

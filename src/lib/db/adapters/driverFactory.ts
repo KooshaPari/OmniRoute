@@ -5,6 +5,9 @@ import {
   type NodeSqliteDatabaseLike,
 } from "./nodeSqliteShared";
 import type { SqliteAdapter } from "./types";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("db:driver-factory");
 
 const _require = createRequire(import.meta.url);
 
@@ -87,12 +90,12 @@ export async function openDatabaseAsync(
 ): Promise<SqliteAdapter> {
   const sync = tryOpenSync(filePath, options);
   if (sync) {
-    console.log(`[DB] Driver: ${sync.driver} | file: ${filePath}`);
+    log.info({ driver: sync.driver, filePath }, "Opened SQLite database");
     return sync;
   }
 
-  console.warn("[DB] Synchronous drivers unavailable — falling back to sql.js (WASM)");
+  log.warn("Synchronous drivers unavailable — falling back to sql.js (WASM)");
   const adapter = await preInitSqlJs(filePath);
-  console.log(`[DB] Driver: sql.js | file: ${filePath}`);
+  log.info({ driver: "sql.js", filePath }, "Opened SQLite database");
   return adapter;
 }

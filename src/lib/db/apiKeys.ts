@@ -16,6 +16,7 @@ import {
 } from "./apiKeyUsageLimitFields";
 import { setNoLog } from "../compliance/noLog";
 import { resolveModelAlias } from "@omniroute/open-sse/services/modelDeprecation.ts";
+import { createLogger } from "@/shared/utils/logger";
 import { getSyncedAvailableModelsByConnection, getCustomModels, getModelIsHidden } from "./models";
 import {
   CLAUDE_CODE_PROVIDER_PREFIXES,
@@ -45,6 +46,8 @@ import {
   parseStreamDefaultMode,
 } from "./apiKeys/rowParsers";
 import type { AccessSchedule, RateLimitRule } from "./apiKeys/types";
+
+const log = createLogger("db:api-keys");
 
 // ──────────────── Performance Optimizations ────────────────
 
@@ -349,7 +352,7 @@ function ensureApiKeyColumn(
 ): void {
   if (columnNames.has(column.name)) return;
   db.exec(`ALTER TABLE api_keys ADD COLUMN ${column.definition}`);
-  console.log(`[DB] Added api_keys.${column.name} column`);
+  log.info({ column: column.name }, "Added api_keys column");
 }
 
 // Ensure api_keys extension columns exist (memoized)
@@ -365,7 +368,7 @@ function ensureApiKeysColumns(db: ApiKeysDbLike) {
     _schemaChecked = true;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.warn("[DB] Failed to verify api_keys schema:", message);
+    log.warn({ err: message }, "Failed to verify api_keys schema");
   }
 }
 

@@ -13,9 +13,12 @@ import {
   DB_BACKUPS_DIR,
   DATA_DIR,
 } from "./core";
+import { createLogger } from "@/shared/utils/logger";
 import { resetAllDbModuleState } from "./stateReset";
 
 type CountRow = { cnt?: number };
+
+const log = createLogger("db:backup");
 
 // ──────────────── Backup Config ────────────────
 
@@ -364,7 +367,7 @@ export function backupDbFile(reason = "auto") {
 
     const stat = fs.statSync(SQLITE_FILE);
     if (stat.size < 4096) {
-      console.warn(`[DB] Backup SKIPPED — DB too small (${stat.size}B)`);
+      log.warn({ sizeBytes: stat.size }, "Backup SKIPPED — DB too small");
       return null;
     }
 
@@ -388,7 +391,10 @@ export function backupDbFile(reason = "auto") {
         const latestBackup = existingBackups[existingBackups.length - 1];
         const latestStat = fs.statSync(path.join(backupDir, latestBackup));
         if (latestStat.size > 4096 && stat.size < latestStat.size * 0.5) {
-          console.warn(`[DB] Backup SKIPPED — DB shrank from ${latestStat.size}B to ${stat.size}B`);
+          log.warn(
+            { previousSizeBytes: latestStat.size, currentSizeBytes: stat.size },
+            "Backup SKIPPED — DB shrank"
+          );
           return null;
         }
       }
@@ -401,18 +407,18 @@ export function backupDbFile(reason = "auto") {
     const db = getDbInstance();
     db.backup(backupFile)
       .then(() => {
-        console.log(`[DB] Backup created: ${backupFile} (${stat.size} bytes)`);
+        log.info({ backupFile, sizeBytes: stat.size }, "Backup created");
         cleanupDbBackups();
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : String(err);
-        console.error("[DB] Backup failed:", message);
+        log.error({ err: message }, "Backup failed");
       });
 
     return { filename: path.basename(backupFile), size: stat.size };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error("[DB] Backup failed:", message);
+    log.error({ err: message }, "Backup failed");
     return null;
   }
 }
@@ -580,7 +586,7 @@ export async function restoreDbBackup(backupId: string) {
   const keyCount =
     (db.prepare("SELECT COUNT(*) as cnt FROM api_keys").get() as CountRow | undefined)?.cnt || 0;
 
-  console.log(`[DB] Restored backup: ${backupId} (${connCount} connections)`);
+  log.info({ backupId, connCount }, "Restored backup");
 
   return {
     restored: true,
