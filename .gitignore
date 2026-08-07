@@ -28,6 +28,13 @@ coverage/
 reports/mutation/
 stryker-output-*.json
 
+# AgilePlus local DB — spec/cycle state, regenerated from kitty-specs/ via `agileplus specify`
+# The DB contains transient per-machine state; the source of truth is the .md specs.
+.agileplus/
+agileplus-*.db
+agileplus-*.db-shm
+agileplus-*.db-wal
+
 
 # Memory Bank and Cursor rules (local-only AI agent context)
 memory-bank/
