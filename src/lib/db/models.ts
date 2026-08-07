@@ -39,6 +39,9 @@ export {
   deleteModelAliasesForProvider,
 } from "./models/aliases";
 export { getMitmAlias, setMitmAliasAll } from "./models/mitmAlias";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("db:models");
 
 // ──────────────── Custom Models ────────────────
 
@@ -504,7 +507,7 @@ export async function removeSyncedAvailableModel(
       try {
         parsedModels = JSON.parse(value);
       } catch (error) {
-        console.warn(`[DB] Skipping malformed syncedAvailableModels entry for key ${key}:`, error);
+        log.warn({ err: error, key }, "Skipping malformed syncedAvailableModels entry");
         continue;
       }
 

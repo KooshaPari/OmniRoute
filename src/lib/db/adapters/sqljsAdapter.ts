@@ -78,7 +78,7 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
         try {
           persist();
         } catch (e) {
-          console.error("[sqljsAdapter] save failed:", e);
+          log.error({ err: e }, "save failed");
         }
       }
     }, SAVE_DEBOUNCE_MS);

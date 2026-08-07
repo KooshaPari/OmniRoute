@@ -8,6 +8,9 @@ import { getDbInstance } from "./core";
 import { getUserDatabaseSettings } from "./databaseSettings";
 import { rollupUsageHistoryBeforeDate } from "@/lib/usage/aggregateHistory";
 import { purgeCallLogArtifactDirectory } from "@/lib/usage/callLogArtifacts";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("db:cleanup");
 
 interface CleanupResult {
   deleted: number;
@@ -38,11 +41,12 @@ export async function cleanupQuotaSnapshots(): Promise<CleanupResult> {
     const runResult = stmt.run(cutoffISO);
     result.deleted = runResult.changes;
 
-    console.log(
-      `[Cleanup] Deleted ${result.deleted} quota_snapshots older than ${retentionDays} days`
+    log.info(
+      { deleted: result.deleted, retentionDays, table: "quota_snapshots" },
+      "Deleted quota_snapshots older than retention period"
     );
   } catch (err: unknown) {
-    console.error("[Cleanup] Error cleaning quota_snapshots:", err);
+    log.error({ err }, "Error cleaning quota_snapshots");
     result.errors++;
   }
 
@@ -68,9 +72,12 @@ export async function cleanupCallLogs(): Promise<CleanupResult> {
     const runResult = stmt.run(cutoffISO);
     result.deleted = runResult.changes;
 
-    console.log(`[Cleanup] Deleted ${result.deleted} call_logs older than ${retentionDays} days`);
+    log.info(
+      { deleted: result.deleted, retentionDays, table: "call_logs" },
+      "Deleted call_logs older than retention period"
+    );
   } catch (err: unknown) {
-    console.error("[Cleanup] Error cleaning call_logs:", err);
+    log.error({ err }, "Error cleaning call_logs");
     result.errors++;
   }
 
@@ -103,8 +110,9 @@ export async function cleanupUsageHistory(): Promise<CleanupResult> {
   // that was never aggregated.
   const rollupResult = await rollupUsageHistoryBeforeDate(cutoffDateStr);
   if (rollupResult.errors > 0) {
-    console.error(
-      "[Cleanup] Aborting usage_history deletion because the pre-delete rollup failed."
+    log.error(
+      { rollupErrors: rollupResult.errors },
+      "Aborting usage_history deletion because the pre-delete rollup failed"
     );
     result.errors += rollupResult.errors;
     return result;
@@ -115,11 +123,12 @@ export async function cleanupUsageHistory(): Promise<CleanupResult> {
     const runResult = stmt.run(cutoffDateStr);
     result.deleted = runResult.changes;
 
-    console.log(
-      `[Cleanup] Deleted ${result.deleted} usage_history older than ${retentionDays} days`
+    log.info(
+      { deleted: result.deleted, retentionDays, table: "usage_history" },
+      "Deleted usage_history older than retention period"
     );
   } catch (err: unknown) {
-    console.error("[Cleanup] Error cleaning usage_history:", err);
+    log.error({ err }, "Error cleaning usage_history");
     result.errors++;
   }
 
@@ -145,11 +154,12 @@ export async function cleanupCompressionAnalytics(): Promise<CleanupResult> {
     const runResult = stmt.run(cutoffISO);
     result.deleted = runResult.changes;
 
-    console.log(
-      `[Cleanup] Deleted ${result.deleted} compression_analytics older than ${retentionDays} days`
+    log.info(
+      { deleted: result.deleted, retentionDays, table: "compression_analytics" },
+      "Deleted compression_analytics older than retention period"
     );
   } catch (err: unknown) {
-    console.error("[Cleanup] Error cleaning compression_analytics:", err);
+    log.error({ err }, "Error cleaning compression_analytics");
     result.errors++;
   }
 
@@ -175,11 +185,12 @@ export async function cleanupMcpAudit(): Promise<CleanupResult> {
     const runResult = stmt.run(cutoffISO);
     result.deleted = runResult.changes;
 
-    console.log(
-      `[Cleanup] Deleted ${result.deleted} mcp_audit_log older than ${retentionDays} days`
+    log.info(
+      { deleted: result.deleted, retentionDays, table: "mcp_audit_log" },
+      "Deleted mcp_audit_log older than retention period"
     );
   } catch (err: unknown) {
-    console.error("[Cleanup] Error cleaning mcp_audit_log:", err);
+    log.error({ err }, "Error cleaning mcp_audit_log");
     result.errors++;
   }
 
@@ -205,9 +216,12 @@ export async function cleanupA2aEvents(): Promise<CleanupResult> {
     const runResult = stmt.run(cutoffISO);
     result.deleted = runResult.changes;
 
-    console.log(`[Cleanup] Deleted ${result.deleted} a2a_events older than ${retentionDays} days`);
+    log.info(
+      { deleted: result.deleted, retentionDays, table: "a2a_events" },
+      "Deleted a2a_events older than retention period"
+    );
   } catch (err: unknown) {
-    console.error("[Cleanup] Error cleaning a2a_events:", err);
+    log.error({ err }, "Error cleaning a2a_events");
     result.errors++;
   }
 
@@ -233,11 +247,12 @@ export async function cleanupMemoryEntries(): Promise<CleanupResult> {
     const runResult = stmt.run(cutoffISO);
     result.deleted = runResult.changes;
 
-    console.log(
-      `[Cleanup] Deleted ${result.deleted} memory_entries older than ${retentionDays} days`
+    log.info(
+      { deleted: result.deleted, retentionDays, table: "memory_entries" },
+      "Deleted memory_entries older than retention period"
     );
   } catch (err: unknown) {
-    console.error("[Cleanup] Error cleaning memory_entries:", err);
+    log.error({ err }, "Error cleaning memory_entries");
     result.errors++;
   }
 
@@ -256,11 +271,11 @@ export async function runAutoCleanup(): Promise<{
   const autoCleanupEnabled = retention.autoCleanupEnabled;
 
   if (!autoCleanupEnabled) {
-    console.log("[Cleanup] Auto-cleanup is disabled");
+    log.info("Auto-cleanup is disabled");
     return { totalDeleted: 0, totalErrors: 0, results: {} };
   }
 
-  console.log("[Cleanup] Starting auto-cleanup...");
+  log.info("Starting auto-cleanup");
 
   const results: Record<string, CleanupResult> = {
     quotaSnapshots: await cleanupQuotaSnapshots(),
@@ -276,7 +291,10 @@ export async function runAutoCleanup(): Promise<{
   const totalDeleted = Object.values(results).reduce((sum, r) => sum + r.deleted, 0);
   const totalErrors = Object.values(results).reduce((sum, r) => sum + r.errors, 0);
 
-  console.log(`[Cleanup] Auto-cleanup complete: ${totalDeleted} deleted, ${totalErrors} errors`);
+  log.info(
+    { totalDeleted, totalErrors },
+    "Auto-cleanup complete"
+  );
 
   return { totalDeleted, totalErrors, results };
 }
@@ -293,9 +311,12 @@ export async function purgeQuotaSnapshots(): Promise<CleanupResult> {
     const runResult = stmt.run();
     result.deleted = runResult.changes;
 
-    console.log(`[Cleanup] Purged ${result.deleted} quota_snapshots`);
+    log.info(
+      { deleted: result.deleted, table: "quota_snapshots" },
+      "Purged quota_snapshots"
+    );
   } catch (err: unknown) {
-    console.error("[Cleanup] Error purging quota_snapshots:", err);
+    log.error({ err }, "Error purging quota_snapshots");
     result.errors++;
   }
 
@@ -313,9 +334,12 @@ export async function purgeCallLogs(): Promise<CleanupResult> {
     const runResult = db.prepare("DELETE FROM call_logs").run();
     result.deleted = runResult.changes;
 
-    console.log(`[Cleanup] Purged ${result.deleted} call_logs`);
+    log.info(
+      { deleted: result.deleted, table: "call_logs" },
+      "Purged call_logs"
+    );
   } catch (err: unknown) {
-    console.error("[Cleanup] Error purging call_logs:", err);
+    log.error({ err }, "Error purging call_logs");
     result.errors++;
   }
 
@@ -324,7 +348,10 @@ export async function purgeCallLogs(): Promise<CleanupResult> {
   result.errors += artifactResult.errors;
 
   if (artifactResult.errors === 0) {
-    console.log(`[Cleanup] Purged ${result.deletedArtifacts} call log artifact(s)`);
+    log.info(
+      { deletedArtifacts: result.deletedArtifacts },
+      "Purged call log artifacts"
+    );
   }
 
   return result;
@@ -342,9 +369,12 @@ export async function purgeDetailedLogs(): Promise<CleanupResult> {
     const runResult = stmt.run();
     result.deleted = runResult.changes;
 
-    console.log(`[Cleanup] Purged ${result.deleted} request_detail_logs`);
+    log.info(
+      { deleted: result.deleted, table: "request_detail_logs" },
+      "Purged request_detail_logs"
+    );
   } catch (err: unknown) {
-    console.error("[Cleanup] Error purging request_detail_logs:", err);
+    log.error({ err }, "Error purging request_detail_logs");
     result.errors++;
   }
 
@@ -371,11 +401,12 @@ export async function cleanupProxyLogs(): Promise<CleanupResult> {
     const runResult = stmt.run(cutoffISO);
     result.deleted = runResult.changes;
 
-    console.log(
-      `[Cleanup] Deleted ${result.deleted} proxy_logs older than ${retentionDays} days`
+    log.info(
+      { deleted: result.deleted, retentionDays, table: "proxy_logs" },
+      "Deleted proxy_logs older than retention period"
     );
   } catch (err: unknown) {
-    console.error("[Cleanup] Error cleaning proxy_logs:", err);
+    log.error({ err }, "Error cleaning proxy_logs");
     result.errors++;
   }
 
@@ -405,19 +436,20 @@ export function startCleanupScheduler(): void {
       const proxyResult = await cleanupProxyLogs();
       const totalDeleted = result.totalDeleted + proxyResult.deleted;
       if (totalDeleted > 0) {
-        console.log(
-          `[Cleanup] Startup cleanup freed ${totalDeleted} rows. Running VACUUM...`
+        log.info(
+          { totalDeleted },
+          "Startup cleanup freed rows. Running VACUUM"
         );
         try {
           const db = getDbInstance();
           db.exec("VACUUM");
-          console.log("[Cleanup] VACUUM completed after startup cleanup.");
+          log.info("VACUUM completed after startup cleanup");
         } catch (vacErr) {
-          console.error("[Cleanup] VACUUM after cleanup failed:", vacErr);
+          log.error({ err: vacErr }, "VACUUM after cleanup failed");
         }
       }
     } catch (err) {
-      console.error("[Cleanup] Startup cleanup failed:", err);
+      log.error({ err }, "Startup cleanup failed");
     }
   }, 30_000);
 
@@ -428,19 +460,20 @@ export function startCleanupScheduler(): void {
       const proxyResult = await cleanupProxyLogs();
       const totalDeleted = result.totalDeleted + proxyResult.deleted;
       if (totalDeleted > 0) {
-        console.log(
-          `[Cleanup] Periodic cleanup freed ${totalDeleted} rows. Running VACUUM...`
+        log.info(
+          { totalDeleted },
+          "Periodic cleanup freed rows. Running VACUUM"
         );
         try {
           const db = getDbInstance();
           db.exec("VACUUM");
-          console.log("[Cleanup] VACUUM completed after periodic cleanup.");
+          log.info("VACUUM completed after periodic cleanup");
         } catch (vacErr) {
-          console.error("[Cleanup] VACUUM after cleanup failed:", vacErr);
+          log.error({ err: vacErr }, "VACUUM after cleanup failed");
         }
       }
     } catch (err) {
-      console.error("[Cleanup] Periodic cleanup failed:", err);
+      log.error({ err }, "Periodic cleanup failed");
     }
   }, CLEANUP_INTERVAL_MS);
 
@@ -449,7 +482,10 @@ export function startCleanupScheduler(): void {
     _cleanupSchedulerTimer.unref();
   }
 
-  console.log("[Cleanup] Background cleanup scheduler started (every 6 hours).");
+  log.info(
+    { intervalMs: CLEANUP_INTERVAL_MS },
+    "Background cleanup scheduler started"
+  );
 }
 
 /**

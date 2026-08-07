@@ -13,6 +13,9 @@ import {
 import { invalidateDbCache } from "./readCache";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("db:providers");
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
 import {
   withNullableMaxConcurrent,
@@ -712,7 +715,7 @@ export function autoMigrateLegacyEncryptedConnections(): number {
   if (migratedCount > 0) {
     backupDbFile("pre-write");
     invalidateDbCache("connections");
-    console.log(`[DB] Auto-migrated ${migratedCount} connection(s) to new static-salt encryption.`);
+    log.info({ migratedCount }, "Auto-migrated connections to new static-salt encryption");
   }
 
   return migratedCount;

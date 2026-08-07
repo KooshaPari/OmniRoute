@@ -19,6 +19,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import type { SqliteAdapter } from "./adapters/types";
 import { DEFAULT_DATABASE_SETTINGS } from "@/types/databaseSettings";
+import { createLogger } from "@/shared/utils/logger";
 import {
   RENAMED_MIGRATION_COMPATIBILITY,
   LEGACY_VERSION_SLOT_MIGRATIONS,
@@ -28,19 +29,7 @@ import {
   OPTIONAL_FTS5_MIGRATION_VERSIONS,
 } from "./migrationRunner/constants";
 
-const isNodeTestRunnerChild = typeof process.env.NODE_TEST_CONTEXT === "string";
-
-const console = {
-  log: (...args: unknown[]) => {
-    if (!isNodeTestRunnerChild) globalThis.console.log(...args);
-  },
-  warn: (...args: unknown[]) => {
-    if (!isNodeTestRunnerChild) globalThis.console.warn(...args);
-  },
-  error: (...args: unknown[]) => {
-    globalThis.console.error(...args);
-  },
-};
+const log = createLogger("db:migration-runner");
 
 /**
  * Resolve the migrations directory path safely across platforms.
@@ -264,9 +253,14 @@ function filterSupersededDuplicateMigrations(
       return true;
     }
 
-    console.warn(
-      `[Migration] Ignoring superseded duplicate migration ${file.version}_${file.name}; ` +
-        `${superseded.supersededByVersion}_${superseded.supersededByName} is the canonical slot.`
+    log.warn(
+      {
+        supersededVersion: file.version,
+        supersededName: file.name,
+        canonicalVersion: superseded.supersededByVersion,
+        canonicalName: superseded.supersededByName,
+      },
+      "Ignoring superseded duplicate migration"
     );
     return false;
   });
@@ -720,9 +714,14 @@ function reconcileRenumberedMigrations(
 
     applyRepair();
     repaired = true;
-    console.warn(
-      `[Migration] Reconciled renamed migration ${compatibility.fromVersion}_${compatibility.fromName} ` +
-        `to ${compatibility.toVersion}_${compatibility.toName} to preserve pending migrations.`
+    log.warn(
+      {
+        fromVersion: compatibility.fromVersion,
+        fromName: compatibility.fromName,
+        toVersion: compatibility.toVersion,
+        toName: compatibility.toName,
+      },
+      "Reconciled renamed migration to preserve pending migrations"
     );
 
     // After the compat rewrite, verify the old version slot is now free.
@@ -734,10 +733,12 @@ function reconcileRenumberedMigrations(
       .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
       .get(compatibility.fromVersion) as { version: string; name: string } | undefined;
     if (residualRow) {
-      console.warn(
-        `[Migration] ⚠️  Residual row at version ${compatibility.fromVersion} ` +
-          `(name: "${residualRow.name}") still present after compat rewrite — ` +
-          `removing to unblock new migration at this version slot.`
+      log.warn(
+        {
+          version: compatibility.fromVersion,
+          residualName: residualRow.name,
+        },
+        "Residual row at version still present after compat rewrite — removing to unblock new migration at this version slot"
       );
       db.prepare("DELETE FROM _omniroute_migrations WHERE version = ?").run(
         compatibility.fromVersion
@@ -791,9 +792,14 @@ function rehomeLegacyVersionSlotMigrations(
 
     applyRepair();
     repaired = true;
-    console.warn(
-      `[Migration] Rehomed legacy migration ${legacy.version}_${legacy.name} ` +
-        `to ${legacyVersion} so current ${legacy.version}_${diskName} can apply.`
+    log.warn(
+      {
+        version: legacy.version,
+        legacyName: legacy.name,
+        rehomedVersion: legacyVersion,
+        currentName: diskName,
+      },
+      "Rehomed legacy migration so current slot can apply"
     );
   }
 
@@ -819,11 +825,11 @@ function createPreMigrationBackup(db: SqliteAdapter): string | null {
     const escapedBackupPath = backupPath.replace(/'/g, "''");
 
     db.exec(`VACUUM INTO '${escapedBackupPath}'`);
-    console.log(`[Migration] Pre-migration backup created: ${backupPath}`);
+    log.info({ backupPath }, "Pre-migration backup created");
     return backupPath;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    console.warn(`[Migration] Failed to create pre-migration backup: ${message}`);
+    log.warn({ err: message }, "Failed to create pre-migration backup");
     return null;
   }
 }
@@ -850,21 +856,15 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
   // ── Safety Check 1: Detect migration name mismatches (renumbering) ──
   const mismatches = detectNameMismatches(appliedRecords, files);
   if (mismatches.length > 0) {
-    console.error(
-      `[Migration] ⚠️  CRITICAL: ${mismatches.length} migration version(s) have been renumbered!`
+    log.error(
+      { count: mismatches.length, mismatches },
+      "CRITICAL: migration version(s) have been renumbered"
     );
-    for (const m of mismatches) {
-      console.error(
-        `  Version ${m.version}: applied as "${m.appliedName}" but disk has "${m.diskName}"`
-      );
-    }
-    console.error(
-      `[Migration] This indicates migrations were renumbered between releases, ` +
-        `which can cause the migration runner to skip or re-run migrations incorrectly.`
-    );
-    console.error(
-      `[Migration] The version-only tracking will skip these (version already applied), ` +
-        `but please report this to the OmniRoute maintainers.`
+    log.error(
+      {
+        hint: "version-only tracking will skip these (version already applied)",
+      },
+      "Please report renumbered migrations to OmniRoute maintainers"
     );
   }
 
@@ -879,10 +879,13 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
   const pending = files.filter((f) => {
     const isMissing = !applied.has(f.version);
     if (isMissing && Number(f.version) < highestApplied) {
-      console.warn(
-        `[Migration] 🔄 RECONCILIATION: Found missing intermediate migration ` +
-          `${f.version}_${f.name} (highest applied is ${highestApplied}). ` +
-          `This gap will be back-filled to ensure schema integrity.`
+      log.warn(
+        {
+          missingVersion: f.version,
+          missingName: f.name,
+          highestApplied,
+        },
+        "RECONCILIATION: Found missing intermediate migration — back-filling to ensure schema integrity"
       );
     }
     return isMissing;
@@ -902,9 +905,9 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
     const summary = deferredUnsupported
       .map((migration) => `${migration.version}_${migration.name}`)
       .join(", ");
-    console.warn(
-      `[Migration] Deferring optional FTS5 migrations on driver ${db.driver}: ${summary}. ` +
-        `Memory search will fall back until a SQLite driver with FTS5 support is available.`
+    log.warn(
+      { driver: db.driver, deferred: summary },
+      "Deferring optional FTS5 migrations on driver — memory search will fall back"
     );
   }
 
@@ -934,10 +937,13 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
       : null;
 
     if (plausiblePendingCount !== null && actionablePending.length <= plausiblePendingCount) {
-      console.warn(
-        `[Migration] Allowing ${actionablePending.length} pending migrations on an existing database ` +
-          `because the physical schema only proves ${physicalBaseline?.version} ` +
-          `(${physicalBaseline?.description}).`
+      log.warn(
+        {
+          pendingCount: actionablePending.length,
+          baselineVersion: physicalBaseline?.version,
+          baselineDescription: physicalBaseline?.description,
+        },
+        "Allowing pending migrations on existing database based on physical schema baseline"
       );
     } else {
       const schemaHint =
@@ -952,7 +958,14 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
         `This usually means the migration tracking table was accidentally wiped. ` +
         `Running all migrations from scratch will cause data loss or schema errors.` +
         schemaHint;
-      console.error(msg);
+      log.error(
+        {
+          pendingCount: actionablePending.length,
+          threshold: maxPendingMigrations,
+          physicalBaselineVersion: physicalBaseline?.version,
+        },
+        "ABORT: too many pending migrations on existing database"
+      );
       throw new Error(msg);
     }
   }
@@ -973,8 +986,9 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
 
     const applyMigration = db.transaction(() => {
       if (isSchemaAlreadyApplied(db, migration)) {
-        console.warn(
-          `[Migration] Skipped executing ${migration.version}_${migration.name} as schema changes are already present (Idempotency check).`
+        log.warn(
+          { version: migration.version, name: migration.name },
+          "Skipped executing migration as schema changes are already present (Idempotency check)"
         );
       } else if (migration.version === "032") {
         applyApiKeyLifecycleMigration(db);
@@ -995,7 +1009,10 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
     try {
       applyMigration();
       count++;
-      console.log(`[Migration] Applied: ${migration.version}_${migration.name}`);
+      log.info(
+        { version: migration.version, name: migration.name },
+        "Applied migration"
+      );
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       // "duplicate column name" means the column already exists — end state achieved, mark applied.
@@ -1007,18 +1024,22 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
         });
         applyMarkerOnly();
         count++;
-        console.log(
-          `[Migration] Applied (column pre-exists): ${migration.version}_${migration.name}`
+        log.info(
+          { version: migration.version, name: migration.name },
+          "Applied migration (column pre-exists)"
         );
       } else {
-        console.error(`[Migration] FAILED: ${migration.version}_${migration.name} — ${message}`);
+        log.error(
+          { err: message, version: migration.version, name: migration.name },
+          "Migration FAILED"
+        );
         throw err; // Re-throw to prevent DB from starting in inconsistent state
       }
     }
   }
 
   if (count > 0) {
-    console.log(`[Migration] ${count} migration(s) applied successfully.`);
+    log.info({ count }, "Migrations applied successfully");
   }
 
   // After applying all migrations, insert default settings if we just ran migration 46
@@ -1027,7 +1048,7 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
       insertDefaultDatabaseSettings(db);
     }
   } catch (error) {
-    console.error("Error inserting default database settings:", error);
+    log.error({ err: error }, "Error inserting default database settings");
   }
 
   return count;
@@ -1053,7 +1074,7 @@ function insertDefaultDatabaseSettings(db: SqliteAdapter) {
       tx();
     });
   } catch (error) {
-    console.error("Transaction error inserting default settings:", error);
+    log.error({ err: error }, "Transaction error inserting default settings");
     throw error;
   }
 }

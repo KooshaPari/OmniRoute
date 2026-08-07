@@ -14,6 +14,7 @@ import {
 import path from "path";
 import fs from "fs";
 import { resolveWritableDataDir, getLegacyDotDataDir } from "../dataPaths";
+import { createLogger } from "@/shared/utils/logger";
 import { runMigrations } from "./migrationRunner";
 import { runDbHealthCheck } from "./healthCheck";
 import { resetAllDbModuleState } from "./stateReset";
@@ -69,6 +70,8 @@ type PreservedCriticalDbState = {
   preservedTables: PreservedTableSnapshot[];
   skippedTables: SkippedTableSnapshot[];
 };
+
+const log = createLogger("db:core");
 type CriticalTableSpec = {
   table: string;
   maxRows?: number;
@@ -176,10 +179,13 @@ if (!isCloud && !fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.warn(
-      `[DB] Cannot create data directory '${DATA_DIR}': ${msg}\n` +
-        `[DB] Set the DATA_DIR environment variable to a writable path, e.g.:\n` +
-        `[DB]   DATA_DIR=/path/to/writable/dir omniroute`
+    log.warn(
+      {
+        dataDir: DATA_DIR,
+        err: msg,
+        hint: "Set the DATA_DIR environment variable to a writable path, e.g.: DATA_DIR=/path/to/writable/dir omniroute",
+      },
+      "Cannot create data directory"
     );
   }
 }
@@ -766,8 +772,9 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
   tx();
 
   if (failed > 0) {
-    console.warn(
-      `[DB] Kept call_logs_v1_legacy after partial call log offload (${failed} failed row(s)).`
+    log.warn(
+      { failedRows: failed },
+      "Kept call_logs_v1_legacy after partial call log offload"
     );
     return;
   }
@@ -776,10 +783,13 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
   try {
     db.pragma("wal_checkpoint(TRUNCATE)");
     db.exec("VACUUM");
-    console.log(`[DB] Offloaded ${pendingRows.length} legacy call log detail row(s) to artifacts.`);
+    log.info(
+      { offloadedRows: pendingRows.length },
+      "Offloaded legacy call log detail rows to artifacts"
+    );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    console.warn("[DB] Legacy call log compaction finished without VACUUM:", message);
+    log.warn({ err: message }, "Legacy call log compaction finished without VACUUM");
   }
 }
 
@@ -812,11 +822,11 @@ function createManagedDbBackup(db: SqliteDatabase, reason: string): boolean {
     const escapedBackupPath = backupPath.replace(/'/g, "''");
 
     db.exec(`VACUUM INTO '${escapedBackupPath}'`);
-    console.log(`[DB] Backup created (${reason}): ${backupPath}`);
+    log.info({ reason, backupPath }, "Backup created");
     return true;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    console.warn(`[DB] Failed to create ${reason} backup:`, message);
+    log.warn({ err: message, reason }, "Failed to create backup");
     return false;
   }
 }
@@ -868,7 +878,10 @@ function autoMigrateLegacyEncryptedConnections(db: SqliteDatabase): number {
 
   if (migratedCount > 0) {
     invalidateDbCache("connections");
-    console.log(`[DB] Auto-migrated ${migratedCount} connection(s) to new static-salt encryption.`);
+    log.info(
+      { migratedCount },
+      "Auto-migrated connections to new static-salt encryption"
+    );
   }
 
   return migratedCount;
@@ -912,7 +925,7 @@ function startDbHealthCheckScheduler(db: SqliteDatabase) {
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
-      console.warn("[DB] Periodic health-check failed:", message);
+      log.warn({ err: message }, "Periodic health-check failed");
     }
   }, intervalMs);
   dbHealthCheckTimer.unref?.();
@@ -933,7 +946,7 @@ export function getDbInstance(): SqliteDatabase {
 
   if (isCloud || isBuildPhase) {
     if (isBuildPhase) {
-      console.log("[DB] Build phase detected — using in-memory SQLite (read-only)");
+      log.info("Build phase detected — using in-memory SQLite (read-only)");
     }
     const memoryDb = openSqliteDatabase(":memory:");
     memoryDb.pragma("journal_mode = WAL");
@@ -955,8 +968,9 @@ export function getDbInstance(): SqliteDatabase {
     const latestBackup = probeFailureBackups[0];
     try {
       fs.renameSync(latestBackup, sqliteFile);
-      console.log(
-        `[DB] Auto-restored preserved database from previous probe failure: ${path.basename(latestBackup)}`
+      log.info(
+        { preservedBackup: path.basename(latestBackup) },
+        "Auto-restored preserved database from previous probe failure"
       );
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
@@ -1005,8 +1019,8 @@ export function getDbInstance(): SqliteDatabase {
         probe.close();
 
         if (hasData) {
-          console.log(
-            `[DB] Old schema_migrations table found but data exists — preserving data (#146)`
+          log.info(
+            "Old schema_migrations table found but data exists — preserving data (#146)"
           );
           const fixDb = openSqliteDatabase(sqliteFile);
           try {
@@ -1014,14 +1028,15 @@ export function getDbInstance(): SqliteDatabase {
             fixDb.pragma("wal_checkpoint(TRUNCATE)");
           } catch (e: unknown) {
             const message = e instanceof Error ? e.message : String(e);
-            console.warn("[DB] Could not clean up old schema table:", message);
+            log.warn({ err: message }, "Could not clean up old schema table");
           } finally {
             fixDb.close();
           }
         } else {
           const oldPath = sqliteFile + ".old-schema";
-          console.log(
-            `[DB] Old incompatible schema detected (empty) — renaming to ${path.basename(oldPath)}`
+          log.info(
+            { renamedTo: path.basename(oldPath) },
+            "Old incompatible schema detected (empty) — renaming"
           );
           fs.renameSync(sqliteFile, oldPath);
           for (const ext of ["-wal", "-shm"]) {
@@ -1037,7 +1052,7 @@ export function getDbInstance(): SqliteDatabase {
       }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
-      console.warn("[DB] Could not probe existing DB:", message);
+      log.warn({ err: message }, "Could not probe existing DB");
 
       // If the error is a Node module/ABI failure, throw it immediately to avoid renaming the database
       if (
@@ -1054,7 +1069,7 @@ export function getDbInstance(): SqliteDatabase {
       const failedPath = sqliteFile + `.probe-failed-${Date.now()}`;
       try {
         fs.renameSync(sqliteFile, failedPath);
-        console.warn(`[DB] Renamed corrupt DB to ${path.basename(failedPath)}`);
+        log.warn({ renamedTo: path.basename(failedPath) }, "Renamed corrupt DB");
         failedProbePath = failedPath;
         failedProbeMessage = message;
       } catch {
@@ -1121,10 +1136,9 @@ export function getDbInstance(): SqliteDatabase {
   if (failedProbePath && preservedCriticalState.preservedTables.length > 0) {
     try {
       const restoredTables = restoreCriticalDbState(db, preservedCriticalState);
-      console.log(
-        `[DB] Restored preserved critical DB state after probe failure: ${summarizePreservedTables(
-          restoredTables
-        )}`
+      log.info(
+        { restored: summarizePreservedTables(restoredTables) },
+        "Restored preserved critical DB state after probe failure"
       );
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
@@ -1150,7 +1164,7 @@ export function getDbInstance(): SqliteDatabase {
   if (shouldRunStartupDbHealthCheck()) {
     const skipIntegrityCheck = process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1";
     if (skipIntegrityCheck) {
-      console.log("[DB] Health check skipped (OMNIROUTE_SKIP_DB_HEALTHCHECK=1)");
+      log.info("Health check skipped (OMNIROUTE_SKIP_DB_HEALTHCHECK=1)");
     }
     runDbHealthCheck(db, {
       autoRepair: true,
@@ -1167,7 +1181,7 @@ export function getDbInstance(): SqliteDatabase {
     autoMigrateLegacyEncryptedConnections(db);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error(`[DB] Legacy encryption migration failed: ${message}`);
+    log.error({ err: message }, "Legacy encryption migration failed");
   }
 
   startDbHealthCheckScheduler(db);
@@ -1175,9 +1189,12 @@ export function getDbInstance(): SqliteDatabase {
   // multi-replica / Docker volume-topology mismatch (each replica opening a
   // different on-disk DB → "phantom"/missing combos & connections) is
   // diagnosable straight from the logs. (#3147)
-  console.log(
-    `[DB] SQLite database ready: ${sqliteFile} ` +
-      `(DATA_DIR=${path.resolve(DATA_DIR)}, SQLITE_FILE=${path.resolve(sqliteFile)})`
+  log.info(
+    {
+      sqliteFile,
+      dataDir: path.resolve(DATA_DIR),
+    },
+    "SQLite database ready"
   );
   return db;
 }
@@ -1207,11 +1224,11 @@ export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | nu
     if (checkpointMode) {
       try {
         if (checkpointDb(db, checkpointMode)) {
-          console.log(`[DB] SQLite WAL checkpoint completed (${checkpointMode}).`);
+          log.info({ checkpointMode }, "SQLite WAL checkpoint completed");
         }
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[DB] WAL checkpoint failed during close (${checkpointMode}):`, message);
+        log.warn({ err: message, checkpointMode }, "WAL checkpoint failed during close");
       }
     }
   } finally {
@@ -1280,7 +1297,7 @@ export async function ensureDbInitialized(): Promise<void> {
   }
 
   // No synchronous driver available — pre-initialize sql.js (WASM, async)
-  console.warn("[DB] Pre-initializing sql.js WASM (synchronous drivers unavailable)...");
+  log.warn("Pre-initializing sql.js WASM (synchronous drivers unavailable)");
   await preInitSqlJs(SQLITE_FILE);
   // Agora getSqlJsAdapter() retornará o adapter, e getDbInstance() vai usá-lo
   getDbInstance();
@@ -1298,13 +1315,14 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
     const keyCount = (data.apiKeys || []).length;
 
     if (connCount === 0 && nodeCount === 0 && keyCount === 0) {
-      console.log("[DB] db.json has no data to migrate, skipping");
+      log.info("db.json has no data to migrate, skipping");
       fs.renameSync(jsonPath, jsonPath + ".empty");
       return;
     }
 
-    console.log(
-      `[DB] Migrating db.json → SQLite (${connCount} connections, ${nodeCount} nodes, ${keyCount} keys)...`
+    log.info(
+      { connCount, nodeCount, keyCount },
+      "Migrating db.json → SQLite"
     );
 
     const migrate = db.transaction(() => {
@@ -1463,19 +1481,24 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
 
     const migratedPath = jsonPath + ".migrated";
     fs.renameSync(jsonPath, migratedPath);
-    console.log(`[DB] ✓ Migration complete. Original saved as ${migratedPath}`);
+    log.info({ migratedPath }, "Migration from db.json complete");
 
     const legacyBackupDir = path.join(DATA_DIR, "db_backups");
     if (fs.existsSync(legacyBackupDir)) {
       const jsonBackups = fs.readdirSync(legacyBackupDir).filter((f) => f.endsWith(".json"));
       if (jsonBackups.length > 0) {
-        console.log(
-          `[DB] Note: ${jsonBackups.length} legacy .json backups remain in ${legacyBackupDir}`
+        log.info(
+          { legacyJsonBackups: jsonBackups.length, legacyBackupDir },
+          "Legacy .json backups remain in db_backups"
         );
       }
     }
   } catch (err) {
-    console.error("[DB] Migration from db.json failed:", err.message);
+    // Preserved console.error here: tests/unit/db-core-migration.test.ts asserts
+    // that a corrupted db.json surfaces a console.error so the failure is visible
+    // in CI logs without depending on pino transport being attached.
+    console.error("[DB] Migration from db.json failed:", (err as Error)?.message ?? String(err));
+    log.error({ err: (err as Error)?.message ?? String(err) }, "Migration from db.json failed");
   }
 }
 
@@ -1498,14 +1521,14 @@ export function runManualVacuum(): { success: boolean; duration: number; error?:
   const startTime = Date.now();
 
   try {
-    console.log("[DB] Starting manual VACUUM...");
+    log.info("Starting manual VACUUM");
     db.exec("VACUUM");
     const duration = Date.now() - startTime;
-    console.log(`[DB] Manual VACUUM completed in ${duration}ms`);
+    log.info({ durationMs: duration }, "Manual VACUUM completed");
     return { success: true, duration };
   } catch (err: unknown) {
     const duration = Date.now() - startTime;
-    console.error("[DB] Manual VACUUM failed:", err);
+    log.error({ err, durationMs: duration }, "Manual VACUUM failed");
     const message = err instanceof Error ? err.message : String(err);
     return { success: false, duration, error: message };
   }

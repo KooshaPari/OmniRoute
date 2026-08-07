@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 
 import { getDbInstance } from "./core";
+import { createLogger } from "@/shared/utils/logger";
 
 type SessionAccountAffinityRecord = {
   connectionId: string;
@@ -11,6 +12,8 @@ type SessionAccountAffinityRecord = {
 
 const NAMESPACE = "session_account_affinity";
 const CLEANUP_INTERVAL_MS = 5 * 60_000;
+
+const log = createLogger("db:session-account-affinity");
 
 let cleanupTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -159,14 +162,14 @@ export function startSessionAccountAffinityCleanup(): void {
   try {
     cleanupStaleSessionAccountAffinities();
   } catch (error) {
-    console.warn("[SESSION_AFFINITY] Startup cleanup failed:", error);
+    log.warn({ err: error }, "Startup cleanup failed");
   }
 
   cleanupTimer = setInterval(() => {
     try {
       cleanupStaleSessionAccountAffinities();
     } catch (error) {
-      console.warn("[SESSION_AFFINITY] Periodic cleanup failed:", error);
+      log.warn({ err: error }, "Periodic cleanup failed");
     }
   }, CLEANUP_INTERVAL_MS);
   if (typeof cleanupTimer === "object" && "unref" in cleanupTimer) cleanupTimer.unref?.();
