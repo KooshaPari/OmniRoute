@@ -14,6 +14,7 @@ import { invalidateDbCache } from "./readCache";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
+import { createLogger } from "@/shared/utils/logger";
 import {
   withNullableMaxConcurrent,
   withNullableQuotaWindowThresholds,
@@ -26,6 +27,8 @@ import {
   toStringOrNull,
   toNumberOrZero,
 } from "./providers/columns";
+
+const log = createLogger("db:providers");
 
 type JsonRecord = Record<string, unknown>;
 
@@ -345,7 +348,20 @@ export async function createProviderConnection(data: JsonRecord) {
     connection.rateLimitOverrides = sanitizeRateLimitOverrides(connection.rateLimitOverrides);
   }
 
-  _insertConnectionRow(db, encryptConnectionFields({ ...connection }));
+  const fieldsToWrite = encryptConnectionFields({ ...connection });
+  if (fieldsToWrite === null) {
+    // FAIL-CLOSED: encryption layer is broken (key configured but crypto
+    // pipeline threw). Refuse to insert plaintext; surface a clear error.
+    log.error(
+      { provider: data.provider },
+      `[providers] Refusing to insert connection row: encryption layer is broken. ` +
+        `Check STORAGE_ENCRYPTION_KEY and restart.`
+    );
+    throw new Error(
+      `[providers] Cannot insert connection for ${String(data.provider)}: encryption layer failed`
+    );
+  }
+  _insertConnectionRow(db, fieldsToWrite);
   const providerId = toStringOrNull(data.provider);
   if (providerId) {
     _reorderConnections(db, providerId);
@@ -541,7 +557,20 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
   if ("rateLimitOverrides" in merged) {
     merged.rateLimitOverrides = sanitizeRateLimitOverrides(merged.rateLimitOverrides);
   }
-  _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
+  const fieldsToWrite = encryptConnectionFields({ ...merged });
+  if (fieldsToWrite === null) {
+    // FAIL-CLOSED: encryption layer is broken (key configured but crypto
+    // pipeline threw). Refuse to update plaintext; surface a clear error.
+    log.error(
+      { id, provider: merged.provider },
+      `[providers] Refusing to update connection row: encryption layer is broken. ` +
+        `Check STORAGE_ENCRYPTION_KEY and restart.`
+    );
+    throw new Error(
+      `[providers] Cannot update connection ${String(id)}: encryption layer failed`
+    );
+  }
+  _updateConnectionRow(db, id, fieldsToWrite);
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
   bumpProxyConfigGeneration();
