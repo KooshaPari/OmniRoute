@@ -10,9 +10,6 @@ plugins:
     - id: trunk
       ref: v1.2.2
       uri: https://github.com/trunk-io/plugins
-    - id: community
-      ref: main
-      uri: https://github.com/trunk-io/community
 
 # Keep the repository's existing lint and format coverage. Trunk's current
 # schema represents both linters and formatters in this single enabled list.
