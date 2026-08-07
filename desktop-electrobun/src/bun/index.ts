@@ -87,7 +87,7 @@ async function bootRendererServer(): Promise<string | undefined> {
   const url = `http://127.0.0.1:${port}`;
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(500) });
+      const response = await fetch(`${url}/healthz`, { signal: AbortSignal.timeout(500) });
       if (response.ok) return url;
     } catch {
       await Bun.sleep(250);
@@ -114,7 +114,7 @@ async function bootNextServer(): Promise<string | undefined> {
   const url = `http://127.0.0.1:${SERVER_PORT}`;
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(500) });
+      const response = await fetch(`${url}/healthz`, { signal: AbortSignal.timeout(500) });
       if (response.ok) return url;
     } catch {
       await Bun.sleep(250);
