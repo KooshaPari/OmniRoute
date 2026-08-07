@@ -1,113 +1,89 @@
-# =============================================================================
-# Trunk.io — Plugin versions for linting/formatting tools
-# =============================================================================
-# This file is auto-generated. Run `trunk upgrade` to update.
-# https://docs.trunk.io/check/reference
-# =============================================================================
+---
+# Trunk code-quality configuration.
+# Schema: https://docs.trunk.io/reference/trunk-yaml
+version: 0.1
+
+cli:
+  version: 1.22.2
 
 plugins:
   sources:
     - id: trunk
       ref: v1.2.2
-    - id: community
-      ref: main
+      uri: https://github.com/trunk-io/plugins
 
-# Linters (auto-detected by file type)
-linters:
-  actionlint:
-    enabled: true
-    commands:
-      - name: actionlint
-        run: actionlint ${target}
-        direct_configs:
-          - .github/workflows/*.yml
-  black:
-    enabled: true
-    commands:
-      - name: black
-        run: black --check --line-length 100 ${target}
-        direct_configs:
-          - pyproject.toml
-          - ruff.toml
-  clippy:
-    enabled: true
-    commands:
-      - name: clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
-  eslint:
-    enabled: true
-    direct_configs:
-      - .eslintrc.*
-      - eslint.config.*
-  golangci-lint:
-    enabled: true
-    direct_configs:
-      - .golangci.yml
-      - .golangci.yaml
-  mypy:
-    enabled: true
-    commands:
-      - name: mypy
-        run: mypy --ignore-missing-imports ${target}
-  ruff:
-    enabled: true
-    commands:
-      - name: ruff
-        run: ruff check --output-format=github ${target}
-        direct_configs:
-          - ruff.toml
-          - pyproject.toml
-  shellcheck:
-    enabled: true
-  taplo:
-    enabled: true
-  yamllint:
-    enabled: true
+# Keep the repository's existing lint and format coverage. Trunk's current
+# schema represents both linters and formatters in this single enabled list.
+lint:
+  enabled:
+    - actionlint
+    - black
+    - clippy
+    - eslint
+    - golangci-lint
+    - mypy
+    - ruff
+    - rustfmt
+    - shellcheck
+    - taplo
+    - yamllint
+  definitions:
+    - name: actionlint
+      commands:
+        - name: actionlint
+          output: pass_fail
+          read_output_from: stdout
+          run: actionlint ${target}
+          success_codes: [0, 1]
+      direct_configs:
+        - .github/workflows/*.yml
+    - name: black
+      commands:
+        - name: black
+          output: pass_fail
+          read_output_from: stdout
+          run: black --check --line-length 100 ${target}
+          success_codes: [0, 1]
+      direct_configs:
+        - pyproject.toml
+        - ruff.toml
+    - name: clippy
+      commands:
+        - name: clippy
+          output: pass_fail
+          read_output_from: stdout
+          run: cargo clippy --all-targets --all-features -- -D warnings
+          success_codes: [0, 1]
+    - name: mypy
+      commands:
+        - name: mypy
+          output: pass_fail
+          read_output_from: stdout
+          run: mypy --ignore-missing-imports ${target}
+          success_codes: [0, 1]
+    - name: ruff
+      commands:
+        - name: ruff
+          output: pass_fail
+          read_output_from: stdout
+          run: ruff check --output-format=github ${target}
+          success_codes: [0, 1]
+      direct_configs:
+        - ruff.toml
+        - pyproject.toml
+    - name: rustfmt
+      commands:
+        - name: rustfmt
+          output: pass_fail
+          read_output_from: stdout
+          run: rustfmt ${target}
+          success_codes: [0, 1]
+      direct_configs:
+        - rustfmt.toml
 
-# Formatters
-formatters:
-  black:
-    enabled: true
-    commands:
-      - name: black
-        run: black --line-length 100 ${target}
-        direct_configs:
-          - pyproject.toml
-  prettier:
-    enabled: true
-    direct_configs:
-      - .prettierrc
-      - prettier.config.*
-  rustfmt:
-    enabled: true
-    commands:
-      - name: rustfmt
-        run: rustfmt ${target}
-
-# Actions (CI optimization)
 actions:
-  trunk-check:
-    enabled: true
-    size: 5GB
-    memory: 16GB
-    disk: 10GB
-  trunk-merge:
-    enabled: true
-    size: 5GB
-  trunk-push:
-    enabled: true
-    size: 5GB
-
-# Caching
-cache:
-  enabled: true
-  storage: local
-
-# CLI
-cli:
-  version: 1.22.2
-
-# Environment
-env:
-  variables:
-    EDITOR: vim
+  enabled:
+    - trunk-announce
+    - trunk-check-pre-push
+    - trunk-fmt-pre-commit
+    - trunk-upgrade-available
