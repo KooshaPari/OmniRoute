@@ -690,3 +690,12 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Go SDK: Real maximhq/bifrost/core
 - PRs: #415 (merged) + #420 (ready for review)
 - No blockers
+
+## 2026-08-07T10:08Z - Current-main renderer BFF origin recovery (renderer-bff-origin-mainline)
+
+- Recovery branch starts from current `origin/main` `509d8c5ea1d154dbf7da500d1a9b21153a37a7b8` (post merged-main policy / Keyv adapter changes); stale PR #492 checkout was not modified.
+- Applied the preserved Electrobun fix: derive `BFF_ORIGIN` from `OMNIROUTE_BFF_URL`, `PUBLIC_OMNIROUTE_BFF_URL`, or the bundled backend port, and pass both origin variables into the renderer child process.
+- Added `desktop-electrobun/tests/lifecycle.test.ts` covering origin propagation and backend-before-renderer ordering. Focused test passed 1/1; Prettier check passed after formatting; `git diff --check` passed.
+- Airlock pre-rebase preservation snapshot: `wip/20260807T1002-18c97db4d4ea6e18` / `3516c2d58f372076ad46dd33e2f4f179788ca5e0`.
+- Desktop typecheck remains environment-blocked because `bun-types` is not installed in the clean worktree; install dependencies before claiming full desktop validation.
+- This entry is append-only.
