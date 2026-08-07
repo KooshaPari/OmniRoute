@@ -1,11 +1,22 @@
 import { createHash, createHmac } from "node:crypto";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("auth:machine-token");
+let fallbackLogged = false;
 
 let machineIdSync: (original?: boolean) => string;
 try {
   // Use require() to bypass webpack static analysis that breaks the default export
   const mod = require("node-machine-id");
   machineIdSync = mod.machineIdSync || mod.default?.machineIdSync;
-} catch {
+} catch (err) {
+  if (!fallbackLogged) {
+    fallbackLogged = true;
+    log.error(
+      { err },
+      "machineToken: node-machine-id unavailable — HMAC salt falls back to empty string (security-relevant, all tokens become constant-keyed)"
+    );
+  }
   machineIdSync = () => "";
 }
 
@@ -34,7 +45,11 @@ export function getMachineTokenSync(salt?: string): string {
       cachedSalt = activeSalt;
     }
     return token;
-  } catch {
+  } catch (err) {
+    log.error(
+      { err },
+      "machineToken.getMachineTokenSync: deriveToken failed — returning empty string (security-relevant)"
+    );
     return "";
   }
 }
@@ -47,7 +62,11 @@ export function getLegacyCliTokenSync(salt?: string): string {
       .update(machineId + activeSalt)
       .digest("hex")
       .substring(0, 32);
-  } catch {
+  } catch (err) {
+    log.error(
+      { err },
+      "machineToken.getLegacyCliTokenSync: hash derivation failed — returning empty string (security-relevant)"
+    );
     return "";
   }
 }

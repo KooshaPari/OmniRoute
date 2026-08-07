@@ -1,6 +1,9 @@
 import { CODEX_FAST_TIER_DEFAULT_SUPPORTED_MODELS } from "@/lib/providers/codexFastTier";
 import { resolveFamilyFirstPublishedModelId } from "@/lib/vscode/familyFirstModelIds";
 import { normalizeServiceTierId, type ServiceTierId } from "@/shared/utils/serviceTierLabels";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("vscode:service-tier-variants");
 
 const SERVICE_TIER_VARIANT_PATTERN = /__tier_(priority|flex)$/i;
 const SUPPORTED_VSCODE_SERVICE_TIERS: readonly ServiceTierId[] = ["priority", "flex"];
@@ -181,7 +184,13 @@ export async function rewriteVscodeServiceTierRequest(request: Request): Promise
   const body = await request
     .clone()
     .json()
-    .catch(() => null);
+    .catch((err) => {
+      log.warn(
+        { err },
+        "Failed to parse VS Code service-tier request body; leaving request unchanged"
+      );
+      return null;
+    });
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return request;
   }

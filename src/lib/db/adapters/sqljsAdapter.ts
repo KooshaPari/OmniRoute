@@ -1,7 +1,10 @@
 // src/lib/db/adapters/sqljsAdapter.ts
 import fs from "node:fs";
 import path from "node:path";
+import { createLogger } from "@/shared/utils/logger";
 import type { SqliteAdapter, PreparedStatement, RunResult } from "./types";
+
+const log = createLogger("db:adapter:sqljs");
 
 const SAVE_DEBOUNCE_MS = 100;
 const CHECKPOINT_INTERVAL_MS = 60_000;
@@ -75,7 +78,7 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
         try {
           persist();
         } catch (e) {
-          console.error("[sqljsAdapter] save failed:", e);
+          log.error({ err: e }, "save failed");
         }
       }
     }, SAVE_DEBOUNCE_MS);
@@ -93,7 +96,12 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
       try {
         db.run(`ROLLBACK TO "${sp}"`);
         db.run(`RELEASE "${sp}"`);
-      } catch {}
+      } catch (rollbackErr) {
+        log.error(
+          { err: rollbackErr, savepoint: sp },
+          "sqljsAdapter: rollback after transaction failure also failed — DB may be in inconsistent state"
+        );
+      }
       throw err;
     }
   }
@@ -142,7 +150,9 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
     if (dirty)
       try {
         persist();
-      } catch {}
+      } catch (err) {
+        log.error({ err, filePath }, "sqljsAdapter: checkpoint persist failed — DB may be inconsistent until next save");
+      }
   }, CHECKPOINT_INTERVAL_MS);
   (checkpointTimer as unknown as NodeJS.Timeout).unref?.();
 
@@ -152,10 +162,14 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
     if (dirty)
       try {
         persist();
-      } catch {}
+      } catch (err) {
+        log.error({ err, filePath }, "sqljsAdapter: gracefulClose persist failed — data loss possible");
+      }
     try {
       db.close();
-    } catch {}
+    } catch (err) {
+      log.error({ err, filePath }, "sqljsAdapter: db.close failed during gracefulClose");
+    }
     _isOpen = false;
   }
 
@@ -163,7 +177,9 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
     if (dirty)
       try {
         persist();
-      } catch {}
+      } catch (err) {
+        log.error({ err, filePath }, "sqljsAdapter: flush persist failed (signal handler)");
+      }
   };
   process.on("beforeExit", flush);
   process.on("SIGINT", flush);
@@ -218,7 +234,9 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
       if (dirty)
         try {
           persist();
-        } catch {}
+        } catch (err) {
+          log.error({ err, filePath }, "sqljsAdapter: explicit checkpoint persist failed");
+        }
     },
 
     close(): void {

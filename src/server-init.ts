@@ -125,7 +125,7 @@ async function startServer() {
     // first request after restart. Gated on the feature flag so the
     // default-off behaviour is unchanged.
     try {
-      const { isFeatureFlagEnabled } = await import("./lib/featureFlags");
+      const { isFeatureFlagEnabled } = await import("./shared/utils/featureFlags");
       const { getSelfHealingManager } = await import("./lib/resilience/anomalyHook");
       if (isFeatureFlagEnabled("OMNIROUTE_SELF_HEALING_ENABLED")) {
         const mgr = getSelfHealingManager();
@@ -135,7 +135,7 @@ async function startServer() {
         void mgr; // referenced to ensure the singleton is constructed
       }
     } catch (err) {
-      startupLog.warn({ err }, "Self-healing hydration skipped (non-fatal)");
+      startupLog.error({ err }, "Self-healing hydration skipped (non-fatal)");
     }
 
     startupLog.info("Server started with cloud sync initialized");

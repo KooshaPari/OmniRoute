@@ -2,10 +2,12 @@
  * Central registry for DB module state resetters.
  * Used by restore flows to clear prepared statement caches without cross-module imports.
  */
+import { createLogger } from "@/shared/utils/logger";
 
 type DbStateResetter = () => void;
 
 const resetters = new Set<DbStateResetter>();
+const log = createLogger("db:state-reset");
 
 /**
  * Register a module-level state resetter.
@@ -24,7 +26,7 @@ export function resetAllDbModuleState() {
     try {
       resetter();
     } catch (error) {
-      console.warn("[DB] Failed to reset module state:", error);
+      log.warn({ err: error }, "Failed to reset module state");
     }
   }
 }

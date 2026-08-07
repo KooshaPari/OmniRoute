@@ -4,6 +4,9 @@ import fsSync from "fs";
 import path from "path";
 import os from "os";
 import { setToolStatus, getVersionManagerTool } from "@/lib/db/versionManager";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("version-manager:process-manager");
 
 const DEFAULT_PORT = 8317;
 const GRACEFUL_TIMEOUT_MS = 5000;
@@ -149,7 +152,11 @@ export async function getProcessInfo(pid: number): Promise<{
       }
     }
     return { pid, alive: true };
-  } catch {
-    return { pid, alive: true };
+  } catch (err) {
+    log.error(
+      { err, pid, platform: process.platform },
+      "processManager.getProcessInfo: failed to read process info"
+    );
+    return { pid, alive: false };
   }
 }

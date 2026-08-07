@@ -11,8 +11,11 @@ import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/ste
 import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
 import { DEFAULT_RESPONSES_PREVIOUS_RESPONSE_ID_MODE } from "@/shared/constants/responsesPreviousResponseId";
 import { type JsonRecord, toRecord } from "./settings/shared";
+import { createLogger } from "@/shared/utils/logger";
 
 type ProxyValue = JsonRecord | string | null;
+
+const log = createLogger("db:settings");
 type ProxyResolutionResult = {
   proxy: ProxyValue;
   level: string;
@@ -196,9 +199,9 @@ export async function updateSettings(updates: Record<string, unknown>) {
     const { applyRuntimeSettings } = await import("@/lib/config/runtimeSettings");
     await applyRuntimeSettings(nextSettings, { source: "settings:update" });
   } catch (error) {
-    console.warn(
-      "[HOT_RELOAD] Failed to apply runtime settings after update:",
-      error instanceof Error ? error.message : error
+    log.warn(
+      { err: error instanceof Error ? error.message : String(error) },
+      "Failed to apply runtime settings after update"
     );
   }
 
@@ -578,7 +581,7 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
       return normalizedFallback;
     }
   } catch (err) {
-    console.warn({ err, connectionId }, "Proxy fallback auto-selection failed");
+    log.warn({ err, connectionId }, "Proxy fallback auto-selection failed");
   }
 
   // Step 12: Return direct

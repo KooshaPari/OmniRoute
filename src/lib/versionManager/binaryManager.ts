@@ -7,9 +7,11 @@ import { createReadStream } from "fs";
 import { pipeline } from "stream/promises";
 import { execFile } from "child_process";
 import { promisify } from "util";
+import { createLogger } from "@/shared/utils/logger";
 import { getChecksums, getReleaseByVersion } from "./releaseChecker.ts";
 
 const execFileAsync = promisify(execFile);
+const log = createLogger("version-manager:binary-manager");
 const DEFAULT_DATA_DIR = process.env.DATA_DIR || path.join(os.homedir(), ".omniroute");
 
 type Platform = "linux" | "darwin" | "windows" | "freebsd";
@@ -157,7 +159,9 @@ export async function downloadRelease(
     await extractTarGz(archivePath, versionDir);
   }
 
-  await fs.unlink(archivePath).catch(() => {});
+  await fs.unlink(archivePath).catch((err) => {
+    log.error({ err, archivePath }, "binaryManager.downloadRelease: failed to remove archive after extraction");
+  });
 
   const binary = findBinaryInDir(versionDir);
   if (!binary) throw new Error(`Binary not found in extracted archive`);
@@ -176,7 +180,11 @@ export async function installVersion(version: string, dataDir?: string): Promise
   const symlinkPath = path.join(binDir, "cliproxyapi");
   try {
     await fs.unlink(symlinkPath);
-  } catch {}
+  } catch (err) {
+    // Surface stale symlink removal failures (often permission issues) so the
+    // operator can see why the install path is wedged instead of failing silently.
+    log.error({ err, symlinkPath }, "binaryManager.installVersion: failed to unlink existing symlink");
+  }
   if (process.platform === "win32") {
     await fs.copyFile(binary, symlinkPath);
   } else {
@@ -192,7 +200,11 @@ export async function getCurrentBinaryPath(dataDir?: string): Promise<string | n
   try {
     const real = await fs.realpath(symlinkPath);
     return fsSync.existsSync(/* turbopackIgnore: true */ real) ? real : null;
-  } catch {
+  } catch (err) {
+    log.error(
+      { err, symlinkPath },
+      "binaryManager.getCurrentBinaryPath: realpath lookup failed — returning null"
+    );
     return null;
   }
 }
@@ -210,7 +222,11 @@ export async function getInstalledVersions(dataDir?: string): Promise<string[]> 
           fsSync.statSync(path.join(/* turbopackIgnore: true */ binDir, e)).isDirectory()
       )
       .map((e) => e.replace("cliproxyapi-", ""));
-  } catch {
+  } catch (err) {
+    log.error(
+      { err, binDir },
+      "binaryManager.getInstalledVersions: readdir failed — returning empty list"
+    );
     return [];
   }
 }
@@ -230,7 +246,12 @@ export async function rollbackVersion(dataDir?: string): Promise<string | null> 
   const symlinkPath = path.join(binDir, "cliproxyapi");
   try {
     await fs.unlink(symlinkPath);
-  } catch {}
+  } catch (err) {
+    log.error(
+      { err, symlinkPath, previous },
+      "binaryManager.rollbackVersion: failed to unlink existing symlink before rollback"
+    );
+  }
   if (process.platform === "win32") {
     await fs.copyFile(oldBinary, symlinkPath);
   } else {
@@ -246,7 +267,11 @@ export async function removeVersion(version: string, dataDir?: string): Promise<
   try {
     await fs.rm(versionDir, { recursive: true, force: true });
     return true;
-  } catch {
+  } catch (err) {
+    log.error(
+      { err, versionDir, version },
+      "binaryManager.removeVersion: fs.rm failed — returning false"
+    );
     return false;
   }
 }

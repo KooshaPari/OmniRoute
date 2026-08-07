@@ -9,6 +9,10 @@
  */
 
 import { getDbInstance } from "./core";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("db:quota-pools");
+
 // Phase B2: auto-mint/prune quotaShared-* combos when pool allocations change.
 // Imported lazily (dynamic import in the hook) to avoid circular-dependency
 // risk between db/ and quota/ modules. The import is fire-and-forget; combo
@@ -19,7 +23,10 @@ async function syncQuotaCombosGuarded(poolId: string): Promise<void> {
     await syncQuotaCombos(poolId);
   } catch (err) {
     // Guard: combo-sync failure must never break pool CRUD callers.
-    console.warn("[quota-pools] syncQuotaCombos failed (non-fatal):", (err as Error)?.message);
+    log.warn(
+      { err, poolId },
+      "syncQuotaCombos failed (non-fatal)"
+    );
   }
 }
 
@@ -28,9 +35,9 @@ async function removeQuotaCombosGuarded(poolId: string): Promise<void> {
     const { removeQuotaCombosForPool } = await import("@/lib/quota/quotaCombos");
     await removeQuotaCombosForPool(poolId);
   } catch (err) {
-    console.warn(
-      "[quota-pools] removeQuotaCombosForPool failed (non-fatal):",
-      (err as Error)?.message
+    log.warn(
+      { err, poolId },
+      "removeQuotaCombosForPool failed (non-fatal)"
     );
   }
 }

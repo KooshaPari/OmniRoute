@@ -11,6 +11,9 @@
  */
 
 import { TOKEN_EXTRACTION_CONFIGS } from "./tokenExtractionConfig";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("open-sse:auto-refresh-daemon");
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -74,10 +77,14 @@ class AutoRefreshDaemon {
     this.running = true;
 
     // Run an initial check immediately
-    this.check().catch(() => {});
+    this.check().catch((err) => {
+      log.error({ err, phase: "initial" }, "AutoRefreshDaemon credential check failed");
+    });
 
     this.timerId = setInterval(() => {
-      this.check().catch(() => {});
+      this.check().catch((err) => {
+        log.error({ err, phase: "periodic" }, "AutoRefreshDaemon credential check failed");
+      });
     }, this.checkIntervalMs);
     // Don't keep the process alive solely for this periodic daemon.
     (this.timerId as { unref?: () => void })?.unref?.();
