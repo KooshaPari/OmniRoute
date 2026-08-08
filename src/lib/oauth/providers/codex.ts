@@ -1,4 +1,7 @@
 import { CODEX_CONFIG } from "../constants/oauth";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("oauth:providers:codex");
 
 /**
  * OpenAI Codex Auth Info embedded in id_token JWT
@@ -73,6 +76,12 @@ function parseIdToken(idToken: string): { email: string | null; authInfo: CodexA
 
     return { email, authInfo };
   } catch (e) {
+    // Log so we can spot JWT structure drift (OpenAI adding/removing claims).
+    // The catch returns null (best-effort: the access token is already valid).
+    log.debug(
+      { err: (e as Error)?.message },
+      "oauth.providers.codex: JWT decode failed (returning null — access token still valid)",
+    );
     return { email: null, authInfo: null };
   }
 }

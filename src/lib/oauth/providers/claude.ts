@@ -1,6 +1,9 @@
 import crypto from "node:crypto";
 import { CLAUDE_CONFIG } from "../constants/oauth";
 import { CLAUDE_CODE_VERSION } from "@omniroute/open-sse/executors/claudeIdentity.ts";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("oauth:providers:claude");
 
 const BOOTSTRAP_FETCH_TIMEOUT_MS = 10_000;
 
@@ -31,7 +34,14 @@ async function fetchClaudeBootstrap(accessToken) {
       organization_type: acct.organization_type || null,
       organization_rate_limit_tier: acct.organization_rate_limit_tier || null,
     };
-  } catch {
+  } catch (err) {
+    // Log so we can spot API changes (response shape drift) or network
+    // issues. The catch returns null (best-effort: the access token is
+    // already valid), but operators need a signal when this fires.
+    log.debug(
+      { err: (err as Error)?.message },
+      "oauth.providers.claude: bootstrap fetch failed (returning null — access token still valid)",
+    );
     return null;
   } finally {
     clearTimeout(timer);
