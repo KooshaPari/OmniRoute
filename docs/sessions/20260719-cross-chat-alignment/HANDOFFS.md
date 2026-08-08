@@ -729,3 +729,10 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - [DONE] Commit `162ece4f3f` injects the existing CJS HTTP guard through an ESM default import and adds a focused regression test. The test was observed red before the production change and green after; direct Node ESM-to-CJS interop also passed.
 - [WAIT] Hosted DAST must now demonstrate that the generated server binds and Schemathesis reaches real endpoints. qgate/unit cancellations are a capacity/timeout follow-up after DAST.
 - This entry is append-only.
+
+## 2026-08-08T23:01Z - Trunk project-linter provisioning follow-up (trunk-jq-yamllint-main)
+
+- [STATE] The DAST commit caused Trunk to lint TypeScript and exposed a second missing tool: project-local `eslint` was absent from the action PATH even though workflow-specific tools were installed.
+- [DONE] Commit `10c24d1371` runs `npm ci --ignore-scripts --no-audit --no-fund` before Trunk and exports `node_modules/.bin` through `GITHUB_PATH`; YAML parse, yamllint policy checks, actionlint, and diff checks pass locally.
+- [WAIT] The new hosted run must prove the dependencies are available to the Trunk subprocess, then re-evaluate the ESM DAST server path.
+- This entry is append-only.
