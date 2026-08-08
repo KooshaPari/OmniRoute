@@ -8,6 +8,7 @@
 | KI-04 | low      | Airlock snapshots preserve uncommitted work separately from feature branch     | parent must use exact snapshot/stash evidence                              | open   |
 | KI-05 | medium   | `check:test-discovery` reports 37 current-main drift/orphan findings           | parent triage; this test is collected and adds no new orphan               | open   |
 | KI-06 | medium   | `check:env-doc-sync` misses `CIRCUIT_BREAKER_OPOSSUM_SHADOW` in `.env.example` | unrelated baseline repair lane                                             | open   |
+| KI-07 | high     | Current `release-green` gate reports 8 hard failures on the rebased branch    | split baseline remediation into isolated PRs; do not merge this patch yet   | open   |
 
 No known issue authorizes deleting, resetting, pruning, merging, or pushing the
 canonical primary checkout.

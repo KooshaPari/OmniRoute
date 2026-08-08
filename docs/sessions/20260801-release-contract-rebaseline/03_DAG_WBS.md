@@ -16,9 +16,14 @@ R0 current-main audit
 | R3  | Add release-contract regression cases | done    | R1/R2      | test source; 11/11                     |
 | R4  | Run targeted tests and quality checks | partial | R2/R3      | focused/prettier green; baseline red   |
 | R5  | Maintain seven session docs           | done    | R0         | this directory                         |
-| R6  | Parent integration review             | pending | R4/R5      | parent cockpit                         |
+| R6  | Parent integration review             | partial | R4/R5      | canonical reconcile branch `reconcile/release-contract-i18n-20260808` at `8e93bed128`; release-green blockers remain |
 
 Critical path: R0 -> R1 -> R2/R3 -> R4 -> R6.
 
 R4 is complete for lane-local evidence. Repository-wide discovery and env-doc
 checks remain pre-existing baseline failures for parent triage.
+
+Integration handoff: the patch was cherry-picked from the noncanonical
+worktrees onto current `origin/main` in the canonical OmniRoute child repo.
+Focused contract evidence is green (11/11); no hosted PR or merge is claimed
+until the repository-wide release-green hard failures are remediated.
