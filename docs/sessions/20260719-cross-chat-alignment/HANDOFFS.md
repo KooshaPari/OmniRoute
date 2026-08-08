@@ -700,6 +700,14 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Desktop typecheck remains environment-blocked because `bun-types` is not installed in the clean worktree; install dependencies before claiming full desktop validation.
 - This entry is append-only.
 
+## 2026-08-08T06:50Z - Trunk dependency follow-up (yamllint)
+
+- Hosted PR #544 proved `jq` and `actionlint` were available after the job-level PATH fix; the remaining Trunk failure was `yamllint` missing from PATH.
+- Added `yamllint` to the Ubuntu apt provisioning step and verified `yamllint --version` locally in the workflow definition.
+- Latest pushed SHA: `a0f98167e1`; PR: https://github.com/KooshaPari/OmniRoute/pull/544
+- Local validation: Ruby YAML parse `yaml-ok`; `git diff --check` passed. Hosted re-run is required.
+- This entry is append-only.
+
 ## 2026-08-08T06:32Z - Direct Trunk dependency repair (trunk-jq-provision)
 
 - Fresh branch from current `origin/main` `0cbeb28034411e478f414e4fa56f53e61a6fba02`: `fix/trunk-jq-provision-20260808`.
