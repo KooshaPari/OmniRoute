@@ -39,12 +39,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes jq yamllint
           mkdir -p "$HOME/.local/bin"
-          actionlint_host="https://raw.githubusercontent.com/rhysd"
-          actionlint_url="$actionlint_host/actionlint/main"
-          actionlint_url+="/scripts/download-actionlint.bash"
-          bash <(curl --fail --silent --show-error \
-            --location "$actionlint_url") \
-            latest "$HOME/.local/bin"
+          actionlint_version="1.7.12"
+          actionlint_archive="actionlint_${actionlint_version}_linux_amd64.tar.gz"
+          actionlint_url="https://github.com/rhysd/actionlint/releases/download"
+          actionlint_url+="/v${actionlint_version}/${actionlint_archive}"
+          curl --fail --silent --show-error --location "$actionlint_url" \
+            --output "$RUNNER_TEMP/$actionlint_archive"
+          expected_sha256="8aca8db96f1b94770f1b0d72b6dddcb1"
+          expected_sha256+="ebb8123cb3712530b08cc387b349a3d8"
+          printf '%s  %s\n' "$expected_sha256" \
+            "$RUNNER_TEMP/$actionlint_archive" | sha256sum --check --status
+          tar --extract --gzip --file "$RUNNER_TEMP/$actionlint_archive" \
+            --directory "$HOME/.local/bin" actionlint
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           jq --version
           yamllint --version
