@@ -29,6 +29,16 @@ jobs:
         # v4.2.2
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
+      - name: Install project lint dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Expose project-local lint tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
+          "$GITHUB_WORKSPACE/node_modules/.bin/eslint" --version
+
       # Trunk does not install custom-command binaries. Its setup action also
       # requires jq, while this repository's configuration invokes actionlint
       # and yamllint.
