@@ -3,6 +3,9 @@ import { headers } from "next/headers";
 
 import { getLegacyCliTokenSync, getMachineTokenSync } from "@/lib/machineToken";
 import { AUTHZ_HEADER_PEER_LOCALITY } from "@/server/authz/headers";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("middleware:cli-token-auth");
 
 const HEADER_NAME = "x-omniroute-cli-token";
 
@@ -84,7 +87,15 @@ export async function isCliTokenAuthValid(request: Request): Promise<boolean> {
     if (token.length !== expected.length) return false;
     try {
       return crypto.timingSafeEqual(Buffer.from(token, "utf8"), Buffer.from(expected, "utf8"));
-    } catch {
+    } catch (err) {
+      // SECURITY: log the failure so timing-safe-compare errors are visible.
+      // Common causes: malformed UTF-8 in the incoming token, or token length
+      // changing under us mid-comparison (rare). The catch returns false
+      // (fail-closed) but operators need to know when this fires.
+      log.error(
+        { err, tokenLength: token.length },
+        "middleware.cliTokenAuth: timingSafeEqual failed (malformed token bytes)",
+      );
       return false;
     }
   });

@@ -12,6 +12,9 @@ import { cookies } from "next/headers";
 import { getSettings } from "@/lib/localDb";
 import { isPublicApiRoute } from "@/shared/constants/publicApiRoutes";
 import { extractApiKey } from "@/sse/services/auth";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("shared:api-auth");
 
 type RequestLike = {
   cookies?: {
@@ -240,7 +243,18 @@ export async function isDashboardSessionAuthenticated(
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
     await jwtVerify(token, secret);
     return true;
-  } catch {
+  } catch (err) {
+    // SECURITY: log the JWT verification failure so forged tokens are
+    // visible in audit logs. The catch returns false (fail-closed) but
+    // operators need to know when this fires — repeated failures indicate
+    // either misconfigured clients (legitimate) or active probing (attack).
+    // Only log at debug level to avoid filling logs on legitimate failures.
+    if (process.env.NODE_ENV !== "test") {
+      log.debug(
+        { err: (err as Error)?.message },
+        "shared.apiAuth.isValidSessionToken: JWT verification failed",
+      );
+    }
     return false;
   }
 }

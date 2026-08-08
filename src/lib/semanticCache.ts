@@ -15,6 +15,9 @@
 import crypto from "crypto";
 import { LRUCache } from "./cacheLayer";
 import { getDbInstance } from "./db/core";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("lib:semantic-cache");
 
 type JsonRecord = Record<string, unknown>;
 
@@ -248,8 +251,15 @@ export function setCachedResponse(signature, model, response, tokensSaved = 0, t
       `INSERT OR REPLACE INTO semantic_cache (id, signature, model, prompt_hash, response, tokens_saved, hit_count, created_at, expires_at)
        VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`
     ).run(id, signature, model, promptHash, JSON.stringify(response), tokensSaved, now, expiresAt);
-  } catch {
-    // DB write failed — cache still in memory
+  } catch (err) {
+    // The DB write is best-effort: the cache lives in memory and we don't
+    // want a transient DB error (lock, full disk) to fail the request.
+    // Log it so operators can spot repeated failures indicating a real
+    // issue (e.g., migration pending).
+    log.warn(
+      { err, model },
+      "lib.semanticCache: DB write failed — cache remains in memory only",
+    );
   }
 }
 
