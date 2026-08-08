@@ -395,7 +395,13 @@ export function patchTurbopackChunks(outDir, distDir = ".next") {
  */
 function patchStandalonePackageJson(resolvedOutDir) {
   const outDirPkgJson = path.join(resolvedOutDir, "package.json");
-  if (!fsSync.existsSync(outDirPkgJson)) return;
+  if (!fsSync.existsSync(outDirPkgJson)) {
+    fsSync.writeFileSync(outDirPkgJson, JSON.stringify({ type: "commonjs" }, null, 2) + "\n");
+    console.log(
+      "[assembleStandalone] Added CommonJS package.json for standalone server.js"
+    );
+    return;
+  }
   try {
     const pkg = JSON.parse(fsSync.readFileSync(outDirPkgJson, "utf8"));
     if (pkg.type !== "module") return;

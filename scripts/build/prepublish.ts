@@ -40,8 +40,7 @@ const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..", "..");
 
 const DIST_DIR = join(ROOT, "dist");
-const METHOD_GUARD_IMPORT =
-  'import methodGuard from "./http-method-guard.cjs";\nmethodGuard.installHttpMethodGuard();\n';
+const METHOD_GUARD_REQUIRE = 'require("./http-method-guard.cjs").installHttpMethodGuard();\n';
 
 function walkFiles(dir: string, rootDir: string = dir, files: string[] = []): string[] {
   let entries: string[] = [];
@@ -164,7 +163,7 @@ if (existsSync(methodGuardSrc)) {
 if (existsSync(distServer)) {
   const serverSource = readFileSync(distServer, "utf8");
   if (!serverSource.includes("installHttpMethodGuard")) {
-    writeFileSync(distServer, METHOD_GUARD_IMPORT + serverSource);
+    writeFileSync(distServer, METHOD_GUARD_REQUIRE + serverSource);
     console.log("  ✅ Patched dist/server.js with HTTP method guard.");
   }
 }
