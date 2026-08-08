@@ -35,11 +35,12 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install --yes jq
+          sudo apt-get install --yes jq yamllint
           mkdir -p "$HOME/.local/bin"
           bash <(curl --fail --silent --show-error --location https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) latest "$HOME/.local/bin"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           jq --version
+          yamllint --version
           "$HOME/.local/bin/actionlint" --version
 
       - name: Trunk Check
