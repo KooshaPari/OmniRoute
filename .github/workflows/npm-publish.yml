@@ -72,6 +72,12 @@ jobs:
       - name: Install dependencies (skip scripts to avoid heavy build)
         run: npm install --ignore-scripts --no-audit --no-fund
 
+      # The build imports Keyv's sqlite adapter during Next page collection.
+      # Keep the full install script set disabled, but explicitly materialize
+      # sqlite3's Node-24 N-API binding for the build process.
+      - name: Build sqlite3 native binding for Node 24
+        run: npm rebuild sqlite3 --no-audit --no-fund
+
       - name: Resolve version, dist-tag and skip flag
         id: resolve
         env:
