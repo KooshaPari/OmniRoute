@@ -4,6 +4,9 @@
 
 import { saveRoutingDecision } from "@/lib/db/routingDecisions";
 import { getActiveSpanContext } from "./otelContext";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("a2a:routing-logger");
 
 export interface RoutingDecision {
   taskType: string;
@@ -25,9 +28,9 @@ export interface RoutingDecision {
 }
 
 export function logRoutingDecision(decision: RoutingDecision): void {
-  // Log to console in development
+  // Log at debug level in development (low-volume, dev-only)
   if (process.env.NODE_ENV === "development") {
-    console.log("[A2A ROUTING]", JSON.stringify(decision, null, 2));
+    log.debug({ decision }, "a2a.routingLogger: routing decision");
   }
 
   // Hydrate OTel trace context when the caller didn't supply it

@@ -9,6 +9,9 @@
 
 import fs from "fs";
 import path from "path";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("lib:catalog:openrouter");
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/models";
 const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -80,7 +83,10 @@ function writeCache(data: CatalogEntry[]): void {
   try {
     fs.writeFileSync(filePath, JSON.stringify(cache, null, 2), "utf8");
   } catch (err) {
-    console.warn("[OpenRouterCatalog] Failed to write cache:", err);
+    log.warn(
+      { err: (err as Error)?.message },
+      "lib.catalog.openrouterCatalog: failed to write cache file",
+    );
   }
 }
 
@@ -140,7 +146,10 @@ export async function getOpenRouterCatalog(): Promise<{
     writeCache(data);
     return { data, stale: false, cachedAt: null, fromCache: false };
   } catch (err) {
-    console.warn("[OpenRouterCatalog] Fetch failed, using stale cache:", err);
+    log.warn(
+      { err: (err as Error)?.message },
+      "lib.catalog.openrouterCatalog: fetch failed, using stale cache",
+    );
 
     // Stale-if-error: return old cache if available
     if (cache) {
