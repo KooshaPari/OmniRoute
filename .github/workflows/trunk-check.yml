@@ -26,26 +26,37 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        # v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      # The repository trunk config defines actionlint as a custom command.
-      # trunk-action does not install custom-command binaries, so provision
-      # the official binary before the check (otherwise every PR reports the
-      # misleading "Binary not found" failure).
-      - name: Install actionlint
+      # Trunk does not install custom-command binaries. Its setup action also
+      # requires jq, while this repository's configuration invokes actionlint
+      # and yamllint.
+      - name: Install workflow lint dependencies
         shell: bash
         run: |
           set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes jq yamllint
           mkdir -p "$HOME/.local/bin"
-          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) latest "$HOME/.local/bin"
+          actionlint_host="https://raw.githubusercontent.com/rhysd"
+          actionlint_url="$actionlint_host/actionlint/main"
+          actionlint_url+="/scripts/download-actionlint.bash"
+          bash <(curl --fail --silent --show-error \
+            --location "$actionlint_url") \
+            latest "$HOME/.local/bin"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          "$HOME/.local/bin/actionlint" -version
+          jq --version
+          yamllint --version
+          "$HOME/.local/bin/actionlint" --version
 
       - name: Trunk Check
-        uses: trunk-io/trunk-action@04ba50e7658c81db7356da96657e6e77f220bfa3  # embeds actions/cache@27d5ce7f (v5.0.5)
+        # Embeds actions/cache@27d5ce7f (v5.0.5).
+        uses: trunk-io/trunk-action@04ba50e7658c81db7356da96657e6e77f220bfa3
 
       - name: Trunk Upgrade (on schedule only)
         if: github.event_name == 'schedule'
-        uses: trunk-io/trunk-action@04ba50e7658c81db7356da96657e6e77f220bfa3  # embeds actions/cache@27d5ce7f (v5.0.5)
+        # Embeds actions/cache@27d5ce7f (v5.0.5).
+        uses: trunk-io/trunk-action@04ba50e7658c81db7356da96657e6e77f220bfa3
         with:
           trunk-args: --upgrade
