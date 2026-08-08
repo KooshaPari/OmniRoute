@@ -736,3 +736,11 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - [DONE] Commit `10c24d1371` runs `npm ci --ignore-scripts --no-audit --no-fund` before Trunk and exports `node_modules/.bin` through `GITHUB_PATH`; YAML parse, yamllint policy checks, actionlint, and diff checks pass locally.
 - [WAIT] The new hosted run must prove the dependencies are available to the Trunk subprocess, then re-evaluate the ESM DAST server path.
 - This entry is append-only.
+
+## 2026-08-08T23:23Z - Standalone module-scope root-cause repair (trunk-jq-yamllint-main)
+
+- [STATE] The second DAST artifact proved the entire Next standalone `server.js` is CommonJS, not merely the injected guard. The assembler intended to remove `type: module`, but Next omitted a standalone `package.json`, so Node inherited the root ESM scope.
+- [DONE] Commit `4589d9e04c` writes a minimal `{ "type": "commonjs" }` package manifest when the standalone omits one, restores the CJS method-guard bootstrap, and preserves sidecar-parity checks.
+- [DONE] Focused assembler/build tests pass 4/4, including the missing-manifest regression, package scope assertion, CJS guard assertion, and sidecar parity.
+- [WAIT] The next hosted DAST run is the authoritative proof that `dist/server.js` binds before Schemathesis; do not infer endpoint health until it does.
+- This entry is append-only.
