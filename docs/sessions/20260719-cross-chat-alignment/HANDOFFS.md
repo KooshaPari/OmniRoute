@@ -722,3 +722,10 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - [DONE] Replaced it with the fixed upstream `actionlint` v1.7.12 Linux amd64 release archive plus its GitHub release SHA-256 (`8aca...a3d8`) before extraction; `actionlint`, YAML, and yamllint validation remain clean locally.
 - [WAIT] The new head is `255abf213f`; its hosted rerun must prove both the verified bootstrap and the Trunk gate. Dependency Audit and Sonar are separate release gates.
 - This entry is append-only.
+
+## 2026-08-08T22:54Z - DAST executable artifact recovery (trunk-jq-yamllint-main)
+
+- [STATE] The #548 DAST artifact proved `dist/server.js` exited before binding: the prepublish build injected CommonJS `require` into an ESM `.js` file under a `type: module` package.
+- [DONE] Commit `162ece4f3f` injects the existing CJS HTTP guard through an ESM default import and adds a focused regression test. The test was observed red before the production change and green after; direct Node ESM-to-CJS interop also passed.
+- [WAIT] Hosted DAST must now demonstrate that the generated server binds and Schemathesis reaches real endpoints. qgate/unit cancellations are a capacity/timeout follow-up after DAST.
+- This entry is append-only.
