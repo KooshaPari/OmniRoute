@@ -62,7 +62,7 @@ const MAX_LOCAL_RATE_LIMIT_ENTRIES = 10_000;
 
 type RedisCompatibilityClient = {
   del: (...args: unknown[]) => Promise<unknown>;
-  get: (...args: unknown[]) => Promise<unknown>;
+  get: (...args: unknown[]) => Promise<string | null>;
   set: (...args: unknown[]) => Promise<unknown>;
 };
 
