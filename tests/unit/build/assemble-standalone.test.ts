@@ -80,6 +80,11 @@ test("assembleStandalone copies standalone + static + public + sidecars into out
   });
 
   assert.ok(fs.existsSync(path.join(outDir, "server.js")), "server.js copied");
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(path.join(outDir, "package.json"), "utf8")),
+    { type: "commonjs" },
+    "standalone output is explicitly CommonJS when Next omits package.json"
+  );
   // Static lands under the distDir path (.build/next/static), where the standalone
   // server.js — built with distDir baked into its config — serves /_next/static from.
   assert.ok(
@@ -126,9 +131,11 @@ test("async and sync sidecar copy paths produce identical bundle trees", async (
   });
 
   const asyncTree = listFiles(outAsync);
-  // The sync path also copies the standalone server.js + patches package.json; compare only
-  // the sidecar files the two paths share (drop server.js which is unique to assembleStandalone).
-  const syncTree = listFiles(outSync).filter((f) => f !== "server.js");
+  // The sync path also copies the standalone server.js + package.json; compare only
+  // the sidecar files the two paths share (drop assembleStandalone-only root files).
+  const syncTree = listFiles(outSync).filter(
+    (file) => file !== "server.js" && file !== "package.json"
+  );
 
   assert.deepEqual(
     syncTree,

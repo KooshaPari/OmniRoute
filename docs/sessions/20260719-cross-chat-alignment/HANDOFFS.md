@@ -707,3 +707,40 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Regression coverage: desktop lifecycle readiness-path test (2/2 focused tests pass), web health route test (1/1 pass), desktop typecheck pass, web typecheck pass, web production build pass.
 - Generated packaged runtime smoke (ports 22128/22129): backend `/healthz` 200, renderer `/healthz` 200, renderer `/api/bff/healthz` 200. Main has no committed packaged smoke script; this exact command remains evidence for the future CI gate.
 - This entry is append-only.
+
+## 2026-08-08T10:18Z - Current-main Trunk dependency repair (trunk-jq-yamllint-main)
+
+- [STATE] Opened PR #548 from current `origin/main` `9ced40997adf4a1ebfd579a3493025b0b8ae444e`: https://github.com/KooshaPari/OmniRoute/pull/548.
+- [DONE] The workflow provisions `jq`, `yamllint`, and the official `actionlint` binary before the Trunk action; it exports the binary directory through `GITHUB_PATH`.
+- [DONE] Local YAML parse, `actionlint`, `yamllint` (policy warnings only), and `git diff --check` pass. The old #544 branch is preserved but stale/conflicting and must not be force-pushed or merged.
+- [WAIT] Hosted Trunk execution on #548 is the authoritative next gate. If it reaches the next failure, use that output as the next narrow repair target.
+- This entry is append-only.
+
+## 2026-08-08T10:33Z - Pinned actionlint provenance follow-up (trunk-jq-yamllint-main)
+
+- [DONE] Hosted Trunk on #548 passed after the missing binary repair. Sonar then identified the prior `curl | bash` bootstrap as unverified execution.
+- [DONE] Replaced it with the fixed upstream `actionlint` v1.7.12 Linux amd64 release archive plus its GitHub release SHA-256 (`8aca...a3d8`) before extraction; `actionlint`, YAML, and yamllint validation remain clean locally.
+- [WAIT] The new head is `255abf213f`; its hosted rerun must prove both the verified bootstrap and the Trunk gate. Dependency Audit and Sonar are separate release gates.
+- This entry is append-only.
+
+## 2026-08-08T22:54Z - DAST executable artifact recovery (trunk-jq-yamllint-main)
+
+- [STATE] The #548 DAST artifact proved `dist/server.js` exited before binding: the prepublish build injected CommonJS `require` into an ESM `.js` file under a `type: module` package.
+- [DONE] Commit `162ece4f3f` injects the existing CJS HTTP guard through an ESM default import and adds a focused regression test. The test was observed red before the production change and green after; direct Node ESM-to-CJS interop also passed.
+- [WAIT] Hosted DAST must now demonstrate that the generated server binds and Schemathesis reaches real endpoints. qgate/unit cancellations are a capacity/timeout follow-up after DAST.
+- This entry is append-only.
+
+## 2026-08-08T23:01Z - Trunk project-linter provisioning follow-up (trunk-jq-yamllint-main)
+
+- [STATE] The DAST commit caused Trunk to lint TypeScript and exposed a second missing tool: project-local `eslint` was absent from the action PATH even though workflow-specific tools were installed.
+- [DONE] Commit `10c24d1371` runs `npm ci --ignore-scripts --no-audit --no-fund` before Trunk and exports `node_modules/.bin` through `GITHUB_PATH`; YAML parse, yamllint policy checks, actionlint, and diff checks pass locally.
+- [WAIT] The new hosted run must prove the dependencies are available to the Trunk subprocess, then re-evaluate the ESM DAST server path.
+- This entry is append-only.
+
+## 2026-08-08T23:23Z - Standalone module-scope root-cause repair (trunk-jq-yamllint-main)
+
+- [STATE] The second DAST artifact proved the entire Next standalone `server.js` is CommonJS, not merely the injected guard. The assembler intended to remove `type: module`, but Next omitted a standalone `package.json`, so Node inherited the root ESM scope.
+- [DONE] Commit `4589d9e04c` writes a minimal `{ "type": "commonjs" }` package manifest when the standalone omits one, restores the CJS method-guard bootstrap, and preserves sidecar-parity checks.
+- [DONE] Focused assembler/build tests pass 4/4, including the missing-manifest regression, package scope assertion, CJS guard assertion, and sidecar parity.
+- [WAIT] The next hosted DAST run is the authoritative proof that `dist/server.js` binds before Schemathesis; do not infer endpoint health until it does.
+- This entry is append-only.
