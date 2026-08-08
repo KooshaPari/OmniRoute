@@ -23,6 +23,8 @@ jobs:
     name: Lint & Format
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     steps:
       - name: Checkout
@@ -42,13 +44,9 @@ jobs:
 
       - name: Trunk Check
         uses: trunk-io/trunk-action@04ba50e7658c81db7356da96657e6e77f220bfa3  # embeds actions/cache@27d5ce7f (v5.0.5)
-        env:
-          PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
       - name: Trunk Upgrade (on schedule only)
         if: github.event_name == 'schedule'
         uses: trunk-io/trunk-action@04ba50e7658c81db7356da96657e6e77f220bfa3  # embeds actions/cache@27d5ce7f (v5.0.5)
-        env:
-          PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
         with:
           trunk-args: --upgrade
