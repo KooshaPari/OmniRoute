@@ -700,6 +700,15 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Desktop typecheck remains environment-blocked because `bun-types` is not installed in the clean worktree; install dependencies before claiming full desktop validation.
 - This entry is append-only.
 
+## 2026-08-08T06:32Z - Direct Trunk dependency repair (trunk-jq-provision)
+
+- Fresh branch from current `origin/main` `0cbeb28034411e478f414e4fa56f53e61a6fba02`: `fix/trunk-jq-provision-20260808`.
+- PR #544: https://github.com/KooshaPari/OmniRoute/pull/544
+- Commits `0b189758fd` and `479db4273c` provision `jq` and `actionlint` before the Trunk composite action, and set a job-level tool `PATH` so composite steps can resolve them.
+- Validation: Ruby YAML parse `yaml-ok`; `git diff --check` passed; both commits pushed normally. Initial hosted run still reported `jq not installed` despite apt installation, so the job-level PATH follow-up is required for revalidation.
+- Airlock snapshot command was executed from this clean worktree after each edit batch; no uncommitted changes remain.
+- This entry is append-only.
+
 ## 2026-08-07T11:56Z - Electrobun health readiness recovery (desktop-healthz-readiness)
 
 - Hosted artifact run `31171232383` proved the prior launcher readiness probes were wrong: the BFF returned `404` at `/` for all 60 attempts, delaying renderer startup; the renderer also returned `500` at `/` and was killed by the launcher.
