@@ -35,7 +35,7 @@ let lastCleanupAt = 0;
 
 function saveQuotaSnapshotForTest(
   db: Database.Database,
-  snapshot: Omit<QuotaSnapshotRow, "id" | "created_at">
+  snapshot: Omit<QuotaSnapshotRow, "id" | "createdAt">
 ): void {
   const now = new Date().toISOString();
 
@@ -48,13 +48,13 @@ function saveQuotaSnapshotForTest(
     )
     .run(
       snapshot.provider,
-      snapshot.connection_id,
-      snapshot.window_key,
-      snapshot.remaining_percentage,
-      snapshot.is_exhausted,
-      snapshot.next_reset_at,
-      snapshot.window_duration_ms,
-      snapshot.raw_data,
+      snapshot.connectionId,
+      snapshot.windowKey,
+      snapshot.remainingPercentage,
+      snapshot.isExhausted,
+      snapshot.nextResetAt,
+      snapshot.windowDurationMs,
+      snapshot.rawData,
       now
     );
 }
@@ -229,10 +229,10 @@ describe("quotaSnapshots DB module", () => {
 
       expect(rows).toHaveLength(1);
       expect(rows[0].provider).toBe("codex");
-      expect(rows[0].connection_id).toBe("conn-123");
-      expect(rows[0].window_key).toBe("5h");
-      expect(rows[0].remaining_percentage).toBe(75.5);
-      expect(rows[0].is_exhausted).toBe(0);
+      expect(rows[0].connectionId).toBe("conn-123");
+      expect(rows[0].windowKey).toBe("5h");
+      expect(rows[0].remainingPercentage).toBe(75.5);
+      expect(rows[0].isExhausted).toBe(0);
     });
 
     it("should save snapshot with null remaining_percentage", () => {
@@ -254,8 +254,8 @@ describe("quotaSnapshots DB module", () => {
         .all("claude") as QuotaSnapshotRow[];
 
       expect(rows).toHaveLength(1);
-      expect(rows[0].remaining_percentage).toBeNull();
-      expect(rows[0].is_exhausted).toBe(1);
+      expect(rows[0].remainingPercentage).toBeNull();
+      expect(rows[0].isExhausted).toBe(1);
     });
 
     it("should save multiple snapshots for same provider", () => {

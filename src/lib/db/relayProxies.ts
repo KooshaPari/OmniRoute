@@ -7,6 +7,27 @@
 import { randomBytes } from "node:crypto";
 import { getDbInstance } from "./core";
 import { rowToCamel } from "./core";
+import { toRecord } from "./caseMapping";
+
+const REQUIRED_RELAY_TOKEN_FIELDS = [
+  "id",
+  "name",
+  "tokenHash",
+  "tokenPrefix",
+  "description",
+  "comboId",
+  "allowedModels",
+  "maxTokensPerRequest",
+  "maxRequestsPerMinute",
+  "maxRequestsPerDay",
+  "maxCostPerDay",
+  "enabled",
+  "createdAt",
+  "updatedAt",
+  "expiresAt",
+  "lastUsedAt",
+  "metadata",
+] as const satisfies ReadonlyArray<keyof RelayToken>;
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -136,7 +157,10 @@ export function createRelayToken(input: CreateRelayTokenInput): RelayTokenWithSe
   );
 
   const token = db.prepare("SELECT * FROM relay_tokens WHERE id = ?").get(id) as RelayTokenRow;
-  return { ...(rowToCamel(token) as unknown as RelayToken), rawToken };
+  return {
+    ...toRecord<RelayToken>(rowToCamel(token), REQUIRED_RELAY_TOKEN_FIELDS),
+    rawToken,
+  };
 }
 
 export function getRelayTokens(): RelayToken[] {
@@ -145,7 +169,7 @@ export function getRelayTokens(): RelayToken[] {
     .prepare("SELECT * FROM relay_tokens ORDER BY created_at DESC")
     .all() as RelayTokenRow[];
   return rows.map((r) => ({
-    ...(rowToCamel(r) as unknown as RelayToken),
+    ...toRecord<RelayToken>(rowToCamel(r), REQUIRED_RELAY_TOKEN_FIELDS),
     enabled: r.enabled === 1,
   }));
 }
@@ -156,7 +180,10 @@ export function getRelayToken(id: string): RelayToken | null {
     | RelayTokenRow
     | undefined;
   if (!row) return null;
-  return { ...(rowToCamel(row) as unknown as RelayToken), enabled: row.enabled === 1 };
+  return {
+    ...toRecord<RelayToken>(rowToCamel(row), REQUIRED_RELAY_TOKEN_FIELDS),
+    enabled: row.enabled === 1,
+  };
 }
 
 export function getRelayTokenByHash(
@@ -167,7 +194,10 @@ export function getRelayTokenByHash(
     .prepare("SELECT * FROM relay_tokens WHERE token_hash = ? AND enabled = 1")
     .get(tokenHash) as RelayTokenRow | undefined;
   if (!row) return null;
-  return { ...(rowToCamel(row) as unknown as RelayToken), enabled: row.enabled === 1 };
+  return {
+    ...toRecord<RelayToken>(rowToCamel(row), REQUIRED_RELAY_TOKEN_FIELDS),
+    enabled: row.enabled === 1,
+  };
 }
 
 export function updateRelayToken(
