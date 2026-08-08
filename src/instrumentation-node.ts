@@ -281,6 +281,19 @@ export async function registerNodejs(): Promise<void> {
   // MeterProvider + Prometheus exporter — same gate as trace SDK.
   await initOtelMeter();
 
+  // Encryption fail-closed startup canary (encryption-failclosed). Runs the
+  // known-plaintext encrypt/decrypt round-trip; refuses to start with a
+  // broken STORAGE_ENCRYPTION_KEY so we never silently fall back to
+  // plaintext at runtime. Must run BEFORE any DB call.
+  try {
+    const { runEncryptionStartupCheck } = await import("@/lib/db/encryptionStartup");
+    runEncryptionStartupCheck();
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[STARTUP] Encryption startup canary failed: ${msg}`);
+    throw err;
+  }
+
   await ensureSecrets();
   const { enforceWebRuntimeEnv } = await import("@/lib/env/runtimeEnv");
   enforceWebRuntimeEnv();
