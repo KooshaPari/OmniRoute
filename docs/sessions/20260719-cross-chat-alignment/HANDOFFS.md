@@ -707,3 +707,18 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - Regression coverage: desktop lifecycle readiness-path test (2/2 focused tests pass), web health route test (1/1 pass), desktop typecheck pass, web typecheck pass, web production build pass.
 - Generated packaged runtime smoke (ports 22128/22129): backend `/healthz` 200, renderer `/healthz` 200, renderer `/api/bff/healthz` 200. Main has no committed packaged smoke script; this exact command remains evidence for the future CI gate.
 - This entry is append-only.
+
+## 2026-08-08T10:18Z - Current-main Trunk dependency repair (trunk-jq-yamllint-main)
+
+- [STATE] Opened PR #548 from current `origin/main` `9ced40997adf4a1ebfd579a3493025b0b8ae444e`: https://github.com/KooshaPari/OmniRoute/pull/548.
+- [DONE] The workflow provisions `jq`, `yamllint`, and the official `actionlint` binary before the Trunk action; it exports the binary directory through `GITHUB_PATH`.
+- [DONE] Local YAML parse, `actionlint`, `yamllint` (policy warnings only), and `git diff --check` pass. The old #544 branch is preserved but stale/conflicting and must not be force-pushed or merged.
+- [WAIT] Hosted Trunk execution on #548 is the authoritative next gate. If it reaches the next failure, use that output as the next narrow repair target.
+- This entry is append-only.
+
+## 2026-08-08T10:33Z - Pinned actionlint provenance follow-up (trunk-jq-yamllint-main)
+
+- [DONE] Hosted Trunk on #548 passed after the missing binary repair. Sonar then identified the prior `curl | bash` bootstrap as unverified execution.
+- [DONE] Replaced it with the fixed upstream `actionlint` v1.7.12 Linux amd64 release archive plus its GitHub release SHA-256 (`8aca...a3d8`) before extraction; `actionlint`, YAML, and yamllint validation remain clean locally.
+- [WAIT] The new head is `255abf213f`; its hosted rerun must prove both the verified bootstrap and the Trunk gate. Dependency Audit and Sonar are separate release gates.
+- This entry is append-only.
