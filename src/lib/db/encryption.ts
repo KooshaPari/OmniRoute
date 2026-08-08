@@ -42,6 +42,8 @@ const KEY_LENGTH = 32;
 const AUTH_TAG_LENGTH = 16;
 const PREFIX = "enc:v1:";
 const STATIC_SALT = "omniroute-field-encryption-v1";
+/** Canary plaintext for the startup round-trip check. Never written to disk. */
+const STARTUP_CANARY_PLAINTEXT = "omniroute-startup-canary-do-not-use";
 
 let _staticKey: Buffer | null = null;
 let _legacyDynamicKey: Buffer | null = null;
@@ -80,6 +82,41 @@ export class EncryptionDecryptionError extends Error {
     this.cause = options.cause;
     this.ciphertextPrefix = options.ciphertextPrefix;
     this.classification = options.classification;
+  }
+}
+
+/**
+ * Thrown when `encrypt()` was supposed to encrypt (key configured) but the
+ * crypto pipeline threw. Carries the original error as `.cause`.
+ *
+ * This is FAIL-CLOSED behaviour — callers must NOT swallow this and write
+ * the plaintext; that would re-introduce the State-B bug fixed by
+ * `encryption-failclosed`. See `plans/encryption-failclosed-spec.md` for
+ * the audit and remediation.
+ */
+export class EncryptionRuntimeError extends Error {
+  override readonly name = "EncryptionRuntimeError";
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message);
+    if (options?.cause !== undefined) {
+      (this as Error & { cause?: unknown }).cause = options.cause;
+    }
+  }
+}
+
+/**
+ * Thrown by `validateEncryptionAtStartup()` when the encrypt/decrypt
+ * round-trip canary fails. Distinct from `EncryptionRuntimeError` so
+ * operators can grep for the startup-specific path and the runtime-specific
+ * path separately.
+ */
+export class StartupEncryptionError extends Error {
+  override readonly name = "StartupEncryptionError";
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message);
+    if (options?.cause !== undefined) {
+      (this as Error & { cause?: unknown }).cause = options.cause;
+    }
   }
 }
 
@@ -187,13 +224,30 @@ export function encrypt(plaintext: string | null | undefined): string | null | u
 
     return `${PREFIX}${iv.toString("hex")}:${encrypted}:${authTag}`;
   } catch (err: unknown) {
+    // FAIL-CLOSED: when a key is configured but the crypto pipeline throws
+    // (broken native bindings, key length drift after a Node upgrade, OOM
+    // under randomBytes, etc.) we MUST NOT silently return plaintext — that
+    // re-introduces the State-B bug. Log loudly, then throw a typed error
+    // so callers (encryptConnectionFields, providers, commandCodeAuth) can
+    // refuse to write to the DB.
     const message = err instanceof Error ? err.message : String(err);
     encryptionLog.error(
-      { err },
-      `[Encryption] Encryption failed: ${message}. ` +
-        `Check your STORAGE_ENCRYPTION_KEY — generate one with: openssl rand -base64 32`
+      {
+        err,
+        op: "encrypt",
+        envSet: !!process.env.STORAGE_ENCRYPTION_KEY,
+        // _staticKey is a Buffer; never log the key material itself.
+        keyBytes: _staticKey?.length ?? null,
+      },
+      `[Encryption] STORAGE_ENCRYPTION_KEY is set but encrypt() failed. ` +
+        `Refusing to write plaintext. Regenerate with: openssl rand -base64 32`
     );
-    return plaintext; // fallback to plaintext rather than crashing
+    throw new EncryptionRuntimeError(
+      `Encryption failed at runtime: ${message}. ` +
+        `Refusing to write plaintext. Check your STORAGE_ENCRYPTION_KEY — ` +
+        `regenerate one with: openssl rand -base64 32`,
+      { cause: err }
+    );
   }
 }
 
@@ -417,16 +471,36 @@ export function decryptStrictConnectionFields<T extends ConnectionFields | null 
  * Encrypt sensitive fields in a connection object (mutates in-place).
  * After decryption that required legacy key, re-encrypt with static key
  * to migrate tokens automatically.
+ *
+ * FAIL-CLOSED: when any inner `encrypt()` throws `EncryptionRuntimeError`
+ * (i.e. a key is configured but the crypto pipeline failed), this function
+ * returns `null` and logs the failure. Callers MUST check for `null` and
+ * refuse to write plaintext to the DB. State A (no key) is preserved — the
+ * connection object is returned unchanged.
  */
-export function encryptConnectionFields<T extends ConnectionFields | null | undefined>(conn: T): T {
+export function encryptConnectionFields<T extends ConnectionFields | null | undefined>(
+  conn: T,
+): T | null {
   if (!isEncryptionEnabled()) return conn;
   if (!conn) return conn;
 
-  if (conn.apiKey) conn.apiKey = encrypt(conn.apiKey);
-  if (conn.accessToken) conn.accessToken = encrypt(conn.accessToken);
-  if (conn.refreshToken) conn.refreshToken = encrypt(conn.refreshToken);
-  if (conn.idToken) conn.idToken = encrypt(conn.idToken);
-  return conn;
+  try {
+    if (conn.apiKey) conn.apiKey = encrypt(conn.apiKey) ?? conn.apiKey;
+    if (conn.accessToken) conn.accessToken = encrypt(conn.accessToken) ?? conn.accessToken;
+    if (conn.refreshToken) conn.refreshToken = encrypt(conn.refreshToken) ?? conn.refreshToken;
+    if (conn.idToken) conn.idToken = encrypt(conn.idToken) ?? conn.idToken;
+    return conn;
+  } catch (err: unknown) {
+    if (err instanceof EncryptionRuntimeError) {
+      encryptionLog.error(
+        { err: err.message, op: "encryptConnectionFields" },
+        `[Encryption] encryptConnectionFields() refused to write plaintext. ` +
+          `Refusing to insert/update connection row.`
+      );
+      return null;
+    }
+    throw err; // Unexpected error; bubble up so the caller can see a stack trace.
+  }
 }
 
 /**
@@ -505,4 +579,73 @@ export function migrateLegacyEncryptedString(ciphertext: string | null | undefin
 
   // 3. Un-decryptable or corrupted, leave it alone
   return { updated: false, value: ciphertext };
+}
+
+/**
+ * Run a known-plaintext encrypt/decrypt round-trip to detect broken
+ * encryption config BEFORE the first request hits a DB write.
+ *
+ * Behaviour:
+ *   - No `STORAGE_ENCRYPTION_KEY` set (State A / passthrough mode): log a
+ *     warn and return — operator has opted out of encryption.
+ *   - Key set but `encrypt(canary)` throws: log fatal, throw
+ *     `StartupEncryptionError` so the caller can `process.exit(1)`.
+ *   - Key set and round-trip succeeds: log info, return.
+ *
+ * Designed to be invoked from `src/instrumentation.ts` (Next.js) or any
+ * other entry point that wants fail-fast at boot.
+ */
+export function validateEncryptionAtStartup(): void {
+  if (!isEncryptionEnabled()) {
+    encryptionLog.warn(
+      "[Encryption] No STORAGE_ENCRYPTION_KEY set — passthrough mode active. " +
+        "Sensitive fields will be stored as plaintext. " +
+        "Generate a key with: openssl rand -base64 32"
+    );
+    return;
+  }
+
+  let encrypted: string;
+  try {
+    encrypted = encrypt(STARTUP_CANARY_PLAINTEXT) ?? "";
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    encryptionLog.fatal(
+      { err: message, op: "startup-canary-encrypt" },
+      `[Encryption] FATAL — STORAGE_ENCRYPTION_KEY is set but encrypt() threw at startup. ` +
+        `Server refusing to start. Regenerate with: openssl rand -base64 32`
+    );
+    throw new StartupEncryptionError(
+      `encryption startup check failed: encrypt() threw — ${message}`,
+      { cause: err }
+    );
+  }
+
+  if (!encrypted || !encrypted.startsWith(PREFIX)) {
+    encryptionLog.fatal(
+      { encrypted },
+      `[Encryption] FATAL — encryption returned no prefix at startup (broken crypto). ` +
+        `Server refusing to start.`
+    );
+    throw new StartupEncryptionError(
+      "encrypt() returned plaintext at startup despite a key being set"
+    );
+  }
+
+  const decrypted = decrypt(encrypted);
+  if (decrypted !== STARTUP_CANARY_PLAINTEXT) {
+    encryptionLog.fatal(
+      { decrypted },
+      `[Encryption] FATAL — encrypt/decrypt round-trip mismatch at startup. ` +
+        `Server refusing to start.`
+    );
+    throw new StartupEncryptionError(
+      `round-trip mismatch: expected ${JSON.stringify(STARTUP_CANARY_PLAINTEXT)}, ` +
+        `got ${JSON.stringify(decrypted)}`
+    );
+  }
+
+  encryptionLog.info(
+    "[Encryption] Startup validation passed — encrypt/decrypt round-trip OK"
+  );
 }
