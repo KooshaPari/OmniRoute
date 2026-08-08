@@ -1,4 +1,7 @@
 import { KIRO_CONFIG, assertValidAwsRegion } from "../constants/oauth";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("oauth:services:kiro");
 
 /**
  * Kiro OAuth Service
@@ -211,7 +214,10 @@ export class KiroService {
       if (!response.ok) {
         // Client credentials may be expired or invalid (DB import, TTL, browser conflict).
         // Re-register a fresh OIDC client and retry once before giving up (#2524).
-        console.warn("[kiro refresh] OIDC refresh failed, attempting client re-registration...");
+        log.warn(
+          { status: response.status },
+          "oauth.services.kiro: OIDC refresh failed, attempting client re-registration",
+        );
         try {
           const newReg = await this.registerClient(resolvedRegion);
           const retryRes = await fetch(endpoint, {
