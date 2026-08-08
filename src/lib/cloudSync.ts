@@ -71,7 +71,15 @@ export function verifyCloudSignature(rawBody: string, sigHeader: string | null):
     const actualBuf = Buffer.from(sigHeader, "hex");
     if (expectedBuf.length !== actualBuf.length) return false;
     return crypto.timingSafeEqual(expectedBuf, actualBuf);
-  } catch {
+  } catch (err) {
+    // SECURITY: log the failure so forged/malformed signatures are visible
+    // in audit logs. The catch returns false (fail-closed) but operators
+    // need to know when this fires — silent signature failures make it
+    // impossible to detect MITM attempts.
+    log.error(
+      { err, signatureLength: sigHeader.length },
+      "cloudSync.verifyCloudSignature: HMAC verification failed (malformed signature or non-hex bytes)",
+    );
     return false;
   }
 }

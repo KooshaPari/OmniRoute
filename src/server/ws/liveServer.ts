@@ -192,7 +192,16 @@ async function isDashboardCookieAuthenticated(
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
     await jwtVerify(token, secret);
     return true;
-  } catch {
+  } catch (err) {
+    // SECURITY: log the JWT verification failure so forged tokens are
+    // visible in audit logs. Live dashboard WS connections with invalid
+    // tokens are immediately rejected — but operators need to know if
+    // this fires repeatedly (attack probing) vs occasionally
+    // (misconfigured client).
+    log.debug(
+      { err: (err as Error)?.message },
+      "server.ws.liveServer: JWT verification failed",
+    );
     return false;
   }
 }

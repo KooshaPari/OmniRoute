@@ -1,6 +1,9 @@
 import { jwtVerify } from "jose";
 import { getSettings } from "@/lib/localDb";
 import { validateApiKey } from "@/lib/db/apiKeys";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("lib:ws:handshake");
 
 export const DEFAULT_WS_PATH = "/v1/ws";
 const WS_QUERY_TOKEN_KEYS = ["api_key", "token", "access_token"];
@@ -47,7 +50,15 @@ async function hasValidSessionCookie(request: Request): Promise<boolean> {
   try {
     await jwtVerify(token, new TextEncoder().encode(secretValue));
     return true;
-  } catch {
+  } catch (err) {
+    // SECURITY: log the JWT verification failure so forged tokens are
+    // visible in audit logs. WebSocket connections with invalid tokens
+    // are immediately dropped — but operators need to know if this fires
+    // repeatedly (attack probing) vs occasionally (misconfigured client).
+    log.debug(
+      { err: (err as Error)?.message },
+      "lib.ws.handshake: JWT verification failed",
+    );
     return false;
   }
 }

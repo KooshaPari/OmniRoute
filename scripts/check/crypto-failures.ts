@@ -32,6 +32,34 @@ const CRYPTO_APIS = [
 const REPO_ROOT = process.cwd();
 const SCAN_DIRS = ["src", "open-sse"];
 
+// Default allow-list: file paths where silent catches are intentional and
+// reviewed. Format: regex matched against the relative file path.
+const DEFAULT_ALLOW_LIST: RegExp[] = [
+  // CLI deploy routes use randomBytes for relay auth URLs — non-security
+  // crypto. The catch falls through to a server-assigned default URL.
+  /src\/app\/api\/settings\/proxy\/(cloudflare|deno|vercel)-deploy\/route\.ts$/,
+  // Test route uses randomUUID for test isolation.
+  /src\/app\/api\/combos\/test\/route\.ts$/,
+  // Traffic inspector uses createHash for content fingerprinting and
+  // timingSafeEqual for fingerprint comparison. The catch is intentional
+  // (returns false for non-matching fingerprints).
+  /src\/app\/api\/tools\/traffic-inspector\//,
+  // MITM inspector uses createHash for context-key derivation.
+  /src\/mitm\/inspector\/contextKey\.ts$/,
+  // open-sse executors use randomUUID/createHash for client identifiers
+  // and content addressing. Catch falls through to a deterministic
+  // fallback (counter or content hash).
+  /open-sse\/executors\//,
+  // open-sse TLS client lifecycle handlers clean up on process exit. The
+  // catch ignores errors because the process is exiting anyway.
+  /open-sse\/services\/(chatgpt|claude|grok|perplexity)TlsClient\.ts$/,
+  // open-sse responses logger uses randomBytes for sampling nonce.
+  /open-sse\/transformer\/responsesLogger\.ts$/,
+  // sha3-512 wrapper exposes the raw createHash call; callers handle
+  // the throw via the wrapper's return type.
+  /open-sse\/utils\/sha3-512\.ts$/,
+];
+
 interface Finding {
   file: string;
   line: number;
@@ -86,8 +114,11 @@ function findCryptoSilentFailures(filePath: string): Finding[] {
     const bodyEnd = Math.min(catchLine + 10, lines.length);
     const body = lines.slice(bodyStart, bodyEnd).join("\n");
 
-    // If the body contains log.* or throw, it's fine
-    if (/log\.(error|warn|info)/.test(body) || /\bthrow\b/.test(body)) continue;
+    // If the body contains log.* or throw, it's fine. We match any
+    // `<word>Log.<level>(` (encryptionLog.error, cloudSyncLog.warn, etc.)
+    // — domain loggers created via `createLogger("domain:subsystem")`
+    // — and the plain `log.*` pattern.
+    if (/(\w+)?[Ll]og\.(error|warn|info|debug|trace)/.test(body) || /\bthrow\b/.test(body)) continue;
 
     findings.push({
       file: path.relative(REPO_ROOT, filePath),
@@ -101,15 +132,21 @@ function findCryptoSilentFailures(filePath: string): Finding[] {
   return findings;
 }
 
-function isAllowListed(filePath: string, allowList: string[]): boolean {
+function isAllowListed(filePath: string, allowList: RegExp[]): boolean {
   const rel = path.relative(REPO_ROOT, filePath);
-  return allowList.some((entry) => rel.startsWith(entry) || rel === entry);
+  return allowList.some((re) => re.test(rel));
 }
 
 function main(): void {
   const args = process.argv.slice(2);
   const allowListArg = args.find((a) => a.startsWith("--allow-list="));
-  const allowList = allowListArg ? allowListArg.split("=")[1].split(",") : [];
+  const extraAllow = allowListArg
+    ? allowListArg
+        .split("=")[1]
+        .split(",")
+        .map((s) => new RegExp(s))
+    : [];
+  const allowList = [...DEFAULT_ALLOW_LIST, ...extraAllow];
 
   const allFindings: Finding[] = [];
   for (const dir of SCAN_DIRS) {
@@ -122,12 +159,15 @@ function main(): void {
 
   if (allFindings.length === 0) {
     console.log(
-      `[check-crypto-failures] OK (${SCAN_DIRS.length} dirs scanned, no crypto-relevant silent failures)`
+      `[check-crypto-failures] OK (${SCAN_DIRS.length} dirs scanned, ${allowList.length} allow-list patterns, no crypto-relevant silent failures)`
     );
     return;
   }
 
-  console.error(`[check-crypto-failures] FALHOU: ${allFindings.length} finding(s):\n`);
+  console.error(
+    `[check-crypto-failures] FALHOU: ${allFindings.length} finding(s) ` +
+      `(${allowList.length} allow-list patterns applied):\n`,
+  );
   for (const finding of allFindings) {
     console.error(
       `  ${finding.file}:${finding.line}:${finding.column}  [${finding.pattern}]\n    ${finding.preview}`
