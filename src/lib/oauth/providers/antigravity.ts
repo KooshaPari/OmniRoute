@@ -122,7 +122,13 @@ export const antigravity = {
       projectId = data.cloudaicompanionProject?.id || data.cloudaicompanionProject || "";
       tierId = extractCodeAssistOnboardTierId(data);
     } catch (e) {
-      console.log("Failed to load code assist:", e);
+      // The catch falls through to fire-and-forget onboarding, so the
+      // error is non-fatal — but operators need a signal when this fires
+      // (Google API drift, network issues, etc.).
+      log.warn(
+        { err: (e as Error)?.message },
+        "oauth:antigravity: failed to load code assist project metadata — proceeding with background onboarding",
+      );
     }
 
     // Fire-and-forget onboarding — it must NOT block the OAuth login response.

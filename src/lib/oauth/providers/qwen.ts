@@ -1,5 +1,8 @@
 import { QWEN_CONFIG } from "../constants/oauth";
 import { decodeJwt } from "jose";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("oauth:providers:qwen");
 
 export const qwen = {
   config: QWEN_CONFIG,
@@ -55,7 +58,12 @@ export const qwen = {
         email = decoded.email || decoded.preferred_username || null;
         displayName = decoded.name || email;
       } catch (e) {
-        // Ignore
+        // Log so we can spot Qwen JWT structure drift. The catch falls
+        // through to try the access_token next (best-effort extraction).
+        log.debug(
+          { err: (e as Error)?.message },
+          "oauth:providers:qwen: id_token decode failed (trying access_token next)",
+        );
       }
     }
 
@@ -65,7 +73,13 @@ export const qwen = {
         email = decodedToken.email || decodedToken.preferred_username || decodedToken.sub || null;
         displayName = decodedToken.name || email;
       } catch (e) {
-        // Ignore
+        // Log so we can spot Qwen access_token JWT structure drift. The
+        // catch leaves email/displayName null (best-effort: the access
+        // token is already valid).
+        log.debug(
+          { err: (e as Error)?.message },
+          "oauth:providers:qwen: access_token decode failed (email extraction best-effort)",
+        );
       }
     }
 
