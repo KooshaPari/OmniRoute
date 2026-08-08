@@ -28,6 +28,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
+      - name: Install workflow lint dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes jq
+          mkdir -p "$HOME/.local/bin"
+          bash <(curl --fail --silent --show-error --location https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) latest "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          jq --version
+          "$HOME/.local/bin/actionlint" --version
+
       - name: Trunk Check
         uses: trunk-io/trunk-action@04ba50e7658c81db7356da96657e6e77f220bfa3  # embeds actions/cache@27d5ce7f (v5.0.5)
 
