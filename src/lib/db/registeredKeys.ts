@@ -11,6 +11,48 @@
 import { createHash, randomBytes } from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, rowToCamel } from "./core";
+import { toRecord } from "./caseMapping";
+
+// Required field lists — used by toRecord() to detect schema drift at runtime.
+// Listed explicitly per type so future migrations that add/remove fields must
+// update both the interface AND the field list (compile-time signal).
+const REQUIRED_REGISTERED_KEY_FIELDS = [
+  "id",
+  "keyPrefix",
+  "name",
+  "provider",
+  "accountId",
+  "isActive",
+  "revokedAt",
+  "expiresAt",
+  "idempotencyKey",
+  "dailyBudget",
+  "hourlyBudget",
+  "dailyUsed",
+  "hourlyUsed",
+  "createdAt",
+  "updatedAt",
+] as const satisfies ReadonlyArray<keyof RegisteredKey>;
+
+const REQUIRED_PROVIDER_KEY_LIMIT_FIELDS = [
+  "provider",
+  "maxActiveKeys",
+  "dailyIssueLimit",
+  "hourlyIssueLimit",
+  "dailyIssued",
+  "hourlyIssued",
+  "updatedAt",
+] as const satisfies ReadonlyArray<keyof ProviderKeyLimit>;
+
+const REQUIRED_ACCOUNT_KEY_LIMIT_FIELDS = [
+  "accountId",
+  "maxActiveKeys",
+  "dailyIssueLimit",
+  "hourlyIssueLimit",
+  "dailyIssued",
+  "hourlyIssued",
+  "updatedAt",
+] as const satisfies ReadonlyArray<keyof AccountKeyLimit>;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -247,7 +289,10 @@ export function issueRegisteredKey(
     if (existing) {
       return {
         idempotencyConflict: true,
-        existing: rowToCamel(existing) as unknown as RegisteredKey,
+        existing: toRecord<RegisteredKey>(
+          rowToCamel(existing),
+          REQUIRED_REGISTERED_KEY_FIELDS,
+        ),
       };
     }
   }
@@ -309,7 +354,10 @@ export function issueRegisteredKey(
   const created = db
     .prepare("SELECT * FROM registered_keys WHERE id = ?")
     .get(id) as RegisteredKeyRow;
-  return { ...(rowToCamel(created) as unknown as RegisteredKey), rawKey };
+  return {
+    ...toRecord<RegisteredKey>(rowToCamel(created), REQUIRED_REGISTERED_KEY_FIELDS),
+    rawKey,
+  };
 }
 
 /**
@@ -320,7 +368,9 @@ export function getRegisteredKey(id: string): RegisteredKey | null {
   const row = db.prepare("SELECT * FROM registered_keys WHERE id = ?").get(id) as
     | RegisteredKeyRow
     | undefined;
-  return row ? (rowToCamel(row) as unknown as RegisteredKey) : null;
+  return row
+    ? toRecord<RegisteredKey>(rowToCamel(row), REQUIRED_REGISTERED_KEY_FIELDS)
+    : null;
 }
 
 /**
@@ -342,7 +392,9 @@ export function listRegisteredKeys(
   }
   sql += " ORDER BY created_at DESC LIMIT 500";
   const rows = db.prepare(sql).all(...args) as RegisteredKeyRow[];
-  return rows.map((r) => rowToCamel(r) as unknown as RegisteredKey);
+  return rows.map((r) =>
+    toRecord<RegisteredKey>(rowToCamel(r), REQUIRED_REGISTERED_KEY_FIELDS),
+  );
 }
 
 /**
@@ -399,7 +451,7 @@ export function validateRegisteredKey(rawKey: string): RegisteredKey | null {
   if (row.daily_budget !== null && row.daily_used >= row.daily_budget) return null;
   if (row.hourly_budget !== null && row.hourly_used >= row.hourly_budget) return null;
 
-  return rowToCamel(row) as unknown as RegisteredKey;
+  return toRecord<RegisteredKey>(rowToCamel(row), REQUIRED_REGISTERED_KEY_FIELDS);
 }
 
 /**
@@ -473,7 +525,9 @@ export function getProviderKeyLimit(provider: string): ProviderKeyLimit | null {
   const row = db.prepare("SELECT * FROM provider_key_limits WHERE provider = ?").get(provider) as
     | ProviderKeyLimitRow
     | undefined;
-  return row ? (rowToCamel(row) as unknown as ProviderKeyLimit) : null;
+  return row
+    ? toRecord<ProviderKeyLimit>(rowToCamel(row), REQUIRED_PROVIDER_KEY_LIMIT_FIELDS)
+    : null;
 }
 
 export function getAccountKeyLimit(accountId: string): AccountKeyLimit | null {
@@ -481,7 +535,9 @@ export function getAccountKeyLimit(accountId: string): AccountKeyLimit | null {
   const row = db.prepare("SELECT * FROM account_key_limits WHERE account_id = ?").get(accountId) as
     | AccountKeyLimitRow
     | undefined;
-  return row ? (rowToCamel(row) as unknown as AccountKeyLimit) : null;
+  return row
+    ? toRecord<AccountKeyLimit>(rowToCamel(row), REQUIRED_ACCOUNT_KEY_LIMIT_FIELDS)
+    : null;
 }
 
 // ─── Internal types (raw DB rows) ─────────────────────────────────────────────

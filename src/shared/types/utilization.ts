@@ -1,14 +1,28 @@
+/**
+ * QuotaSnapshotRow — the camelCase shape returned by `rowToCamel()`. All
+ * `quotaSnapshots.ts` reads normalize via `rowToCamel()` so the public API
+ * surfaces camelCase fields. Inserts accept this shape too (caller passes
+ * the camelCase object; `objToSnake()` handles the column-name conversion
+ * at the SQLite boundary).
+ *
+ * Pre-migration note: the interface previously used snake_case fields,
+ * which contradicted the runtime data (post-rowToCamel). Consumers used
+ * `as unknown as` casts to bridge the mismatch. The migration to
+ * `toRecord<T>()` required the interface to match reality; this change
+ * unifies the type and removes the workaround casts in comboForecast.ts,
+ * comboHealth.ts, and the test file.
+ */
 export interface QuotaSnapshotRow {
   id: number;
   provider: string;
-  connection_id: string;
-  window_key: string;
-  remaining_percentage: number | null;
-  is_exhausted: number;
-  next_reset_at: string | null;
-  window_duration_ms: number | null;
-  raw_data: string | null;
-  created_at: string;
+  connectionId: string;
+  windowKey: string;
+  remainingPercentage: number | null;
+  isExhausted: number;
+  nextResetAt: string | null;
+  windowDurationMs: number | null;
+  rawData: string | null;
+  createdAt: string;
 }
 
 export interface ProviderUtilizationPoint {

@@ -78,3 +78,46 @@ export function cleanNulls(obj: unknown): JsonRecord {
   }
   return result;
 }
+
+/**
+ * Validates that a row (post-`rowToCamel`) contains all expected fields.
+ * Throws if any required field is missing — this catches schema drift at
+ * runtime BEFORE the row is silently consumed by downstream code (which is
+ * what `as unknown as SomeDomainType` casts used to hide).
+ *
+ * Replaces the `rowToCamel(row) as unknown as DomainType` pattern. Usage:
+ *
+ *   const row = toRecord<FileRecord>(
+ *     rowToCamel(rawRow),
+ *     ["id", "filename", "bytes", "createdAt", "purpose"]
+ *   );
+ *   if (!row) return null; // row was null
+ *   // row is now FileRecord-shaped; missing required fields would have thrown
+ *
+ * The caller passes the required field names as the second argument (a
+ * `readonly (keyof T)[]`). At runtime, we check that each named field is
+ * present in the row. We intentionally do NOT validate the value TYPE
+ * (e.g., `typeof row.id === "string"`) — schema-drift here is usually a
+ * missing field, not a wrong-type field. For type validation, use Zod.
+ *
+ * Performance: O(n) over required fields. Each check is a single property
+ * lookup. No allocations beyond the return value.
+ */
+export function toRecord<T extends Record<string, unknown>>(
+  row: JsonRecord | null | undefined,
+  requiredFields: ReadonlyArray<keyof T>,
+): T | null {
+  if (row === null || row === undefined) return null;
+
+  for (const field of requiredFields) {
+    const name = String(field);
+    if (!(name in row)) {
+      const preview = JSON.stringify(row).slice(0, 200);
+      throw new Error(
+        `db.caseMapping.toRecord: missing required field '${name}' — possible schema drift. Row preview: ${preview}`,
+      );
+    }
+  }
+
+  return row as T;
+}

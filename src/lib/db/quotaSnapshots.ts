@@ -1,6 +1,22 @@
 import { getDbInstance, rowToCamel } from "./core";
+import { toRecord } from "./caseMapping";
 import type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
 import { createLogger } from "@/shared/utils/logger";
+
+// Required field list for runtime drift detection. Must match QuotaSnapshotRow
+// exactly; if either changes, the other must too (compile-time signal).
+const REQUIRED_QUOTA_SNAPSHOT_FIELDS = [
+  "id",
+  "provider",
+  "connectionId",
+  "windowKey",
+  "remainingPercentage",
+  "isExhausted",
+  "nextResetAt",
+  "windowDurationMs",
+  "rawData",
+  "createdAt",
+] as const satisfies ReadonlyArray<keyof QuotaSnapshotRow>;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -18,7 +34,7 @@ const log = createLogger("db:quota-snapshots");
 
 let lastCleanupAt = 0;
 
-export function saveQuotaSnapshot(snapshot: Omit<QuotaSnapshotRow, "id" | "created_at">): void {
+export function saveQuotaSnapshot(snapshot: Omit<QuotaSnapshotRow, "id" | "createdAt">): void {
   const db = getDbInstance() as unknown as DbLike;
   const now = new Date().toISOString();
 
@@ -30,13 +46,13 @@ export function saveQuotaSnapshot(snapshot: Omit<QuotaSnapshotRow, "id" | "creat
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       snapshot.provider,
-      snapshot.connection_id,
-      snapshot.window_key,
-      snapshot.remaining_percentage,
-      snapshot.is_exhausted,
-      snapshot.next_reset_at,
-      snapshot.window_duration_ms,
-      snapshot.raw_data,
+      snapshot.connectionId,
+      snapshot.windowKey,
+      snapshot.remainingPercentage,
+      snapshot.isExhausted,
+      snapshot.nextResetAt,
+      snapshot.windowDurationMs,
+      snapshot.rawData,
       now
     );
   } catch (err: any) {
@@ -76,7 +92,9 @@ export function getQuotaSnapshots(opts: {
   try {
     const sql = `SELECT * FROM quota_snapshots WHERE ${conditions.join(" AND ")} ORDER BY created_at ASC`;
     const rows = db.prepare(sql).all(...params);
-    return rows.map((r) => rowToCamel(r) as unknown as QuotaSnapshotRow);
+    return rows.map((r) =>
+      toRecord<QuotaSnapshotRow>(rowToCamel(r), REQUIRED_QUOTA_SNAPSHOT_FIELDS),
+    );
   } catch (err: any) {
     if (err?.message?.includes("no such table")) {
       return [];
@@ -100,11 +118,12 @@ export function getLatestQuotaSnapshotsForConnection(connectionId: string): Quot
     const latestByWindow = new Map<string, QuotaSnapshotRow>();
 
     for (const row of rows) {
-      const snapshot = rowToCamel(row) as unknown as QuotaSnapshotRow;
-      const windowKey =
-        (snapshot as unknown as { windowKey?: string }).windowKey ?? snapshot.window_key;
-      if (!windowKey || latestByWindow.has(windowKey)) continue;
-      latestByWindow.set(windowKey, snapshot);
+      const snapshot = toRecord<QuotaSnapshotRow>(
+        rowToCamel(row),
+        REQUIRED_QUOTA_SNAPSHOT_FIELDS,
+      );
+      if (!snapshot || !snapshot.windowKey || latestByWindow.has(snapshot.windowKey)) continue;
+      latestByWindow.set(snapshot.windowKey, snapshot);
     }
 
     return [...latestByWindow.values()];

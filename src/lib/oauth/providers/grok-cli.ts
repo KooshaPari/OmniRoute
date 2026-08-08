@@ -7,6 +7,9 @@
  */
 
 import { GROK_CLI_CONFIG } from "../constants/oauth";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("oauth:providers:grok-cli");
 
 interface GrokCliAuthInfo {
   user_id: string;
@@ -48,7 +51,13 @@ function parseJwtPayload(token: string): {
       },
       exp: typeof payload.exp === "number" ? payload.exp : null,
     };
-  } catch {
+  } catch (err) {
+    // Log so we can spot xAI JWT structure drift. The catch returns
+    // null/empty (best-effort: the access token is already valid).
+    log.debug(
+      { err: (err as Error)?.message },
+      "oauth.providers.grok-cli: JWT decode failed (returning null — access token still valid)",
+    );
     return { email: null, authInfo: null, exp: null };
   }
 }

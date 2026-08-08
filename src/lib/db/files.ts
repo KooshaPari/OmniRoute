@@ -1,6 +1,15 @@
 import { getDbInstance, rowToCamel, objToSnake } from "./core";
+import { toRecord } from "./caseMapping";
 import { v4 as uuidv4 } from "uuid";
 import { DEFAULT_BATCH_EXPIRATION_SECONDS } from "@/shared/constants/batch";
+
+const REQUIRED_FILE_RECORD_FIELDS = [
+  "id",
+  "bytes",
+  "createdAt",
+  "filename",
+  "purpose",
+] as const satisfies ReadonlyArray<keyof FileRecord>;
 
 export interface FileRecord {
   id: string;
@@ -68,7 +77,7 @@ export function getFile(id: string): FileRecord | null {
   const row = db
     .prepare(`SELECT ${FILE_METADATA_COLUMNS} FROM files WHERE id = ? AND deleted_at IS NULL`)
     .get(id);
-  return row ? (rowToCamel(row) as unknown as FileRecord) : null;
+  return row ? toRecord<FileRecord>(rowToCamel(row), REQUIRED_FILE_RECORD_FIELDS) : null;
 }
 
 export function getFileContent(id: string): Buffer | null {
@@ -123,7 +132,7 @@ export function listFiles(
   params.push(limit);
 
   const rows = db.prepare(query).all(...params);
-  return rows.map((row) => rowToCamel(row) as unknown as FileRecord);
+  return rows.map((row) => toRecord<FileRecord>(rowToCamel(row), REQUIRED_FILE_RECORD_FIELDS));
 }
 
 export function countFiles(options: { apiKeyId?: string; purpose?: string } = {}): number {
