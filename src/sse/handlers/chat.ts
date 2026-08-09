@@ -123,8 +123,11 @@ import { registerGenericQuotaFetchers } from "@omniroute/open-sse/services/gener
 import {
   getCooldownAwareRetryDecision,
   resolveCooldownAwareRetrySettings,
-  waitForCooldownAwareRetry,
 } from "../services/cooldownAwareRetry";
+import {
+  decideAndWaitForCooldownRetry,
+  recordAccountCooldown,
+} from "./chatCooldown";
 import { constrainConnectionsToQuota, resolveQuotaKeyScope } from "../../lib/quota/quotaKey";
 
 registerCodexQuotaFetcher();
@@ -1127,22 +1130,30 @@ async function handleSingleModelChat(
             attempt: requestRetryAttempt,
           });
 
-          if (retryDecision.shouldRetry) {
-            const waitSec = Math.max(Math.ceil(retryDecision.waitMs / 1000), 0);
-            log.info(
-              "COOLDOWN_RETRY",
-              `${provider}/${model} all connections cooling down (${retryDecision.retryAfterHuman || `retry in ${waitSec}s`}) — waiting ${waitSec}s before retry ${requestRetryAttempt + 1}/${retrySettings.maxRetries}`
-            );
+          // PR-α: delegate the wait-log-retry dance to chatCooldown. This
+          // trims ~22 lines of inlined orchestration out of chat.ts and
+          // keeps the credential-cooldown concern in one place.
+          const retryOutcome = await decideAndWaitForCooldownRetry(
+            {
+              shouldRetry: retryDecision.shouldRetry,
+              waitMs: retryDecision.waitMs,
+              retryAfterHuman: retryDecision.retryAfterHuman,
+            },
+            {
+              provider,
+              model,
+              attempt: requestRetryAttempt,
+              requestSignal,
+            },
+            log,
+            retrySettings,
+          );
 
-            const completed = await waitForCooldownAwareRetry(retryDecision.waitMs, requestSignal);
-            if (!completed) {
-              log.info(
-                "COOLDOWN_RETRY",
-                `${provider}/${model} retry wait aborted by client disconnect`
-              );
-              return errorResponse(499, "Request aborted");
-            }
+          if (retryOutcome.outcome === "abort") {
+            return errorResponse(499, "Request aborted");
+          }
 
+          if (retryOutcome.outcome === "retry") {
             requestRetryAttempt += 1;
             log.info(
               "COOLDOWN_RETRY",
@@ -1150,6 +1161,7 @@ async function handleSingleModelChat(
             );
             continue requestAttemptLoop;
           }
+          // outcome === "no_retry" → fall through to the breaker/status code below
         }
 
         const breakerFailureStatus = Number(lastStatus ?? credentials?.lastErrorCode);
@@ -1364,10 +1376,7 @@ async function handleSingleModelChat(
             "AUTH",
             `Antigravity connection ${accountId}... produced no useful stream content, trying fallback connection`
           );
-          if (Number.isFinite(cooldownMs) && cooldownMs > 0) {
-            lastCooldownMs = cooldownMs;
-            requestRetryLastCooldownMs = cooldownMs;
-          }
+          recordAccountCooldown(cooldownMs, { lastCooldownMs, requestRetryLastCooldownMs });
           if (runtimeOptions.sessionAffinityKey) {
             try {
               const affinity = getSessionAccountAffinity(
@@ -1414,10 +1423,7 @@ async function handleSingleModelChat(
             "AUTH",
             `Antigravity connection ${accountId}... timed out before response headers, trying fallback connection`
           );
-          if (Number.isFinite(cooldownMs) && cooldownMs > 0) {
-            lastCooldownMs = cooldownMs;
-            requestRetryLastCooldownMs = cooldownMs;
-          }
+          recordAccountCooldown(cooldownMs, { lastCooldownMs, requestRetryLastCooldownMs });
           if (runtimeOptions.sessionAffinityKey) {
             try {
               const affinity = getSessionAccountAffinity(
@@ -1619,10 +1625,7 @@ async function handleSingleModelChat(
           );
 
       if (shouldFallback) {
-        if (Number.isFinite(cooldownMs) && cooldownMs > 0) {
-          lastCooldownMs = cooldownMs;
-          requestRetryLastCooldownMs = cooldownMs;
-        }
+        recordAccountCooldown(cooldownMs, { lastCooldownMs, requestRetryLastCooldownMs });
         log.warn("AUTH", `Account ${accountId}... unavailable (${result.status}), trying fallback`);
         excludedConnectionIds.add(credentials.connectionId);
         lastError = result.error;

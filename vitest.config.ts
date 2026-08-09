@@ -36,6 +36,7 @@ export default defineConfig({
       "tests/unit/**/*.test.tsx",
       "open-sse/**/__tests__/**/*.test.ts",
       "open-sse/services/**/__tests__/**/*.test.ts",
+      "src/sse/handlers/**/__tests__/**/*.test.ts",
       "tests/e2e/ecosystem.test.ts",
       "tests/e2e/protocol-clients.test.ts",
       "tests/e2e/health.e2e.ts",
