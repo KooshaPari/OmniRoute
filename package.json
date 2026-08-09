@@ -60,7 +60,8 @@
     "src/shared/utils/nodeRuntimeSupport.ts"
   ],
   "workspaces": [
-    "open-sse"
+    "open-sse",
+    "packages/omniroute-ffi"
   ],
   "engines": {
     "node": ">=22.0.0 <23 || >=24.0.0 <27"
