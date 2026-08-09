@@ -128,7 +128,10 @@ import {
   decideAndWaitForCooldownRetry,
   recordAccountCooldown,
 } from "./chatCooldown";
-import { PROVIDER_BREAKER_FAILURE_STATUSES } from "./chatPredicates";
+import {
+  PROVIDER_BREAKER_FAILURE_STATUSES,
+  shouldTripProviderBreakerForResult,
+} from "./chatPredicates";
 import { constrainConnectionsToQuota, resolveQuotaKeyScope } from "../../lib/quota/quotaKey";
 
 registerCodexQuotaFetcher();
@@ -1637,10 +1640,21 @@ async function handleSingleModelChat(
         continue;
       }
 
+      // PR-η: delegate to shouldTripProviderBreakerForResult from chatPredicates.
+      // The inline 4-condition check duplicates the predicate's logic and
+      // missed the #7907/#7908 stream-lifecycle guard and #8255
+      // request-scoped guard. The predicate encodes all four.
       if (
-        !forceLiveComboTest &&
-        !isCombo &&
-        PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))
+        shouldTripProviderBreakerForResult(
+          {
+            status: result.status,
+            errorCode: result.errorCode,
+            errorType: result.errorType,
+            error: result.error,
+          },
+          isCombo,
+          forceLiveComboTest,
+        )
       ) {
         breaker._onFailure();
       }
