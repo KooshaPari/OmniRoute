@@ -148,3 +148,119 @@ export function getForkChatState(): ForkChatStateSnapshot {
 export function getForkChatStateJson(): string {
   return JSON.stringify(getForkChatState(), null, 2);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PR-λ: diff + format helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Fork-original structured diff between two snapshots.
+ *
+ * Useful for change tracking in observability endpoints — instead of
+ * comparing two full JSON blobs (noisy), callers can read the structured
+ * diff and surface only what changed.
+ *
+ * Diff rules:
+ *   - `versionChanged: true` if the snapshot version differs (rare;
+ *     indicates a backward-incompatible shape change)
+ *   - `cacheChanged: true` if any combosCache field differs
+ *   - `cacheFieldsChanged`: array of field names that changed
+ *   - `generatedAtMsDelta`: positive if `after` is newer than `before`
+ *
+ * Pure function. Never throws. If `before` or `after` is null/undefined,
+ * returns a diff with `cacheChanged: null` and an empty fields array.
+ */
+export interface ForkChatStateDiff {
+  versionChanged: boolean;
+  cacheChanged: boolean;
+  cacheFieldsChanged: readonly string[];
+  generatedAtMsDelta: number;
+}
+
+export function diffForkChatStates(
+  before: ForkChatStateSnapshot | null | undefined,
+  after: ForkChatStateSnapshot | null | undefined,
+): ForkChatStateDiff {
+  if (!before || !after) {
+    return {
+      versionChanged: false,
+      cacheChanged: false,
+      cacheFieldsChanged: [],
+      generatedAtMsDelta: 0,
+    };
+  }
+
+  const versionChanged = before.version !== after.version;
+
+  const cacheFieldsChanged: string[] = [];
+  const cacheKeys: (keyof ForkCombosCacheSnapshot)[] = [
+    "hasCachedPromise",
+    "cachedAtMs",
+    "cachedVersion",
+    "ttlMs",
+  ];
+  for (const key of cacheKeys) {
+    if (before.combosCache[key] !== after.combosCache[key]) {
+      cacheFieldsChanged.push(key);
+    }
+  }
+
+  return {
+    versionChanged,
+    cacheChanged: cacheFieldsChanged.length > 0,
+    cacheFieldsChanged,
+    generatedAtMsDelta: after.generatedAtMs - before.generatedAtMs,
+  };
+}
+
+/**
+ * Fork-original CLI formatter. Returns a multi-line string suitable for
+ * terminal output — one row per snapshot field, aligned columns.
+ *
+ * Pure function. Useful for `chat-fork-state --cli` debug commands and
+ * for piping into log aggregation tools.
+ *
+ * Example output:
+ *   Fork Chat State v1.0.0
+ *   generatedAtMs           1786308712000
+ *   combosCache.hasCachedPromise   false
+ *   combosCache.cachedAtMs         0
+ *   combosCache.cachedVersion      -1
+ *   combosCache.ttlMs              10000
+ *   breakerPredicates.size         5
+ *   breakerPredicates.statusCodes  [408, 500, 502, 503, 504]
+ *   breakerPredicates.sampleTrue   { status: 503, tripsBreaker: true }
+ *   breakerPredicates.sampleFalse  { status: 200, tripsBreaker: false }
+ *   cooldownHelpers.formatSample   7500ms → 8s
+ *   cooldownHelpers.describeSample 8s
+ *   cooldownHelpers.noRetrySample  no-retry
+ */
+export function formatForkChatStateForCli(snapshot?: ForkChatStateSnapshot): string {
+  const snap = snapshot ?? getForkChatState();
+  const lines: string[] = [];
+
+  lines.push(`Fork Chat State v${snap.version}`);
+  lines.push(`generatedAtMs           ${snap.generatedAtMs}`);
+
+  lines.push(`combosCache.hasCachedPromise   ${snap.combosCache.hasCachedPromise}`);
+  lines.push(`combosCache.cachedAtMs         ${snap.combosCache.cachedAtMs}`);
+  lines.push(`combosCache.cachedVersion      ${snap.combosCache.cachedVersion}`);
+  lines.push(`combosCache.ttlMs              ${snap.combosCache.ttlMs}`);
+
+  lines.push(`breakerPredicates.size         ${snap.breakerPredicates.size}`);
+  lines.push(`breakerPredicates.statusCodes  [${snap.breakerPredicates.statusCodes.join(", ")}]`);
+  lines.push(
+    `breakerPredicates.sampleTrue   { status: ${snap.breakerPredicates.sampleTrue.status}, tripsBreaker: ${snap.breakerPredicates.sampleTrue.tripsBreaker} }`,
+  );
+  lines.push(
+    `breakerPredicates.sampleFalse  { status: ${snap.breakerPredicates.sampleFalse.status}, tripsBreaker: ${snap.breakerPredicates.sampleFalse.tripsBreaker} }`,
+  );
+
+  lines.push(
+    `cooldownHelpers.formatSample   ${snap.cooldownHelpers.sampleFormatSeconds.inputMs}ms → ${snap.cooldownHelpers.sampleFormatSeconds.outputSec}s`,
+  );
+  lines.push(`cooldownHelpers.describeSample ${snap.cooldownHelpers.sampleDescribeWait.output}`);
+  lines.push(`cooldownHelpers.noRetrySample  ${snap.cooldownHelpers.sampleNoRetry.output}`);
+
+  return lines.join("\n");
+}
