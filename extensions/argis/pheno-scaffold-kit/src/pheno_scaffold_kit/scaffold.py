@@ -12,11 +12,11 @@ from pathlib import Path
 from typing import Any
 
 try:
-    import structlog
-    log = structlog.get_logger(__name__)
+    import structlog as _structlog
+    log = _structlog.get_logger(__name__)
 except ImportError:  # pragma: no cover
     import logging
-    log = logging.getLogger(__name__)  # type: ignore[assignment]
+    log = logging.getLogger(__name__)
 
 # Path to the bundled Cookiecutter template (relative to the package root).
 TEMPLATE_DIR = Path(__file__).parent.parent.parent / "templates" / "cookiecutter"

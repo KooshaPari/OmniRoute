@@ -28,11 +28,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 try:
-    import structlog
-    log = structlog.get_logger(__name__)
+    import structlog as _structlog
+    log = _structlog.get_logger(__name__)
 except ImportError:  # pragma: no cover
     import logging
-    log = logging.getLogger(__name__)  # type: ignore[assignment]
+    log = logging.getLogger(__name__)
 
 # Cell counts (excludes the empty leading + trailing pipe tokens).
 V20_CELLS = 6   # v2.0 schema: Date | Task ID | Layer | Action | Files | Notes
