@@ -17,6 +17,7 @@
  */
 
 import { describe, it, expect } from "vitest";
+import { PROVIDER_BREAKER_FAILURE_STATUSES } from "../../src/sse/handlers/chatPredicates.ts";
 
 // ─── Contract constants (vendored from pinned SHA) ───────────────────────────
 // Source: KooshaPari/phenotype-contracts @ cc8f34ed
@@ -52,8 +53,13 @@ const OMNIROUTE_TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000; // 300 000 ms
  * DIVERGES from contract default — see docs/contracts/README.md for rationale:
  *   - 429 handled by separate comboCooldownWait / providerCooldown layer
  *   - 520, 522, 524, 529 (Cloudflare transient) not present; may need evaluation
+ *
+ * PR-δ (fork-only): sourced from src/sse/handlers/chatPredicates.ts instead
+ * of vendored here. This keeps the conformance test in lock-step with the
+ * production source. The local OMNIROUTE_PROVIDER_BREAKER_FAILURE_STATUSES
+ * constant is replaced with the imported reference.
  */
-const OMNIROUTE_PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
+const OMNIROUTE_PROVIDER_BREAKER_FAILURE_STATUSES = PROVIDER_BREAKER_FAILURE_STATUSES;
 
 /**
  * SSE "[DONE]" terminal marker from src/lib/sseTextTransform.ts line 93:
@@ -84,6 +90,14 @@ describe("phenotype-contracts conformance", () => {
       for (const code of sharedCodes) {
         expect(OMNIROUTE_PROVIDER_BREAKER_FAILURE_STATUSES.has(code)).toBe(true);
       }
+    });
+
+    it("PR-δ: imported from src/sse/handlers/chatPredicates.ts (not vendored)", () => {
+      // Reference equality: the constant we test against IS the same Set
+      // object the production source uses. Catches accidental re-vendoring.
+      expect(OMNIROUTE_PROVIDER_BREAKER_FAILURE_STATUSES).toBe(
+        PROVIDER_BREAKER_FAILURE_STATUSES,
+      );
     });
 
     it("DIVERGENCE: 429 is NOT in PROVIDER_BREAKER_FAILURE_STATUSES (handled by cooldown layer)", () => {

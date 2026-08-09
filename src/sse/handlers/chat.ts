@@ -128,6 +128,7 @@ import {
   decideAndWaitForCooldownRetry,
   recordAccountCooldown,
 } from "./chatCooldown";
+import { PROVIDER_BREAKER_FAILURE_STATUSES } from "./chatPredicates";
 import { constrainConnectionsToQuota, resolveQuotaKeyScope } from "../../lib/quota/quotaKey";
 
 registerCodexQuotaFetcher();
@@ -201,7 +202,8 @@ function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): st
   return first || second || null;
 }
 
-const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
+// PR-δ: PROVIDER_BREAKER_FAILURE_STATUSES now sourced from ./chatPredicates
+// (was: const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);)
 const comboPromoteDeps = { updateCombo, info: log.info, warn: log.warn };
 
 /**
