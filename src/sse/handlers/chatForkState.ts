@@ -264,3 +264,140 @@ export function formatForkChatStateForCli(snapshot?: ForkChatStateSnapshot): str
 
   return lines.join("\n");
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PR-μ: fork-original module metadata + poll helper
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Fork-original module metadata. Lets callers enumerate which fork-original
+ * sibling modules are loaded + what their exports look like.
+ *
+ * Useful for:
+ *   - "what fork modules are loaded?" debugging
+ *   - Dynamic dispatch in future MCP resources / HTTP endpoints
+ *   - Self-describing dashboards ("fork modules: 4, predicates: 7")
+ */
+export interface ForkModuleMetadata {
+  name: string;
+  description: string;
+  exportCount: number;
+  /** Most useful exports (subset, up to 5). */
+  notableExports: readonly string[];
+}
+
+export const FORK_MODULES: readonly ForkModuleMetadata[] = [
+  {
+    name: "chatCooldown",
+    description:
+      "Credential cooldown/retry helpers extracted from chat.ts (PR-α). Owns the wait-log-retry dance for allRateLimited branches.",
+    exportCount: 6,
+    notableExports: [
+      "decideAndWaitForCooldownRetry",
+      "recordAccountCooldown",
+      "shouldAbortOnRetryWait",
+      "createCooldownPropagationState",
+      "describeCooldownWait",
+    ],
+  },
+  {
+    name: "chatPredicates",
+    description:
+      "Pure predicates + tuning constants for chat.ts (PR-δ/ε/θ). Owns the breaker-trip decision surface.",
+    exportCount: 6,
+    notableExports: [
+      "PROVIDER_BREAKER_FAILURE_STATUSES",
+      "shouldTripProviderBreakerForResult",
+      "shouldTripBreakerForAllRateLimited",
+      "isProviderBreakerFailureStatus",
+      "isAntigravityMissingProjectError",
+    ],
+  },
+  {
+    name: "chatCombosCache",
+    description:
+      "Read-through Promise cache for combos (PR-ι). 10s TTL + cache-version invalidation (#3147).",
+    exportCount: 4,
+    notableExports: [
+      "COMBOS_CACHE_TTL_MS",
+      "getCombosCachedForChat",
+      "__resetCombosCacheForTests",
+      "__getCombosCacheStateForTests",
+    ],
+  },
+  {
+    name: "chatForkState",
+    description:
+      "Fork-original introspection (PR-κ/λ/μ). Aggregates the public API surface of every fork-original sibling module into a single snapshot.",
+    exportCount: 5,
+    notableExports: [
+      "getForkChatState",
+      "getForkChatStateJson",
+      "diffForkChatStates",
+      "formatForkChatStateForCli",
+      "FORK_MODULES",
+    ],
+  },
+] as const;
+
+/**
+ * Aggregate metadata about every fork-original sibling module loaded.
+ * Pairs with `getForkChatState()` for self-describing dashboards.
+ */
+export interface ForkModuleSummary {
+  moduleCount: number;
+  totalExports: number;
+  modules: readonly ForkModuleMetadata[];
+}
+
+export function summarizeForkModules(): ForkModuleSummary {
+  const modules = FORK_MODULES;
+  const totalExports = modules.reduce((sum, m) => sum + m.exportCount, 0);
+  return {
+    moduleCount: modules.length,
+    totalExports,
+    modules,
+  };
+}
+
+/**
+ * Fork-original poll helper. Repeatedly snapshots + diffs the fork state
+ * and invokes `callback` for each tick. Returns an unsubscribe handle.
+ *
+ * Pure orchestration — does NOT actually schedule timers (callers do that
+ * with `setInterval` or in tests with manual loops). This keeps the
+ * function testable without flakiness from real timers.
+ *
+ * Anti-pattern #77: don't bake setInterval into a snapshot function. Tests
+ * should drive the polling manually, and production code should control
+ * the timing for observability. Returning an unsubscribe handle makes
+ * both cases ergonomic.
+ */
+export type ForkStateListener = (snapshot: ForkChatStateSnapshot) => void;
+
+export interface ForkStatePoller {
+  /** Read the latest snapshot and invoke the listener with it. */
+  tick(): ForkChatStateSnapshot;
+  /** Stop the poller. Idempotent. */
+  unsubscribe(): void;
+}
+
+export function pollForkChatState(listener: ForkStateListener): ForkStatePoller {
+  let active = true;
+  let lastSnapshot: ForkChatStateSnapshot = getForkChatState();
+
+  // Fire once immediately so subscribers get the initial state.
+  listener(lastSnapshot);
+
+  return {
+    tick() {
+      if (!active) return lastSnapshot;
+      lastSnapshot = getForkChatState();
+      listener(lastSnapshot);
+      return lastSnapshot;
+    },
+    unsubscribe() {
+      active = false;
+    },
+  };
+}
