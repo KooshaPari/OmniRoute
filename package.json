@@ -61,7 +61,12 @@
   ],
   "workspaces": [
     "open-sse",
-    "packages/omniroute-ffi"
+    "packages/omniroute-ffi",
+    "packages/omniroute-ffi-darwin-arm64",
+    "packages/omniroute-ffi-darwin-x64",
+    "packages/omniroute-ffi-linux-arm64-gnu",
+    "packages/omniroute-ffi-linux-x64-gnu",
+    "packages/omniroute-ffi-win32-x64"
   ],
   "engines": {
     "node": ">=22.0.0 <23 || >=24.0.0 <27"
