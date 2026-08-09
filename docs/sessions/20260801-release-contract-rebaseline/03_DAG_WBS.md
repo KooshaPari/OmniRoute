@@ -22,3 +22,12 @@ Critical path: R0 -> R1 -> R2/R3 -> R4 -> R6.
 
 R4 is complete for lane-local evidence. Repository-wide discovery and env-doc
 checks remain pre-existing baseline failures for parent triage.
+
+## Current Reconstruction Evidence
+
+The reviewed release-contract/i18n patch was cleanly reconstructed from current
+`origin/main` on `reconcile/release-contract-i18n-20260809b` at `b47472ed0f`.
+`git diff --check HEAD^ HEAD`, `node scripts/check/check-docs-sync.mjs --scope all`,
+and `node --import tsx --test tests/unit/docs-sync-contract.test.ts` passed.
+This is focused lane evidence only; repository-wide release-green baseline work
+remains distinct and unresolved.

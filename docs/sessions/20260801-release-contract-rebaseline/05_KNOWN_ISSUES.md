@@ -11,3 +11,11 @@
 
 No known issue authorizes deleting, resetting, pruning, merging, or pushing the
 canonical primary checkout.
+
+## Reconstruction Boundary
+
+The reviewed patch is reconstructed cleanly on
+`reconcile/release-contract-i18n-20260809b` at `b47472ed0f`; its focused
+docs-sync and contract-test checks pass. That evidence does not establish a
+repository-wide release-green result, whose baseline remediation remains a
+separate unresolved lane.
