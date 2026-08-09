@@ -17,6 +17,7 @@ import { describe, expect, it } from "vitest";
 import {
   shouldTripProviderBreakerForResult,
   isAntigravityMissingProjectError,
+  shouldTripBreakerForAllRateLimited,
 } from "../chatPredicates";
 
 describe("chatPredicates.shouldTripProviderBreakerForResult", () => {
@@ -247,5 +248,130 @@ describe("chatPredicates.isAntigravityMissingProjectError", () => {
   it("returns false for case-mismatched provider", () => {
     expect(isAntigravityMissingProjectError("Antigravity", missingProject)).toBe(false);
     expect(isAntigravityMissingProjectError("ANTI_GRAVITY", missingProject)).toBe(false);
+  });
+});
+
+describe("chatPredicates.shouldTripBreakerForAllRateLimited", () => {
+  describe("happy path: all rate-limited + status in breaker set trips the breaker", () => {
+    it("returns true for 408", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, 408)).toBe(true);
+    });
+
+    it("returns true for 500", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, 500)).toBe(true);
+    });
+
+    it("returns true for 502", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, 502)).toBe(true);
+    });
+
+    it("returns true for 503", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, 503)).toBe(true);
+    });
+
+    it("returns true for 504", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, 504)).toBe(true);
+    });
+  });
+
+  describe("status NOT in breaker set: never trips", () => {
+    it("returns false for 200 (success)", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, 200)).toBe(false);
+    });
+
+    it("returns false for 400", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, 400)).toBe(false);
+    });
+
+    it("returns false for 401", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, 401)).toBe(false);
+    });
+
+    it("returns false for 429 (handled by cooldown layer)", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, 429)).toBe(false);
+    });
+
+    it("returns false for 520 (Cloudflare, not in set)", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, 520)).toBe(false);
+    });
+  });
+
+  describe("allRateLimited=false or nullish: never trips", () => {
+    it("returns false when allRateLimited=false", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, false, 500)).toBe(false);
+    });
+
+    it("returns false when allRateLimited=null", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, null, 500)).toBe(false);
+    });
+
+    it("returns false when allRateLimited=undefined", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, undefined, 500)).toBe(false);
+    });
+
+    it("returns false when allRateLimited=true-as-string 'true'", () => {
+      // Strict equality: must be exactly boolean true. Loose-truthy
+      // strings would be a subtle type system escape hatch.
+      expect(shouldTripBreakerForAllRateLimited(false, "true" as any, 500)).toBe(false);
+    });
+  });
+
+  describe("forceLiveComboTest=true: live combo tests bypass the breaker", () => {
+    it("returns false even when other guards would trip", () => {
+      expect(shouldTripBreakerForAllRateLimited(true, true, 500)).toBe(false);
+    });
+
+    it("returns false for 502 + forceLiveComboTest", () => {
+      expect(shouldTripBreakerForAllRateLimited(true, true, 502)).toBe(false);
+    });
+
+    it("returns false for 503 + forceLiveComboTest", () => {
+      expect(shouldTripBreakerForAllRateLimited(true, true, 503)).toBe(false);
+    });
+  });
+
+  describe("status is null/undefined/NaN: never trips", () => {
+    it("returns false for status=null", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, null)).toBe(false);
+    });
+
+    it("returns false for status=undefined", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, undefined)).toBe(false);
+    });
+
+    it("returns false for status=NaN", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, NaN)).toBe(false);
+    });
+
+    it("returns false for status=Infinity", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, Infinity)).toBe(false);
+    });
+
+    it("returns false for status=-Infinity", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, -Infinity)).toBe(false);
+    });
+  });
+
+  describe("boundary status codes: off-by-one catches", () => {
+    it("returns false for 407 (one below the set's 408)", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, 407)).toBe(false);
+    });
+
+    it("returns true for 408 (first entry in the set)", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, 408)).toBe(true);
+    });
+
+    it("returns false for 505 (one above the set's 504)", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, 505)).toBe(false);
+    });
+
+    it("returns false for 0", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, 0)).toBe(false);
+    });
+
+    it("returns false for negative codes (-1, -408)", () => {
+      expect(shouldTripBreakerForAllRateLimited(false, true, -1)).toBe(false);
+      expect(shouldTripBreakerForAllRateLimited(false, true, -408)).toBe(false);
+    });
   });
 });

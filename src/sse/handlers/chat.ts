@@ -131,6 +131,7 @@ import {
 import {
   PROVIDER_BREAKER_FAILURE_STATUSES,
   shouldTripProviderBreakerForResult,
+  shouldTripBreakerForAllRateLimited,
 } from "./chatPredicates";
 import { constrainConnectionsToQuota, resolveQuotaKeyScope } from "../../lib/quota/quotaKey";
 
@@ -1170,10 +1171,16 @@ async function handleSingleModelChat(
         }
 
         const breakerFailureStatus = Number(lastStatus ?? credentials?.lastErrorCode);
+        // PR-θ: delegate to shouldTripBreakerForAllRateLimited from chatPredicates.
+        // The inline 3-condition check at chat.ts:1170-1176 is the second
+        // of two breaker-trip patterns; the predicate encodes the same logic
+        // with stricter null/undefined guards so test pins are deterministic.
         if (
-          !forceLiveComboTest &&
-          credentials?.allRateLimited &&
-          PROVIDER_BREAKER_FAILURE_STATUSES.has(breakerFailureStatus)
+          shouldTripBreakerForAllRateLimited(
+            forceLiveComboTest,
+            credentials?.allRateLimited,
+            breakerFailureStatus,
+          )
         ) {
           breaker._onFailure();
         }

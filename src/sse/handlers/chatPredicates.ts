@@ -131,3 +131,35 @@ export function isAntigravityMissingProjectError(
     result.errorType === "oauth_missing_project_id"
   );
 }
+
+/**
+ * #1731v2 (PR-θ): trip the provider breaker when the credential-fetch
+ * round-trip has determined that every connection for the provider is
+ * rate-limited AND the status code is in the breaker set.
+ *
+ * This is the second of the two inline breaker-trip patterns in chat.ts
+ * (the first is at chat.ts:1170, this covers the analogous "credential
+ * round-trip produced no usable credentials" path at chat.ts:1170-1176).
+ *
+ * Equivalent to:
+ *   if (
+ *     !forceLiveComboTest &&
+ *     credentials?.allRateLimited &&
+ *     PROVIDER_BREAKER_FAILURE_STATUSES.has(breakerFailureStatus)
+ *   ) { breaker._onFailure(); }
+ *
+ * Pure predicate so the test matrix can pin each guard independently.
+ */
+export function shouldTripBreakerForAllRateLimited(
+  forceLiveComboTest: boolean,
+  allRateLimited: boolean | null | undefined,
+  status: number | null | undefined,
+): boolean {
+  return (
+    !forceLiveComboTest &&
+    allRateLimited === true &&
+    typeof status === "number" &&
+    Number.isFinite(status) &&
+    PROVIDER_BREAKER_FAILURE_STATUSES.has(status)
+  );
+}
