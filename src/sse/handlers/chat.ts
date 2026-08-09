@@ -53,10 +53,9 @@ import { promoteSuccessfulComboModel } from "@/lib/combos/autoPromote";
 import {
   deleteSessionAccountAffinity,
   getCachedSettings,
-  getCombos,
-  getCombosCacheVersion,
   getSessionAccountAffinity,
 } from "@/lib/localDb";
+// PR-ι: getCombos + getCombosCacheVersion moved to ./chatCombosCache.
 import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
 import {
   ensureOpenAIStoreSessionFallback,
@@ -133,6 +132,7 @@ import {
   shouldTripProviderBreakerForResult,
   shouldTripBreakerForAllRateLimited,
 } from "./chatPredicates";
+import { getCombosCachedForChat } from "./chatCombosCache";
 import { constrainConnectionsToQuota, resolveQuotaKeyScope } from "../../lib/quota/quotaKey";
 
 registerCodexQuotaFetcher();
@@ -161,31 +161,7 @@ registerOpencodeQuotaFetcher();
 // what lets the per-window cutoff modal in Dashboard › Limits actually
 // enforce thresholds for Claude / GLM / Cursor / etc., not just Codex.
 registerGenericQuotaFetchers();
-let combosCachePromise: Promise<unknown[]> | null = null;
-let combosCacheTs = 0;
-let combosCacheVersionSnapshot = -1;
-const COMBOS_CACHE_TTL_MS = 10_000;
-
-async function getCombosCachedForChat(): Promise<unknown[]> {
-  const now = Date.now();
-  // Explicit non-null check: we intentionally cache and return the Promise
-  // itself (to dedupe concurrent callers), so this is not a forgotten await.
-  // The version check makes combo edits (create/update/delete/reorder) take
-  // effect immediately instead of after the 10s TTL — otherwise a removed
-  // target/model could keep being served as a "phantom" for up to 10s (#3147).
-  if (
-    combosCachePromise !== null &&
-    now - combosCacheTs < COMBOS_CACHE_TTL_MS &&
-    combosCacheVersionSnapshot === getCombosCacheVersion()
-  ) {
-    return combosCachePromise;
-  }
-
-  combosCacheTs = now;
-  combosCacheVersionSnapshot = getCombosCacheVersion();
-  combosCachePromise = getCombos().catch(() => []);
-  return combosCachePromise;
-}
+// PR-ι: combos cache state + TTL + getCombosCachedForChat moved to ./chatCombosCache.
 
 function normalizeAllowedConnectionIds(value: unknown): string[] | null {
   if (!Array.isArray(value)) return null;
