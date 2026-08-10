@@ -74,12 +74,9 @@ import {
 import { getVisionCapabilityFields, getCustomVisionCapabilityFields } from "./catalogVision";
 import { FALLBACK_ALIAS_TO_PROVIDER, buildAliasMaps } from "./catalogProviderMaps";
 import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catalogRequest";
-<<<<<<< HEAD
-=======
 import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
 import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
->>>>>>> 6706d5ff7 (fix(api): serve /v1/models stale-first and sanitize its error bodies (#8703))
 
 // Public API of this module is preserved after the catalog helper extraction:
 // `isVisionModelId` (vision-detection-consistency.test.ts) and
@@ -88,8 +85,6 @@ import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 export { isVisionModelId } from "@/shared/constants/visionModels";
 export { getCustomVisionCapabilityFields };
 
-<<<<<<< HEAD
-=======
 // The response cache (coalescing, short-TTL memoization and stale-while-revalidate)
 // lives in ./catalogCache. Re-exported here because the existing tests import the
 // hooks from this module, and CATALOG_STALE_WHILE_REVALIDATE_MS is part of the
@@ -107,7 +102,6 @@ export {
 } from "./catalogCache";
 export type { CachedCatalog } from "./catalogCache";
 
->>>>>>> 6706d5ff7 (fix(api): serve /v1/models stale-first and sanitize its error bodies (#8703))
 /**
  * Build unified OpenAI-compatible model catalog response.
  * Reused by `/api/v1/models` and `/api/v1` to avoid semantic drift (T09).
@@ -117,8 +111,6 @@ export async function getUnifiedModelsResponse(
   corsHeaders: Record<string, string> = {}
 ) {
   const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
-<<<<<<< HEAD
-=======
 
   // #6408 fast path: reject unauthorized callers first (auth state is per-request
   // and MUST NOT be cached), then coalesce identical concurrent requests + short-
@@ -187,7 +179,6 @@ async function buildUnifiedModelsResponseCore(
   corsHeaders: Record<string, string> = {}
 ) {
   const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
->>>>>>> 6706d5ff7 (fix(api): serve /v1/models stale-first and sanitize its error bodies (#8703))
   try {
     let settings: Record<string, any> = {};
     try {
