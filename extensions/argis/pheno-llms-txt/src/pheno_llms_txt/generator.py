@@ -7,11 +7,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 try:
-    import structlog
-    log = structlog.get_logger(__name__)
+    import structlog as _structlog
+    log = _structlog.get_logger(__name__)
 except ImportError:  # pragma: no cover
     import logging
-    log = logging.getLogger(__name__)  # type: ignore[assignment]
+    log = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
