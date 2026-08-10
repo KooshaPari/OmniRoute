@@ -45,6 +45,25 @@ export function isProviderCircuitOpenResult(
   return /provider_circuit_open/i.test(errorText);
 }
 
+const REQUEST_SCOPED_UPSTREAM_ERROR_CODES = new Set([
+  "context_length_exceeded",
+  "upstream_empty_response",
+  "upstream_response_failed",
+  "combo_target_timeout",
+  "stream_readiness_timeout",
+  "stream_early_eof",
+]);
+
+/** Request/model-specific and local stream-lifecycle failures must not poison provider-wide resilience state. */
+export function isRequestScopedUpstreamFailure(error?: {
+  code?: string | null;
+  type?: string | null;
+}): boolean {
+  const code = typeof error?.code === "string" ? error.code.toLowerCase() : "";
+  const type = typeof error?.type === "string" ? error.type.toLowerCase() : "";
+  return REQUEST_SCOPED_UPSTREAM_ERROR_CODES.has(code) || REQUEST_SCOPED_UPSTREAM_ERROR_CODES.has(type);
+}
+
 /**
  * Skip reason for a combo target already known-exhausted THIS request, or null if it is not.
  *

@@ -78,7 +78,7 @@ export async function decideAndWaitForCooldownRetry(
 
   // Lazy import to avoid a circular dep with the upstream cooldown helper.
   const { waitForCooldownAwareRetry } = await import(
-    "../../services/cooldownAwareRetry"
+    "../services/cooldownAwareRetry"
   );
   const completed = await waitForCooldownAwareRetry(decision.waitMs, ctx.requestSignal);
   if (!completed) {
