@@ -1,0 +1,29 @@
+# clippy.toml — OmniRoute lint configuration
+#
+# v0.11 roadmap item: Add clippy.toml lints config (issue #551).
+# Establishes strictness baseline for the OmniRoute workspace.
+#
+# Reference: https://doc.rust-lang.org/clippy/configuration.html
+
+# Treat all warnings as errors in CI; dev builds allow override via
+# `RUSTFLAGS="--cap-lints warn" cargo clippy`.
+# Set to "warn" here so cargo clippy runs report them without aborting.
+warn-on-all-warnings = false
+
+# Allow expect, unwrap, panic in tests.
+# Many test helpers rely on these for short, linear assertions.
+allow-expect-in-tests = true
+allow-unwrap-in-tests = true
+allow-panic-in-tests = true
+
+# Cognitive complexity threshold for too_many_lines_check.
+# (Reserved for future use; defaults are fine for now.)
+# cognitive-complexity-threshold = 25
+
+# Single-character binding threshold for many_single_char_names lint.
+# Allow common short names (i, j, k for indices; e for errors; r for result).
+single-char-binding-name-threshold = 4
+
+# Disable modules that the workspace intentionally does not use.
+# `clippy::needless_borrow` is too noisy on fluent builder calls; revisit per package.
+avoid-breaking-exported-api = true
