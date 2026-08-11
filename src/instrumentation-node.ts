@@ -508,9 +508,6 @@ export async function registerNodejs(): Promise<void> {
     import("@/lib/skills/builtins"),
   ]);
 
-  // Proxy health scheduler (auto-removes dead proxies on interval)
-  await import("@/lib/proxyHealth/scheduler");
-
   initGracefulShutdown();
   initApiBridgeServer();
   startSpendBatchWriter();

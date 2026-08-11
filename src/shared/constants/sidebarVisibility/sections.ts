@@ -257,13 +257,6 @@ const TOOLS_GROUP: SidebarItemGroup = {
       subtitleKey: "trafficInspectorSubtitle",
       icon: "network_check",
     },
-    {
-      id: "discovery",
-      href: "/dashboard/discovery",
-      i18nKey: "discovery",
-      subtitleKey: "discoverySubtitle",
-      icon: "travel_explore",
-    },
   ],
 };
 

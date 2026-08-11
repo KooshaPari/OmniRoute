@@ -25,22 +25,6 @@ export { validateProviderSpecificData };
 
 // ──── Provider Schemas ────
 
-// #2166: shared optional remote icon URL for compatible provider nodes. Empty string
-// is accepted as "no custom icon" (clears any previously stored value). Restricted to
-// http(s) — `.url()` alone also accepts syntactically-valid-but-unsafe schemes like
-// `javascript:`/`data:`, which we never want persisted as an <img src>.
-const providerNodeIconUrlSchema = z
-  .string()
-  .trim()
-  .max(2000)
-  .refine((value) => value === "" || z.string().url().safeParse(value).success, {
-    message: "Icon URL must be a valid URL",
-  })
-  .refine((value) => value === "" || /^https?:\/\//i.test(value), {
-    message: "Icon URL must be a valid http:// or https:// URL",
-  })
-  .optional();
-
 export const createProviderSchema = z
   .object({
     provider: z.string().min(1).max(100),
@@ -292,11 +276,6 @@ export const createProviderNodeSchema = z
     preset: z.enum(["vibeproxy-openai"]).optional(),
     chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
     modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
-    // #2166: optional operator-supplied remote icon URL for the provider node. Empty
-    // string is accepted so callers can explicitly submit "no custom icon" (falls back
-    // to the built-in @lobehub/static resolution). Restricted to http(s) — `.url()` alone
-    // also accepts syntactically-valid-but-unsafe schemes like `javascript:`/`data:`.
-    iconUrl: providerNodeIconUrlSchema,
     customHeaders: customHeadersSchema,
   })
   .superRefine((value, ctx) => {
@@ -353,9 +332,6 @@ export const updateProviderNodeSchema = z.object({
   baseUrl: z.string().trim().min(1, "Base URL is required"),
   chatPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
   modelsPath: z.string().trim().startsWith("/").max(500).optional().or(z.literal("")),
-  // #2166: same optional remote icon URL as createProviderNodeSchema — empty string
-  // clears a previously stored custom icon.
-  iconUrl: providerNodeIconUrlSchema,
   customHeaders: customHeadersSchema,
 });
 

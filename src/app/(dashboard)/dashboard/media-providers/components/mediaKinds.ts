@@ -7,8 +7,7 @@ export type MediaKind =
   | "webSearch"
   | "webFetch"
   | "video"
-  | "music"
-  | "ocr";
+  | "music";
 
 export const MEDIA_KINDS: MediaKind[] = [
   "embedding",
@@ -20,5 +19,4 @@ export const MEDIA_KINDS: MediaKind[] = [
   "webFetch",
   "video",
   "music",
-  "ocr",
 ];

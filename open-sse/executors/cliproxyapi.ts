@@ -22,7 +22,6 @@ import {
   type ProviderCredentials,
 } from "./base.ts";
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { getProviderPluginManifestHeader } from "../config/providerPluginManifestUrl.ts";
 import { cloakThirdPartyToolNames } from "../services/claudeCodeToolRemapper.ts";
 import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 
@@ -266,7 +265,6 @@ export class CliproxyapiExecutor extends BaseExecutor {
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      ...getProviderPluginManifestHeader(),
     };
 
     if (key) {

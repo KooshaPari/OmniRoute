@@ -7,10 +7,7 @@ import {
   type ResolvedProviderCatalogEntry,
   type StaticProviderCatalogCategory,
 } from "@/lib/providers/catalog";
-import {
-  isClaudeCodeCompatibleProvider,
-  supportsApiKeyOnFreeProvider,
-} from "@/shared/constants/providers";
+import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { providerHasServiceKind } from "@/lib/providers/serviceKindIndex";
 import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
@@ -37,8 +34,6 @@ export type CompatibleProviderInfo = {
   color: string;
   textIcon: string;
   apiType?: string;
-  /** Optional operator-supplied remote icon URL (#2166). */
-  iconUrl?: string;
 };
 
 export type CompatibleProviderGroups = {
@@ -102,26 +97,6 @@ export function shouldShowProviderSection(
 }
 
 type ProviderRecord<TProvider = Record<string, unknown>> = Record<string, TProvider>;
-
-/**
- * Whether a provider connection should be counted on a provider card rendered in
- * the given section. Dual-auth providers (qoder, opencode, codebuddy-cn, …) are
- * OAuth-categorized but also accept a PAT/API key stored as authType "apikey";
- * their single OAuth card must count BOTH, else a working PAT connection shows as
- * "not connected" on the dashboard.
- */
-export function connectionMatchesProviderCard(
-  conn: { provider?: string; authType?: string } | null | undefined,
-  providerId: string,
-  cardAuthType: "oauth" | "free" | "apikey"
-): boolean {
-  if (!conn || conn.provider !== providerId) return false;
-  if (cardAuthType === "free") return true;
-  if (supportsApiKeyOnFreeProvider(providerId)) {
-    return conn.authType === "oauth" || conn.authType === "apikey";
-  }
-  return conn.authType === cardAuthType;
-}
 
 type GetProviderStats = (
   providerId: string,
@@ -206,13 +181,7 @@ export function buildStaticProviderEntries(
 }
 
 export function buildCompatibleProviderGroups(
-  providerNodes: Array<{
-    id: string;
-    name?: string;
-    type?: string;
-    apiType?: string;
-    iconUrl?: string | null;
-  }>,
+  providerNodes: Array<{ id: string; name?: string; type?: string; apiType?: string }>,
   labels: {
     openaiCompatibleName: string;
     anthropicCompatibleName: string;
@@ -231,7 +200,6 @@ export function buildCompatibleProviderGroups(
         color: "#10A37F",
         textIcon: "OC",
         apiType: node.apiType,
-        iconUrl: node.iconUrl || undefined,
       });
       continue;
     }
@@ -244,7 +212,6 @@ export function buildCompatibleProviderGroups(
         name: node.name || labels.claudeCodeCompatibleName,
         color: "#B45309",
         textIcon: "CC",
-        iconUrl: node.iconUrl || undefined,
       });
       continue;
     }
@@ -254,7 +221,6 @@ export function buildCompatibleProviderGroups(
       name: node.name || labels.anthropicCompatibleName,
       color: "#D97757",
       textIcon: "AC",
-      iconUrl: node.iconUrl || undefined,
     });
   }
 

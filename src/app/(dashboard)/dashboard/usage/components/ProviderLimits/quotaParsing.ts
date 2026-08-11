@@ -123,30 +123,13 @@ function parseAntigravity(data: any) {
     .filter(Boolean);
 }
 
-/**
- * Codex "banked reset credits" — an eligibility-gated field (issue #5199):
- * a count of extra rate-limit resets the account has banked. DISPLAY ONLY
- * (redemption is an unofficial mutating endpoint, out of scope). Most
- * accounts won't have this field; only render it when the count is positive.
- */
-function buildBankedResetCreditsQuota(count: number) {
-  return buildCreditsQuota("banked_reset_credits", count, 100, { currency: "" });
-}
-
 function parseCodex(data: any) {
-  const quotas = quotaEntries(data).map(([quotaType, quota]) =>
+  return quotaEntries(data).map(([quotaType, quota]) =>
     normalizeQuotaEntry(quotaType, quota, {
       displayName: quota?.displayName,
       isPercentageOnly: true,
     })
   );
-
-  const bankedResetCredits = Number(data?.bankedResetCredits);
-  if (Number.isFinite(bankedResetCredits) && bankedResetCredits > 0) {
-    quotas.push(buildBankedResetCreditsQuota(bankedResetCredits));
-  }
-
-  return quotas;
 }
 
 function buildClaudeExtraUsageQuota(extraUsage: any) {

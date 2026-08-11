@@ -37,19 +37,10 @@ test("invalid verbosity is dropped and text removed", () => {
   assert.equal(body.verbosity, undefined);
 });
 
-test("no verbosity + Responses text.format is preserved", () => {
-  const format = { type: "json_schema", name: "schema", schema: { type: "object" } };
-  const body: Record<string, unknown> = { text: { format }, input: [] };
+test("no verbosity + stray non-verbosity text → text removed (status quo)", () => {
+  const body: Record<string, unknown> = { text: { format: { type: "json" } }, input: [] };
   normalizeCodexVerbosity(body);
-  assert.deepEqual(body.text, { format });
-});
-
-test("verbosity is merged with existing Responses text.format", () => {
-  const format = { type: "json_schema", name: "schema", schema: { type: "object" } };
-  const body: Record<string, unknown> = { verbosity: "low", text: { format }, input: [] };
-  normalizeCodexVerbosity(body);
-  assert.deepEqual(body.text, { format, verbosity: "low" });
-  assert.equal(body.verbosity, undefined);
+  assert.equal(body.text, undefined);
 });
 
 test("verbosity is normalized case-insensitively", () => {

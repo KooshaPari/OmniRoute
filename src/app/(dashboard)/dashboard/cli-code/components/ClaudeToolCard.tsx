@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import CliStatusBadge from "./CliStatusBadge";
-import ClaudeClassifierCompatToggle from "./ClaudeClassifierCompatToggle";
 import { useTranslations } from "next-intl";
 import {
   getStoredClaudeAuthValue,
@@ -486,9 +485,6 @@ export default function ClaudeToolCard({
                   </div>
                 ))}
               </div>
-
-              {/* Opt-in (default off): Claude Code auto-permission classifier compat mode. */}
-              <ClaudeClassifierCompatToggle />
 
               {message && (
                 <div

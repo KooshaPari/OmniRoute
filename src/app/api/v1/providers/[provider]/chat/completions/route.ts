@@ -4,6 +4,8 @@ import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { providerChatCompletionSchema } from "@/shared/validation/schemas";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 let initialized = false;
 
@@ -29,7 +31,6 @@ export async function OPTIONS() {
 /**
  * POST /v1/providers/{provider}/chat/completions
  * Routes to the specified provider, validating model/provider match.
- * Full body format validation is delegated to handleChat.
  */
 export async function POST(request, { params }) {
   const { provider: rawProvider } = await params;
@@ -45,29 +46,18 @@ export async function POST(request, { params }) {
 
   await ensureInitialized();
 
-  // Parse body once so this provider-scoped route can normalize the model prefix
-  // before delegating full chat-format validation to handleChat.
-  let rawBody: unknown;
+  // Clone request with provider-prefixed model
+  let rawBody;
   try {
     rawBody = await request.json();
   } catch {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
   }
-
-  // Minimal request-shape validation (Rule #7 / t06 gate). `.passthrough()` keeps
-  // the #5907 relaxed semantics: only the fields this route touches are guarded
-  // here; full chat-format validation stays delegated to handleChat.
-  const routeBodySchema = z.object({ model: z.string().optional() }).passthrough();
-  const parsed = routeBodySchema.safeParse(rawBody);
-  if (!parsed.success) {
-    const isNotObject = !rawBody || typeof rawBody !== "object" || Array.isArray(rawBody);
-    return errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      isNotObject ? "Request body must be a JSON object" : "model must be a string"
-    );
+  const validation = validateBody(providerChatCompletionSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
   }
-
-  const body = parsed.data as { model?: string; [key: string]: unknown };
+  const body = validation.data;
 
   // Validate model belongs to this provider
   if (body.model) {

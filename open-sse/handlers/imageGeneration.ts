@@ -57,7 +57,6 @@ import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts
 // are still used by handleImageEdit below, so they are imported (not re-defined).
 import { handleSDWebUIImageGeneration } from "./imageGeneration/providers/sdWebUI.ts";
 import { handleHyperbolicImageGeneration } from "./imageGeneration/providers/hyperbolic.ts";
-import { handleHuggingFaceImageGeneration } from "./imageGeneration/providers/huggingface.ts";
 import { handleComfyUIImageGeneration } from "./imageGeneration/providers/comfyUI.ts";
 import { handleImagen3ImageGeneration } from "./imageGeneration/providers/imagen3.ts";
 import { handleGoogleImagenGeneration } from "./imageGeneration/providers/googleImagen.ts";
@@ -70,7 +69,6 @@ import {
   extractMarkdownImageUrls,
   CHATGPT_WEB_IMAGE_ID_RE,
 } from "./imageGeneration/providers/chatgptWeb.ts";
-import { handleNvidiaNimImageGeneration } from "./imageGeneration/providers/nvidiaNim.ts";
 
 // Re-export so /v1/images/edits can dispatch Firefly reference-image edits.
 export { handleAdobeFireflyImageGeneration };
@@ -401,17 +399,6 @@ export async function handleImageGeneration({
     });
   }
 
-  if (providerConfig.format === "huggingface-image") {
-    return handleHuggingFaceImageGeneration({
-      model,
-      provider,
-      providerConfig,
-      body,
-      credentials,
-      log,
-    });
-  }
-
   if (providerConfig.format === "fal-ai") {
     return handleFalAIImageGeneration({
       model,
@@ -625,17 +612,6 @@ export async function handleImageGeneration({
     providerConfig.format === "bailian-coding-plan-image"
   ) {
     return handleAlibabaImageGeneration({
-      model,
-      provider,
-      providerConfig,
-      body,
-      credentials,
-      log,
-    });
-  }
-
-  if (providerConfig.format === "nvidia-nim") {
-    return handleNvidiaNimImageGeneration({
       model,
       provider,
       providerConfig,

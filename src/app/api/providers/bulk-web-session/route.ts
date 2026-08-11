@@ -16,7 +16,6 @@ import {
   requiresWebSessionCredential,
   getWebSessionCredentialRequirement,
   hasUsableWebSessionCredential,
-  resolveWebSessionImportApiKey,
 } from "@/shared/providers/webSessionCredentials";
 
 export async function POST(request: Request) {
@@ -60,7 +59,10 @@ export async function POST(request: Request) {
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
     try {
-      const providerSpecificData = buildProviderSpecificData(requirement, entry.credential);
+      const providerSpecificData = buildProviderSpecificData(
+        requirement,
+        entry.credential
+      );
 
       if (!hasUsableWebSessionCredential(provider, providerSpecificData)) {
         throw new Error(
@@ -72,11 +74,7 @@ export async function POST(request: Request) {
         provider,
         authType: "cookie",
         name: entry.name,
-        // token-kind providers (deepseek-web, copilot-web, …) are read from apiKey
-        // by both the validator and the executor; cookie-kind stays null and is read
-        // from providerSpecificData.cookie. Without this, imported token connections
-        // were never recognized.
-        apiKey: resolveWebSessionImportApiKey(requirement, entry.credential),
+        apiKey: null,
         priority: priority || 1,
         globalPriority: globalPriority || null,
         defaultModel: null,

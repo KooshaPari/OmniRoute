@@ -15,7 +15,6 @@ const KIND_ICON: Record<ServiceKind, string> = {
   webFetch: "language",
   video: "videocam",
   music: "music_note",
-  ocr: "document_scanner",
 };
 
 interface ServiceKindTabsProps {

@@ -14,22 +14,16 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// The LKGP fallback (and every non-auto strategy ordering) was extracted verbatim
-// from combo.ts into the applyStrategyOrdering leaf (Block J Task 3); the guard
-// scans follow the code to the leaf that now owns the `target.modelStr` usages.
-const STRATEGY_SRC = path.resolve(
-  __dirname,
-  "../../open-sse/services/combo/applyStrategyOrdering.ts"
-);
+const COMBO_SRC = path.resolve(__dirname, "../../open-sse/services/combo.ts");
 const TEST_ROUTE_SRC = path.resolve(__dirname, "../../src/app/api/combos/test/route.ts");
 
-test("#2359 LKGP findIndex guards modelStr against non-string", () => {
-  const src = fs.readFileSync(STRATEGY_SRC, "utf8");
+test("#2359 combo.ts LKGP findIndex guards modelStr against non-string", () => {
+  const src = fs.readFileSync(COMBO_SRC, "utf8");
   // The findIndex on orderedTargets must check `typeof target.modelStr === "string"`
   // before calling .startsWith. Anchor on the LKGP fallback branch.
   assert.ok(
     /typeof target\.modelStr === "string"[\s\S]{0,80}target\.modelStr\.startsWith/.test(src),
-    "LKGP fallback must type-check target.modelStr before calling .startsWith"
+    "LKGP fallback in combo.ts must type-check target.modelStr before calling .startsWith"
   );
 });
 
@@ -47,8 +41,8 @@ test("#2359 combo test route falls back instead of throwing on missing modelStr"
   );
 });
 
-test("#2359 strategy ordering has no remaining unguarded target.modelStr.<method> usages", () => {
-  const src = fs.readFileSync(STRATEGY_SRC, "utf8");
+test("#2359 combo.ts has no remaining unguarded target.modelStr.<method> usages", () => {
+  const src = fs.readFileSync(COMBO_SRC, "utf8");
   // Strip the line that contains the guard so the regex below only catches
   // direct, unguarded method calls.
   const stripped = src.replace(/typeof target\.modelStr === "string"[^\n]*\n[^\n]*/g, "");

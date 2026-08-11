@@ -9,7 +9,6 @@ import {
   containsTextualToolCallMarker,
 } from "../../utils/textualToolCall.ts";
 import { normalizeOpenAICompatibleFinishReasonString } from "../../utils/finishReason.ts";
-import { stripAnsiCodes } from "../../utils/streamHelpers.ts";
 
 type GeminiToOpenAIState = {
   functionIndex: number;
@@ -402,10 +401,6 @@ export function geminiToOpenAIResponse(chunk, state) {
   // Process parts
   if (content?.parts) {
     for (const part of content.parts) {
-      // Normalize the part text once: strip ANSI/VT100 escape codes that some
-      // upstreams (gemini-cli terminal redraws) inject, so the `<thinking>` /
-      // `[Tool call:]` textual parsers below never see stray control bytes (#2273).
-      const partText = stripAnsiCodes(part.text);
       const hasThoughtSig = part.thoughtSignature || part.thought_signature;
       const isThought = part.thought === true;
       if (hasThoughtSig && typeof hasThoughtSig === "string") {
@@ -414,7 +409,7 @@ export function geminiToOpenAIResponse(chunk, state) {
 
       // Handle thought signature (thinking mode) or native gemini thought flag
       if (hasThoughtSig || isThought) {
-        const hasTextContent = partText !== undefined && partText !== "";
+        const hasTextContent = part.text !== undefined && part.text !== "";
         const hasFunctionCall = !!part.functionCall;
 
         // Gemini/Antigravity can emit thoughtSignature as a standalone part
@@ -438,7 +433,7 @@ export function geminiToOpenAIResponse(chunk, state) {
             choices: [
               {
                 index: 0,
-                delta: isThought ? { reasoning_content: partText } : { content: partText },
+                delta: isThought ? { reasoning_content: part.text } : { content: part.text },
                 finish_reason: null,
               },
             ],
@@ -468,10 +463,10 @@ export function geminiToOpenAIResponse(chunk, state) {
       // "[Tool call: ...]" block instead of native functionCall. Convert that
       // back to a structured OpenAI tool call so clients/tools do not see it as
       // assistant prose.
-      if (partText !== undefined && partText !== "") {
+      if (part.text !== undefined && part.text !== "") {
         const afterReasoning = parseTextualReasoningTags
-          ? consumeTextualReasoningTags(partText, state, results)
-          : partText;
+          ? consumeTextualReasoningTags(part.text, state, results)
+          : part.text;
         if (!afterReasoning) continue;
 
         let accumulated = (state.textualToolCallBuffer || "") + afterReasoning;

@@ -95,7 +95,7 @@ export function applyComboTargetExhaustion(
     if (result.status === 429 && !isTokenLimitBreach && provider && provider !== "unknown") {
       transientRateLimitedProviders.add(provider);
     }
-    markConnectionLevelExhaustion(target, { result, errorText, sets, log, tag, rawModel });
+    markConnectionLevelExhaustion(target, { result, errorText, sets, log, tag });
   }
 
   return providerExhausted;
@@ -199,12 +199,9 @@ function markAuthLevelExhaustion(
  */
 function markConnectionLevelExhaustion(
   target: ResolvedComboTarget,
-  opts: Pick<
-    ApplyComboTargetExhaustionOptions,
-    "result" | "errorText" | "sets" | "log" | "tag" | "rawModel"
-  >
+  opts: Pick<ApplyComboTargetExhaustionOptions, "result" | "errorText" | "sets" | "log" | "tag">
 ): void {
-  const { result, errorText, sets, log, tag, rawModel } = opts;
+  const { result, errorText, sets, log, tag } = opts;
   const provider = target.provider;
   if (
     !provider ||
@@ -215,13 +212,7 @@ function markConnectionLevelExhaustion(
     // #5085: empty-content 502 is a healthy connection returning no body — model-level, not
     // connection-level. Don't exhaust the provider; let the remaining legs (incl. same-provider)
     // be tried in-request.
-    isEmptyContentFailure(result.status, errorText) ||
-    // Per-model-quota providers (gemini, github, passthrough, compatible) multiplex models
-    // behind one connection. A model-level 500 (e.g. Gemini "Internal error encountered")
-    // must NOT exhaust the connection — other models on the same connection may still succeed.
-    // Other connection-level statuses (408/502/503/504/524) indicate the connection itself is
-    // bad, so they correctly exhaust even for per-model-quota providers.
-    (result.status === 500 && hasPerModelQuota(provider, rawModel))
+    isEmptyContentFailure(result.status, errorText)
   ) {
     return;
   }

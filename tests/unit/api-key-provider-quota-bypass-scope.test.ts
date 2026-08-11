@@ -27,12 +27,7 @@ test("chat handler maps API key provider quota bypass scope to auth bypass optio
 });
 
 test("auto combo disables hard provider quota cutoffs when relay requests bypass", () => {
-  // The auto-strategy bypass logic was extracted verbatim from combo.ts into the
-  // resolveAutoStrategy leaf (Block J Task 2); the source scan follows the code.
-  const source = fs.readFileSync(
-    path.join(repoRoot, "open-sse/services/combo/resolveAutoStrategy.ts"),
-    "utf8"
-  );
+  const source = fs.readFileSync(path.join(repoRoot, "open-sse/services/combo.ts"), "utf8");
 
   assert.match(source, /relayOptions\?\.bypassProviderQuotaPolicy === true/);
   assert.match(source, /quotaPreflight:[\s\S]*enabled: false/);

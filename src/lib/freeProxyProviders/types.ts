@@ -1,4 +1,4 @@
-export type FreeProxySourceId = "1proxy" | "proxifly" | "iplocate" | "webshare";
+export type FreeProxySourceId = "1proxy" | "proxifly" | "iplocate";
 
 export interface FreeProxyItem {
   source: FreeProxySourceId;

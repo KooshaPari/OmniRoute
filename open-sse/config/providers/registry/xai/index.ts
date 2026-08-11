@@ -4,7 +4,7 @@ export const xaiProvider: RegistryEntry = {
   id: "xai",
   alias: "xai",
   format: "openai",
-  executor: "xai",
+  executor: "default",
   baseUrl: "https://api.x.ai/v1/chat/completions",
   // Port of decolua/9router#2439 (author: @ryanngit): xAI ships a native
   // `/v1/responses` endpoint alongside `/v1/chat/completions`. Consumed by
