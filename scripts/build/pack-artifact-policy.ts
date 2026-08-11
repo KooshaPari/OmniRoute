@@ -35,10 +35,6 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   ".env.example",
   "BUILD_SHA",
   "docs/openapi.yaml",
-  // #7065: imported by dist/server-ws.mjs; assembleStandalone copies it but without
-  // this bare entry the prepublish prune deleted it → every `omniroute` boot of the
-  // published 3.8.47 crashed with ERR_MODULE_NOT_FOUND (same class as tls-options/3.8.41).
-  "head-response-guard.cjs",
   "http-method-guard.cjs",
   "open-sse/mcp-server/server.js",
   // LLMLingua ONNX worker — esbuild'd standalone .js spawned via worker_threads
@@ -46,7 +42,6 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "open-sse/services/compression/engines/llmlingua/onnxWorker.js",
   "package.json",
   "peer-stamp.mjs",
-  "main-server-timeouts.mjs",
   "responses-ws-proxy.mjs",
   "scripts/dev/sync-env.mjs",
   "scripts/dev/tls-options.mjs",
@@ -130,25 +125,20 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
 ];
 
 export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
-  // Runtime-shipped vendor packages (compiled JS, kept narrow).
   "@omniroute/opencode-plugin/",
   "@omniroute/opencode-provider/",
-  // CLI entrypoints + their bundled runtime helpers (not bin/cli/runtime/).
   "bin/cli/",
-  // Compiled server bundles only — never raw source. Runtime-loaded .ts files
-  // (open-sse/utils/setupPolyfill.ts, src/shared/utils/nodeRuntimeSupport.ts)
-  // are pinned individually in PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS /
-  // PACK_ARTIFACT_REQUIRED_PATHS; do NOT re-widen src/* or open-sse/ here,
-  // otherwise the rebuild inflates the tarball past the npm registry limit.
-  // Runtime-loaded .ts entries via tsx from bin/omniroute.mjs:
-  //   src/shared/utils/nodeRuntimeSupport.ts (Node <22 polyfill)
-  //   open-sse/utils/setupPolyfill.ts (open-sse runtime setup)
-  // Both are explicitly pinned in PACK_ARTIFACT_REQUIRED_PATHS too, but
-  // listing the parent prefix as well lets the prune walk include them when
-  // they get moved during the rebuild.
-  "src/shared/utils/",
-  "open-sse/utils/",
-  "dist/",
+  // Broad open-sse + src source dirs added to package.json "files" in v3.8.21
+  // to allow TypeScript-first imports from the published package.
+  "open-sse/",
+  "src/domain/",
+  "src/lib/",
+  "src/models/",
+  "src/mitm/",
+  "src/server/",
+  "src/shared/",
+  "src/sse/",
+  "src/types/",
 ];
 
 export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
@@ -158,21 +148,12 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/server-ws.mjs",
   "dist/responses-ws-proxy.mjs",
   "dist/peer-stamp.mjs",
-  "dist/main-server-timeouts.mjs",
   "dist/http-method-guard.cjs",
   // #5452: regression guard — make check:pack-artifact fail loudly if the TLS
   // opt-in sidecar (imported by dist/server-ws.mjs) ever vanishes from the tarball.
   "dist/tls-options.mjs",
-  // #7065: regression guard for the HEAD response guard (dist/server-ws.mjs import).
-  "dist/head-response-guard.cjs",
   "dist/webdav-handler.mjs",
   "bin/cli/program.mjs",
-  // Direct imports of bin/omniroute.mjs — bin/cli/ is only an allowlist PREFIX, so a
-  // file vanishing from the tarball never fails the unexpected-paths check; only these
-  // required entries make its absence loud (#7065 class; derived + enforced by
-  // tests/unit/pack-artifact-entrypoint-closures.test.ts).
-  "bin/cli/data-dir.mjs",
-  "bin/cli/utils/storageKeyProvision.mjs",
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",

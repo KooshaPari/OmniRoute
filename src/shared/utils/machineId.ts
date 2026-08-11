@@ -1,8 +1,5 @@
 import { execFileSync, execSync } from "child_process";
 import { existsSync, readFileSync } from "fs";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("shared:machine-id");
 
 /**
  * Get raw machine ID using OS-specific methods.
@@ -98,14 +95,7 @@ async function getRandomMachineFallbackId() {
   try {
     const cryptoFallback = await import("crypto");
     return cryptoFallback.randomUUID();
-  } catch (err) {
-    // Log the failure — dynamic `import("crypto")` should never fail in Node,
-    // but if it does (e.g., bundler stripped the polyfill), we want a record.
-    // The catch falls through to the webcrypto / Math.random fallback chain.
-    log.warn(
-      { err },
-      "shared.machineId.getRandomMachineFallbackId: dynamic crypto import failed — falling through to webcrypto fallback",
-    );
+  } catch {
     if (typeof globalThis !== "undefined" && globalThis.crypto && globalThis.crypto.randomUUID) {
       return globalThis.crypto.randomUUID();
     }
@@ -148,13 +138,8 @@ export async function getConsistentMachineId(salt = null) {
     // Return only first 16 characters for brevity
     return hashedMachineId.substring(0, 16);
   } catch (error) {
-    // Use structured logging (was console.log per the F8 audit).
-    // The catch falls through to the random fallback — node-machine-id
-    // failure is recoverable, but operators need to know when this fires.
-    log.error(
-      { err: error },
-      "shared.machineId.getConsistentMachineId: hashing failed — falling back to random ID",
-    );
+    console.log("Error getting machine ID:", error);
+    // Fallback to random ID if node-machine-id fails
     return getRandomMachineFallbackId();
   }
 }

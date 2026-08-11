@@ -31,7 +31,7 @@ import {
   type CompatByProtocolMap,
 } from "../providerPageHelpers";
 import { useNotificationStore } from "@/store/notificationStore";
-import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
+import { withDashboardCsrfHeader } from "@/shared/utils/dashboardCsrf";
 
 type NotifyStore = ReturnType<typeof useNotificationStore>;
 
@@ -291,7 +291,7 @@ export function useModelVisibilityHandlers({
     try {
       const res = await fetch("/api/models/test", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await withDashboardCsrfHeader({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           providerId: selectedConnection?.provider || providerNode?.id || providerId,
           modelId: fullModel,
@@ -313,10 +313,7 @@ export function useModelVisibilityHandlers({
         );
         setModelTestStatus((prev) => ({ ...prev, [modelId]: "ok" }));
       } else {
-        // extractApiErrorMessage coerces any object-shaped `error` (e.g. a Zod
-        // format object) to a string so notify.error never hands the toast a
-        // non-string child (React #31 → frozen page).
-        notify.error(extractApiErrorMessage(data, "Model test failed"));
+        notify.error(data.error || "Model test failed");
         setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
       }
     } catch (err) {
@@ -360,7 +357,7 @@ export function useModelVisibilityHandlers({
               >;
             } = await fetch("/api/models/test-all", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: await withDashboardCsrfHeader({ "Content-Type": "application/json" }),
               body: JSON.stringify({
                 providerId: providerId,
                 connectionId: selectedConnection?.id,

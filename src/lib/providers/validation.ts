@@ -13,15 +13,8 @@ import {
 import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { resolveNvidiaValidationModel } from "@/lib/providers/nvidiaValidationModel";
-import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
-import { KiroService } from "@/lib/oauth/services/kiro";
-import { usesCcWireImage } from "@omniroute/open-sse/services/ccWireImageBuiltins.ts";
-import {
-  buildProviderHeaders,
-  buildProviderUrl,
-} from "@omniroute/open-sse/services/provider.ts";
 
 import {
   OPENAI_LIKE_FORMATS,
@@ -39,18 +32,15 @@ import {
   validateChatGptWebProvider,
   validatePerplexityWebProvider,
   validateBlackboxWebProvider,
-  validateKimiWebProvider,
 } from "./validation/webProvidersA";
 import {
   validateMuseSparkWebProvider,
   validateAdaptaWebProvider,
   validateClaudeWebProvider,
   validateGeminiWebProvider,
-  validateCopilotM365WebProvider,
   validateCopilotWebProvider,
   validateT3WebProvider,
   validateJulesProvider,
-  validateDevinCloudAgentProvider,
   validateInnerAiProvider,
 } from "./validation/webProvidersB";
 import {
@@ -114,16 +104,11 @@ export { isRetryableProxyTarget, isSecurityBlockError } from "./validation/trans
 export async function validateWebCookieProvider({
   provider,
   apiKey,
-  providerSpecificData: _providerSpecificData = {},
-}: {
-  provider: string;
-  apiKey?: string;
-  providerSpecificData?: Record<string, unknown>;
-}) {
+  providerSpecificData = {},
+}: any) {
   try {
     const entry = getRegistryEntry(provider);
-    const cookieProvider = WEB_COOKIE_PROVIDERS[provider as keyof typeof WEB_COOKIE_PROVIDERS];
-    if (!entry && !cookieProvider) {
+    if (!entry) {
       return { valid: false, error: "Provider not found in registry", unsupported: true };
     }
 
@@ -133,38 +118,20 @@ export async function validateWebCookieProvider({
       return { valid: false, error: "Cookie required for web-cookie provider", unsupported: false };
     }
 
-    if (!entry) {
-      // Providers listed in WEB_COOKIE_PROVIDERS without a providerRegistry entry (e.g.
-      // lmarena, gemini-business, poe-web, venice-web, v0-vercel-web) only expose a
-      // marketing website URL, not a real API host. Probing `${website}/models`
-      // does not reliably signal session validity for these —
-      // live verification showed most return redirects or SPA 200s regardless of
-      // cookie validity, which would silently report an expired/garbage cookie as
-      // "OK" (worse than an honest "not supported"). Until each of these providers
-      // has a verified, side-effect-free auth probe against its real API host, report
-      // unsupported instead of a false positive.
-      return {
-        valid: false,
-        error: "Provider validation not supported",
-        unsupported: true,
-      };
-    }
-
     // Attempt a minimal request to check if the session is valid
     // Use /models endpoint or a minimal completion request depending on the provider
-    const baseUrl = normalizeBaseUrl(entry.baseUrl || "");
+    const baseUrl = entry.baseUrl || "";
     const testUrl = `${baseUrl}/models`;
 
-    const res = await validationRead(
+    const res = await directHttpsRequest(
       testUrl,
       {
         method: "GET",
         headers: {
           "User-Agent": STANDARD_USER_AGENT,
-          Cookie: cookie,
         },
       },
-      isLocalProvider(provider)
+      10_000
     );
 
     if (res.status === 401 || res.status === 403) {
@@ -180,7 +147,7 @@ export async function validateWebCookieProvider({
     // a 401/403 from the /models probe is the only definitive "session expired" signal
     // for web-cookie auth, so a non-auth status is treated as a valid session.
     return { valid: true, error: null, unsupported: false };
-  } catch (error: unknown) {
+  } catch (error: any) {
     return toValidationErrorResult(error);
   }
 }
@@ -214,74 +181,6 @@ export async function validateBytezProvider({ apiKey, providerSpecificData = {} 
     return bytezValidationResultFromStatus(res.status);
   } catch (error: unknown) {
     return toValidationErrorResult(error);
-  }
-}
-
-async function validateKiroApiKeyRuntimeProbe({
-  apiKey,
-  region,
-  profileArn,
-}: {
-  apiKey: string;
-  region: string;
-  profileArn?: string | null;
-}) {
-  const endpoint =
-    region === "us-east-1"
-      ? "https://codewhisperer.us-east-1.amazonaws.com/generateAssistantResponse"
-      : `https://q.${region}.amazonaws.com/generateAssistantResponse`;
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15_000);
-  try {
-    const body = {
-      ...(profileArn ? { profileArn } : {}),
-      conversationState: {
-        chatTriggerType: "MANUAL",
-        conversationId: crypto.randomUUID(),
-        currentMessage: {
-          userInputMessage: {
-            content: "ping",
-            modelId: "auto",
-            origin: "AI_EDITOR",
-          },
-        },
-        history: [],
-      },
-      inferenceConfig: {
-        maxTokens: 1,
-      },
-    };
-
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        tokentype: "API_KEY",
-        "Content-Type": "application/x-amz-json-1.0",
-        "X-Amz-Target": "AmazonCodeWhispererStreamingService.GenerateAssistantResponse",
-        Accept: "application/vnd.amazon.eventstream",
-        "Amz-Sdk-Request": "attempt=1; max=3",
-        "Amz-Sdk-Invocation-Id": crypto.randomUUID(),
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-
-    await res.body?.cancel().catch(() => undefined);
-
-    if (res.ok) {
-      return { valid: true, error: null, method: "kiro_generate_assistant_response" };
-    }
-    if (res.status === 401 || res.status === 403) {
-      return { valid: false, error: "Invalid Kiro API key or AWS region" };
-    }
-    if (res.status === 400 || res.status === 422 || res.status === 429) {
-      return { valid: true, error: null, method: `kiro_generate_assistant_response_${res.status}` };
-    }
-    return { valid: false, error: `Kiro validation failed: ${res.status}` };
-  } finally {
-    clearTimeout(timeout);
   }
 }
 
@@ -362,59 +261,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 
   // ── Specialty provider validation ──
   const SPECIALTY_VALIDATORS = {
-    "v0-vercel": async ({ apiKey, providerSpecificData }: any) => {
-      try {
-        const configuredBaseUrl =
-          typeof providerSpecificData?.baseUrl === "string" && providerSpecificData.baseUrl.trim()
-            ? providerSpecificData.baseUrl.trim()
-            : "https://api.v0.dev";
-
-        const root = normalizeBaseUrl(configuredBaseUrl)
-          .replace(/\/v1\/chat\/completions$/, "")
-          .replace(/\/v1$/, "");
-
-        const res = await validationRead(
-          `${root}/v1/chats?limit=1`,
-          {
-            method: "GET",
-            headers: buildBearerHeaders(apiKey, providerSpecificData),
-          },
-          isLocal
-        );
-
-        if (res.ok) {
-          return { valid: true, error: null, method: "v0_platform_chats_list" };
-        }
-
-        if (res.status === 401 || res.status === 403) {
-          return { valid: false, error: "Invalid API key" };
-        }
-
-        return { valid: false, error: `v0 validation failed: ${res.status}` };
-      } catch (error: any) {
-        return toValidationErrorResult(error);
-      }
-    },
     jules: validateJulesProvider,
-    // "devin" is the Cognition cloud-agent provider (distinct from the "devin-cli"
-    // LLM/ACP provider, which is already registered in providerRegistry). Wired here
-    // for parity with the "jules" cloud-agent entry above — see #6142.
-    devin: validateDevinCloudAgentProvider,
-    // auggie is a fully local, credential-less CLI passthrough — there is no API
-    // key to check upstream. The only meaningful validation is confirming the
-    // `auggie` binary is installed and runnable on this machine.
-    auggie: async () => {
-      const { checkAuggieCliVersion } = await import("@omniroute/open-sse/executors/auggie.ts");
-      const result = await checkAuggieCliVersion();
-      if (!result.ok) {
-        return {
-          valid: false,
-          error: result.error || "Auggie CLI not found. Install it and run `auggie login`.",
-          unsupported: false,
-        };
-      }
-      return { valid: true, error: null, unsupported: false, method: result.version };
-    },
     qoder: async ({ apiKey, providerSpecificData }: any) => {
       // Bifurcate validation: PAT tokens use Cosy auth against api1.qoder.sh;
       // regular API keys validate against dashscope (OpenAI-compatible endpoint).
@@ -449,26 +296,6 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         return { valid: true, error: null };
       } catch (err: unknown) {
         return toValidationErrorResult(err);
-      }
-    },
-    kiro: async ({ apiKey, providerSpecificData }: any) => {
-      try {
-        const region = providerSpecificData?.region || "us-east-1";
-        const credential = await new KiroService().validateApiKey(apiKey, region);
-        if (!credential.profileArn) {
-          return await validateKiroApiKeyRuntimeProbe({
-            apiKey: credential.accessToken,
-            region: credential.region,
-            profileArn: providerSpecificData?.profileArn,
-          });
-        }
-        return {
-          valid: true,
-          error: null,
-          method: "kiro_list_available_profiles",
-        };
-      } catch (error: any) {
-        return toValidationErrorResult(error);
       }
     },
     "command-code": validateCommandCodeProvider,
@@ -506,7 +333,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         apiKey,
         providerSpecificData,
         baseUrl: normalizeBaseUrl(providerSpecificData?.baseUrl || ""),
-        modelId: MODAL_DEFAULT_VALIDATION_MODEL_ID,
+        modelId: "Qwen/Qwen3-4B-Thinking-2507-FP8",
         isLocal,
       }),
     "nous-research": validateNousResearchProvider,
@@ -521,7 +348,6 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "deepseek-web": validateDeepSeekWebProvider,
     "grok-web": validateGrokWebProvider,
     "qwen-web": validateQwenWebProvider,
-    "kimi-web": validateKimiWebProvider,
     "chatgpt-web": validateChatGptWebProvider,
     "perplexity-web": validatePerplexityWebProvider,
     "blackbox-web": validateBlackboxWebProvider,
@@ -530,7 +356,6 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "adapta-web": validateAdaptaWebProvider,
     "claude-web": validateClaudeWebProvider,
     "gemini-web": validateGeminiWebProvider,
-    "copilot-m365-web": validateCopilotM365WebProvider,
     "copilot-web": validateCopilotWebProvider,
     "t3-web": validateT3WebProvider,
     "azure-openai": validateAzureOpenAIProvider,
@@ -830,27 +655,6 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     }
 
     if (entry.format === "claude") {
-      // Built-in CC-wire-image providers (e.g. agentrouter, #6056/#6255) gate
-      // their WAF on the dynamic Claude-Code fingerprint (User-Agent,
-      // `?beta=true` chat path, anthropic-beta/x-app/X-Stainless-* headers).
-      // The real chat-request path already routes through
-      // buildProviderUrl/buildProviderHeaders for this; the validation probe
-      // must use the SAME wire image or a genuinely valid key gets 403'd as
-      // "unauthorized client detected" (#6377).
-      if (usesCcWireImage(provider)) {
-        const requestBaseUrl = buildProviderUrl(provider, modelId, true, { baseUrl });
-        const requestHeaders = buildProviderHeaders(provider, { apiKey }, true);
-
-        return await validateAnthropicLikeProvider({
-          apiKey,
-          baseUrl: requestBaseUrl,
-          modelId,
-          headers: requestHeaders,
-          providerSpecificData,
-          isLocal,
-        });
-      }
-
       const requestBaseUrl = `${baseUrl}${entry.urlSuffix || ""}`;
       const requestHeaders = {
         ...(entry.headers || {}),

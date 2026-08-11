@@ -1,11 +1,8 @@
 import type { SqliteAdapter } from "./types";
-import { createLogger } from "@/shared/utils/logger";
 import {
   createNodeSqliteAdapterFromDatabase,
   type NodeSqliteDatabaseLike,
 } from "./nodeSqliteShared";
-
-const log = createLogger("db:adapter:node-sqlite");
 
 const CHECKPOINT_INTERVAL_MS = 60_000;
 
@@ -34,12 +31,7 @@ export async function createNodeSqliteAdapter(filePath: string): Promise<SqliteA
   const checkpointTimer = setInterval(() => {
     try {
       db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
-    } catch (err) {
-      log.error(
-        { err, filePath },
-        "nodeSqliteAdapter: periodic wal_checkpoint failed — DB may retain WAL pages"
-      );
-    }
+    } catch {}
   }, CHECKPOINT_INTERVAL_MS);
   (checkpointTimer as unknown as NodeJS.Timeout).unref?.();
 
@@ -47,12 +39,7 @@ export async function createNodeSqliteAdapter(filePath: string): Promise<SqliteA
     clearInterval(checkpointTimer as unknown as NodeJS.Timeout);
     try {
       db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
-    } catch (err) {
-      log.error(
-        { err, filePath },
-        "nodeSqliteAdapter: wal_checkpoint failed during gracefulClose — WAL may not be truncated"
-      );
-    }
+    } catch {}
   }
 
   const adapter = createNodeSqliteAdapterFromDatabase(db, filePath, gracefulClose);

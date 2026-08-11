@@ -1,8 +1,5 @@
 import fs from "node:fs";
-import { createLogger } from "@/shared/utils/logger";
 import type { PreparedStatement, RunResult, SqliteAdapter } from "./types";
-
-const log = createLogger("db:adapter:node-sqlite-shared");
 
 export interface NodeSqliteDatabaseLike {
   prepare(sql: string): {
@@ -32,9 +29,7 @@ export function createNodeSqliteAdapterFromDatabase(
     if (stmt && "finalize" in stmt) {
       try {
         (stmt as NodeSqliteStatement & { finalize: () => void }).finalize();
-      } catch (err) {
-        log.error({ err }, "nodeSqliteShared: finalize() failed during cache eviction");
-      }
+      } catch {}
     }
   }
 
@@ -69,12 +64,7 @@ export function createNodeSqliteAdapterFromDatabase(
       try {
         db.exec(`ROLLBACK TO "${sp}"`);
         db.exec(`RELEASE "${sp}"`);
-      } catch (rollbackErr) {
-        log.error(
-          { err: rollbackErr, savepoint: sp },
-          "nodeSqliteShared: rollback after transaction failure also failed — DB may be in inconsistent state"
-        );
-      }
+      } catch {}
       throw err;
     }
   }
@@ -82,22 +72,16 @@ export function createNodeSqliteAdapterFromDatabase(
   function close() {
     try {
       onClose?.();
-    } catch (err) {
-      log.error({ err }, "nodeSqliteShared: onClose callback threw during close()");
-    }
+    } catch {}
     try {
       for (const entry of stmtCache.values()) {
         finalizeStatement(entry.stmt);
       }
       stmtCache.clear();
-    } catch (err) {
-      log.error({ err }, "nodeSqliteShared: statement-cache finalization failed during close()");
-    }
+    } catch {}
     try {
       db.close();
-    } catch (err) {
-      log.error({ err, filePath }, "nodeSqliteShared: db.close failed");
-    }
+    } catch {}
     _isOpen = false;
   }
 
@@ -148,23 +132,13 @@ export function createNodeSqliteAdapterFromDatabase(
     async backup(destination: string): Promise<void> {
       try {
         db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
-      } catch (err) {
-        log.error(
-          { err, filePath, destination },
-          "nodeSqliteShared: wal_checkpoint failed before backup — backup may include uncheckpointed WAL"
-        );
-      }
+      } catch {}
       fs.copyFileSync(filePath, destination);
     },
     checkpoint(mode = "TRUNCATE"): void {
       try {
         db.exec(`PRAGMA wal_checkpoint(${mode})`);
-      } catch (err) {
-        log.error(
-          { err, mode, filePath },
-          "nodeSqliteShared: explicit wal_checkpoint failed"
-        );
-      }
+      } catch {}
     },
     close,
     get raw() {

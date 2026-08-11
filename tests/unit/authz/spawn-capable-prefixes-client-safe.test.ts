@@ -77,7 +77,6 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
     "/api/tools/traffic-inspector/",
     "/api/plugins/",
     "/api/local/",
-    "/api/skills/collect/",
     "/api/headroom/start",
     "/api/headroom/stop",
   ]) {
@@ -86,5 +85,5 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
       `SPAWN_CAPABLE_PREFIXES lost the spawn-capable prefix "${prefix}" during extraction`
     );
   }
-  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 9);
+  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 8);
 });

@@ -37,9 +37,6 @@ import {
   type QuotaFetchCacheConfig,
 } from "./quotaScoring.ts";
 import { rankByHeadroom, type HeadroomSaturation } from "./headroomRanking.ts";
-import { createLogger } from "../../../src/shared/utils/logger.ts";
-
-const log = createLogger("combo:quotaStrategies");
 
 const RESET_AWARE_CONNECTION_CACHE_TTL_MS = 30_000;
 const RESET_AWARE_QUOTA_FETCH_CONCURRENCY = 5;
@@ -431,13 +428,7 @@ export async function preScreenTargets(
     targets,
     PRE_SCREEN_CONCURRENCY,
     async (target): Promise<{ key: string; result: PreScreenResult }> => {
-      const profile = await getRuntimeProviderProfile(target.provider).catch((err) => {
-        log.warn(
-          { err, provider: target.provider, model: target.modelStr },
-          "combo:quotaStrategies: failed to fetch runtime provider profile — pre-screen will proceed without profile data"
-        );
-        return null;
-      });
+      const profile = await getRuntimeProviderProfile(target.provider).catch(() => null);
 
       const breaker = getCircuitBreaker(target.provider);
       if (breaker.getStatus().state === "OPEN") {
@@ -556,8 +547,7 @@ export async function orderTargetsByResetWindow(
 type SaturationFetcher = (
   connectionId: string,
   provider: string,
-  dim: { unit: "percent"; window: "5h" | "weekly" },
-  connection?: Record<string, unknown>
+  dim: { unit: "percent"; window: "5h" | "weekly" }
 ) => Promise<number>;
 
 let _headroomSaturationFetcherOverride: SaturationFetcher | null = null;
@@ -595,7 +585,7 @@ export async function orderTargetsByHeadroom(
   if (targets.length <= 1) return targets;
 
   try {
-    const { expandedTargets, connectionById } = await expandTargetsByQuotaAwareConnections(
+    const { expandedTargets } = await expandTargetsByQuotaAwareConnections(
       targets,
       comboName,
       log,
@@ -617,25 +607,18 @@ export async function orderTargetsByHeadroom(
         if (!target.connectionId) return;
         const key = connKey(target);
         if (satByConnection.has(key)) return;
-        // #6379: thread the loaded connection snapshot (with decrypted
-        // credentials) through to getSaturation so provider-specific fetchers
-        // that need credentials (e.g. Codex's fetchCodexQuota) can actually
-        // read them, instead of failing open to 0 for every candidate and
-        // leaving headroom ranking unable to tell accounts apart.
-        const connection = connectionById.get(target.connectionId);
-        const connectionId = target.connectionId;
-        const provider = target.provider;
         satByConnection.set(
           key,
           (async () => {
             const [util5h, util7d] = await Promise.all([
-              getSaturation(connectionId, provider, { unit: "percent", window: "5h" }, connection),
-              getSaturation(
-                connectionId,
-                provider,
-                { unit: "percent", window: "weekly" },
-                connection
-              ),
+              getSaturation(target.connectionId as string, target.provider, {
+                unit: "percent",
+                window: "5h",
+              }),
+              getSaturation(target.connectionId as string, target.provider, {
+                unit: "percent",
+                window: "weekly",
+              }),
             ]);
             return { util5h, util7d } satisfies HeadroomSaturation;
           })()

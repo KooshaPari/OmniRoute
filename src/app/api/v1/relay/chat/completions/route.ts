@@ -22,11 +22,9 @@ import {
   getBifrostRoutingConfig,
   getRoutingFallbackHeader,
   resolveRelayRoutingBackend,
-  shouldTryBifrostForRequest,
+  shouldTryBifrost,
   type BifrostRoutingConfig,
 } from "./routingBackend";
-import { getProviderPluginManifestEntryForModel } from "@omniroute/open-sse/config/providerPluginManifestRegistry.ts";
-import { getProviderPluginManifestHeader } from "@omniroute/open-sse/config/providerPluginManifestUrl.ts";
 import { finalizeReadableStream } from "./streamFinalizer";
 import {
   clearBifrostFailure,
@@ -65,7 +63,6 @@ async function forwardToBifrost(
   body: unknown,
   token: RelayToken,
   config: BifrostRoutingConfig,
-  backend: ReturnType<typeof resolveRelayRoutingBackend>,
   startTime: number,
   clientIp: string,
   userAgent: string | null
@@ -76,10 +73,7 @@ async function forwardToBifrost(
     "Content-Type": "application/json",
     "x-relay-token-id": token.id,
     "x-relay-client-ip": clientIp,
-    ...getProviderPluginManifestHeader(new URL(request.url).origin),
   };
-  const requestId = request.headers.get("x-request-id");
-  if (requestId) upstreamHeaders["x-request-id"] = requestId;
   if (config.apiKey) {
     upstreamHeaders.Authorization = `Bearer ${config.apiKey}`;
   }
@@ -98,6 +92,7 @@ async function forwardToBifrost(
       body: JSON.stringify(body),
       signal: ac.signal,
     });
+    clearTimeout(tid);
 
     const headers = new Headers(upstream.headers);
     headers.set("X-Routed-By", "bifrost");
@@ -109,24 +104,14 @@ async function forwardToBifrost(
 
     if (wantsStream && upstream.body) {
       const stream = finalizeReadableStream(upstream.body, (error) => {
-        clearTimeout(tid);
-        const statusCode = timedOut ? 504 : upstream.status;
-        if (error && backend === "auto") {
-          recordBifrostFailure(
-            config.baseUrl,
-            timedOut
-              ? `Bifrost sidecar stream timed out after ${config.timeoutMs}ms`
-              : "bifrost-stream-error"
-          );
-        }
         recordUsage(
           token.id,
           request,
           startTime,
           clientIp,
           userAgent,
-          error || statusCode >= 500 ? "error" : "success",
-          statusCode
+          error || upstream.status >= 500 ? "error" : "success",
+          upstream.status
         );
       });
 
@@ -136,7 +121,6 @@ async function forwardToBifrost(
       });
     }
 
-    clearTimeout(tid);
     recordUsage(
       token.id,
       request,
@@ -228,7 +212,7 @@ export async function POST(request: Request) {
     }
 
     // 2b. Per-token rate limit check
-    const rateCheck = checkRateLimit(token.id, token);
+    const rateCheck = checkRateLimit(token.id);
     if (!rateCheck.allowed) {
       recordRelayUsage(token.id, {
         requestId: request.headers.get("x-request-id") || undefined,
@@ -306,17 +290,9 @@ export async function POST(request: Request) {
     const backend = resolveRelayRoutingBackend();
     const bifrostConfig = getBifrostRoutingConfig();
     let bifrostFallbackReason: string | null = null;
-    const bifrostDecision = shouldTryBifrostForRequest(
-      backend,
-      bifrostConfig,
-      parsedBody,
-      (model) => getProviderPluginManifestEntryForModel(model)?.sidecar ?? null
-    );
-    if (bifrostDecision.fallbackReason) {
-      bifrostFallbackReason = bifrostDecision.fallbackReason;
-    }
-    if (bifrostDecision.tryBifrost) {
-      const cooldown = backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
+    if (shouldTryBifrost(backend, bifrostConfig)) {
+      const cooldown =
+        backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
       if (cooldown) {
         bifrostFallbackReason = `bifrost-cooldown; remaining=${cooldown.remainingMs}`;
       } else {
@@ -326,7 +302,6 @@ export async function POST(request: Request) {
             parsedBody,
             token,
             bifrostConfig,
-            backend,
             startTime,
             clientIp,
             userAgent

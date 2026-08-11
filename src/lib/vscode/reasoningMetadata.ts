@@ -1,7 +1,6 @@
 import { supportsXHighEffort } from "@omniroute/open-sse/config/providerModels";
 import { parseModel } from "@omniroute/open-sse/services/model";
 import { stripVscodeServiceTierVariantModelId } from "@/lib/vscode/serviceTierVariants";
-import { extendCodexGpt56EffortValues } from "@/shared/reasoning/effortStandardization";
 
 export type VscodeCatalogModel = {
   id?: string;
@@ -16,10 +15,9 @@ export type VscodeCatalogModel = {
   default_reasoning_effort?: string;
 };
 
-const STANDARD_EFFORT_SUFFIX_PATTERN = /-(xhigh|high|medium|low|none)$/i;
-const GPT_5_6_EXTENDED_EFFORT_SUFFIX_PATTERN = /^(.*gpt-5\.6-(?:sol|terra|luna))-(max|ultra)$/i;
+const EFFORT_SUFFIX_PATTERN = /-(xhigh|high|medium|low|none)$/i;
 const DEFAULT_REASONING_EFFORT = "none";
-const KNOWN_REASONING_EFFORTS = new Set(["none", "low", "medium", "high", "xhigh", "max", "ultra"]);
+const KNOWN_REASONING_EFFORTS = new Set(["none", "low", "medium", "high", "xhigh"]);
 
 export type VscodeModelConfigSchema = {
   type: "object";
@@ -38,20 +36,6 @@ export type VscodeModelConfigSchema = {
 
 export function getCatalogModelName(model: VscodeCatalogModel) {
   return stripVscodeServiceTierVariantModelId(model.id || model.name || model.root || "");
-}
-
-function matchReasoningEffortSuffix(modelId: string) {
-  const extendedMatch = modelId.match(GPT_5_6_EXTENDED_EFFORT_SUFFIX_PATTERN);
-  if (extendedMatch?.[1] && extendedMatch[2]) {
-    return { baseModelId: extendedMatch[1], effort: extendedMatch[2].toLowerCase() };
-  }
-
-  const standardMatch = modelId.match(STANDARD_EFFORT_SUFFIX_PATTERN);
-  if (!standardMatch?.[1]) return undefined;
-  return {
-    baseModelId: modelId.slice(0, -standardMatch[0].length),
-    effort: standardMatch[1].toLowerCase(),
-  };
 }
 
 function normalizeReasoningEffortValue(value: string) {
@@ -120,7 +104,7 @@ export function getReasoningEffortValues(model: VscodeCatalogModel) {
     values.push("xhigh");
   }
 
-  return extendCodexGpt56EffortValues(providerId, providerModelId, values);
+  return values;
 }
 
 export function formatReasoningEffortLabel(level: string) {
@@ -139,11 +123,7 @@ function describeReasoningEffort(level: string) {
     case "high":
       return "Uses an extended amount of reasoning.";
     case "xhigh":
-      return "Uses extra-high reasoning effort.";
-    case "max":
       return "Uses the maximum available reasoning effort.";
-    case "ultra":
-      return "Uses the Ultra reasoning preset.";
     default:
       return `Uses ${formatReasoningEffortLabel(level)} reasoning effort.`;
   }
@@ -158,10 +138,11 @@ export function inferSelectedReasoningEffort(
   supportedValues?: string[]
 ) {
   const modelId = getCatalogModelName(model);
-  const match = matchReasoningEffortSuffix(modelId);
+  const match = modelId.match(EFFORT_SUFFIX_PATTERN);
   if (!match) return undefined;
 
-  const selected = match.effort;
+  const selected = match[1]?.toLowerCase();
+  if (!selected) return undefined;
   if (
     Array.isArray(supportedValues) &&
     supportedValues.length > 0 &&
@@ -174,7 +155,7 @@ export function inferSelectedReasoningEffort(
 }
 
 export function getReasoningVariantBaseModelId(modelId: string) {
-  return matchReasoningEffortSuffix(modelId)?.baseModelId || modelId;
+  return modelId.replace(EFFORT_SUFFIX_PATTERN, "");
 }
 
 export function getDefaultReasoningEffort(model: VscodeCatalogModel, supportedValues?: string[]) {
