@@ -190,7 +190,9 @@ export function getModelCatalogCacheVersion(): number {
  * Invalidate all caches (call after writes to any of: settings, pricing,
  * connections, combos).
  */
-export function invalidateDbCache(scope?: "settings" | "pricing" | "connections" | "combos"): void {
+export function invalidateDbCache(
+  scope?: "settings" | "pricing" | "connections" | "combos"
+): void {
   if (!scope || scope === "settings") settingsCache.invalidate();
   if (!scope || scope === "pricing") pricingCache.invalidate();
   if (!scope || scope === "connections") connectionsCache.invalidate();
