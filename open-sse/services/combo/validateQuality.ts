@@ -262,23 +262,7 @@ export async function validateResponseQuality(
     let hasContentBlock = false;
     let hasLifecycleEnd = false;
     let anyContentFound = false;
-    // #7285: OpenAI-shape lifecycle tracking, parallel to `sse` above.
-    const openAi: OpenAiLifecycleFlags = { hasChoicePayload: false, hasTerminalMarker: false };
-    // User log 1784230812441-bf3789: the previous `!sawAnyBytes` gate below let
-    // ANY byte — even unparseable garbage with no SSE framing at all — pass
-    // combo failover through. These two flags are tracked in parallel to
-    // `sse`/`openAi` above and only tighten the GENERIC done-branch gate
-    // further down; the #1382 (`sse.hasRealContent`) and #7285
-    // (`openAi.hasTerminalMarker`) branches are untouched.
-    //   - sawStructuredSSE — a parseable `event:` or `data:` frame was seen,
-    //     even one that carries no recognised content (ping/metadata) — the
-    //     #3399 pass-through contract for those streams is preserved.
-    //   - sawTerminator     — a recognised terminator arrived: `data: [DONE]`,
-    //     an OpenAI `finish_reason` (mirrors `openAi.hasTerminalMarker`), a
-    //     Claude `message_stop`/`message_delta` with `stop_reason` (mirrors
-    //     `sse.hasLifecycleEnd`), or a terminal `usage`-only chunk (new).
-    let sawStructuredSSE = false;
-    let sawTerminator = false;
+    let sawAnyBytes = false;
     const sseLineNormalizer = createSSEDataLineNormalizer();
     let pendingEventType = "";
 
@@ -443,42 +427,17 @@ export async function validateResponseQuality(
           }
 
           // Stream ended with a truly EMPTY body (e.g. Gemini returning HTTP
-          // 200 with zero bytes), or with bytes that never formed a single
-          // recognizable SSE frame and never signalled termination — mark as
-          // invalid for combo failover so the sibling model gets tried.
-          // Streams that carried ANY structured SSE activity (an explicit
-          // `data: [DONE]`, ping/metadata events, an incomplete Claude
-          // lifecycle) or a recognised terminator keep the pass-through
-          // contract (#3399/#3685): those are handled by the stream-readiness
-          // timeout, not failover.
-          //
-          // Tightened after user log 1784230812441-bf3789: the previous
-          // `!sawAnyBytes` check let ANY byte — even unparseable garbage that
-          // never produced a single structured SSE frame — pass through,
-          // leaving the downstream SSE parser hung on a half-finished stream.
-          if (!anyContentFound && !sse.hasContentBlock && !sawTerminator && !sawStructuredSSE) {
+          // 200 with zero bytes) — mark as invalid for combo failover so the
+          // sibling model gets tried. Streams that carried ANY SSE activity
+          // (an explicit `data: [DONE]`, ping/metadata events, an incomplete
+          // Claude lifecycle) keep the pass-through contract (#3399/#3685):
+          // those are handled by the stream-readiness timeout, not failover.
+          if (!anyContentFound && !hasContentBlock && !sawAnyBytes) {
             log.warn?.(
               "COMBO",
-              "Streaming response ended with no recognized content or SSE terminator — marking as invalid for combo failover"
+              "Streaming response ended with no recognized content — marking as invalid for combo failover"
             );
             return { valid: false, reason: "streaming no recognized content" };
-          }
-
-          // Issue #7285: an OpenAI-shape stream (`choices[]` chunks) that
-          // closes without ever carrying `finish_reason` or a `[DONE]`
-          // sentinel, and without producing recognized content, is a
-          // truncated response — failover to a sibling combo target rather
-          // than forwarding the incomplete stream as a success. Does not
-          // affect Claude-shape streams (`openAi.hasChoicePayload` stays
-          // false for those) and does not regress the #3399/#3685
-          // pass-through contract: a healthy stream exits the peek loop
-          // early via the `foundContent` branch above and never reaches here.
-          if (openAi.hasChoicePayload && !openAi.hasTerminalMarker && !anyContentFound) {
-            log.warn?.(
-              "COMBO",
-              "Streaming OpenAI-shape response ended with no finish_reason or [DONE] — marking as invalid for combo failover"
-            );
-            return { valid: false, reason: "streaming openai truncated without finish_reason" };
           }
 
           // Incomplete lifecycle or non-Claude stream — replay all buffered
@@ -490,23 +449,13 @@ export async function validateResponseQuality(
 
         // Accumulate raw bytes for potential replay.
         bufferedChunks.push(value);
+        if (value && value.length > 0) sawAnyBytes = true;
 
         // Decode incrementally (stream:true keeps multi-byte char state).
         decodedSoFar += decoder.decode(value, { stream: true });
         const outcome = parseAccumulatedSse();
 
-        if (outcome === "error") {
-          // Do not await cancellation of a Response.clone() tee branch: the
-          // promise may remain pending until the client-facing branch drains.
-          reader.cancel().catch(() => {});
-          log.warn?.(
-            "COMBO",
-            "Streaming response reported an upstream error before content — marking as invalid for combo failover"
-          );
-          return { valid: false, reason: "streaming upstream error" };
-        }
-
-        if (outcome === "content") {
+        if (foundContent) {
           anyContentFound = true;
           // A content_block_* event was found — stop peeking. Return a
           // clonedResponse that replays all buffered bytes (the current chunk
@@ -728,20 +677,4 @@ export function releaseQualityClone(
 ): void {
   if (clone === original) return;
   void quality.clonedResponse?.body?.cancel().catch(() => {});
-}
-
-/**
- * Cancel every response branch after a failed quality check when the caller is
- * discarding the upstream response and falling back to another target.
- *
- * Streaming validation cancels its reader, but a reader on a `Response.clone()`
- * tee cannot cancel the shared source until the untouched original branch is
- * cancelled too. Best-effort cancellation of both branches also releases an
- * unread quality clone for non-streaming failures.
- */
-export function releaseRejectedQualityResponse(clone: Response, original: Response): void {
-  if (clone !== original) {
-    void clone.body?.cancel().catch(() => {});
-  }
-  void original.body?.cancel().catch(() => {});
 }

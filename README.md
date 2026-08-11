@@ -373,7 +373,31 @@ All **19** strategies — mix & match per combo step:
   </tr>
 </table>
 
-<sub>The Auto-Combo engine scores every candidate on **12 factors** (health, quota, cost, latency, success rate, freshness…) — see [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
+<sub>The Auto-Combo engine scores every candidate on **9 factors** (health, quota, cost, latency, success rate, freshness…) — see [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
+
+##
+
+### ⚖️ Quota-Share — split one subscription across a team ✨ NEW
+
+> Running several keys against the **same upstream account** (one Codex Pro plan, one Kimi key, one GLM Coding seat)? A burst on one key can burn the whole 5-hour / hourly quota and lock everyone else out. **Quota-Share** distributes a provider's time-based quota **fairly** across the keys in a pool — and it's _work-conserving_, so an idle member's slice is lent out instead of wasted.
+
+| Knob                     | What it controls                                                                |
+| ------------------------ | ------------------------------------------------------------------------------- |
+| ⚖️ **Allocation weight** | each key's slice of the pool — e.g. `50 / 30 / 20`                              |
+| 📐 **Dimensions**        | track `%` · requests · tokens · `$`, per **5h / 7d / per-model** window         |
+| 🚦 **Policy**            | `hard` (block over share) · `soft` (deprioritize) · `burst` (use idle headroom) |
+| 🧱 **Cap**               | absolute ceiling per key, independent of mode                                   |
+
+```
+Pool "team-codex"   ·   1 Codex Pro account   ·   3 keys   ·   5-hour window
+  ├─ alice    weight 50  ██████████░░░░░░░░░░   ≤ 50% of the shared 5h quota
+  ├─ bob      weight 30  ██████░░░░░░░░░░░░░░   ≤ 30%
+  └─ ci-bot   weight 20  ████░░░░░░░░░░░░░░░░   ≤ 20%
+Generous mode (<50% pool used) → idle shares are lent out
+Strict mode  (≥50% pool used)  → each key held to its fair share
+```
+
+<sub>Enforced in the hot path **before** the request leaves OmniRoute, with per-(key, model) caps + session stickiness for prompt-cache integrity (now with a per-combo / global disable toggle). 📖 [Quota Sharing Engine](docs/routing/QUOTA_SHARE.md)</sub>
 
 ##
 
@@ -413,25 +437,23 @@ OmniRoute is free and open source, built and maintained in the open. If it saves
 
 </div>
 
-> Recent highlights from **v3.8.20 → v3.8.49**. Full history in [`CHANGELOG.md`](CHANGELOG.md).
+> Recent highlights from **v3.8.20 → v3.8.45**. Full history in [`CHANGELOG.md`](CHANGELOG.md).
 
-- **🗜️ Compression hardening** — default-on inflation guard, Caveman packs for DE / FR / JA + Chinese (wényán), RTK filters for Gradle & .NET. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 Honest flat-rate cost** — subscription / coding-plan providers read **$0** in cost analytics; budget, quota & routing keep estimating. → [API Reference](docs/reference/API_REFERENCE.md)
-- **⚖️ Quota-Share routing** — split a shared account's quota fairly across pooled keys, work-conserving so idle slices are lent out. → [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 One-command CLI/agent setup** — `setup-*` configures 12+ coding tools; `omniroute launch` / `launch-codex` are zero-config. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ Remote mode** — drive a remote OmniRoute with scoped tokens (`connect` / `contexts` / `tokens`) + an `antigravity` OAuth helper for VPS installs. → [Remote Mode](docs/guides/REMOTE-MODE.md)
-- **🧭 Smarter auto-routing** — `auto/<category>:<tier>` combos, **Fusion** (model panel + judge), task-aware routing, per-request model / mode / USD-budget overrides. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ Pluggable compression** — 12 composable engines + Compression Studios: LLMLingua-2, two-tier Ultra, omniglyph, per-step fidelity gate, GCF v3.2, drag-reorder editor. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ Transparent MITM decrypt (TPROXY)** — capture CLIs that ignore proxy env vars, with a per-SNI CA + trust-store installer. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 Cost telemetry everywhere** — `X-OmniRoute-*` cost/usage headers on every endpoint, cache-HIT savings header, per-key USD spend quotas. → [API Reference](docs/reference/API_REFERENCE.md)
-- **🧠 Memory you control** — off by default, opt-in int8 vector quantization + typed decay, per-request `x-omniroute-no-memory`. → [Memory](docs/frameworks/MEMORY.md)
-- **🛡️ Security** — prompt-injection guard on every LLM route (red-team suite), opt-in credential-masking guardrail (redacts leaked API keys/secrets in both directions), free DuckDuckGo last-resort web search, and an optional OIDC login gate for the dashboard (password login always stays available). → [Guardrails](docs/security/GUARDRAILS.md)
-- **🖼️ New endpoints** — `/v1/ocr` (Mistral OCR) and `/v1/audio/translations` (Whisper-style) round out the media surface. → [API Reference](docs/reference/API_REFERENCE.md)
-- **🎨 Image / video / audio generation** — one API for media: xAI Grok Imagine & Novita AI video, ComfyUI, Freepik, Adobe Firefly, Microsoft Designer, Google Imagen, Segmind, EdgeTTS. → [API Reference](docs/reference/API_REFERENCE.md)
-- **🌍 Deployment & ops** — reverse-proxy `basePath`, browser-language auto-detect, per-key device tracking, root-less MITM trust, zh-TW localization. → [Environment](docs/reference/ENVIRONMENT.md)
-- **🤝 More providers & agents** — Cursor Cloud Agent, Grok Build (xAI) with browser + OAuth login, Ollama first-class card, Claude Opus 5 & Sonnet 5, Kimi official partnership (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… and a refreshed **290-provider catalog**. → [Providers](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 Routing transparency** — every response carries an `X-OmniRoute-Decision` header naming the strategy/provider/latency that served it, a new `cache-optimized` combo strategy + Auto-Combo `cacheAffinity` factor route repeat requests back to the connection holding the cached prefix, and a read-only `/v1/auto-combo/{channel}/candidates` endpoint exposes an `auto/*` channel's live candidate pool. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ Local performance & infra** — one-click local Redis, Cloudflare Workers / Deno Deploy relay deployers, Bifrost & Mux as supervised embedded services. → [Embedded Services](docs/frameworks/EMBEDDED-SERVICES.md)
+- **🗜️ Compression hardening** — a default-on **inflation guard** (discard the stacked result and send the verbatim original whenever compression would _grow_ the prompt), completed **Caveman rule packs** for German / French / Japanese (dedup + ultra) plus a new **Chinese (文言 / wényán) input pack** with zh-vs-ja auto-detection, and **RTK filters for Gradle & .NET (`dotnet`)** build output. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 Honest flat-rate cost** — subscription / coding-plan providers (ChatGPT Web, grok-web, the Minimax / Kimi / GLM / Alibaba Coding plans, Xiaomi MiMo…) now read **$0** in cost analytics instead of an inflated per-token estimate, while budget / quota / routing keep estimating unchanged. → [API Reference](docs/reference/API_REFERENCE.md)
+- **⚖️ Quota-Share routing** — a dedicated combo strategy that spreads load across accounts by _available quota_: Deficit-Round-Robin scheduling, per-connection `max_concurrent` with cooldown-wait queueing, multi-window usage buckets (5h / 7d / per-model), per-(key, model) caps, session stickiness for prompt-cache integrity (now with a per-combo / global disable toggle), and proactive saturation from upstream token-usage headers. → [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)
+- **🤖 One-command CLI/agent setup** — a dedicated `setup-*` command configures each coding tool to route through OmniRoute (Claude Code, Codex, Cline, Continue, Cursor, Roo Code, Kilo Code, Crush, Goose, Qwen Code, Aider, OpenCode); `omniroute launch` / `omniroute launch-codex` are zero-config launchers. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ Remote mode** — drive a remote OmniRoute from any machine with scoped access tokens (`omniroute connect` / `omniroute contexts` / `omniroute tokens`), plus an `omniroute login antigravity` helper that runs Google "native/desktop" OAuth on your own machine and pastes a credential blob into a remote/VPS install (where the loopback redirect is unreachable). → [Remote Mode](docs/guides/REMOTE-MODE.md)
+- **🧭 Smarter auto-routing** — OpenRouter-style `auto/<category>:<tier>` combos (e.g. `auto/coding:fast`, `auto/reasoning:pro`), a **Fusion** strategy (fan out to a panel of models in parallel, then synthesize via a judge), **task-aware routing** (best-fit connection per task type), per-request `X-Route-Model` override, live Arena-ELO + models.dev model intelligence, per-step account allowlists, provider-wildcard combo steps, nested combo-ref execution, sticky weighted selection, `web_search`-aware routing, and **per-request Auto-Combo controls** (`X-OmniRoute-Mode` mode-preset override + `X-OmniRoute-Budget` hard USD cost ceiling, scoped to a single request). → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ Pluggable compression** — an async pipeline of **10 composable engines** with Compression Studios, an LLMLingua-2 ONNX engine and a heuristic/SLM two-tier **Ultra**, RTK, delegated Anthropic Context Editing, **Output Styles** (output-axis steering: terse-prose / less-code / terse-CJK), an **adaptive context-budget dial** (escalate only as far as needed to fit the context window), per-request `x-omniroute-compression` control, an opt-in offline eval harness, one-click **Headroom** proxy lifecycle management from the dashboard (Docker sidecar supported), a synthetic **compression playground** (Play lanes + A/B Compare with USD-capped fidelity verdicts), an opt-in **per-step fidelity gate** that rejects a lossy engine before it degrades the prompt, a **best-of-N candidate encoder** (GCF vs TOON — keep whichever is shorter, with an A/B bytes/token table in the studio), **CCR ranged/grep/stats retrieval** (pull an exact byte/line slice or summary of a stored block instead of re-expanding it), a unified panel with named profiles + an active-profile selector, an opt-in **per-engine pipeline circuit-breaker**, an opt-in **LLM-tier engine** (a model pass for higher-ratio semantic compression), a **read-lifecycle engine** that collapses superseded file reads, **usage-observed prefix freeze**, a graduated **CCR retrieval-feedback ramp**, a `preserveSystemPrompt` mode enum, and a **drag-reorder pipeline editor** in the studio. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
+- **🕵️ Transparent MITM decrypt (TPROXY)** — capture & translate traffic from CLIs that ignore proxy env vars, with a per-SNI certificate authority and a trust-store installer. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 Cost telemetry everywhere** — `X-OmniRoute-*` cost/usage headers on every endpoint (including media), a non-token cost engine, a cache-HIT `X-OmniRoute-Cost-Saved` header, and per-key USD spend quotas. → [API Reference](docs/reference/API_REFERENCE.md)
+- **🧠 Memory you control** — opt-in int8 vector quantization (Qdrant + sqlite-vec), opt-in **typed memory decay** (aged low-value memories fade on a per-type schedule), memory off by default, and a per-request `x-omniroute-no-memory` header. → [Memory](docs/frameworks/MEMORY.md)
+- **🛡️ Security** — a prompt-injection guard across every LLM route (backed by a red-team suite), plus a free DuckDuckGo last-resort web search. → [Guardrails](docs/security/GUARDRAILS.md)
+- **🖼️ New endpoints** — `/v1/ocr` (Mistral OCR) and `/v1/audio/translations` (Whisper-style audio translation) round out the media API surface. → [API Reference](docs/reference/API_REFERENCE.md)
+- **🌍 Deployment & ops** — reverse-proxy `basePath` deployment (`OMNIROUTE_BASE_PATH`, e.g. serving OmniRoute under `/omniroute/`), browser-language auto-detect on first visit, per-API-key device/connection tracking (IP+UA fingerprint, masked, in-memory only), root-less MITM cert trust for user-namespaced containers (`OMNIROUTE_NO_SUDO`), and server-side configured-only / available-only filters on the Free Provider Rankings page. → [Environment](docs/reference/ENVIRONMENT.md)
+- **🤝 More providers & agents** — Cursor Cloud Agent (a 4th cloud agent), CodeBuddy CN (`copilot.tencent.com`), a Google Flow video-generation provider, new gateways **DGrid** and **Pioneer AI** (Fastino Labs), inbound **xAI Grok** translators plus **Grok Build (xAI)** with an OAuth import-token flow, GPT-4 / GPT-4o-mini on the GitHub Copilot provider, multi-model **Factory Droid**, **ZenMux Free** (session-cookie free tier), **Alibaba DashScope** text-to-video (`wan2.7-t2v`), a refreshed 237-provider catalog (OrcaRouter, Wafer AI, OpenAdapter, dit.ai, TokenRouter, …), Vertex AI media generation (speech/transcription/music/video), a first-class **Ollama** local-provider card, the **SenseNova** free Token Plan (chat + text-to-image), one-click account import from CLIProxyAPI (`~/.cli-proxy-api/`), **Claude Sonnet 5** wired end-to-end, a new provider wave (**Kenari**, **SumoPod**, **X5Lab**, **Charm Hyper**, **Nube.sh**, **b.ai**, **Qiniu**, **ModelScope**, **Augment/Auggie CLI**, **ClinePass**, NVIDIA NIM image generation), Codex account import from a raw ChatGPT access token, the **Requesty** gateway (BYOK, ~200 free req/day), **Yuanbao (web)** as a cookie-session provider (DeepSeek V3/R1 + Hunyuan), the **Zed** hosted LLM aggregator (OAuth), **Claude 5 Sonnet** on the Claude Web provider, Kiro **adaptive-thinking reasoning** surfaced as `reasoning_content`, and **bulk API-key add for Cloudflare Workers AI**. → [Providers](docs/reference/PROVIDER_REFERENCE.md)
+- **⚡ Local performance & infra** — a one-click local Redis launcher (`omniroute redis up`, plus a dashboard Redis panel), one-click **Cloudflare Workers** and **Deno Deploy** relay deployers wired into the proxy pool, a relay-backend selector (`OMNIROUTE_RELAY_BACKEND=ts|bifrost|auto`) so `/v1/relay` stays the stable surface while choosing the fastest backend internally, **Bifrost** (Go AI-gateway) and **Mux** (agent-orchestration daemon) promoted to first-class embedded/supervised services alongside 9Router/CLIProxyAPI, and **Webshare** added as a paid fourth source in the free-proxy provider framework. → [Embedded Services](docs/frameworks/EMBEDDED-SERVICES.md)
 
 <br/>
 

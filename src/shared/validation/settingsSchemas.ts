@@ -207,30 +207,8 @@ export const updateSettingsSchema = z.object({
   fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
-  /** 9router parity: global combo expansion strategy (fallback vs round-robin). */
-  comboStrategy: z.enum(["fallback", "round-robin"]).optional(),
-  comboStickyRoundRobinLimit: z.number().int().min(1).max(100).nullable().optional(),
-  providerStrategies: z
-    .record(
-      z.string().trim().min(1),
-      z.object({
-        fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
-        stickyRoundRobinLimit: z.number().int().min(1).max(1000).optional(),
-      })
-    )
-    .optional(),
   // #6168: global session-stickiness opt-out (per-combo config overrides this).
   disableSessionStickiness: z.boolean().optional(),
-  /** Keep eligible combo targets close to the provider-side prompt cache. */
-  promptCacheAffinityEnabled: z.boolean().optional(),
-  /**
-   * Per-operator quota row visibility on the usage dashboard, keyed by
-   * provider id. Independent of the model catalog's isHidden/isDeleted flags.
-   * Ported from upstream decolua/9router#2371.
-   */
-  quotaVisibility: z
-    .record(z.string().trim().min(1), z.object({ hidden: z.array(z.string()).max(500).optional() }))
-    .optional(),
   requestRetry: z.number().int().min(0).max(10).optional(),
   maxRetryIntervalSec: z.number().int().min(0).max(300).optional(),
   maxBodySizeMb: z

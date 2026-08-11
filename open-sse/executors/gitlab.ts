@@ -161,76 +161,26 @@ function renderConversationTurn(message: OpenAIMessage, role: string, text: stri
   return null;
 }
 
-/**
- * Keep only what the `small_file` generation contract can carry: every system message,
- * the latest user message, and the most-recent tool round (the last assistant `tool_calls`
- * turn onward). Older turns are dropped so `content_above_cursor` stays bounded (#6220).
- */
-function selectBoundedMessages(messages: OpenAIMessage[]): OpenAIMessage[] {
-  let lastUserIdx = -1;
-  let lastToolRoundIdx = -1;
-  messages.forEach((message, idx) => {
-    const role = String(message?.role || "user").toLowerCase();
-    if (role === "user") lastUserIdx = idx;
-    if (role === "assistant" && Array.isArray(message?.tool_calls) && message.tool_calls.length) {
-      lastToolRoundIdx = idx;
-    }
-  });
-  const tailStart = lastToolRoundIdx >= 0 ? lastToolRoundIdx : lastUserIdx;
-  const kept: OpenAIMessage[] = [];
-  messages.forEach((message, idx) => {
-    const role = String(message?.role || "user").toLowerCase();
-    if (role === "system" || role === "developer") {
-      kept.push(message);
-    } else if (idx === lastUserIdx || idx >= tailStart) {
-      kept.push(message);
-    }
-  });
-  return kept;
-}
-
-/**
- * Serialize the most-recent turn history so the model sees the tool result (#6220), but
- * BOUNDED: only the last tool round is kept, each tool result is capped, and the whole
- * prompt is capped — otherwise the folded history trips GitLab's `small_file` 422 guard.
- */
+/** Serialize the full turn history so the model sees the tool result (#6220). */
 function buildToolExchangePrompt(messages: OpenAIMessage[]): string {
   const systemParts: string[] = [];
   const convo: string[] = [];
-  for (const message of selectBoundedMessages(messages)) {
+  for (const message of messages) {
     const role = String(message?.role || "user").toLowerCase();
-    let text = extractTextContent(message?.content);
+    const text = extractTextContent(message?.content);
     if (role === "system" || role === "developer") {
       if (text) systemParts.push(text);
       continue;
     }
-    if (role === "tool") text = capText(text, MAX_TOOL_RESULT_CHARS);
     const line = renderConversationTurn(message, role, text);
     if (line) convo.push(line);
   }
   const header = systemParts.length
     ? `System instructions:\n${systemParts.join("\n\n")}\n\n`
     : "";
-  const body = `${header}${convo.join(
+  return `${header}${convo.join(
     "\n\n"
   )}\n\nContinue the response using the tool result above; do not repeat the tool call.`.trim();
-  return capText(body, MAX_TOOL_EXCHANGE_CHARS);
-}
-
-/**
- * The user's actual instruction — the latest user message, capped. Kept separate from the
- * folded history so it is NOT duplicated into an oversized `user_instruction`, the likely
- * offending 422 field on tool-calling follow-up turns (#6220).
- */
-function buildLatestUserInstruction(messages: OpenAIMessage[]): string {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const role = String(messages[i]?.role || "user").toLowerCase();
-    if (role === "user") {
-      const text = extractTextContent(messages[i]?.content);
-      if (text) return capText(text, MAX_USER_INSTRUCTION_CHARS);
-    }
-  }
-  return "";
 }
 
 /**

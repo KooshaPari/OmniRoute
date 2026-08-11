@@ -24,7 +24,6 @@ import { resolveDashboardProviderInfo } from "../../../providerPageUtils";
 import {
   isBaseUrlConfigurableProvider,
   isBaseUrlOverrideEligibleProvider,
-  getAlternateFormats,
   getProviderBaseUrlDefault,
   getProviderBaseUrlHint,
   getProviderBaseUrlPlaceholder,
@@ -173,13 +172,14 @@ export default function EditConnectionModal({
   // providerSpecificData.baseUrl.
   const isConfigurableBaseUrl = isBaseUrlConfigurableProvider(provider);
   const isBaseUrlOverrideEligible =
-    !!connection && connectionAuthType !== "oauth" && isBaseUrlOverrideEligibleProvider(provider);
+    connection?.authType !== "oauth" && isBaseUrlOverrideEligibleProvider(provider);
   const [showBaseUrlOverride, setShowBaseUrlOverride] = useState(
     () =>
-      typeof connectionProviderSpecificData?.baseUrl === "string" &&
-      connectionProviderSpecificData.baseUrl.trim().length > 0
+      typeof connection?.providerSpecificData?.baseUrl === "string" &&
+      connection.providerSpecificData.baseUrl.trim().length > 0
   );
-  const usesBaseUrl = isConfigurableBaseUrl || (isBaseUrlOverrideEligible && showBaseUrlOverride);
+  const usesBaseUrl =
+    isConfigurableBaseUrl || (isBaseUrlOverrideEligible && showBaseUrlOverride);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
   const { defaultRegion, showsRegion } = getProviderRegionConfig(provider);

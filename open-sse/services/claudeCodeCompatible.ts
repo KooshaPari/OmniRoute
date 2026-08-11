@@ -21,7 +21,6 @@ import { applyClaudeCodeCompatibleThinkingDisplay } from "./claudeCodeCompatible
 import { obfuscateInBody } from "./claudeCodeObfuscation.ts";
 import { applySystemTransformPipeline, PROVIDER_CC_BRIDGE } from "./systemTransforms.ts";
 import { usesCcWireImage } from "./ccWireImageBuiltins.ts";
-import { collectClaudeMediaBlocks, convertOpenAiMediaBlock } from "./ccOpenAiMediaBlocks.ts";
 import {
   fixToolPairs,
   fixToolAdjacency,

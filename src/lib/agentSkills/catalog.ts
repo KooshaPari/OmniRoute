@@ -149,10 +149,8 @@ export function computeCoverage(): SkillCoverage {
   const configHave = catalog.filter((s) => s.category === "config" && presentIds.has(s.id)).length;
 
   return {
-    // Totals derive from the id lists — hardcoded 23/20 went stale the first
-    // time the catalog grew (cli-skill-collector registration, 2026-07-15).
-    api: { have: apiHave, total: API_SKILL_IDS.length },
-    cli: { have: cliHave, total: CLI_SKILL_IDS.length },
+    api: { have: apiHave, total: 23 },
+    cli: { have: cliHave, total: 20 },
     config: { have: configHave, total: configTotal },
     totalSkills: apiHave + cliHave + configHave,
     generatedAt: new Date().toISOString(),

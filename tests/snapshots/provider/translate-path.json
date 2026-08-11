@@ -28,7 +28,7 @@
       "apiKey": {
         "Accept": "text/event-stream",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.219 (external, sdk-cli)",
+        "User-Agent": "claude-cli/2.1.195 (external, sdk-cli)",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Lang": "js",
         "X-Stainless-OS": "MacOS",
@@ -47,7 +47,7 @@
       "nonStream": {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.219 (external, sdk-cli)",
+        "User-Agent": "claude-cli/2.1.195 (external, sdk-cli)",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Lang": "js",
         "X-Stainless-OS": "MacOS",
@@ -66,7 +66,7 @@
       "oauth": {
         "Accept": "text/event-stream",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.219 (external, sdk-cli)",
+        "User-Agent": "claude-cli/2.1.195 (external, sdk-cli)",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Lang": "js",
         "X-Stainless-OS": "MacOS",
@@ -86,29 +86,6 @@
     "url": {
       "nonStream": "https://agentrouter.org/v1/messages?beta=true",
       "stream": "https://agentrouter.org/v1/messages?beta=true"
-    }
-  },
-  "agnes": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://apihub.agnes-ai.com/v1/chat/completions",
-      "stream": "https://apihub.agnes-ai.com/v1/chat/completions"
     }
   },
   "agy": {
@@ -4295,32 +4272,6 @@
     "url": {
       "nonStream": "https://router.requesty.ai/v1/chat/completions",
       "stream": "https://router.requesty.ai/v1/chat/completions"
-    }
-  },
-  "routeway": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 OmniRoute/1.0"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 OmniRoute/1.0"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 OmniRoute/1.0"
-      }
-    },
-    "url": {
-      "nonStream": "https://api.routeway.ai/v1/chat/completions",
-      "stream": "https://api.routeway.ai/v1/chat/completions"
     }
   },
   "sambanova": {

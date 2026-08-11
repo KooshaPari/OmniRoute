@@ -74,8 +74,6 @@ export default function FreeProviderRankingsPage() {
   const [filter, setFilter] = useState<string>("");
   const [configuredOnly, setConfiguredOnly] = useState(false);
   const [availableOnly, setAvailableOnly] = useState(false);
-  const [typeFilter, setTypeFilter] = useState<ProviderAuthType | "">("");
-  const [groupByType, setGroupByType] = useState(false);
 
   const fetchRankings = useCallback(
     async (category?: string, opts?: { configuredOnly?: boolean; availableOnly?: boolean }) => {
@@ -106,13 +104,6 @@ export default function FreeProviderRankingsPage() {
   useEffect(() => {
     fetchRankings(filter || undefined, { configuredOnly, availableOnly });
   }, [filter, configuredOnly, availableOnly, fetchRankings]);
-
-  // Client-side Type filter + "group by type" sort (#6915) — purely derived
-  // from the already-fetched `rankings`, never trigger a refetch.
-  const displayedRankings = useMemo(() => {
-    const filtered = filterRankingsByAuthType(rankings, typeFilter);
-    return groupByType ? sortRankingsAuthTypeFirst(filtered) : filtered;
-  }, [rankings, typeFilter, groupByType]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -167,37 +158,6 @@ export default function FreeProviderRankingsPage() {
           {t("filterAvailableOnly")}
         </button>
       </div>
-
-      {/* Type filter chips + "group by type" sort (#6915) */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {TYPE_OPTIONS.map((opt) => (
-          <button
-            key={opt.value || "all"}
-            onClick={() => setTypeFilter(opt.value)}
-            aria-pressed={typeFilter === opt.value}
-            className={`px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
-              typeFilter === opt.value
-                ? "bg-violet-500 border-violet-500 text-white"
-                : "border-border text-text-muted hover:text-text-main hover:border-violet-500/50"
-            }`}
-          >
-            {t(opt.labelKey)}
-          </button>
-        ))}
-        <button
-          onClick={() => setGroupByType((v) => !v)}
-          aria-pressed={groupByType}
-          title={t("sortTypeFirstHelp")}
-          className={`px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
-            groupByType
-              ? "bg-emerald-500 border-emerald-500 text-white"
-              : "border-border text-text-muted hover:text-text-main hover:border-emerald-500/50"
-          }`}
-        >
-          {t("sortTypeFirst")}
-        </button>
-      </div>
-      <p className="text-xs text-text-muted">{t("typeLegend")}</p>
 
       {error && <div className="p-3 rounded-lg bg-red-500/10 text-red-400 text-sm">{error}</div>}
 

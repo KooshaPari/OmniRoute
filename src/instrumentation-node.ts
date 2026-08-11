@@ -752,42 +752,34 @@ export async function registerNodejs(): Promise<void> {
           console.warn("[STARTUP] context-window reconcile failed to start (non-fatal):", msg);
         }),
 
-      // TV6 typed memory decay: optional periodic sweep of decayed episodic memories.
-      // Doubly opt-in (no-op unless MEMORY_TYPED_DECAY_ENABLED=true AND
-      // MEMORY_TYPED_DECAY_SWEEP_INTERVAL>0). Never deletes by default. Never fatal.
-      import("@/lib/memory/typedDecay")
-        .then((m) => m.startMemoryDecaySweep())
-        .catch((err: unknown) => {
-          const msg = err instanceof Error ? err.message : String(err);
-          console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
-        }),
+    // TV6 typed memory decay: optional periodic sweep of decayed episodic memories. Doubly
+    // opt-in (no-op unless MEMORY_TYPED_DECAY_ENABLED=true AND
+    // MEMORY_TYPED_DECAY_SWEEP_INTERVAL>0). Never deletes by default. Never fatal.
+    try {
+      const { startMemoryDecaySweep } = await import("@/lib/memory/typedDecay");
+      startMemoryDecaySweep();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
+    }
 
-      // Backup schedule (#8513): execute `backup-schedule.json` cron server-side.
-      // Reads the schedule written by `omniroute backup auto enable` and fires
-      // `runBackupCommand` when the cron expression matches. Self-gated: no-op
-      // when no schedule file exists or the schedule is disabled. Never fatal.
-      import("@/lib/jobs/backupScheduleJob")
-        .then((m) => m.startBackupScheduleJob())
-        .catch((err: unknown) => {
-          const msg = err instanceof Error ? err.message : String(err);
-          console.warn("[STARTUP] backup schedule job failed to start (non-fatal):", msg);
-        }),
-
-      // Real-time dashboard WebSocket daemon (port 20132): powers Combo Studio Live,
-      // the Home live-pulse, and Live Compression. Side-effect import triggers the
-      // flag-gated auto-start (OMNIROUTE_ENABLE_LIVE_WS, default ON).
-      import("@/server/ws/liveServer")
-        .then(() => {
-          console.log("[STARTUP] Live dashboard WebSocket daemon bootstrap invoked");
-        })
-        .catch((err: unknown) => {
-          const msg = err instanceof Error ? err.message : String(err);
-          console.warn(
-            "[STARTUP] Live dashboard WebSocket daemon failed to start (non-fatal):",
-            msg
-          );
-        }),
-    ]);
+    // Real-time dashboard WebSocket daemon (port 20129): powers Combo Studio Live,
+    // the Home live-pulse, and Live Compression. liveServer.ts auto-starts the
+    // daemon on import (gated by OMNIROUTE_ENABLE_LIVE_WS, default ON) — but NOTHING
+    // imported it in the packaged standalone/PM2 runtime. Only the unused
+    // `server-init.ts` and a dev-only helper script (`scripts/start-ws-server.mjs`)
+    // ever pulled it into a module graph, so in the published `omniroute` bin the
+    // daemon never bound its port and every live dashboard reported "Live disabled —
+    // WebSocket disconnected". Importing it here (the instrumentation hook that DOES
+    // run in standalone) fires that flag-gated auto-start. Side-effect import + the
+    // module's own `.catch` keep it non-fatal.
+    try {
+      await import("@/server/ws/liveServer");
+      console.log("[STARTUP] Live dashboard WebSocket daemon bootstrap invoked");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] Live dashboard WebSocket daemon failed to start (non-fatal):", msg);
+    }
   }
 
   markServerReady();

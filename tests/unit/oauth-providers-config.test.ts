@@ -71,7 +71,6 @@ const EXPECTED_PROVIDER_KEYS = [
   "xai-oauth",
   "codebuddy-cn",
   "zed",
-  "zed-hosted",
 ];
 
 const browserUrl = "http://localhost:20128/callback";
@@ -104,7 +103,6 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   "xai-oauth": XAI_OAUTH_CONFIG,
   "codebuddy-cn": CODEBUDDY_CN_CONFIG,
   zed: ZED_CONFIG,
-  "zed-hosted": ZED_HOSTED_CONFIG,
 };
 
 const KIRO_REQUIRED_FIELDS = [

@@ -3,7 +3,6 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getCallLogs } from "@/lib/usageDb";
 import { getCompletedDetails, getPendingById } from "@/lib/usage/usageHistory";
 import { getProviderConnections } from "@/lib/localDb";
-import { getProviderNodes } from "@/models";
 import { matchesSearch } from "@/shared/utils/turkishText";
 
 type CallLogListRowsInput = {

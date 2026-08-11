@@ -1,9 +1,6 @@
 import path from "node:path";
 import { ensureCliConfigWriteAllowed, getCliConfigPaths } from "../../shared/services/cliRuntime";
-import {
-  fetchModelSyncInternal,
-  getModelSyncInternalBaseUrl,
-} from "../../shared/services/modelSyncScheduler";
+import { getModelSyncInternalBaseUrl } from "../../shared/services/modelSyncScheduler";
 import { isFeatureFlagEnabled } from "../../shared/utils/featureFlags";
 
 type SyncResult =

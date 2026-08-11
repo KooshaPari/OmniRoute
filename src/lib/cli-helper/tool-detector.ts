@@ -3,11 +3,7 @@ import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { getCurrentHermesAgentRoles } from "./config-generator/hermes-agent";
-import {
-  getLookupEnv,
-  locateCommand,
-  shouldUseShellForCommand,
-} from "../../shared/services/cliRuntime";
+import { getCachedLoginShellPath, mergeShellPath } from "../../shared/services/loginShellPath";
 
 const execFileAsync = promisify(execFile);
 let execFileImpl = execFileAsync;

@@ -6,10 +6,6 @@
 //   2. github + gpt-5.4: temperature unsupported.
 //   3. github + Claude (except opus/sonnet 4.6): thinking + reasoning_effort rejected.
 //   4. nvidia + z-ai/glm-5.2: reasoning rejected → NVIDIA 400.
-//   5. volcengine + kimi-k2-5-260127: max_tokens clamped to the Ark endpoint cap
-//      (32768), confirmed independently against two live-endpoint reports for the
-//      same Volcengine Ark Kimi coding-plan endpoint (decolua/9router#2460;
-//      NousResearch/hermes-agent#51773; MoonshotAI/kimi-cli#1124).
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -158,7 +154,7 @@ test("stripUnsupportedParams: nvidia non-glm-5 model keeps reasoning", () => {
   assert.ok(body.reasoning !== undefined, "reasoning must survive for non-glm-5 nvidia model");
 });
 
-test("STRIP_RULES is non-empty and every rule has a drop list or a clamp mechanism", () => {
+test("STRIP_RULES is non-empty and every rule has a drop list", () => {
   assert.ok(__STRIP_RULES_FOR_TEST.length > 0);
   for (const rule of __STRIP_RULES_FOR_TEST) {
     const hasDrop = Array.isArray(rule.drop) && rule.drop.length > 0;

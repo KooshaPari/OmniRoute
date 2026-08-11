@@ -228,6 +228,21 @@ export const WEB_COOKIE_PROVIDERS = {
       "Log in to yuanbao.tencent.com, then paste the full Cookie header (DevTools → Network → any /api request → Request Headers → Cookie). It must contain hy_user and hy_token.",
     riskNoticeVariant: "webCookie",
   },
+  "yuanbao-web": {
+    id: "yuanbao-web",
+    alias: "ybw",
+    name: "Tencent Yuanbao (Free)",
+    icon: "auto_awesome",
+    color: "#0052D9",
+    textIcon: "YB",
+    website: "https://yuanbao.tencent.com",
+    hasFree: true,
+    freeNote:
+      "Free consumer web session — DeepSeek V3/R1 and Hunyuan / Hunyuan-T1, optional web search. No subscription required. Rate limits apply.",
+    authHint:
+      "Log in to yuanbao.tencent.com, then paste the full Cookie header (DevTools → Network → any /api request → Request Headers → Cookie). It must contain hy_user and hy_token.",
+    riskNoticeVariant: "webCookie",
+  },
   huggingchat: {
     id: "huggingchat",
     // "hc" belongs to the hackclub provider; huggingchat uses its own id as alias.
@@ -291,14 +306,9 @@ export const WEB_COOKIE_PROVIDERS = {
     icon: "auto_awesome",
     color: "#2563EB",
     textIcon: "KW",
-    // Kimi official-partnership aff link (2026-07) — the "Kimi Coding Plan"
-    // tracking link (same origin as the plain www.kimi.com login flow below,
-    // so the "Open {host}" credential guide in WebSessionCredentialGuide.tsx /
-    // AddApiKeyModal.tsx is unaffected: origin, not path, decides localStorage
-    // access). Was `https://www.kimi.com` (no aff attribution).
-    website: "https://www.kimi.com/code?aff=omniroute",
+    website: "https://www.kimi.com",
     authHint:
-      "Paste access_token from www.kimi.com DevTools → Application → Local Storage. A legacy kimi-auth cookie is also accepted.",
+      "Paste your Cookie header from www.kimi.com (must contain kimi-auth=...). Find it via DevTools → Network → request → Cookie.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
@@ -312,23 +322,6 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://www.dola.com",
     authHint:
       "Paste the full Cookie header from www.dola.com. It should include sessionid, ttwid, and s_v_web_id. If s_v_web_id is unavailable, fp=verify_... from a chat/completion request URL can be used as a fallback.",
-    subscriptionRisk: true,
-    riskNoticeVariant: "webCookie",
-  },
-  "hailuo-web": {
-    id: "hailuo-web",
-    // Distinct alias: avoid colliding with the existing API-key "minimax"/
-    // "minimax-cn" providers (src/shared/constants/providers/apikey/regional.ts).
-    alias: "hailuo-web",
-    name: "Hailuo Web (MiniMax)",
-    icon: "auto_awesome",
-    color: "#5B21B6",
-    textIcon: "HL",
-    website: "https://hailuo.ai",
-    authHint:
-      "Open hailuo.ai, log in, then open DevTools → Application → Local Storage → copy the " +
-      '"_token" value. device_id/uuid fingerprint fields are derived automatically; if ' +
-      "requests fail, re-capture _token (sessions can expire).",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },

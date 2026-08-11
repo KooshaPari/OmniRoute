@@ -68,7 +68,10 @@ export default function WeightTotalBar({ models }: WeightTotalBarProps) {
                   {m.weight}%
                   {/* #6147 — show the *effective* routing share when weights don't sum to 100 */}
                   {total > 0 && total !== 100 && (
-                    <span className="text-text-muted/70" title={t("effectiveRoutingShare")}>
+                    <span
+                      className="text-text-muted/70"
+                      title="Effective routing share (weight ÷ total)"
+                    >
                       {" → "}
                       {Math.round(effectiveSharePercent(m.weight, total))}%
                     </span>

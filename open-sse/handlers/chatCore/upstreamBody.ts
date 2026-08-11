@@ -15,11 +15,7 @@ import {
   resolvePayloadRuleProtocols,
 } from "../../services/payloadRules.ts";
 import { getEffectiveToolLimit, getKnownToolLimit } from "../../services/toolLimitDetector.ts";
-import {
-  providerSupportsCaching,
-  resolveConnectionCacheOverride,
-  type ConnectionCacheOverride,
-} from "../../utils/cacheControlPolicy.ts";
+import { providerSupportsCaching } from "../../utils/cacheControlPolicy.ts";
 import { FORMATS } from "../../translator/formats.ts";
 import { sanitizeRequestForResolvedTarget } from "../../services/targetRequestSanitizer.ts";
 
@@ -152,19 +148,9 @@ export async function prepareUpstreamBody(opts: {
     );
   }
 
-  bodyToSend = sanitizeRequestForResolvedTarget(bodyToSend, {
-    provider,
-    model: payloadRuleModel,
-    log,
-  });
   bodyToSend = truncateToolList(bodyToSend, provider, bypassDefaultToolLimit ?? false, log);
-  const connectionCacheOverride = resolveConnectionCacheOverride(credentials?.providerSpecificData);
-  bodyToSend = await injectPromptCacheKey(
-    bodyToSend,
-    provider,
-    targetFormat,
-    connectionCacheOverride
-  );
+  bodyToSend = backfillQwenOAuthUser(bodyToSend, provider, credentials, log);
+  bodyToSend = await injectPromptCacheKey(bodyToSend, provider, targetFormat);
 
   return bodyToSend;
 }

@@ -426,51 +426,6 @@ function stripTrailingAntigravityAssistantTurn(
 // Test-only export so the unit suite can exercise the strip logic directly.
 export const __test_stripTrailingAntigravityAssistantTurn = stripTrailingAntigravityAssistantTurn;
 
-type AntigravityCreditsRetryState = { attempted: boolean };
-
-/** Base per-url-index attempt context, before the request has been sent. */
-type AntigravityAttemptContext = {
-  url: string;
-  model: string;
-  /** Pre-serialization headers (built by buildHeaders + mergeUpstreamExtraHeaders) — the
-   * credits-retry re-serializes from these, NOT from `finalHeaders` (already fingerprinted). */
-  headers: Record<string, string>;
-  transformedBody: Record<string, unknown>;
-  credentials: AntigravityCredentials;
-  stream: boolean;
-  signal: AbortSignal | null | undefined;
-  log: SafeAntigravityLog;
-  accountId: string;
-  creditsMode: ReturnType<typeof getCreditsMode>;
-  creditsRetryState: AntigravityCreditsRetryState;
-  urlIndex: number;
-  retryAttemptsByUrl: Record<number, number>;
-  fallbackCount: number;
-};
-
-/** Context threaded through the 429/503 handling helpers — adds the sent response. */
-type AntigravityRateLimitContext = AntigravityAttemptContext & {
-  response: Response;
-  finalHeaders: Record<string, string>;
-};
-
-/**
- * Outcome of handling a 429/503 response — tells executeOnce()'s loop what to do next.
- * `lastStatus` mirrors the original inline code, which only updated the outer
- * `lastStatus` variable when NOT retrying the same url (i.e. on retryNextUrl/fallthrough,
- * never on the bounded-short-retry or transient-auto-retry same-url paths).
- */
-type AntigravityRateLimitOutcome =
-  | { action: "return"; result: SsePassthroughResult }
-  | { action: "retrySameUrl" }
-  | { action: "retryNextUrl"; lastStatus: number }
-  | { action: "fallthrough"; retryMs: number | null; lastStatus: number };
-
-/** Outcome of one full per-url attempt in executeOnce() — return a result, or retry. */
-type AntigravityAttemptOutcome =
-  | { action: "return"; result: SsePassthroughResult }
-  | { action: "retry"; sameUrl: boolean; lastStatus?: number };
-
 export class AntigravityExecutor extends BaseExecutor {
   constructor() {
     super("antigravity", PROVIDERS.antigravity);
@@ -660,9 +615,7 @@ export class AntigravityExecutor extends BaseExecutor {
     };
 
     const transformedRequest = isClaude
-      ? stripTrailingAntigravityAssistantTurn(
-          sanitizeAntigravityGeminiRequest(rawTransformedRequest)
-        )
+      ? stripTrailingAntigravityAssistantTurn(sanitizeAntigravityGeminiRequest(rawTransformedRequest))
       : rawTransformedRequest;
 
     applyAntigravityGenerationDefaults(transformedRequest);

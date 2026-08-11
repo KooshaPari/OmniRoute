@@ -855,19 +855,6 @@ export async function handleChat(
             providerId: target?.providerId ?? null,
             correlationId: reqId,
             modelPinned: (target as any)?.modelPinned ?? false,
-            reasoningDecision,
-            reasoningIntent,
-            reasoningRequestTags: requestRoutingTags.tags,
-            // #7360 follow-up: without this, a target dispatch abandoned by
-            // targetTimeoutRunner.ts's per-target timeout (comboTargetTimeoutMs)
-            // never learns it was abandoned — it only watches the ORIGINAL
-            // client's request.signal (see clientRawRequest below), which stays
-            // open for as long as the overall combo keeps retrying elsewhere.
-            // The abandoned dispatch then hangs forever inside withRateLimit/
-            // acquireAccountSemaphore, leaking a permanent "pending" dashboard
-            // entry (trackPendingRequest(false) never runs) — live incident,
-            // log id 1784418258231-14961a.
-            modelAbortSignal: target?.modelAbortSignal ?? null,
           },
           target?.effectiveComboStrategy ?? combo.strategy,
           true
@@ -1502,7 +1489,6 @@ async function handleSingleModelChat(
         skipUpstreamRetry: runtimeOptions.skipUpstreamRetry ?? false,
         correlationId: runtimeOptions?.correlationId ?? null,
         modelPinned: runtimeOptions?.modelPinned ?? false,
-        routingComboId: runtimeOptions?.routingComboId ?? null,
       });
       if (telemetry) telemetry.endPhase();
 

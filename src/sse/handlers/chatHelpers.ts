@@ -28,6 +28,7 @@ import {
   type AppliedProxySink,
 } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { resolveProxyForConnection } from "@/lib/localDb";
+import { hasBlockingProxyAssignment } from "@/lib/db/proxies";
 import {
   CircuitBreakerOpenError,
   getCircuitBreaker,
@@ -384,7 +385,6 @@ export async function executeChatWithBreaker({
   trafficType = "production",
   correlationId = null,
   modelPinned = false,
-  routingComboId = null,
 }: ExecuteChatWithBreakerOptions): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
   let tlsFingerprintUsed = false;
   const normalizedTrafficType: TrafficType =
@@ -422,7 +422,6 @@ export async function executeChatWithBreaker({
             trafficType: normalizedTrafficType,
             correlationId,
             modelPinned,
-            routingComboId,
             onCredentialsRefreshed: async (newCreds: any) => {
               await updateProviderCredentials(credentials.connectionId, {
                 accessToken: newCreds.accessToken,
@@ -448,8 +447,7 @@ export async function executeChatWithBreaker({
               if (
                 Number(failure?.status) === 499 ||
                 failure?.code === "client_disconnected" ||
-                failure?.type === "client_disconnected" ||
-                isLocalStreamLifecycleError(failure?.message ?? failure) // client abort, #4602
+                failure?.type === "client_disconnected"
               ) {
                 return;
               }
@@ -477,20 +475,9 @@ export async function executeChatWithBreaker({
                 providerProfile,
                 { isCombo }
               );
-              return;
-            }
-            await markAccountUnavailable(
-              credentials.connectionId,
-              Number(failure?.status || HTTP_STATUS.BAD_GATEWAY),
-              String(failure?.message || failure?.code || "stream failure"),
-              provider,
-              model,
-              providerProfile,
-              { isCombo }
-            );
-          },
-        })
-      )
+            },
+          })
+        )
       );
 
     if (isShadowTraffic) {
@@ -702,15 +689,12 @@ export async function safeResolveProxy(
   providerId?: string
 ) {
   try {
-    const resolved = await resolveProxyForConnection(connectionId, apiKeyId, providerId);
+    const resolved = await resolveProxyForConnection(connectionId, apiKeyId);
     // #6246: a connection that resolves to DIRECT only because its assigned proxy
     // is dead/inactive must fail closed — egressing on the real IP leaks it. Reuse
     // the existing proxy-resolution-failure policy (blocks by default; PROXY_FAIL_OPEN
     // opts back into direct). Explicit "proxy off" is not a leak (see the guard).
-    if (
-      !(resolved as { proxy?: unknown } | null)?.proxy &&
-      hasBlockingProxyAssignment(connectionId, providerId)
-    ) {
+    if (!(resolved as { proxy?: unknown } | null)?.proxy && hasBlockingProxyAssignment(connectionId)) {
       return decideProxyResolutionFailure(
         Object.assign(
           new Error(

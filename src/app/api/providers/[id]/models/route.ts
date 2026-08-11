@@ -264,7 +264,10 @@ export async function GET(
     const staleEncryptionResponse = buildStaleEncryptionKeyResponse(connection);
     if (staleEncryptionResponse) return staleEncryptionResponse;
 
-    const provider = connectionProvider;
+    const provider =
+      typeof connection.provider === "string" && connection.provider.trim().length > 0
+        ? connection.provider
+        : null;
     if (!provider) {
       return NextResponse.json({ error: "Invalid connection provider" }, { status: 400 });
     }

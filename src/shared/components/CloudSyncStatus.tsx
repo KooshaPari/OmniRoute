@@ -19,11 +19,11 @@ import { useTranslations } from "next-intl";
 // store — it is not a cloud/telemetry service). Internal state keys, the
 // `cloud_*` material icons and the cloudSync.* wiring are intentionally kept.
 const STATUS_CONFIG = {
-  connected: { icon: "cloud_done", color: "text-green-500", labelKey: "synced" },
-  syncing: { icon: "cloud_sync", color: "text-blue-400 animate-pulse", labelKey: "syncing" },
-  disconnected: { icon: "cloud_off", color: "text-amber-500", labelKey: "off" },
-  error: { icon: "cloud_off", color: "text-red-400", labelKey: "error" },
-  disabled: { icon: "cloud_off", color: "text-text-muted/50", labelKey: "disabled" },
+  connected: { icon: "cloud_done", color: "text-green-500", label: "Synced" },
+  syncing: { icon: "cloud_sync", color: "text-blue-400 animate-pulse", label: "Syncing..." },
+  disconnected: { icon: "cloud_off", color: "text-amber-500", label: "Sync Off" },
+  error: { icon: "cloud_off", color: "text-red-400", label: "Sync Error" },
+  disabled: { icon: "cloud_off", color: "text-text-muted/50", label: "Disabled" },
 };
 
 export default function CloudSyncStatus({ collapsed = false }) {
@@ -87,13 +87,10 @@ export default function CloudSyncStatus({ collapsed = false }) {
       className="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg hover:bg-white/5 transition-colors cursor-pointer w-full"
       title={
         lastSync
-          ? t("lastSync", {
-              status: status === "connected" ? t("connected") : t("disconnected"),
-              time: lastSync.toLocaleTimeString(),
-            })
-          : label
+          ? `Remote settings sync ${status === "connected" ? "connected" : "disconnected"} — Last sync: ${lastSync.toLocaleTimeString()}`
+          : config.label
       }
-      aria-label={t("statusLabel", { status: label })}
+      aria-label={`Remote settings sync status: ${config.label}`}
     >
       <span className={`material-symbols-outlined text-[16px] ${config.color}`} aria-hidden="true">
         {config.icon}

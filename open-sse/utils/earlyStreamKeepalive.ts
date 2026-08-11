@@ -149,25 +149,8 @@ export type EarlyStreamKeepaliveOptions = {
    * for their stream watchdog and only a real `event: ping` keeps them from aborting.
    */
   keepaliveFrame?: Uint8Array;
-  /**
-   * Frame emitted ONCE, immediately, as the very first byte of the slow path —
-   * before the recurring `keepaliveFrame` ticks start. Defaults to
-   * `keepaliveFrame` when omitted (today's behavior, unchanged). Pass a
-   * content-bearing frame (e.g. `OPENAI_STARTUP_THINKING_FRAME`) so the client
-   * sees visible progress instead of an empty/no-op keepalive on the first byte.
-   */
-  startupFrame?: Uint8Array;
   /** Extra headers to include in the keepalive response (e.g. X-Correlation-Id). */
   extraHeaders?: Record<string, string>;
-  /**
-   * Frame emitted if the handler ultimately fails (or the upstream stream dies
-   * mid-flight with zero bytes forwarded) after the slow path has already
-   * committed to HTTP 200. Defaults to the Anthropic-style `event: error` frame
-   * (correct for /v1/messages). OpenAI-format routes (/v1/chat/completions,
-   * /v1/responses) MUST pass OPENAI_CHAT_ERROR_FRAME / OPENAI_RESPONSES_ERROR_FRAME
-   * instead — see the doc comment on the default ERROR_FRAME above for why.
-   */
-  errorFrame?: Uint8Array;
 };
 
 /**
@@ -188,14 +171,7 @@ export async function withEarlyStreamKeepalive(
   const intervalMs = Math.max(250, options.intervalMs ?? 2_500);
   const signal = options.signal ?? null;
   const keepaliveFrame = options.keepaliveFrame ?? KEEPALIVE_FRAME;
-  const startupFrame = options.startupFrame ?? keepaliveFrame;
   const extraHeaders = options.extraHeaders ?? {};
-  const errorFrame = options.errorFrame ?? ERROR_FRAME;
-  // Single source of truth for whether THIS route's error framing uses a named SSE
-  // `event: error` line (Anthropic) or a plain `data:` line (OpenAI Chat Completions /
-  // Responses) — derived from errorFrame itself so the dynamic real-upstream-body case
-  // below stays consistent with the static default-message case without a second option.
-  const errorFrameUsesNamedEvent = new TextDecoder().decode(errorFrame).startsWith("event:");
 
   // Settle into a tagged result so neither race branch leaves an unhandled
   // rejection when the threshold timer wins.
@@ -313,7 +289,7 @@ export async function withEarlyStreamKeepalive(
               // the SSE stream. Silently close instead; the client will see
               // the stream end naturally.
               if (bytesForwarded === 0) {
-                controller.enqueue(errorFrame);
+                controller.enqueue(ERROR_FRAME);
               }
             }
           } else {

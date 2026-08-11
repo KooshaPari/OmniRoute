@@ -88,17 +88,11 @@ test("GitHub Copilot registry reflects the current supported model lineup", () =
   const ids = githubModels.map((model) => model.id);
 
   assert.deepEqual(ids, [...GITHUB_COPILOT_MODEL_ALLOWLIST]);
-  assert.equal(getModelTargetFormat("gh", "claude-opus-5"), "claude");
   assert.equal(getModelTargetFormat("gh", "gpt-5.3-codex"), "openai-responses");
   // "claude-opus-4.6" is not a real Copilot model id (unlike claude-sonnet-4.6);
   // it never appears in the registry, so its target format stays null.
   assert.equal(getModelTargetFormat("gh", "claude-opus-4.6"), null);
-  // Claude models route through Copilot's Anthropic-native /v1/messages shim
-  // (executors/github.ts) — the only endpoint that surfaces prompt-cache token
-  // counts for Claude and avoids a lossy tool_use/tool_result round-trip through
-  // the OpenAI shape. Port of decolua/9router#2608.
-  assert.equal(getModelTargetFormat("gh", "claude-opus-4.8-fast"), "claude");
-  assert.equal(getModelTargetFormat("gh", "claude-sonnet-4.6"), "claude");
+  assert.equal(getModelTargetFormat("gh", "claude-opus-4.8-fast"), null);
   assert.equal(getModelTargetFormat("gh", "gemini-3.5-flash"), null);
   assert.equal(getModelTargetFormat("gh", "kimi-k2.7-code"), null);
   assert.equal(ids.includes("gpt-4"), false);
@@ -109,16 +103,6 @@ test("GitHub Copilot registry reflects the current supported model lineup", () =
   assert.equal(ids.includes("claude-opus-4.1"), false);
   assert.equal(ids.includes("claude-opus-4-5-20251101"), false);
   assert.equal(ids.includes("gemini-3-flash-preview"), false);
-});
-
-test("Claude flagship catalogs keep Fable 5 first", () => {
-  for (const provider of ["anthropic", "cc", "cw", "gh", "ghe-copilot"]) {
-    assert.equal(
-      getProviderModels(provider)[0]?.id,
-      "claude-fable-5",
-      `${provider} must list the strongest Claude model first`
-    );
-  }
 });
 
 test("Kiro registry exposes the current CLI model lineup with context windows", () => {

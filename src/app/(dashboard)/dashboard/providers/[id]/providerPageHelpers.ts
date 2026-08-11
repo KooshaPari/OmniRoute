@@ -311,16 +311,6 @@ export function isBaseUrlOverrideEligibleProvider(providerId?: string | null): b
   return true;
 }
 
-/**
- * Alternate API protocols the provider declares in the registry (e.g. an
- * Anthropic-compatible endpoint alongside the default OpenAI one). An empty list
- * means the protocol selector stays hidden for this provider.
- */
-export function getAlternateFormats(providerId?: string | null): AlternateFormat[] {
-  if (!providerId) return [];
-  return getRegistryEntry(providerId)?.alternateFormats ?? [];
-}
-
 export function getProviderBaseUrlDefault(providerId?: string | null) {
   const localProvider = getLocalProviderMetadata(providerId);
   if (typeof localProvider?.localDefault === "string" && localProvider.localDefault.trim()) {

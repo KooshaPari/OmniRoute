@@ -13,7 +13,6 @@ import assert from "node:assert/strict";
 
 const { opencode_goProvider } =
   await import("../../open-sse/config/providers/registry/opencode/go/index.ts");
-const { getResolvedModelCapabilities } = await import("../../src/lib/modelCapabilities.ts");
 
 function modelIds(): string[] {
   return (opencode_goProvider.models ?? []).map((m) => m.id);

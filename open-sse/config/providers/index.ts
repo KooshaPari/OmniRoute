@@ -211,11 +211,7 @@ import { zenmux_freeProvider } from "./registry/zenmux-free/index.ts";
 import { sumopodProvider } from "./registry/sumopod/index.ts";
 import { x5labProvider } from "./registry/x5lab/index.ts";
 import { kenariProvider } from "./registry/kenari/index.ts";
-import { navyProvider } from "./registry/navy/index.ts";
-import { naraProvider } from "./registry/nara/index.ts";
 import { requestyProvider } from "./registry/requesty/index.ts";
-import { digitaloceanProvider } from "./registry/digitalocean/index.ts";
-import { hcnsecProvider } from "./registry/hcnsec/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -429,9 +425,5 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   sumopod: sumopodProvider,
   x5lab: x5labProvider,
   kenari: kenariProvider,
-  navy: navyProvider,
-  nara: naraProvider,
   requesty: requestyProvider,
-  digitalocean: digitaloceanProvider,
-  hcnsec: hcnsecProvider,
 };

@@ -507,10 +507,16 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 8.0,
       cache_creation: 2.0,
     },
-    // Kiro's GPT-5.6 family (kiro.dev/changelog/models, 2026-07-14) — same
-    // per-tier rates the codex/openai aliases already bill at.
-    "gpt-5.6-sol": GPT_5_6_SOL_PRICING,
-    "gpt-5.6-terra": GPT_5_6_TERRA_PRICING,
-    "gpt-5.6-luna": GPT_5_6_LUNA_PRICING,
+    // Kiro "Auto" pricing — retained as a fallback price for any legacy "auto"
+    // reference. The "auto-kiro" registry model was removed (Kiro's API has no
+    // "auto" model id — it 400'd "Invalid model"), so its dedicated price key
+    // was dropped with it. See kiro cluster #6112/#6113/#6099.
+    auto: {
+      input: 3.0,
+      output: 15.0,
+      cached: 1.5,
+      reasoning: 15.0,
+      cache_creation: 3.0,
+    },
   },
 };

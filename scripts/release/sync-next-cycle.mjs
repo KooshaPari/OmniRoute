@@ -64,18 +64,6 @@ export function insertNextSection(mainChangelog, nextSection, nextVersion) {
     .replace(/\n{4,}/g, "\n\n\n");
 }
 
-/** Pure: the version whose `## [x.y.z]` heading follows `version`'s section (or null). */
-export function versionAfter(changelog, version) {
-  const lines = changelog.split("\n");
-  const start = lines.findIndex((l) => l.startsWith(`## [${version}]`));
-  if (start === -1) return null;
-  for (let i = start + 1; i < lines.length; i++) {
-    const m = lines[i].match(/^## \[(\d+\.\d+\.\d+)\]/);
-    if (m) return m[1];
-  }
-  return null;
-}
-
 /** Pure: extract the `## [<version>]` section (header included, next heading excluded). */
 export function extractSection(changelog, version) {
   const lines = changelog.split("\n");
@@ -101,18 +89,7 @@ export function extractSection(changelog, version) {
 }
 
 function git(args, opts = {}) {
-  // maxBuffer: the default 1 MiB overflows on `git show origin/main:CHANGELOG.md`
-  // (the CHANGELOG alone is >1 MiB) — ENOBUFS found live in the v3.8.45 run (2026-07-06).
-  return execFileSync("git", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, ...opts }).trim();
-}
-
-// The sync-back is the ONE write path to the release branch with no CI gate — a red
-// merged tree pushed here turns the whole PR queue red (G1, v3.8.49 quality plan WS0.3).
-// Returns the validate-release-green invocation to run before the push, or null when
-// the operator passed --skip-green-gate (emergency hatch: tip reds verified pre-existing).
-export function greenGateArgs(argv) {
-  if (argv.includes("--skip-green-gate")) return null;
-  return ["scripts/quality/validate-release-green.mjs", "--quick"];
+  return execFileSync("git", args, { encoding: "utf8", ...opts }).trim();
 }
 
 function main() {
@@ -186,18 +163,6 @@ function main() {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });
-    // Also propagate the just-FINALIZED [prevVersion] section (dated bullets +
-    // Contributors) into the mirrors — syncing only [NEXT] leaves the shipped
-    // section as "— TBD" in all 42 mirrors (found live in the v3.8.45 run).
-    // Boundary = the version heading right below it in main's CHANGELOG.
-    const belowPrev = versionAfter(mainChangelog, prevVersion);
-    if (belowPrev) {
-      execFileSync("npm", ["run", "release:sync-changelog-i18n", "--", prevVersion, belowPrev], {
-        cwd: WT,
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "pipe"],
-      });
-    }
     execFileSync("git", ["add", "-A", "docs/i18n"], { cwd: WT });
   } catch (e) {
     console.warn("[sync-next-cycle] i18n mirror resync failed (resolve manually):", e.message);
@@ -218,29 +183,6 @@ function main() {
   }
 
   git(["commit", "-m", `chore(release): sync main (v${prevVersion} close) into ${BRANCH} — parallel-cycle sync-back`], { cwd: WT });
-
-  // WS0.3 green gate: validate the MERGED tree before it reaches origin. The commit
-  // stays local on failure so the captain can inspect/fix in the sync worktree.
-  const gate = greenGateArgs(process.argv);
-  if (gate) {
-    const nm = path.join(WT, "node_modules");
-    if (!fs.existsSync(nm)) fs.symlinkSync(path.join(ROOT, "node_modules"), nm, "dir");
-    console.log("[sync-next-cycle] release-green --quick on the merged tree (pre-push gate)…");
-    try {
-      execFileSync("node", gate, { cwd: WT, stdio: "inherit", maxBuffer: 64 * 1024 * 1024 });
-    } catch {
-      console.error(
-        `[sync-next-cycle] ABORT: release-green --quick found HARD failures in the merged tree.` +
-          `\n  The sync commit is LOCAL-ONLY in ${WT} — fix the reds there, then re-run this script.` +
-          `\n  Use --skip-green-gate ONLY after verifying the reds pre-exist on origin/${BRANCH}.`
-      );
-      process.exit(1);
-    }
-    fs.rmSync(nm, { force: true });
-  } else {
-    console.warn("[sync-next-cycle] ⚠ --skip-green-gate: pushing WITHOUT release-green validation.");
-  }
-
   git(["push", "origin", BRANCH], { cwd: WT });
 
   const left = git(["rev-list", "--count", `${BRANCH}..origin/main`], { cwd: WT });

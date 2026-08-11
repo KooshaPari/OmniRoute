@@ -28,14 +28,8 @@ export const opencode_goProvider: RegistryEntry = {
     { id: "kimi-k2.7-code", name: "Kimi K2.7 Code" },
     { id: "kimi-k2.6", name: "Kimi K2.6" },
     { id: "kimi-k2.5", name: "Kimi K2.5" },
-    // #8353: Kimi K3 base + max-effort alias from the OpenCode Go registry.
-    { id: "kimi-k3", name: "Kimi K3", supportsReasoning: true },
-    { id: "kimi-k3-max", name: "Kimi K3 (max effort)", supportsReasoning: true },
-    // MiMo-V2.5 — base model + effort-tier aliases (#6922).
-    { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro", supportsReasoning: true },
-    { id: "mimo-v2.5", name: "MiMo-V2.5", supportsReasoning: true },
-    { id: "mimo-v2.5-high", name: "MiMo-V2.5 (high effort)", supportsReasoning: true },
-    { id: "mimo-v2.5-max", name: "MiMo-V2.5 (max effort)", supportsReasoning: true },
+    { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro" },
+    { id: "mimo-v2.5", name: "MiMo-V2.5" },
     // #3110: MiniMax M3 via OpenCode Go tier
     {
       id: "minimax-m3",

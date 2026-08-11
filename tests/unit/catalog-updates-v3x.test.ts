@@ -60,39 +60,7 @@ test("Fable 5 catalog exposes claude-fable-5 in cc — but NOT via Kiro (fabrica
   assert.ok(ccPricing["claude-fable-5"], "cc pricing must include claude-fable-5");
 
   const kiroIds = new Set(getModelsByProviderId("kiro").map((m) => m.id));
-  assert.equal(
-    kiroIds.has("claude-fable-5"),
-    false,
-    "kiro must NOT expose claude-fable-5 (fabricated)"
-  );
-});
-
-test("Opus 5 catalog is limited to verified first-party, web, and Copilot providers", () => {
-  for (const providerId of ["claude", "github", "claude-web", "anthropic"]) {
-    const model = getModelsByProviderId(providerId).find((entry) => entry.id === "claude-opus-5");
-    assert.ok(model, `${providerId} must expose claude-opus-5`);
-  }
-
-  const claude = getModelsByProviderId("claude").find((entry) => entry.id === "claude-opus-5");
-  assert.equal(claude?.contextLength, 1000000);
-  assert.equal(claude?.maxOutputTokens, 128000);
-  assert.ok(
-    getStaticModelsForProvider("claude")?.some((entry) => entry.id === "claude-opus-5"),
-    "claude OAuth discovery must expose claude-opus-5"
-  );
-
-  const github = getModelsByProviderId("github").find((entry) => entry.id === "claude-opus-5");
-  assert.equal(github?.targetFormat, "claude");
-
-  const kiroIds = new Set(getModelsByProviderId("kiro").map((entry) => entry.id));
-  assert.equal(kiroIds.has("claude-opus-5"), false, "do not fabricate Kiro availability");
-
-  const pricing = DEFAULT_PRICING as Record<string, Record<string, unknown>>;
-  for (const providerId of ["cc", "gh", "anthropic"]) {
-    const price = pricing[providerId]["claude-opus-5"] as { input: number; output: number };
-    assert.equal(price.input, 5.0, `${providerId} Opus 5 input price`);
-    assert.equal(price.output, 25.0, `${providerId} Opus 5 output price`);
-  }
+  assert.equal(kiroIds.has("claude-fable-5"), false, "kiro must NOT expose claude-fable-5 (fabricated)");
 });
 
 test("Sonnet 5 catalog exposes claude-sonnet-5 across cc/kiro/anthropic/blackbox with Sonnet-tier pricing", () => {
@@ -124,21 +92,9 @@ test("Kiro catalog does NOT expose Claude Opus (fabricated — Kiro upstream has
   // 400 "Invalid model. Please select a different model". #6170 removed them.
   const ids = new Set(getModelsByProviderId("kiro").map((model) => model.id));
 
-  assert.equal(
-    ids.has("claude-opus-4.8"),
-    false,
-    "kiro must NOT expose claude-opus-4.8 (fabricated)"
-  );
-  assert.equal(
-    ids.has("claude-opus-4.7"),
-    false,
-    "kiro must NOT expose claude-opus-4.7 (fabricated)"
-  );
-  assert.equal(
-    ids.has("claude-opus-4.6"),
-    false,
-    "kiro must NOT expose claude-opus-4.6 (fabricated)"
-  );
+  assert.equal(ids.has("claude-opus-4.8"), false, "kiro must NOT expose claude-opus-4.8 (fabricated)");
+  assert.equal(ids.has("claude-opus-4.7"), false, "kiro must NOT expose claude-opus-4.7 (fabricated)");
+  assert.equal(ids.has("claude-opus-4.6"), false, "kiro must NOT expose claude-opus-4.6 (fabricated)");
 });
 
 test("Every Kiro registry model resolves a non-zero pricing row (no $0.00 usage)", async () => {

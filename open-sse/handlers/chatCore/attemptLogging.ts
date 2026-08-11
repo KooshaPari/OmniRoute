@@ -57,10 +57,6 @@ export type PersistAttemptLogsContext = {
   noLogEnabled: unknown;
   correlationId?: string | null;
   modelPinned?: boolean;
-  /** #8249: caller-supplied X-OmniRoute-Session-Id header, only set when the header was
-   * explicitly present (never synthesized from skillRequestId) — persisted as call_logs.session_tag
-   * for per-session cost attribution. */
-  sessionTag?: string | null;
 };
 
 function toConnectionId(value: unknown): string | null {
@@ -175,7 +171,6 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     noLogEnabled,
     correlationId,
     modelPinned,
-    sessionTag,
   } = ctx;
   const initialConnectionId = toConnectionId(connectionId);
   const finalConnectionId = toConnectionId(credentials?.connectionId) || initialConnectionId;
@@ -275,7 +270,6 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     pipelinePayloads,
     correlationId,
     modelPinned: modelPinned || false,
-    sessionTag: sessionTag || null,
   }).catch(() => {});
 
   // Emit the terminal request-lifecycle event to the live dashboard bus. `request.started`

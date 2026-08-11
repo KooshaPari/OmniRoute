@@ -70,10 +70,7 @@ import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
 import {
   applySessionStickiness,
-  normalizeStickinessMessages,
   recordStickyBinding,
-  clearStickyBinding,
-  peekStickyConnectionId,
   resolveDisableSessionStickiness,
 } from "./combo/sessionStickiness.ts";
 import { selectQuotaShareTarget } from "./combo/quotaShareStrategy.ts";
@@ -126,13 +123,9 @@ import {
 import {
   validateResponseQuality,
   releaseQualityClone,
-  releaseRejectedQualityResponse,
   toRetryAfterDisplayValue,
 } from "./combo/validateQuality.ts";
-import {
-  resolveComboCooldownWaitDecision,
-  ResolveComboCooldownDecisionResult,
-} from "./combo/comboCooldownRetry.ts";
+import { resolveComboCooldownWaitDecision } from "./combo/comboCooldownRetry.ts";
 import {
   computeClosestRetryAfter,
   waitForCooldownAwareRetry,
@@ -912,26 +905,240 @@ export async function handleComboChat({
   const maxSetRetries = config.maxSetRetries ?? 0;
   const setRetryDelayMs = resolveDelayMs(config.setRetryDelayMs, 2000);
 
-  const targetResolution = await resolveComboTargetPipeline({
-    body,
-    combo,
-    strategy,
-    config,
-    settings,
-    allCombos,
-    relayOptions,
-    signal,
-    apiKeyAllowedConnections,
-    log,
-    resilienceSettings,
-    isModelAvailable,
-    handleSingleModelWithTimeout,
-    buildAutoCandidates,
-  });
-  if ("earlyResponse" in targetResolution) return targetResolution.earlyResponse;
-  const { stickyWeightedLimit, getWeightedStepKeyForTarget, preScreenMap } = targetResolution;
-  const _sticky = targetResolution.sticky;
-  let orderedTargets = targetResolution.orderedTargets;
+  const isTargetSelectableForWeighted = async (target: ResolvedComboTarget): Promise<boolean> => {
+    const rawModel = parseModel(target.modelStr).model || target.modelStr;
+    if (target.provider && getCircuitBreaker(target.provider).getStatus().state === "OPEN")
+      return false;
+    if (
+      resilienceSettings.providerCooldown.enabled &&
+      Boolean(target.provider && target.provider !== "unknown") &&
+      isProviderInCooldown(target.provider, target.connectionId ?? undefined, resilienceSettings)
+    ) {
+      return false;
+    }
+    if (
+      target.provider &&
+      rawModel &&
+      isModelLocked(target.provider, target.connectionId || "", rawModel)
+    ) {
+      return false;
+    }
+    return isModelAvailable ? await isModelAvailable(target.modelStr, target) : true;
+  };
+
+  // #2562: Expand provider-wildcard steps (e.g. `fta/*`, `openai/gpt-4*`) into
+  // concrete model entries sourced from the live synced-models catalog + registry.
+  // Must run before any step-group / target resolution so that wildcard-originated
+  // steps are treated identically to hand-authored entries by all downstream logic
+  // (including the sticky-weighted eligibility pass below).
+  const expandedCombo = await expandProviderWildcardsInCombo(combo);
+  const expandedAllCombos = allCombos
+    ? Array.isArray(allCombos)
+      ? await expandProviderWildcardsInCollection(allCombos as ComboLike[])
+      : {
+          ...allCombos,
+          combos: await expandProviderWildcardsInCollection(
+            ((allCombos as { combos?: ComboLike[] }).combos || []) as ComboLike[]
+          ),
+        }
+    : allCombos;
+
+  const stickyWeightedLimit = clampStickyWeightedTargetLimit(
+    (config as Record<string, unknown>).stickyWeightedLimit
+  );
+  if (
+    strategy === "weighted" &&
+    !weightedStickyTargets.has(combo.name) &&
+    weightedStickyTargets.size >= MAX_RR_COUNTERS
+  ) {
+    const oldest = weightedStickyTargets.keys().next().value;
+    if (oldest !== undefined) weightedStickyTargets.delete(oldest);
+  }
+  let stepGroups: Array<{ step: ComboRuntimeStep; targets: ResolvedComboTarget[] }> | undefined;
+  const weightedEligibleKeys = new Set<string>();
+  if (strategy === "weighted") {
+    stepGroups = resolveWeightedStepGroups(expandedCombo, expandedAllCombos);
+    for (const group of stepGroups) {
+      const availability = await Promise.all(group.targets.map(isTargetSelectableForWeighted));
+      if (availability.some(Boolean)) weightedEligibleKeys.add(group.step.executionKey);
+    }
+  }
+  const rawStickyWeightedKey =
+    strategy === "weighted" ? getStickyWeightedExecutionKey(combo.name, stickyWeightedLimit) : null;
+  const stickyWeightedKey =
+    rawStickyWeightedKey && weightedEligibleKeys.has(rawStickyWeightedKey)
+      ? rawStickyWeightedKey
+      : null;
+  if (strategy !== "weighted" || stickyWeightedLimit <= 1) {
+    weightedStickyTargets.delete(combo.name);
+  } else if (rawStickyWeightedKey && !stickyWeightedKey) {
+    weightedStickyTargets.delete(combo.name);
+  }
+  const weightedResolution =
+    strategy === "weighted"
+      ? resolveWeightedTargets(
+          expandedCombo,
+          expandedAllCombos,
+          stickyWeightedKey,
+          weightedEligibleKeys,
+          stepGroups
+        )
+      : null;
+  const getWeightedStepKeyForTarget = (target: ResolvedComboTarget): string | null => {
+    if (!weightedResolution?.orderedSteps) return null;
+    const step = weightedResolution.orderedSteps.find(
+      (entry) =>
+        target.executionKey === entry.executionKey ||
+        target.executionKey.startsWith(entry.executionKey + ">")
+    );
+    return step?.executionKey || null;
+  };
+  let orderedTargets =
+    strategy === "weighted"
+      ? weightedResolution?.orderedTargets || []
+      : resolveComboTargets(
+          expandedCombo,
+          expandedAllCombos,
+          clampComboDepth(config.maxComboDepth)
+        );
+
+  orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
+
+  if (strategy === "weighted") {
+    log.info(
+      "COMBO",
+      `Weighted selection${stickyWeightedKey ? " (sticky)" : ""}${allCombos ? " with nested resolution" : ""}: ${orderedTargets.length} total targets`
+    );
+  } else if (allCombos) {
+    log.info("COMBO", `${strategy} with nested resolution: ${orderedTargets.length} total targets`);
+  }
+
+  // Pipeline dispatch: route smart/pipeline-enabled combos through the multi-stage pipeline
+  if (strategy === "auto") {
+    const autoParsed = parseAutoPrefix(combo.name);
+    const autoVariant = autoParsed.valid ? autoParsed.variant : undefined;
+    if (autoVariant === "smart" || config.pipeline_enabled) {
+      try {
+        const pipelineRaw = await handlePipelineCombo({
+          body,
+          combo,
+          handleChatCore: handleSingleModelWithTimeout,
+          log: {
+            info: log.info,
+            warn: log.warn,
+            error: log.error ?? log.warn,
+          },
+          settings: settings ?? {},
+          signal: signal ?? undefined,
+        });
+        // handlePipelineCombo resolves to a PipelineResult (buffered text) or,
+        // in the streaming-final-stage case, a Response. Callers downstream
+        // (chat.ts → withSessionHeader) require a Response, so adapt the
+        // PipelineResult here instead of leaking the raw object.
+        return pipelineRaw instanceof Response
+          ? pipelineRaw
+          : buildPipelineResponse(pipelineRaw, body);
+      } catch (pipelineErr) {
+        const pipelineMsg = pipelineErr instanceof Error ? pipelineErr.message : "";
+        if (pipelineMsg === "PIPELINE_DISABLED") {
+          log.info("COMBO", "Pipeline disabled, falling through to standard auto routing");
+        } else if (pipelineMsg === "PIPELINE_TOKEN_THRESHOLD") {
+          log.info(
+            "COMBO",
+            "Pipeline skipped (prompt below token threshold), falling through to standard auto routing"
+          );
+        } else {
+          log.warn("COMBO", "Pipeline dispatch failed, falling through to standard auto routing", {
+            err: pipelineErr,
+          });
+        }
+      }
+    }
+  }
+
+  // #4945 regression guard: when an "auto" combo uses an EXPLICIT router
+  // (routingStrategy lkgp/cost/etc, not the default "rules" scorer), that router
+  // pins orderedTargets[0]. The task-aware reordering below must then refine only
+  // the fallback order, never override the router's primary choice.
+  let autoUsedExplicitRouter = false;
+  if (strategy === "auto") {
+    const autoResult = await resolveAutoStrategyOrder({
+      orderedTargets,
+      body,
+      combo,
+      settings,
+      config,
+      relayOptions,
+      resilienceSettings,
+      log,
+      buildAutoCandidates,
+    });
+    if ("earlyResponse" in autoResult) return autoResult.earlyResponse;
+    orderedTargets = autoResult.orderedTargets;
+    autoUsedExplicitRouter = autoResult.autoUsedExplicitRouter;
+  } else {
+    orderedTargets = await applyStrategyOrdering(strategy, orderedTargets, {
+      combo,
+      config,
+      body,
+      log,
+      apiKeyAllowedConnections,
+    });
+  }
+  // #6168: session stickiness opt-out. Per-combo `config.disableSessionStickiness`
+  // overrides the global `settings.disableSessionStickiness` fallback (default false,
+  // preserving the #3825 prompt-cache/504 fix). When disabled, skip the reorder and
+  // treat the result as a no-op so the recordStickyBinding write-back below is skipped.
+  const disableSessionStickiness = resolveDisableSessionStickiness(
+    config as Record<string, unknown> | null | undefined,
+    settings as Record<string, unknown> | null | undefined
+  );
+  const _sticky = disableSessionStickiness
+    ? ({ targets: orderedTargets, messageHash: null, stuck: false } as const)
+    : await applySessionStickiness(
+        orderedTargets,
+        body.messages as Array<{ role?: string; content?: unknown }>
+      );
+  orderedTargets = _sticky.targets;
+  orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
+  orderedTargets = filterTargetsByRequestCompatibility(orderedTargets, body, log);
+
+  // Task-aware reordering: only active for strategies ["smart","task","task-aware","task_aware","auto"].
+  // Additive — does not affect any of the other 15 strategies.
+  if (isTaskRoutingStrategy(strategy)) {
+    const task = classifyTask(body);
+    const conversationCacheKey = getConversationCacheKey(body);
+    const taskReordered = reorderByTaskWeight(orderedTargets, task);
+    // #4945 regression guard: when an explicit auto router (lkgp/cost/…) pinned
+    // orderedTargets[0], keep that primary choice and let task-aware refine only
+    // the fallback tail — otherwise task weighting silently defeats the operator's
+    // chosen LKGP/cost selection. reorderByTaskWeight returns the same target
+    // objects (no clone), so identity filtering is safe.
+    const pinnedFirst = autoUsedExplicitRouter ? orderedTargets[0] : undefined;
+    const nextOrder = pinnedFirst
+      ? [pinnedFirst, ...taskReordered.filter((t) => t !== pinnedFirst)]
+      : taskReordered;
+    if (nextOrder[0]?.modelStr !== orderedTargets[0]?.modelStr) {
+      const reasons =
+        Array.isArray(task.reasons) && task.reasons.length > 0
+          ? ` (${task.reasons.join(",")})`
+          : "";
+      log.info(
+        "COMBO",
+        `task-route task=${task.level}${reasons} cacheKey=${conversationCacheKey ?? "none"} → ${nextOrder[0]?.modelStr}`
+      );
+    }
+    orderedTargets = nextOrder;
+  }
+
+  // Parallel pre-screen: check provider profiles and model availability for all targets
+  // Only runs for priority strategy where sequential checking causes latency
+  const preScreenMap =
+    strategy === "priority"
+      ? await preScreenTargets(orderedTargets, isModelAvailable).catch(
+          () => new Map<string, PreScreenResult>()
+        )
+      : new Map<string, PreScreenResult>();
 
   // #5923 (Finding #4) — reset-window config for the shared per-target quota-
   // exhaustion cutoff below. The "auto" strategy already applies its own cutoff
@@ -2059,18 +2266,14 @@ export async function handleComboChat({
           log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
 
           // #5976: per-model-quota providers (Gemini, GitHub, etc.) multiplex models
-          // behind one connection. A model-level 500 or 429 (RPM) must NOT cool down
-          // the entire provider — sibling models may still succeed. Skip cooldown
-          // recording for these providers on 500/429 errors so the next target can try.
+          // behind one connection. A model-level 500 must NOT cool down the entire
+          // provider — sibling models may still succeed. Skip cooldown recording for
+          // these providers on 500 errors so the next target can try.
           if (
             resilienceSettings.providerCooldown.enabled &&
             provider &&
             provider !== "unknown" &&
-            !scopedFailure &&
-            !(
-              (result.status === 500 || result.status === 429) &&
-              hasPerModelQuota(provider, rawModel)
-            )
+            !(result.status === 500 && hasPerModelQuota(provider, rawModel))
           ) {
             recordProviderCooldown(
               provider,
@@ -2604,31 +2807,12 @@ async function handleRoundRobinCombo({
     config as Record<string, unknown> | null | undefined,
     settings as Record<string, unknown> | null | undefined
   );
-  const rrAffinityEnabled = settings?.promptCacheAffinityEnabled !== false;
-  if (rrAffinityEnabled && resolvePromptCacheAffinityKey(body)) {
-    filteredTargets = await expandPromptCacheAffinityTargets(filteredTargets);
-    modelCount = filteredTargets.length;
-  }
   const _rrSessionSticky = disableSessionStickiness
     ? ({ targets: filteredTargets, messageHash: null, stuck: false } as const)
     : await applySessionStickiness(
         filteredTargets,
-        // #7270: normalize both wire shapes (.messages / Responses-API .input) so RR
-        // stickiness engages on the /v1/responses surface, not just Chat Completions.
-        normalizeStickinessMessages(body as { messages?: unknown; input?: unknown })
+        body?.messages as Array<{ role?: string; content?: unknown }>
       );
-  const rrAffinity = applyPromptCacheAffinity(filteredTargets, body, rrAffinityEnabled);
-  if (rrAffinity.applied) {
-    const stickyFirst = _rrSessionSticky.stuck ? _rrSessionSticky.targets[0] : null;
-    filteredTargets = stickyFirst
-      ? [stickyFirst, ...rrAffinity.targets.filter((target) => target !== stickyFirst)]
-      : rrAffinity.targets;
-    log.debug?.("COMBO-RR", "Prompt-cache affinity applied", {
-      source: rrAffinity.source,
-      fingerprint: rrAffinity.fingerprint,
-      targetCount: filteredTargets.length,
-    });
-  }
   let rrStartIndex = startIndex;
   if (rrAffinity.applied) {
     rrStartIndex = 0;
@@ -3097,11 +3281,7 @@ async function handleRoundRobinCombo({
           resilienceSettings.providerCooldown.enabled &&
           provider &&
           provider !== "unknown" &&
-          !scopedFailure &&
-          !(
-            (result.status === 500 || result.status === 429) &&
-            hasPerModelQuota(provider, parseModel(modelStr).model || modelStr)
-          )
+          !(result.status === 500 && hasPerModelQuota(provider, parseModel(modelStr).model || modelStr))
         ) {
           recordProviderCooldown(
             provider,

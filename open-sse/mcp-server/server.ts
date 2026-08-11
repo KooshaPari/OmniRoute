@@ -101,20 +101,17 @@ const MCP_ALLOWED_SCOPES = new Set(
     .map((s) => s.trim())
     .filter(Boolean)
 );
-const TOTAL_MCP_TOOL_COUNT = countUniqueMcpTools({
-  MCP_TOOLS,
-  memoryTools,
-  skillTools,
-  agentSkillTools,
-  githubSkillTools,
-  poolTools,
-  gamificationTools,
-  pluginTools,
-  notionTools,
-  obsidianTools,
-  localCorpusTools,
-  compressionTools,
-});
+const TOTAL_MCP_TOOL_COUNT =
+  MCP_TOOLS.length +
+  Object.keys(memoryTools).length +
+  Object.keys(skillTools).length +
+  Object.keys(agentSkillTools).length +
+  Object.keys(githubSkillTools).length +
+  Object.keys(poolTools).length +
+  gamificationTools.length +
+  pluginTools.length +
+  notionTools.length +
+  obsidianTools.length;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -1077,6 +1074,29 @@ export function createMcpServer(): McpServer {
           return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
         }
       })
+    );
+  });
+
+  // ── GitHub Skill Tools ──────────────────────────
+  Object.values(githubSkillTools).forEach((toolDef) => {
+    server.registerTool(
+      toolDef.name,
+      {
+        description: toolDef.description,
+        // @ts-ignore: dynamic zod access
+        inputSchema: toolDef.inputSchema,
+      },
+      withScopeEnforcement(toolDef.name, async (args) => {
+        try {
+          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+          // @ts-expect-error - handler type lost through dynamic Object.values() access
+          const result = await toolDef.handler(parsedArgs, extra);
+          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+        }
+      }, toolDef.scopes)
     );
   });
 

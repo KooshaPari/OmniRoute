@@ -37,9 +37,7 @@ import {
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
-import { GITLAB_DUO_OAUTH_SETUP_MESSAGE } from "@/shared/constants/gitlabDuoSetupMessage";
 import { keychainImportOnlyGuard } from "./keychainImportOnly";
-import { buildRemoteOAuthHint } from "./remoteOAuthHint";
 
 // Persist one callback server per provider across Next.js HMR reloads.
 if (!globalThis.__pkceCallbackStates) {

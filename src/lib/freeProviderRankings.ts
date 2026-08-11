@@ -12,17 +12,6 @@ import { NOAUTH_PROVIDERS, OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/co
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { listModelIntelligence } from "./db/modelIntelligence";
 import { getProviderConnections } from "./db/providers";
-import { getCustomModels } from "./db/models";
-import type { ProviderAuthType } from "./freeProviderRankingsAuthType";
-
-// Re-exported for backward-compat / same-module ergonomics (#6915) — the
-// actual implementations live in `freeProviderRankingsAuthType.ts` (DB-free,
-// safe to import from "use client" pages; see that file's header comment).
-export type { ProviderAuthType } from "./freeProviderRankingsAuthType";
-export {
-  filterRankingsByAuthType,
-  sortRankingsAuthTypeFirst,
-} from "./freeProviderRankingsAuthType";
 
 export interface ProviderModelScore {
   modelId: string;
@@ -382,11 +371,7 @@ export async function computeFreeProviderRankings(
   // limit slice, so `limit` counts providers that survive the filter.
   let filtered = rankings;
   if (opts.configuredOnly || opts.availableOnly) {
-    // `getProviderConnections` returns a loose JsonRecord[]; ConnectionState is a
-    // structural subset of it, so TS needs the explicit `unknown` hop (TS2352).
-    const connections = (await getProviderConnections({
-      isActive: true,
-    })) as unknown as ConnectionState[];
+    const connections = (await getProviderConnections({ isActive: true })) as ConnectionState[];
     filtered = filterFreeProviderRankings(rankings, connections, opts);
   }
 

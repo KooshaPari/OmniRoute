@@ -33,7 +33,9 @@ import { STREAM_IDLE_TIMEOUT_MS, FETCH_BODY_TIMEOUT_MS, HTTP_STATUS } from "../c
 import {
   OMIT_STREAMING_CHUNK_MARKER,
   sanitizeStreamingChunk,
+  isResponsesCommentaryMessageItem,
 } from "../handlers/responseSanitizer.ts";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { buildErrorBody } from "./error.ts";
 import { parseTextualToolCallCandidate, isValidToolCallHeaderPrefix } from "./textualToolCall.ts";
 import { recordToolLatency } from "../services/toolLatencyTracker.ts";
@@ -129,7 +131,6 @@ type StreamOptions = {
    * `RESPONSES_PASSTHROUGH_DROP_COMMENTARY` feature flag (default on).
    */
   dropResponsesCommentary?: boolean;
-  customToolNames?: ReadonlySet<string>;
   provider?: string | null;
   reqLogger?: StreamLogger | null;
   toolNameMap?: unknown;
@@ -678,8 +679,6 @@ export function createSSEStream(options: StreamOptions = {}) {
     onComplete = null,
     onFailure = null,
     dropResponsesCommentary,
-    customToolNames = new Set<string>(),
-    requestToolIdentityMap = null,
   } = options;
   const signatureNamespace = connectionId;
   // Request-body-size metric (for monitoring payload size distribution & correlation with TTFT).
@@ -700,6 +699,12 @@ export function createSSEStream(options: StreamOptions = {}) {
     performance.mark("omni-request-body-size", { detail: bodySize });
     performance.clearMarks("omni-request-body-size");
   }
+
+  // Drop internal commentary-phase Responses output before forwarding (#6199).
+  // Explicit option wins; otherwise read the feature flag (default on). Resolved
+  // once per stream — never on the hot per-chunk path.
+  const shouldDropResponsesCommentary =
+    dropResponsesCommentary ?? isFeatureFlagEnabled("RESPONSES_PASSTHROUGH_DROP_COMMENTARY");
 
   const clientExpectsResponsesStream =
     (mode === STREAM_MODE.PASSTHROUGH
@@ -768,6 +773,24 @@ export function createSSEStream(options: StreamOptions = {}) {
   let passthroughResponsesId: string | null = null;
   let passthroughResponsesCurrentFunctionCallKey: string | null = null;
   const passthroughResponsesReasoningSummarySeen = new Set<string>();
+  // #6199 — commentary-phase items announced via `response.output_item.added` are
+  // internal. Their `response.output_text.delta`/`response.output_text.done`/
+  // `response.output_item.done` events do not carry the `phase`, so we remember the
+  // item id + output_index here and drop every matching follow-up event.
+  const passthroughResponsesCommentaryItemIds = new Set<string>();
+  const passthroughResponsesCommentaryIndexes = new Set<number>();
+  // #5786 — highest Responses-API `sequence_number` already forwarded on this stream.
+  // The Responses API guarantees a strictly increasing sequence_number, so any event at
+  // or below this watermark is an upstream reconnect/retry replay and must be dropped —
+  // otherwise the replayed deltas glue duplicated text into the client stream. Applies to
+  // both translate mode (openai-responses → claude/openai) and Responses passthrough.
+  let lastSeenResponsesSequenceNumber = -1;
+  const isDuplicateResponsesSequence = (value: unknown): boolean => {
+    if (typeof value !== "number" || !Number.isFinite(value)) return false;
+    if (value <= lastSeenResponsesSequenceNumber) return true;
+    lastSeenResponsesSequenceNumber = value;
+    return false;
+  };
   const streamStartedAt = Date.now();
 
   let lastToolCallChunkTime: number | null = null;
@@ -1343,6 +1366,50 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed.type === "error");
 
                 if (isResponsesSSE) {
+                  // #6199 — statefully drop internal commentary-phase output. The
+                  // `response.output_item.added` announces the phase; the follow-up
+                  // delta/done events only carry `item_id`/`output_index`, so we key
+                  // off those. Happy-path (non-commentary) events are untouched.
+                  if (shouldDropResponsesCommentary) {
+                    const responsesEventType = parsed.type as string;
+                    const eventOutputIndex =
+                      typeof parsed.output_index === "number" ? parsed.output_index : null;
+                    const eventItem =
+                      parsed.item && typeof parsed.item === "object" && !Array.isArray(parsed.item)
+                        ? (parsed.item as JsonRecord)
+                        : null;
+                    const eventItemId =
+                      typeof parsed.item_id === "string"
+                        ? parsed.item_id
+                        : eventItem && typeof eventItem.id === "string"
+                          ? eventItem.id
+                          : null;
+
+                    if (
+                      responsesEventType === "response.output_item.added" &&
+                      isResponsesCommentaryMessageItem(parsed.item)
+                    ) {
+                      if (eventItemId) passthroughResponsesCommentaryItemIds.add(eventItemId);
+                      if (eventOutputIndex !== null)
+                        passthroughResponsesCommentaryIndexes.add(eventOutputIndex);
+                      continue;
+                    }
+
+                    const belongsToCommentary =
+                      (eventItemId !== null &&
+                        passthroughResponsesCommentaryItemIds.has(eventItemId)) ||
+                      (eventOutputIndex !== null &&
+                        passthroughResponsesCommentaryIndexes.has(eventOutputIndex));
+                    if (belongsToCommentary) {
+                      if (responsesEventType === "response.output_item.done") {
+                        if (eventItemId) passthroughResponsesCommentaryItemIds.delete(eventItemId);
+                        if (eventOutputIndex !== null)
+                          passthroughResponsesCommentaryIndexes.delete(eventOutputIndex);
+                      }
+                      continue;
+                    }
+                  }
+
                   const responsesIdsNormalized = normalizeResponsesSseIds(parsed as JsonRecord);
                   const parsedResponse =
                     parsed.response &&

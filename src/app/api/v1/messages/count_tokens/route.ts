@@ -120,24 +120,22 @@ function safeStringify(value) {
 // content, and `thinking` blocks — counting only `text` (as before) reported
 // near-zero for those messages and silently broke Claude Code's auto-compaction
 // (#2337). Image / redacted_thinking blocks are not text-estimable and count 0.
-function estimateContentBlockTokens(part, tokenizerContext: TokenizerContext) {
+function estimateContentBlockTokens(part) {
   if (!part || typeof part !== "object") return 0;
   let tokens = 0;
   switch (part.type) {
     case "text":
-      if (typeof part.text === "string") tokens += countTextTokens(part.text, tokenizerContext);
+      if (typeof part.text === "string") tokens += countTextTokens(part.text);
       break;
     case "tool_use":
-      if (typeof part.name === "string") tokens += countTextTokens(part.name, tokenizerContext);
-      if (part.input !== undefined)
-        tokens += countTextTokens(safeStringify(part.input), tokenizerContext);
+      if (typeof part.name === "string") tokens += countTextTokens(part.name);
+      if (part.input !== undefined) tokens += countTextTokens(safeStringify(part.input));
       break;
     case "tool_result":
-      tokens += estimateToolResultTokens(part.content, tokenizerContext);
+      tokens += estimateToolResultTokens(part.content);
       break;
     case "thinking":
-      if (typeof part.thinking === "string")
-        tokens += countTextTokens(part.thinking, tokenizerContext);
+      if (typeof part.thinking === "string") tokens += countTextTokens(part.thinking);
       break;
     default:
       break;
@@ -147,13 +145,13 @@ function estimateContentBlockTokens(part, tokenizerContext: TokenizerContext) {
 
 // A `tool_result` content can be a plain string or an array of nested blocks
 // (text / image). Count string content and nested text blocks.
-function estimateToolResultTokens(content, tokenizerContext: TokenizerContext) {
-  if (typeof content === "string") return countTextTokens(content, tokenizerContext);
+function estimateToolResultTokens(content) {
+  if (typeof content === "string") return countTextTokens(content);
   if (Array.isArray(content)) {
     let tokens = 0;
     for (const block of content) {
       if (block?.type === "text" && typeof block.text === "string") {
-        tokens += countTextTokens(block.text, tokenizerContext);
+        tokens += countTextTokens(block.text);
       }
     }
     return tokens;
@@ -161,7 +159,7 @@ function estimateToolResultTokens(content, tokenizerContext: TokenizerContext) {
   return 0;
 }
 
-function buildEstimatedCountResponse(body, tokenizerContext: TokenizerContext = {}) {
+function buildEstimatedCountResponse(body) {
   const messages = Array.isArray(body?.messages) ? body.messages : [];
   let inputTokens = 0;
 
@@ -173,17 +171,17 @@ function buildEstimatedCountResponse(body, tokenizerContext: TokenizerContext = 
 
     if (Array.isArray(msg?.content)) {
       for (const part of msg.content) {
-        inputTokens += estimateContentBlockTokens(part, tokenizerContext);
+        inputTokens += estimateContentBlockTokens(part);
       }
     }
   }
 
   if (typeof body?.system === "string") {
-    inputTokens += countTextTokens(body.system, tokenizerContext);
+    inputTokens += countTextTokens(body.system);
   } else if (Array.isArray(body?.system)) {
     for (const block of body.system) {
       if (block?.type === "text" && typeof block.text === "string") {
-        inputTokens += countTextTokens(block.text, tokenizerContext);
+        inputTokens += countTextTokens(block.text);
       }
     }
   }

@@ -226,11 +226,10 @@ export default function ComboDefaultsTab() {
         comboDefaults;
       const settingsPatch = {
         ...toGlobalRoutingPatch(comboDefaults.strategy, stickyRoundRobinLimit),
-        sessionAffinityTtlMs,
+        codexSessionAffinityTtlMs,
         // #6168: global session-stickiness opt-out — persisted top-level on settings
         // (mirrors stickyRoundRobinLimit) so combo.ts resolution reads settings.disableSessionStickiness.
         disableSessionStickiness: disableSessionStickiness === true,
-        promptCacheAffinityEnabled,
       };
 
       const comboDefaultsRes = await fetch("/api/settings/combo-defaults", {
@@ -295,7 +294,8 @@ export default function ComboDefaultsTab() {
 
   // Filtered provider list — excludes already-added ones, filtered by search query
   const filteredProviders = availableProviders.filter(
-    (p) => !providerOverrides[p.provider] && matchesSearch(p.provider, searchQuery)
+    (p) =>
+      !providerOverrides[p.provider] && matchesSearch(p.provider, searchQuery)
   );
 
   const handleDropdownKeyDown = (e: React.KeyboardEvent) => {

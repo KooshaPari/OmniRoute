@@ -4,6 +4,21 @@
       "count": 1
     }
   },
+  "open-sse/executors/claude-web-with-auto-refresh.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "open-sse/executors/claude-web.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "open-sse/executors/claudeIdentity.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
   "open-sse/executors/cliproxyapi.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -49,29 +64,19 @@
       "count": 3
     }
   },
+  "open-sse/handlers/imageGeneration.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
   "open-sse/handlers/musicGeneration.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "open-sse/handlers/responseSanitizer.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "open-sse/handlers/responseTranslator.ts": {
-    "no-restricted-syntax": {
       "count": 1
     }
   },
   "open-sse/handlers/search.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 34
-    }
-  },
-  "open-sse/handlers/sseParser.ts": {
-    "no-restricted-syntax": {
-      "count": 1
     }
   },
   "open-sse/handlers/videoGeneration.ts": {
@@ -99,22 +104,9 @@
       "count": 2
     }
   },
-  "open-sse/mcp-server/audit.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "open-sse/mcp-server/server.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
-    },
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "open-sse/mcp-server/tools/advancedTools.ts": {
-    "no-restricted-syntax": {
-      "count": 1
     }
   },
   "open-sse/mcp-server/tools/gamificationTools.ts": {
@@ -122,32 +114,14 @@
       "count": 2
     }
   },
-  "open-sse/mcp-server/tools/pickFastestModel.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "open-sse/mcp-server/tools/pluginTools.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "open-sse/services/agentrouterQuotaFetcher.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "open-sse/services/bailianQuotaFetcher.ts": {
-    "no-restricted-syntax": {
       "count": 1
     }
   },
   "open-sse/services/batchProcessor.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 17
-    },
-    "no-restricted-syntax": {
-      "count": 1
     }
   },
   "open-sse/services/claudeWebAutoRefresh.ts": {
@@ -155,19 +129,9 @@
       "count": 3
     }
   },
-  "open-sse/services/codexQuotaFetcher.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "open-sse/services/codexUsageQuotas.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "open-sse/services/compression/engines/headroom/gcf/decode_generic.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 22
+      "count": 18
     }
   },
   "open-sse/services/compression/engines/headroom/gcf/scalar.ts": {
@@ -185,39 +149,9 @@
       "count": 1
     }
   },
-  "open-sse/services/crofUsageFetcher.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "open-sse/services/deepseekQuotaFetcher.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "open-sse/services/genericQuotaFetcher.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "open-sse/services/inAppLoginService.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
-    }
-  },
-  "open-sse/services/opencodeOllamaUsage.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "open-sse/services/opencodeQuotaFetcher.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "open-sse/services/rateLimitManager.ts": {
-    "no-restricted-syntax": {
-      "count": 1
     }
   },
   "open-sse/services/taskAwareRouter.ts": {
@@ -235,13 +169,8 @@
       "count": 2
     }
   },
-  "open-sse/services/usage/scalars.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "open-sse/services/v0QuotaFetcher.ts": {
-    "no-restricted-syntax": {
+  "open-sse/translator/helpers/claudeHelper.ts": {
+    "@typescript-eslint/no-explicit-any": {
       "count": 1
     }
   },
@@ -250,12 +179,20 @@
       "count": 5
     }
   },
-  "open-sse/utils/streamPayloadCollector.ts": {
-    "no-restricted-syntax": {
+  "src/app/(dashboard)/dashboard/HomePageClient.tsx": {
+    "react-hooks/exhaustive-deps": {
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/HomePageClient.tsx": {
+  "src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient.tsx": {
+    "no-restricted-syntax": {
+      "count": 3
+    }
+  },
+  "src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx": {
+    "no-restricted-syntax": {
+      "count": 2
+    },
     "react-hooks/exhaustive-deps": {
       "count": 1
     }
@@ -270,12 +207,27 @@
       "count": 1
     }
   },
+  "src/app/(dashboard)/dashboard/cli-code/components/DefaultToolCard.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 2
+    }
+  },
   "src/app/(dashboard)/dashboard/costs/costExplorerUtils.ts": {
     "no-restricted-syntax": {
       "count": 1
     }
   },
+  "src/app/(dashboard)/dashboard/media-providers/components/ImageExampleCard.tsx": {
+    "@next/next/no-img-element": {
+      "count": 1
+    }
+  },
   "src/app/(dashboard)/dashboard/playground/components/tabs/ApiTab.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx": {
     "react-hooks/exhaustive-deps": {
       "count": 1
     }
@@ -287,11 +239,6 @@
   },
   "src/app/(dashboard)/dashboard/settings/components/AuthzSection.tsx": {
     "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/settings/components/MitmProxyTab.tsx": {
-    "@next/next/no-html-link-for-pages": {
       "count": 1
     }
   },
@@ -310,6 +257,11 @@
       "count": 3
     }
   },
+  "src/app/(dashboard)/dashboard/tools/agent-bridge/components/ModelSelectorModal.tsx": {
+    "no-restricted-syntax": {
+      "count": 2
+    }
+  },
   "src/app/api/services/[name]/logs/route.ts": {
     "no-restricted-syntax": {
       "count": 1
@@ -320,97 +272,17 @@
       "count": 1
     }
   },
-  "src/domain/costRules.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "src/hooks/useLiveDashboard.ts": {
     "react-hooks/exhaustive-deps": {
       "count": 2
     }
   },
-  "src/lib/a2a/skills/healthReport.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/combos/controlCenter.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/db/comboForecast.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/db/domainState.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/db/prompts.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/db/providers/lazyConnectionView.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/db/tokenLimits.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/monitoring/providerHealthAutopilot.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/monitoring/providerHealthMatrix.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/semanticCache.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/usage/apiKeySelfService.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/usage/apiKeyUsageLimits.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/usage/costCalculator.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/usage/internalUsageCommand.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/usage/providerWindowCosts.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/lib/usage/routeExplain.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "src/shared/components/CursorAuthModal.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  },
+  "src/shared/components/KiroSocialOAuthModal.tsx": {
     "react-hooks/exhaustive-deps": {
       "count": 1
     }
@@ -432,16 +304,6 @@
   },
   "src/shared/components/Sidebar.tsx": {
     "@next/next/no-img-element": {
-      "count": 1
-    }
-  },
-  "src/shared/contracts/quota.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/sse/services/auth.ts": {
-    "no-restricted-syntax": {
       "count": 1
     }
   },
@@ -468,6 +330,11 @@
   "tests/e2e/system-failover.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
+    }
+  },
+  "tests/integration/_chatPipelineHarness.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
     }
   },
   "tests/integration/_comboRoutingHarness.ts": {
@@ -538,6 +405,11 @@
   "tests/integration/live-gemini-workload.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
+    }
+  },
+  "tests/integration/liveGeminiShared.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
     }
   },
   "tests/integration/llama-cpp-provider.test.ts": {
@@ -670,6 +542,11 @@
       "count": 3
     }
   },
+  "tests/unit/antigravity-tool-cloaking.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
   "tests/unit/api-key-reveal-route.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 8
@@ -737,7 +614,7 @@
   },
   "tests/unit/base-executor-sanitize-effort.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 48
+      "count": 45
     }
   },
   "tests/unit/batch_api.test.ts": {
@@ -847,10 +724,15 @@
   },
   "tests/unit/chatcore-translation-paths.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 34
+      "count": 40
     }
   },
   "tests/unit/chatgpt-web-tools-5240.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 6
+    }
+  },
+  "tests/unit/chatgpt-web.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 6
     }
@@ -883,6 +765,11 @@
   "tests/unit/claude-to-openai-image-toolresult.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 8
+    }
+  },
+  "tests/unit/claude-to-openai-think-close-5123.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
     }
   },
   "tests/unit/cli-a2a-invoke-commands.test.ts": {
@@ -1157,7 +1044,7 @@
   },
   "tests/unit/combo-routing-engine.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 267
+      "count": 261
     }
   },
   "tests/unit/combo-same-provider-cascade.test.ts": {
@@ -1172,7 +1059,7 @@
   },
   "tests/unit/combo-strategy-fallbacks.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 33
+      "count": 35
     }
   },
   "tests/unit/combo-stream-readiness-fallback.test.ts": {
@@ -1482,7 +1369,7 @@
   },
   "tests/unit/executor-default-base.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 42
+      "count": 43
     }
   },
   "tests/unit/executor-github.test.ts": {
@@ -1493,6 +1380,11 @@
   "tests/unit/executor-gitlab.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 4
+    }
+  },
+  "tests/unit/executor-kimi-web.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
     }
   },
   "tests/unit/executor-nlpcloud.test.ts": {
@@ -1585,9 +1477,19 @@
       "count": 25
     }
   },
+  "tests/unit/guide-settings-route.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
   "tests/unit/i18n-nest-dotted-keys.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 4
+    }
+  },
+  "tests/unit/image-generation-route.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
     }
   },
   "tests/unit/inspector-agent-bridge-hook.test.ts": {
@@ -1598,6 +1500,16 @@
   "tests/unit/kiro-tool-args-streaming.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
+    }
+  },
+  "tests/unit/live-ws-public-url.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    }
+  },
+  "tests/unit/lmarena-provider.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 9
     }
   },
   "tests/unit/lmarena-split-cookie-4271.test.ts": {
@@ -1795,6 +1707,11 @@
       "count": 2
     }
   },
+  "tests/unit/perplexity-web.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
+    }
+  },
   "tests/unit/persist-429-cooldown-account-fallback.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 7
@@ -1830,6 +1747,11 @@
       "count": 3
     }
   },
+  "tests/unit/prompt-required-routes.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
   "tests/unit/provider-connection-apikey-dedup.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -1862,7 +1784,7 @@
   },
   "tests/unit/provider-models-route.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 54
+      "count": 58
     }
   },
   "tests/unit/provider-models-token-limits.test.ts": {
@@ -1895,6 +1817,11 @@
       "count": 6
     }
   },
+  "tests/unit/provider-scoped-models-route.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 7
+    }
+  },
   "tests/unit/provider-validation-hardening.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 6
@@ -1903,6 +1830,11 @@
   "tests/unit/provider-validation-qwen-web-5855.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
+    }
+  },
+  "tests/unit/provider-validation-specialty.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
     }
   },
   "tests/unit/providers-route-managed-catalog.test.ts": {
@@ -1937,7 +1869,7 @@
   },
   "tests/unit/proxy-registry.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 54
+      "count": 55
     }
   },
   "tests/unit/proxy-resolution-status-filter.test.ts": {
@@ -2145,6 +2077,11 @@
       "count": 13
     }
   },
+  "tests/unit/sse-parser.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 15
+    }
+  },
   "tests/unit/startup-stale-cooldown-recovery.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -2257,7 +2194,7 @@
   },
   "tests/unit/translator-claude-to-gemini.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 17
+      "count": 14
     }
   },
   "tests/unit/translator-claude-to-openai.test.ts": {
@@ -2277,7 +2214,7 @@
   },
   "tests/unit/translator-openai-to-gemini.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 74
+      "count": 70
     }
   },
   "tests/unit/translator-openai-to-kiro.test.ts": {
@@ -2303,6 +2240,11 @@
   "tests/unit/translator-resp-gemini-to-openai.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 75
+    }
+  },
+  "tests/unit/translator-resp-openai-responses.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
     }
   },
   "tests/unit/translator-resp-openai-to-claude.test.ts": {
@@ -2347,7 +2289,7 @@
   },
   "tests/unit/usage-service-hardening.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 56
+      "count": 59
     }
   },
   "tests/unit/v1-ws-bridge.test.ts": {
@@ -2387,7 +2329,7 @@
   },
   "tests/unit/vscode-token-routes.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 65
+      "count": 76
     }
   },
   "tests/unit/web-runtime-env.test.ts": {

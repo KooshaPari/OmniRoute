@@ -117,7 +117,7 @@ export const bulkCreateProviderSchema = z
       .array(
         z.object({
           name: z.string().min(1).max(200),
-          apiKey: z.string().min(1).max(MAX_PROVIDER_CREDENTIAL_LENGTH),
+          apiKey: z.string().min(1).max(10000),
           // Per-key account id — required for cloudflare-ai (enforced in superRefine below).
           accountId: z.string().min(1).max(200).optional(),
         })
@@ -145,19 +145,6 @@ export const bulkCreateProviderSchema = z
           code: z.ZodIssueCode.custom,
           message: "Programmable Search Engine ID (cx) is required",
           path: ["providerSpecificData", "cx"],
-        });
-      }
-    }
-    if (data.provider === "ghe-copilot") {
-      const gheUrl =
-        data.providerSpecificData && typeof data.providerSpecificData === "object"
-          ? (data.providerSpecificData as Record<string, unknown>).gheUrl
-          : undefined;
-      if (typeof gheUrl !== "string" || gheUrl.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "GitHub Enterprise URL (gheUrl) is required",
-          path: ["providerSpecificData", "gheUrl"],
         });
       }
     }

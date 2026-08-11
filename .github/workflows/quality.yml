@@ -206,36 +206,7 @@ jobs:
           echo "TIA selection: $(grep -c . tia-selection.txt) impacted test file(s) — full suite still runs in fast-unit (shadow-evidence phase, #8084)" >> "$GITHUB_STEP_SUMMARY"
           echo "Running impacted tests:"; echo "$SEL"
           mapfile -t FILES <<< "$SEL"
-          # Loader parity with test:unit:ci:shard (#6787): tests/unit/dashboard/** runs
-          # under `--import tsx` (CJS transform — required for ESM-only deep imports like
-          # @lobehub/icons/es/* reached via lobeProviderIcons.ts); everything else under
-          # `--import tsx/esm`. A single tsx/esm invocation false-reds every dashboard
-          # module-shape test the impact map selects ("Unexpected token 'export'").
-          DASH=(); REST=()
-          for f in "${FILES[@]}"; do
-            case "$f" in
-              tests/unit/dashboard/*) DASH+=("$f") ;;
-              *) REST+=("$f") ;;
-            esac
-          done
-          RC=0
-          if [ ${#REST[@]} -gt 0 ]; then
-            node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${REST[@]}" || RC=$?
-          fi
-          if [ ${#DASH[@]} -gt 0 ]; then
-            node --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${DASH[@]}" || RC=$?
-          fi
-          exit $RC
-      # #8084 shadow evidence: keep the raw selection downloadable so TIA misses can be
-      # audited against fast-unit failures on the same run (gate moves need this data).
-      - name: Upload TIA selection (shadow evidence)
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: tia-selection
-          path: tia-selection.txt
-          if-no-files-found: ignore
-          retention-days: 30
+          node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${FILES[@]}"
 
   fast-vitest:
     name: Vitest (fast-path)
@@ -290,7 +261,7 @@ jobs:
       # silenciosamente não rodavam no fast path) e o setupPolyfill não era importado.
       - run: npm run test:unit:ci:shard
         env:
-          TEST_SHARD: ${{ matrix.shard }}/4
+          TEST_SHARD: ${{ matrix.shard }}/2
 
   # ── Pacote 4 (plano mestre testes+CI, aprovado 2026-07-04) ─────────────────────────
   # No-new-warnings por PR via ESLint bulk suppressions nativo (>=9.24). O baseline
@@ -306,31 +277,19 @@ jobs:
   # contribuidor NUNCA é bloqueado nem cobrado).
   lint-guard:
     name: No new ESLint warnings
-    needs: changes
-    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true') }}
     runs-on: ubuntu-latest
     continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true }}
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - name: Restore ESLint file cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            .eslintcache
-            .eslintcache-complexity
-          key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'package-lock.json') }}
-          restore-keys: |
-            eslint-${{ runner.os }}-
       - name: ESLint (baseline congelado — warning novo = vermelho)
-        # lint:json writes the report; --max-warnings 0 keeps no-new-warnings policy.
-        run: npm run lint:json -- --max-warnings 0
+        run: npx eslint . --suppressions-location config/quality/eslint-suppressions.json --max-warnings 0
 
   # Merge-integrity: pega no PR os dois vazamentos crônicos de merge que hoje só
   # explodem na release-PR. (1) CHANGELOG-eat — o auto-resolve do merge come
@@ -345,8 +304,6 @@ jobs:
   # nunca é bloqueado.
   merge-integrity:
     name: Merge integrity (changelog + generated skills)
-    # Always on non-draft PRs — CHANGELOG/skills can break on docs-only merges too.
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true }}
     env:
@@ -354,11 +311,11 @@ jobs:
       API_KEY_SECRET: ci-lint-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm

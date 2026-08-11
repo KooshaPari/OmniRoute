@@ -2,7 +2,7 @@ import { spawn, type ChildProcess } from "child_process";
 import path from "path";
 import fs from "fs";
 import { resolveMitmDataDir } from "./dataDir.ts";
-import { removeDNSEntry, removeDNSEntries, checkDNSEntryForAgent } from "./dns/dnsConfig.ts";
+import { removeDNSEntry, removeDNSEntries } from "./dns/dnsConfig.ts";
 import { provisionDnsEntries } from "./dns/provision.ts";
 import { generateCert } from "./cert/generate.ts";
 import { installCertResult, installCaCert } from "./cert/install.ts";
@@ -535,45 +535,23 @@ async function startMitmInternal(
   //    so we start in "untrusted" mode and let the operator trust the CA by hand
   //    (mirrors the best-effort "continuing" pattern used for DNS below). (#4546)
   let certTrusted = false;
-  await runPrivilegedMitmStep(
-    sudoPassword,
-    "Skipping MITM cert trust — no sudo password available (#7938)",
-    async () => {
-      try {
-        const certResult =
-          migrationDecision === "use-root-ca"
-            ? await installCaCert(sudoPassword, certPath)
-            : await installCertResult(sudoPassword, certPath);
-        certTrusted = certResult.installed;
-        if (!certResult.installed) {
-          log.warn(
-            { reason: certResult.reason },
-            "MITM cert not auto-trusted; bridge starting in skip mode (manual trust required)"
-          );
-        }
-      } catch (err) {
-        log.error(
-          { err },
-          "installCertResult threw unexpectedly (continuing without trusted cert)"
-        );
-      }
+  try {
+    const certResult = await installCertResult(sudoPassword, certPath);
+    certTrusted = certResult.installed;
+    if (!certResult.installed) {
+      log.warn(
+        { reason: certResult.reason },
+        "MITM cert not auto-trusted; bridge starting in skip mode (manual trust required)"
+      );
     }
-  );
+  } catch (err) {
+    log.error({ err }, "installCertResult threw unexpectedly (continuing without trusted cert)");
+  }
 
   // 3. Add DNS entries: Antigravity defaults + all agents with dns_enabled=true +
   //    all custom hosts with enabled=true. Best-effort — see provisionDnsEntries.
-  await runPrivilegedMitmStep(
-    sudoPassword,
-    "Skipping DNS provisioning — no sudo password available (#7938)",
-    async () => {
-      log.info("Adding DNS entries...");
-      try {
-        await provisionDnsEntries(sudoPassword);
-      } catch (err) {
-        log.error({ err }, "DNS provisioning threw unexpectedly (continuing)");
-      }
-    }
-  );
+  log.info("Adding DNS entries...");
+  await provisionDnsEntries(sudoPassword);
 
   // 4. Start MITM server
   log.info("Starting MITM server...");

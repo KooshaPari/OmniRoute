@@ -12,13 +12,10 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { withRateLimit } from "@omniroute/open-sse/services/rateLimitManager";
 
 const INTERNAL_ORIGIN = "http://omniroute.internal";
-export const DEFAULT_MODEL_TEST_TIMEOUT_MS = 30_000;
+const DEFAULT_TEST_TIMEOUT_MS = 10_000;
 const DOLA_PRO_TEST_TIMEOUT_MS = 90_000;
-const GITHUB_PHI_REASONING_TEST_TIMEOUT_MS = 60_000;
 const DOUBAO_WEB_PROVIDER_ID = "doubao-web";
-const GITHUB_MODELS_PROVIDER_ID = "github-models";
 const SLOW_WEB_TEST_MODELS = new Set(["dola-pro"]);
-const STREAMING_CHAT_TEST_MAX_TOKENS = 64;
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -88,17 +85,13 @@ function getModelLeafId(modelId: string): string {
 export function resolveModelTestTimeoutMs(
   providerId: string,
   modelId: string,
-  requestedTimeoutMs: number = DEFAULT_MODEL_TEST_TIMEOUT_MS
+  requestedTimeoutMs: number = DEFAULT_TEST_TIMEOUT_MS
 ) {
-  const normalizedProviderId = providerId.trim().toLowerCase();
-  const modelLeafId = getModelLeafId(modelId);
-
-  if (normalizedProviderId === DOUBAO_WEB_PROVIDER_ID && SLOW_WEB_TEST_MODELS.has(modelLeafId)) {
+  if (
+    providerId.trim().toLowerCase() === DOUBAO_WEB_PROVIDER_ID &&
+    SLOW_WEB_TEST_MODELS.has(getModelLeafId(modelId))
+  ) {
     return Math.max(requestedTimeoutMs, DOLA_PRO_TEST_TIMEOUT_MS);
-  }
-
-  if (normalizedProviderId === GITHUB_MODELS_PROVIDER_ID && modelLeafId === "phi-4-reasoning") {
-    return Math.max(requestedTimeoutMs, GITHUB_PHI_REASONING_TEST_TIMEOUT_MS);
   }
 
   return requestedTimeoutMs;
@@ -346,8 +339,8 @@ export async function runSingleModelTest(
           modelId: fullModelStr,
           status: "slow",
           latencyMs,
-          httpStatus: 504,
-          error: `No model output within ${Math.round(effectiveTimeoutMs / 1000)}s`,
+          httpStatus: 500,
+          error: `Timeout (${Math.round(effectiveTimeoutMs / 1000)}s)`,
           isTimeout: true,
         };
       }

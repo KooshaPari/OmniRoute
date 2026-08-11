@@ -191,11 +191,8 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     "Kimi (Moonshot)",
     "https://www.kimi.com/",
     "https://www.kimi.com",
-    [
-      { type: "localStorage", key: "access_token" },
-      { type: "cookie", name: "kimi-auth", domain: ".kimi.com" },
-    ],
-    "Log in to Kimi at www.kimi.com. The current access_token will be extracted from localStorage; kimi-auth remains a legacy fallback.",
+    [{ type: "cookie", name: "kimi-auth", domain: ".kimi.com" }],
+    "Log in to Kimi at www.kimi.com (international). The kimi-auth JWT cookie will be extracted.",
     { cookieDomain: ".kimi.com" }
   ),
 

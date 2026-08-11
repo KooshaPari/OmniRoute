@@ -97,21 +97,7 @@ jobs:
           set +e
           # --hermetic: scrub live-test trigger vars (self-hosted runner may carry
           # operator env; hosted ignores the unknown flag before #6300 lands).
-          # push → --quick: fast HARD gates only (~5-8min), per-merge signal.
-          # schedule/dispatch → --with-build --full-ci: ALSO run every static gate from
-          # ci.yml's gate jobs (lint, quality-gate, quality-extended, docs-sync-strict,
-          # pr-test-policy) + build + full suites. PRs into release/** only get the
-          # fast-gates, so these accrue silently and explode in layers on the release PR
-          # (v3.8.46: 11 static base-reds leaked).
-          if [ "$EVENT_NAME" = "push" ]; then
-            MODE="--quick"
-          else
-            MODE="--with-build --full-ci"
-          fi
-          echo "[release-green] mode: $MODE (event: $EVENT_NAME)"
-          # MODE is an intentional flag list, so word-splitting is wanted here
-          # shellcheck disable=SC2086
-          node scripts/quality/validate-release-green.mjs --json --hermetic $MODE \
+          node scripts/quality/validate-release-green.mjs --json --with-build --hermetic \
             1> release-green.json 2> release-green.log
           echo "exit=$?" >> "$GITHUB_OUTPUT"
           echo "------- report -------"

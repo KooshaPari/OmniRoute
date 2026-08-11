@@ -113,21 +113,6 @@ export class CopilotM365WebExecutor extends BaseExecutor {
               controller.enqueue(
                 encoder.encode(sseChunk(input.model, { content: finalResultMessage }))
               );
-            } else if (!previousText && !finalResultMessage) {
-              // #7858 — a turn that completed with no content in ANY known shape is
-              // indistinguishable, from the outside, from a genuine successful-but-empty
-              // reply. Fail loudly instead of a silent `stop`, per Hard Rule #12.
-              const tierNote = input.tier ? `resolved tier: ${input.tier}` : "resolved tier: individual (default)";
-              const message = sanitizeErrorMessage(
-                `Microsoft 365 Copilot turn completed with no content in any known frame ` +
-                  `shape (${tierNote}). Possible causes: an unrecognized frame shape for ` +
-                  `this tenant, or a misconfigured tier.`
-              );
-              controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ error: { message } })}\n\n`)
-              );
-              controller.close();
-              return;
             }
             controller.enqueue(encoder.encode(sseChunk(input.model, {}, "stop")));
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
@@ -217,13 +202,6 @@ export class CopilotM365WebExecutor extends BaseExecutor {
                 }
 
                 const { delta, next } = accumulateBotContent(previousText, frame);
-                if (!delta && next === previousText) {
-                  // #7858 AC2/AC3 — log unrecognized-shape update frames by KEY only, so
-                  // the next report ships the data needed to add a handler without a
-                  // manual capture round-trip. Never log message content, tokens, cookies.
-                  const shape = describeUpdateFrameShape(frame);
-                  if (shape) log?.debug?.("M365_WS", `unrecognized update frame keys: ${shape}`);
-                }
                 previousText = next;
                 if (delta) {
                   controller.enqueue(encoder.encode(sseChunk(input.model, { content: delta })));
