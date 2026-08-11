@@ -5,30 +5,6 @@
 import { GITLAB_DUO_OAUTH_SETUP_MESSAGE } from "@/shared/constants/gitlabDuoSetupMessage";
 
 export const OAUTH_PROVIDERS = {
-  "ghe-copilot": {
-    id: "ghe-copilot",
-    alias: "ghe-copilot",
-    name: "GitHub Enterprise Copilot",
-    icon: "code",
-    color: "#10B981",
-    subscriptionRisk: true,
-    riskNoticeVariant: "oauth",
-    authHint:
-      "Enter your GHE instance URL (e.g., https://ghe.company.com) in provider settings, then authenticate via device flow.",
-  },
-  "xai-oauth": {
-    id: "xai-oauth",
-    alias: "xao",
-    name: "xAI OAuth (Grok)",
-    icon: "auto_awesome",
-    color: "#1DA1F2",
-    textIcon: "XA",
-    website: "https://x.ai",
-    subscriptionRisk: true,
-    riskNoticeVariant: "oauth",
-    authHint:
-      "Sign in with xAI to use api.x.ai models such as Grok 4.5. This is separate from Grok Build JWT sessions, which use cli-chat-proxy.grok.com and grok-build model aliases.",
-  },
   "grok-cli": {
     id: "grok-cli",
     alias: "gc",
@@ -38,7 +14,7 @@ export const OAUTH_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
     authHint:
-      "Sign in with your browser, or paste your ~/.grok/auth.json (or the JWT access token) from the Grok Build CLI; refresh_token is rotated automatically either way.",
+      "Paste your ~/.grok/auth.json (or the JWT access token) from the Grok Build CLI; refresh_token is rotated automatically.",
   },
   qoder: {
     id: "qoder",

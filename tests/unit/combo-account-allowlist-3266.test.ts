@@ -24,7 +24,6 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
-const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const { buildAutoCandidates, handleComboChat } = await import("../../open-sse/services/combo.ts");
 const { getProviderCredentials } = await import("../../src/sse/services/auth.ts");
 const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
@@ -201,101 +200,6 @@ test("buildAutoCandidates expands dynamic auto steps only within allowedConnecti
   assert.ok(connectionIds.every((connectionId) => !forbidden.has(connectionId!)));
 });
 
-test("buildAutoCandidates prefers connection-qualified history", async () => {
-  const fast = await seedConn("history-fast");
-  const slow = await seedConn("history-slow");
-  await seedLatencyHistory(fast.id, 100, 10);
-  await seedLatencyHistory(slow.id, 900, 10);
-
-  const target = (connectionId: string) => ({
-    kind: "model" as const,
-    stepId: `openai/gpt-4o-mini@${connectionId}`,
-    executionKey: `openai/gpt-4o-mini@${connectionId}`,
-    modelStr: "openai/gpt-4o-mini",
-    provider: "openai",
-    providerId: "openai",
-    connectionId,
-    weight: 1,
-    label: null,
-  });
-
-  const specific = await buildAutoCandidates(
-    [target(fast.id), target(slow.id)],
-    "auto-connection-history"
-  );
-  const specificByConnection = new Map(
-    specific.map((candidate) => [candidate.connectionId, candidate.p95LatencyMs])
-  );
-  assert.equal(specificByConnection.get(fast.id), 100);
-  assert.equal(specificByConnection.get(slow.id), 900);
-  assert.equal(
-    specific.find((candidate) => candidate.connectionId === fast.id)?.historicalRequestCount,
-    10
-  );
-  assert.equal(
-    specific.find((candidate) => candidate.connectionId === fast.id)
-      ?.historicalSuccessfulRequestCount,
-    10
-  );
-});
-
-test("buildAutoCandidates falls back to aggregate history when connection history is undersampled", async () => {
-  const aggregateConn = await seedConn("history-aggregate");
-  const undersampledConn = await seedConn("history-undersampled");
-  await seedLatencyHistory(aggregateConn.id, 300, 10);
-  await seedLatencyHistory(undersampledConn.id, 50, 2);
-
-  const target = (connectionId: string) => ({
-    kind: "model" as const,
-    stepId: `openai/gpt-4o-mini@${connectionId}`,
-    executionKey: `openai/gpt-4o-mini@${connectionId}`,
-    modelStr: "openai/gpt-4o-mini",
-    provider: "openai",
-    providerId: "openai",
-    connectionId,
-    weight: 1,
-    label: null,
-  });
-
-  const fallback = await buildAutoCandidates(
-    [target(aggregateConn.id), target(undersampledConn.id)],
-    "auto-connection-history-fallback"
-  );
-  const fallbackByConnection = new Map(
-    fallback.map((candidate) => [candidate.connectionId, candidate.p95LatencyMs])
-  );
-  assert.equal(fallbackByConnection.get(aggregateConn.id), 300);
-  assert.equal(
-    fallbackByConnection.get(undersampledConn.id),
-    300,
-    "undersampled connection history must use provider/model aggregate history"
-  );
-});
-
-test("buildAutoCandidates leaves confidence count unknown for undersampled fallback", async () => {
-  const connection = await seedConn("history-bootstrap");
-  await seedLatencyHistory(connection.id, 50, 2);
-
-  const [candidate] = await buildAutoCandidates(
-    [
-      {
-        kind: "model",
-        stepId: "openai/gpt-4o-mini",
-        executionKey: "openai/gpt-4o-mini",
-        modelStr: "openai/gpt-4o-mini",
-        provider: "openai",
-        providerId: "openai",
-        connectionId: connection.id,
-        weight: 1,
-        label: null,
-      },
-    ],
-    "auto-connection-history-bootstrap"
-  );
-
-  assert.equal(candidate?.historicalRequestCount, undefined);
-  assert.equal(candidate?.historicalSuccessfulRequestCount, undefined);
-});
 // ── 3. Acceptance: the credential selector never escapes the allowlist ───────
 
 test("getProviderCredentials never selects a connection outside the step allowlist (#3266)", async () => {

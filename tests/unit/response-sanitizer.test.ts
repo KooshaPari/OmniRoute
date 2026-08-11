@@ -279,10 +279,7 @@ test("sanitizeOpenAIResponse preserves OpenRouter native reasoning and signature
   assert.deepEqual((sanitized as any).choices[0].message.reasoning_details, [
     { type: "reasoning.encrypted", data: "sig" },
   ]);
-  assert.equal(
-    (sanitized as any).choices[0].message.content,
-    "<thinking>tag-derived</thinking><content>Visible answer</content>"
-  );
+  assert.equal((sanitized as any).choices[0].message.content, "<content>Visible answer</content>");
 });
 
 test("sanitizeOpenAIResponse keeps reasoning_details-derived reasoning_content for reasoning-only messages", () => {

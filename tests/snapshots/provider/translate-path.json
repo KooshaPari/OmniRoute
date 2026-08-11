@@ -921,28 +921,26 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://cline.bot",
-        "User-Agent": "Cline/<APP>",
+        "User-Agent": "OmniRoute/<APP>",
         "X-CLIENT-TYPE": "omniroute",
         "X-CLIENT-VERSION": "<APP>",
         "X-CORE-VERSION": "<APP>",
         "X-IS-MULTIROOT": "false",
-        "X-PLATFORM": "<PLATFORM>",
+        "X-PLATFORM": "linux",
         "X-PLATFORM-VERSION": "<NODE>",
-        "X-Task-ID": "<UUID>",
         "X-Title": "Cline"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://cline.bot",
-        "User-Agent": "Cline/<APP>",
+        "User-Agent": "OmniRoute/<APP>",
         "X-CLIENT-TYPE": "omniroute",
         "X-CLIENT-VERSION": "<APP>",
         "X-CORE-VERSION": "<APP>",
         "X-IS-MULTIROOT": "false",
-        "X-PLATFORM": "<PLATFORM>",
+        "X-PLATFORM": "linux",
         "X-PLATFORM-VERSION": "<NODE>",
-        "X-Task-ID": "<UUID>",
         "X-Title": "Cline"
       },
       "oauth": {
@@ -950,72 +948,13 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://cline.bot",
-        "User-Agent": "Cline/<APP>",
+        "User-Agent": "OmniRoute/<APP>",
         "X-CLIENT-TYPE": "omniroute",
         "X-CLIENT-VERSION": "<APP>",
         "X-CORE-VERSION": "<APP>",
         "X-IS-MULTIROOT": "false",
-        "X-PLATFORM": "<PLATFORM>",
+        "X-PLATFORM": "linux",
         "X-PLATFORM-VERSION": "<NODE>",
-        "X-Task-ID": "<UUID>",
-        "X-Title": "Cline"
-      }
-    },
-    "url": {
-      "nonStream": "https://api.cline.bot/api/v1/chat/completions",
-      "stream": "https://api.cline.bot/api/v1/chat/completions"
-    }
-  },
-  "clinepass": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://cline.bot",
-        "X-Title": "Cline"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://cline.bot",
-        "X-Title": "Cline"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://cline.bot",
-        "X-Title": "Cline"
-      }
-    },
-    "url": {
-      "nonStream": "https://api.cline.bot/api/v1/chat/completions",
-      "stream": "https://api.cline.bot/api/v1/chat/completions"
-    }
-  },
-  "clinepass": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://cline.bot",
-        "X-Title": "Cline"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://cline.bot",
-        "X-Title": "Cline"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://cline.bot",
         "X-Title": "Cline"
       }
     },
@@ -3982,6 +3921,29 @@
     "url": {
       "nonStream": "https://api.poe.com/v1/chat/completions",
       "stream": "https://api.poe.com/v1/chat/completions"
+    }
+  },
+  "pioneer": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Content-Type": "application/json",
+        "x-api-key": "<CRED>"
+      },
+      "nonStream": {
+        "Content-Type": "application/json",
+        "x-api-key": "<CRED>"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Content-Type": "application/json",
+        "x-api-key": "<CRED>"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.pioneer.ai/v1/chat/completions",
+      "stream": "https://api.pioneer.ai/v1/chat/completions"
     }
   },
   "pollinations": {

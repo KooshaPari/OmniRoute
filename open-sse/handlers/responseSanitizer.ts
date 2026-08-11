@@ -2,7 +2,6 @@ import {
   copyOpenAICompatibleReasoningFields,
   getReadableReasoningValue,
 } from "../utils/reasoningFields.ts";
-import { normalizeOpenAICompatibleFinishReason } from "../utils/finishReason.ts";
 
 /**
  * Response Sanitizer — Normalizes LLM responses to strict OpenAI SDK format.
@@ -397,7 +396,7 @@ export function sanitizeOpenAIResponse(
   // Sanitize choices
   if (Array.isArray(bodyRecord.choices)) {
     sanitized.choices = bodyRecord.choices.map((choice, idx) => {
-      const sanitizedChoice = sanitizeChoice(choice, idx, { parseTextualReasoningTags });
+      const sanitizedChoice = sanitizeChoice(choice, idx);
       const message = toRecord(sanitizedChoice.message);
       if (
         message &&
@@ -490,11 +489,7 @@ export function sanitizeResponsesApiResponse(body: unknown): unknown {
 /**
  * Sanitize a single choice object.
  */
-function sanitizeChoice(
-  choice: unknown,
-  defaultIndex: number,
-  options: ParseOptions = {}
-): JsonRecord {
+function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
   const choiceRecord = toRecord(choice);
   const sanitized: JsonRecord = {
     index: defaultIndex,
@@ -510,7 +505,7 @@ function sanitizeChoice(
   }
 
   if (choiceRecord?.message !== undefined) {
-    sanitized.message = sanitizeMessage(choiceRecord.message, options);
+    sanitized.message = sanitizeMessage(choiceRecord.message);
   }
   if (choiceRecord?.delta !== undefined) {
     sanitized.delta = sanitizeMessage(choiceRecord.delta, options);
@@ -523,21 +518,36 @@ function sanitizeChoice(
   return sanitized;
 }
 
-function sanitizeMessageContent(msgRecord: JsonRecord, options: ParseOptions = {}): JsonRecord {
+/**
+ * Sanitize a message object, extracting <think> tags if present.
+ */
+function sanitizeMessage(msg: unknown): unknown {
+  const msgRecord = toRecord(msg);
+  if (!msgRecord) return msg;
+
+  const sanitized: JsonRecord = {};
+
+  // Copy only allowed fields
+  if (msgRecord.role) sanitized.role = msgRecord.role;
+  if (msgRecord.refusal !== undefined) sanitized.refusal = msgRecord.refusal;
+
+  // Handle content — extract <think> tags
   if (typeof msgRecord.content === "string") {
-    const strippedContent = stripInternalToolEnvelopeText(msgRecord.content);
-    const nativeReasoning = getReadableReasoningValue(msgRecord);
-    const { content, thinking } =
-      options.parseTextualReasoningTags === true && !nativeReasoning
-        ? extractThinkingFromContent(strippedContent)
-        : { content: strippedContent, thinking: null };
-    const sanitized: JsonRecord = { content: collapseExcessiveNewlines(content) };
-    if (thinking) sanitized.reasoning_content = thinking;
-    return sanitized;
+    const { content, thinking } = extractThinkingFromContent(
+      stripInternalToolEnvelopeText(msgRecord.content)
+    );
+    sanitized.content = collapseExcessiveNewlines(content);
+
+    // Set reasoning_content from prompt-format tags only when the provider did
+    // not also return a native OpenAI-compatible reasoning field.
+    if (thinking && !getReadableReasoningValue(msgRecord)) {
+      sanitized.reasoning_content = thinking;
+    }
+  } else if (msgRecord.content !== undefined) {
+    sanitized.content = msgRecord.content;
   }
 
-  return msgRecord.content !== undefined ? { content: msgRecord.content } : {};
-}
+  copyOpenAICompatibleReasoningFields(msgRecord, sanitized);
 
 function applyTextualToolCallSanitization(sanitized: JsonRecord, msgRecord: JsonRecord): void {
   const textualToolCall = parseTextualToolCallContent(sanitized.content);
@@ -1177,14 +1187,6 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
                 : deltaRecord.content;
           }
           copyOpenAICompatibleReasoningFields(deltaRecord, delta);
-          // Parity with the non-streaming path: strip the zero-width joiners that the
-          // request side injects into agent words. copyOpenAICompatibleReasoningFields
-          // is shared, so strip locally on the fields it writes (string values only).
-          for (const reasoningKey of ["reasoning_content", "reasoning", "reasoning_text"]) {
-            if (typeof delta[reasoningKey] === "string") {
-              delta[reasoningKey] = stripZeroWidthText(delta[reasoningKey] as string);
-            }
-          }
           if (deltaRecord.tool_calls !== undefined) {
             delta.tool_calls = Array.isArray(deltaRecord.tool_calls)
               ? deltaRecord.tool_calls.map((tc) => {

@@ -13,25 +13,23 @@ import {
   type GlmTeamQuotaFieldValues,
 } from "./glmTeamQuotaProviderData";
 
-type FormData = QuotaScrapingFieldValues &
-  GlmTeamQuotaFieldValues & {
-    accountId: string;
-    apiRegion: string;
-    ccCompatibleContext1m: boolean;
-    ccCompatibleRedactThinking: boolean;
-    ccCompatibleSummarizeThinking: boolean;
-    consoleApiKey: string;
-    customUserAgent: string;
-    cx: string;
-    excludedModels: string;
-    importFreeModelsOnly: boolean;
-    m365Tier?: M365TierValue;
-    passthroughModels: boolean;
-    region: string;
-    routingTags: string;
-    tag?: string;
-    validationModelId?: string;
-  };
+type FormData = QuotaScrapingFieldValues & {
+  accountId: string;
+  apiRegion: string;
+  ccCompatibleContext1m: boolean;
+  ccCompatibleRedactThinking: boolean;
+  ccCompatibleSummarizeThinking: boolean;
+  consoleApiKey: string;
+  customUserAgent: string;
+  cx: string;
+  excludedModels: string;
+  importFreeModelsOnly: boolean;
+  passthroughModels: boolean;
+  region: string;
+  routingTags: string;
+  tag?: string;
+  validationModelId?: string;
+};
 type ProviderSpecificData = Record<string, unknown>;
 
 // bailian-coding-plan reuses consoleApiKey as its console token; agentrouter (#6850)

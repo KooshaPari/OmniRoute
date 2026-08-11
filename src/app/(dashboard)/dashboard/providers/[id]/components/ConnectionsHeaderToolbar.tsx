@@ -362,6 +362,16 @@ export default function ConnectionsHeaderToolbar({
                     {providerText(t, "importGrokAuth", "Import auth")}
                   </Button>
                 )}
+                {providerId === "grok-cli" && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    icon="upload_file"
+                    onClick={() => gateConnectionFlow(onOpenImportGrokCli)}
+                  >
+                    Import auth
+                  </Button>
+                )}
               </>
             )}
           </>

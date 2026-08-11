@@ -26,7 +26,6 @@ import { kilocode } from "./kilocode";
 import { cline } from "./cline";
 import { windsurf } from "./windsurf";
 import { grokCli } from "./grok-cli";
-import { xaiOauth } from "./xai-oauth";
 import { codebuddyCn } from "./codebuddy-cn";
 import { zed } from "./zed";
 
@@ -53,10 +52,7 @@ export const PROVIDERS = {
   windsurf,
   // devin-cli shares the same token format as windsurf (WINDSURF_API_KEY / devin auth login)
   "devin-cli": windsurf,
-  // grok-cli carries BOTH the browser PKCE flow and the paste-token import flow
-  // under this one entry (#7013) — see grok-cli.ts's mapTokens for the dispatch.
   "grok-cli": grokCli,
-  "xai-oauth": xaiOauth,
   "codebuddy-cn": codebuddyCn,
   // Zed IDE credential bridge — uses keychain import, not standard OAuth
   zed,

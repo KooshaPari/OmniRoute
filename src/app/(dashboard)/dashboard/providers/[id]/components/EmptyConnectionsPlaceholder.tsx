@@ -122,6 +122,15 @@ export default function EmptyConnectionsPlaceholder({
                   Import auth
                 </Button>
               )}
+              {providerId === "grok-cli" && (
+                <Button
+                  variant="secondary"
+                  icon="upload_file"
+                  onClick={() => gateConnectionFlow(onOpenImportGrokCli)}
+                >
+                  Import auth
+                </Button>
+              )}
             </>
           )}
         </div>

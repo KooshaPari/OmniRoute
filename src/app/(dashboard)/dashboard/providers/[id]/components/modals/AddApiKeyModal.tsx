@@ -35,7 +35,6 @@ import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFiel
 import { buildAddProviderSpecificData } from "./connectionProviderSpecificData";
 import { computeConnectionDefaultName } from "./computeConnectionDefaultName";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
-import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
 export interface AddApiKeyModalProps {
   isOpen: boolean;
   provider?: string;
@@ -234,7 +233,7 @@ export default function AddApiKeyModal({
       });
       const data = await res.json();
       const ok = !!data.valid;
-      setValidationResult(ok ? "success" : data.unsupported ? "unsupported" : "failed");
+      setValidationResult(ok ? "success" : "failed");
       // #5088: surface the detailed reason the backend returns (e.g. a TLS/EACCES
       // environment error for claude-web/chatgpt-web) instead of only a bare
       // "invalid" badge — otherwise the real cause is hidden and users are stuck.

@@ -214,27 +214,3 @@ test("feedStreamingChunk: noop after done state", () => {
   assert.equal(out.safeDelta, "");
   assert.equal(out.ready, false);
 });
-
-// ─── Regression: space-separated arg name/value (9router#1811) ───────────────
-// Cursor's real Composer/Auto output has been observed using a single space
-// (instead of a newline) between the arg name and its value inside a
-// <｜tool▁sep｜> segment, e.g. "<｜tool▁sep｜>path /Users/.../test". The parser
-// must still extract {path: "/Users/.../test"} rather than treating the whole
-// segment as the (empty-valued) arg name.
-test("parseComposerToolCalls: parses args separated by a space instead of a newline (Cursor Composer live capture)", () => {
-  const text =
-    "<｜tool▁calls▁begin｜><｜tool▁call▁begin｜> Write " +
-    "<｜tool▁sep｜>path /Users/kabawagang/Desktop/Code/iOS_Review/test " +
-    "<｜tool▁sep｜>contents 22\n\n<｜tool▁call▁end｜><｜tool▁calls▁end｜>";
-
-  const result = parseComposerToolCalls(text);
-
-  assert.equal(result.toolCalls.length, 1);
-  const tc = result.toolCalls[0];
-  assert.equal(tc.function.name, "Write");
-  const args = JSON.parse(tc.function.arguments);
-  assert.deepEqual(args, {
-    path: "/Users/kabawagang/Desktop/Code/iOS_Review/test",
-    contents: 22,
-  });
-});

@@ -9,7 +9,6 @@ import {
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
-import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
   mergeClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
@@ -623,9 +622,8 @@ export class DefaultExecutor extends BaseExecutor {
     withDefaults = this.defaultResponsesTextFormat(withDefaults);
 
     // Port of decolua/9router commit d652300e:
-    // Cerebras returns 400 (wrong_api_format), Mistral returns 422
-    // (extra_forbidden), and NVIDIA's OpenAI-compatible wrapper returns 400
-    // (Unsupported parameter) when the forwarded body carries `client_metadata`
+    // Cerebras returns 400 (wrong_api_format) and Mistral returns 422
+    // (extra_forbidden) when the forwarded body carries `client_metadata`
     // (an OpenAI Codex / Claude CLI passthrough field with no equivalent on
     // these upstreams). Strip it before sending downstream. Other providers
     // (notably `openai` / `codex`) intentionally keep it.
@@ -633,49 +631,12 @@ export class DefaultExecutor extends BaseExecutor {
       withDefaults &&
       typeof withDefaults === "object" &&
       !Array.isArray(withDefaults) &&
-      (this.provider === "cerebras" ||
-        this.provider === "mistral" ||
-        this.provider === "nvidia") &&
+      (this.provider === "cerebras" || this.provider === "mistral") &&
       Object.prototype.hasOwnProperty.call(withDefaults, "client_metadata")
     ) {
       const withoutClientMetadata = { ...(withDefaults as Record<string, unknown>) };
       delete withoutClientMetadata.client_metadata;
       withDefaults = withoutClientMetadata;
-    }
-
-    // 9router#1649: Mistral's API returns 422 (extra_forbidden) when an
-    // assistant message carries a `reasoning_content` field (replayed thinking
-    // from a prior turn, e.g. via the Codex /responses path). The field is
-    // nested per-message, so the generic top-level 400/field-downgrade retry
-    // doesn't cover it. Strip it from every message before sending — scoped to
-    // Mistral so DeepSeek (which *requires* replayed reasoning_content) is
-    // unaffected.
-    if (
-      this.provider === "mistral" &&
-      withDefaults &&
-      typeof withDefaults === "object" &&
-      !Array.isArray(withDefaults) &&
-      Array.isArray((withDefaults as Record<string, unknown>).messages)
-    ) {
-      const record = withDefaults as Record<string, unknown>;
-      const messages = record.messages as unknown[];
-      let mutated = false;
-      const cleaned = messages.map((msg) => {
-        if (
-          msg &&
-          typeof msg === "object" &&
-          !Array.isArray(msg) &&
-          Object.prototype.hasOwnProperty.call(msg, "reasoning_content")
-        ) {
-          mutated = true;
-          const { reasoning_content: _dropped, ...rest } = msg as Record<string, unknown>;
-          return rest;
-        }
-        return msg;
-      });
-      if (mutated) {
-        withDefaults = { ...record, messages: cleaned };
-      }
     }
 
     const targetFormat = getTargetFormat(this.provider, credentials?.providerSpecificData);

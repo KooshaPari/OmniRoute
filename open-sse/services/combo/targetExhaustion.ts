@@ -28,15 +28,6 @@ import type { ComboLogger, ResolvedComboTarget } from "./types.ts";
 // unreachable, proxy/gateway error), so remaining same-connection targets are skipped.
 const CONNECTION_LEVEL_ERROR_STATUSES = [408, 500, 502, 503, 504, 524];
 
-// Auth-level failure statuses: the provider's credentials are invalid/expired (401) or
-// forbidden (403). When the failing target carries a connectionId, only that connection's
-// credentials are bad — sibling connections on the same provider may still be healthy, so
-// mark connection-level exhaustion (mirrors markConnectionLevelExhaustion). Only fall back to
-// whole-provider exhaustion when no connectionId is available (#8133: combo engine wastes
-// attempts on dead connections; #8137: whole-provider exhaustion wrongly skipped healthy
-// sibling connections on the same provider).
-const AUTH_LEVEL_ERROR_STATUSES = [401, 403];
-
 // #5085: an "empty content" 502 is the synthetic status chatCore assigns to a provider that
 // answered HTTP 200 with no usable completion (isEmptyContentResponse). The connection is
 // HEALTHY — it just returned an empty body — so this must NOT be classified as a connection
@@ -44,7 +35,7 @@ const AUTH_LEVEL_ERROR_STATUSES = [401, 403];
 // same-provider leg via #1731v2). It is a model-level transient failure: advance to the next
 // leg, leaving the rest of that provider's legs eligible.
 function isEmptyContentFailure(status: number, errorText: string): boolean {
-  return status === 502 && (/empty content/i.test(errorText) || /empty response/i.test(errorText));
+  return status === 502 && /empty content/i.test(errorText);
 }
 
 export type ComboExhaustionSets = {
@@ -236,17 +227,10 @@ function markConnectionLevelExhaustion(
     provider === "unknown" ||
     !CONNECTION_LEVEL_ERROR_STATUSES.includes(result.status) ||
     isProviderCircuitOpenResult(result, errorText) ||
-    isRequestScopedUpstreamFailure(structuredError) ||
     // #5085: empty-content 502 is a healthy connection returning no body — model-level, not
     // connection-level. Don't exhaust the provider; let the remaining legs (incl. same-provider)
     // be tried in-request.
-    isEmptyContentFailure(result.status, errorText) ||
-    // Per-model-quota providers (gemini, github, passthrough, compatible) multiplex models
-    // behind one connection. A model-level 500 (e.g. Gemini "Internal error encountered")
-    // must NOT exhaust the connection — other models on the same connection may still succeed.
-    // Other connection-level statuses (408/502/503/504/524) indicate the connection itself is
-    // bad, so they correctly exhaust even for per-model-quota providers.
-    (result.status === 500 && hasPerModelQuota(provider, rawModel))
+    isEmptyContentFailure(result.status, errorText)
   ) {
     return;
   }

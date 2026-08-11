@@ -619,19 +619,11 @@ export function processFrame(
               ctx.totalText += parseOut.safeDelta;
               emitChunk(ctx, { content: parseOut.safeDelta });
             }
-            if (
-              parseOut.ready &&
-              parseOut.toolCalls.length > 0 &&
-              !ctx.composerInlineToolCallsEmitted
-            ) {
+            if (parseOut.ready && parseOut.toolCalls.length > 0 && !ctx.composerInlineToolCallsEmitted) {
               ctx.composerInlineToolCallsEmitted = true;
               for (const tc of parseOut.toolCalls) {
                 const toolCallIndex = ctx.emittedToolCallIndex++;
-                ctx.toolCalls.push({
-                  id: tc.id,
-                  name: tc.function.name,
-                  argumentsJson: tc.function.arguments,
-                });
+                ctx.toolCalls.push({ id: tc.id, name: tc.function.name, argumentsJson: tc.function.arguments });
                 emitChunk(ctx, {
                   tool_calls: [
                     {
@@ -1411,7 +1403,11 @@ export class CursorExecutor extends BaseExecutor {
     // parser state never reached "ready"), try a full non-streaming parse on
     // the accumulated visible content so we still emit structured tool_calls
     // and don't leak the markers as plain text.
-    if (isComposerModel(ctx.model) && !ctx.composerInlineToolCallsEmitted && ctx.totalText) {
+    if (
+      isComposerModel(ctx.model) &&
+      !ctx.composerInlineToolCallsEmitted &&
+      ctx.totalText
+    ) {
       const parsed = parseComposerToolCalls(ctx.totalText);
       if (parsed.toolCalls.length > 0) {
         ctx.composerInlineToolCallsEmitted = true;
@@ -1419,11 +1415,7 @@ export class CursorExecutor extends BaseExecutor {
         ctx.totalText = parsed.content;
         for (const tc of parsed.toolCalls) {
           const toolCallIndex = ctx.emittedToolCallIndex++;
-          ctx.toolCalls.push({
-            id: tc.id,
-            name: tc.function.name,
-            argumentsJson: tc.function.arguments,
-          });
+          ctx.toolCalls.push({ id: tc.id, name: tc.function.name, argumentsJson: tc.function.arguments });
           emitChunk(ctx, {
             tool_calls: [
               {
@@ -1477,17 +1469,17 @@ export class CursorExecutor extends BaseExecutor {
     // Composer DeepSeek inline tool-call fallback (decolua/9router#1335): for
     // non-streaming requests, the streaming parser never runs — parse the
     // accumulated visible content once here instead.
-    if (isComposerModel(ctx.model) && !ctx.composerInlineToolCallsEmitted && ctx.totalText) {
+    if (
+      isComposerModel(ctx.model) &&
+      !ctx.composerInlineToolCallsEmitted &&
+      ctx.totalText
+    ) {
       const parsed = parseComposerToolCalls(ctx.totalText);
       if (parsed.toolCalls.length > 0) {
         ctx.composerInlineToolCallsEmitted = true;
         ctx.totalText = parsed.content;
         for (const tc of parsed.toolCalls) {
-          ctx.toolCalls.push({
-            id: tc.id,
-            name: tc.function.name,
-            argumentsJson: tc.function.arguments,
-          });
+          ctx.toolCalls.push({ id: tc.id, name: tc.function.name, argumentsJson: tc.function.arguments });
         }
       }
     }

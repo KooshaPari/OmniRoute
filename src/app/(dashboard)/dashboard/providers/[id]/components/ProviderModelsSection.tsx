@@ -252,7 +252,9 @@ export default function ProviderModelsSection({
           onModelsChanged={fetchProviderModelMeta}
           allowImport={allowModelImport && compatibleSupportsModelImport}
           isModelHidden={effectiveModelHidden}
-          onToggleHidden={(modelId, hidden) => handleToggleModelHidden(providerId, modelId, hidden)}
+          onToggleHidden={(modelId, hidden) =>
+            handleToggleModelHidden(providerId, modelId, hidden)
+          }
           onBulkToggleHidden={(modelIds, hidden) =>
             handleBulkToggleModelHidden(providerId, modelIds, hidden)
           }
@@ -327,7 +329,9 @@ export default function ProviderModelsSection({
           saveModelCompatFlags={saveModelCompatFlags}
           compatSavingModelId={compatSavingModelId}
           isModelHidden={effectiveModelHidden}
-          onToggleHidden={(modelId, hidden) => handleToggleModelHidden(providerId, modelId, hidden)}
+          onToggleHidden={(modelId, hidden) =>
+            handleToggleModelHidden(providerId, modelId, hidden)
+          }
           onBulkToggleHidden={(modelIds, hidden) =>
             handleBulkToggleModelHidden(providerId, modelIds, hidden)
           }
@@ -377,9 +381,7 @@ export default function ProviderModelsSection({
     (acc, [alias, fullModel]) => {
       const prefix = `${providerDisplayAlias}/`;
       if (fullModel.startsWith(prefix)) {
-        const modelId = fullModel.slice(prefix.length);
-        const displayAlias = getDisplayModelAlias(modelId, alias);
-        if (displayAlias) acc[modelId] = displayAlias;
+        acc[fullModel.slice(prefix.length)] = alias;
       }
       return acc;
     },
@@ -469,7 +471,9 @@ export default function ProviderModelsSection({
               onCopy={onCopy}
               onSetAlias={(a) => onSetAlias(model.id, a, providerDisplayAlias)}
               onDeleteAlias={
-                aliasByModelId[model.id] ? () => onDeleteAlias(aliasByModelId[model.id]) : undefined
+                aliasByModelId[model.id]
+                  ? () => onDeleteAlias(aliasByModelId[model.id])
+                  : undefined
               }
               t={t}
               showDeveloperToggle

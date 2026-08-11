@@ -19,22 +19,7 @@ import {
 import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("db:providers");
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
-import {
-  withNullableMaxConcurrent,
-  withNullableQuotaWindowThresholds,
-  withNullableRateLimitOverrides,
-  normalizeBooleanColumn,
-  sanitizeRateLimitOverrides,
-  serializeJsonField,
-  toRecord,
-  sanitizeQuotaWindowThresholds,
-  toStringOrNull,
-  toNumberOrZero,
-} from "./providers/columns";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -348,14 +333,6 @@ export async function createProviderConnection(data: JsonRecord) {
       data.name,
       normalizedProviderSpecificData
     );
-  } else if (data.authType === "access_token") {
-    // #1290 — bare access-token imports (e.g. a raw ChatGPT website access
-    // token with no refresh token) are intentionally never deduped: every
-    // import creates a new connection. Unlike oauth (workspace+email) or
-    // apikey (key-value) imports, a bare access token has no refresh token
-    // and no stable long-lived identity to safely dedup against — matching
-    // on email alone here would risk silently overwriting an existing full
-    // oauth connection for the same account.
   }
 
   if (existing) {

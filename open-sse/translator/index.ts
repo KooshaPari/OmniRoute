@@ -9,6 +9,7 @@ import {
   prepareClaudeRequest,
 } from "./helpers/claudeHelper.ts";
 import { filterToOpenAIFormat } from "./helpers/openaiHelper.ts";
+import { providerHonorsOpenAIFormatCacheControl } from "../utils/cacheControlPolicy.ts";
 import {
   providerHonorsOpenAIFormatCacheControl,
   resolveConnectionCacheOverride,
@@ -282,7 +283,7 @@ export function translateRequest(
           // stripped.
           const preserveCacheControl =
             options?.preserveCacheControl === true &&
-            providerHonorsOpenAIFormatCacheControl(provider, connectionCacheOverride);
+            providerHonorsOpenAIFormatCacheControl(provider);
           const step1Credentials =
             options?.copilotClient || hasTargetHint || preserveCacheControl
               ? {
@@ -329,12 +330,6 @@ export function translateRequest(
   // replay providers) and the cache re-injection further down.
   const normalizedProvider = String(provider ?? "");
   const normalizedModel = String(model ?? "");
-  const isKimiCoding =
-    normalizedProvider === "kimi-coding" || normalizedProvider === "kimi-coding-apikey";
-  const requiresAuthenticReasoning = requiresAuthenticReasoningContent(
-    normalizedProvider,
-    normalizedModel
-  );
   const resolvedCapabilities = getResolvedModelCapabilities({
     provider: normalizedProvider,
     model: normalizedModel,
@@ -355,11 +350,10 @@ export function translateRequest(
     // requested upstream; generic/implicit-cache OpenAI providers stay stripped.
     result = filterToOpenAIFormat(result, {
       preserveCacheControl:
-        options?.preserveCacheControl === true && providerHonorsOpenAIFormatCacheControl(provider),
+        options?.preserveCacheControl === true &&
+        providerHonorsOpenAIFormatCacheControl(provider),
       // #4849 regression guard: keep client reasoning_content for replay providers.
       preserveReasoningContent: isReasoner,
-      // Moonshot's Chat API accepts its own OpenAI-compatible `video_url` block.
-      preserveVideoUrl: normalizedProvider === "moonshot" || normalizedProvider === "kimi",
     });
   }
 
@@ -437,7 +431,7 @@ export function translateRequest(
   // isReasoner / normalizedProvider / normalizedModel / resolvedCapabilities were
   // resolved up-front (before the OpenAI-format filter) so the #4849 reasoning strip
   // could honor reasoning-replay providers.
-  if (isReasoner && !isKimiCoding && result.messages && Array.isArray(result.messages)) {
+  if (isReasoner && result.messages && Array.isArray(result.messages)) {
     const canReplayReasoningOnly = isReasoningOnlyReplayTarget(normalizedProvider, normalizedModel);
 
     for (const [messageIndex, msg] of result.messages.entries()) {

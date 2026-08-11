@@ -21,7 +21,6 @@ import { ModelSourceBadge, type ModelCompatSavePatch } from "./ModelRow";
 export interface PassthroughModelRowProps {
   modelId: string;
   fullModel: string;
-  provider: string;
   alias?: string | null;
   source?: string;
   isFree?: boolean;

@@ -220,7 +220,6 @@ export function createStreamController({
   const abortController = new AbortController();
   const startTime = Date.now();
   let disconnected = false;
-  let clientTerminalSeen = false;
   let pendingRequestCleared = false;
   let cleanupClientAbortSignal: (() => void) | null = null;
 
@@ -306,10 +305,6 @@ export function createStreamController({
       cleanupClientAbortListener();
 
       logStream("complete");
-    },
-
-    markClientTerminalSeen: () => {
-      clientTerminalSeen = true;
     },
 
     // Call on error
@@ -509,19 +504,12 @@ export function createDisconnectAwareStream(transformStream, streamController) {
   const reader = transformStream.readable.getReader();
   const writer = transformStream.writable.getWriter();
   const terminalDecoder = new TextDecoder();
-  const contentDecoder = new TextDecoder();
-  const contentWatcher = createStreamContentWatcher();
   let terminalTail = "";
   let clientTerminalSeen = false;
-  let bytesWereForwarded = false;
 
   const noteClientChunk = (chunk: unknown) => {
-    if (!(chunk instanceof Uint8Array)) return;
-    bytesWereForwarded = true;
-    // Runs past clientTerminalSeen: the frame that carries the terminal marker
-    // can carry the only content too, and #8649 needs the whole stream scanned.
-    contentWatcher.note(contentDecoder.decode(chunk, { stream: true }));
     if (clientTerminalSeen) return;
+    if (!(chunk instanceof Uint8Array)) return;
 
     terminalTail += terminalDecoder.decode(chunk, { stream: true });
     if (terminalTail.length > 4096) {
@@ -531,9 +519,6 @@ export function createDisconnectAwareStream(transformStream, streamController) {
       terminalTail,
       streamController.clientResponseFormat
     );
-    if (clientTerminalSeen) {
-      streamController.markClientTerminalSeen?.();
-    }
   };
 
   return new ReadableStream(
@@ -586,9 +571,7 @@ export function createDisconnectAwareStream(transformStream, streamController) {
           if (!streamController.isConnected()) {
             try {
               controller.close();
-            } catch {
-              // Expected: downstream may have already closed
-            }
+            } catch {}
             return;
           }
 
@@ -596,9 +579,7 @@ export function createDisconnectAwareStream(transformStream, streamController) {
             streamController.handleComplete();
             try {
               controller.close();
-            } catch {
-              // Expected: downstream may have already closed
-            }
+            } catch {}
             return;
           }
 
@@ -624,18 +605,12 @@ export function createDisconnectAwareStream(transformStream, streamController) {
 
           try {
             controller.close();
-          } catch {
-            // Closing an already-closed/aborted controller after client disconnect is expected.
-          }
+          } catch {}
         }
       },
 
       async cancel(reason) {
-        if (clientTerminalSeen) {
-          streamController.handleComplete();
-        } else {
-          streamController.handleDisconnect(reason || "cancelled");
-        }
+        streamController.handleDisconnect(reason || "cancelled");
         await Promise.allSettled([reader.cancel(reason), writer.abort(reason)]);
       },
     },

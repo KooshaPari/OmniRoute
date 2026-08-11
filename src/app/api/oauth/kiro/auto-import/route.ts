@@ -269,8 +269,6 @@ async function tryAwsSsoCache(targetProvider: string): Promise<{
   region?: string | null;
   authMethod?: string | null;
   profileArn?: string | null;
-  tokenEndpoint?: string | null;
-  scopes?: string | string[] | null;
 }> {
   const { readFile, readdir } = await import("fs/promises");
   const cachePath = join(homedir(), ".aws/sso/cache");
@@ -345,13 +343,8 @@ async function tryAwsSsoCache(targetProvider: string): Promise<{
         }
 
         // Read profileArn from Kiro IDE's profile.json.
-        // Kiro IDC (Identity Center) accounts can live in regions other than
-        // us-east-1. #2059 forced every ARN's region segment to us-east-1,
-        // which 403s the runtime gateway for non-us-east-1 IDC accounts. The
-        // OAuth device-code path (src/lib/oauth/providers/kiro.ts) already
-        // discovers the correct region-matched ARN; mirror that here by
-        // preserving the profile's ARN region verbatim instead of rewriting
-        // it.
+        // The runtime gateway requires us-east-1 in the ARN regardless of the IDC
+        // region, so we normalize the ARN region to us-east-1 (#2059).
         let profileArn: string | null = null;
         const kiroProfilePaths = [
           join(
@@ -377,15 +370,17 @@ async function tryAwsSsoCache(targetProvider: string): Promise<{
             const profileContent = await readFile(profilePath, "utf-8");
             const profileData = JSON.parse(profileContent);
             if (profileData.arn) {
-              profileArn = profileData.arn;
+              // Normalize region to us-east-1 for the runtime gateway
+              profileArn = profileData.arn.replace(
+                /arn:aws:codewhisperer:[^:]+:/,
+                "arn:aws:codewhisperer:us-east-1:"
+              );
               break;
             }
+          } catch {
+            continue;
           }
         }
-
-        // Read profileArn from Kiro IDE's profile.json. The region is preserved
-        // verbatim by readKiroIdeProfileArn() (#2314) — see its docstring for why.
-        const profileArn: string | null = await readKiroIdeProfileArn();
 
         return {
           found: true,
@@ -460,9 +455,6 @@ export function findKiroConnectionByProfileArn(
 type SaveAndRespondResult = Awaited<ReturnType<typeof tryKiroCliSqlite>> & {
   // Fields added by tryAwsSsoCache for IDC tokens (#2059)
   authMethod?: string | null;
-  // Fields added by tryAwsSsoCache for External IdP (organization) tokens
-  tokenEndpoint?: string | null;
-  scopes?: string | string[] | null;
 };
 
 async function saveAndRespond(
@@ -557,12 +549,13 @@ async function saveAndRespond(
     let expiresAt = result.expiresAt;
     let profileArn = result.profileArn;
 
-    // `kiro-cli` identifies where credentials came from, not the account type. Persist
-    // the actual auth method so IdC accounts still use their profile ARN and Builder ID
-    // accounts keep the profile-less flow.
+    // Determine authMethod: prefer the value from the SSO cache token (e.g. "idc")
+    // so that kiroService.refreshToken() takes the correct OIDC path for IDC tokens
+    // (#2059). Fall back to "kiro-cli" for the SQLite path and "imported" for plain
+    // social SSO cache tokens (no clientIdHash → no IDC client creds).
     const resolvedAuthMethod =
       result.source === "kiro-cli-sqlite"
-        ? result.authMethod || resolveKiroCliAuthMethod(profileArn)
+        ? "kiro-cli"
         : result.clientId
           ? result.authMethod || "idc"
           : "imported";

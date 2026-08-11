@@ -11,7 +11,7 @@ import type {
   SidebarPresetDefinition,
 } from "./sidebarVisibility/types";
 
-export const SIDEBAR_ICON_ACCENTS: Partial<Record<SidebarItemId, string>> = {
+export const SIDEBAR_ICON_ACCENTS: Partial<Record<HideableSidebarItemId, string>> = {
   home: "#60A5FA",
   "api-manager": "#F59E0B",
   endpoints: "#38BDF8",
@@ -40,7 +40,6 @@ export const SIDEBAR_ICON_ACCENTS: Partial<Record<SidebarItemId, string>> = {
   logs: "#CBD5E1",
   "logs-proxy": "#A3E635",
   "logs-console": "#FACC15",
-  "logs-timeline": "#F472B6",
   "logs-activity": "#60A5FA",
   health: "#EF4444",
   runtime: "#F59E0B",
@@ -72,12 +71,69 @@ export const SIDEBAR_ICON_ACCENTS: Partial<Record<SidebarItemId, string>> = {
   "settings-advanced": "#F97316",
   "settings-security": "#EF4444",
   "settings-feature-flags": "#FACC15",
-  "settings-cache": "#84CC16",
   "settings-sidebar": "#38BDF8",
   docs: "#2563EB",
   issues: "#DC2626",
   changelog: "#F59E0B",
 };
+
+export const SIDEBAR_SUBITEM_ICON_ACCENTS: Record<string, string> = {};
+
+function getDeterministicIconAccent(id: string): string {
+  let hash = 0;
+  for (let index = 0; index < id.length; index += 1) {
+    hash = (hash * 31 + id.charCodeAt(index)) >>> 0;
+  }
+  const hue = hash % 360;
+  const saturation = 72;
+  const lightness = 56;
+  const chroma = (1 - Math.abs((2 * lightness) / 100 - 1)) * (saturation / 100);
+  const huePrime = hue / 60;
+  const x = chroma * (1 - Math.abs((huePrime % 2) - 1));
+  const match = lightness / 100 - chroma / 2;
+  const [red, green, blue] =
+    huePrime < 1
+      ? [chroma, x, 0]
+      : huePrime < 2
+        ? [x, chroma, 0]
+        : huePrime < 3
+          ? [0, chroma, x]
+          : huePrime < 4
+            ? [0, x, chroma]
+            : huePrime < 5
+              ? [x, 0, chroma]
+              : [chroma, 0, x];
+
+  return [red, green, blue]
+    .map((channel) =>
+      Math.round((channel + match) * 255)
+        .toString(16)
+        .padStart(2, "0")
+        .toUpperCase()
+    )
+    .join("")
+    .replace(/^/, "#");
+}
+
+export function getSidebarIconAccent(id: string): string {
+  return (
+    SIDEBAR_ICON_ACCENTS[id as HideableSidebarItemId] ||
+    SIDEBAR_SUBITEM_ICON_ACCENTS[id] ||
+    getDeterministicIconAccent(id)
+  );
+}
+
+export type SidebarSectionId =
+  | "home"
+  | "omni-proxy"
+  | "analytics"
+  | "costs"
+  | "monitoring"
+  | "devtools"
+  | "agentic-features"
+  | "other-features"
+  | "configuration"
+  | "help";
 
 export const SIDEBAR_SUBITEM_ICON_ACCENTS: Record<string, string> = {};
 

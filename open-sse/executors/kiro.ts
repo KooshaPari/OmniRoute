@@ -8,12 +8,7 @@ import {
 import { PROVIDERS } from "../config/constants.ts";
 import { v4 as uuidv4 } from "uuid";
 import { refreshKiroToken } from "../services/tokenRefresh.ts";
-import {
-  splitInlineThinking,
-  flushPendingThinking,
-  type KiroThinkingState,
-} from "./kiroThinking.ts";
-import { ByteQueue, TEXT_ENCODER, parseEventFrame } from "./kiro/eventstream.ts";
+import { splitInlineThinking, flushPendingThinking, type KiroThinkingState } from "./kiroThinking.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -288,18 +283,16 @@ export class KiroExecutor extends BaseExecutor {
     // channel.
     const tb = transformedBody as Record<string, unknown>;
     const userContent =
-      ((
+      (
         (
-          (tb?.conversationState as Record<string, unknown>)?.currentMessage as Record<
-            string,
-            unknown
-          >
-        )?.userInputMessage as Record<string, unknown>
-      )?.content as string) || "";
+          (
+            (tb?.conversationState as Record<string, unknown>)
+              ?.currentMessage as Record<string, unknown>
+          )?.userInputMessage as Record<string, unknown>
+        )?.content as string
+      ) || "";
     const thinkingExpected = userContent.includes("<thinking_mode>enabled</thinking_mode>");
-    const transformedResponse = this.transformEventStreamToSSE(response, model, {
-      thinkingExpected,
-    });
+    const transformedResponse = this.transformEventStreamToSSE(response, model, { thinkingExpected });
 
     return { response: transformedResponse, url, headers, transformedBody };
   }
@@ -480,10 +473,7 @@ export class KiroExecutor extends BaseExecutor {
                       choices: [
                         {
                           index: 0,
-                          delta:
-                            chunkIndex === 0
-                              ? { role: "assistant", content: text }
-                              : { content: text },
+                          delta: chunkIndex === 0 ? { role: "assistant", content: text } : { content: text },
                           finish_reason: null,
                         },
                       ],

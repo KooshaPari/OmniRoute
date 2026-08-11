@@ -285,7 +285,6 @@ export interface ModelRowProps {
 export default function ModelRow({
   model,
   fullModel,
-  provider,
   alias,
   copied,
   onCopy,

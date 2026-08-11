@@ -17,8 +17,6 @@ import {
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { countTextTokens } from "@/shared/utils/tiktokenCounter";
 import { ensureEngineBreakdown } from "@omniroute/open-sse/services/compression/engineBreakdown";
-import { summarizeEncoderCandidates } from "@omniroute/open-sse/services/compression/engines/headroom/encoderComparison";
-import { DEFAULT_MIN_ROWS } from "@omniroute/open-sse/services/compression/engines/headroom/smartcrusher";
 
 export const PreviewCompressionConfigSchema = compressionPreviewConfigSchema;
 
@@ -43,42 +41,13 @@ export const PreviewRequestSchema = z.object({
   // / checkDiffHunks on FidelityGateConfig) use their conservative defaults until the studio gets
   // a config panel for them.
   fidelityGate: z.object({ enabled: z.boolean() }).optional(),
-  // Playground risk-gate toggle → masks high-risk spans (secrets/keys) before compression and
-  // restores them verbatim after, so they pass through byte-identical. Reported via
-  // result.stats.riskGate (spansProtected + per-category counts).
-  riskGate: z.object({ enabled: z.boolean() }).optional(),
   // Playground fuzzy near-duplicate toggle → injects `{ fuzzy: { enabled: true } }` into the
   // session-dedup step config (see buildStep).
   fuzzyDedup: z.object({ enabled: z.boolean() }).optional(),
-  // Playground QuantumLock toggle. The studio is a dry-run, so when enabled we force a caching
-  // context (provider: "anthropic") so the operator can SEE what would be stabilized; real
-  // cache-hit gains only show in production provider telemetry.
-  quantumLock: z.object({ enabled: z.boolean() }).optional(),
-  // Saliency heatmap mode. When set, the response includes a per-token heatmap.
-  // "ultra" uses scoreToken (0–1); "universal" uses kept/removed from the diff.
-  // Omit to skip heatmap computation (normal preview path — no extra cost).
-  heatmap: z.enum(["ultra", "universal"]).optional(),
 });
 
 function countTokens(text: string): number {
   return countTextTokens(text);
-}
-
-function riskGateStatsOf(result: { stats?: { riskGate?: unknown } }): unknown {
-  return result.stats?.riskGate ?? null;
-}
-
-function quantumLockStatsOf(result: { stats?: { quantumLock?: unknown } | null }): unknown {
-  return result.stats?.quantumLock ?? null;
-}
-
-function quantumExtras(quantumLock?: { enabled: boolean }) {
-  return quantumLock?.enabled
-    ? {
-        configPatch: { quantumLock: { enabled: true } },
-        applyOpts: { cachingContext: { provider: "anthropic" } },
-      }
-    : { configPatch: {}, applyOpts: {} };
 }
 
 function messagesToText(messages: Array<{ role: string; content: unknown }>): string {
@@ -90,64 +59,10 @@ function messagesToText(messages: Array<{ role: string; content: unknown }>): st
     .join("\n");
 }
 
-function buildStep(
-  engine: string,
-  fuzzy?: { enabled: boolean },
-  /** Optional detail bag (e.g. headroom.minRows from saved settings). */
-  detail?: Record<string, unknown>
-) {
-  const config: Record<string, unknown> = { ...(detail ?? {}) };
-  if (engine === "session-dedup" && fuzzy?.enabled) {
-    config.fuzzy = { enabled: true };
-  }
-  return Object.keys(config).length > 0 ? { engine, config } : { engine };
-}
-
-function headroomParticipates(
-  engineId: string | undefined,
-  pipeline: string[] | undefined,
-  mode: CompressionMode
-): boolean {
-  // An explicit single-engine or pipeline override decides on its own terms:
-  // headroom only participates if it is the engine / is named in the pipeline.
-  // (effectiveMode is forced to "stacked" whenever engineId/pipeline is set, so we
-  // must not fall through to the mode check for those — e.g. engineId:"lite".)
-  if (engineId) return engineId === "headroom";
-  if (pipeline) return pipeline.includes("headroom");
-  return mode === "stacked";
-}
-
-/**
- * Resolve the optional headroom detail (minRows) from a synthesized compression config.
- * Extracted from dispatchCompression to keep that dispatcher under the complexity gate (#8056/#8058).
- */
-function resolveHeadroomDetail(config: unknown): {
-  headroomDetail: CompressionConfig["headroom"] | undefined;
-  headroomStepDetail: { minRows: number } | undefined;
-} {
-  const headroomDetail =
-    config && typeof config === "object" && config !== null
-      ? (config as CompressionConfig).headroom
-      : undefined;
-  const headroomStepDetail =
-    headroomDetail && typeof headroomDetail.minRows === "number"
-      ? { minRows: headroomDetail.minRows }
-      : undefined;
-  return { headroomDetail, headroomStepDetail };
-}
-
-function headroomParticipates(
-  engineId: string | undefined,
-  pipeline: string[] | undefined,
-  mode: CompressionMode
-): boolean {
-  // An explicit single-engine or pipeline override decides on its own terms:
-  // headroom only participates if it is the engine / is named in the pipeline.
-  // (effectiveMode is forced to "stacked" whenever engineId/pipeline is set, so we
-  // must not fall through to the mode check for those — e.g. engineId:"lite".)
-  if (engineId) return engineId === "headroom";
-  if (pipeline) return pipeline.includes("headroom");
-  return mode === "stacked";
+function buildStep(engine: string, fuzzy?: { enabled: boolean }) {
+  return engine === "session-dedup" && fuzzy?.enabled
+    ? { engine, config: { fuzzy: { enabled: true } } }
+    : { engine };
 }
 
 async function dispatchCompression(
@@ -159,58 +74,29 @@ async function dispatchCompression(
     config?: unknown;
     fidelityGate?: { enabled: boolean };
     fuzzyDedup?: { enabled: boolean };
-    riskGate?: { enabled: boolean };
-    quantumLock?: { enabled: boolean };
   }
 ) {
-  // resolveRiskGate reads `options.riskGate ?? options.config.riskGate`. applyCompressionAsync
-  // does not surface a top-level `riskGate` option, so thread it through the synthesized config
-  // (CompressionConfig.riskGate) — uniform across all three branches and type-safe.
-  // QuantumLock uses the same pattern: when enabled the studio forces cachingContext so the dry-run
-  // badge shows what WOULD be stabilized in production (real caching gains show in telemetry only).
   if (opts.engineId) {
-    const q = quantumExtras(opts.quantumLock);
     return applyCompressionAsync(requestBody, "stacked", {
       config: {
-        stackedPipeline: [
-          buildStep(
-            opts.engineId,
-            opts.fuzzyDedup,
-            opts.engineId === "headroom" ? headroomStepDetail : undefined
-          ),
-        ],
-        ...(headroomDetail ? { headroom: headroomDetail } : {}),
+        stackedPipeline: [buildStep(opts.engineId, opts.fuzzyDedup)],
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
-        ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
-        ...q.configPatch,
       } as CompressionConfig,
-      ...q.applyOpts,
     });
   }
   if (opts.pipeline) {
-    const q = quantumExtras(opts.quantumLock);
     return applyCompressionAsync(requestBody, "stacked", {
       config: {
-        stackedPipeline: opts.pipeline.map((engine) =>
-          buildStep(engine, opts.fuzzyDedup, engine === "headroom" ? headroomStepDetail : undefined)
-        ),
-        ...(headroomDetail ? { headroom: headroomDetail } : {}),
+        stackedPipeline: opts.pipeline.map((engine) => buildStep(engine, opts.fuzzyDedup)),
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
-        ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
-        ...q.configPatch,
       } as CompressionConfig,
-      ...q.applyOpts,
     });
   }
-  const q = quantumExtras(opts.quantumLock);
   return applyCompression(requestBody, opts.effectiveMode, {
     config: {
       ...(opts.config as CompressionConfig | undefined),
       ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
-      ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
-      ...q.configPatch,
     } as CompressionConfig | undefined,
-    ...q.applyOpts,
   });
 }
 
@@ -234,8 +120,7 @@ export async function POST(req: Request) {
   }
 
   const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup } = parsed.data;
-  const effectiveMode: CompressionMode =
-    engineId || pipeline ? "stacked" : (mode as CompressionMode);
+  const effectiveMode: CompressionMode = engineId || pipeline ? "stacked" : (mode as CompressionMode);
   const originalText = messagesToText(messages);
   const originalTokens = countTokens(originalText);
 
@@ -243,12 +128,7 @@ export async function POST(req: Request) {
     const start = Date.now();
     const requestBody = { messages };
     const result = await dispatchCompression(requestBody as Record<string, unknown>, {
-      engineId,
-      pipeline,
-      effectiveMode,
-      config,
-      fidelityGate,
-      fuzzyDedup,
+      engineId, pipeline, effectiveMode, config, fidelityGate, fuzzyDedup,
     });
     const durationMs = Date.now() - start;
 
@@ -262,50 +142,7 @@ export async function POST(req: Request) {
     const savingsPct = originalTokens > 0 ? Math.round((tokensSaved / originalTokens) * 100) : 0;
     const techniquesUsed: string[] = result.stats?.techniquesUsed ?? [];
     const engineBreakdown = result.stats ? ensureEngineBreakdown(result.stats) : [];
-    const diff = buildCompressionPreviewDiff(
-      originalText,
-      compressedText,
-      result.stats,
-      {},
-      heatmapMode as HeatmapMode | undefined
-    );
-
-    const headroomMinRows =
-      typeof config?.headroom?.minRows === "number" && Number.isFinite(config.headroom.minRows)
-        ? config.headroom.minRows
-        : DEFAULT_MIN_ROWS;
-    const encoderComparison = headroomParticipates(engineId, pipeline, effectiveMode)
-      ? summarizeEncoderCandidates(messages, headroomMinRows, countTextTokens)
-      : null;
-
-    // #6461: when fallbackApplied=true, synthesize a deduped reason list from data the
-    // pipeline already produces on result.stats (engineBreakdown[].rejectReason,
-    // validationErrors, and inflation-guard entries in validationWarnings). Non-fallback
-    // runs return []/null — zero change on the happy path.
-    const fallbackReasons: string[] = [];
-    if (diff.fallbackApplied) {
-      const seen = new Set<string>();
-      const push = (s: unknown) => {
-        if (typeof s === "string" && s.length > 0 && !seen.has(s)) {
-          seen.add(s);
-          fallbackReasons.push(s);
-        }
-      };
-      for (const step of engineBreakdown) {
-        if ((step as { rejected?: boolean }).rejected === true) {
-          push((step as { rejectReason?: string }).rejectReason);
-        }
-      }
-      for (const err of diff.validationErrors ?? []) push(err);
-      for (const warn of diff.validationWarnings ?? []) {
-        if (typeof warn === "string" && warn.startsWith("pipeline-inflation-guard:")) push(warn);
-      }
-    }
-    const fallbackReason = fallbackReasons[0] ?? null;
-
-    const encoderComparison = headroomParticipates(engineId, pipeline, effectiveMode)
-      ? summarizeEncoderCandidates(messages, DEFAULT_MIN_ROWS, countTextTokens)
-      : null;
+    const diff = buildCompressionPreviewDiff(originalText, compressedText, result.stats);
 
     return NextResponse.json({
       encoderComparison,
@@ -317,8 +154,6 @@ export async function POST(req: Request) {
       savingsPct,
       techniquesUsed,
       engineBreakdown,
-      riskGate: riskGateStatsOf(result),
-      quantumLock: quantumLockStatsOf(result),
       durationMs,
       mode: effectiveMode,
       intensity: null,

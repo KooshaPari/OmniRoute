@@ -775,6 +775,12 @@ export default function ProviderDetailPageClient() {
         handleApplyClaudeAuthLocal={handleApplyClaudeAuthLocal}
         importClaudeModalOpen={importClaudeModalOpen}
         setImportClaudeModalOpen={setImportClaudeModalOpen}
+        applyGeminiModalConnectionId={applyGeminiModalConnectionId}
+        setApplyGeminiModalConnectionId={setApplyGeminiModalConnectionId}
+        applyingGeminiAuthId={applyingGeminiAuthId}
+        handleApplyGeminiAuthLocal={handleApplyGeminiAuthLocal}
+        importGeminiModalOpen={importGeminiModalOpen}
+        setImportGeminiModalOpen={setImportGeminiModalOpen}
         importGrokCliModalOpen={importGrokCliModalOpen}
         setImportGrokCliModalOpen={setImportGrokCliModalOpen}
         batchTestResults={batchTestResults}

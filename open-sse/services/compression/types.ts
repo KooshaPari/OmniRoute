@@ -12,9 +12,6 @@
 import { ENGINE_IDS } from "./engineCatalog.ts";
 import type { ContextBudgetConfig } from "./adaptiveCompression/types.ts";
 import type { FidelityGateConfig } from "./fidelityGate.ts";
-import type { RiskGateConfig } from "./riskGate/riskGate.ts";
-import type { RiskGateStats } from "./riskGate/riskGateStep.ts";
-import type { QuantumLockConfig, QuantumLockStats } from "./quantumLock/quantumPatterns.ts";
 
 // Re-export so consumers that already import from this module (e.g. src/lib/db/compression.ts)
 // can get ENGINE_IDS without a second bare `@omniroute/open-sse/...engineCatalog.ts` specifier.
@@ -179,12 +176,8 @@ export interface CompressionConfig {
   comboOverrides: Record<string, CompressionMode>;
   compressionComboId?: string | null;
   stackedPipeline?: CompressionPipelineStep[];
-  /** Opt-in QuantumLock cache-prefix stabilization (default off). */
-  quantumLock?: QuantumLockConfig;
   /** Opt-in per-step fidelity gate (default disabled). */
   fidelityGate?: FidelityGateConfig;
-  /** Opt-in risk-gate pre-pass: shields sensitive spans from compression (default disabled). */
-  riskGate?: RiskGateConfig;
   cavemanConfig?: CavemanConfig;
   cavemanOutputMode?: CavemanOutputModeConfig;
   /** Phase 4A: selected output styles (supersedes cavemanOutputMode via a back-compat shim). */

@@ -73,13 +73,29 @@ export async function POST(request: Request) {
     //    otherwise Cloudflare rejects the body with `Unexpected token 'export'`
     //    when it sees module syntax in a non-module upload (#6496 / #6416).
     const workerScriptUrl = `${CLOUDFLARE_API_BASE}/accounts/${accountId}/workers/scripts/${projectName}`;
-    const { headers: uploadHeaders, body: uploadBody } = buildCloudflareWorkerUploadRequest(
-      workerScript,
-      {
-        body_part: "index.js",
-        compatibility_date: "2026-03-20",
-        observability: { enabled: true },
-      }
+    const formData = new FormData();
+    formData.append(
+      "index.js",
+      // Cloudflare's script-upload API only accepts application/javascript,
+      // text/javascript, or multipart/form-data for the script part and rejects
+      // "application/javascript+module" outright (#5128). ES-module semantics
+      // come from `main_module` in the metadata blob below, not this MIME type.
+      new Blob([workerScript], { type: "application/javascript" }),
+      "index.js"
+    );
+    formData.append(
+      "metadata",
+      new Blob(
+        [
+          JSON.stringify({
+            main_module: "index.js",
+            compatibility_date: "2026-03-20",
+            observability: { enabled: true },
+          }),
+        ],
+        { type: "application/json" }
+      ),
+      "metadata.json"
     );
 
     const uploadRes = await fetch(workerScriptUrl, {

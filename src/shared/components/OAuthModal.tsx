@@ -39,7 +39,7 @@ const TOKEN_PASTE_PROVIDERS = new Set(["windsurf", "devin-cli", "grok-cli"]);
  * Phase 2 will reintroduce browser login via Firebase OAuth + RegisterUser.
  * Spec: _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
  */
-const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["windsurf", "devin-cli"]);
+const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["windsurf", "devin-cli", "grok-cli"]);
 
 // POST a bare Codex access token to the access-token-only import endpoint
 // (#1290); shared by the bare-JWT and session-JSON paste branches (#6636).
@@ -128,10 +128,10 @@ export default function OAuthModal({
   const [deviceData, setDeviceData] = useState(null);
   const [gheUrl, setGheUrl] = useState("");
   const [polling, setPolling] = useState(false);
-  const [deviceCodeExpiresAt, setDeviceCodeExpiresAt] = useState<number | null>(null);
-  const [deviceCodeSecondsRemaining, setDeviceCodeSecondsRemaining] = useState<number | null>(null);
-  // API-key paste mode for direct-token providers.
-  const [showPasteToken, setShowPasteToken] = useState(IMPORT_TOKEN_ONLY_PROVIDERS.has(provider));
+  // API-key paste mode: for providers that accept a token directly (windsurf, devin-cli)
+  const [showPasteToken, setShowPasteToken] = useState(
+    provider === "windsurf" || provider === "devin-cli" || provider === "grok-cli"
+  );
   const [pasteToken, setPasteToken] = useState("");
   const [savingToken, setSavingToken] = useState(false);
   // grok-cli only (#7013 rework): device_code is the default method (matches
@@ -142,7 +142,10 @@ export default function OAuthModal({
   // by its own step instead of as prose inside the generic red error step.
   const [loopbackHint, setLoopbackHint] = useState<PkceLoopbackMismatchHint | null>(null);
 
-  const supportsTokenPaste = TOKEN_PASTE_PROVIDERS.has(provider);
+  const supportsTokenPaste =
+    provider === "windsurf" || provider === "devin-cli" || provider === "grok-cli";
+  // Phase 1 hotfix (2026-05-29): windsurf/devin-cli are import-token-only.
+  // Hide the "Browser Login" tab — Phase 2 will restore it via Firebase OAuth.
   const importTokenOnly = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
   const popupRef = useRef(null);
   const deviceFlowRunRef = useRef(0);
@@ -1077,26 +1080,16 @@ export default function OAuthModal({
               {provider === "windsurf"
                 ? 'In the Windsurf / VS Code IDE, run the "Windsurf: Provide Auth Token" command from the command palette (or click the Jupyter "Get Windsurf Authentication Token" button), then copy the shown token and paste it below. Opening windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the flow.'
                 : provider === "grok-cli"
-                  ? 'Paste the FULL contents of ~/.grok/auth.json (not just the JWT "key" field). A bare JWT has no refresh_token, so the connection dies after expiry (#7610). Prefer the dedicated Import auth.json modal when available.'
+                  ? 'Paste your Grok Build JWT token from ~/.grok/auth.json (the "key" field value). You can get it by running `grok login` in your terminal.'
                   : 'Provide your WINDSURF_API_KEY (obtained via `devin auth login`, or via the Windsurf IDE "Windsurf: Provide Auth Token" command).'}
             </p>
-            {provider === "grok-cli" ? (
-              <textarea
-                className="w-full h-32 p-3 text-sm font-mono bg-input border border-border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                value={pasteToken}
-                onChange={(e) => setPasteToken(e.target.value)}
-                placeholder='{"https://auth.x.ai::clientId": {"key": "eyJ...", "refresh_token": "..."}}'
-                aria-label="Grok Build auth.json"
-              />
-            ) : (
-              <Input
-                value={pasteToken}
-                onChange={(e) => setPasteToken(e.target.value)}
-                placeholder="ws-..."
-                type="password"
-                label="API Key / Token"
-              />
-            )}
+            <Input
+              value={pasteToken}
+              onChange={(e) => setPasteToken(e.target.value)}
+              placeholder={provider === "grok-cli" ? "eyJ..." : "ws-..."}
+              type="password"
+              label={provider === "grok-cli" ? "JWT Token" : "API Key / Token"}
+            />
             {error && <p className="text-sm text-red-500">{error}</p>}
             <div className="flex gap-2">
               <Button

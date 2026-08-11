@@ -1,12 +1,5 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { getRegistryEntry } from "../config/providerRegistry.ts";
 import {
-  resolveAlternateFormat,
-  type AlternateFormat,
-} from "../config/providers/alternateFormats.ts";
-import {
-  CLAUDE_CLI_BILLING_VERSION,
-  CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
   mergeClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
 } from "../config/anthropicHeaders.ts";

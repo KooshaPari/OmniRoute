@@ -120,19 +120,9 @@ import {
 import { normalizeClaudeHaikuConstraints } from "../services/claudeHaikuConstraints.ts";
 import { applyDefaultReasoningEffort } from "../services/defaultReasoningEffort.ts";
 import { echoModelInObject } from "../services/responseModelEcho.ts";
-import {
-  stripGpt5SamplingWhenReasoning,
-  stripGpt5ReasoningWhenTools,
-} from "../services/gpt5SamplingGuard.ts";
+import { stripGpt5SamplingWhenReasoning } from "../services/gpt5SamplingGuard.ts";
 import { getUnsupportedParams, REGISTRY } from "../config/providerRegistry.ts";
-import { stripUnsupportedParams } from "./chatCore/unsupportedParamsStrip.ts";
-import { checkToolCallingRequiredButUnsupported } from "./chatCore/toolCallingRequiredCheck.ts";
-import {
-  supportsMaxTokens,
-  getResolvedModelCapabilities,
-  getExplicitModelOutputCap,
-} from "@/lib/modelCapabilities.ts";
-import { toPositiveInteger } from "../services/reasoningTokenBuffer.ts";
+import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
 import {
   buildErrorBody,
@@ -941,16 +931,9 @@ export async function handleChatCore({
   // sourceFormat="claude" applies the Anthropic Messages spec default (stream=false
   // when body omits stream), preventing STREAM_EARLY_EOF on /v1/messages when
   // clients send Accept: */* without an explicit stream flag.
-  // providerRequiresStreaming: providers with forceStream:true (cline/clinepass)
-  // only implement upstream streaming — a non-streaming request returns
-  // "generateText is not implemented" / an empty body. This flag forces the
-  // UPSTREAM request to stream (see `upstreamStream` below), but it MUST NOT
-  // force the client-facing `stream` flag: a stream:false client (e.g. the
-  // model-test button, plain JSON API callers) still expects a JSON response.
-  // The client-side `if (!stream)` branch drains the forced upstream SSE and
-  // converts it back to JSON via readNonStreamingResponseBody. Passing this
-  // flag into resolveStreamFlag would force `stream=true` and skip that
-  // conversion, yielding STREAM_EARLY_EOF for JSON callers. (#2081, #6126)
+  // providerRequiresStreaming: providers with forceStream:true reject stream:false
+  // upstream (HTTP 400); keep streaming so OmniRoute can convert the stream to JSON
+  // for the client via handleForcedSSEToJson. (#2081)
   const providerRequiresStreaming = REGISTRY[provider]?.forceStream === true;
   const stream =
     nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
@@ -958,6 +941,7 @@ export async function handleChatCore({
       : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat, {
           userAgent: streamUserAgent,
           streamDefaultMode: apiKeyInfo?.streamDefaultMode,
+          providerRequiresStreaming,
         });
 
   // `settings` is already consolidated once near the top of handleChatCore
@@ -2586,7 +2570,8 @@ export async function handleChatCore({
 
   let onPipelineStreamError: streamFailure.PipelineStreamErrorHandler | null = null;
   let onClientDisconnectFinalize:
-    ((event: { reason: string; duration: number }) => boolean) | null = null;
+    | ((event: { reason: string; duration: number }) => boolean)
+    | null = null;
 
   // Create stream controller for disconnect detection
   const streamController = createStreamController({
@@ -2647,7 +2632,13 @@ export async function handleChatCore({
         const rawResult = await (async () => {
           let attempts = 0;
           const isModelScopeForRequest = isModelScope();
-          const maxAttempts = isModelScopeForRequest ? 3 : provider === "codex" ? 3 : 1;
+          const maxAttempts = isModelScopeForRequest
+            ? 3
+            : provider === "qwen"
+              ? 3
+              : provider === "codex"
+                ? 3
+                : 1;
 
           // ── Codex 429 account-rotation state ─────────────────────────────────
           // Track excluded connection IDs for codex failover across attempts.
@@ -2726,7 +2717,6 @@ export async function handleChatCore({
                             clientRawRequest?.headers,
                             userAgent
                           ),
-                          clientResponseFormat,
                           onCredentialsRefreshed,
                           skipUpstreamRetry,
                           contextEditing: { enabled: contextEditingEnabled },
@@ -2750,6 +2740,26 @@ export async function handleChatCore({
 
               if (res.response.status === 401 && execCreds?.connectionId) {
                 recordKeyHealthStatus(401, execCreds);
+              }
+
+              // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
+              if (
+                provider === "qwen" &&
+                res.response.status === 429 &&
+                attempts < maxAttempts - 1
+              ) {
+                const bodyPeek = await res.response
+                  .clone()
+                  .text()
+                  .catch(() => "");
+                if (bodyPeek.toLowerCase().includes("exceeded your current quota")) {
+                  const delay = 1500 * (attempts + 1);
+                  log?.warn?.("QWEN_RETRY", `Quota 429 hit. Retrying in ${delay}ms...`);
+                  releaseAccountSemaphore();
+                  await new Promise((r) => setTimeout(r, delay));
+                  attempts++;
+                  continue;
+                }
               }
 
               if (isModelScope() && res.response.status === 429 && attempts < maxAttempts - 1) {
@@ -3265,36 +3275,19 @@ export async function handleChatCore({
         errorCode: error.code,
       };
     }
-    // abort(reason) can reject the upstream fetch with a raw string reason
-    // (e.g. "request_signal_aborted") that has no `name`/`status`; classify
-    // via isLocalStreamLifecycleError so those map to 499 instead of falling
-    // through to the 502 provider-failure default.
-    const isRequestAborted = isLocalStreamLifecycleError(error);
-    // #8376: an unreachable upstream proxy (ECONNREFUSED/ECONNRESET/...) is tagged by
-    // proxyFetch.ts (tagProxyUnreachable) with `.errorCode = "proxy_unreachable"` before
-    // it reaches this catch. Classify it explicitly to 502 instead of falling through
-    // the generic `error.status` branch (a raw connect-refused error has no `.status` at
-    // all, so it used to collapse into an ordinary 502/504 the provider-breaker predicate
-    // can't tell apart from a per-model 5xx).
-    const isProxyUnreachableFailure =
-      !isRequestAborted && (error as { errorCode?: unknown })?.errorCode === "proxy_unreachable";
-    const errorCode = getUpstreamErrorIdentifier(error);
-    const isLocalQueueTimeout = errorCode === "RATE_LIMIT_QUEUE_TIMEOUT";
-    const failureStatus = isRequestAborted
-      ? 499
-      : isProxyUnreachableFailure
-        ? HTTP_STATUS.BAD_GATEWAY
-        : isLocalQueueTimeout
-          ? HTTP_STATUS.SERVICE_UNAVAILABLE
-          : error.name === "TimeoutError" || error.name === "BodyTimeoutError"
-            ? HTTP_STATUS.GATEWAY_TIMEOUT
-            : error.status && typeof error.status === "number"
-              ? error.status
-              : HTTP_STATUS.BAD_GATEWAY;
-    const failureMessage = isRequestAborted
-      ? "Request aborted"
-      : formatProviderError(error, provider, model, failureStatus);
-    const upstreamErrorCode = isProxyUnreachableFailure ? "proxy_unreachable" : errorCode;
+    const failureStatus =
+      error.name === "AbortError"
+        ? 499
+        : error.name === "TimeoutError" || error.name === "BodyTimeoutError"
+          ? HTTP_STATUS.GATEWAY_TIMEOUT
+          : error.status && typeof error.status === "number"
+            ? error.status
+            : HTTP_STATUS.BAD_GATEWAY;
+    const failureMessage =
+      error.name === "AbortError"
+        ? "Request aborted"
+        : formatProviderError(error, provider, model, failureStatus);
+    const upstreamErrorCode = getUpstreamErrorIdentifier(error);
     // Tag our own deadline timeouts (fetch-start TimeoutError / body BodyTimeoutError,
     // both surfaced as a 504) as "upstream_timeout" so the cooldown layer can tell a
     // slow-but-not-failed request apart from a real provider 5xx. (Antigravity already
@@ -3675,7 +3668,7 @@ export async function handleChatCore({
           ) {
             const quotaScope = getQuotaScopeLabelForProvider(provider, model);
             console.warn(
-              `[provider] Node ${errorConnectionId} ${quotaScope}-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (cooldown_scope=${quotaScope}, ttl_source=${retryAfterMs ? "upstream" : "inferred"}, connection stays active)`
+              `[provider] Node ${errorConnectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
             );
           } else {
             await updateProviderConnection(errorConnectionId, {
@@ -3712,22 +3705,6 @@ export async function handleChatCore({
           });
           console.warn(
             `[provider] Node ${errorConnectionId} project routing error (${statusCode}) — not banning`
-          );
-        } else if (errorType === PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND) {
-          // 404 — model/endpoint does not exist upstream. Lock the model so the
-          // retry/backoff loop stops hammering the dead endpoint (which would
-          // otherwise degenerate into a 429 rate-limit storm). Connection stays
-          // active since only the specific model is unavailable. (#6827)
-          const notFoundCooldownMs = COOLDOWN_MS.notFound;
-          lockModel(
-            provider,
-            errorConnectionId,
-            currentModel,
-            "model_not_found",
-            notFoundCooldownMs
-          );
-          console.warn(
-            `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${currentModel} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
           );
         }
       } catch {

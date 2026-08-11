@@ -36,13 +36,13 @@ const EXPECTED_FEATURE_FLAG_COUNT = 40;
 // Test group 1 — Flag definitions registry
 // ──────────────────────────────────────────────────────
 describe("featureFlagDefinitions", () => {
-  it("has exactly 40 flag definitions", () => {
-    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, EXPECTED_FEATURE_FLAG_COUNT);
+  it("has exactly 38 flag definitions", () => {
+    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, 38);
   });
 
   it("has unique keys for all flags", () => {
     const keys = FEATURE_FLAG_DEFINITIONS.map((d) => d.key);
-    assert.strictEqual(new Set(keys).size, EXPECTED_FEATURE_FLAG_COUNT);
+    assert.strictEqual(new Set(keys).size, 38);
   });
 
   it("has valid categories for all flags", () => {
@@ -312,9 +312,9 @@ describe("resolveFeatureFlag", () => {
   });
 
   describe("resolveAllFeatureFlags", () => {
-    it("returns all 40 flags", () => {
+    it("returns all 38 flags", () => {
       const all = resolveAllFeatureFlags();
-      assert.strictEqual(all.length, EXPECTED_FEATURE_FLAG_COUNT);
+      assert.strictEqual(all.length, 38);
     });
 
     it("marks DB-overridden flags with source 'db'", () => {

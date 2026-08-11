@@ -2523,89 +2523,10 @@ export async function GET(
       provider in PROVIDER_MODELS_CONFIG
         ? PROVIDER_MODELS_CONFIG[provider as keyof typeof PROVIDER_MODELS_CONFIG]
         : deriveConfigFromRegistryModelsUrl(provider);
-    if (provider === "codex") {
-      // Auto-merge live/GitHub/local (future-proof discovery), then apply explicit
-      // denylist filters (e.g. drop GPT-5.4 family). Do not gate remote-only IDs.
-      const staticCodexCatalog = mergeLocalCatalogModels(
-        getModelsByProviderId("codex") || [],
-        getStaticModelsForProvider("codex") || []
-      );
-      const finalizeCodexCatalog = (remoteModels: typeof cachedDiscoveryModels) =>
-        buildCodexDiscoveryCatalog(remoteModels, staticCodexCatalog);
-      const cachedCatalogModels = finalizeCodexCatalog(cachedDiscoveryModels);
-      const cachedIdsMatchFinalCatalog =
-        cachedDiscoveryModels.length === cachedCatalogModels.length &&
-        cachedDiscoveryModels.every((model, index) => model.id === cachedCatalogModels[index]?.id);
-      const persistFilteredCacheIfNeeded = async () => {
-        if (cachedIdsMatchFinalCatalog) return;
-        await persistDiscoveredModels(provider, connectionId, cachedCatalogModels);
-      };
-
-      if (!refresh && cachedDiscoveryModels.length > 0) {
-        await persistFilteredCacheIfNeeded();
-        return buildResponse({
-          provider,
-          connectionId,
-          models: cachedCatalogModels,
-          source: "cache",
-        });
-      }
-
-      if (!refresh && !autoFetchModels) {
-        return buildResponse({
-          provider,
-          connectionId,
-          models: finalizeCodexCatalog([]),
-          source: "local_catalog",
-          warning: "Auto-fetch disabled — using local catalog",
-        });
-      }
-
-      const liveModels = await fetchCodexDiscoveryModels({
-        accessToken: accessToken || null,
-        providerSpecificData: connection.providerSpecificData,
-        fetchImpl: (url, init) =>
-          safeOutboundFetch(url, {
-            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-            guard: getProviderOutboundGuard(),
-            proxyConfig: proxy,
-            ...init,
-          }),
-      });
-      const githubCatalogModels = await fetchCodexGithubCatalogModels({
-        fetchImpl: (url, init) =>
-          safeOutboundFetch(url, {
-            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-            guard: "public-only",
-            proxyConfig: proxy,
-            ...init,
-          }),
-      });
-      if (liveModels && liveModels.length > 0) {
-        const enrichedLiveModels =
-          githubCatalogModels && githubCatalogModels.length > 0
-            ? enrichCodexModelsFromGithubCatalog(liveModels, githubCatalogModels)
-            : liveModels;
-        return buildApiDiscoveryResponse(finalizeCodexCatalog(enrichedLiveModels));
-      }
-
-      if (githubCatalogModels && githubCatalogModels.length > 0) {
-        return buildApiDiscoveryResponse(
-          finalizeCodexCatalog(githubCatalogModels),
-          "Codex live catalog unavailable — using GitHub model catalog"
-        );
-      }
-
-      if (cachedDiscoveryModels.length > 0) {
-        await persistFilteredCacheIfNeeded();
-        return buildResponse({
-          provider,
-          connectionId,
-          models: cachedCatalogModels,
-          source: "cache",
-          warning: "Codex live catalog unavailable — using cached catalog",
-        });
-      }
+    // Static model providers (no remote /models API)
+    // Qwen OAuth Fallback: The Dashscope /models API rejects OAuth tokens with 401
+    if (provider === "qwen" && connection.authType === "oauth") {
+      const qwenModels = getModelsByProviderId("qwen");
       return buildResponse({
         provider,
         connectionId,

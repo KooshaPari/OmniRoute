@@ -115,44 +115,11 @@ export const CODEBUDDY_CN_CONFIG = {
   pollInterval: 5000,
 };
 
-// Grok Build (xAI) OAuth Configuration (Device Code + import-token fallback)
+// Grok Build (xAI) OAuth Configuration (Import-Token Flow with refresh)
 // Public client_id resolved through resolvePublicCred so it is never a literal.
 export const GROK_CLI_CONFIG = {
   clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
-  issuer: GROK_BUILD_OAUTH_ISSUER,
-  deviceCodeUrl: GROK_BUILD_DEVICE_CODE_URL,
-  tokenUrl: GROK_BUILD_TOKEN_URL,
-  scope: GROK_BUILD_OAUTH_SCOPES.join(" "),
-};
-
-// Grok Build (xAI) OAuth Configuration (Browser PKCE Flow — added #7013)
-// Same auth.x.ai authorize/token endpoints and public client_id as XAI_OAUTH_CONFIG,
-// but scoped to the Grok Build (cli-chat-proxy.grok.com) entitlement and kept as a
-// separate config so grok-cli's own baseUrl/model registry stay untouched.
-export const GROK_BUILD_OAUTH_CONFIG = {
-  clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
-  authorizeUrl: "https://auth.x.ai/oauth2/authorize",
   tokenUrl: "https://auth.x.ai/oauth2/token",
-  scope: "openid profile email offline_access grok-cli:access",
-  codeChallengeMethod: "S256",
-  loopbackPort: 56122, // distinct from xai-oauth's 56121 — both can run concurrently
-  callbackPath: "/callback",
-  callbackHost: "127.0.0.1",
-};
-
-// xAI API OAuth Configuration (Authorization Code Flow with PKCE)
-// This intentionally uses a separate provider from Grok Build: both use the
-// public Grok CLI OAuth client, but their inference endpoints and model
-// entitlements differ (`api.x.ai` vs `cli-chat-proxy.grok.com`).
-export const XAI_OAUTH_CONFIG = {
-  clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
-  authorizeUrl: "https://auth.x.ai/oauth2/authorize",
-  tokenUrl: "https://auth.x.ai/oauth2/token",
-  scope: "openid profile email offline_access grok-cli:access api:access",
-  codeChallengeMethod: "S256",
-  loopbackPort: 56121,
-  callbackPath: "/callback",
-  callbackHost: "127.0.0.1",
 };
 
 // Kimi Coding OAuth Configuration (Device Code Flow)
@@ -509,5 +476,4 @@ export const PROVIDERS = {
   TRAE: "trae",
   CODEBUDDY_CN: "codebuddy-cn",
   GROK_CLI: "grok-cli",
-  ZED: "zed",
 };

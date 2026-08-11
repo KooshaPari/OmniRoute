@@ -32,7 +32,7 @@ const {
   CURSOR_CONFIG,
   GITHUB_CONFIG,
   GITLAB_DUO_CONFIG,
-  GROK_BUILD_OAUTH_CONFIG,
+  GROK_CLI_CONFIG,
   KILOCODE_CONFIG,
   KIMI_CODING_CONFIG,
   KIRO_CONFIG,
@@ -67,7 +67,6 @@ const EXPECTED_PROVIDER_KEYS = [
   "windsurf",
   "devin-cli",
   "grok-cli",
-  "xai-oauth",
   "codebuddy-cn",
   "zed",
 ];
@@ -98,8 +97,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   windsurf: WINDSURF_CONFIG,
   "devin-cli": WINDSURF_CONFIG,
   trae: TRAE_CONFIG,
-  "grok-cli": GROK_BUILD_OAUTH_CONFIG,
-  "xai-oauth": XAI_OAUTH_CONFIG,
+  "grok-cli": GROK_CLI_CONFIG,
   "codebuddy-cn": CODEBUDDY_CN_CONFIG,
   zed: ZED_CONFIG,
 };

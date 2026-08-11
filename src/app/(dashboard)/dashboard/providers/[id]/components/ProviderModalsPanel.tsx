@@ -23,6 +23,7 @@ import ImportProgressModal from "./ImportProgressModal";
 import { AdaptaTutorialModal } from "./AdaptaTutorialModal";
 import { ImportCodexAuthModal, ApplyCodexAuthModal } from "./modals/ImportCodexAuthModal";
 import { ImportClaudeAuthModal, ApplyClaudeAuthModal } from "./modals/ImportClaudeAuthModal";
+import { ImportGeminiAuthModal, ApplyGeminiAuthModal } from "./modals/ImportGeminiAuthModal";
 import ImportGrokCliAuthModal from "./modals/ImportGrokCliAuthModal";
 import { type ConnectionRowConnection } from "./ConnectionRow";
 import { type BatchTestResults } from "../hooks/useProviderConnections";
@@ -125,6 +126,13 @@ interface ProviderModalsPanelProps {
   handleApplyClaudeAuthLocal: (id: string) => Promise<void>;
   importClaudeModalOpen: boolean;
   setImportClaudeModalOpen: (open: boolean) => void;
+  // Gemini auth
+  applyGeminiModalConnectionId: string | null;
+  setApplyGeminiModalConnectionId: (id: string | null) => void;
+  applyingGeminiAuthId: string | null;
+  handleApplyGeminiAuthLocal: (id: string) => Promise<void>;
+  importGeminiModalOpen: boolean;
+  setImportGeminiModalOpen: (open: boolean) => void;
   // Grok Build auth
   importGrokCliModalOpen: boolean;
   setImportGrokCliModalOpen: (open: boolean) => void;
@@ -212,6 +220,12 @@ export default function ProviderModalsPanel({
   handleApplyClaudeAuthLocal,
   importClaudeModalOpen,
   setImportClaudeModalOpen,
+  applyGeminiModalConnectionId,
+  setApplyGeminiModalConnectionId,
+  applyingGeminiAuthId,
+  handleApplyGeminiAuthLocal,
+  importGeminiModalOpen,
+  setImportGeminiModalOpen,
   importGrokCliModalOpen,
   setImportGrokCliModalOpen,
   batchTestResults,
@@ -410,6 +424,16 @@ export default function ProviderModalsPanel({
           onClose={() => setImportClaudeModalOpen(false)}
           onSuccess={() => {
             setImportClaudeModalOpen(false);
+            void fetchConnections();
+          }}
+        />
+      )}
+      {providerId === "grok-cli" && importGrokCliModalOpen && (
+        <ImportGrokCliAuthModal
+          key="import-grok-cli-modal"
+          onClose={() => setImportGrokCliModalOpen(false)}
+          onSuccess={() => {
+            setImportGrokCliModalOpen(false);
             void fetchConnections();
           }}
         />

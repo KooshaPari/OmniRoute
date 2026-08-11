@@ -31,25 +31,12 @@ const CLAUDE_TOOL_CHOICE_REQUIRED = "an" + "y";
 // Filter messages to OpenAI standard format
 // Remove: redacted_thinking, and other non-OpenAI blocks
 // Convert: thinking blocks → reasoning_content on the message
-export interface FilterToOpenAIFormatOptions {
-  /** Keep `cache_control` on content blocks (providers that honor OpenAI-format breakpoints). */
-  preserveCacheControl?: boolean;
-  /** Keep Moonshot's non-standard `video_url` content block. */
-  preserveVideoUrl?: boolean;
-  /** Keep `reasoning_content` on tool-call assistant turns (reasoning-replay providers). */
-  preserveReasoningContent?: boolean;
-}
-
-export function filterToOpenAIFormat(body, opts: FilterToOpenAIFormatOptions = {}) {
+export function filterToOpenAIFormat(body, opts = {}) {
   // #2069 — when the routed provider honors OpenAI-format cache_control
   // breakpoints (DashScope/alibaba, Xiaomi MiMo, etc.) and preservation was
   // requested upstream, keep the `cache_control` field on each content block
   // instead of destructuring it away. `signature` is always stripped.
   const preserveCacheControl = opts?.preserveCacheControl === true;
-  // Moonshot's native Chat API extends OpenAI content blocks with `video_url`.
-  // Keep that extension opt-in so generic OpenAI-compatible providers still
-  // receive only the standard allowlist below.
-  const preserveVideoUrl = opts?.preserveVideoUrl === true;
   // #4849 strips reasoning_content from tool-call assistant turns to stop O(n^2)
   // context growth — but reasoning-replay providers (DeepSeek V4, Kimi K2, etc.)
   // REQUIRE the client's reasoning_content to be passed back, so keep it for them
@@ -96,10 +83,7 @@ export function filterToOpenAIFormat(body, opts: FilterToOpenAIFormatOptions = {
         if (block.type === "redacted_thinking") continue;
 
         // Only keep valid OpenAI content types
-        if (
-          VALID_OPENAI_CONTENT_TYPES.includes(block.type) ||
-          (preserveVideoUrl && block.type === "video_url")
-        ) {
+        if (VALID_OPENAI_CONTENT_TYPES.includes(block.type)) {
           // Strip `signature` always; strip `cache_control` unless the provider
           // honors OpenAI-format cache breakpoints and preservation was requested (#2069).
           const { signature, cache_control, ...rest } = block;

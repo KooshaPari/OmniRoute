@@ -1,5 +1,5 @@
 // open-sse/services/compression/engines/ionizer/sample.ts
-import { tryStoreBlock } from "../ccr/index.ts";
+import { storeBlock } from "../ccr/index.ts";
 
 type MessageLike = { role?: string; content?: unknown; [key: string]: unknown };
 
@@ -131,7 +131,8 @@ export interface IonizerPassResult {
 
 function isPlainObjectArray(v: unknown): v is Array<Record<string, unknown>> {
   return (
-    Array.isArray(v) && v.every((el) => el !== null && typeof el === "object" && !Array.isArray(el))
+    Array.isArray(v) &&
+    v.every((el) => el !== null && typeof el === "object" && !Array.isArray(el))
   );
 }
 
@@ -168,12 +169,8 @@ export function applyIonizerPass(
       });
       if (res.keptCount >= res.totalCount) return m;
 
-      const stored = tryStoreBlock(serialized, opts.principalId, {
-        contentType: "application/json",
-        source: "ionizer",
-      });
-      if (!stored.stored) return m;
-      const marker = `[ionizer: kept ${res.keptCount}/${res.totalCount} rows; full → CCR retrieve hash=${stored.hash} chars=${serialized.length}]`;
+      const hash = storeBlock(serialized, opts.principalId);
+      const marker = `[ionizer: kept ${res.keptCount}/${res.totalCount} rows; full → CCR retrieve hash=${hash} chars=${serialized.length}]`;
       const newContent = `${JSON.stringify(res.kept)}\n${marker}`;
       if (newContent.length >= serialized.length) return m;
 
@@ -197,9 +194,7 @@ export function runIonizerPass(
   principalId?: string
 ): IonizerPassResult {
   if (stepConfig["enabled"] === false) return { messages, ionizedCount: 0 };
-  const threshold =
-    typeof stepConfig["threshold"] === "number" ? (stepConfig["threshold"] as number) : 200;
-  const targetRows =
-    typeof stepConfig["targetRows"] === "number" ? (stepConfig["targetRows"] as number) : 50;
+  const threshold = typeof stepConfig["threshold"] === "number" ? (stepConfig["threshold"] as number) : 200;
+  const targetRows = typeof stepConfig["targetRows"] === "number" ? (stepConfig["targetRows"] as number) : 50;
   return applyIonizerPass(messages, { threshold, targetRows, principalId });
 }

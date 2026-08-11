@@ -2,8 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { grokCli } = await import("../../src/lib/oauth/providers/grok-cli.ts");
-const { GrokCliExecutor } = await import("@omniroute/open-sse/executors/grok-cli");
-const { getGrokBuildClientVersion } = await import("@omniroute/open-sse/config/grokBuild.ts");
 const { resolvePublicCred } = await import("@omniroute/open-sse/utils/publicCreds");
 
 test("Grok Build OAuth Provider - config", () => {
@@ -16,7 +14,6 @@ test("Grok Build OAuth Provider - config", () => {
     "clientId must resolve from the embedded grok_id default"
   );
   assert.equal(grokCli.config.tokenUrl, "https://auth.x.ai/oauth2/token");
-  assert.equal(getGrokBuildClientVersion(), "0.2.106");
 });
 
 test("publicCreds: grok_id embedded default is present and decodes", () => {
@@ -24,36 +21,8 @@ test("publicCreds: grok_id embedded default is present and decodes", () => {
   assert.ok(decoded.length > 0, "grok_id must decode to a non-empty client id");
 });
 
-// #7013 (reworked): grok-cli now ships a browser PKCE flow ALONGSIDE the
-// pre-existing device_code flow (#7358) and paste-token import — all three
-// coexist under one registry entry instead of the browser flow replacing
-// device_code. flowType stays "device_code" so it remains the DEFAULT/primary
-// method in OAuthModal.tsx and route.ts's device-code/poll action family;
-// supportsBrowserPkce is the capability marker providers.ts::generateAuthData
-// and route.ts's exchange codeVerifier guard check to also build/require PKCE
-// for the browser method. requestDeviceCode/pollToken are restored (see
-// coexistence assertions below); mapTokens still auto-detects and handles
-// pasted-token input (see tests below) and the browser-flow OAuth-token shape
-// (`access_token`+`id_token`) is covered in tests/unit/oauth-grok-cli-browser.test.ts,
-// which asserts that exact shape dispatches through mapGrokBuildBrowserTokens
-// (grok-cli-oauth.ts).
-test("Grok Build OAuth Provider - flowType stays device_code (primary, #7358) with browser PKCE alongside (#7013)", () => {
-  assert.equal(grokCli.flowType, "device_code");
-  assert.equal(grokCli.supportsBrowserPkce, true);
-  assert.equal(grokCli.config.scope, "openid profile email offline_access grok-cli:access");
-});
-
-// #7013 rework coexistence guard: BOTH flows' handlers must be present on the
-// single grok-cli registry entry — losing either one silently breaks either
-// the device-code panel (OAuthModal.tsx DEVICE_CODE_PROVIDERS) or the browser
-// PKCE login (PKCE_CALLBACK_SERVER_PROVIDERS / providers.ts::generateAuthData).
-test("Grok Build OAuth Provider - device_code AND browser PKCE handlers coexist (#7013)", () => {
-  assert.equal(typeof grokCli.requestDeviceCode, "function", "requestDeviceCode must be present");
-  assert.equal(typeof grokCli.pollToken, "function", "pollToken must be present");
-  assert.equal(typeof grokCli.buildAuthUrl, "function", "buildAuthUrl must be present");
-  assert.equal(typeof grokCli.exchangeToken, "function", "exchangeToken must be present");
-  assert.equal(typeof grokCli.mapTokens, "function", "mapTokens must be present");
-  assert.equal(grokCli.pkceVerifierBytes, 96);
+test("Grok Build OAuth Provider - flowType is import_token", () => {
+  assert.equal(grokCli.flowType, "import_token");
 });
 
 test("Grok Build OAuth Provider - mapTokens from raw JWT", () => {
@@ -95,56 +64,4 @@ test("Grok Build OAuth Provider - mapTokens from object with accessToken", () =>
   const input = { accessToken: "direct-token" };
   const result = grokCli.mapTokens(input, null);
   assert.equal(result.accessToken, "direct-token");
-});
-
-test("Grok Build OAuth Provider - mapTokens from route-wrapped auth.json", () => {
-  // The route handler wraps the token: { accessToken: <token> }.
-  // This simulates what the import-token endpoint passes to mapTokens.
-  const authJson = {
-    "https://auth.x.ai::b1a00492-073a-47ea-816f-4c329264a828": {
-      key: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20ifQ.signature",
-      refresh_token: "test-refresh-token-wrapped",
-      expires_at: "2026-12-31T00:00:00Z",
-    },
-  };
-  const wrapped = { accessToken: authJson };
-  const result = grokCli.mapTokens(wrapped, null);
-
-  assert.ok(
-    result.accessToken.startsWith("eyJ"),
-    "accessToken should be JWT from wrapped auth.json"
-  );
-  assert.equal(result.refreshToken, "test-refresh-token-wrapped");
-  assert.equal(result.email, "test@example.com");
-  assert.ok(result.providerSpecificData?.rawAuthJson, "rawAuthJson should be populated");
-  assert.deepEqual(
-    result.providerSpecificData?.rawAuthJson,
-    authJson,
-    "rawAuthJson should equal the original auth.json"
-  );
-});
-
-test("Grok Build OAuth Provider - mapTokens from direct auth.json has rawAuthJson", () => {
-  const authJson = {
-    "https://auth.x.ai::clientId": {
-      key: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20ifQ.signature",
-      refresh_token: "direct-refresh",
-    },
-  };
-  const result = grokCli.mapTokens(authJson, null);
-
-  assert.ok(result.accessToken.startsWith("eyJ"));
-  assert.equal(result.refreshToken, "direct-refresh");
-  assert.deepEqual(result.providerSpecificData?.rawAuthJson, authJson);
-});
-
-test("Grok Build OAuth Provider - mapTokens from raw JWT has no rawAuthJson", () => {
-  const payload = { sub: "12345", email: "test@example.com" };
-  const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
-  const mockJwt = `eyJhbGciOiJFUzI1NiJ9.${payloadBase64}.signature`;
-  const result = grokCli.mapTokens(mockJwt, null);
-
-  assert.equal(result.accessToken, mockJwt);
-  assert.equal(result.refreshToken, null);
-  assert.equal(result.providerSpecificData?.rawAuthJson, undefined);
 });

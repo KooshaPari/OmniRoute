@@ -20,7 +20,6 @@ import {
 import { getModelInfo, getComboForModel } from "../services/model";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
-import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
 import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
@@ -250,18 +249,26 @@ export async function handleChat(
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
   }
 
+  const rawClientBody = cloneLogPayload(body);
+
   // Early guard: an explicitly empty `messages` array is invalid for every
   // upstream (Anthropic/OpenAI both reject "at least one message is required").
   // Forwarding it produced a confusing raw upstream 400/502; reject it here with
   // a clear OmniRoute-level error before any routing or upstream call (#5110).
   // Responses-API requests use `input` (not `messages`) so they are unaffected,
   // and an absent `messages` field is left to downstream validation.
-  if (
-    Array.isArray((body as { messages?: unknown }).messages) &&
-    (body as { messages: unknown[] }).messages.length === 0
-  ) {
+  if (Array.isArray((body as { messages?: unknown }).messages) &&
+    (body as { messages: unknown[] }).messages.length === 0) {
     log.warn("CHAT", "Rejecting request with empty messages array");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      "messages: at least one message is required"
+    );
+  }
+
+  // Build clientRawRequest for logging (if not provided)
+  if (!clientRawRequest) {
+    clientRawRequest = buildClientRawRequest(request, rawClientBody);
   }
 
   // buildClientRawRequest already deep-clones the body, so pass `body` directly — the
@@ -855,10 +862,15 @@ export async function handleChat(
   return withCorrelationId(withSessionHeader(response, sessionId), reqId);
 }
 
-// The clientRawRequest envelope lives in ./chat/clientRawRequest.ts. Imported for local use
-// below and re-exported for the historical public surface.
-import { buildClientRawRequest, resolveDispatchClientRawRequest } from "./chat/clientRawRequest.ts";
-export { buildClientRawRequest, resolveDispatchClientRawRequest };
+export function buildClientRawRequest(request: Request, body: unknown) {
+  const url = new URL(request.url);
+  return {
+    endpoint: url.pathname,
+    body: cloneLogPayload(body),
+    headers: Object.fromEntries(request.headers.entries()),
+    signal: request.signal ?? null,
+  };
+}
 
 /**
  * Handle single model chat request
@@ -1661,7 +1673,13 @@ async function handleSingleModelChat(
         ((credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? []).length >
           0 || connectionHasExtraKeys(credentials.connectionId);
       const is401 = result.status === 401;
-      const skipConnectionDisable = shouldSkipConnDisable(result, is401, hasExtraKeys, provider);
+      // Our own timeout fired on a slow upstream; don't cool down a healthy account.
+      const skipConnectionDisable =
+        result.status === 499 ||
+        result.errorCode === "client_disconnected" ||
+        result.errorType === "client_disconnected" ||
+        (is401 && hasExtraKeys) ||
+        isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider);
 
       const { shouldFallback, cooldownMs } = skipConnectionDisable
         ? { shouldFallback: false, cooldownMs: 0 }

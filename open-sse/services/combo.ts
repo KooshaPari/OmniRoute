@@ -198,7 +198,8 @@ import {
 } from "./taskAwareRouting.ts";
 import { expandTargetsByFingerprints } from "./combo/fingerprintExpansion.ts";
 
-export { RESET_WINDOW_NAMES, QUOTA_SOFT_DEPRIORITIZE_FACTOR, setCandidateQuotaSoftPenalty };
+export { RESET_WINDOW_NAMES };
+export { QUOTA_SOFT_DEPRIORITIZE_FACTOR, setCandidateQuotaSoftPenalty };
 export { scoreAutoTargets, expandAutoComboCandidatePool };
 export type { SingleModelTarget, ResolvedComboTarget };
 export { validateResponseQuality };
@@ -224,26 +225,6 @@ export {
   resolveNestedComboTargets,
   validateComboDAG,
 } from "./combo/comboStructure.ts";
-
-/**
- * #6692: release a session-stickiness pin the moment its bound connection is
- * the one that just failed. applySessionStickiness() only re-checks health on
- * the NEXT turn (lazily) — without this, a terminal/quality-rejected
- * connection stays pinned until that lazy recheck fires, and a masked
- * daily-cap 200-body rejection never trips the lazy recheck's DB-backed
- * testStatus gate at all (the connection row itself isn't marked unhealthy).
- * Exported for the two failure branches in handleComboChat + handleRoundRobinCombo.
- * peekStickyConnectionId guards against clearing an unrelated pin when the
- * failing target isn't actually the currently sticky-bound connection.
- */
-export function releaseStickyPinOnFailure(
-  messageHash: string | null | undefined,
-  failedConnectionId: string | null | undefined
-): void {
-  if (!messageHash || !failedConnectionId) return;
-  if (peekStickyConnectionId(messageHash) !== failedConnectionId) return;
-  clearStickyBinding(messageHash);
-}
 
 const DEFAULT_MODEL_P95_MS: Record<string, number> = {
   "grok-4-fast-non-reasoning": 1143,
@@ -404,18 +385,32 @@ export async function buildAutoCandidates(
       const parsed = parseModel(t.modelStr);
       return t.provider || parsed.provider || parsed.providerAlias || "unknown";
     }
-  );
-
-  // #5521: Expand fingerprint-based providers (mimocode, mcode, opencode) so each
-  // fingerprint gets its own combo slot instead of being bundled into one connection.
-  const fingerprintExpandedTargets = expandTargetsByFingerprints(
-    expandedTargets,
-    connectionById,
-    (t) => {
-      const parsed = parseModel(t.modelStr);
-      return t.provider || parsed.provider || parsed.providerAlias || "unknown";
+    const connectionIds = providerConnections
+      .map((c) => (c && typeof c === "object" && typeof c.id === "string" ? c.id : null))
+      .filter((id): id is string => id !== null);
+    const allowedConnectionIds = Array.isArray(target.allowedConnectionIds)
+      ? new Set(
+          target.allowedConnectionIds.filter(
+            (connectionId): connectionId is string =>
+              typeof connectionId === "string" && connectionId.trim().length > 0
+          )
+        )
+      : null;
+    const scopedConnectionIds = allowedConnectionIds
+      ? connectionIds.filter((connectionId) => allowedConnectionIds.has(connectionId))
+      : connectionIds;
+    if (scopedConnectionIds.length === 0) {
+      expandedTargets.push(target);
+      continue;
     }
-  );
+    for (const connectionId of scopedConnectionIds) {
+      expandedTargets.push({
+        ...target,
+        connectionId,
+        executionKey: `${target.executionKey}@${connectionId}`,
+      });
+    }
+  }
 
   const candidates = await Promise.all(
     fingerprintExpandedTargets.map(async (target) => {
@@ -634,11 +629,72 @@ export async function handleComboChat({
   } = phaseComboSetup(comboCtx);
   body = comboCtx.body;
 
-  const handleSingleModelWithTimeout = buildTargetTimeoutRunner({
-    handleSingleModel,
-    comboTargetTimeoutMs,
-    log,
-  });
+  const handleSingleModelWithTimeout = async (
+    b: Record<string, unknown>,
+    modelStr: string,
+    target?: SingleModelTarget
+  ): Promise<Response> => {
+    if (comboTargetTimeoutMs <= 0) {
+      return handleSingleModel(b, modelStr, target).catch((err) =>
+        errorResponse(502, err?.message ?? "Upstream model error")
+      );
+    }
+
+    const timeoutController = new AbortController();
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let timedOut = false;
+    const timeoutPromise = new Promise<Response>((resolve) => {
+      timeoutId = setTimeout(() => {
+        timedOut = true;
+        log.warn(
+          "COMBO",
+          `Model ${modelStr} exceeded ${comboTargetTimeoutMs}ms timeout — falling back`
+        );
+        timeoutController.abort(new Error("combo-per-model-timeout"));
+        resolve(
+          new Response(JSON.stringify({ error: { message: `Model ${modelStr} timed out` } }), {
+            status: 524,
+            headers: { "Content-Type": "application/json" },
+          })
+        );
+      }, comboTargetTimeoutMs);
+    });
+    const targetWithSignal = {
+      ...(target ?? {}),
+      modelAbortSignal: timeoutController.signal,
+    };
+    const parentHedgeSignal = target?.modelAbortSignal ?? null;
+    let onParentHedgeAbort: (() => void) | null = null;
+    if (parentHedgeSignal) {
+      if (parentHedgeSignal.aborted) {
+        timeoutController.abort(new Error("hedge-cancelled"));
+      } else {
+        onParentHedgeAbort = () => {
+          timeoutController.abort(new Error("hedge-cancelled"));
+        };
+        parentHedgeSignal.addEventListener("abort", onParentHedgeAbort, { once: true });
+      }
+    }
+    try {
+      return await Promise.race([
+        handleSingleModel(b, modelStr, targetWithSignal).catch((err) => {
+          if (timedOut) {
+            // Inner call rejected because we aborted it. The synthetic 524 from
+            // timeoutPromise already wins the race; return an empty response so
+            // the loser branch resolves cleanly without leaking err.message.
+            return new Response(null, { status: 599 });
+          }
+          return errorResponse(502, err?.message ?? "Upstream model error");
+        }),
+        timeoutPromise,
+      ]);
+    } finally {
+      clearTimeout(timeoutId);
+      if (parentHedgeSignal && onParentHedgeAbort) {
+        parentHedgeSignal.removeEventListener("abort", onParentHedgeAbort);
+      }
+    }
+  };
 
   // Route to pinned model if context caching specifies one (Fix #679)
   if (pinnedModel) {

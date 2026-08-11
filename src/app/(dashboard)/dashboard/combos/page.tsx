@@ -223,6 +223,10 @@ function sanitizeComboRuntimeConfig(config) {
   );
 }
 
+// Build the next combo config when a Fusion tuning field changes. Prunes empty /
+// non-finite entries and drops the whole `fusionTuning` object when no field is
+// set, so an empty `{}` is never persisted (sanitizeComboRuntimeConfig keeps any
+// non-null object as-is).
 function updateFusionTuning(config, field, rawValue) {
   const value = rawValue === "" ? undefined : Number(rawValue);
   const next = { ...(config.fusionTuning || {}), [field]: value };
@@ -1570,7 +1574,7 @@ function ComboReadinessPanel({ checks, blockers, showDescription = true }) {
   );
 }
 
-function ComboCardInner({
+function ComboCard({
   combo,
   metrics,
   compressionEnabled,
@@ -4197,11 +4201,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                       </div>
                       <div>
                         <FieldLabelWithHelp
-                          label={getI18nOrFallback(
-                            t,
-                            "fusionStragglerGraceMs",
-                            "Straggler grace (ms)"
-                          )}
+                          label={getI18nOrFallback(t, "fusionStragglerGraceMs", "Straggler grace (ms)")}
                           help={getI18nOrFallback(
                             t,
                             "fusionStragglerGraceMsHelp",
@@ -4216,9 +4216,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                           value={config.fusionTuning?.stragglerGraceMs ?? ""}
                           placeholder="8000"
                           onChange={(e) =>
-                            setConfig(
-                              updateFusionTuning(config, "stragglerGraceMs", e.target.value)
-                            )
+                            setConfig(updateFusionTuning(config, "stragglerGraceMs", e.target.value))
                           }
                           className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
                         />

@@ -100,15 +100,14 @@ const CACHING_PROVIDERS = new Set([
   "openai",
   "codex",
   "azure",
-  // #2069 — DashScope's OpenAI-compatible endpoints (Alibaba Model Studio and
-  // Qwen Cloud pay-as-you-go, upstream "alicode"/"alicode-intl") natively honor
+  // #2069 — Alibaba DashScope's OpenAI-compatible endpoints (alibaba /
+  // alibaba-cn, upstream "alicode"/"alicode-intl") natively honor
   // `cache_control: {type:"ephemeral"}` breakpoints. Without these entries
   // shouldPreserveCacheControl() returns false for Claude Code clients and the
   // OpenAI-format translator strips cache_control, so DashScope never sees the
   // hints and every request is a cache miss.
   "alibaba",
   "alibaba-cn",
-  "qwen-cloud",
 ]);
 
 /**
@@ -128,47 +127,9 @@ const OPENAI_FORMAT_CACHE_CONTROL_PROVIDERS = new Set([
   // #2069 — DashScope OpenAI-compatible endpoints accept ephemeral breakpoints.
   "alibaba",
   "alibaba-cn",
-  "qwen-cloud",
   // #3088 — Xiaomi MiMo honors OpenAI-format cache_control breakpoints.
   "xiaomi-mimo",
 ]);
-
-/**
- * Per-connection override for cache behavior, resolved from the connection's
- * `provider_specific_data.cache` JSON sub-object (see `resolveConnectionCacheOverride`).
- * Lets an operator opt a custom/openai-compatible connection into prompt-cache
- * behavior that the hardcoded provider-name sets above can never match (#6880).
- */
-export interface ConnectionCacheOverride {
-  supportsPromptCaching?: boolean;
-  cacheControlPassthrough?: "strip" | "openai-format" | "claude-format";
-}
-
-/**
- * Extract and validate a `ConnectionCacheOverride` from a connection's
- * `providerSpecificData` bag. Returns `null` when absent/malformed so every
- * call site can safely pass the result straight through.
- */
-export function resolveConnectionCacheOverride(
-  providerSpecificData: unknown
-): ConnectionCacheOverride | null {
-  if (!providerSpecificData || typeof providerSpecificData !== "object") return null;
-  const cache = (providerSpecificData as Record<string, unknown>).cache;
-  if (!cache || typeof cache !== "object" || Array.isArray(cache)) return null;
-  const record = cache as Record<string, unknown>;
-  const result: ConnectionCacheOverride = {};
-  if (typeof record.supportsPromptCaching === "boolean") {
-    result.supportsPromptCaching = record.supportsPromptCaching;
-  }
-  if (
-    record.cacheControlPassthrough === "strip" ||
-    record.cacheControlPassthrough === "openai-format" ||
-    record.cacheControlPassthrough === "claude-format"
-  ) {
-    result.cacheControlPassthrough = record.cacheControlPassthrough;
-  }
-  return Object.keys(result).length > 0 ? result : null;
-}
 
 /**
  * Whether `cache_control` markers should be PASSED THROUGH the OpenAI-format
@@ -176,11 +137,8 @@ export function resolveConnectionCacheOverride(
  * passthrough so generic / implicit-cache OpenAI providers keep getting cleaned.
  */
 export function providerHonorsOpenAIFormatCacheControl(
-  provider: string | null | undefined,
-  connectionCacheOverride?: ConnectionCacheOverride | null
+  provider: string | null | undefined
 ): boolean {
-  if (connectionCacheOverride?.cacheControlPassthrough === "openai-format") return true;
-  if (connectionCacheOverride?.cacheControlPassthrough === "strip") return false;
   if (!provider) return false;
   return OPENAI_FORMAT_CACHE_CONTROL_PROVIDERS.has(provider.toLowerCase());
 }

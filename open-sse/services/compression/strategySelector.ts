@@ -4,7 +4,6 @@ import type {
   CompressionPipelineStep,
   CompressionResult,
 } from "./types.ts";
-import { applyHardBudget } from "./hardBudget.ts";
 import { type FidelityGateConfig } from "./fidelityGate.ts";
 import { gateAdvance } from "./fidelityGateStep.ts";
 import type { CompressionEngineApplyOptions } from "./engines/types.ts";
@@ -662,12 +661,8 @@ interface StackOptions {
   compressionComboId?: string | null;
   /** TV1 bail-out discipline (opt-in, default disabled). */
   bailout?: BailoutConfig;
-  /** T02 per-engine circuit-breaker (opt-in, default disabled). Falls back to config + env. */
-  circuitBreaker?: Partial<PipelineCircuitBreakerConfig>;
   /** Opt-in per-step fidelity gate (default disabled). */
   fidelityGate?: FidelityGateConfig;
-  /** Risk-gate mask/restore wrapper (opt-in, default off). Read via resolveRiskGate. */
-  riskGate?: RiskGateConfig;
   /** Authenticated principal id — threaded through to CCR engine for store scoping. */
   principalId?: string;
   /** F3.3: called once per engine as it completes (live per-engine streaming). */
@@ -694,6 +689,29 @@ function reportEngineStep(
     savingsPercent: s?.savingsPercent ?? 0,
     ...(s?.durationMs !== undefined ? { durationMs: s.durationMs } : {}),
   });
+}
+
+/** Accumulates per-step telemetry across a stacked run (shared sync/async). */
+export interface StackAccumulator {
+  techniques: Set<string>;
+  rules: Set<string>;
+  breakdown: NonNullable<CompressionStats["engineBreakdown"]>;
+  rtkRawOutputPointers: NonNullable<CompressionStats["rtkRawOutputPointers"]>;
+  validationWarnings: Set<string>;
+  validationErrors: Set<string>;
+  fallbackApplied: boolean;
+}
+
+function createStackAccumulator(): StackAccumulator {
+  return {
+    techniques: new Set<string>(),
+    rules: new Set<string>(),
+    breakdown: [],
+    rtkRawOutputPointers: [],
+    validationWarnings: new Set<string>(),
+    validationErrors: new Set<string>(),
+    fallbackApplied: false,
+  };
 }
 
 function resolveStackSteps(
@@ -868,10 +886,6 @@ function runStackedCompression(
   const start = performance.now();
 
   const bailout = options?.bailout;
-  const breaker = resolvePipelineBreakerConfig(
-    options?.circuitBreaker ?? options?.config?.pipelineCircuitBreaker
-  );
-  const breakerOn = breaker.enabled;
   const fidelityGate = options?.fidelityGate ?? options?.config?.fidelityGate;
   const onStep = options?.onEngineStep;
   const totalSteps = steps.length;
@@ -904,56 +918,18 @@ function runStackedCompression(
         continue;
       }
       mergeStackStep(acc, step.engine, result);
-      if (
-        decideStep(result, bailout).advance &&
-        gateAdvance(result, currentBody, fidelityGate, acc, step.engine)
-      ) {
+      if (decideStep(result, bailout).advance && gateAdvance(result, currentBody, fidelityGate, acc, step.engine)) {
         currentBody = result.body;
         compressed = true;
       }
     } else {
-      result = engine.apply(currentBody, buildStepOptions(step, options));
-    }
-    const committed = commitStepResult(acc, step, result, currentBody, ctx);
-    currentBody = committed.body;
-    if (committed.advanced) compressed = true;
-    // The pre-existing bail-out path did not stream per-step; everything else does.
-    if (!bailout?.enabled) reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
-  }
-
-  // Hard-budget post-pass (#17): runs after all engines, before finalize.
-  if (options?.config?.targetTokens != null || options?.config?.targetRatio != null) {
-    const hbResult = applyHardBudget(currentBody, {
-      targetTokens: options.config.targetTokens,
-      targetRatio: options.config.targetRatio,
-    });
-    if (hbResult.compressed) {
-      mergeStackStep(acc, "hard-budget", hbResult);
-      currentBody = hbResult.body;
-      compressed = true;
-    } else {
-      // No unit could be dropped (e.g. every unit is preserve-guarded): surface the
-      // unreachable-budget validationWarnings instead of dropping them silently (#17 fix #3).
-      // mergeStackStep is gated on `compressed`, so propagate the warnings here directly.
-      hbResult.stats?.validationWarnings?.forEach((w) => acc.validationWarnings.add(w));
-    }
-  }
-
-  // Hard-budget post-pass (#17): runs after all engines, before finalize.
-  if (options?.config?.targetTokens != null || options?.config?.targetRatio != null) {
-    const hbResult = applyHardBudget(currentBody, {
-      targetTokens: options.config.targetTokens,
-      targetRatio: options.config.targetRatio,
-    });
-    if (hbResult.compressed) {
-      mergeStackStep(acc, "hard-budget", hbResult);
-      currentBody = hbResult.body;
-      compressed = true;
-    } else {
-      // No unit could be dropped (e.g. every unit is preserve-guarded): surface the
-      // unreachable-budget validationWarnings instead of dropping them silently (#17 fix #3).
-      // mergeStackStep is gated on `compressed`, so propagate the warnings here directly.
-      hbResult.stats?.validationWarnings?.forEach((w) => acc.validationWarnings.add(w));
+      const result = engine.apply(currentBody, buildStepOptions(step, options));
+      mergeStackStep(acc, step.engine, result);
+      if (result.compressed && gateAdvance(result, currentBody, fidelityGate, acc, step.engine)) {
+        currentBody = result.body;
+        compressed = true;
+      }
+      reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
     }
   }
 
@@ -997,10 +973,6 @@ async function runStackedCompressionAsync(
   const start = performance.now();
 
   const bailout = options?.bailout;
-  const breaker = resolvePipelineBreakerConfig(
-    options?.circuitBreaker ?? options?.config?.pipelineCircuitBreaker
-  );
-  const breakerOn = breaker.enabled;
   const fidelityGate = options?.fidelityGate ?? options?.config?.fidelityGate;
   const onStep = options?.onEngineStep;
   const totalSteps = steps.length;
@@ -1034,10 +1006,7 @@ async function runStackedCompressionAsync(
         continue;
       }
       mergeStackStep(acc, step.engine, result);
-      if (
-        decideStep(result, bailout).advance &&
-        gateAdvance(result, currentBody, fidelityGate, acc, step.engine)
-      ) {
+      if (decideStep(result, bailout).advance && gateAdvance(result, currentBody, fidelityGate, acc, step.engine)) {
         currentBody = result.body;
         compressed = true;
       }
@@ -1045,46 +1014,12 @@ async function runStackedCompressionAsync(
       result = engine.applyAsync
         ? await engine.applyAsync(currentBody, stepOptions)
         : engine.apply(currentBody, stepOptions);
-    }
-    const committed = commitStepResult(acc, step, result, currentBody, ctx);
-    currentBody = committed.body;
-    if (committed.advanced) compressed = true;
-    if (!bailout?.enabled) reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
-  }
-
-  // Hard-budget post-pass (#17): runs after all engines, before finalize.
-  if (options?.config?.targetTokens != null || options?.config?.targetRatio != null) {
-    const hbResult = applyHardBudget(currentBody, {
-      targetTokens: options.config.targetTokens,
-      targetRatio: options.config.targetRatio,
-    });
-    if (hbResult.compressed) {
-      mergeStackStep(acc, "hard-budget", hbResult);
-      currentBody = hbResult.body;
-      compressed = true;
-    } else {
-      // No unit could be dropped (e.g. every unit is preserve-guarded): surface the
-      // unreachable-budget validationWarnings instead of dropping them silently (#17 fix #3).
-      // mergeStackStep is gated on `compressed`, so propagate the warnings here directly.
-      hbResult.stats?.validationWarnings?.forEach((w) => acc.validationWarnings.add(w));
-    }
-  }
-
-  // Hard-budget post-pass (#17): runs after all engines, before finalize.
-  if (options?.config?.targetTokens != null || options?.config?.targetRatio != null) {
-    const hbResult = applyHardBudget(currentBody, {
-      targetTokens: options.config.targetTokens,
-      targetRatio: options.config.targetRatio,
-    });
-    if (hbResult.compressed) {
-      mergeStackStep(acc, "hard-budget", hbResult);
-      currentBody = hbResult.body;
-      compressed = true;
-    } else {
-      // No unit could be dropped (e.g. every unit is preserve-guarded): surface the
-      // unreachable-budget validationWarnings instead of dropping them silently (#17 fix #3).
-      // mergeStackStep is gated on `compressed`, so propagate the warnings here directly.
-      hbResult.stats?.validationWarnings?.forEach((w) => acc.validationWarnings.add(w));
+      mergeStackStep(acc, step.engine, result);
+      if (result.compressed && gateAdvance(result, currentBody, fidelityGate, acc, step.engine)) {
+        currentBody = result.body;
+        compressed = true;
+      }
+      reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
     }
   }
 

@@ -349,15 +349,7 @@ function fixMissingToolResponses(messages) {
 
 // Convert single Claude message - returns single message or array of messages
 function convertClaudeMessage(msg, preserveCacheControl = false) {
-  // Preserve system role for mid-conversation system turns (#6954).
-  // Previously any role that wasn't "user" or "tool" was mapped to "assistant",
-  // which misattributed system messages as assistant output.
-  const role =
-    msg.role === "user" || msg.role === "tool"
-      ? "user"
-      : msg.role === "system"
-        ? "system"
-        : "assistant";
+  const role = msg.role === "user" || msg.role === "tool" ? "user" : "assistant";
 
   // Simple string content
   if (typeof msg.content === "string") {

@@ -370,8 +370,7 @@ function validateSessionDedupConfig(config: Record<string, unknown>): EngineVali
     const f = config["fuzzy"];
     if (typeof f === "object" && f !== null) {
       const fe = (f as Record<string, unknown>)["enabled"];
-      if (fe !== undefined && typeof fe !== "boolean")
-        errors.push("fuzzy.enabled must be a boolean");
+      if (fe !== undefined && typeof fe !== "boolean") errors.push("fuzzy.enabled must be a boolean");
     } else if (typeof f !== "boolean") {
       errors.push("fuzzy must be an object { enabled } or a boolean");
     }
@@ -422,18 +421,10 @@ export const sessionDedupEngine: CompressionEngine = {
     }
 
     const start = performance.now();
-    const {
-      messages: exactMessages,
-      dedupCount,
-      suffixWorkBudgetExceeded,
-    } = processMessages(messages as MessageLike[], minBlockChars);
-
-    if (suffixWorkBudgetExceeded) {
-      const durationMs = Math.round(performance.now() - start);
-      const stats = createCompressionStats(body, body, "stacked", [], undefined, durationMs);
-      stats.validationWarnings = [SUFFIX_WORK_BUDGET_WARNING];
-      return { body, compressed: false, stats };
-    }
+    const { messages: exactMessages, dedupCount } = processMessages(
+      messages as MessageLike[],
+      minBlockChars
+    );
 
     const { messages: finalMessages, fuzzyCount } = runFuzzyPass(
       exactMessages,
