@@ -90,25 +90,11 @@ export {
   reorderCombos,
   deleteCombo,
 } from "./db/combos";
-
 export * from "./db/compressionCacheStats";
 export * from "./db/compressionCombos";
-export * from "./db/compressionBudgetForecast";
+export * from "./db/compressionContextBudget";
 export * from "./db/compressionRunTelemetry";
 export * from "./db/modelContextOverrides";
-
-// Fleet, routing observability, Bifrost, and virtual-key domains
-export * from "./db/alertRules";
-export * from "./db/bifrostModels";
-export * from "./db/bifrostShadow";
-export * from "./db/costTracking";
-export * from "./db/fleetConfig";
-export * from "./db/fleetNodes";
-export * from "./db/providerHealthHistory";
-export * from "./db/routingDecisions";
-export * from "./db/scalingPolicies";
-export * from "./db/trafficShadow";
-export * from "./db/virtualKeys";
 
 export {
   // API Keys

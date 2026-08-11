@@ -178,12 +178,10 @@ async function startRouteServer() {
         body,
       });
       await bridgeRouteResponse(await chatRoute.POST(request), outgoing);
-    } catch {
-      // Mock route bridge: static body only — CodeQL flags ANY error-derived value here,
-      // including error.message / String(error) (js/stack-trace-exposure #736/#737). The test
-      // only asserts status===200, so the 500 body is never inspected.
+    } catch (error) {
+      // Mock route bridge: surface the message, never the raw stack (js/stack-trace-exposure).
       outgoing.writeHead(500, { "content-type": "text/plain" });
-      outgoing.end("internal test route error");
+      outgoing.end(error instanceof Error ? error.message : String(error));
     }
   });
 
