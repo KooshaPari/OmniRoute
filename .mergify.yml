@@ -17,13 +17,6 @@
 #   • Fallback path if Mergify misbehaves or the OSS plan changes: the manual
 #     merge-train runbook (docs/ops/MERGE_TRAIN.md) — remove labels, proceed by hand.
 
-# Auto-enqueue (current Mergify model, 2026): auto_merge_conditions in
-# merge_protections_settings — the rules-based queue action / autoqueue path is
-# deprecated (EOL 2026-07-16). The owner-applied `queue` label IS the approval.
-merge_protections_settings:
-  auto_merge_conditions:
-    - label = queue
-
 queue_rules:
   - name: release
     # Any current or future release branch — the reason GitHub's native queue was
@@ -41,14 +34,7 @@ queue_rules:
     # is intentionally NOT a condition here: the owner-applied `queue` label IS the
     # approval in this repo's single-maintainer model (see governance header).
     merge_conditions:
-      # "Zero failures" — EXCEPT the advisory dast-smoke: it is continue-on-error by
-      # design and its GH-hosted CLI build hangs recurrently (drafts #7184/#7221 were
-      # dequeued solely by it). Any OTHER failure still blocks (anti-fail-open kept).
-      - or:
-          - "#check-failure=0"
-          - and:
-              - "#check-failure=1"
-              - check-failure=dast-smoke
+      - "#check-failure=0"
       - "#check-pending=0"
       - "#check-success>=1"
       - check-success=Merge integrity (changelog + generated skills)
@@ -60,18 +46,6 @@ queue_rules:
     merge_method: squash
 
 pull_request_rules:
-  # AUTO-ENQUEUE trigger — queue_conditions alone only define ELIGIBILITY in current
-  # Mergify semantics (without this rule the PR sits at "use @Mergifyio queue",
-  # observed live on PR #7175). The conditions mirror queue_conditions on purpose.
-  - name: queue on owner-applied label
-    conditions:
-      - base~=^release/v\d+\.\d+\.\d+$
-      - label=queue
-      - -draft
-      - -conflict
-    actions:
-      queue:
-        name: release
   - name: clean up the queue label after merge
     conditions:
       - merged
