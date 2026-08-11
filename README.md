@@ -6,7 +6,7 @@
 
 # 🚀 OmniRoute — The Free AI Gateway
 
-### Never stop coding. Connect every AI tool to **236 providers** — **50+ free** — through one endpoint.
+### Never stop coding. Connect every AI tool to **237 providers** — **50+ free** — through one endpoint.
 
 **Plug Claude Code, Codex, Cursor, Cline, Copilot & Antigravity into FREE Claude / GPT / Gemini. Auto-fallback.**
 <br/>
@@ -138,11 +138,11 @@
 
 </div>
 
-> One endpoint. **236 providers.** Never stop building — and let OmniRoute pick the cheapest one that works.
+> One endpoint. **237 providers.** Never stop building — and let OmniRoute pick the cheapest one that works.
 
 <table>
   <tr>
-    <td width="33%" valign="top"><b>🚫 Never hit limits</b><br/><sub>Auto-fallback across 236 providers in milliseconds. Quota out? Next provider takes over — zero downtime.</sub></td>
+    <td width="33%" valign="top"><b>🚫 Never hit limits</b><br/><sub>Auto-fallback across 237 providers in milliseconds. Quota out? Next provider takes over — zero downtime.</sub></td>
     <td width="33%" valign="top"><b>💸 Save up to 95% tokens</b><br/><sub>RTK + Caveman stacked compression cuts 15–95% of eligible tokens (~89% avg on tool-heavy sessions).</sub></td>
     <td width="33%" valign="top"><b>🆓 $0 to start</b><br/><sub>50+ providers with a free tier, 11 free <i>forever</i> (Kiro, Qoder, Pollinations, LongCat…). No card needed.</sub></td>
   </tr>
@@ -301,7 +301,7 @@ Result: 4 layers of fallback = zero downtime
 - **💸 Cost telemetry everywhere** — `X-OmniRoute-*` cost/usage headers on every endpoint (including media), a non-token cost engine, a cache-HIT `X-OmniRoute-Cost-Saved` header, and per-key USD spend quotas. → [API Reference](docs/reference/API_REFERENCE.md)
 - **🧠 Memory you control** — opt-in int8 vector quantization (Qdrant + sqlite-vec), memory off by default, and a per-request `x-omniroute-no-memory` header. → [Memory](docs/frameworks/MEMORY.md)
 - **🛡️ Security** — a prompt-injection guard across every LLM route (backed by a red-team suite), plus a free DuckDuckGo last-resort web search. → [Guardrails](docs/security/GUARDRAILS.md)
-- **🤝 More providers & agents** — Cursor Cloud Agent (a 4th cloud agent), CodeBuddy CN (`copilot.tencent.com`), a Google Flow video-generation provider, new gateways **DGrid** and **Pioneer AI** (Fastino Labs), inbound **xAI Grok** translators plus **Grok Build (xAI)** with an OAuth import-token flow, GPT-4 / GPT-4o-mini on the GitHub Copilot provider, multi-model **Factory Droid**, **ZenMux Free** (session-cookie free tier), **Alibaba DashScope** text-to-video (`wan2.7-t2v`), a refreshed 236-provider catalog (OrcaRouter, Wafer AI, OpenAdapter, dit.ai, TokenRouter, …), Vertex AI media generation (speech / transcription / music / video), and one-click account import from CLIProxyAPI (`~/.cli-proxy-api/`). → [Providers](docs/reference/PROVIDER_REFERENCE.md)
+- **🤝 More providers & agents** — Cursor Cloud Agent (a 4th cloud agent), CodeBuddy CN (`copilot.tencent.com`), a Google Flow video-generation provider, new gateways **DGrid** and **Pioneer AI** (Fastino Labs), inbound **xAI Grok** translators plus **Grok Build (xAI)** with an OAuth import-token flow, GPT-4 / GPT-4o-mini on the GitHub Copilot provider, multi-model **Factory Droid**, **ZenMux Free** (session-cookie free tier), **Alibaba DashScope** text-to-video (`wan2.7-t2v`), a refreshed 237-provider catalog (OrcaRouter, Wafer AI, OpenAdapter, dit.ai, TokenRouter, …), Vertex AI media generation (speech / transcription / music / video), and one-click account import from CLIProxyAPI (`~/.cli-proxy-api/`). → [Providers](docs/reference/PROVIDER_REFERENCE.md)
 - **⚡ Local performance & infra** — a one-click local Redis launcher (`omniroute redis up`, plus a dashboard Redis panel), one-click **Cloudflare Workers** and **Deno Deploy** relay deployers wired into the proxy pool, and an optional Bifrost Go sidecar that offloads the hottest relay path (`BIFROST_BASE_URL`, with automatic fallback to the TypeScript path on timeout) — now with a relay-backend selector (`OMNIROUTE_RELAY_BACKEND=ts|bifrost|auto`) so the `/v1/relay` endpoint stays the stable surface while choosing the fastest backend internally. → [Environment](docs/reference/ENVIRONMENT.md)
 
 <br/>
@@ -348,7 +348,7 @@ Result: 4 layers of fallback = zero downtime
 
 </div>
 
-> The most complete catalog of any open-source router: **236 providers**, **50+ with a free tier**, **11 free forever**.
+> The most complete catalog of any open-source router: **237 providers**, **50+ with a free tier**, **11 free forever**.
 
 <div align="center">
 
@@ -359,7 +359,7 @@ Result: 4 layers of fallback = zero downtime
     <td align="center" width="150"><img src="https://img.shields.io/badge/AgentRouter-FF6600?style=flat-square" alt="AgentRouter"/><br/><sub>GPT-5, Claude, Gemini<br/>$100 free credits</sub></td>
     <td align="center" width="150"><img src="https://img.shields.io/badge/Qoder_AI-6366F1?style=flat-square" alt="Qoder AI"/><br/><sub>Kimi-K2, DeepSeek-R1<br/>Unlimited FREE</sub></td>
     <td align="center" width="150"><img src="https://img.shields.io/badge/Pollinations-10B981?style=flat-square" alt="Pollinations"/><br/><sub>GPT-5, Claude, Llama 4<br/>No key needed</sub></td>
-    <td align="center" width="150"><img src="https://img.shields.io/badge/LongCat-FF7A00?style=flat-square" alt="LongCat"/><br/><sub>LongCat-2.0<br/>10M tokens one-time (KYC) 🔑</sub></td>
+    <td align="center" width="150"><img src="https://img.shields.io/badge/LongCat-FF7A00?style=flat-square" alt="LongCat"/><br/><sub>Flash-Lite<br/>50M tokens/day 🔥</sub></td>
   </tr>
   <tr>
     <td align="center" width="150"><img src="https://img.shields.io/badge/Cloudflare_AI-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare AI"/><br/><sub>50+ models<br/>10K neurons/day</sub></td>
@@ -726,7 +726,7 @@ podman compose --profile base up -d
 | **Qoder**         | `if/`       | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 | ♾️ Unlimited      |
 | **Qwen**          | `qw/`       | qwen3-coder-plus/flash/next                     | ♾️ Unlimited      |
 | **Pollinations**  | `pol/`      | GPT-5, Claude, Gemini, DeepSeek, Llama 4        | No key needed     |
-| **LongCat**       | `lc/`       | LongCat-2.0                                     | 10M one-time (KYC) |
+| **LongCat**       | `lc/`       | LongCat-Flash-Lite                              | 50M tokens/day 🔥 |
 | **Cloudflare AI** | `cf/`       | 50+ models                                      | 10K neurons/day   |
 | **NVIDIA NIM**    | `nvidia/`   | 129 models                                      | ~40 RPM           |
 | **Cerebras**      | `cerebras/` | Qwen3 235B, GPT-OSS 120B                        | 1M tok/day        |
@@ -748,7 +748,7 @@ podman compose --profile base up -d
 1. kr/claude-sonnet-4.5   (Kiro — ~50 credits/mo per acct)
 2. if/kimi-k2-thinking    (Qoder — unlimited)
 3. pol/gpt-5              (Pollinations — no key)
-4. lc/LongCat-2.0         (10M one-time backup, KYC)
+4. lc/longcat-flash-lite  (50M tok/day backup)
 Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 ```
 
@@ -804,7 +804,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 **Will I be charged by OmniRoute?** No — it's free, open-source software on your machine. You only pay paid providers directly. OmniRoute has no billing system.
 **Are FREE providers really unlimited?** Mostly — Qoder, Pollinations, LongCat, and Cloudflare are free with no per-account credit cap. Kiro is free too but capped at ~50 credits/month per account. Stack multiple free providers in a combo and auto-fallback keeps you serving for $0.
 **Will compression hurt quality?** No — it only compresses the **input**; code, URLs, JSON are always protected.
-**Does it work where AI is blocked?** Yes — 3-level proxy + 1proxy marketplace reach all 236 providers.
+**Does it work where AI is blocked?** Yes — 3-level proxy + 1proxy marketplace reach all 237 providers.
 
 📖 [User Guide](docs/guides/USER_GUIDE.md) · [API Reference](docs/reference/API_REFERENCE.md) · [Environment Config](docs/reference/ENVIRONMENT.md)
 

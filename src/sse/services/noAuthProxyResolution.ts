@@ -1,5 +1,4 @@
 import { getProxyById } from "@/lib/db/proxies";
-import { isRelayProxyType, extractRelayAuth } from "@/lib/db/proxies/mappers";
 
 /**
  * #5217 (Gap 1) — Per-account proxy resolution for no-auth providers
@@ -30,7 +29,6 @@ export interface ResolvedAccountProxy {
   port: number;
   username?: string;
   password?: string;
-  relayAuth?: string;
 }
 
 export interface AccountProxyEntry {
@@ -45,7 +43,6 @@ interface ProxyRegistryRecordLike {
   port?: number | string;
   username?: string | null;
   password?: string | null;
-  notes?: string | null;
 }
 
 /** Async lookup of a proxy registry record by id (null when absent). */
@@ -56,17 +53,12 @@ function normalizeRecord(rec: ProxyRegistryRecordLike | Partial<ResolvedAccountP
   if (!host) return null;
   const username = typeof rec.username === "string" ? rec.username : "";
   const password = typeof rec.password === "string" ? rec.password : "";
-  const type = typeof rec.type === "string" && rec.type ? rec.type : "socks5";
-  const relayAuth = isRelayProxyType(type)
-    ? extractRelayAuth((rec as ProxyRegistryRecordLike).notes)
-    : undefined;
   const resolved: ResolvedAccountProxy = {
-    type,
+    type: typeof rec.type === "string" && rec.type ? rec.type : "socks5",
     host,
     port: Number(rec.port) || 0,
     ...(username ? { username } : {}),
     ...(password ? { password } : {}),
-    ...(relayAuth ? { relayAuth } : {}),
   };
   return resolved;
 }

@@ -8,6 +8,7 @@ import {
   logUsage,
   addBufferToUsage,
   filterUsageForFormat,
+  COLORS,
 } from "./usageTracking.ts";
 import {
   parseSSELine,
@@ -30,15 +31,9 @@ import {
   OMIT_STREAMING_CHUNK_MARKER,
   sanitizeStreamingChunk,
 } from "../handlers/responseSanitizer.ts";
-import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
-import {
-  shouldDropResponsesCommentaryEvent,
-  createTranslateCommentaryFilter,
-} from "./responsesCommentaryDrop.ts";
 import { buildErrorBody } from "./error.ts";
 import { parseTextualToolCallCandidate, isValidToolCallHeaderPrefix } from "./textualToolCall.ts";
 import { recordToolLatency } from "../services/toolLatencyTracker.ts";
-import { extractToolSchemaMap } from "../translator/response/openai-responses/toolSchemas.ts";
 import {
   generateSessionId,
   markToolFinish,
@@ -52,7 +47,6 @@ import {
   stripResponsesLifecycleEcho,
 } from "./responsesStreamHelpers.ts";
 import { processBufferedPassthroughLine } from "./passthroughTailProcessor.ts";
-import { getVisibleResponsesReasoningSummaryText } from "../translator/response/openai-responses/pureHelpers.ts";
 import {
   getAnyReasoningValue,
   getReadableReasoningValue,
@@ -77,10 +71,10 @@ export function withBodyTimeout<T>(
       reject(err);
     }, timeoutMs);
   });
-  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer)) as Promise<T>;
 }
 
-export { formatSSE };
+export { COLORS, formatSSE };
 export { backfillResponsesCompletedOutput, stripResponsesLifecycleEcho };
 
 type JsonRecord = Record<string, unknown>;
@@ -125,12 +119,6 @@ type StreamOptions = {
   copilotCompatibleReasoning?: boolean;
   /** Suppress the `</think>` close marker for clients that render it verbatim (#5245). */
   suppressThinkClose?: boolean;
-  /**
-   * Drop internal commentary-phase output items from Responses API passthrough
-   * streams before forwarding (#6199). When omitted, falls back to the
-   * `RESPONSES_PASSTHROUGH_DROP_COMMENTARY` feature flag (default on).
-   */
-  dropResponsesCommentary?: boolean;
   provider?: string | null;
   reqLogger?: StreamLogger | null;
   toolNameMap?: unknown;
@@ -138,7 +126,6 @@ type StreamOptions = {
   connectionId?: string | null;
   apiKeyInfo?: unknown;
   body?: unknown;
-  requestStartedAt?: number;
   onComplete?: ((payload: StreamCompletePayload) => void) | null;
   onFailure?: ((payload: StreamFailurePayload) => boolean | void | Promise<void>) | null;
 };
@@ -154,10 +141,6 @@ type TranslateState = ReturnType<typeof initState> & {
   suppressThinkClose?: boolean;
   /** Accumulated message content for call log response body */
   accumulatedContent?: string;
-  /** Accumulated reasoning content (separate from content) */
-  accumulatedReasoning?: string;
-  /** #6951 — per-tool JSON Schema (from request `tools[]`), keyed by tool name. */
-  toolSchemas?: Map<string, Record<string, unknown>> | null;
   upstreamError?: {
     status: number;
     type: string;
@@ -636,18 +619,10 @@ export function createSSEStream(options: StreamOptions = {}) {
     connectionId = null,
     apiKeyInfo = null,
     body = null,
-    requestStartedAt = Date.now(),
     onComplete = null,
     onFailure = null,
-    dropResponsesCommentary,
   } = options;
   const signatureNamespace = connectionId;
-
-  // Drop internal commentary-phase Responses output before forwarding (#6199).
-  // Explicit option wins; otherwise read the feature flag (default on). Resolved
-  // once per stream — never on the hot per-chunk path.
-  const shouldDropResponsesCommentary =
-    dropResponsesCommentary ?? isFeatureFlagEnabled("RESPONSES_PASSTHROUGH_DROP_COMMENTARY");
 
   const clientExpectsResponsesStream =
     (mode === STREAM_MODE.PASSTHROUGH
@@ -692,8 +667,6 @@ export function createSSEStream(options: StreamOptions = {}) {
           copilotCompatibleReasoning,
           suppressThinkClose,
           accumulatedContent: "",
-          accumulatedReasoning: "",
-          toolSchemas: extractToolSchemaMap(body),
         }
       : null;
 
@@ -711,71 +684,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   let passthroughResponsesId: string | null = null;
   let passthroughResponsesCurrentFunctionCallKey: string | null = null;
   const passthroughResponsesReasoningSummarySeen = new Set<string>();
-  // #6199 — commentary-phase items announced via `response.output_item.added` are
-  // internal. Their `response.output_text.delta`/`response.output_text.done`/
-  // `response.output_item.done` events do not carry the `phase`, so we remember the
-  // item id + output_index here and drop every matching follow-up event.
-  const passthroughResponsesCommentaryItemIds = new Set<string>();
-  const passthroughResponsesCommentaryIndexes = new Set<number>();
-  const dropCommentary = createTranslateCommentaryFilter(targetFormat);
-  // #5786 — highest Responses-API `sequence_number` already forwarded on this stream.
-  // The Responses API guarantees a strictly increasing sequence_number, so any event at
-  // or below this watermark is an upstream reconnect/retry replay and must be dropped —
-  // otherwise the replayed deltas glue duplicated text into the client stream. Applies to
-  // both translate mode (openai-responses → claude/openai) and Responses passthrough.
-  let lastSeenResponsesSequenceNumber = -1;
-  const isDuplicateResponsesSequence = (value: unknown): boolean => {
-    if (typeof value !== "number" || !Number.isFinite(value)) return false;
-    if (value <= lastSeenResponsesSequenceNumber) return true;
-    lastSeenResponsesSequenceNumber = value;
-    return false;
-  };
   const streamStartedAt = Date.now();
-  let firstTokenAt: number | null = null;
-  const hasFirstTokenContent = (payload: Record<string, unknown>, format: string): boolean => {
-    if (format === FORMATS.OPENAI) {
-      const choice = Array.isArray(payload.choices) ? payload.choices[0] : null;
-      const delta = asRecord(asRecord(choice).delta);
-      return (
-        (typeof delta.content === "string" && delta.content.length > 0) ||
-        (Object.keys(delta).some((key) =>
-          ["reasoning", "reasoning_content", "reasoningContent"].includes(key)
-        ) &&
-          Boolean(delta[key])) ||
-        (Array.isArray(delta.tool_calls) && delta.tool_calls.length > 0)
-      );
-    }
-    if (format === FORMATS.CLAUDE) {
-      const delta = asRecord(payload.delta);
-      return (
-        (typeof delta.text === "string" && delta.text.length > 0) ||
-        (typeof delta.thinking === "string" && delta.thinking.length > 0) ||
-        (typeof delta.partial_json === "string" && delta.partial_json.length > 0)
-      );
-    }
-    if (typeof payload.type === "string" && payload.type.includes("delta")) {
-      return typeof payload.delta === "string" && payload.delta.length > 0;
-    }
-    if (Array.isArray(payload.candidates)) {
-      const parts = asRecord(asRecord(payload.candidates[0]).content).parts;
-      return (
-        Array.isArray(parts) &&
-        parts.some((part) => {
-          const item = asRecord(part);
-          return (
-            Boolean(item.functionCall || item.executableCode) ||
-            (typeof item.text === "string" && item.text.length > 0)
-          );
-        })
-      );
-    }
-    return false;
-  };
-  const captureFirstToken = (payload: Record<string, unknown>, format: string) => {
-    if (firstTokenAt === null && hasFirstTokenContent(payload, format)) {
-      firstTokenAt = Math.max(1, Date.now() - requestStartedAt);
-    }
-  };
 
   let lastToolCallChunkTime: number | null = null;
   let toolFinishTime: number | null = null;
@@ -1007,7 +916,6 @@ export function createSSEStream(options: StreamOptions = {}) {
     }
 
     const output = formatSSE(itemSanitized, sourceFormat);
-    captureFirstToken(itemSanitized, sourceFormat);
     clientPayloadCollector.push(itemSanitized);
     reqLogger?.appendConvertedChunk?.(output);
     controller.enqueue(encoder.encode(output));
@@ -1055,6 +963,49 @@ export function createSSEStream(options: StreamOptions = {}) {
     return responseId !== null && outputIndex !== null ? `${responseId}:${outputIndex}` : null;
   };
 
+  const getResponsesReasoningSummaryText = (item: Record<string, unknown>): string => {
+    return Array.isArray(item.summary)
+      ? item.summary
+          .map((part) => {
+            if (!part || typeof part !== "object" || Array.isArray(part)) {
+              return "";
+            }
+            return typeof (part as Record<string, unknown>).text === "string"
+              ? ((part as Record<string, unknown>).text as string)
+              : "";
+          })
+          .join("")
+      : "";
+  };
+
+  const ensureVisibleResponsesReasoningSummary = (payload: Record<string, unknown>): boolean => {
+    const item =
+      payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)
+        ? (payload.item as Record<string, unknown>)
+        : null;
+    if (!item || item.type !== "reasoning") {
+      return false;
+    }
+
+    if (getResponsesReasoningSummaryText(item)) {
+      return false;
+    }
+
+    const hasEncryptedReasoning =
+      typeof item.encrypted_content === "string" && item.encrypted_content.length > 0;
+    if (!hasEncryptedReasoning) {
+      return false;
+    }
+
+    item.summary = [
+      {
+        type: "summary_text",
+        text: "Codex is reasoning, but the upstream Responses API exposed this reasoning block only as encrypted state. OmniRoute cannot recover the private reasoning text.",
+      },
+    ];
+    return true;
+  };
+
   const emitSyntheticResponsesReasoningSummary = (
     controller: TransformStreamDefaultController,
     payload: Record<string, unknown>
@@ -1067,10 +1018,8 @@ export function createSSEStream(options: StreamOptions = {}) {
       return;
     }
 
-    // #7095/#7176 reconciliation: compute the visible placeholder WITHOUT
-    // mutating `item` — the encrypted reasoning item (and its `encrypted_content`,
-    // required by Codex for subsequent requests) is forwarded to the client intact.
-    const visibleSummary = getVisibleResponsesReasoningSummaryText(item);
+    ensureVisibleResponsesReasoningSummary(payload);
+    const visibleSummary = getResponsesReasoningSummaryText(item);
 
     if (!visibleSummary) {
       return;
@@ -1236,18 +1185,6 @@ export function createSSEStream(options: StreamOptions = {}) {
                 })
               : null;
 
-            // #5786 — drop replayed Responses-API events (a re-sent event carrying an
-            // already-seen sequence_number) so their deltas are not forwarded twice.
-            if (
-              parsedPassthroughData &&
-              typeof parsedPassthroughData.type === "string" &&
-              parsedPassthroughData.type.startsWith("response.") &&
-              isDuplicateResponsesSequence(parsedPassthroughData.sequence_number)
-            ) {
-              clearPendingPassthroughEvent();
-              continue;
-            }
-
             if (trimmed.startsWith("data:")) {
               const providerPayload = parsedPassthroughData ?? parseSSELine(trimmed);
               if (providerPayload) {
@@ -1326,21 +1263,6 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed.type === "error");
 
                 if (isResponsesSSE) {
-                  // #6199/#6561 — statefully drop internal commentary-phase output (see
-                  // ./responsesCommentaryDrop.ts) and clear the buffered `event:` line
-                  // for the same frame, or it flushes alone as an event-only SSE frame.
-                  if (
-                    shouldDropResponsesCommentary &&
-                    shouldDropResponsesCommentaryEvent(
-                      parsed as JsonRecord,
-                      passthroughResponsesCommentaryItemIds,
-                      passthroughResponsesCommentaryIndexes
-                    )
-                  ) {
-                    clearPendingPassthroughEvent();
-                    continue;
-                  }
-
                   const responsesIdsNormalized = normalizeResponsesSseIds(parsed as JsonRecord);
                   const parsedResponse =
                     parsed.response &&
@@ -1493,8 +1415,13 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // response.completed snapshot can be backfilled when upstream
                   // returns an empty `output` (happens with store: false).
                   if (parsed.type === "response.output_item.done" && parsed.item) {
+                    const reasoningSummaryInjected = ensureVisibleResponsesReasoningSummary(parsed);
                     emitSyntheticResponsesReasoningSummary(controller, parsed);
                     pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [parsed.item]);
+                    if (reasoningSummaryInjected) {
+                      output = `data: ${JSON.stringify(parsed)}\n\n`;
+                      injectedUsage = true;
+                    }
                     if (parsed.item?.type === "function_call") {
                       const pendingKey =
                         typeof parsed.item.id === "string"
@@ -1713,7 +1640,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     const reasoningChunk =
                       typeof structuredClone === "function"
                         ? structuredClone(parsed)
-                        : structuredClone(parsed);
+                        : JSON.parse(JSON.stringify(parsed));
                     const rDelta = reasoningChunk.choices[0].delta;
                     delete rDelta.content;
                     reasoningChunk.choices[0].finish_reason = null;
@@ -1896,16 +1823,6 @@ export function createSSEStream(options: StreamOptions = {}) {
             output = passthroughEventPrefix.prefixData(output, line);
 
             if (clientPayload) {
-              if (
-                clientPayload &&
-                typeof clientPayload === "object" &&
-                !Array.isArray(clientPayload)
-              ) {
-                captureFirstToken(
-                  clientPayload as Record<string, unknown>,
-                  clientResponseFormat || sourceFormat || FORMATS.OPENAI
-                );
-              }
               clientPayloadCollector.push(clientPayload);
             }
 
@@ -1942,19 +1859,6 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           const parsed = parseSSELine(trimmed);
           if (!parsed) continue;
-
-          // #5786 — drop replayed Responses-API events (identical/lower sequence_number
-          // re-sent on an upstream reconnect) so their deltas are not glued twice into
-          // the translated client stream.
-          if (
-            targetFormat === FORMATS.OPENAI_RESPONSES &&
-            isDuplicateResponsesSequence((parsed as JsonRecord).sequence_number)
-          ) {
-            continue;
-          }
-
-          if (shouldDropResponsesCommentary && dropCommentary(parsed as JsonRecord)) continue;
-
           providerPayloadCollector.push(parsed);
 
           if (parsed && parsed.done) {
@@ -2012,9 +1916,9 @@ export function createSSEStream(options: StreamOptions = {}) {
           const openAiReasoning = getReadableReasoningValue(openAiDelta);
           if (openAiReasoning) {
             totalContentLength += openAiReasoning.length;
-            if (state?.accumulatedReasoning !== undefined)
-              state.accumulatedReasoning = appendBoundedText(
-                state.accumulatedReasoning,
+            if (state?.accumulatedContent !== undefined)
+              state.accumulatedContent = appendBoundedText(
+                state.accumulatedContent,
                 openAiReasoning
               );
           }
@@ -2027,8 +1931,8 @@ export function createSSEStream(options: StreamOptions = {}) {
               delete parsed.choices[0].delta.thinking;
               delete parsed.choices[0].delta.thought;
               totalContentLength += r.length;
-              if (state?.accumulatedReasoning !== undefined)
-                state.accumulatedReasoning = appendBoundedText(state.accumulatedReasoning, r);
+              if (state?.accumulatedContent !== undefined)
+                state.accumulatedContent = appendBoundedText(state.accumulatedContent, r);
             }
           }
 
@@ -2194,6 +2098,7 @@ export function createSSEStream(options: StreamOptions = {}) {
               markResponsesReasoningSummarySeen: (key: string) => {
                 passthroughResponsesReasoningSummarySeen.add(key);
               },
+              ensureVisibleResponsesReasoningSummary,
               emitSyntheticResponsesReasoningSummary: (payload: Record<string, unknown>) =>
                 emitSyntheticResponsesReasoningSummary(controller, payload),
               passthroughResponsesOutputItems,
@@ -2240,10 +2145,6 @@ export function createSSEStream(options: StreamOptions = {}) {
                 if (isClaudeEventPayload(bufferedPayload)) {
                   updateClaudeEmptyResponseLifecycle(claudeEmptyResponseLifecycle, bufferedPayload);
                 }
-                captureFirstToken(
-                  bufferedPayload,
-                  clientResponseFormat || sourceFormat || FORMATS.OPENAI
-                );
                 clientPayloadCollector.push(bufferedPayload);
 
                 // Normalize numeric IDs for final buffered data: chunk (same as transform path)
@@ -2268,7 +2169,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                     if (Array.isArray(flushedParsed.choices)) {
                       for (const choice of flushedParsed.choices as JsonRecord[]) {
                         const tcs = (choice as JsonRecord | undefined)?.delta as
-                          JsonRecord | undefined;
+                          | JsonRecord
+                          | undefined;
                         if (Array.isArray(tcs?.tool_calls)) {
                           for (const tc of tcs.tool_calls as JsonRecord[]) {
                             if (tc?.id != null && typeof tc.id !== "string") {
@@ -2449,7 +2351,6 @@ export function createSSEStream(options: StreamOptions = {}) {
                 onComplete({
                   status: 200,
                   usage,
-                  ttft: firstTokenAt,
                   responseBody,
                   providerPayload: providerPayloadCollector.build(
                     buildStreamSummaryFromEvents(
@@ -2520,24 +2421,6 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           if (state?.upstreamError) {
             const err = state.upstreamError;
-
-            // Flush pending translation events BEFORE erroring the stream.
-            // This lets the openai-responses translator emit a proper
-            // `response.completed` with `status: "failed"` and close any
-            // open items (reasoning, tool calls, etc.), instead of silently
-            // aborting the stream and leaving partial items dangling.
-            try {
-              const flushed = translateResponse(targetFormat, sourceFormat, null, state);
-              if (flushed?.length > 0) {
-                for (const item of flushed) {
-                  emitTranslatedClientItem(controller, item);
-                }
-              }
-            } catch {
-              // Swallow flush errors — the controller.error below is the
-              // terminal signal for the client.
-            }
-
             let failureHandled = false;
             if (onFailure) {
               try {
@@ -2661,15 +2544,17 @@ export function createSSEStream(options: StreamOptions = {}) {
               let content = (state?.accumulatedContent ?? "").trim() || "";
               const normalizedToolCalls: ToolCall[] = state?.toolCalls?.size
                 ? [...state.toolCalls.values()]
-                    .map((tc: Record<string, unknown>): ToolCall => ({
-                      id: tc.id != null ? String(tc.id) : null,
-                      index: (tc.index as number) ?? (tc.blockIndex as number) ?? 0,
-                      type: (tc.type as string) ?? "function",
-                      function: (tc.function as ToolCall["function"]) ?? {
-                        name: (tc.name as string) ?? "",
-                        arguments: "",
-                      },
-                    }))
+                    .map(
+                      (tc: Record<string, unknown>): ToolCall => ({
+                        id: tc.id != null ? String(tc.id) : null,
+                        index: (tc.index as number) ?? (tc.blockIndex as number) ?? 0,
+                        type: (tc.type as string) ?? "function",
+                        function: (tc.function as ToolCall["function"]) ?? {
+                          name: (tc.name as string) ?? "",
+                          arguments: "",
+                        },
+                      })
+                    )
                     .sort((a, b) => a.index - b.index)
                 : [];
               const textualToolCall = parseTextualToolCallFromContent(content);
@@ -2687,14 +2572,10 @@ export function createSSEStream(options: StreamOptions = {}) {
               } else if (containsMalformedTextualToolCall(content, allowedToolNames)) {
                 content = "";
               }
-              const reasoning = (state?.accumulatedReasoning ?? "").trim();
               const message: Record<string, unknown> = {
                 role: "assistant",
                 content: content || null,
               };
-              if (reasoning) {
-                message.reasoning_content = reasoning;
-              }
               const hasToolCalls = normalizedToolCalls.length > 0;
               if (hasToolCalls) {
                 message.tool_calls = normalizedToolCalls;
@@ -2716,7 +2597,6 @@ export function createSSEStream(options: StreamOptions = {}) {
               onComplete({
                 status: 200,
                 usage: state?.usage,
-                ttft: firstTokenAt,
                 responseBody,
                 providerPayload: providerPayloadCollector.build(
                   buildStreamSummaryFromEvents(
@@ -2763,8 +2643,7 @@ export function createSSETransformStreamWithLogger(
   apiKeyInfo: unknown = null,
   onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
   copilotCompatibleReasoning = false,
-  suppressThinkClose = false,
-  requestStartedAt = Date.now()
+  suppressThinkClose = false
 ) {
   return createSSEStream({
     mode: STREAM_MODE.TRANSLATE,
@@ -2781,7 +2660,6 @@ export function createSSETransformStreamWithLogger(
     onFailure,
     copilotCompatibleReasoning,
     suppressThinkClose,
-    requestStartedAt,
   });
 }
 
@@ -2795,8 +2673,7 @@ export function createPassthroughStreamWithLogger(
   onComplete: ((payload: StreamCompletePayload) => void) | null = null,
   apiKeyInfo: unknown = null,
   onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
-  clientResponseFormat: string | null = null,
-  requestStartedAt = Date.now()
+  clientResponseFormat: string | null = null
 ) {
   return createSSEStream({
     mode: STREAM_MODE.PASSTHROUGH,
@@ -2810,8 +2687,5 @@ export function createPassthroughStreamWithLogger(
     onComplete,
     onFailure,
     clientResponseFormat,
-    requestStartedAt,
   });
 }
-
-export { COLORS } from "./usageTracking.ts";

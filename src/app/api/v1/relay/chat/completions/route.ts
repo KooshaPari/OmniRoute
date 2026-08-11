@@ -20,17 +20,10 @@ import {
 } from "./relaySecurity";
 import {
   getBifrostRoutingConfig,
-  getRoutingFallbackHeader,
   resolveRelayRoutingBackend,
   shouldTryBifrost,
   type BifrostRoutingConfig,
 } from "./routingBackend";
-import { finalizeReadableStream } from "./streamFinalizer";
-import {
-  clearBifrostFailure,
-  getActiveBifrostCooldown,
-  recordBifrostFailure,
-} from "./bifrostCooldown";
 import type { RelayToken } from "@/lib/db/relayProxies";
 
 const JSON_CORS_HEADERS = { ...CORS_HEADERS, "Content-Type": "application/json" } as const;
@@ -55,6 +48,44 @@ function recordUsage(
     latencyMs: Date.now() - startTime,
     clientIp,
     userAgent,
+  });
+}
+
+function finalizeReadableStream(
+  body: ReadableStream<Uint8Array>,
+  onFinalize: (error?: unknown) => void
+): ReadableStream<Uint8Array> {
+  const reader = body.getReader();
+  let finalized = false;
+
+  const finalizeOnce = (error?: unknown) => {
+    if (finalized) return;
+    finalized = true;
+    onFinalize(error);
+  };
+
+  return new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const { done, value } = await reader.read();
+        if (done) {
+          finalizeOnce();
+          controller.close();
+          return;
+        }
+        controller.enqueue(value);
+      } catch (error) {
+        finalizeOnce(error);
+        controller.error(error);
+      }
+    },
+    async cancel(reason) {
+      try {
+        await reader.cancel(reason);
+      } finally {
+        finalizeOnce(reason);
+      }
+    },
   });
 }
 
@@ -289,39 +320,32 @@ export async function POST(request: Request) {
 
     const backend = resolveRelayRoutingBackend();
     const bifrostConfig = getBifrostRoutingConfig();
-    let bifrostFallbackReason: string | null = null;
     if (shouldTryBifrost(backend, bifrostConfig)) {
-      const cooldown =
-        backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
-      if (cooldown) {
-        bifrostFallbackReason = `bifrost-cooldown; remaining=${cooldown.remainingMs}`;
-      } else {
-        try {
-          const bifrostResponse = await forwardToBifrost(
-            request,
-            parsedBody,
-            token,
-            bifrostConfig,
-            startTime,
-            clientIp,
-            userAgent
-          );
-          clearBifrostFailure(bifrostConfig.baseUrl);
-          return bifrostResponse;
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          if (backend === "bifrost") {
-            recordUsage(token.id, request, startTime, clientIp, userAgent, "error", 502);
-            return new Response(JSON.stringify(buildErrorBody(502, message)), {
+      try {
+        return await forwardToBifrost(
+          request,
+          parsedBody,
+          token,
+          bifrostConfig,
+          startTime,
+          clientIp,
+          userAgent
+        );
+      } catch (error) {
+        if (backend === "bifrost") {
+          recordUsage(token.id, request, startTime, clientIp, userAgent, "error", 502);
+          return new Response(
+            JSON.stringify(
+              buildErrorBody(502, error instanceof Error ? error.message : String(error))
+            ),
+            {
               status: 502,
               headers: {
                 ...JSON_CORS_HEADERS,
                 "X-Bifrost-Fallback": "/api/v1/relay/chat/completions",
               },
-            });
-          }
-          recordBifrostFailure(bifrostConfig.baseUrl, message);
-          bifrostFallbackReason = "bifrost-error";
+            }
+          );
         }
       }
     }
@@ -348,11 +372,8 @@ export async function POST(request: Request) {
     const newHeaders = new Headers(response.headers);
     newHeaders.set("X-Relay-Token", token.tokenPrefix + "...");
     newHeaders.set("X-Routing-Backend", "ts");
-    const routingFallback = getRoutingFallbackHeader(backend, bifrostConfig);
-    if (routingFallback) {
-      // #5526 helper gates emission (auto + enabled); #5519 dynamic cooldown/error
-      // reason wins as the value when set, else falls back to the static "bifrost".
-      newHeaders.set("X-Routing-Fallback", bifrostFallbackReason ?? routingFallback);
+    if (backend === "auto" && bifrostConfig?.enabled) {
+      newHeaders.set("X-Routing-Fallback", "bifrost");
     }
 
     return new Response(response.body, {
