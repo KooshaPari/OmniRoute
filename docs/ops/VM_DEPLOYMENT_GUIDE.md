@@ -1,12 +1,12 @@
 ---
 title: "OmniRoute — Deployment Guide on VM with Cloudflare"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.2
+lastUpdated: 2026-05-13
 ---
 
 # OmniRoute — Deployment Guide on VM with Cloudflare
 
-🌐 **Translations:** Generated on demand; see [the i18n guide](../guides/I18N.md).
+🌐 **Languages:** 🇺🇸 [English](./VM_DEPLOYMENT_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/ops/VM_DEPLOYMENT_GUIDE.md)
 
 Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
 
@@ -119,7 +119,7 @@ REQUIRE_API_KEY=false
 # === URLs (change to your domain) ===
 # Internal server-to-server base URL for scheduled jobs / self-fetches.
 BASE_URL=http://127.0.0.1:20128
-# Browser-facing URL used for OAuth callbacks, dashboard links, and generated public URLs.
+# Browser-facing URL used for OAuth callbacks, dashboard links, and same-origin checks.
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 # Optional explicit public origin override for generated public asset URLs.
 # OMNIROUTE_PUBLIC_BASE_URL=https://llms.seudominio.com
@@ -243,13 +243,11 @@ Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars.
 `FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
 above the same threshold.
 
-OmniRoute uses `NEXT_PUBLIC_BASE_URL` as the canonical browser-facing origin for OAuth
-callbacks and generated public links. Authenticated dashboard writes use same-origin requests
-plus session-bound CSRF protection, so they do not require a static public base URL. The
-`X-Forwarded-*` headers above are still useful routing metadata, but they are not a replacement
-for setting the explicit public URL when OAuth or generated browser links need one. Only enable
-`OMNIROUTE_TRUST_PROXY` if OmniRoute is not directly reachable by clients and your proxy
-strips/rebuilds incoming forwarded headers.
+OmniRoute uses `NEXT_PUBLIC_BASE_URL` as the canonical browser-facing origin for OAuth,
+public links, and dashboard mutation origin checks. The `X-Forwarded-*` headers above are
+still useful routing metadata, but they are not a replacement for setting the explicit public
+URL. Only enable `OMNIROUTE_TRUST_PROXY` if OmniRoute is not directly reachable by clients and
+your proxy strips/rebuilds incoming forwarded headers.
 
 ### 3.3 Enable and Test
 
