@@ -1009,7 +1009,7 @@ Thanks to everyone whose work landed in v3.8.44:
 - **translator (claude):** 当 OpenAI→Claude 请求**仅**包含 `system`/`developer` 消息时，合成一个最小化的 `user` 轮次，使请求不再因 `[400]: messages: at least one message is required` 而失败。`openaiToClaudeRequest` 将所有 system/developer 轮次提升到 Claude 的顶层 `system` 字段并从 `messages` 中过滤掉；纯 system 输入（OpenCode 压缩/标题生成请求）会导致 `messages: []`，Messages API 会拒绝——在 OpenCode 中表现为丢失对话的任务中途 `stream error`。该防护仅在 `messages` 原本为空时触发（system 指令仍然驱动响应），因此非空请求不受影响。([#5342](https://github.com/diegosouzapw/OmniRoute/pull/5342) — 感谢 @wild-feather)
 - **providers (gemini):** 移除已退役的 Google AI Studio 模型 ID，并使目录与实际运行的 GenAI API 对齐（2026-06-29 根据官方弃用页面验证）。移除长期退役的 `gemini-1.5-pro`/`gemini-1.5-flash`、已关闭的 `gemini-2.0-flash`/`gemini-2.0-flash-lite` 和无效实验版；将 `gemini-3.1-flash-lite-preview` 重命名为 GA 版 `gemini-3.1-flash-lite`；将退役的 `text-embedding-004` 替换为实际运行中的 `gemini-embedding-001`/`gemini-embedding-2`；并添加优雅的 `modelDeprecation` 转发，使旧版/重命名的 ID 重定向到 GA 模型而非 404。原生 AI-Studio 直连的图像/视频/音乐注册有意不在本次范围内（需要实际的执行器工作；这些模型仍可通过 Antigravity/Vertex/聚合器访问）。([#5337](https://github.com/diegosouzapw/OmniRoute/pull/5337) — 感谢 @backryun)
 - **services (dashboard):** 修复内嵌服务仪表盘故障 (#5298) — 服务监控器现在从 `/api/services/[name]/logs` 延迟初始化，因此 `cliproxy`/`9router` 日志在引导注册监控器之前不再 404；生命周期按钮发送 JSON（空安装体默认 `version: "latest"`，格式错误的 JSON 仍返回 `400 Invalid JSON body`）；生命周期和日志流故障现在以可操作的 UI 错误呈现，而非静默显示无日志；Tailscale CGNAT `100.64.0.0/10` 对等节点被视为私有 LAN 本地网络，用于仅限本地的服务访问；父路由 `/dashboard/context` → `/dashboard/context/settings` 重定向停止 RSC 预取 404；`/api/v1/providers/{cliproxyapi,9router}/models` 返回同步的内嵌服务模型而非 `invalid_provider`。([#5299](https://github.com/diegosouzapw/OmniRoute/pull/5299), #5298 — 感谢 @KooshaPari)
-- **thinking (claude):** 修复 OpenAI 兼容路径（Cursor → Claude OAuth）上 Claude 自适应思考的三个独立缺陷。**(A)** 仪表盘思考预算设置在每次重启时被丢弃——`setThinkingBudgetConfig` 从未在启动时调用，因此保存的 `{mode:"adaptive"…}` 静默回退到透传模式；现在在 `server-init` 中从设置中恢复。**(B)** Claude 执行器在翻译_之后_强制注入自适应思考，忽略了运维人员的预算——现在遵循 `mode:"auto"`（剥离），同时保持默认（透传）行为逐字节不变，因此原生 Claude Code 不受影响，并将运维人员的 `thinking.type:"enabled"` 重新映射为 Opus 4.7/4.8 所需的 `adaptive` 形状（`enabled` → 400）。**(D)** 在回放时，无签名的 `reasoning_content` 被重建为携带伪造签名的 `thinking` 块 → Anthropic `400 "Invalid signature in thinking block"`；现在发出无签名的 `redacted_thinking` 块（真实签名仍然逐字保留）。回归测试：`tests/unit/thinking-budget-hydration-5312.test.ts`、`base-thinking-budget-config-5312.test.ts`、`openai-to-claude-redacted-replay-5312.test.ts`（现有 #5123/#4479/#2454 套件仍通过）。`</think>` 内容标记通道不匹配（RC-C，与 #5245 共享）作为后续任务待 Anthropic 在线验证。([#5312](https://github.com/diegosouzapw/OmniRoute/issues/5312) — 感谢 @vitalNohj)
+- **thinking (claude):** 修复 OpenAI 兼容路径（Cursor → Claude OAuth）上 Claude 自适应思考的三个独立缺陷。**(A)** 仪表盘思考预算设置在每次重启时被丢弃——`setThinkingBudgetConfig` 从未在启动时调用，因此保存的 `{mode:"adaptive"…}` 静默回退到透传模式；现在在 `server-init` 中从设置中恢复。**(B)** Claude 执行器在翻译*之后*强制注入自适应思考，忽略了运维人员的预算——现在遵循 `mode:"auto"`（剥离），同时保持默认（透传）行为逐字节不变，因此原生 Claude Code 不受影响，并将运维人员的 `thinking.type:"enabled"` 重新映射为 Opus 4.7/4.8 所需的 `adaptive` 形状（`enabled` → 400）。**(D)** 在回放时，无签名的 `reasoning_content` 被重建为携带伪造签名的 `thinking` 块 → Anthropic `400 "Invalid signature in thinking block"`；现在发出无签名的 `redacted_thinking` 块（真实签名仍然逐字保留）。回归测试：`tests/unit/thinking-budget-hydration-5312.test.ts`、`base-thinking-budget-config-5312.test.ts`、`openai-to-claude-redacted-replay-5312.test.ts`（现有 #5123/#4479/#2454 套件仍通过）。`</think>` 内容标记通道不匹配（RC-C，与 #5245 共享）作为后续任务待 Anthropic 在线验证。([#5312](https://github.com/diegosouzapw/OmniRoute/issues/5312) — 感谢 @vitalNohj)
 - **opencode (proxy pool):** OpenCode Free 每账户代理模态框现在提供全局**代理池下拉菜单**（按 ID 引用），而不是强制在每个账户上手动填写 Host/Port/凭证——#5217 缺口 1。**已保存/自定义**切换开关："已保存"从 `GET /api/settings/proxies` 中选择预保存的代理并存储 `{fingerprint, proxyId}`，因此更新该池代理会应用到使用它的所有账户；"自定义"保留手动输入（内联存储）作为退路。解析在服务端进行（`resolveAccountProxiesFromRegistry`），因此执行器仍然收到不变的已解析代理；现有的内联条目继续有效，未知/已删除的 `proxyId` 安全降级为直连。回归测试：`tests/unit/noauth-proxy-resolution.test.ts`、`tests/unit/ui/noauth-account-card.test.tsx`。([#5217](https://github.com/diegosouzapw/OmniRoute/issues/5217) 缺口 1 — 感谢 @daniij)
 - **thinking (claude):** 让原生 reasoning_content 客户端（如 Cursor）可以退出 `</think>` 关闭标记，使其不再将孤立的 `</think>` 泄漏到可见的 `content` 中（#5312 的 RC-C，与 #5245 共享）。标记抑制机制已存在（UA 白名单，#5348），但 Cursor 的 UA 被有意排除在外；此次添加了显式请求头 `x-omniroute-thinking-marker: off`（也支持 `on`/`keep` 强制保留）来覆盖 UA 策略。未携带此头时行为逐字节不变——扫描 `content` 中标记的 Claude Code/Cursor-composer 客户端（#4633）仍然会收到它。回归测试：`tests/unit/think-close-marker-suppress-5245.test.ts`（#5123 case-b + #4479 仍通过）。([#5312](https://github.com/diegosouzapw/OmniRoute/issues/5312), [#5245](https://github.com/diegosouzapw/OmniRoute/issues/5245) — 感谢 @vitalNohj, @wild-feather)
 - **cors:** 浏览器/Electron 客户端（如 Wayland AI）现在可以开箱即用地将 OmniRoute 作为 OpenAI 兼容的服务商使用。Token 认证的 API 面（`/v1/*`、`/v1beta/*`）现在默认返回宽松的 `Access-Control-Allow-Origin`（回显请求中的 `Origin`，无时使用 `*`）——与 9router 和 OpenAI 兼容生态系统保持一致——因此渲染进程的 `fetch` 可以读取响应，而不是因 CORS 阻止而失败为"站点未找到"/空目录（而 `curl` 不发送预检请求，可以正常工作）。这是**安全的**：这些路由通过浏览器永远不会自动附加的 `Authorization`/`x-api-key` 头进行认证（无凭证会话/CSRF 暴露），并且 `Access-Control-Allow-Credentials` 永远不与回显/通配符配对。Cookie 认证的 **MANAGEMENT/dashboard 路由保持严格失败关闭**；`CORS_ALLOW_ALL`/`CORS_ALLOWED_ORIGINS` 仍然优先。回归测试：`tests/unit/cors/origins.test.ts`、`tests/unit/authz/pipeline.test.ts`。（Bug 2 [#5242](https://github.com/diegosouzapw/OmniRoute/issues/5242) — 感谢 @jonlwheat2-gif）
@@ -1260,11 +1260,11 @@ _In development — bullets added per PR; finalized at release._
 
 - **fix(oauth):** 允许通过 `providerSpecificData.refreshLeadMs` 进行每个连接的刷新提前量覆盖。([#4818](https://github.com/diegosouzapw/OmniRoute/pull/4818) — 感谢 @anuragg-saxenaa)
 
-- **fix(dashboard): 在 `ModelSelectModal` 中通过 `providerId` 解析透传模型别名。([#4815](https://github.com/diegosouzapw/OmniRoute/pull/4815) — 感谢 @anuragg-saxenaa)
+- \*\*fix(dashboard): 在 `ModelSelectModal` 中通过 `providerId` 解析透传模型别名。([#4815](https://github.com/diegosouzapw/OmniRoute/pull/4815) — 感谢 @anuragg-saxenaa)
 
 - **fix(sse):** 从 Antigravity 工具 Schema 中剥离 `enumDescriptions`。([#4813](https://github.com/diegosouzapw/OmniRoute/pull/4813), [#4740](https://github.com/diegosouzapw/OmniRoute/pull/4740) — 感谢 @anuragg-saxenaa)
 
-- **fix(dashboard): 通过显式 CSS 类保持桌面侧边栏可见。([#4812](https://github.com/diegosouzapw/OmniRoute/pull/4812) — 感谢 @Delcado19)
+- \*\*fix(dashboard): 通过显式 CSS 类保持桌面侧边栏可见。([#4812](https://github.com/diegosouzapw/OmniRoute/pull/4812) — 感谢 @Delcado19)
 
 - **fix(sse):** 在将 Responses API 转换为聊天格式时过滤无名托管工具。([#4789](https://github.com/diegosouzapw/OmniRoute/pull/4789) — 上游，感谢 Владимир Акимов)
 
@@ -1302,11 +1302,11 @@ _In development — bullets added per PR; finalized at release._
 
 - **fix(translator):** 在 OpenAI 规范化中将工具描述强制转换为字符串。([#4675](https://github.com/diegosouzapw/OmniRoute/pull/4675) — 感谢 @East-rayyy / @diegosouzapw)
 
-- **fix(dashboard): 停止在列表视图中对已脱敏的 API Key 进行二次脱敏（E2E 3/9 回归）。([#4671](https://github.com/diegosouzapw/OmniRoute/pull/4671) — 感谢 @diegosouzapw)
+- \*\*fix(dashboard): 停止在列表视图中对已脱敏的 API Key 进行二次脱敏（E2E 3/9 回归）。([#4671](https://github.com/diegosouzapw/OmniRoute/pull/4671) — 感谢 @diegosouzapw)
 
-- **fix(combo): 展平 Anthropic 工具消息 + 工具历史以防止上游 503。([#4648](https://github.com/diegosouzapw/OmniRoute/pull/4648) — 感谢 @warelik / @diegosouzapw)
+- \*\*fix(combo): 展平 Anthropic 工具消息 + 工具历史以防止上游 503。([#4648](https://github.com/diegosouzapw/OmniRoute/pull/4648) — 感谢 @warelik / @diegosouzapw)
 
-- **fix(providers): 在兼容服务商 API-key 设置流程中要求设置默认模型。([#4641](https://github.com/diegosouzapw/OmniRoute/pull/4641) — 感谢 @arden1601)
+- \*\*fix(providers): 在兼容服务商 API-key 设置流程中要求设置默认模型。([#4641](https://github.com/diegosouzapw/OmniRoute/pull/4641) — 感谢 @arden1601)
 
 ### 🔒 安全
 
@@ -2298,9 +2298,9 @@ _Development cycle in progress._
   并发刷新了兄弟账户，导致 Auth0 吊销整个令牌族
   (`openai/codex#9648`)，除最后一个外所有账户都因
   `[403] <!DOCTYPE html>` 而失效。配额路径现在对轮换服务商跳过主动刷新
-  (`rotationGroupFor`)，并复用当前的 access_token，
+  (`rotationGroupFor`)，并复用当前的 access*token，
   将真正的过期交由响应式、串行化的 401 路径处理。纵深防御：
-  `serializeRefresh` 现在在两个 _排队_ 的兄弟刷新之间留有冷却间隔
+  `serializeRefresh` 现在在两个 *排队\_ 的兄弟刷新之间留有冷却间隔
   （默认 2000 毫秒，可通过 `CODEX_REFRESH_SPACING_MS` 调整，设为 `"0"` 可
   退出），同时立即释放单个刷新，因此响应式路径不会增加延迟。
 - **负载规则:** 保存的负载规则现在在服务器重启后依然有效。当没有
@@ -5120,7 +5120,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **修复(ui):** 优先使用直接的 `@lobehub/icons` 组件，然后回退到本地 PNG/SVG，避免在控制台中引入 `@lobehub/ui` 对等运行时依赖，确保服务商图标稳定可靠。
 
 - **容灾：** 通过处理 Combo 容灾路径中向 CLOSED 状态的直接转换，防止代理熔断器无限期卡在 OPEN 状态 (#930)。
-- **协议翻译：** 修补了流式翻译器，改为根据预期的_源_协议而非服务商_目标_协议来清洗响应块，修复了包装在 OpenAI 载荷中的 Anthropic 模型导致 Claude Code 崩溃的问题 (#929)。
+- **协议翻译：** 修补了流式翻译器，改为根据预期的*源*协议而非服务商*目标*协议来清洗响应块，修复了包装在 OpenAI 载荷中的 Anthropic 模型导致 Claude Code 崩溃的问题 (#929)。
 - **API 规范与 Gemini：** 修复了 `openai-to-gemini` 和 `claude-to-gemini` 翻译器中的 `thought_signature` 解析，防止所有 Gemini 3 API 工具调用出现 HTTP 400 错误。
 - **服务商：** 清理了阻止有效上游连接的非 OpenAI 兼容端点 (#926)。
 - **Cache 趋势：** 修复了导致 Cache Trends UI 图表崩溃的属性映射数据不匹配问题，并提取了冗余的缓存指标小部件 (#926)。
