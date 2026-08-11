@@ -17,6 +17,13 @@
 #   • Fallback path if Mergify misbehaves or the OSS plan changes: the manual
 #     merge-train runbook (docs/ops/MERGE_TRAIN.md) — remove labels, proceed by hand.
 
+# Auto-enqueue (current Mergify model, 2026): auto_merge_conditions in
+# merge_protections_settings — the rules-based queue action / autoqueue path is
+# deprecated (EOL 2026-07-16). The owner-applied `queue` label IS the approval.
+merge_protections_settings:
+  auto_merge_conditions:
+    - label = queue
+
 queue_rules:
   - name: release
     # Any current or future release branch — the reason GitHub's native queue was
