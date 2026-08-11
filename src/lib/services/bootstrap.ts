@@ -7,6 +7,11 @@ import {
   resolveSpawnArgs as cliproxySpawnArgs,
   CLIPROXY_DEFAULT_PORT,
 } from "./installers/cliproxy";
+import { resolveSpawnArgs as muxSpawnArgs, MUX_DEFAULT_PORT } from "./installers/mux";
+import {
+  resolveSpawnArgs as bifrostSpawnArgs,
+  BIFROST_DEFAULT_PORT,
+} from "./installers/bifrost";
 import { getOrCreateApiKey } from "./apiKey";
 import { scheduleServiceModelSync, stopServiceModelSync } from "./modelSync";
 import { createLogger } from "@/shared/utils/logger";
@@ -27,6 +32,8 @@ const NINEROUTER_PORT = parseInt(
   10
 );
 const CLIPROXY_PORT = parseInt(process.env.CLIPROXYAPI_PORT ?? String(CLIPROXY_DEFAULT_PORT), 10);
+const MUX_PORT = parseInt(process.env.MUX_SERVICE_PORT ?? String(MUX_DEFAULT_PORT), 10);
+const BIFROST_PORT = parseInt(process.env.BIFROST_PORT ?? String(BIFROST_DEFAULT_PORT), 10);
 
 type ServiceEntry = {
   tool: string;
@@ -75,6 +82,24 @@ const SERVICES: ServiceEntry[] = [
     logsBufferBytes: 5_242_880,
     needsApiKey: false,
   },
+  {
+    tool: "mux",
+    port: MUX_PORT,
+    healthPath: "/health",
+    healthIntervalMs: 5_000,
+    stopTimeoutMs: 15_000,
+    logsBufferBytes: 5_242_880,
+    needsApiKey: true,
+  },
+  {
+    tool: "bifrost",
+    port: BIFROST_PORT,
+    healthPath: "/v1/models",
+    healthIntervalMs: 5_000,
+    stopTimeoutMs: 15_000,
+    logsBufferBytes: 5_242_880,
+    needsApiKey: false,
+  },
 ];
 
 function buildSpawnArgsFactory(
@@ -83,6 +108,12 @@ function buildSpawnArgsFactory(
 ): () => ReturnType<typeof nineRouterSpawnArgs> {
   if (cfg.tool === "9router") {
     return () => nineRouterSpawnArgs(apiKey, cfg.port);
+  }
+  if (cfg.tool === "mux") {
+    return () => muxSpawnArgs(apiKey, cfg.port);
+  }
+  if (cfg.tool === "bifrost") {
+    return () => bifrostSpawnArgs(cfg.port);
   }
   return () => cliproxySpawnArgs(cfg.port);
 }

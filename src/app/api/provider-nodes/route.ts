@@ -125,6 +125,7 @@ export async function POST(request) {
       chatPath,
       modelsPath,
       customHeaders,
+      iconUrl,
     } = validation.data;
 
     if (preset === "vibeproxy-openai") {
@@ -167,6 +168,7 @@ export async function POST(request) {
         name: resolvedName,
         chatPath: chatPath || null,
         modelsPath: modelsPath || null,
+        iconUrl: iconUrl?.trim() || null,
         customHeaders: customHeaders || null,
       });
       return NextResponse.json({ node }, { status: 201 });
@@ -196,6 +198,7 @@ export async function POST(request) {
         name: (name || "").trim(),
         chatPath: chatPath || null,
         modelsPath: compatMode === "cc" ? null : modelsPath || null,
+        iconUrl: iconUrl?.trim() || null,
         customHeaders: customHeaders || null,
       });
       return NextResponse.json({ node }, { status: 201 });

@@ -14,6 +14,7 @@ import { WebSearchExampleCard } from "../../components/WebSearchExampleCard";
 import { WebFetchExampleCard } from "../../components/WebFetchExampleCard";
 import { VideoExampleCard } from "../../components/VideoExampleCard";
 import { MusicExampleCard } from "../../components/MusicExampleCard";
+import { OcrExampleCard } from "../../components/OcrExampleCard";
 
 interface Connection {
   id: string;
@@ -57,6 +58,8 @@ function renderPlayground(
       return <VideoExampleCard providerId={providerId} />;
     case "music":
       return <MusicExampleCard providerId={providerId} />;
+    case "ocr":
+      return <OcrExampleCard providerId={providerId} />;
     case "imageToText":
       // Endpoint /api/v1/images/understanding does not exist yet — omitted.
       return (

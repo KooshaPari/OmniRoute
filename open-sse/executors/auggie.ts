@@ -38,7 +38,9 @@ const AUGGIE_URL = "auggie://cli/stdio";
 // untrusted-input sink. We only ever pass a model that is declared in the
 // registry entry — this closes flag-smuggling (a `model` starting with "-" would
 // otherwise be parsed by auggie as an option) and unknown-model passthrough.
-const AUGGIE_MODEL_ALLOWLIST: ReadonlySet<string> = new Set(auggieProvider.models.map((m) => m.id));
+const AUGGIE_MODEL_ALLOWLIST: ReadonlySet<string> = new Set(
+  auggieProvider.models.map((m) => m.id)
+);
 const DEFAULT_AUGGIE_MODEL = auggieProvider.models[0]?.id ?? "claude-sonnet-4.6";
 
 type AuggieModelResolution = { ok: true; model: string } | { ok: false; error: string };
@@ -227,7 +229,13 @@ export class AuggieExecutor extends BaseExecutor {
     return null;
   }
 
-  async execute({ model, body, stream, signal, log }: ExecuteInput): Promise<{
+  async execute({
+    model,
+    body,
+    stream,
+    signal,
+    log,
+  }: ExecuteInput): Promise<{
     response: Response;
     url: string;
     headers: Record<string, string>;
@@ -274,11 +282,6 @@ export class AuggieExecutor extends BaseExecutor {
       env: process.env,
       stdio: ["pipe", "pipe", "pipe"],
     });
-    // EPIPE from a fast-exiting CLI arrives ASYNCHRONOUSLY as an 'error' event on
-    // stdin (not a sync throw), so the try/catch below cannot swallow it — without
-    // this handler the unhandled stream error crashes the process instead of
-    // letting the child's own 'error'/'close' handlers surface the failure.
-    child.stdin.on("error", () => {});
     try {
       child.stdin.write(promptText);
       child.stdin.end();
@@ -376,15 +379,10 @@ export class AuggieExecutor extends BaseExecutor {
           });
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
-          emitError(
-            isEnoentLike(message) ? cliNotFoundMessage(auggieBin) : sanitizeErrorMessage(message)
-          );
+          emitError(isEnoentLike(message) ? cliNotFoundMessage(auggieBin) : sanitizeErrorMessage(message));
           return;
         }
 
-        // Async EPIPE lands as an 'error' event on stdin, not a sync throw (see
-        // spawnAuggie) — handle it so a fast-exiting CLI can't crash the stream.
-        child.stdin.on("error", () => {});
         try {
           child.stdin.write(promptText);
           child.stdin.end();
@@ -401,9 +399,7 @@ export class AuggieExecutor extends BaseExecutor {
 
         child.on("error", (err: NodeJS.ErrnoException) => {
           const message = err?.message || String(err);
-          emitError(
-            isEnoentLike(message) ? cliNotFoundMessage(auggieBin) : sanitizeErrorMessage(message)
-          );
+          emitError(isEnoentLike(message) ? cliNotFoundMessage(auggieBin) : sanitizeErrorMessage(message));
         });
 
         let stderrTail = "";
