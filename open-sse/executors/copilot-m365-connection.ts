@@ -24,17 +24,6 @@ export const M365_INDIVIDUAL_DEFAULTS = {
   scenario: "OfficeWebPaidConsumerCopilot",
 } as const;
 
-/**
- * Education "Starter / OfficeWebIncludedCopilot" tier overrides, captured from the
- * official UI in #6210. Differs from the individual tier only by scenario + isEdu;
- * opt-in via `providerSpecificData.tier="edu"` so the individual path is unchanged.
- */
-export const M365_EDU_OVERRIDES = {
-  scenario: "OfficeWebIncludedCopilot",
-  isEdu: "true",
-  licenseType: "Starter",
-} as const;
-
 export const M365_DEFAULT_VARIANTS = [
   "EnableMcpServerWidgets",
   "feature.EnableMcpServerWidgets",
@@ -90,10 +79,6 @@ export interface M365ConnectionParams {
   chathubPath: string; // "<user-oid>@<tenant-id>"
   accessToken: string;
   variants?: string;
-  /** Tier overrides — when unset, buildWsUrl falls back to the individual defaults. */
-  scenario?: string;
-  isEdu?: string;
-  licenseType?: string;
 }
 
 /** A new 32-hex chat session id (== XRoutingParameterSessionKey == clientrequestid). */
@@ -169,34 +154,7 @@ export function resolveConnectionParams(
   }
   const host = (typeof psd.host === "string" && psd.host) || M365_INDIVIDUAL_DEFAULTS.host;
   const variants = typeof psd.variants === "string" && psd.variants ? psd.variants : undefined;
-
-  return { host, chathubPath, accessToken, variants, ...resolveTierOverrides(psd) };
-}
-
-/**
- * Resolve tier overrides (opt-in). `tier="edu"|"included"` applies the EDU overrides;
- * individual fields (`scenario`/`isEdu`/`licenseType`) can also be overridden directly
- * via providerSpecificData. Unset fields fall back to the individual defaults in
- * buildWsUrl. (#6210)
- */
-function resolveTierOverrides(
-  psd: JsonRecord
-): Pick<M365ConnectionParams, "scenario" | "isEdu" | "licenseType"> {
-  const tier = typeof psd.tier === "string" ? psd.tier.toLowerCase() : "";
-  const isEduTier = tier === "edu" || tier === "included";
-  const psdIsEdu =
-    (typeof psd.isEdu === "string" && psd.isEdu) ||
-    (typeof psd.isEdu === "boolean" && String(psd.isEdu)) ||
-    undefined;
-  return {
-    scenario:
-      (typeof psd.scenario === "string" && psd.scenario) ||
-      (isEduTier ? M365_EDU_OVERRIDES.scenario : undefined),
-    isEdu: psdIsEdu || (isEduTier ? M365_EDU_OVERRIDES.isEdu : undefined),
-    licenseType:
-      (typeof psd.licenseType === "string" && psd.licenseType) ||
-      (isEduTier ? M365_EDU_OVERRIDES.licenseType : undefined),
-  };
+  return { host, chathubPath, accessToken, variants };
 }
 
 /**

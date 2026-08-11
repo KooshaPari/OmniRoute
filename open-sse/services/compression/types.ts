@@ -13,7 +13,6 @@ import { ENGINE_IDS } from "./engineCatalog.ts";
 import type { ContextBudgetConfig } from "./adaptiveCompression/types.ts";
 import type { FidelityGateConfig } from "./fidelityGate.ts";
 import type { RiskGateConfig } from "./riskGate/riskGate.ts";
-import type { PipelineCircuitBreakerConfig } from "./pipelineEngineBreaker.ts";
 import type { RiskGateStats } from "./riskGate/riskGateStep.ts";
 import type { QuantumLockConfig, QuantumLockStats } from "./quantumLock/quantumPatterns.ts";
 
@@ -108,18 +107,6 @@ export interface RtkConfig {
   renderers?: string[];
 }
 
-/** Conservative, lossless-first Responses tool-output compression controls. */
-export interface CodexResponsesConfig {
-  enabled: boolean;
-  minBytes: number;
-  maxOutputBytes: number;
-  maxCandidateBytes: number;
-  maxLines: number;
-  minSearchMatches: number;
-  minLogLines: number;
-  preserveToolNames: string[];
-}
-
 export interface RelevanceConfig {
   enabled: boolean;
   overlapThreshold: number;
@@ -198,14 +185,11 @@ export interface CompressionConfig {
   fidelityGate?: FidelityGateConfig;
   /** Opt-in risk-gate pre-pass: shields sensitive spans from compression (default disabled). */
   riskGate?: RiskGateConfig;
-  /** T02 — opt-in per-engine circuit-breaker for the stacked pipeline (default disabled). */
-  pipelineCircuitBreaker?: PipelineCircuitBreakerConfig;
   cavemanConfig?: CavemanConfig;
   cavemanOutputMode?: CavemanOutputModeConfig;
   /** Phase 4A: selected output styles (supersedes cavemanOutputMode via a back-compat shim). */
   outputStyles?: OutputStyleSelectionEntry[];
   rtkConfig?: RtkConfig;
-  codexResponsesConfig?: CodexResponsesConfig;
   relevanceConfig?: RelevanceConfig;
   languageConfig?: CompressionLanguageConfig;
   aggressive?: AggressiveConfig;
@@ -264,13 +248,6 @@ export interface CompressionConfig {
   ultraSlmPrewarm?: boolean;
   /** Opt-in result memoization for deterministic engines only (default off). */
   memoizeCompressionResults?: boolean;
-  /**
-   * #8034 — per-model/endpoint compression exclusion filter. Patterns are matched
-   * case-insensitively against both the bare model id and the `provider/model`
-   * composite (`*` is the only wildcard). Absent/empty → no exclusions, default
-   * behavior unchanged. See `open-sse/services/compression/exclusions.ts`.
-   */
-  exclusions?: string[];
 }
 
 export interface CompressionStats {
@@ -328,11 +305,6 @@ export interface CompressionStats {
   }>;
   /** Present only when QuantumLock stabilized ≥1 fragment this run. */
   quantumLock?: QuantumLockStats;
-  liveZone?: {
-    cacheHit: boolean;
-    frozenItems: number;
-    liveItems: number;
-  };
 }
 
 export interface CompressionResult {

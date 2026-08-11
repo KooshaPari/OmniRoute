@@ -257,26 +257,6 @@ routes under `src/app/api/settings/qdrant/` are all wired as of v3.8.6:
 | `/api/settings/qdrant/cleanup`          | `POST`        | Remove expired / old points     |
 | `/api/settings/qdrant/embedding-models` | `GET`         | List available embedding models |
 
-**Behavior notes (what to expect):**
-
-- **Engine selection** — enabling Qdrant in the Engine tab makes it the primary
-  store (sets `memoryVectorStore="qdrant"`); disabling resets to `"auto"` (#5597).
-- **No back-fill** — only memories created/updated **after** Qdrant is enabled are
-  written to it (fire-and-forget dual-write). Pre-existing SQLite memories are **not**
-  migrated; "Reindex Now" rebuilds the sqlite-vec index only, not Qdrant.
-- **Vector dimension is auto-detected** from the actual embedding on first use — there
-  is no dimension field to fill in. Changing the embedding model after a collection
-  exists is **not** auto-handled: the existing collection is left untouched, dimension-
-  mismatched writes/searches fail and fall back to sqlite-vec. Recreate the collection
-  (new name, or delete it in Qdrant) to switch embedders.
-- **Distance metric** — always **Cosine** (hardcoded on collection creation; not
-  configurable).
-- **Auth** — API key only (sent as the `api-key` header; optional for unauthenticated
-  local Docker). JWT/RBAC are not used.
-- **Config fields** — the UI exposes `host`, `port`, `collection`, `embeddingModel`,
-  `apiKey`. `vectorSize` / `hnswEfConstruct` are env/DB only and `vectorSize` is not
-  used for collection creation (dimension comes from the embedding).
-
 ### Vector quantization (int8 — opt-in, both backends)
 
 Both vector backends support **opt-in int8 quantization** to cut the memory
@@ -519,7 +499,7 @@ See [MCP-SERVER.md](./MCP-SERVER.md) for transport and scope details.
 
 `src/app/(dashboard)/dashboard/memory/page.tsx` is now a **3-tab Studio**:
 
-### Tab: Memories
+### Tab: Memórias / Memories
 
 - Concept card (collapsible "How it works" explainer).
 - Real-time list, search, and pagination (debounced 300 ms).
@@ -724,13 +704,12 @@ When a user says:
 
 > "I prefer TypeScript. I'll use Postgres for this project. I always commit before pushing. I don't like Python."
 > Extraction produces 4 memories:
->
-> | Key                                  | Category   | Type     | Content                     |
-> | ------------------------------------ | ---------- | -------- | --------------------------- |
-> | `preference:typescript`              | preference | factual  | "TypeScript"                |
-> | `decision:postgres_for_this_project` | decision   | episodic | "Postgres for this project" |
-> | `pattern:commit_before_pushing`      | pattern    | factual  | "commit before pushing"     |
-> | `preference:python`                  | preference | factual  | "Python"                    |
+> | Key | Category | Type | Content |
+> |-----|----------|------|---------|
+> | `preference:typescript` | preference | factual | "TypeScript" |
+> | `decision:postgres_for_this_project` | decision | episodic | "Postgres for this project" |
+> | `pattern:commit_before_pushing` | pattern | factual | "commit before pushing" |
+> | `preference:python` | preference | factual | "Python" |
 
 ### Extraction Limits
 

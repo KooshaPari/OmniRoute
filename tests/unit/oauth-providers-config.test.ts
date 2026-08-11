@@ -30,7 +30,6 @@ const {
   CODEBUDDY_CN_CONFIG,
   ZED_CONFIG,
   CURSOR_CONFIG,
-  GHE_COPILOT_CONFIG,
   GITHUB_CONFIG,
   GITLAB_DUO_CONFIG,
   GROK_BUILD_OAUTH_CONFIG,
@@ -381,7 +380,15 @@ test("gitlab-duo buildAuthUrl returns null (not throw) when client_id is unconfi
 });
 
 test("custom Google OAuth credentials switch Antigravity remote callbacks to NEXT_PUBLIC_BASE_URL", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", browserUrl, publicBaseEnv);
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://localhost:20128/callback",
+    {
+      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com/",
+      ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
+      ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
+    }
+  );
 
   assert.equal(redirectUri, "https://omniroute.example.com/callback");
 });
@@ -397,21 +404,21 @@ test("custom Google OAuth callbacks preserve the requested callback path and que
 });
 
 test("custom Google OAuth credentials switch IPv6 loopback callbacks to public base URL", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri(
-    "antigravity",
-    "http://[::1]:20128/callback",
-    publicBaseEnv
-  );
+  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://[::1]:20128/callback", {
+    NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+    ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
+    ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
+  });
 
   assert.equal(redirectUri, "https://omniroute.example.com/callback");
 });
 
 test("custom Google OAuth callbacks default root loopback paths to callback path", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri(
-    "antigravity",
-    "http://127.0.0.1:20128",
-    publicBaseEnv
-  );
+  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://127.0.0.1:20128", {
+    NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+    ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
+    ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
+  });
 
   assert.equal(redirectUri, "https://omniroute.example.com/callback");
 });

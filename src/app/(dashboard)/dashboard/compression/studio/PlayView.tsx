@@ -102,7 +102,7 @@ export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewP
         {batch?.combined && (
           <section data-testid="play-combined">
             <header className="text-xs font-semibold">
-              {t("combinedFlow")} — {active.join(" → ")}{" "}
+              Fluxo combinado — {active.join(" → ")}{" "}
               <QuantumLockBadge stats={batch.combined.quantumLock} />
             </header>
             <WaterfallInspector run={batch.combined} />
@@ -131,7 +131,7 @@ export function PlayView({ text, onText, laneEngines = LANE_ENGINES }: PlayViewP
         {batch?.heatmap && (
           <section data-testid="play-heatmap">
             <header className="text-xs font-semibold">
-              {t("saliencyHeatmap")} — {batch.heatmap.mode}
+              Saliency heatmap — {batch.heatmap.mode}
             </header>
             <SaliencyHeatmap heatmap={batch.heatmap} />
           </section>

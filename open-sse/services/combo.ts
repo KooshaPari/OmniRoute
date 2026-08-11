@@ -2495,7 +2495,6 @@ export async function handleComboChat({
             fallbackResult.shouldFallback &&
             !isContextOverflow400(errorText) &&
             !isParamValidation400(errorText) &&
-            !isModelScoped400(errorText) &&
             (errorText.toLowerCase().includes("context") ||
               errorText.toLowerCase().includes("prompt") ||
               errorText.toLowerCase().includes("token") ||
@@ -3195,23 +3194,11 @@ async function handleRoundRobinCombo({
   // call — so sessionless RR combos rotated every turn, busting the upstream prompt-cache.
   // Reuse the SAME mechanism: start the rotation at the conversation's sticky connection
   // (the loop still falls through to the other targets on failure → failover preserved).
-  // #6168: honor the session-stickiness opt-out here too, otherwise round-robin would
-  // still pin the conversation even when the flag is set. Per-combo `config` overrides
-  // the global `settings.disableSessionStickiness` fallback (default false).
-  const disableSessionStickiness = resolveDisableSessionStickiness(
-    config as Record<string, unknown> | null | undefined,
-    settings as Record<string, unknown> | null | undefined
+  const _rrSessionSticky = await applySessionStickiness(
+    filteredTargets,
+    body?.messages as Array<{ role?: string; content?: unknown }>
   );
-  const _rrSessionSticky = disableSessionStickiness
-    ? ({ targets: filteredTargets, messageHash: null, stuck: false } as const)
-    : await applySessionStickiness(
-        filteredTargets,
-        body?.messages as Array<{ role?: string; content?: unknown }>
-      );
   let rrStartIndex = startIndex;
-  if (rrAffinity.applied) {
-    rrStartIndex = 0;
-  }
   if (_rrSessionSticky.stuck) {
     const stickyIdx = filteredTargets.findIndex(
       (t) => t.connectionId === _rrSessionSticky.targets[0]?.connectionId
@@ -3455,6 +3442,12 @@ async function handleRoundRobinCombo({
             // mirroring recordStickyRoundRobinSuccess's served-index logic. Read
             // side applies `% modelCount`, so storing modelIndex + 1 is correct.
             rrCounters.set(combo.name, modelIndex + 1);
+          }
+
+          // #3825: (re)record the sticky binding so the next turn re-pins (prompt-cache).
+          if (_rrSessionSticky.messageHash) {
+            const stickyConn = effectiveConnectionId || target.connectionId;
+            if (stickyConn) recordStickyBinding(_rrSessionSticky.messageHash, stickyConn);
           }
 
           // #3825: (re)record the sticky binding so the next turn re-pins (prompt-cache).

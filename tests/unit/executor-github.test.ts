@@ -236,11 +236,6 @@ test("GithubExecutor.transformRequest leaves string content and missing content 
         role: "assistant",
         tool_calls: [{ id: "c1", type: "function", function: { name: "f", arguments: "{}" } }],
       },
-      // Trailing tool response: dropTrailingAssistantPrefill (9router#2143) strips a
-      // conversation that ends in "assistant", which would otherwise remove the very
-      // tool_calls message this test inspects below. A real tool round-trip ends in
-      // "tool", not "assistant" — model that shape instead.
-      { role: "tool", tool_call_id: "c1", content: "result" },
     ],
   };
   const result = executor.transformRequest("claude-sonnet-4.6", body, true, {});

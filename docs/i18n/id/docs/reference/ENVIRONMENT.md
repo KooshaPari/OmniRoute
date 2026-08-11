@@ -294,26 +294,26 @@ CLI_CLAUDE_BIN=/host-cli/bin/claude
 
 Kredensial bawaan untuk **pengembangan localhost**. Untuk deployment jarak jauh, daftarkan milik Anda sendiri di konsol pengembang masing-masing provider.
 
-| Variable                          | Provider                | Catatan                                                                        |
-| --------------------------------- | ----------------------- | ------------------------------------------------------------------------------ |
-| `CLAUDE_OAUTH_CLIENT_ID`          | Claude Code (Anthropic) | Klien publik — tidak perlu secret.                                             |
-| `CLAUDE_CODE_REDIRECT_URI`        | Claude Code             | Timpa redirect URI. Default: `https://platform.claude.com/oauth/code/callback` |
-| `CODEX_OAUTH_CLIENT_ID`           | Codex / OpenAI          | Klien publik.                                                                  |
-| `GEMINI_OAUTH_CLIENT_ID`          | Gemini (Google)         | Memerlukan `_SECRET` yang sesuai.                                              |
-| `GEMINI_OAUTH_CLIENT_SECRET`      | Gemini (Google)         | —                                                                              |
-| `QWEN_OAUTH_CLIENT_ID`            | Qwen (Alibaba)          | Klien publik.                                                                  |
-| `KIMI_CODING_OAUTH_CLIENT_ID`     | Kimi Coding (Moonshot)  | Klien publik.                                                                  |
-| `ANTIGRAVITY_OAUTH_CLIENT_ID`     | Antigravity (Google)    | Memerlukan `_SECRET` yang sesuai.                                              |
-| `ANTIGRAVITY_OAUTH_CLIENT_SECRET` | Antigravity (Google)    | —                                                                              |
-| `GITHUB_OAUTH_CLIENT_ID`          | GitHub Copilot          | Klien publik.                                                                  |
-| `QODER_OAUTH_CLIENT_SECRET`       | Qoder                   | —                                                                              |
-| `QODER_OAUTH_AUTHORIZE_URL`       | Qoder                   | Atur untuk mengaktifkan OAuth Qoder.                                           |
-| `QODER_OAUTH_TOKEN_URL`           | Qoder                   | —                                                                              |
-| `QODER_OAUTH_USERINFO_URL`        | Qoder                   | —                                                                              |
-| `QODER_OAUTH_CLIENT_ID`           | Qoder                   | —                                                                              |
-| `QODER_PERSONAL_ACCESS_TOKEN`     | Qoder                   | Fallback kunci API langsung (melewati OAuth).                                  |
-| `QODER_CLI_WORKSPACE`             | Qoder                   | ID workspace untuk CLI Qoder.                                                  |
-| `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias untuk `QODER_CLI_WORKSPACE`.                                             |
+| Variable                          | Provider                | Catatan                                                                                   |
+| --------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------- |
+| `CLAUDE_OAUTH_CLIENT_ID`          | Claude Code (Anthropic) | Klien publik — tidak perlu secret.                                                        |
+| `CLAUDE_CODE_REDIRECT_URI`        | Claude Code             | Timpa redirect URI. Default: `https://platform.claude.com/oauth/code/callback`             |
+| `CODEX_OAUTH_CLIENT_ID`           | Codex / OpenAI          | Klien publik.                                                                             |
+| `GEMINI_OAUTH_CLIENT_ID`          | Gemini (Google)         | Memerlukan `_SECRET` yang sesuai.                                                         |
+| `GEMINI_OAUTH_CLIENT_SECRET`      | Gemini (Google)         | —                                                                                         |
+| `QWEN_OAUTH_CLIENT_ID`            | Qwen (Alibaba)          | Klien publik.                                                                             |
+| `KIMI_CODING_OAUTH_CLIENT_ID`     | Kimi Coding (Moonshot)  | Klien publik.                                                                             |
+| `ANTIGRAVITY_OAUTH_CLIENT_ID`     | Antigravity (Google)    | Memerlukan `_SECRET` yang sesuai.                                                         |
+| `ANTIGRAVITY_OAUTH_CLIENT_SECRET` | Antigravity (Google)    | —                                                                                         |
+| `GITHUB_OAUTH_CLIENT_ID`          | GitHub Copilot          | Klien publik.                                                                             |
+| `QODER_OAUTH_CLIENT_SECRET`       | Qoder                   | —                                                                                         |
+| `QODER_OAUTH_AUTHORIZE_URL`       | Qoder                   | Atur untuk mengaktifkan OAuth Qoder.                                                      |
+| `QODER_OAUTH_TOKEN_URL`           | Qoder                   | —                                                                                         |
+| `QODER_OAUTH_USERINFO_URL`        | Qoder                   | —                                                                                         |
+| `QODER_OAUTH_CLIENT_ID`           | Qoder                   | —                                                                                         |
+| `QODER_PERSONAL_ACCESS_TOKEN`     | Qoder                   | Fallback kunci API langsung (melewati OAuth).                                             |
+| `QODER_CLI_WORKSPACE`             | Qoder                   | ID workspace untuk CLI Qoder.                                                             |
+| `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias untuk `QODER_CLI_WORKSPACE`.                                                        |
 
 > [!WARNING]
 >
@@ -334,17 +334,17 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 > **Sumber:** `open-sse/executors/base.ts` → `buildHeaders()`
 
-| Variable                 | Nilai Default                                 | Kapan Diperbarui                                                  |
-| ------------------------ | --------------------------------------------- | ----------------------------------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.219 (external, cli)`          | Saat Anthropic merilis versi CLI baru                             |
-| `CODEX_USER_AGENT`       | `codex-cli/0.132.0 (Windows 10.0.26200; x64)` | Saat OpenAI memperbarui CLI Codex                                 |
-| `CODEX_CLIENT_VERSION`   | `0.131.0`                                     | Override versi klien Codex secara independen dari string UA penuh |
-| `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    | Saat GitHub Copilot Chat diperbarui                               |
-| `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 darwin/arm64`              | Saat Antigravity IDE diperbarui                                   |
-| `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             | Saat Kiro IDE diperbarui                                          |
-| `QODER_USER_AGENT`       | `Qoder-Cli`                                   | Saat CLI Qoder diperbarui                                         |
-| `QWEN_USER_AGENT`        | `QwenCode/0.15.11 (linux; x64)`               | Saat Qwen Code diperbarui                                         |
-| `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                            | Saat Cursor diperbarui                                            |
+| Variable                 | Nilai Default                                 | Kapan Diperbarui                                                       |
+| ------------------------ | --------------------------------------------- | ---------------------------------------------------------------------- |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.145 (external, cli)`          | Saat Anthropic merilis versi CLI baru                                  |
+| `CODEX_USER_AGENT`       | `codex-cli/0.132.0 (Windows 10.0.26200; x64)` | Saat OpenAI memperbarui CLI Codex                                      |
+| `CODEX_CLIENT_VERSION`   | `0.131.0`                                     | Override versi klien Codex secara independen dari string UA penuh      |
+| `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    | Saat GitHub Copilot Chat diperbarui                                    |
+| `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 darwin/arm64`              | Saat Antigravity IDE diperbarui                                        |
+| `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             | Saat Kiro IDE diperbarui                                               |
+| `QODER_USER_AGENT`       | `Qoder-Cli`                                   | Saat CLI Qoder diperbarui                                              |
+| `QWEN_USER_AGENT`        | `QwenCode/0.15.11 (linux; x64)`               | Saat Qwen Code diperbarui                                              |
+| `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                            | Saat Cursor diperbarui                                                 |
 
 > [!TIP]
 > Anda dapat menambahkan override User-Agent untuk provider **mana pun** menggunakan pola `{PROVIDER_ID}_USER_AGENT`. Executor secara dinamis membangun nama variabel lingkungan.

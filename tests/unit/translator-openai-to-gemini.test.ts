@@ -517,6 +517,22 @@ test("OpenAI -> Gemini helper IDs and JSON parsing stay in the expected format",
   assert.equal(tryParseJSON("not-json"), null as any);
 });
 
+test("OpenAI -> Cloud Code Gemini applies native request defaults", () => {
+  const request = openaiToCloudCodeGeminiRequest(
+    "gemini-3-flash-preview",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      reasoning_effort: "high",
+    },
+    true
+  ) as any;
+
+  assert.equal(request.model, "gemini-3-flash-preview");
+  assert.equal(request.generationConfig.thinkingConfig.includeThoughts, true);
+  assert.equal(request.generationConfig.topK, undefined);
+  assert.equal(request.contents.at(-1).parts[0].text, "Hello");
+});
+
 test("OpenAI -> Cloud Code Gemini emits native functionResponse result", () => {
   const request = openaiToCloudCodeGeminiRequest(
     "gemini-3-flash-preview",

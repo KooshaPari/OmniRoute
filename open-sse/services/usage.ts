@@ -69,9 +69,43 @@ export { buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
 
 // Quota / usage upstream URLs (overridable for testing or relays).
 const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
+const CODEWHISPERER_BASE_URL =
+  process.env.OMNIROUTE_CODEWHISPERER_BASE_URL ?? "https://codewhisperer.us-east-1.amazonaws.com";
+
+// Codex (OpenAI) API config
+const CODEX_CONFIG = {
+  usageUrl: "https://chatgpt.com/backend-api/wham/usage",
+};
+
+// Claude API config
+const CLAUDE_CONFIG = {
+  oauthUsageUrl: "https://api.anthropic.com/api/oauth/usage",
+  usageUrl: "https://api.anthropic.com/v1/organizations/{org_id}/usage",
+  settingsUrl: "https://api.anthropic.com/v1/settings",
+  apiVersion: "2023-06-01",
+};
+
+// Kimi Coding API config
+const KIMI_CONFIG = {
+  baseUrl: "https://api.kimi.com/coding/v1",
+  usageUrl: "https://api.kimi.com/coding/v1/usages",
+  apiVersion: "2023-06-01",
+};
 
 const NANOGPT_CONFIG = {
   usageUrl: "https://nano-gpt.com/api/subscription/v1/usage",
+};
+
+// Cursor dashboard usage API config
+// The endpoint that powers https://cursor.com/dashboard/spending. Validates the WorkOS
+// session via the WorkosCursorSessionToken cookie (format: `${userId}::${jwt}`) and
+// rejects requests without a matching Origin/Referer (Invalid origin for state-changing request).
+const CURSOR_USAGE_CONFIG = {
+  usageUrl: "https://cursor.com/api/dashboard/get-current-period-usage",
+  origin: "https://cursor.com",
+  referer: "https://cursor.com/dashboard/spending",
+  userAgent:
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
 };
 
 type JsonRecord = Record<string, unknown>;
@@ -861,6 +895,421 @@ function inferGitHubPlanName(data: JsonRecord, premiumQuota: UsageQuota | null):
     return label ? `Copilot ${label}` : "GitHub Copilot";
   }
   return "GitHub Copilot";
+}
+
+/**
+ * Claude Usage - Try to fetch from Anthropic API
+ */
+async function getClaudeUsage(accessToken?: string) {
+  if (!accessToken) {
+    return { message: "Claude connected. Access token not available.", bootstrap: null };
+  }
+
+  // Refresh bootstrap in parallel; best-effort, failure non-fatal.
+  const bootstrapPromise = fetchClaudeBootstrap(accessToken).catch(() => null);
+  // Skip OAuth usage call while this token is cooling down from a recent 429
+  // (chat with the same token still works — only the quota endpoint is throttled).
+  if (isClaudeOauthUsageCoolingDown(accessToken)) {
+    const legacy = await getClaudeUsageLegacy(accessToken);
+    return { ...legacy, bootstrap: await bootstrapPromise };
+  }
+  try {
+    // Real CLI uses axios here, not Stainless — UA is `claude-code/<version>`
+    // (not `claude-cli/...`) and the shape is simpler than /v1/messages.
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10_000);
+    let oauthResponse;
+    try {
+      oauthResponse = await fetch(CLAUDE_CONFIG.oauthUsageUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          "Accept-Encoding": "gzip, compress, deflate, br",
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+          "User-Agent": `claude-code/${CLAUDE_CODE_VERSION}`,
+          "anthropic-beta": "oauth-2025-04-20",
+        },
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+
+    if (oauthResponse.ok) {
+      const data = toRecord(await oauthResponse.json());
+      const quotas: Record<string, UsageQuota> = {};
+
+      // utilization = percentage USED (e.g., 90 means 90% used, 10% remaining)
+      // Confirmed via user report #299: Claude.ai shows 87% used = OmniRoute must show 13% remaining.
+      const hasUtilization = (window: JsonRecord) =>
+        window && typeof window === "object" && safePercentage(window.utilization) !== undefined;
+
+      const createQuotaObject = (window: JsonRecord) => {
+        const used = safePercentage(window.utilization) as number; // utilization = % used
+        const remaining = Math.max(0, 100 - used);
+        return {
+          used,
+          total: 100,
+          remaining,
+          resetAt: parseResetTime(window.resets_at),
+          remainingPercentage: remaining,
+          unlimited: false,
+        };
+      };
+
+      const fiveHour = toRecord(data.five_hour);
+      if (hasUtilization(fiveHour)) {
+        quotas["session (5h)"] = createQuotaObject(fiveHour);
+      }
+
+      const sevenDay = toRecord(data.seven_day);
+      if (hasUtilization(sevenDay)) {
+        quotas["weekly (7d)"] = createQuotaObject(sevenDay);
+      }
+
+      // Map Anthropic's internal codenames (e.g., omelette → Designer) for display.
+      const MODEL_DISPLAY_NAMES: Record<string, string> = {
+        omelette: "designer",
+      };
+      for (const [key, value] of Object.entries(data)) {
+        const valueRecord = toRecord(value);
+        if (key.startsWith("seven_day_") && key !== "seven_day" && hasUtilization(valueRecord)) {
+          const codename = key.replace("seven_day_", "");
+          const modelName = MODEL_DISPLAY_NAMES[codename] || codename;
+          quotas[`weekly ${modelName} (7d)`] = createQuotaObject(valueRecord);
+        }
+      }
+
+      const bootstrap = await bootstrapPromise;
+      const plan =
+        getClaudePlanLabel(
+          typeof data.tier === "string" ? data.tier : null,
+          typeof data.plan === "string" ? data.plan : null,
+          typeof data.subscription_type === "string" ? data.subscription_type : null,
+          bootstrap?.organization_rate_limit_tier
+        ) ?? undefined;
+
+      return {
+        ...(plan ? { plan } : {}),
+        quotas,
+        extraUsage: data.extra_usage ?? null,
+        bootstrap,
+      };
+    }
+
+    // Cool down OAuth usage polling after a 429 (quota endpoint only — chat is unaffected).
+    if (oauthResponse.status === 429) {
+      markClaudeOauthUsage429(accessToken);
+    }
+
+    // Fallback: OAuth endpoint returned non-OK, try legacy settings/org endpoint
+    console.warn(
+      `[Claude Usage] OAuth endpoint returned ${oauthResponse.status}, falling back to legacy`
+    );
+    const legacy = await getClaudeUsageLegacy(accessToken);
+    return { ...legacy, bootstrap: await bootstrapPromise };
+  } catch (error) {
+    return {
+      message: `Claude connected. Unable to fetch usage: ${(error as Error).message}`,
+      bootstrap: await bootstrapPromise,
+    };
+  }
+}
+
+/**
+ * Legacy Claude usage fetcher for API key / org admin users.
+ * Uses /v1/settings + /v1/organizations/{org_id}/usage endpoints.
+ */
+async function getClaudeUsageLegacy(accessToken?: string) {
+  try {
+    const settingsResponse = await fetch(CLAUDE_CONFIG.settingsUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "anthropic-version": CLAUDE_CONFIG.apiVersion,
+      },
+    });
+
+    if (settingsResponse.ok) {
+      const settings = toRecord(await settingsResponse.json());
+
+      const organizationId =
+        typeof settings.organization_id === "string" ? settings.organization_id : "";
+      if (organizationId) {
+        const usageResponse = await fetch(
+          CLAUDE_CONFIG.usageUrl.replace("{org_id}", organizationId),
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "anthropic-version": CLAUDE_CONFIG.apiVersion,
+            },
+          }
+        );
+
+        if (usageResponse.ok) {
+          const usage = await usageResponse.json();
+          return {
+            plan: settings.plan || "Unknown",
+            organization: settings.organization_name,
+            quotas: usage,
+          };
+        }
+      }
+
+      return {
+        plan: settings.plan || "Unknown",
+        organization: settings.organization_name,
+        message: "Claude connected. Usage details require admin access.",
+      };
+    }
+
+    return { message: "Claude connected. Usage API requires admin permissions." };
+  } catch (error) {
+    return { message: `Claude connected. Unable to fetch usage: ${(error as Error).message}` };
+  }
+}
+
+/**
+ * Codex (OpenAI) Usage - Fetch from ChatGPT backend API
+ * IMPORTANT: Uses persisted workspaceId from OAuth to ensure correct workspace binding.
+ * No fallback to other workspaces - strict binding to user's selected workspace.
+ */
+async function getCodexUsage(
+  accessToken?: string,
+  providerSpecificData: Record<string, unknown> = {}
+) {
+  try {
+    // Use persisted workspace ID from OAuth - NO FALLBACK
+    const accountId =
+      typeof providerSpecificData.workspaceId === "string"
+        ? providerSpecificData.workspaceId
+        : null;
+
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+    if (accountId) {
+      headers["chatgpt-account-id"] = accountId;
+    }
+
+    const response = await fetch(CODEX_CONFIG.usageUrl, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        return {
+          message: `Codex token expired or access denied. Please re-authenticate the connection.`,
+        };
+      }
+      throw new Error(`Codex API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    const { rateLimit, quotas } = buildCodexUsageQuotas(data);
+
+    return {
+      plan: String(getFieldValue(data, "plan_type", "planType") || "unknown"),
+      limitReached: Boolean(getFieldValue(rateLimit, "limit_reached", "limitReached")),
+      quotas,
+    };
+  } catch (error) {
+    return { message: `Failed to fetch Codex usage: ${(error as Error).message}` };
+  }
+}
+
+/**
+ * Build the Kiro usage result from a GetUsageLimits response. When the account returns no
+ * usage breakdown (some AWS IAM / Builder ID accounts don't expose per-resource quota via
+ * GetUsageLimits), return an informative message instead of empty `quotas:{}` — otherwise the
+ * dashboard renders a blank quota card with no explanation (#3506). Exported for testing.
+ */
+export function buildKiroUsageResult(
+  data: JsonRecord
+): { plan: string; quotas: Record<string, UsageQuota> } | { message: string } {
+  const usageList = Array.isArray(data.usageBreakdownList) ? data.usageBreakdownList : [];
+  const quotaInfo: Record<string, UsageQuota> = {};
+  const resetAt = parseResetTime(data.nextDateReset || data.resetDate);
+  const overageEnabled = isKiroOverageEnabled(data);
+
+  usageList.forEach((breakdownValue: unknown) => {
+    const breakdown = toRecord(breakdownValue);
+    const resourceType =
+      typeof breakdown.resourceType === "string" ? breakdown.resourceType.toLowerCase() : "unknown";
+    const used = toNumber(breakdown.currentUsageWithPrecision, 0);
+    const total = toNumber(breakdown.usageLimitWithPrecision, 0);
+
+    quotaInfo[resourceType] = buildKiroQuota(used, total, resetAt, overageEnabled);
+
+    const freeTrialInfo = toRecord(breakdown.freeTrialInfo);
+    if (Object.keys(freeTrialInfo).length > 0) {
+      const freeUsed = toNumber(freeTrialInfo.currentUsageWithPrecision, 0);
+      const freeTotal = toNumber(freeTrialInfo.usageLimitWithPrecision, 0);
+      quotaInfo[`${resourceType}_freetrial`] = buildKiroQuota(
+        freeUsed,
+        freeTotal,
+        resetAt,
+        overageEnabled
+      );
+    }
+  });
+
+  if (Object.keys(quotaInfo).length === 0) {
+    return {
+      message:
+        "Kiro connected, but the account returned no usage breakdown. Some AWS IAM / Builder ID accounts don't expose per-resource quota via GetUsageLimits.",
+    };
+  }
+
+  return {
+    plan: String(toRecord(data.subscriptionInfo).subscriptionTitle || "").trim() || "Kiro",
+    quotas: quotaInfo,
+  };
+}
+
+/**
+ * Discover a Kiro/CodeWhisperer profile ARN for an account that didn't persist one (common for
+ * AWS IAM Identity Center logins and kiro-cli imports). Calls ListAvailableProfiles on the
+ * region-matched endpoint and prefers a profile whose ARN is in the same region. Returns
+ * undefined when no profile is available (e.g. the org/token has no Kiro entitlement).
+ * Exported for testing.
+ */
+export async function discoverKiroProfileArn(
+  accessToken: string,
+  usageBaseUrl: string,
+  region: string
+): Promise<string | undefined> {
+  try {
+    const response = await fetch(usageBaseUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/x-amz-json-1.0",
+        "x-amz-target": "AmazonCodeWhispererService.ListAvailableProfiles",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ maxResults: 10 }),
+      // Don't let a hung profile lookup block the usage/quota refresh indefinitely.
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) return undefined;
+
+    const data = toRecord(await response.json());
+    const profiles = Array.isArray(data.profiles) ? data.profiles : [];
+    const normalizedRegion = region.toLowerCase();
+    const matched =
+      profiles.find((profile: unknown) => {
+        const arn = toRecord(profile).arn;
+        return typeof arn === "string" && arn.toLowerCase().includes(`:${normalizedRegion}:`);
+      }) || profiles[0];
+    const arn = toRecord(matched).arn;
+    return typeof arn === "string" && arn.length > 0 ? arn : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Kiro (AWS CodeWhisperer) Usage
+ */
+async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRecord) {
+  try {
+    let profileArn =
+      typeof providerSpecificData?.profileArn === "string"
+        ? providerSpecificData.profileArn
+        : undefined;
+
+    // Enterprise IAM Identity Center accounts are region-bound: the profileArn, token and
+    // endpoint must all match the region. Derive the region from the stored region (preferred)
+    // or the profileArn, then route to the regional Amazon Q endpoint (us-east-1 keeps the
+    // legacy codewhisperer host; codewhisperer.{region} does not resolve for other regions).
+    const regionFromArn = profileArn
+      ? profileArn.toLowerCase().match(/^arn:aws:codewhisperer:([a-z0-9-]+):/)?.[1]
+      : undefined;
+    const region =
+      (typeof providerSpecificData?.region === "string" &&
+        providerSpecificData.region.trim().toLowerCase()) ||
+      regionFromArn ||
+      "us-east-1";
+    const usageBaseUrl =
+      region === "us-east-1" ? CODEWHISPERER_BASE_URL : `https://q.${region}.amazonaws.com`;
+
+    // IAM Identity Center logins and kiro-cli imports frequently don't persist a profileArn, which
+    // previously caused the quota card to show nothing ("0 used"). Discover it on demand from
+    // ListAvailableProfiles (region-matched) so usage still resolves for those accounts.
+    if (!profileArn && accessToken) {
+      profileArn = await discoverKiroProfileArn(accessToken, usageBaseUrl, region);
+    }
+
+    if (!profileArn) {
+      return { message: "Kiro connected. Profile ARN not available for quota tracking." };
+    }
+
+    // Kiro uses AWS CodeWhisperer GetUsageLimits API
+    const payload = {
+      origin: "AI_EDITOR",
+      profileArn: profileArn,
+      resourceType: "AGENTIC_REQUEST",
+    };
+
+    const response = await fetch(usageBaseUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/x-amz-json-1.0",
+        "x-amz-target": "AmazonCodeWhispererService.GetUsageLimits",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      // Social-auth Kiro accounts (added via /api/oauth/kiro/social-exchange with provider
+      // Google or GitHub) use a different token format that AWS CodeWhisperer's GetUsageLimits
+      // routinely rejects with 401/403, even when /messages still works. Surface a clear
+      // "auth expired, chat may still work" message instead of a generic upstream-error blob
+      // so the quota card matches what users with legacy social-auth accounts already see.
+      // Inspired by https://github.com/decolua/9router/pull/620.
+      if (
+        (response.status === 401 || response.status === 403) &&
+        isSocialAuthKiroAccount(providerSpecificData)
+      ) {
+        return {
+          message: "Kiro quota API authentication expired. Chat may still work.",
+          quotas: {},
+        };
+      }
+      const errorText = await response.text();
+      throw new Error(`Kiro API error (${response.status}): ${errorText}`);
+    }
+
+    const data = toRecord(await response.json());
+    return buildKiroUsageResult(data);
+  } catch (error) {
+    throw new Error(`Failed to fetch Kiro usage: ${error.message}`);
+  }
+}
+
+/**
+ * Was this Kiro connection added via the Google/GitHub social-auth device flow
+ * (POST /api/oauth/kiro/social-exchange)? That route persists
+ * `{ authMethod: "imported", provider: "Google" | "Github" }` on the connection.
+ * Builder-ID / IDC / kiro-cli imports use different markers and should keep the
+ * existing throw-on-failure behavior.
+ */
+function isSocialAuthKiroAccount(providerSpecificData?: JsonRecord): boolean {
+  if (!providerSpecificData || providerSpecificData.authMethod !== "imported") return false;
+  const provider =
+    typeof providerSpecificData.provider === "string"
+      ? providerSpecificData.provider.toLowerCase()
+      : "";
+  return provider === "google" || provider === "github";
 }
 
 /**

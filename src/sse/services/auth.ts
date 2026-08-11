@@ -22,7 +22,6 @@ import {
   isQuotaExhaustedForRequest,
 } from "@/domain/quotaCache";
 import { getQuotaScopeLabelForProvider } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
-import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -1193,7 +1192,6 @@ export async function getProviderCredentials(
 
     let modelLockedCount = 0;
     let familyLockedCount = 0;
-    const connectionFilterStatus = new Map<string, string>();
     // Filter out unavailable accounts and excluded connection
     const availableConnections = connections.filter((c) => {
       if (excludedConnectionIds.has(c.id)) {
@@ -1205,21 +1203,11 @@ export async function getProviderCredentials(
         return false;
       }
       if (!allowSuppressedConnections) {
-        if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) {
-          connectionFilterStatus.set(c.id, "rateLimited");
-          return false;
-        }
-        if (isTerminalConnectionStatus(c)) {
-          connectionFilterStatus.set(c.id, "terminalStatus");
-          return false;
-        }
-        if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) {
-          connectionFilterStatus.set(c.id, "codexScopeLimited");
-          return false;
-        }
+        if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) return false;
+        if (isTerminalConnectionStatus(c)) return false;
+        if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) return false;
         // Per-model lockout: if this specific model/family is locked on this connection, skip it
         if (requestedModel && isModelLocked(provider, c.id, requestedModel)) {
-          connectionFilterStatus.set(c.id, "modelLocked");
           if (
             provider === "antigravity" &&
             getQuotaScopeLabelForProvider(provider, requestedModel) === "family"
@@ -2010,26 +1998,6 @@ export async function markAccountUnavailable(
             : status === 429
               ? "rate_limited"
               : "server_error";
-
-      // #5976: a bare 500 is intermittent and NOT model-specific — skip
-      // lockout/cooldown ONLY for the exact 500 (the contract its own tests pin:
-      // combo-provider-cooldown-sibling.test.ts — "Gemini 503 should NOT skip
-      // cooldown"). 502/503/504 keep the pre-#6216 model-lockout path: cooldownMs
-      // 0 hot-loops the failing upstream (broke resilience-http-e2e on the PR).
-      if (status === 500) {
-        updateProviderConnection(connectionId, {
-          lastErrorType: reason,
-          lastError: `Model ${model} ${reason}`,
-          lastErrorAt: new Date().toISOString(),
-          errorCode: status,
-        }).catch(() => {});
-        log.info(
-          "AUTH",
-          `Server error for ${provider}:${model} — ${status} ${reason} (no model lockout, connection stays active for sibling models)`
-        );
-        return { shouldFallback: true, cooldownMs: 0 };
-      }
-
       const quotaScope = getQuotaScopeLabelForProvider(provider, model);
       const antigravityFamilyInferredBaseCooldownMs =
         provider === "antigravity" && quotaScope === "family" && status === 429

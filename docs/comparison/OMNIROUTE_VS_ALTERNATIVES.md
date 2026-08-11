@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute vs Alternatives"
-version: 3.8.43
-lastUpdated: 2026-07-01
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # OmniRoute vs Alternatives

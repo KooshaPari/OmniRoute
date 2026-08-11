@@ -409,55 +409,26 @@ CLI_CLAUDE_BIN=/host-cli/bin/claude
 | `ANTIGRAVITY_CREDITS` | _(未设置)_ | `open-sse/services/antigravityCredits.ts` | 覆盖 Antigravity 的广告剩余积分（测试/强制值）。 |
 | `AGY_TOKEN_FILE` | `~/.gemini/antigravity-cli/antigravity-oauth-token` | `src/app/api/providers/agy-auth/apply-local/route.ts` | 覆盖自动检测本地登录导入的 Antigravity CLI (agy) Token 文件路径。 |
 
-### OAuth CLI 桥接（内部）
-
-| 变量 | 默认值 | 源文件 | 说明 |
-| --- | --- | --- | --- |
-| `OMNIROUTE_SERVER` | 自动检测 | `src/lib/oauth/config/index.ts` | CLI↔OmniRoute 认证桥接的服务器 URL。 |
-| `OMNIROUTE_TOKEN` | _(未设置)_ | `src/lib/oauth/config/index.ts` | CLI 桥接的认证 Token。 |
-| `OMNIROUTE_USER_ID` | `cli` | `src/lib/oauth/config/index.ts` | CLI 桥接会话的用户 ID。 |
-| `SERVER_URL` | _(未设置)_ | `src/lib/oauth/config/index.ts` | `OMNIROUTE_SERVER` 的旧版别名。 |
-| `CLI_TOKEN` | _(未设置)_ | `src/lib/oauth/config/index.ts` | `OMNIROUTE_TOKEN` 的旧版别名。 |
-| `CLI_USER_ID` | _(未设置)_ | `src/lib/oauth/config/index.ts` | `OMNIROUTE_USER_ID` 的旧版别名。 |
-
----
-
-## 11. OAuth 服务商凭证
-
-用于 **localhost 开发** 的内置凭证。对于远程部署，请在各个服务商的开发者控制台中注册你自己的凭证。
-
-| 变量 | 服务商 | 备注 |
-| --- | --- | --- |
-| `CLAUDE_OAUTH_CLIENT_ID` | Claude Code (Anthropic) | 公共客户端 — 无需 secret。 |
-| `CLAUDE_CODE_REDIRECT_URI` | Claude Code | 覆盖重定向 URI。默认值：`https://platform.claude.com/oauth/code/callback` |
-| `CODEX_OAUTH_CLIENT_ID` | Codex / OpenAI | 公共客户端。 |
-| `GEMINI_OAUTH_CLIENT_ID` | Gemini (Google) | 需要匹配的 `_SECRET`。 |
-| `GEMINI_OAUTH_CLIENT_SECRET` | Gemini (Google) | — |
-| `QWEN_OAUTH_CLIENT_ID` | Qwen (Alibaba) | 公共客户端。 |
-| `KIMI_CODING_OAUTH_CLIENT_ID` | Kimi Coding (Moonshot) | 公共客户端。 |
-| `ANTIGRAVITY_OAUTH_CLIENT_ID` | Antigravity (Google) | 需要匹配的 `_SECRET`。 |
-| `ANTIGRAVITY_OAUTH_CLIENT_SECRET` | Antigravity (Google) | — |
-| `GITHUB_OAUTH_CLIENT_ID` | GitHub Copilot | 公共客户端。 |
-| `WINDSURF_FIREBASE_API_KEY` | Windsurf / Devin (v3.8) | Windsurf 安全 Token 服务用于刷新的公共 Firebase Web API key。客户端凭证（非密钥）。长期导入 Token 完全跳过此步骤。来源：从 Devin CLI 二进制文件中提取。 |
-| `WINDSURF_API_KEY` | Windsurf / Devin (v3.8) | 无每个连接凭证时 `open-sse/executors/devin-cli.ts` 使用的 API key 回退。可选。 |
-| `CLI_DEVIN_BIN` | Devin CLI (v3.8) | Devin CLI 二进制文件（`devin`）的自定义路径。由 `open-sse/executors/devin-cli.ts` 解析。 |
-| `GITLAB_DUO_OAUTH_CLIENT_ID` | GitLab Duo (v3.8) | GitLab Duo 的 OAuth client ID。在 `https://gitlab.com/-/profile/applications` 注册应用，redirect URI 为 `<NEXT_PUBLIC_BASE_URL>/callback`，权限域为 `api, read_user, openid, profile, email`。回退到 `GITLAB_OAUTH_CLIENT_ID`。 |
-| `GITLAB_DUO_OAUTH_CLIENT_SECRET` | GitLab Duo (v3.8) | GitLab Duo 的 OAuth client secret。可选 — PKCE 流程不需要 secret。回退到 `GITLAB_OAUTH_CLIENT_SECRET`。 |
-| `GITLAB_DUO_BASE_URL` | GitLab Duo (v3.8) | 覆盖 GitLab 基础 URL（自托管 GitLab）。默认为 `https://gitlab.com`。回退到 `GITLAB_BASE_URL`。 |
-| `GITLAB_BASE_URL` | GitLab Duo (v3.8) | `GITLAB_DUO_BASE_URL` 的旧版回退。在 `_DUO_` 变体未设置时使用。 |
-| `GITLAB_OAUTH_CLIENT_ID` | GitLab Duo (v3.8) | `GITLAB_DUO_OAUTH_CLIENT_ID` 的旧版回退，由 `src/lib/oauth/constants/oauth.ts` 使用。 |
-| `GITLAB_OAUTH_CLIENT_SECRET` | GitLab Duo (v3.8) | `GITLAB_DUO_OAUTH_CLIENT_SECRET` 的旧版回退，由 `src/lib/oauth/constants/oauth.ts` 使用。 |
-| `QODER_OAUTH_CLIENT_SECRET` | Qoder | — |
-| `QODER_OAUTH_AUTHORIZE_URL` | Qoder | 设置以启用 Qoder OAuth。 |
-| `QODER_OAUTH_TOKEN_URL` | Qoder | — |
-| `QODER_OAUTH_USERINFO_URL` | Qoder | — |
-| `QODER_OAUTH_CLIENT_ID` | Qoder | — |
-| `QODER_PERSONAL_ACCESS_TOKEN` | Qoder | 直接 API key 回退（绕过 OAuth）。 |
-| `QODER_CLI_WORKSPACE` | Qoder | Qoder CLI 的 workspace ID。 |
-| `OMNIROUTE_QODER_WORKSPACE` | Qoder | `QODER_CLI_WORKSPACE` 的别名。 |
-| `BLACKBOX_WEB_VALIDATED_TOKEN` | Blackbox Web | 作为 `validated` 发送到 `/api/chat` 的前端 `tk` Token。当 Blackbox 强制 Token 匹配时必需；否则 OmniRoute 回退到随机 UUID。参阅 issue #2252。 |
-| `VISION_BRIDGE_BASE_URL` | Vision Bridge 安全护栏 | 非 Anthropic 视觉桥接调用的 OpenAI 兼容基础 URL。默认为旧版 OpenAI URL 或 api.openai.com。指向 OmniRoute 的 `/v1` 自循环或任意 OpenAI 兼容端点（Gemini OpenAI-compat、OpenRouter）。Issue #2232。 |
-| `VISION_BRIDGE_API_KEY` | Vision Bridge 安全护栏 | 上面 URL 的 API key。对于非 Anthropic 视觉桥接调用，覆盖每个服务商的 OpenAI / Google 环境变量。Anthropic 模型保留其专用的 Anthropic key 路径。Issue #2232。 |
+| Variable                          | Provider                | Notes                                                                             |
+| --------------------------------- | ----------------------- | --------------------------------------------------------------------------------- |
+| `CLAUDE_OAUTH_CLIENT_ID`          | Claude Code (Anthropic) | Public client — no secret needed.                                                 |
+| `CLAUDE_CODE_REDIRECT_URI`        | Claude Code             | Override redirect URI. Default: `https://platform.claude.com/oauth/code/callback` |
+| `CODEX_OAUTH_CLIENT_ID`           | Codex / OpenAI          | Public client.                                                                    |
+| `GEMINI_OAUTH_CLIENT_ID`          | Gemini (Google)         | Requires matching `_SECRET`.                                                      |
+| `GEMINI_OAUTH_CLIENT_SECRET`      | Gemini (Google)         | —                                                                                 |
+| `QWEN_OAUTH_CLIENT_ID`            | Qwen (Alibaba)          | Public client.                                                                    |
+| `KIMI_CODING_OAUTH_CLIENT_ID`     | Kimi Coding (Moonshot)  | Public client.                                                                    |
+| `ANTIGRAVITY_OAUTH_CLIENT_ID`     | Antigravity (Google)    | Requires matching `_SECRET`.                                                      |
+| `ANTIGRAVITY_OAUTH_CLIENT_SECRET` | Antigravity (Google)    | —                                                                                 |
+| `GITHUB_OAUTH_CLIENT_ID`          | GitHub Copilot          | Public client.                                                                    |
+| `QODER_OAUTH_CLIENT_SECRET`       | Qoder                   | —                                                                                 |
+| `QODER_OAUTH_AUTHORIZE_URL`       | Qoder                   | Set to enable Qoder OAuth.                                                        |
+| `QODER_OAUTH_TOKEN_URL`           | Qoder                   | —                                                                                 |
+| `QODER_OAUTH_USERINFO_URL`        | Qoder                   | —                                                                                 |
+| `QODER_OAUTH_CLIENT_ID`           | Qoder                   | —                                                                                 |
+| `QODER_PERSONAL_ACCESS_TOKEN`     | Qoder                   | Direct API key fallback (bypasses OAuth).                                         |
+| `QODER_CLI_WORKSPACE`             | Qoder                   | Workspace ID for Qoder CLI.                                                       |
+| `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias for `QODER_CLI_WORKSPACE`.                                                  |
 
 > [!WARNING]
 >
@@ -478,20 +449,17 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 > **来源：** `open-sse/executors/base.ts` → `buildHeaders()`
 
-| 变量 | 默认值 | 何时更新 |
-| --- | --- | --- |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.195 (external, cli)` | Anthropic 发布新的 CLI 版本时 |
-| `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | 设为 `1`/`true` 可将第三方测试工具的工具名称原封不动地转发到 Anthropic 的两条绑定路径上（原生 OAuth 和 CLIProxyAPI）。默认情况下 executor 会将非 Claude Code 的工具名称确定性别名化（Claude Code 存在规范映射的用规范映射，否则用 PascalCase），并通过 `_toolNameMap` 在响应中还原，从而确保带 snake_case 工具的测试工具不会被视为指纹化第三方客户端而被拒绝。仅供调试。 |
-| `CODEX_USER_AGENT` | `codex-cli/0.142.0 (Windows 10.0.26200; x64)` | OpenAI 更新 Codex CLI 时 |
-| `CODEX_CLIENT_VERSION` | `0.131.0` | 独立于完整 UA 字符串覆盖 Codex 客户端版本 |
-| `GITHUB_USER_AGENT` | `GitHubCopilotChat/0.54.0` | GitHub Copilot Chat 更新时 |
-| `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 darwin/arm64` | Antigravity IDE 更新时 |
-| `KIRO_USER_AGENT` | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0` | Kiro IDE 更新时 |
-| `KIRO_OAUTH_CLIENT_ID` | `kiro-cli` | 覆盖 Kiro social device-code `clientId`（公共 ID） |
-| `KIRO_VERIFY_FULL_CRC` | `false` | 启用：在 Kiro 事件流上全帧消息 CRC 校验（调试损坏的流） |
-| `QODER_USER_AGENT` | `Qoder-Cli` | Qoder CLI 更新时 |
-| `QWEN_USER_AGENT` | `QwenCode/0.19.3 (linux; x64)` | Qwen Code 更新时 |
-| `CURSOR_USER_AGENT` | `Cursor/3.3` | Cursor 更新时 |
+| Variable                 | Default Value                                 | When to Update                                                |
+| ------------------------ | --------------------------------------------- | ------------------------------------------------------------- |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.145 (external, cli)`          | When Anthropic releases a new CLI version                     |
+| `CODEX_USER_AGENT`       | `codex-cli/0.132.0 (Windows 10.0.26200; x64)` | When OpenAI updates the Codex CLI                             |
+| `CODEX_CLIENT_VERSION`   | `0.131.0`                                     | Override Codex client version independently of full UA string |
+| `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    | When GitHub Copilot Chat updates                              |
+| `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 darwin/arm64`              | When Antigravity IDE updates                                  |
+| `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             | When Kiro IDE updates                                         |
+| `QODER_USER_AGENT`       | `Qoder-Cli`                                   | When Qoder CLI updates                                        |
+| `QWEN_USER_AGENT`        | `QwenCode/0.15.11 (linux; x64)`               | When Qwen Code updates                                        |
+| `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                            | When Cursor updates                                           |
 
 > [!TIP]
 > 你可以通过 `{PROVIDER_ID}_USER_AGENT` 模式为 **任意** 服务商添加 User-Agent 覆盖。Executor 会动态构建环境变量名。

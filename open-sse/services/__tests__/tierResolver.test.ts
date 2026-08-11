@@ -223,6 +223,7 @@ describe("TierResolver", () => {
         "pollinations",
         "longcat",
         "cloudflare-ai",
+        "qwen",
         "nvidia-nim",
         "cerebras",
         "groq",

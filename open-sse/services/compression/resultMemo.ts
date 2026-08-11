@@ -10,13 +10,9 @@ const memoMap = new Map<string, CompressionResult>();
 // CCR store (`ccr/index.ts` ccrStore; session-dedup imports storeBlock), so their output
 // depends on prior state → not safe to memoize; `ultra`/`aggressive`/`llmlingua` are
 // model-backed/non-deterministic. Any NEW engine is excluded until explicitly vetted.
-// "omniglyph" is intentionally excluded too (P2 registry-consistency pass): it renders
-// context as an image via a model-backed pipeline, so it is not yet proven deterministic
-// across requests — conservative default (never-wrong) until explicitly vetted.
 const DETERMINISTIC_ENGINES = new Set(["lite", "caveman", "rtk"]);
 
-/** Top-level modes safe to cache (whitelist — any unknown/new mode defaults to false).
- * "omniglyph" intentionally omitted — see comment on DETERMINISTIC_ENGINES above. */
+/** Top-level modes safe to cache (whitelist — any unknown/new mode defaults to false). */
 const DETERMINISTIC_MODES = new Set<CompressionMode>(["lite", "standard", "rtk"]);
 
 export function isDeterministicMode(mode: CompressionMode, config?: CompressionConfig): boolean {
@@ -41,46 +37,20 @@ export function makeMemoKey(
   supportsVision?: boolean | null
 ): string {
   const bodyHash = sha256hex(JSON.stringify(body));
-
-  // #8137: Only include model + supportsVision in the cache key when the compression
-  // result actually depends on them. The `lite` engine strips data:image URLs only when
-  // vision is unsupported (replaceImageUrls / modelSupportsVision), so the same (body,
-  // config) yields a DIFFERENT result per target — omitting them would return a wrong
-  // (image-stripped or image-kept) cached body across vision/non-vision targets.
-  //
-  // For all other deterministic engines (caveman, rtk), the output is model-independent.
-  // Including model in the key defeats memoization across combo retries — the body is
-  // identical but the model changes each attempt, producing a fresh cache miss every time
-  // and re-running the full compression pipeline 5-8x per request.
-  const isVisionDependent = usesVisionDependentEngine(mode, config);
-
+  // model + supportsVision MUST be part of the key: the `lite` engine strips data:image
+  // URLs only when vision is unsupported (replaceImageUrls / modelSupportsVision), so the
+  // same (body, config) yields a DIFFERENT result per target — omitting them returns a
+  // wrong (image-stripped or image-kept) cached body across vision/non-vision targets.
   return sha256hex(
     JSON.stringify({
       bodyHash,
       mode,
       config,
       principalId: principalId ?? null,
-      model: isVisionDependent ? (model ?? null) : null,
-      supportsVision: isVisionDependent ? (supportsVision ?? null) : null,
+      model: model ?? null,
+      supportsVision: supportsVision ?? null,
     })
   );
-}
-
-/**
- * Whether the compression pipeline for this mode/config includes the `lite` engine,
- * whose output depends on the target's vision support (image-URL stripping).
- * Only `lite` itself, `standard` (lite → caveman), and `stacked` pipelines containing
- * a `lite` step are vision-dependent.
- */
-function usesVisionDependentEngine(mode: CompressionMode, config?: CompressionConfig): boolean {
-  if (mode === "lite") return true;
-  if (mode === "standard") return true; // standard = lite → caveman pipeline
-  if (mode === "stacked") {
-    const pipeline = config?.stackedPipeline;
-    if (!pipeline || pipeline.length === 0) return false;
-    return pipeline.some((step) => step.engine === "lite");
-  }
-  return false;
 }
 
 function boundedSet(key: string, value: CompressionResult): void {

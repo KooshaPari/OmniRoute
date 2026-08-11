@@ -246,35 +246,14 @@ function parseJwtPayload(token: string): ParsedGrokJwt {
 function extractTokenAndRefresh(input: unknown): {
   accessToken: string;
   refreshToken: string | null;
-  idToken: string | null;
-  tokenType: string | null;
-  scope: string | null;
-  oauthExpiresIn: number | null;
   rawAuthJson: Record<string, unknown> | null;
-  expiresAt: string | null;
 } {
   // Direct JWT string
   if (typeof input === "string")
-    return { accessToken: input, refreshToken: null, rawAuthJson: null, expiresAt: null };
+    return { accessToken: input, refreshToken: null, rawAuthJson: null };
 
   if (input && typeof input === "object") {
     const obj = input as Record<string, unknown>;
-
-    if (typeof obj.access_token === "string" && obj.access_token.length > 0) {
-      return {
-        accessToken: obj.access_token,
-        refreshToken: typeof obj.refresh_token === "string" ? obj.refresh_token : null,
-        idToken: typeof obj.id_token === "string" ? obj.id_token : null,
-        tokenType: typeof obj.token_type === "string" ? obj.token_type : null,
-        scope: typeof obj.scope === "string" ? obj.scope : null,
-        oauthExpiresIn:
-          typeof obj.expires_in === "number" && Number.isFinite(obj.expires_in)
-            ? obj.expires_in
-            : null,
-        rawAuthJson: null,
-        expiresAt: null,
-      };
-    }
 
     // The route handler wraps the token: { accessToken: <token> }.
     // Unwrap once before checking the inner value.
@@ -285,22 +264,16 @@ function extractTokenAndRefresh(input: unknown): {
 
     // auth.json format: { "https://auth.x.ai::...": { key: "eyJ...", refresh_token: "..." } }
     if (inner && typeof inner === "object") {
-      const preferredScope = `${GROK_BUILD_OAUTH_ISSUER}::${GROK_CLI_CONFIG.clientId}`;
       const innerKeys = Object.keys(inner);
-      const orderedKeys = innerKeys.includes(preferredScope)
-        ? [preferredScope, ...innerKeys.filter((key) => key !== preferredScope)]
-        : innerKeys;
-      for (const k of orderedKeys) {
+      for (const k of innerKeys) {
         const entry = inner[k];
         if (entry && typeof entry === "object" && "key" in entry) {
           const e = entry as Record<string, unknown>;
           if (typeof e.key === "string" && e.key.startsWith("eyJ")) {
             return {
-              ...EMPTY_STANDARD_TOKEN_FIELDS,
               accessToken: e.key,
               refreshToken: typeof e.refresh_token === "string" ? e.refresh_token : null,
               rawAuthJson: inner as Record<string, unknown>,
-              expiresAt: typeof e.expires_at === "string" ? e.expires_at : null,
             };
           }
         }
@@ -310,43 +283,22 @@ function extractTokenAndRefresh(input: unknown): {
     // Raw JWT passed as { accessToken: "eyJ..." }
     if (typeof obj.accessToken === "string" && obj.accessToken.length > 0) {
       return {
-        ...EMPTY_STANDARD_TOKEN_FIELDS,
         accessToken: obj.accessToken,
         refreshToken: typeof obj.refreshToken === "string" ? obj.refreshToken : null,
         rawAuthJson: null,
-        expiresAt: null,
       };
     }
   }
 
-  return { accessToken: "", refreshToken: null, rawAuthJson: null, expiresAt: null };
+  return { accessToken: "", refreshToken: null, rawAuthJson: null };
 }
 
 export const grokCli = {
   config: GROK_CLI_CONFIG,
   flowType: "import_token",
-  mapTokens: (token: unknown, extra?: unknown) => {
-    const { accessToken, refreshToken, rawAuthJson, expiresAt } = extractTokenAndRefresh(token);
-    const { email, authInfo, exp } = parseJwtPayload(accessToken);
-
-    const currentSec = Math.floor(Date.now() / 1000);
-    let expiresIn = 21600;
-
-    if (expiresAt) {
-      const parsed = Date.parse(expiresAt);
-      if (!isNaN(parsed)) {
-        expiresIn = Math.floor(parsed / 1000) - currentSec;
-      }
-    } else if (typeof exp === "number" && exp > 0) {
-      expiresIn = exp - currentSec;
-    }
-
-    // #5775 follow-up: guard against an already-expired token yielding a negative
-    // expiresIn. A negative value is truthy downstream (import-token route) and maps
-    // to a PAST expiresAt, which AutoCombo reads as "already expired" and excludes the
-    // connection instead of refreshing it. Clamp to a tiny positive TTL so the token is
-    // treated as due-for-refresh.
-    expiresIn = Math.max(1, expiresIn);
+  mapTokens: (token: unknown) => {
+    const { accessToken, refreshToken, rawAuthJson } = extractTokenAndRefresh(token);
+    const { email, authInfo } = parseJwtPayload(accessToken);
 
     return {
       accessToken,

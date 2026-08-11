@@ -63,7 +63,7 @@ function buildWildcardAliasMap(settings: Record<string, unknown>): Record<string
  * Build a combined model alias map that merges all alias stores:
  * 1. DB-namespace aliases (key_value WHERE namespace='modelAliases') — set via
  *    /api/models/alias/ and seeded at startup.
- * 2. Settings-based exact aliases (settings.modelAliases) — set via the Settings UI and
+ * 2. Settings-based aliases (settings.modelAliases) — set via the Settings UI and
  *    /api/settings/model-aliases/ (stored as a JSON blob in namespace='settings').
  * 3. Settings-based wildcard aliases (settings.wildcardAliases) — set via the Settings
  *    UI's "Wildcard Pattern" mode, PATCH /api/settings (#7693).

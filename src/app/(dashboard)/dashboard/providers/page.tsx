@@ -48,9 +48,8 @@ import {
 } from "@/lib/providers/codexFastTier";
 import AddCompatibleProviderModal from "./components/AddCompatibleProviderModal";
 import { CategoryDot } from "./components/CategoryDot";
-import { ImportProvidersFromFileModal } from "./components/ImportProvidersFromFileModal";
 import NoAuthProvidersSection from "./components/NoAuthProvidersSection";
-import HighlightableProviderCard from "./components/HighlightableProviderCard";
+import ProviderCard from "./components/ProviderCard";
 import ProviderCountBadge from "./components/ProviderCountBadge";
 import ProviderSummaryCard from "./components/ProviderSummaryCard";
 import {

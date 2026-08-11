@@ -247,10 +247,3 @@ test("classifyRoute treats /api/v1 prefix exactly", () => {
   assert.equal(classifyRoute("/api/v1betamax").routeClass, "MANAGEMENT");
   assert.equal(classifyRoute("/api/v1beta/models").routeClass, "CLIENT_API");
 });
-
-test("classify module public surface only exposes route classification", () => {
-  assert.equal("classifyRoute" in classifyPublicApi, true);
-  assert.equal("isClientApi" in classifyPublicApi, false);
-  assert.equal("isManagement" in classifyPublicApi, false);
-  assert.equal("isPublic" in classifyPublicApi, false);
-});

@@ -194,5 +194,12 @@ export const codexProvider: RegistryEntry = {
       maxOutputTokens: 128000,
     },
     { id: "gpt-5.3-codex-spark", name: "GPT 5.3 Codex Spark" },
+    {
+      id: "gpt-5.3-codex",
+      name: "GPT 5.3 Codex",
+      targetFormat: "openai-responses",
+      supportsReasoning: true,
+      supportsXHighEffort: true,
+    },
   ],
 };

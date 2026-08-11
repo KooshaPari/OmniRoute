@@ -255,11 +255,9 @@ Environment variables read by the built-in guardrails:
 | Variable                              | Used by                          | Effect                                                                                           |
 | ------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------ |
 | `INPUT_SANITIZER_ENABLED`             | `prompt-injection`               | Set `false` to disable detection entirely.                                                       |
-| `INPUT_SANITIZER_MODE`                | `prompt-injection`               | Injection policy: `warn`, `block`, or `log`. Legacy value `redact` does not rewrite injection text. |
+| `INPUT_SANITIZER_MODE`                | `prompt-injection`, `pii-masker` | Shared mode: `warn`, `block`, `log`, or `redact`.                                                |
 | `INJECTION_GUARD_MODE`                | `prompt-injection`               | Mode for the injection guard; also a DB feature flag that **overrides** the env vars (DB > ENV). |
-| `INPUT_SANITIZER_BLOCK_THRESHOLD`     | `prompt-injection`               | Minimum severity that `MODE=block` rejects: `high` (default), `medium`, or `low`.                |
-| `INJECTION_GUARD_BLOCK_THRESHOLD`     | `prompt-injection`               | Legacy alias for `INPUT_SANITIZER_BLOCK_THRESHOLD`.                                              |
-| `PII_REDACTION_ENABLED`               | `pii-masker`                     | When `true`, request PII is redacted (independent of injection mode).                            |
+| `PII_REDACTION_ENABLED`               | `pii-masker`                     | When `true` + mode `redact`, request PII is stripped.                                            |
 | `PII_RESPONSE_SANITIZATION` / `_MODE` | `pii-masker` (downstream)        | Controls response-side masker behavior.                                                          |
 
 The Vision Bridge reads runtime config from the DB-backed settings store
@@ -324,11 +322,11 @@ The injection-guard (`createInjectionGuard` / `withInjectionGuard`) covers all r
 that accept user prompts. It respects `INJECTION_GUARD_MODE` (default `warn` = log only;
 `block` = returns HTTP 400 `SECURITY_001`).
 
-| Type            | Routes                                                                                                                                               | Default mode |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| Text (existing) | `/v1/chat/completions`, `/v1/completions`, `/v1/relay/chat/completions`                                                                              | warn         |
-| Generative      | `/v1/messages`, `/v1/responses`, `/v1/images/generations`, `/v1/images/edits`, `/v1/videos/generations`, `/v1/music/generations`, `/v1/audio/speech` | warn         |
-| Data            | `/v1/embeddings`, `/v1/rerank`, `/v1/search`, `/v1/moderations`                                                                                      | warn         |
+| Tipo                 | Rotas                                                                                                                                                | Modo default |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Texto (já existente) | `/v1/chat/completions`, `/v1/completions`, `/v1/relay/chat/completions`                                                                              | warn         |
+| Generativas          | `/v1/messages`, `/v1/responses`, `/v1/images/generations`, `/v1/images/edits`, `/v1/videos/generations`, `/v1/music/generations`, `/v1/audio/speech` | warn         |
+| Dados                | `/v1/embeddings`, `/v1/rerank`, `/v1/search`, `/v1/moderations`                                                                                      | warn         |
 
 Text extraction (`extractMessageContents`) covers `messages`/`input`/`prompt`/`query`+`documents`/`instructions`/`system`.
 

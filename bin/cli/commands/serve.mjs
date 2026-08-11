@@ -442,7 +442,7 @@ async function maybeStartTray(port, apiPort, supervisor) {
     const { initTray, isTraySupported } = await import("../tray/index.mjs");
     if (!isTraySupported()) return;
     const { default: open } = await import("open").catch(() => ({ default: null }));
-    const dashboardUrl = `${urlScheme}://localhost:${port}`;
+    const dashboardUrl = `http://localhost:${port}`;
     const tray = await initTray({
       port,
       onQuit: () => {
@@ -462,7 +462,9 @@ async function maybeStartTray(port, apiPort, supervisor) {
   } catch (err) {
     // tray is optional — do not fail the server, but surface why it failed so
     // "--tray shows nothing" is diagnosable instead of silent (#4605).
-    process.stderr.write(`[omniroute][tray] failed to start: ${err?.message ?? String(err)}\n`);
+    process.stderr.write(
+      `[omniroute][tray] failed to start: ${err?.message ?? String(err)}\n`
+    );
   }
 }
 

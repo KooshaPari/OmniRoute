@@ -82,18 +82,6 @@ function deviceIdFor(cookie: string): string {
 // catalog comes from /backend-api/models on a logged-in account;
 // "gpt-5-4-t-mini" is ChatGPT's abbreviated slug for "GPT-5.4 Thinking Mini".
 const MODEL_MAP: Record<string, string> = {
-  // ChatGPT backend slugs are also accepted directly for power users / tests.
-  "gpt-5-5-pro": "gpt-5-5-pro",
-  "gpt-5-5-pro-extended": "gpt-5-5-pro",
-  "gpt-5-5-thinking": "gpt-5-5-thinking",
-  "gpt-5-5": "gpt-5-5",
-  "gpt-5-4-pro": "gpt-5-4-pro",
-  "gpt-5-4-thinking": "gpt-5-4-thinking",
-  "gpt-5-4-t-mini": "gpt-5-4-t-mini",
-  "gpt-5-3": "gpt-5-3",
-  "gpt-5-3-mini": "gpt-5-3-mini",
-
-  // Public OmniRoute dot-form ids exposed by the provider catalog.
   "gpt-5.5-pro": "gpt-5-5-pro",
   "gpt-5.5-pro-extended": "gpt-5-5-pro",
   "gpt-5.5-thinking": "gpt-5-5-thinking",

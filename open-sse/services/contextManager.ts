@@ -386,7 +386,6 @@ export function resolveComboContextLimit(options: {
  * Operates in layers of increasing aggressiveness:
  *
  * Layer 1: Trim tool_result messages (truncate long outputs)
- * Layer 1.5: Prune older inline images (keep latest N — #8560)
  * Layer 2: Compress structured thinking blocks (remove from history, keep last)
  * Layer 3: Aggressive purification (drop old messages until fitting)
  *
@@ -446,24 +445,6 @@ export function compressContext(
       compressed: true,
       stats: { ...stats, final: currentTokens },
     };
-  }
-
-  // Layer 1.5: Drop oldest inline images while keeping the newest ones (#8560).
-  const imagePrune = pruneOlderInlineImages(messages, {
-    keepLatest: options.keepLatestImages,
-    targetTokens,
-  });
-  if (imagePrune.pruned > 0) {
-    messages = imagePrune.messages;
-    currentTokens = estimateTokens(messages);
-    stats.layers.push({ name: "prune_images", tokens: currentTokens });
-    if (currentTokens <= targetTokens) {
-      return {
-        body: { ...body, messages },
-        compressed: true,
-        stats: { ...stats, final: currentTokens },
-      };
-    }
   }
 
   // Layer 2: Compress structured thinking blocks (remove from non-last assistant messages)

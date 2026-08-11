@@ -873,45 +873,64 @@ flowchart LR
 
 每個提供者都有一個專門的執行器，繼承自 `BaseExecutor`（位於 `open-sse/executors/base.ts`），提供 URL 建置、標頭建構、指數退避重試、憑證刷新鉤子與 `execute()` 協調方法。
 
-| 執行器                   | 提供者                                                                                                                                                   | 特殊處理                                                   |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `DefaultExecutor`        | OpenAI、Claude、Gemini、Qwen、OpenRouter、GLM、Kimi、MiniMax、DeepSeek、Groq、xAI、Mistral、Perplexity、Together、Fireworks、Cerebras、Cohere、NVIDIA 等 | 每個提供者的動態 URL/標頭設定                              |
-| `AntigravityExecutor`    | Google Antigravity                                                                                                                                       | 自訂專案/工作階段 ID、Retry-After 解析、429 混淆           |
-| `AzureOpenAIExecutor`    | Azure OpenAI                                                                                                                                             | 基於部署的路由、api-version 查詢強制                       |
-| `BlackboxWebExecutor`    | Blackbox AI（網頁模式）                                                                                                                                  | 含 TLS 指紋模擬的網頁工作階段反向                          |
-| `ChatGPTWebExecutor`     | ChatGPT 網頁                                                                                                                                             | TLS 客戶端 + 工作階段 Cookie 管理（`chatgptTlsClient.ts`） |
-| `ClaudeIdentityExecutor` | Claude.ai（CCH 路徑）                                                                                                                                    | 約束 + 工具重新對應管線、指紋塑造                          |
-| `CliProxyApiExecutor`    | CLIProxyAPI 相容提供者                                                                                                                                   | 自訂驗證與協定處理                                         |
-| `CloudflareAiExecutor`   | Cloudflare Workers AI                                                                                                                                    | 帳戶 ID 注入、基於 Neurons 的用量追蹤                      |
-| `CodexExecutor`          | OpenAI Codex                                                                                                                                             | 注入系統指令、強制推理努力                                 |
-| `CommandCodeExecutor`    | Command Code                                                                                                                                             | OAuth + 每個工作階段的標頭輪換                             |
-| `CursorExecutor`         | Cursor IDE                                                                                                                                               | ConnectRPC 協定、Protobuf 編碼、透過 checksum 的請求簽署   |
-| `DevinCliExecutor`       | Devin CLI                                                                                                                                                | 透過雲端代理模組的 Devin 任務生命週期橋接                  |
-| `GithubExecutor`         | GitHub Copilot                                                                                                                                           | Copilot 令牌刷新、模擬 VSCode 標頭                         |
-| `GitlabExecutor`         | GitLab Duo                                                                                                                                               | GitLab OAuth + 專案範圍路由                                |
-| `GlmExecutor`            | Z.AI GLM（含 `glmt` 預設）                                                                                                                               | 思考預算感知、GLMT 預設常數                                |
-| `GrokWebExecutor`        | xAI Grok 網頁                                                                                                                                            | 網頁工作階段反向、模式選擇（think/standard）               |
-| `KieExecutor`            | KIE                                                                                                                                                      | 自訂令牌簽發，含輪換的工作階段錨點                         |
-| `KiroExecutor`           | AWS CodeWhisperer/Kiro                                                                                                                                   | AWS EventStream 二進位格式 → SSE 轉換                      |
-| `MuseSparkWebExecutor`   | Muse Spark（網頁）                                                                                                                                       | 含圖片訊息橋接的網頁工作階段反向                           |
-| `NlpCloudExecutor`       | NLP Cloud                                                                                                                                                | 提供者特定的請求主體形式                                   |
-| `OpenCodeExecutor`       | OpenCode                                                                                                                                                 | AI SDK 相容提供者設定                                      |
-| `PerplexityWebExecutor`  | Perplexity 網頁                                                                                                                                          | 用於聊天延續的網頁工作階段反向                             |
-| `PetalsExecutor`         | Petals 分散式推理                                                                                                                                        | 去中心化群組路由                                           |
-| `PollinationsExecutor`   | Pollinations AI                                                                                                                                          | 無需 API 金鑰、速率限制請求                                |
-| `PuterExecutor`          | Puter                                                                                                                                                    | 基於瀏覽器的提供者整合                                     |
-| `QoderExecutor`          | Qoder AI                                                                                                                                                 | PAT 與 OAuth 支援、多模型免費方案                          |
-| `VertexExecutor`         | Google Vertex AI                                                                                                                                         | 服務帳戶驗證、基於區域的端點                               |
-| `WindsurfExecutor`       | Windsurf（Codeium）                                                                                                                                      | Codeium OAuth + 工作階段令牌刷新                           |
+| Executor               | Provider(s)                                                                                                                                                 | Special Handling                                                     |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `DefaultExecutor`      | OpenAI, Claude, Gemini, Qwen, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA, etc. | Dynamic URL/header config per provider                               |
+| `AntigravityExecutor`  | Google Antigravity                                                                                                                                          | Custom project/session IDs, Retry-After parsing                      |
+| `CliProxyApiExecutor`  | CLIProxyAPI-compatible providers                                                                                                                            | Custom auth and protocol handling                                    |
+| `CloudflareAiExecutor` | Cloudflare Workers AI                                                                                                                                       | Account ID injection, Neurons-based usage tracking                   |
+| `CodexExecutor`        | OpenAI Codex                                                                                                                                                | Injects system instructions, forces reasoning effort                 |
+| `CursorExecutor`       | Cursor IDE                                                                                                                                                  | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
+| `GithubExecutor`       | GitHub Copilot                                                                                                                                              | Copilot token refresh, VSCode-mimicking headers                      |
+| `KiroExecutor`         | AWS CodeWhisperer/Kiro                                                                                                                                      | AWS EventStream binary format → SSE conversion                       |
+| `OpenCodeExecutor`     | OpenCode                                                                                                                                                    | AI SDK compatible provider setup                                     |
+| `PollinationsExecutor` | Pollinations AI                                                                                                                                             | No API key required, rate-limited requests                           |
+| `PuterExecutor`        | Puter                                                                                                                                                       | Browser-based provider integration                                   |
+| `QoderExecutor`        | Qoder AI                                                                                                                                                    | PAT and OAuth support, multi-model free tier                         |
+| `VertexExecutor`       | Google Vertex AI                                                                                                                                            | Service account auth, region-based endpoints                         |
 
 所有其他提供者（包括自訂相容節點）使用 `DefaultExecutor`。
 
 ## 提供者相容性矩陣
 
-> **注意：** 以下矩陣為 OmniRoute v3.8.0 中 237 個已註冊提供者的代表性樣本。
-> 完整且持續更新的清單，請參閱
-> [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md)（自動產生）或
-> `src/shared/constants/providers.ts`（載入時經 Zod 驗證）中的權威來源。
+| Provider         | Format           | Auth                  | Stream           | Non-Stream | Token Refresh | Usage API          |
+| ---------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
+| Claude           | claude           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
+| Gemini           | gemini           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Antigravity      | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ Full quota API  |
+| OpenAI           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Codex            | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
+| GitHub Copilot   | openai           | OAuth + Copilot Token | ✅               | ✅         | ✅            | ✅ Quota snapshots |
+| Cursor           | cursor           | Custom checksum       | ✅               | ✅         | ❌            | ❌                 |
+| Kiro             | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌         | ✅            | ✅ Usage limits    |
+| Qwen             | openai           | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| Qoder            | openai           | OAuth / PAT           | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| Kilo Code        | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
+| Cline            | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
+| Kimi Coding      | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
+| OpenRouter       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| GLM/Kimi/MiniMax | claude           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| DeepSeek         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Groq             | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| xAI (Grok)       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Mistral          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Perplexity       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Together AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Fireworks AI     | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Cerebras         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Cohere           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| NVIDIA NIM       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Cloudflare AI    | openai           | API Token + Acct ID   | ✅               | ✅         | ❌            | ❌                 |
+| Pollinations     | openai           | None (no key)         | ✅               | ✅         | ❌            | ❌                 |
+| Scaleway AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| LongCat          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Ollama Cloud     | openai           | API Key (optional)    | ✅               | ✅         | ❌            | ❌                 |
+| HuggingFace      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Nebius           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| SiliconFlow      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Hyperbolic       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Vertex AI        | gemini           | Service Account       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Puter            | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
 
 | 提供者             | 格式             | 驗證                  | 串流             | 非串流 | 令牌刷新 | 用量 API         |
 | ------------------ | ---------------- | --------------------- | ---------------- | ------ | -------- | ---------------- |
@@ -986,7 +1005,7 @@ flowchart LR
 
 - OpenAI chat/Responses
 - Claude
-- Gemini/Antigravity 信封
+- Gemini/Antigravity envelope
 - Kiro
 - Cursor
 

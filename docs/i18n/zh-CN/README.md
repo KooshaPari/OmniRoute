@@ -298,17 +298,16 @@ Combo: "always-on"                         策略: priority
 
 > **v3.8.20 → v3.8.41** 重点更新。完整日志见 [`CHANGELOG.md`](../../CHANGELOG.md)。
 
-- **⚖️ Quota-Share 路由** — 专用 Combo 策略，按可用配额跨账号分配负载：Deficit-Round-Robin 调度、每连接 `max_concurrent` 配合冷却等待队列、多时间窗口用量桶（5 小时 / 7 天 / 每模型）、每 (密钥, 模型) 用量上限、会话粘性保障 Prompt 缓存完整性，以及基于上游 Token 用量头的主动饱和检测。→ [容灾指南](../../architecture/RESILIENCE_GUIDE.md)
-- **🤖 一键 CLI/Agent 配置** — 专用 `setup-*` 命令为各编程工具一键配置 OmniRoute 路由（Claude Code、Codex、Cline、Continue、Cursor、Roo Code、Kilo Code、Crush、Goose、Qwen Code、Aider、OpenCode）；`omniroute launch` / `omniroute launch-codex` 为零配置启动器。→ [CLI 集成](../../guides/CLI-INTEGRATIONS.md)
-- **🛰️ 远程模式** — 通过授权范围 Token 从任意机器操控远程 OmniRoute（`omniroute connect` / `omniroute contexts` / `omniroute tokens`）；另附 `omniroute login antigravity` 辅助命令，在你的本机运行 Google "native/desktop" OAuth 后将凭证 blob 粘贴至远程/VPS 安装实例（因远程环境无法接收 loopback 回调）。→ [远程模式](../../guides/REMOTE-MODE.md)
-- **🧭 更智能的自动路由** — OpenRouter 风格的 `auto/<category>:<tier>` Combo（如 `auto/coding:fast`、`auto/reasoning:pro`）、**Fusion** 策略（并行分发至多模型面板后由裁判合成最优结果）、**任务感知路由**（按任务类型匹配最佳连接）、每请求 `X-Route-Model` 覆盖、实时 Arena-ELO + models.dev 模型智能评分、每步骤账号白名单、服务商通配符策略步骤、嵌套Combo引用执行、粘性加权选择以及 `web_search` 感知路由。→ [Auto-Combo](../../routing/AUTO-COMBO.md)
-- **🗜️ 可插拔压缩体系** — **9 大可组合引擎**的异步流水线，含 Compression Studios、LLMLingua-2 ONNX 引擎和启发式/SLM 双层 **Ultra**、RTK、委托式 Anthropic 上下文编辑、**输出风格**（输出轴调控：简洁文章 / 少代码 / 简洁文言）、**自适应上下文预算旋钮**（仅推进到刚好适应上下文窗口的程度）、每请求 `x-omniroute-compression` 控制、可选离线评估套件、控制台一键 **Headroom** 代理生命周期管理（支持 Docker 边车）、合成**压缩演练场**（Play 通道 + A/B 对比，附 USD 上限保真度判定）、可选**每步保真度门控**（在有损引擎降低 Prompt 质量前将其拦截）、**Best-of-N 候选编码器**（GCF vs TOON — 取更短者，Studio 中附 A/B 字节/Token 对照表）、**CCR 范围/grep/统计检索**（直接拉取储存块的精确字节/行切片或摘要而无需全量展开），以及统一面板含命名配置文件 + 活动配置文件选择器。→ [压缩](../../compression/COMPRESSION_ENGINES.md)
-- **🕵️ 透明 MITM 解密（TPROXY）** — 捕获并翻译忽略代理环境变量的 CLI 流量，含每 SNI 证书颁发机构和信任存储安装器。→ [MITM/TPROXY](../../security/MITM-TPROXY-DECRYPT.md)
-- **💸 全方位成本遥测** — 每个端点上的 `X-OmniRoute-*` 成本/用量响应头（含媒体端点）、非 Token 成本引擎、缓存命中 `X-OmniRoute-Cost-Saved` 响应头，以及每密钥美元消费配额。→ [API 参考](../../reference/API_REFERENCE.md)
-- **🧠 完全可控的记忆系统** — 可选 int8 向量量化（Qdrant + sqlite-vec）、默认关闭记忆、每请求 `x-omniroute-no-memory` 响应头。→ [记忆系统](../../frameworks/MEMORY.md)
-- **🛡️ 安全** — 所有 LLM 路由的提示注入防护（后台有红队测试套件），外加免费的 DuckDuckGo 兜底网页搜索。→ [安全护栏](../../security/GUARDRAILS.md)
-- **🤝 更多服务商与代理** — Cursor Cloud Agent（第四云代理）、CodeBuddy CN（`copilot.tencent.com`）、Google Flow 视频生成服务商、新网关 **DGrid** 和 **Pioneer AI**（Fastino Labs）、入站 **xAI Grok** 翻译器加 **Grok Build (xAI)**（含 OAuth 导入 Token 流程）、GitHub Copilot 服务商的 GPT-4 / GPT-4o-mini、多模型 **Factory Droid**、**ZenMux Free**（会话 Cookie 免费层）、**阿里云 DashScope** 文生视频（`wan2.7-t2v`）、刷新至 236 家服务商的目录（OrcaRouter、Wafer AI、OpenAdapter、dit.ai、TokenRouter…）、Vertex AI 媒体生成（语音/转录/音乐/视频），以及一键从 CLIProxyAPI 导入账号（`~/.cli-proxy-api/`）。→ [服务商](../../reference/PROVIDER_REFERENCE.md)
-- **⚡ 本地性能与基础设施** — 一键本地 Redis 启动器（`omniroute redis up`，含控制台 Redis 面板）、一键 **Cloudflare Workers** 和 **Deno Deploy** 中继部署器（接入代理池），以及可选 Bifrost Go 边车将最热中继路径卸载至 Go 侧（`BIFROST_BASE_URL`，超时自动回退 TypeScript 路径）— 现支持中继后端选择器（`OMNIROUTE_RELAY_BACKEND=ts|bifrost|auto`），`/v1/relay` 端点保持对外稳定接口的同时内部自动择取最快后端。→ [环境配置](../../reference/ENVIRONMENT.md)
+- **⚖️ Quota-Share 路由** — 一个专用的 Combo 策略，按可用配额跨账户分配负载：Deficit-Round-Robin 调度、每连接 `max_concurrent` 配合冷却等待队列、多窗口使用量桶（5h / 7d / 每模型）、每(密钥,模型)上限、会话粘性确保提示缓存完整性，以及基于上游 Token 使用标头的主动饱和检测。→ [Resilience Guide](../../architecture/RESILIENCE_GUIDE.md)
+- **🛰️ 远程模式** — 通过范围访问令牌从任何机器驱动远程 OmniRoute（`omniroute connect` / `omniroute contexts` / `omniroute tokens`）。→ [Remote Mode](../../guides/REMOTE-MODE.md)
+- **🧭 更智能的自动路由** — OpenRouter 风格的 `auto/<category>:<tier>` Combo（如 `auto/coding:fast`、`auto/reasoning:pro`）、**Fusion** 策略（第 16 种 — 并行分发到多个模型，然后通过裁判合成）、**任务感知路由**（按任务类型选择最佳连接）、每请求 `X-Route-Model` 覆盖、实时 Arena-ELO + models.dev 模型智能、每步骤账户允许列表、供应商通配符 Combo 步骤、嵌套 Combo 引用执行、粘性加权选择以及 `web_search` 感知路由。→ [Auto-Combo](../../routing/AUTO-COMBO.md)
+- **🗜️ 可插拔压缩** — **9 个可组合引擎**的异步流水线，带 Compression Studios、LLMLingua-2 ONNX 引擎和启发式/SLM 双层 **Ultra**、RTK、委托式 Anthropic 上下文编辑、**输出样式**（输出轴控制：简洁文章 / 少代码 / 简洁 CJK）、**自适应上下文预算拨盘**（仅扩展到适合上下文窗口所需的最低限度）、每请求 `x-omniroute-compression` 控制、可选的离线评估工具、仪表板上一键 **Headroom** 代理生命周期管理（支持 Docker 边车）、合成**压缩游乐场**（Play 赛道 + A/B 比较，附 USD 上限保真度判定）、可选的**每步骤保真度门控**（在损失性引擎降低提示质量前拒绝它），以及统一面板带命名配置文件 + 活动配置文件选择器。→ [Compression](../../compression/COMPRESSION_ENGINES.md)
+- **🕵️ 透明 MITM 解密（TPROXY）** — 捕获并转换忽略代理环境变量的 CLI 流量，带每 SNI 证书颁发机构和信任存储安装程序。→ [MITM/TPROXY](../../security/MITM-TPROXY-DECRYPT.md)
+- **💸 全方位成本遥测** — 每个端点上的 `X-OmniRoute-*` 成本/使用量标头（包括媒体）、非 Token 成本引擎、缓存命中 `X-OmniRoute-Cost-Saved` 标头，以及每密钥美元花费配额。→ [API Reference](../../reference/API_REFERENCE.md)
+- **🧠 可控记忆** — 可选的 int8 向量量化（Qdrant + sqlite-vec）、默认关闭记忆、每请求 `x-omniroute-no-memory` 标头。→ [Memory](../../frameworks/MEMORY.md)
+- **🛡️ 安全** — 所有 LLM 路由的提示注入防护（由红队套件支持），加上免费的 DuckDuckGo 最终手段网页搜索。→ [Guardrails](../../security/GUARDRAILS.md)
+- **🤝 更多供应商和代理** — Cursor Cloud Agent（第 4 个云代理）、CodeBuddy CN（`copilot.tencent.com`）、Google Flow 视频生成供应商、新网关 **DGrid** 和 **Pioneer AI**（Fastino Labs）、入站 **xAI Grok** 转换器加 **Grok Build (xAI)**（带 OAuth 导入令牌流程）、GitHub Copilot 供应商上的 GPT-4 / GPT-4o-mini、多模型 **Factory Droid**、**ZenMux Free**（会话 Cookie 免费层）、**Alibaba DashScope** 文本转视频（`wan2.7-t2v`）、刷新后的 231 供应商目录（OrcaRouter、Wafer AI、OpenAdapter、dit.ai、TokenRouter…）、Vertex AI 媒体生成（语音/转录/音乐/视频），以及一键从 CLIProxyAPI 导入账户（`~/.cli-proxy-api/`）。→ [Providers](../../reference/PROVIDER_REFERENCE.md)
+- **⚡ 本地性能与基础设施** — 一键本地 Redis 启动器（`omniroute redis up`，加仪表板 Redis 面板）、一键 **Cloudflare Workers** 和 **Deno Deploy** 中继部署器（连接到代理池），以及可选的 Bifrost Go 边车（卸载最热的中继路径，`BIFROST_BASE_URL`，超时时自动回退到 TypeScript 路径）。→ [Environment](../../reference/ENVIRONMENT.md)
 
 <br/>
 
@@ -368,7 +367,7 @@ Combo: "always-on"                         策略: priority
     <td align="center" width="150"><img src="https://img.shields.io/badge/LongCat-FF7A00?style=flat-square" alt="LongCat"/><br/><sub>LongCat-2.0<br/>一次性 10M Token (需 KYC) 🔑</sub></td>
   </tr>
   <tr>
-    <td align="center" width="150"><img src="https://img.shields.io/badge/Cloudflare_AI-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare AI"/><br/><sub>50+ 模型<br/>10K 神经元/天</sub></td>
+    <td align="center" width="150"><img src="https://img.shields.io/badge/Cloudflare_AI-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare AI"/><br/><sub>50+ 模型<br/>1 万神经元/天</sub></td>
     <td align="center" width="150"><img src="https://img.shields.io/badge/NVIDIA_NIM-76B900?style=flat-square&logo=nvidia&logoColor=white" alt="NVIDIA NIM"/><br/><sub>129 个模型<br/>~40 RPM 免费</sub></td>
     <td align="center" width="150"><img src="https://img.shields.io/badge/Cerebras-F15A29?style=flat-square" alt="Cerebras"/><br/><sub>Qwen3 235B<br/>1M Token/天</sub></td>
   </tr>

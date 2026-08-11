@@ -121,6 +121,35 @@ export function writeCompressionSkip(opts: WriteOpts, skipReason: string): Promi
         skip_reason: skipReason,
       });
     } catch (err) {
+      opts.log?.debug?.(
+        "COMPRESSION",
+        "Compression skip-analytics write skipped: " +
+          (err instanceof Error ? err.message : String(err))
+      );
+    }
+  })();
+}
+
+export function writeCompressionAnalytics(opts: WriteOpts): Promise<void> {
+  return (async () => {
+    try {
+      const { insertCompressionAnalyticsRow } = await import("@/lib/db/compressionAnalytics");
+      const { stats } = opts;
+      insertCompressionAnalyticsRow({
+        timestamp: new Date().toISOString(),
+        combo_id: opts.comboName ?? null,
+        provider: opts.provider ?? null,
+        mode: opts.mode,
+        engine: stats.engine ?? opts.mode,
+        compression_combo_id: stats.compressionComboId ?? opts.compressionComboId ?? null,
+        original_tokens: stats.originalTokens,
+        compressed_tokens: stats.compressedTokens,
+        tokens_saved: 0,
+        duration_ms: stats.durationMs ?? null,
+        request_id: opts.skillRequestId,
+        skip_reason: skipReason,
+      });
+    } catch (err) {
       opts.log?.warn?.(
         "COMPRESSION",
         "Compression skip-analytics write skipped: " +

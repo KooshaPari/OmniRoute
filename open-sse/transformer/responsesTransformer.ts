@@ -1,9 +1,5 @@
 import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
 import { shouldParseTextualReasoningTags } from "../handlers/responseSanitizer.ts";
-import {
-  isInternalReasoningPlaceholder,
-  stripInternalReasoningPlaceholder,
-} from "../utils/reasoningPlaceholder.ts";
 import * as fs from "fs";
 import * as path from "path";
 /**
@@ -536,25 +532,55 @@ export function createResponsesApiTransformStream(
 
           // Handle text content. Generic prompt-format tags are visible text;
           // only tag-native models opt into textual reasoning extraction.
-          // Strip the internal reasoning placeholder if the model echoed it
-          // through ordinary content (#8081). Only the text-content emission
-          // is skipped when nothing meaningful remains — this must NOT skip
-          // this message's tool_calls / finish_reason handling below, so we
-          // gate the whole block on strippedContent instead of returning /
-          // continuing out of the msg loop early.
           if (delta.content) {
-            const strippedContent = stripInternalReasoningPlaceholder(delta.content);
-            if (strippedContent) {
-              // Close reasoning if it was opened via native reasoning_content
-              // and is still open, before emitting message content. Without this
-              // the reasoning item is never closed and the message reuses the
-              // reasoning output_index, producing a protocol-invalid stream.
-              if (
-                state.reasoningId &&
-                !state.reasoningDone &&
-                (!parseTextualReasoningTags || !state.inThinking)
-              ) {
+            // Close reasoning if it was opened via native reasoning_content
+            // and is still open, before emitting message content. Without this
+            // the reasoning item is never closed and the message reuses the
+            // reasoning output_index, producing a protocol-invalid stream.
+            if (
+              state.reasoningId &&
+              !state.reasoningDone &&
+              (!parseTextualReasoningTags || !state.inThinking)
+            ) {
+              closeReasoning(controller);
+            }
+
+            let content = delta.content;
+
+            if (parseTextualReasoningTags) {
+              if (content.includes("<think>")) {
+                state.inThinking = true;
+                content = content.replaceAll("<think>", "");
+                startReasoning(controller, idx);
+              }
+
+              if (content.includes("</think>")) {
+                const parts = content.split("</think>");
+                const thinkPart = parts[0];
+                const textPart = parts.slice(1).join("</think>");
+
+                if (thinkPart) emitReasoningDelta(controller, thinkPart);
                 closeReasoning(controller);
+                state.inThinking = false;
+                content = textPart;
+              }
+
+              if (state.inThinking && content) {
+                emitReasoningDelta(controller, content);
+                continue;
+              }
+            }
+
+            // Regular text content
+            if (content) {
+              // Use a distinct output_index for the message when reasoning was
+              // emitted, so the message item does not collide with the
+              // reasoning item's output_index.
+              const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
+
+              // Fix for #1211: Strip leading double-newlines / blank spaces from the very first text chunk
+              if (!state.msgTextBuf[msgIdx]) {
+                content = content.trimStart();
               }
 
               let content = strippedContent;

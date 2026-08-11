@@ -273,10 +273,9 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### 成本過高
 
-1. 在儀表板 → 使用量中檢查用量統計
-2. 將主要模型切換至 GLM/MiniMax
-3. 對非關鍵任務使用免費方案（Qoder、Kiro）
-4. 為每個 API 金鑰設定成本預算：儀表板 → API 金鑰 → 預算
+1. Check usage stats in Dashboard → Usage
+2. Switch primary model to GLM/MiniMax
+3. Set cost budgets per API key: Dashboard → API Keys → Budget
 
 ---
 

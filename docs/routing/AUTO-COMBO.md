@@ -161,11 +161,11 @@ The detection helper lives in `src/lib/combos/modelNameCollision.ts`.
 
 ## How It Works (Persisted Auto-Combos)
 
-The Auto-Combo Engine dynamically selects the best provider/model for each request using a **13-factor scoring function** (defined in `open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS`). All weights sum to **1.0**.
+The Auto-Combo Engine dynamically selects the best provider/model for each request using a **12-factor scoring function** (defined in `open-sse/services/autoCombo/scoring.ts` → `DEFAULT_WEIGHTS`). All weights sum to **1.0**.
 
 ![Auto-Combo 12-factor scoring](../diagrams/exported/auto-combo-12factor.svg)
 
-> Source: [diagrams/auto-combo-12factor.mmd](../diagrams/auto-combo-12factor.mmd) (regenerate via `npm run docs:render-diagrams`). Diagram/filename predate the `cacheAffinity` factor added by #8008 and still show 12 factors.
+> Source: [diagrams/auto-combo-12factor.mmd](../diagrams/auto-combo-12factor.mmd) (regenerate via `npm run docs:render-diagrams`).
 
 | Factor                | Default Weight | Description                                                                                        |
 | :-------------------- | :------------- | :------------------------------------------------------------------------------------------------- |
@@ -180,10 +180,9 @@ The Auto-Combo Engine dynamically selects the best provider/model for each reque
 | `specificityMatch`    | 0.05           | Match between request specificity (manifest hint) and model tier                                   |
 | `contextAffinity`     | 0.05           | Affinity between the request's context-window need and the model's context window                  |
 | `connectionDensity`   | 0.05           | Spreads load across connections of the same provider (anti-concentration)                          |
-| `cacheAffinity`       | 0.00           | Rendezvous-hash affinity toward the connection likeliest to already hold this request's prompt-cache prefix (`open-sse/services/combo/promptCacheAffinity.ts`); disabled by default (#8008) |
 | `resetWindowAffinity` | 0.00           | Bias toward connections whose quota reset window is favorable (disabled by default)                |
 
-**Sum:** `0.20 + 0.15 + 0.15 + 0.12 + 0.08 + 0.05 + 0.05 + 0.05 + 0.05 + 0.05 + 0.05 + 0.00 + 0.00 = 1.0` (validated by `validateWeights()`).
+**Sum:** `0.20 + 0.15 + 0.15 + 0.12 + 0.08 + 0.05 + 0.05 + 0.05 + 0.05 + 0.05 + 0.05 + 0.00 = 1.0` (validated by `validateWeights()`).
 
 ## Mode Packs
 
@@ -236,26 +235,25 @@ resolved values feed the engine's existing `config.modePack` / `config.budgetCap
 
 OmniRoute's combo engine supports **18 routing strategies** (declared in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). The Auto Combo engine itself is exposed under the `auto` strategy; the others are available for persisted combos.
 
-| Strategy            | Description                                                                                                                  |
-| :------------------ | :--------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | First-target ordered list with explicit priority                                                                             |
-| `weighted`          | Weighted random by per-target weight                                                                                         |
-| `round-robin`       | Cycle through targets in order                                                                                               |
-| `context-relay`     | Hand off context across targets (long conversations)                                                                         |
-| `fill-first`        | Fill each target's quota before moving to next                                                                               |
-| `p2c`               | Power-of-2-choices random load balancing                                                                                     |
-| `random`            | Uniform random selection                                                                                                     |
-| `least-used`        | Pick target with lowest current load                                                                                         |
-| `cost-optimized`    | Minimize $ per request given catalog pricing                                                                                 |
-| `reset-aware` ⭐    | Prioritize by quota reset time — short reset windows ranked higher                                                           |
-| `reset-window`      | Prefer targets whose quota window resets soonest                                                                             |
-| `headroom`          | Pick the target with the most remaining quota headroom                                                                       |
-| `strict-random`     | Random without deduplication of repeats                                                                                      |
-| `auto`              | Use Auto Combo scoring (9-factor) — **recommended**                                                                          |
-| `lkgp`              | Last-Known-Good Path (sticky route to last successful target)                                                                |
-| `context-optimized` | Pick target with best fit for current context size                                                                           |
-| `fusion` 🧬         | Fan out to a panel of models in parallel, then synthesize one answer via a judge (see below)                                 |
-| `pipeline`          | Run targets sequentially, threading each step's output into the next step's input; only the final answer is returned (#6396) |
+| Strategy            | Description                                                                                  |
+| :------------------ | :------------------------------------------------------------------------------------------- |
+| `priority`          | First-target ordered list with explicit priority                                             |
+| `weighted`          | Weighted random by per-target weight                                                         |
+| `round-robin`       | Cycle through targets in order                                                               |
+| `context-relay`     | Hand off context across targets (long conversations)                                         |
+| `fill-first`        | Fill each target's quota before moving to next                                               |
+| `p2c`               | Power-of-2-choices random load balancing                                                     |
+| `random`            | Uniform random selection                                                                     |
+| `least-used`        | Pick target with lowest current load                                                         |
+| `cost-optimized`    | Minimize $ per request given catalog pricing                                                 |
+| `reset-aware` ⭐    | Prioritize by quota reset time — short reset windows ranked higher                           |
+| `reset-window`      | Prefer targets whose quota window resets soonest                                             |
+| `headroom`          | Pick the target with the most remaining quota headroom                                       |
+| `strict-random`     | Random without deduplication of repeats                                                      |
+| `auto`              | Use Auto Combo scoring (9-factor) — **recommended**                                          |
+| `lkgp`              | Last-Known-Good Path (sticky route to last successful target)                                |
+| `context-optimized` | Pick target with best fit for current context size                                           |
+| `fusion` 🧬         | Fan out to a panel of models in parallel, then synthesize one answer via a judge (see below) |
 
 ⭐ = New in v3.8.0 · 🧬 = New in v3.8.36
 

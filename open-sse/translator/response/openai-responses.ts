@@ -7,13 +7,6 @@ import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
-import {
-  normalizeToolName,
-  stripEmptyOptionalToolArgs,
-  normalizeOutputIndex,
-  normalizeUpstreamFailure,
-  extractResponsesReasoningSummaryText,
-} from "./openai-responses/pureHelpers.ts";
 
 // normalizeUpstreamFailure is re-exported for external importers (tests).
 export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
@@ -99,13 +92,6 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     state.parseTextualReasoningTags = shouldParseTextualReasoningTags(undefined, chunk.model);
   }
   const parseTextualReasoningTags = state.parseTextualReasoningTags === true;
-  // #3697: remember the upstream-resolved model so response.created/in_progress/completed
-  // can carry a `model` field (the Responses API spec has one; this translator previously
-  // omitted it). Codex CLI compatibility shim (chatCore's echoModel pipeline) rewrites this
-  // field to the client-requested effort-suffixed id for codex-originated requests.
-  if (!state.model && typeof chunk.model === "string" && chunk.model.trim()) {
-    state.model = chunk.model.trim();
-  }
 
   // Emit initial events
   if (!state.started) {
@@ -140,56 +126,47 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     });
   }
 
-  if (delta.reasoning_content && !isInternalReasoningPlaceholder(delta.reasoning_content)) {
+  if (delta.reasoning_content) {
     startReasoning(state, emit, idx);
     emitReasoningDelta(state, emit, delta.reasoning_content);
   }
-  // Strip the internal reasoning placeholder if the model echoed it
-  // through ordinary content (#8081). Only the text-content emission is
-  // skipped when nothing meaningful remains; tool_calls / finish_reason
-  // handling below must still run for this same chunk.
   if (delta.content) {
-    const strippedContent = stripInternalReasoningPlaceholder(delta.content);
-    if (strippedContent) {
-      if (
-        state.reasoningId &&
-        !state.reasoningDone &&
-        (!parseTextualReasoningTags || !state.inThinking)
-      ) {
-        closeReasoning(state, emit);
-      }
+    if (
+      state.reasoningId &&
+      !state.reasoningDone &&
+      (!parseTextualReasoningTags || !state.inThinking)
+    ) {
+      closeReasoning(state, emit);
+    }
 
       let content = strippedContent;
 
-      if (parseTextualReasoningTags) {
-        if (content.includes("<think>")) {
-          state.inThinking = true;
-          content = content.replaceAll("<think>", "");
-          startReasoning(state, emit, idx);
-        }
-
-        if (content.includes("</think>")) {
-          const parts = content.split("</think>");
-          const thinkPart = parts[0];
-          const textPart = parts.slice(1).join("</think>");
-          if (thinkPart) emitReasoningDelta(state, emit, thinkPart);
-          closeReasoning(state, emit);
-          state.inThinking = false;
-          content = textPart;
-        }
-
-        if (state.inThinking && content) {
-          emitReasoningDelta(state, emit, content);
-          // Pre-existing behaviour (unrelated to #8081): a still-open
-          // textual <think> block ends this chunk's handling early.
-          return events;
-        }
+    if (parseTextualReasoningTags) {
+      if (content.includes("<think>")) {
+        state.inThinking = true;
+        content = content.replaceAll("<think>", "");
+        startReasoning(state, emit, idx);
       }
 
-      if (content) {
-        const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
-        emitTextContent(state, emit, msgIdx, content);
+      if (content.includes("</think>")) {
+        const parts = content.split("</think>");
+        const thinkPart = parts[0];
+        const textPart = parts.slice(1).join("</think>");
+        if (thinkPart) emitReasoningDelta(state, emit, thinkPart);
+        closeReasoning(state, emit);
+        state.inThinking = false;
+        content = textPart;
       }
+
+      if (state.inThinking && content) {
+        emitReasoningDelta(state, emit, content);
+        return events;
+      }
+    }
+
+    if (content) {
+      const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
+      emitTextContent(state, emit, msgIdx, content);
     }
   }
 

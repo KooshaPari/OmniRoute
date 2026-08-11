@@ -1,7 +1,7 @@
 ---
 title: "Extending the Compression Pipeline"
-version: 3.8.44
-lastUpdated: 2026-07-02
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Extending the Compression Pipeline

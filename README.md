@@ -7,7 +7,7 @@
 
 # 🚀 OmniRoute — The Free AI Gateway
 
-### Never stop coding. Connect every AI tool to **237 providers** — **90+ free** — through one endpoint.
+### Never stop coding. Connect every AI tool to **237 providers** — **50+ free** — through one endpoint.
 
 </div>
 
@@ -367,9 +367,7 @@ OmniRoute is free and open source, built and maintained in the open. If it saves
 
 > Recent highlights from **v3.8.20 → v3.8.43**. Full history in [`CHANGELOG.md`](CHANGELOG.md).
 
-- **🗜️ Compression hardening** — a default-on **inflation guard** (discard the stacked result and send the verbatim original whenever compression would _grow_ the prompt), completed **Caveman rule packs** for German / French / Japanese (dedup + ultra) plus a new **Chinese (文言 / wényán) input pack** with zh-vs-ja auto-detection, and **RTK filters for Gradle & .NET (`dotnet`)** build output. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 Honest flat-rate cost** — subscription / coding-plan providers (ChatGPT Web, grok-web, the Minimax / Kimi / GLM / Alibaba Coding plans, Xiaomi MiMo…) now read **$0** in cost analytics instead of an inflated per-token estimate, while budget / quota / routing keep estimating unchanged. → [API Reference](docs/reference/API_REFERENCE.md)
-- **⚖️ Quota-Share routing** — a dedicated combo strategy that spreads load across accounts by _available quota_: Deficit-Round-Robin scheduling, per-connection `max_concurrent` with cooldown-wait queueing, multi-window usage buckets (5h / 7d / per-model), per-(key, model) caps, session stickiness for prompt-cache integrity, and proactive saturation from upstream token-usage headers. → [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)
+- **⚖️ Quota-Share routing** — a dedicated combo strategy that spreads load across accounts by _available quota_: Deficit-Round-Robin scheduling, per-connection `max_concurrent` with cooldown-wait queueing, multi-window usage buckets (5h / 7d / per-model), per-(key,model) caps, session stickiness for prompt-cache integrity, and proactive saturation from upstream token-usage headers. → [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)
 - **🤖 One-command CLI/agent setup** — a dedicated `setup-*` command configures each coding tool to route through OmniRoute (Claude Code, Codex, Cline, Continue, Cursor, Roo Code, Kilo Code, Crush, Goose, Qwen Code, Aider, OpenCode); `omniroute launch` / `omniroute launch-codex` are zero-config launchers. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
 - **🛰️ Remote mode** — drive a remote OmniRoute from any machine with scoped access tokens (`omniroute connect` / `omniroute contexts` / `omniroute tokens`), plus an `omniroute login antigravity` helper that runs Google "native/desktop" OAuth on your own machine and pastes a credential blob into a remote/VPS install (where the loopback redirect is unreachable). → [Remote Mode](docs/guides/REMOTE-MODE.md)
 - **🧭 Smarter auto-routing** — OpenRouter-style `auto/<category>:<tier>` combos (e.g. `auto/coding:fast`, `auto/reasoning:pro`), a **Fusion** strategy (fan out to a panel of models in parallel, then synthesize via a judge), **task-aware routing** (best-fit connection per task type), per-request `X-Route-Model` override, live Arena-ELO + models.dev model intelligence, per-step account allowlists, provider-wildcard combo steps, nested combo-ref execution, sticky weighted selection, and `web_search`-aware routing. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
@@ -378,8 +376,8 @@ OmniRoute is free and open source, built and maintained in the open. If it saves
 - **💸 Cost telemetry everywhere** — `X-OmniRoute-*` cost/usage headers on every endpoint (including media), a non-token cost engine, a cache-HIT `X-OmniRoute-Cost-Saved` header, and per-key USD spend quotas. → [API Reference](docs/reference/API_REFERENCE.md)
 - **🧠 Memory you control** — opt-in int8 vector quantization (Qdrant + sqlite-vec), opt-in **typed memory decay** (aged low-value memories fade on a per-type schedule), memory off by default, and a per-request `x-omniroute-no-memory` header. → [Memory](docs/frameworks/MEMORY.md)
 - **🛡️ Security** — a prompt-injection guard across every LLM route (backed by a red-team suite), plus a free DuckDuckGo last-resort web search. → [Guardrails](docs/security/GUARDRAILS.md)
-- **🤝 More providers & agents** — Cursor Cloud Agent (a 4th cloud agent), CodeBuddy CN (`copilot.tencent.com`), a Google Flow video-generation provider, new gateways **DGrid** and **Pioneer AI** (Fastino Labs), inbound **xAI Grok** translators plus **Grok Build (xAI)** with an OAuth import-token flow, GPT-4 / GPT-4o-mini on the GitHub Copilot provider, multi-model **Factory Droid**, **ZenMux Free** (session-cookie free tier), **Alibaba DashScope** text-to-video (`wan2.7-t2v`), a refreshed 237-provider catalog (OrcaRouter, Wafer AI, OpenAdapter, dit.ai, TokenRouter, …), Vertex AI media generation (speech/transcription/music/video), a first-class **Ollama** local-provider card, the **SenseNova** free Token Plan (chat + text-to-image), and one-click account import from CLIProxyAPI (`~/.cli-proxy-api/`). → [Providers](docs/reference/PROVIDER_REFERENCE.md)
-- **⚡ Local performance & infra** — a one-click local Redis launcher (`omniroute redis up`, plus a dashboard Redis panel), one-click **Cloudflare Workers** and **Deno Deploy** relay deployers wired into the proxy pool, and an optional Bifrost Go sidecar that offloads the hottest relay path (`BIFROST_BASE_URL`, with automatic fallback to the TypeScript path on timeout) — now with a relay-backend selector (`OMNIROUTE_RELAY_BACKEND=ts|bifrost|auto`) so the `/v1/relay` endpoint stays the stable surface while choosing the fastest backend internally. → [Environment](docs/reference/ENVIRONMENT.md)
+- **🤝 More providers & agents** — Cursor Cloud Agent (a 4th cloud agent), CodeBuddy CN (`copilot.tencent.com`), a Google Flow video-generation provider, new gateways **DGrid** and **Pioneer AI** (Fastino Labs), inbound **xAI Grok** translators plus **Grok Build (xAI)** with an OAuth import-token flow, GPT-4 / GPT-4o-mini on the GitHub Copilot provider, multi-model **Factory Droid**, **ZenMux Free** (session-cookie free tier), **Alibaba DashScope** text-to-video (`wan2.7-t2v`), a refreshed 237-provider catalog (OrcaRouter, Wafer AI, OpenAdapter, dit.ai, TokenRouter, …), Vertex AI media generation (speech / transcription / music / video), and one-click account import from CLIProxyAPI (`~/.cli-proxy-api/`). → [Providers](docs/reference/PROVIDER_REFERENCE.md)
+- **⚡ Local performance & infra** — a one-click local Redis launcher (`omniroute redis up`, plus a dashboard Redis panel), one-click **Cloudflare Workers** and **Deno Deploy** relay deployers wired into the proxy pool, and an optional Bifrost Go sidecar that offloads the hottest relay path (`BIFROST_BASE_URL`, with automatic fallback to the TypeScript path on timeout). → [Environment](docs/reference/ENVIRONMENT.md)
 
 <br/>
 
@@ -392,12 +390,11 @@ OmniRoute is free and open source, built and maintained in the open. If it saves
 <div align="center">
 <table>
   <tr>
-    <td align="center" width="76"><a href="https://github.com/anthropics/claude-code"><img src="./public/providers/claude.svg" width="40" alt="Claude Code"/><br/><sub><b>Claude Code</b></sub><br/><sub>                           </sub></a></td>
-    <td align="center" width="76"><a href="https://github.com/openai/codex"><img src="./public/providers/codex.svg" width="40" alt="Codex CLI"/><br/><sub><b>Codex CLI</b></sub><br/><sub>                           </sub></a></td>
-    <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/cline.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/cline.svg" width="40" alt="Cline"/></picture><br/><sub><b>Cline</b></sub><br/><sub>                           </sub></td>
-    <td align="center" width="76"><a href="https://github.com/Kilo-Org/kilocode"><img src="./public/providers/kilocode.svg" width="40" alt="Kilo Code"/><br/><sub><b>Kilo Code</b></sub><br/><sub>                           </sub></a></td>
-    <td align="center" width="76"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/roocode.png#gh-dark-mode-only" width="40" alt="Roo Code"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/roocode.svg#gh-light-mode-only" width="40" alt="Roo Code"/><br/><sub><b>Roo Code</b></sub><br/><sub>                           </sub></td>
-    <td align="center" width="76"><img src="./public/providers/continue.svg" width="40" alt="Continue"/><br/><sub><b>Continue</b></sub><br/><sub>                           </sub></td>
+    <td align="center" width="120"><a href="https://github.com/anthropics/claude-code"><img src="./public/providers/claude.svg" width="52" alt="Claude Code"/><br/><b>Claude Code</b></a></td>
+    <td align="center" width="120"><a href="https://github.com/openai/codex"><img src="./public/providers/codex.svg" width="52" alt="Codex CLI"/><br/><b>Codex CLI</b></a></td>
+    <td align="center" width="120"><img src="./public/providers/cursor.png" width="52" alt="Cursor"/><br/><b>Cursor</b></td>
+    <td align="center" width="120"><img src="./public/providers/copilot.png" width="52" alt="Copilot"/><br/><b>Copilot</b></td>
+    <td align="center" width="120"><img src="./public/providers/continue.png" width="52" alt="Continue"/><br/><b>Continue</b></td>
   </tr>
   <tr>
     <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Aider"/><br/><sub><b>Aider</b></sub><br/><sub>                           </sub></td>
@@ -442,7 +439,7 @@ OmniRoute is free and open source, built and maintained in the open. If it saves
 
 </div>
 
-> The most complete catalog of any open-source router: **237 providers**, **90+ with a free tier**, **11 free forever**.
+> The most complete catalog of any open-source router: **237 providers**, **50+ with a free tier**, **11 free forever**.
 
 <div align="center">
 
@@ -489,9 +486,9 @@ OmniRoute is free and open source, built and maintained in the open. If it saves
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/longcat-color.svg" width="44" alt="LongCat"/><br/><b>LongCat</b><br/><sub>LongCat-2.0<br/>10M tokens one-time (KYC) 🔑</sub></td>
   </tr>
   <tr>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/cloudflare-color.svg" width="44" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ models<br/>10K neurons/day</sub></td>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/nvidia-color.svg" width="44" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>129 models<br/>~40 RPM free</sub></td>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/cerebras-color.svg" width="44" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>Qwen3 235B<br/>1M tokens/day</sub></td>
+    <td align="center" width="150"><img src="https://img.shields.io/badge/Cloudflare_AI-F38020?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare AI"/><br/><sub>50+ models<br/>10K neurons/day</sub></td>
+    <td align="center" width="150"><img src="https://img.shields.io/badge/NVIDIA_NIM-76B900?style=flat-square&logo=nvidia&logoColor=white" alt="NVIDIA NIM"/><br/><sub>129 models<br/>~40 RPM free</sub></td>
+    <td align="center" width="150"><img src="https://img.shields.io/badge/Cerebras-F15A29?style=flat-square" alt="Cerebras"/><br/><sub>Qwen3 235B<br/>1M tokens/day</sub></td>
   </tr>
 </table>
 
@@ -508,17 +505,16 @@ OmniRoute is free and open source, built and maintained in the open. If it saves
 
 > Same app, your machine, your rules. From a global npm install to **your phone** via Termux.
 
-<table>
-  <tr><th align="left">Platform</th><th align="left">Install</th><th align="left">Highlights</th></tr>
-  <tr><td align="left" nowrap>📦 <b>npm (global)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">One command, any OS</td></tr>
-  <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Multi-arch <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>Desktop (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">Native window + system tray — <b>Windows / macOS / Linux</b></td></tr>
-  <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>native <code>arm64</code></td><td align="left">Raspberry Pi, ARM servers, Apple Silicon</td></tr>
-  <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">Runs <b>on your phone</b>, 24/7, no root</td></tr>
-  <tr><td align="left" nowrap>📲 <b>PWA</b></td><td align="left" nowrap>"Add to Home Screen"</td><td align="left">Fullscreen, offline, installable from browser</td></tr>
-  <tr><td align="left" nowrap>🧩 <b>OpenCode plugin</b></td><td align="left" nowrap><code>@omniroute/opencode-provider</code></td><td align="left">Native OpenCode integration</td></tr>
-  <tr><td align="left" nowrap>🛠️ <b>From source</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Hack on it, contribute</td></tr>
-</table>
+| Platform                  | Install                                  | Highlights                                                |
+| ------------------------- | ---------------------------------------- | --------------------------------------------------------- |
+| 📦 **npm (global)**       | `npm install -g omniroute`               | One command, any OS                                       |
+| 🐳 **Docker**             | `docker run … diegosouzapw/omniroute`    | Multi-arch **AMD64 + ARM64**                              |
+| 🖥️ **Desktop (Electron)** | `npm run electron:build`                 | Native window + system tray — **Windows / macOS / Linux** |
+| 💪 **ARM**                | native `arm64`                           | Raspberry Pi, ARM servers, Apple Silicon                  |
+| 📱 **Android (Termux)**   | `pkg install nodejs && npx -y omniroute` | Runs **on your phone**, 24/7, no root                     |
+| 📲 **PWA**                | "Add to Home Screen"                     | Fullscreen, offline, installable from browser             |
+| 🧩 **OpenCode plugin**    | `@omniroute/opencode-provider`           | Native OpenCode integration                               |
+| 🛠️ **From source**        | `npm install && npm run dev`             | Hack on it, contribute                                    |
 
 <sub>📖 [Docker Guide](docs/guides/DOCKER_GUIDE.md) · [Desktop](electron/README.md) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 

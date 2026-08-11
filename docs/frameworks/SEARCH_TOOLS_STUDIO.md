@@ -108,7 +108,7 @@ Runs the same query/URL across up to **4 providers in parallel** (D22):
 | Field                          | Source                                                                                     |
 | ------------------------------ | ------------------------------------------------------------------------------------------ |
 | `id`, `name`                   | `searchRegistry.ts`                                                                        |
-| `kind`                         | `"search"` (12 providers) or `"fetch"` (firecrawl, jina-reader, tavily-search, tinyfish)   |
+| `kind`                         | `"search"` (12 providers) or `"fetch"` (firecrawl, jina-reader, tavily-search)             |
 | `costPerQuery`                 | Registry data                                                                              |
 | `freeMonthlyQuota`             | Registry data                                                                              |
 | `searchTypes` / `fetchFormats` | Registry data                                                                              |

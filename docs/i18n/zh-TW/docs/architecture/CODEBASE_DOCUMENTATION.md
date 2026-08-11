@@ -438,138 +438,63 @@ server/
 獨立的 npm workspace，發布為 `@omniroute/open-sse`。負責請求
 處理、執行器、翻譯器、服務、轉換器及 MCP 伺服器。
 
+```mermaid
+classDiagram
+    class BaseExecutor {
+        +buildUrl(model, stream, options)
+        +buildHeaders(credentials, stream, body)
+        +transformRequest(body, model, stream, credentials)
+        +execute(url, options)
+        +shouldRetry(status, error)
+        +refreshCredentials(credentials, log)
+    }
+
+    class DefaultExecutor {
+        +refreshCredentials()
+    }
+
+    class AntigravityExecutor {
+        +buildUrl()
+        +buildHeaders()
+        +transformRequest()
+        +shouldRetry()
+        +refreshCredentials()
+    }
+
+    class CursorExecutor {
+        +buildUrl()
+        +buildHeaders()
+        +transformRequest()
+        +parseResponse()
+        +generateChecksum()
+    }
+
+    class KiroExecutor {
+        +buildUrl()
+        +buildHeaders()
+        +transformRequest()
+        +parseEventStream()
+        +refreshCredentials()
+    }
+
+    BaseExecutor <|-- DefaultExecutor
+    BaseExecutor <|-- AntigravityExecutor
+    BaseExecutor <|-- CursorExecutor
+    BaseExecutor <|-- KiroExecutor
+    BaseExecutor <|-- CodexExecutor
+    BaseExecutor <|-- GithubExecutor
 ```
-open-sse/
-├── index.ts                公開匯出
-├── package.json            Workspace 清單
-├── tsconfig.json
-├── types.d.ts
-├── config/                 提供者註冊表、標頭設定檔、身分識別……
-├── handlers/               請求處理器（聊天、嵌入、音訊、圖片……）
-├── executors/              84 個提供者專屬的 HTTP 執行器
-├── translator/             格式轉換（OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro）
-├── transformer/            Responses API ↔ Chat Completions 串流轉換器
-├── services/               80+ 個服務模組（combo、備援、配額、身分識別……）
-├── utils/                  串流輔助程式、TLS 客戶端、AWS SigV4、代理請求……
-└── mcp-server/             MCP 伺服器（3 種傳輸方式、30 個範圍、94 個工具）
-```
 
-### 4.1 `open-sse/handlers/`
-
-| 處理器                  | 用途                                                   |
-| ----------------------- | ------------------------------------------------------ |
-| `chatCore.ts`           | 主要聊天管線（快取、速率限制、combo 路由、執行器分派） |
-| `responsesHandler.ts`   | OpenAI Responses API 進入點                            |
-| `embeddings.ts`         | 嵌入向量                                               |
-| `imageGeneration.ts`    | 圖片生成                                               |
-| `audioSpeech.ts`        | 文字轉語音                                             |
-| `audioTranscription.ts` | 語音轉文字                                             |
-| `videoGeneration.ts`    | 影片生成                                               |
-| `musicGeneration.ts`    | 音樂生成                                               |
-| `rerank.ts`             | 重新排序                                               |
-| `moderations.ts`        | 內容審查                                               |
-| `search.ts`             | 網路搜尋                                               |
-| `sseParser.ts`          | SSE 事件解析器                                         |
-| `usageExtractor.ts`     | 從上游串流提取 Token 計數                              |
-| `responseSanitizer.ts`  | 移除提供者特定的雜訊                                   |
-| `responseTranslator.ts` | 提供者回應與翻譯層之間的黏合層                         |
-
-### 4.2 `open-sse/executors/`
-
-84 個提供者執行器，每個都繼承 `BaseExecutor`（`base.ts`）：
-
-`antigravity`、`azure-openai`、`blackbox-web`、`chatgpt-web`、`cliproxyapi`、
-`cloudflare-ai`、`codex`、`commandCode`、`cursor`、`default`、`devin-cli`、
-`muse-spark-web`、`nlpcloud`、`opencode`、`perplexity-web`、`petals`、
-`pollinations`、`puter`、`qoder`、`vertex`、`windsurf`，加上 `claudeIdentity.ts`
-（共用身分識別輔助程式）和 `index.ts`（註冊表）。
-
-> 注意：未列在此處的提供者由 `default.ts` 使用通用的
-> 與 OpenAI 相容的執行器處理。完整提供者目錄（268 個條目）位於
-> `src/shared/constants/providers.ts`。
-
-### 4.3 `open-sse/translator/`
-
-軸輻式翻譯（OpenAI 為軸心）。
-
-- **9 個請求翻譯器**（`translator/request/`）：
-  `antigravity-to-openai`、`claude-to-gemini`、`claude-to-openai`、
-  `gemini-to-openai`、`openai-responses`、`openai-to-claude`、
-  `openai-to-cursor`、`openai-to-gemini`、`openai-to-kiro`。
-- **9 個回應翻譯器**（`translator/response/`）：
-  `claude-to-openai`、`cursor-to-openai`、`gemini-to-claude`、`gemini-to-openai`、
-  `kiro-to-openai`、`openai-responses`、`openai-to-antigravity`、
-  `openai-to-claude`。
-- **9 個輔助程式**（`translator/helpers/`）：
-  `claudeHelper`、`geminiHelper`、`geminiToolsSanitizer`、`maxTokensHelper`、
-  `openaiHelper`、`responsesApiHelper`、`schemaCoercion`、`toolCallHelper`，加上
-  輔助程式測試。
-- **圖片輔助程式**（`translator/image/sizeMapper.ts`）。
-- 頂層：`bootstrap.ts`、`formats.ts`、`registry.ts`、`index.ts`。
-
-### 4.4 `open-sse/transformer/`
-
-- `responsesTransformer.ts` — 基於 `TransformStream` 的 Responses API ↔ Chat
-  Completions 轉換器（由 `responses/` 路由的 catch-all 使用）。
-
-### 4.5 `open-sse/services/`
-
-重點項目（完整列表位於 `open-sse/services/` 下）：
-
-| 面向             | 檔案                                                                                                                                                                                                                                              |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Combo 路由       | `combo.ts`（17 種策略）、`comboConfig.ts`、`comboMetrics.ts`、`comboManifestMetrics.ts`、`comboAgentMiddleware.ts`                                                                                                                                |
-| Auto Combo 引擎  | `autoCombo/` — `engine.ts`、`scoring.ts`、`taskFitness.ts`、`virtualFactory.ts`、`modePacks.ts`、`autoPrefix.ts`、`persistence.ts`、`providerDiversity.ts`、`providerRegistryAccessor.ts`、`routerStrategy.ts`、`selfHealing.ts`、`index.ts`      |
-| 韌性             | `accountFallback.ts`（冷卻 + 鎖定）、`errorClassifier.ts`、`emergencyFallback.ts`、`rateLimitManager.ts`、`rateLimitSemaphore.ts`、`accountSemaphore.ts`、`accountSelector.ts`                                                                    |
-| 配額             | `quotaMonitor.ts`、`quotaPreflight.ts`、`bailianQuotaFetcher.ts`、`codexQuotaFetcher.ts`、`deepseekQuotaFetcher.ts`、`openrouterQuotaFetcher.ts`、`openrouterFreeWindow.ts`、`crofUsageFetcher.ts`、`antigravityCredits.ts`                       |
-| 快取             | `reasoningCache.ts`、`searchCache.ts`、`signatureCache.ts`、`requestDedup.ts`                                                                                                                                                                     |
-| 路由智慧         | `intentClassifier.ts`、`taskAwareRouter.ts`、`backgroundTaskDetector.ts`、`volumeDetector.ts`、`wildcardRouter.ts`、`workflowFSM.ts`、`specificityDetector.ts`、`specificityRules.ts`、`specificityTypes.ts`                                      |
-| 模型處理         | `modelCapabilities.ts`、`modelDeprecation.ts`、`modelFamilyFallback.ts`、`modelStrip.ts`、`model.ts`、`provider.ts`、`providerRequestDefaults.ts`、`providerCostData.ts`、`payloadRules.ts`                                                       |
-| 壓縮             | `compression/` — 完整壓縮引擎接線                                                                                                                                                                                                                 |
-| Token + 工作階段 | `tokenRefresh.ts`、`sessionManager.ts`、`apiKeyRotator.ts`、`contextManager.ts`、`contextHandoff.ts`、`systemPrompt.ts`、`roleNormalizer.ts`、`responsesInputSanitizer.ts`、`toolSchemaSanitizer.ts`、`toolLimitDetector.ts`、`thinkingBudget.ts` |
-| 層級 / 清單      | `tierResolver.ts`、`tierConfig.ts`、`tierDefaults.json`、`tierTypes.ts`、`manifestAdapter.ts`                                                                                                                                                     |
-| IP / 網路        | `ipFilter.ts`、`webSearchFallback.ts`                                                                                                                                                                                                             |
-| 批次             | `batchProcessor.ts`                                                                                                                                                                                                                               |
-| 用量             | `usage.ts`                                                                                                                                                                                                                                        |
-
-### 4.6 `open-sse/mcp-server/`
-
-- **31 個已註冊工具**，在 `server.ts` 中接線（12 個定義於 `schemas/tools.ts` 範圍下，
-  5 個壓縮工具、3 個記憶體工具、4 個技能工具，加上透過 `advancedTools.ts` 新增的進階工具）。
-- **3 種傳輸方式**：stdio、HTTP Streamable、SSE。
-- **13 個範圍**，宣告於 `src/shared/constants/mcpScopes.ts`。
-- 稽核資料表：`mcp_tool_audit`（由 `audit.ts` 填充）。
-- 檔案：`server.ts`、`index.ts`、`httpTransport.ts`、`audit.ts`、`scopeEnforcement.ts`、
-  `runtimeHeartbeat.ts`、`descriptionCompressor.ts`、`schemas/{tools, a2a, audit, index}.ts`、
-  `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`，
-  加上 `__tests__/` 下的測試。
-- 參見 [MCP-SERVER.md](../frameworks/MCP-SERVER.md) 以取得完整工具目錄。
-
-### 4.7 `open-sse/config/`
-
-提供者註冊表（`providerRegistry.ts`、`providerModels.ts`、
-`providerHeaderProfiles.ts`）、各格式模型註冊表（`audioRegistry.ts`、
-`embeddingRegistry.ts`、`imageRegistry.ts`、`moderationRegistry.ts`、
-`musicRegistry.ts`、`rerankRegistry.ts`、`searchRegistry.ts`、`videoRegistry.ts`）、
-身分識別輔助程式（`codexIdentity.ts`、`codexInstructions.ts`、
-`anthropicHeaders.ts`、`antigravityUpstream.ts`、`antigravityModelAliases.ts`、
-`cliFingerprints.ts`、`toolCloaking.ts`、`defaultThinkingSignature.ts`）、
-憑證輔助程式（`credentialLoader.ts`、`codexClient.ts`），以及雲端
-配接器（`azureAi.ts`、`bedrock.ts`、`datarobot.ts`、`glmProvider.ts`、
-`maritalk.ts`、`oci.ts`、`petals.ts`、`runway.ts`、`sap.ts`、`watsonx.ts`、
-`ollamaModels.ts`、`errorConfig.ts`、`constants.ts`、`registryUtils.ts`）。
-
-### 4.8 `open-sse/utils/`
-
-串流基礎元件與提供者輔助程式：`stream.ts`、`streamHandler.ts`、
-`streamHelpers.ts`、`streamPayloadCollector.ts`、`streamReadiness.ts`、
-`sseHeartbeat.ts`、`proxyFetch.ts`、`proxyDispatcher.ts`、`tlsClient.ts`、
-`networkProxy.ts`、`awsSigV4.ts`、`cacheControlPolicy.ts`、
-`cursorChecksum.ts`、`cursorAgentProtobuf.ts`、`cursorVersionDetector.ts`、
-`comfyuiClient.ts`、`kieTask.ts`、`bypassHandler.ts`、`aiSdkCompat.ts`、
-`thinkTagParser.ts`、`urlSanitize.ts`、`usageTracking.ts`、`requestLogger.ts`、
-`progressTracker.ts`、`cors.ts`、`error.ts`、`logger.ts`、`sleep.ts`、
-`ollamaTransform.ts`。
+| Executor         | Provider                                   | Key Specializations                                                                                                 |
+| ---------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `base.ts`        | —                                          | Abstract base: URL building, headers, retry logic, credential refresh                                               |
+| `default.ts`     | Claude, Gemini, OpenAI, GLM, Kimi, MiniMax | Generic OAuth token refresh for standard providers                                                                  |
+| `antigravity.ts` | Google Cloud Code                          | Project/session ID generation, multi-URL fallback, custom retry parsing from error messages ("reset after 2h7m23s") |
+| `cursor.ts`      | Cursor IDE                                 | **Most complex**: SHA-256 checksum auth, Protobuf request encoding, binary EventStream → SSE response parsing       |
+| `codex.ts`       | OpenAI Codex                               | Injects system instructions, manages thinking levels, removes unsupported parameters                                |
+| `github.ts`      | GitHub Copilot                             | Dual token system (GitHub OAuth + Copilot token), VSCode header mimicking                                           |
+| `kiro.ts`        | AWS CodeWhisperer                          | AWS EventStream binary parsing, AMZN event frames, token estimation                                                 |
+| `index.ts`       | —                                          | Factory: maps provider name → executor class, with default fallback                                                 |
 
 ---
 
@@ -688,27 +613,107 @@ bin/
 
 > 來源：[diagrams/request-pipeline.mmd](../diagrams/request-pipeline.mmd)
 
-```
-客戶端請求
-  → /v1/chat/completions (route.ts)
-     CORS 預檢檢查
-     Zod 驗證（shared/validation/schemas.ts 中的 chatCompletionsSchema）
-     認證（extractApiKey + isValidApiKey 或 requireManagementAuth）
-     政策引擎（src/server/authz/pipeline.ts）
-     防護措施（PII 遮罩、提示注入防護、視覺橋接）
-  → handleChatCore() (open-sse/handlers/chatCore.ts)
-     快取檢查（語意 + 讀取快取）
-     速率限制（rateLimitManager、accountSemaphore）
-     Combo 路由（若模型解析為 combo）
-       comboResolver → 每個目標迴圈 → handleSingleModel()
-     translateRequest()  (open-sse/translator/request/*)
-     getExecutor(providerId).execute()  (open-sse/executors/*)
-       向上游發起請求 → 透過 accountFallback 重試/退避
-     translateResponse() (open-sse/translator/response/*)
-     SSE 串流或 JSON 回應
-     若為 Responses API：透過 open-sse/transformer/responsesTransformer.ts 的 TransformStream
-  → 合規稽核（src/lib/compliance/）
-  → 回應傳回客戶端
+| Route                                         | Methods         | Purpose                                                                               |
+| --------------------------------------------- | --------------- | ------------------------------------------------------------------------------------- |
+| `/api/provider-models`                        | GET/POST/DELETE | CRUD for custom models per provider                                                   |
+| `/api/models/catalog`                         | GET             | Aggregated catalog of all models (chat, embedding, image, custom) grouped by provider |
+| `/api/settings/proxy`                         | GET/PUT/DELETE  | Hierarchical outbound proxy configuration (`global/providers/combos/keys`)            |
+| `/api/settings/proxy/test`                    | POST            | Validates proxy connectivity and returns public IP/latency                            |
+| `/v1/providers/[provider]/chat/completions`   | POST            | Dedicated per-provider chat completions with model validation                         |
+| `/v1/providers/[provider]/embeddings`         | POST            | Dedicated per-provider embeddings with model validation                               |
+| `/v1/providers/[provider]/images/generations` | POST            | Dedicated per-provider image generation with model validation                         |
+| `/api/settings/ip-filter`                     | GET/PUT         | IP allowlist/blocklist management                                                     |
+| `/api/settings/thinking-budget`               | GET/PUT         | Reasoning token budget configuration (passthrough/auto/custom/adaptive)               |
+| `/api/settings/system-prompt`                 | GET/PUT         | Global system prompt injection for all requests                                       |
+| `/api/sessions`                               | GET             | Active session tracking and metrics                                                   |
+| `/api/rate-limits`                            | GET             | Per-account rate limit status                                                         |
+
+---
+
+## 5. Key Design Patterns
+
+### 5.1 Hub-and-Spoke Translation
+
+All formats translate through **OpenAI format as the hub**. Adding a new provider only requires writing **one pair** of translators (to/from OpenAI), not N pairs.
+
+### 5.2 Executor Strategy Pattern
+
+Each provider has a dedicated executor class inheriting from `BaseExecutor`. The factory in `executors/index.ts` selects the right one at runtime.
+
+### 5.3 Self-Registering Plugin System
+
+Translator modules register themselves on import via `register()`. Adding a new translator is just creating a file and importing it.
+
+### 5.4 Account Fallback with Exponential Backoff
+
+When a provider returns 429/401/500, the system can switch to the next account, applying exponential cooldowns (1s → 2s → 4s → max 2min).
+
+### 5.5 Combo Model Chains
+
+A "combo" groups multiple `provider/model` strings. If the first fails, fallback to the next automatically.
+
+### 5.6 Stateful Streaming Translation
+
+Response translation maintains state across SSE chunks (thinking block tracking, tool call accumulation, content block indexing) via the `initState()` mechanism.
+
+### 5.7 Usage Safety Buffer
+
+A 2000-token buffer is added to reported usage to prevent clients from hitting context window limits due to overhead from system prompts and format translation.
+
+---
+
+## 6. Supported Formats
+
+| Format                  | Direction       | Identifier         |
+| ----------------------- | --------------- | ------------------ |
+| OpenAI Chat Completions | source + target | `openai`           |
+| OpenAI Responses API    | source + target | `openai-responses` |
+| Anthropic Claude        | source + target | `claude`           |
+| Google Gemini           | source + target | `gemini`           |
+| Antigravity             | source + target | `antigravity`      |
+| AWS Kiro                | target only     | `kiro`             |
+| Cursor                  | target only     | `cursor`           |
+
+---
+
+## 7. Supported Providers
+
+| Provider                 | Auth Method            | Executor    | Key Notes                                     |
+| ------------------------ | ---------------------- | ----------- | --------------------------------------------- |
+| Anthropic Claude         | API key or OAuth       | Default     | Uses `x-api-key` header                       |
+| Google Gemini            | API key or OAuth       | Default     | Uses `x-goog-api-key` header                  |
+| Antigravity              | OAuth                  | Antigravity | Multi-URL fallback, custom retry parsing      |
+| OpenAI                   | API key                | Default     | Standard Bearer auth                          |
+| Codex                    | OAuth                  | Codex       | Injects system instructions, manages thinking |
+| GitHub Copilot           | OAuth + Copilot token  | Github      | Dual token, VSCode header mimicking           |
+| Kiro (AWS)               | AWS SSO OIDC or Social | Kiro        | Binary EventStream parsing                    |
+| Cursor IDE               | Checksum auth          | Cursor      | Protobuf encoding, SHA-256 checksums          |
+| Qwen                     | OAuth                  | Default     | Standard auth                                 |
+| Qoder                    | OAuth (Basic + Bearer) | Default     | Dual auth header                              |
+| OpenRouter               | API key                | Default     | Standard Bearer auth                          |
+| GLM, Kimi, MiniMax       | API key                | Default     | Claude-compatible, use `x-api-key`            |
+| `openai-compatible-*`    | API key                | Default     | Dynamic: any OpenAI-compatible endpoint       |
+| `anthropic-compatible-*` | API key                | Default     | Dynamic: any Claude-compatible endpoint       |
+
+---
+
+## 8. Data Flow Summary
+
+### Streaming Request
+
+```mermaid
+flowchart LR
+    A["Client"] --> B["detectFormat()"]
+    B --> C["translateRequest()\nsource → OpenAI → target"]
+    C --> D["Executor\nbuildUrl + buildHeaders"]
+    D --> E["fetch(providerURL)"]
+    E --> F["createSSEStream()\nTRANSLATE mode"]
+    F --> G["parseSSELine()"]
+    G --> H["translateResponse()\ntarget → OpenAI → source"]
+    H --> I["extractUsage()\n+ addBuffer"]
+    I --> J["formatSSE()"]
+    J --> K["Client receives\ntranslated SSE"]
+    K --> L["logUsage()\nsaveRequestUsage()"]
 ```
 
 ### 韌性執行時期狀態（三種機制）

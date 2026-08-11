@@ -17,7 +17,7 @@ import {
 
 // ---------- Versions ------------------------------------------------------
 
-export const CLAUDE_CODE_VERSION = CLAUDE_CODE_CLIENT_VERSION;
+export const CLAUDE_CODE_VERSION = "2.1.195";
 /** Bundled @anthropic-ai/sdk version for the pinned CLI release. */
 export const CLAUDE_CODE_STAINLESS_VERSION = CLAUDE_CODE_SDK_PACKAGE_VERSION;
 

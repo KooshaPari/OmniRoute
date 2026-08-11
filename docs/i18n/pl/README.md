@@ -137,7 +137,75 @@
 
 </div>
 
-<img src="../../../docs/diagrams/why-pain-fix.svg" width="100%" alt="Dlaczego OmniRoute — koniec z żonglowaniem 10 panelami, niedziałającymi kluczami API i niespodziewanymi rachunkami. Dziesięć codziennych problemów vs rozwiązania: wygasające niewykorzystane limity → maksymalizacja subskrypcji; limity zapytań w trakcie kodowania → 4-poziomowe automatyczne przełączanie (Subskrypcja → API → Tanie → Darmowe); wyniki narzędzi marnujące tokeny → kompresja RTK + Caveman (15–95%); drogie API → routing zoptymalizowany pod kątem kosztów; każde narzędzie z osobną konfiguracją → jeden punkt końcowy, jeden panel; blokowanie AI → 3-poziomowe proxy + maskowanie TLS; niedziałające klucze → 3-warstwowa odporność (wyłączniki awaryjne, schładzanie kluczy, blokada modelu); zespół dzielący jedną subskrypcję → pule kluczy z limitami sprawiedliwego podziału (fair-share); prompty przesyłane przez zewnętrzną chmurę → lokalne uruchomienie z kluczami szyfrowanymi AES-256-GCM; brak widoczności wydatków → analityka na żywo (użycie, limit, oszczędności, opóźnienie p95)."/>
+  <table>
+    <tr>
+      <td align="center" width="110">
+        <a href="https://github.com/openclaw/openclaw">
+          <img src="./public/providers/openclaw.png" alt="OpenClaw" width="48"/><br/>
+          <b>OpenClaw</b>
+        </a><br/>
+        <sub>⭐ 205K</sub>
+      </td>
+      <td align="center" width="110">
+        <a href="https://github.com/HKUDS/nanobot">
+          <img src="./public/providers/nanobot.png" alt="NanoBot" width="48"/><br/>
+          <b>NanoBot</b>
+        </a><br/>
+        <sub>⭐ 20.9K</sub>
+      </td>
+      <td align="center" width="110">
+        <a href="https://github.com/sipeed/picoclaw">
+          <img src="./public/providers/picoclaw.jpg" alt="PicoClaw" width="48"/><br/>
+          <b>PicoClaw</b>
+        </a><br/>
+        <sub>⭐ 14.6K</sub>
+      </td>
+      <td align="center" width="110">
+        <a href="https://github.com/zeroclaw-labs/zeroclaw">
+          <img src="./public/providers/zeroclaw.png" alt="ZeroClaw" width="48"/><br/>
+          <b>ZeroClaw</b>
+        </a><br/>
+        <sub>⭐ 9.9K</sub>
+      </td>
+      <td align="center" width="110">
+        <a href="https://github.com/nearai/ironclaw">
+          <img src="./public/providers/ironclaw.png" alt="IronClaw" width="48"/><br/>
+          <b>IronClaw</b>
+        </a><br/>
+        <sub>⭐ 2.1K</sub>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" width="110">
+        <a href="https://github.com/anomalyco/opencode">
+          <img src="./public/providers/opencode.svg" alt="OpenCode" width="48"/><br/>
+          <b>OpenCode</b>
+        </a><br/>
+        <sub>⭐ 106K</sub>
+      </td>
+      <td align="center" width="110">
+        <a href="https://github.com/openai/codex">
+          <img src="./public/providers/codex.svg" alt="Codex CLI" width="48"/><br/>
+          <b>Codex CLI</b>
+        </a><br/>
+        <sub>⭐ 60.8K</sub>
+      </td>
+      <td align="center" width="110">
+        <a href="https://github.com/anthropics/claude-code">
+          <img src="./public/providers/claude.svg" alt="Claude Code" width="48"/><br/>
+          <b>Claude Code</b>
+        </a><br/>
+        <sub>⭐ 67.3K</sub>
+      </td>
+      <td align="center" width="110">
+        <a href="https://github.com/Kilo-Org/kilocode">
+          <img src="./public/providers/kilocode.svg" alt="Kilo Code" width="48"/><br/>
+          <b>Kilo Code</b>
+        </a><br/>
+        <sub>⭐ 15.5K</sub>
+      </td>
+    </tr>
+  </table>
 
 <div align="center">
 
@@ -151,7 +219,9 @@
 
 # 🎯 Komba (Combos) — Flagowa funkcja
 
-</div>
+- ✅ **Maximize subscriptions** - Track quota, use every bit before reset
+- ✅ **Auto fallback** - Subscription → API Key → Cheap → Free, zero downtime
+- ✅ **Multi-account** - Round-robin between accounts per provider
 
 > **Kombo** to łańcuch modeli, po których OmniRoute nawiguje **automatycznie**. Wybucha limit, dostawca ulega awarii lub koszty gwałtownie rosną — kombo bezgłośnie przełącza się na kolejny model. **To właśnie sprawia, że OmniRoute jest niezawodny.** 🛡️
 
@@ -443,12 +513,31 @@ omniroute doctor        # diagnozuj dostawców, porty, natywne zależności
 OmniRoute na serwerze? Steruj nim ze swojego laptopa za pomocą **tego samego CLI**. Zaloguj się raz
 za pomocą tokenu dostępu o ograniczonym zakresie; każde kolejne polecenie będzie skierowane do zdalnej maszyny.
 
-```bash
-omniroute connect 192.168.0.15            # hasło → token o ograniczonym zakresie, zapisany jako kontekst
-omniroute models list                     # ← działa na ZDALNYM serwerze
-omniroute configure codex                 # ← wybiera zdalny model, zapisuje lokalny profil Codex
-omniroute tokens create --name ci --scope read   # generuj węższe tokeny dla innych maszyn
-omniroute contexts use default            # ← przełącz z powrotem na serwer lokalny
+## 🔄 How It Works
+
+```
+┌─────────────┐
+│  Your CLI   │  (Claude Code, Codex, OpenClaw, Cursor, Cline...)
+│   Tool      │
+└──────┬──────┘
+       │ http://localhost:20128/v1
+       ↓
+┌─────────────────────────────────────────┐
+│           OmniRoute (Smart Router)        │
+│  • Format translation (OpenAI ↔ Claude) │
+│  • Quota tracking + Embeddings + Images │
+│  • Auto token refresh                   │
+└──────┬──────────────────────────────────┘
+       │
+       ├─→ [Tier 1: SUBSCRIPTION] Claude Code, Codex
+       │   ↓ quota exhausted
+       ├─→ [Tier 2: API KEY] DeepSeek, Groq, xAI, Mistral, NVIDIA NIM, etc.
+       │   ↓ budget limit
+       ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
+       │   ↓ budget limit
+       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
+
+Result: Never stop coding, minimal cost
 ```
 
 Tokeny mają zakresy `read` / `write` / `admin`; trasy uruchamiające procesy pozostają ograniczone do pętli zwrotnej (loopback-only).
@@ -524,7 +613,10 @@ Bloki kodu, adresy URL i dane strukturyzowane są **zawsze zachowywane** z dokł
 >
 > **Ta sama odpowiedź. 72% mniej tokenów. Zero utraty dokładności. ✅**
 
-**Przykład w PT-BR — tryb [Troglodita](https://github.com/leninejunior/troglodita):**
+- **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
+- **Free-Only Combos** — Chain `if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/month with zero downtime
+- **NVIDIA NIM Free Access** — ~40 RPM dev-forever free access to 70+ models at build.nvidia.com (transitioning from credits to pure rate limits)
+- **Cost Optimized Strategy** — Routing strategy that automatically chooses the cheapest available provider
 
 > **Antes (42 tokens):** _"O problema é que o componente está re-renderizando porque uma nova referência de objeto está sendo criada em cada ciclo de renderização. Eu recomendaria usar useMemo."_
 >
@@ -568,6 +660,7 @@ AI providers can become unstable, return 5xx errors, or hit temporary rate limit
 
 <details>
 <summary><b>🔧 7. "Configuring each AI tool is tedious and repetitive"</b></summary>
+
 
 **How OmniRoute solves it:**
 
@@ -932,7 +1025,10 @@ range    = 78.4 – 94.6%
 
 Bloki kodu, adresy URL, JSON i dane strukturyzowane są **zawsze chronione** przez silnik zachowania integralności.
 
-### 🎚️ Poza silnikami — style wyjściowe, pokrętło adaptacyjne i kontrola per żądanie
+```txt
+Combo: "free-forever"
+  1. if/kimi-k2-thinking       (unlimited free)
+  2. qw/qwen3-coder-plus       (unlimited free)
 
 Opisane wyżej silniki zmniejszają dane wejściowe. Trzy dodatkowe warstwy kształtują jak, kiedy i co trafia na wyjście:
 
@@ -955,7 +1051,22 @@ Wyzwalaj automatycznie według progu tokenów, włącz pokrętło adaptacyjne, p
 
 </div>
 
-**1) Zainstaluj i uruchom**
+> Setup AI coding in minutes at **$0/month**. Connect these free accounts and use the built-in **Free Stack** combo.
+
+| Step | Action                                             | Providers Unlocked                                                 |
+| ---- | -------------------------------------------------- | ------------------------------------------------------------------ |
+| 1    | Connect **Kiro** (AWS Builder ID OAuth)            | Claude Sonnet 4.5, Haiku 4.5 — **unlimited**                       |
+| 2    | Connect **Qoder** (Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **unlimited** |
+| 3    | Connect **Qwen** (Device Code)                     | qwen3-coder-plus, qwen3-coder-flash... — **unlimited**             |
+| 4    | `/dashboard/combos` → **Free Stack ($0)** template | Round-robin all free providers automatically                       |
+
+**Point any IDE/CLI to:** `http://localhost:20128/v1` · API Key: `any-string` · Done.
+
+> **Optional extra coverage (also free):** Groq API key (30 RPM free), NVIDIA NIM (40 RPM free, 70+ models), Cerebras (1M tok/day), LongCat API key (50M tokens/day!), Cloudflare Workers AI (10K Neurons/day, 50+ models).
+
+## Szybki start
+
+### 1) Install and run
 
 ```bash
 npm install -g omniroute
@@ -980,6 +1091,7 @@ Base URL: http://localhost:20128/v1
 API Key:  [skopiuj z Panel → Endpoints]
 Model:    auto            (inteligentny routing bez konfiguracji — lub dowolny dostawca/model)
 ```
+
 
 ### 4) Enable and validate protocols (v2.0)
 
@@ -1347,6 +1459,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `qwen3-coder-next`  | `qw/`  | **Unlimited** | No reported cap     |
 | `vision-model`      | `qw/`  | **Unlimited** | Multimodal (images) |
 
+
 ### ⚫ NVIDIA NIM (Free API Key — build.nvidia.com)
 
 | Tier       | Daily Limit  | Rate Limit  | Notes                                                  |
@@ -1499,14 +1612,14 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
 ### 🚀 Previous v2.0.9+ — Playground, CLI Fingerprints & ACP
 
-| Feature                                 | What It Does                                                                                                                                                                                                                            |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎮 **Model Playground**                 | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                                                                                                                  |
-| 🔏 **CLI Fingerprint Matching**         | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved**                                                                                           |
-| 🤖 **ACP Agents Dashboard**             | Debug › Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool. **OpenCode** users get a "Download opencode.json" button that auto-generates a ready-to-use config with all available models. |
-| 🔧 **Custom Model `apiFormat` Routing** | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                                                                                                                         |
-| 🏢 **Codex Workspace Isolation**        | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                             |
-| 🔄 **Electron Auto-Update**             | Desktop app checks for updates + auto-install on restart                                                                                                                                                                                |
+| Feature                                    | What It Does                                                                                                                                                                                                                            |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🎮 **Model Playground**                    | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                                                                                                                  |
+| 🔏 **CLI Fingerprint Matching**            | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved**                                                                                           |
+| 🤖 **ACP Agents Dashboard**                | Debug › Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool. **OpenCode** users get a "Download opencode.json" button that auto-generates a ready-to-use config with all available models. |
+| 🔧 **Custom Model `apiFormat` Routing**    | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                                                                                                                         |
+| 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                             |
+| 🔄 **Electron Auto-Update**                | Desktop app checks for updates + auto-install on restart                                                                                                                                                                                |
 
 ### 🤖 Agent & Protocol Operations (v2.0)
 
@@ -1712,6 +1825,8 @@ Scenarios:
 - `5h OFF` + `Weekly ON`: only weekly usage can block the account.
 - `5h ON` + `Weekly OFF`: only 5-hour usage can block the account.
 - `resetAt` passed: account re-enters rotation automatically (no manual re-enable).
+
+
 
 ### GitHub Copilot
 
@@ -2054,6 +2169,8 @@ opencode
 
 > **⚠️ Important for users running OmniRoute on a VPS, Docker, or any remote server**
 
+
+
 The OAuth credentials bundled in OmniRoute are registered **for `localhost` only**. When you access OmniRoute on a remote server (e.g. `https://omniroute.myserver.com`), Google rejects the authentication with:
 
 ```
@@ -2113,7 +2230,8 @@ npm run dev
 devbox run npm run dev
 ```
 
-📖 [Podręcznik Docker](../../../docs/guides/DOCKER_GUIDE.md) — Profile Compose, HTTPS przez Caddy, tunele Cloudflare.
+**7. Try connecting again**
+
 
 Google will now redirect correctly to `https://your-server.com/callback`.
 
@@ -2132,6 +2250,95 @@ If you don't want to set up your own credentials right now, you can still use th
 > This works because the authorization code in the URL is valid regardless of whether the redirect page loaded.
 
 ---
+
+<details>
+<summary><b>🇧🇷 Versão em Português</b></summary>
+
+
+
+As credenciais OAuth embutidas no OmniRoute estão cadastradas **apenas para `localhost`**. Quando você acessa o OmniRoute em um servidor remoto (ex: `https://omniroute.meuservidor.com`), o Google rejeita a autenticação com:
+
+```
+Error 400: redirect_uri_mismatch
+```
+
+#### Solução: Configure suas próprias credenciais OAuth
+
+Você precisa criar um **OAuth 2.0 Client ID** no Google Cloud Console com a URI do seu servidor.
+
+#### Passo a passo
+
+**1. Acesse o Google Cloud Console**
+
+Abra: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
+
+**2. Crie um novo OAuth 2.0 Client ID**
+
+- Clique em **"+ Create Credentials"** → **"OAuth client ID"**
+- Tipo de aplicativo: **"Web application"**
+- Nome: escolha qualquer nome (ex: `OmniRoute Remote`)
+
+**3. Adicione as Authorized Redirect URIs**
+
+No campo **"Authorized redirect URIs"**, adicione:
+
+```
+https://seu-servidor.com/callback
+```
+
+> Substitua `seu-servidor.com` pelo domínio ou IP do seu servidor (inclua a porta se necessário, ex: `http://45.33.32.156:20128/callback`).
+
+**4. Salve e copie as credenciais**
+
+Após criar, o Google mostrará o **Client ID** e o **Client Secret**.
+
+**5. Configure as variáveis de ambiente**
+
+No seu `.env` (ou nas variáveis de ambiente do Docker):
+
+```bash
+# Para Antigravity:
+ANTIGRAVITY_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
+ANTIGRAVITY_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
+
+GEMINI_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
+GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
+```
+
+**6. Reinicie o OmniRoute**
+
+```bash
+# Se usando npm:
+npm run dev
+
+# Se usando Docker:
+docker restart omniroute
+```
+
+**7. Tente conectar novamente**
+
+
+Agora o Google redirecionará corretamente para `https://seu-servidor.com/callback` e a autenticação funcionará.
+
+---
+
+#### Workaround temporário (sem configurar credenciais próprias)
+
+Se não quiser criar credenciais próprias agora, ainda é possível usar o fluxo **manual de URL**:
+
+1. O OmniRoute abrirá a URL de autorização do Google
+2. Após você autorizar, o Google tentará redirecionar para `localhost` (que falha no servidor remoto)
+3. **Copie a URL completa** da barra de endereço do seu browser (mesmo que a página não carregue)
+4. Cole essa URL no campo que aparece no modal de conexão do OmniRoute
+5. Clique em **"Connect"**
+
+> Este workaround funciona porque o código de autorização na URL é válido independente do redirect ter carregado ou não.
+
+</details>
+
+---
+
+</details>
 
 ## 🛠️ Tech Stack
 

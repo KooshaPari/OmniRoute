@@ -1,7 +1,7 @@
 ---
 title: "OpenCode Integration"
 version: 3.8.40
-lastUpdated: 2027-07-27
+lastUpdated: 2026-06-28
 ---
 
 # OpenCode Integration

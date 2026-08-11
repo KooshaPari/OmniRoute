@@ -347,7 +347,9 @@ export default function ConnectionsHeaderToolbar({
                     icon="upload_file"
                     onClick={() => gateConnectionFlow(onOpenImportClaude)}
                   >
-                    {providerText(t, "importClaudeAuth", "Import auth")}
+                    {typeof (t as any).has === "function" && (t as any).has("importClaudeAuth")
+                      ? t("importClaudeAuth")
+                      : "Import auth"}
                   </Button>
                 )}
                 {providerId === "grok-cli" && (

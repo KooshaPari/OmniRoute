@@ -101,18 +101,18 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
       }
     },
     "url": {
@@ -340,18 +340,18 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
       }
     },
     "url": {
@@ -834,7 +834,7 @@
         "Anthropic-Dangerous-Direct-Browser-Access": "true",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.219 (external, cli)",
+        "User-Agent": "claude-cli/2.1.195 (external, cli)",
         "X-App": "cli",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Helper-Method": "stream",
@@ -852,7 +852,7 @@
         "Anthropic-Dangerous-Direct-Browser-Access": "true",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.219 (external, cli)",
+        "User-Agent": "claude-cli/2.1.195 (external, cli)",
         "X-App": "cli",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Helper-Method": "stream",
@@ -871,7 +871,7 @@
         "Anthropic-Dangerous-Direct-Browser-Access": "true",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.219 (external, cli)",
+        "User-Agent": "claude-cli/2.1.195 (external, cli)",
         "X-App": "cli",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Helper-Method": "stream",
@@ -4180,11 +4180,11 @@
         "Connection": "keep-alive",
         "Content-Type": "application/json",
         "Sec-Fetch-Mode": "cors",
-        "User-Agent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
+        "User-Agent": "QwenCode/0.19.3 (linux; x64)",
         "X-Dashscope-AuthType": "qwen-oauth",
         "X-Dashscope-CacheControl": "enable",
-        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
-        "X-Stainless-Arch": "<ARCH>",
+        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (linux; x64)",
+        "X-Stainless-Arch": "x64",
         "X-Stainless-Lang": "js",
         "X-Stainless-Os": "<OS>",
         "X-Stainless-Package-Version": "5.11.0",
@@ -4197,11 +4197,11 @@
         "Connection": "keep-alive",
         "Content-Type": "application/json",
         "Sec-Fetch-Mode": "cors",
-        "User-Agent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
+        "User-Agent": "QwenCode/0.19.3 (linux; x64)",
         "X-Dashscope-AuthType": "qwen-oauth",
         "X-Dashscope-CacheControl": "enable",
-        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
-        "X-Stainless-Arch": "<ARCH>",
+        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (linux; x64)",
+        "X-Stainless-Arch": "x64",
         "X-Stainless-Lang": "js",
         "X-Stainless-Os": "<OS>",
         "X-Stainless-Package-Version": "5.11.0",
@@ -4215,11 +4215,11 @@
         "Connection": "keep-alive",
         "Content-Type": "application/json",
         "Sec-Fetch-Mode": "cors",
-        "User-Agent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
+        "User-Agent": "QwenCode/0.19.3 (linux; x64)",
         "X-Dashscope-AuthType": "qwen-oauth",
         "X-Dashscope-CacheControl": "enable",
-        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
-        "X-Stainless-Arch": "<ARCH>",
+        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (linux; x64)",
+        "X-Stainless-Arch": "x64",
         "X-Stainless-Lang": "js",
         "X-Stainless-Os": "<OS>",
         "X-Stainless-Package-Version": "5.11.0",

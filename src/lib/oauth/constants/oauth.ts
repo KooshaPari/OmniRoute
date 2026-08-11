@@ -9,12 +9,6 @@ import {
   GITHUB_COPILOT_CHAT_USER_AGENT,
   GITHUB_COPILOT_EDITOR_VERSION,
 } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
-import {
-  GROK_BUILD_DEVICE_CODE_URL,
-  GROK_BUILD_OAUTH_ISSUER,
-  GROK_BUILD_OAUTH_SCOPES,
-  GROK_BUILD_TOKEN_URL,
-} from "@omniroute/open-sse/config/grokBuild.ts";
 import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds.ts";
 import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "../gitlab";
 
@@ -71,6 +65,15 @@ export const CODEX_CONFIG = {
     // the only known tool that sustains multiple Codex OAuth accounts.
     prompt: "login",
   },
+};
+
+// Qwen OAuth Configuration (Device Code Flow with PKCE)
+export const QWEN_CONFIG = {
+  clientId: resolvePublicCred("qwen_id", "QWEN_OAUTH_CLIENT_ID"),
+  deviceCodeUrl: "https://qwen.ai/api/v1/oauth2/device/code",
+  tokenUrl: "https://qwen.ai/api/v1/oauth2/token",
+  scope: "openid profile email model.completion",
+  codeChallengeMethod: "S256",
 };
 
 // Qoder OAuth Configuration (Authorization Code)
@@ -486,6 +489,7 @@ export const PROVIDERS = {
   CLAUDE: "claude",
   CODEX: "codex",
   GEMINI: "gemini",
+  QWEN: "qwen",
   QODER: "qoder",
   ANTIGRAVITY: "antigravity",
   AGY: "agy",

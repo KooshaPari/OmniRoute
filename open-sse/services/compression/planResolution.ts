@@ -76,28 +76,12 @@ export function formatCompressionAnnotation(stats: CompressionStats): string {
 
   const counts = new Map<string, number>();
   for (const rule of rules) {
-    const safeRule = rule.replace(NON_ASCII_HEADER_VALUE_CHARS, "?");
-    counts.set(safeRule, (counts.get(safeRule) ?? 0) + 1);
+    counts.set(rule, (counts.get(rule) ?? 0) + 1);
   }
 
   const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-  const prefix = `tokens=${stats.originalTokens}->${stats.compressedTokens}; rules: `;
-  const suffix = ", ...";
-  const parts: string[] = [];
-  let bytes = utf8ByteLength(prefix);
-  for (const [name, n] of sorted) {
-    const part = `${name}x${n}`;
-    const separator = parts.length > 0 ? ", " : "";
-    const partBytes = utf8ByteLength(separator + part);
-    if (bytes + partBytes > MAX_COMPRESSION_ANNOTATION_BYTES - utf8ByteLength(suffix)) {
-      if (parts.length === 0) return "";
-      return `${prefix}${parts.join(", ")}${suffix}`;
-    }
-    parts.push(part);
-    bytes += partBytes;
-  }
-  const agg = parts.join(", ");
-  return `${prefix}${agg}`;
+  const agg = sorted.map(([name, n]) => `${name}x${n}`).join(", ");
+  return `tokens=${stats.originalTokens}->${stats.compressedTokens}; rules: ${agg}`;
 }
 
 /**

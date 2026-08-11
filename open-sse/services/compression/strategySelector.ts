@@ -903,6 +903,14 @@ function runStackedCompression(
         recordStepFailure(acc, step.engine, err, ctx);
         continue;
       }
+      mergeStackStep(acc, step.engine, result);
+      if (
+        decideStep(result, bailout).advance &&
+        gateAdvance(result, currentBody, fidelityGate, acc, step.engine)
+      ) {
+        currentBody = result.body;
+        compressed = true;
+      }
     } else {
       result = engine.apply(currentBody, buildStepOptions(step, options));
     }
@@ -911,6 +919,24 @@ function runStackedCompression(
     if (committed.advanced) compressed = true;
     // The pre-existing bail-out path did not stream per-step; everything else does.
     if (!bailout?.enabled) reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
+  }
+
+  // Hard-budget post-pass (#17): runs after all engines, before finalize.
+  if (options?.config?.targetTokens != null || options?.config?.targetRatio != null) {
+    const hbResult = applyHardBudget(currentBody, {
+      targetTokens: options.config.targetTokens,
+      targetRatio: options.config.targetRatio,
+    });
+    if (hbResult.compressed) {
+      mergeStackStep(acc, "hard-budget", hbResult);
+      currentBody = hbResult.body;
+      compressed = true;
+    } else {
+      // No unit could be dropped (e.g. every unit is preserve-guarded): surface the
+      // unreachable-budget validationWarnings instead of dropping them silently (#17 fix #3).
+      // mergeStackStep is gated on `compressed`, so propagate the warnings here directly.
+      hbResult.stats?.validationWarnings?.forEach((w) => acc.validationWarnings.add(w));
+    }
   }
 
   // Hard-budget post-pass (#17): runs after all engines, before finalize.
@@ -1007,6 +1033,14 @@ async function runStackedCompressionAsync(
         recordStepFailure(acc, step.engine, err, ctx);
         continue;
       }
+      mergeStackStep(acc, step.engine, result);
+      if (
+        decideStep(result, bailout).advance &&
+        gateAdvance(result, currentBody, fidelityGate, acc, step.engine)
+      ) {
+        currentBody = result.body;
+        compressed = true;
+      }
     } else {
       result = engine.applyAsync
         ? await engine.applyAsync(currentBody, stepOptions)
@@ -1016,6 +1050,24 @@ async function runStackedCompressionAsync(
     currentBody = committed.body;
     if (committed.advanced) compressed = true;
     if (!bailout?.enabled) reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
+  }
+
+  // Hard-budget post-pass (#17): runs after all engines, before finalize.
+  if (options?.config?.targetTokens != null || options?.config?.targetRatio != null) {
+    const hbResult = applyHardBudget(currentBody, {
+      targetTokens: options.config.targetTokens,
+      targetRatio: options.config.targetRatio,
+    });
+    if (hbResult.compressed) {
+      mergeStackStep(acc, "hard-budget", hbResult);
+      currentBody = hbResult.body;
+      compressed = true;
+    } else {
+      // No unit could be dropped (e.g. every unit is preserve-guarded): surface the
+      // unreachable-budget validationWarnings instead of dropping them silently (#17 fix #3).
+      // mergeStackStep is gated on `compressed`, so propagate the warnings here directly.
+      hbResult.stats?.validationWarnings?.forEach((w) => acc.validationWarnings.add(w));
+    }
   }
 
   // Hard-budget post-pass (#17): runs after all engines, before finalize.

@@ -565,67 +565,64 @@ export default function ProviderDetailPageClient() {
               t={t}
             />
           ) : (
-            <>
-              <CoolingConnectionsPanel connections={connections} />
-              <ConnectionsListPanel
-                connections={connections}
-                providerId={providerId}
-                isCcCompatible={isCcCompatible}
-                isOAuth={isOAuth}
-                codexGlobalServiceMode={codexGlobalServiceMode}
-                selectedIds={selectedIds}
-                batchUpdating={batchUpdating}
-                batchRetesting={batchRetesting}
-                batchDeleting={batchDeleting}
-                batchTesting={batchTesting}
-                retestingId={retestingId}
-                refreshingId={refreshingId}
-                distributingProxies={distributingProxies}
-                healthFilter={healthFilter}
-                page={page}
-                PAGE_SIZE={PAGE_SIZE}
-                connProxyMap={connProxyMap}
-                proxyConfig={proxyConfig}
-                applyingCodexAuthId={applyingCodexAuthId}
-                exportingCodexAuthId={exportingCodexAuthId}
-                applyingClaudeAuthId={applyingClaudeAuthId}
-                exportingClaudeAuthId={exportingClaudeAuthId}
-                emailsVisible={emailsVisible}
-                setSelectedIds={setSelectedIds}
-                setPage={setPage}
-                setHealthFilter={setHealthFilter}
-                handleDelete={handleDelete}
-                handleUpdateConnectionStatus={handleUpdateConnectionStatus}
-                handleToggleRateLimit={handleToggleRateLimit}
-                handleToggleClaudeExtraUsage={handleToggleClaudeExtraUsage}
-                handleToggleCliproxyapiMode={handleToggleCliproxyapiMode}
-                handleToggleCodexLimit={handleToggleCodexLimit}
-                handleToggleProxyEnabled={handleToggleProxyEnabled}
-                handleTogglePerKeyProxyEnabled={handleTogglePerKeyProxyEnabled}
-                handleRetestConnection={handleRetestConnection}
-                handleRefreshToken={handleRefreshToken}
-                handleSwapPriority={handleSwapPriority}
-                handleBatchSetActive={handleBatchSetActive}
-                handleBatchDeleteOpenModal={handleBatchDeleteOpenModal}
-                handleBatchRetest={handleBatchRetest}
-                handleToggleSelectOne={handleToggleSelectOne}
-                handleToggleSelectAll={handleToggleSelectAll}
-                handleDistributeProxies={handleDistributeProxies}
-                cpaProviderEnabled={cpaProviderEnabled}
-                onOpenEditModal={(conn) => {
-                  setSelectedConnection(conn);
-                  setShowEditModal(true);
-                }}
-                onOpenOAuth={(conn) => gateConnectionFlow(() => setShowOAuthModal(true, conn))}
-                onSetProxyTarget={setProxyTarget}
-                onOpenApplyCodexModal={setApplyCodexModalConnectionId}
-                onExportCodexAuthFile={handleExportCodexAuthFile}
-                onOpenApplyClaudeModal={setApplyClaudeModalConnectionId}
-                onExportClaudeAuthFile={handleExportClaudeAuthFile}
-                gateConnectionFlow={gateConnectionFlow}
-                t={t}
-              />
-            </>
+            <ConnectionsListPanel
+              connections={connections}
+              providerId={providerId}
+              isCcCompatible={isCcCompatible}
+              isOAuth={isOAuth}
+              codexGlobalServiceMode={codexGlobalServiceMode}
+              selectedIds={selectedIds}
+              batchUpdating={batchUpdating}
+              batchRetesting={batchRetesting}
+              batchDeleting={batchDeleting}
+              batchTesting={batchTesting}
+              retestingId={retestingId}
+              refreshingId={refreshingId}
+              distributingProxies={distributingProxies}
+              healthFilter={healthFilter}
+              page={page}
+              PAGE_SIZE={PAGE_SIZE}
+              connProxyMap={connProxyMap}
+              proxyConfig={proxyConfig}
+              applyingCodexAuthId={applyingCodexAuthId}
+              exportingCodexAuthId={exportingCodexAuthId}
+              applyingClaudeAuthId={applyingClaudeAuthId}
+              exportingClaudeAuthId={exportingClaudeAuthId}
+              emailsVisible={emailsVisible}
+              setSelectedIds={setSelectedIds}
+              setPage={setPage}
+              setHealthFilter={setHealthFilter}
+              handleDelete={handleDelete}
+              handleUpdateConnectionStatus={handleUpdateConnectionStatus}
+              handleToggleRateLimit={handleToggleRateLimit}
+              handleToggleClaudeExtraUsage={handleToggleClaudeExtraUsage}
+              handleToggleCliproxyapiMode={handleToggleCliproxyapiMode}
+              handleToggleCodexLimit={handleToggleCodexLimit}
+              handleToggleProxyEnabled={handleToggleProxyEnabled}
+              handleTogglePerKeyProxyEnabled={handleTogglePerKeyProxyEnabled}
+              handleRetestConnection={handleRetestConnection}
+              handleRefreshToken={handleRefreshToken}
+              handleSwapPriority={handleSwapPriority}
+              handleBatchSetActive={handleBatchSetActive}
+              handleBatchDeleteOpenModal={handleBatchDeleteOpenModal}
+              handleBatchRetest={handleBatchRetest}
+              handleToggleSelectOne={handleToggleSelectOne}
+              handleToggleSelectAll={handleToggleSelectAll}
+              handleDistributeProxies={handleDistributeProxies}
+              cpaProviderEnabled={cpaProviderEnabled}
+              onOpenEditModal={(conn) => {
+                setSelectedConnection(conn);
+                setShowEditModal(true);
+              }}
+              onOpenOAuth={(conn) => gateConnectionFlow(() => setShowOAuthModal(true, conn))}
+              onSetProxyTarget={setProxyTarget}
+              onOpenApplyCodexModal={setApplyCodexModalConnectionId}
+              onExportCodexAuthFile={handleExportCodexAuthFile}
+              onOpenApplyClaudeModal={setApplyClaudeModalConnectionId}
+              onExportClaudeAuthFile={handleExportClaudeAuthFile}
+              gateConnectionFlow={gateConnectionFlow}
+              t={t}
+            />
           )}
         </Card>
       )}

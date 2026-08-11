@@ -203,9 +203,9 @@ Before opening a PR, run the focused loop for what you changed. The full unit su
 responsibility — running them locally adds no signal the PR checks will not already
 give you, and on smaller machines it can saturate the host (#8084):
 
-- Run the test files that cover your change: `node --import tsx/esm --test tests/unit/<file>.test.ts`
-- Run `npm run lint`
-- Include or update automated tests in the same PR whenever production code changes
+- Run `npm run test:unit`
+- Run `npm run test:coverage`
+- Ensure the coverage gate stays at **60%+** statements/lines/functions/branches
 - Include the changed or added test files in the PR description when production code changed
 - Check the SonarQube result on the PR when the project secrets are configured in CI
 

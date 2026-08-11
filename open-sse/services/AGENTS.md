@@ -36,9 +36,9 @@ Live count: `ls open-sse/services/*.ts | wc -l` (currently 134). More including 
 
 ### Model Lifecycle & Fallback
 
-- **`modelDeprecation.ts`** — Deprecated model detection and successor routing.
-- **`modelFamilyFallback.ts`** — T5 intra-family fallback chains.
-- **`emergencyFallback.ts`** — Last-resort fallback to stable free providers.
+- **`modelDeprecation.ts`** — Detects deprecated models (gpt-3.5, claude-2, etc.). Routes to successor models automatically.
+- **`modelFamilyFallback.ts`** — T5 intra-family fallback: if `gpt-4-turbo` unavailable, tries `gpt-4-1106-preview`, then `gpt-4`.
+- **`emergencyFallback.ts`** — Last-resort fallback when all combo targets fail. Routes to stable free providers.
 
 ### State & Detection
 

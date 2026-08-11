@@ -373,6 +373,6 @@ test("Refreshable OAuth providers are correctly identified", () => {
 
   // Verify these two sets are mutually exclusive and cover all providers
   const allProviders = [...refreshable, ...nonRefreshable];
-  assert.equal(allProviders.length, 12);
-  assert.equal(new Set(allProviders).size, 12);
+  assert.equal(allProviders.length, 13);
+  assert.equal(new Set(allProviders).size, 13);
 });

@@ -93,7 +93,6 @@ type CallLogSummaryRow = {
   provider_node_prefix?: string | null;
   resolved_account?: string | null;
   correlation_id?: string | null;
-  model_pinned?: number | null;
 };
 
 const RESOLVED_ACCOUNT_SQL = "COALESCE(NULLIF(pc.name, ''), NULLIF(pc.email, ''), cl.account)";
@@ -535,7 +534,6 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     hasResponseBody: toNumber(row.has_response_body) === 1,
     hasPipelineDetails: toNumber(row.has_pipeline_details) === 1,
     correlationId: row.correlation_id || null,
-    modelPinned: toNumber(row.model_pinned) === 1,
   };
 }
 
@@ -629,7 +627,6 @@ export async function saveCallLog(entry: any) {
       comboExecutionKey:
         toStringOrNull(entry.comboExecutionKey) || toStringOrNull(entry.comboStepId),
       correlationId: entry.correlationId || null,
-      modelPinned: entry.modelPinned ? 1 : 0,
     };
 
     const requestSummary = noLogEnabled
@@ -678,7 +675,7 @@ export async function saveCallLog(entry: any) {
         combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
         artifact_relpath, artifact_size_bytes, artifact_sha256,
         has_request_body, has_response_body, has_pipeline_details, request_summary,
-        correlation_id, model_pinned
+        correlation_id
       )
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
@@ -689,7 +686,7 @@ export async function saveCallLog(entry: any) {
         @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
         @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
-        @correlationId, @modelPinned
+        @correlationId
       )
     `
     ).run({
@@ -823,8 +820,8 @@ export async function getCallLogs(filter: any = {}) {
     params.apiKeyQ = `%${filter.apiKey}%`;
   }
   if (filter.correlationId) {
-    conditions.push("cl.correlation_id LIKE @correlationId");
-    params.correlationId = `%${filter.correlationId}%`;
+    conditions.push("cl.correlation_id = @correlationId");
+    params.correlationId = filter.correlationId;
   }
   if (filter.combo) {
     conditions.push("cl.combo_name IS NOT NULL");

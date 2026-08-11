@@ -63,6 +63,26 @@ test.afterEach(async () => {
   else process.env.JWT_SECRET = originalJwtSecret;
 });
 
+test("guide-settings POST creates new qwen settings.json if it doesn't exist", async () => {
+  const req = await buildRequest({
+    baseUrl: "http://my-omni",
+    apiKey: "sk-123",
+    model: "qwen/qwen3-coder-plus",
+  });
+  const response = (await guideSettingsRoute.POST(req, { params: { toolId: "qwen" } })) as Response;
+  const data = (await response.json()) as any;
+
+  assert.equal(response.status, 200, "Response should be OK");
+  assert.equal(data.success, true);
+
+  const content = JSON.parse(await fs.readFile(QWEN_CONFIG_PATH, "utf-8"));
+  // Uses security.auth format (not modelProviders)
+  assert.equal(content.security?.auth?.selectedType, "openai");
+  assert.ok(content.security?.auth?.apiKey.startsWith("sk-"));
+  assert.equal(content.security?.auth?.baseUrl, "http://my-omni");
+  assert.equal(content.model?.name, "qwen/qwen3-coder-plus");
+});
+
 test("guide-settings POST creates new hermes config.yaml if it doesn't exist", async () => {
   const req = await buildRequest("hermes", {
     baseUrl: "http://my-omni",

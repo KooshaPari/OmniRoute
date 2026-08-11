@@ -24,8 +24,6 @@ import {
   type PkceLoopbackMismatchHint,
 } from "@/lib/oauth/utils/pkceLoopbackWarning";
 
-export { formatDeviceCodeRemaining } from "./OAuthModalPanels";
-
 const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy"]);
 
 /** Providers that use a local callback server on a random port (PKCE browser flow). */
@@ -691,10 +689,81 @@ export default function OAuthModal({
     ]
   );
 
-  useEffect(() => {
-    if (!deviceCodeExpiresAt) {
-      setDeviceCodeSecondsRemaining(null);
-      return;
+      // Authorization code flow
+      // Redirect URI strategy:
+      // - Codex/OpenAI: always port 1455 (registered in OAuth app)
+      // - Windsurf/Devin CLI (remote fallback): use localhost with OmniRoute port + /auth/callback
+      //   (on true localhost the callback server handles it; this is only reached on remote)
+      // - Google OAuth providers (antigravity/agy): default to loopback so the
+      //   bundled native/desktop credentials keep working. Prefer 127.0.0.1 over
+      //   localhost for the Google native-app handoff; Google documents that localhost
+      //   can run into local firewall/name-resolution edge cases. The authorize route
+      //   upgrades this to the public callback when custom Google web credentials plus
+      //   NEXT_PUBLIC_BASE_URL or OMNIROUTE_PUBLIC_BASE_URL are configured.
+      // - Other providers on remote: use actual origin (supports PUBLIC_URL env var)
+      // - Localhost: use localhost:port
+      let redirectUri: string;
+      if (provider === "codex" || provider === "openai") {
+        redirectUri = "http://localhost:1455/auth/callback";
+      } else if (provider === "windsurf" || provider === "devin-cli") {
+        // Remote fallback: use OmniRoute's port with the /auth/callback path Windsurf expects.
+        // On true localhost this code is never reached (callback server handles the flow above).
+        const port = window.location.port || "20128";
+        redirectUri = `http://localhost:${port}/auth/callback`;
+      } else if (GOOGLE_OAUTH_PROVIDERS.has(provider)) {
+        // Google OAuth built-in credentials only accept loopback redirect URIs.
+        // Even in remote deployments we use loopback — user copies the callback URL manually.
+        const port = window.location.port || "20128";
+        redirectUri = `http://127.0.0.1:${port}/callback`;
+      } else if (!isLocalhost) {
+        // Behind reverse proxy: use actual origin (e.g., https://omniroute.example.com/callback)
+        // Supports PUBLIC_URL env var override, or falls back to window.location.origin.
+        const publicUrl = process.env.NEXT_PUBLIC_BASE_URL;
+        const origin =
+          publicUrl && publicUrl !== "http://localhost:20128"
+            ? publicUrl.replace(/\/$/, "")
+            : window.location.origin;
+        redirectUri = `${origin}/callback`;
+      } else {
+        const port = window.location.port || (window.location.protocol === "https:" ? "443" : "80");
+        redirectUri = `http://localhost:${port}/callback`;
+      }
+
+      const res = await fetch(
+        `/api/oauth/${provider}/authorize?redirect_uri=${encodeURIComponent(redirectUri)}`
+      );
+      const data = (await parseResponseBody(res)) as Record<string, unknown>;
+      if (!res.ok) {
+        const errMsg = getErrorMessage(data, res.status, "Authorization failed");
+        throw new Error(errMsg);
+      }
+
+      if (!data.authUrl) {
+        throw new Error(
+          data.error ||
+            "Browser OAuth is unavailable for this provider in the current environment. Use the supported auth method instead."
+        );
+      }
+
+      setAuthData({ ...data, redirectUri: data.redirectUri || redirectUri });
+
+      // For non-true-localhost (LAN IPs, remote) or manual fallback: use manual input mode (user pastes callback URL)
+      if (!isTrueLocalhost || forceManual) {
+        setStep("input");
+        window.open(data.authUrl, "oauth_auth");
+      } else {
+        // Localhost: Open popup and wait for message
+        setStep("waiting");
+        popupRef.current = window.open(data.authUrl, "oauth_popup", "width=600,height=700");
+
+        // Check if popup was blocked
+        if (!popupRef.current) {
+          setStep("input");
+        }
+      }
+    } catch (err) {
+      setError(err.message);
+      setStep("error");
     }
 
     const updateRemaining = () => {
@@ -1118,23 +1187,99 @@ export default function OAuthModal({
 
             {/* Manual Input Step */}
             {step === "input" && !isDeviceCode && (
-              <OAuthManualInputPanel
-                provider={provider}
-                isGoogleOAuth={GOOGLE_OAUTH_PROVIDERS.has(provider)}
-                isTrueLocalhost={isTrueLocalhost}
-                googleHint={
-                  GOOGLE_OAUTH_PROVIDERS.has(provider)
-                    ? buildGoogleLoopbackHint(provider, loopbackLocation)
-                    : null
-                }
-                authUrl={typeof authData?.authUrl === "string" ? authData.authUrl : ""}
-                callbackUrl={callbackUrl}
-                placeholderUrl={placeholderUrl}
-                canSubmit={Boolean(callbackUrl && (authData || isCredentialBlob(callbackUrl)))}
-                onCallbackUrlChange={setCallbackUrl}
-                onSubmit={handleManualSubmit}
-                onClose={handleClose}
-              />
+              <>
+                <div className="space-y-4">
+                  {/* Remote/LAN server info for Google OAuth providers */}
+                  {!isTrueLocalhost && GOOGLE_OAUTH_PROVIDERS.has(provider) && (
+                    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+                      <span className="material-symbols-outlined text-sm align-middle mr-1">
+                        warning
+                      </span>
+                      <strong>
+                        {t.rich("googleOAuthWarning", {
+                          code: (c) => <code className="font-mono">{c}</code>,
+                          a: (c) => (
+                            <a
+                              href="https://github.com/diegosouzapw/OmniRoute#oauth-on-a-remote-server"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="underline"
+                            >
+                              {c}
+                            </a>
+                          ),
+                        })}
+                      </strong>
+                    </div>
+                  )}
+                  {/* Actionable remote paste instruction — shown for ALL remote providers,
+                      including Google OAuth (antigravity/agy). The Google
+                      loopback creds redirect to 127.0.0.1:<port>/callback, which on a
+                      remotely-accessed dashboard lands on the operator's own machine and
+                      shows a "can't reach this page" error. That is expected: the URL bar
+                      still carries ?code=…, and pasting it below completes the login. Before
+                      this, Google providers only saw the discouraging loopback warning and
+                      never the "copy the URL and paste it" step, so remote login appeared to
+                      hang. */}
+                  {!isTrueLocalhost && (
+                    <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200">
+                      <span className="material-symbols-outlined text-sm align-middle mr-1">
+                        info
+                      </span>
+                      {t("remoteAccessInfo")}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium mb-2">{t("step1OpenUrl")}</p>
+                    <div className="flex gap-2">
+                      <Input
+                        value={authData?.authUrl || ""}
+                        readOnly
+                        className="flex-1 font-mono text-xs"
+                      />
+                      <Button
+                        variant="secondary"
+                        icon={copied === "auth_url" ? "check" : "content_copy"}
+                        onClick={() => copy(authData?.authUrl, "auth_url")}
+                      >
+                        {t("copy")}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium mb-2">{t("step2PasteCallback")}</p>
+                    <p className="text-xs text-text-muted mb-2">
+                      {t.rich("step2Hint", {
+                        code: (c) => <code className="font-mono">{c}</code>,
+                      })}
+                    </p>
+                    <Input
+                      value={callbackUrl}
+                      onChange={(e) => setCallbackUrl(e.target.value)}
+                      placeholder={
+                        provider === "claude" || provider === "cline"
+                          ? "code#state or /callback?code=..."
+                          : placeholderUrl
+                      }
+                      className="font-mono text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleManualSubmit}
+                    fullWidth
+                    disabled={!callbackUrl || (!authData && !isCredentialBlob(callbackUrl))}
+                  >
+                    {t("connect")}
+                  </Button>
+                  <Button onClick={onClose} variant="ghost" fullWidth>
+                    {t("cancel")}
+                  </Button>
+                </div>
+              </>
             )}
           </>
         )}

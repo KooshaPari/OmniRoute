@@ -543,11 +543,7 @@ async function prepare(body: JsonRecord) {
   return NextResponse.json({
     ok: true,
     upstreamUrl: CODEX_RESPONSES_WS_URL,
-    // #5591: chrome_149 does not exist in wreq-js 2.3.1 (max chrome_147) → the
-    // native layer yields a degenerate TLS fingerprint and ChatGPT rejects the
-    // upgrade ("Invalid JSON body"). chrome_142 is the profile that shipped in
-    // v3.8.39 and is confirmed working against this upstream.
-    browser: "chrome_142",
+    browser: "chrome_149",
     os: "windows",
     connectionId: refreshedCredentials.connectionId,
     provider,

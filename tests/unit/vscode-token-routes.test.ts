@@ -27,10 +27,8 @@ const vscodeV1ModelsRoute = await import("../../src/app/api/v1/vscode/[token]/v1
 const vscodeVersionRoute = await import("../../src/app/api/v1/vscode/[token]/api/version/route.ts");
 const vscodeShowRoute = await import("../../src/app/api/v1/vscode/[token]/api/show/route.ts");
 const vscodeTagsRoute = await import("../../src/app/api/v1/vscode/[token]/api/tags/route.ts");
-const vscodeV1ChatCompletionsRoute =
-  await import("../../src/app/api/v1/vscode/[token]/v1/chat/completions/route.ts");
-const vscodeChatCompletionsRoute =
-  await import("../../src/app/api/v1/vscode/[token]/chat/completions/route.ts");
+const vscodeV1ChatCompletionsRoute = await import("../../src/app/api/v1/vscode/[token]/v1/chat/completions/route.ts");
+const vscodeChatCompletionsRoute = await import("../../src/app/api/v1/vscode/[token]/chat/completions/route.ts");
 const vscodeResponsesRoute = await import("../../src/app/api/v1/vscode/[token]/responses/route.ts");
 const serviceTierVariants =
   await import("../../src/app/api/v1/vscode/[token]/serviceTierVariants.ts");
@@ -706,11 +704,11 @@ test("vscode tokenized models route prefixes the provider without duplicating br
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/models`)
   );
   const body = (await response.json()) as any;
-  const model = (body.data || []).find((entry: any) => entry.id === "gemini/gemini-2.5-pro");
+  const model = (body.data || []).find((entry: any) => entry.id === "gemini/gemini-1.5-pro");
 
   assert.equal(response.status, 200);
-  assert.ok(model, "missing gemini/gemini-2.5-pro in tokenized VS Code models route");
-  assert.equal(model.name, "Gemini 2.5 Pro");
+  assert.ok(model, "missing gemini/gemini-1.5-pro in tokenized VS Code models route");
+  assert.equal(model.name, "Gemini 1.5 Pro");
 });
 
 test("vscode tokenized tags route mirrors the Ollama tags payload", async () => {
@@ -1195,13 +1193,7 @@ test("vscode tokenized api/show route exposes explicit reasoning effort metadata
     "xhigh",
   ]);
   assert.equal(body.model_info.selected_reasoning_effort, "none");
-  assert.deepEqual(body.model_info.capabilities.supports_reasoning_effort, [
-    "none",
-    "low",
-    "medium",
-    "high",
-    "xhigh",
-  ]);
+  assert.deepEqual(body.model_info.capabilities.supports_reasoning_effort, ["none", "low", "medium", "high", "xhigh"]);
 });
 
 test("vscode tokenized api/show route exposes service tier variants with suffixed display names", async () => {

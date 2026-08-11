@@ -36,8 +36,6 @@ import { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-ref
 import { AdaptaWebExecutor } from "./adapta-web.ts";
 import { CopilotWebExecutor } from "./copilot-web.ts";
 import { CopilotM365WebExecutor } from "./copilot-m365-web.ts";
-import { MicrosoftDesignerWebExecutor } from "./microsoft-designer-web.ts";
-import { AdobeFireflyExecutor } from "./adobe-firefly.ts";
 import { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
 import { DuckDuckGoWebExecutor } from "./duckduckgo-web.ts";
 import { FeloWebExecutor } from "./felo-web.ts";
@@ -64,7 +62,6 @@ import { MimocodeExecutor } from "./mimocode.ts";
 import { GrokCliExecutor } from "./grok-cli.ts";
 import { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 import { ZenmuxFreeExecutor } from "./zenmux-free.ts";
-import { XaiExecutor } from "./xai.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -236,8 +233,6 @@ export { DevinCliExecutor } from "./devin-cli.ts";
 export { AuggieExecutor } from "./auggie.ts";
 export { CopilotWebExecutor } from "./copilot-web.ts";
 export { CopilotM365WebExecutor } from "./copilot-m365-web.ts";
-export { MicrosoftDesignerWebExecutor } from "./microsoft-designer-web.ts";
-export { AdobeFireflyExecutor } from "./adobe-firefly.ts";
 export { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
 export { DuckDuckGoWebExecutor } from "./duckduckgo-web.ts";
 export { FeloWebExecutor } from "./felo-web.ts";

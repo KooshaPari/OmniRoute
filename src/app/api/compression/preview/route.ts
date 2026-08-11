@@ -157,10 +157,6 @@ async function dispatchCompression(
   // (CompressionConfig.riskGate) — uniform across all three branches and type-safe.
   // QuantumLock uses the same pattern: when enabled the studio forces cachingContext so the dry-run
   // badge shows what WOULD be stabilized in production (real caching gains show in telemetry only).
-  // When the client/settings carry a headroom detail sub-object, thread it so
-  // buildStepOptions can merge minRows into the headroom engine stepConfig (#8056).
-  const { headroomDetail, headroomStepDetail } = resolveHeadroomDetail(opts.config);
-
   if (opts.engineId) {
     const q = quantumExtras(opts.quantumLock);
     return applyCompressionAsync(requestBody, "stacked", {
@@ -226,11 +222,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode, engineId: rawEngineId, pipeline, config, fidelityGate, fuzzyDedup, riskGate, quantumLock, heatmap: heatmapMode } =
+  const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup, riskGate, quantumLock, heatmap: heatmapMode } =
     parsed.data;
-  // Alias: `mode: "caveman"` is a synonym for `engineId: "caveman"` (single-engine stacked run).
-  // The caveman engine is not a top-level CompressionMode, but it IS a registered engine.
-  const engineId = mode === "caveman" && !rawEngineId ? "caveman" : rawEngineId;
   const effectiveMode: CompressionMode =
     engineId || pipeline ? "stacked" : (mode as CompressionMode);
   const originalText = messagesToText(messages);
@@ -260,14 +253,7 @@ export async function POST(req: Request) {
     const tokensSaved = Math.max(0, originalTokens - compressedTokens);
     const savingsPct = originalTokens > 0 ? Math.round((tokensSaved / originalTokens) * 100) : 0;
     const techniquesUsed: string[] = result.stats?.techniquesUsed ?? [];
-    const engineBreakdown = result.stats
-      ? reconcileSingleEngineTokens(
-          ensureEngineBreakdown(result.stats),
-          originalTokens,
-          compressedTokens,
-          savingsPct
-        )
-      : [];
+    const engineBreakdown = result.stats ? ensureEngineBreakdown(result.stats) : [];
     const diff = buildCompressionPreviewDiff(
       originalText,
       compressedText,
@@ -340,7 +326,6 @@ export async function POST(req: Request) {
       validationWarnings: diff.validationWarnings,
       validationErrors: diff.validationErrors,
       fallbackApplied: diff.fallbackApplied,
-      ...(diff.fallbackReason && { fallbackReason: diff.fallbackReason }),
       ...(diff.heatmap ? { heatmap: diff.heatmap } : {}),
     });
   } catch (err: unknown) {

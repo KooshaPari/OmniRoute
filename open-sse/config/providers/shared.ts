@@ -157,67 +157,6 @@ export interface RegistryEntry {
    * so the authenticated path is never affected.
    */
   anonymousApiKey?: string;
-  /**
-   * Provider-wide fallback for `RegistryModel.unsupportedParams`, applied when a
-   * model has no per-model override AND (for `passthroughModels: true`
-   * providers) isn't one of the few models statically listed here at all —
-   * e.g. AI Horde's live-discovered models change as workers come and go, and
-   * every one of them shares the same hard limitation ("the workers run raw
-   * text-completion backends" — no tool calling on any model, not just the
-   * 3 statically catalogued ones). Checked by `getUnsupportedParams()` after
-   * the per-model lookup misses.
-   */
-  unsupportedParams?: readonly string[];
-  /**
-   * True for strict/naive OpenAI-compatible backends that reject a single-text-part
-   * content array (`[{ type: "text", text }]`) and only accept the equivalent plain
-   * string. Used by the Responses→Chat translator to collapse single-part text
-   * content down to a string for this provider only, leaving every other provider's
-   * standard OpenAI array-shaped content untouched (see openai-responses.ts).
-   */
-  requiresPlainStringContent?: boolean;
-  /**
-   * Protocolos alternativos que este provedor aceita (ex.: um endpoint
-   * Anthropic-compatible alem do OpenAI-compatible padrao). A conexao escolhe
-   * via providerSpecificData.targetFormat; ver config/providers/alternateFormats.ts.
-   */
-  alternateFormats?: import("./alternateFormats.ts").AlternateFormat[];
-}
-
-/**
- * Build a standard OpenAI-compatible provider registry entry.
- * Eliminates the 4-field boilerplate (format, executor, authType, authHeader)
- * repeated across 40+ provider files.
- */
-export function buildOpenAiCompatibleRegistryEntry(
-  overrides: Pick<RegistryEntry, "id"> &
-    Partial<Omit<RegistryEntry, "id" | "format" | "executor" | "authType" | "authHeader">>
-): RegistryEntry {
-  return {
-    format: "openai",
-    executor: "default",
-    authType: "apikey",
-    authHeader: "bearer",
-    ...overrides,
-  } as RegistryEntry;
-}
-
-/**
- * Build a standard OpenAI-compatible provider registry entry.
- * Eliminates the 4-field boilerplate (format, executor, authType, authHeader)
- * repeated across 40+ provider files.
- */
-export function buildOpenAiCompatibleRegistryEntry(
-  overrides: Pick<RegistryEntry, "id"> &
-    Partial<Omit<RegistryEntry, "id" | "format" | "executor" | "authType" | "authHeader">>
-): RegistryEntry {
-  return {
-    format: "openai",
-    executor: "default",
-    authType: "apikey",
-    authHeader: "bearer",
-    ...overrides,
-  } as RegistryEntry;
 }
 
 export interface LegacyProvider {

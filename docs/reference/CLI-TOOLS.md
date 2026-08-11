@@ -12,7 +12,7 @@ OmniRoute integrates with three categories of CLI tools spread across three dedi
 
 | Page           | Route                   | Concept                                                                   | Count        |
 | -------------- | ----------------------- | ------------------------------------------------------------------------- | ------------ |
-| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 20           |
+| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 19           |
 | **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at OmniRoute (same flow, broader scope)       | 6            |
 | **ACP Agents** | `/dashboard/acp-agents` | CLIs that OmniRoute spawns as backend via stdio/ACP (reverse flow)        | see registry |
 
@@ -137,14 +137,13 @@ Autonomous agents that appear in `/dashboard/cli-agents`:
 | interpreter  | Open Interpreter | OSS                      | full           | true         |
 | warp         | Warp AI          | Warp Inc.                | partial        | true         |
 | agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
-| omp          | Oh My Pi         | OSS                      | full           | true         |
-| letta        | Letta CLI        | Letta                    | full           | false        |
 
 ---
 
 ## 3. ACP Agents (/dashboard/acp-agents)
 
 This page (renamed from `/dashboard/agents`) shows CLIs that OmniRoute can **spawn** as backend execution engines via stdio/ACP protocol. The catalog is maintained separately in `src/lib/acp/registry.ts` and is **not** the same as `CLI_TOOLS`.
+
 
 ---
 
@@ -205,12 +204,9 @@ New tools with `configType: "custom"` have dedicated settings API routes:
 | ------------------------------------------- | ------------------------------ |
 | `POST /api/cli-tools/forge-settings`        | ForgeCode (.forge.toml)        |
 | `POST /api/cli-tools/jcode-settings`        | jcode (--base-url flag)        |
-| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL, legacy) |
-| `POST /api/cli-tools/codewhale-settings`    | CodeWhale (OPENAI_BASE_URL, primary + legacy `~/.deepseek` sync) |
+| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL) |
 | `POST /api/cli-tools/smelt-settings`        | Smelt                          |
 | `POST /api/cli-tools/pi-settings`           | Pi coding agent                |
-| `POST /api/cli-tools/grok-build-settings`   | Grok Build (~/.grok/config.toml, `[model.omniroute]`) |
-| `POST /api/cli-tools/qwen-settings`         | Qwen Code (`~/.qwen/settings.json` + dedicated `.env` key) |
 
 All routes use `sanitizeErrorMessage()` for error responses (Hard Rule #12).
 

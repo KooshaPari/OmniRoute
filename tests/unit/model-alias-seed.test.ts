@@ -34,19 +34,18 @@ test("default model alias seed writes missing aliases and is idempotent", async 
 
   assert.deepEqual(first.failed, []);
   assert.equal(first.applied.length, Object.keys(DEFAULT_MODEL_ALIAS_SEED).length);
-  assert.equal(aliases["gemini-3.1-pro"], "agy/gemini-pro-agent");
-  assert.equal(aliases["gemini-3-pro-high"], undefined);
-  assert.equal(aliases["gemini-3-pro-low"], undefined);
-  assert.equal(aliases["gemini-3-pro-preview"], undefined);
-  assert.equal(aliases["gemini-3.1-pro-preview"], undefined);
-  assert.equal(aliases["gemini-3-flash-preview"], undefined);
+  assert.equal(aliases["gemini-3-pro-high"], "agy/gemini-3.1-pro-high");
+  assert.equal(aliases["gemini-3-pro-low"], "agy/gemini-3.1-pro-low");
+  assert.equal(aliases["gemini-3-pro-preview"], "agy/gemini-pro-agent");
+  assert.equal(aliases["gemini-3.1-pro-preview"], "agy/gemini-pro-agent");
+  assert.equal(aliases["gemini-3-flash-preview"], "agy/gemini-3.5-flash-medium");
 
   const routed = await sseModelService.getModelInfo("gemini-3.1-pro");
   // The stored alias target is "agy/gemini-pro-agent", but getModelInfo canonicalizes
   // the "agy" alias to its provider id "antigravity" (ALIAS_TO_PROVIDER_ID, #8013).
   assert.deepEqual(routed, {
-    provider: "antigravity",
-    model: "gemini-pro-agent",
+    provider: "agy",
+    model: "gemini-3.1-pro-high",
     extendedContext: false,
   });
 

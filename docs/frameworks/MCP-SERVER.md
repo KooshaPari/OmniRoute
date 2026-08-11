@@ -6,9 +6,13 @@ lastUpdated: 2026-06-28
 
 # OmniRoute MCP Server Documentation
 
-> Model Context Protocol server with 104 tools across routing, cache, compression, memory, skills, proxy, pool, and context source operations.
+> Model Context Protocol server with 94 tools across routing, cache, compression, memory, skills, proxy, pool, and context source operations.
 >
-> Source of truth: `open-sse/mcp-server/server.ts` computes **104 unique tools** with `countUniqueMcpTools()`: 42 canonical definitions (including the six CCR lifecycle tools and the agent-skills trio), plus memory (3), skills (4), GitHub skills (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22), and two RTK-only compression tools.
+> Source of truth: `open-sse/mcp-server/schemas/tools.ts` (34 base) + `memoryTools.ts` (3) + `skillTools.ts` (4) + `agentSkillTools.ts` (3) + `poolTools.ts` (6) + `gamificationTools.ts` (8) + `pluginTools.ts` (8) + `notionTools.ts` (6) + `obsidianTools.ts` (22) = **94** (`TOTAL_MCP_TOOL_COUNT`). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
+
+![MCP tool inventory (94 tools by category)](../diagrams/exported/mcp-tools-94.svg)
+
+> Source: [diagrams/mcp-tools-94.mmd](../diagrams/mcp-tools-94.mmd) (regenerate via `npm run docs:render-diagrams`).
 
 ## Installation
 
@@ -227,7 +231,7 @@ See [AGENT-SKILLS.md](./AGENT-SKILLS.md) for the full catalog and how external a
 
 ## Related Frameworks (v3.8.0)
 
-The MCP tool inventory above (104 unique tools, computed by `countUniqueMcpTools()`) is intentionally
+The MCP tool inventory above (94 tools = 34 core + 3 memory + 4 skills + 3 agent-skills + 6 pool + 8 gamification + 8 plugins + 6 notion + 22 obsidian) is intentionally
 scoped to runtime routing/cache/compression/memory/skills/proxy/context-source operations. Two adjacent
 frameworks ship alongside the MCP server in v3.8.0 and are documented separately:
 
@@ -369,7 +373,7 @@ MCP tool, prompt, and resource registries can compress descriptions at registrat
 
 Description compression shrinks each tool's metadata; **tool-cardinality reduction** goes one step further by reducing _how many_ tools are announced at all. Advertising fewer tools in the `tools/list` manifest cuts the per-request token cost the client's model pays for the tool catalog ("layer 5" compression). The implementation is a pure, stateless filter in `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), wired into the registration loop in `createMcpServer()` (`open-sse/mcp-server/server.ts`).
 
-**Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all 104 tools are announced unchanged.
+**Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all 94 tools are announced unchanged.
 
 | Variable         | Mode                                                                                    |
 | :--------------- | :-------------------------------------------------------------------------------------- |

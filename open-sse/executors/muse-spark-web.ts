@@ -1399,6 +1399,16 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     if (content) {
       rememberAssistantTurn(parsed, credentials, model, parsedHistory, conversationContext);
     }
-    return buildSuccessResult(parsed, stream, model, headers, body, hasTools, requestedTools);
+
+    rememberAssistantTurn(parsed, credentials, model, parsedHistory, conversationContext);
+    return buildSuccessResult(
+      parsed,
+      stream,
+      model,
+      headers,
+      transformedBody,
+      hasTools,
+      requestedTools
+    );
   }
 }

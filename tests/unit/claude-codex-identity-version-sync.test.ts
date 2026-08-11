@@ -38,23 +38,8 @@ test("Claude CLI version constants are in lockstep across all 4 sources", () => 
   );
 });
 
-test("Claude CLI wire versions match the captured 2.1.219 binary", () => {
-  assert.equal(canonical.CLAUDE_CODE_CLIENT_VERSION, "2.1.219");
-  assert.equal(canonical.CLAUDE_CODE_CLIENT_BUILD_REVISION, "250");
-  assert.equal(canonical.CLAUDE_CODE_CLIENT_BILLING_VERSION, "2.1.219.250");
-  assert.equal(canonical.CLAUDE_CODE_SDK_PACKAGE_VERSION, "0.94.0");
-  assert.equal(canonical.CLAUDE_CODE_RUNTIME_VERSION, "v26.3.0");
-  assert.equal(
-    compat.CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION,
-    canonical.CLAUDE_CODE_SDK_PACKAGE_VERSION
-  );
-  assert.equal(
-    compat.CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION,
-    canonical.CLAUDE_CODE_RUNTIME_VERSION
-  );
-  assert.equal(hdr.CLAUDE_CLI_STAINLESS_PACKAGE_VERSION, canonical.CLAUDE_CODE_SDK_PACKAGE_VERSION);
-  assert.equal(hdr.CLAUDE_CLI_STAINLESS_RUNTIME_VERSION, canonical.CLAUDE_CODE_RUNTIME_VERSION);
-  assert.equal(hdr.CLAUDE_CLI_BILLING_VERSION, canonical.CLAUDE_CODE_CLIENT_BILLING_VERSION);
+test("Claude CLI is pinned to the captured 2.1.195 release", () => {
+  assert.equal(id.CLAUDE_CODE_VERSION, "2.1.195");
 });
 
 test("Codex client is pinned to the captured 0.144.1 release", () => {

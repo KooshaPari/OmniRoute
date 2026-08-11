@@ -468,10 +468,10 @@ export function geminiToOpenAIResponse(chunk, state) {
       // "[Tool call: ...]" block instead of native functionCall. Convert that
       // back to a structured OpenAI tool call so clients/tools do not see it as
       // assistant prose.
-      if (partText !== undefined && partText !== "") {
+      if (part.text !== undefined && part.text !== "") {
         const afterReasoning = parseTextualReasoningTags
-          ? consumeTextualReasoningTags(partText, state, results)
-          : partText;
+          ? consumeTextualReasoningTags(part.text, state, results)
+          : part.text;
         if (!afterReasoning) continue;
 
         let accumulated = (state.textualToolCallBuffer || "") + afterReasoning;

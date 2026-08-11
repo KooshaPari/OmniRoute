@@ -29,7 +29,14 @@ export default function CodexToolCard({
   const [message, setMessage] = useState(null);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [selectedApiKey, setSelectedApiKey] = useState("");
-  const [selectedModel, setSelectedModel] = useState("gpt-5.6-sol");
+  const [selectedModel, setSelectedModel] = useState("gpt-5.5");
+  const CODEX_DEFAULT_MODELS = [
+    "gpt-5.5",
+    "gpt-5.3-codex",
+    "gpt-5.4",
+    "gpt-5.1-codex-max",
+    "gpt-5.1-codex-mini",
+  ];
   const [modelMappings, setModelMappings] = useState<Record<string, string>>({});
   const [reasoningEffort, setReasoningEffort] = useState("xhigh");
   const [wireApi, setWireApi] = useState("chat");

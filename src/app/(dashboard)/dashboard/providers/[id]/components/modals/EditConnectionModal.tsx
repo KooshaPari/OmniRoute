@@ -189,7 +189,8 @@ export default function EditConnectionModal({
   const setOpenRouterPreset = openRouterPreset.setValue;
   const isCodex = provider === "codex";
   const isClaude = provider === "claude";
-  const isAntigravityFamily = provider === "antigravity" || provider === "agy";
+  const isAntigravity = provider === "antigravity";
+  const supportsGoogleProjectId = isAntigravity;
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";

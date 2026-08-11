@@ -45,7 +45,6 @@
     "concurrently",
     "cross-env",
     "csv-stringify",
-    "ctrf",
     "dompurify",
     "dpdm",
     "electron",

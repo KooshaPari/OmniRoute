@@ -662,10 +662,8 @@ class ResponsesWsSession {
           toStringOrNull(responseBody.service_tier) || toStringOrNull(responseBody.serviceTier),
       };
 
-      const wsOptions = {
-        // #5591: chrome_149 is not a wreq-js 2.3.1 profile (max chrome_147); the
-        // prepare route now sends chrome_142, this fallback matches it.
-        browser: prepared.json.browser || "chrome_142",
+      const upstream = await this.wsFactory(prepared.json.upstreamUrl, {
+        browser: prepared.json.browser || "chrome_149",
         os: prepared.json.os || "windows",
         headers: prepared.json.headers || {},
       };

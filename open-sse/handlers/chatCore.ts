@@ -413,7 +413,6 @@ export async function handleChatCore({
   skipUpstreamRetry = false,
   createPiiTransform = null,
   correlationId = null,
-  modelPinned = false,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   // ── Memory pressure guard ────────────────────────────────────────────
@@ -874,7 +873,6 @@ export async function handleChatCore({
       apiKeyInfo,
       noLogEnabled,
       correlationId,
-      modelPinned,
     });
 
   // Primary path: merge client model id + alias target so config on either key applies; resolved
@@ -1418,10 +1416,9 @@ export async function handleChatCore({
         // #3890: in a caching context, never compress the system prompt (cacheable prefix)
         // even if the operator disabled preserveSystemPrompt — honors the cache-aware flag
         // that selectCompressionStrategy can only partially apply via the mode string.
-        const cacheCtx = { provider, targetFormat, model: effectiveModel, connectionCacheOverride };
+        const cacheCtx = { provider, targetFormat, model: effectiveModel };
         const compressionConfig = resolveCacheAwareConfig(config, compressionInputBody, cacheCtx);
-        const compressionPrincipalId = apiKeyInfo?.id ? String(apiKeyInfo.id) : undefined;
-        const compressionOptions = {
+        const result = await applyCompressionAsync(compressionInputBody, mode, {
           model: effectiveModel,
           // #7237: feed the AUTHORITATIVE capability (model spec / models.dev sync / DB
           // override, with the conservative model-id fragment heuristic only as its
@@ -1442,7 +1439,7 @@ export async function handleChatCore({
               : ("aggregator" as const),
           config: compressionConfig,
           cachingContext: cacheCtx,
-          principalId: compressionPrincipalId,
+          principalId: apiKeyInfo?.id ? String(apiKeyInfo.id) : undefined,
           // F3.3: stream per-engine progress live (best-effort) before compression.completed.
           onEngineStep: (s) => {
             try {
@@ -1577,7 +1574,6 @@ export async function handleChatCore({
               cavemanOutputModeIntensity,
               log,
             });
-            await compressionAnalyticsWritePromise;
           } else {
             // Compression was attempted (mode active, engines ran) but produced no
             // recordable saving — e.g. a Stacked RTK→Caveman pipeline on already-compact
@@ -1600,7 +1596,6 @@ export async function handleChatCore({
               },
               "no_savings"
             );
-            await compressionAnalyticsWritePromise;
           }
 
           if (result.compressed) {
@@ -3066,7 +3061,6 @@ export async function handleChatCore({
         const headersObj = normalizeHeaders(rawResult.response.headers);
         const responseHeaders = new Headers(headersObj);
         stripStaleForwardingHeaders(responseHeaders);
-        stripNextMiddlewareControlHeaders(responseHeaders);
         const contentType = (responseHeaders.get("content-type") || "").toLowerCase();
         const payload = await readNonStreamingResponseBody(
           rawResult.response,

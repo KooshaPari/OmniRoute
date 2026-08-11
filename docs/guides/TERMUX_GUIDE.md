@@ -1,7 +1,7 @@
 ---
 title: "Termux Headless Setup"
-version: 3.8.49
-lastUpdated: 2026-07-25
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Termux Headless Setup

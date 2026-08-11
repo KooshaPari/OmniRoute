@@ -146,22 +146,12 @@ export const tokenCache: { value: string; expiresAt: number } = { value: "", exp
 
 export async function fetchTheOldLlmWithProviderProxy(
   reqBody: Record<string, unknown>,
-  signal: AbortSignal,
-  dependencies?: TheOldLlmFetchDependencies
+  signal?: AbortSignal | null
 ): Promise<Response> {
-  let deps = dependencies;
-  if (!deps) {
-    const [
-      { resolveProxyForProvider, hasBlockingProxyAssignmentForProvider },
-      { runWithProxyContext },
-    ] = await Promise.all([import("../../src/lib/db/proxies"), import("../utils/proxyFetch.ts")]);
-    deps = {
-      resolveProxy: () => resolveProxyForProvider("theoldllm"),
-      runWithProxy: runWithProxyContext,
-      fetch: globalThis.fetch,
-      hasBlockingProxyAssignment: () => hasBlockingProxyAssignmentForProvider("theoldllm"),
-    };
-  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 120_000);
+  const onSignal = signal ? () => controller.abort(signal.reason) : undefined;
+  signal?.addEventListener("abort", onSignal!, { once: true });
 
   const proxy = await deps.resolveProxy();
   if (!proxy && deps.hasBlockingProxyAssignment?.()) {
@@ -416,9 +406,8 @@ export class TheOldLlmExecutor extends BaseExecutor {
 
       if (upstream.status === 200 && finalBody) {
         const payload = stream ? finalBody : buildChatCompletion(parseSseContent(finalBody), model);
-        return this.executionResult(
-          input,
-          new Response(encoder.encode(payload), {
+        return {
+          response: new Response(encoder.encode(payload), {
             status: 200,
             headers: {
               "Content-Type": stream ? "text/event-stream" : "application/json",
@@ -444,19 +433,19 @@ export class TheOldLlmExecutor extends BaseExecutor {
       const proxyUnavailable = err instanceof TheOldLlmProxyUnavailableError;
       const msg = err instanceof Error ? err.message : String(err);
       log?.error?.("THEOLDLLM", `Executor error: ${msg}`);
-      const errorPayload = proxyUnavailable
-        ? buildProxyUnavailableError()
-        : JSON.stringify({
-            error: { message: msg, type: "upstream_error", code: "EXECUTOR_ERROR" },
-          });
-      return this.executionResult(
-        input,
-        new Response(encoder.encode(errorPayload), {
-          status: proxyUnavailable ? 503 : 502,
-          headers: { "Content-Type": "application/json" },
-        }),
-        body
-      );
+      return {
+        response: new Response(
+          encoder.encode(
+            JSON.stringify({
+              error: { message: msg, type: "upstream_error", code: "EXECUTOR_ERROR" },
+            })
+          ),
+          { status: 502, headers: { "Content-Type": "application/json" } }
+        ),
+        url: API_URL,
+        headers: this.buildHeaders(input.credentials),
+        transformedBody: body,
+      };
     }
   }
 }

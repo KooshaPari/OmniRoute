@@ -20,8 +20,8 @@ import {
 import { getModelInfo, getComboForModel } from "../services/model";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
-import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
+import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 import {
@@ -262,10 +262,6 @@ export async function handleChat(
   ) {
     log.warn("CHAT", "Rejecting request with empty messages array");
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
-  }
-  if (!("messages" in msgBody) && !("input" in msgBody) && sourceFormat !== "antigravity") {
-    log.warn("CHAT", "Rejecting request with missing messages");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array, received undefined");
   }
 
   // buildClientRawRequest already deep-clones the body, so pass `body` directly — the
@@ -723,7 +719,6 @@ export async function handleChat(
             cachedSettings: settings,
             providerId: target?.providerId ?? null,
             correlationId: reqId,
-            modelPinned: (target as any)?.modelPinned ?? false,
           },
           target?.effectiveComboStrategy ?? combo.strategy,
           true
@@ -796,27 +791,27 @@ export async function handleChat(
 
     // Record telemetry
     recordTelemetry(telemetry);
-    // Log combo failures that bypassed handleChatCore (e.g. all targets skipped by circuit breaker).
-    // Records BOTH a call_logs row (dashboard/logs) AND a usage_history row attributed to the api key
-    // (success:false) so gate/breaker-rejected traffic is counted per key — support-mesh 2026-07-08.
+    // Log combo failures that bypassed handleChatCore (e.g. all targets skipped by circuit breaker)
     if (!response.ok) {
       try {
-        const { recordRejectedRequestUsage, resolveRejectedComboProvider } =
-          await import("./rejectedRequestUsage");
-        await recordRejectedRequestUsage({
+        const { saveCallLog } = await import("@/lib/usageDb");
+        saveCallLog({
+          id: undefined,
+          method: "POST",
+          path: clientRawRequest?.endpoint || "/v1/chat/completions",
           status: response.status,
           model: body?.model || resolvedModelStr,
           requestedModel: body?.model || resolvedModelStr,
-          provider: resolveRejectedComboProvider(body?.model || resolvedModelStr, combo.name),
-          endpoint: clientRawRequest?.endpoint,
-          error: await getComboFailureLogError(response, combo.name),
+          provider: "-",
+          connectionId: undefined,
+          duration: Date.now() - (telemetry?.startTime || Date.now()),
+          tokens: {},
+          error: `[${response.status}] Combo "${combo.name}" failed — all targets exhausted`,
           comboName: combo.name,
-          apiKeyId: apiKeyInfo?.id ?? null,
-          apiKeyName: apiKeyInfo?.name ?? null,
+          comboStepId: null,
+          comboExecutionKey: null,
           correlationId: reqId,
-          startTime: telemetry?.startTime,
-          requestBody: clientRawRequest?.body ?? null,
-        });
+        }).catch(() => {});
       } catch {}
     }
     return withCorrelationId(withSessionHeader(response, sessionId), reqId);
@@ -852,10 +847,6 @@ export async function handleChat(
       forceLiveComboTest: isComboLiveTest,
       forcedConnectionId: requestedConnectionId,
       correlationId: reqId,
-      routingComboId,
-      reasoningDecision,
-      reasoningIntent,
-      reasoningRequestTags: requestRoutingTags.tags,
     },
     null,
     false
@@ -899,18 +890,6 @@ async function handleSingleModelChat(
     cachedSettings?: any;
     providerId?: string | null;
     correlationId?: string | null;
-    routingComboId?: string | null;
-    modelPinned?: boolean;
-    reasoningDecision?: ReasoningRuleDecision | null;
-    reasoningIntent?: ExtractedReasoningIntent | null;
-    reasoningRequestTags?: string[];
-    /**
-     * Per-target abort signal from combo.ts's targetTimeoutRunner
-     * (comboTargetTimeoutMs) — see the #7360 follow-up comment at the
-     * handleSingleModel call site above for why this must be merged into
-     * the signal used for the actual dispatch, not left unused.
-     */
-    modelAbortSignal?: AbortSignal | null;
   } = {},
   comboStrategy: string | null = null,
   isCombo: boolean = false
@@ -971,8 +950,6 @@ async function handleSingleModelChat(
             allowRateLimitedConnection: target?.allowRateLimitedConnection === true,
             providerId: target?.providerId ?? null,
             correlationId: runtimeOptions?.correlationId ?? null,
-            // #7360 follow-up — see the primary handleSingleModel closure above.
-            modelAbortSignal: target?.modelAbortSignal ?? null,
           },
           target?.effectiveComboStrategy ?? redirectCombo.strategy ?? "priority",
           false
@@ -983,7 +960,7 @@ async function handleSingleModelChat(
       allCombos: [],
       relayOptions: undefined,
       signal: request?.signal ?? null,
-      correlationId: runtimeOptions?.correlationId ?? null,
+      correlationId: reqId,
     });
   }
 
@@ -1048,26 +1025,26 @@ async function handleSingleModelChat(
     ...(bypassReason ? { bypassReason } : {}),
   });
   if (gate) {
-    // Log the rejected request so it appears in /dashboard/logs AND is counted in the
-    // per-api-key usage analytics (usage_history, success:false) — otherwise a key whose
-    // traffic is entirely gate/breaker-rejected shows "zero requests" (support-mesh 2026-07-08).
+    // Log the rejected request so it appears in /dashboard/logs
     try {
-      const { recordRejectedRequestUsage } = await import("./rejectedRequestUsage");
-      await recordRejectedRequestUsage({
+      const { saveCallLog } = await import("@/lib/usageDb");
+      saveCallLog({
+        id: undefined,
+        method: "POST",
+        path: clientRawRequest?.endpoint || "/v1/chat/completions",
         status: gate.status,
         model,
         requestedModel: body?.model || modelStr,
         provider,
-        endpoint: clientRawRequest?.endpoint,
+        connectionId: undefined,
+        duration: Date.now() - (telemetry?.startTime || Date.now()),
+        tokens: {},
         error: `[${gate.status}] Pipeline gate rejected`,
         comboName: isCombo ? comboName : null,
         comboStepId: isCombo ? (runtimeOptions?.comboStepId ?? null) : null,
         comboExecutionKey: isCombo ? (runtimeOptions?.comboExecutionKey ?? null) : null,
-        apiKeyId: apiKeyInfo?.id ?? null,
-        apiKeyName: apiKeyInfo?.name ?? null,
         correlationId: runtimeOptions?.correlationId ?? null,
-        startTime: telemetry?.startTime,
-      });
+      }).catch(() => {});
     } catch {}
     return gate;
   }
@@ -1357,7 +1334,6 @@ async function handleSingleModelChat(
         cachedSettings: runtimeOptions.cachedSettings,
         skipUpstreamRetry: runtimeOptions.skipUpstreamRetry ?? false,
         correlationId: runtimeOptions?.correlationId ?? null,
-        modelPinned: runtimeOptions?.modelPinned ?? false,
       });
       if (telemetry) telemetry.endPhase();
 

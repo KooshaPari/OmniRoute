@@ -514,7 +514,6 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
     defaultCommand: "forge",
   },
 
-  "grok-build": GROK_BUILD_CLI_TOOL,
   // ── Code entries — cursor-cli ─────────────────────────────────────────────
   "cursor-cli": {
     id: "cursor-cli",
@@ -844,3 +843,31 @@ export function listCliTools(): CliToolEntry[] {
 export function getCliTool(id: string): CliToolEntry | undefined {
   return CLI_TOOLS[id];
 }
+
+// ─── Provider model mapping helper ───────────────────────────────────────────
+
+// Get all provider models for mapping dropdown
+export const getProviderModelsForMapping = (
+  providers: Array<{
+    id: string;
+    isActive: boolean;
+    testStatus: string;
+    provider: string;
+    name: string;
+    models?: string[];
+  }>
+) => {
+  const result: Array<{ connectionId: string; provider: string; name: string; models: string[] }> =
+    [];
+  providers.forEach((conn) => {
+    if (conn.isActive && (conn.testStatus === "active" || conn.testStatus === "success")) {
+      result.push({
+        connectionId: conn.id,
+        provider: conn.provider,
+        name: conn.name,
+        models: conn.models || [],
+      });
+    }
+  });
+  return result;
+};

@@ -24,6 +24,11 @@ import {
 
 const CLAUDE_WEB_API_BASE = "https://claude.ai/api";
 const CLAUDE_WEB_ORGS_URL = `${CLAUDE_WEB_API_BASE}/organizations`;
+
+const CLAUDE_USER_AGENT =
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
+
+// Session cookie constants
 const CLAUDE_SESSION_COOKIE_NAME = "sessionKey";
 const MAX_ERROR_BODY_BYTES = 64 * 1024;
 const CLAUDE_USER_AGENT = CLAUDE_WEB_FINGERPRINT.userAgent;
@@ -75,8 +80,8 @@ function getBrowserHeaders(
     Origin: "https://claude.ai",
     Pragma: "no-cache",
     Priority: "u=1, i",
-    Referer: referer,
-    "Sec-Ch-Ua": CLAUDE_WEB_FINGERPRINT.secChUa,
+    Referer: "https://claude.ai/new",
+    "Sec-Ch-Ua": '"Chromium";v="149", "Not-A.Brand";v="24", "Google Chrome";v="149"',
     "Sec-Ch-Ua-Mobile": "?0",
     "Sec-Ch-Ua-Platform": CLAUDE_WEB_FINGERPRINT.secChUaPlatform,
     "Sec-Fetch-Dest": "empty",

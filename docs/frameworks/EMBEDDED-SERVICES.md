@@ -5,9 +5,9 @@ description: "Reference for 9Router, CLIProxyAPI, Mux, and Bifrost"
 
 # Embedded Services
 
-> **Version:** v3.8.44
-> **Last updated:** 2026-07-03
-> **Audience:** Engineers adding, maintaining, or debugging embedded services (9Router, CLIProxyAPI, Mux, Bifrost).
+> **Version:** v3.8.4
+> **Last updated:** 2026-06-28
+> **Audience:** Engineers adding, maintaining, or debugging embedded services (9Router, CLIProxyAPI).
 
 Embedded services are locally-installed process sidecar tools that OmniRoute installs, supervises, and
 exposes as first-class routing targets. Unlike external providers (which are reached over the internet

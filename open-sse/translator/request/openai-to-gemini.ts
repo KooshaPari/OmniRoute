@@ -16,7 +16,6 @@ import {
   capThinkingBudget,
   getDefaultThinkingBudget,
 } from "../../../src/lib/modelCapabilities.ts";
-import { getModelSpec } from "../../../src/shared/constants/modelSpecs.ts";
 
 import {
   DEFAULT_SAFETY_SETTINGS,
@@ -724,11 +723,11 @@ function wrapInCloudCodeEnvelope(model, cloudCodeRequest, credentials = null) {
       systemInstruction: cloudCodeRequest.systemInstruction,
       generationConfig: applyAntigravityGenerationDefaults(cloudCodeRequest.generationConfig),
       tools: cloudCodeRequest.tools,
-      safetySettings: cloudCodeRequest.safetySettings,
     },
     model: cleanModel,
     userAgent: getAntigravityEnvelopeUserAgent(credentials),
     requestType: "agent",
+    enabledCreditTypes: ["GOOGLE_ONE_AI"],
   };
   if (cloudCodeRequest._toolNameMap instanceof Map && cloudCodeRequest._toolNameMap.size > 0) {
     envelope._toolNameMap = cloudCodeRequest._toolNameMap;
@@ -767,10 +766,7 @@ function wrapInCloudCodeEnvelope(model, cloudCodeRequest, credentials = null) {
     (tool) => (tool.functionDeclarations?.length ?? 0) > 0
   );
   if (hasCustomTools) {
-    // Reuse the toolConfig openaiToGeminiBase already computed from the caller's
-    // tool_choice (cloudCodeRequest is that function's return value) instead of
-    // re-deriving a hardcoded default here — see convertOpenAIToolChoiceToGemini.
-    envelope.request.toolConfig = cloudCodeRequest.toolConfig ?? {
+    envelope.request.toolConfig = {
       functionCallingConfig: { mode: "VALIDATED" },
     };
   }

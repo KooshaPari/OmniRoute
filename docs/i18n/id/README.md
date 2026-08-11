@@ -331,6 +331,7 @@ Penyedia AI bisa menjadi tidak stabil, mengembalikan kesalahan 5xx, atau mencapa
 <details>
 <summary><b>🔧 7. "Mengonfigurasi setiap alat AI membosankan dan berulang"</b></summary>
 
+
 **Cara OmniRoute menyelesaikannya:**
 
 - **Dashboard Alat CLI** — Halaman khusus dengan pengaturan satu klik untuk Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
@@ -342,6 +343,7 @@ Penyedia AI bisa menjadi tidak stabil, mengembalikan kesalahan 5xx, atau mencapa
 
 <details>
 <summary><b>🔑 8. "Mengelola token OAuth dari beberapa penyedia adalah mimpi buruk"</b></summary>
+
 
 **Cara OmniRoute menyelesaikannya:**
 
@@ -732,12 +734,12 @@ Outcome: deep fallback depth for deadline-critical workloads
 
 > Siapkan pengkodean AI dalam hitungan menit di **$0/bulan**. Hubungkan akun gratis ini dan gunakan kombo **Free Stack** bawaan.
 
-| Step | Action                                                 | Providers Unlocked                                                 |
-| ---- | ------------------------------------------------------ | ------------------------------------------------------------------ |
-| 1    | Connect **Kiro** (AWS Builder ID OAuth)                | Claude Sonnet 4.5, Haiku 4.5 — **unlimited**                       |
-| 2    | Connect **Qoder** (Google OAuth)                       | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **unlimited** |
-| 3    | Connect **Qwen** (Device Code)                         | qwen3-coder-plus, qwen3-coder-flash... — **unlimited**             |
-| 4    | `/dashboard/combos` → **Templat Tumpukan Gratis ($0)** | Round-robin semua penyedia gratis secara otomatis                  |
+| Step | Action                                             | Providers Unlocked                                                 |
+| ---- | -------------------------------------------------- | ------------------------------------------------------------------ |
+| 1    | Connect **Kiro** (AWS Builder ID OAuth)            | Claude Sonnet 4.5, Haiku 4.5 — **unlimited**                       |
+| 2    | Connect **Qoder** (Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **unlimited** |
+| 3    | Connect **Qwen** (Device Code)                     | qwen3-coder-plus, qwen3-coder-flash... — **unlimited**             |
+| 4    | `/dashboard/combos` → **Templat Tumpukan Gratis ($0)** | Round-robin semua penyedia gratis secara otomatis                       |
 
 **Arahkan IDE/CLI apa pun ke:** `http://localhost:20128/v1` · Kunci API: `any-string` · Selesai.
 
@@ -849,6 +851,7 @@ Base URL: http://localhost:20128/v1
 API Key:  [copy from Endpoint page]
 Model:    if/kimi-k2-thinking (or any provider/model prefix)
 ```
+
 
 ### 4) Mengaktifkan dan memvalidasi protokol (v2.0)
 
@@ -1130,32 +1133,32 @@ Saat diminimalkan, OmniRoute ada di baki sistem Anda dengan tindakan cepat:
 
 ## 💰 Harga Sekilas
 
-| Tier                | Provider                    | Cost                                | Quota Reset      | Best For                          |
-| ------------------- | --------------------------- | ----------------------------------- | ---------------- | --------------------------------- |
-| **💳 SUBSCRIPTION** | Claude Code (Pro)           | $20/mo                              | 5h + weekly      | Already subscribed                |
-|                     | Codex (Plus/Pro)            | $20-200/mo                          | 5h + weekly      | OpenAI users                      |
-|                     | GitHub Copilot              | $10-19/mo                           | Monthly          | GitHub users                      |
-| **🔑 API KEY**      | NVIDIA NIM                  | **GRATIS** (pengembangan selamanya) | ~40 RPM          | 70+ open models                   |
-|                     | Cerebras                    | **FREE** (1M tok/day)               | 60K TPM / 30 RPM | World's fastest                   |
-|                     | Groq                        | **FREE** (30 RPM)                   | 14.4K RPD        | Ultra-fast Llama/Gemma            |
-|                     | DeepSeek V3.2               | $0.27/$1.10 per 1M                  | None             | Best price/quality reasoning      |
-|                     | xAI Grok-4 Fast             | **$0.20/$0.50 per 1M** 🆕           | None             | Fastest + tool calling, ultralow  |
-|                     | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕               | None             | Penalaran andalan dari xAI        |
-|                     | Mistral                     | Uji coba gratis + berbayar          | Rate limited     | European AI                       |
-|                     | OpenRouter                  | Bayar per penggunaan                | None             | 100+ models aggr.                 |
-| **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                             | Daily 10AM       | 128K output, newest flagship      |
-|                     | GLM-4.7                     | $0.6/1M                             | Daily 10AM       | Budget backup                     |
-|                     | MiniMax M2.5 🆕             | $0.3/1M input                       | 5-hour rolling   | Reasoning + agentic tasks         |
-|                     | MiniMax M2.1                | $0.2/1M                             | 5-hour rolling   | Cheapest option                   |
-|                     | Kimi K2.5 (Moonshot API) 🆕 | Bayar per penggunaan                | None             | Direct Moonshot API access        |
-|                     | Kimi K2                     | $9/mo flat                          | 10M tokens/mo    | Predictable cost                  |
-| **🆓 FREE**         | Qoder                       | **$0**                              | Unlimited        | 5 models unlimited                |
-|                     | Qwen                        | **$0**                              | Unlimited        | 4 models unlimited                |
-|                     | Kiro                        | **$0**                              | Unlimited        | Claude Sonnet/Haiku (AWS Builder) |
-|                     | LongCat Flash-Lite 🆕       | **$0** (50M tok/day 🔥)             | 1 RPS            | Kuota gratis terbesar di dunia    |
-|                     | Pollinations AI 🆕          | **$0** (tidak perlu kunci)          | 1 req/15s        | GPT-5, Claude, DeepSeek, Llama 4  |
-|                     | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)            | ~150 resp/day    | 50+ model, keunggulan global      |
-|                     | Scaleway AI 🆕              | **$0** (1M tokens total)            | Rate limited     | EU/GDPR, Qwen3 235B, Llama 70B    |
+| Tier                | Provider                    | Cost                      | Quota Reset      | Best For                          |
+| ------------------- | --------------------------- | ------------------------- | ---------------- | --------------------------------- |
+| **💳 SUBSCRIPTION** | Claude Code (Pro)           | $20/mo                    | 5h + weekly      | Already subscribed                |
+|                     | Codex (Plus/Pro)            | $20-200/mo                | 5h + weekly      | OpenAI users                      |
+|                     | GitHub Copilot              | $10-19/mo                 | Monthly          | GitHub users                      |
+| **🔑 API KEY**      | NVIDIA NIM                  | **GRATIS** (pengembangan selamanya)    | ~40 RPM          | 70+ open models                   |
+|                     | Cerebras                    | **FREE** (1M tok/day)     | 60K TPM / 30 RPM | World's fastest                   |
+|                     | Groq                        | **FREE** (30 RPM)         | 14.4K RPD        | Ultra-fast Llama/Gemma            |
+|                     | DeepSeek V3.2               | $0.27/$1.10 per 1M        | None             | Best price/quality reasoning      |
+|                     | xAI Grok-4 Fast             | **$0.20/$0.50 per 1M** 🆕 | None             | Fastest + tool calling, ultralow  |
+|                     | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕     | None             | Penalaran andalan dari xAI       |
+|                     | Mistral                     | Uji coba gratis + berbayar         | Rate limited     | European AI                       |
+|                     | OpenRouter                  | Bayar per penggunaan               | None             | 100+ models aggr.                 |
+| **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                   | Daily 10AM       | 128K output, newest flagship      |
+|                     | GLM-4.7                     | $0.6/1M                   | Daily 10AM       | Budget backup                     |
+|                     | MiniMax M2.5 🆕             | $0.3/1M input             | 5-hour rolling   | Reasoning + agentic tasks         |
+|                     | MiniMax M2.1                | $0.2/1M                   | 5-hour rolling   | Cheapest option                   |
+|                     | Kimi K2.5 (Moonshot API) 🆕 | Bayar per penggunaan               | None             | Direct Moonshot API access        |
+|                     | Kimi K2                     | $9/mo flat                | 10M tokens/mo    | Predictable cost                  |
+| **🆓 FREE**         | Qoder                       | **$0**                    | Unlimited        | 5 models unlimited                |
+|                     | Qwen                        | **$0**                    | Unlimited        | 4 models unlimited                |
+|                     | Kiro                        | **$0**                    | Unlimited        | Claude Sonnet/Haiku (AWS Builder) |
+|                     | LongCat Flash-Lite 🆕       | **$0** (50M tok/day 🔥)   | 1 RPS            | Kuota gratis terbesar di dunia       |
+|                     | Pollinations AI 🆕          | **$0** (tidak perlu kunci)    | 1 req/15s        | GPT-5, Claude, DeepSeek, Llama 4  |
+|                     | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)  | ~150 resp/day    | 50+ model, keunggulan global           |
+|                     | Scaleway AI 🆕              | **$0** (1M tokens total)  | Rate limited     | EU/GDPR, Qwen3 235B, Llama 70B    |
 
 > 🆕 **Model baru ditambahkan (Mar 2026):** Keluarga Grok-4 Fast seharga $0,20/$0,50/M (dibandingkan pada 1143ms — 30% lebih cepat dibandingkan Gemini 2.5 Flash), GLM-5 melalui Z.AI dengan output 128K, penalaran MiniMax M2.5, harga DeepSeek V3.2 yang diperbarui, Kimi K2.5 melalui API langsung Moonshot.
 
@@ -1215,6 +1218,7 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `qwen3-coder-flash` | `qw/`  | **Unlimited** | No reported cap     |
 | `qwen3-coder-next`  | `qw/`  | **Unlimited** | No reported cap     |
 | `vision-model`      | `qw/`  | **Unlimited** | Multimodal (images) |
+
 
 ### ⚫ NVIDIA NIM (Kunci API Gratis — build.nvidia.com)
 
@@ -1368,14 +1372,14 @@ OmniRoute v3.6 dibangun sebagai platform operasional, bukan hanya proxy relai.
 
 ### 🚀 Sebelumnya v2.0.9+ — Playground, Fingerprint CLI & ACP
 
-| Feature                                 | Apa Fungsinya                                                                                                                                                                                                                                                               |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎮 **Model Playground**                 | Halaman dasbor untuk menguji model apa pun secara langsung — pemilih penyedia/model/titik akhir, Editor Monaco, streaming, batalkan, pengaturan waktu                                                                                                                       |
-| 🔏 **CLI Fingerprint Matching**         | Pengurutan header/isi per penyedia agar sesuai dengan tanda tangan CLI asli — alihkan per penyedia di Pengaturan > Keamanan. **IP proxy Anda dipertahankan**                                                                                                                |
-| 🤖 **Dasbor Agen ACP**                  | Debug › Halaman agen — kisi 14 agen dengan status pemasangan, versi, formulir agen khusus untuk alat CLI apa pun. Pengguna **OpenCode** mendapatkan tombol "Unduh opencode.json" yang secara otomatis menghasilkan konfigurasi siap pakai dengan semua model yang tersedia. |
-| 🔧 **Custom Model `apiFormat` Routing** | Model khusus dengan `apiFormat: "responses"` sekarang dirutekan dengan benar ke penerjemah Responses API                                                                                                                                                                    |
-| 🏢 **Codex Workspace Isolation**        | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                                                                 |
-| 🔄 **Pembaruan Otomatis Elektron**      | Aplikasi desktop memeriksa pembaruan + instal otomatis saat restart                                                                                                                                                                                                         |
+| Feature                                    | Apa Fungsinya                                                                                                                                                                                                                            |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🎮 **Model Playground**                    | Halaman dasbor untuk menguji model apa pun secara langsung — pemilih penyedia/model/titik akhir, Editor Monaco, streaming, batalkan, pengaturan waktu                                                                                                                  |
+| 🔏 **CLI Fingerprint Matching**            | Pengurutan header/isi per penyedia agar sesuai dengan tanda tangan CLI asli — alihkan per penyedia di Pengaturan > Keamanan. **IP proxy Anda dipertahankan**                                                                                           |
+| 🤖 **Dasbor Agen ACP**                | Debug › Halaman agen — kisi 14 agen dengan status pemasangan, versi, formulir agen khusus untuk alat CLI apa pun. Pengguna **OpenCode** mendapatkan tombol "Unduh opencode.json" yang secara otomatis menghasilkan konfigurasi siap pakai dengan semua model yang tersedia. |
+| 🔧 **Custom Model `apiFormat` Routing**    | Model khusus dengan `apiFormat: "responses"` sekarang dirutekan dengan benar ke penerjemah Responses API                                                                                                                                         |
+| 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                             |
+| 🔄 **Pembaruan Otomatis Elektron**                | Aplikasi desktop memeriksa pembaruan + instal otomatis saat restart                                                                                                                                                                                |
 
 ### 🤖 Operasi Agen & Protokol (v2.0)
 
@@ -1673,6 +1677,8 @@ Scenarios:
 - `5h OFF` + `Weekly ON`: hanya penggunaan mingguan yang dapat memblokir akun.
 - `5h ON` + `Weekly OFF` : hanya penggunaan 5 jam yang dapat memblokir akun.
 - `resetAt` lolos: akun masuk kembali ke rotasi secara otomatis (tidak ada pengaktifan ulang secara manual).
+
+
 
 ### GitHub Copilot
 
@@ -2015,6 +2021,8 @@ opencode
 
 > **⚠️ Penting bagi pengguna yang menjalankan OmniRoute di VPS, Docker, atau server jarak jauh mana pun**
 
+
+
 Kredensial OAuth yang disertakan dalam OmniRoute didaftarkan **hanya untuk `localhost`**. Saat Anda mengakses OmniRoute di server jarak jauh (misalnya `https://omniroute.myserver.com`), Google menolak autentikasi dengan:
 
 ```
@@ -2076,6 +2084,7 @@ docker restart omniroute
 
 **7. Try connecting again**
 
+
 Google will now redirect correctly to `https://your-server.com/callback`.
 
 ---
@@ -2093,6 +2102,95 @@ Jika Anda tidak ingin menyiapkan kredensial Anda sendiri saat ini, Anda masih da
 > Ini berfungsi karena kode otorisasi di URL valid terlepas dari apakah halaman pengalihan dimuat.
 
 ---
+
+<details>
+<summary><b>🇧🇷 Versão em Português</b></summary>
+
+
+
+As credenciais OAuth embutidas no OmniRoute estão cadastradas **apenas para `localhost`**. Quando você acessa o OmniRoute em um servidor remoto (ex: `https://omniroute.meuservidor.com`), o Google rejeita a autenticação com:
+
+```
+Error 400: redirect_uri_mismatch
+```
+
+#### Solução: Configure suas próprias credenciais OAuth
+
+Você precisa criar um **OAuth 2.0 Client ID** no Google Cloud Console com a URI do seu servidor.
+
+#### Passo a passo
+
+**1. Acesse o Google Cloud Console**
+
+Abra: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
+
+**2. Inilah ID Klien OAuth 2.0 yang baru**
+
+- Klik pada **"+ Buat Kredensial"** → **"ID klien OAuth"**
+- Tip aplikasi: **"Aplikasi web"**
+- Nama: nama escolha qualquer (misal: `OmniRoute Remote`)
+
+**3. Adicione as Authorized Redirect URIs**
+
+No campo **"Authorized redirect URIs"**, adicione:
+
+```
+https://seu-servidor.com/callback
+```
+
+> Substitua `seu-servidor.com` pelo domínio ou IP do seu servidor (inclua a porta se necessário, ex: `http://45.33.32.156:20128/callback`).
+
+**4. Salve e copie as credenciais**
+
+Kemudian, Google menampilkan **ID Klien** dan **Rahasia Klien**.
+
+**5. Configure as variáveis de ambiente**
+
+No seu `.env` (ou nas variáveis de ambiente do Docker):
+
+```bash
+# Para Antigravity:
+ANTIGRAVITY_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
+ANTIGRAVITY_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
+
+GEMINI_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
+GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
+```
+
+**6. Reinicie o OmniRoute**
+
+```bash
+# Se usando npm:
+npm run dev
+
+# Se usando Docker:
+docker restart omniroute
+```
+
+**7. Tente conectar novamente**
+
+
+Agora o Google redirecionará corretamente para `https://seu-servidor.com/callback` e a autenticação funcionará.
+
+---
+
+#### Workaround temporário (sem configurar credenciais próprias)
+
+Se não quiser criar credenciais próprias agora, ainda é possível usar o fluxo **manual de URL**:
+
+1. O OmniRoute abrirá a URL de autorização do Google
+2. Após você autorizar, o Google tentará redirecionar para `localhost` (que falha no servidor remoto)
+3. **Copie a URL completa** da barra de endereço do seu browser (mesmo que a página não carregue)
+4. Cole essa URL no campo que aparece no modal de conexão do OmniRoute
+5. Clique em **"Connect"**
+
+> Este workaround funciona porque o código de autorização na URL é válido independente do redirect ter carregado ou não.
+
+</details>
+
+---
+
+</details>
 
 ## 🛠️ Stack Teknologi
 

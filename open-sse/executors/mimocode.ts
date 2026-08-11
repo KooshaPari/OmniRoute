@@ -307,7 +307,9 @@ export class MimocodeExecutor extends BaseExecutor {
       }
     }
 
-    // #3837: resolve each account's structured proxy config from accountProxies.
+    const accountProxies = credentials?.providerSpecificData?.accountProxies as
+      | AccountProxyConfig[]
+      | undefined;
     const proxyMap = Array.isArray(accountProxies)
       ? new Map(accountProxies.map((ap) => [ap.fingerprint, ap.proxy] as const))
       : null;

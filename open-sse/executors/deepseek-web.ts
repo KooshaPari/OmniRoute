@@ -36,7 +36,7 @@ const FAKE_HEADERS: Record<string, string> = {
   Referer: `${DEEPSEEK_WEB_BASE}/`,
   "User-Agent":
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
-  "X-Client-Bundle-Id": "com.deepseek.chat",
+  "X-App-Version": "20241129.1",
   "X-Client-Locale": "en-US",
   "X-Client-Platform": "web",
   "X-Client-Version": "2.0.0",

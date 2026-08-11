@@ -51,7 +51,6 @@ Cykl v3.7.x → v3.8.0 dodał auto-routing bez konfiguracji, nowych providerów,
 
 ## 🔌 Providers
 
-Zarządzaj połączeniami z providerami AI: providerzy OAuth (Claude Code, Codex), providerzy z kluczem API (Groq, DeepSeek, OpenRouter) oraz darmowi providerzy (Qoder, Kiro). Konta Kiro obejmują śledzenie salda kredytów — pozostałe kredyty, całkowity limit i data odnowienia widoczne w Dashboard → Usage.
 
 Połączenia OpenRouter mogą przechowywać per-connection `preset` w Advanced Settings. Gdy jest ustawiony, OmniRoute wysyła go jako pole najwyższego poziomu żądania OpenRouter, na przykład `"preset": "email-copywriter"`, chyba że żądanie klienta już dostarczyło własny `preset`.
 
@@ -128,7 +127,7 @@ Kompleksowy panel ustawień z **7 kartami**:
 
 ## 🔧 CLI Tools
 
-Konfiguracja jednym kliknięciem dla narzędzi do kodowania AI: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor i Factory Droid. Funkcje: automatyczne apply/reset konfiguracji, profile połączeń i mapowanie modeli.
+One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
 
 ![CLI Tools Dashboard](../screenshots/07-cli-tools.png)
 
@@ -136,7 +135,7 @@ Konfiguracja jednym kliknięciem dla narzędzi do kodowania AI: Claude Code, Cod
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Dashboard do odkrywania i zarządzania agentami CLI. Pokazuje siatkę 16 wbudowanych agentów (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) z:
+Dashboard for discovering and managing CLI agents. Shows a grid of 17 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
 
 - **Statusem instalacji** — Installed / Not Found z wykrywaniem wersji
 - **Odznakami protokołów** — stdio, HTTP itd.

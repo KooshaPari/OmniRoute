@@ -52,7 +52,7 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 |                     | NVIDIA NIM        | Pay per use | None           | Enterprise models    |
 |                     | Baidu Qianfan     | Pay per use | None           | ERNIE models         |
 | **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM     | Budget backup        |
-|                     | MiniMax M3      | $0.2/1M     | 5-hour rolling | Cheapest option      |
+|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling | Cheapest option      |
 |                     | Kimi K2           | $9/mo flat  | 10M tokens/mo  | Predictable cost     |
 | **🆓 FREE**         | Qoder             | $0          | Unlimited      | 8 models free        |
 |                     | Qwen              | $0          | Unlimited      | 3 models free        |
@@ -82,8 +82,8 @@ vs. $20 + hitting limits = frustration
 
 ```
 Combo: "free-forever"
-  1. if/kimi-k2.7-code          (unlimited free)
-  2. kr/qwen3-coder-next        (Kiro free fallback)
+  1. if/kimi-k2       (unlimited free)
+  2. qw/qwen3-coder-plus       (unlimited free)
 
 Monthly cost: $0
 Quality: Production-ready models
@@ -251,8 +251,8 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  1. if/kimi-k2.7-code (unlimited)
-  2. kr/qwen3-coder-next (Kiro free fallback)
+  1. if/kimi-k2 (unlimited)
+  2. qw/coder-model (unlimited)
 
 Cost: $0 forever!
 ```

@@ -75,14 +75,13 @@ RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
 ENV OMNIROUTE_USE_TURBOPACK=1
 
 # Raise the V8 heap ceiling for the build. The webpack production optimization
-# pass needs more than V8's default ceiling (~2 GB) for a codebase this size; a
-# memory-constrained Docker build otherwise dies with "FATAL ERROR: ... JavaScript
-# heap out of memory" during the builder stage (#4076). Turbopack's compile is
-# native (Rust) and less V8-heap-bound, but the prerender/export phase still runs
-# on V8, so keep the ceiling. NODE_OPTIONS propagates to the spawned `next build`
-# child (build-next-isolated.mjs → resolveNextBuildEnv spreads process.env).
-# Build-only; the runtime heap is set separately on the runner stage
-# (OMNIROUTE_MEMORY_MB). Override: `--build-arg OMNIROUTE_BUILD_MEMORY_MB=6144`.
+# pass (forced above since Turbopack panics) needs more than V8's default ceiling
+# (~2 GB) for a codebase this size; a memory-constrained Docker build otherwise
+# dies with "FATAL ERROR: ... JavaScript heap out of memory" during the builder
+# stage (#4076). NODE_OPTIONS propagates to the spawned `next build` child
+# (build-next-isolated.mjs → resolveNextBuildEnv spreads process.env). Build-only;
+# the runtime heap is set separately on the runner stage (OMNIROUTE_MEMORY_MB).
+# Override for hosts with more/less RAM: `--build-arg OMNIROUTE_BUILD_MEMORY_MB=6144`.
 ARG OMNIROUTE_BUILD_MEMORY_MB=4096
 ENV NODE_OPTIONS="--max-old-space-size=${OMNIROUTE_BUILD_MEMORY_MB}"
 

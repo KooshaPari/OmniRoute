@@ -45,27 +45,148 @@ export {
 export { clearLMArenaDeadCatalogModels } from "./lmarena/models.ts";
 export type { LMArenaModelMetadata };
 
-interface OpenAIMessage {
-  role?: string;
-  content?: unknown;
+const LMARENA_USER_AGENT =
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
+
+const LMARENA_AUTH_COOKIE = "arena-auth-prod-v1";
+
+interface ParsedCookie {
+  name: string;
+  value: string;
 }
 
-/** Optional browser-issued reCAPTCHA v3 token (operator-supplied). */
-function readRecaptchaToken(credentials: unknown, body: unknown): string | null {
-  const fromObj = (v: unknown): string | null => {
-    if (!v || typeof v !== "object") return null;
-    const rec = v as Record<string, unknown>;
-    const direct = rec.recaptchaV3Token ?? rec.recaptchaToken;
-    if (typeof direct === "string" && direct.trim()) return direct.trim();
-    const psd = rec.providerSpecificData;
-    if (psd && typeof psd === "object") {
-      const nested = psd as Record<string, unknown>;
-      const t = nested.recaptchaV3Token ?? nested.recaptchaToken;
-      if (typeof t === "string" && t.trim()) return t.trim();
+/**
+ * Parse a raw `Cookie:`-style blob (`name=value; name2=value2; …`) into an
+ * ordered list of name/value pairs. Whitespace around names is trimmed; values
+ * are kept verbatim (they may legitimately contain `=`, e.g. base64 padding).
+ */
+function parseCookieBlob(blob: string): ParsedCookie[] {
+  const pairs: ParsedCookie[] = [];
+  for (const part of blob.split(";")) {
+    const eq = part.indexOf("=");
+    if (eq < 0) continue;
+    const name = part.slice(0, eq).trim();
+    if (!name) continue;
+    const value = part.slice(eq + 1).trim();
+    pairs.push({ name, value });
+  }
+  return pairs;
+}
+
+/**
+ * Reconstruct LMArena's single `arena-auth-prod-v1` auth cookie from the
+ * Supabase SSR chunked form.
+ *
+ * LMArena migrated to `@supabase/ssr`, which splits a large auth cookie across
+ * `arena-auth-prod-v1.0`, `arena-auth-prod-v1.1`, … (ascending). The single
+ * `arena-auth-prod-v1` cookie is then left empty. Following `@supabase/ssr`'s
+ * `combineChunks`, we read chunks in ascending numeric order until one is
+ * missing and `join("")` their raw values — NO base64-decode, NO JSON-parse.
+ * The joined value typically starts with the literal `base64-` prefix; we keep
+ * it verbatim (the upstream expects it).
+ *
+ * - If the blob already carries a non-empty `arena-auth-prod-v1=<value>`, it is
+ *   returned unchanged (back-compat with the pre-migration single cookie).
+ * - Otherwise the reconstructed `arena-auth-prod-v1=<joined>` is injected while
+ *   every other cookie in the pasted jar is preserved.
+ * - If neither the single cookie nor any `.N` chunk has a value, the blob is
+ *   returned as-is so the existing missing-cookie path still fires.
+ */
+export function reconstructLMArenaCookie(rawCookie: string): string {
+  if (!rawCookie || !rawCookie.trim()) return rawCookie;
+
+  const pairs = parseCookieBlob(rawCookie);
+
+  // Back-compat: a non-empty single cookie is already usable — forward verbatim.
+  const existing = pairs.find((p) => p.name === LMARENA_AUTH_COOKIE);
+  if (existing && existing.value) return rawCookie;
+
+  // Collect chunk values keyed by their numeric index (`arena-auth-prod-v1.<N>`).
+  const chunkPrefix = `${LMARENA_AUTH_COOKIE}.`;
+  const chunks = new Map<number, string>();
+  for (const { name, value } of pairs) {
+    if (!name.startsWith(chunkPrefix)) continue;
+    const idxRaw = name.slice(chunkPrefix.length);
+    if (!/^\d+$/.test(idxRaw)) continue;
+    chunks.set(Number(idxRaw), value);
+  }
+
+  // Join in ascending order until a chunk is missing (combineChunks semantics).
+  const joinedParts: string[] = [];
+  for (let i = 0; chunks.has(i); i++) {
+    joinedParts.push(chunks.get(i) ?? "");
+  }
+  const joined = joinedParts.join("");
+
+  // No usable session anywhere → return as-is so the missing-cookie path fires.
+  if (!joined) return rawCookie;
+
+  // Inject the reconstructed single cookie while preserving the rest of the jar
+  // (drop the empty base cookie and the now-redundant chunks).
+  const preserved = pairs.filter(
+    (p) => p.name !== LMARENA_AUTH_COOKIE && !p.name.startsWith(chunkPrefix)
+  );
+  const rebuilt = [
+    `${LMARENA_AUTH_COOKIE}=${joined}`,
+    ...preserved.map((p) => `${p.name}=${p.value}`),
+  ];
+  return rebuilt.join("; ");
+}
+
+function readLMArenaCookie(credentials: unknown): string {
+  if (!credentials || typeof credentials !== "object") return "";
+  const c = credentials as Record<string, unknown>;
+  const direct = typeof c.cookie === "string" ? c.cookie : "";
+  if (direct.trim()) return reconstructLMArenaCookie(direct);
+  const apiKey = typeof c.apiKey === "string" ? c.apiKey : "";
+  if (apiKey.trim()) return reconstructLMArenaCookie(apiKey);
+  const psd = c.providerSpecificData;
+  if (psd && typeof psd === "object") {
+    const nested = (psd as Record<string, unknown>).cookie;
+    if (typeof nested === "string" && nested.trim()) return reconstructLMArenaCookie(nested);
+  }
+  return "";
+}
+
+interface ArenaSSEEvent {
+  type: "text" | "thinking" | "error" | "done" | "heartbeat";
+  content?: string;
+}
+
+export function parseArenaSSE(line: string): ArenaSSEEvent | null {
+  if (line.startsWith("a0:")) {
+    try {
+      const content = JSON.parse(line.substring(3));
+      return { type: "text", content: typeof content === "string" ? content : content.text || "" };
+    } catch {
+      return null;
     }
-    return null;
-  };
-  return fromObj(credentials) ?? fromObj(body);
+  } else if (line.startsWith("ag:")) {
+    try {
+      const content = JSON.parse(line.substring(3));
+      return {
+        type: "thinking",
+        content: typeof content === "string" ? content : content.thinking || "",
+      };
+    } catch {
+      return null;
+    }
+  } else if (line.startsWith("a3:") || line.startsWith("ae:")) {
+    try {
+      const content = JSON.parse(line.substring(3));
+      return {
+        type: "error",
+        content: typeof content === "string" ? content : content.error || JSON.stringify(content),
+      };
+    } catch {
+      return { type: "error", content: line.substring(3) };
+    }
+  } else if (line.startsWith("ad:")) {
+    return { type: "done" };
+  } else if (line.startsWith("a2:")) {
+    return { type: "heartbeat" };
+  }
+  return null;
 }
 
 export class LMArenaExecutor extends BaseExecutor {
@@ -93,24 +214,17 @@ export class LMArenaExecutor extends BaseExecutor {
     return headers;
   }
 
-  transformRequest(body: unknown, model: string, credentials?: unknown): unknown {
-    const openaiBody = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
-    const messages = Array.isArray(openaiBody.messages)
-      ? (openaiBody.messages as OpenAIMessage[])
-      : [];
+  protected transformRequest(body: unknown, model: string): unknown {
+    const openaiBody = body as Record<string, unknown>;
+    const messages = openaiBody.messages as Array<{ role: string; content: string }>;
+
     return {
-      id: uuidv7(),
-      mode: "direct-battle",
-      modelAId: model,
-      userMessageId: uuidv7(),
-      modelAMessageId: uuidv7(),
-      userMessage: {
-        content: formatArenaPrompt(messages),
-        experimental_attachments: [],
-        metadata: {},
-      },
-      modality: "chat",
-      recaptchaV3Token: readRecaptchaToken(credentials, body),
+      messages: messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      })),
+      model,
+      stream: openaiBody.stream || false,
     };
   }
 

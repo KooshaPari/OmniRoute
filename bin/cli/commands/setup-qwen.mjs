@@ -1,4 +1,12 @@
-/** Configure Qwen Code's OpenAI-compatible provider for OmniRoute. */
+/**
+ * omniroute setup-qwen — configure Qwen Code (QwenLM/qwen-code) for OmniRoute.
+ *
+ * Qwen Code is a terminal AI agent with a file-based config at
+ * ~/.qwen/settings.json. For a custom OpenAI-compatible endpoint it uses a
+ * `modelProviders` entry with authType "openai", baseUrl WITH /v1, and an
+ * `envKey` naming the env var holding the key (secret stays in the env, never the
+ * file). Remote-aware; headless test via `qwen -p "..."`.
+ */
 
 import {
   chmodSync,
@@ -33,10 +41,23 @@ export function resolveQwenTarget(opts = {}) {
     }
   }
 
-  if (!root) root = context?.baseUrl || "";
-  if (!root) {
-    const port = Number(opts.port ?? process.env.PORT ?? 20128) || 20128;
-    root = `http://localhost:${port}`;
+/** Merge the OmniRoute modelProvider into Qwen's settings.json (preserve rest). */
+export function buildQwenSettings(existing, { baseUrl, model }) {
+  const s = existing && typeof existing === "object" ? { ...existing } : {};
+  const providers = Array.isArray(s.modelProviders)
+    ? s.modelProviders.filter((p) => p?.id !== "omniroute")
+    : [];
+  providers.push({
+    id: "omniroute",
+    name: "OmniRoute",
+    authType: "openai",
+    baseUrl,
+    envKey: "OMNIROUTE_API_KEY",
+  });
+  s.modelProviders = providers;
+  if (model) {
+    s.selectedProvider = "omniroute";
+    s.model = model;
   }
 
   const apiKey =
@@ -83,10 +104,10 @@ const fetchModelIds = async (baseUrl, apiKey) => {
       headers: { Authorization: `Bearer ${apiKey}` },
       signal: AbortSignal.timeout(8000),
     });
-    if (!response.ok) return [];
-    const body = await response.json();
-    const models = Array.isArray(body) ? body : (body.data ?? body.models ?? []);
-    return models.map((entry) => (typeof entry === "string" ? entry : entry?.id)).filter(Boolean);
+    if (!res.ok) return [];
+    const body = await res.json();
+    const list = Array.isArray(body) ? body : (body.data ?? body.models ?? []);
+    return list.map((m) => (typeof m === "string" ? m : m?.id)).filter(Boolean);
   } catch {
     return [];
   }
@@ -95,9 +116,8 @@ const fetchModelIds = async (baseUrl, apiKey) => {
 export async function runSetupQwenCommand(opts = {}) {
   const { baseUrl, apiKey } = resolveQwenTarget(opts);
   const dryRun = Boolean(opts.dryRun ?? opts["dry-run"]);
-  const settingsPath =
-    opts.configPath ?? opts["config-path"] ?? path.join(os.homedir(), ".qwen", "settings.json");
-  const envPath = opts.envPath ?? opts["env-path"] ?? path.join(path.dirname(settingsPath), ".env");
+  const configPath =
+    opts.configPath ?? opts["config-path"] ?? join(os.homedir(), ".qwen", "settings.json");
 
   printHeading("OmniRoute → Qwen Code (OpenAI-compatible)");
   printInfo(`baseUrl: ${baseUrl}`);
@@ -145,12 +165,19 @@ export async function runSetupQwenCommand(opts = {}) {
     printError(`Failed to configure Qwen Code: ${error?.message || error}`);
     return 1;
   }
+  printInfo(
+    "\nProvide the key (settings reference OMNIROUTE_API_KEY):  export OMNIROUTE_API_KEY=..."
+  );
+  printInfo('Then run:  qwen        (or headless: qwen -p "reply OK")');
+  return 0;
 }
 
 export function registerSetupQwen(program) {
   program
     .command("setup-qwen")
-    .description("Configure Qwen Code's upstream V4 modelProviders format for OmniRoute")
+    .description(
+      "Configure Qwen Code for OmniRoute: write ~/.qwen/settings.json (openai modelProvider)"
+    )
     .option("--port <port>", "Local OmniRoute port (ignored when --remote is set)", "20128")
     .option("--remote <url>", "Remote OmniRoute URL")
     .option("--api-key <key>", "OmniRoute API key")

@@ -143,6 +143,32 @@ export async function getLatestVersionFromGitHub(
       },
     });
     if (!res.ok) return null;
+    const data = (await res.json()) as { tag_name?: unknown };
+    return typeof data?.tag_name === "string" && data.tag_name ? data.tag_name : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolve the latest published version. Tries the `npm` CLI first (fast on source installs),
+ * then the registry HTTP API, then the GitHub releases API — both npm-binary-free. Logs a
+ * warning — instead of silently degrading to "no update available" — when ALL sources fail.
+ * Thunks are injectable for tests.
+ */
+export async function getLatestVersionFromGitHub(
+  fetchImpl: typeof fetch = fetch
+): Promise<string | null> {
+  try {
+    const res = await fetchImpl(GITHUB_RELEASES_LATEST_URL, {
+      signal: AbortSignal.timeout(LOOKUP_TIMEOUT_MS),
+      headers: {
+        // GitHub's API rejects requests without a User-Agent.
+        "User-Agent": "omniroute-version-check",
+        Accept: "application/vnd.github+json",
+      },
+    });
+    if (!res.ok) return null;
     const data = (await readBoundedJson(res)) as { tag_name?: unknown };
     return typeof data?.tag_name === "string" && data.tag_name ? data.tag_name : null;
   } catch {

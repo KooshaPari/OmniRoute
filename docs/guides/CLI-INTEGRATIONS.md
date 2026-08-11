@@ -48,7 +48,6 @@ server and writes the config locally.
 | `omniroute setup-crush` | Crush | `~/.config/crush/crush.json` — `openai-compat` provider, key via `$OMNIROUTE_API_KEY` | `--remote` `--api-key` `--only` `--dry-run` `--port` `--config-path` | Both |
 | `omniroute setup-goose` | Goose | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER`/`OPENAI_HOST`/`GOOSE_MODEL`) + prints env recipe | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path` | Both |
 | `omniroute setup-aider` | Aider | `~/.aider.conf.yml` (`openai-api-base` + `model: openai/<id>`) + prints env recipe | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path` | Both |
-| `omniroute setup-qwen` | Qwen Code | `~/.qwen/settings.json` — V4 `modelProviders.openai` array + `OMNIROUTE_API_KEY` in `~/.qwen/.env` | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path` `--env-path` | Both |
 | `omniroute launch` | Claude Code | Nothing — spawns `claude` with `ANTHROPIC_BASE_URL`/`ANTHROPIC_AUTH_TOKEN` injected | `--remote` `--api-key` `--token` `--profile` `--port` | Both |
 | `omniroute launch-codex` | OpenAI Codex CLI | Nothing — spawns `codex` with the `omniroute` provider injected via `-c` flags | `--remote` `--api-key` `--profile` (`-p`) `--port` | Both |
 
@@ -164,7 +163,6 @@ tool expects (verified in the command source):
 | `setup-kilo`, `setup-roo`, `setup-continue`, `setup-crush`, `setup-cursor` | with `/v1` | Yes |
 | `setup-claude` (`ANTHROPIC_BASE_URL`), `launch` | root | No — Claude Code appends `/v1/messages` |
 | `setup-codex`, `launch-codex` (`model_providers.omniroute.base_url`) | with `/v1` | Yes |
-| `setup-qwen` (`modelProviders.openai[].baseUrl`) | with `/v1` | Yes |
 
 ---
 

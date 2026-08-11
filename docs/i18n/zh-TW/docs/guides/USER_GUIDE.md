@@ -62,9 +62,36 @@ lastUpdated: 2026-06-28
 
 ## 🎯 使用情境
 
-### 情境 1：「我有 Claude Pro 訂閱」
+| Tier                | Provider          | Cost        | Quota Reset      | Best For             |
+| ------------------- | ----------------- | ----------- | ---------------- | -------------------- |
+| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly      | Already subscribed   |
+|                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly      | OpenAI users         |
+|                     | GitHub Copilot    | $10-19/mo   | Monthly          | GitHub users         |
+| **🔑 API KEY**      | DeepSeek          | Pay per use | None             | Cheap reasoning      |
+|                     | Groq              | Pay per use | None             | Ultra-fast inference |
+|                     | xAI (Grok)        | Pay per use | None             | Grok 4 reasoning     |
+|                     | Mistral           | Pay per use | None             | EU-hosted models     |
+|                     | Perplexity        | Pay per use | None             | Search-augmented     |
+|                     | Together AI       | Pay per use | None             | Open-source models   |
+|                     | Fireworks AI      | Pay per use | None             | Fast FLUX images     |
+|                     | Cerebras          | Pay per use | None             | Wafer-scale speed    |
+|                     | Cohere            | Pay per use | None             | Command R+ RAG       |
+|                     | NVIDIA NIM        | Pay per use | None             | Enterprise models    |
+| **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM       | Budget backup        |
+|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling   | Cheapest option      |
+|                     | Kimi K2           | $9/mo flat  | 10M tokens/mo    | Predictable cost     |
+| **🆓 FREE**         | Qoder             | $0          | Unlimited        | 8 models free        |
+|                     | Qwen              | $0          | Unlimited        | 3 models free        |
+|                     | Kiro              | $0          | Unlimited        | Claude free          |
 
-**問題：** 額度用不完、密集編碼時遇到速率限制
+
+---
+
+## 🎯 Use Cases
+
+### Case 1: "I have Claude Pro subscription"
+
+**Problem:** Quota expires unused, rate limits during heavy coding
 
 ```
 Combo：「maximize-claude」
@@ -81,9 +108,9 @@ vs. $20 + 碰到限制 = 挫折感
 **問題：** 負擔不起訂閱，需要可靠的 AI 編碼
 
 ```
-Combo：「free-forever」
-  1. if/kimi-k2.7-code          （無限制免費）
-  2. kr/qwen3-coder-next        （Kiro 免費備援）
+Combo: "free-forever"
+  1. if/kimi-k2-thinking       (unlimited free)
+  2. qw/qwen3-coder-plus       (unlimited free)
 
 每月費用：$0
 品質：可用於生產的模型
@@ -157,6 +184,8 @@ Haiku 模型不接受 `max` 思考強度層級，因此 OmniRoute 會在將請�
   cx/gpt-5.3-codex
   cx/gpt-5.3-codex-spark
 ```
+
+
 
 #### GitHub Copilot
 
@@ -249,10 +278,10 @@ Haiku 模型不接受 `max` 思考強度層級，因此 OmniRoute 會在將請�
 ### 範例 2：僅免費（零成本）
 
 ```
-名稱：free-combo
-模型：
-  1. if/kimi-k2.7-code（無限制）
-  2. kr/qwen3-coder-next（Kiro 免費備援）
+Name: free-combo
+Models:
+  1. if/kimi-k2-thinking (unlimited)
+  2. qw/qwen3-coder-plus (unlimited)
 
 費用：永遠 $0！
 ```
@@ -568,7 +597,6 @@ post_install() {
 
 **Claude Code（`cc/`）** — Pro/Max OAuth：`cc/claude-opus-4-8`, `cc/claude-opus-4-7`, `cc/claude-opus-4-6`, `cc/claude-opus-4-5-20251101`, `cc/claude-sonnet-4-6`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
 
-**Codex（`cx/`）** — Plus/Pro OAuth：`cx/gpt-5.5`（+ 強度層級：`gpt-5.5-xhigh`, `gpt-5.5-high`, `gpt-5.5-medium`, `gpt-5.5-low`）, `cx/gpt-5.4`, `cx/gpt-5.4-mini`, `cx/gpt-5.3-codex`, `cx/gpt-5.3-codex-spark`
 
 **GitHub Copilot（`gh/`）** — OAuth：`gh/gpt-5.5`, `gh/gpt-5.4`, `gh/gpt-5.4-mini`, `gh/gpt-5-mini`, `gh/gpt-5.3-codex`, `gh/claude-opus-4.7`, `gh/claude-opus-4.6`, `gh/claude-opus-4-5-20251101`, `gh/claude-sonnet-4.6`, `gh/claude-sonnet-4.5`, `gh/claude-haiku-4.5`, `gh/gemini-3.1-pro-preview`, `gh/gemini-3-flash-preview`, `gh/oswe-vscode-prime`
 

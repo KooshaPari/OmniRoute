@@ -355,8 +355,7 @@ export function translateRequest(
     // requested upstream; generic/implicit-cache OpenAI providers stay stripped.
     result = filterToOpenAIFormat(result, {
       preserveCacheControl:
-        options?.preserveCacheControl === true &&
-        providerHonorsOpenAIFormatCacheControl(provider, connectionCacheOverride),
+        options?.preserveCacheControl === true && providerHonorsOpenAIFormatCacheControl(provider),
       // #4849 regression guard: keep client reasoning_content for replay providers.
       preserveReasoningContent: isReasoner,
       // Moonshot's Chat API accepts its own OpenAI-compatible `video_url` block.

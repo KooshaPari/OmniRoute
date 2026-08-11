@@ -101,7 +101,7 @@ export interface InjectBillingHeaderOp {
    *   - static-zero: emit "00000" (relay endpoints don't validate)
    */
   cchAlgo: "sha256-first-user" | "xxhash64-body" | "static-zero";
-  /** Override the embedded `cc_version=` value. Defaults to `2.1.219`. */
+  /** Override the embedded `cc_version=` value. Defaults to `2.1.195`. */
   version?: string;
   /** Override its captured build revision. Defaults to a computed compatibility suffix. */
   buildRevision?: string;
@@ -121,7 +121,7 @@ export const CCH_SALT = "59cf53e54c78";
 /** Character positions sampled from the first user message text. */
 export const CCH_POSITIONS = [4, 7, 20] as const;
 /** Default `cc_version=` value embedded in the billing header. */
-export const DEFAULT_CLAUDE_CODE_VERSION = CLAUDE_CODE_CLIENT_VERSION;
+export const DEFAULT_CLAUDE_CODE_VERSION = "2.1.195";
 /** Identity sentinel prepended for Claude Agent SDK callers. */
 export const CLAUDE_AGENT_SDK_IDENTITY =
   "You are a Claude agent, built on Anthropic's Claude Agent SDK.";

@@ -113,7 +113,12 @@ function estimateTokens(text: string): number {
   return Math.max(1, Math.ceil((text || "").length / 4));
 }
 
-function getLocalTimezone(): string {
+function parseJsonlLine(line: string): {
+  token?: string;
+  done?: boolean;
+  error?: string;
+  text?: string;
+} {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
   } catch {

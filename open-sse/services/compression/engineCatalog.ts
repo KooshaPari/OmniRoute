@@ -121,6 +121,13 @@ export const ENGINE_CATALOG: Record<string, EngineMeta> = {
       cacheImpact: "moderate",
     },
   },
+  relevance: {
+    id: "relevance",
+    label: "Relevance",
+    stackPriority: 18,
+    isSingleMode: true,
+    description: "Extractive sentence scoring against the last user query.",
+  },
   caveman: {
     id: "caveman",
     label: "Caveman",

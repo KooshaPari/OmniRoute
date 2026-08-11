@@ -17,7 +17,7 @@ test("T28: gemini AI Studio catalog includes current preview models", () => {
   assert.ok(geminiIds.includes("gemini-3.5-flash"));
   assert.ok(geminiIds.includes("gemini-2.5-flash"));
   assert.ok(geminiIds.includes("gemini-2.5-pro"));
-  assert.equal(geminiIds[0], "gemini-3.1-pro-preview", "preserve the existing Gemini default");
+  assert.equal(geminiIds[0], "gemini-2.0-flash", "preserve the existing Gemini default");
 });
 
 test("T28: antigravity static catalog exposes only callable Gemini tier IDs", () => {

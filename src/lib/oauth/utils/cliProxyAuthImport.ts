@@ -24,6 +24,7 @@ export const CLIPROXY_TYPE_TO_PROVIDER: Record<string, string> = {
   claude: "claude",
   codex: "codex",
   antigravity: "antigravity",
+  qwen: "qwen",
   kimi: "kimi",
 };
 

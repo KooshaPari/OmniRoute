@@ -248,8 +248,10 @@ export class GrokCliExecutor extends BaseExecutor {
       if (refreshed !== undefined) return refreshed;
     }
 
-    return null;
-  }
+    headers["Accept"] = stream ? "text/event-stream" : "application/json";
+    headers["x-grok-client-version"] = "0.2.72";
+    headers["x-grok-client-identifier"] = "grok_cli_rs";
+    headers["User-Agent"] = "grok-cli/0.2.72 (Windows 10.0.26200; x64)";
 
   buildHeaders(
     credentials: ProviderCredentials,
@@ -289,26 +291,14 @@ export class GrokCliExecutor extends BaseExecutor {
     }
     transformed.stream = !!stream;
 
-    // Grok Build applies these Responses defaults before every request.
-    if (transformed.store === undefined) transformed.store = false;
-    transformed.include = ensureReasoningInclude(transformed.include);
-
-    // OpenAI-compatible clients may carry fields the Grok Responses endpoint rejects.
-    stripUnsupportedGrokBuildParams(transformed);
-
-    const reasoning = normalizeGrokBuildReasoning(transformed.reasoning, model);
-    if (reasoning) {
-      transformed.reasoning = reasoning;
-    } else {
-      delete transformed.reasoning;
+    // Grok Build rejects unsupported parameters with 400.
+    const UNSUPPORTED = ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"];
+    for (const param of UNSUPPORTED) {
+      if (param in transformed) {
+        delete transformed[param];
+      }
     }
 
-    // xAI's cli-chat-proxy rejects requests containing more than 200 tools.
-    if (Array.isArray(transformed.tools) && transformed.tools.length > GROK_BUILD_MAX_TOOLS) {
-      transformed.tools = transformed.tools.slice(0, GROK_BUILD_MAX_TOOLS);
-    }
-
-    // Repair tool-result payloads that would fail Grok's strict JSON body parser (#7611).
-    return sanitizeGrokBuildResponsesBody(transformed);
+    return transformed;
   }
 }

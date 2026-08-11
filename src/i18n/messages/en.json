@@ -2918,7 +2918,6 @@
     "copilotMaxOutputTokens": "Max Output Tokens",
     "copilotToolCalling": "Tool Calling",
     "copilotPasteInto": "Paste into:",
-    "copilotReloadInstruction": "Then reload VS Code and set the API key in the input prompt.",
     "wireApiChatCompletions": "Chat Completions (/chat/completions)",
     "wireApiResponses": "Responses API (/responses)"
   },
@@ -4877,8 +4876,6 @@
     "prefixHint": "Required. Unique prefix for model names.",
     "nameHint": "Required. A friendly label for this node.",
     "baseUrlHint": "Required. Provider API base URL.",
-    "iconUrlLabel": "Icon URL",
-    "iconUrlHint": "Optional. Image URL shown as this provider's icon.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",

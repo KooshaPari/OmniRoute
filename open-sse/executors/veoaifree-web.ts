@@ -745,7 +745,7 @@ export class VeoAIFreeWebExecutor extends BaseExecutor {
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to get nonce";
       return {
-        response: errResp(sanitizeErrorMessage(msg), 502, "upstream_error"),
+        response: errResp(sanitizeErrorMessage(msg)),
         url: BASE_URL,
         headers: {},
         transformedBody: null,

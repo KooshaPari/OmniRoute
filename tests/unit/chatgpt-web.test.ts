@@ -1297,17 +1297,14 @@ test("Executor MODEL_MAP: OmniRoute IDs translate to ChatGPT backend slugs", asy
       ["gpt-5.3", "gpt-5-3"],
       ["gpt-5.5-thinking", "gpt-5-5-thinking"],
       ["gpt-5.4-thinking-mini", "gpt-5-4-t-mini"],
+      ["o3", "o3"],
+      // Regression #4665: these advertised catalog ids were missing from
+      // MODEL_MAP and fell through as their dot-form slug verbatim, which the
+      // ChatGPT backend-api silently rejects → served the default Plus model.
       ["gpt-5.5", "gpt-5-5"],
       ["gpt-5.5-pro", "gpt-5-5-pro"],
       ["gpt-5.5-pro-extended", "gpt-5-5-pro"],
       ["gpt-5.4-pro", "gpt-5-4-pro"],
-      ["o3", "o3"],
-      // Backend dash-form slugs are still accepted for direct provider/model callers.
-      ["gpt-5-3", "gpt-5-3"],
-      ["gpt-5-5-thinking", "gpt-5-5-thinking"],
-      ["gpt-5-4-t-mini", "gpt-5-4-t-mini"],
-      ["gpt-5-5-pro", "gpt-5-5-pro"],
-      ["gpt-5-5-pro-extended", "gpt-5-5-pro"],
     ];
     for (const [omniId, expectedSlug] of cases) {
       m.calls.urls.length = 0;
@@ -1334,18 +1331,10 @@ test("MODEL_MAP drift guard: every advertised catalog id reaches ChatGPT as a ba
   reset();
   const { getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
   const ids = (getRegistryEntry("chatgpt-web")?.models || []).map((m) => m.id);
-  const expectedSlugById: Record<string, string> = {
-    "gpt-5.5-pro": "gpt-5-5-pro",
-    "gpt-5.5-pro-extended": "gpt-5-5-pro",
-    "gpt-5.5-thinking": "gpt-5-5-thinking",
-    "gpt-5.5": "gpt-5-5",
-    "gpt-5.4-pro": "gpt-5-4-pro",
-    "gpt-5.4-thinking": "gpt-5-4-thinking",
-    "gpt-5.4-thinking-mini": "gpt-5-4-t-mini",
-    "gpt-5.3": "gpt-5-3",
-    "gpt-5.3-mini": "gpt-5-3-mini",
-    o3: "o3",
-  };
+  // Dot-form ids must never reach the ChatGPT backend verbatim — the backend
+  // only accepts dash-form slugs. (Ids without a dot — e.g. "o3", or any
+  // already-slug-form id — pass through unchanged and are exempt.)
+  const dotFormIds = ids.filter((id) => id.includes("."));
   const m = installMockFetch();
   try {
     for (const omniId of ids) {
@@ -1364,7 +1353,12 @@ test("MODEL_MAP drift guard: every advertised catalog id reaches ChatGPT as a ba
       const body = JSON.parse(m.calls.bodies[convIdx]);
       assert.ok(
         !body.model.includes("."),
-        `${omniId} reached the backend as "${body.model}" (still dot-form)`
+        `${omniId} reached the backend as "${body.model}" (still dot-form) — missing MODEL_MAP entry causes silent model substitution`
+      );
+      assert.notEqual(
+        body.model,
+        omniId,
+        `${omniId} fell through MODEL_MAP verbatim — add a dash-form mapping`
       );
       assert.equal(body.model, expectedSlugById[omniId], `${omniId} should map to backend slug`);
     }

@@ -338,10 +338,9 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### Wysokie koszty
 
-1. Sprawdź statystyki użycia w Dashboard → Usage
-2. Przełącz model primary na GLM/MiniMax
-3. Używaj darmowego tieru (Qoder, Kiro) do zadań niekrytycznych
-4. Ustaw budżety kosztów per klucz API: Dashboard → API Keys → Budget
+1. Check usage stats in Dashboard → Usage
+2. Switch primary model to GLM/MiniMax
+3. Set cost budgets per API key: Dashboard → API Keys → Budget
 
 ---
 

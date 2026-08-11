@@ -177,13 +177,6 @@ function parseClaude(data: any) {
     normalizeQuotaEntry(name, quota, { isPercentageOnly: true })
   );
 
-  if (data?.extraUsage?.is_enabled) {
-    quotas.push(buildClaudeExtraUsageQuota(data.extraUsage));
-  }
-
-  return quotas;
-}
-
 function parseDeepseekQuota(quotaKey: string, quota: any) {
   const match = quotaKey.match(/^credits(?:_([a-z]{3}))?$/);
   if (!match) return normalizeQuotaEntry(quotaKey, quota);

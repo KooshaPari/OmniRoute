@@ -51,7 +51,6 @@ v3.7.x → v3.8.0 版本週期新增了零設定自動路由、新提供者、OA
 
 ## 🔌 提供者
 
-管理 AI 提供者連線：OAuth 提供者（Claude Code、Codex）、API 金鑰提供者（Groq、DeepSeek、OpenRouter）以及免費提供者（Qoder、Kiro）。Kiro 帳戶包含額度餘額追蹤——剩餘額度、總配額及續約日期，均可在「儀表板 → 用量」中檢視。
 
 OpenRouter 連線可在「進階設定」中儲存各連線的 `preset`。設定後，OmniRoute 會將其作為 OpenRouter 頂層請求欄位發送，例如 `"preset": "email-copywriter"`，除非客戶端請求已提供自己的 `preset`。
 
@@ -128,7 +127,7 @@ OpenRouter 連線可在「進階設定」中儲存各連線的 `preset`。設定
 
 ## 🔧 CLI 工具
 
-一鍵配置 AI 程式碼工具：Claude Code、Codex CLI、OpenClaw、Kilo Code、Antigravity、Cline、Continue、Cursor 及 Factory Droid。功能包含自動化配置套用/重置、連線設定檔及模型對應。
+One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
 
 ![CLI 工具儀表板](../screenshots/07-cli-tools.png)
 
@@ -136,7 +135,7 @@ OpenRouter 連線可在「進階設定」中儲存各連線的 `preset`。設定
 
 ## 🤖 CLI 代理 _（v2.0.11+）_
 
-用於探索與管理 CLI 代理的儀表板。顯示 16 個內建代理的網格（Codex、Claude、Goose、OpenClaw、Aider、OpenCode、Cline、ForgeCode、Amazon Q、Open Interpreter、Cursor CLI、Warp、**Windsurf**、**Devin CLI**、**Kimi Coding**、**Command Code**），包含：
+Dashboard for discovering and managing CLI agents. Shows a grid of 17 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
 
 - **安裝狀態** — 已安裝 / 未找到，含版本偵測
 - **協定徽章** — stdio、HTTP 等

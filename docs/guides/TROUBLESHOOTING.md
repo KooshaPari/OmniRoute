@@ -1,7 +1,7 @@
 ---
 title: "Troubleshooting"
-version: 3.8.49
-lastUpdated: 2026-07-15
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Troubleshooting
