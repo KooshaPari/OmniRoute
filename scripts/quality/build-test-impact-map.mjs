@@ -62,9 +62,7 @@ function sourceDepsOf(entry) {
 const testFiles = globSync(
   [
     "tests/unit/*.test.ts",
-    "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts",
-    "tests/unit/**/*.test.mjs",
-    "tests/unit/dashboard/**/*.test.ts",
+    "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts",
     // Quarentena serial (P0.3): também são node:test — a TIA precisa mapeá-los.
     "tests/unit/serial/**/*.test.ts",
   ],

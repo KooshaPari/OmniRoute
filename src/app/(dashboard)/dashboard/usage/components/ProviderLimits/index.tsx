@@ -203,7 +203,6 @@ export default function ProviderLimits({
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState("all");
-  const { quotaVisibility, handleHideQuota, handleShowQuota } = useQuotaVisibility(tr, notify);
   const resetCreditRedemption = useCodexResetCreditRedemption(
     tr,
     setErrors,
@@ -1040,14 +1039,10 @@ export default function ProviderLimits({
             setCutoffModalWindows(windows);
             setCutoffModalConn(conn);
           }}
-          onOpenResetCredits={resetCreditRedemption.openCodexResetCredits}
+          onRedeemResetCredit={resetCreditRedemption.redeemCodexResetCredit}
           onToggleActive={handleToggleActive}
           togglingActiveId={togglingActiveId}
-          quotaVisibility={quotaVisibility}
-          onHideQuota={handleHideQuota}
-          onShowQuota={handleShowQuota}
           redeemingResetCreditId={resetCreditRedemption.redeemingResetCreditId}
-          loadingResetCreditsId={resetCreditRedemption.loadingResetCreditsId}
         />
       </div>
 

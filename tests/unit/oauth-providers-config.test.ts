@@ -42,7 +42,6 @@ const {
   QODER_CONFIG,
   TRAE_CONFIG,
   WINDSURF_CONFIG,
-  XAI_OAUTH_CONFIG,
   ZED_HOSTED_CONFIG,
 } = oauthModule;
 const { getAntigravityLoadCodeAssistMetadata } = antigravityHeadersModule;
@@ -148,11 +147,6 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   windsurf: ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   "devin-cli": ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   trae: ["apiEndpoint", "chatEndpoint", "webUrl"],
-  // prettier-ignore
-  "xai-oauth": ["authorizeUrl", "tokenUrl", "scope", "codeChallengeMethod", "clientId", "loopbackPort", "callbackPath", "callbackHost"],
-  // prettier-ignore
-  "grok-cli": ["authorizeUrl", "tokenUrl", "scope", "codeChallengeMethod", "clientId", "loopbackPort", "callbackPath", "callbackHost"],
-  // prettier-ignore
   "zed-hosted": ["webBaseUrl", "cloudBaseUrl", "llmBaseUrl", "userInfoUrl", "llmTokenUrl", "modelsUrl"],
 };
 
@@ -336,6 +330,10 @@ test("browser-based providers expose buildAuthUrl and return provider-specific a
   assert.equal(clineUrl.origin, "https://api.cline.bot");
 });
 
+// zed-hosted's buildAuthUrl deliberately returns an object (authUrl + codeVerifier +
+// redirectUri) instead of a bare string — generateAuthData() in providers.ts special-
+// cases this shape to thread an RSA private-key verifier through the existing PKCE
+// codeVerifier slot (see src/lib/oauth/providers/zed-hosted.ts header comment).
 test("zed-hosted buildAuthUrl returns {authUrl, codeVerifier, redirectUri} carrying a fresh RSA keypair", () => {
   const built = PROVIDERS["zed-hosted"].buildAuthUrl(ZED_HOSTED_CONFIG);
   assert.equal(typeof built, "object");
@@ -348,15 +346,14 @@ test("zed-hosted buildAuthUrl returns {authUrl, codeVerifier, redirectUri} carry
 
 test("generateAuthData honors an object-returning buildAuthUrl (zed-hosted) without breaking string-returning providers", async () => {
   const oauthHelpers = await import("../../src/lib/oauth/providers.ts");
-  const zedAuthData = oauthHelpers.generateAuthData(
-    "zed-hosted",
-    "http://localhost:20128/callback"
-  );
+  const zedAuthData = oauthHelpers.generateAuthData("zed-hosted", "http://localhost:20128/callback");
   assert.equal(zedAuthData.flowType, "authorization_code");
   assert.ok(zedAuthData.authUrl.startsWith("https://zed.dev/native_app_signin?"));
   assert.ok(zedAuthData.codeVerifier.startsWith("zed-rsa-pkcs1:"));
   assert.ok(zedAuthData.redirectUri.startsWith("http://127.0.0.1:"));
 
+  // A string-returning provider (cline) must still get the plain PKCE codeVerifier,
+  // not be affected by the object-return branch added for zed-hosted.
   const clineAuthData = oauthHelpers.generateAuthData("cline", "http://localhost:20128/callback");
   assert.equal(typeof clineAuthData.authUrl, "string");
   assert.equal(clineAuthData.redirectUri, "http://localhost:20128/callback");
@@ -364,6 +361,10 @@ test("generateAuthData honors an object-returning buildAuthUrl (zed-hosted) with
   assert.ok(!clineAuthData.codeVerifier.startsWith("zed-rsa-pkcs1:"));
 });
 
+// Regression for #3861: GitLab Duo needs an operator-registered OAuth client_id.
+// When it's missing, buildAuthUrl must return null (like Qoder) so the authorize route
+// can surface a clear "configure it" message — it previously THREW, which the route
+// swallowed into an opaque "Internal server error" 500 at the Add Connection step.
 test("gitlab-duo buildAuthUrl returns null (not throw) when client_id is unconfigured (#3861)", () => {
   const unconfigured = PROVIDERS["gitlab-duo"].buildAuthUrl(
     { ...GITLAB_DUO_CONFIG, clientId: "" },

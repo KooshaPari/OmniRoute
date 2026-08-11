@@ -340,10 +340,7 @@ export async function POST(req: Request) {
       validationWarnings: diff.validationWarnings,
       validationErrors: diff.validationErrors,
       fallbackApplied: diff.fallbackApplied,
-      // Prefer the pipeline's canonical `diff.fallbackReason`; fall back to the
-      // first synthesized reason (#6461) when the pipeline did not set one.
-      fallbackReason: diff.fallbackReason ?? fallbackReason,
-      fallbackReasons,
+      ...(diff.fallbackReason && { fallbackReason: diff.fallbackReason }),
       ...(diff.heatmap ? { heatmap: diff.heatmap } : {}),
     });
   } catch (err: unknown) {

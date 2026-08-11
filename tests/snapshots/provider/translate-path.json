@@ -5272,29 +5272,6 @@
       "stream": "https://api.z.ai/api/anthropic/v1/messages?beta=true"
     }
   },
-  "zai-web": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://chat.z.ai",
-      "stream": "https://chat.z.ai"
-    }
-  },
   "zed-hosted": {
     "format": "openai",
     "headers": {

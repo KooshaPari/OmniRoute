@@ -278,19 +278,15 @@ export async function GET(
     // per-connection route (used by MCP list_models_catalog + the dashboard
     // import view) never did, so custom models were dropped on both the
     // discovery-success and local_catalog paths. Read them once here and fold
-    // them into every user-facing models response via buildResponse below
-    // (dedup by id). Internal model-sync discovery opts out because these rows
-    // are a response projection, not provider-discovered models.
+    // them into every models response via buildResponse below (dedup by id).
     let customModelsForProvider: Array<{ id: string; name?: string }> = [];
-    if (!excludeCustom) {
-      try {
-        const custom = await getCustomModels(provider);
-        if (Array.isArray(custom)) {
-          customModelsForProvider = custom as Array<{ id: string; name?: string }>;
-        }
-      } catch {
-        // DB unavailable — proceed without custom models.
+    try {
+      const custom = await getCustomModels(provider);
+      if (Array.isArray(custom)) {
+        customModelsForProvider = custom as Array<{ id: string; name?: string }>;
       }
+    } catch {
+      // DB unavailable — proceed without custom models.
     }
 
     const mergeCustomModels = (models: any[]) => {

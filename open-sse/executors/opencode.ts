@@ -342,6 +342,14 @@ export class OpencodeExecutor extends BaseExecutor {
     ) {
       delete (modifiedBody as Record<string, unknown>).client_metadata;
     }
+    if (
+      modifiedBody &&
+      typeof modifiedBody === "object" &&
+      !Array.isArray(modifiedBody) &&
+      Object.prototype.hasOwnProperty.call(modifiedBody, "client_metadata")
+    ) {
+      delete (modifiedBody as Record<string, unknown>).client_metadata;
+    }
     if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
       const mb = modifiedBody as Record<string, unknown>;
       if (Array.isArray(mb.tools) && mb.tools.length > 128) {

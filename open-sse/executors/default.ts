@@ -20,7 +20,7 @@ import { applyProviderRequestDefaults } from "../services/providerRequestDefault
 import { stripUnsupportedParams } from "../translator/paramSupport.ts";
 import {
   injectReasoningContentForThinkingModel,
-  shouldInjectReasoningContentPlaceholder,
+  isThinkingMessageModel,
 } from "../utils/reasoningContentInjector.ts";
 import {
   detectFormat,
@@ -589,7 +589,9 @@ export class DefaultExecutor extends BaseExecutor {
       withDefaults &&
       typeof withDefaults === "object" &&
       !Array.isArray(withDefaults) &&
-      (this.provider === "cerebras" || this.provider === "mistral" || this.provider === "nvidia") &&
+      (this.provider === "cerebras" ||
+        this.provider === "mistral" ||
+        this.provider === "nvidia") &&
       Object.prototype.hasOwnProperty.call(withDefaults, "client_metadata")
     ) {
       const withoutClientMetadata = { ...(withDefaults as Record<string, unknown>) };
@@ -747,18 +749,19 @@ export class DefaultExecutor extends BaseExecutor {
       this.ensureThinkingBudget(withDefaults as Record<string, unknown>, model);
     }
 
-    // 9router#1480: native Moonshot providers 400 when a prior assistant turn
-    // lacks reasoning_content. OpencodeExecutor
+    // 9router#1480: the native Moonshot `kimi` provider (executor "default")
+    // is a thinking-mode upstream that 400s with "reasoning_content must be
+    // passed back" when a prior assistant turn lacks it. OpencodeExecutor
     // already injects a placeholder for OpenCode-routed thinking models; the
-    // direct connections hit neither injection path. Scope to Moonshot ids so
+    // direct kimi connection hit neither injection path. Scope to `kimi` so
     // gateway-served models that merely match the thinking-model name pattern
     // (and may reject an extra field) are unaffected.
-    if (this.provider === "kimi" || this.provider === "moonshot") {
+    if (this.provider === "kimi") {
       const outboundModel =
         typeof (withDefaults as Record<string, unknown>)?.model === "string"
           ? ((withDefaults as Record<string, unknown>).model as string)
           : model;
-      if (shouldInjectReasoningContentPlaceholder(this.provider, outboundModel)) {
+      if (isThinkingMessageModel(outboundModel)) {
         withDefaults = injectReasoningContentForThinkingModel(withDefaults);
       }
     }

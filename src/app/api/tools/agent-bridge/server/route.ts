@@ -60,18 +60,13 @@ export async function POST(request: Request): Promise<Response> {
 
   const { action } = parsed.data;
   const raw = body as Record<string, unknown>;
-  const sudoPassword = resolveMitmSudoPassword(
-    typeof raw.sudoPassword === "string" ? raw.sudoPassword : undefined,
-    getCachedPassword()
-  );
-  const rawApiKey = typeof raw.apiKey === "string" ? raw.apiKey : "";
+  const sudoPassword =
+    typeof raw.sudoPassword === "string" ? raw.sudoPassword : (getCachedPassword() ?? "");
+  const apiKey = typeof raw.apiKey === "string" ? raw.apiKey : (process.env.ROUTER_API_KEY ?? "");
 
   try {
     if (action === "start") {
-      const suppliedPassword =
-        typeof raw.sudoPassword === "string" ? normalizeMitmSudoPasswordInput(raw.sudoPassword) : "";
-      if (suppliedPassword) setCachedPassword(suppliedPassword);
-      const apiKey = await resolveRouterApiKey(rawApiKey);
+      if (sudoPassword) setCachedPassword(sudoPassword);
       const { startMitm } = await import("@/mitm/manager.runtime");
       const result = await startMitm(apiKey, sudoPassword);
       return Response.json({ ok: true, ...result });
@@ -93,7 +88,6 @@ export async function POST(request: Request): Promise<Response> {
       }
       // stopMitm calls clearCachedPassword() internally, so re-cache after stop
       if (sudoPassword || pwd) setCachedPassword(sudoPassword || pwd);
-      const apiKey = await resolveRouterApiKey(rawApiKey);
       const result = await startMitm(apiKey, sudoPassword || pwd);
       return Response.json({ ok: true, ...result });
     }

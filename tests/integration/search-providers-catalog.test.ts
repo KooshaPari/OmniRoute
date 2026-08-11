@@ -48,10 +48,10 @@ const route = await import("../../src/app/api/search/providers/route.ts");
 // Constants
 // ---------------------------------------------------------------------------
 
-// 14 search-kind providers: serper, brave, perplexity, exa, tavily, firecrawl,
-// google-pse, linkup, searchapi, youcom, searxng, ollama, zai + duckduckgo-free
-// (registry open-sse/config/searchRegistry.ts).
-const EXPECTED_SEARCH_COUNT = 14;
+// 13 search-kind providers: serper, brave, perplexity, exa, tavily, google-pse,
+// linkup, searchapi, youcom, searxng, ollama, zai + duckduckgo-free (added in the
+// v3.8.27 cycle, registry open-sse/config/searchRegistry.ts).
+const EXPECTED_SEARCH_COUNT = 13;
 const EXPECTED_FETCH_COUNT = 4;
 const EXPECTED_TOTAL = EXPECTED_SEARCH_COUNT + EXPECTED_FETCH_COUNT;
 

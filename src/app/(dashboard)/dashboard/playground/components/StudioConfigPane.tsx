@@ -16,9 +16,12 @@ import {
   CLAUDE_CODE_COMPATIBLE_PREFIX,
   OPENAI_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
-import { filterModelsByQuery, pickDefaultModel, resolveModelFilterKey } from "./modelSelection";
+import { pickDefaultModel, resolveModelFilterKey } from "./modelSelection";
 import ReasoningControls from "./ReasoningControls";
-import { resolveReasoningControls, type ReasoningControlSpec } from "./reasoningControlUtils";
+import {
+  resolveReasoningControls,
+  type ReasoningControlSpec,
+} from "./reasoningControls";
 
 export interface ConfigState {
   endpoint: PlaygroundEndpoint;
@@ -91,22 +94,8 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
     selectedProviderOption?.modelPrefix,
     isCompatibleConnectionId
   );
-  const {
-    availableModels,
-    modelCapabilities,
-    loading: loadingModels,
-  } = useAvailableModels(modelFilterKey);
-
-  // #4086: filter the dropdown by the search query, but always keep the currently selected
-  // model in the list even when it doesn't match — otherwise typing a query would silently
-  // change the active selection out from under the user.
-  const filteredModels = useMemo(() => {
-    const filtered = filterModelsByQuery(availableModels, modelQuery);
-    if (configState.model && !filtered.includes(configState.model)) {
-      return [configState.model, ...filtered];
-    }
-    return filtered;
-  }, [availableModels, modelQuery, configState.model]);
+  const { availableModels, modelCapabilities, loading: loadingModels } =
+    useAvailableModels(modelFilterKey);
 
   // #6241: resolve the reasoning controls for the currently selected model from the capability
   // flags the /models catalog exposes (supportsThinking / effort_tiers).

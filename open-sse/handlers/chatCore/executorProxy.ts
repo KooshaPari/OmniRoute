@@ -28,40 +28,6 @@ type LoggerLike =
   | null
   | undefined;
 
-const DEFAULT_FALLBACK_CODES = [429, 500, 502, 503, 504];
-
-function parseFallbackCodes(raw: unknown): number[] | null {
-  if (typeof raw !== "string" || !raw.trim()) return null;
-  const parsed = raw
-    .split(",")
-    .map((s) => Number.parseInt(s.trim(), 10))
-    .filter((n) => !Number.isNaN(n));
-  return parsed.length > 0 ? parsed : null;
-}
-
-/**
- * Reads the CLIProxyAPI-related settings shared by both the direct
- * `mode: "cliproxyapi"` passthrough leg and the `mode: "fallback"` retry leg:
- * the custom fallback status codes and the dedicated credential (#7645).
- * Falls back to defaults / no dedicated key on any read failure.
- */
-async function loadCliproxyapiSettings(): Promise<{
-  fallbackCodes: number[];
-  dedicatedApiKey: string | null;
-}> {
-  try {
-    const allSettings = await getCachedSettings();
-    return {
-      fallbackCodes: parseFallbackCodes(allSettings.cliproxyapi_fallback_codes) ?? [
-        ...DEFAULT_FALLBACK_CODES,
-      ],
-      dedicatedApiKey: resolveDedicatedCliproxyapiApiKey(allSettings),
-    };
-  } catch {
-    return { fallbackCodes: [...DEFAULT_FALLBACK_CODES], dedicatedApiKey: null };
-  }
-}
-
 export async function resolveExecutorWithProxy(
   prov: string,
   log?: LoggerLike,

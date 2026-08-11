@@ -344,30 +344,41 @@ async function tryAwsSsoCache(targetProvider: string): Promise<{
           }
         }
 
-        // Newer kiro-auth-token.json files omit `clientIdHash` and instead carry
-        // the OIDC `clientId` directly on the token object (#1253). In that case
-        // find the client-registration file whose own `clientId` matches the
-        // token's `clientId`, rather than leaving clientId/clientSecret unset.
-        // Matching by exact clientId (not region/latest-expiry) avoids picking
-        // an unrelated stale registration on hosts with multiple cached SSO
-        // client registrations.
-        if (!clientId && data.clientId) {
-          for (const candidateFile of files) {
-            if (candidateFile === file || !candidateFile.endsWith(".json")) continue;
-            try {
-              const candidateContent = await readFile(join(cachePath, candidateFile), "utf-8");
-              const candidateData = JSON.parse(candidateContent);
-              if (
-                candidateData.clientId === data.clientId &&
-                typeof candidateData.clientSecret === "string" &&
-                candidateData.clientSecret
-              ) {
-                clientId = candidateData.clientId;
-                clientSecret = candidateData.clientSecret;
-                break;
-              }
-            } catch {
-              // Skip unreadable/malformed candidate files.
+        // Read profileArn from Kiro IDE's profile.json.
+        // Kiro IDC (Identity Center) accounts can live in regions other than
+        // us-east-1. #2059 forced every ARN's region segment to us-east-1,
+        // which 403s the runtime gateway for non-us-east-1 IDC accounts. The
+        // OAuth device-code path (src/lib/oauth/providers/kiro.ts) already
+        // discovers the correct region-matched ARN; mirror that here by
+        // preserving the profile's ARN region verbatim instead of rewriting
+        // it.
+        let profileArn: string | null = null;
+        const kiroProfilePaths = [
+          join(
+            process.env.APPDATA || join(homedir(), "AppData", "Roaming"),
+            "Kiro",
+            "User",
+            "globalStorage",
+            "kiro.kiroagent",
+            "profile.json"
+          ),
+          join(
+            homedir(),
+            ".config",
+            "Kiro",
+            "User",
+            "globalStorage",
+            "kiro.kiroagent",
+            "profile.json"
+          ),
+        ];
+        for (const profilePath of kiroProfilePaths) {
+          try {
+            const profileContent = await readFile(profilePath, "utf-8");
+            const profileData = JSON.parse(profileContent);
+            if (profileData.arn) {
+              profileArn = profileData.arn;
+              break;
             }
           }
         }

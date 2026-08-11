@@ -603,9 +603,75 @@ export default function OAuthModal({
           setStep("waiting");
           popupRef.current = window.open(data.authUrl, "oauth_popup", "width=600,height=700");
 
-          // Check if popup was blocked
-          if (!popupRef.current) {
-            setStep("input");
+      let forceManual = false;
+
+      // Claude Code and Cline OAuth flows can finish on provider-hosted pages that
+      // show an auth code instead of redirecting back to OmniRoute.
+      // Start directly in manual mode so users always have an input to paste code/url.
+      // zed-hosted's native-app sign-in always redirects the browser to a local
+      // 127.0.0.1:<port> callback that OmniRoute never listens on (the port is
+      // arbitrary and unrelated to the dashboard's own port) — nothing can
+      // auto-close the popup, so always show the manual paste-URL input.
+      if (provider === "claude" || provider === "cline" || provider === "zed-hosted") {
+        forceManual = true;
+      }
+
+      // PKCE callback server providers (Codex, Windsurf, Devin CLI):
+      // On localhost, spin up a local callback server and poll for the result.
+      // Codex uses a fixed port 1455; Windsurf/Devin CLI use a random OS-assigned port.
+      // On remote the server is unreachable — fall through to standard manual flow.
+      if (PKCE_CALLBACK_SERVER_PROVIDERS.has(provider)) {
+        if (isTrueLocalhost) {
+          try {
+            const serverRes = await fetch(`/api/oauth/${provider}/start-callback-server`);
+            const serverData = (await parseResponseBody(serverRes)) as Record<string, unknown>;
+            if (!serverRes.ok)
+              throw new Error(
+                getErrorMessage(serverData, serverRes.status, "Failed to start callback server")
+              );
+
+            setAuthData({ ...serverData, redirectUri: serverData.redirectUri });
+            setStep("waiting");
+            popupRef.current = window.open(serverData.authUrl, "oauth_auth");
+
+            // If browser blocked the popup, switch to manual input step immediately
+            if (!popupRef.current) {
+              setStep("input");
+            }
+
+            setPolling(true);
+            const maxAttempts = 150;
+            for (let i = 0; i < maxAttempts; i++) {
+              await new Promise((r) => setTimeout(r, 2000));
+
+              const pollRes = await fetch(`/api/oauth/${provider}/poll-callback`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ connectionId: reauthConnection?.id }),
+              });
+              const pollData = (await parseResponseBody(pollRes)) as Record<string, unknown>;
+
+              if (pollData.success) {
+                setStep("success");
+                setPolling(false);
+                onSuccess?.();
+                return;
+              }
+
+              if (pollData.error && !pollData.pending) {
+                throw new Error(pollData.errorDescription || pollData.error);
+              }
+            }
+
+            setPolling(false);
+            throw new Error("Authorization timeout");
+          } catch (pkceErr) {
+            console.warn(
+              `${provider} callback server failed, falling back to manual flow`,
+              pkceErr
+            );
+            setPolling(false);
+            forceManual = true;
           }
         }
       } catch (err) {

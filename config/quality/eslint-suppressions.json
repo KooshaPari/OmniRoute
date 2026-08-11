@@ -295,7 +295,7 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/settings/components/ProviderAccountRoutingCard.tsx": {
+  "src/app/(dashboard)/dashboard/settings/components/ModelLockoutCard.tsx": {
     "react-hooks/exhaustive-deps": {
       "count": 1
     }

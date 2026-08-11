@@ -137,7 +137,8 @@ import {
   computeClosestRetryAfter,
   waitForCooldownAwareRetry,
 } from "../../src/sse/services/cooldownAwareRetry.ts";
-import { dispatchChaosFromCombo, type ChaosTuning } from "./autoCombo/chaosEngine.ts";
+import { handleFusionChat, type FusionTuning } from "./fusion.ts";
+import { handlePipelineChat, type PipelineStep } from "./pipeline.ts";
 import {
   TRANSIENT_FOR_SEMAPHORE,
   MAX_FALLBACK_WAIT_MS,
@@ -597,7 +598,226 @@ export async function handleComboChat({
   // combo/dispatchPrelude.ts; only the chaos + round-robin hand-offs are short
   // enough to stay inline.
   if (pinnedModel) {
-    const pinnedDispatch = await tryPinnedModelDispatch({
+    // The pin is read from session_model_history (a PRIOR turn) and may name a
+    // model that has since been removed from this combo, or a provider whose
+    // credentials are gone. Without this guard a stale pin bypasses the strategy
+    // and routes to a dead model forever — incident 2026-06-21: cli-claude-heavy
+    // pinned to a deepseek connection with no active credentials → instant fail,
+    // never falling through to the live targets; and combos re-pointed Opus→Sonnet
+    // kept serving the old model. Validate the pin is still reachable in THIS
+    // combo's resolved targets (refs flattened) before honoring it. Only validate
+    // when allCombos is authoritative (non-empty) so we can resolve combo-refs;
+    // the auto-combo redirect path passes an empty list and keeps prior behavior.
+    const haveFullCombos = Array.isArray(allCombos) ? allCombos.length > 0 : !!allCombos;
+    const pinInCombo =
+      !haveFullCombos ||
+      resolveComboTargets(combo, allCombos, clampComboDepth(config.maxComboDepth)).some(
+        (t) => t.modelStr === pinnedModel
+      );
+    // Honor the pin only if it is still a combo target AND its provider is not
+    // DURABLY down. Without the health gate a pin keeps routing a session to a
+    // dead/credits-exhausted/throttled account forever (strategy bypassed, no
+    // failover) — incident 2026-06-22: laila stuck on a throttled claude account
+    // and credits_exhausted accounts never failing over. A transient cooldown is
+    // tolerated (pin kept) so an unstable provider does not churn the pin.
+    const pinDurablyDown = pinInCombo ? await isPinnedModelDurablyUnhealthy(pinnedModel) : false;
+    if (pinInCombo && !pinDurablyDown) {
+      log.info(
+        "COMBO",
+        `Bypassing strategy — routing directly to pinned context model: ${pinnedModel}`
+      );
+      let pinnedResult: Response | null = null;
+      try {
+        pinnedResult = await handleSingleModelWithTimeout(body, pinnedModel, {
+          modelPinned: true,
+        } as SingleModelTarget);
+      } catch (pinErr) {
+        log.warn(
+          "COMBO",
+          `Pinned model ${pinnedModel} threw error: ${pinErr instanceof Error ? pinErr.message : String(pinErr)}, falling through to combo retry/fallback`
+        );
+      }
+      if (pinnedResult) {
+        if (pinnedResult.ok) {
+          let pinnedClone: Response;
+          try {
+            pinnedClone = pinnedResult.clone();
+          } catch {
+            pinnedClone = pinnedResult;
+          }
+          const pinnedQuality = await validateResponseQuality(
+            pinnedClone,
+            clientRequestedStream,
+            log,
+            config.responseValidation
+          );
+          releaseQualityClone(pinnedClone, pinnedResult, pinnedQuality);
+          if (pinnedQuality.valid) return pinnedResult;
+          log.warn(
+            "COMBO",
+            `Pinned model ${pinnedModel} returned 200 but failed quality check: ${pinnedQuality.reason}, falling through to combo retry/fallback`
+          );
+        } else {
+          const pinnedStatus = pinnedResult.status || 500;
+          if (![408, 429, 500, 502, 503, 504].includes(pinnedStatus)) {
+            return pinnedResult;
+          }
+          log.warn(
+            "COMBO",
+            `Pinned model ${pinnedModel} failed (${pinnedStatus}), falling through to combo retry/fallback`
+          );
+        }
+      }
+      // Fall through to the target iteration loop below — retries and sibling
+      // models will be tried via the normal combo machinery.
+    }
+    log.warn(
+      "COMBO",
+      pinInCombo
+        ? `Context-cache pin "${pinnedModel}" provider durably unhealthy — dropping pin, using strategy`
+        : `Stale context-cache pin "${pinnedModel}" not in combo "${combo.name}" targets — dropping pin, using strategy`
+    );
+    // Fall through to the normal target iteration loop below — the pin is
+    // dropped, so the combo strategy picks the best available target.
+  }
+
+  // Fusion strategy: parallel panel + judge synthesis. Handled in a separate module
+  // because it neither iterates targets in order nor needs the failover/retry/credential
+  // gate machinery that follows — it fans out, then synthesizes once.
+  if (strategy === "fusion") {
+    const fusionModels = (combo.models || [])
+      .map((m) => {
+        if (typeof m === "string") return m;
+        if (m && typeof m === "object") {
+          const obj = m as Record<string, unknown>;
+          if (typeof obj.model === "string") return obj.model;
+        }
+        return null;
+      })
+      .filter((m): m is string => Boolean(m));
+    const cfg = config as Record<string, unknown>;
+    const judgeModel = typeof cfg.judgeModel === "string" ? cfg.judgeModel : undefined;
+    const tuning =
+      cfg.fusionTuning && typeof cfg.fusionTuning === "object"
+        ? (cfg.fusionTuning as FusionTuning)
+        : undefined;
+    return handleFusionChat({
+      body,
+      models: fusionModels,
+      handleSingleModel: handleSingleModelWithTimeout,
+      log,
+      comboName: combo.name,
+      judgeModel,
+      tuning,
+    });
+  }
+
+  // Pipeline strategy: sequential chain — each step's output feeds the next step's
+  // input, only the final step's response is returned. Handled in a separate module
+  // because it neither iterates targets as fallbacks nor needs the failover/retry
+  // machinery below — it runs targets in order, threading output → input. The step
+  // list is `combo.models` (in order); an optional per-step `prompt` is read off the
+  // target object (comboModelStepInputSchema.prompt).
+  if (strategy === "pipeline") {
+    const pipelineSteps = (combo.models || [])
+      .map((m): PipelineStep | null => {
+        if (typeof m === "string") return { model: m };
+        if (m && typeof m === "object") {
+          const obj = m as Record<string, unknown>;
+          if (typeof obj.model === "string") {
+            return {
+              model: obj.model,
+              prompt: typeof obj.prompt === "string" ? obj.prompt : undefined,
+            };
+          }
+        }
+        return null;
+      })
+      .filter((s): s is PipelineStep => Boolean(s));
+    return handlePipelineChat({
+      body,
+      steps: pipelineSteps,
+      handleSingleModel: handleSingleModelWithTimeout,
+      log,
+      comboName: combo.name,
+    });
+  }
+
+  const nestingContext = nesting || {
+    depth: 0,
+    maxDepth: clampComboDepth(config.maxComboDepth),
+    visitedComboNames: [combo.name],
+    rootComboName: combo.name,
+    attemptBudget: { count: 0, limit: MAX_GLOBAL_ATTEMPTS },
+  };
+  const nestedComboMode = normalizeNestedComboMode(config.nestedComboMode);
+
+  const executeModeUnits =
+    nestedComboMode === "execute" && allCombos
+      ? resolveComboRuntimeUnits(combo, allCombos, "execute", nestingContext.maxDepth)
+      : [];
+  const hasExecutableComboRef = executeModeUnits.some((unit) => unit.kind === "combo-ref");
+  const simpleExecuteStrategies = new Set([
+    "priority",
+    "round-robin",
+    "random",
+    "strict-random",
+    "weighted",
+    "fill-first",
+  ]);
+
+  if (hasExecutableComboRef && simpleExecuteStrategies.has(strategy)) {
+    let runtimeUnits = executeModeUnits;
+    let unitExecutionStrategy = strategy;
+    if (strategy === "weighted") {
+      const stickyLimit = clampStickyWeightedTargetLimit(
+        (config as Record<string, unknown>).stickyWeightedLimit
+      );
+      const stickyKey = getStickyWeightedExecutionKey(combo.name, stickyLimit);
+      const stickyUnit = stickyKey
+        ? runtimeUnits.find((unit) => unit.executionKey === stickyKey)
+        : null;
+      if (stickyUnit) {
+        runtimeUnits = [
+          stickyUnit,
+          ...runtimeUnits.filter((unit) => unit.executionKey !== stickyUnit.executionKey),
+        ];
+        unitExecutionStrategy = "priority";
+      }
+    }
+    if (strategy === "random") runtimeUnits = fisherYatesShuffle([...runtimeUnits]);
+    if (strategy === "strict-random") {
+      const key = await getNextFromDeck(
+        `combo:${combo.name}`,
+        runtimeUnits.map((unit) => unit.executionKey)
+      );
+      const selected = runtimeUnits.find((unit) => unit.executionKey === key) || runtimeUnits[0];
+      runtimeUnits = [
+        selected,
+        ...runtimeUnits.filter((unit) => unit.executionKey !== selected.executionKey),
+      ];
+    }
+    let runtimeStickyLimit: number | null = null;
+    let runtimeStickyTargets: ResolvedComboUnit[] = runtimeUnits;
+    if (strategy === "round-robin") {
+      const perComboStickyLimit = (config as Record<string, unknown>).stickyRoundRobinLimit;
+      runtimeStickyLimit = clampStickyRoundRobinTargetLimit(
+        perComboStickyLimit !== undefined && perComboStickyLimit !== null
+          ? perComboStickyLimit
+          : (settings as Record<string, unknown> | null)?.stickyRoundRobinLimit
+      );
+      const { startIndex, counter } = getStickyRoundRobinStartIndex(
+        combo.name,
+        runtimeUnits,
+        runtimeStickyLimit
+      );
+      if (runtimeStickyLimit <= 1) rrCounters.set(combo.name, counter + 1);
+      runtimeUnits = runtimeUnits.map(
+        (_, offset) => runtimeUnits[(startIndex + offset) % runtimeUnits.length]
+      );
+      runtimeStickyTargets = executeModeUnits;
+    }
+    const execution = await executeRuntimeUnitCombo({
       body,
       combo,
       pinnedModel,
@@ -2255,12 +2475,11 @@ async function handleRoundRobinCombo({
   // BEFORE availability is known; if every compat-kept target then turns out to be
   // runtime-unavailable, we must reconsider these before returning 503, instead of
   // permanently dropping a compat-rejected-but-healthy provider.
-  const compatRejectedTargets = computeCompatRejectedTargets(
-    evalRankedTargets,
-    filteredTargets,
-    body
+  const compatKeptSet = new Set(filteredTargets);
+  const compatRejectedTargets = evalRankedTargets.filter(
+    (target) => !compatKeptSet.has(target)
   );
-  let modelCount = filteredTargets.length;
+  const modelCount = filteredTargets.length;
   if (modelCount === 0) {
     const exhaustion = describeCapabilityFilterExhaustion(
       evalRankedTargets,

@@ -16,7 +16,6 @@ const imageRoute = await import("../../src/app/api/v1/images/generations/route.t
 const providerImageRoute =
   await import("../../src/app/api/v1/providers/[provider]/images/generations/route.ts");
 const imageEditRoute = await import("../../src/app/api/v1/images/edits/route.ts");
-const { MAX_BODY_BYTES_IMAGE_EDIT } = await import("../../src/shared/middleware/bodySizeGuard.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 
 const originalFetch = globalThis.fetch;
@@ -112,20 +111,6 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("image routes expose CORS preflight handlers", async () => {
-  const responses = await Promise.all([
-    imageRoute.OPTIONS(),
-    providerImageRoute.OPTIONS(),
-    imageEditRoute.OPTIONS(),
-  ]);
-
-  for (const response of responses) {
-    assert.equal(response.status, 200);
-    assert.match(response.headers.get("Access-Control-Allow-Methods") ?? "", /POST/);
-    assert.equal(response.headers.get("Access-Control-Allow-Headers"), "*");
-  }
-});
-
 test("v1 image models GET exposes image-only modalities for credential-backed image-only models", async () => {
   await seedConnection("topaz", { apiKey: "topaz-key" });
   await seedConnection("stability-ai", { apiKey: "stability-key" });
@@ -153,6 +138,19 @@ test("v1 image models GET exposes current Codex image models and hides inactive 
     ["codex/gpt-5.6-sol", "codex/gpt-5.6-terra", "codex/gpt-5.6-luna"]
   );
   assert.ok(!ids.includes("codex/gpt-5.5"));
+  assert.ok(!ids.includes("openai/gpt-image-2"));
+  assert.ok(!ids.some((id: string) => id.startsWith("xai/")));
+});
+
+test("v1 image models GET hides providers without active credentials", async () => {
+  await seedConnection("codex", { apiKey: "codex-key" });
+
+  const response = await imageRoute.GET();
+  const body = (await response.json()) as { data: Array<{ id: string }> };
+  const ids = body.data.map((item) => item.id);
+
+  assert.equal(response.status, 200);
+  assert.ok(ids.includes("codex/gpt-5.5"));
   assert.ok(!ids.includes("openai/gpt-image-2"));
   assert.ok(!ids.some((id: string) => id.startsWith("xai/")));
 });

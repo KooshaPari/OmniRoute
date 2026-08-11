@@ -47,7 +47,7 @@ export function geminiToOpenAIRequest(model, body, stream) {
   // Convert contents to messages
   if (body.contents && Array.isArray(body.contents)) {
     for (const content of splitCoLocatedFunctionResponses(body.contents)) {
-      const converted = convertGeminiContentWithReasoning(content);
+      const converted = convertGeminiContent(content);
       if (converted) {
         result.messages.push(converted);
       }

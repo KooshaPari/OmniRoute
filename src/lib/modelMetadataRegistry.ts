@@ -14,12 +14,8 @@ import {
 } from "@/shared/constants/modelSpecs";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "@/shared/constants/models";
-import { getSyncStatus, getSyncedCapability, getModelsDevPricing } from "@/lib/modelsDevSync";
-import { getPricingForModel as getDefaultPricingForModel } from "@/shared/constants/pricing";
-import {
-  CANONICAL_EFFORT_VALUES,
-  extendCodexGpt56EffortValues,
-} from "@/shared/reasoning/effortStandardization";
+import { getSyncStatus, getSyncedCapability } from "@/lib/modelsDevSync";
+import { CANONICAL_EFFORT_VALUES } from "@/shared/reasoning/effortStandardization";
 
 const MODEL_METADATA_SCHEMA_VERSION = "model-metadata-v1";
 
@@ -359,19 +355,8 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
     ...(typeof metadata.capabilities.vision === "boolean"
       ? { vision: metadata.capabilities.vision }
       : {}),
-    // #8016: never invent chat tool/reasoning defaults onto specialty surfaces.
-    // Only copy boolean true when authoritative metadata says so; specialty rows
-    // default to false instead of optimistic chat heuristics.
-    tool_calling: specialtySurface
-      ? metadata.capabilities.supportsTools === true || metadata.capabilities.toolCalling === true
-        ? true
-        : false
-      : metadata.capabilities.toolCalling,
-    reasoning: specialtySurface
-      ? metadata.capabilities.supportsThinking === true || metadata.capabilities.reasoning === true
-        ? true
-        : false
-      : metadata.capabilities.reasoning,
+    tool_calling: metadata.capabilities.toolCalling,
+    reasoning: metadata.capabilities.reasoning,
     // #6241: surface thinking support + the canonical effort tiers so the frontend can
     // render the effort/thinking toggles. `thinking` is kept for back-compat; `supportsThinking`
     // is the explicit flag and `effort_tiers` lists the selectable reasoning levels
@@ -381,13 +366,7 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
           thinking: metadata.capabilities.supportsThinking,
           supportsThinking: metadata.capabilities.supportsThinking,
           ...(metadata.capabilities.supportsThinking
-            ? {
-                effort_tiers: extendCodexGpt56EffortValues(
-                  metadata.provider,
-                  metadata.model,
-                  CANONICAL_EFFORT_VALUES
-                ),
-              }
+            ? { effort_tiers: [...CANONICAL_EFFORT_VALUES] }
             : {}),
         }
       : {}),

@@ -330,7 +330,7 @@ export async function handleFusionChat({
 
   // 2. Collect successful answers + per-member failure reasons (issue #6454).
   const answers: Array<{ model: string; text: string }> = [];
-  const failures: Array<{ model: string; reason: string }> = [];
+  const rateLimited: string[] = [];
   for (let i = 0; i < settled.length; i++) {
     const res = settled[i];
     const model = panel[i];
@@ -354,13 +354,12 @@ export async function handleFusionChat({
     }
     const resp = res as Response;
     if (!resp.ok) {
-      // Per-member reason keeps the exact status code (e.g. status_429 for a
-      // rate-limit fan-fail, status_503 for an outage) — strictly more
-      // informative than the earlier aggregate rate-limit count (#6454).
-      failures.push({ model, reason: `status_${resp.status}` });
-      log.warn("FUSION", `Panel ${model} ${resp.status === 429 ? "rate-limited" : "failed"}`, {
-        status: resp.status,
-      });
+      if (resp.status === 429) {
+        rateLimited.push(model);
+        log.warn("FUSION", `Panel ${model} rate-limited`, { status: resp.status });
+      } else {
+        log.warn("FUSION", `Panel ${model} failed`, { status: resp.status });
+      }
       continue;
     }
     try {
@@ -383,16 +382,12 @@ export async function handleFusionChat({
 
   // 3. Degrade gracefully when the panel is too thin to fuse.
   if (answers.length === 0) {
-    // Surface per-member reasons so operators can distinguish a rate-limit
-    // fan-fail (reason=rate_limited) from an outage (issue #6454). This supersedes
-    // the earlier aggregate "N rate-limited, M failed" summary — per-member is
-    // strictly more informative. Still routed through errorResponse for sanitization.
-    const detail = failures.map((f) => `${f.model}=${f.reason}`).join(", ");
+    const detail =
+      rateLimited.length > 0
+        ? `${rateLimited.length} models rate-limited, ${panel.length - rateLimited.length} failed`
+        : `all ${panel.length} models failed`;
     log.warn("FUSION", `No live models: ${detail}`);
-    return errorResponse(
-      503,
-      detail ? `All fusion panel models failed: ${detail}` : "All fusion panel models failed"
-    );
+    return errorResponse(503, `All fusion panel models failed (${detail})`);
   }
   if (answers.length === 1) {
     // No explicit judgeModel configured: the "judge" is just panel[0], so

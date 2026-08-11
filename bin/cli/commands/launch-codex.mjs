@@ -30,23 +30,6 @@ export function resolveCodexSpawn(platform) {
   return { command: "codex", shell: undefined };
 }
 
-/**
- * `shell: true` makes Node join argv with plain spaces and no escaping (the
- * DEP0190 warning). That mangles every launch-codex invocation on Windows, not
- * just the ones with a multi-word user argument: the injected `-c` provider
- * flags carry TOML values whose quotes cmd.exe strips
- * (`model_providers.omniroute.name="OmniRoute"` arrives unquoted and no longer
- * parses as TOML). Quote the args ourselves on that path; off Windows there is
- * no shell, so argv is passed through untouched. Same fix as `launch` (#8837).
- *
- * @param {string[]} args
- * @param {NodeJS.Platform|string} platform
- * @returns {string[]}
- */
-export function quoteCodexArgs(args, platform) {
-  return quoteShellArgs(args, platform);
-}
-
 function stripTrailingSlash(value) {
   let s = String(value);
   let end = s.length;
@@ -171,7 +154,7 @@ export async function runLaunchCodexCommand(opts = {}, codexArgs = []) {
 
   return await new Promise((resolve) => {
     const { command: codexLaunch, shell: shellValue } = resolveCodexSpawn(process.platform);
-    const child = spawn(codexLaunch, quoteCodexArgs(extraArgs, process.platform), {
+    const child = spawn(codexLaunch, extraArgs, {
       env,
       stdio: "inherit",
       shell: shellValue,

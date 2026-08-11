@@ -500,4 +500,18 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     hasFree: true,
     freeNote: "Free API key with a 5 req/s and 200 req/m rate limit.",
   },
+  hcnsec: {
+    id: "hcnsec",
+    alias: "hcnsec",
+    name: "Huancheng Public API",
+    icon: "security",
+    color: "#0EA5E9",
+    textIcon: "HC",
+    website: "https://api.hcnsec.cn",
+    hasFree: true,
+    freeNote:
+      "Xinjiang Huancheng Cybersecurity public LLM API platform: free credits with daily check-ins.",
+    passthroughModels: true,
+    authHint: "Get API key at api.hcnsec.cn",
+  },
 };

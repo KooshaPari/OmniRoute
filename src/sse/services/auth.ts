@@ -621,18 +621,8 @@ function getP2CConnectionScore(
   requestedModel: string | null = null,
   quotaResults?: Map<string, { blocked: boolean; exhausted: boolean }>
 ): { score: number; quotaHeadroomPercent: number | null } {
-  let quotaBlocked: boolean;
-  let quotaExhausted: boolean;
-
-  if (connection.id && quotaResults?.has(connection.id)) {
-    const cached = quotaResults.get(connection.id)!;
-    quotaBlocked = cached.blocked;
-    quotaExhausted = cached.exhausted;
-  } else {
-    quotaBlocked = evaluateQuotaLimitPolicy(provider, connection, requestedModel).blocked;
-    quotaExhausted = isQuotaExhaustedForRequest(connection.id, provider, requestedModel);
-  }
-
+  const quotaBlocked = evaluateQuotaLimitPolicy(provider, connection, requestedModel).blocked;
+  const quotaExhausted = isQuotaExhaustedForRequest(connection.id, provider, requestedModel);
   const quotaHeadroomPercent = getConnectionQuotaHeadroomPercent(
     provider,
     connection,
@@ -1438,19 +1428,13 @@ export async function getProviderCredentials(
       };
     }
 
-    // Quota-aware: partition accounts with and without quota for the requested scope.
-    const withQuota: typeof policyEligibleConnections = [];
-    const exhaustedQuota: typeof policyEligibleConnections = [];
-    for (const c of policyEligibleConnections) {
-      const exhausted = isQuotaExhaustedForRequest(c.id, provider, requestedModel);
-      const existing = quotaResults.get(c.id);
-      if (existing) existing.exhausted = exhausted;
-      if (!exhausted) {
-        withQuota.push(c);
-      } else {
-        exhaustedQuota.push(c);
-      }
-    }
+    // Quota-aware: filter out accounts with exhausted quota for the requested scope.
+    const withQuota = policyEligibleConnections.filter(
+      (c) => !isQuotaExhaustedForRequest(c.id, provider, requestedModel)
+    );
+    const exhaustedQuota = policyEligibleConnections.filter((c) =>
+      isQuotaExhaustedForRequest(c.id, provider, requestedModel)
+    );
 
     if (exhaustedQuota.length > 0) {
       log.info(

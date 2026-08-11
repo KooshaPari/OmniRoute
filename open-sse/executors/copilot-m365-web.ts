@@ -310,7 +310,6 @@ export class CopilotM365WebExecutor extends BaseExecutor {
         wsUrl,
         prompt,
         model,
-        tier: connectionParams.tier,
         signal: input.signal ?? undefined,
         log: input.log,
       });

@@ -133,7 +133,7 @@ export function getProvider(name) {
  */
 export function generateAuthData(providerName, redirectUri) {
   const provider = getProvider(providerName);
-  const pkce = generatePKCE(provider.pkceVerifierBytes || 32);
+  const pkce = generatePKCE();
   let codeVerifier = pkce.codeVerifier;
   const { codeChallenge, state } = pkce;
 

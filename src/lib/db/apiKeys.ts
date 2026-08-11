@@ -480,12 +480,6 @@ export async function getApiKeys(limit?: number, offset?: number) {
   });
 }
 
-export function getApiKeysCount(): number {
-  const db = getDbInstance() as ApiKeysDbLike;
-  const row = db.prepare("SELECT count(*) as cnt FROM api_keys").get() as { cnt: number };
-  return row.cnt;
-}
-
 /**
  * Select an API key for internal OmniRoute operations (combo health checks,
  * cloud-sync verify pings, etc.).
@@ -511,7 +505,10 @@ export function getApiKeysCount(): number {
  * inactive, or banned key, and it never widens a key's allowedModels.
  */
 export async function pickApiKeyForInternalUse(
-  purpose: "combo-health-check" | "cloud-sync-verify" | "internal-probe" = "internal-probe"
+  purpose:
+    | "combo-health-check"
+    | "cloud-sync-verify"
+    | "internal-probe" = "internal-probe"
 ): Promise<string | null> {
   try {
     const keys = (await getApiKeys()) as Array<{
@@ -529,23 +526,29 @@ export async function pickApiKeyForInternalUse(
 
     // 1. Management-scoped key (preferred for any internal probe).
     const manageKey = keys.find(
-      (k) => isUsable(k) && Array.isArray(k.scopes) && k.scopes.includes("manage")
+      (k) =>
+        isUsable(k) && Array.isArray(k.scopes) && k.scopes.includes("manage"),
     );
     if (manageKey?.key) return manageKey.key;
 
     // 2. Allow-all key (empty allowedModels means no model restrictions).
     const allowAllKey = keys.find(
-      (k) => isUsable(k) && Array.isArray(k.allowedModels) && k.allowedModels.length === 0
+      (k) =>
+        isUsable(k) &&
+        Array.isArray(k.allowedModels) &&
+        k.allowedModels.length === 0,
     );
     if (allowAllKey?.key) return allowAllKey.key;
 
     // 3. Most recently used (proxy for "the user actually wants this one
     //    working right now").
-    const byRecency = [...keys].filter(isUsable).sort((a, b) => {
-      const aT = typeof a.lastUsedAt === "number" ? a.lastUsedAt : 0;
-      const bT = typeof b.lastUsedAt === "number" ? b.lastUsedAt : 0;
-      return bT - aT;
-    });
+    const byRecency = [...keys]
+      .filter(isUsable)
+      .sort((a, b) => {
+        const aT = typeof a.lastUsedAt === "number" ? a.lastUsedAt : 0;
+        const bT = typeof b.lastUsedAt === "number" ? b.lastUsedAt : 0;
+        return bT - aT;
+      });
     if (byRecency[0]?.key) return byRecency[0].key;
 
     // 4. Legacy fallback: first active key. Keeps the function working

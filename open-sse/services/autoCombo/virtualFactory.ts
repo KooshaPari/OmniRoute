@@ -16,19 +16,9 @@ import {
   type AutoCategory,
   type AutoTier,
 } from "./suffixComposition";
-import type { AutoVariant } from "./autoPrefix";
 import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
 import { filterPaidOnlyCandidates } from "./paidModelFilter";
-import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
-import { filterExcludedCandidates } from "./candidateOverrides";
-import { getExcludedConnectionIds } from "@/lib/db/autoCandidateOverrides";
-import {
-  filterResilienceBlockedCandidates,
-  SYNTHETIC_NOAUTH_CONNECTION_ID as RESILIENCE_NOAUTH_CONNECTION_ID,
-  type ConnectionResilienceView,
-} from "./resilienceCandidateFilter";
-import type { ChaosTuning } from "./chaosEngine";
 
 /** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos.
  * #6453: optional `family` overlay for `auto/<family>` combos (e.g. `auto/glm`) —
@@ -421,51 +411,15 @@ export async function createVirtualAutoCombo(
     )
   );
 
-  // #7623: honor existing model lockouts + connection cooldown/terminal state so
-  // auto/* never advertises models the dispatch path would immediately skip.
-  const connectionsById = new Map<string, ConnectionResilienceView>();
-  for (const conn of [...connections, ...disabledNoAuthConnections]) {
-    connectionsById.set(conn.id, conn);
-  }
-  const resilienceFilteredPool = filterResilienceBlockedCandidates(
-    candidatePool,
-    connectionsById
-  );
-  if (resilienceFilteredPool !== candidatePool) {
-    candidatePool.length = 0;
-    candidatePool.push(...resilienceFilteredPool);
-  }
-
   // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
   // exclude paid-only backends from EVERY `auto/*` candidate pool — not just the
   // `/v1/models` listing — so auto-routing never picks a model that will 402/403.
   // If this empties the pool the existing graceful empty-pool path below handles it
   // (consistent with the opt-in intent). Default OFF → pool unchanged.
-  const paidFilteredPool = filterPaidOnlyCandidates(
-    candidatePool,
-    settings.hidePaidModels === true
-  );
+  const paidFilteredPool = filterPaidOnlyCandidates(candidatePool, settings.hidePaidModels === true);
   if (paidFilteredPool !== candidatePool) {
     candidatePool.length = 0;
     candidatePool.push(...paidFilteredPool);
-  }
-
-  // #7819 (Level 2): per-API-key candidate exclusions. Fail-open — an absent
-  // apiKeyId/autoChannel (every caller before #7819) or a DB lookup failure
-  // both leave the pool untouched, so default (unconfigured) routing stays
-  // byte-identical to pre-#7819 behavior.
-  let excludedConnectionIds: Set<string> = new Set();
-  if (apiKeyId && autoChannel) {
-    try {
-      excludedConnectionIds = await getExcludedConnectionIds(apiKeyId, autoChannel);
-    } catch (err) {
-      log.warn("AUTO", "Failed to load auto-candidate overrides; routing unfiltered", { err });
-    }
-  }
-  const overrideFilteredPool = filterExcludedCandidates(candidatePool, excludedConnectionIds);
-  if (overrideFilteredPool !== candidatePool) {
-    candidatePool.length = 0;
-    candidatePool.push(...overrideFilteredPool);
   }
 
   if (candidatePool.length === 0) {

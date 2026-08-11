@@ -146,6 +146,7 @@ import { gitlab_duoProvider } from "./registry/gitlab-duo/index.ts";
 import { command_codeProvider } from "./registry/command-code/index.ts";
 import { novitaProvider } from "./registry/novita/index.ts";
 import { windsurfProvider } from "./registry/windsurf/index.ts";
+import { zed_hostedProvider } from "./registry/zed-hosted/index.ts";
 import { nanogptProvider } from "./registry/nanogpt/index.ts";
 import { scalewayProvider } from "./registry/scaleway/index.ts";
 import { agentrouterProvider } from "./registry/agentrouter/index.ts";
@@ -213,12 +214,8 @@ import { kenariProvider } from "./registry/kenari/index.ts";
 import { navyProvider } from "./registry/navy/index.ts";
 import { naraProvider } from "./registry/nara/index.ts";
 import { requestyProvider } from "./registry/requesty/index.ts";
-import { sealionProvider } from "./registry/sealion/index.ts";
-import { routewayProvider } from "./registry/routeway/index.ts";
 import { digitaloceanProvider } from "./registry/digitalocean/index.ts";
 import { hcnsecProvider } from "./registry/hcnsec/index.ts";
-import { promptqlProvider } from "./registry/promptql/index.ts";
-import { hyperagentProvider } from "./registry/hyperagent/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -365,6 +362,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "command-code": command_codeProvider,
   novita: novitaProvider,
   windsurf: windsurfProvider,
+  "zed-hosted": zed_hostedProvider,
   nanogpt: nanogptProvider,
   scaleway: scalewayProvider,
   agentrouter: agentrouterProvider,
@@ -434,10 +432,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   navy: navyProvider,
   nara: naraProvider,
   requesty: requestyProvider,
-  sealion: sealionProvider,
-  routeway: routewayProvider,
   digitalocean: digitaloceanProvider,
   hcnsec: hcnsecProvider,
-  promptql: promptqlProvider,
-  hyperagent: hyperagentProvider,
 };

@@ -145,9 +145,7 @@ function dedupeWithinMessage(
 
   for (const { block } of sortedBlocks) {
     // Only dedup blocks that appear 2+ times in the text.
-    const occurrences = (
-      result.match(new RegExp(block.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []
-    ).length;
+    const occurrences = (result.match(new RegExp(block.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []).length;
     if (occurrences < 2) continue;
 
     const sha = hashBlock(block);
@@ -291,18 +289,7 @@ function processMessages(
   }
 
   if (msgTexts.length === 0) {
-    return { messages, dedupCount: 0, suffixWorkBudgetExceeded: false };
-  }
-
-  // Single-message exact dedup enumerates suffixes once; cross-message dedup does so
-  // in both passes. Reserve the request-wide work up front so no quadratic suffix graph
-  // is partially materialized before the engine decides to fail open.
-  const suffixWorkBudget: SuffixWorkBudget = { remaining: MAX_SUFFIX_WORK_CHARS };
-  const passCount = msgTexts.length === 1 ? 1 : 2;
-  for (const { text } of msgTexts) {
-    if (!reserveSuffixWork(text, passCount, suffixWorkBudget)) {
-      return { messages, dedupCount: 0, suffixWorkBudgetExceeded: true };
-    }
+    return { messages, dedupCount: 0 };
   }
 
   const { deduped, dedupCount } = dedupMessageTexts(msgTexts, minBlockChars);

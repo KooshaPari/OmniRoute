@@ -14,12 +14,7 @@ import {
   withEarlyStreamKeepalive,
 } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
-import {
-  admitChatRequest,
-  admitChatStructure,
-  releaseChatAdmissionAfterHandler,
-  releaseChatAdmissionWhenDone,
-} from "@/shared/middleware/chatBodyAdmission";
+import { checkChatAdmission } from "@/shared/middleware/chatBodyAdmission";
 import {
   readCompressionRequestHeader,
   withCompressionHeaderEcho,
@@ -93,6 +88,26 @@ export async function POST(request) {
       }),
       { status: 415, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
     );
+  }
+
+  // Heap-pressure-aware admission: shed a large body with 503 (or 413 if pathological)
+  // BEFORE the request is cloned + JSON-parsed below. A large coding-agent compact body
+  // amplifies into hundreds of MB of transient JS objects on the combo path; under a
+  // burst of concurrent compacts that stacks past the V8 heap ceiling and OOM-crashes the
+  // whole process. Shedding the marginal request here turns a pod-wide crash into a single
+  // client retry. Healthy heap (the normal case) admits every body untouched. (#5152)
+  const admissionRejection = checkChatAdmission(request);
+  if (admissionRejection) return admissionRejection;
+
+  // One-line marker for diagnosing 413 / Server-Action interceptions.
+  // Logs only when Content-Length is present so debug noise stays low for
+  // typical chat payloads. Toggle off via OMNIROUTE_LOG_REQUEST_SHAPE=0.
+  if (process.env.OMNIROUTE_LOG_REQUEST_SHAPE !== "0") {
+    const ct = request.headers.get("content-type") ?? "";
+    const cl = request.headers.get("content-length");
+    if (cl && Number(cl) > 256 * 1024) {
+      console.error(`[CHAT-ROUTE] large body content-type="${ct}" content-length=${cl}`);
+    }
   }
 
   // Reserve heavyweight capacity atomically and ingest the body with a hard byte bound
@@ -213,4 +228,38 @@ export async function POST(request) {
     admission.lease?.release();
     throw error;
   }
+
+  // Gate the early SSE keepalive wrapper: only wrap when the client explicitly
+  // asks for streaming (body `stream: true`) or the Accept header forces SSE.
+  // The parsed body is passed through UNTOUCHED — the actual stream/JSON framing
+  // stays decided by chatCore/resolveStreamFlag (legacy streaming default and the
+  // per-key `streamDefaultMode: "json"` opt-in are preserved).
+  const parsedBodyIsRecord = isRecord(parsedBody);
+  const acceptHeader = request.headers.get("accept") || "";
+  const acceptForcesStream =
+    parsedBodyIsRecord && acceptHeaderForcesStream(acceptHeader, parsedBody.stream);
+  const wantsStreaming = (parsedBodyIsRecord && parsedBody.stream === true) || acceptForcesStream;
+
+  // #6422 — capture the compression request header once so we can echo it back
+  // on the response when internal early-returns (idempotency cache, some combo
+  // paths) drop the meta the docs promise.
+  const compressionRequestHeader = readCompressionRequestHeader(request);
+
+  if (wantsStreaming) {
+    const reqId = generateRequestId();
+    const streamedResponse = await withEarlyStreamKeepalive(
+      handleChat(request, null, parsedBody, reqId),
+      {
+        signal: request.signal,
+        thresholdMs: resolveKeepaliveThreshold(parsedBody?.model),
+        extraHeaders: { "X-Correlation-Id": reqId },
+      }
+    );
+    return withCompressionHeaderEcho(streamedResponse, compressionRequestHeader);
+  }
+
+  return withCompressionHeaderEcho(
+    await handleChat(request, null, parsedBody),
+    compressionRequestHeader
+  );
 }

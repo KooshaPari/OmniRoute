@@ -44,15 +44,10 @@ interface QuotaCardProps {
   providerLabel: string;
   onRefresh: () => void;
   onOpenCutoff: () => void;
-  onOpenResetCredits?: () => void;
+  onRedeemResetCredit?: () => void;
   onToggleActive: (nextActive: boolean) => void;
   togglingActive: boolean;
   redeemingResetCredit?: boolean;
-  loadingResetCredits?: boolean;
-  /** Per-operator quota row visibility (upstream 9router#2371 port). */
-  quotaVisibility?: Record<string, { hidden?: string[] }>;
-  onHideQuota?: (quota: any) => void;
-  onShowQuota?: (quota: any) => void;
 }
 
 export default function QuotaCard({
@@ -65,14 +60,10 @@ export default function QuotaCard({
   providerLabel,
   onRefresh,
   onOpenCutoff,
-  onOpenResetCredits,
+  onRedeemResetCredit,
   onToggleActive,
   togglingActive,
   redeemingResetCredit = false,
-  loadingResetCredits = false,
-  quotaVisibility,
-  onHideQuota,
-  onShowQuota,
 }: QuotaCardProps) {
   const isActive = connection.isActive ?? true;
   const [costModalOpen, setCostModalOpen] = useState(false);
@@ -112,8 +103,10 @@ export default function QuotaCard({
   const hasOverrides = hasQuotaCutoffOverrides(connection);
   const hasStaleData = !!quota?.stale;
   const displayRefreshedAt = quota?.stale?.since || refreshedAt;
-  const canEditCutoff = computeCanEditCutoff(quotas);
-  const canRedeemResetCredit = computeCanRedeemResetCredit(connection.provider, quotas);
+  const canEditCutoff = quotas.some((q: any) => q && typeof q.name === "string" && !q.isCredits);
+  const canRedeemResetCredit =
+    connection.provider === "codex" &&
+    quotas.some((q: any) => q?.isResetCredits && Number(q.creditCount ?? q.remaining ?? 0) > 0);
 
   return (
     <Card
@@ -143,15 +136,11 @@ export default function QuotaCard({
         onRefresh={onRefresh}
         onOpenCutoff={onOpenCutoff}
         onOpenCost={() => setCostModalOpen(true)}
-        onOpenResetCredits={onOpenResetCredits}
-        hiddenQuotaRows={hiddenQuotaRows}
-        onHideQuota={onHideQuota}
-        onShowQuota={onShowQuota}
+        onRedeemResetCredit={onRedeemResetCredit}
         canEditCutoff={canEditCutoff}
         hasCutoffOverrides={hasOverrides}
         canRedeemResetCredit={canRedeemResetCredit}
         redeemingResetCredit={redeemingResetCredit}
-        loadingResetCredits={loadingResetCredits}
       />
       <ProviderUsdCostModal
         isOpen={costModalOpen}

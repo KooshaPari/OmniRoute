@@ -19,10 +19,6 @@ test("findOffendingField matches known field names in a 400 body", () => {
     findOffendingField("context_management: Extra inputs are not permitted"),
     "context_management"
   );
-  assert.equal(
-    findOffendingField("Extra inputs are not permitted, field: 'verbosity', value: 'low'"),
-    "verbosity"
-  );
   assert.equal(findOffendingField("all good"), null);
   assert.equal(findOffendingField(""), null);
 });

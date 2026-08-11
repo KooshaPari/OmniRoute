@@ -93,11 +93,6 @@ RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
 # See docs/ops/QUALITY_GATE_PLAYBOOK.md Parte 6.
 ENV OMNIROUTE_USE_TURBOPACK=1
 
-# Next.js basePath is fixed at build time; pass OMNIROUTE_BASE_PATH here when the
-# image should serve under a reverse-proxy subpath without a runtime patch.
-ARG OMNIROUTE_BASE_PATH=""
-ENV OMNIROUTE_BASE_PATH=$OMNIROUTE_BASE_PATH
-
 # Docker containers cannot run the MITM/Agent-Bridge stack (no host DNS/cert
 # access), so keep @/mitm/manager on the graceful stub (#3390). This flag is
 # Docker-only: npm/Electron/VPS builds must bundle the REAL manager (#6344).

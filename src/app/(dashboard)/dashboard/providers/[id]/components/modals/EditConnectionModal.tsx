@@ -52,12 +52,13 @@ import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import { assignEditApiKeyProviderSpecificData } from "./connectionProviderSpecificData";
-import { isM365TierCapableProvider, normalizeM365TierValue, type M365TierValue } from "./m365Tier";
-import ProviderTierField from "./ProviderTierField";
-import AgentrouterConsoleFields from "./AgentrouterConsoleFields";
+import {
+  isM365TierCapableProvider,
+  normalizeM365TierValue,
+  type M365TierValue,
+} from "./m365Tier";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
 import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
-import ProviderRegionField, { getProviderRegionConfig } from "./AlibabaProviderRegionField";
 
 export interface EditConnectionModalConnection {
   id?: string;
@@ -128,7 +129,6 @@ export default function EditConnectionModal({
     codexServiceTier: "default" as CodexServiceTier,
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
-    newApiUserId: "",
     ...EMPTY_GLM_TEAM_QUOTA_FIELDS,
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
@@ -140,10 +140,10 @@ export default function EditConnectionModal({
       provider === "claude"
         ? isClaudeExtraUsageBlockEnabled(provider, connectionProviderSpecificData)
         : false,
-    passthroughModels: connectionProviderSpecificData?.passthroughModels === true,
-    disableCooling: connectionProviderSpecificData?.disableCooling === true,
-    importFreeModelsOnly: connectionProviderSpecificData?.importFreeModelsOnly === true,
-    m365Tier: normalizeM365TierValue(connectionProviderSpecificData?.tier) as M365TierValue,
+    passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
+    disableCooling: connection?.providerSpecificData?.disableCooling === true,
+    importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
+    m365Tier: normalizeM365TierValue(connection?.providerSpecificData?.tier) as M365TierValue,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -180,9 +180,6 @@ export default function EditConnectionModal({
       connectionProviderSpecificData.baseUrl.trim().length > 0
   );
   const usesBaseUrl = isConfigurableBaseUrl || (isBaseUrlOverrideEligible && showBaseUrlOverride);
-  // Protocol selector: only for providers that declare alternatives.
-  const alternateFormats = getAlternateFormats(provider);
-  const showProtocolSelector = alternateFormats.length > 0;
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
   const { defaultRegion, showsRegion } = getProviderRegionConfig(provider);
@@ -313,7 +310,6 @@ export default function EditConnectionModal({
         codexServiceTier: codexRequestDefaults.serviceTier ?? "default",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
-        newApiUserId: existingNewApiUserId,
         glmOrganizationId: existingGlmOrganizationId,
         glmProjectId: existingGlmProjectId,
         opencodeGoWorkspaceId: existingOpenCodeGoWorkspaceId,
@@ -913,7 +909,6 @@ export default function EditConnectionModal({
                   placeholder="my-app/1.0"
                   hint={t("customUserAgentHint")}
                 />
-                <ProviderTierField provider={provider} />
                 {isM365TierCapable && (
                   <Select
                     label={t("m365TierLabel")}

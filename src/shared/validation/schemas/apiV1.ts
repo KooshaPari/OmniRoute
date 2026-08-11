@@ -13,7 +13,6 @@ import {
   isForbiddenCustomHeaderName,
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
-import { parseAndValidatePublicUrl } from "@/shared/network/outboundUrlGuard";
 import {
   effortRequestSchema,
   thinkingRequestSchema,

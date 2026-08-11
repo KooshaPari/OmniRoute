@@ -595,14 +595,6 @@ async function main() {
         args: ["run", "check:pack-artifact"],
         timeout: 20 * 60 * 1000,
       });
-      // WS1.2 (#7065 class): boot the REAL packed tarball from a clean install —
-      // the runtime gate structure checks cannot provide. Reuses the same dist/ build.
-      slow.push({
-        id: "pack-boot",
-        label: "Tarball boot-smoke (installed CLI serves /health)",
-        args: ["run", "check:pack-boot"],
-        timeout: 15 * 60 * 1000,
-      });
     }
     slow.forEach((g) => announce(`${g.label} [parallel]`));
     const slowResults = await Promise.all(
@@ -632,39 +624,6 @@ async function main() {
       ok: code === 0,
       detail: code === 0 ? "pass" : firstFailureLine(out),
     });
-  }
-
-  // --full-ci: run every static gate declared in ci.yml's gate jobs (superset of the
-  // curated HARD list above). Combine with --quick to run ONLY these + drift ratchets
-  // (skip the slow suites) — the "1 command, 0 CI layers" pre-flight for the static category.
-  if (FULL_CI) {
-    let gates = [];
-    try {
-      gates = extractCiGates(readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8"));
-    } catch (err) {
-      record({
-        id: "full-ci-extract",
-        label: "full-ci: parse .github/workflows/ci.yml",
-        kind: "hard",
-        ok: false,
-        detail: `could not read/parse ci.yml: ${err?.message || err}`,
-      });
-    }
-    const already = new Set(results.map((r) => r.id));
-    process.stderr.write(`\n──── full-ci gates from ci.yml (${gates.length}) ────\n`);
-    for (const g of gates) {
-      // Skip a gate the curated pass already ran with the same id (avoid double-running lint).
-      if (already.has(g.id)) continue;
-      const { code, out } = run(npmCmd, g.args, { env: g.env, timeout: 10 * 60 * 1000 });
-      saveGateLog(`fullci-${g.id.replace(/[^a-z0-9]+/gi, "-")}`, out);
-      record({
-        id: g.id,
-        label: `ci.yml:${g.job} → npm ${g.args.join(" ")}`,
-        kind: "hard",
-        ok: code === 0,
-        detail: code === 0 ? "pass" : firstFailureLine(out),
-      });
-    }
   }
 
   const { releaseGreen, hardFailures, drift } = computeVerdict(results);

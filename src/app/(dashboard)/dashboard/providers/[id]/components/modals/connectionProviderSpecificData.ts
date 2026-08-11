@@ -26,7 +26,6 @@ type FormData = QuotaScrapingFieldValues &
     excludedModels: string;
     importFreeModelsOnly: boolean;
     m365Tier?: M365TierValue;
-    newApiUserId: string;
     passthroughModels: boolean;
     region: string;
     routingTags: string;
@@ -86,7 +85,7 @@ export function buildAddProviderSpecificData(options: {
   assignQuotaScrapingProviderData(provider, formData, data);
   if (isGooglePse && formData.cx.trim()) data.cx = formData.cx.trim();
   if (usesBaseUrl) data.baseUrl = validatedBaseUrl;
-  if (showsRegion) data.region = formData.region?.trim() || defaultRegion;
+  else if (showsRegion) data.region = formData.region.trim() || defaultRegion;
   else if (isGlm) {
     data.apiRegion = formData.apiRegion;
     assignGlmTeamQuotaProviderData(isGlm, formData, data);
@@ -132,7 +131,7 @@ export function assignEditApiKeyProviderSpecificData(options: {
   if (o.formData.validationModelId) o.target.validationModelId = o.formData.validationModelId;
   if (o.isGooglePse) o.target.cx = o.formData.cx.trim() || undefined;
   if (o.usesBaseUrl) o.target.baseUrl = o.validatedBaseUrl;
-  if (o.showsRegion) o.target.region = o.formData.region?.trim() || o.defaultRegion;
+  else if (o.showsRegion) o.target.region = o.formData.region.trim() || o.defaultRegion;
   else if (o.isGlm) {
     o.target.apiRegion = o.formData.apiRegion;
     assignGlmTeamQuotaProviderData(o.isGlm, o.formData, o.target);

@@ -78,16 +78,11 @@ interface Props {
   onRefresh: () => void;
   onOpenCutoff: () => void;
   onOpenCost: () => void;
-  onOpenResetCredits?: () => void;
+  onRedeemResetCredit?: () => void;
   canEditCutoff: boolean;
   hasCutoffOverrides: boolean;
   canRedeemResetCredit?: boolean;
   redeemingResetCredit?: boolean;
-  loadingResetCredits?: boolean;
-  /** Per-operator quota row visibility (upstream 9router#2371 port). */
-  hiddenQuotaRows?: any[];
-  onHideQuota?: (quota: any) => void;
-  onShowQuota?: (quota: any) => void;
 }
 
 function QuotaDetailRow({
@@ -102,7 +97,6 @@ function QuotaDetailRow({
   loadingResetCredits?: boolean;
 }) {
   const t = useTranslations("usage");
-  const canHide = typeof onHideQuota === "function" && !q.isCredits && !q.isResetCredits;
   if (q.isResetCredits) {
     const count = Number(q.creditCount ?? q.remaining ?? 0);
     const colors = getBarColor(q.remainingPercentage ?? 100);
@@ -121,25 +115,12 @@ function QuotaDetailRow({
             {translateUsageOrFallback(t, "resetCreditsLabel", "Reset credits")}
           </span>
         </span>
-        <button
-          type="button"
-          disabled={!onOpenResetCredits || loadingResetCredits}
-          onClick={(event) => {
-            event.stopPropagation();
-            onOpenResetCredits?.();
-          }}
-          aria-label={translateUsageOrFallback(t, "viewResetCredits", "View reset credits")}
-          className="inline-flex h-6 shrink-0 items-center gap-1 rounded-md px-1.5 text-[12px] font-bold leading-none tabular-nums hover:bg-black/[0.05] disabled:cursor-default dark:hover:bg-white/[0.05]"
+        <span
+          className="inline-flex h-6 shrink-0 items-center text-[12px] font-bold leading-none tabular-nums"
           style={{ color: colors.text }}
         >
-          {loadingResetCredits && (
-            <span className="material-symbols-outlined animate-spin text-[12px]">
-              progress_activity
-            </span>
-          )}
           {count.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-          <span className="material-symbols-outlined text-[13px]">chevron_right</span>
-        </button>
+        </span>
       </div>
     );
   }
@@ -245,15 +226,11 @@ export default function QuotaCardExpanded({
   onRefresh,
   onOpenCutoff,
   onOpenCost,
-  onOpenResetCredits,
+  onRedeemResetCredit,
   canEditCutoff,
   hasCutoffOverrides,
   canRedeemResetCredit = false,
   redeemingResetCredit = false,
-  loadingResetCredits = false,
-  hiddenQuotaRows = [],
-  onHideQuota,
-  onShowQuota,
 }: Props) {
   const t = useTranslations("usage");
   const tr = (key: string, fallback: string, values?: UsageTranslationValues) =>
@@ -371,21 +348,21 @@ export default function QuotaCardExpanded({
           {canRedeemResetCredit && (
             <button
               type="button"
-              disabled={loading || redeemingResetCredit || loadingResetCredits}
+              disabled={loading || redeemingResetCredit}
               onClick={(e) => {
                 e.stopPropagation();
-                onOpenResetCredits?.();
+                onRedeemResetCredit?.();
               }}
               className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-primary/40 text-primary bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               <span
                 className={`material-symbols-outlined text-[12px] ${
-                  redeemingResetCredit || loadingResetCredits ? "animate-spin" : ""
+                  redeemingResetCredit ? "animate-spin" : ""
                 }`}
               >
-                {redeemingResetCredit || loadingResetCredits ? "progress_activity" : "restart_alt"}
+                {redeemingResetCredit ? "progress_activity" : "restart_alt"}
               </span>
-              {tr("manageResetCredits", "View credits")}
+              {tr("redeemResetCredit", "Redeem reset")}
             </button>
           )}
           <button

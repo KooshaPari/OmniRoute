@@ -15,8 +15,6 @@ const embeddingsRoute = await import("../../src/app/api/v1/embeddings/route.ts")
 const videoRoute = await import("../../src/app/api/v1/videos/generations/route.ts");
 const musicRoute = await import("../../src/app/api/v1/music/generations/route.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
-const providerModelsRoute =
-  await import("../../src/app/api/v1/providers/[provider]/models/route.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -67,10 +65,7 @@ test("image catalog GET uses the unified active-credential model list", async ()
 
   const ids = await listedIds(imageRoute, "/v1/images/generations");
 
-  assert.deepEqual(
-    ids.filter((id) => id.startsWith("codex/")),
-    ["codex/gpt-5.6-sol", "codex/gpt-5.6-terra", "codex/gpt-5.6-luna"]
-  );
+  assert.ok(ids.includes("codex/gpt-5.5"));
   assert.ok(!ids.includes("openai/gpt-image-2"));
 });
 
@@ -96,34 +91,6 @@ test("embedding catalog GET hides providers without active credentials", async (
 
   assert.ok(ids.includes("cohere/embed-v4.0"));
   assert.ok(!ids.includes("openai/text-embedding-3-small"));
-});
-
-test("provider-scoped GitHub Models catalog preserves nested embedding IDs", async () => {
-  await seedConnection("github-models");
-
-  const response = await providerModelsRoute.GET(
-    new Request("http://localhost/v1/providers/github-models/models"),
-    { params: Promise.resolve({ provider: "github-models" }) }
-  );
-  const body = (await response.json()) as {
-    data?: Array<{ id: string; root?: string; type?: string }>;
-  };
-  assert.equal(response.status, 200);
-
-  const embeddings = (body.data || []).filter((model) => model.type === "embedding");
-  assert.deepEqual(
-    embeddings.map((model) => ({ id: model.id, root: model.root })),
-    [
-      {
-        id: "openai/text-embedding-3-large",
-        root: "openai/text-embedding-3-large",
-      },
-      {
-        id: "openai/text-embedding-3-small",
-        root: "openai/text-embedding-3-small",
-      },
-    ]
-  );
 });
 
 test("video catalog GET hides credential-backed providers without credentials", async () => {

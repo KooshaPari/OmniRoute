@@ -901,7 +901,10 @@ function runStackedCompression(
 
   for (const step of steps) {
     const engine = getCompressionEngine(step.engine);
-    if (!engine) continue;
+    if (!engine) {
+      acc.validationErrors.add(`Unknown compression engine: "${step.engine}"`);
+      continue;
+    }
     // Respect the registry enabled flag: a step naming a disabled engine is skipped, so an
     // operator can turn an engine off (setEngineEnabled) without editing every pipeline.
     if (getEngineEntry(step.engine)?.enabled === false) continue;
@@ -1005,7 +1008,10 @@ async function runStackedCompressionAsync(
 
   for (const step of steps) {
     const engine = getCompressionEngine(step.engine);
-    if (!engine) continue;
+    if (!engine) {
+      acc.validationErrors.add(`Unknown compression engine: "${step.engine}"`);
+      continue;
+    }
     // Respect the registry enabled flag (same as the sync loop) — keep both in lockstep.
     if (getEngineEntry(step.engine)?.enabled === false) continue;
     const stepOptions = buildStepOptions(step, options);
