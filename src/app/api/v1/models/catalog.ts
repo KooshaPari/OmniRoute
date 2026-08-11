@@ -5,6 +5,7 @@ import {
   getCombos,
   getAllCustomModels,
   getSettings,
+  getDatabaseSettings,
   getProviderNodes,
   getModelIsHidden,
   getModelAliases,
