@@ -872,7 +872,21 @@ test("usage service covers Codex auth failures, Kiro hard failures and Kimi no-q
   assert.match(kimiOffline.message, /Unable to fetch usage: kimi offline/i);
 });
 
-test("usage service covers Qoder, GLM, Z.AI and GLMT branches", async () => {
+test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () => {
+  const qwenMissingUrl: any = await usageService.getUsageForProvider({
+    provider: "qwen",
+    accessToken: "qwen-token",
+    providerSpecificData: {},
+  });
+  assert.match(qwenMissingUrl.message, /No resource URL/i);
+
+  const qwen: any = await usageService.getUsageForProvider({
+    provider: "qwen",
+    accessToken: "qwen-token",
+    providerSpecificData: { resourceUrl: "https://example.com/resource" },
+  });
+  assert.match(qwen.message, /Usage tracked per request/i);
+
   // Qoder now reads its PAT from `apiKey` (not `accessToken`); with no PAT the
   // usage fetcher returns a friendly prompt instead of hitting the network.
   const qoder: any = await usageService.getUsageForProvider({

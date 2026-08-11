@@ -144,7 +144,25 @@ test("GLM translateSseResponse: suppressThinkClose=true suppresses </think> mark
   );
 });
 
-test("resolveSuppressThinkClose: Chat Completions default suppresses for GLM path (#8245)", () => {
+test("GLM translateSseResponse: default (no flag) emits </think> marker for backward compat", async () => {
+  const { translateSseResponse } = await import("../../open-sse/executors/glm.ts");
+
+  const sseBody = buildClaudeSseStream();
+  const upstream = new Response(sseBody, {
+    headers: { "content-type": "text/event-stream" },
+  });
+
+  // Call without the 4th arg — default must be false (preserve #4633)
+  const translated = translateSseResponse(upstream, "glm", "glm-5.2");
+  const output = await collectStreamOutput(translated);
+
+  assert.ok(
+    output.includes("</think>"),
+    "marker must be emitted by default (backward compat with #4633)"
+  );
+});
+
+test("resolveSuppressThinkClose: OpenCode UA triggers suppression for GLM path", () => {
   // This is the resolution that executeTransport does before calling
   // translateSseResponse. Verify the integration point.
   assert.equal(
@@ -154,16 +172,8 @@ test("resolveSuppressThinkClose: Chat Completions default suppresses for GLM pat
   );
   assert.equal(
     resolveSuppressThinkClose({ userAgent: "claude-code/1.0" }),
-    true,
-    "Claude Code UA suppresses by default (#8245); opt in with header on"
-  );
-  assert.equal(
-    resolveSuppressThinkClose({
-      userAgent: "claude-code/1.0",
-      thinkingMarkerHeader: "on",
-    }),
     false,
-    "Header on force-keeps the marker for legacy clients"
+    "Claude Code UA must resolve to keep"
   );
   assert.equal(
     resolveSuppressThinkClose({
@@ -171,7 +181,7 @@ test("resolveSuppressThinkClose: Chat Completions default suppresses for GLM pat
       thinkingMarkerHeader: "off",
     }),
     true,
-    "Header off suppresses"
+    "Header off must override UA"
   );
   assert.equal(
     THINKING_MARKER_HEADER,

@@ -9,17 +9,11 @@ import { PROVIDERS } from "../config/constants.ts";
 import { v4 as uuidv4 } from "uuid";
 import { refreshKiroToken } from "../services/tokenRefresh.ts";
 import {
-  isExternalIdpAuthMethod,
-  KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER,
-  KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE,
-} from "../services/kiroExternalIdp.ts";
-import {
   splitInlineThinking,
   flushPendingThinking,
   type KiroThinkingState,
 } from "./kiroThinking.ts";
 import { ByteQueue, TEXT_ENCODER, parseEventFrame } from "./kiro/eventstream.ts";
-import { kiroRuntimeHost, resolveKiroRuntimeRegion } from "../services/kiroRegion.ts";
 
 type JsonRecord = Record<string, unknown>;
 

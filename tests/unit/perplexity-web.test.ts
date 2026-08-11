@@ -781,7 +781,7 @@ test("Auth: JWT auth sends Authorization Bearer header", async () => {
 
 // ─── Test: Model mapping ────────────────────────────────────────────────────
 
-test("Model mapping: GPT-5.6 Terra sends its current internal preference", async () => {
+test("Model mapping: pplx-gpt sends current GPT-5.5 internal preference", async () => {
   let capturedBody = null;
   const original = globalThis.fetch;
   globalThis.fetch = async (url, opts) => {
@@ -813,56 +813,8 @@ test("Model mapping: GPT-5.6 Terra sends its current internal preference", async
       log: null,
     });
 
-    assert.equal(capturedBody.params.model_preference, "gpt56_terra");
+    assert.equal(capturedBody.params.model_preference, "gpt55");
     assert.equal(capturedBody.params.mode, "search");
-  } finally {
-    globalThis.fetch = original;
-  }
-});
-
-test("Model mapping: pplx-sonar maps to turbo/copilot (live browser default)", async () => {
-  let capturedBody = null;
-  const original = globalThis.fetch;
-  globalThis.fetch = async (url, opts) => {
-    capturedBody = JSON.parse(opts.body);
-    return new Response(
-      mockPplxStream([
-        {
-          blocks: [
-            {
-              intended_usage: "markdown",
-              markdown_block: { chunks: ["ok"], progress: "DONE" },
-            },
-          ],
-          status: "COMPLETED",
-        },
-      ]),
-      { status: 200, headers: { "Content-Type": "text/event-stream" } }
-    );
-  };
-
-  try {
-    const executor = new PerplexityWebExecutor();
-    await executor.execute({
-      model: "pplx-sonar",
-      body: { messages: [{ role: "user", content: "hello" }], stream: false },
-      stream: false,
-      credentials: { apiKey: "test" },
-      signal: AbortSignal.timeout(10000),
-      log: null,
-    });
-
-    assert.equal(capturedBody.params.model_preference, "turbo");
-    assert.equal(capturedBody.params.mode, "copilot");
-    assert.equal(capturedBody.params.supports_tool_approval_modal, true);
-    assert.ok(
-      capturedBody.params.supported_block_use_cases.includes("workflow_widgets"),
-      "payload must advertise workflow_widgets like the live browser"
-    );
-    assert.ok(
-      capturedBody.params.supported_block_use_cases.includes("navigation_results"),
-      "payload must advertise navigation_results like the live browser"
-    );
   } finally {
     globalThis.fetch = original;
   }
@@ -905,7 +857,6 @@ test("Model mapping: thinking mode uses thinking variant", async () => {
     });
 
     assert.equal(capturedBody.params.model_preference, "claude50sonnetthinking");
-    // Thinking variants still go through mode "search" (THINKING_MAP path).
     assert.equal(capturedBody.params.mode, "search");
   } finally {
     globalThis.fetch = original;
@@ -992,86 +943,33 @@ test("Live multi-step: reconstructs answer without status COMPLETED", async () =
     },
   ];
 
-  const restore = mockFetch(200, pplxEvents);
-  try {
-    const executor = new PerplexityWebExecutor();
-    const result = await executor.execute({
-      model: "pplx-opus",
-      body: { messages: [{ role: "user", content: "hello" }], stream: false },
-      stream: false,
-      credentials: { apiKey: "test-cookie" },
-      signal: AbortSignal.timeout(10000),
-      log: null,
-    });
+  const models = PROVIDER_MODELS["pplx-web"];
+  assert.ok(models, "pplx-web should be in PROVIDER_MODELS");
+  assert.ok(models.length === 10, `Expected 10 models, got ${models.length}`);
 
-    assert.equal(result.response.status, 200);
-    const json = JSON.parse(await result.response.text());
-    assert.equal(json.choices[0].message.content, "Hello there.");
-    // Plan goals via diff_block should surface as reasoning_content
-    assert.ok(
-      String(json.choices[0].message.reasoning_content || "").includes("Greeting the user")
-    );
-  } finally {
-    restore();
-  }
+  const modelIds = models.map((m) => m.id);
+  assert.ok(modelIds.includes("pplx-auto"));
+  assert.ok(modelIds.includes("pplx-gpt"));
+  assert.ok(modelIds.includes("pplx-gpt-5.4"));
+  assert.ok(modelIds.includes("pplx-sonnet"));
+  assert.ok(modelIds.includes("pplx-opus"));
+  assert.ok(modelIds.includes("pplx-gemini"));
+  assert.ok(modelIds.includes("pplx-nemotron"));
+  assert.ok(modelIds.includes("pplx-sonar"));
+  assert.ok(modelIds.includes("pplx-kimi"));
+  assert.ok(modelIds.includes("pplx-glm"));
 });
 
-test("Advanced-model quota upsell with empty answer surfaces clear error", async () => {
-  const pplxEvents = [
-    {
-      status: "PENDING",
-      upsell_information: {
-        name: "advanced_models_quota_low",
-        upsell_type: "UPGRADE_TO_PRO",
-        title: "No advanced model uses left this week",
-        description: "Upgrade to Perplexity Max",
-      },
-      blocks: [
-        {
-          intended_usage: "plan",
-          diff_block: {
-            field: "plan_block",
-            patches: [
-              {
-                op: "replace",
-                path: "",
-                value: { goals: [{ description: "Hello, how can I assist you?" }] },
-              },
-            ],
-          },
-        },
-      ],
-    },
-    { status: "PENDING", final: true, text_completed: true },
-  ];
+test("Provider registry: every advertised perplexity-web model has an explicit internal mapping", async () => {
+  const { PROVIDER_MODELS } = await import("../../open-sse/config/providerModels.ts");
+  const { MODEL_MAP } = await import("../../open-sse/executors/perplexity-web/protocol.ts");
 
-  const restore = mockFetch(200, pplxEvents);
-  try {
-    const executor = new PerplexityWebExecutor();
-    const result = await executor.execute({
-      model: "pplx-opus",
-      body: { messages: [{ role: "user", content: "hello" }], stream: false },
-      stream: false,
-      credentials: { apiKey: "test-cookie" },
-      signal: AbortSignal.timeout(10000),
-      log: null,
-    });
-
-    assert.equal(result.response.status, 429);
-    const json = JSON.parse(await result.response.text());
-    assert.match(String(json.error?.message || ""), /quota exhausted/i);
-    assert.match(String(json.error?.message || ""), /No advanced model uses left/i);
-    assert.match(String(json.error?.message || ""), /reset after/i);
-    assert.equal(json.error?.code, "quota_exhausted");
-    assert.equal(json.error?.type, "quota_exhausted");
-    assert.ok(
-      typeof json.error?.reset_seconds === "number" && json.error.reset_seconds >= 3600,
-      "reset_seconds should be a multi-hour weekly-quota cooldown"
-    );
-    assert.equal(result.response.headers.get("Retry-After"), String(json.error.reset_seconds));
-  } finally {
-    restore();
-  }
+  const missing = PROVIDER_MODELS["pplx-web"].filter((model) => !MODEL_MAP[model.id]);
+  assert.deepEqual(
+    missing.map((model) => model.id),
+    [],
+    "all advertised Perplexity Web models should map to an explicit model_preference"
+  );
 });
 
 // ─── Test: Fallback text field ──────────────────────────────────────────────

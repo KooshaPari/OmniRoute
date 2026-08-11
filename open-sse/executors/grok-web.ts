@@ -28,10 +28,6 @@ import {
   type TlsFetchResult,
 } from "../services/grokTlsClient.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
-import {
-  shouldUseGrokBrowserBacked,
-  acquireFreshGrokClearance,
-} from "../services/grokClearance.ts";
 import type { GrokStreamEvent } from "./grok-web/types.ts";
 import {
   type OpenAIToolCall,

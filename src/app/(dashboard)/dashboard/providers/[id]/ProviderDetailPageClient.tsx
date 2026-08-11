@@ -45,6 +45,7 @@ import ProviderPlaygroundPanel from "./components/ProviderPlaygroundPanel";
 import ProviderModelsSection from "./components/ProviderModelsSection";
 import CustomModelsSection from "./components/CustomModelsSection";
 import ConnectionsListPanel from "./components/ConnectionsListPanel";
+import CoolingConnectionsPanel from "./components/CoolingConnectionsPanel";
 import ConnectionsHeaderToolbar from "./components/ConnectionsHeaderToolbar";
 import ZedImportCard from "./components/ZedImportCard";
 import ProviderPageHeader from "./components/ProviderPageHeader";
@@ -582,7 +583,6 @@ export default function ProviderDetailPageClient() {
                 distributingProxies={distributingProxies}
                 healthFilter={healthFilter}
                 page={page}
-                accountSearch={accountSearch}
                 PAGE_SIZE={PAGE_SIZE}
                 connProxyMap={connProxyMap}
                 proxyConfig={proxyConfig}
@@ -594,11 +594,9 @@ export default function ProviderDetailPageClient() {
                 setSelectedIds={setSelectedIds}
                 setPage={setPage}
                 setHealthFilter={setHealthFilter}
-                setAccountSearch={setAccountSearch}
-                deleteConfirm={deleteConfirm}
+                handleDelete={handleDelete}
                 handleUpdateConnectionStatus={handleUpdateConnectionStatus}
                 handleToggleRateLimit={handleToggleRateLimit}
-                handleToggleQuotaVisibility={handleToggleQuotaVisibility}
                 handleToggleClaudeExtraUsage={handleToggleClaudeExtraUsage}
                 handleToggleCliproxyapiMode={handleToggleCliproxyapiMode}
                 handleToggleCodexLimit={handleToggleCodexLimit}

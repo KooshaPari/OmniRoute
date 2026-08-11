@@ -69,17 +69,6 @@ export function interpretMitmStartupError(stderr: string, port: number): string 
 let serverProcess: ChildProcess | null = null;
 let serverPid: number | null = null;
 
-/**
- * Test-only seam: install a fake server process (and pid) so stopMitm() can be
- * exercised without spawning a real MITM child. Not part of the public API —
- * only intended for unit tests that need to assert stopMitm()'s DNS/kill
- * ordering (#1809). No-op in production code paths.
- */
-export function __setServerProcessForTest(proc: ChildProcess | null, pid: number | null): void {
-  serverProcess = proc;
-  serverPid = pid;
-}
-
 // Set while startMitm() is in flight, from the guard check through spawn.
 // Guards a TOCTOU race: the "already running" check above only trips once
 // `serverProcess` is assigned by spawn() — ~130 lines and several awaits
@@ -238,6 +227,67 @@ function isProcessAlive(pid: number): boolean {
     process.kill(pid, 0);
     return true;
   } catch {
+    return false;
+  }
+}
+
+/**
+ * Enumerate every hostname OmniRoute may have written to /etc/hosts during
+ * startMitm(): the full agent-target registry plus all custom hosts. Removal
+ * via removeDNSEntries() is idempotent (absent entries are skipped), so this
+ * set is intentionally over-inclusive — a host that was never spoofed costs
+ * nothing to "remove", but a host we forget to list leaks machine-wide.
+ * (Gap 8 — clean-stop DNS leak.)
+ */
+export function collectManagedHosts(): string[] {
+  const hosts = new Set<string>();
+  for (const target of ALL_TARGETS) {
+    for (const h of target.hosts) hosts.add(h);
+  }
+  try {
+    for (const ch of listCustomHosts()) hosts.add(ch.host);
+  } catch (err) {
+    log.error({ err }, "collectManagedHosts: failed to read custom hosts (continuing)");
+  }
+  return [...hosts];
+}
+
+export interface RepairPlan {
+  dnsHostsToRemove: string[];
+  removeCert: boolean;
+  revertSystemProxy: boolean;
+}
+
+/**
+ * Pure description of what a repair must undo. Separated from repairMitm() so
+ * the enumeration is unit-testable without touching the OS or requiring sudo.
+ * (Gap 7.)
+ */
+export function buildRepairPlan(): RepairPlan {
+  return {
+    dnsHostsToRemove: collectManagedHosts(),
+    removeCert: true,
+    revertSystemProxy: true,
+  };
+}
+
+/**
+ * Best-effort revert of an applied system proxy. The applied state lives
+ * in-memory (captureState), so this only succeeds within the same process that
+ * applied it; after a crash the previousState is gone and this is a no-op. DNS
+ * + cert teardown are always reversible because they read on-disk state.
+ */
+async function revertSystemProxyIfApplied(): Promise<boolean> {
+  try {
+    const { getSystemProxyState, clearSystemProxy } = await import("@/lib/inspector/captureState");
+    const state = getSystemProxyState();
+    if (!state.applied || !state.previousState) return false;
+    const { revert } = await import("./inspector/systemProxyConfig.ts");
+    await revert(state.previousState);
+    clearSystemProxy();
+    return true;
+  } catch (err) {
+    log.error({ err }, "revertSystemProxyIfApplied failed (continuing)");
     return false;
   }
 }

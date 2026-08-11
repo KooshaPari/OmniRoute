@@ -8,12 +8,6 @@ import { isOpenAIResponsesStoreEnabled } from "@/lib/providers/requestDefaults";
 import { FORMATS } from "../formats.ts";
 import { register } from "../registry.ts";
 import { normalizeResponsesInputForChat } from "../../utils/responsesInputNormalization.ts";
-import {
-  getRegisteredProviders,
-  requiresPlainStringContent,
-} from "../../config/providerRegistry.ts";
-import { collectResponsesTools } from "./openai-responses/additionalTools.ts";
-import { flattenNamespaceToolName } from "./openai-responses/namespaceFlatten.ts";
 import { openaiToOpenAIResponsesRequest } from "./openai-responses/toResponses.ts";
 import {
   JsonRecord,
@@ -23,6 +17,7 @@ import {
   TOOL_SEARCH_TOOL_TYPES,
   IMAGE_GENERATION_TOOL_TYPES,
   toRecord,
+  toArray,
   toString,
   normalizeVerbosity,
   normalizeResponsesReasoningEffort,
@@ -33,44 +28,6 @@ import {
 // chat -> Responses direction extracted to a pure leaf; re-exported for external
 // importers (tests). Host imports it back for registration below.
 export { openaiToOpenAIResponsesRequest } from "./openai-responses/toResponses.ts";
-
-/**
- * #8459: Convert a tool output content-part array to a safe string for Chat Completions
- * tool content. Responses API tool outputs can contain `input_image` parts which have no
- * equivalent in Chat Completions `tool` messages — JSON.stringify would embed the raw
- * base64 as inert text. Instead, extract text parts and replace images with a placeholder.
- *
- * @param output - The tool output value (string, array of content parts, or other JSON)
- * @returns A plain string safe for Chat Completions `tool` message content.
- */
-function toolOutputContentToString(output: unknown): string {
-  if (typeof output === "string") return output;
-  if (!Array.isArray(output)) return JSON.stringify(output);
-
-  const parts: string[] = [];
-  for (const item of output) {
-    if (typeof item !== "object" || item === null) {
-      parts.push(String(item));
-      continue;
-    }
-    const rec = item as Record<string, unknown>;
-    const type = typeof rec.type === "string" ? rec.type : "";
-    if (type === "input_text" || type === "output_text") {
-      const text = typeof rec.text === "string" ? rec.text : "";
-      if (text) parts.push(text);
-    } else if (type === "input_image") {
-      parts.push("[Image omitted: not supported on Chat Completions tool results]");
-    } else {
-      // Unknown part type — stringify as fallback
-      try {
-        parts.push(JSON.stringify(item));
-      } catch {
-        parts.push(String(item));
-      }
-    }
-  }
-  return parts.join("\n");
-}
 
 /**
  * Convert OpenAI Responses API request to OpenAI Chat Completions format
@@ -739,70 +696,8 @@ export function openaiResponsesToOpenAIRequest(
   // Completions equivalent. Strict non-OpenAI upstreams (e.g. NVIDIA NIM) reject
   // it with HTTP 400 "Unsupported parameter(s): truncation" (#2311).
   delete result.truncation;
-  // These fields configure Responses-owned state, caching, and tool execution limits.
-  // Chat Completions has no equivalent and strict compatible endpoints reject them.
-  delete result.max_tool_calls;
-  delete result.conversation;
-  delete result.prompt_cache_options;
-  delete result.prompt_cache_retention;
-
-  if (namespaceToolIdentityMap.size > 0) {
-    // chatCore extracts and deletes this transient side channel before dispatch.
-    // Non-enumerability keeps internal request metadata off the upstream wire.
-    Object.defineProperty(result, "_toolNameMap", {
-      value: namespaceToolIdentityMap,
-      enumerable: false,
-      configurable: true,
-      writable: true,
-    });
-  }
-
-  // Every Responses-API input — even a plain string — gets wrapped upstream as a
-  // single-element content array (`[{ type: "input_text", text }]` via
-  // normalizeResponsesInputForChat), which this function maps straight through to
-  // `content: [{ type: "text", text }]`. That's spec-valid (OpenAI's own API
-  // accepts both shapes) but several strict/naive OpenAI-compatible backends only
-  // implement the plain-string form and reject the array form with a 500 — hit
-  // live via AI Horde's Aphrodite facade rejecting every /v1/responses request,
-  // including the simplest single-string input. A single-text-part array and a
-  // plain string are semantically identical, so collapsing is safe there; real
-  // multi-part messages (text+image, text+file) are left untouched. Scoped to
-  // providers that declare `requiresPlainStringContent` — most OpenAI-compatible
-  // backends (and several existing tests) expect the standard array shape to
-  // survive translation unchanged.
-  if (collapseToPlainString) {
-    for (const message of messages) {
-      const content = (message as JsonRecord).content;
-      if (Array.isArray(content) && content.length === 1) {
-        const part = content[0];
-        if (
-          part &&
-          typeof part === "object" &&
-          !Array.isArray(part) &&
-          (part as JsonRecord).type === "text" &&
-          typeof (part as JsonRecord).text === "string"
-        ) {
-          (message as JsonRecord).content = (part as JsonRecord).text;
-        }
-      }
-    }
-  }
 
   return result;
-}
-
-/**
- * `model` is sometimes a bare provider id (e.g. "aihorde"), sometimes a
- * provider-prefixed model string (e.g. "aihorde/aphrodite/..."), and often
- * null/a bare model id with no provider info at all (the generic translator
- * dispatcher passes model id alone; provider is tracked separately there).
- * Only the first two carry a usable provider hint.
- */
-function extractProviderHint(model: unknown): string {
-  if (typeof model !== "string" || model.length === 0) return "";
-  if (getRegisteredProviders().includes(model)) return model;
-  const prefix = model.split("/")[0];
-  return getRegisteredProviders().includes(prefix) ? prefix : "";
 }
 
 // Register both directions

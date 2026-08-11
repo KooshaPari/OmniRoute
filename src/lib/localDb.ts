@@ -13,9 +13,7 @@ export {
   getProviderConnectionById,
   createProviderConnection,
   updateProviderConnection,
-  resetConnectionBackoff,
   clearConnectionErrorIfUnchanged,
-  touchConnectionLastUsed,
   deleteProviderConnection,
   deleteProviderConnections,
   deleteProviderConnectionsByProvider,
@@ -796,15 +794,10 @@ export type {
 // proxy_logs — export query (#3500 slice 4)
 // ---------------------------------------------------------------------------
 export { exportProxyLogsSince } from "./db/proxyLogs";
+
 // ---------------------------------------------------------------------------
 // Per-connection 429 cooldown wrappers (#5957 / #5958 — Issue 1 follow-ups)
 // Logic lives in db/providers/rateLimit.ts (Hard Rule #2 — localDb is re-export
 // only); re-exported here for the historical localDb import contract.
 // ---------------------------------------------------------------------------
 export { markConnectionRateLimitedUntil, clearConnectionRateLimit } from "./db/providers";
-// Provider param filters — denylist/allowlist config per provider/model (#6625)
-export * from "./db/paramFilters";
-export * from "./db/interceptionRules"; // Per-model web-search/web-fetch interception rules (#3384)
-export * from "./db/relayProbeStats"; // Relay probe latency/health stats (#6909)
-export * from "./db/ccDiscoveryAliases"; // Claude Code discovery-alias gate (flag + per-provider/model overrides)
-export * from "./db/ccDiscoveryMetrics"; // Claude Code discovery-alias usage counters (alias requests + discovery hits)

@@ -919,24 +919,17 @@ export default function OAuthModal({
       // raw-token paste pattern. Routed through the access-token-only import
       // endpoint (#1290) instead of the authorization-code exchange below.
       if (provider === "codex" && /^eyJ/.test(callbackUrl.trim())) {
-        await submitCodexAccessToken(callbackUrl.trim(), undefined, setStep, onSuccess);
-        return;
-      }
-
-      // Codex: full session JSON from chatgpt.com/api/auth/session
-      // (`{user, accessToken, expires}`), not just the bare token (#6636).
-      if (provider === "codex" && looksLikeCodexSessionJson(callbackUrl)) {
-        const result = parseCodexSessionJson(JSON.parse(callbackUrl.trim()));
-        if (result.ok === false) {
-          setError(result.error);
-          return;
+        const res = await fetch("/api/oauth/codex/import-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessToken: callbackUrl.trim() }),
+        });
+        const data = (await parseResponseBody(res)) as Record<string, unknown>;
+        if (!res.ok) {
+          throw new Error(getErrorMessage(data, res.status, "Failed to import access token"));
         }
-        await submitCodexAccessToken(
-          result.session.accessToken,
-          result.session.email,
-          setStep,
-          onSuccess
-        );
+        setStep("success");
+        onSuccess?.();
         return;
       }
 

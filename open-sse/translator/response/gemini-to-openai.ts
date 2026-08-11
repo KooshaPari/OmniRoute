@@ -8,10 +8,7 @@ import {
   parseTextualToolCallCandidate,
   containsTextualToolCallMarker,
 } from "../../utils/textualToolCall.ts";
-import {
-  normalizeOpenAICompatibleFinishReasonString,
-  isMalformedToolCallFinishReason,
-} from "../../utils/finishReason.ts";
+import { normalizeOpenAICompatibleFinishReasonString } from "../../utils/finishReason.ts";
 import { stripAnsiCodes } from "../../utils/streamHelpers.ts";
 
 type GeminiToOpenAIState = {

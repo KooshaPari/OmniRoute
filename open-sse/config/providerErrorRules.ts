@@ -242,9 +242,7 @@ export function getProviderErrorRuleMatch(
  */
 export function parseResetCountdownMs(text: string): number | null {
   if (typeof text !== "string" || text.length === 0) return null;
-  const match = text.match(
-    /resets?\s+in\s+(\d+)\s+(day|days|hour|hours|minute|minutes|second|seconds)\b/
-  );
+  const match = text.match(/resets?\s+in\s+(\d+)\s+(day|days|hour|hours|minute|minutes|second|seconds)\b/);
   if (!match) return null;
   const n = Number(match[1]);
   if (!Number.isFinite(n) || n <= 0) return null;

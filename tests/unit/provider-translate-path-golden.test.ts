@@ -63,10 +63,6 @@ function sanitize(headers: Record<string, unknown>): Record<string, unknown> {
       out[k] = "<OS>";
       continue;
     }
-    if (k === "X-PLATFORM") {
-      out[k] = "<PLATFORM>";
-      continue;
-    }
     let s = v
       .replace(/Bearer .+/, "Bearer <TOK>")
       .replace(/sk-test-APIKEY|tok-test-ACCESS/g, "<CRED>")
@@ -77,11 +73,6 @@ function sanitize(headers: Record<string, unknown>): Record<string, unknown> {
       .replace(
         /Macintosh; Intel Mac OS X 10_15_7|Windows NT 10\.0; Win64; x64|X11; Linux x86_64/g,
         "<PLATFORM>"
-      )
-      .replace(/(antigravity\/ide\/\d+\.\d+\.\d+) [^/\s]+\/[^\s)]+/g, "$1 <OS>/<ARCH>")
-      .replace(
-        /(antigravity\/cli\/\d+\.\d+\.\d+ \(aidev_client; os_type=)[^;]+(; arch=)[^;]+(; auth_method=[^)]+\))/g,
-        "$1<OS>$2<ARCH>$3"
       )
       .replace(/kimi-\d{10,}/g, "kimi-<TS>")
       .replace(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "<UUID>");

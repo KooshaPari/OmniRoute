@@ -1471,6 +1471,17 @@ export default function SystemStorageTab() {
             </span>
             {t("resetUsageData") || "Reset Usage Data"}
           </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            loading={resetUsageLoading}
+            onClick={openResetUsageModal}
+          >
+            <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+              restart_alt
+            </span>
+            {t("resetUsageData") || "Reset Usage Data"}
+          </Button>
         </div>
         <div className="mt-4 border-t border-border/50 pt-3">
           <div className="flex flex-col gap-2">
@@ -1548,7 +1559,7 @@ export default function SystemStorageTab() {
           <div className="space-y-3">
             <p className="text-text-muted">
               {t("resetUsageDataDesc") ||
-                "Select how far back you want to delete usage, request logs, and analytics data. Provider configuration, connections, API keys, combos, and settings are preserved. This action cannot be undone."}
+                "Select how far back you want to delete usage data. This action cannot be undone."}
             </p>
             <select
               value={resetUsagePeriod}
@@ -1563,7 +1574,9 @@ export default function SystemStorageTab() {
             </select>
           </div>
         }
-        confirmText={resetUsageLoading ? t("resetting") || "Resetting..." : t("reset") || "Reset"}
+        confirmText={
+          resetUsageLoading ? t("resetting") || "Resetting..." : t("reset") || "Reset"
+        }
         variant="danger"
         loading={resetUsageLoading}
       />

@@ -17,8 +17,16 @@ export const kimi_webProvider: RegistryEntry = {
   // Connect-RPC API. See `open-sse/executors/kimi-web.ts` for the wire format.
   baseUrl: "https://www.kimi.com",
   authType: "apikey",
-  authHeader: "Authorization",
-  // Curated-only catalog. Agent Swarm is excluded because it requires Kimi's
-  // parallel-agent tool protocol rather than ordinary chat routing.
-  models: KIMI_WEB_STATIC_MODELS,
+  authHeader: "cookie",
+  models: [
+    // Model ids are the `key` field from www.kimi.com's
+    // `/apiv2/kimi.gateway.config.v1.ConfigService/GetAvailableModels` response.
+    // Agent / Agent-Swarm variants (`k2d6-agent`, `k2d6-agent-ultra`) are
+    // intentionally NOT exposed — they need a different scenario
+    // (`SCENARIO_OK_COMPUTER`) plus `kimiPlusId` / `agentMode` fields, which
+    // the executor does not yet shape. Use `kimi-coding` (api.kimi.com) for
+    // agentic flows.
+    { id: "k2d6", name: "K2.6 Instant" },
+    { id: "k2d6-thinking", name: "K2.6 Thinking", supportsReasoning: true },
+  ],
 };

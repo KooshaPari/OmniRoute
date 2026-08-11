@@ -20,18 +20,7 @@ import {
   recordProviderFailure,
   selectLockoutCooldownMs,
 } from "./accountFallback.ts";
-import {
-  errorResponse,
-  unavailableResponse,
-  errorResponseWithComboDiagnostics,
-} from "../utils/error.ts";
-import type { ComboDiagnostics } from "../utils/error.ts";
-import {
-  COMBO_FAILURE_THRESHOLD,
-  clearComboFailureTracking,
-  recordComboFailure,
-} from "./combo/failureTracker.ts";
-import { buildNoUpstreamResponseDiagnostics, buildRecoveryHint } from "./combo/pinRecovery.ts";
+import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { buildTargetTimeoutRunner } from "./combo/targetTimeoutRunner.ts";
 import { recordComboRequest, recordComboShadowRequest, getComboMetrics } from "./comboMetrics.ts";
 import {
@@ -65,24 +54,18 @@ import { phaseComboSetup } from "./combo/comboSetup.ts";
 import { checkCredentialGate, logCredentialSkip } from "./credentialGate.ts";
 import { emit } from "../../src/lib/events/eventBus";
 import { notifyWebhookEvent } from "../../src/lib/webhookDispatcher";
+import { parseAutoPrefix } from "./autoCombo/autoPrefix.ts";
+import { resolveAutoStrategyOrder } from "./combo/resolveAutoStrategy.ts";
+import { applyStrategyOrdering } from "./combo/applyStrategyOrdering.ts";
+import { handlePipelineCombo, buildPipelineResponse } from "./autoCombo/pipelineRouter.ts";
 import { type ProviderCandidate } from "./autoCombo/scoring.ts";
 import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
-import {
-  applySessionStickiness,
-  recordStickyBinding,
-  resolveDisableSessionStickiness,
-} from "./combo/sessionStickiness.ts";
+import { applySessionStickiness, recordStickyBinding } from "./combo/sessionStickiness.ts";
 import { selectQuotaShareTarget } from "./combo/quotaShareStrategy.ts";
 import { makeConnectionConcurrencyResolver, lookupPositiveCap } from "./combo/concurrencyCaps.ts";
 import { acquireQuotaShareConcurrencySlot } from "./combo/quotaShareConcurrency.ts";
 import { orderTargetsByEvalScores } from "./evalRouting.ts";
-import {
-  applyPromptCacheAffinity,
-  expandPromptCacheAffinityTargets,
-  expandPromptCacheAffinityTargetsFromConnections,
-  resolvePromptCacheAffinityKey,
-} from "./combo/promptCacheAffinity.ts";
 import type { CompressionMode } from "./compression/types.ts";
 import { getCachedProviderConnections } from "../../src/lib/db/readCache";
 import {
@@ -166,14 +149,7 @@ export {
   isModelScoped400,
 };
 import { applyComboTargetExhaustion } from "./combo/targetExhaustion.ts";
-import {
-  pinIsDurablyUnhealthy,
-  tryFusionDispatch,
-  tryPinnedModelDispatch,
-  tryPipelineDispatch,
-  tryRuntimeUnitDispatch,
-} from "./combo/dispatchPrelude.ts";
-import { isRetryAfterEligibleStatus } from "./combo/unavailableRetryGate.ts";
+import { executeRuntimeUnitCombo } from "./combo/runtimeUnits.ts";
 import { isRecord } from "./combo/comboData.ts";
 import {
   expandProviderWildcardsInCombo,
@@ -182,11 +158,11 @@ import {
 import { resolveShadowTargets, scheduleShadowRouting } from "./combo/shadowRouting.ts";
 import { attemptCompatRejectedFallback } from "./combo/comboCompatFallback.ts";
 import {
-  computeCompatRejectedTargets,
-  describeCapabilityFilterExhaustion,
   filterTargetsByRequestCompatibility,
   resolveComboRuntimeUnits,
   resolveComboTargets,
+  resolveWeightedTargets,
+  resolveWeightedStepGroups,
 } from "./combo/comboStructure.ts";
 import { getKnownContextOverflow } from "./combo/knownContextOverflow.ts";
 import {
@@ -206,11 +182,21 @@ import {
 } from "./combo/quotaScoring.ts";
 import { fetchResetAwareQuotaWithCache, preScreenTargets } from "./combo/quotaStrategies.ts";
 import {
+  fetchResetAwareQuotaWithCache,
+  preScreenTargets,
+  type PreScreenResult,
+} from "./combo/quotaStrategies.ts";
+import {
   buildAutoQuotaThresholds,
   resolveQuotaExhaustionCutoffForTarget,
 } from "./combo/quotaExhaustionCutoff.ts";
+import {
+  classifyTask,
+  getConversationCacheKey,
+  isTaskRoutingStrategy,
+  reorderByTaskWeight,
+} from "./taskAwareRouting.ts";
 import { expandTargetsByFingerprints } from "./combo/fingerprintExpansion.ts";
-import { resolveComboTargetPipeline } from "./combo/targetResolution.ts";
 
 export { RESET_WINDOW_NAMES, QUOTA_SOFT_DEPRIORITIZE_FACTOR, setCandidateQuotaSoftPenalty };
 export { scoreAutoTargets, expandAutoComboCandidatePool };
@@ -288,6 +274,64 @@ function getBootstrapLatencyMs(modelId: string): number {
   return DEFAULT_MODEL_P95_MS[normalized] ?? 1500;
 }
 
+function clampPercent(value: number): number {
+  if (!Number.isFinite(value)) return 100;
+  return Math.max(0, Math.min(100, value));
+}
+
+function quotaRemainingPercentFromQuota(quota: unknown): number {
+  if (!quota || typeof quota !== "object") return 100;
+  const record = quota as Record<string, unknown>;
+  if (record.limitReached === true) return 0;
+
+  const windows = record.windows;
+  if (windows && typeof windows === "object" && !Array.isArray(windows)) {
+    let minRemaining: number | null = null;
+    for (const windowInfo of Object.values(windows as Record<string, unknown>)) {
+      if (!windowInfo || typeof windowInfo !== "object") continue;
+      const percentUsed = Number((windowInfo as Record<string, unknown>).percentUsed);
+      if (!Number.isFinite(percentUsed)) continue;
+      const remaining = clampPercent((1 - percentUsed) * 100);
+      minRemaining = minRemaining === null ? remaining : Math.min(minRemaining, remaining);
+    }
+    if (minRemaining !== null) return minRemaining;
+  }
+
+  const percentUsed = Number(record.percentUsed);
+  if (Number.isFinite(percentUsed)) return clampPercent((1 - percentUsed) * 100);
+  return 100;
+}
+
+const QUOTA_BLOCKING_CONNECTION_STATUSES = new Set([
+  "banned",
+  "credits_exhausted",
+  "deactivated",
+  "expired",
+  "rate_limited",
+]);
+
+function normalizeConnectionStatus(value: unknown): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function hasFutureRateLimitUntil(value: unknown): boolean {
+  if (value == null || value === "") return false;
+  const time = new Date(String(value)).getTime();
+  return Number.isFinite(time) && time > Date.now();
+}
+
+export function getConnectionStatusQuotaCutoffReason(
+  connection: Record<string, unknown> | undefined
+): string | undefined {
+  if (!connection) return undefined;
+  const status = normalizeConnectionStatus(connection.testStatus);
+  if (QUOTA_BLOCKING_CONNECTION_STATUSES.has(status)) return status;
+  if (status === "unavailable" && hasFutureRateLimitUntil(connection.rateLimitedUntil)) {
+    return "rate_limited";
+  }
+  return undefined;
+}
+
 export async function buildAutoCandidates(
   targets: ResolvedComboTarget[],
   comboName: string,
@@ -349,6 +393,17 @@ export async function buildAutoCandidates(
   const expandedTargets = expandPromptCacheAffinityTargetsFromConnections(
     targets,
     connectionsByProvider
+  );
+
+  // #5521: Expand fingerprint-based providers (mimocode, mcode, opencode) so each
+  // fingerprint gets its own combo slot instead of being bundled into one connection.
+  const fingerprintExpandedTargets = expandTargetsByFingerprints(
+    expandedTargets,
+    connectionById,
+    (t) => {
+      const parsed = parseModel(t.modelStr);
+      return t.provider || parsed.provider || parsed.providerAlias || "unknown";
+    }
   );
 
   // #5521: Expand fingerprint-based providers (mimocode, mcode, opencode) so each
@@ -585,11 +640,7 @@ export async function handleComboChat({
     log,
   });
 
-  // Dispatch prelude: context-cache pin → fusion → chaos → pipeline → nested
-  // combo-ref execute mode → round-robin. Each branch either owns the request or
-  // falls through to the target iteration loop below. Implementations live in
-  // combo/dispatchPrelude.ts; only the chaos + round-robin hand-offs are short
-  // enough to stay inline.
+  // Route to pinned model if context caching specifies one (Fix #679)
   if (pinnedModel) {
     // The pin is read from session_model_history (a PRIOR turn) and may name a
     // model that has since been removed from this combo, or a provider whose
@@ -1145,11 +1196,6 @@ export async function handleComboChat({
   // via buildAutoCandidates/routableCandidates, so this only affects the other
   // 16 strategies (priority, weighted, etc.) that funnel through executeTarget.
   const quotaCutoffResetWindowConfig = resolveResetWindowConfig(config as Record<string, unknown>);
-
-  // QA P0 diagnostics: record the order in which targets were actually attempted
-  // (provider/model ids only) so a terminal combo failure can report the attempt
-  // sequence alongside pool size + exhaustion reasons. Accumulates across set retries.
-  const comboAttemptOrder: Array<{ provider: string; model: string }> = [];
 
   if (orderedTargets.length === 0) {
     // Surface a recovery hint + auto-clear the session pin after enough consecutive
@@ -2164,16 +2210,6 @@ export async function handleComboChat({
               isModelLocked(provider, targetWithConnection.connectionId || "", rawModel)
             ) {
               log.info("COMBO", `Skipping retry for ${modelStr} — model lockout active`);
-              // Live incident (log id 1784457764961-73): earliestRetryAfter is already
-              // captured above from THIS dispatch's own response, but lastStatus was
-              // never recorded on this bail-out path — so once every target in the set
-              // hit an existing lockout, lastStatus stayed null and the final `if
-              // (!lastStatus)` check crystallized an immediate ALL_ACCOUNTS_INACTIVE 503
-              // instead of ever reaching the `if (earliestRetryAfter)` cooldown-wait
-              // decision below, even though a real 429 with a short (~1min) retry-after
-              // was just observed. Recording it here mirrors the "done retrying" path.
-              lastError = errorText || String(result.status);
-              lastStatus = result.status;
               if (i > 0) fallbackCount++;
               return null;
             }

@@ -14,10 +14,6 @@ import {
   appendSearchCitations,
   type DeepSeekSearchResult,
 } from "./deepseek-web/stream-format.ts";
-import {
-  createFinishOnceGuard,
-  createFinishedDrainScheduler,
-} from "./deepseek-web-done-terminator.ts";
 
 export const DEEPSEEK_WEB_BASE = "https://chat.deepseek.com";
 const DEEPSEEK_API_BASE = `${DEEPSEEK_WEB_BASE}/api`;

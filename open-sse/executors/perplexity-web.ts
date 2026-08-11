@@ -17,13 +17,8 @@ import { prepareToolMessages } from "../translator/webTools.ts";
 import { buildToolModeResponse } from "./chatgptWebTools.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import {
-  buildSessionCookieHeader,
-  mergeRefreshedCookie,
-} from "../utils/nextAuthCookie.ts";
-import {
   PPLX_SSE_ENDPOINT,
   PPLX_USER_AGENT,
-  PPLX_STREAM_EOF_SYMBOL,
   MODEL_MAP,
   THINKING_MAP,
   cleanResponse,

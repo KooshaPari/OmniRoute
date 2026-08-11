@@ -139,7 +139,6 @@ export function assignEditApiKeyProviderSpecificData(options: {
     o.target.accountId = o.formData.accountId.trim();
   }
   if (o.isAntigravityFamily) o.target.projectId = o.trimmedCloudCodeProjectId || null;
-  if (isM365TierCapableProvider(o.provider)) applyM365Tier(o.target, o.formData.m365Tier ?? "");
   if (o.isCcCompatible) {
     o.target.requestDefaults = mergeCcCompatibleRequestDefaults(
       o.target.requestDefaults,

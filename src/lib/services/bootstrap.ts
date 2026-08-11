@@ -82,6 +82,24 @@ const SERVICES: ServiceEntry[] = [
     logsBufferBytes: 5_242_880,
     needsApiKey: false,
   },
+  {
+    tool: "mux",
+    port: MUX_PORT,
+    healthPath: "/health",
+    healthIntervalMs: 5_000,
+    stopTimeoutMs: 15_000,
+    logsBufferBytes: 5_242_880,
+    needsApiKey: true,
+  },
+  {
+    tool: "bifrost",
+    port: BIFROST_PORT,
+    healthPath: "/v1/models",
+    healthIntervalMs: 5_000,
+    stopTimeoutMs: 15_000,
+    logsBufferBytes: 5_242_880,
+    needsApiKey: false,
+  },
 ];
 
 function buildSpawnArgsFactory(

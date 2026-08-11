@@ -86,6 +86,25 @@ test("Sonnet 5 catalog exposes claude-sonnet-5 across cc/kiro/anthropic/blackbox
   assert.equal(kiroSonnet5Price.output, 15.0);
 });
 
+test("Kiro catalog exposes Claude Opus 4.8 alongside 4.7 with matching pricing", () => {
+  const models = getModelsByProviderId("kiro");
+  const ids = new Set(models.map((model) => model.id));
+
+  const kiroSonnet5 = getModelsByProviderId("kiro").find((m) => m.id === "claude-sonnet-5");
+  assert.equal(kiroSonnet5?.contextLength, 1000000);
+  assert.equal(kiroSonnet5?.maxOutputTokens, 128000);
+
+  const ccPricing = (DEFAULT_PRICING as Record<string, Record<string, unknown>>).cc;
+  assert.ok(ccPricing["claude-sonnet-5"], "cc pricing must include claude-sonnet-5");
+
+  const kiroPricing = (DEFAULT_PRICING as Record<string, Record<string, unknown>>).kiro;
+  const kiroSonnet5Price = kiroPricing["claude-sonnet-5"] as { input: number; output: number };
+  assert.ok(kiroSonnet5Price, "kiro pricing must include claude-sonnet-5");
+  // Sonnet-tier, not Opus-tier — guards against copying Fable 5's $15/$75.
+  assert.equal(kiroSonnet5Price.input, 3.0);
+  assert.equal(kiroSonnet5Price.output, 15.0);
+});
+
 test("Kiro catalog does NOT expose Claude Opus (fabricated — Kiro upstream has no Opus)", () => {
   // Kiro's real upstream never served any Opus model; the Opus 4.8/4.7/4.6 ids had been
   // copied into the Kiro registry from OmniRoute's Anthropic catalog and returned upstream

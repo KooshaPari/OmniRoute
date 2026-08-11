@@ -57,29 +57,8 @@ export const COLLECTORS = [
   // abaixo). Subdir novo: adicione aqui E nos scripts (o drift-check + o gate de
   // órfãos forçam a manutenção em sincronia).
   {
-    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts",
-    sources: ["package.json"],
-  },
-  // Node native runner — tests/unit/dashboard/** roda numa invocação separada com o hook
-  // COMPLETO do tsx (--import tsx): o grafo dos componentes de dashboard puxa
-  // @lobehub/icons, cujo build es/ faz require() interno de arquivos com sintaxe ESM —
-  // sem o patch CJS do tsx isso estoura "Unexpected token 'export'" (visto no Node
-  // 24.18 do CI; no 24.16 local vira um crawl de ~60s/arquivo). O resto da suíte roda
-  // sob tsx/esm (~-50% de bootstrap por processo). Plano mestre testes+CI, QW-b.
-  { glob: "tests/unit/dashboard/**/*.test.ts", sources: ["package.json"] },
-  // Órfãos religados (plano mestre QW-c): arquivos .test.mjs (top-level + db/ + feature-triage/) — fora do glob
-  // *.test.ts histórico, nunca rodava em job nenhum (53 casos recuperados).
-  { glob: "tests/unit/**/*.test.mjs", sources: ["package.json"] },
-  // Wiring CI→npm script (fonte única): os jobs de unit do ci.yml e o fast-unit do
-  // quality.yml DEVEM invocar o script canônico — se renomearem/inlinarem, este gate
-  // exige o sync (substitui as âncoras textuais de glob que existiam nos workflows).
-  {
-    glob: "tests/unit/*.test.ts",
-    sources: ["package.json", ".github/workflows/ci.yml", ".github/workflows/quality.yml"],
-    anchors: {
-      ".github/workflows/ci.yml": "test:unit:ci:shard",
-      ".github/workflows/quality.yml": "test:unit:ci:shard",
-    },
+    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts",
+    sources: ["package.json", ".github/workflows/ci.yml"],
   },
   // Node native runner — test:integration (top-level only; tests/integration/services/ NÃO roda)
   { glob: "tests/integration/*.test.ts", sources: ["package.json"] },

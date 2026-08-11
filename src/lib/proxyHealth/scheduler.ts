@@ -14,16 +14,8 @@
 import { deleteProxyById, listProxies, updateProxy } from "@/lib/localDb";
 import { createProxyDispatcher, clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
 import { fetch as undiciFetch } from "undici";
-import {
-  decideProxyHealthAction,
-  type ProxyProbeOutcome,
-} from "./decision.ts";
 
-// #6246: a HEAD to the public probe target through a legit (often loaded) proxy
-// can exceed a few seconds; the old 5s ceiling produced false negatives that
-// flipped healthy proxies to inactive. Raise it and treat our own timeout as
-// inconclusive (see testOneProxy) rather than a proxy failure.
-const TEST_TIMEOUT_MS = 15000;
+const TEST_TIMEOUT_MS = 5000;
 // Reachability probe target for proxy health checks. Configurable so operators
 // can point it at an internal/self-hosted endpoint instead of the public default.
 const TEST_URL = process.env.PROXY_HEALTH_TEST_URL || "https://httpbin.org/ip";
@@ -73,21 +65,7 @@ function isBackgroundServicesDisabled(): boolean {
   return ["1", "true", "yes", "on"].includes(raw.trim().toLowerCase());
 }
 
-/**
- * Reachability probe for one proxy, classified into a tri-state so the pure
- * decision layer can apply the #6246 policy:
- *   - "ok"           — the proxy relayed and the target answered (<500).
- *   - "inconclusive" — NOT the proxy's fault: our own timeout/abort, or the probe
- *                      TARGET returned a 5xx (the proxy connected fine). Never
- *                      penalizes the proxy.
- *   - "fail"         — a proxy-level connection error (refused/unreachable/TLS).
- */
-async function testOneProxy(proxy: {
-  id: string;
-  type: string;
-  host: string;
-  port: number;
-}): Promise<ProxyProbeOutcome> {
+async function testOneProxy(proxy: { id: string; type: string; host: string; port: number }): Promise<boolean> {
   const proxyUrl = `${proxy.type}://${proxy.host}:${proxy.port}`;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TEST_TIMEOUT_MS);
@@ -99,20 +77,16 @@ async function testOneProxy(proxy: {
       dispatcher,
       headers: { "User-Agent": "OmniRoute/1.0" },
     });
-    // A 5xx from the probe target means the proxy DID relay — the target is at
-    // fault, not the proxy. Do not penalize the proxy for that.
-    return resp.status < 500 ? "ok" : "inconclusive";
+    return resp.status < 500;
   } catch {
-    // Our own deadline elapsed → inconclusive (slow, not necessarily dead).
-    // Any other error is a genuine proxy-level connection failure.
-    return controller.signal.aborted ? "inconclusive" : "fail";
+    return false;
   } finally {
     clearTimeout(timeout);
   }
 }
 
 async function sweep(): Promise<void> {
-  const { items: proxies } = await listProxies({ includeSecrets: false });
+  const proxies = await listProxies({ includeSecrets: false });
   if (proxies.length === 0) return;
 
   const failureMap = getFailureMap();
@@ -121,54 +95,44 @@ async function sweep(): Promise<void> {
 
   let tested = 0;
   let alive = 0;
-  let inconclusive = 0;
   let removed = 0;
 
   for (let i = 0; i < proxies.length; i += CONCURRENCY) {
     const batch = proxies.slice(i, i + CONCURRENCY);
     const results = await Promise.allSettled(
       batch.map(async (proxy) => {
-        const outcome = await testOneProxy(proxy);
-        return { id: proxy.id, outcome };
+        const ok = await testOneProxy(proxy);
+        return { id: proxy.id, ok };
       })
     );
 
     for (const result of results) {
       if (result.status !== "fulfilled") continue;
-      const { id, outcome } = result.value;
+      const { id, ok } = result.value;
       tested++;
-      if (outcome === "ok") alive++;
-      else if (outcome === "inconclusive") inconclusive++;
 
-      const decision = decideProxyHealthAction({
-        outcome,
-        priorFailures: failureMap.get(id) ?? 0,
-        autoRemove,
-        removeAfter,
-      });
+      if (ok) {
+        alive++;
+        failureMap.delete(id);
+        await updateProxy(id, { status: "active" }).catch(() => {});
+      } else {
+        const failures = (failureMap.get(id) ?? 0) + 1;
+        failureMap.set(id, failures);
+        await updateProxy(id, { status: "inactive" }).catch(() => {});
 
-      if (decision.clearFailures) failureMap.delete(id);
-      else failureMap.set(id, decision.failures);
-
-      // #6246 (policy C): only mutate the operator-owned status when the decision
-      // explicitly asks for it. By default (auto-remove off) setStatus is null, so
-      // a transient probe failure never flips a healthy proxy to inactive.
-      if (decision.setStatus) {
-        await updateProxy(id, { status: decision.setStatus }).catch(() => {});
-      }
-
-      if (decision.remove) {
-        if (await deleteProxyById(id, { force: true }).catch(() => false)) {
-          failureMap.delete(id);
-          removed++;
-          try { clearDispatcherCache(); } catch { /* non-critical */ }
+        if (autoRemove && failures >= removeAfter) {
+          if (await deleteProxyById(id, { force: true }).catch(() => false)) {
+            failureMap.delete(id);
+            removed++;
+            try { clearDispatcherCache(); } catch { /* non-critical */ }
+          }
         }
       }
     }
   }
 
   console.log(
-    `${LOG_PREFIX} Sweep complete: ${tested} tested, ${alive} alive, ${inconclusive} inconclusive, ${removed} auto-removed`
+    `${LOG_PREFIX} Sweep complete: ${tested} tested, ${alive} alive, ${removed} auto-removed`
   );
 }
 

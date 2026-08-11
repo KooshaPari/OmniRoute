@@ -103,22 +103,6 @@ export function shouldShowProviderSection(
 
 type ProviderRecord<TProvider = Record<string, unknown>> = Record<string, TProvider>;
 
-const OAUTH_CARD_API_KEY_CONNECTION_PROVIDER_IDS = new Set(["kiro", "amazon-q", "kimi-coding"]);
-
-const PROVIDER_CONNECTION_ALIASES: Record<string, readonly string[]> = {
-  alibaba: ["alibaba-cn"],
-  "kimi-coding": ["kimi-coding-apikey"],
-};
-
-export function connectionBelongsToProviderPage(
-  connectionProvider: string | null | undefined,
-  providerId: string
-): boolean {
-  if (!connectionProvider) return false;
-  if (connectionProvider === providerId) return true;
-  return PROVIDER_CONNECTION_ALIASES[providerId]?.includes(connectionProvider) === true;
-}
-
 /**
  * Whether a provider connection should be counted on a provider card rendered in
  * the given section. Dual-auth providers (qoder, opencode, codebuddy-cn, …) are
@@ -131,13 +115,10 @@ export function connectionMatchesProviderCard(
   providerId: string,
   cardAuthType: "oauth" | "free" | "apikey"
 ): boolean {
-  if (!conn || !connectionBelongsToProviderPage(conn.provider, providerId)) return false;
+  if (!conn || conn.provider !== providerId) return false;
   if (cardAuthType === "free") return true;
-  if (
-    supportsApiKeyOnFreeProvider(providerId) ||
-    OAUTH_CARD_API_KEY_CONNECTION_PROVIDER_IDS.has(providerId)
-  ) {
-    return conn.authType === "oauth" || conn.authType === "apikey" || conn.authType === "api_key";
+  if (supportsApiKeyOnFreeProvider(providerId)) {
+    return conn.authType === "oauth" || conn.authType === "apikey";
   }
   return conn.authType === cardAuthType;
 }

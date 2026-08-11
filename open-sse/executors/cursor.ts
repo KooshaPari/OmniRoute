@@ -64,14 +64,6 @@ import * as zlib from "node:zlib";
 import { promisify } from "node:util";
 import { toolChoiceDirectiveLine, buildCursorOutputConstraints } from "./cursor/prompt.ts";
 import {
-  bridgeCursorBuiltinTool,
-  bridgeCursorNativeTodoWrite,
-  extractLatestTodoHistory,
-  selectCursorBridgeTools,
-  type CursorClientPlatform,
-  type CursorTodoHistoryItem,
-} from "./cursor/builtinToolBridge.ts";
-import {
   isComposerModel,
   visibleComposerContentFromThinking,
   composerReasoningRemainder,

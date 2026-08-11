@@ -42,7 +42,7 @@
 [![WhatsApp Global](https://img.shields.io/badge/WhatsApp_Global-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 [![WhatsApp Brasil](https://img.shields.io/badge/WhatsApp_Brasil-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/LTSpdFhXTxjH4R6CCNiKWz)
 
-**疑难解答、服务商攻略、路线图与支持 → [Discord](https://discord.gg/U47eFqAXCn) · [Telegram](https://t.me/omnirouteOficial) · WhatsApp [🌍 全球](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) / [🇧🇷 巴西](https://chat.whatsapp.com/LTSpdFhXTxjH4R6CCNiKWz)**
+**疑难解答、服务商攻略、路线图与支持 → [Discord](https://discord.gg/EkzRkpzKYt) · [Telegram](https://t.me/omnirouteOficial) · WhatsApp [🌍 全球](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) / [🇧🇷 巴西](https://chat.whatsapp.com/BTGJXIyjeNIIgExvTMGGhI)**
 
 <br/>
 
@@ -661,19 +661,15 @@ devbox run npm run dev
 # 1. 准备绑定挂载的数据目录
 mkdir -p data
 
-# 2. 仅限 Linux + 本地无根 Podman（切勿用于远程 Podman Machine 客户端）
-podman unshare chown 1000:1000 ./data
+# 2. 修复无 Root 权限 Podman 的数据目录权限
+mkdir -p data && podman unshare chown 1000:1000 ./data
 
 # 3. 设置运行时提示，构建本地 Compose 镜像并启动
 echo "CONTAINER_HOST=podman" >> .env
 podman compose --profile base up -d --build
 ```
 
-在 macOS 或 Windows 上，Podman 使用远程 Podman Machine：请跳过
-`podman unshare`，并按照[针对不同拓扑的数据目录说明](../../../contrib/podman/README.md#data-directory-permissions-by-topology)操作。
-
-📖 [Podman 指南](../../../contrib/podman/README.md) — Compose 构建、Podman Machine
-以及仅限 Linux/systemd 的 Quadlet 设置。
+📖 [Podman 指南](../../contrib/podman/README.md) — Quadlet 设置、podman-compose、Quadlet。
 
 <br/>
 

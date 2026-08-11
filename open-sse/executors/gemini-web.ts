@@ -224,15 +224,12 @@ function parseCookies(raw: string): Array<{ name: string; value: string }> {
  *   [["wrb.fr", null, "<JSON string>"]]
  *
  * The JSON string contains nested array: inner[4][0][1] = ["text chunks"].
- * Each wrb.fr line is a CUMULATIVE snapshot of the whole answer generated so
- * far (not an independent delta), so we keep only the text from the LAST
- * frame that yields non-empty text instead of concatenating every frame —
- * concatenating would reproduce the same growing text with each snapshot
- * (see #7163).
+ * We concatenate text from every wrb.fr line because Gemini can split one
+ * assistant answer across multiple StreamGenerate chunks.
  */
 export function parseStreamResponse(raw: string): string {
   const lines = raw.split("\n");
-  let lastText = "";
+  const textChunks: string[] = [];
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
@@ -248,12 +245,12 @@ export function parseStreamResponse(raw: string): string {
       const responseArray = inner?.[4]?.[0]?.[1];
       if (!Array.isArray(responseArray)) continue;
       const text = responseArray.filter((c: unknown) => typeof c === "string").join("");
-      if (text) lastText = text;
+      if (text) textChunks.push(text);
     } catch {
       // Skip unparseable lines
     }
   }
-  return lastText;
+  return textChunks.join("");
 }
 
 function readCredentialString(value: unknown): string {
@@ -279,40 +276,6 @@ function readProviderSpecificString(
     if (value) return value;
   }
   return "";
-}
-
-/**
- * Merge rotated __Secure-1PSID* cookies read back from the live Playwright
- * cookie jar into the original cookie string. Only the three long-lived
- * Gemini auth cookies are considered — pulling in the entire jar would risk
- * treating short-lived Google analytics/consent cookies as credentials
- * (#7676). Cookies the jar didn't return, or that are unchanged, are left
- * untouched in the original string.
- */
-export function mergeRotatedGeminiCookies(
-  originalCookie: string,
-  jarCookies: Array<{ name: string; value: string }>
-): string {
-  const ROTATABLE_NAMES = ["__Secure-1PSID", "__Secure-1PSIDTS", "__Secure-1PSIDCC"];
-  const jarByName = new Map(jarCookies.map((c) => [c.name, c.value]));
-
-  const pairs = parseCookies(originalCookie);
-  const seen = new Set<string>();
-  const merged = pairs.map(({ name, value }) => {
-    seen.add(name);
-    if (ROTATABLE_NAMES.includes(name) && jarByName.has(name)) {
-      return { name, value: jarByName.get(name) as string };
-    }
-    return { name, value };
-  });
-
-  for (const name of ROTATABLE_NAMES) {
-    if (!seen.has(name) && jarByName.has(name)) {
-      merged.push({ name, value: jarByName.get(name) as string });
-    }
-  }
-
-  return merged.map(({ name, value }) => `${name}=${value}`).join("; ");
 }
 
 function normalizeGeminiCookieInput(raw: string, cookieName = "__Secure-1PSID"): string {

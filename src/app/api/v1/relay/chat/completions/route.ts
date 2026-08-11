@@ -23,9 +23,17 @@ import {
   getRoutingFallbackHeader,
   getRoutingFallbackReasonHeader,
   resolveRelayRoutingBackend,
-  shouldTryBifrost,
+  shouldTryBifrostForRequest,
   type BifrostRoutingConfig,
 } from "./routingBackend";
+import { getProviderPluginManifestEntryForModel } from "@omniroute/open-sse/config/providerPluginManifestRegistry.ts";
+import { getProviderPluginManifestHeader } from "@omniroute/open-sse/config/providerPluginManifestUrl.ts";
+import { finalizeReadableStream } from "./streamFinalizer";
+import {
+  clearBifrostFailure,
+  getActiveBifrostCooldown,
+  recordBifrostFailure,
+} from "./bifrostCooldown";
 import type { RelayToken } from "@/lib/db/relayProxies";
 
 const JSON_CORS_HEADERS = { ...CORS_HEADERS, "Content-Type": "application/json" } as const;
@@ -106,6 +114,7 @@ async function forwardToBifrost(
     "Content-Type": "application/json",
     "x-relay-token-id": token.id,
     "x-relay-client-ip": clientIp,
+    ...getProviderPluginManifestHeader(new URL(request.url).origin),
   };
   if (config.apiKey) {
     upstreamHeaders.Authorization = `Bearer ${config.apiKey}`;
@@ -322,25 +331,39 @@ export async function POST(request: Request) {
 
     const backend = resolveRelayRoutingBackend();
     const bifrostConfig = getBifrostRoutingConfig();
-    if (shouldTryBifrost(backend, bifrostConfig)) {
-      try {
-        return await forwardToBifrost(
-          request,
-          parsedBody,
-          token,
-          bifrostConfig,
-          startTime,
-          clientIp,
-          userAgent
-        );
-      } catch (error) {
-        if (backend === "bifrost") {
-          recordUsage(token.id, request, startTime, clientIp, userAgent, "error", 502);
-          return new Response(
-            JSON.stringify(
-              buildErrorBody(502, error instanceof Error ? error.message : String(error))
-            ),
-            {
+    let bifrostFallbackReason: string | null = null;
+    const bifrostDecision = shouldTryBifrostForRequest(
+      backend,
+      bifrostConfig,
+      parsedBody,
+      (model) => getProviderPluginManifestEntryForModel(model)?.sidecar ?? null
+    );
+    if (bifrostDecision.fallbackReason) {
+      bifrostFallbackReason = bifrostDecision.fallbackReason;
+    }
+    if (bifrostDecision.tryBifrost) {
+      const cooldown =
+        backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
+      if (cooldown) {
+        bifrostFallbackReason = `bifrost-cooldown; remaining=${cooldown.remainingMs}`;
+      } else {
+        try {
+          const bifrostResponse = await forwardToBifrost(
+            request,
+            parsedBody,
+            token,
+            bifrostConfig,
+            startTime,
+            clientIp,
+            userAgent
+          );
+          clearBifrostFailure(bifrostConfig.baseUrl);
+          return bifrostResponse;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          if (backend === "bifrost") {
+            recordUsage(token.id, request, startTime, clientIp, userAgent, "error", 502);
+            return new Response(JSON.stringify(buildErrorBody(502, message)), {
               status: 502,
               headers: {
                 ...JSON_CORS_HEADERS,

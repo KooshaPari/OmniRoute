@@ -1,7 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-
 export type SourceId = "1proxy" | "proxifly" | "iplocate" | "webshare";
 
 export const ALL_SOURCE_IDS: SourceId[] = ["1proxy", "proxifly", "iplocate", "webshare"];

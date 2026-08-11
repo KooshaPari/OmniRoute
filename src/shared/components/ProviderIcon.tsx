@@ -5,15 +5,13 @@
  *
  * Strategy (#529):
  * 0. If `src` is set (operator-supplied remote icon URL, #2166), render it — this always
- *    wins over the resolution below. On load error, falls back to
+ *    wins over the @lobehub/static resolution below. On load error, falls back to
  *    `fallbackText`/`fallbackColor` (a colored text badge) if provided, otherwise falls
- *    through to steps 1-6.
- * 1. Theme-aware static SVGs (`THEMED_SVGS`, e.g. arena-light/dark for lmarena)
- * 2. Try /providers/{id}.svg (local SVG assets — fastest, cached separately from JS bundle)
- * 3. Try @lobehub/icons direct React components (no @lobehub/ui peer runtime)
- * 4. Try /providers/{id}.png (legacy static assets)
- * 5. Fall back to thesvg.org CDN (external SVG)
- * 6. Fall back to a generic AI icon
+ *    through to steps 1-4.
+ * 1. Try @lobehub/icons direct icon components (no @lobehub/ui peer runtime)
+ * 2. Fall back to /providers/{id}.png (existing static assets)
+ * 3. Fall back to /providers/{id}.svg (SVG assets)
+ * 4. Fall back to a generic AI icon
  *
  * Usage:
  *   <ProviderIcon providerId="openai" size={24} />
@@ -37,7 +35,7 @@ interface ProviderIconProps {
   /**
    * Optional operator-supplied remote icon URL (#2166) — e.g. a custom icon set for an
    * OpenAI-/Anthropic-compatible provider node. When set, this always takes priority
-   * over the resolution chain. On load error, falls back to `fallbackText`
+   * over the @lobehub/static resolution. On load error, falls back to `fallbackText`
    * (if provided) or the normal resolution chain below.
    */
   src?: string;
@@ -334,26 +332,19 @@ const ProviderIcon = memo(function ProviderIcon({
 
   const [failedAssets, setFailedAssets] = useState<Record<string, true>>({});
   const [remoteSrcFailed, setRemoteSrcFailed] = useState(false);
-  const themedKey = `${normalizedId}:themed`;
+  const pngKey = `${normalizedId}:png`;
   const svgKey = `${normalizedId}:svg`;
   const pngKey = `${normalizedId}:png`;
   const theSvgKey = `${normalizedId}:thesvg`;
 
   const trimmedSrc = typeof src === "string" ? src.trim() : "";
-  const themedFailed = failedAssets[themedKey];
-  const svgFailed = failedAssets[svgKey];
-  const theSvgFailed = failedAssets[theSvgKey];
-  const pngFailed = failedAssets[pngKey];
 
-  // #2166: a custom remote icon URL always wins over the resolution chain below.
-  // It is a plain <img> (not next/image) so operators can point at any host
+  // #2166: a custom remote icon URL always wins over the @lobehub/static resolution
+  // below. It is a plain <img> (not next/image) so operators can point at any host
   // without requiring `images.remotePatterns` allow-listing for arbitrary domains.
   if (trimmedSrc && !remoteSrcFailed) {
     return (
-      <span
-        className={className}
-        style={{ display: "inline-flex", alignItems: "center", ...style }}
-      >
+      <span className={className} style={{ display: "inline-flex", alignItems: "center", ...style }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- operator-supplied remote URL, not a static/known asset */}
         <img
           src={trimmedSrc}
@@ -389,48 +380,6 @@ const ProviderIcon = memo(function ProviderIcon({
     );
   }
 
-  // Tier 1: Theme-aware local SVGs (e.g. Arena light/dark)
-  if (themedSvg && !themedFailed) {
-    const themedSrc = isDark ? themedSvg.dark : themedSvg.light;
-    return (
-      <span
-        className={className}
-        style={{ display: "inline-flex", alignItems: "center", ...style }}
-      >
-        <Image
-          src={themedSrc}
-          alt={providerId}
-          width={size}
-          height={size}
-          style={{ objectFit: "contain" }}
-          onError={() => setFailedAssets((current) => ({ ...current, [themedKey]: true }))}
-          unoptimized
-        />
-      </span>
-    );
-  }
-
-  // Tier 2: Local SVG — fastest, cached separately from the JS bundle
-  if (hasSvg && !svgFailed) {
-    return (
-      <span
-        className={className}
-        style={{ display: "inline-flex", alignItems: "center", ...style }}
-      >
-        <Image
-          src={`/providers/${localSvgId}.svg`}
-          alt={providerId}
-          width={size}
-          height={size}
-          style={{ objectFit: "contain" }}
-          onError={() => setFailedAssets((current) => ({ ...current, [svgKey]: true }))}
-          unoptimized
-        />
-      </span>
-    );
-  }
-
-  // Tier 3: LobeHub npm icons — only when no local SVG (or SVG failed to load)
   if (lobeIcon) {
     return (
       <span

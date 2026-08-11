@@ -246,29 +246,6 @@ function getStaticSpec(modelId: string | null, rawModel: string | null): ModelSp
   return undefined;
 }
 
-/**
- * #8032: vision-only leaf fallback for path-shaped routed ids.
- *
- * Must NOT live in getStaticSpec() — that helper also feeds supportsTools /
- * supportsThinking / contextWindow / maxOutputTokens. A shared leaf lookup
- * incorrectly promotes e.g. aihorde/deepseek/deepseek-v4-flash to the real
- * DeepSeek V4 Flash tool-calling spec (#8212 regression).
- */
-function getVisionStaticSpec(
-  modelId: string | null,
-  rawModel: string | null
-): ModelSpec | undefined {
-  const direct = getStaticSpec(modelId, rawModel);
-  if (direct) return direct;
-  for (const candidate of [modelId, rawModel]) {
-    const leaf = leafModelId(candidate);
-    if (!leaf) continue;
-    const byLeaf = getModelSpec(leaf);
-    if (byLeaf) return byLeaf;
-  }
-  return undefined;
-}
-
 function getAuthoritativeStaticContextWindow(
   provider: string | null,
   modelId: string | null,
@@ -612,11 +589,7 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     structuredOutput: synced?.structured_output ?? null,
     temperature: synced?.temperature ?? null,
     contextWindow,
-    maxInputTokens:
-      (typeof registryModel?.maxInputTokens === "number" ? registryModel.maxInputTokens : null) ??
-      authoritativeContextWindow ??
-      synced?.limit_input ??
-      contextWindow,
+    maxInputTokens: authoritativeContextWindow ?? synced?.limit_input ?? contextWindow,
     maxOutputTokens:
       maxTokenOverride ??
       synced?.limit_output ??

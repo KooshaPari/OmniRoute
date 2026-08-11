@@ -9,13 +9,20 @@ import { ProxyStatusBadge } from "./ProxyStatusBadge";
 import { ProxyHealthCell } from "./ProxyHealthCell";
 import { ProxyBatchActions } from "./ProxyBatchActions";
 import { ProxyCheckboxCell } from "./ProxyCheckboxCell";
-import {
-  parseBulkImportText,
-  type ParsedProxyEntry,
-  type ParseError,
-} from "./parseBulkProxyImport";
-import { POOL_STRATEGY_OPTIONS, isPoolStrategy, type PoolStrategy } from "./proxyStrategyOptions";
-import type { ProxyItem } from "./proxyRegistryTypes";
+
+type ProxyItem = {
+  id: string;
+  name: string;
+  type: string;
+  host: string;
+  port: number;
+  username?: string | null;
+  password?: string | null;
+  region?: string | null;
+  notes?: string | null;
+  status?: string;
+  family?: string;
+};
 
 type UsageInfo = {
   count: number;
@@ -38,6 +45,23 @@ type TestResult = {
   error?: string;
 };
 
+type ParsedProxyEntry = {
+  name: string;
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  type: string;
+  region: string;
+  status: string;
+  notes: string;
+};
+
+type ParseError = {
+  line: number;
+  reason: string;
+};
+
 const EMPTY_FORM = {
   id: "",
   name: "",
@@ -53,25 +77,9 @@ const EMPTY_FORM = {
 };
 
 const BULK_IMPORT_TEMPLATE = `# Proxy Bulk Import
-# ─────────────────────────────────────────────────────────────────────────────
-# FORMAT 1 — Pipe-delimited (full control):
-#   NAME|HOST|PORT|USERNAME|PASSWORD|TYPE|REGION|STATUS|NOTES
-#   Required: NAME, HOST, PORT
-#   Optional: USERNAME, PASSWORD, TYPE (http|https|socks5, default: socks5), REGION, STATUS (active|inactive, default: active), NOTES
-#
-# FORMAT 2 — Shorthand (one proxy per line, no pipe needed):
-#   ip:port                          → no auth, type defaults to socks5
-#   ip:port:user:pass                → with auth
-#   user:pass@ip:port                → with auth (@-style)
-#   user:pass:ip:port                 → with auth (user-pass-first)
-#   protocol://ip:port               → explicit protocol
-#   protocol://user:pass@ip:port     → explicit protocol + auth
-#
-# FORMAT 3 — Protocol header mode:
-#   Put a bare protocol (http, https, socks5) on its own line to set
-#   the default type for all subsequent shorthand lines that don't
-#   include an explicit protocol:// prefix.
-#
+# Format: NAME|HOST|PORT|USERNAME|PASSWORD|TYPE|REGION|STATUS|NOTES
+# Required: NAME, HOST, PORT
+# Optional: USERNAME, PASSWORD, TYPE (http|https|socks5, default: socks5), REGION, STATUS (active|inactive, default: active), NOTES
 # Lines starting with # are ignored. Existing proxies (same host+port) will be updated.
 #
 # ─────────────────────────────────────────────────────────────────────────────
@@ -79,26 +87,74 @@ const BULK_IMPORT_TEMPLATE = `# Proxy Bulk Import
 # proxy-us|138.99.147.218|50101|myuser|mypass|socks5|US-East|active|US production proxy
 # proxy-eu|200.234.177.62|50101|myuser|mypass|socks5|EU-West
 # http-proxy|10.0.0.50|8080|||http||active|Internal HTTP proxy
-#
-# Shorthand examples:
-# 138.99.147.218:50101
-# 138.99.147.218:50101:myuser:mypass
-# myuser:mypass@138.99.147.218:50101
-# myuser:mypass:138.99.147.218:50101
-# http://10.0.0.50:8080
-# https://admin:secret123@proxy.example.com:443
-#
-# Protocol header mode example:
-# socks5
-# 138.99.147.218:50101:myuser:mypass
-# 200.234.177.62:50101:otheruser:otherpass
-#`;
+# https-proxy|proxy.example.com|443|admin|secret123|https|US|active
+`;
 
-export default function ProxyRegistryManager({
-  onRedeployRelay,
-}: {
-  onRedeployRelay?: (proxy: ProxyItem) => void;
-} = {}) {
+const VALID_TYPES = new Set(["http", "https", "socks5"]);
+const VALID_STATUSES = new Set(["active", "inactive"]);
+
+function parseBulkImportText(text: string): {
+  entries: ParsedProxyEntry[];
+  errors: ParseError[];
+  skipped: number;
+} {
+  const lines = text.split("\n");
+  const entries: ParsedProxyEntry[] = [];
+  const errors: ParseError[] = [];
+  let skipped = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i].trim();
+    if (!raw || raw.startsWith("#")) {
+      skipped++;
+      continue;
+    }
+
+    const parts = raw.split("|").map((p) => p.trim());
+    const [name, host, portStr, username, password, type, region, status, notes] = parts;
+    const lineNum = i + 1;
+
+    if (!name) {
+      errors.push({ line: lineNum, reason: "bulkImportErrorMissingName" });
+      continue;
+    }
+    if (!host) {
+      errors.push({ line: lineNum, reason: "bulkImportErrorMissingHost" });
+      continue;
+    }
+    const port = Number(portStr);
+    if (!portStr || isNaN(port) || port < 1 || port > 65535) {
+      errors.push({ line: lineNum, reason: "bulkImportErrorInvalidPort" });
+      continue;
+    }
+    const normalizedType = (type || "socks5").toLowerCase();
+    if (!VALID_TYPES.has(normalizedType)) {
+      errors.push({ line: lineNum, reason: "bulkImportErrorInvalidType" });
+      continue;
+    }
+    const normalizedStatus = (status || "active").toLowerCase();
+    if (!VALID_STATUSES.has(normalizedStatus)) {
+      errors.push({ line: lineNum, reason: "bulkImportErrorInvalidStatus" });
+      continue;
+    }
+
+    entries.push({
+      name,
+      host,
+      port,
+      username: username || "",
+      password: password || "",
+      type: normalizedType,
+      region: region || "",
+      status: normalizedStatus,
+      notes: notes || "",
+    });
+  }
+
+  return { entries, errors, skipped };
+}
+
+export default function ProxyRegistryManager() {
   const t = useTranslations("proxyRegistry");
   const [items, setItems] = useState<ProxyItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -234,11 +290,9 @@ export default function ProxyRegistryManager({
     setSelectedIds,
     batchDeleting,
     autoTesting,
-    batchActivating,
     toggleSelectAll: hookToggleSelectAll,
     toggleSelect,
     handleBatchDelete: hookHandleBatchDelete,
-    handleBatchActivate: hookHandleBatchActivate,
     handleAutoTestAll: hookHandleAutoTestAll,
   } = useProxyBatchOperations(load);
 
@@ -247,10 +301,6 @@ export default function ProxyRegistryManager({
   const handleBatchDelete = useCallback(() => {
     hookHandleBatchDelete(setError);
   }, [hookHandleBatchDelete, setError]);
-
-  const handleBatchActivate = useCallback(() => {
-    hookHandleBatchActivate(setError, "active");
-  }, [hookHandleBatchActivate, setError]);
 
   const handleAutoTestAll = useCallback(() => {
     hookHandleAutoTestAll(setError, setTestById);
@@ -778,6 +828,13 @@ export default function ProxyRegistryManager({
             >
               {t("bulkAssign")}
             </Button>
+            <ProxyBatchActions
+              selectedCount={selectedIds.size}
+              batchDeleting={batchDeleting}
+              autoTesting={autoTesting}
+              onBatchDelete={handleBatchDelete}
+              onAutoTestAll={handleAutoTestAll}
+            />
             <Button
               size="sm"
               variant="secondary"
@@ -838,7 +895,7 @@ export default function ProxyRegistryManager({
                             !allSelected && items.some((item) => selectedIds.has(item.id));
                       }}
                       onChange={() => hookToggleSelectAll(allSelected, items)}
-                      aria-label={t("selectAllProxies")}
+                      aria-label="Select all proxies"
                     />
                   </th>
                   <th className="py-2 pr-3">{t("tableName")}</th>
@@ -857,7 +914,7 @@ export default function ProxyRegistryManager({
                       <ProxyCheckboxCell
                         checked={selectedIds.has(item.id)}
                         onChange={() => toggleSelect(item.id)}
-                        label={t("selectProxy", { name: item.name })}
+                        label={`Select ${item.name}`}
                       />
                       <td className="py-2 pr-3">
                         <div className="font-medium text-text-main">{item.name}</div>

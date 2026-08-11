@@ -7,9 +7,7 @@ interface ProxyBatchActionsProps {
   selectedCount: number;
   batchDeleting: boolean;
   autoTesting: boolean;
-  batchActivating: boolean;
   onBatchDelete: () => void;
-  onBatchActivate: () => void;
   onAutoTestAll: () => void;
 }
 
@@ -17,9 +15,7 @@ export function ProxyBatchActions({
   selectedCount,
   batchDeleting,
   autoTesting,
-  batchActivating,
   onBatchDelete,
-  onBatchActivate,
   onAutoTestAll,
 }: ProxyBatchActionsProps) {
   const t = useTranslations("proxyRegistry");
@@ -31,16 +27,6 @@ export function ProxyBatchActions({
           <span className="text-xs text-text-muted">
             {t("batchSelectedCount", { count: selectedCount })}
           </span>
-          <Button
-            size="sm"
-            variant="secondary"
-            icon="check_circle"
-            onClick={onBatchActivate}
-            loading={batchActivating}
-            data-testid="proxy-registry-batch-activate"
-          >
-            {t("batchActivateSelected", { count: selectedCount })}
-          </Button>
           <Button
             size="sm"
             variant="secondary"

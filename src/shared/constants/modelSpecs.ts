@@ -78,26 +78,6 @@ const AUTHORITATIVE_PROVIDER_CONTEXT_WINDOWS = new Map<string, number>([
   ["zenmux/z-ai/glm-5.2-free", 1000000],
 ]);
 
-const GPT_5_6_MODEL_SPEC = {
-  maxOutputTokens: 128000,
-  contextWindow: 1050000,
-  // Reserve 32K for visible response: thinking + response must both fit
-  // under maxOutputTokens. A cap equal to maxOutputTokens leaves zero room
-  // for the actual response when thinking consumes the full budget.
-  thinkingBudgetCap: 96000,
-  supportsThinking: true,
-  supportsTools: true,
-  supportsVision: true,
-} satisfies ModelSpec;
-
-const GEMINI_35_FLASH_MODEL_SPEC = {
-  maxOutputTokens: 65536,
-  contextWindow: 1048576,
-  supportsThinking: false,
-  supportsTools: true,
-  supportsVision: true,
-} satisfies ModelSpec;
-
 export const MODEL_SPECS: Record<string, ModelSpec> = {
   "gpt-5.6": {
     ...GPT_5_6_MODEL_SPEC,

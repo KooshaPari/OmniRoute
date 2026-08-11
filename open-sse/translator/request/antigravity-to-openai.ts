@@ -2,7 +2,6 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { fixToolPairs } from "../../services/contextManager.ts";
-import { normalizeEffort } from "@/shared/reasoning/effortStandardization";
 
 type JsonRecord = Record<string, unknown>;
 

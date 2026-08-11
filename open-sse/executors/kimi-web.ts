@@ -43,8 +43,23 @@ const CHAT_URL = `${BASE_URL}/apiv2/kimi.gateway.chat.v1.ChatService/Chat`;
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
-export function resolveModelConfig(modelId: string): KimiWebModelConfig | null {
-  return resolveKimiWebModelConfig(modelId);
+/**
+ * Map a Kimi model id (the `key` field from `GetAvailableModels`) to the
+ * request shape the upstream expects. Today only the chat-tier `k2d6` family
+ * is supported — the agent variants (`k2d6-agent`, `k2d6-agent-ultra`) need
+ * a different scenario (`SCENARIO_OK_COMPUTER`) plus `kimiPlusId` /
+ * `agentMode` fields that this executor does not shape; users who need
+ * agentic Kimi should use the `kimi-coding` (api.kimi.com) provider.
+ */
+export interface KimiModelConfig {
+  scenario: string;
+  thinking: boolean;
+}
+
+export function resolveModelConfig(modelId: string): KimiModelConfig {
+  if (modelId === "k2d6-thinking") return { scenario: "SCENARIO_K2D5", thinking: true };
+  // `k2d6` (Instant) and any unknown id fall back to the default chat scenario.
+  return { scenario: "SCENARIO_K2D5", thinking: false };
 }
 
 /** Wrap a JSON message in the 5-byte Connect streaming envelope (flags + length). */
@@ -261,39 +276,17 @@ export class KimiWebExecutor extends BaseExecutor {
     return headers;
   }
 
-  private buildRequestBody(
-    messages: FoldedKimiWebMessages,
-    config: KimiWebModelConfig,
-    reasoningEffort?: string,
-    contextLength?: string
-  ): string {
-    const options: Record<string, unknown> = {
-      // The current web client always enables the thinking-capable request path.
-      // K2.6's NONE/LOW enum controls whether extra reasoning is actually used.
-      thinking: true,
-      // OmniRoute exposes text chat only. Kimi's built-in audio/ask-user tools
-      // produce event types this executor cannot faithfully map to OpenAI chat.
-      enable_plugin: false,
-      ...(messages.systemPrompt ? { system_prompt: messages.systemPrompt } : {}),
-      ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
-      ...(contextLength ? { context_length: contextLength } : {}),
-    };
-
+  private buildRequestBody(prompt: string, wantThinking: boolean, scenario: string): string {
     return JSON.stringify({
-      chat_id: "",
-      ...(config.kimiPlusId ? { kimiplus_id: config.kimiPlusId } : {}),
-      scenario: config.scenario,
-      tools: [],
+      scenario,
+      tools: [{ type: "TOOL_TYPE_SEARCH", search: {} }, { type: "TOOL_TYPE_CRON_JOB" }],
       message: {
         id: "",
         parent_id: "",
         children_message_ids: [],
         role: "user",
-        blocks: [{ id: "", message_id: "", text: { content: messages.prompt } }],
-        scenario: config.scenario,
-        labels: [],
-        references: [],
-        is_goal: false,
+        blocks: [{ message_id: "", text: { content: prompt } }],
+        scenario,
       },
       options,
       project_id: "",
@@ -315,58 +308,16 @@ export class KimiWebExecutor extends BaseExecutor {
       );
     }
 
-    const modelId = String(input.model || bodyObj.model || "");
+    const messages = (bodyObj.messages as Array<{ role: string; content: unknown }>) || [];
+    const modelId = (bodyObj.model as string) || "kimi-default";
+    // Resolve scenario + default thinking flag from the model id (catalog truth),
+    // then honour an explicit `reasoning_effort: "none"` override from the caller.
     const modelConfig = resolveModelConfig(modelId);
-    if (!modelConfig) {
-      return makeErrorResult(400, `Unsupported Kimi Web model: ${modelId}`, body, CHAT_URL);
-    }
+    const wantThinking = bodyObj.reasoning_effort === "none" ? false : modelConfig.thinking;
 
-    const tools = bodyObj.tools;
-    const functions = bodyObj.functions;
-    if (tools != null && (!Array.isArray(tools) || tools.length > 0)) {
-      return makeErrorResult(
-        400,
-        "Kimi Web does not support OpenAI function tools",
-        body,
-        CHAT_URL
-      );
-    }
-    if (functions != null && (!Array.isArray(functions) || functions.length > 0)) {
-      return makeErrorResult(
-        400,
-        "Kimi Web does not support legacy function tools",
-        body,
-        CHAT_URL
-      );
-    }
-
-    let foldedMessages: FoldedKimiWebMessages;
-    let reasoningEffort: string | undefined;
-    let contextLength: string | undefined;
-    try {
-      const messages = Array.isArray(bodyObj.messages)
-        ? (bodyObj.messages as KimiWebInputMessage[])
-        : [];
-      foldedMessages = foldMessages(messages);
-      if (!foldedMessages.prompt) throw new Error("Kimi Web requires a non-empty user message");
-      reasoningEffort = resolveKimiWebReasoningEffort(bodyObj.reasoning_effort, modelConfig);
-      contextLength = resolveKimiWebContextLength(bodyObj.context_length, modelConfig);
-    } catch (error) {
-      return makeErrorResult(
-        400,
-        error instanceof Error ? error.message : "Invalid Kimi Web request",
-        body,
-        CHAT_URL
-      );
-    }
-
-    const reqBody = this.buildRequestBody(
-      foldedMessages,
-      modelConfig,
-      reasoningEffort,
-      contextLength
-    );
-    const reqHeaders = this.buildKimiHeaders(accessToken);
+    const prompt = foldMessages(messages);
+    const reqBody = this.buildRequestBody(prompt, wantThinking, modelConfig.scenario);
+    const reqHeaders = this.buildKimiHeaders(jwt);
 
     // Connect framing wraps the JSON body in a 5-byte envelope. Without it the
     // upstream returns `invalid_argument` for every request.

@@ -511,9 +511,6 @@ export async function registerNodejs(): Promise<void> {
   // Proxy health scheduler (auto-removes dead proxies on interval)
   await import("@/lib/proxyHealth/scheduler");
 
-  // Free-proxy auto-sync scheduler (re-fetches free-proxy sources on interval, #7079)
-  await import("@/lib/freeProxyProviders/scheduler");
-
   initGracefulShutdown();
   initApiBridgeServer();
   startSpendBatchWriter();

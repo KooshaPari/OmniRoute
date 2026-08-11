@@ -11,29 +11,16 @@ import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { CLAUDE_WEB_FINGERPRINT } from "../config/claudeWebFingerprint.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { tlsFetchClaude } from "../services/claudeTlsClient.ts";
-import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
+import { getCfClearanceToken } from "../services/claudeTurnstileSolver.ts";
+import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
+import { randomUUID } from "crypto";
+import { sanitizeErrorMessage } from "../utils/error.ts";
+import { tryBackedChat } from "../services/browserBackedChat.ts";
 import {
-  BaseExecutor,
-  mergeAbortSignals,
-  type ExecuteInput,
-  type ExecutorLog,
-  type ProviderCredentials,
-} from "./base.ts";
-import {
-  applyClaudeWebBrowserTemplate,
-  sendClaudeWebBrowser,
-  type ClaudeWebTransportRequest,
-  type ClaudeWebTransportResult,
-} from "./claude-web/browserTransport.ts";
-import type { ClaudeWebRequestPayload } from "./claude-web/payload.ts";
-import {
-  commitClaudeWebTurn,
-  invalidateClaudeWebTurn,
-  prepareClaudeWebTurn,
-  type PreparedClaudeWebTurn,
-} from "./claude-web/session.ts";
-import { createClaudeWebResponse } from "./claude-web/stream.ts";
-import { isClaudeWebChallenge, sendClaudeWebDirect } from "./claude-web/transport.ts";
+  type ClaudeWebRequestPayload,
+  transformToClaude,
+  transformFromClaude,
+} from "./claude-web/payload.ts";
 
 const CLAUDE_WEB_API_BASE = "https://claude.ai/api";
 const CLAUDE_WEB_ORGS_URL = `${CLAUDE_WEB_API_BASE}/organizations`;
@@ -68,19 +55,7 @@ function readCredentialString(credentials: unknown, key: string): string | undef
   return undefined;
 }
 
-function readClaudeWebCookie(credentials: unknown): string {
-  const direct = readCredentialString(credentials, "cookie");
-  if (direct) return direct;
-  return readCredentialString(credentials, "apiKey") ?? "";
-}
-
-function readClaudeWebDeviceId(credentials: unknown): string | undefined {
-  return readCredentialString(credentials, "deviceId");
-}
-
-function readClaudeWebOrganizationId(credentials: unknown): string | undefined {
-  return readCredentialString(credentials, "orgId");
-}
+// ─── Helper Functions ───────────────────────────────────────────────────────
 
 function normalizeClaudeSessionCookie(rawValue: string): string {
   return normalizeSessionCookieHeader(rawValue, CLAUDE_SESSION_COOKIE_NAME);
@@ -119,6 +94,12 @@ function combineWithTimeout(signal?: AbortSignal | null): AbortSignal {
   return signal ? mergeAbortSignals(signal, timeoutSignal) : timeoutSignal;
 }
 
+/**
+ * Verify session is still valid by checking if the organizations endpoint
+ * returns a successful response. Claude's API does not have a /api/auth/session
+ * endpoint (unlike ChatGPT), so we use /api/organizations which requires a
+ * valid session cookie and returns 200 only with valid credentials.
+ */
 async function verifyCookieValidity(
   cookieHeader: string,
   deviceId: string | undefined,

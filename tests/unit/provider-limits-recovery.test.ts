@@ -10,7 +10,6 @@ process.env.API_KEY_SECRET = "test-provider-limits-recovery-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
-const providerLimitsDb = await import("../../src/lib/db/providerLimits.ts");
 const providerLimits = await import("../../src/lib/usage/providerLimits.ts");
 
 const originalFetch = globalThis.fetch;
@@ -173,40 +172,6 @@ test("successful quota refresh does not clear terminal expired status", async ()
   assert.equal(updated.testStatus, "expired");
 });
 
-test("Codex stale quota fallback preserves banked reset credits", async () => {
-  const connection = await providersDb.createProviderConnection({
-    provider: "codex",
-    authType: "oauth",
-    name: `Codex Banked Credits ${Date.now()}`,
-    accessToken: "codex-access-token",
-    refreshToken: "codex-refresh-token",
-    expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-  });
-  const connectionId = (connection as { id: string }).id;
-
-  providerLimitsDb.setProviderLimitsCache(connectionId, {
-    quotas: { session: { used: 10, total: 100, remainingPercentage: 90 } },
-    plan: "pro",
-    message: null,
-    fetchedAt: "2026-01-01T00:00:00.000Z",
-    source: "scheduled",
-    bankedResetCredits: 2,
-  });
-
-  await withMockedFetch(
-    (() => new Response("server unavailable", { status: 500 })) as typeof fetch,
-    async () => {
-      const result = await providerLimits.fetchAndPersistProviderLimits(connectionId, "manual");
-
-      assert.equal(result.usage._stale, true);
-      assert.equal(result.usage.bankedResetCredits, 2);
-      assert.deepEqual(result.usage.quotas, {
-        session: { used: 10, total: 100, remainingPercentage: 90 },
-      });
-    }
-  );
-});
-
 test("error-only quota response does not clear transient state", async () => {
   const connection = await createGlmConnectionWithTransientCooldown();
   const connectionId = (connection as { id: string }).id;
@@ -235,37 +200,6 @@ test("error-only quota response does not clear transient state", async () => {
   >;
   assert.equal(updated.testStatus, "unavailable", "transient state should not be cleared on error");
   assert.equal(updated.lastErrorType, "rate_limited");
-});
-
-test("partial quota refresh does not clear a quota cooldown before its reset", async () => {
-  const resetAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
-  const created = await providersDb.createProviderConnection({
-    provider: "kimi-coding",
-    authType: "oauth",
-    accessToken: "kimi-access-token",
-    refreshToken: "kimi-refresh-token",
-    testStatus: "unavailable",
-    isActive: true,
-    lastError: "usage limit reached",
-    lastErrorType: "quota_exhausted",
-    errorCode: 403,
-    rateLimitedUntil: resetAt,
-    backoffLevel: 1,
-  });
-  const connectionId = (created as { id: string }).id;
-  const connection = await providersDb.getProviderConnectionById(connectionId);
-
-  await providerLimits.maybeClearRecoveredQuotaState(connection, {
-    quotas: {
-      Ratelimit: { remainingPercentage: 0 },
-      Weekly: { remainingPercentage: 62 },
-    },
-  });
-  const after = await providersDb.getProviderConnectionById(connectionId);
-
-  assert.equal(after.testStatus, "unavailable");
-  assert.equal(after.lastErrorType, "quota_exhausted");
-  assert.equal(after.rateLimitedUntil, resetAt);
 });
 
 test("CAS primitive clears when expected state matches", async () => {

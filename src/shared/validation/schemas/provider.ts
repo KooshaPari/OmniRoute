@@ -41,17 +41,6 @@ const providerNodeIconUrlSchema = z
   })
   .optional();
 
-// #6715: the `apiKey` field is reused as the raw `Cookie:` header value for
-// cookie-based web providers (Gemini Business, Copilot M365, ChatGPT Web,
-// Claude Web, …). Real multi-cookie session headers (many `__Secure-*` entries,
-// large session tokens) legitimately exceed the old 10,000-char cap, so saving
-// a cookie that the provider's own `validate` check (validateProviderApiKeySchema,
-// uncapped) had already accepted failed with HTTP 400 "Too big …<=10000". Raised
-// to a still-bounded ceiling — well under the 10 MB default request-body limit and
-// the unconstrained SQLite TEXT column — so garbage input is still rejected.
-// Same fix shape as #6562 (priority cap raised to 100_000).
-export const MAX_PROVIDER_CREDENTIAL_LENGTH = 100_000;
-
 export const createProviderSchema = z
   .object({
     provider: z.string().min(1).max(100),

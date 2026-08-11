@@ -28,10 +28,12 @@
       "apiKey": {
         "Accept": "text/event-stream",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.195 (external, sdk-cli)",
+        "User-Agent": "claude-cli/2.1.195 (external, cli)",
+        "X-App": "cli",
         "X-Stainless-Arch": "<ARCH>",
+        "X-Stainless-Helper-Method": "stream",
         "X-Stainless-Lang": "js",
-        "X-Stainless-OS": "MacOS",
+        "X-Stainless-Os": "<OS>",
         "X-Stainless-Package-Version": "0.94.0",
         "X-Stainless-Retry-Count": "0",
         "X-Stainless-Runtime": "node",
@@ -47,10 +49,12 @@
       "nonStream": {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.195 (external, sdk-cli)",
+        "User-Agent": "claude-cli/2.1.195 (external, cli)",
+        "X-App": "cli",
         "X-Stainless-Arch": "<ARCH>",
+        "X-Stainless-Helper-Method": "stream",
         "X-Stainless-Lang": "js",
-        "X-Stainless-OS": "MacOS",
+        "X-Stainless-Os": "<OS>",
         "X-Stainless-Package-Version": "0.94.0",
         "X-Stainless-Retry-Count": "0",
         "X-Stainless-Runtime": "node",
@@ -66,10 +70,12 @@
       "oauth": {
         "Accept": "text/event-stream",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.195 (external, sdk-cli)",
+        "User-Agent": "claude-cli/2.1.195 (external, cli)",
+        "X-App": "cli",
         "X-Stainless-Arch": "<ARCH>",
+        "X-Stainless-Helper-Method": "stream",
         "X-Stainless-Lang": "js",
-        "X-Stainless-OS": "MacOS",
+        "X-Stainless-Os": "<OS>",
         "X-Stainless-Package-Version": "0.94.0",
         "X-Stainless-Retry-Count": "0",
         "X-Stainless-Runtime": "node",
@@ -95,18 +101,18 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "antigravity/cli/1.1.5 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
+        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "antigravity/cli/1.1.5 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
+        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "antigravity/cli/1.1.5 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
+        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
       }
     },
     "url": {
@@ -334,18 +340,18 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "antigravity/ide/2.1.1 <OS>/<ARCH>"
+        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "antigravity/ide/2.1.1 <OS>/<ARCH>"
+        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "antigravity/ide/2.1.1 <OS>/<ARCH>"
+        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
       }
     },
     "url": {
@@ -989,6 +995,35 @@
       "stream": "https://api.cline.bot/api/v1/chat/completions"
     }
   },
+  "clinepass": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://cline.bot",
+        "X-Title": "Cline"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://cline.bot",
+        "X-Title": "Cline"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://cline.bot",
+        "X-Title": "Cline"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.cline.bot/api/v1/chat/completions",
+      "stream": "https://api.cline.bot/api/v1/chat/completions"
+    }
+  },
   "cloudflare-ai": {
     "format": "openai",
     "headers": {
@@ -1107,16 +1142,16 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.144.1 (<OS>; <ARCH>)",
-        "Version": "0.144.1",
+        "User-Agent": "codex-cli/0.142.0 (<OS>; <ARCH>)",
+        "Version": "0.142.0",
         "X-Codex-Beta-Features": "responses_websockets"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.144.1 (<OS>; <ARCH>)",
-        "Version": "0.144.1",
+        "User-Agent": "codex-cli/0.142.0 (<OS>; <ARCH>)",
+        "Version": "0.142.0",
         "X-Codex-Beta-Features": "responses_websockets"
       },
       "oauth": {
@@ -1124,8 +1159,8 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.144.1 (<OS>; <ARCH>)",
-        "Version": "0.144.1",
+        "User-Agent": "codex-cli/0.142.0 (<OS>; <ARCH>)",
+        "Version": "0.142.0",
         "X-Codex-Beta-Features": "responses_websockets"
       }
     },
@@ -2667,29 +2702,6 @@
       "stream": "https://chatapi.innerai.com/chat"
     }
   },
-  "internlm": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://chat.intern-ai.org.cn/api/v1/chat/completions",
-      "stream": "https://chat.intern-ai.org.cn/api/v1/chat/completions"
-    }
-  },
   "kenari": {
     "format": "openai",
     "headers": {
@@ -4165,16 +4177,55 @@
       "apiKey": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
+        "Sec-Fetch-Mode": "cors",
+        "User-Agent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
+        "X-Dashscope-AuthType": "qwen-oauth",
+        "X-Dashscope-CacheControl": "enable",
+        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
+        "X-Stainless-Arch": "<ARCH>",
+        "X-Stainless-Lang": "js",
+        "X-Stainless-Os": "<OS>",
+        "X-Stainless-Package-Version": "5.11.0",
+        "X-Stainless-Retry-Count": "1",
+        "X-Stainless-Runtime": "node",
+        "X-Stainless-Runtime-Version": "<NODE>"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
+        "Sec-Fetch-Mode": "cors",
+        "User-Agent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
+        "X-Dashscope-AuthType": "qwen-oauth",
+        "X-Dashscope-CacheControl": "enable",
+        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
+        "X-Stainless-Arch": "<ARCH>",
+        "X-Stainless-Lang": "js",
+        "X-Stainless-Os": "<OS>",
+        "X-Stainless-Package-Version": "5.11.0",
+        "X-Stainless-Retry-Count": "1",
+        "X-Stainless-Runtime": "node",
+        "X-Stainless-Runtime-Version": "<NODE>"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
+        "Sec-Fetch-Mode": "cors",
+        "User-Agent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
+        "X-Dashscope-AuthType": "qwen-oauth",
+        "X-Dashscope-CacheControl": "enable",
+        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
+        "X-Stainless-Arch": "<ARCH>",
+        "X-Stainless-Lang": "js",
+        "X-Stainless-Os": "<OS>",
+        "X-Stainless-Package-Version": "5.11.0",
+        "X-Stainless-Retry-Count": "1",
+        "X-Stainless-Runtime": "node",
+        "X-Stainless-Runtime-Version": "<NODE>"
       }
     },
     "url": {
@@ -5011,29 +5062,6 @@
     "url": {
       "nonStream": "https://server.self-serve.windsurf.com",
       "stream": "https://server.self-serve.windsurf.com"
-    }
-  },
-  "writer": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://api.writer.com/v1/chat/completions",
-      "stream": "https://api.writer.com/v1/chat/completions"
     }
   },
   "x5lab": {

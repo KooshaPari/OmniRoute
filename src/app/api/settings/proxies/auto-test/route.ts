@@ -4,7 +4,6 @@ import { createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createProxyDispatcher } from "@omniroute/open-sse/utils/proxyDispatcher";
 import { fetch as undiciFetch } from "undici";
-import { resolveHealthCheckStatusWrite } from "@/lib/proxyHealth/statusPolicy";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
@@ -28,12 +27,7 @@ interface TestResult {
   error?: string;
 }
 
-async function testSingleProxy(proxy: {
-  id: string;
-  type: string;
-  host: string;
-  port: number;
-}): Promise<TestResult> {
+async function testSingleProxy(proxy: { id: string; type: string; host: string; port: number }): Promise<TestResult> {
   const proxyUrl = `${proxy.type}://${proxy.host}:${proxy.port}`;
   const start = Date.now();
   const controller = new AbortController();
@@ -49,16 +43,11 @@ async function testSingleProxy(proxy: {
     });
     const latencyMs = Date.now() - start;
     const alive = resp.status < 500;
-    // #6246: "Test All" is a test, not test-and-set. By default an automated probe
-    // never mutates a proxy's status (only the operator does). Opt back into the
-    // legacy write with PROXY_HEALTH_AUTO_DEACTIVATE=true.
-    const statusWrite = resolveHealthCheckStatusWrite(alive);
-    if (statusWrite) await updateProxy(proxy.id, { status: statusWrite }).catch(() => {});
+    await updateProxy(proxy.id, { status: alive ? "active" : "inactive" }).catch(() => {});
     return { proxyId: proxy.id, host: proxy.host, port: proxy.port, alive, latencyMs };
   } catch (err) {
     const latencyMs = Date.now() - start;
-    const statusWrite = resolveHealthCheckStatusWrite(false);
-    if (statusWrite) await updateProxy(proxy.id, { status: statusWrite }).catch(() => {});
+    await updateProxy(proxy.id, { status: "inactive" }).catch(() => {});
     return {
       proxyId: proxy.id,
       host: proxy.host,
@@ -89,18 +78,13 @@ export async function POST(request: Request) {
 
   const validation = validateBody(autoTestSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return createErrorResponse({
-      status: 400,
-      message: validation.error.message,
-      type: "invalid_request",
-    });
+    return createErrorResponse({ status: 400, message: validation.error.message, type: "invalid_request" });
   }
 
   const { ids: specificIds, autoRemove } = validation.data;
 
   try {
-    const result = await listProxies({ includeSecrets: false });
-    const allProxies = result.items;
+    const allProxies = await listProxies({ includeSecrets: false });
     const proxiesToTest = specificIds
       ? allProxies.filter((p) => specificIds.includes(p.id))
       : allProxies;
@@ -124,9 +108,7 @@ export async function POST(request: Request) {
         if (!r.alive) {
           try {
             if (await deleteProxyById(r.proxyId, { force: true })) removed.push(r.proxyId);
-          } catch {
-            /* skip */
-          }
+          } catch { /* skip */ }
         }
       }
     }

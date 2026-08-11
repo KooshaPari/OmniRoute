@@ -33,6 +33,14 @@ import {
   stripCloudCodeThinkingConfig,
 } from "../services/cloudCodeThinking.ts";
 import { buildGeminiTools } from "../translator/helpers/geminiToolsSanitizer.ts";
+import { DEFAULT_SAFETY_SETTINGS } from "../translator/helpers/geminiHelper.ts";
+import {
+  type AntigravityCollectedStream,
+  processAntigravitySSEText,
+  flushAntigravitySSEText,
+} from "./antigravity/sseCollect.ts";
+// processAntigravitySSEPayload re-exported for external importers (tests).
+export { processAntigravitySSEPayload } from "./antigravity/sseCollect.ts";
 import {
   type AntigravityCollectedStream,
   processAntigravitySSEText,
@@ -126,6 +134,51 @@ type AntigravityChunkContent = Record<string, unknown> & {
     }
   >;
 };
+
+type AntigravityCreditEntry = {
+  creditType?: string;
+  creditAmount?: string;
+};
+
+function getChunkedOrFixedBody(bodyStr: string, stream: boolean): BodyInit {
+  if (stream) {
+    return new ReadableStream(
+      {
+        async start(controller) {
+          controller.enqueue(new TextEncoder().encode(bodyStr));
+          controller.close();
+        },
+      },
+      { highWaterMark: 16384 }
+    );
+  }
+  return bodyStr;
+}
+
+function cloneAntigravityRequestBody(body: unknown): unknown {
+  if (!body || typeof body !== "object") {
+    return body;
+  }
+
+  try {
+    return structuredClone(body);
+  } catch {
+    return JSON.parse(JSON.stringify(body));
+  }
+}
+
+function serializeAntigravityRequest(
+  provider: string,
+  headers: Record<string, string>,
+  body: unknown
+): { headers: Record<string, string>; bodyString: string } {
+  const serializedBody = cloneAntigravityRequestBody(body);
+
+  if (!isCliCompatEnabled(provider)) {
+    return { headers, bodyString: JSON.stringify(serializedBody) };
+  }
+  return applyFingerprint(provider, { ...headers }, serializedBody);
+}
 
 type AntigravityRequestEnvelope = Record<string, unknown> & {
   project: string;

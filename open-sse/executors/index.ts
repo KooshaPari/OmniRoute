@@ -30,6 +30,7 @@ import { NlpCloudExecutor } from "./nlpcloud.ts";
 import { WindsurfExecutor } from "./windsurf.ts";
 import { ZedHostedExecutor } from "./zed-hosted.ts";
 import { DevinCliExecutor } from "./devin-cli.ts";
+import { AuggieExecutor } from "./auggie.ts";
 import { DeepSeekWebExecutor } from "./deepseek-web.ts";
 import { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
 import { AdaptaWebExecutor } from "./adapta-web.ts";
@@ -63,9 +64,7 @@ import { MimocodeExecutor } from "./mimocode.ts";
 import { GrokCliExecutor } from "./grok-cli.ts";
 import { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 import { ZenmuxFreeExecutor } from "./zenmux-free.ts";
-import { HyperAgentExecutor } from "./hyperagent.ts";
 import { XaiExecutor } from "./xai.ts";
-import { PromptQlExecutor } from "./promptql.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -188,8 +187,6 @@ const executors = {
   zmf: new ZenmuxFreeExecutor(), // Alias for zenmux-free
   auggie: new AuggieExecutor(),
   xai: new XaiExecutor(),
-  "xai-oauth": new XaiExecutor("xai-oauth"),
-  xao: new XaiExecutor("xai-oauth"),
 };
 
 const defaultCache = new Map();
@@ -236,6 +233,7 @@ export { NlpCloudExecutor } from "./nlpcloud.ts";
 export { WindsurfExecutor } from "./windsurf.ts";
 export { ZedHostedExecutor } from "./zed-hosted.ts";
 export { DevinCliExecutor } from "./devin-cli.ts";
+export { AuggieExecutor } from "./auggie.ts";
 export { CopilotWebExecutor } from "./copilot-web.ts";
 export { CopilotM365WebExecutor } from "./copilot-m365-web.ts";
 export { MicrosoftDesignerWebExecutor } from "./microsoft-designer-web.ts";
@@ -259,7 +257,4 @@ export { MimocodeExecutor } from "./mimocode.ts";
 export { GrokCliExecutor } from "./grok-cli.ts";
 export { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 export { ZenmuxFreeExecutor } from "./zenmux-free.ts";
-export { HyperAgentExecutor } from "./hyperagent.ts";
 export { XaiExecutor } from "./xai.ts";
-export { MoonshotExecutor } from "./moonshot.ts";
-export { PromptQlExecutor } from "./promptql.ts";

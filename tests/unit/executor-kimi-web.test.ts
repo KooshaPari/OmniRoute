@@ -166,58 +166,27 @@ describe("KimiWebExecutor", () => {
 describe("resolveModelConfig", () => {
   const { resolveModelConfig } = mod;
 
-  it("maps k3 to the current OK Computer route", () => {
-    const cfg = resolveModelConfig("k3");
-    assert.ok(cfg);
-    assert.equal(cfg.scenario, "SCENARIO_OK_COMPUTER");
-    assert.equal(cfg.kimiPlusId, "ok-computer");
-    assert.deepEqual(cfg.supportedReasoningEfforts, [
-      "REASONING_EFFORT_LOW",
-      "REASONING_EFFORT_HIGH",
-      "REASONING_EFFORT_MAX",
-    ]);
-    assert.equal(cfg.defaultReasoningEffort, "REASONING_EFFORT_MAX");
-    assert.deepEqual(cfg.supportedContextLengths, ["CONTEXT_LENGTH_L", "CONTEXT_LENGTH_XL"]);
-    assert.equal(cfg.defaultContextLength, "CONTEXT_LENGTH_L");
-  });
-
-  it("maps k2d6 to the K2D5 route and its exact effort enum", () => {
-    const cfg = resolveModelConfig("k2d6");
-    assert.ok(cfg);
+  it("maps k2d6-thinking to the K2D5 scenario with thinking enabled", () => {
+    const cfg = resolveModelConfig("k2d6-thinking");
     assert.equal(cfg.scenario, "SCENARIO_K2D5");
-    assert.deepEqual(cfg.supportedReasoningEfforts, [
-      "REASONING_EFFORT_NONE",
-      "REASONING_EFFORT_LOW",
-    ]);
-    assert.equal(cfg.defaultReasoningEffort, "REASONING_EFFORT_NONE");
+    assert.equal(cfg.thinking, true);
   });
 
-  it("does not silently route an unknown or unsupported agent model", () => {
-    assert.equal(resolveModelConfig("k2d6-thinking"), null);
-    assert.equal(resolveModelConfig("k3-agent-ultra"), null);
+  it("maps k2d6 (Instant) to the K2D5 scenario without thinking", () => {
+    const cfg = resolveModelConfig("k2d6");
+    assert.equal(cfg.scenario, "SCENARIO_K2D5");
+    assert.equal(cfg.thinking, false);
   });
-});
 
-describe("kimi-web catalog", () => {
-  it("lists only currently supported non-agent web models", () => {
-    const models = getModelsByProviderId("kimi-web");
-    assert.deepEqual(
-      models.map((model) => ({ id: model.id, name: model.name })),
-      [
-        { id: "k3", name: "K3" },
-        { id: "k2d6", name: "K2.6" },
-      ]
-    );
-    assert.ok(models.every((model) => model.supportsReasoning));
-    assert.ok(!models.some((model) => model.id.includes("agent")));
-    assert.ok(
-      !models.some((model) => ["kimi-default", "kimi-k2.6", "kimi-128k"].includes(model.id))
-    );
+  it("falls back to K2D5 + no thinking for an unknown model id", () => {
+    const cfg = resolveModelConfig("k2d6-agent");
+    assert.equal(cfg.scenario, "SCENARIO_K2D5");
+    assert.equal(cfg.thinking, false);
   });
 });
 
-describe("extractKimiAccessToken", () => {
-  const { extractKimiAccessToken } = mod;
+describe("extractKimiJwt", () => {
+  const { extractKimiJwt } = mod;
 
   it("returns empty string for empty input", () => {
     assert.equal(extractKimiAccessToken(""), "");

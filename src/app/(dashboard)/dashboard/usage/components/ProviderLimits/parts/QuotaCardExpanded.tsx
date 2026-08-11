@@ -33,38 +33,9 @@ export function sortQuotasByRemaining(quotas: any[]): any[] {
   );
 }
 
-/**
- * Pure helper — resolves the display order for a provider's quotas.
- * Providers with a deterministic fixed-window order (codex, glm family — see
- * quotaParsing.ts's sortCodexOrder()/sortGlmOrder()) keep the order
- * parseQuotaData() already established. Every other provider still gets the
- * remaining-percentage sort. Fixes #6687 (bars re-sorted by % undid the fixed
- * session/weekly order).
- */
-export function resolveQuotaDisplayOrder(providerId: string | undefined, quotas: any[]): any[] {
-  return hasFixedQuotaOrder(providerId) ? [...quotas] : sortQuotasByRemaining(quotas);
-}
-
 /** Pure helper — slices the sorted quotas down to the visible window. */
 export function getVisibleQuotas(sortedQuotas: any[], expanded: boolean): any[] {
   return expanded ? sortedQuotas : sortedQuotas.slice(0, DEFAULT_VISIBLE_ROWS);
-}
-
-/**
- * Pure helper — the loading placeholder replaces the entire quota section
- * with a spinner. Swapping rows for a spinner mid-refresh collapses the card
- * height, which rebalances the outer CSS multi-column layout (provider groups
- * visibly jump between columns). Only the initial load (nothing to display
- * yet) may show the placeholder; a refresh keeps the stale rows rendered
- * while the refresh button icon spins, and the UI updates once new data
- * arrives.
- */
-export function shouldShowLoadingPlaceholder(
-  loading: boolean,
-  quotaCount: number,
-  message?: string | null
-): boolean {
-  return loading && quotaCount === 0 && !message;
 }
 
 interface Props {
@@ -237,10 +208,7 @@ export default function QuotaCardExpanded({
     translateUsageOrFallback(t, key, fallback, values);
 
   const [expanded, setExpanded] = useState(false);
-  const sortedQuotas = useMemo(
-    () => resolveQuotaDisplayOrder(providerId, quotas),
-    [quotas, providerId]
-  );
+  const sortedQuotas = useMemo(() => sortQuotasByRemaining(quotas), [quotas]);
   const visibleQuotas = useMemo(
     () => getVisibleQuotas(sortedQuotas, expanded),
     [sortedQuotas, expanded]
@@ -279,39 +247,12 @@ export default function QuotaCardExpanded({
       ) : (
         <div className="flex flex-col divide-y divide-border/40">
           {visibleQuotas.map((q, i) => (
-            <QuotaDetailRow
-              key={`${q.name}-${q.modelKey ?? ""}-${i}`}
-              q={q}
-              onHideQuota={onHideQuota}
-              onOpenResetCredits={q.isResetCredits ? onOpenResetCredits : undefined}
-              loadingResetCredits={loadingResetCredits}
-            />
+            <QuotaDetailRow key={`${q.name}-${q.modelKey ?? ""}-${i}`} q={q} />
           ))}
         </div>
       )}
 
-      {hiddenQuotaRows.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1 border-t border-border/40 pt-1.5 text-[10px] text-text-muted">
-          <span className="material-symbols-outlined text-[12px]">visibility_off</span>
-          <span>{tr("hiddenQuotaRowsLabel", "Hidden:")}</span>
-          {hiddenQuotaRows.map((q) => (
-            <button
-              key={getQuotaVisibilityKey(q)}
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onShowQuota?.(q);
-              }}
-              className="rounded-md border border-border px-1.5 py-0.5 transition-colors hover:bg-black/5 hover:text-text-main dark:hover:bg-white/5"
-              title={translateUsageOrFallback(t, "showQuotaRow", "Show this quota row")}
-            >
-              {q.displayName || formatQuotaLabel(q.name)}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {!error && sortedQuotas.length > DEFAULT_VISIBLE_ROWS && (
+      {!loading && !error && sortedQuotas.length > DEFAULT_VISIBLE_ROWS && (
         <button
           type="button"
           onClick={(e) => {

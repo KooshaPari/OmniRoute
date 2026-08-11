@@ -674,30 +674,7 @@ jobs:
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      # QW-d (plano mestre): fonte única — o MESMO npm script dos runs locais (adiciona o
-      # setupPolyfill que o comando inline omitia; o glob canônico vive só no package.json).
-      # D3 (plano mestre): a coverage é coletada NESTE mesmo run (c8/NODE_V8_COVERAGE propaga
-      # aos filhos através do npm) — elimina a matrix Coverage Shard ×8, que re-executava a
-      # suíte inteira só para medir o gate. Padrão usado pelo CI do próprio nodejs/node.
-      - name: Unit tests (shard ${{ matrix.shard }}/8) with V8 coverage
-        env:
-          TEST_SHARD: ${{ matrix.shard }}/8
-        run: |
-          rm -rf coverage-shard coverage-shard-report
-          npx c8 \
-            --temp-directory=coverage-shard \
-            --reports-dir=coverage-shard-report \
-            --reporter=json \
-            --exclude=tests/** \
-            --exclude=**/*.test.* \
-            npm run test:unit:ci:shard
-      - name: Upload raw shard coverage
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-shard-${{ matrix.shard }}
-          path: coverage-shard/*.json
-          if-no-files-found: error
+      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
 
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
@@ -729,10 +706,132 @@ jobs:
       - run: npm run test:vitest:ui
         continue-on-error: true
 
-  # Node 24/26 compatibility matrices moved to .github/workflows/nightly-compat.yml
-  # (plano mestre testes+CI, Eixo D2 — they cost ~28% of every heavy run to catch a
-  # failure class that rarely originates in a PR; nightly catches it within 24h and
-  # the release gate can still exercise them via workflow_dispatch when needed).
+  node-24-compat:
+    name: Node 24 Compatibility Tests (${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_24_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - run: npm run check:node-runtime
+      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
+
+  node-26-compat-build:
+    name: Node 26 Compatibility Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: build
+    env:
+      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_26_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - run: npm run check:node-runtime
+      - name: Cache Next.js build cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: .build/next/cache
+          key: nextjs-${{ runner.os }}-node-${{ env.CI_NODE_26_VERSION }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*', 'open-sse/**/*', 'db/**/*', 'next.config.mjs', 'tsconfig*.json', 'postcss.config.*', 'tailwind.config.*') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-node-${{ env.CI_NODE_26_VERSION }}-${{ hashFiles('package-lock.json') }}-
+      - run: npm run build
+
+  node-26-compat:
+    name: Node 26 Compatibility Tests (${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: node-26-compat-build
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_26_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - run: npm run check:node-runtime
+      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
+
+  test-coverage-shard:
+    name: Coverage Shard (${{ matrix.shard }}/8)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    env:
+      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - run: npm run check:node-runtime
+      - name: Run c8 over shard ${{ matrix.shard }}/8
+        run: |
+          rm -rf coverage-shard coverage-shard-report
+          # `--temp-directory` (writable via NODE_V8_COVERAGE) is what the merge
+          # job reads with `c8 report --temp-directory ...`. Using `--output-dir`
+          # only produces the final json *report* and leaves the raw v8 files in
+          # `coverage/tmp`, so uploading `coverage-shard/` was empty. Pin the temp
+          # dir so the raw coverage files live there and the artifact upload picks
+          # them up regardless of `--test-force-exit` timing.
+          npx c8 \
+            --temp-directory=coverage-shard \
+            --reports-dir=coverage-shard-report \
+            --reporter=json \
+            --exclude=tests/** \
+            --exclude=**/*.test.* \
+            node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 \
+              --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
+      - name: Upload raw shard coverage
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-shard-${{ matrix.shard }}
+          path: coverage-shard/*.json
+          if-no-files-found: error
+
   test-coverage:
     name: Coverage
     runs-on: ubuntu-latest

@@ -6,21 +6,7 @@ import {
 } from "@omniroute/open-sse/config/grokBuild.ts";
 import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
-import {
-  CLINE_MODELS_ENDPOINT,
-  CLINEPASS_MODELS_ENDPOINT,
-  parseClineModels,
-  parseClinepassRecommendedModels,
-} from "@omniroute/open-sse/services/clinepassModels.ts";
-import { buildClaudeCodeCompatibleHeaders } from "@omniroute/open-sse/services/claudeCodeCompatible.ts";
-import {
-  buildKimiCodeIdentityHeaders,
-  getKimiCodeCliUserAgent,
-  KIMI_CODING_MODELS_URL,
-} from "@omniroute/open-sse/config/providers/registry/kimi/coding/runtime.ts";
-import { ALIBABA_MODEL_STUDIO_MODELS } from "@omniroute/open-sse/config/providers/registry/alibaba/index.ts";
-import { QWEN_CLOUD_TEXT_MODELS } from "@omniroute/open-sse/config/providers/registry/qwen-cloud/index.ts";
-import { extractZaiToken } from "@omniroute/open-sse/executors/zai-web.ts";
+import { filterClinepassModels } from "@omniroute/open-sse/services/clinepassModels.ts";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
 
 const DASHSCOPE_TEXT_MODEL_PREFIXES = [
@@ -375,36 +361,33 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
         .filter((m: any) => m.id);
     },
   },
-  "qwen-cloud": QWEN_CLOUD_TEXT_MODELS_CONFIG,
-  // #7678: zai-web (chat.z.ai) had no PROVIDER_MODELS_CONFIG entry so its
-  // hardcoded 3-model registry catalog (glm-4.6/glm-4.5/glm-4.5v — one or more
-  // now 404 upstream) was the only source; wire live discovery against the
-  // undocumented chat.z.ai/api/models endpoint. Same category + shape as
-  // qwen-web above: undocumented consumer web-chat endpoint,
-  // { data: { data: [...] } } envelope with a flatter { data: [...] } fallback.
-  // Bearer token reuses the executor's own extractZaiToken() so discovery and
-  // chat parse the stored cookie identically.
-  // UNVERIFIED (per /triage-features): no live z.ai session available during
-  // research — the exact response shape and whether bare Bearer auth (vs the
-  // full Cookie header chat-completions requires) is accepted must be
-  // confirmed against a real account before merge (see plan-file Step 4).
-  "zai-web": {
-    url: "https://chat.z.ai/api/models",
+  // #5858 follow-up: kimi-web (cookie provider) on the international domain.
+  // `GetAvailableModels` returns the model list as a plain JSON envelope
+  // (no Connect framing on either request or response — only the chat
+  // completion endpoint uses the 5-byte envelope). Auth: Bearer JWT extracted
+  // from the `kimi-auth` cookie the user pasted. Agent variants
+  // (`k2d6-agent*`) need a different scenario + agent fields this executor
+  // doesn't shape, so they're filtered out.
+  "kimi-web": {
+    url: "https://www.kimi.com/apiv2/kimi.gateway.config.v1.ConfigService/GetAvailableModels",
     method: "GET",
-    headers: { "Content-Type": "application/json" },
-    buildHeaders: (token) => ({
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${extractZaiToken(token)}`,
-    }),
+    headers: { accept: "application/json, text/plain, */*", "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
     parseResponse: (data) => {
-      const innerData = data?.data?.data || data?.data || [];
-      return (Array.isArray(innerData) ? innerData : [])
-        .map((item: any) => ({
-          id: item.id || item.name,
-          name: item.name || item.id,
-          owned_by: item.owned_by || "zai-web",
-        }))
-        .filter((m: any) => m.id);
+      const list = (data?.availableModels || []) as Array<{
+        key?: string;
+        displayName?: string;
+        thinking?: boolean;
+      }>;
+      return list
+        .filter((m) => typeof m.key === "string" && !m.key?.includes("agent"))
+        .map((m) => ({
+          id: m.key as string,
+          name: m.displayName || (m.key as string),
+          supportsReasoning: !!m.thinking,
+          owned_by: "kimi",
+        }));
     },
   },
   antigravity: {
@@ -622,21 +605,15 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
-  // Import exposes Cline's full official catalog but never mixes the separate
-  // ClinePass subscription namespace into the Cline provider.
-  cline: {
-    url: CLINE_MODELS_ENDPOINT,
-    method: "GET",
-    headers: { Accept: "application/json" },
-    parseResponse: parseClineModels,
-  },
-  // The full Cline catalog currently omits subscription entries. Keep ClinePass
-  // import on the authoritative clinePass bucket instead of returning an empty list.
+  // ClinePass (BYOK apikey gateway) — same host as OAuth `cline`, but only the
+  // `cline-pass/*` namespace is surfaced (filterClinepassModels).
   clinepass: {
-    url: CLINEPASS_MODELS_ENDPOINT,
+    url: "https://api.cline.bot/api/v1/models",
     method: "GET",
-    headers: { Accept: "application/json" },
-    parseResponse: parseClinepassRecommendedModels,
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => filterClinepassModels(Array.isArray(data) ? data : data?.data),
   },
   cohere: {
     url: "https://api.cohere.com/v2/models",

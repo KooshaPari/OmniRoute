@@ -9,13 +9,6 @@ import { dirname, join } from "node:path";
 // `/dashboard/providers/[id]` route expects), NOT `connection.provider` (the
 // provider slug/type). The old code produced `/dashboard/providers/<provider-slug>`
 // which 404s for openai-compatible / anthropic-compatible providers.
-//
-// #6166 refactored the inline `href={`/dashboard/providers/${connection.id}`}`
-// literal into the tested `buildProviderDetailsHref(connection)` helper (its
-// id-based routing + null-safety is guarded behaviorally in
-// `provider-onboarding-href.test.ts`). This guard now tracks that refactor: the
-// wizard must delegate to the helper and must NOT reintroduce a raw
-// `connection.provider` URL.
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "..", "..");
@@ -27,11 +20,11 @@ const wizard = readFileSync(
   "utf8"
 );
 
-test("#6145: provider-details link routes through buildProviderDetailsHref (id-based helper)", () => {
+test("#6145: provider-details link routes by connection.id (matches the [id] route)", () => {
   assert.match(
     wizard,
-    /buildProviderDetailsHref\(connection\)/,
-    "the details link must be built by the tested buildProviderDetailsHref helper (routes by connection.id)"
+    /href=\{`\/dashboard\/providers\/\$\{connection\.id\}`\}/,
+    "the details link must build the URL from connection.id"
   );
 });
 

@@ -100,12 +100,7 @@ export async function firecrawlFetch(opts: FirecrawlScrapeOptions): Promise<WebF
   }
 
   const controller = new AbortController();
-  const firecrawlMs = getFirecrawlTimeoutMs();
-  const timeoutId = setTimeout(() => {
-    const err = new Error(`firecrawl-fetch timeout after ${firecrawlMs}ms`);
-    err.name = "TimeoutError";
-    controller.abort(err);
-  }, firecrawlMs);
+  const timeoutId = setTimeout(() => controller.abort(), getFirecrawlTimeoutMs());
 
   try {
     const headers: Record<string, string> = { "Content-Type": "application/json" };

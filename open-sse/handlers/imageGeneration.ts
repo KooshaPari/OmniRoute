@@ -71,15 +71,6 @@ import {
   CHATGPT_WEB_IMAGE_ID_RE,
 } from "./imageGeneration/providers/chatgptWeb.ts";
 import { handleNvidiaNimImageGeneration } from "./imageGeneration/providers/nvidiaNim.ts";
-import { handleSegmindImageGeneration } from "./imageGeneration/providers/segmind.ts";
-import { handleDesignerWebImageGeneration } from "./imageGeneration/providers/designerWeb.ts";
-import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
-import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
-import { handleAlibabaImageGeneration } from "./imageGeneration/providers/alibabaImage.ts";
-import {
-  applyPollinationsAnonymousFallback,
-  reportPollinationsAnonOutcome,
-} from "./imageGeneration/pollinationsAnonAuth.ts";
 
 // Re-export so /v1/images/edits can dispatch Firefly reference-image edits.
 export { handleAdobeFireflyImageGeneration };
@@ -634,6 +625,17 @@ export async function handleImageGeneration({
     providerConfig.format === "bailian-coding-plan-image"
   ) {
     return handleAlibabaImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "nvidia-nim") {
+    return handleNvidiaNimImageGeneration({
       model,
       provider,
       providerConfig,

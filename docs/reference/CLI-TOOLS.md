@@ -12,7 +12,7 @@ OmniRoute integrates with three categories of CLI tools spread across three dedi
 
 | Page           | Route                   | Concept                                                                   | Count        |
 | -------------- | ----------------------- | ------------------------------------------------------------------------- | ------------ |
-| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 21           |
+| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 20           |
 | **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at OmniRoute (same flow, broader scope)       | 6            |
 | **ACP Agents** | `/dashboard/acp-agents` | CLIs that OmniRoute spawns as backend via stdio/ACP (reverse flow)        | see registry |
 
@@ -90,7 +90,7 @@ Entries with `baseUrlSupport: "none"` are **not shown** in the dashboard pages �
 
 ---
 
-## 1. CLI Code's Catalog (25 tools)
+## 1. CLI Code's Catalog (20 tools)
 
 All tools that appear in `/dashboard/cli-code`. Those with `baseUrlSupport: none` are wired through MITM or a manual guide instead of a custom base URL:
 

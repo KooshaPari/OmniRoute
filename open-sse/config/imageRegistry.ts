@@ -596,11 +596,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     authHeader: "bearer",
     format: "nvidia-nim",
     models: [
-      {
-        id: "black-forest-labs/flux.1-dev",
-        name: "FLUX.1 Dev",
-        inputModalities: ["text", "image"],
-      },
+      { id: "black-forest-labs/flux.1-dev", name: "FLUX.1 Dev", inputModalities: ["text", "image"] },
       { id: "black-forest-labs/flux.1-schnell", name: "FLUX.1 Schnell" },
       {
         id: "black-forest-labs/flux.1-kontext-dev",
@@ -638,9 +634,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
   // beyond this seed list.
   huggingface: {
     id: "huggingface",
-    // HF retired api-inference.huggingface.co; text-to-image now routes through
-    // router.huggingface.co with the hf-inference provider pinned in the path.
-    baseUrl: "https://router.huggingface.co/hf-inference/models",
+    baseUrl: "https://api-inference.huggingface.co/models",
     authType: "apikey",
     authHeader: "bearer",
     format: "huggingface-image",
@@ -650,180 +644,6 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
       { id: "stabilityai/stable-diffusion-xl-base-1.0", name: "Stable Diffusion XL (HF)" },
     ],
     supportedSizes: ["1024x1024"],
-  },
-
-  // Arena (formerly LMArena) Direct-chat Image category (static scrape 2026-07-09).
-  // Not listed in the chat registry — image catalog only. Generation path still
-  // uses cookie session auth via the lmarena provider connection (stable wire id).
-  lmarena: {
-    id: "lmarena",
-    alias: "lma",
-    baseUrl: "https://arena.ai/nextjs-api/stream/create-evaluation",
-    authType: "apikey",
-    authHeader: "cookie",
-    format: "openai",
-    models: LMARENA_DIRECT_IMAGE_MODELS,
-    supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
-  },
-
-  // Adobe Firefly (unofficial) — IMS access_token (clio-playground-web) or browser
-  // Cookie from firefly.adobe.com. Async 3P image generate + poll.
-  // Model list = static fallback from models/discovery capture; live discovery
-  // refreshes via resolveAdobeFireflyCatalog when credentials work.
-  "adobe-firefly": {
-    id: "adobe-firefly",
-    alias: "firefly",
-    baseUrl: "https://firefly-3p.ff.adobe.io/v2/3p-images/generate-async",
-    authType: "apikey",
-    authHeader: "bearer",
-    format: "adobe-firefly-image",
-    models: [
-      {
-        id: "nano-banana-pro",
-        name: "Firefly Gemini 3.0 (Nano Banana Pro)",
-        inputModalities: ["text", "image"],
-      },
-      {
-        id: "nano-banana",
-        name: "Firefly Gemini 2.5 (Nano Banana)",
-        inputModalities: ["text", "image"],
-      },
-      {
-        id: "nano-banana-2",
-        name: "Firefly Gemini 3.1 (Nano Banana 2)",
-        inputModalities: ["text", "image"],
-      },
-      { id: "gpt-image-2", name: "Firefly GPT Image 2", inputModalities: ["text", "image"] },
-      { id: "gpt-image", name: "Firefly GPT Image 2", inputModalities: ["text", "image"] },
-      { id: "gpt-image-1.5", name: "Firefly GPT Image 1.5", inputModalities: ["text", "image"] },
-      { id: "flux-2", name: "Firefly Flux 2", inputModalities: ["text", "image"] },
-      { id: "flux-pro", name: "Firefly Flux 1.1 Pro", inputModalities: ["text", "image"] },
-      { id: "flux-ultra", name: "Firefly Flux 1.1 Ultra", inputModalities: ["text", "image"] },
-      { id: "seedream-4", name: "Firefly Seedream 4.0", inputModalities: ["text", "image"] },
-      {
-        id: "seedream-5-lite",
-        name: "Firefly Seedream 5.0 Lite",
-        inputModalities: ["text", "image"],
-      },
-      {
-        id: "runway-gen4-image",
-        name: "Firefly Runway Gen-4 Image",
-        inputModalities: ["text", "image"],
-      },
-    ],
-    supportedSizes: ["1:1", "16:9", "9:16", "4:3", "3:4", "1024x1024", "1792x1024", "1024x1792"],
-  },
-
-  // Keep Bailian Coding Plan after existing duplicate model owners so adding
-  // explicit `bailian-coding-plan/` and `bcp/` routes does not change
-  // historical bare-model routing.
-  "bailian-coding-plan": {
-    id: "bailian-coding-plan",
-    alias: "bcp",
-    baseUrl:
-      "https://coding-intl.dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
-    authType: "apikey",
-    authHeader: "bearer",
-    format: "bailian-coding-plan-image",
-    models: [
-      {
-        id: "wan2.7-image",
-        name: "Wan 2.7 Image",
-        inputModalities: ["text", "image"],
-      },
-      {
-        id: "wan2.7-image-pro",
-        name: "Wan 2.7 Image Pro",
-        inputModalities: ["text", "image"],
-      },
-      {
-        id: "qwen-image-2.0",
-        name: "Qwen Image 2.0",
-        inputModalities: ["text", "image"],
-      },
-      {
-        id: "qwen-image-2.0-pro",
-        name: "Qwen Image 2.0 Pro",
-        inputModalities: ["text", "image"],
-      },
-    ],
-    supportedSizes: ["1024x1024", "2048x2048"],
-  },
-
-  // Keep Alibaba after existing duplicate model owners so adding explicit
-  // `alibaba/` and `ali/` routes does not change historical bare-model routing.
-  alibaba: {
-    id: "alibaba",
-    alias: "ali",
-    baseUrl:
-      "https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
-    authType: "apikey",
-    authHeader: "bearer",
-    format: "alibaba-image",
-    models: [
-      {
-        id: "qwen-image-3.0-pro",
-        name: "Qwen Image 3.0 Pro",
-        inputModalities: ["text", "image"],
-      },
-      {
-        id: "qwen-image-2.0-pro-2026-06-22",
-        name: "Qwen Image 2.0 Pro (2026-06-22)",
-        inputModalities: ["text", "image"],
-      },
-      {
-        id: "qwen-image-2.0",
-        name: "Qwen Image 2.0",
-        inputModalities: ["text", "image"],
-      },
-      { id: "z-image-turbo", name: "Z-Image Turbo" },
-      { id: "wan2.6-t2i", name: "Wan 2.6 T2I" },
-    ],
-    supportedSizes: ["1024x1024", "1280x1280", "2048x2048"],
-  },
-
-  // Keep regular Qwen Cloud isolated from Alibaba, Bailian Coding Plan, and
-  // Qwen Cloud Token Plan. Explicit `qwen-cloud/` or `qwc/` routes use only
-  // the regular Qwen Cloud connection and its regional DashScope endpoint.
-  "qwen-cloud": {
-    id: "qwen-cloud",
-    alias: "qwc",
-    baseUrl:
-      "https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
-    authType: "apikey",
-    authHeader: "bearer",
-    format: "qwen-cloud-image",
-    models: [
-      {
-        id: "wan2.7-image-pro",
-        name: "Wan 2.7 Image Pro",
-        inputModalities: ["text", "image"],
-      },
-      {
-        id: "wan2.7-image",
-        name: "Wan 2.7 Image",
-        inputModalities: ["text", "image"],
-      },
-      {
-        id: "qwen-image-3.0-pro",
-        name: "Qwen Image 3.0 Pro",
-        inputModalities: ["text", "image"],
-      },
-      {
-        id: "qwen-image-2.0-pro-2026-06-22",
-        name: "Qwen Image 2.0 Pro (2026-06-22)",
-        inputModalities: ["text", "image"],
-      },
-      {
-        id: "qwen-image-2.0-2026-03-03",
-        name: "Qwen Image 2.0 (2026-03-03)",
-        inputModalities: ["text", "image"],
-      },
-      { id: "z-image-turbo", name: "Z-Image Turbo" },
-    ],
-    // 1K/2K are shared by the whole catalog. Wan 2.7 Image Pro callers can
-    // still pass supported 4K dimensions through the permissive request schema.
-    supportedSizes: ["1024x1024", "2048x2048"],
   },
 };
 

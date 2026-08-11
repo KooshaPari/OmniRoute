@@ -167,16 +167,93 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 
   // ── Specialty provider validation ──
   const SPECIALTY_VALIDATORS = {
-    "v0-vercel": ({ apiKey, providerSpecificData }: any) =>
-      validateV0VercelProvider({ apiKey, providerSpecificData, isLocal }),
+    "v0-vercel": async ({ apiKey, providerSpecificData }: any) => {
+      try {
+        const configuredBaseUrl =
+          typeof providerSpecificData?.baseUrl === "string" && providerSpecificData.baseUrl.trim()
+            ? providerSpecificData.baseUrl.trim()
+            : "https://api.v0.dev";
+
+        const root = normalizeBaseUrl(configuredBaseUrl)
+          .replace(/\/v1\/chat\/completions$/, "")
+          .replace(/\/v1$/, "");
+
+        const res = await validationRead(
+          `${root}/v1/chats?limit=1`,
+          {
+            method: "GET",
+            headers: buildBearerHeaders(apiKey, providerSpecificData),
+          },
+          isLocal
+        );
+
+        if (res.ok) {
+          return { valid: true, error: null, method: "v0_platform_chats_list" };
+        }
+
+        if (res.status === 401 || res.status === 403) {
+          return { valid: false, error: "Invalid API key" };
+        }
+
+        return { valid: false, error: `v0 validation failed: ${res.status}` };
+      } catch (error: any) {
+        return toValidationErrorResult(error);
+      }
+    },
     jules: validateJulesProvider,
-    // "devin" is the Cognition cloud-agent provider (distinct from the "devin-cli"
-    // LLM/ACP provider, which is already registered in providerRegistry). Wired here
-    // for parity with the "jules" cloud-agent entry above — see #6142.
-    devin: validateDevinCloudAgentProvider,
-    auggie: validateAuggieProvider,
-    qoder: validateQoderProvider,
-    kiro: validateKiroProvider,
+    // auggie is a fully local, credential-less CLI passthrough — there is no API
+    // key to check upstream. The only meaningful validation is confirming the
+    // `auggie` binary is installed and runnable on this machine.
+    auggie: async () => {
+      const { checkAuggieCliVersion } = await import(
+        "@omniroute/open-sse/executors/auggie.ts"
+      );
+      const result = await checkAuggieCliVersion();
+      if (!result.ok) {
+        return {
+          valid: false,
+          error: result.error || "Auggie CLI not found. Install it and run `auggie login`.",
+          unsupported: false,
+        };
+      }
+      return { valid: true, error: null, unsupported: false, method: result.version };
+    },
+    qoder: async ({ apiKey, providerSpecificData }: any) => {
+      // Bifurcate validation: PAT tokens use Cosy auth against api1.qoder.sh;
+      // regular API keys validate against dashscope (OpenAI-compatible endpoint).
+      const key = (apiKey || "").trim();
+      if (key.startsWith("pt-")) {
+        return validateQoderCliPat({ apiKey: key, providerSpecificData });
+      }
+      // Non-PAT token → validate against dashscope (Alibaba Cloud).
+      // The executor routes these tokens to dashscope.aliyuncs.com, so the
+      // validation must test against dashscope, NOT the Cosy PAT endpoint.
+      try {
+        const dashscopeUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/models";
+        const res = await validationRead(
+          dashscopeUrl,
+          {
+            headers: {
+              Authorization: `Bearer ${key}`,
+            },
+          },
+          false
+        );
+        if (res.ok) return { valid: true, error: null };
+        if (res.status === 401 || res.status === 403) {
+          return {
+            valid: false,
+            error:
+              "Invalid Qoder API key. Make sure you're using a valid API key from Qoder / Alibaba Cloud Dashscope.",
+          };
+        }
+        // 4xx/5xx other than auth — treat as valid bypass to prevent false
+        // negatives from transient dashscope issues (consistent with PAT path).
+        return { valid: true, error: null };
+      } catch (err: unknown) {
+        return toValidationErrorResult(err);
+      }
+    },
     "command-code": validateCommandCodeProvider,
     huggingface: validateHuggingFaceProvider,
     // #5422: auth-only probe — Bytez 404s on every chat model until the account adds it to

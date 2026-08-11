@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useApiKey } from "../../providers/hooks/useApiKey";
 import { useProviderModels } from "../../providers/hooks/useProviderModels";
@@ -191,7 +190,9 @@ export function ImageExampleCard({ providerId }: Props) {
       {/* Suggested models from HuggingFace Hub (image kind only) */}
       {suggestedOnly.length > 0 && (
         <div>
-          <label className="block text-xs text-text-muted mb-1">{tMedia("suggestedModels")}</label>
+          <label className="block text-xs text-text-muted mb-1">
+            {tMedia("suggestedModels")}
+          </label>
           <div className="flex flex-wrap gap-1.5">
             {suggestedOnly.map((m) => (
               <button

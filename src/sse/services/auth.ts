@@ -6,11 +6,9 @@ import {
   getCachedProviderNodes,
   validateApiKey,
   updateProviderConnection,
-  resetConnectionBackoff,
+  clearConnectionErrorIfUnchanged,
   getSettings,
   getCachedSettings,
-  touchConnectionLastUsed,
-  clearConnectionErrorIfUnchanged,
 } from "@/lib/localDb";
 import {
   createLazyConnectionView,
@@ -1467,12 +1465,7 @@ export async function getProviderCredentials(
 
     const orderedConnections = withQuota;
 
-    const providerStrategyOverrides = (settings.providerStrategies || {}) as Record<
-      string,
-      { fallbackStrategy?: string; stickyRoundRobinLimit?: number }
-    >;
-    const providerOverride = providerStrategyOverrides[resolvedId] || {};
-    const strategy = providerOverride.fallbackStrategy || settings.fallbackStrategy || "fill-first";
+    const strategy = settings.fallbackStrategy || "fill-first";
 
     let connection;
     const affinityConnection = await selectSessionAffinityConnection(
@@ -2349,7 +2342,10 @@ export async function clearRecoveredProviderState(
 ): Promise<{ applied: boolean }> {
   if (!credentials?.connectionId) return { applied: false };
   if (expectedState) {
-    const applied = await clearConnectionErrorIfUnchanged(credentials.connectionId, expectedState);
+    const applied = await clearConnectionErrorIfUnchanged(
+      credentials.connectionId,
+      expectedState
+    );
     if (!applied) {
       log.info(
         "AUTH",

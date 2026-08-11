@@ -816,9 +816,8 @@ export async function clearConnectionErrorIfUnchanged(
   }
 ): Promise<boolean> {
   const db = getDbInstance() as unknown as DbLike;
-  const result = db
-    .prepare(
-      `
+  const result = db.prepare(
+    `
     UPDATE provider_connections SET
       test_status = 'active',
       last_error = NULL,
@@ -834,14 +833,13 @@ export async function clearConnectionErrorIfUnchanged(
       AND IFNULL(last_error_at, '') = ?
       AND IFNULL(rate_limited_until, '') = ?
     `
-    )
-    .run(
-      new Date().toISOString(),
-      id,
-      expected.testStatus ?? "",
-      expected.lastErrorAt ?? "",
-      expected.rateLimitedUntil ?? ""
-    );
+  ).run(
+    new Date().toISOString(),
+    id,
+    expected.testStatus ?? "",
+    expected.lastErrorAt ?? "",
+    expected.rateLimitedUntil ?? ""
+  );
   const applied = (result.changes ?? 0) > 0;
   if (applied) {
     backupDbFile("pre-write");
@@ -849,64 +847,6 @@ export async function clearConnectionErrorIfUnchanged(
     bumpProxyConfigGeneration();
   }
   return applied;
-}
-
-/**
- * Lightweight stat bump — updates lastUsedAt and consecutiveUseCount without
- * SELECT, re-encrypt, cache invalidation, or file backup.
- * Safe for the hot getProviderCredentials path where only usage stats change.
- * Fixes the cache-thrashing bug where every credential selection invalidated
- * the 5s TTL cache and paid 3000-row decryption cost on the next request.
- */
-export async function touchConnectionLastUsed(
-  id: string,
-  consecutiveUseCount: number
-): Promise<void> {
-  if (!id) return;
-  const db = getDbInstance() as unknown as DbLike;
-  const now = new Date().toISOString();
-  db.prepare(
-    `UPDATE provider_connections SET
-      last_used_at = @lastUsedAt,
-      consecutive_use_count = @consecutiveUseCount,
-      updated_at = @updatedAt
-    WHERE id = @id`
-  ).run({
-    lastUsedAt: now,
-    consecutiveUseCount,
-    updatedAt: now,
-    id,
-  });
-}
-
-/**
- * Lightweight backoff reset — runs a targeted UPDATE without SELECT or re-encrypt.
- * Follows the `clearConnectionErrorIfUnchanged` pattern but without the CAS check,
- * since the caller already verified the connection is eligible for reset.
- * Resets all backoff/error columns so the connection re-enters the selection pool.
- * Does invalidateDbCache + bumpProxyConfigGeneration since backoff affects priority.
- */
-export async function resetConnectionBackoff(id: string): Promise<void> {
-  if (!id) return;
-  const db = getDbInstance() as unknown as DbLike;
-  const now = new Date().toISOString();
-  db.prepare(
-    `UPDATE provider_connections SET
-      backoff_level = 0,
-      test_status = 'active',
-      last_error = NULL,
-      last_error_at = NULL,
-      last_error_type = NULL,
-      last_error_source = NULL,
-      error_code = NULL,
-      updated_at = @updatedAt
-    WHERE id = @id`
-  ).run({
-    updatedAt: now,
-    id,
-  });
-  invalidateDbCache("connections");
-  bumpProxyConfigGeneration();
 }
 
 export async function deleteProviderConnection(id: string) {
@@ -1036,6 +976,8 @@ export {
   setConnectionRateLimitUntil,
   markConnectionRateLimitedUntil,
   clearConnectionRateLimit,
+  isConnectionRateLimited,
+  getRateLimitedConnections,
   getEffectiveQuotaUsage,
   clearStaleCrashCooldowns,
   formatResetCountdown,

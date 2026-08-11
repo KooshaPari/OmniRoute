@@ -1112,8 +1112,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                       endpoint: (chunks) => (
                         <Link
                           href="/dashboard/api-manager"
-                          prefetch={false}
-                          className={INLINE_LINK}
+                          className="text-primary hover:underline"
                         >
                           {chunks}
                         </Link>

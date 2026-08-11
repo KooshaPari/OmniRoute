@@ -252,6 +252,30 @@ export const AUDIO_TRANSLATION_PROVIDERS: Record<string, AudioProvider> = {
   },
 };
 
+/**
+ * Providers that expose an OpenAI-Whisper-compatible /audio/translations
+ * endpoint (translate-to-English). This is a narrower surface than
+ * transcription: only Whisper-family models support it, and there is no
+ * `language` input — output is always English regardless of source audio.
+ */
+export const AUDIO_TRANSLATION_PROVIDERS: Record<string, AudioProvider> = {
+  openai: {
+    id: "openai",
+    baseUrl: "https://api.openai.com/v1/audio/translations",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "whisper-1", name: "Whisper 1" }],
+  },
+
+  groq: {
+    id: "groq",
+    baseUrl: "https://api.groq.com/openai/v1/audio/translations",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "whisper-large-v3", name: "Whisper Large v3" }],
+  },
+};
+
 export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
   vertex: {
     id: "vertex",
@@ -633,7 +657,10 @@ export function parseSpeechModel(modelStr: string | null, dynamicProviders?: Aud
   return parseAudioModel(modelStr, AUDIO_SPEECH_PROVIDERS, dynamicProviders);
 }
 
-export function parseTranslationModel(modelStr: string | null, dynamicProviders?: AudioProvider[]) {
+export function parseTranslationModel(
+  modelStr: string | null,
+  dynamicProviders?: AudioProvider[]
+) {
   return parseAudioModel(modelStr, AUDIO_TRANSLATION_PROVIDERS, dynamicProviders);
 }
 

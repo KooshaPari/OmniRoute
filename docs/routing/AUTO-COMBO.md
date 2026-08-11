@@ -208,32 +208,29 @@ Notes:
   - **quality-first** → taskFit 0.37 + stability 0.15 (best model for the task, consistent)
   - **offline-friendly** → quota 0.37 + health 0.28 (max headroom regardless of speed/cost)
 
-### Per-Request Controls (headers) — #6023 / #6024 / #6025 / #3470
+### Per-Request Controls (headers) — #6023 / #6024 / #6025
 
-An `auto` combo can be steered **per request** via three headers, without mutating the
+An `auto` combo can be steered **per request** via two headers, without mutating the
 combo's stored config. These apply only to the `auto` strategy and only for the request
-that carries them; the combo's saved `modePack`/`budgetCap`/`budgetFallback` are used
-when the header is absent.
+that carries them; the combo's saved `modePack`/`budgetCap` are used when the header is
+absent.
 
-| Header               | Accepts                                                                                                                                                                                 | Effect                                                                                                                                                                                              |
-| :------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`   | a preset alias (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) or a raw pack name (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Overrides the scoring weights for this request. `balanced`/`default` force the default weights (no pack). Unknown values are ignored (config preserved).                                            |
-| `X-OmniRoute-Budget` | a positive number (max USD per request)                                                                                                                                                 | Hard cost ceiling: candidates whose estimated cost exceeds it are filtered before selection, falling back to the cheapest healthy candidate if all exceed. Non-positive/garbage values are ignored. |
+| Header               | Accepts                                                                                              | Effect                                                                                                            |
+| :------------------- | :-------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`   | a preset alias (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) or a raw pack name (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Overrides the scoring weights for this request. `balanced`/`default` force the default weights (no pack). Unknown values are ignored (config preserved). |
+| `X-OmniRoute-Budget` | a positive number (max USD per request)                                                             | Hard cost ceiling: candidates whose estimated cost exceeds it are filtered before selection, falling back to the cheapest healthy candidate if all exceed. Non-positive/garbage values are ignored. |
 
 ```bash
-# Force the fastest profile, cap this request at $0.05, and hard-block instead of overspending
+# Force the fastest profile and cap this request at $0.05
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
   -H "X-OmniRoute-Budget: 0.05" \
-  -H "X-OmniRoute-Budget-Fallback: strict" \
   -d '{"model":"auto","messages":[{"role":"user","content":"hi"}]}'
 ```
 
 Resolution is a pure function (`open-sse/services/autoCombo/requestControls.ts`); the
-resolved values feed the engine's existing `config.modePack` / `config.budgetCap` /
-`config.budgetFallback` inputs. A combo's stored `config.budgetFallback` ("strict" |
-"cheapest") sets the persistent policy; the header overrides it for a single request.
+resolved values feed the engine's existing `config.modePack` / `config.budgetCap` inputs.
 
 ## All Routing Strategies
 

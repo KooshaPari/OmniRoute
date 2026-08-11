@@ -821,57 +821,12 @@ function main() {
   // Only exempts the reduction signal; tautology/skip/deletion signals still fire.
   let assertReductionAllowlist = new Set();
   let deletionAllowlist = {};
-  let reimplementedAllowlist = new Set();
   try {
     const raw = JSON.parse(fs.readFileSync("config/quality/test-masking-allowlist.json", "utf8"));
     assertReductionAllowlist = new Set(Object.keys(raw).filter((k) => !k.startsWith("_")));
     deletionAllowlist = raw._deletedWithReplacement || {};
-    reimplementedAllowlist = new Set(raw._reimplementedConditions || []);
   } catch {
     // no allowlist file — treat as empty
-  }
-
-  // (6348 subcheck 4, REPORT-ONLY) Tests that inline-reimplement a prod condition
-  // instead of importing the symbol that owns it. Prod files changed in this PR
-  // (added/copied/modified TS sources) are the reference corpus; each changed test
-  // file is scanned against them. Warns only — it never fails the gate for now.
-  const prodChanged = git(["diff", "--name-only", "--diff-filter=ACM", `${base}...HEAD`])
-    .split("\n")
-    .map((s) => s.trim())
-    .filter((f) => PROD_SRC_RE.test(f) && !TEST_RE.test(f) && fs.existsSync(f));
-  const prodSources = prodChanged.map((f) => {
-    try {
-      return fs.readFileSync(f, "utf8");
-    } catch {
-      return "";
-    }
-  });
-  const changedTests = git(["diff", "--name-only", "--diff-filter=ACM", `${base}...HEAD`])
-    .split("\n")
-    .map((s) => s.trim())
-    .filter((f) => TEST_RE.test(f) && fs.existsSync(f));
-  const reimplementedFlags = [];
-  if (prodSources.length) {
-    for (const tf of changedTests) {
-      if (reimplementedAllowlist.has(tf)) continue;
-      const src = fs.readFileSync(tf, "utf8");
-      for (const hit of findReimplementedConditions(prodSources, src, extractImports(src))) {
-        reimplementedFlags.push(
-          `${tf}: re-implementa a condição \`${hit.condition}\`` +
-            (hit.owner ? ` (dona: ${hit.owner})` : "") +
-            " — asserte através do import real em vez de copiar a condição"
-        );
-      }
-    }
-  }
-  if (reimplementedFlags.length) {
-    console.warn(
-      `[test-masking] (report-only) ${reimplementedFlags.length} teste(s) re-implementam ` +
-        `condição de produção em vez de importar o símbolo dono (classe #6216):\n` +
-        reimplementedFlags.map((f) => "  ⚠ " + f).join("\n") +
-        `\n  → importe o símbolo/função dono e asserte através dele (evita contrato duplicado ` +
-        `que diverge silenciosamente). Report-only por enquanto — não falha o gate.`
-    );
   }
 
   const deletedFlags = evaluateDeletedFiles(

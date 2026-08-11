@@ -11,7 +11,7 @@ import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
-import { getCachedProviderNodes, getComboByName, getCombos, getDatabaseSettings } from "@/lib/localDb";
+import { getProviderNodes, getComboByName, getCombos, getDatabaseSettings } from "@/lib/localDb";
 import { resolveProxyForConnection } from "@/lib/db/settings";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";

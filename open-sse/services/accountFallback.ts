@@ -35,28 +35,10 @@ import { resolveProviderId } from "../../src/shared/constants/providers";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
 import { getCodexModelScope } from "../config/codexQuotaScopes.ts";
 import { getQuotaScopedModelForProvider } from "./antigravityQuotaFamily.ts";
-import {
-  classifyGeminiQuotaMetricFromText,
-  isRpdExhausted,
-  isRpmExhausted,
-  isTpmExhausted,
-} from "./geminiRateLimitTracker.ts";
+import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
 import { setConnectionRateLimitUntil } from "@/lib/db/providers";
-import {
-  parseRetryHintFromJsonBody,
-  parseDelayString,
-  MAX_SHORT_RETRY_HINT_MS,
-} from "./retryAfterJson.ts";
-import {
-  isSubscriptionQuotaText,
-  buildSubscriptionQuotaFallback,
-  buildWeeklyQuotaFallback,
-} from "./quotaTextCooldowns.ts";
-import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
-import { evictLockoutOverflow } from "./accountFallback/lockoutEviction.ts";
-export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts";
-import { capScaledCooldownMs } from "./accountFallback/cooldownCap.ts";
-import { resolveApiKeyForbiddenFallback } from "./accountFallback/nonRetryableUpstream.ts";
+import { parseRetryHintFromJsonBody } from "./retryAfterJson.ts";
+
 export type ProviderProfile = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
@@ -1119,14 +1101,6 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
   const bodyHintMs = parseRetryHintFromJsonBody(msg, MAX_PROVIDER_COOLDOWN_MS);
   if (bodyHintMs !== null) return bodyHintMs;
 
-  // Gemini free-tier text fallback (no parseable JSON details present):
-  // "Please retry in 26.660853464s." Short throttle hint — capped independently of
-  // MAX_PROVIDER_COOLDOWN_MS, mirroring the JSON RetryInfo.retryDelay cap (#7940).
-  const pleaseRetryMs = parseDelayString(/please retry in\s+([\d.]+\s*s)/i.exec(msg)?.[1]);
-  if (pleaseRetryMs !== null && pleaseRetryMs > 0) {
-    return Math.min(pleaseRetryMs, MAX_SHORT_RETRY_HINT_MS);
-  }
-
   // Issue #2321: parse embedded absolute ISO retry timestamps.
   const isoMatch =
     /\b(?:try again at|wait until|reset(?:s)? at|available at|retry after)\s+(\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/i.exec(
@@ -1678,7 +1652,7 @@ export function checkFallbackError(
       cooldownMs,
       baseCooldownMs: cooldownMs,
       configuredCooldownMs: cooldownMs,
-      reason: providerMatch?.reason ?? configuredRule.reason ?? RateLimitReason.UNKNOWN,
+      reason: configuredRule.reason ?? RateLimitReason.UNKNOWN,
     };
   }
 
@@ -1907,8 +1881,8 @@ export function applyErrorState<T extends AccountState | null | undefined>(
   const nextState: T | AccountState = {
     ...account,
     rateLimitedUntil: effectiveCooldownMs > 0 ? getUnavailableUntil(effectiveCooldownMs) : null,
-    backoffLevel: newBackoffLevel ?? lvl,
-    lastError: { status, message: errText, timestamp: new Date().toISOString(), reason },
+    backoffLevel: newBackoffLevel ?? backoffLevel,
+    lastError: { status, message: errorText, timestamp: new Date().toISOString(), reason },
     status: "error",
   };
 

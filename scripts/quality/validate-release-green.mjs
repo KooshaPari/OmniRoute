@@ -298,7 +298,7 @@ function run(cmd, cmdArgs, opts = {}) {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
       maxBuffer: 256 * 1024 * 1024,
-      env: buildGateEnv(opts.env),
+      env: { ...process.env, FORCE_COLOR: "0", ...(opts.env || {}) },
       // A hard ceiling for the long, silent test suites (execFileSync buffers all output until
       // exit, so they show no progress while running). undefined = no timeout for fast gates.
       ...(opts.timeout ? { timeout: opts.timeout } : {}),
@@ -495,7 +495,6 @@ async function main() {
     const { code, out } = run(npmCmd, ["run", "check:test-masking"], {
       env: { GITHUB_BASE_REF: "main" },
     });
-    saveGateLog("test-masking", out);
     record({
       id: "test-masking",
       label: "Test-masking (weakened-assert guard)",

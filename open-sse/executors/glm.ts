@@ -424,7 +424,33 @@ export class GlmExecutor extends DefaultExecutor {
     const result = { response, url, headers, transformedBody };
 
     if (transport === "anthropic") {
-      return this.finalizeAnthropicTransportResult(input, result);
+      // Resolve whether the `</think>` close marker should be suppressed for
+      // this client. GLM's Anthropic transport does its own Claude→OpenAI
+      // translation (bypassing chatCore's stream), so we must resolve the flag
+      // here from the original client headers (#5245 / #5312).
+      const clientHeaders = input.clientHeaders ?? {};
+      const suppressThinkClose = resolveSuppressThinkClose({
+        userAgent: clientHeaders["user-agent"] ?? clientHeaders["User-Agent"] ?? null,
+        thinkingMarkerHeader:
+          clientHeaders[THINKING_MARKER_HEADER] ??
+          clientHeaders["x-omniroute-thinking-marker"] ??
+          null,
+      });
+
+      const translatedResponse =
+        input.stream && result.response.ok
+          ? translateSseResponse(result.response, this.provider, input.model, suppressThinkClose)
+          : isJsonResponse(result.response)
+            ? await translateAnthropicJsonResponse(result.response)
+            : result.response;
+      return {
+        ...result,
+        response: translatedResponse,
+        url,
+        headers,
+        transformedBody,
+        targetFormat: FORMATS.OPENAI,
+      };
     }
 
     return {

@@ -8,68 +8,15 @@ import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
 import {
-  isInternalReasoningPlaceholder,
-  stripInternalReasoningPlaceholder,
-} from "../../utils/reasoningPlaceholder.ts";
-import {
   normalizeToolName,
   stripEmptyOptionalToolArgs,
   normalizeOutputIndex,
   normalizeUpstreamFailure,
-  getVisibleResponsesReasoningSummaryText,
+  extractResponsesReasoningSummaryText,
 } from "./openai-responses/pureHelpers.ts";
-import { createEventEmitter } from "./openai-responses/eventEmitter.ts";
-import { buildResponsesToolCallItem } from "./responsesToolItem.ts";
-import { resolveRequestToolIdentity } from "./openai-responses/requestToolIdentity.ts";
-import {
-  synthesizeCompletedToolCalls,
-  computeFinishReason,
-  withAssistantRoleOnFirstDelta,
-} from "./openai-responses/synthesizeCompletedToolCalls.ts";
 
 // normalizeUpstreamFailure is re-exported for external importers (tests).
 export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
-
-/**
- * Escape control characters (newlines, tabs, carriage returns) that appear
- * inside JSON string values, ensuring the resulting string is valid JSON.
- * This handles upstream providers (e.g. Gemini/Gemma) that emit literal
- * newlines (0x0A) instead of \n escapes inside tool call argument JSON.
- * Only escapes characters inside string contexts to avoid double-escaping
- * already-proper JSON or corrupting structural newlines.
- */
-function escapeJsonStringValues(json: string): string {
-  let result = "";
-  let inString = false;
-
-  for (let i = 0; i < json.length; i++) {
-    const ch = json[i];
-
-    // Inside a string, skip over escape sequences
-    if (inString && ch === "\\") {
-      result += ch + (json[i + 1] ?? "");
-      i++;
-      continue;
-    }
-
-    // Toggle string state on unescaped double quotes
-    if (ch === '"') {
-      result += ch;
-      inString = !inString;
-      continue;
-    }
-
-    // Escape control characters only inside string values
-    if (inString && (ch === "\n" || ch === "\r" || ch === "\t")) {
-      result += ch === "\n" ? "\\n" : ch === "\r" ? "\\r" : "\\t";
-      continue;
-    }
-
-    result += ch;
-  }
-
-  return result;
-}
 
 /**
  * Translate OpenAI chunk to Responses API events
@@ -710,6 +657,42 @@ function flushEvents(state) {
   sendCompleted(state, emit);
 
   return events;
+}
+
+/**
+ * OpenAI Chat Completions streams announce the assistant role on the FIRST delta
+ * (e.g. `{ "role": "assistant", "content": "" }` or `{ "role": "assistant",
+ * "tool_calls": [...] }`). The Responses API has no role-announcement event, so when
+ * translating Responses → Chat we must synthesize it on the first emitted chunk.
+ *
+ * Strict streaming clients — notably @langchain/openai's `_convertDeltaToMessageChunk`
+ * (used by n8n's AI Agent) — key off the first chunk's role to build an AIMessageChunk.
+ * Without it, streamed tool_call deltas are dropped and the agent returns an empty
+ * response, even though the underlying tool call is well-formed.
+ */
+function withAssistantRoleOnFirstDelta(state, result) {
+  if (!result || state.roleEmitted) return result;
+  const delta = result.choices?.[0]?.delta;
+  if (delta && typeof delta === "object" && !Array.isArray(delta)) {
+    delta.role = "assistant";
+    state.roleEmitted = true;
+  }
+  return result;
+}
+
+/**
+ * Resolve the terminal finish_reason for a Responses→Chat stream.
+ *
+ * `currentToolCallId` is intentionally sticky for the current turn: it is set when a
+ * function_call item is announced (`response.output_item.added`) and is only cleared once
+ * the matching `response.output_item.done` advances `toolCallIndex`. If the stream ends
+ * (flush or `response.completed`) after a tool call was emitted but BEFORE its
+ * `output_item.done` arrived, `toolCallIndex` is still 0 while `currentToolCallId` is set.
+ * Guarding on it as well lets us still finalize as `tool_calls` instead of `stop`, so
+ * OpenAI-compatible clients continue tool-result processing instead of stopping prematurely.
+ */
+function computeFinishReason(state): "tool_calls" | "stop" {
+  return (state.toolCallIndex || 0) > 0 || state.currentToolCallId ? "tool_calls" : "stop";
 }
 
 // #5786 — remember that a reasoning delta was streamed for a given reasoning item, so

@@ -508,49 +508,25 @@ function exceedsKnownOutputLimit(
   return maxOutputTokens < requestedOutputTokens;
 }
 
+function getKnownContextLimit(capabilities: {
+  maxInputTokens?: number | null;
+  contextWindow?: number | null;
+}): number | null {
+  return capabilities.maxInputTokens ?? capabilities.contextWindow ?? null;
+}
+
 function hasKnownCompatibleContextLimit(
   target: ResolvedComboTarget,
-  requirements: RequestCompatibilityRequirements
+  requiredContextTokens: number
 ): boolean {
-  if (requirements.requiredContextTokens <= 0) return false;
+  if (requiredContextTokens <= 0) return false;
   const capabilities = getResolvedModelCapabilities(target.modelStr);
-  return evaluateContextLimit(capabilities, requirements, target.modelStr) === true;
+  const contextLimit = getKnownContextLimit(capabilities);
+  return contextLimit !== null && contextLimit >= requiredContextTokens;
 }
 
 function hasOnlyContextWindowFailures(reasons: string[]): boolean {
   return reasons.length > 0 && reasons.every((reason) => reason === "context_window");
-}
-
-/**
- * #8332: vision is a hard requirement, not a soft preference — a target whose vision
- * support is not confirmed can never succeed on an image_url request. Callers
- * reconsidering compat-rejected targets (fallback tiers, degrade-to-unfiltered) MUST
- * exclude these via this predicate.
- */
-export function isVisionIncompatibleTarget(
-  target: ResolvedComboTarget,
-  requirements: RequestCompatibilityRequirements
-): boolean {
-  if (!requirements.requiresVision) return false;
-  const capabilities = getResolvedModelCapabilities(target.modelStr);
-  return capabilities.supportsVision !== true;
-}
-
-/**
- * Builds the #6238 last-resort fallback candidate set: ranked targets the compat
- * pre-filter rejected, minus anything rejected for vision (#8332 — see
- * isVisionIncompatibleTarget).
- */
-export function computeCompatRejectedTargets(
-  rankedTargets: ResolvedComboTarget[],
-  compatKeptTargets: ResolvedComboTarget[],
-  body: Record<string, unknown>
-): ResolvedComboTarget[] {
-  const requirements = deriveRequestCompatibilityRequirements(body);
-  const keptSet = new Set(compatKeptTargets);
-  return rankedTargets.filter(
-    (target) => !keptSet.has(target) && !isVisionIncompatibleTarget(target, requirements)
-  );
 }
 
 function getTargetCompatibilityFailures(
@@ -587,8 +563,12 @@ function getTargetCompatibilityFailures(
     failures.push("output_tokens");
   }
 
-  const contextVerdict = evaluateContextLimit(capabilities, requirements, target.modelStr);
-  if (requirements.requiredContextTokens > 0 && contextVerdict === false) {
+  const contextLimit = getKnownContextLimit(capabilities);
+  if (
+    requirements.requiredContextTokens > 0 &&
+    contextLimit !== null &&
+    contextLimit < requirements.requiredContextTokens
+  ) {
     failures.push("context_window");
   }
 
@@ -697,7 +677,7 @@ export function filterTargetsByRequestCompatibility(
   );
   if (requirements.requiredContextTokens > 0 && rejectedForContextWindow) {
     const knownContextCompatible = compatible.filter((target) =>
-      hasKnownCompatibleContextLimit(target, requirements)
+      hasKnownCompatibleContextLimit(target, requirements.requiredContextTokens)
     );
 
     if (knownContextCompatible.length > 0 && knownContextCompatible.length < compatible.length) {

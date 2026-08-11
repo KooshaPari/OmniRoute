@@ -12,7 +12,6 @@
 import { z } from "zod";
 import { toolSearchTool } from "./toolSearch.ts";
 import { pickFastestModelTool } from "./pickFastestModel.ts";
-import { CCR_MCP_TOOLS } from "./ccrTools.ts";
 import {
   AUTO_ROUTING_STRATEGY_VALUES,
   ROUTING_STRATEGY_VALUES,
@@ -25,7 +24,6 @@ import {
 export type { AuditLevel, McpToolDefinition } from "./toolDefinition.ts";
 import type { McpToolDefinition } from "./toolDefinition.ts";
 export { pickFastestModelInput, pickFastestModelOutput } from "./pickFastestModel.ts";
-export * from "./ccrTools.ts";
 
 // ============ Phase 1: Essential Tools (8) ============
 

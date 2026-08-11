@@ -219,7 +219,7 @@ async function handleStreamableRequest(request: Request): Promise<Response> {
         const newSession = createStreamableSession();
         try {
           const response = await withMcpHttpAuthContext(request, () =>
-            handleRequestWithAuthInfo(newSession.transport, request)
+            newSession.transport.handleRequest(request)
           );
           return withSessionHeader(response, newSession.sessionId);
         } catch (err) {

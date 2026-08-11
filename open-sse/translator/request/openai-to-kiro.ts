@@ -5,16 +5,11 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { v4 as uuidv4, v5 as uuidv5 } from "uuid";
-import { capMaxOutputTokens, capThinkingBudget, supportsReasoning } from "@/lib/modelCapabilities";
 import {
   parseToolInput,
   normalizeKiroToolSchema,
   serializeToolResultContent,
 } from "./openai-to-kiro/messageHelpers.ts";
-import {
-  resolveKiroModelAlias,
-  supportsKiroAdaptiveThinking,
-} from "./openai-to-kiro/adaptiveThinking.ts";
 
 /**
  * Anthropic's direct-provider `[1m]` context-1m beta suffix. Kiro is AWS

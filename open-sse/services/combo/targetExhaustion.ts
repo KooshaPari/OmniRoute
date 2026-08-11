@@ -92,7 +92,10 @@ export function applyComboTargetExhaustion(
   if (providerExhausted) {
     markProviderQuotaExhaustion(provider as string, opts);
   } else {
-    markTransientOrConnectionLevel(target, opts);
+    if (result.status === 429 && !isTokenLimitBreach && provider && provider !== "unknown") {
+      transientRateLimitedProviders.add(provider);
+    }
+    markConnectionLevelExhaustion(target, { result, errorText, sets, log, tag, rawModel });
   }
 
   return providerExhausted;
@@ -198,10 +201,10 @@ function markConnectionLevelExhaustion(
   target: ResolvedComboTarget,
   opts: Pick<
     ApplyComboTargetExhaustionOptions,
-    "result" | "errorText" | "sets" | "log" | "tag" | "rawModel" | "structuredError"
+    "result" | "errorText" | "sets" | "log" | "tag" | "rawModel"
   >
 ): void {
-  const { result, errorText, sets, log, tag, rawModel, structuredError } = opts;
+  const { result, errorText, sets, log, tag, rawModel } = opts;
   const provider = target.provider;
   if (
     !provider ||
