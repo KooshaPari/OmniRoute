@@ -6,7 +6,6 @@ const DEFAULT_LIMIT = MAX_TOOLS_LIMIT;
 
 const PROVIDER_TOOL_LIMITS: Record<string, number> = {
   "grok-cli": 200,
-  "nvidia": 1536,
 };
 
 const _detectedLimitsSweep = setInterval(() => {
@@ -19,7 +18,7 @@ if (typeof _detectedLimitsSweep === "object" && "unref" in _detectedLimitsSweep)
   (_detectedLimitsSweep as { unref?: () => void }).unref?.();
 }
 
-export function getKnownToolLimit(provider: string | null | undefined): number | null {
+export function getEffectiveToolLimit(provider: string): number {
   const proactiveLimit = PROVIDER_TOOL_LIMITS[provider];
   if (proactiveLimit !== undefined) {
     return proactiveLimit;

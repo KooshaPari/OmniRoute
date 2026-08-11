@@ -1,7 +1,7 @@
 import path from "node:path";
-import { ensureCliConfigWriteAllowed, getCliConfigPaths } from "../../shared/services/cliRuntime";
-import { getModelSyncInternalBaseUrl } from "../../shared/services/modelSyncScheduler";
-import { isFeatureFlagEnabled } from "../../shared/utils/featureFlags";
+import { ensureCliConfigWriteAllowed, getCliConfigPaths } from "@/shared/services/cliRuntime";
+import { getModelSyncInternalBaseUrl } from "@/shared/services/modelSyncScheduler";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 
 type SyncResult =
   | {
@@ -47,9 +47,8 @@ export async function autoSyncClaudeProfilesFromLiveCatalog(
   }
 
   const internalBase = getModelSyncInternalBaseUrl().replace(/\/$/, "");
-  const res = await fetchModelSyncInternal(`${internalBase}/v1/models`, {
+  const res = await fetch(`${internalBase}/v1/models`, {
     headers: forwardAuthHeaders(request),
-    redirect: "error",
     signal: AbortSignal.timeout(10_000),
   });
 

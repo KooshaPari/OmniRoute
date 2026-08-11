@@ -146,7 +146,6 @@ describe("MCP HTTP auth context", () => {
     }
   });
 
-
   it("forwards request auth through advanced tool apiFetch", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

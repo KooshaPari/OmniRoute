@@ -12,7 +12,10 @@ import {
   isKnownNonClaudeStreamPayload,
   isOpenAIChoicesPayload,
 } from "../../utils/streamHelpers.ts";
-import { evaluateResponseValidation, type ResponseValidationConfig } from "./responseValidation.ts";
+import {
+  evaluateResponseValidation,
+  type ResponseValidationConfig,
+} from "./responseValidation.ts";
 import { getReasoningTokens } from "../../../src/lib/usage/tokenAccounting.ts";
 import type { ComboRetryAfter } from "./types.ts";
 
@@ -523,33 +526,6 @@ export async function validateResponseQuality(
     const verdict = evaluateResponseValidation(json, responseValidation);
     if (!verdict.valid) {
       return { valid: false, reason: verdict.reason };
-    }
-  }
-
-  // Issue #6427: a masked 200 — an OpenAI-shape top-level `error` object, or a
-  // known exhaustion phrase in the error envelope — is a failure regardless of
-  // whether `choices`/`output` also look structurally present (some providers
-  // echo a stub completion alongside the error). Checked unconditionally, before
-  // any shape-specific branch, so it can't be shadowed by an otherwise-valid body.
-  const rawError = json?.error;
-  const errorIsMeaningful =
-    (typeof rawError === "string" && rawError.length > 0) ||
-    (!!rawError && typeof rawError === "object" && Object.keys(rawError).length > 0);
-  if (errorIsMeaningful) {
-    const envelopeText = extractEnvelopeErrorText(json);
-    const errMsg =
-      rawError &&
-      typeof rawError === "object" &&
-      typeof (rawError as Record<string, unknown>).message === "string"
-        ? ((rawError as Record<string, unknown>).message as string)
-        : envelopeText || JSON.stringify(rawError).substring(0, 200);
-    return { valid: false, reason: `upstream error in 200 body: ${errMsg}` };
-  }
-  {
-    const envelopeText = extractEnvelopeErrorText(json);
-    if (envelopeText && EXHAUSTION_MARKER_PATTERN.test(envelopeText)) {
-      const snippet = envelopeText.length > 80 ? `${envelopeText.slice(0, 80)}…` : envelopeText;
-      return { valid: false, reason: `upstream exhaustion marker in 200 body: ${snippet}` };
     }
   }
 

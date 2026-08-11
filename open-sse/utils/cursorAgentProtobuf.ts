@@ -18,7 +18,6 @@
 
 import zlib from "node:zlib";
 import crypto from "node:crypto";
-import { decodeNativeTodoWriteCompletion } from "./cursorAgentProtobuf/nativeTodoWrite.ts";
 import {
   WT_VARINT,
   WT_LEN,
@@ -36,6 +35,7 @@ import {
   findField,
   decodeStringField,
   decodeVarintField,
+  type Field,
 } from "./cursorAgentProtobuf/wire.ts";
 
 // ─── Field numbers (from agent.proto descriptor) ───────────────────────────

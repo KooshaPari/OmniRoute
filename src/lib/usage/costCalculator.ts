@@ -129,12 +129,7 @@ export function computeCostFromPricing(
   tokens: Record<string, number | undefined> | null | undefined,
   options: CostCalculationOptions = {}
 ): number {
-  if (!tokens) return 0;
-  // Trust an exact, provider-reported cost over the token × pricing estimate
-  // when one is present — works even when no local pricing row exists yet.
-  const exactCostUsd = extractExactCostUsd(tokens);
-  if (exactCostUsd !== null) return exactCostUsd;
-  if (!pricing) return 0;
+  if (!pricing || !tokens) return 0;
   // Flat-rate (subscription / cookie-web) providers don't bill per token — their
   // per-token pricing rows exist only for estimation, so display surfaces opt in
   // to show $0 instead of an inflated estimate (#5552).

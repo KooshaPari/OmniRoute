@@ -37,80 +37,6 @@ export function renameProcessTitle(currentTitle: string): string {
   return `omniroute${currentTitle.slice("next-server".length)}`;
 }
 
-/**
- * Normalize any thrown/rejected value into a real `Error` instance.
- *
- * Next.js's own `registerInstrumentation()` wrapper (see
- * `node_modules/next/dist/server/lib/router-utils/instrumentation-globals.external.js`)
- * unconditionally does `err.message = \`...${err.message}\`` on whatever our
- * `register()` export rejects with, assuming it is always an `Error`. If a raw
- * non-Error primitive bubbles up instead (e.g. sql.js's WASM adapter throws the
- * bare string `"Database closed"` — see `./lib/db/adapters/sqljsAdapter.ts`),
- * that assignment throws `TypeError: Cannot create property 'message' on
- * string '...'` in strict mode, masking the original error and crashing the
- * whole server on every boot (#6560). Normalizing before it leaves our code
- * guarantees Next always receives something `.message`-assignable.
- */
-export function normalizeBootError(err: unknown): Error {
-  return err instanceof Error ? err : new Error(String(err));
-}
-
-// Matches sql.js's raw `throw "Database closed"` (and similarly-worded
-// variants) thrown when a query runs against an already-closed WASM handle —
-// typically a stale globalThis-cached adapter left over by a prior
-// close/reload racing with this boot (#6560).
-const TRANSIENT_DB_CLOSED_RE = /database\s*(connection\s*)?(is\s*)?closed/i;
-
-/**
- * Initialize the SQLite singleton for boot, tolerating one transient
- * "database closed" failure (#6560) by retrying once — the driverFactory
- * cache-eviction fix (`preInitSqlJs`) makes the retry create a fresh adapter
- * instead of reusing the dead one. Any other failure (or a second consecutive
- * "database closed") is re-thrown as a real `Error` via `normalizeBootError`
- * so it can never crash instrumentation with a masking TypeError — the caller
- * (`registerNodejs`) still surfaces it as a real boot failure.
- *
- * `ensureDbInitializedFn` is only for tests to inject a fake without
- * module-mocking (`node:test` does not support `mock.module` reliably here).
- */
-export async function ensureDbReadyForBoot(
-  ensureDbInitializedFn?: () => Promise<void>
-): Promise<void> {
-  const ensureDbInitialized =
-    ensureDbInitializedFn ?? (await import("@/lib/db/core")).ensureDbInitialized;
-
-  try {
-    await ensureDbInitialized();
-  } catch (err: unknown) {
-    const normalized = normalizeBootError(err);
-    if (!TRANSIENT_DB_CLOSED_RE.test(normalized.message)) {
-      // Fatal, non-transient boot-time DB init failure (e.g. the entire
-      // better-sqlite3 -> node:sqlite -> sql.js driver cascade failed, as on
-      // Termux/Android when no SQLite driver is usable). This runs BEFORE
-      // initConsoleInterceptor() is wired up, so this is the only chance to
-      // get the real root cause into stdout/app.log — without it, the
-      // process keeps its HTTP listener up while every DB-touching route
-      // 500s forever with a permanently empty log (#7773).
-      console.error("[STARTUP] Fatal: Database driver initialization failed:", normalized.message);
-      throw normalized;
-    }
-    console.warn(
-      "[STARTUP] Database was closed by a prior reload/shutdown — retrying with a fresh connection (#6560):",
-      normalized.message
-    );
-    try {
-      await ensureDbInitialized();
-    } catch (retryErr: unknown) {
-      const normalizedRetryErr = normalizeBootError(retryErr);
-      console.error(
-        "[STARTUP] Fatal: Database driver initialization failed after retry:",
-        normalizedRetryErr.message
-      );
-      throw normalizedRetryErr;
-    }
-  }
-}
-
 function isBackgroundServicesDisabled(): boolean {
   const raw = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
   if (!raw) return false;
@@ -425,8 +351,6 @@ export async function scanComboModelNameCollisionsAtBoot(): Promise<void> {
 }
 
 export async function registerNodejs(): Promise<void> {
-  markServerStarting();
-
   // Rename the process title so OmniRoute is identifiable in ps/htop instead
   // of the generic "next-server" standalone server name.
   process.title = renameProcessTitle(process.title);
@@ -575,21 +499,11 @@ export async function registerNodejs(): Promise<void> {
     // without this the dashboard mode (auto/custom/adaptive) silently reverts to
     // the passthrough default on every restart. Previously this was only wired into
     // the unused `server-init.ts`, so it never ran in production.
-    const { hydrateThinkingBudgetConfig } =
-      await import("@omniroute/open-sse/services/thinkingBudget.ts");
+    const { hydrateThinkingBudgetConfig } = await import(
+      "@omniroute/open-sse/services/thinkingBudget.ts"
+    );
     if (hydrateThinkingBudgetConfig(settings)) {
       console.log("[STARTUP] Thinking-Budget config restored from settings");
-    }
-
-    // Restore the Task-Aware Smart Routing config (#8601). It lives in
-    // `settings.taskRouting` (written as a JSON string by PUT /api/settings/task-routing)
-    // and is NOT covered by applyRuntimeSettings, so without this the feature silently
-    // reverts to disabled + the default model map on every restart. Same shape as the
-    // Thinking-Budget restore above; must live here, not in the unused server-init.ts.
-    const { hydrateTaskRoutingConfig } =
-      await import("@omniroute/open-sse/services/taskAwareRouter.ts");
-    if (hydrateTaskRoutingConfig(settings)) {
-      console.log("[STARTUP] Task-Aware Routing config restored from settings");
     }
 
     const seededModelAliases = await seedDefaultModelAliases();
@@ -776,6 +690,28 @@ export async function registerNodejs(): Promise<void> {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.warn("[STARTUP] Live dashboard WebSocket daemon failed to start (non-fatal):", msg);
+    }
+
+    // Context-window self-correction (5004): periodically reconcile provider-declared
+    // windows (from /models discovery) into auto:discovery overrides. Reuses already-synced
+    // data (no new fetch); disable via CONTEXT_WINDOW_RECONCILE_INTERVAL=0. Never fatal.
+    try {
+      const { startContextWindowReconcile } = await import("@/lib/contextWindowResolver");
+      startContextWindowReconcile();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] context-window reconcile failed to start (non-fatal):", msg);
+    }
+
+    // TV6 typed memory decay: optional periodic sweep of decayed episodic memories. Doubly
+    // opt-in (no-op unless MEMORY_TYPED_DECAY_ENABLED=true AND
+    // MEMORY_TYPED_DECAY_SWEEP_INTERVAL>0). Never deletes by default. Never fatal.
+    try {
+      const { startMemoryDecaySweep } = await import("@/lib/memory/typedDecay");
+      startMemoryDecaySweep();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
     }
   }
 

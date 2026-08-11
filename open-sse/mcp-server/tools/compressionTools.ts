@@ -249,16 +249,7 @@ import {
   ccrDeleteInput,
   ccrStatsInput,
 } from "../schemas/tools.ts";
-import {
-  MAX_CCR_MCP_FULL_BYTES,
-  buildCcrReference,
-  deleteCcrBlock,
-  getCcrStoreStats,
-  handleCcrRetrieve,
-  inspectCcrBlock,
-  listCcrBlocks,
-  tryStoreBlock,
-} from "../../services/compression/engines/ccr/index.ts";
+import { handleCcrRetrieve } from "../../services/compression/engines/ccr/index.ts";
 import {
   listRtkCommandSamples,
   discoverRepeatedNoise,
@@ -491,24 +482,12 @@ export async function handleCompressionComboStats(
 // T07 — RTK learn/discover exposed via MCP (read-only; suggestions only). Mines the opt-in
 // raw-output sample store, exactly like the /api/context/rtk/{discover,learn} routes.
 const rtkDiscoverInput = z.object({
-  limit: z
-    .number()
-    .int()
-    .positive()
-    .max(2000)
-    .optional()
-    .describe("Max samples to scan (default 500)"),
+  limit: z.number().int().positive().max(2000).optional().describe("Max samples to scan (default 500)"),
 });
 
 const rtkLearnInput = z.object({
   command: z.string().min(1).max(500).describe("The command to learn an RTK filter draft for"),
-  limit: z
-    .number()
-    .int()
-    .positive()
-    .max(2000)
-    .optional()
-    .describe("Max samples to scan (default 500)"),
+  limit: z.number().int().positive().max(2000).optional().describe("Max samples to scan (default 500)"),
 });
 
 function resolveSampleLimit(limit?: number): number {
@@ -599,36 +578,22 @@ export const compressionTools = {
       "Scope: read:compression. Always available (sticky-on).",
     scopes: ["read:compression"],
     inputSchema: ccrRetrieveInput,
-    handler: handleCcrRetrieveTool,
-  },
-  omniroute_ccr_inspect: {
-    name: "omniroute_ccr_inspect",
-    description: "Inspect metadata for a caller-owned CCR block without returning its content.",
-    scopes: ["read:compression"],
-    inputSchema: ccrInspectInput,
-    handler: handleCcrInspectTool,
-  },
-  omniroute_ccr_list: {
-    name: "omniroute_ccr_list",
-    description: "List paginated metadata for CCR blocks owned by the current caller.",
-    scopes: ["read:compression"],
-    inputSchema: ccrListInput,
-    handler: handleCcrListTool,
-  },
-  omniroute_ccr_delete: {
-    name: "omniroute_ccr_delete",
-    description: "Delete a caller-owned block from the in-memory CCR store.",
-    scopes: ["write:compression"],
-    inputSchema: ccrDeleteInput,
-    handler: handleCcrDeleteTool,
-  },
-  omniroute_ccr_stats: {
-    name: "omniroute_ccr_stats",
-    description:
-      "Return caller-scoped CCR entry and byte usage, lifecycle counters, and in-memory store limits.",
-    scopes: ["read:compression"],
-    inputSchema: ccrStatsInput,
-    handler: handleCcrStatsTool,
+    handler: async (args: z.infer<typeof ccrRetrieveInput>, extra?: McpToolExtraLike) => {
+      // Retrieve must use the SAME principal the CCR store used at compression time:
+      // `String(apiKeyInfo.id)` (chatCore → getApiKeyMetadata(rawKey)). On MCP HTTP
+      // transports the raw key lives in httpAuthContext (not in extra.authInfo, since
+      // OmniRoute auth is API-key not OAuth-clientId) — resolve it to the same key id
+      // so the block is found. Without this the caller resolved to "anonymous" and the
+      // store-key never matched (#5649). Cross-tenant IDOR stays closed: a different
+      // key → different id → miss; no key → undefined → anonymous bucket only.
+      const apiKeyPrincipal = await resolveMcpCallerApiKeyId();
+      if (apiKeyPrincipal) {
+        return handleCcrRetrieve(args, apiKeyPrincipal);
+      }
+      // Fallback (unchanged): OAuth clientId / session scope context, then anonymous.
+      const { callerId } = resolveCallerScopeContext(extra, ["read:compression"]);
+      return handleCcrRetrieve(args, callerId === "anonymous" ? undefined : callerId);
+    },
   },
   omniroute_rtk_discover: {
     name: "omniroute_rtk_discover",

@@ -293,7 +293,7 @@ describe("FreePoolTab sync error surfacing (#5595)", () => {
     await waitForCondition(() => el.querySelector("[role='group']") !== null);
 
     const syncBtn = Array.from(el.querySelectorAll("button")).find((b) =>
-      b.textContent?.includes("Sync all")
+      b.textContent?.includes("proxyFreePoolSyncAll")
     )!;
     expect(syncBtn).toBeTruthy();
     act(() => {

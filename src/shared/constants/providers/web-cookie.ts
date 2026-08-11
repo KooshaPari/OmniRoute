@@ -139,19 +139,6 @@ export const WEB_COOKIE_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
-  "microsoft-designer-web": {
-    id: "microsoft-designer-web",
-    alias: "msdesigner",
-    name: "Microsoft Designer (Image Generation)",
-    icon: "auto_awesome",
-    color: "#0078D4",
-    textIcon: "MSD",
-    website: "https://designer.microsoft.com",
-    authHint:
-      "Sign in at designer.microsoft.com, then open DevTools → Network, generate an image, and find the request to DallE.ashx?action=GetDallEImagesCogSci. Copy the value of its Authorization: Bearer header (the access_token — no 'Bearer ' prefix). The token is short-lived; this is an unofficial, reverse-engineered integration.",
-    subscriptionRisk: true,
-    riskNoticeVariant: "webCookie",
-  },
   "t3-web": {
     id: "t3-web",
     alias: "t3chat",
@@ -307,8 +294,7 @@ export const WEB_COOKIE_PROVIDERS = {
     color: "#2563EB",
     textIcon: "KW",
     website: "https://www.kimi.com",
-    authHint:
-      "Paste your Cookie header from www.kimi.com (must contain kimi-auth=...). Find it via DevTools → Network → request → Cookie.",
+    authHint: "Paste your Cookie header from www.kimi.com (must contain kimi-auth=...). Find it via DevTools → Network → request → Cookie.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },

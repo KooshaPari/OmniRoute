@@ -638,6 +638,30 @@ class ResponsesWsSession {
 
       const prepared = await this.runPrepare(firstMessage, responseBody);
 
+      if (!prepared.ok) {
+        const message =
+          prepared.json?.error?.message ||
+          prepared.json?.message ||
+          prepared.text ||
+          "Codex WS prepare failed";
+        const code = prepared.json?.error?.code || "codex_ws_prepare_failed";
+        const error = new Error(message);
+        error.code = code;
+        error.status = prepared.status;
+        throw error;
+      }
+
+      this.preparedContext = {
+        upstreamUrl: toStringOrNull(prepared.json?.upstreamUrl),
+        connectionId: toStringOrNull(prepared.json?.connectionId),
+        account: toStringOrNull(prepared.json?.account),
+        provider: toStringOrNull(prepared.json?.provider) || "codex",
+        model: toStringOrNull(prepared.json?.model) || toStringOrNull(responseBody.model),
+        requestedModel: toStringOrNull(responseBody.model),
+        serviceTier:
+          toStringOrNull(responseBody.service_tier) || toStringOrNull(responseBody.serviceTier),
+      };
+
       const wsOptions = {
         // #5591: chrome_149 is not a wreq-js 2.3.1 profile (max chrome_147); the
         // prepare route now sends chrome_142, this fallback matches it.

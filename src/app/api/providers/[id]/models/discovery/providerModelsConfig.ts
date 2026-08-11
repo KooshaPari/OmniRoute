@@ -1,82 +1,7 @@
 import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
-import {
-  GROK_BUILD_DEFAULT_CONTEXT_WINDOW,
-  getGrokBuildModelsHeaders,
-  GROK_BUILD_MODELS_URL,
-} from "@omniroute/open-sse/config/grokBuild.ts";
-import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
-import { filterClinepassModels } from "@omniroute/open-sse/services/clinepassModels.ts";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
-
-const DASHSCOPE_TEXT_MODEL_PREFIXES = [
-  "qwen",
-  "qwq-",
-  "deepseek-",
-  "glm-",
-  "kimi-",
-  "minimax-",
-] as const;
-
-// DashScope's OpenAI-compatible /models response contains only the standard
-// id/object/owned_by fields for Alibaba and Qwen Cloud, so there is no upstream
-// modality field to filter on. Keep known text-generation families and reject IDs
-// whose tokenized names identify media, speech, embedding, reranking, or vision-only lines.
-const DASHSCOPE_NON_TEXT_MODEL_TOKEN =
-  /(?:^|[-_.\/])(?:asr|audio|captioner|embedding|image|livetranslate|omni|ocr|realtime|rerank|s2s|speech|tts|video|vl)(?:$|[-_.\/])/i;
-const QWEN_CLOUD_TEXT_MODEL_IDS = new Set(QWEN_CLOUD_TEXT_MODELS.map((model) => model.id));
-const ALIBABA_MODEL_STUDIO_MODEL_IDS = new Set(
-  ALIBABA_MODEL_STUDIO_MODELS.map((model) => model.id)
-);
-
-export function isDashscopeTextModelId(value: unknown): value is string {
-  if (typeof value !== "string") return false;
-  const modelId = value.trim().toLowerCase();
-  if (!modelId || DASHSCOPE_NON_TEXT_MODEL_TOKEN.test(modelId)) return false;
-  return DASHSCOPE_TEXT_MODEL_PREFIXES.some((prefix) => modelId.startsWith(prefix));
-}
-
-export function parseDashscopeTextModels(data: any): any[] {
-  const models = Array.isArray(data?.data)
-    ? data.data
-    : Array.isArray(data?.models)
-      ? data.models
-      : [];
-  return models.filter((model: any) => isDashscopeTextModelId(model?.id));
-}
-
-function parseCuratedDashscopeModels(
-  data: any,
-  catalogModels: typeof ALIBABA_MODEL_STUDIO_MODELS,
-  allowedModelIds: ReadonlySet<string>
-): any[] {
-  const liveModelsById = new Map(
-    parseDashscopeTextModels(data)
-      .filter((model: any) => allowedModelIds.has(model.id))
-      .map((model: any) => [model.id, model])
-  );
-  return catalogModels.flatMap((catalogModel) => {
-    const liveModel = liveModelsById.get(catalogModel.id);
-    return liveModel ? [liveModel] : [];
-  });
-}
-
-export function parseAlibabaModelStudioModels(data: any): any[] {
-  return parseCuratedDashscopeModels(
-    data,
-    ALIBABA_MODEL_STUDIO_MODELS,
-    ALIBABA_MODEL_STUDIO_MODEL_IDS
-  );
-}
-
-export function parseQwenCloudTextModels(data: any): any[] {
-  return parseCuratedDashscopeModels(data, QWEN_CLOUD_TEXT_MODELS, QWEN_CLOUD_TEXT_MODEL_IDS);
-}
-type ProviderModelsHeaderContext = {
-  authType?: string;
-  providerSpecificData?: unknown;
-  email?: string | null;
-};
 
 export type ProviderModelsConfigEntry = {
   url: string;
@@ -86,237 +11,19 @@ export type ProviderModelsConfigEntry = {
   authPrefix?: string;
   authQuery?: string;
   body?: unknown;
-  buildHeaders?: (
-    token: string,
-    connection?: ProviderModelsHeaderContext
-  ) => Record<string, string>;
   parseResponse: (data: any) => any;
 };
 
-const DASHSCOPE_TEXT_MODELS_CONFIG: ProviderModelsConfigEntry = {
-  url: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models",
+const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
+  url: "https://api.kimi.com/coding/v1/models",
   method: "GET",
   headers: { "Content-Type": "application/json" },
-  authHeader: "Authorization",
-  authPrefix: "Bearer ",
-  parseResponse: parseDashscopeTextModels,
-};
-
-const ALIBABA_MODEL_STUDIO_MODELS_CONFIG: ProviderModelsConfigEntry = {
-  ...DASHSCOPE_TEXT_MODELS_CONFIG,
-  parseResponse: parseAlibabaModelStudioModels,
-};
-
-const QWEN_CLOUD_TEXT_MODELS_CONFIG: ProviderModelsConfigEntry = {
-  ...DASHSCOPE_TEXT_MODELS_CONFIG,
-  parseResponse: parseQwenCloudTextModels,
-};
-
-function getKimiThinkingType(model: any): "only" | "both" | "no" | undefined {
-  return model.supports_thinking_type === "only" ||
-    model.supports_thinking_type === "both" ||
-    model.supports_thinking_type === "no"
-    ? model.supports_thinking_type
-    : undefined;
-}
-
-function getKimiThinkingEfforts(model: any): {
-  supportedThinkingEfforts?: string[];
-  defaultThinkingEffort?: string;
-} {
-  const efforts = model.think_efforts;
-  const supportedThinkingEfforts =
-    efforts?.support === true && Array.isArray(efforts.valid_efforts)
-      ? efforts.valid_efforts.filter(
-          (effort: unknown): effort is string => typeof effort === "string" && effort.length > 0
-        )
-      : undefined;
-  const defaultThinkingEffort =
-    efforts?.support === true && typeof efforts.default_effort === "string"
-      ? efforts.default_effort
-      : undefined;
-  return { supportedThinkingEfforts, defaultThinkingEffort };
-}
-
-function normalizeKimiCodingModel(model: any): any {
-  const thinkingType = getKimiThinkingType(model);
-  const supportsThinking = thinkingType ? thinkingType !== "no" : model.supports_reasoning === true;
-  const { supportedThinkingEfforts, defaultThinkingEffort } = getKimiThinkingEfforts(model);
-  const isAnthropic = model.protocol === "anthropic";
-  const normalized: any = {
-    id: model.id,
-    name:
-      typeof model.display_name === "string" && model.display_name.length > 0
-        ? model.display_name
-        : model.id,
-    owned_by: "kimi-code",
-    targetFormat: isAnthropic ? "claude" : "openai",
-    upstreamProtocol: isAnthropic ? "anthropic" : "kimi",
-    supportsThinking,
-    supportsVision: model.supports_image_in === true,
-    supportsVideo: model.supports_video_in === true,
-    supportsTools: model.supports_tool_use !== false,
-  };
-
-  if (typeof model.context_length === "number") normalized.context_length = model.context_length;
-  if (thinkingType === "only") normalized.alwaysThinking = true;
-  if (supportedThinkingEfforts?.length) {
-    normalized.supportedThinkingEfforts = supportedThinkingEfforts;
-  }
-  if (defaultThinkingEffort) normalized.defaultThinkingEffort = defaultThinkingEffort;
-  return normalized;
-}
-
-export function parseKimiCodingModels(data: any): any[] {
-  const models = Array.isArray(data?.data)
-    ? data.data
-    : Array.isArray(data?.models)
-      ? data.models
-      : [];
-
-  return models
-    .filter((model: any) => typeof model?.id === "string" && model.id.length > 0)
-    .map(normalizeKimiCodingModel);
-}
-
-type GrokBuildModelRecord = Record<string, unknown>;
-
-function asGrokBuildRecord(value: unknown): GrokBuildModelRecord {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as GrokBuildModelRecord)
-    : {};
-}
-
-function grokBuildString(...values: unknown[]): string | undefined {
-  return values
-    .find((value): value is string => typeof value === "string" && value.trim().length > 0)
-    ?.trim();
-}
-
-function grokBuildPositiveNumber(...values: unknown[]): number | undefined {
-  return values.find(
-    (value): value is number => typeof value === "number" && Number.isFinite(value) && value > 0
-  );
-}
-
-function getGrokBuildModelItems(data: unknown): unknown[] {
-  const envelope = asGrokBuildRecord(data);
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(envelope.data)) return envelope.data;
-  return Array.isArray(envelope.models) ? envelope.models : [];
-}
-
-function hasGrokBuildReasoning(model: GrokBuildModelRecord, metadata: GrokBuildModelRecord) {
-  const flags = [
-    model.supportsReasoningEffort,
-    model.supports_reasoning_effort,
-    metadata.supportsReasoningEffort,
-    metadata.supports_reasoning_effort,
-  ];
-  const effortLists = [
-    model.reasoningEfforts,
-    model.reasoning_efforts,
-    metadata.reasoningEfforts,
-    metadata.reasoning_efforts,
-  ];
-  return (
-    flags.some((value) => value === true) ||
-    grokBuildString(
-      model.reasoningEffort,
-      model.reasoning_effort,
-      metadata.reasoningEffort,
-      metadata.reasoning_effort
-    ) !== undefined ||
-    effortLists.some((value) => Array.isArray(value) && value.length > 0)
-  );
-}
-
-function normalizeGrokBuildModel(value: unknown): GrokBuildModelRecord | null {
-  const model = asGrokBuildRecord(value);
-  const metadata = asGrokBuildRecord(model._meta);
-  const catalogId = grokBuildString(model.id);
-  const id = grokBuildString(
-    model.model,
-    model.modelId,
-    catalogId,
-    metadata.model,
-    metadata.modelId
-  );
-  const hidden = model.hidden === true || metadata.hidden === true;
-  // grok-cli always uses OAuth session auth. Official Grok Build visibility
-  // keeps supported_in_api=false models available to session users and only
-  // hides them from API-key users.
-  if (!id || hidden) return null;
-
-  const backend = grokBuildString(
-    model.apiBackend,
-    model.api_backend,
-    metadata.apiBackend,
-    metadata.api_backend
-  );
-  // This provider currently executes against /v1/responses. Grok Build can
-  // advertise chat_completions or messages backends too, but exposing those
-  // here would route their request shape to the wrong upstream endpoint.
-  if (backend !== "responses") return null;
-
-  const inputTokenLimit =
-    grokBuildPositiveNumber(
-      model.contextWindow,
-      model.context_window,
-      metadata.contextWindow,
-      metadata.totalContextTokens
-    ) || GROK_BUILD_DEFAULT_CONTEXT_WINDOW;
-  const outputTokenLimit = grokBuildPositiveNumber(
-    model.maxCompletionTokens,
-    model.max_completion_tokens
-  );
-  const description = grokBuildString(model.description);
-
-  return {
-    id,
-    name: grokBuildString(model.name, id) || id,
-    owned_by: "grok-cli",
-    ...(description ? { description } : {}),
-    inputTokenLimit,
-    ...(outputTokenLimit ? { outputTokenLimit } : {}),
-    ...(hasGrokBuildReasoning(model, metadata) ? { supportsThinking: true } : {}),
-    apiFormat: "responses",
-    supportedEndpoints: ["responses"],
-  };
-}
-
-function parseGrokBuildModels(data: unknown): GrokBuildModelRecord[] {
-  return getGrokBuildModelItems(data)
-    .map(normalizeGrokBuildModel)
-    .filter((model): model is GrokBuildModelRecord => model !== null);
-}
-
-const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
-  url: KIMI_CODING_MODELS_URL,
-  method: "GET",
-  headers: { Accept: "application/json" },
-  buildHeaders: (token, connection) => {
-    if (connection?.authType === "apikey" || connection?.authType === "api_key") {
-      return {
-        Accept: "application/json",
-        "x-api-key": token,
-      };
-    }
-
-    return {
-      Accept: "application/json",
-      Authorization: `Bearer ${token}`,
-      "User-Agent": getKimiCodeCliUserAgent(),
-      ...buildKimiCodeIdentityHeaders(connection?.providerSpecificData || {}),
-    };
-  },
-  parseResponse: parseKimiCodingModels,
+  authHeader: "x-api-key",
+  parseResponse: (data) => data.data || data.models || [],
 };
 
 // Provider models endpoints configuration
 export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
-  alibaba: ALIBABA_MODEL_STUDIO_MODELS_CONFIG,
-  "alibaba-cn": ALIBABA_MODEL_STUDIO_MODELS_CONFIG,
   claude: {
     url: "https://api.anthropic.com/v1/models",
     method: "GET",
@@ -342,12 +49,20 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => normalizeOpenAiLikeModelsResponse(data, "huggingface"),
   },
+  qwen: {
+    url: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || [],
+  },
   // #3931: qwen-web (cookie provider) was missing here, so its discovery page
-  // showed nothing.
-  // `chat.qwen.ai/api/v2/models/` is public (no auth header configured/sent);
+  // showed nothing (the OAuth fallback above only fires for provider==="qwen").
+  // `chat.qwen.ai/api/v2/models` is public (no auth header configured/sent);
   // shape `{ data: { data: [{ id, name, owned_by }] } }`, flatter `{ data: [] }` fallback.
   "qwen-web": {
-    url: "https://chat.qwen.ai/api/v2/models/",
+    url: "https://chat.qwen.ai/api/v2/models",
     method: "GET",
     headers: { "Content-Type": "application/json" },
     parseResponse: (data) => {
@@ -361,65 +76,14 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
         .filter((m: any) => m.id);
     },
   },
-  // #5858 follow-up: kimi-web (cookie provider) on the international domain.
-  // `GetAvailableModels` returns the model list as a plain JSON envelope
-  // (no Connect framing on either request or response — only the chat
-  // completion endpoint uses the 5-byte envelope). Auth: Bearer JWT extracted
-  // from the `kimi-auth` cookie the user pasted. Agent variants
-  // (`k2d6-agent*`) need a different scenario + agent fields this executor
-  // doesn't shape, so they're filtered out.
-  "kimi-web": {
-    url: "https://www.kimi.com/apiv2/kimi.gateway.config.v1.ConfigService/GetAvailableModels",
-    method: "GET",
-    headers: { accept: "application/json, text/plain, */*", "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => {
-      const list = (data?.availableModels || []) as Array<{
-        key?: string;
-        displayName?: string;
-        thinking?: boolean;
-      }>;
-      return list
-        .filter((m) => typeof m.key === "string" && !m.key?.includes("agent"))
-        .map((m) => ({
-          id: m.key as string,
-          name: m.displayName || (m.key as string),
-          supportsReasoning: !!m.thinking,
-          owned_by: "kimi",
-        }));
-    },
-  },
   antigravity: {
     url: getAntigravityModelsDiscoveryUrls()[0],
     method: "POST",
-    headers: getAntigravityContentHeaders("ide"),
+    headers: getAntigravityHeaders("models"),
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     body: {},
     parseResponse: (data) => data.models || [],
-  },
-  // #7016: AgentRouter rejects /v1/models unless the request carries the same
-  // Claude Code wire image the chat path uses (it adopts the dynamic CC wire
-  // image while keeping its own x-api-key auth — see #6056). Without these
-  // headers the gateway WAF 4xx's the request and model import silently falls
-  // back to the local catalog ("API unavailable — using local catalog").
-  agentrouter: {
-    url: "https://agentrouter.org/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    buildHeaders: (token: string) => {
-      const wire = buildClaudeCodeCompatibleHeaders(token, false, undefined, {});
-      const out: Record<string, string> = { ...wire };
-      // Keep AgentRouter's own x-api-key auth scheme (#6056); the CC helper
-      // adds a Bearer Authorization we must not send.
-      for (const key of Object.keys(out)) {
-        if (key.toLowerCase() === "authorization") delete out[key];
-      }
-      if (token) out["x-api-key"] = token;
-      return out;
-    },
-    parseResponse: (data: any) => (Array.isArray(data) ? data : data?.data || data?.models || []),
   },
   openai: {
     url: "https://api.openai.com/v1/models",
@@ -429,21 +93,6 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || [],
   },
-  "grok-cli": {
-    url: GROK_BUILD_MODELS_URL,
-    method: "GET",
-    headers: {},
-    buildHeaders: (token, context) => {
-      const providerData = asGrokBuildRecord(context?.providerSpecificData);
-      return getGrokBuildModelsHeaders({
-        token,
-        userId: grokBuildString(providerData.userId),
-        email: grokBuildString(context?.email, providerData.email),
-        principalType: grokBuildString(providerData.principalType),
-      });
-    },
-    parseResponse: parseGrokBuildModels,
-  },
   openrouter: {
     url: "https://openrouter.ai/api/v1/models",
     method: "GET",
@@ -451,6 +100,14 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || [],
+  },
+  glhf: {
+    url: "https://glhf.chat/api/openai/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || data.models || [],
   },
   aimlapi: {
     // #5570: AI/ML API's live catalog (400+ models) lives at the public,
@@ -513,10 +170,6 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
   },
   "kimi-coding-apikey": {
     ...KIMI_CODING_MODELS_CONFIG,
-    buildHeaders: (token) => ({
-      Accept: "application/json",
-      "x-api-key": token,
-    }),
   },
   anthropic: {
     url: "https://api.anthropic.com/v1/models",
@@ -577,18 +230,6 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
-  // OpenVecta (https://openvecta.com/) — OpenAI-compatible `/v1/models` returning
-  // { object: "list", data: [{ id, context_length, owned_by, … }, …] }. Bearer
-  // token with the `ov_sk_…` prefix. Same discovery shape as Together AI /
-  // Cerebras / NVIDIA NIM (live-fetch path; registry seed is the offline fallback).
-  openvecta: {
-    url: "https://api.openvecta.com/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
   fireworks: {
     url: "https://api.fireworks.ai/inference/v1/models",
     method: "GET",
@@ -604,16 +245,6 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
-  },
-  // ClinePass (BYOK apikey gateway) — same host as OAuth `cline`, but only the
-  // `cline-pass/*` namespace is surfaced (filterClinepassModels).
-  clinepass: {
-    url: "https://api.cline.bot/api/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => filterClinepassModels(Array.isArray(data) ? data : data?.data),
   },
   cohere: {
     url: "https://api.cohere.com/v2/models",

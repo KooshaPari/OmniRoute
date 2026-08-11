@@ -49,6 +49,27 @@ export type {
   PricingByProvider,
 } from "./modelsDevSync/transform";
 
+import {
+  transformModelsDevToPricing,
+  transformModelsDevToCapabilities,
+} from "./modelsDevSync/transform";
+import type {
+  PricingModels,
+  PricingByProvider,
+  ModelCapabilityEntry,
+  CapabilitiesByProvider,
+  ModelsDevData,
+} from "./modelsDevSync/transform";
+
+// Re-export the pure transform layer (moved to ./modelsDevSync/transform)
+// so this module's public API is unchanged.
+export {
+  mapProviderId,
+  transformModelsDevToPricing,
+  transformModelsDevToCapabilities,
+} from "./modelsDevSync/transform";
+export type { ModelCapabilityEntry, CapabilitiesByProvider } from "./modelsDevSync/transform";
+
 // ─── Types ───────────────────────────────────────────────
 
 interface SyncStatus {

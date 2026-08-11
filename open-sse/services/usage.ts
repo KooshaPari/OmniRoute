@@ -10,6 +10,13 @@
  * implementation detail.
  */
 
+import { getGitHubCopilotInternalUserHeaders } from "../config/providerHeaderProfiles.ts";
+import { getDbInstance } from "@/lib/db/core";
+import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
+import { fetchDeepseekQuota, type DeepseekQuota } from "./deepseekQuotaFetcher.ts";
+import { fetchOpencodeQuota, type OpencodeTripleWindowQuota } from "./opencodeQuotaFetcher.ts";
+import { getOllamaCloudUsage, getOpenCodeGoUsage } from "./opencodeOllamaUsage.ts";
+import { getCodeBuddyCnUsage } from "./usage/codebuddy-cn.ts";
 import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
@@ -59,26 +66,13 @@ import { getClaudeUsage, getClaudePlanLabel } from "./usage/claude.ts";
 import { getKiroUsage, buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
 // Re-exported para os testes kiro-* (importam de services/usage).
 export { buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
-import { getAdobeFireflyUsage } from "./usage/adobeFirefly.ts";
-import { getOpenrouterUsage } from "./usage/openrouter.ts";
-import { getOllamaCloudUsage, getOpenCodeGoUsage } from "./opencodeOllamaUsage.ts";
-import { getCodeBuddyCnUsage } from "./usage/codebuddy-cn.ts";
-import { getPromptQlUsage } from "./usage/promptql.ts";
-import { getHyperAgentUsage } from "./usage/hyperagent.ts";
-import { getGitHubUsage, formatGitHubQuotaSnapshot, inferGitHubPlanName } from "./usage/github.ts";
-import { getCrofUsage } from "./usage/crof.ts";
-import { getNanoGptUsage } from "./usage/nanogpt.ts";
-import { getQoderUsage, parseQoderUserStatusUsage } from "./usage/qoder.ts";
-// Re-exported para o teste qoder-usage-quota (importa parseQoderUserStatusUsage de services/usage).
-export { parseQoderUserStatusUsage } from "./usage/qoder.ts";
-import { getOpencodeUsage } from "./usage/opencode.ts";
-import { getDeepseekUsage } from "./usage/deepseek.ts";
-import { getBailianCodingPlanUsage } from "./usage/bailian.ts";
-import { getVertexUsage } from "./usage/vertex.ts";
-import { getXiaomiMimoUsage } from "./usage/xiaomi-mimo.ts";
-import { getXaiUsage } from "./usage/xai.ts";
-import { getXaiOauthUsage } from "./usage/xaiOauth.ts";
-import { getFirecrawlUsage } from "./usage/firecrawl.ts";
+
+// Quota / usage upstream URLs (overridable for testing or relays).
+const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
+
+const NANOGPT_CONFIG = {
+  usageUrl: "https://nano-gpt.com/api/subscription/v1/usage",
+};
 
 type JsonRecord = Record<string, unknown>;
 type UsageProviderConnection = JsonRecord & {

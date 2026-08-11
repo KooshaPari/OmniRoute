@@ -20,7 +20,6 @@ test("isFlatRateProvider: dedicated subscription / coding-plan providers are fla
     "kimi-coding-apikey",
     "xiaomi-mimo",
     "bailian-coding-plan",
-    "qwen-cloud-token-plan",
     "glm",
     "glm-cn",
   ]) {
@@ -46,7 +45,6 @@ test("isFlatRateProvider: metered / cost-tracked providers are NOT flat-rate (no
     "byteplus",
     "minimax-cn",
     "glm-thinking",
-    "qwen-cloud",
   ]) {
     assert.equal(isFlatRateProvider(id), false, `${id} should NOT be flat-rate`);
   }

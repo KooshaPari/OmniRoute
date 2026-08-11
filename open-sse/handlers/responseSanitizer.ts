@@ -684,8 +684,8 @@ function sanitizeResponsesStreamingOutput(output: unknown): JsonRecord[] {
 // Native Responses streaming events that carry raw model text directly on the
 // root `delta` field. These must get the same zero-width-joiner stripping as the
 // non-streaming path so agent words (opencode/cursor/aider) are not corrupted.
-// Scoped as an allow-list on purpose: other root `delta` events may carry non-text payloads.
-// Function-call argument events are handled separately by stripping only zero-width code points.
+// Scoped as an allow-list on purpose: `response.function_call_arguments.delta`
+// carries tool-call argument JSON that must pass through byte-exact.
 const RESPONSES_STREAMING_TEXT_DELTA_EVENTS = new Set([
   "response.output_text.delta",
   "response.reasoning_summary_text.delta",
@@ -712,18 +712,6 @@ function sanitizeResponsesStreamingEvent(parsedRecord: JsonRecord): JsonRecord {
   }
   if (RESPONSES_STREAMING_TEXT_DONE_EVENTS.has(eventType) && typeof sanitized.text === "string") {
     sanitized.text = stripZeroWidthText(sanitized.text);
-  }
-  if (
-    eventType === "response.function_call_arguments.delta" &&
-    typeof sanitized.delta === "string"
-  ) {
-    sanitized.delta = stripZeroWidthText(sanitized.delta);
-  }
-  if (
-    eventType === "response.function_call_arguments.done" &&
-    typeof sanitized.arguments === "string"
-  ) {
-    sanitized.arguments = stripZeroWidthText(sanitized.arguments);
   }
 
   if (parsedRecord.item !== undefined) {

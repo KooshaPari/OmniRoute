@@ -87,9 +87,14 @@ export function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd
     }
     // We can't do async here, so we report it as potentially available
     // and the caller will attempt embed + get no_key error on failure.
-    // Dimensions come from the embedding registry when known so sqlite-vec
-    // can create `vec_memories` before the first embed (#8074).
-    return remoteResolution(model, "remote provider configured");
+    // For resolution purposes, mark as remote (will fail at embed time if no key).
+    return {
+      source: "remote",
+      model,
+      dimensions: null,
+      signature: makeSignature("remote", model, null),
+      reason: `remote provider configured: ${model}`,
+    };
   }
 
   if (source === "static") {
@@ -144,8 +149,13 @@ export function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd
         // We defer the actual hasKey check to listEmbeddingProviders (async).
         // For resolveEmbeddingSource (sync), we report "possibly remote" when model is set.
         // If no key, embed will return EmbeddingError{reason:"no_key"}.
-        // Dimensions are resolved from the registry when known (#8074).
-        return remoteResolution(providerModel, `auto: provider ${providerId} configured`);
+        return {
+          source: "remote",
+          model: providerModel,
+          dimensions: null,
+          signature: makeSignature("remote", providerModel, null),
+          reason: `auto: provider ${providerId} configured`,
+        };
       }
     }
 

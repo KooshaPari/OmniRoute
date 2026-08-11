@@ -4,10 +4,7 @@ import * as bodySizeGuard from "../../src/shared/middleware/bodySizeGuard.ts";
 import {
   MAX_BODY_BYTES_AUDIO,
   MAX_BODY_BYTES_FILE,
-  MAX_BODY_BYTES_IMAGE_EDIT,
   MAX_BODY_BYTES_LLM_API,
-  RequestBodyTooLargeError,
-  readRequestBodyWithLimit,
   getBodySizeLimit,
   checkBodySize,
 } from "../../src/shared/middleware/bodySizeGuard.ts";

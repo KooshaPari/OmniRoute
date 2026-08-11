@@ -154,9 +154,9 @@ test("parseSSEToClaudeResponse merges signature_delta into an existing thinking 
 
   const parsed = parseSSEToClaudeResponse(rawSSE, "fallback-model");
 
-  assert.equal((parsed.content[0] as { type: string }).type, "thinking");
-  assert.equal((parsed.content[0] as { thinking: string }).thinking, "first second");
-  assert.equal((parsed.content[0] as { signature: string }).signature, "sig-1");
+  assert.equal((parsed.content[0] as any).type, "thinking");
+  assert.equal((parsed.content[0] as any).thinking, "first second");
+  assert.equal((parsed.content[0] as any).signature, "sig-1");
 });
 
 test("parseSSEToClaudeResponse preserves signature_delta when it arrives before thinking_delta", () => {
@@ -174,9 +174,9 @@ test("parseSSEToClaudeResponse preserves signature_delta when it arrives before 
 
   const parsed = parseSSEToClaudeResponse(rawSSE, "fallback-model");
 
-  assert.equal((parsed.content[0] as { type: string }).type, "thinking");
-  assert.equal((parsed.content[0] as { thinking: string }).thinking, "later thinking");
-  assert.equal((parsed.content[0] as { signature: string }).signature, "sig-before");
+  assert.equal((parsed.content[0] as any).type, "thinking");
+  assert.equal((parsed.content[0] as any).thinking, "later thinking");
+  assert.equal((parsed.content[0] as any).signature, "sig-before");
 });
 
 test("parseSSEToClaudeResponse ignores malformed payloads and returns null when nothing valid remains", () => {

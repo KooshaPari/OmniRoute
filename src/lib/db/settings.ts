@@ -12,7 +12,6 @@ import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/ste
 import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
 import { DEFAULT_RESPONSES_PREVIOUS_RESPONSE_ID_MODE } from "@/shared/constants/responsesPreviousResponseId";
 import { type JsonRecord, toRecord } from "./settings/shared";
-import { resolveNoAuthSharedProviderProxy } from "./settings/noAuthProxyFallback";
 
 type ProxyValue = JsonRecord | string | null;
 type ProxyResolutionResult = {
@@ -802,4 +801,3 @@ export {
   getCacheTrend,
   resetCacheMetrics,
 } from "./settings/cacheMetrics";
-export { getCachedSettings } from "./readCache";

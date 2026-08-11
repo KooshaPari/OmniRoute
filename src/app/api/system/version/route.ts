@@ -18,11 +18,7 @@ import {
   PROJECT_ROOT,
 } from "@/lib/system/autoUpdate";
 import { NEWS_JSON_URL, parseActiveNewsPayload } from "@/shared/utils/releaseNotes";
-import {
-  clearLatestVersionCache,
-  isNewer,
-  resolveLatestVersionCached,
-} from "@/lib/system/versionCheck";
+import { isNewer, resolveLatestVersion } from "@/lib/system/versionCheck";
 import { resolveGlobalOmniroutePath } from "@/lib/system/globalPackagePath";
 // #5542 — On Windows npm is `npm.cmd`; Node ≥24 refuses to execFile a `.cmd` without
 // a shell (nodejs/node#52554 → "spawn npm ENOENT"). buildNpmExecOptions enables the

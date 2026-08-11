@@ -962,7 +962,12 @@ npm install -g omniroute
 omniroute
 ```
 
-Panel pod adresem `http://localhost:20128` · API pod adresem `http://localhost:20128/v1`.
+> **pnpm users:** Pass `--allow-build` at install time to enable native build scripts required by `better-sqlite3` and `@swc/core` (the `approve-builds -g` command is not supported for global installs on pnpm v11):
+>
+> ```bash
+> pnpm add -g omniroute@latest --allow-build=better-sqlite3 --allow-build=@swc/core
+> omniroute
+> ```
 
 **2) Podłącz DARMOWEGO dostawcę (bez rejestracji)**
 

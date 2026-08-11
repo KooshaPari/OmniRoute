@@ -6,7 +6,6 @@
 
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
-import { getProviderConnectionsCount } from "./providers";
 import { type JsonRecord, asRecord, toNonEmptyString, getKeyValue } from "./models/shared";
 import {
   readCompatList,
@@ -40,9 +39,6 @@ export {
   deleteModelAliasesForProvider,
 } from "./models/aliases";
 export { getMitmAlias, setMitmAliasAll } from "./models/mitmAlias";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("db:models");
 
 // ──────────────── Custom Models ────────────────
 

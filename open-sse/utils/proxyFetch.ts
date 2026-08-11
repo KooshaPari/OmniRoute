@@ -148,6 +148,7 @@ export function describeFetchCause(err: unknown): string {
   return parts.join(" | ") || String(err);
 }
 
+
 function isStreamLikeBody(body: unknown): boolean {
   return (
     body !== null &&
@@ -565,14 +566,13 @@ async function patchedFetch(
           }
           if (hasNonReplayableBody) {
             const detail = `dispatcher=[${describeFetchCause(dispatcherError)}] native=[skipped: non-replayable request body]`;
-            log.warn(
-              { detail },
-              "proxy-fetch: skipping native fetch fallback for non-replayable body"
+            console.warn(
+              `[ProxyFetch] skipping native fetch fallback for non-replayable body: ${detail}`
             );
             if (dispatcherError instanceof Error) {
               (dispatcherError as Error & { proxyFetchDetail?: string }).proxyFetchDetail = detail;
             }
-            throw tagProxyUnreachable(dispatcherError);
+            throw dispatcherError;
           }
 
           // All attempts exhausted — try proxy fallback before native fetch

@@ -7,9 +7,7 @@ import {
 } from "@/shared/constants/providers";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getModelsByProviderId } from "@/shared/constants/models";
-import { resolveAlibabaProviderModelsUrl } from "@/shared/constants/alibabaProviderRegions";
 import { getStaticModelsForProvider } from "@/lib/providers/staticModels";
-import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
 import {
   getCachedProviderConnectionById,
@@ -30,10 +28,7 @@ import {
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
-import {
-  fetchGitHubCopilotModels,
-  fetchGheCopilotModels,
-} from "@omniroute/open-sse/services/githubCopilotModels.ts";
+import { fetchGitHubCopilotModels } from "@omniroute/open-sse/services/githubCopilotModels.ts";
 import { fetchKiroAvailableModels } from "@omniroute/open-sse/services/kiroModels.ts";
 import {
   buildGlmCodingHeaders,
@@ -102,7 +97,6 @@ import {
   getAzureOpenAIApiVersion,
   isLocalOpenAIStyleProvider,
   mergeLocalCatalogModels,
-  mergeSpecialtyCatalogIntoLiveModels,
   buildOptionalBearerHeaders,
   buildNamedOpenAiStyleHeaders,
 } from "./discovery/helpers";
@@ -111,105 +105,12 @@ import {
   normalizeDataRobotCatalogResponse,
   normalizeOpenAiLikeModelsResponse,
   normalizeSapModelsResponse,
-  normalizeAzureModelsResponse,
 } from "./discovery/normalizers";
 import { isNamedOpenAIStyleProvider } from "./discovery/providerSets";
-import { buildStaleEncryptionKeyResponse } from "./staleEncryptionGuard";
 import {
   type ProviderModelsConfigEntry,
   PROVIDER_MODELS_CONFIG,
 } from "./discovery/providerModelsConfig";
-import {
-  buildCodexDiscoveryCatalog,
-  enrichCodexModelsFromGithubCatalog,
-  fetchCodexDiscoveryModels,
-  fetchCodexGithubCatalogModels,
-} from "./discovery/codex";
-
-function toLiveModel(item: Record<string, unknown>): { id: string; name: string } | null {
-  const itemId = typeof item.id === "string" ? item.id.trim() : "";
-  if (!itemId) return null;
-  const itemName =
-    typeof item.display_name === "string"
-      ? item.display_name
-      : typeof item.name === "string"
-        ? item.name
-        : itemId;
-  return { id: itemId, name: itemName };
-}
-
-async function fetchLiveNoAuthModels(
-  modelsUrl: string,
-  providerId: string,
-  connectionId: string,
-  excludeHidden: boolean
-): Promise<NextResponse | null> {
-  try {
-    const liveResponse = await safeOutboundFetch(modelsUrl, {
-      ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-      guard: getProviderOutboundGuard(),
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    });
-    if (!liveResponse.ok) return null;
-
-    const data = await liveResponse.json();
-    const liveModels: Array<{ id: string; name: string }> = (
-      (data.data || data.models || []) as Array<Record<string, unknown>>
-    )
-      .map(toLiveModel)
-      .filter((model): model is { id: string; name: string } => model !== null);
-    if (liveModels.length === 0) return null;
-
-    const visible = excludeHidden
-      ? liveModels.filter((model) => !getModelIsHidden(providerId, model.id))
-      : liveModels;
-    return NextResponse.json({
-      provider: providerId,
-      connectionId,
-      models: visible,
-      source: "upstream",
-    });
-  } catch {
-    // Live fetch failed — fall back to the bundled catalog.
-    return null;
-  }
-}
-
-async function buildNoAuthModelsResponse(
-  providerId: string,
-  connectionId: string,
-  excludeHidden: boolean
-) {
-  if (isProviderBlockedByIdOrAlias(providerId, (await getSettings()).blockedProviders)) {
-    return NextResponse.json({ error: "Provider is disabled" }, { status: 403 });
-  }
-
-  const registryEntry = getRegistryEntry(providerId);
-  const modelsUrl =
-    typeof registryEntry?.modelsUrl === "string" && registryEntry.modelsUrl.length > 0
-      ? registryEntry.modelsUrl
-      : null;
-
-  if (modelsUrl) {
-    const live = await fetchLiveNoAuthModels(modelsUrl, providerId, connectionId, excludeHidden);
-    if (live) return live;
-  }
-
-  const catalog = mergeLocalCatalogModels(
-    getModelsByProviderId(providerId) || [],
-    getStaticModelsForProvider(providerId) || []
-  ).map((model) => ({ id: model.id, name: model.name || model.id }));
-  const visible = excludeHidden
-    ? catalog.filter((model) => !getModelIsHidden(providerId, model.id))
-    : catalog;
-  return NextResponse.json({
-    provider: providerId,
-    connectionId,
-    models: visible,
-    source: "local_catalog",
-  });
-}
 
 /**
  * GET /api/providers/[id]/models - Get models list from provider
@@ -2042,8 +1943,9 @@ export async function GET(
         connectionId,
         models: finalizeCodexCatalog([]),
         source: "local_catalog",
+        // #5460/#5465 — Qwen OAuth has no OAuth-compatible remote /models list;
+        // the static catalog is intentional, so model-sync should import it.
         intentional: true,
-        warning: "Codex live and GitHub catalogs unavailable — using local catalog",
       });
     }
 

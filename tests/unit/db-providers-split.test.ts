@@ -99,11 +99,10 @@ describe("providers/columns — small coercers", () => {
 
 const host = await import("../../src/lib/db/providers.ts");
 
-describe("providers.ts public API surface (22 symbols)", () => {
+describe("providers.ts public API surface (23 symbols)", () => {
   const expected = [
     // Connection CRUD (kept in host)
     "getProviderConnections",
-    "getRawProviderConnections",
     "getProviderConnectionById",
     "createProviderConnection",
     "updateProviderConnection",
@@ -123,6 +122,8 @@ describe("providers.ts public API surface (22 symbols)", () => {
     "deleteProviderNode",
     // Rate-limit / quota runtime (re-exported from ./providers/rateLimit)
     "setConnectionRateLimitUntil",
+    "isConnectionRateLimited",
+    "getRateLimitedConnections",
     "getEffectiveQuotaUsage",
     "clearStaleCrashCooldowns",
     "formatResetCountdown",
@@ -134,7 +135,7 @@ describe("providers.ts public API surface (22 symbols)", () => {
     });
   }
 
-  it("exposes exactly the 22 expected callables (no public symbol lost)", () => {
+  it("exposes exactly the 23 expected callables (no public symbol lost)", () => {
     const missing = expected.filter((n) => typeof host[n] !== "function");
     assert.deepEqual(missing, [], `missing public exports: ${missing.join(", ")}`);
   });

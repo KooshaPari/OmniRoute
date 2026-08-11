@@ -35,7 +35,7 @@ import {
   normalizeUsageQuotasForProvider,
   sanitizeUsageQuotasForProvider,
 } from "./providerLimits/quotaNormalize";
-import { syncInChunksWithSpacing } from "./providerLimits/chunkedSpacingSync";
+
 type JsonRecord = Record<string, unknown>;
 type SyncSource = "manual" | "scheduled";
 

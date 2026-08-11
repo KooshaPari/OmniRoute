@@ -175,7 +175,9 @@ function invalidOriginResponse(requestId: string): NextResponse {
     {
       error: {
         code: "INVALID_ORIGIN",
-        message: "Invalid request origin",
+        message:
+          "Invalid request origin. Same-origin dashboard writes must include a valid dashboard CSRF token. " +
+          "Refresh the dashboard and retry, or set OMNIROUTE_PUBLIC_BASE_URL for non-dashboard browser integrations.",
         correlation_id: requestId,
       },
     },
@@ -230,6 +232,19 @@ export async function runAuthzPipeline(
   const classification = classifyRoute(pathname, method);
   const guardedPathname = classification.normalizedPath;
   const managementDashboardRoute = isManagementDashboardRoute(classification, pathname);
+
+  // Relax the CORS origin fallback ONLY for the token-authenticated API
+  // surface (CLIENT_API: /v1/*, /v1beta/*, codex/responses aliases) and
+  // read-only PUBLIC endpoints. These authenticate via Authorization /
+  // x-api-key headers that browsers never auto-attach, so echoing the caller's
+  // Origin (or `*`) there carries no credentialed-session / CSRF risk — it just
+  // lets browser/Electron clients (issue #5242) read responses they are already
+  // entitled to. MANAGEMENT (cookie-authed dashboard) and non-read-only PUBLIC
+  // routes (e.g. /api/cloud/, which sets Allow-Credentials in its own handler)
+  // stay exactly fail-closed.
+  const corsRelaxOrigin =
+    classification.routeClass === "CLIENT_API" ||
+    (classification.routeClass === "PUBLIC" && classification.reason === "public_readonly_prefix");
 
   if (guardedPathname.startsWith("/api/") && isDraining()) {
     const response = drainingResponse(requestId);
@@ -331,7 +346,9 @@ export async function runAuthzPipeline(
     isUnsafeMutationMethod(method)
   ) {
     const originVerdict = validateBrowserMutationOrigin(request);
-    if (!originVerdict.ok) {
+    const csrfOriginFallback =
+      originVerdict.reason === "invalid-origin" && validateDashboardCsrfToken(request);
+    if (!originVerdict.ok && !csrfOriginFallback) {
       const rejection = invalidOriginResponse(requestId);
       rejection.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
       applyCorsHeaders(rejection, request);

@@ -713,7 +713,6 @@ function markResponsesReasoningDeltaEmitted(state, itemId) {
 // its thinking panel (`reasoning_content`, or `reasoning_text` for Copilot-compatible
 // clients). Mirrors the `response.reasoning_summary_text.delta` branch.
 function buildResponsesReasoningDeltaChunk(state, text) {
-  if (isInternalReasoningPlaceholder(text)) return null;
   const delta = state.copilotCompatibleReasoning
     ? { reasoning_text: text }
     : { reasoning_content: text };
@@ -730,6 +729,15 @@ function buildResponsesReasoningDeltaChunk(state, text) {
       },
     ],
   };
+}
+
+function extractResponsesReasoningSummaryText(item) {
+  if (!item || !Array.isArray(item.summary)) return "";
+  return item.summary
+    .map((part) =>
+      part && typeof part === "object" && typeof part.text === "string" ? part.text : ""
+    )
+    .join("");
 }
 
 /**
@@ -1138,11 +1146,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
       !(state.reasoningItemsWithDelta instanceof Set && state.reasoningItemsWithDelta.size > 0);
     if (emittedForItem || emittedWithoutItemId) return null;
 
-    // #7095/#7176 reconciliation: computed WITHOUT mutating `item`, so an
-    // encrypted-only reasoning item (and its `encrypted_content`) is never
-    // rewritten with a fabricated `summary` — the placeholder only feeds this
-    // synthetic client-facing delta chunk.
-    const summaryText = getVisibleResponsesReasoningSummaryText(item);
+    const summaryText = extractResponsesReasoningSummaryText(item);
     if (!summaryText) return null;
     return buildResponsesReasoningDeltaChunk(state, summaryText);
   }

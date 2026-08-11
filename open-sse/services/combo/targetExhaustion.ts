@@ -77,7 +77,20 @@ export function applyComboTargetExhaustion(
   target: ResolvedComboTarget,
   opts: ApplyComboTargetExhaustionOptions
 ): boolean {
-  const { result, sets, log, tag } = opts;
+  const {
+    result,
+    fallbackResult,
+    errorText,
+    rawModel,
+    isTokenLimitBreach,
+    allAccountsRateLimited,
+    sets,
+    log,
+    tag,
+    exhaustedLogLevel,
+    structuredError,
+  } = opts;
+  const { exhaustedProviders, exhaustedConnections, transientRateLimitedProviders } = sets;
   const provider = target.provider;
 
   // #8133/#8137: auth-level failures (401/403) mean that connection's credentials are bad.
@@ -88,9 +101,21 @@ export function applyComboTargetExhaustion(
   }
 
   // #1731: full provider quota exhausted → skip remaining same-provider targets this request.
-  const providerExhausted = isProviderQuotaExhausted(provider, opts);
+  // Passthrough/per-model-quota providers multiplex models behind one connection, so a quota
+  // 429 for one model must NOT skip fallback targets for another model on the same provider.
+  const providerExhausted =
+    Boolean(provider && provider !== "unknown") &&
+    !hasPerModelQuota(provider, rawModel) &&
+    (isProviderExhaustedReason(fallbackResult) ||
+      classifyErrorText(structuredError?.code || errorText) === RateLimitReason.QUOTA_EXHAUSTED ||
+      allAccountsRateLimited);
   if (providerExhausted) {
-    markProviderQuotaExhaustion(provider as string, opts);
+    exhaustedProviders.add(provider);
+    const emit = exhaustedLogLevel === "debug" ? log.debug : log.info;
+    emit?.(
+      tag,
+      `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
+    );
   } else {
     if (result.status === 429 && !isTokenLimitBreach && provider && provider !== "unknown") {
       transientRateLimitedProviders.add(provider);

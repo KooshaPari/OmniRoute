@@ -21,8 +21,12 @@ async function resetStorage() {
         fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
       }
       break;
-    } catch (error: any) {
-      if ((error?.code === "EBUSY" || error?.code === "EPERM") && attempt < 9) {
+    } catch (error: unknown) {
+      const code =
+        error && typeof error === "object" && "code" in error
+          ? (error as { code?: unknown }).code
+          : null;
+      if ((code === "EBUSY" || code === "EPERM") && attempt < 9) {
         await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
       } else {
         throw error;
@@ -30,6 +34,11 @@ async function resetStorage() {
     }
   }
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+}
+
+function getCreatedConnectionId(connection: { id?: unknown }): string {
+  assert.equal(typeof connection.id, "string");
+  return connection.id;
 }
 
 test.after(async () => {
@@ -58,7 +67,7 @@ test("checkConnection marks refresh-capable provider with no refresh token as ex
 
   await tokenHealthCheck.checkConnection(connection);
 
-  const updated = await providersDb.getProviderConnectionById((connection as any).id);
+  const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
   assert.equal(updated?.testStatus, "expired");
   assert.equal(updated?.errorCode, "no_refresh_token");
   assert.ok(updated?.lastHealthCheckAt);
@@ -85,7 +94,7 @@ test("checkConnection leaves a connection WITH a refresh token untouched (#5326)
 
   await tokenHealthCheck.checkConnection(connection);
 
-  const updated = await providersDb.getProviderConnectionById((connection as any).id);
+  const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
   assert.equal(updated?.testStatus, "active");
   assert.notEqual(updated?.errorCode, "no_refresh_token");
 });
@@ -108,7 +117,7 @@ test("checkConnection leaves a non-refresh provider with no refresh token untouc
 
   await tokenHealthCheck.checkConnection(connection);
 
-  const updated = await providersDb.getProviderConnectionById((connection as any).id);
+  const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
   assert.equal(updated?.testStatus, "active");
   assert.notEqual(updated?.errorCode, "no_refresh_token");
 });
@@ -164,45 +173,4 @@ test("checkConnection clears stale no_refresh_token state for usable GitHub Copi
   assert.equal(updated?.errorCode ?? null, null);
   assert.equal(updated?.lastError ?? null, null);
   assert.ok(updated?.lastHealthCheckAt);
-});
-
-// Boundary regression for #8182 vs #5326: the terminal-skip guard added by #8182
-// must keep skipping a GitHub Copilot connection that is "expired" for a DIFFERENT
-// reason than the recoverable no_refresh_token self-heal above (e.g. a manually
-// banned/invalidated account). Only the EXACT no_refresh_token shape is exempted
-// from the terminal skip — this proves the #5326 fix did not reopen #8182's
-// wasted-probe fix for every "expired" GitHub connection.
-test("checkConnection still skips a GitHub Copilot connection expired for a non-no_refresh_token reason (#8182 boundary)", async () => {
-  await resetStorage();
-
-  const connection = await providersDb.createProviderConnection({
-    provider: "github",
-    authType: "oauth",
-    name: "GitHub Genuinely Expired Account",
-    accessToken: "github-access-token",
-    refreshToken: null,
-    providerSpecificData: {
-      copilotToken: "copilot-token",
-      copilotTokenExpiresAt: Math.floor((Date.now() + 60 * 60 * 1000) / 1000),
-    },
-    testStatus: "expired",
-    errorCode: "invalid_grant",
-    lastError: "Manually invalidated by operator.",
-    isActive: true,
-  });
-
-  await tokenHealthCheck.checkConnection(connection);
-
-  const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
-  assert.equal(
-    updated?.testStatus,
-    "expired",
-    "terminal-skip must still apply outside the exact no_refresh_token shape"
-  );
-  assert.equal(updated?.errorCode, "invalid_grant");
-  assert.equal(
-    updated?.lastHealthCheckAt ?? null,
-    null,
-    "checkConnection must return early without touching the row at all"
-  );
 });

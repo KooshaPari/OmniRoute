@@ -121,40 +121,15 @@ export async function POST(request) {
       baseUrl,
       type,
       compatMode,
-      preset,
       chatPath,
       modelsPath,
       customHeaders,
-      iconUrl,
     } = validation.data;
-
-    if (preset === "vibeproxy-openai") {
-      // Schema guarantees baseUrl is non-empty for this preset.
-      const sanitizedBaseUrl = sanitizeVibeProxyBaseUrl(baseUrl as string);
-      const baseUrlError = validateProviderNodeBaseUrl(sanitizedBaseUrl);
-      if (baseUrlError) return baseUrlError;
-
-      const node = await createProviderNode({
-        id: `${OPENAI_COMPATIBLE_PREFIX}${VIBEPROXY_OPENAI_DEFAULTS.apiType}-${generateId()}`,
-        type: "openai-compatible",
-        prefix: (prefix?.trim() || VIBEPROXY_OPENAI_DEFAULTS.prefix).trim(),
-        apiType: apiType || VIBEPROXY_OPENAI_DEFAULTS.apiType,
-        baseUrl: sanitizedBaseUrl,
-        name: (name?.trim() || VIBEPROXY_OPENAI_DEFAULTS.name).trim(),
-        chatPath: chatPath || null,
-        modelsPath: modelsPath || null,
-        iconUrl: iconUrl?.trim() || null,
-        customHeaders: customHeaders || null,
-      });
-      return NextResponse.json({ node }, { status: 201 });
-    }
 
     // Determine type
     const nodeType = type || "openai-compatible";
 
     if (nodeType === "openai-compatible") {
-      const resolvedName = (name || "").trim();
-      const resolvedPrefix = (prefix || "").trim();
       const resolvedBaseUrl = (baseUrl || OPENAI_COMPATIBLE_DEFAULTS.baseUrl).trim();
       const baseUrlError = validateProviderNodeBaseUrl(resolvedBaseUrl);
       if (baseUrlError) return baseUrlError;
@@ -165,7 +140,7 @@ export async function POST(request) {
         prefix: resolvedPrefix,
         apiType,
         baseUrl: resolvedBaseUrl,
-        name: resolvedName,
+        name: name.trim(),
         chatPath: chatPath || null,
         modelsPath: modelsPath || null,
         iconUrl: iconUrl?.trim() || null,

@@ -15,12 +15,7 @@ import {
   normalizeProviderCooldownSettings,
   normalizeQuotaPreflightSettings,
   normalizeStreamRecoverySettings,
-  normalizeProviderQuotaOverrides,
 } from "./settings/normalize";
-import {
-  DEFAULT_SELF_HEALING_SETTINGS,
-  normalizeSelfHealingSettings,
-} from "./selfHealingSettings";
 
 // Re-export the settings shape (moved to ./settings/types) so this module's
 // public API is unchanged.
@@ -34,7 +29,6 @@ export type {
   ProviderCooldownSettings,
   QuotaPreflightSettings,
   StreamRecoverySettings,
-  ProviderQuotaOverrideSettings,
   ResilienceSettings,
   ResilienceSettingsPatch,
 } from "./settings/types";

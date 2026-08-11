@@ -84,16 +84,6 @@ test("normalizeSystemRole merges system and developer content into the first use
   ]);
 });
 
-test("normalizeSystemRole preserves system role for glm-5.1 and glm-5.2", () => {
-  const messages = [
-    { role: "system", content: "follow policy" },
-    { role: "user", content: "say hello" },
-  ];
-
-  assert.deepEqual(normalizeSystemRole(messages, "openai", "glm-5.1"), messages);
-  assert.deepEqual(normalizeSystemRole(messages, "openai", "glm-5.2"), messages);
-});
-
 test("normalizeSystemRole preserves the system role for GLM > 5.0 (glm-5.1/5.2 support it, #5610)", () => {
   const messages = [
     { role: "system", content: "be helpful" },

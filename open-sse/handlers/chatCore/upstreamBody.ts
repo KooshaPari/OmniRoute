@@ -49,36 +49,37 @@ function buildAppliedRulesSummary(
 function truncateToolList(
   bodyToSend: Body,
   provider: string | null | undefined,
-  bypassDefaultToolLimit: boolean,
   log?: LoggerLike
 ): Body {
-  if (!Array.isArray(bodyToSend.tools)) return bodyToSend;
-
-  const knownLimit = getKnownToolLimit(provider);
-  if (knownLimit !== null) {
-    if (bodyToSend.tools.length > knownLimit) {
-      const originalCount = bodyToSend.tools.length;
-      const truncatedTools = bodyToSend.tools.slice(0, knownLimit);
-      bodyToSend = { ...bodyToSend, tools: truncatedTools };
-      log?.debug?.(
-        "TOOL_LIMIT",
-        `Truncated ${originalCount} tools to ${knownLimit} for ${provider}`
-      );
-    }
-    return bodyToSend;
-  }
-
-  if (bypassDefaultToolLimit === true) return bodyToSend;
-
   const effectiveToolLimit = getEffectiveToolLimit(provider);
-  if (bodyToSend.tools.length > effectiveToolLimit) {
-    const originalCount = bodyToSend.tools.length;
+  if (Array.isArray(bodyToSend.tools) && bodyToSend.tools.length > effectiveToolLimit) {
     const truncatedTools = bodyToSend.tools.slice(0, effectiveToolLimit);
     bodyToSend = { ...bodyToSend, tools: truncatedTools };
     log?.debug?.(
       "TOOL_LIMIT",
       `Truncated ${originalCount} tools to ${effectiveToolLimit} for ${provider}`
     );
+  }
+  return bodyToSend;
+}
+
+// Qwen OAuth rejects requests without a non-empty `user` field. Some minimal OpenAI-compatible
+// clients omit it, so we backfill a stable default only for OAuth mode (API key mode is unaffected).
+function backfillQwenOAuthUser(
+  bodyToSend: Body,
+  provider: string | null | undefined,
+  credentials: CredentialsLike,
+  log?: LoggerLike
+): Body {
+  const hasValidQwenUser = typeof bodyToSend.user === "string" && bodyToSend.user.trim().length > 0;
+  const isQwenOAuthRequest =
+    provider === "qwen" &&
+    !credentials?.apiKey &&
+    typeof credentials?.accessToken === "string" &&
+    credentials.accessToken.trim().length > 0;
+  if (isQwenOAuthRequest && !hasValidQwenUser) {
+    bodyToSend = { ...bodyToSend, user: "omniroute-qwen-oauth" };
+    log?.debug?.("QWEN", "Injected fallback user for OAuth request");
   }
   return bodyToSend;
 }

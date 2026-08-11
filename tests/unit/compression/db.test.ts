@@ -52,7 +52,6 @@ describe("getCompressionSettings", () => {
     assert.equal(settings.cacheMinutes, 5);
     assert.equal(settings.preserveSystemPrompt, true);
     assert.equal(settings.preserveSystemPromptMode, "always");
-    assert.deepEqual(settings.liveZone, { enabled: false });
     assert.deepEqual(settings.comboOverrides, {});
     assert.equal(settings.ultra?.enabled, false);
     assert.equal(settings.ultra?.compressionRate, 0.5);

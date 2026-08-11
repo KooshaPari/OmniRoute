@@ -181,11 +181,6 @@ export function buildOmniRouteResponseMetaHeaders({
     headers[OMNIROUTE_RESPONSE_HEADERS.fallbackAttempts] = toHeaderValue(String(attempts));
   }
 
-  const decisionValue = buildOmniRouteDecisionHeaderValue({ strategy, provider, latencyMs });
-  if (decisionValue !== null) {
-    headers[OMNIROUTE_RESPONSE_HEADERS.decision] = decisionValue;
-  }
-
   return headers;
 }
 

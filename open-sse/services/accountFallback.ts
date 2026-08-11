@@ -1347,9 +1347,6 @@ export function checkFallbackError(
    * circuit-breaker failure when this flag is set. */
   skipProviderBreaker?: boolean;
   quotaResetHintMs?: number;
-  /** #6061: the provider-configured cooldown (ms) before backoff scaling, surfaced so the
-   * caller can persist an explicit reset window instead of the engine's scaled cooldown. */
-  configuredCooldownMs?: number;
 } {
   const svc = serviceSupervisorCooldown(status, headers);
   if (svc) return svc;
@@ -1539,21 +1536,36 @@ export function checkFallbackError(
       };
     }
 
-    // Issue #2321 (5h subscription quota) + Issue #3709 (ollama-cloud weekly
-    // cap): both classifiers live in quotaTextCooldowns.ts (this file is
-    // frozen at its file-size-baseline cap). The weekly check runs
-    // UNCONDITIONALLY (not gated by shouldUseQuotaSignal) because it targets
-    // apikey-category providers like ollama-cloud, which the oauth-only
-    // shouldUseQuotaSignal gate deliberately excludes from the subscription
-    // check above.
-    if (shouldUseQuotaSignal && !isCreditsExhausted(errorStr) && !isDailyQuotaExhausted(errorStr)) {
-      const subResult = buildSubscriptionQuotaFallback(
-        errorStr,
-        getUpstreamRetryHintMs,
-        parseRetryFromErrorText,
-        provider
-      );
-      if (subResult) return subResult;
+    // Issue #2321: Anthropic OAuth (Claude Pro/Team) returns 429 with
+    // "Usage Limit Reached" for the 5-hour subscription quota. The
+    // pattern-based classifier now flags these as QUOTA_EXHAUSTED, but
+    // without a dedicated branch the request would still fall through to
+    // the generic 429 retry path (~5s base cooldown). Honor upstream
+    // Retry-After / reset hints only when the profile enables them;
+    // otherwise apply a local 1h cooldown so all Pro accounts on the same
+    // subscription tier stop cycling through tight retries without letting
+    // upstream-provided windows bypass the operator setting. (We
+    // deliberately do not use COOLDOWN_MS.paymentRequired here — that
+    // constant is 2 minutes, which is shorter than the recovery time of a
+    // subscription quota.)
+    if (
+      shouldUseQuotaSignal &&
+      !isCreditsExhausted(errorStr) &&
+      !isDailyQuotaExhausted(errorStr) &&
+      isSubscriptionQuotaText(errorStr.toLowerCase())
+    ) {
+      // getUpstreamRetryHintMs() gates both headers and body reset text on
+      // profile.useUpstreamRetryHints.
+      const hintMs = getUpstreamRetryHintMs();
+      const SUBSCRIPTION_QUOTA_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
+      const bodyHint = parseRetryFromErrorText(errorStr);
+      return {
+        shouldFallback: true,
+        cooldownMs: hintMs ?? SUBSCRIPTION_QUOTA_COOLDOWN_MS,
+        reason: RateLimitReason.QUOTA_EXHAUSTED,
+        usedUpstreamRetryHint: Boolean(hintMs),
+        quotaResetHintMs: bodyHint ?? undefined,
+      };
     }
     const weeklyResult = buildWeeklyQuotaFallback(errorStr);
     if (weeklyResult) return weeklyResult;

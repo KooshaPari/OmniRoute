@@ -3,11 +3,6 @@
 // catalog host shrinks toward the file-size cap without changing behavior — every
 // function body here is byte-identical to its previous in-catalog definition.
 
-import {
-  CANONICAL_EFFORT_VALUES,
-  extendCodexGpt56EffortValues,
-} from "@/shared/reasoning/effortStandardization";
-
 export interface CustomModelEntry {
   id?: string;
   name?: string;
@@ -35,7 +30,7 @@ export type ComboTargetCatalogMetadata = {
   maxOutputTokens?: number;
   inputModalities?: string[];
   outputModalities?: string[];
-  capabilities: Record<string, boolean | string[]>;
+  capabilities: Record<string, boolean>;
 };
 
 export function isPositiveFiniteNumber(value: unknown): value is number {
@@ -78,54 +73,4 @@ export function minKnownNumber(values: Array<number | undefined>): number | unde
   const knownValues = values.filter(isPositiveFiniteNumber);
   if (knownValues.length === 0) return undefined;
   return Math.min(...knownValues);
-}
-
-export function getThinkingCapabilityFields(
-  providerId: string,
-  modelId: string,
-  resolvedThinking?: boolean | null
-): Record<string, boolean | string[]> {
-  const supportsThinking = resolvedThinking;
-  if (typeof supportsThinking !== "boolean") return {};
-  return {
-    thinking: supportsThinking,
-    supportsThinking,
-    ...(supportsThinking
-      ? {
-          effort_tiers: extendCodexGpt56EffortValues(providerId, modelId, CANONICAL_EFFORT_VALUES),
-        }
-      : {}),
-  };
-}
-
-export function mergeComboCapabilities(
-  metadata: ComboTargetCatalogMetadata[]
-): Record<string, boolean | string[]> {
-  const capabilities: Record<string, boolean | string[]> = {};
-  for (const key of [
-    "tool_calling",
-    "reasoning",
-    "vision",
-    "attachment",
-    "structured_output",
-    "temperature",
-    "thinking",
-    "supportsThinking",
-  ]) {
-    const values = metadata.map((entry) => entry.capabilities[key]);
-    if (values.every((value): value is boolean => typeof value === "boolean")) {
-      const [first] = values;
-      if (values.every((value) => value === first)) capabilities[key] = first;
-    }
-  }
-  const effortTiers = metadata.map((entry) => entry.capabilities.effort_tiers);
-  if (
-    effortTiers.every(
-      (value): value is string[] =>
-        Array.isArray(value) && value.every((entry) => typeof entry === "string")
-    )
-  ) {
-    capabilities.effort_tiers = intersectStringArrays(effortTiers);
-  }
-  return capabilities;
 }

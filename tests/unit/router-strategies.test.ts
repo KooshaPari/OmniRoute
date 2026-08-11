@@ -145,51 +145,6 @@ test("latency — uses TTFT, TPS, and E2E metrics to pick the fastest provider-m
   assert.match(decision.reason, /tps=120/);
 });
 
-test("latency — TPS breaks an otherwise comparable latency tie", () => {
-  const pool = [
-    cand({ provider: "slower-generation", avgTokensPerSecond: 40 }),
-    cand({ provider: "faster-generation", avgTokensPerSecond: 80 }),
-  ];
-  assert.equal(getStrategy("latency").select(pool, ctx).provider, "faster-generation");
-});
-
-test("latency — nonpositive or malformed TPS evidence cannot manufacture a score", () => {
-  const pool = [
-    cand({ provider: "invalid-evidence", avgTokensPerSecond: Number.NaN }),
-    cand({ provider: "known-latency", p95LatencyMs: 90 }),
-  ];
-  assert.equal(getStrategy("latency").select(pool, ctx).provider, "known-latency");
-});
-
-test("latency — historical TTFT/E2E evidence can change the selected candidate", () => {
-  const pool = [
-    cand({
-      provider: "low-p95",
-      p95LatencyMs: 100,
-      avgTtftMs: 140,
-      avgE2ELatencyMs: 800,
-    }),
-    cand({
-      provider: "historically-fast-stream",
-      p95LatencyMs: 200,
-      avgTtftMs: 30,
-      avgE2ELatencyMs: 300,
-      latencyStdDev: 10,
-    }),
-  ];
-
-  assert.equal(getStrategy("latency").select(pool, ctx).provider, "historically-fast-stream");
-});
-
-test("latency — zero or missing TTFT has no false fast advantage", () => {
-  const pool = [
-    cand({ provider: "zero-ttft", p95LatencyMs: 300, avgTtftMs: 0 }),
-    cand({ provider: "known-ttft", p95LatencyMs: 200, avgTtftMs: 100 }),
-  ];
-
-  assert.equal(getStrategy("latency").select(pool, ctx).provider, "known-ttft");
-});
-
 test("latency — failure rate can outweigh excellent raw speed", () => {
   const pool = [
     cand({

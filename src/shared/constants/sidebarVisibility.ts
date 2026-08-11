@@ -4,7 +4,6 @@ export { COMPRESSION_CONTEXT_GROUP, SIDEBAR_SECTIONS } from "./sidebarVisibility
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "./sidebarVisibility/types";
 import type {
   HideableSidebarItemId,
-  SidebarItemId,
   SidebarSectionId,
   SidebarItemDefinition,
   SidebarSectionChild,

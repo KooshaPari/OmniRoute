@@ -8,59 +8,35 @@
  *
  *   - Endpoint:  POST /apiv2/kimi.gateway.chat.v1.ChatService/Chat
  *   - Protocol:  Connect-RPC (unary envelope framing — 5-byte header + JSON)
- *   - Auth:      `Authorization: Bearer <access_token>`
- *   - Body:      Connect-framed ChatRequest JSON using protobuf field names
+ *   - Auth:      `Authorization: Bearer <JWT>` + `Cookie: kimi-auth=<JWT>`
+ *   - Body:      Connect-framed `{scenario, message:{role,blocks:[{text:{content}}]},
+ *                options:{thinking,enable_plugin}}`
  *   - Response:  Connect-framed stream of events carrying deltas with one of
  *                `mask: "block.text.content"` (answer) or
  *                `mask: "block.think.content"` (reasoning), emitted via
  *                `op: "set"` (initial) and `op: "append"` (incremental).
  *
- * The current SPA stores `access_token` in localStorage. A legacy `kimi-auth`
- * cookie is accepted as input for existing OmniRoute connections, but only the
- * extracted token is forwarded and browser cookies are never replayed.
+ * Cookie handling: the user pastes their full Cookie header from www.kimi.com.
+ * We extract the `kimi-auth` JWT from it (it is the only cookie the upstream
+ * actually consults) and use it both as the Bearer token and as the Cookie we
+ * send back, so we don't leak the user's analytics cookies (Ga, CF, HM, ...).
  *
  * The `x-msh-*` / `x-traffic-id` / `x-msh-shield-data` headers the SPA sends
  * are NOT required — verified by stripping them one at a time against a live
  * session; the upstream returns the same response either way.
  */
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import {
-  makeExecutorErrorResult as makeErrorResult,
-  sanitizeErrorMessage,
-} from "../utils/error.ts";
-import { extractKimiAccessToken } from "@/lib/providers/webCookieAuth";
-import {
-  type KimiWebModelConfig,
-  resolveKimiWebContextLength,
-  resolveKimiWebModelConfig,
-  resolveKimiWebReasoningEffort,
-} from "../config/providers/registry/kimi/web/runtime.ts";
+import { makeExecutorErrorResult as makeErrorResult, sanitizeErrorMessage } from "../utils/error.ts";
+import { extractKimiJwt } from "@/lib/providers/webCookieAuth";
 
-export { extractKimiAccessToken };
+export { extractKimiJwt };
 
 const BASE_URL = "https://www.kimi.com";
 const CHAT_URL = `${BASE_URL}/apiv2/kimi.gateway.chat.v1.ChatService/Chat`;
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
-/**
- * Map a Kimi model id (the `key` field from `GetAvailableModels`) to the
- * request shape the upstream expects. Today only the chat-tier `k2d6` family
- * is supported — the agent variants (`k2d6-agent`, `k2d6-agent-ultra`) need
- * a different scenario (`SCENARIO_OK_COMPUTER`) plus `kimiPlusId` /
- * `agentMode` fields that this executor does not shape; users who need
- * agentic Kimi should use the `kimi-coding` (api.kimi.com) provider.
- */
-export interface KimiModelConfig {
-  scenario: string;
-  thinking: boolean;
-}
-
-export function resolveModelConfig(modelId: string): KimiModelConfig {
-  if (modelId === "k2d6-thinking") return { scenario: "SCENARIO_K2D5", thinking: true };
-  // `k2d6` (Instant) and any unknown id fall back to the default chat scenario.
-  return { scenario: "SCENARIO_K2D5", thinking: false };
-}
+const DEFAULT_SCENARIO = "SCENARIO_K2D5";
 
 /** Wrap a JSON message in the 5-byte Connect streaming envelope (flags + length). */
 export function frameConnectMessage(json: string): Uint8Array {
@@ -76,7 +52,7 @@ export function frameConnectMessage(json: string): Uint8Array {
   return framed;
 }
 
-export interface ConnectFrame {
+interface ConnectFrame {
   flags: number;
   message: Record<string, unknown> | null;
 }
@@ -100,10 +76,7 @@ const MAX_FRAME_LEN = 8 * 1024 * 1024;
  *     (caller must treat this as a stream-fatal protocol error)
  *   - `consumed: N` + the parsed frame otherwise
  */
-export function decodeConnectFrame(
-  buf: Uint8Array,
-  byteOffset: number
-): { consumed: number; frame: ConnectFrame | null } {
+export function decodeConnectFrame(buf: Uint8Array, byteOffset: number): { consumed: number; frame: ConnectFrame | null } {
   if (byteOffset + 5 > buf.length) return { consumed: 0, frame: null };
   const flags = buf[byteOffset];
   const len =
@@ -115,35 +88,17 @@ export function decodeConnectFrame(
   const msgLen = len < 0 ? len + 0x100000000 : len;
   if (msgLen > MAX_FRAME_LEN) return { consumed: -1, frame: null };
   if (byteOffset + 5 + msgLen > buf.length) return { consumed: 0, frame: null };
-  if ((flags & ~0x03) !== 0) {
-    throw new Error(`Kimi Connect frame used unsupported flags: ${flags}`);
-  }
-  if ((flags & 0x01) !== 0) {
-    throw new Error("Kimi Connect compressed frames are not supported");
-  }
 
   const payload = buf.subarray(byteOffset + 5, byteOffset + 5 + msgLen);
   let message: Record<string, unknown> | null = null;
   if (msgLen > 0) {
     try {
       message = JSON.parse(new TextDecoder().decode(payload));
-    } catch (error) {
-      throw new Error(
-        `Kimi Connect frame contained invalid JSON: ${error instanceof Error ? error.message : "parse failed"}`
-      );
+    } catch {
+      message = null;
     }
   }
   return { consumed: 5 + msgLen, frame: { flags, message } };
-}
-
-export function getConnectEndStreamError(frame: ConnectFrame): string | null {
-  if ((frame.flags & 0x02) === 0) return null;
-  const error = frame.message?.error;
-  if (!error || typeof error !== "object" || Array.isArray(error)) return null;
-  const record = error as Record<string, unknown>;
-  const code = typeof record.code === "string" ? record.code : "unknown";
-  const message = typeof record.message === "string" ? record.message : "upstream error";
-  return `${code}: ${message}`;
 }
 
 type DeltaKind = "text" | "think" | null;
@@ -158,9 +113,7 @@ type DeltaKind = "text" | "think" | null;
  * Anything else (heartbeats, chat/message metadata, stage transitions) is
  * suppressed; we only surface text to the client.
  */
-export function extractDelta(
-  msg: Record<string, unknown> | null
-): { kind: DeltaKind; text: string } | null {
+export function extractDelta(msg: Record<string, unknown> | null): { kind: DeltaKind; text: string } | null {
   if (!msg) return null;
   const op = String(msg.op ?? "");
   const mask = String(msg.mask ?? "");
@@ -193,69 +146,43 @@ export function extractDelta(
   return null;
 }
 
-type KimiWebInputMessage = {
-  role: string;
-  content: unknown;
-  tool_calls?: unknown;
-};
-
-export interface FoldedKimiWebMessages {
-  prompt: string;
-  systemPrompt: string;
+export function isEndOfStream(msg: Record<string, unknown> | null): boolean {
+  if (!msg) return false;
+  // Assistant message flipped to COMPLETED.
+  const message = (msg.message ?? null) as Record<string, unknown> | null;
+  if (message && String(message.status ?? "") === "MESSAGE_STATUS_COMPLETED" && String(message.role ?? "") === "assistant") {
+    return true;
+  }
+  return false;
 }
 
-function textFromContent(content: unknown): string {
-  if (typeof content === "string") return content;
-  if (!Array.isArray(content)) {
-    throw new Error("Kimi Web only supports text message content");
-  }
-
-  return content
-    .map((part) => {
-      if (!part || typeof part !== "object" || Array.isArray(part)) {
-        throw new Error("Kimi Web only supports text message content");
-      }
-      const record = part as Record<string, unknown>;
-      if (
-        (record.type === "text" || record.type === "input_text") &&
-        typeof record.text === "string"
-      ) {
-        return record.text;
-      }
-      throw new Error("Kimi Web does not support image, audio, file, or tool content");
-    })
-    .join("");
-}
-
-/** Fold text-only OpenAI history into the single user turn accepted by Kimi Web. */
-export function foldMessages(messages: KimiWebInputMessage[]): FoldedKimiWebMessages {
-  const systemParts: string[] = [];
-  const conversationParts: string[] = [];
-
-  for (const message of messages) {
-    if (message.role === "tool" || message.role === "function") {
-      throw new Error("Kimi Web does not support tool result messages");
-    }
-    if (message.tool_calls !== undefined) {
-      throw new Error("Kimi Web does not support assistant tool calls");
-    }
-
-    const text = textFromContent(message.content);
-    if (message.role === "system" || message.role === "developer") {
-      if (text) systemParts.push(text);
-    } else if (message.role === "user") {
-      if (text) conversationParts.push(conversationParts.length > 0 ? `User: ${text}` : text);
-    } else if (message.role === "assistant") {
-      if (text) conversationParts.push(`Assistant: ${text}`);
-    } else {
-      throw new Error(`Kimi Web does not support message role ${message.role}`);
+/**
+ * Fold a multi-turn OpenAI `messages` array into a single Kimi user turn.
+ *
+ * Limitations (kimi-web is a single-turn consumer chat, not an agentic API):
+ *   - `tool` and `function` role messages are silently dropped — Kimi's web
+ *     chat has no concept of tool results, so agentic flows should use the
+ *     `kimi-coding` (api.kimi.com) provider instead.
+ *   - Assistant `tool_calls` and image content parts are stringified into
+ *     text, which loses structure. Acceptable for free-text continuation,
+ *     unacceptable for tool-round-trip — same workaround: use kimi-coding.
+ */
+export function foldMessages(messages: Array<{ role: string; content: unknown }>): string {
+  let system = "";
+  let user = "";
+  for (const m of messages) {
+    const text = typeof m.content === "string" ? m.content : JSON.stringify(m.content ?? "");
+    if (m.role === "system") {
+      system += (system ? "\n\n" : "") + text;
+    } else if (m.role === "user") {
+      // Kimi's web chat is single-turn; keep only the latest user content but
+      // preserve prior assistant text for continuity when present.
+      user = user ? `${user}\n\n${text}` : text;
+    } else if (m.role === "assistant") {
+      user = user ? `${user}\n\nAssistant: ${text}` : `Assistant: ${text}`;
     }
   }
-
-  return {
-    prompt: conversationParts.join("\n\n").trim(),
-    systemPrompt: systemParts.join("\n\n").trim(),
-  };
+  return system ? `${system}\n\n${user}` : user;
 }
 
 export class KimiWebExecutor extends BaseExecutor {
@@ -263,7 +190,7 @@ export class KimiWebExecutor extends BaseExecutor {
     super("kimi-web", { id: "kimi-web", baseUrl: BASE_URL });
   }
 
-  private buildKimiHeaders(accessToken: string): Record<string, string> {
+  private buildKimiHeaders(jwt: string): Record<string, string> {
     const headers: Record<string, string> = {
       "Content-Type": "application/connect+json",
       Accept: "*/*",
@@ -272,24 +199,23 @@ export class KimiWebExecutor extends BaseExecutor {
       Referer: `${BASE_URL}/`,
       "connect-protocol-version": "1",
     };
-    if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+    if (jwt) {
+      headers["Authorization"] = `Bearer ${jwt}`;
+      headers["Cookie"] = `kimi-auth=${jwt}`;
+    }
     return headers;
   }
 
-  private buildRequestBody(prompt: string, wantThinking: boolean, scenario: string): string {
+  private buildRequestBody(prompt: string, wantThinking: boolean): string {
     return JSON.stringify({
-      scenario,
+      scenario: DEFAULT_SCENARIO,
       tools: [{ type: "TOOL_TYPE_SEARCH", search: {} }, { type: "TOOL_TYPE_CRON_JOB" }],
       message: {
-        id: "",
-        parent_id: "",
-        children_message_ids: [],
         role: "user",
         blocks: [{ message_id: "", text: { content: prompt } }],
-        scenario,
+        scenario: DEFAULT_SCENARIO,
       },
-      options,
-      project_id: "",
+      options: { thinking: wantThinking, enable_plugin: true },
     });
   }
 
@@ -297,12 +223,12 @@ export class KimiWebExecutor extends BaseExecutor {
     const { body, credentials, signal, stream: wantStream } = input;
     const bodyObj = (body || {}) as Record<string, unknown>;
 
-    const rawCredential = String(credentials?.accessToken || credentials?.apiKey || "").trim();
-    const accessToken = extractKimiAccessToken(rawCredential);
-    if (!accessToken) {
+    const rawCredential = String(credentials?.apiKey ?? "").trim();
+    const jwt = extractKimiJwt(rawCredential);
+    if (!jwt) {
       return makeErrorResult(
         400,
-        "Missing Kimi access_token — log in at www.kimi.com and capture access_token from localStorage.",
+        "Missing Kimi session — paste the full Cookie header from www.kimi.com (must contain kimi-auth=<JWT>) or just the JWT itself.",
         body,
         CHAT_URL
       );
@@ -310,13 +236,14 @@ export class KimiWebExecutor extends BaseExecutor {
 
     const messages = (bodyObj.messages as Array<{ role: string; content: unknown }>) || [];
     const modelId = (bodyObj.model as string) || "kimi-default";
-    // Resolve scenario + default thinking flag from the model id (catalog truth),
-    // then honour an explicit `reasoning_effort: "none"` override from the caller.
-    const modelConfig = resolveModelConfig(modelId);
-    const wantThinking = bodyObj.reasoning_effort === "none" ? false : modelConfig.thinking;
+    // Decide thinking intent. A user sending `reasoning_effort: "none"` is
+    // explicit — honour it even when the model id suggests a thinking variant.
+    // Otherwise thinking models (kimi-k2.6 etc.) default to thinking on.
+    const modelWantsThinking = /k2\.6|k2-6|think/i.test(modelId);
+    const wantThinking = bodyObj.reasoning_effort === "none" ? false : modelWantsThinking;
 
     const prompt = foldMessages(messages);
-    const reqBody = this.buildRequestBody(prompt, wantThinking, modelConfig.scenario);
+    const reqBody = this.buildRequestBody(prompt, wantThinking);
     const reqHeaders = this.buildKimiHeaders(jwt);
 
     // Connect framing wraps the JSON body in a 5-byte envelope. Without it the
@@ -342,12 +269,7 @@ export class KimiWebExecutor extends BaseExecutor {
 
     if (!upstream.ok) {
       const errText = await upstream.text().catch(() => "");
-      return makeErrorResult(
-        upstream.status,
-        `Kimi error: ${sanitizeErrorMessage(errText)}`,
-        body,
-        CHAT_URL
-      );
+      return makeErrorResult(upstream.status, `Kimi error: ${sanitizeErrorMessage(errText)}`, body, CHAT_URL);
     }
 
     const encoder = new TextEncoder();
@@ -394,25 +316,13 @@ export class KimiWebExecutor extends BaseExecutor {
                 while (offset < buffer.length) {
                   const { consumed, frame } = decodeConnectFrame(buffer, offset);
                   if (consumed === -1) {
-                    throw new Error("Kimi Connect frame exceeded MAX_FRAME_LEN");
+                    // Frame header claims a length above MAX_FRAME_LEN — stream-fatal.
+                    controller.error(new Error("Kimi Connect frame exceeded MAX_FRAME_LEN"));
+                    return;
                   }
                   if (consumed === 0) break; // need more bytes
                   offset += consumed;
-                  if (!frame) continue;
-                  if ((frame.flags & 0x02) !== 0) {
-                    const endStreamError = getConnectEndStreamError(frame);
-                    if (endStreamError) {
-                      throw new Error(`Kimi Connect EndStream error: ${endStreamError}`);
-                    }
-                    if (!emittedRole) {
-                      emitChunk(controller, { role: "assistant", content: "" });
-                    }
-                    emitChunk(controller, {}, "stop");
-                    controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-                    controller.close();
-                    return;
-                  }
-                  if (!frame.message) continue;
+                  if (!frame?.message) continue;
 
                   const delta = extractDelta(frame.message);
                   if (delta) {
@@ -426,20 +336,26 @@ export class KimiWebExecutor extends BaseExecutor {
                       emitChunk(controller, { content: delta.text });
                     }
                   }
+                  if (isEndOfStream(frame.message)) {
+                    emitChunk(controller, {}, "stop");
+                    controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+                    controller.close();
+                    return;
+                  }
                 }
                 // Compact the buffer.
                 buffer = buffer.subarray(offset);
               }
             }
-            throw new Error("Kimi Connect stream ended without a successful EndStream frame");
+            // Stream ended without an explicit COMPLETED marker — flush a stop.
+            if (!emittedRole) {
+              emitChunk(controller, { role: "assistant", content: "" });
+            }
+            emitChunk(controller, {}, "stop");
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            controller.close();
           } catch (err) {
-            if (signal?.aborted) {
-              try {
-                controller.close();
-              } catch {
-                /* controller already closed */
-              }
-            } else {
+            if (!signal?.aborted) {
               try {
                 controller.error(err);
               } catch {
@@ -469,9 +385,8 @@ export class KimiWebExecutor extends BaseExecutor {
     let reasoning = "";
     const reader = sourceStream.getReader();
     let buffer = new Uint8Array(0);
-    let sawSuccessfulEndStream = false;
     try {
-      readLoop: while (true) {
+      while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         if (!value) continue;
@@ -483,37 +398,24 @@ export class KimiWebExecutor extends BaseExecutor {
         let offset = 0;
         while (offset < buffer.length) {
           const { consumed, frame } = decodeConnectFrame(buffer, offset);
-          if (consumed === -1) throw new Error("Kimi Connect frame exceeded MAX_FRAME_LEN");
+          if (consumed === -1) break; // oversized frame — abort, return what we have
           if (consumed === 0) break;
           offset += consumed;
-          if (!frame) continue;
-          if ((frame.flags & 0x02) !== 0) {
-            const endStreamError = getConnectEndStreamError(frame);
-            if (endStreamError) {
-              throw new Error(`Kimi Connect EndStream error: ${endStreamError}`);
-            }
-            sawSuccessfulEndStream = true;
-            break readLoop;
-          }
-          if (!frame.message) continue;
+          if (!frame?.message) continue;
           const delta = extractDelta(frame.message);
           if (delta) {
             if (delta.kind === "think") reasoning += delta.text;
             else answer += delta.text;
           }
+          if (isEndOfStream(frame.message)) {
+            offset = buffer.length; // drain
+            break;
+          }
         }
         buffer = buffer.subarray(offset);
       }
-      if (!sawSuccessfulEndStream) {
-        throw new Error("Kimi Connect stream ended without a successful EndStream frame");
-      }
-    } catch (error) {
-      return makeErrorResult(
-        502,
-        `Kimi Connect protocol error: ${error instanceof Error ? error.message : "unknown"}`,
-        body,
-        CHAT_URL
-      );
+    } catch {
+      /* best-effort — return what we have */
     }
 
     const message: Record<string, unknown> = { role: "assistant", content: answer };

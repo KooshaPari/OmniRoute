@@ -825,6 +825,62 @@ export default function RequestLoggerDetail({
             </div>
           )}
 
+          {/* Related Requests (same correlation ID) */}
+          {relatedLogs.length > 1 && (
+            <div className="p-4 rounded-xl bg-bg-subtle border border-border">
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-2 font-bold">
+                Related Requests ({relatedLogs.length})
+              </div>
+              <div className="flex flex-col gap-1">
+                {[...relatedLogs]
+                  .sort((a, b) => {
+                    const aStart = new Date(a.timestamp).getTime() - (a.duration || 0);
+                    const bStart = new Date(b.timestamp).getTime() - (b.duration || 0);
+                    return aStart - bStart;
+                  })
+                  .map((r) => {
+                    const rStatusStyle = r.active ? null : getStatusStyle(r.status);
+                    const isCurrent = r.id === log.id;
+                    const startTime = new Date(new Date(r.timestamp).getTime() - (r.duration || 0));
+                    return (
+                      <button
+                        key={r.id}
+                        onClick={() => !isCurrent && onSelectRelated?.(r)}
+                        disabled={isCurrent}
+                        className={`flex items-center gap-2 px-2 py-1.5 rounded text-left text-xs transition-colors ${
+                          isCurrent
+                            ? "bg-primary/10 border border-primary/30 cursor-default"
+                            : "hover:bg-bg-hover cursor-pointer"
+                        }`}
+                      >
+                        <span
+                          className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold min-w-[28px] text-center"
+                          style={
+                            rStatusStyle
+                              ? { backgroundColor: rStatusStyle.bg, color: rStatusStyle.text }
+                              : { backgroundColor: "#374151", color: "#fff" }
+                          }
+                        >
+                          {r.status || "..."}
+                        </span>
+                        <span className="font-mono text-text-muted">{r.id}</span>
+                        <span className="text-text-muted">{r.model}</span>
+                        <span className="text-text-muted text-[10px]">
+                          {startTime.toLocaleTimeString("en-US", { hour12: false })}
+                        </span>
+                        <span className="text-text-muted ml-auto">
+                          {formatDuration(r.duration)}
+                        </span>
+                        {isCurrent && (
+                          <span className="text-[9px] text-primary font-bold ml-1">current</span>
+                        )}
+                      </button>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+
           {detailIssue && (
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
               <div className="text-[10px] text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-1 font-bold">

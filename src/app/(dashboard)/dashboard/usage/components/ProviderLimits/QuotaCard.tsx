@@ -3,17 +3,7 @@
 import { useMemo, useState } from "react";
 import Card from "@/shared/components/Card";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
-import {
-  normalizePlanTier,
-  resolvePlanValue,
-  worstStatus,
-  filterQuotasByVisibility,
-  getHiddenQuotaRows,
-  computeCanEditCutoff,
-  computeCanRedeemResetCredit,
-  hasQuotaCutoffOverrides,
-  type CardStatus,
-} from "./utils";
+import { normalizePlanTier, resolvePlanValue, worstStatus, type CardStatus } from "./utils";
 import QuotaCardHeader from "./parts/QuotaCardHeader";
 import QuotaCardExpanded from "./parts/QuotaCardExpanded";
 import ProviderUsdCostModal from "./ProviderUsdCostModal";
@@ -67,15 +57,7 @@ export default function QuotaCard({
 }: QuotaCardProps) {
   const isActive = connection.isActive ?? true;
   const [costModalOpen, setCostModalOpen] = useState(false);
-  const rawQuotas = quota?.quotas ?? EMPTY_QUOTAS;
-  const quotas = useMemo(
-    () => filterQuotasByVisibility(connection.provider, rawQuotas, quotaVisibility),
-    [connection.provider, rawQuotas, quotaVisibility]
-  );
-  const hiddenQuotaRows = useMemo(
-    () => getHiddenQuotaRows(connection.provider, rawQuotas, quotaVisibility),
-    [connection.provider, rawQuotas, quotaVisibility]
-  );
+  const quotas = quota?.quotas ?? EMPTY_QUOTAS;
   const cardStatus = useMemo<CardStatus>(() => worstStatus(quotas), [quotas]);
   const tierMeta = useMemo(
     () =>
@@ -136,11 +118,17 @@ export default function QuotaCard({
         onRefresh={onRefresh}
         onOpenCutoff={onOpenCutoff}
         onOpenCost={() => setCostModalOpen(true)}
-        onRedeemResetCredit={onRedeemResetCredit}
         canEditCutoff={canEditCutoff}
         hasCutoffOverrides={hasOverrides}
         canRedeemResetCredit={canRedeemResetCredit}
         redeemingResetCredit={redeemingResetCredit}
+      />
+      <ProviderUsdCostModal
+        isOpen={costModalOpen}
+        onClose={() => setCostModalOpen(false)}
+        connection={connection}
+        providerLabel={providerLabel}
+        accountLabel={accountLabel}
       />
       <ProviderUsdCostModal
         isOpen={costModalOpen}

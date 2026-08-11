@@ -22,18 +22,6 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { logger } from "@omniroute/open-sse/utils/logger.ts";
 import { resolveProxy } from "@omniroute/open-sse/utils/networkProxy.ts";
 import { proxyConfigToUrl } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
-import {
-  attachReasoningRuleDirective,
-  applyReasoningRuleDirective,
-  extractReasoningIntent,
-  resolveReasoningSourceModels,
-  resolveReasoningRoutingRule,
-  validateCodexWsDecision,
-} from "@/lib/reasoningRouting/policy";
-import { resolveRequestRoutingTags } from "@/domain/tagRouter";
-import { validateApiKeyRoutingTarget } from "@/shared/utils/apiKeyPolicy";
-import { persistResponsesWsCallHistory } from "./history";
-import { applyResponsesWsCompression } from "./compression";
 
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 const executor = new CodexExecutor();
@@ -545,7 +533,12 @@ async function prepare(body: JsonRecord) {
   // Responses WebSocket too. The downstream client→OmniRoute hop works, but the
   // upstream wreq-js.websocket() connect previously ignored the Proxy Registry,
   // so a no-direct-egress container failed with a DNS lookup error.
-  const proxy = await resolveCodexProxy(provider);
+  let proxy: string | undefined;
+  try {
+    proxy = proxyConfigToUrl(await resolveProxy(provider)) || undefined;
+  } catch (err) {
+    logger.warn(`[codex-responses-ws] proxy resolution failed: ${sanitizeErrorMessage(err)}`);
+  }
 
   return NextResponse.json({
     ok: true,
@@ -562,7 +555,6 @@ async function prepare(body: JsonRecord) {
     model,
     headers,
     proxy,
-    reasoningRouting,
     response: transformed,
   });
 }

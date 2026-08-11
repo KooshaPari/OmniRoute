@@ -313,7 +313,7 @@ export async function validateCopilotWebProvider({ apiKey, providerSpecificData 
   }
 }
 
-export function extractM365CredentialParts(raw: string, providerSpecificData: Record<string, unknown>) {
+function extractM365CredentialParts(raw: string, providerSpecificData: Record<string, unknown>) {
   const text = raw.trim();
   const parts: Record<string, string> = {};
 
@@ -325,22 +325,13 @@ export function extractM365CredentialParts(raw: string, providerSpecificData: Re
     if (key && value) parts[key] = value;
   }
 
-  // Accept the current M365 web endpoint (m365.cloud.microsoft, including
-  // regional subdomains) plus the two legacy hosts (substrate.office.com,
-  // copilot.microsoft.com). The path still carries /m365Copilot/Chathub/<tenant>,
-  // so extraction is unchanged. (OmniRoute issue #7078)
-  if (/^wss:\/\//i.test(text)) {
+  if (/^wss:\/\/substrate\.office\.com\/m365Copilot\/Chathub\//i.test(text)) {
     try {
       const url = new URL(text);
-      const hostOk = /^(?:[\w-]+\.)*(?:m365\.cloud\.microsoft|copilot\.microsoft\.com|substrate\.office\.com)$/i.test(
-        url.hostname
+      parts.access_token ||= url.searchParams.get("access_token") || "";
+      parts.chathubPath ||= decodeURIComponent(
+        url.pathname.split("/m365Copilot/Chathub/")[1] || ""
       );
-      if (hostOk && url.pathname.startsWith("/m365Copilot/Chathub/")) {
-        parts.access_token ||= url.searchParams.get("access_token") || "";
-        parts.chathubPath ||= decodeURIComponent(
-          url.pathname.split("/m365Copilot/Chathub/")[1] || ""
-        );
-      }
     } catch {
       // Fall through to the structured key/value parser result.
     }

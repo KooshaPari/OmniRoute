@@ -3,11 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import Modal from "./Modal";
-import {
-  buildPassthroughAliasModels,
-  buildNodeAliasModels,
-  shouldConfirmSelectAll,
-} from "./modelSelectModalHelpers";
+import { buildPassthroughAliasModels, buildNodeAliasModels } from "./modelSelectModalHelpers";
 import { getModelsByProviderId, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import {

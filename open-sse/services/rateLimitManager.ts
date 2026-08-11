@@ -27,7 +27,6 @@ import {
   parseResetTime,
   toPlainHeaders,
 } from "./rateLimitManager/headers";
-import { checkQueueAdmission } from "./rateLimitManager/admission";
 
 interface LearnedLimitEntry {
   provider: string;

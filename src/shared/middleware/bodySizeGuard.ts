@@ -31,9 +31,6 @@ export const MAX_BODY_BYTES_FILE = 500 * 1024 * 1024;
 /** Larger limit for LLM request payloads: 50 MB */
 export const MAX_BODY_BYTES_LLM_API = 50 * 1024 * 1024;
 
-/** Allows one 20 MiB image as multipart or base64 JSON plus envelope overhead. */
-export const MAX_BODY_BYTES_IMAGE_EDIT = 30 * 1024 * 1024;
-
 /** Configured limit — reads from env or falls back to 10 MB */
 export const MAX_BODY_BYTES = parseRequestBodyLimitBytes(process.env.MAX_BODY_SIZE_BYTES);
 
@@ -43,7 +40,6 @@ const ROUTE_LIMITS: BodySizeRule[] = [
   { prefix: "/api/db-backups/import", limit: MAX_BODY_BYTES_IMPORT },
   { prefix: "/api/v1/chat/completions", limit: MAX_BODY_BYTES_LLM_API },
   { prefix: "/api/v1/responses", limit: MAX_BODY_BYTES_LLM_API },
-  { prefix: "/api/v1/images/edits", limit: MAX_BODY_BYTES_IMAGE_EDIT },
   { prefix: "/api/v1/audio/transcriptions", limit: MAX_BODY_BYTES_AUDIO },
   { prefix: "/api/v1/files", limit: MAX_BODY_BYTES_FILE },
 ];

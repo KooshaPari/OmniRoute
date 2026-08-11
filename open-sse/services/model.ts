@@ -120,6 +120,23 @@ for (const [aliasOrId, models] of Object.entries(PROVIDER_MODELS)) {
   }
 }
 const KNOWN_MODEL_IDS = new Set(MODEL_TO_PROVIDERS.keys());
+// #2877(B): include the effort-suffixed variants so a bare `gpt-5.5-xhigh`
+// (and -high/-medium/-low) infers the codex provider instead of falling through
+// the `/^gpt-/` → openai fallback (which 500s for codex-only credentials).
+const CODEX_PREFERRED_UNPREFIXED_MODELS = new Set([
+  "gpt-5.5",
+  "gpt-5.5-xhigh",
+  "gpt-5.5-high",
+  "gpt-5.5-medium",
+  "gpt-5.5-low",
+]);
+// Intentionally empty: an unprefixed codex-preferred model keeps its BARE id when
+// inferred to codex. #2877 established that baking a `-medium` effort suffix silently
+// overrides a client `reasoning.effort` (the Codex executor reads the suffix as an
+// explicit modelEffort). This map was dormant while bare `gpt-5.5` hit the OpenAI
+// short-circuit; #5887 makes the codex block reachable for bare `gpt-5.5`, so the
+// `gpt-5.5 → gpt-5.5-medium` entry is removed to preserve #2877's bare-id contract.
+const CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES = new Map<string, string>([]);
 export const CODEX_NATIVE_UNPREFIXED_MODELS = new Set(["codex-auto-review"]);
 
 interface ProviderConnectionLike {
@@ -523,20 +540,16 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
     };
   }
 
-  const [activeProviders, activeSyncedProviders, preferClaudeCodeForUnprefixedClaudeModels] =
-    await Promise.all([
-      getActiveProviderSet(),
-      getActiveSyncedProvidersForModel(modelId),
-      getPreferClaudeCodeForUnprefixedClaudeModels(),
-    ]);
-  const providers = getInferredProvidersForModel(modelId, activeSyncedProviders);
-  const nonOpenAIProviders = providers.filter((p) => p !== "openai");
+  const [activeProviders, preferClaudeCodeForUnprefixedClaudeModels] = await Promise.all([
+    getActiveProviderSet(),
+    getPreferClaudeCodeForUnprefixedClaudeModels(),
+  ]);
 
-  // Bare model IDs from Codex CLI do not preserve OmniRoute's `cx/` prefix.
-  // Route overlapping models through Codex only for Codex-only installations;
-  // when OpenAI is also active, preserve the historical OpenAI default below.
-  // Models advertised only by an active synced Codex catalog still reach the
-  // single-candidate path, covering future models without version-specific sets.
+  // Codex-only setups must keep auto-routing codex-preferred unprefixed models
+  // (e.g. `gpt-5.5`) to codex even after those ids were added to the OpenAI
+  // static catalog (#5887). This block is guarded by `!activeProviders.has("openai")`,
+  // so it must run BEFORE the OpenAI short-circuit below; users WITH an active
+  // OpenAI connection still fall through to the OpenAI default.
   if (
     activeProviders?.has("codex") &&
     !activeProviders.has("openai") &&
@@ -549,9 +562,9 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
     };
   }
 
-  // Outside the Codex subscription preference above, preserve the historical
-  // OpenAI default whenever its catalog contains the bare model ID. Callers can
-  // always make either route authoritative with an explicit provider prefix.
+  // Preserve historical behavior: OpenAI stays default when model exists there.
+  // Connection availability must not make unprefixed OpenAI models resolve to a
+  // different provider; callers can still force Codex with an explicit prefix.
   if (providers.includes("openai")) {
     return {
       provider: "openai",
@@ -560,15 +573,8 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
     };
   }
 
-  // Fallback for newly released OpenAI-family model IDs that may not be in the local
-  // catalog yet. This must only fire when NO known provider catalogs the model id —
-  // otherwise it hijacks cataloged open-weight models like "gpt-oss-120b" (served by
-  // fireworks/cerebras/scaleway/byteplus) into provider "openai", which does not carry
-  // them (#5852).
-  if (
-    providers.length === 0 &&
-    (/^gpt-/i.test(modelId) || /^o1/i.test(modelId) || /^o3/i.test(modelId))
-  ) {
+  // Fallback for newly released OpenAI-family model IDs that may not be in the local catalog yet.
+  if (/^gpt-/i.test(modelId) || /^o1/i.test(modelId) || /^o3/i.test(modelId)) {
     return {
       provider: "openai",
       model: modelId,

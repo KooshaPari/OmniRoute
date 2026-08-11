@@ -1178,10 +1178,446 @@ export class AntigravityExecutor extends BaseExecutor {
           fallbackCount,
         });
 
-        if (outcome.action === "return") return outcome.result;
-        if (outcome.lastStatus !== undefined) lastStatus = outcome.lastStatus;
-        if (outcome.sameUrl) urlIndex--;
-        continue;
+        if (response.status === HTTP_STATUS.FORBIDDEN && finalHeaders["x-goog-user-project"]) {
+          const retryHeaders = { ...finalHeaders };
+          removeHeaderCaseInsensitive(retryHeaders, "x-goog-user-project");
+          log?.debug?.("RETRY", "403 with x-goog-user-project, retrying once without it");
+          await capture(retryHeaders, serializedRequest.bodyString);
+          response = await fetchWithReadinessTimeout(url, {
+            method: "POST",
+            headers: retryHeaders,
+            body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
+            ...(stream ? { duplex: "half" } : {}),
+            signal,
+          });
+          finalHeaders = retryHeaders;
+        }
+
+        if (!response.ok) {
+          log?.warn?.(
+            "TELEMETRY",
+            `[Antigravity] Error Response - URL: ${url}, Status: ${response.status}, Model: ${model}`
+          );
+        }
+
+        // Parse retry time for 429/503 responses
+        let retryMs: number | null = null;
+
+        if (
+          response.status === HTTP_STATUS.RATE_LIMITED ||
+          response.status === HTTP_STATUS.SERVICE_UNAVAILABLE
+        ) {
+          // Try to get retry time from headers first
+          retryMs = this.parseRetryHeaders(response.headers);
+
+          // If no retry time in headers, try to parse from error message body
+          if (!retryMs) {
+            try {
+              const errorBody = await response.clone().text();
+              const errorJson = JSON.parse(errorBody);
+              let errorMessage = errorJson?.error?.message || errorJson?.message || "";
+              if (errorJson?.error?.details && Array.isArray(errorJson.error.details)) {
+                for (const detail of errorJson.error.details) {
+                  if (detail?.reason) {
+                    errorMessage += ` ${detail.reason}`;
+                  }
+                }
+              }
+
+              // 1. Try to parse explicit retry time from message
+              const parsedRetryMs = this.parseRetryFromErrorMessage(errorMessage);
+
+              // 2. Classify 429 (pass header-parsed retry hint as fallback
+              //    signal — multi-hour Retry-After upgrades rate_limited to
+              //    quota_exhausted so the GOOGLE_ONE_AI credits retry fires).
+              const effectiveRetryHintMs = retryMs ?? parsedRetryMs ?? null;
+              const category = classify429(errorMessage);
+
+              // 3. Decide final retry time BEFORE the credits retry so that
+              //    full_quota_exhausted can skip the credits attempt entirely
+              //    (avoids ~41s hold on an already-exhausted account) and
+              //    persist the cooldown to DB for post-restart routing.
+              const decision: Decision = decide429(category, parsedRetryMs);
+              retryMs = decision.retryAfterMs;
+              log?.debug?.(
+                "AG_429",
+                `Category: ${category}, Decision: ${decision.kind} — ${decision.reason}`
+              );
+
+              if (decision.kind === "full_quota_exhausted" && retryMs) {
+                markConnectionQuotaExhausted(accountId, retryMs);
+              }
+
+              const creditsAlreadyInjected =
+                (transformedBody as { enabledCreditTypes?: unknown }).enabledCreditTypes != null;
+
+              if (category === "quota_exhausted" && creditsAlreadyInjected) {
+                handleCreditsFailure(credentials?.accessToken || "");
+                log?.warn?.("AG_CREDITS", "Credits-first request 429'd — credits likely exhausted");
+                markCreditsExhausted(accountId);
+              }
+
+              if (
+                category === "quota_exhausted" &&
+                decision.kind !== "full_quota_exhausted" &&
+                !creditsAlreadyInjected &&
+                shouldRetryWithCredits(credentials?.accessToken || "", creditsMode !== "off")
+              ) {
+                log?.info?.("AG_CREDITS", "Retrying with Google One AI credits");
+                const creditsBody = injectCreditsField(transformedBody);
+                const serializedCreditsRequest = serializeAntigravityRequest(
+                  this.provider,
+                  headers,
+                  creditsBody
+                );
+                const finalCreditsHeaders = serializedCreditsRequest.headers;
+                try {
+                  await capture(finalCreditsHeaders, serializedCreditsRequest.bodyString);
+                  const creditsResp = await fetchWithReadinessTimeout(url, {
+                    method: "POST",
+                    headers: finalCreditsHeaders,
+                    body: getChunkedOrFixedBody(serializedCreditsRequest.bodyString, stream),
+                    ...(stream ? { duplex: "half" } : {}),
+                    signal,
+                  });
+                  if (creditsResp.ok || creditsResp.status !== HTTP_STATUS.RATE_LIMITED) {
+                    log?.info?.("AG_CREDITS", `Credits retry succeeded: ${creditsResp.status}`);
+                    if (!stream) {
+                      const collected = await this.collectStreamToResponse(
+                        creditsResp,
+                        model,
+                        url,
+                        finalCreditsHeaders,
+                        creditsBody,
+                        log,
+                        signal
+                      );
+                      // Parse _remainingCredits from the synthetic response and cache
+                      try {
+                        const syntheticJson = await collected.response.clone().json();
+                        const rc = syntheticJson?._remainingCredits;
+                        if (Array.isArray(rc)) {
+                          const googleCredit = rc.find((c) => c.creditType === "GOOGLE_ONE_AI");
+                          if (googleCredit) {
+                            const balance = parseInt(googleCredit.creditAmount, 10);
+                            if (!isNaN(balance))
+                              updateAntigravityRemainingCredits(accountId, balance);
+                          }
+                        }
+                      } catch {
+                        /**/
+                      }
+                      return {
+                        ...collected,
+                        transformedBody: attachToolNameMap(creditsBody, requestToolNameMap),
+                      };
+                    }
+                    return {
+                      response: creditsResp,
+                      url,
+                      headers: finalCreditsHeaders,
+                      transformedBody: attachToolNameMap(creditsBody, requestToolNameMap),
+                    };
+                  }
+
+                  // Credit retry also 429'd
+                  handleCreditsFailure(credentials?.accessToken || "");
+                  log?.warn?.("AG_CREDITS", "Credits retry also 429'd");
+
+                  // Also mark in our legacy exhaustion map to avoid retrying other routes
+                  markCreditsExhausted(accountId);
+                } catch (creditsErr) {
+                  handleCreditsFailure(credentials?.accessToken || "");
+                  log?.warn?.("AG_CREDITS", `Credits retry failed: ${creditsErr}`);
+                }
+              }
+            } catch (e) {
+              // Ignore parse errors, will fall back to exponential backoff
+            }
+          }
+
+          // Bounded short-retry: a non-null retryAfterMs ≤ 60s covers nearly every
+          // 429 (decide429 returns 2s/5s/60s defaults), so this branch MUST share the
+          // per-URL attempt counter. Without the bound a persistent 429 loops forever
+          // on the same endpoint/account (urlIndex-- cancels the loop's urlIndex++) and
+          // never returns the 429 to the account-fallback layer in chat.ts.
+          if (
+            retryMs &&
+            retryMs <= LONG_RETRY_THRESHOLD_MS &&
+            retryAttemptsByUrl[urlIndex] < MAX_AUTO_RETRIES
+          ) {
+            retryAttemptsByUrl[urlIndex]++;
+            const effectiveRetryMs = Math.min(retryMs, MAX_RETRY_AFTER_MS);
+            log?.debug?.(
+              "RETRY",
+              `${response.status} retry ${retryAttemptsByUrl[urlIndex]}/${MAX_AUTO_RETRIES} with Retry-After: ${Math.ceil(effectiveRetryMs / 1000)}s, waiting...`
+            );
+            await new Promise((resolve) => setTimeout(resolve, effectiveRetryMs));
+            urlIndex--;
+            continue;
+          }
+
+          // Auto retry for 429 (no Retry-After) or transient 5xx errors.
+          // For 5xx we read the body to detect known transient patterns
+          // ("Agent execution terminated due to error", "high traffic", "capacity").
+          if ((!retryMs || retryMs === 0) && retryAttemptsByUrl[urlIndex] < MAX_AUTO_RETRIES) {
+            let shouldAutoRetry = response.status === HTTP_STATUS.RATE_LIMITED;
+            if (!shouldAutoRetry && ANTIGRAVITY_TRANSIENT_STATUSES.has(response.status)) {
+              try {
+                const errBody = await response.clone().text();
+                let errJson: unknown = null;
+                try {
+                  errJson = errBody ? JSON.parse(errBody) : null;
+                } catch {
+                  // non-JSON body — fall through to pattern match against raw text
+                }
+                const errMsg = this.extractErrorMessage(errJson, errBody);
+                shouldAutoRetry = this.isTransientAntigravityError(response.status, errMsg);
+              } catch {
+                // ignore body read errors
+              }
+            }
+            if (shouldAutoRetry) {
+              retryAttemptsByUrl[urlIndex]++;
+              // Exponential backoff: 2s, 4s, 8s… capped per-status
+              const cap =
+                response.status === HTTP_STATUS.RATE_LIMITED
+                  ? MAX_RETRY_AFTER_MS
+                  : ANTIGRAVITY_TRANSIENT_RETRY_MAX_MS;
+              const backoffMs = Math.min(1000 * 2 ** retryAttemptsByUrl[urlIndex], cap);
+              log?.debug?.(
+                "RETRY",
+                `${response.status} transient auto retry ${retryAttemptsByUrl[urlIndex]}/${MAX_AUTO_RETRIES} after ${backoffMs / 1000}s`
+              );
+              await new Promise((resolve) => setTimeout(resolve, backoffMs));
+              urlIndex--;
+              continue;
+            }
+          }
+
+          log?.debug?.(
+            "RETRY",
+            `${response.status}, Retry-After ${retryMs ? `too long (${Math.ceil(retryMs / 1000)}s)` : "missing"}, trying fallback`
+          );
+          lastStatus = response.status;
+
+          if (urlIndex + 1 < fallbackCount) {
+            continue;
+          }
+        }
+
+        if (this.shouldRetry(response.status, urlIndex)) {
+          log?.debug?.("RETRY", `${response.status} on ${url}, trying fallback ${urlIndex + 1}`);
+          lastStatus = response.status;
+          continue;
+        }
+
+        // If we have a 429 with long retry time, embed it in response body
+        if (
+          response.status === HTTP_STATUS.RATE_LIMITED &&
+          retryMs &&
+          retryMs > LONG_RETRY_THRESHOLD_MS
+        ) {
+          try {
+            const respBody = await response.clone().text();
+            let obj;
+            try {
+              obj = JSON.parse(respBody);
+            } catch {
+              obj = {};
+            }
+            obj.retryAfterMs = retryMs;
+            const modifiedBody = JSON.stringify(obj);
+            const modifiedResponse = new Response(modifiedBody, {
+              status: response.status,
+              headers: response.headers,
+            });
+            return {
+              response: modifiedResponse,
+              url,
+              headers: finalHeaders,
+              transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+            };
+          } catch (err) {
+            log?.warn?.("RETRY", `Failed to embed retryAfterMs: ${err}`);
+            // Fall back to original response
+          }
+        }
+
+        // For non-streaming clients, collect the SSE stream and return a synthetic
+        // non-streaming Response so chatCore doesn't need to handle SSE conversion.
+        if (!stream) {
+          // #3229: surface a real upstream error instead of masking a 4xx/5xx as an
+          // empty `chat.completion` envelope (collectStreamToResponse synthesizes a
+          // success-shaped body when the upstream returned no SSE data).
+          if (!response.ok) {
+            const rawBody = await response
+              .clone()
+              .text()
+              .catch(() => "");
+            const errorBody = buildAntigravityUpstreamError(
+              response.status,
+              response.statusText,
+              rawBody
+            );
+            return {
+              response: new Response(JSON.stringify(errorBody), {
+                status: response.status,
+                headers: { "Content-Type": "application/json" },
+              }),
+              url,
+              headers: finalHeaders,
+              transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+            };
+          }
+          const collected = await this.collectStreamToResponse(
+            response,
+            model,
+            url,
+            finalHeaders,
+            transformedBody,
+            log,
+            signal
+          );
+          // When credits were injected (credits-first or credits-retry), the
+          // synthetic body contains _remainingCredits — mirror it into the
+          // balance cache so the dashboard stays fresh.
+          try {
+            const syntheticJson = await collected.response.clone().json();
+            const rc = syntheticJson?._remainingCredits;
+            if (Array.isArray(rc)) {
+              const googleCredit = rc.find(
+                (c: { creditType?: string }) => c?.creditType === "GOOGLE_ONE_AI"
+              );
+              if (googleCredit) {
+                const balance = parseInt(googleCredit.creditAmount, 10);
+                if (!isNaN(balance)) updateAntigravityRemainingCredits(accountId, balance);
+              }
+            }
+          } catch {
+            /* balance cache is best-effort */
+          }
+          return {
+            ...collected,
+            transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+          };
+        }
+
+        // Streaming path: wrap the response body in a pass-through TransformStream
+        // that extracts remainingCredits from the final SSE chunk(s) without
+        // consuming the stream. The client receives the unmodified SSE data.
+        if (response.body) {
+          // If the downstream client aborts, cancel the upstream fetch body immediately
+          // to release the socket back to the Undici agent pool and prevent memory leaks.
+          if (signal) {
+            const abortHandler = () => {
+              try {
+                response.body?.cancel().catch(() => {});
+              } catch (_) {}
+            };
+            if (signal.aborted) {
+              abortHandler();
+            } else {
+              signal.addEventListener("abort", abortHandler, { once: true });
+            }
+          }
+
+          let sseBuffer = "";
+          const decoder = new TextDecoder(); // Singleton for correct streaming decode
+          const MAX_BUFFER_SIZE = 16 * 1024; // Limit to prevent OOM on large streams
+
+          const passThrough = new TransformStream(
+            {
+              transform(chunk, controller) {
+                controller.enqueue(chunk);
+                // Accumulate text to scan for remainingCredits
+                try {
+                  const text = decoder.decode(chunk, { stream: true });
+                  sseBuffer += text;
+                  // Limit buffer size to prevent unbounded growth
+                  // Truncate only after a complete newline to avoid splitting SSE lines mid-payload
+                  if (sseBuffer.length > MAX_BUFFER_SIZE) {
+                    const lastNewline = sseBuffer.lastIndexOf(
+                      "\n",
+                      sseBuffer.length - MAX_BUFFER_SIZE
+                    );
+                    if (lastNewline !== -1) {
+                      sseBuffer = sseBuffer.slice(lastNewline + 1);
+                    } else {
+                      // No newline found in discard region — buffer contains an incomplete SSE line.
+                      // Discard it entirely to avoid returning malformed data; the remainingCredits
+                      // parser won't find valid data in a truncated line anyway.
+                      sseBuffer = "";
+                    }
+                  }
+                } catch {
+                  /* decoding best-effort */
+                }
+              },
+              flush() {
+                // Final decode for any remaining bytes
+                try {
+                  const text = decoder.decode(); // Flush pending bytes
+                  sseBuffer += text;
+                } catch {
+                  /* decoding best-effort */
+                }
+
+                // Parse the accumulated SSE data for remainingCredits
+                try {
+                  const lines = sseBuffer.split("\n");
+                  for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed.startsWith("data:")) continue;
+                    const payload = trimmed.slice(5).trim();
+                    if (!payload || payload === "[DONE]") continue;
+                    try {
+                      const parsed = JSON.parse(payload);
+                      if (Array.isArray(parsed?.remainingCredits)) {
+                        const googleCredit = parsed.remainingCredits.find((c: unknown) => {
+                          const credit = asRecord(c);
+                          return credit?.creditType === "GOOGLE_ONE_AI";
+                        }) as AntigravityCreditEntry | undefined;
+                        if (googleCredit) {
+                          const balance = parseInt(String(googleCredit.creditAmount ?? ""), 10);
+                          if (!isNaN(balance)) {
+                            updateAntigravityRemainingCredits(accountId, balance);
+                          }
+                        }
+                      }
+                    } catch {
+                      /* skip malformed lines */
+                    }
+                  }
+                } catch {
+                  /* credits extraction is best-effort */
+                }
+                sseBuffer = "";
+              },
+            },
+            { highWaterMark: 16384 },
+            { highWaterMark: 16384 }
+          );
+          const tappedBody = response.body.pipeThrough(passThrough);
+          const tappedResponse = new Response(tappedBody, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers,
+          });
+          return {
+            response: tappedResponse,
+            url,
+            headers: finalHeaders,
+            transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+          };
+        }
+
+        return {
+          response,
+          url,
+          headers: finalHeaders,
+          transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+        };
       } catch (error) {
         if (signal?.aborted || isAbortError(error)) {
           throw signal?.reason ?? error;

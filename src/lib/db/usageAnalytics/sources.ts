@@ -88,6 +88,7 @@ export function buildUnifiedSource(opts: BuildUnifiedSourceOptions): UnifiedSour
     unifiedParams.rawCutoffDate = rawCutoffDate;
   }
   const aggWhere = aggConditions.length > 0 ? `WHERE ${aggConditions.join(" AND ")}` : "";
+
   const unifiedSource = needsAggregated
     ? `(
         SELECT
@@ -103,10 +104,8 @@ export function buildUnifiedSource(opts: BuildUnifiedSourceOptions): UnifiedSour
           success,
           latency_ms,
           connection_id,
-          account_key,
           api_key_id,
-          api_key_name,
-          1 as requests
+          api_key_name
         FROM usage_history
         ${rawWhere}
         UNION ALL
@@ -121,12 +120,10 @@ export function buildUnifiedSource(opts: BuildUnifiedSourceOptions): UnifiedSour
           0 as tokens_reasoning,
           'standard' as service_tier,
           1 as success,
-          NULL as latency_ms,
+          0 as latency_ms,
           NULL as connection_id,
-          NULL as account_key,
           NULL as api_key_id,
-          NULL as api_key_name,
-          total_requests as requests
+          NULL as api_key_name
         FROM daily_usage_summary
         ${aggWhere}
        )`
@@ -135,11 +132,10 @@ export function buildUnifiedSource(opts: BuildUnifiedSourceOptions): UnifiedSour
           tokens_input, tokens_output,
           tokens_cache_read, tokens_cache_creation, tokens_reasoning,
           service_tier, success, latency_ms,
-          connection_id, account_key, api_key_id, api_key_name,
-          1 as requests
+          connection_id, api_key_id, api_key_name
         FROM usage_history
         ${rawWhere}
-      )`;
+       )`;
 
   return { unifiedSource, unifiedParams };
 }

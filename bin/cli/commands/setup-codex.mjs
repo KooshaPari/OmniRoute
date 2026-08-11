@@ -151,7 +151,7 @@ function shortHash(value) {
   return (hash >>> 0).toString(36);
 }
 
-export function profileNameFromModelId(modelId) {
+function profileNameFromModelId(modelId) {
   const normalized = String(modelId)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")

@@ -8,6 +8,7 @@ import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 import type {
   JsonRecord,
+  ProxyScope,
   ProxyRegistryRecord,
   ProxyAssignmentRecord,
   ProxyPayload,
@@ -16,15 +17,13 @@ import type {
   LegacyProxyClearStatus,
   ProxyTransactionResult,
   LegacyProxyConfig,
-  ProxyRotationStrategy,
 } from "./proxies/types";
 import {
-  PROXY_ROTATION_STRATEGIES,
-  DEFAULT_PROXY_ROTATION_STRATEGY,
-} from "./proxies/types";
-import {
+  toRecord,
   mapProxyRow,
   mapAssignmentRow,
+  isRelayProxyType,
+  extractRelayAuth,
   toRegistryProxyResolution,
   normalizeScope,
   normalizeAssignmentScopeId,
@@ -32,31 +31,17 @@ import {
   coerceProxyPayload,
   redactProxySecrets,
 } from "./proxies/mappers";
-import { isGlobalProxyEnabled, PROXY_ALIVE_PREDICATE } from "./proxies/guards";
-import { bumpProxyRegistryGeneration } from "./proxies/registryGeneration";
-export {
-  hasBlockingProxyAssignment,
-  hasBlockingProxyAssignmentForProvider,
-} from "./proxies/guards";
 export { extractRelayAuth, redactProxySecrets } from "./proxies/mappers";
-export { addProxiesToScopePool } from "./proxySubscriptions";
-export { bumpProxyRegistryGeneration, getProxyRegistryGeneration } from "./proxies/registryGeneration";
-import {
-  normalizeRotationScopeId,
-  clearRotationState,
-  resetRotationCursor,
-  normalizeRotationStrategy,
-  getScopeProxyPool,
-  getScopeRotationStrategy,
-  resolveProxyForConnectionFromRegistry,
-  resolveProxyForScopeFromRegistry,
-} from "./proxies/rotation";
-export {
-  getScopeProxyPool,
-  getScopeRotationStrategy,
-  resolveProxyForConnectionFromRegistry,
-  resolveProxyForScopeFromRegistry,
-};
+
+let proxyRegistryGeneration = 0;
+
+function bumpProxyRegistryGeneration() {
+  proxyRegistryGeneration++;
+}
+
+export function getProxyRegistryGeneration() {
+  return proxyRegistryGeneration;
+}
 
 // Mutate legacy proxyConfig rows directly so these writes stay inside the same
 // SQLite transaction as the proxy registry row and assignment upsert.
@@ -253,15 +238,7 @@ function getAssignmentRow(
   return row ? mapAssignmentRow(row) : null;
 }
 
-interface CountResult {
-  cnt: number;
-}
-
-export async function listProxies(options?: {
-  includeSecrets?: boolean;
-  limit?: number;
-  offset?: number;
-}) {
+export async function listProxies(options?: { includeSecrets?: boolean }) {
   const includeSecrets = options?.includeSecrets === true;
   const limit = options?.limit;
   const offset = options?.offset ?? 0;
@@ -900,11 +877,31 @@ export async function resolveProxyForConnectionFromRegistry(connectionId: string
       .get(connectionId) as { provider?: string } | undefined;
 
     if (connection?.provider) {
-      const provider = resolveScopePoolInternal(db, "provider", connection.provider, {
-        rotationScopeId: connection.provider,
-        scopeIdFilter: connection.provider,
-      });
-      if (provider) return provider;
+      const providerAssignment = db
+        .prepare(
+          `SELECT p.id, p.type, p.host, p.port, p.username, p.password, p.notes, p.family FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = 'provider' AND a.scope_id = ? AND ${PROXY_ALIVE_PREDICATE} LIMIT 1`
+        )
+        .get(connection.provider);
+      if (providerAssignment) {
+        const record = toRecord(providerAssignment);
+        const relayAuth = isRelayProxyType(record.type)
+          ? extractRelayAuth(record.notes)
+          : undefined;
+        return {
+          proxy: {
+            type: record.type,
+            host: record.host,
+            port: record.port,
+            username: record.username,
+            password: record.password,
+            family: typeof record.family === "string" ? record.family : "auto",
+            ...(relayAuth !== undefined ? { relayAuth } : {}),
+          },
+          level: "provider",
+          levelId: connection.provider,
+          source: "registry",
+        };
+      }
     }
 
     const global = resolveScopePoolInternal(db, "global", null, {

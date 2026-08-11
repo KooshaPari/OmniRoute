@@ -176,6 +176,18 @@ export class GithubExecutor extends BaseExecutor {
       this.applyChatCompletionsOnlyQuirks(model, modifiedBody);
     }
 
+    // GitHub Copilot's /chat/completions endpoint rejects a conversation that ends
+    // with an assistant message: "This model does not support assistant message
+    // prefill. The conversation must end with a user message." (HTTP 400). Anthropic
+    // clients such as newest Claude Desktop send a trailing assistant turn as a
+    // prefill seed — the Anthropic API honors it, but Copilot does not. Drop it here,
+    // scoped to the GitHub executor only (the shared translator/contextManager and
+    // other providers that DO honor prefill are untouched).
+    // Port of 9router#2143 (author: Manuel <baslr@users.noreply.github.com>).
+    if (Array.isArray(modifiedBody.messages)) {
+      modifiedBody.messages = this.dropTrailingAssistantPrefill(modifiedBody.messages);
+    }
+
     // Config-driven strip of params unsupported by the target provider/model.
     // For GitHub Copilot this removes Claude-style `thinking` and
     // `reasoning_effort` for Claude models that reject them upstream

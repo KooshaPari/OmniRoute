@@ -291,7 +291,12 @@ export function isAutoBackupDisabledBySetting(): boolean {
     // Apply precedence: last non-null wins (mirrors getUserDatabaseSettings — flat alias
     // first, then nested key). Default (no persisted value) → not disabled.
     let enabled: boolean | null = null;
-    for (const candidate of [fromSettingsNested, fromSettingsBackup, fromDbFlat, fromDbNested]) {
+    for (const candidate of [
+      fromSettingsNested,
+      fromSettingsBackup,
+      fromDbFlat,
+      fromDbNested,
+    ]) {
       if (candidate !== null) enabled = candidate;
     }
 

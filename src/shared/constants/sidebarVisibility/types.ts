@@ -21,9 +21,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "context-lite",
   "context-aggressive",
   "context-ultra",
-  "context-omniglyph",
   "compression-studio",
-  "compression-exclusions",
   // OmniProxy > Tools
   "cli-code",
   "cli-agents",
@@ -31,11 +29,11 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "cloud-agents",
   "agent-bridge",
   "traffic-inspector",
-  "discovery",
   // OmniProxy > Integrations
   "api-endpoints",
   "webhooks",
-  // OmniProxy — proxy tools
+  // OmniProxy — proxy
+  "proxy",
   "mitm-proxy",
   "1proxy",
   // Analytics
@@ -53,7 +51,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "logs",
   "logs-proxy",
   "logs-console",
-  "logs-timeline",
   "logs-activity",
   "health",
   "runtime",
@@ -75,7 +72,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "memory",
   "skills",
   "agent-skills",
-  "chaos-config",
   "mcp",
   "a2a",
   "plugins",
@@ -98,7 +94,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "settings-security",
   "settings-access-tokens",
   "settings-feature-flags",
-  "settings-cache",
   "settings-sidebar",
   // Help
   "docs",
@@ -107,11 +102,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
 ] as const;
 
 export type HideableSidebarItemId = (typeof HIDEABLE_SIDEBAR_ITEM_IDS)[number];
-
-/** Sidebar entries that are intentionally always available and cannot be hidden by presets. */
-export type AlwaysVisibleSidebarItemId = "proxy";
-
-export type SidebarItemId = HideableSidebarItemId | AlwaysVisibleSidebarItemId;
 
 export type SidebarSectionId =
   | "home"
@@ -126,7 +116,7 @@ export type SidebarSectionId =
   | "help";
 
 export interface SidebarItemDefinition {
-  id: SidebarItemId;
+  id: HideableSidebarItemId;
   href: string;
   i18nKey: string;
   subtitleKey?: string;

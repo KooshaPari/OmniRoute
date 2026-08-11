@@ -139,12 +139,7 @@ test("detectMalformedNonStream returns null for OpenAI choices whose content is 
 
 test("detectMalformedNonStream returns 'empty_choices' for an OpenAI choice with an empty text-block array (#5559 guard)", () => {
   const body = {
-    choices: [
-      {
-        message: { role: "assistant", content: [{ type: "text", text: "" }] },
-        finish_reason: "stop",
-      },
-    ],
+    choices: [{ message: { role: "assistant", content: [{ type: "text", text: "" }] }, finish_reason: "stop" }],
   };
   assert.equal(detectMalformedNonStream(body), "empty_choices");
 });

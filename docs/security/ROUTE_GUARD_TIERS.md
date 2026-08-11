@@ -123,6 +123,35 @@ operator responsibilities remain:
 - A `403 LOCAL_ONLY` in OmniRoute's logs for one of these paths is the guard
   working as intended, not an error to suppress.
 
+#### Operator guidance & auditing
+
+If you run OmniRoute behind a reverse proxy or tunnel (nginx, Caddy, Cloudflare
+Tunnel, Tailscale, Ngrok), the loopback check still protects the spawn-capable
+routes above — a request whose client address is non-loopback is rejected with
+`403 LOCAL_ONLY` **before auth runs**, so a leaked JWT can't reach a spawn. Two
+operator responsibilities remain:
+
+- **Do not "fix" a 403 by forging the client IP as loopback.** Setting
+  `X-Forwarded-For: 127.0.0.1`, or a proxy that rewrites the source address to
+  loopback, re-opens exactly the RCE class this tier closes. Expose the
+  dashboard/API through the proxy — never the spawn-capable routes.
+- **Keep the manage-scope bypass minimal.** Only `/api/mcp/` is bypassable, and
+  only with a `manage`-scoped API key. The `SPAWN_CAPABLE_PREFIXES` can never be
+  added to the bypass list — the zod schema rejects them and
+  `isLocalOnlyBypassableByManageScope` denies them at runtime (defence-in-depth),
+  which is what the dashboard means by "cannot be made bypassable".
+
+**Auditing access** — to verify nothing off-host is reaching these routes:
+
+- Open the **Authorization Inventory** on `/dashboard/settings/security`: it renders the
+  live LOCAL_ONLY prefix list, which prefixes are bypassable, and the compile-time
+  spawn-capable ("cannot be made bypassable") set.
+- Grep your reverse-proxy / access logs for the prefixes above paired with a
+  non-loopback client address. Any such hit that returned `200` instead of
+  `403 LOCAL_ONLY` means the proxy is masking the real client IP — fix the proxy.
+- A `403 LOCAL_ONLY` in OmniRoute's logs for one of these paths is the guard
+  working as intended, not an error to suppress.
+
 ### Tier 2 — ALWAYS_PROTECTED
 
 **Enforced by:** `isAlwaysProtectedPath(path)` → skip `requireLogin=false` bypass

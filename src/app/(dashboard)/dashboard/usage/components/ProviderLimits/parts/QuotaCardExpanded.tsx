@@ -49,7 +49,6 @@ interface Props {
   onRefresh: () => void;
   onOpenCutoff: () => void;
   onOpenCost: () => void;
-  onRedeemResetCredit?: () => void;
   canEditCutoff: boolean;
   hasCutoffOverrides: boolean;
   canRedeemResetCredit?: boolean;
@@ -197,7 +196,6 @@ export default function QuotaCardExpanded({
   onRefresh,
   onOpenCutoff,
   onOpenCost,
-  onRedeemResetCredit,
   canEditCutoff,
   hasCutoffOverrides,
   canRedeemResetCredit = false,
@@ -329,7 +327,7 @@ export default function QuotaCardExpanded({
             className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
           >
             <span className="material-symbols-outlined text-[12px]">bar_chart</span>
-            {t("usdCost")}
+            USD Cost
           </button>
           <button
             type="button"

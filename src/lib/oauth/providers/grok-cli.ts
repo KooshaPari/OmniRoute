@@ -169,24 +169,29 @@ type ParsedGrokJwt = {
   email: string | null;
   authInfo: GrokCliAuthInfo | null;
   exp: number | null;
-};
+} {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return { email: null, authInfo: null, exp: null };
 
 function emptyGrokJwt(): ParsedGrokJwt {
   return { email: null, authInfo: null, exp: null };
 }
 
-function decodeJwtPayload(token: string): Record<string, unknown> | null {
-  const parts = token.split(".");
-  if (parts.length !== 3) return null;
-
-  let base64 = parts[1];
-  switch (base64.length % 4) {
-    case 2:
-      base64 += "==";
-      break;
-    case 3:
-      base64 += "=";
-      break;
+    const payload = JSON.parse(Buffer.from(base64, "base64").toString("utf-8"));
+    return {
+      email: payload.email || null,
+      authInfo: {
+        user_id: payload.sub || "",
+        email: payload.email || "",
+        team_id: payload.team_id || "",
+        tier: payload.tier || 1,
+        principal_type: payload.principal_type || "User",
+      },
+      exp: typeof payload.exp === "number" ? payload.exp : null,
+    };
+  } catch {
+    return { email: null, authInfo: null, exp: null };
   }
   base64 = base64.replace(/-/g, "+").replace(/_/g, "/");
 
@@ -250,13 +255,7 @@ function extractTokenAndRefresh(input: unknown): {
 } {
   // Direct JWT string
   if (typeof input === "string")
-    return {
-      ...EMPTY_STANDARD_TOKEN_FIELDS,
-      accessToken: input,
-      refreshToken: null,
-      rawAuthJson: null,
-      expiresAt: null,
-    };
+    return { accessToken: input, refreshToken: null, rawAuthJson: null, expiresAt: null };
 
   if (input && typeof input === "object") {
     const obj = input as Record<string, unknown>;
@@ -320,142 +319,47 @@ function extractTokenAndRefresh(input: unknown): {
     }
   }
 
-  return {
-    ...EMPTY_STANDARD_TOKEN_FIELDS,
-    accessToken: "",
-    refreshToken: null,
-    rawAuthJson: null,
-    expiresAt: null,
-  };
-}
-
-type ExtractedGrokToken = ReturnType<typeof extractTokenAndRefresh>;
-
-function firstString(...values: Array<string | null | undefined>): string | null {
-  return values.find((value) => Boolean(value)) || null;
-}
-
-function firstAuthInfoString(
-  primaryClaims: ParsedGrokJwt,
-  secondaryClaims: ParsedGrokJwt,
-  key: Exclude<keyof GrokCliAuthInfo, "tier">
-): string | null {
-  return firstString(primaryClaims.authInfo?.[key], secondaryClaims.authInfo?.[key]);
-}
-
-function resolveGrokIdentity(accessClaims: ParsedGrokJwt, idClaims: ParsedGrokJwt) {
-  const principalType = firstAuthInfoString(accessClaims, idClaims, "principal_type");
-  const principalId = firstAuthInfoString(accessClaims, idClaims, "principal_id");
-  const normalizedPrincipalType = principalType?.toLowerCase();
-  const isTeamPrincipal = normalizedPrincipalType === "team" && Boolean(principalId);
-  const isOrganizationPrincipal =
-    normalizedPrincipalType === "organization" && Boolean(principalId);
-
-  return {
-    principalType,
-    principalId,
-    email: firstString(idClaims.email, accessClaims.email),
-    userId:
-      isTeamPrincipal || isOrganizationPrincipal
-        ? principalId
-        : firstAuthInfoString(idClaims, accessClaims, "user_id"),
-    teamId: isTeamPrincipal ? principalId : firstAuthInfoString(accessClaims, idClaims, "team_id"),
-    organizationId: isOrganizationPrincipal
-      ? principalId
-      : firstAuthInfoString(accessClaims, idClaims, "organization_id"),
-  };
-}
-
-function resolveGrokExpiresIn(extracted: ExtractedGrokToken, accessClaims: ParsedGrokJwt): number {
-  const currentSec = Math.floor(Date.now() / 1000);
-  let expiresIn = extracted.oauthExpiresIn ?? 21600;
-
-  if (extracted.oauthExpiresIn == null && extracted.expiresAt) {
-    const parsed = Date.parse(extracted.expiresAt);
-    if (!isNaN(parsed)) expiresIn = Math.floor(parsed / 1000) - currentSec;
-  } else if (extracted.oauthExpiresIn == null && accessClaims.exp) {
-    expiresIn = accessClaims.exp - currentSec;
-  }
-
-  // Keep an already-expired token eligible for the refresh path.
-  return Math.max(1, expiresIn);
-}
-
-/**
- * The pre-existing paste-token mapping (auth.json / raw JWT import), generalized by
- * #7358 to also resolve identity off an accompanying id_token when present (team/org
- * principal handling via resolveGrokIdentity/resolveGrokExpiresIn) — #5775 clamp
- * included. Used for the import-token fallback path; the browser PKCE exchange uses
- * mapGrokBuildBrowserTokens (grok-cli-oauth.ts) instead, since auth.x.ai's OIDC
- * id_token carries standard claims (name/email) rather than Grok Build's own
- * principal_type/team_id/tier custom claims.
- */
-function mapImportedToken(token: unknown) {
-  const extracted = extractTokenAndRefresh(token);
-  const accessClaims = parseJwtPayload(extracted.accessToken);
-  const idClaims = extracted.idToken ? parseJwtPayload(extracted.idToken) : emptyGrokJwt();
-  const identity = resolveGrokIdentity(accessClaims, idClaims);
-  const expiresIn = resolveGrokExpiresIn(extracted, accessClaims);
-
-  return {
-    accessToken: extracted.accessToken,
-    refreshToken: extracted.refreshToken,
-    idToken: extracted.idToken,
-    expiresIn,
-    tokenType: extracted.tokenType,
-    scope: extracted.scope,
-    email: identity.email,
-    providerSpecificData: {
-      userId: identity.userId,
-      email: identity.email,
-      teamId: identity.teamId,
-      tier: accessClaims.authInfo?.tier || idClaims.authInfo?.tier || 1,
-      principalType: identity.principalType,
-      principalId: identity.principalId,
-      organizationId: identity.organizationId,
-      rawAuthJson: extracted.rawAuthJson || undefined,
-    },
-  };
+  return { accessToken: "", refreshToken: null, rawAuthJson: null, expiresAt: null };
 }
 
 export const grokCli = {
-  // NOTE: this is the BROWSER-PKCE config (authorizeUrl/loopbackPort/etc, same
-  // reference oauth-providers-config.test.ts pins), used by buildAuthUrl /
-  // exchangeToken below. The device-code endpoints (deviceCodeUrl + a wider
-  // legacy scope set) live on the separate GROK_CLI_CONFIG that
-  // requestDeviceCode/pollToken read directly — see the note above them.
-  config: GROK_BUILD_OAUTH_CONFIG,
-  // device_code stays PRIMARY (#7358) — OAuthModal.tsx defaults grok-cli into
-  // the device-code panel and route.ts's device-code/poll action family keys
-  // off this flowType. The browser PKCE login (#7013) is an ADDITIONAL,
-  // equally-first-class method advertised via supportsBrowserPkce below —
-  // callers that need capability detection (providers.ts::generateAuthData,
-  // route.ts's exchange codeVerifier guard) check supportsBrowserPkce instead
-  // of requiring flowType === "authorization_code_pkce".
-  flowType: "device_code" as const,
-  requestDeviceCode,
-  pollToken,
-  // Browser PKCE capability marker + fields (#7013), kept alongside device_code.
-  supportsBrowserPkce: true as const,
-  fixedPort: GROK_BUILD_OAUTH_CONFIG.loopbackPort,
-  callbackPath: GROK_BUILD_OAUTH_CONFIG.callbackPath,
-  callbackHost: GROK_BUILD_OAUTH_CONFIG.callbackHost,
-  // The xAI flow uses a 96-byte random verifier (128 base64url chars), same as xai-oauth.
-  pkceVerifierBytes: 96,
-  buildAuthUrl: buildGrokBuildAuthUrl,
-  exchangeToken: exchangeGrokBuildToken,
-  /**
-   * Unified token mapper serving ALL THREE flows under this single provider
-   * entry: device-code polling (tokens shaped like the standard OAuth token
-   * response, dispatched here the same as a paste-token import unless they
-   * carry the browser-flow's id_token/OIDC shape), the browser PKCE exchange
-   * (tokens shaped like the OAuth token-endpoint response —
-   * `access_token`/`refresh_token`/`id_token`/`expires_in`, detected via
-   * isGrokBuildBrowserTokens), and the paste-token import (`{ accessToken:
-   * <JWT string or auth.json blob> }`, see extractTokenAndRefresh above).
-   * All converge on the same persisted connection shape, so refresh keeps
-   * working unmodified regardless of which flow acquired the tokens.
-   */
-  mapTokens: (token: unknown) =>
-    isGrokBuildBrowserTokens(token) ? mapGrokBuildBrowserTokens(token) : mapImportedToken(token),
+  config: GROK_CLI_CONFIG,
+  flowType: "import_token",
+  mapTokens: (token: unknown, extra?: unknown) => {
+    const { accessToken, refreshToken, rawAuthJson, expiresAt } = extractTokenAndRefresh(token);
+    const { email, authInfo, exp } = parseJwtPayload(accessToken);
+
+    const currentSec = Math.floor(Date.now() / 1000);
+    let expiresIn = 21600;
+
+    if (expiresAt) {
+      const parsed = Date.parse(expiresAt);
+      if (!isNaN(parsed)) {
+        expiresIn = Math.floor(parsed / 1000) - currentSec;
+      }
+    } else if (typeof exp === "number" && exp > 0) {
+      expiresIn = exp - currentSec;
+    }
+
+    // #5775 follow-up: guard against an already-expired token yielding a negative
+    // expiresIn. A negative value is truthy downstream (import-token route) and maps
+    // to a PAST expiresAt, which AutoCombo reads as "already expired" and excludes the
+    // connection instead of refreshing it. Clamp to a tiny positive TTL so the token is
+    // treated as due-for-refresh.
+    expiresIn = Math.max(1, expiresIn);
+
+    return {
+      accessToken,
+      refreshToken,
+      expiresIn,
+      email,
+      providerSpecificData: {
+        userId: authInfo?.user_id || null,
+        teamId: authInfo?.team_id || null,
+        tier: authInfo?.tier || 1,
+        principalType: authInfo?.principal_type || "User",
+        rawAuthJson: rawAuthJson || undefined,
+      },
+    };
+  },
 };

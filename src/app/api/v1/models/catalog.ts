@@ -46,8 +46,11 @@ import {
 } from "@/lib/modelMetadataRegistry";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { getModelSpec } from "@/shared/constants/modelSpecs";
-import { getModelsCatalogPrefixMode } from "@/shared/utils/featureFlags";
-import { applyCatalogPostFilters, finalizeCatalogResponse } from "./catalogResponse";
+import {
+  isModelCatalogNamesEnabled,
+  getModelsCatalogPrefixMode,
+} from "@/shared/utils/featureFlags";
+import { dedupeExactCatalogIds } from "./catalogDedupe";
 import {
   isNoAuthProviderBlocked,
   isNoAuthProviderKey,
@@ -66,8 +69,6 @@ import {
   intersectStringArrays,
   minKnownNumber,
   maybeOmitCatalogModelName,
-  getThinkingCapabilityFields,
-  mergeComboCapabilities,
 } from "./catalogHelpers";
 import {
   qualifyOpenRouterModelId,
@@ -79,7 +80,6 @@ import {
 import { getVisionCapabilityFields, getCustomVisionCapabilityFields } from "./catalogVision";
 import { FALLBACK_ALIAS_TO_PROVIDER, buildAliasMaps } from "./catalogProviderMaps";
 import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catalogRequest";
-import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
 
 // Public API of this module is preserved after the catalog helper extraction:
 // `isVisionModelId` (vision-detection-consistency.test.ts) and
@@ -87,87 +87,6 @@ import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
 // are still importable from here.
 export { isVisionModelId } from "@/shared/constants/visionModels";
 export { getCustomVisionCapabilityFields };
-
-// #6408 — Concurrent GET /v1/models requests serialized (~1.2s each × N). The
-// per-request builder walks 8 registries + hits SQLite for connections, combos,
-// custom models, and aliases; under Next.js single-threaded App Router request
-// handling, N concurrent calls execute back-to-back and the Nth completes
-// N × single-request latency (linear staircase reproduced in the issue).
-//
-// Fix: coalesce identical concurrent requests onto a single in-flight promise,
-// then memoize the serialized body for a short window so a burst (SDK startup,
-// multi-tab dashboard poll) returns from cache. Auth-rejection paths are NOT
-// cached (they depend on live session state — dashboard cookies, API key).
-type CachedCatalog = {
-  body: string;
-  headers: Record<string, string>;
-  status: number;
-  expiresAt: number;
-};
-const CATALOG_CACHE_TTL_MS = 1500; // ~one request-latency window; safe vs SDK bursts
-const catalogCache = new Map<string, CachedCatalog>();
-const catalogInFlight = new Map<string, Promise<CachedCatalog>>();
-
-// Test hook — increments each time the full catalog builder runs. Used by
-// tests/unit/v1-models-concurrent-6408.test.ts to prove concurrent requests
-// share one execution. Not part of the public API; do not read from app code.
-let _catalogBuilderRuns = 0;
-export function __resetCatalogBuilderRunsForTest(): void {
-  _catalogBuilderRuns = 0;
-  catalogCache.clear();
-  catalogInFlight.clear();
-  lastSeenCatalogCacheVersion = getModelCatalogCacheVersion();
-}
-export function __getCatalogBuilderRunsForTest(): number {
-  return _catalogBuilderRuns;
-}
-
-function buildCatalogCacheKey(request: Request): string {
-  const url = new URL(request.url);
-  const prefix = url.searchParams.get("prefix") || "";
-  const apiKey = extractApiKey(request) || "";
-  const isCodex = isCodexModelCatalogClient(request) ? "1" : "0";
-  return `${prefix}|${isCodex}|${apiKey}`;
-}
-
-// Tracks the model-catalog cache version (src/lib/db/readCache.ts) as of the last
-// cache access. invalidateDbCache() bumps that version on every settings/connections/
-// combos/pricing write; when it moves on, every memoized entry here was built from
-// state that no longer holds, so drop them all rather than keying by version (which
-// would leak one Map entry per version forever instead of ever pruning old ones).
-let lastSeenCatalogCacheVersion = getModelCatalogCacheVersion();
-function dropCatalogCacheIfStateChanged(): void {
-  const currentVersion = getModelCatalogCacheVersion();
-  if (currentVersion === lastSeenCatalogCacheVersion) return;
-  lastSeenCatalogCacheVersion = currentVersion;
-  catalogCache.clear();
-  // Deliberately NOT clearing catalogInFlight: an in-flight build already reads live
-  // DB/settings state as of when it started, so letting it finish and populate the
-  // (now-current) cache entry is correct — clearing it would just force a redundant
-  // second builder run for requests that arrive mid-flight.
-}
-
-// Header sources here mix Title-Case keys (diagnosticHeaders, corsHeaders — plain
-// objects built by app code) with lower-case keys (payload/cached.headers — captured
-// via the Fetch `Headers` iterator, which always yields lower-cased names). Merging
-// those with a plain object spread leaves both casings present as distinct object
-// keys; the `Response` constructor then treats them as the same case-insensitive
-// header and *appends* rather than overwrites, producing a comma-joined duplicate
-// (e.g. request-id echoing "foo, foo"). Merge through a real `Headers` instance
-// instead so `.set()` overwrites case-insensitively. Sources listed earlier are the
-// base (cached/freshly-built payload headers); `diagnosticHeaders` is applied last so
-// per-request fields (e.g. X-Request-Id) always reflect the *current* request rather
-// than whichever request happened to populate the cache entry.
-function mergeCatalogHeaders(...sources: Array<Record<string, string> | undefined>): Headers {
-  const merged = new Headers();
-  for (const source of sources) {
-    if (!source) continue;
-    for (const [key, value] of Object.entries(source)) {
-      merged.set(key, value);
-    }
-  }
-  return merged;
-}
 
 /**
  * Build unified OpenAI-compatible model catalog response.

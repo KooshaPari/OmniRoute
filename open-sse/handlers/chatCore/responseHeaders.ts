@@ -31,43 +31,6 @@ const STREAMING_RESPONSE_HEADER_DENYLIST = new Set([
 ]);
 
 /**
- * Keep upstream-derived headers comfortably below common reverse-proxy response-header limits.
- * This budget includes each header name, separator, value, and trailing CRLF. OmniRoute's own
- * response metadata and framework/security headers are added separately.
- */
-export const MAX_FORWARDED_UPSTREAM_RESPONSE_HEADER_BYTES = 768;
-const MAX_LOGGED_DROPPED_RESPONSE_HEADERS = 20;
-const responseHeaderEncoder = new TextEncoder();
-
-type ResponseHeaderLogger = {
-  warn?: (tag: string, message: string, data?: Record<string, unknown>) => void;
-} | null;
-
-function responseHeaderWireBytes(name: string, value: string): number {
-  return responseHeaderEncoder.encode(`${name}: ${value}\r\n`).byteLength;
-}
-
-function isOmniRouteInternalHeader(headerName: string): boolean {
-  return headerName.toLowerCase().startsWith("x-omniroute-");
-}
-
-function getForwardingPriority(headerName: string): number {
-  const normalized = headerName.toLowerCase();
-  if (
-    normalized === "x-request-id" ||
-    normalized === "request-id" ||
-    normalized === "x-correlation-id" ||
-    normalized === "traceparent" ||
-    normalized === "traceresponse"
-  ) {
-    return 0;
-  }
-  if (normalized === "retry-after") return 1;
-  if (normalized.includes("ratelimit") || normalized.includes("rate-limit")) return 2;
-  return 3;
-}
-
-/**
  * Prefix of Next.js internal middleware control headers.
  *
  * When an upstream provider is itself hosted behind a Next.js middleware
@@ -76,8 +39,8 @@ function getForwardingPriority(headerName: string): number {
  * `x-middleware-next`, `x-middleware-override-headers`,
  * `x-middleware-set-cookie`, and the `x-middleware-request-*` family.
  *
- * If OmniRoute re-emits those headers from an App Router route handler, Next
- * 16's `app-route` runtime
+ * OmniRoute forwards upstream response headers verbatim. If we re-emit those
+ * headers from an App Router route handler, Next 16's `app-route` runtime
  * interprets `x-middleware-rewrite` as a `NextResponse.rewrite()` call and
  * throws `NextResponse.rewrite() was used in a app route handler` — turning a
  * successful upstream call into a 500. This is provider-agnostic proxy
@@ -133,14 +96,11 @@ export function buildStreamingResponseHeaders(
   let position = 0;
 
   providerHeaders.forEach((value, key) => {
-    const normalized = key.toLowerCase();
     if (
-      STREAMING_RESPONSE_HEADER_DENYLIST.has(normalized) ||
-      connectionScopedHeaders.has(normalized) ||
-      isNextMiddlewareControlHeader(normalized) ||
-      isOmniRouteInternalHeader(normalized)
+      !STREAMING_RESPONSE_HEADER_DENYLIST.has(key.toLowerCase()) &&
+      !isNextMiddlewareControlHeader(key)
     ) {
-      return;
+      forwardedHeaders.push([key, value]);
     }
     candidates.push({
       key,

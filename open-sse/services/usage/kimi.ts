@@ -9,10 +9,6 @@
  */
 
 import { safePercentage } from "@/shared/utils/formatting";
-import {
-  buildKimiCodeIdentityHeaders,
-  getKimiCodeCliUserAgent,
-} from "../../config/providers/registry/kimi/coding/runtime.ts";
 import { toRecord, toNumber } from "./scalars.ts";
 import { type UsageQuota, parseResetTime } from "./quota.ts";
 
@@ -51,11 +47,14 @@ function getKimiPlanName(level: unknown): string {
  * Kimi Coding Usage - Fetch quota from Kimi API
  * Uses the official /v1/usages endpoint with custom X-Msh-* headers
  */
-export async function getKimiUsage(
-  accessToken?: string,
-  apiKey?: string,
-  providerSpecificData: JsonRecord = {}
-) {
+export async function getKimiUsage(accessToken?: string, apiKey?: string) {
+  // Generate device info for headers (same as OAuth flow)
+  const deviceId = "kimi-usage-" + Date.now();
+  const platform = "omniroute";
+  const version = "2.1.2";
+  const deviceModel =
+    typeof process !== "undefined" ? `${process.platform} ${process.arch}` : "unknown";
+
   // API key auth takes precedence — Kimi's /usages endpoint accepts the same
   // API key used for /messages (verified live: responds with
   // authentication.method = METHOD_API_KEY). OAuth flow falls through to the
@@ -66,8 +65,10 @@ export async function getKimiUsage(
     ? { "x-api-key": apiKey as string }
     : {
         Authorization: `Bearer ${accessToken}`,
-        ...buildKimiCodeIdentityHeaders(providerSpecificData),
-        "User-Agent": getKimiCodeCliUserAgent(),
+        "X-Msh-Platform": platform,
+        "X-Msh-Version": version,
+        "X-Msh-Device-Model": deviceModel,
+        "X-Msh-Device-Id": deviceId,
       };
 
   try {

@@ -100,7 +100,7 @@ test("PROVIDER_MODELS_CONFIG contains a qwen-web entry (issue #3931 bug #3)", ()
   );
 });
 
-test("qwen-web PROVIDER_MODELS_CONFIG entry targets chat.qwen.ai/api/v2/models/", () => {
+test("qwen-web PROVIDER_MODELS_CONFIG entry targets chat.qwen.ai/api/v2/models", () => {
   const src = fs.readFileSync(CONFIG_FILE, "utf-8");
   assert.match(
     src,

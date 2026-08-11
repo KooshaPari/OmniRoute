@@ -5,11 +5,8 @@ import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import Button from "./Button";
 import Input from "./Input";
-import {
-  OAuthDeviceCodePanel,
-  OAuthLoopbackMismatchPanel,
-  OAuthManualInputPanel,
-} from "./OAuthModalPanels";
+import LinkifiedText from "./LinkifiedText";
+import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
 import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oauthBlobSubmit";
 import {
@@ -1170,19 +1167,23 @@ export default function OAuthModal({
         )}
 
         {step === "error" && !showPasteToken && (
-          <OAuthErrorStep
-            error={error}
-            errorTitle={t("error")}
-            tryAgainLabel={t("tryAgain")}
-            cancelLabel={t("cancel")}
-            returnToGitlabDuoSetup={provider === "gitlab-duo"}
-            onReturnToGitlabDuoSetup={() => {
-              setError(null);
-              setStep("gitlab-duo-setup");
-            }}
-            onTryAgain={() => void startOAuthFlow()}
-            onClose={handleClose}
-          />
+          <div className="text-center py-6">
+            <div className="size-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+              <span className="material-symbols-outlined text-3xl text-red-600">error</span>
+            </div>
+            <h3 className="text-lg font-semibold mb-2">{t("error")}</h3>
+            <p className="text-sm text-red-600 mb-4">
+              <LinkifiedText text={error} />
+            </p>
+            <div className="flex gap-2">
+              <Button onClick={startOAuthFlow} variant="secondary" fullWidth>
+                {t("tryAgain")}
+              </Button>
+              <Button onClick={onClose} variant="ghost" fullWidth>
+                {t("cancel")}
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     </Modal>

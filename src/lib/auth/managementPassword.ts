@@ -25,6 +25,10 @@ const ARGON2ID_HASH_PATTERN = /^\$argon2(id|i)\$v=\d+\$/;
 // with it leaves the dashboard open to anyone, so we warn loudly on boot (Seg2 hardening).
 const INSECURE_DEFAULT_PASSWORDS = new Set(["CHANGEME"]);
 
+// Well-known placeholder shipped in `.env.example` (INITIAL_PASSWORD=CHANGEME). Bootstrapping
+// with it leaves the dashboard open to anyone, so we warn loudly on boot (Seg2 hardening).
+const INSECURE_DEFAULT_PASSWORDS = new Set(["CHANGEME"]);
+
 type JsonRecord = Record<string, unknown>;
 
 type MigrationSource = "stored_hash" | "stored_plaintext" | "env" | "missing";
@@ -140,7 +144,7 @@ export async function ensurePersistentManagementPasswordHash(
     warn(
       '[AUTH][SECURITY] Management password is set to the well-known default "CHANGEME" ' +
         "(INITIAL_PASSWORD in .env.example). Anyone can sign in to the dashboard with it — " +
-        "change it immediately via the dashboard or a strong INITIAL_PASSWORD.",
+        "change it immediately via the dashboard or a strong INITIAL_PASSWORD."
     );
   }
 

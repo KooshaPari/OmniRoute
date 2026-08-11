@@ -280,17 +280,6 @@ export function classifyRunError(err, timeoutMs) {
   };
 }
 
-// --hermetic: scrub the live-test trigger vars so the pre-flight behaves like CI
-// (a dev machine with OMNIROUTE_API_KEY set runs 17+ live tests that CI skips —
-// every one a false-positive red against the release branch).
-const HERMETIC_SCRUB = ["OMNIROUTE_API_KEY", "OMNIROUTE_URL"];
-let hermetic = false;
-function buildGateEnv(extra) {
-  const env = { ...process.env, FORCE_COLOR: "0", ...(extra || {}) };
-  if (hermetic) for (const k of HERMETIC_SCRUB) delete env[k];
-  return env;
-}
-
 function run(cmd, cmdArgs, opts = {}) {
   try {
     const out = execFileSync(cmd, cmdArgs, {
@@ -298,7 +287,7 @@ function run(cmd, cmdArgs, opts = {}) {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
       maxBuffer: 256 * 1024 * 1024,
-      env: { ...process.env, FORCE_COLOR: "0", ...(opts.env || {}) },
+      env: { ...process.env, FORCE_COLOR: "0" },
       // A hard ceiling for the long, silent test suites (execFileSync buffers all output until
       // exit, so they show no progress while running). undefined = no timeout for fast gates.
       ...(opts.timeout ? { timeout: opts.timeout } : {}),
@@ -353,14 +342,7 @@ async function main() {
   const hardCmd = (id, label, cmd, cmdArgs, opts) => {
     announce(label);
     const { code, out } = run(cmd, cmdArgs, opts);
-    saveGateLog(id, out);
-    record({
-      id,
-      label,
-      kind: "hard",
-      ok: code === 0,
-      detail: code === 0 ? "pass" : firstFailureLine(out),
-    });
+    record({ id, label, kind: "hard", ok: code === 0, detail: code === 0 ? "pass" : firstFailureLine(out) });
   };
 
   // A ratchet command (check:complexity, check:dead-code, …) exits 1 ONLY on a
@@ -371,14 +353,7 @@ async function main() {
   const driftCmd = (id, label, cmd, cmdArgs, okDetail = "within baseline", opts) => {
     announce(label);
     const { code, out } = run(cmd, cmdArgs, opts);
-    saveGateLog(id, out);
-    record({
-      id,
-      label,
-      kind: "drift",
-      ok: code === 0,
-      detail: code === 0 ? okDetail : firstFailureLine(out),
-    });
+    record({ id, label, kind: "drift", ok: code === 0, detail: code === 0 ? okDetail : firstFailureLine(out) });
   };
 
   process.stderr.write("🔎 Release-green validation (current working tree)\n\n");
@@ -387,24 +362,8 @@ async function main() {
 
   // ESLint: ONE pass → errors (hard) + warnings (drift)
   {
-    announce("ESLint (errors + warnings — ~5-15min)");
-    // Suppressions-aware, matching `npm run lint` (Pacote 4 no-new-warnings): the frozen
-    // pre-existing debt in config/quality/eslint-suppressions.json must not count as
-    // errors here — only NET-NEW violations are release reds. Timeout raised: a full
-    // repo pass takes ~14min alone and this pre-flight often runs alongside test suites.
-    const { out } = run(
-      "npx",
-      [
-        "eslint",
-        ".",
-        "--format",
-        "json",
-        "--suppressions-location",
-        "config/quality/eslint-suppressions.json",
-      ],
-      { timeout: 30 * 60 * 1000 }
-    );
-    saveGateLog("lint", out);
+    announce("ESLint (errors + warnings — ~3-6min)");
+    const { out } = run("npx", ["eslint", ".", "--format", "json"], { timeout: 15 * 60 * 1000 });
     const parsed = parseEslintJson(out);
     if (!parsed) {
       record({
@@ -537,35 +496,15 @@ async function main() {
     // with 15 such reds). They run SILENTLY for many minutes; the announce line above + these
     // hard ceilings keep a long-but-healthy run from being mistaken for a hang (the ceiling also
     // converts a genuine DB-handle hang into a visible failure instead of an infinite block).
-    hardCmd(
-      "unit",
-      "Unit tests (full suite, CI concurrency — runs ~20-35min silently)",
-      npmCmd,
-      ["run", "test:unit:ci"],
-      { timeout: 45 * 60 * 1000 }
-    );
-    hardCmd(
-      "vitest",
-      "Vitest (MCP / autoCombo / cache — ~3-8min)",
-      npmCmd,
-      ["run", "test:vitest"],
-      { timeout: 15 * 60 * 1000 }
-    );
+    hardCmd("unit", "Unit tests (full suite, CI concurrency — runs ~20-35min silently)", npmCmd, ["run", "test:unit:ci"], { timeout: 45 * 60 * 1000 });
+    hardCmd("vitest", "Vitest (MCP / autoCombo / cache — ~3-8min)", npmCmd, ["run", "test:vitest"], { timeout: 15 * 60 * 1000 });
     // Integration tests run ONLY on the release PR full CI (PR→main), so an assertion
     // regression here (e.g. a contributor flipping a Codex fingerprint key order) is
     // invisible until release — run them in the pre-flight as a HARD gate.
-    hardCmd("integration", "Integration tests (~3-10min)", npmCmd, ["run", "test:integration"], {
-      timeout: 20 * 60 * 1000,
-    });
+    hardCmd("integration", "Integration tests (~3-10min)", npmCmd, ["run", "test:integration"], { timeout: 20 * 60 * 1000 });
   }
   if (WITH_BUILD) {
-    hardCmd(
-      "pack-artifact",
-      "Package artifact (npm pack policy)",
-      npmCmd,
-      ["run", "check:pack-artifact"],
-      { timeout: 20 * 60 * 1000 }
-    );
+    hardCmd("pack-artifact", "Package artifact (npm pack policy)", npmCmd, ["run", "check:pack-artifact"], { timeout: 20 * 60 * 1000 });
   }
 
   const { releaseGreen, hardFailures, drift } = computeVerdict(results);

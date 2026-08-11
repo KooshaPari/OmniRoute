@@ -773,12 +773,6 @@ export function createSSEStream(options: StreamOptions = {}) {
   let passthroughResponsesId: string | null = null;
   let passthroughResponsesCurrentFunctionCallKey: string | null = null;
   const passthroughResponsesReasoningSummarySeen = new Set<string>();
-  // #6199 — commentary-phase items announced via `response.output_item.added` are
-  // internal. Their `response.output_text.delta`/`response.output_text.done`/
-  // `response.output_item.done` events do not carry the `phase`, so we remember the
-  // item id + output_index here and drop every matching follow-up event.
-  const passthroughResponsesCommentaryItemIds = new Set<string>();
-  const passthroughResponsesCommentaryIndexes = new Set<number>();
   // #5786 — highest Responses-API `sequence_number` already forwarded on this stream.
   // The Responses API guarantees a strictly increasing sequence_number, so any event at
   // or below this watermark is an upstream reconnect/retry replay and must be dropped —
@@ -1296,6 +1290,18 @@ export function createSSEStream(options: StreamOptions = {}) {
                   eventType: passthroughEventPrefix.eventType(),
                 })
               : null;
+
+            // #5786 — drop replayed Responses-API events (a re-sent event carrying an
+            // already-seen sequence_number) so their deltas are not forwarded twice.
+            if (
+              parsedPassthroughData &&
+              typeof parsedPassthroughData.type === "string" &&
+              parsedPassthroughData.type.startsWith("response.") &&
+              isDuplicateResponsesSequence(parsedPassthroughData.sequence_number)
+            ) {
+              clearPendingPassthroughEvent();
+              continue;
+            }
 
             if (trimmed.startsWith("data:")) {
               const providerPayload = parsedPassthroughData ?? parseSSELine(trimmed);
@@ -2029,6 +2035,17 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           const parsed = parseSSELine(trimmed);
           if (!parsed) continue;
+
+          // #5786 — drop replayed Responses-API events (identical/lower sequence_number
+          // re-sent on an upstream reconnect) so their deltas are not glued twice into
+          // the translated client stream.
+          if (
+            targetFormat === FORMATS.OPENAI_RESPONSES &&
+            isDuplicateResponsesSequence((parsed as JsonRecord).sequence_number)
+          ) {
+            continue;
+          }
+
           providerPayloadCollector.push(parsed);
 
           if (parsed && parsed.done) {

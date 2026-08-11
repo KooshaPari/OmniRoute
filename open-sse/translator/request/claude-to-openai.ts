@@ -419,7 +419,9 @@ function convertClaudeMessage(msg, preserveCacheControl = false) {
             function: {
               name: block.name,
               arguments:
-                typeof block.input === "string" ? block.input : JSON.stringify(block.input || {}),
+                typeof block.input === "string"
+                  ? block.input
+                  : JSON.stringify(block.input || {}),
             },
           });
           break;

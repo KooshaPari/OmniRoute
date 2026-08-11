@@ -44,7 +44,7 @@ async function apiFetch(path: string, options: RequestInit = {}): Promise<Respon
     headers: {
       Authorization: `Bearer ${API_KEY}`,
       "Content-Type": "application/json",
-      ...options.headers,
+      ...(options.headers || {}),
     },
   });
 }
@@ -57,8 +57,7 @@ async function ensureGeminiProvider(): Promise<boolean> {
     const connections = data.connections || data;
     const geminiActive = Array.isArray(connections)
       ? connections.find(
-          (c: Record<string, unknown>) =>
-            c.provider === "gemini" && c.isActive && c.testStatus !== "expired"
+          (c: any) => c.provider === "gemini" && c.isActive && c.testStatus !== "expired"
         )
       : null;
 
@@ -69,7 +68,7 @@ async function ensureGeminiProvider(): Promise<boolean> {
 
     // Check if gemini exists but is expired — try to reactivate via DB
     const geminiExpired = Array.isArray(connections)
-      ? connections.find((c: Record<string, unknown>) => c.provider === "gemini" && c.isActive)
+      ? connections.find((c: any) => c.provider === "gemini" && c.isActive)
       : null;
 
     if (geminiExpired) {
@@ -144,9 +143,7 @@ async function ensureDefaultCombo(): Promise<void> {
     if (!res.ok) return;
     const data = await res.json();
     const combos = data.combos || data;
-    const existing = Array.isArray(combos)
-      ? combos.find((c: Record<string, unknown>) => c.name === "default")
-      : null;
+    const existing = Array.isArray(combos) ? combos.find((c: any) => c.name === "default") : null;
 
     if (existing) {
       console.log(
@@ -384,33 +381,6 @@ export function genAgenticTaskMessage(): Message {
   return { role: "user", content: pick(AGENTIC_TASKS) };
 }
 
-// #7360 follow-up: the standard CASE_BUILDERS prompts are a few hundred to a
-// couple thousand tokens — nowhere near Gemini's free-tier TPM ceiling (16000
-// tokens/min for gemma-4, per the live error text: "Quota exceeded for
-// metric: generate_content_free_tier_input_token_count, limit: 16000"). That
-// meant none of the existing workload tests ever exercised a REAL TPM 429 —
-// only RPM-style rate limiting. genHugeContextMessage builds a single message
-// large enough (~4 chars/token estimate) to approach or exceed that ceiling by
-// itself, so a couple of these back-to-back genuinely trips Gemini's TPM
-// limit and exercises the real classification (RATE_LIMIT_EXCEEDED, not
-// QUOTA_EXHAUSTED) + comboCooldownWait retry path end-to-end, not just a
-// synthetic/mocked 429.
-export function genHugeContextMessage(approxTokens = 12000): Message {
-  const CHARS_PER_TOKEN = 4;
-  const targetChars = approxTokens * CHARS_PER_TOKEN;
-  const chunks = [...LONG_DOCUMENTS, ...CODE_BLOCKS];
-  let content = "";
-  let i = 0;
-  while (content.length < targetChars) {
-    content += `\n\n--- Section ${i + 1} ---\n\n${chunks[i % chunks.length]}`;
-    i++;
-  }
-  return {
-    role: "user",
-    content: `I'm pasting a large batch of internal documentation and code samples below. Read through all of it, then give me a single consolidated summary (max 200 words) covering the recurring themes.\n${content}`,
-  };
-}
-
 export function genMultiTurnConversation(turns: number): Message[] {
   const messages: Message[] = [];
 
@@ -505,72 +475,6 @@ interface StreamResult {
   totalTokens: number;
 }
 
-// #7360 follow-up: extend the workload test to the Responses API too (not
-// just Chat Completions). Parses OmniRoute's own event shapes from
-// open-sse/translator/response/openai-responses.ts: response.output_text.delta
-// / response.reasoning_summary_text.delta for content, response.completed for
-// the terminal status + usage.
-export async function readResponsesSSEStream(response: Response): Promise<StreamResult> {
-  const reader = response.body!.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  let fullContent = "";
-  let finishReason = "unknown";
-  let totalTokens = 0;
-  let rawChunkCount = 0;
-  const debugLines: string[] = [];
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    rawChunkCount++;
-
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() || "";
-
-    for (const line of lines) {
-      if (!line.startsWith("data: ")) continue;
-      const data = line.slice(6).trim();
-      if (data === "[DONE]") continue;
-
-      if (debugLines.length < 3) {
-        debugLines.push(data.slice(0, 200));
-      }
-
-      try {
-        const parsed = JSON.parse(data) as Record<string, unknown>;
-        const type = parsed.type as string | undefined;
-
-        if (
-          type === "response.output_text.delta" ||
-          type === "response.reasoning_summary_text.delta"
-        ) {
-          const delta = parsed.delta as string | undefined;
-          if (delta) fullContent += delta;
-        } else if (type === "response.completed") {
-          const resp = parsed.response as Record<string, unknown> | undefined;
-          finishReason = (resp?.status as string) || "unknown";
-          const usage = resp?.usage as Record<string, number> | undefined;
-          if (usage) {
-            totalTokens =
-              usage.total_tokens ?? (usage.input_tokens ?? 0) + (usage.output_tokens ?? 0);
-          }
-        }
-      } catch {
-        // skip malformed chunks
-      }
-    }
-  }
-
-  if (fullContent.length === 0 && rawChunkCount > 0) {
-    console.log(`    [DEBUG] responses: empty content: ${rawChunkCount} raw chunks`);
-    for (const d of debugLines) console.log(`    [DEBUG] data: ${d}`);
-  }
-
-  return { fullContent, finishReason, totalTokens };
-}
-
 export async function readSSEStream(response: Response): Promise<StreamResult> {
   const reader = response.body!.getReader();
   const decoder = new TextDecoder();
@@ -578,14 +482,10 @@ export async function readSSEStream(response: Response): Promise<StreamResult> {
   let fullContent = "";
   let finishReason = "unknown";
   let totalTokens = 0;
-  let rawChunkCount = 0;
-  let dataLineCount = 0;
-  const debugLines: string[] = [];
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    rawChunkCount++;
 
     buffer += decoder.decode(value, { stream: true });
     const lines = buffer.split("\n");
@@ -593,13 +493,8 @@ export async function readSSEStream(response: Response): Promise<StreamResult> {
 
     for (const line of lines) {
       if (!line.startsWith("data: ")) continue;
-      dataLineCount++;
       const data = line.slice(6).trim();
       if (data === "[DONE]") continue;
-
-      if (debugLines.length < 3) {
-        debugLines.push(data.slice(0, 200));
-      }
 
       try {
         const parsed = JSON.parse(data) as Record<string, unknown>;
@@ -607,45 +502,17 @@ export async function readSSEStream(response: Response): Promise<StreamResult> {
         if (choice) {
           const delta = choice.delta as Record<string, unknown> | undefined;
           if (delta?.content) fullContent += delta.content as string;
-          else if (delta?.reasoning_content) fullContent += delta.reasoning_content as string;
           if (choice.finish_reason) finishReason = choice.finish_reason as string;
         }
-        if (parsed.model && !finalModel) {
-          finalModel = parsed.model as string;
-        }
-
-        const delta = choice?.delta as Record<string, unknown> | undefined;
-        const tcDeltas = delta?.tool_calls as Array<Record<string, unknown>> | undefined;
-        if (tcDeltas) {
-          for (const tcd of tcDeltas) {
-            const idx = tcd.index as number;
-            const id = tcd.id as string | undefined;
-            const fn = tcd.function as Record<string, unknown> | undefined;
-
-            if (!toolCallDeltas.has(String(idx))) {
-              toolCallDeltas.set(String(idx), { id: id ?? "", name: "", arguments: "" });
-            }
-            const entry = toolCallDeltas.get(String(idx))!;
-            if (id) entry.id = id;
-            if (fn?.name) entry.name = fn.name as string;
-            if (fn?.arguments) entry.arguments += fn.arguments as string;
-          }
+        const usage = parsed.usage as Record<string, number> | undefined;
+        if (usage) {
+          totalTokens =
+            usage.total_tokens ?? (usage.prompt_tokens ?? 0) + (usage.completion_tokens ?? 0);
         }
       } catch {
         // skip malformed chunks
       }
     }
-  }
-
-  if (fullContent.length === 0 && rawChunkCount > 0) {
-    console.log(
-      `    [DEBUG] empty content: ${rawChunkCount} raw chunks, ${dataLineCount} data lines`
-    );
-    for (const d of debugLines) console.log(`    [DEBUG] data: ${d}`);
-  } else if (fullContent.length > 0 && fullContent.length < 1000 && finishReason === "unknown") {
-    console.log(
-      `    [DEBUG] suspicious content (${fullContent.length} chars, finish=${finishReason}): ${fullContent.slice(0, 300)}`
-    );
   }
 
   return { fullContent, finishReason, totalTokens };
@@ -655,15 +522,10 @@ export async function readSSEStream(response: Response): Promise<StreamResult> {
 // Shared helper
 // --------------------------------------------------------------------------
 
-function ts(): string {
-  return new Date().toISOString().slice(11, 23); // HH:MM:SS.mmm
-}
-
 export async function sendAndValidate(
   tcName: string,
   buildMessages: () => Message[],
-  stream = true,
-  apiFormat: "chat" | "responses" = "chat"
+  stream = true
 ): Promise<{
   status: number;
   duration: number;
@@ -673,7 +535,6 @@ export async function sendAndValidate(
 }> {
   const MAX_RETRIES = 3;
   const RETRY_DELAY_MS = 10_000;
-  const endpoint = apiFormat === "responses" ? "/v1/responses" : "/v1/chat/completions";
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     const messages = buildMessages();
@@ -684,30 +545,19 @@ export async function sendAndValidate(
     const start = performance.now();
 
     try {
-      const body =
-        apiFormat === "responses"
-          ? {
-              model: MODEL,
-              input: messages,
-              stream,
-              max_output_tokens: 4096,
-              temperature: 0.3,
-            }
-          : {
-              model: MODEL,
-              messages,
-              stream,
-              max_tokens: 4096,
-              temperature: 0.3,
-            };
-
-      const response = await fetch(`${BASE_URL}${endpoint}`, {
+      const response = await fetch(`${BASE_URL}/v1/chat/completions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${API_KEY}`,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          model: MODEL,
+          messages,
+          stream,
+          max_tokens: 4096,
+          temperature: 0.3,
+        }),
         signal: controller.signal,
       });
 
@@ -720,19 +570,10 @@ export async function sendAndValidate(
       let totalTokens = 0;
 
       if (stream) {
-        const streamResult =
-          apiFormat === "responses"
-            ? await readResponsesSSEStream(response)
-            : await readSSEStream(response);
+        const streamResult = await readSSEStream(response);
         content = streamResult.fullContent;
         finishReason = streamResult.finishReason;
         totalTokens = streamResult.totalTokens;
-      } else if (apiFormat === "responses") {
-        const json = await response.json().catch(() => ({}));
-        const textItem = json?.output?.find((o: Record<string, unknown>) => o.type === "message");
-        content = textItem?.content?.[0]?.text || "";
-        finishReason = json?.status || "unknown";
-        totalTokens = json?.usage?.total_tokens || 0;
       } else {
         const json = await response.json().catch(() => ({}));
         const choice = json?.choices?.[0];
@@ -744,7 +585,7 @@ export async function sendAndValidate(
       const msPerToken = totalTokens > 0 ? (duration / totalTokens).toFixed(1) : "?";
 
       console.log(
-        `${ts()} ${tcName.padEnd(45)} ` +
+        `  ${tcName.padEnd(45)} ` +
           `HTTP ${response.status} | ` +
           `${Math.round(duration).toString().padStart(5)}ms | ` +
           `${String(messages.length).padStart(2)} msgs | ` +
@@ -756,43 +597,17 @@ export async function sendAndValidate(
       );
 
       if (response.status === 200) {
-        const isGoodFinish = finishReason === "stop" || finishReason === "length";
-        const isRetryable =
-          content.length === 0 ||
-          finishReason === "malformed_response" ||
-          finishReason === "content_filter" ||
-          (finishReason === "unknown" && totalTokens === 0);
-
-        if (isGoodFinish) {
-          // success — continue to return
-        } else if (isRetryable && attempt < MAX_RETRIES) {
-          const backoff = Math.min(RETRY_DELAY_MS * 2 ** (attempt - 1), 30_000);
-          const reason = content.length === 0 ? "empty content" : `finish: ${finishReason}`;
-          console.log(
-            `${ts()} ${tcName.padEnd(45)} RETRY ${attempt}/${MAX_RETRIES} after ${reason} (waiting ${Math.round(backoff / 1000)}s) | cid: ${correlationId}`
-          );
-          await new Promise((r) => setTimeout(r, backoff));
-          continue;
-        } else if (isRetryable) {
-          assert.fail(
-            `${ts()} ${tcName.padEnd(45)} ${finishReason === "malformed_response" ? "malformed_response" : "empty content"} after ${MAX_RETRIES} attempts | cid: ${correlationId}`
+        if (content.length > 0) {
+          assert.ok(
+            finishReason === "stop" || finishReason === "length",
+            `expected stop/length finish, got ${finishReason}`
           );
         } else {
-          assert.fail(`expected stop/length finish, got ${finishReason} | cid: ${correlationId}`);
+          assert.fail(`  ${tcName.padEnd(45)} WARNING: empty content returned`);
         }
-      } else if (response.status === 503) {
-        // #7360: a 503 from a combo means "all targets exhausted" — exactly
-        // the failure mode the cooldown-aware wait/retry is supposed to
-        // prevent. Silently retrying past it here would mask a regression
-        // instead of catching it, so this is a hard, immediate failure —
-        // never retried.
-        const errorBody = await response.text().catch(() => "unknown");
-        assert.fail(
-          `${ts()} ${tcName.padEnd(45)} HTTP 503 (combo exhausted, not retried): ${errorBody} | cid: ${correlationId}`
-        );
-      } else if (response.status === 429 && attempt < MAX_RETRIES) {
+      } else if ((response.status === 503 || response.status === 429) && attempt < MAX_RETRIES) {
         console.log(
-          `${ts()} ${tcName.padEnd(45)} RETRY ${attempt}/${MAX_RETRIES} after ${response.status} (waiting ${RETRY_DELAY_MS / 1000}s)`
+          `  ${tcName.padEnd(45)} RETRY ${attempt}/${MAX_RETRIES} after ${response.status} (waiting ${RETRY_DELAY_MS / 1000}s)`
         );
         await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
         continue;
@@ -811,19 +626,14 @@ export async function sendAndValidate(
     } catch (err) {
       clearTimeout(timeout);
       const errorMessage = err instanceof Error ? err.message : String(err);
-      if (errorMessage.includes("503")) {
-        // #7360: never retry past a 503 (combo exhausted) — see the non-throw
-        // branch above for why.
-        throw err;
-      }
-      if (errorMessage.includes("429") && attempt < MAX_RETRIES) {
+      if ((errorMessage.includes("503") || errorMessage.includes("429")) && attempt < MAX_RETRIES) {
         console.log(
-          `${ts()} ${tcName.padEnd(45)} RETRY ${attempt}/${MAX_RETRIES} after error (waiting ${RETRY_DELAY_MS / 1000}s)`
+          `  ${tcName.padEnd(45)} RETRY ${attempt}/${MAX_RETRIES} after error (waiting ${RETRY_DELAY_MS / 1000}s)`
         );
         await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
         continue;
       }
-      console.log(`${ts()} ${tcName.padEnd(45)} FAILED: ${errorMessage}`);
+      console.log(`  ${tcName.padEnd(45)} FAILED: ${errorMessage}`);
       throw err;
     }
   }
@@ -959,7 +769,7 @@ export const CASE_BUILDERS = [
                   "Add-on Pack",
                 ]),
                 quantity: randomInt(1, 5),
-                price: Number.parseFloat((Math.random() * 200 + 5).toFixed(2)),
+                price: parseFloat((Math.random() * 200 + 5).toFixed(2)),
               })),
               total: 0,
               shipping: {

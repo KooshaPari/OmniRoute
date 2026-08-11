@@ -1,5 +1,4 @@
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import { mapNvidiaGlm52ReasoningParams } from "./base/reasoningEffort.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 
@@ -46,6 +45,7 @@ import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import { buildClineHeaders } from "@/shared/utils/clineAuth";
+import { normalizeBaseUrl } from "../utils/urlSanitize.ts";
 import {
   normalizeHerokuChatUrl,
   normalizeDatabricksChatUrl,
@@ -53,9 +53,6 @@ import {
   normalizeGigachatChatUrl,
 } from "@/lib/providers/validation/urlHelpers";
 import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
-import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
-import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts";
-import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProviderRegions";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -99,6 +96,62 @@ function applyCustomHeaders(headers: Record<string, string>, rawCustomHeaders: u
     }
     headers[k] = v;
   }
+}
+
+function normalizeBailianMessagesUrl(baseUrl) {
+  const normalized = normalizeBaseUrl(baseUrl).replace(/\?beta=true$/, "");
+  const messagesUrl = normalized.endsWith("/messages") ? normalized : `${normalized}/messages`;
+  return messagesUrl;
+}
+
+function normalizeDataRobotChatUrl(baseUrl) {
+  return buildDataRobotChatUrl(baseUrl);
+}
+
+function normalizeAzureAiChatUrl(baseUrl: string, apiType: "chat" | "responses" = "chat") {
+  return buildAzureAiChatUrl(baseUrl, apiType);
+}
+
+function normalizeWatsonxChatUrl(baseUrl: string) {
+  return buildWatsonxChatUrl(baseUrl);
+}
+
+function normalizeOciChatUrl(baseUrl: string, apiType: "chat" | "responses" = "chat") {
+  return buildOciChatUrl(baseUrl, apiType);
+}
+
+function normalizeSapChatUrl(baseUrl) {
+  return buildSapChatUrl(baseUrl);
+}
+
+function normalizeXiaomiMimoChatUrl(baseUrl) {
+  const normalized = normalizeBaseUrl(baseUrl).replace(/\/chat\/completions$/, "");
+  return `${normalized}/chat/completions`;
+}
+
+function normalizeOpenAIChatUrl(baseUrl) {
+  const normalized = normalizeBaseUrl(baseUrl);
+  if (
+    normalized.endsWith("/chat/completions") ||
+    normalized.endsWith("/responses") ||
+    normalized.endsWith("/chat")
+  ) {
+    return normalized;
+  }
+  if (normalized.endsWith("/v1")) {
+    return `${normalized}/chat/completions`;
+  }
+  // Assume OpenAI-compatible /v1/chat/completions path structure
+  // when the base URL is a bare hostname or custom path (e.g. llama.cpp, vLLM, LM Studio).
+  return `${normalized}/v1/chat/completions`;
+}
+
+function getOpenRouterConnectionPreset(
+  providerSpecificData?: Record<string, unknown> | null
+): string | null {
+  const preset =
+    typeof providerSpecificData?.preset === "string" ? providerSpecificData.preset.trim() : "";
+  return preset || null;
 }
 
 export class DefaultExecutor extends BaseExecutor {
@@ -175,11 +228,7 @@ export class DefaultExecutor extends BaseExecutor {
         return chatUrl;
       }
       case "bailian-coding-plan": {
-        const baseUrl = resolveAlibabaProviderBaseUrl(
-          this.provider,
-          credentials?.providerSpecificData,
-          this.config.baseUrl
-        );
+        const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeBailianMessagesUrl(baseUrl);
       }
       case "alibaba":
@@ -213,12 +262,7 @@ export class DefaultExecutor extends BaseExecutor {
             ? "responses"
             : "chat";
         const baseUrl = this.resolveBaseUrl(credentials);
-        const apiVersion =
-          typeof credentials?.providerSpecificData?.apiVersion === "string" &&
-          credentials.providerSpecificData.apiVersion.trim()
-            ? credentials.providerSpecificData.apiVersion.trim()
-            : "2024-12-01-preview";
-        return normalizeAzureAiChatUrl(baseUrl, apiType, model, apiVersion);
+        return normalizeAzureAiChatUrl(baseUrl, apiType);
       }
       case "watsonx": {
         const baseUrl = this.resolveBaseUrl(credentials);
@@ -238,8 +282,7 @@ export class DefaultExecutor extends BaseExecutor {
         const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeSapChatUrl(baseUrl);
       }
-      case "xiaomi-mimo":
-      case "xiaomi-mimo-token-plan": {
+      case "xiaomi-mimo": {
         const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeXiaomiMimoChatUrl(baseUrl);
       }
@@ -282,9 +325,10 @@ export class DefaultExecutor extends BaseExecutor {
         return normalizeOpenAIChatUrl(baseUrl);
       }
       case "zai":
-      case "glm-coding-apikey":
-        // #7364: format override extracted to zaiFormatOverride.ts (file-size ratchet).
-        return resolveZaiUrl(credentials, (fallback) => this.resolveBaseUrl(credentials, fallback));
+      case "glm-coding-apikey": {
+        const zaiBaseUrl = this.resolveBaseUrl(credentials);
+        return `${zaiBaseUrl}?beta=true`;
+      }
       case "claude":
       case "glm":
       case "glmt":
@@ -653,7 +697,10 @@ export class DefaultExecutor extends BaseExecutor {
         const defaultsRecord = withDefaults as Record<string, unknown>;
         const bodyDisablesStreamOptions =
           defaultsRecord.stream !== undefined && defaultsRecord.stream !== true;
-        if (bodyDisablesStreamOptions) {
+        const qwenBlocksStreamOptions =
+          this.provider === "qwen" &&
+          (Boolean(defaultsRecord.thinking) || Boolean(defaultsRecord.enable_thinking));
+        if (bodyDisablesStreamOptions || qwenBlocksStreamOptions) {
           if (Object.prototype.hasOwnProperty.call(defaultsRecord, "stream_options")) {
             const withoutStreamOptions = { ...defaultsRecord };
             delete withoutStreamOptions.stream_options;
@@ -720,8 +767,7 @@ export class DefaultExecutor extends BaseExecutor {
     if (typeof withDefaults === "object" && withDefaults !== null) {
       const bodyRecord = withDefaults as Record<string, unknown>;
       const outboundModel = typeof bodyRecord.model === "string" ? bodyRecord.model : model;
-      withDefaults = mapNvidiaGlm52ReasoningParams(bodyRecord, this.provider, outboundModel);
-      stripUnsupportedParams(this.provider, outboundModel, withDefaults as Record<string, unknown>);
+      stripUnsupportedParams(this.provider, outboundModel, bodyRecord);
     }
 
     // Apply modelIdPrefix from RegistryEntry (e.g. "accounts/fireworks/models/")

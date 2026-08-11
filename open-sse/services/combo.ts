@@ -1113,7 +1113,373 @@ export async function handleComboChat({
   // the fallback order, never override the router's primary choice.
   let autoUsedExplicitRouter = false;
   if (strategy === "auto") {
-    const autoResult = await resolveAutoStrategyOrder({
+    const requestHasTools = Array.isArray(body?.tools) && body.tools.length > 0;
+    let eligibleTargets = [...orderedTargets];
+
+    if (requestHasTools) {
+      const filtered = eligibleTargets.filter((target) => supportsToolCalling(target.modelStr));
+      if (filtered.length > 0) {
+        eligibleTargets = filtered;
+      } else {
+        log.warn(
+          "COMBO",
+          "Auto strategy: all candidates filtered by tool-calling policy, falling back to full pool"
+        );
+      }
+    }
+
+    // Context-window pre-filter (#1808)
+    // Estimate input tokens once; exclude candidates whose known context limit is too small.
+    // Uses the same 4-chars-per-token heuristic as contextManager.ts::compressContext().
+    // Null/unknown limits are treated as "include" to avoid incorrectly dropping valid targets.
+    const requestMessages = body.messages;
+    const estimatedInputTokens = estimateTokens(
+      typeof requestMessages === "string" ||
+        (requestMessages !== null && typeof requestMessages === "object")
+        ? requestMessages
+        : []
+    );
+    if (estimatedInputTokens > 0) {
+      const filteredByContext = eligibleTargets.filter((target) => {
+        const limit = getModelContextLimitForModelString(target.modelStr);
+        if (limit === null || limit === undefined) return true; // unknown — include to be safe
+        return limit >= estimatedInputTokens;
+      });
+      if (filteredByContext.length > 0) {
+        log.debug?.(
+          "COMBO",
+          `Auto strategy: context-window filter kept ${filteredByContext.length}/${eligibleTargets.length} candidates (est. ${estimatedInputTokens} tokens)`
+        );
+        eligibleTargets = filteredByContext;
+      } else {
+        log.warn(
+          "COMBO",
+          `Auto strategy: all candidates filtered by context-window policy (est. ${estimatedInputTokens} tokens), falling back to full pool`
+        );
+        // eligibleTargets intentionally unchanged — same fallback contract as tool-calling filter
+      }
+
+      eligibleTargets = await expandAutoComboCandidatePool(eligibleTargets, combo);
+    }
+
+    const prompt = extractPromptForIntent(body);
+    const systemPrompt =
+      typeof combo?.system_message === "string" ? combo.system_message : undefined;
+    const intentConfig = getIntentConfig(settings, combo);
+    const intent = classifyWithConfig(prompt, intentConfig, systemPrompt);
+    recordComboIntent(combo.name, intent);
+    const taskType = mapIntentToTaskType(intent);
+
+    const rawAutoConfigSource =
+      combo?.autoConfig ||
+      (isRecord(combo?.config?.auto) ? combo.config.auto : null) ||
+      combo?.config ||
+      {};
+    const autoConfigSource: Record<string, unknown> = isRecord(rawAutoConfigSource)
+      ? rawAutoConfigSource
+      : {};
+    const routingStrategy =
+      typeof autoConfigSource.routerStrategy === "string"
+        ? autoConfigSource.routerStrategy
+        : typeof autoConfigSource.routingStrategy === "string"
+          ? autoConfigSource.routingStrategy
+          : typeof autoConfigSource.strategyName === "string"
+            ? autoConfigSource.strategyName
+            : "rules";
+
+    const candidatePool = Array.isArray(autoConfigSource.candidatePool)
+      ? autoConfigSource.candidatePool
+      : [...new Set(eligibleTargets.map((target) => target.provider))];
+
+    const weights =
+      autoConfigSource.weights && typeof autoConfigSource.weights === "object"
+        ? (autoConfigSource.weights as ScoringWeights)
+        : DEFAULT_WEIGHTS;
+    const explorationRate = Number.isFinite(Number(autoConfigSource.explorationRate))
+      ? Number(autoConfigSource.explorationRate)
+      : 0.05;
+    const budgetCap = Number.isFinite(Number(autoConfigSource.budgetCap))
+      ? Number(autoConfigSource.budgetCap)
+      : undefined;
+    const modePack =
+      typeof autoConfigSource.modePack === "string" ? autoConfigSource.modePack : undefined;
+    const resetWindowConfig = resolveResetWindowConfig(autoConfigSource);
+    const slaPolicy = resolveSlaRoutingPolicy(autoConfigSource);
+
+    let lastKnownGoodProvider: string | undefined;
+    try {
+      const { getLKGP } = await import("../../src/lib/localDb");
+      const lkgp = await getLKGP(combo.name, combo.id || combo.name);
+      if (lkgp) lastKnownGoodProvider = lkgp.provider;
+    } catch (err) {
+      log.warn("COMBO", "Failed to retrieve Last Known Good Provider. This is non-fatal.", { err });
+    }
+
+    const autoCandidateResilienceSettings =
+      relayOptions?.bypassProviderQuotaPolicy === true
+        ? {
+            ...resilienceSettings,
+            quotaPreflight: {
+              ...resilienceSettings.quotaPreflight,
+              enabled: false,
+            },
+          }
+        : resilienceSettings;
+    const candidates = await buildAutoCandidates(
+      eligibleTargets,
+      combo.name,
+      relayOptions?.sessionId,
+      resetWindowConfig,
+      autoCandidateResilienceSettings
+    );
+    const routableCandidates = candidates.filter(
+      (candidate) => candidate.quotaCutoffBlocked !== true
+    );
+    const quotaBlockedCount = candidates.length - routableCandidates.length;
+    if (quotaBlockedCount > 0) {
+      log.info(
+        "COMBO",
+        `Auto strategy: quota cutoff skipped ${quotaBlockedCount}/${candidates.length} account candidates`
+      );
+    }
+    // G2: Register candidates so chatCore can mark quotaSoftPenalty via setCandidateQuotaSoftPenalty.
+    _registerExecutionCandidates(routableCandidates);
+    if (candidates.length > 0 && routableCandidates.length === 0) {
+      return unavailableResponse(
+        429,
+        "All auto strategy candidates are below configured quota cutoffs"
+      );
+    }
+    if (routableCandidates.length > 0) {
+      let selectedProvider: string | null = null;
+      let selectedModel: string | null = null;
+      let selectionReason = "";
+
+      if (routingStrategy !== "rules") {
+        try {
+          const decision = selectWithStrategy(
+            routableCandidates,
+            {
+              taskType,
+              requestHasTools,
+              lastKnownGoodProvider,
+              estimatedInputTokens,
+              sla: slaPolicy,
+            },
+            routingStrategy
+          );
+          selectedProvider = decision.provider;
+          selectedModel = decision.model;
+          selectionReason = decision.reason;
+          autoUsedExplicitRouter = true;
+        } catch (err) {
+          log.warn(
+            "COMBO",
+            `Auto strategy '${routingStrategy}' failed (${err?.message || "unknown"}), falling back to rules`
+          );
+        }
+      }
+
+      if (!selectedProvider || !selectedModel) {
+        const selection = selectAutoProvider(
+          {
+            id: combo.id || combo.name,
+            name: combo.name,
+            type: "auto",
+            candidatePool,
+            weights,
+            modePack,
+            budgetCap,
+            explorationRate,
+          },
+          routableCandidates,
+          taskType
+        );
+        selectedProvider = selection.provider;
+        selectedModel = selection.model;
+        selectionReason = `score=${selection.score.toFixed(3)}${selection.isExploration ? " (exploration)" : ""}`;
+      }
+
+      // Complexity-aware routing (2026, opt-in): classify the request's
+      // difficulty and feed a tier hint into scoring so tierAffinity /
+      // specificityMatch favor candidates whose tier matches the request.
+      const autoManifestHint: RoutingHint | null =
+        config.complexityAwareRouting === true
+          ? buildComplexityRoutingHint(
+              eligibleTargets.filter((t) => t.kind === "model"),
+              body,
+              log
+            )
+          : null;
+
+      const scoredTargets = scoreAutoTargets(
+        eligibleTargets,
+        routableCandidates,
+        taskType,
+        weights,
+        autoManifestHint
+      );
+      const rankedTargets = scoredTargets.map((entry) => entry.target);
+      const selectedTarget =
+        scoredTargets.find((entry) => {
+          const parsed = parseModel(entry.target.modelStr);
+          const modelId = parsed.model || entry.target.modelStr;
+          return entry.target.provider === selectedProvider && modelId === selectedModel;
+        })?.target ||
+        rankedTargets[0] ||
+        eligibleTargets[0];
+      if (!selectedTarget) {
+        return unavailableResponse(
+          429,
+          "No auto strategy targets remained after quota cutoff filtering"
+        );
+      }
+
+      // Keep eligibleTargets as the last-resort fallback tail: dedupe drops the
+      // routable ranked ones (and, when the cutoff is OFF, makes this identical to
+      // the pre-cutoff behavior), but a quota-blocked target still survives as a
+      // final fallback instead of vanishing — the hard cutoff only de-prioritizes.
+      orderedTargets = dedupeTargetsByExecutionKey(
+        [selectedTarget, ...rankedTargets, ...eligibleTargets].filter(
+          (entry): entry is ResolvedComboTarget => entry !== undefined && entry !== null
+        )
+      );
+
+      log.info(
+        "COMBO",
+        `Auto selection: ${selectedTarget?.modelStr || `${selectedProvider}/${selectedModel}`} | intent=${intent} task=${taskType} | strategy=${routingStrategy} | ${selectionReason}`
+      );
+    } else {
+      log.warn("COMBO", "Auto strategy has no candidates, keeping default ordering");
+    }
+  } else if (strategy === "lkgp") {
+    try {
+      const { getLKGP } = await import("../../src/lib/localDb");
+      const lkgpProvider = await getLKGP(combo.name, combo.id || combo.name);
+
+      if (lkgpProvider) {
+        const lkgpRecord = lkgpProvider;
+        const providerName = lkgpRecord.provider;
+        const connId = lkgpRecord.connectionId;
+
+        let lkgpIndex = -1;
+        if (connId) {
+          lkgpIndex = orderedTargets.findIndex(
+            (target) => target.provider === providerName && target.connectionId === connId
+          );
+        }
+        if (lkgpIndex < 0) {
+          lkgpIndex = orderedTargets.findIndex(
+            (target) =>
+              target.provider === providerName ||
+              // Issue #2359: Defensive guard. The `target.modelStr` type
+              // annotation is `string`, but malformed combo entries (e.g.,
+              // local-provider rows whose `modelStr` failed to resolve when
+              // the executor catalogue was being rebuilt) have leaked
+              // through and surfaced as `e.startsWith is not a function`
+              // 500s on combo test/dispatch. The fast path stays
+              // unchanged for the common case; this only avoids the
+              // crash when the field is unexpectedly non-string.
+              (typeof target.modelStr === "string" &&
+                target.modelStr.startsWith(`${providerName}/`))
+          );
+        }
+
+        if (lkgpIndex > 0) {
+          const [lkgpTarget] = orderedTargets.splice(lkgpIndex, 1);
+          orderedTargets.unshift(lkgpTarget);
+          log.info(
+            "COMBO",
+            `[LKGP] Prioritizing last known good provider ${providerName}${connId ? ` (account ${connId})` : ""} for combo "${combo.name}"`
+          );
+        } else if (lkgpIndex === 0) {
+          log.debug?.(
+            "COMBO",
+            `[LKGP] Last known good provider ${providerName}${connId ? ` (account ${connId})` : ""} already first for combo "${combo.name}"`
+          );
+        }
+      }
+    } catch (err) {
+      log.warn("COMBO", "Failed to retrieve Last Known Good Provider. This is non-fatal.", { err });
+    }
+  } else if (strategy === "strict-random") {
+    const selectedExecutionKey = await getNextFromDeck(
+      `combo:${combo.name}`,
+      orderedTargets.map((target) => target.executionKey)
+    );
+    const selectedTarget =
+      orderedTargets.find((target) => target.executionKey === selectedExecutionKey) || null;
+    // #3959: shuffle the fallback remainder too. Previously `rest` kept fixed
+    // priority order, so after a failing deck pick the chain always fell through
+    // to the same top-priority model — a persistently-failing model was retried
+    // on essentially every request and fallback load never spread across peers.
+    const rest = fisherYatesShuffle(
+      orderedTargets.filter((target) => target.executionKey !== selectedExecutionKey)
+    );
+    orderedTargets = [selectedTarget, ...rest].filter(
+      (target): target is ResolvedComboTarget => target !== null
+    );
+    log.info(
+      "COMBO",
+      `Strict-random deck: ${selectedExecutionKey} selected (${orderedTargets.length} targets)`
+    );
+  } else if (strategy === "random") {
+    orderedTargets = fisherYatesShuffle([...orderedTargets]);
+    log.info("COMBO", `Random shuffle: ${orderedTargets.length} targets`);
+  } else if (strategy === "fill-first") {
+    log.info(
+      "COMBO",
+      `Fill-first ordering: preserving priority order (${orderedTargets.length} targets)`
+    );
+  } else if (strategy === "p2c") {
+    orderedTargets = orderTargetsByPowerOfTwoChoices(orderedTargets, combo.name);
+    log.info("COMBO", `Power-of-two-choices ordering: selected ${orderedTargets[0]?.modelStr}`);
+  } else if (strategy === "least-used") {
+    orderedTargets = sortTargetsByUsage(orderedTargets, combo.name);
+    log.info("COMBO", `Least-used ordering: ${orderedTargets[0]?.modelStr} has fewest requests`);
+  } else if (strategy === "cost-optimized") {
+    orderedTargets = await sortTargetsByCost(orderedTargets);
+    if (config.manifestRouting === true) {
+      try {
+        const manifestHint = generateRoutingHints(
+          orderedTargets.filter((t) => t.kind === "model"),
+          {
+            messages: Array.isArray(body?.messages)
+              ? (body.messages as Array<{ role?: string; content?: string | unknown }>)
+              : [],
+            tools: Array.isArray(body?.tools)
+              ? (body.tools as Array<{
+                  function?: { name: string; description?: string; parameters?: unknown };
+                }>)
+              : undefined,
+            model: typeof body?.model === "string" ? body.model : undefined,
+          }
+        );
+        if (manifestHint.strategyModifier === "require-premium") {
+          const eligible = orderedTargets.filter(
+            (t) =>
+              t.kind !== "model" ||
+              manifestHint.eligibleTargets.some(
+                (e) => e.provider === t.provider && e.modelStr === t.modelStr
+              )
+          );
+          if (eligible.length > 0) orderedTargets = eligible;
+        }
+        log.debug?.(
+          {
+            strategyModifier: manifestHint.strategyModifier,
+            specificityLevel: manifestHint.specificityLevel,
+            score: manifestHint.specificity.score,
+          },
+          "manifest routing applied"
+        );
+      } catch (err) {
+        log.warn({ err }, "manifest routing failed, falling back to standard strategy");
+      }
+    }
+    log.info("COMBO", `Cost-optimized ordering: cheapest first (${orderedTargets[0]?.modelStr})`);
+  } else if (strategy === "reset-aware") {
+    orderedTargets = await orderTargetsByResetAwareQuota(
       orderedTargets,
       body,
       combo,
@@ -1566,9 +1932,12 @@ export async function handleComboChat({
           // QA P0 diagnostics: capture the attempt order (provider/model ids only).
           comboAttemptOrder.push({ provider: provider ?? "unknown", model: modelStr });
 
-          // Copy-on-write, not a deep clone (#7847 — 9.53 MiB at 3 targets). Writes here are
-          // top-level scalars. Invariant: tests/unit/combo-attempt-body-isolation-7847.test.ts.
-          let attemptBody = { ...(body as Record<string, unknown>) } as typeof body;
+          // Deep clone the body to ensure context preservation and prevent mutations
+          // from affecting other targets in the combo. structuredClone avoids the
+          // full intermediate JSON string that JSON.parse(JSON.stringify(...)) builds
+          // (a second multi-hundred-KB allocation per target on large agent payloads),
+          // halving the per-target transient heap on the hot path (#5152).
+          let attemptBody = structuredClone(body);
 
           // Proactive Context Compression for fallbacks (Zero-Latency optimization)
           if (
@@ -1655,22 +2024,12 @@ export async function handleComboChat({
               undefined;
             const effectiveConnectionId = selectedConnectionId || target.connectionId || "";
 
-            // Clone BEFORE quality check — validateResponseQuality reads the body
-            // via getReader() which locks the stream. The clone's body is consumed
-            // by the quality check; the original stays unlocked for piping.
-            let qualityClone: Response;
-            try {
-              qualityClone = result.clone();
-            } catch {
-              qualityClone = result;
-            }
             const quality = await validateResponseQuality(
-              qualityClone,
+              result,
               clientRequestedStream,
               log,
               config.responseValidation
             );
-            releaseQualityClone(qualityClone, result, quality);
             if (!quality.valid) {
               releaseRejectedQualityResponse(qualityClone, result);
               log.warn(
@@ -3008,19 +3367,12 @@ async function handleRoundRobinCombo({
 
         // Success — validate response quality before returning
         if (result.ok) {
-          let rrClone: Response;
-          try {
-            rrClone = result.clone();
-          } catch {
-            rrClone = result;
-          }
           const quality = await validateResponseQuality(
-            rrClone,
+            result,
             clientRequestedStream,
             log,
             config.responseValidation
           );
-          releaseQualityClone(rrClone, result, quality);
           if (!quality.valid) {
             releaseRejectedQualityResponse(rrClone, result);
             log.warn(

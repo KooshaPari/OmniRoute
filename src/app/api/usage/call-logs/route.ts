@@ -143,28 +143,11 @@ export async function GET(request: Request) {
     if (searchParams.get("limit")) filter.limit = parseInt(searchParams.get("limit"));
     if (searchParams.get("offset")) filter.offset = parseInt(searchParams.get("offset"));
 
-    const [logs, connections, providerNodes] = await Promise.all([
-      getCallLogs(filter),
-      getProviderConnections(),
-      getProviderNodes(),
-    ]);
-    const providerDisplayNames = new Map<string, string>(
-      (Array.isArray(providerNodes) ? providerNodes : []).flatMap((node: any) => {
-        if (typeof node?.id !== "string" || node.id.length === 0) return [];
-        const label =
-          (typeof node?.name === "string" && node.name.trim().length > 0
-            ? node.name.trim()
-            : typeof node?.prefix === "string" && node.prefix.trim().length > 0
-              ? node.prefix.trim()
-              : "") || null;
-        return label ? [[node.id, label] as const] : [];
-      })
-    );
+    const [logs, connections] = await Promise.all([getCallLogs(filter), getProviderConnections()]);
 
     const rows = buildCallLogListRows({
       logs,
       connections,
-      providerDisplayNames,
       pendingDetails: getPendingById().values(),
       completedDetails: getCompletedDetails().values(),
     });
@@ -174,7 +157,7 @@ export async function GET(request: Request) {
     // the DB rows but activeEntries/completedEntries bypass it.
     if (filter.correlationId) {
       const cid = filter.correlationId;
-      return NextResponse.json(rows.filter((r: any) => matchesSearch(r.correlationId || "", cid)));
+      return NextResponse.json(rows.filter((r: any) => r.correlationId === cid));
     }
 
     return NextResponse.json(rows);

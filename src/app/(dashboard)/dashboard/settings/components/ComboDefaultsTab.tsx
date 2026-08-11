@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, Input, ModelSelectField, Toggle } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
-import { matchesSearch } from "@/shared/utils/turkishText";
 import FusionDefaultsFields from "./FusionDefaultsFields";
 import {
   ROUTING_STRATEGIES,

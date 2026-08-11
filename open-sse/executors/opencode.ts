@@ -41,49 +41,17 @@ const OPENCODE_COOLDOWN_MAX_MS = 60_000;
 const EFFORT_LEVELS = ["low", "medium", "high", "max"] as const;
 
 /**
- * Models on opencode-go that support effort-tier aliases. Each entry maps the
- * canonical base id to the set of effort suffixes the upstream supports.
- *
- * - deepseek-v4-pro: all four tiers (low/medium/high/max)
- * - glm-5.2: high/max only (Z.AI maps these through the reasoning plane;
- *   low/medium are not supported on the OpenAI transport)
- * - mimo-v2.5: high/max only (same reasoning; Xiaomi MiMo does not document
- *   low/medium effort tiers)
- * - #8353 OpenCode Go registry effort variants (exact suffix sets from
- *   `opencode models opencode-go --verbose`; MiniMax M3 excluded — different
- *   thinking-mode mapping):
- *   deepseek-v4-flash high/max; grok-4.5 low/medium/high; hy3 none/low/high;
- *   kimi-k3 max; qwen3.6-plus / qwen3.7-max / qwen3.7-plus high/max
- */
-const EFFORT_TIERS: Record<string, readonly string[]> = {
-  "deepseek-v4-pro": EFFORT_LEVELS,
-  "deepseek-v4-flash": ["high", "max"],
-  "glm-5.2": ["high", "max"],
-  "mimo-v2.5": ["high", "max"],
-  "grok-4.5": ["low", "medium", "high"],
-  hy3: ["none", "low", "high"],
-  "kimi-k3": ["max"],
-  "qwen3.6-plus": ["high", "max"],
-  "qwen3.7-max": ["high", "max"],
-  "qwen3.7-plus": ["high", "max"],
-};
-
-/**
- * Parse a model string with an effort-level suffix.
+ * Parse a DeepSeek V4 Pro model string with an effort-level suffix.
  * e.g. "deepseek-v4-pro-low" → { baseModel: "deepseek-v4-pro", effort: "low" }
- *      "glm-5.2-high"         → { baseModel: "glm-5.2", effort: "high" }
- * Returns null if the model doesn't match any known effort-tier pattern.
+ * Returns null if the model doesn't match the pattern.
  */
-export function parseEffortLevel(model: string): { baseModel: string; effort: string } | null {
+function parseDeepSeekEffortLevel(model: string): { baseModel: string; effort: string } | null {
   const m = String(model || "");
-  for (const [baseModel, levels] of Object.entries(EFFORT_TIERS)) {
-    for (const level of levels) {
-      if (m === `${baseModel}-${level}`) {
-        return { baseModel, effort: level };
-      }
-    }
-  }
-  return null;
+  const matchedLevel = EFFORT_LEVELS.find((level) => m.endsWith(`-${level}`));
+  if (!matchedLevel) return null;
+  const baseModel = m.slice(0, -matchedLevel.length - 1);
+  if (baseModel.toLowerCase() !== "deepseek-v4-pro") return null;
+  return { baseModel: "deepseek-v4-pro", effort: matchedLevel };
 }
 
 export class OpencodeExecutor extends BaseExecutor {
@@ -285,35 +253,9 @@ export class OpencodeExecutor extends BaseExecutor {
       headers["Accept"] = "text/event-stream";
     }
 
-    // Opt-in (#5997): synthesize OpenCode CLI identity headers the client did not send.
-    // Cloudflare in front of opencode.ai/zen/go 403s server-side (VPS) requests lacking
-    // CLI identity, but the forward-only default is deliberate — fabricating a WRONG
-    // value risks upstream rejection (#5720 regressed with "opencode/local"), and this
-    // is deployment-specific. So it stays OFF by default and the VPS operator enables it
-    // with OPENCODE_SYNTHESIZE_CLI_HEADERS=true (values env-overridable). Client-supplied
-    // headers always take precedence.
-    const synthesizeCli = /^(1|true|yes|on)$/i.test(
-      process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS?.trim() ?? ""
-    );
-    const cliDefaults = synthesizeCli
-      ? (() => {
-          const providerId = this.config?.id || this.provider || "opencode";
-          const envUAKey = `${providerId.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_USER_AGENT`;
-          return {
-            userAgent:
-              process.env[envUAKey]?.trim() ||
-              process.env.OPENCODE_USER_AGENT?.trim() ||
-              "opencode-cli/1.0.0",
-            client: process.env.OPENCODE_CLIENT?.trim() || "cli",
-            project: process.env.OPENCODE_PROJECT?.trim() || "default",
-          };
-        })()
-      : undefined;
-
-    if (clientHeaders || cliDefaults) {
-      forwardOpencodeClientHeaders(headers, clientHeaders ?? {}, {
+    if (clientHeaders) {
+      forwardOpencodeClientHeaders(headers, clientHeaders, {
         synthesizeRequestId: true,
-        cliDefaults,
       });
     }
 
@@ -352,13 +294,7 @@ export class OpencodeExecutor extends BaseExecutor {
     }
     if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
       const mb = modifiedBody as Record<string, unknown>;
-      if (Array.isArray(mb.tools) && mb.tools.length > 128) {
-        mb.tools = mb.tools.slice(0, 128);
-      }
-    }
-    if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
-      const mb = modifiedBody as Record<string, unknown>;
-      const parsed = parseEffortLevel(model);
+      const parsed = parseDeepSeekEffortLevel(model);
       if (parsed) {
         mb.model = parsed.baseModel;
         if (mb.reasoning_effort === undefined) {

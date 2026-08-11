@@ -19,7 +19,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import type { SqliteAdapter } from "./adapters/types";
 import { DEFAULT_DATABASE_SETTINGS } from "@/types/databaseSettings";
-import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 import {
   RENAMED_MIGRATION_COMPATIBILITY,
   LEGACY_VERSION_SLOT_MIGRATIONS,
@@ -28,7 +27,6 @@ import {
   INITIAL_SCHEMA_SENTINELS,
   OPTIONAL_FTS5_MIGRATION_VERSIONS,
 } from "./migrationRunner/constants";
-import { getExtraMigrationFiles } from "./migrationRunner/extraDirs";
 
 const isNodeTestRunnerChild = typeof process.env.NODE_TEST_CONTEXT === "string";
 
@@ -139,29 +137,6 @@ function resolveMaxPendingMigrations(): number {
   }
   return DEFAULT_MAX_PENDING_MIGRATIONS_ON_EXISTING_DB;
 }
-
-/**
- * Raised by the mass-migration safety check when far more migrations are pending
- * than the resolved threshold — a strong signal the migration tracking table was
- * wiped (e.g. a restored backup). Given its own type so callers/loggers can
- * recognize the memoized cascade and keep repeated logs concise (#6260).
- */
-export class MigrationSafetyAbortError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "MigrationSafetyAbortError";
-  }
-}
-
-/**
- * Memoized mass-migration abort (#6260). After a backup restore wipes the
- * migration tracking table, EVERY downstream `ensureDbInitialized()` re-opens
- * the DB and re-calls `runMigrations()`, which used to recompute the abort and
- * re-`console.error` the full banner 11+ times. Caching the thrown instance
- * (keyed by the exact message it would compute) lets repeated calls in the same
- * process throw the SAME instance and log a single concise line instead.
- */
-let memoizedSafetyAbort: MigrationSafetyAbortError | null = null;
 
 const fts5SupportCache = new WeakMap<SqliteAdapter, boolean>();
 

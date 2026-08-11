@@ -68,19 +68,6 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     // Google Labs async coding agent — single async session, no model selection.
     { id: "jules", name: "Jules (Google Labs coding agent)" },
   ],
-  devin: () => [
-    // Cognition's Devin cloud-agent sessions don't expose per-request model
-    // selection like devin-cli's ACP models do — single non-selectable placeholder
-    // so the "Available Models" UI shows something instead of a hard failure (#6142).
-    { id: "devin", name: "Devin (Cognition cloud agent)" },
-  ],
-  "amazon-q": () => [
-    // Amazon Q Developer shares KiroExecutor + OAuth wiring with kiro but has no
-    // discovery config or registry catalog of its own — single non-selectable
-    // placeholder so the "Available Models" UI shows something instead of the
-    // hard "does not support models listing" failure (#7820).
-    { id: "amazon-q", name: "Amazon Q Developer" },
-  ],
   "linkup-search": () => [
     // Linkup web search — the "model" is the search depth (docs.linkup.so #5571).
     { id: "standard", name: "Standard (single-iteration agentic search)" },
@@ -98,16 +85,6 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "youtube", name: "YouTube" },
     { id: "google_scholar", name: "Google Scholar" },
     { id: "duckduckgo", name: "DuckDuckGo" },
-  ],
-  "venice-web": () => [
-    // Venice.ai web-cookie provider — no upstream /v1/models endpoint, so seed the
-    // current lineup as a static catalog (#6269). Venice rotates its catalog; keep
-    // in step with the published list at https://docs.venice.ai/models/overview.
-    { id: "venice-uncensored", name: "Venice Uncensored" },
-    { id: "llama-3.3-70b", name: "Llama 3.3 70B" },
-    { id: "qwen3-235b", name: "Qwen3 235B" },
-    { id: "qwen3-4b", name: "Qwen3 4B" },
-    { id: "deepseek-r1-671b", name: "DeepSeek R1 671B" },
   ],
 };
 

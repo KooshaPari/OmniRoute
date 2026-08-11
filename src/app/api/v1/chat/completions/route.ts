@@ -6,18 +6,9 @@ import { generateRequestId } from "@/shared/utils/requestId";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
-import {
-  OPENAI_CHAT_ERROR_FRAME,
-  OPENAI_KEEPALIVE_FRAME,
-  OPENAI_STARTUP_FRAME,
-  withEarlyStreamKeepalive,
-} from "@omniroute/open-sse/utils/earlyStreamKeepalive";
+import { withEarlyStreamKeepalive } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
 import { checkChatAdmission } from "@/shared/middleware/chatBodyAdmission";
-import {
-  readCompressionRequestHeader,
-  withCompressionHeaderEcho,
-} from "@/shared/utils/compressionHeaderEcho";
 
 let initPromise = null;
 
@@ -40,28 +31,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-// Minimal request-shape validation (Rule #7 / T06 gate). This is the hottest path in the
-// proxy, and the body is already parsed exactly once above into `parsedBody` (see the
-// #4380/#7862 comment on the single `request.json()` call) — so this only runs `.safeParse()`
-// over that already-parsed object, it does NOT read the body again.
-//
-// Deliberately permissive: `src/sse/handlers/chat.ts` (deeper in `handleChat`) owns the real
-// validation of this payload — messages/model/temperature/top_p/max_tokens/n — and accepts
-// shapes this schema must not newly reject, e.g. a `model` that is entirely absent (resolved
-// later via `input`/antigravity) or `null`, and message `role`s such as `"developer"` (see
-// `open-sse/services/roleNormalizer.ts`) that a stricter enum would exclude. `.passthrough()`
-// keeps every other field (stream, tools, reasoning, provider-specific extras, ...) intact.
-// This schema only asserts what the route already assumes before handing `parsedBody` to
-// `handleChat`: a non-null object, `model` a nullable string when present, `messages` an
-// array when present — so `.safeParse()` failing here is always a shape the deep validation
-// would already have rejected with its own 400, never a new rejection.
-const chatCompletionsRouteShapeSchema = z
-  .object({
-    model: z.string().nullable().optional(),
-    messages: z.array(z.unknown()).optional(),
-  })
-  .passthrough();
-
 /**
  * Handle CORS preflight
  */
@@ -71,23 +40,6 @@ export async function OPTIONS() {
 
 export async function POST(request) {
   await ensureInitialized();
-
-  // Content-Type guard (#6414) — reject non-JSON POST bodies with 415 per RFC 7231.
-  // OpenAI/Anthropic reject `text/plain` or missing Content-Type at the edge; matching
-  // that behavior prevents a text/plain body from silently reaching provider lookup.
-  const contentType = request.headers.get("content-type") ?? "";
-  if (!contentType.toLowerCase().split(";")[0].trim().startsWith("application/json")) {
-    return new Response(
-      JSON.stringify({
-        error: {
-          message: "Content-Type must be application/json",
-          type: "invalid_request_error",
-          code: "unsupported_media_type",
-        },
-      }),
-      { status: 415, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-    );
-  }
 
   // Heap-pressure-aware admission: shed a large body with 503 (or 413 if pathological)
   // BEFORE the request is cloned + JSON-parsed below. A large coding-agent compact body
@@ -239,22 +191,12 @@ export async function POST(request) {
     parsedBodyIsRecord && acceptHeaderForcesStream(acceptHeader, parsedBody.stream);
   const wantsStreaming = (parsedBodyIsRecord && parsedBody.stream === true) || acceptForcesStream;
 
-  // #6422 — capture the compression request header once so we can echo it back
-  // on the response when internal early-returns (idempotency cache, some combo
-  // paths) drop the meta the docs promise.
-  const compressionRequestHeader = readCompressionRequestHeader(request);
-
   if (wantsStreaming) {
-    const reqId = generateRequestId();
-    return await withEarlyStreamKeepalive(handleChat(request, null, parsedBody, reqId), {
+    return await withEarlyStreamKeepalive(handleChat(request, null, parsedBody), {
       signal: request.signal,
       thresholdMs: resolveKeepaliveThreshold(parsedBody?.model),
-      extraHeaders: { "X-Correlation-Id": reqId },
     });
   }
 
-  return withCompressionHeaderEcho(
-    await handleChat(request, null, parsedBody),
-    compressionRequestHeader
-  );
+  return await handleChat(request, null, parsedBody);
 }

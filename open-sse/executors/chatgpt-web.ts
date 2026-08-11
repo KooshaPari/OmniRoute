@@ -81,6 +81,52 @@ function deviceIdFor(cookie: string): string {
 // ChatGPT's backend routes use dash-form slugs (e.g. "gpt-5-5-pro"). The slug
 // catalog comes from /backend-api/models on a logged-in account;
 // "gpt-5-4-t-mini" is ChatGPT's abbreviated slug for "GPT-5.4 Thinking Mini".
+const MODEL_MAP: Record<string, string> = {
+  // ChatGPT backend slugs are also accepted directly for power users / tests.
+  "gpt-5-5-pro": "gpt-5-5-pro",
+  "gpt-5-5-pro-extended": "gpt-5-5-pro",
+  "gpt-5-5-thinking": "gpt-5-5-thinking",
+  "gpt-5-5": "gpt-5-5",
+  "gpt-5-4-pro": "gpt-5-4-pro",
+  "gpt-5-4-thinking": "gpt-5-4-thinking",
+  "gpt-5-4-t-mini": "gpt-5-4-t-mini",
+  "gpt-5-3": "gpt-5-3",
+  "gpt-5-3-mini": "gpt-5-3-mini",
+
+  // Public OmniRoute dot-form ids exposed by the provider catalog.
+  "gpt-5.5-pro": "gpt-5-5-pro",
+  "gpt-5.5-pro-extended": "gpt-5-5-pro",
+  "gpt-5.5-thinking": "gpt-5-5-thinking",
+  "gpt-5.5": "gpt-5-5",
+  "gpt-5.4-pro": "gpt-5-4-pro",
+  "gpt-5.4-thinking": "gpt-5-4-thinking",
+  "gpt-5.4-thinking-mini": "gpt-5-4-t-mini",
+  "gpt-5.3-instant": "gpt-5-3-instant",
+  "gpt-5.3": "gpt-5-3",
+  "gpt-5.3-mini": "gpt-5-3-mini",
+  o3: "o3",
+};
+
+const MODEL_FORCED_EFFORT: Record<string, "standard" | "extended"> = {
+  "gpt-5-5-pro": "standard",
+  "gpt-5-5-pro-extended": "extended",
+  "gpt-5.5-pro": "standard",
+  "gpt-5.5-pro-extended": "extended",
+};
+
+/** Set of chatgpt.com slugs that the user_last_used_model_config endpoint
+ * accepts a `thinking_effort` value for, derived from MODEL_MAP so adding a
+ * new thinking entry there automatically extends this set. Includes the
+ * abbreviated slug `gpt-5-4-t-mini` (no literal "thinking" substring) — the
+ * reason this set exists at all rather than a substring match.
+ *
+ * Derived from MODEL_MAP keys (always dot-form) that contain "thinking" or
+ * are the `o3` reasoning model; the values are the chatgpt.com-side slugs. */
+const THINKING_CAPABLE_SLUGS: ReadonlySet<string> = new Set(
+  Object.entries(MODEL_MAP)
+    .filter(([k]) => k.includes("thinking") || k === "o3")
+    .map(([, v]) => v)
+);
 
 // ─── Browser-like default headers ──────────────────────────────────────────
 

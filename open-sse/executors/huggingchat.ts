@@ -242,6 +242,140 @@ function mergeCookieHeaderWithSetCookie(cookieHeader: string, setCookieHeaders: 
   return [...cookieMap.entries()].map(([name, value]) => `${name}=${value}`).join("; ");
 }
 
+function parseJsonlLine(line: string): {
+  token?: string;
+  done?: boolean;
+  error?: string;
+  text?: string;
+} {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  } catch {
+    return "UTC";
+  }
+}
+
+async function readUpstreamErrorDetails(response: Response): Promise<{
+  message: string | null;
+  details: unknown;
+}> {
+  const contentType = response.headers.get("content-type") || "";
+  const text = await response.text().catch(() => "");
+  if (!text) return { message: null, details: null };
+
+  if (contentType.includes("json")) {
+    try {
+      const parsed = JSON.parse(text) as Record<string, unknown>;
+      const message =
+        typeof parsed.message === "string"
+          ? parsed.message
+          : typeof parsed.error === "string"
+            ? parsed.error
+            : parsed.error &&
+                typeof parsed.error === "object" &&
+                typeof (parsed.error as Record<string, unknown>).message === "string"
+              ? String((parsed.error as Record<string, unknown>).message)
+              : null;
+      return { message: message ? sanitizeErrorMessage(message) : null, details: parsed };
+    } catch {
+      // Fall through to text handling below.
+    }
+  }
+
+  return { message: sanitizeErrorMessage(text), details: { body: text } };
+}
+
+function unwrapSuperjsonPayload(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const record = value as Record<string, unknown>;
+  return record.json && typeof record.json === "object" ? record.json : value;
+}
+
+function extractInitialParentMessageId(value: unknown): string | null {
+  const payload = unwrapSuperjsonPayload(value);
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
+
+  const record = payload as Record<string, unknown>;
+  if (typeof record.rootMessageId === "string" && record.rootMessageId.trim()) {
+    return record.rootMessageId;
+  }
+
+  const messages = Array.isArray(record.messages) ? record.messages : [];
+  const lastMessage = messages.at(-1);
+  if (lastMessage && typeof lastMessage === "object") {
+    const id = (lastMessage as Record<string, unknown>).id;
+    if (typeof id === "string" && id.trim()) return id;
+  }
+
+  return null;
+}
+
+async function fetchInitialParentMessageId(
+  conversationId: string,
+  headers: Record<string, string>,
+  signal: AbortSignal
+): Promise<string | null> {
+  const res = await fetch(`${API_CONVERSATIONS_URL}/${conversationId}`, {
+    method: "GET",
+    headers,
+    signal,
+  });
+  if (!res.ok) return null;
+
+  const text = await res.text().catch(() => "");
+  if (!text) return null;
+
+  try {
+    return extractInitialParentMessageId(JSON.parse(text));
+  } catch {
+    return null;
+  }
+}
+
+function splitCombinedSetCookieHeader(header: string): string[] {
+  return header
+    .split(/,(?=\s*[^;,=\s]+=)/)
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function getSetCookieHeaders(headers: Headers): string[] {
+  const maybeGetSetCookie = (headers as Headers & { getSetCookie?: () => string[] }).getSetCookie;
+  if (typeof maybeGetSetCookie === "function") {
+    return maybeGetSetCookie.call(headers).filter(Boolean);
+  }
+
+  const combined = headers.get("set-cookie");
+  return combined ? splitCombinedSetCookieHeader(combined) : [];
+}
+
+function parseSetCookiePair(setCookie: string): { name: string; value: string } | null {
+  const pair = setCookie.split(";", 1)[0]?.trim() || "";
+  const eq = pair.indexOf("=");
+  if (eq <= 0) return null;
+  return { name: pair.slice(0, eq).trim(), value: pair.slice(eq + 1) };
+}
+
+function mergeCookieHeaderWithSetCookie(cookieHeader: string, setCookieHeaders: string[]): string {
+  const cookieMap = new Map<string, string>();
+
+  for (const part of cookieHeader.split(";")) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq <= 0) continue;
+    cookieMap.set(trimmed.slice(0, eq).trim(), trimmed.slice(eq + 1));
+  }
+
+  for (const setCookie of setCookieHeaders) {
+    const parsed = parseSetCookiePair(setCookie);
+    if (!parsed || !parsed.value) continue;
+    cookieMap.set(parsed.name, parsed.value);
+  }
+
+  return [...cookieMap.entries()].map(([name, value]) => `${name}=${value}`).join("; ");
+}
+
 // -- Executor ----------------------------------------------------------------
 
 export class HuggingChatExecutor extends BaseExecutor {

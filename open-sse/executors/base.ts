@@ -87,26 +87,6 @@ import {
   stripProxyToolPrefix,
 } from "./claudeIdentity.ts";
 import { withForcedResponsesUpstream } from "./forceResponsesUpstream.ts";
-import {
-  mergeUpstreamExtraHeaders,
-  setUserAgentHeader,
-  applyConfiguredUserAgent,
-  stripStainlessHeadersForOpenAICompat,
-} from "./base/headers.ts";
-// Header helpers extracted to a pure leaf; re-exported for external importers
-// (executors + tests) that import them from "./base.ts".
-export {
-  mergeUpstreamExtraHeaders,
-  getCustomUserAgent,
-  setUserAgentHeader,
-  applyConfiguredUserAgent,
-  isOpenAICompatibleEndpoint,
-  stripStainlessHeadersForOpenAICompat,
-} from "./base/headers.ts";
-import { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
-// Reasoning-effort sanitation extracted to a pure leaf; re-exported for external
-// importers (mimoThinking service + tests) that import it from "./base.ts".
-export { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -202,6 +182,95 @@ export type CountTokensInput = {
   model: string;
   signal?: AbortSignal | null;
 };
+
+/** Apply model-level extra upstream headers (e.g. Authentication, X-Custom-Auth). */
+export function mergeUpstreamExtraHeaders(
+  headers: Record<string, string>,
+  extra?: Record<string, string> | null
+): void {
+  if (!extra) return;
+  for (const [k, v] of Object.entries(extra)) {
+    if (typeof k === "string" && k.length > 0 && typeof v === "string") {
+      if (k.toLowerCase() === "user-agent") {
+        setUserAgentHeader(headers, v);
+        continue;
+      }
+      headers[k] = v;
+    }
+  }
+}
+
+export function getCustomUserAgent(providerSpecificData?: JsonRecord | null): string | null {
+  const customUserAgent =
+    typeof providerSpecificData?.customUserAgent === "string"
+      ? providerSpecificData.customUserAgent.trim()
+      : "";
+  return customUserAgent || null;
+}
+
+export function setUserAgentHeader(headers: Record<string, string>, userAgent: string): void {
+  headers["User-Agent"] = userAgent;
+  if ("user-agent" in headers) {
+    headers["user-agent"] = userAgent;
+  }
+}
+
+export function applyConfiguredUserAgent(
+  headers: Record<string, string>,
+  providerSpecificData?: JsonRecord | null
+): void {
+  const customUserAgent = getCustomUserAgent(providerSpecificData);
+  if (customUserAgent) {
+    setUserAgentHeader(headers, customUserAgent);
+  }
+}
+
+/**
+ * Returns true when the outbound request targets an OpenAI-compatible endpoint
+ * (a `openai-compatible-*` provider, or a Chat Completions / Responses URL).
+ * Used to scope the X-Stainless strip narrowly so genuine SDK-spoofing paths
+ * (e.g. Claude Code compat, which legitimately ADDS X-Stainless-*) are untouched.
+ */
+export function isOpenAICompatibleEndpoint(provider: string, url: string): boolean {
+  if (provider?.startsWith?.("openai-compatible-")) return true;
+  return url.includes("/v1/chat/completions") || url.includes("/v1/responses");
+}
+
+/**
+ * Strip OpenAI SDK (`X-Stainless-*`) metadata headers and normalize an SDK-derived
+ * User-Agent for OpenAI-compatible passthrough requests. Some upstream gateways
+ * 403 on these SDK-identifying headers. Only applied to OpenAI-compatible endpoints —
+ * other providers (Claude/Claude Code compat) may legitimately send X-Stainless-*.
+ *
+ * Mutates `headers` in place and returns the list of stripped header keys (for logging).
+ */
+export function stripStainlessHeadersForOpenAICompat(
+  headers: Record<string, string>,
+  provider: string,
+  url: string
+): string[] {
+  if (!isOpenAICompatibleEndpoint(provider, url)) return [];
+
+  const strippedKeys: string[] = [];
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase().startsWith("x-stainless-")) {
+      delete headers[key];
+      strippedKeys.push(key);
+    }
+  }
+
+  // Normalize User-Agent: SDK-based clients send verbose product strings that some
+  // upstreams block. Replace with a clean browser-like UA only when it looks SDK-derived.
+  const ua = (headers["User-Agent"] || headers["user-agent"] || "").toLowerCase();
+  if (
+    ua.includes("openai") &&
+    (ua.includes("node") || ua.includes("axios") || ua.includes("undici"))
+  ) {
+    setUserAgentHeader(headers, "Mozilla/5.0 (compatible; OpenAI Compatible)");
+  }
+
+  return strippedKeys;
+}
 
 export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal): AbortSignal {
   const controller = new AbortController();
@@ -361,23 +430,8 @@ export class BaseExecutor {
    */
   protected resolveBaseUrl(credentials: ProviderCredentials | null, fallback?: string): string {
     const psdBaseUrl = credentials?.providerSpecificData?.baseUrl;
-    // Operator's manual override always wins (#6147).
-    if (typeof psdBaseUrl === "string" && psdBaseUrl) return psdBaseUrl;
-    // An alternate protocol selected on the connection carries its own URL.
-    const alternate = this.resolveAlternate(credentials);
-    if (alternate?.baseUrl) return alternate.baseUrl;
-    return fallback || this.config.baseUrl || "";
-  }
-
-  /**
-   * Alternate protocol selected on this connection, if the provider declares one
-   * that matches. Centralizes the registry lookup so every call-site resolves the
-   * same way.
-   */
-  protected resolveAlternate(credentials: ProviderCredentials | null): AlternateFormat | null {
-    return resolveAlternateFormat(
-      getRegistryEntry(this.provider),
-      credentials?.providerSpecificData
+    return (
+      (typeof psdBaseUrl === "string" ? psdBaseUrl : "") || fallback || this.config.baseUrl || ""
     );
   }
 
@@ -390,15 +444,12 @@ export class BaseExecutor {
       (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
     const selectedKeyId = (credentials.providerSpecificData as Record<string, unknown> | undefined)
       ?.selectedKeyId as string | undefined;
-    const validExtras = extraKeys.filter((k) => typeof k === "string" && k.trim().length > 0);
     let effectiveKey = credentials.apiKey;
-    // Rotate whenever extras exist — including empty primary + populated extras (#8467).
-    // getValidApiKey already skips a blank primary and round-robins the extras alone.
-    if (validExtras.length > 0 && credentials.connectionId) {
+    if (extraKeys.length > 0 && credentials.connectionId && credentials.apiKey) {
       const resolved = resolveKeyForRequest(
         credentials.connectionId,
-        credentials.apiKey || "",
-        validExtras,
+        credentials.apiKey,
+        extraKeys,
         selectedKeyId ?? null
       );
       effectiveKey = resolved?.key ?? credentials.apiKey;
@@ -419,7 +470,6 @@ export class BaseExecutor {
     credentials: ProviderCredentials,
     stream: boolean
   ): { headers: Record<string, string>; effectiveKey: string | undefined } {
-    const alternate = this.resolveAlternate(credentials);
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...this.config.headers,
@@ -455,7 +505,7 @@ export class BaseExecutor {
 
     if (credentials.accessToken) {
       headers["Authorization"] = `Bearer ${credentials.accessToken}`;
-    } else if (effectiveKey) {
+    } else if (credentials.apiKey) {
       headers["Authorization"] = `Bearer ${effectiveKey}`;
     }
 

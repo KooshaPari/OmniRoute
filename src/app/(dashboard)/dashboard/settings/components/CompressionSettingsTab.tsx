@@ -409,7 +409,10 @@ export default function CompressionSettingsTab() {
                 }
                 onChange={(e) =>
                   save({
-                    preserveSystemPromptMode: e.target.value as "always" | "whenNoCache" | "never",
+                    preserveSystemPromptMode: e.target.value as
+                      | "always"
+                      | "whenNoCache"
+                      | "never",
                   })
                 }
                 className="w-36 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
