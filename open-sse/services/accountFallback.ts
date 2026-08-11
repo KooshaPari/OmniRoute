@@ -41,7 +41,6 @@ import {
   isSubscriptionQuotaText,
   buildSubscriptionQuotaFallback,
   buildWeeklyQuotaFallback,
-  buildSessionQuotaFallback,
 } from "./quotaTextCooldowns.ts";
 import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
 
@@ -1455,12 +1454,6 @@ export function checkFallbackError(
     }
     const weeklyResult = buildWeeklyQuotaFallback(errorStr);
     if (weeklyResult) return weeklyResult;
-    // Issue #7071 (session usage cap) is the same sibling gap as #3709 above —
-    // runs UNCONDITIONALLY for the same reason: apikey-category providers
-    // like ollama-cloud are excluded from the oauth-only shouldUseQuotaSignal
-    // gate.
-    const sessionResult = buildSessionQuotaFallback(errorStr);
-    if (sessionResult) return sessionResult;
 
     const quotaResetHintMs = parseRetryFromErrorText(errorStr);
     if (
@@ -1493,8 +1486,7 @@ export function checkFallbackError(
       getProviderCategory(provider) === "apikey" &&
       !errorStr.toLowerCase().includes("has not been used in project") &&
       !errorStr.toLowerCase().includes("hour quota") &&
-      !errorStr.toLowerCase().includes("quota has been exceeded") &&
-      !errorStr.toLowerCase().includes("fire pass api keys are not authorized")
+      !errorStr.toLowerCase().includes("quota has been exceeded")
     ) {
       return buildRetryableFallback(RateLimitReason.AUTH_ERROR);
     }
@@ -1822,6 +1814,7 @@ export function applyErrorState<T extends AccountState | null | undefined>(
 
   return nextState;
 }
+
 /**
  * Get account health score (0-100) for P2C selection (Phase 9)
  * @param {object} account

@@ -14,7 +14,6 @@ import {
 import path from "path";
 import fs from "fs";
 import { resolveWritableDataDir, getLegacyDotDataDir } from "../dataPaths";
-import { createLogger } from "@/shared/utils/logger";
 import { runMigrations } from "./migrationRunner";
 import { runDbHealthCheck } from "./healthCheck";
 import { resetAllDbModuleState } from "./stateReset";
@@ -70,8 +69,6 @@ type PreservedCriticalDbState = {
   preservedTables: PreservedTableSnapshot[];
   skippedTables: SkippedTableSnapshot[];
 };
-
-const log = createLogger("db:core");
 type CriticalTableSpec = {
   table: string;
   maxRows?: number;
@@ -179,13 +176,10 @@ if (!isCloud && !fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
-    log.warn(
-      {
-        dataDir: DATA_DIR,
-        err: msg,
-        hint: "Set the DATA_DIR environment variable to a writable path, e.g.: DATA_DIR=/path/to/writable/dir omniroute",
-      },
-      "Cannot create data directory"
+    console.warn(
+      `[DB] Cannot create data directory '${DATA_DIR}': ${msg}\n` +
+        `[DB] Set the DATA_DIR environment variable to a writable path, e.g.:\n` +
+        `[DB]   DATA_DIR=/path/to/writable/dir omniroute`
     );
   }
 }
@@ -472,14 +466,6 @@ declare global {
   // Next.js HMR re-evaluations so concurrent subsystems all see the same
   // count and we abort with a clear error instead of looping forever.
   var __omnirouteDbProbeRestoreCount: number | undefined;
-  // Cycle-breaker counter for the OOM-during-probe path (#6835). Unlike the
-  // generic corruption path above, an OOM probe failure never renames the
-  // file away (intentional — the DB may be perfectly fine, just too large
-  // for the current heap), so the restore-count cap above is structurally
-  // unreachable here. Without an independent cap, every background poller
-  // (BATCH, HealthCheck, ProviderLimitsSync, ModelSync) re-throws the same
-  // OOM error forever with no terminal diagnostic.
-  var __omnirouteDbOomFailureCount: number | undefined;
 }
 
 function getDb(): SqliteDatabase | null {
@@ -784,9 +770,8 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
   tx();
 
   if (failed > 0) {
-    log.warn(
-      { failedRows: failed },
-      "Kept call_logs_v1_legacy after partial call log offload"
+    console.warn(
+      `[DB] Kept call_logs_v1_legacy after partial call log offload (${failed} failed row(s)).`
     );
     return;
   }
@@ -795,13 +780,10 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
   try {
     db.pragma("wal_checkpoint(TRUNCATE)");
     db.exec("VACUUM");
-    log.info(
-      { offloadedRows: pendingRows.length },
-      "Offloaded legacy call log detail rows to artifacts"
-    );
+    console.log(`[DB] Offloaded ${pendingRows.length} legacy call log detail row(s) to artifacts.`);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    log.warn({ err: message }, "Legacy call log compaction finished without VACUUM");
+    console.warn("[DB] Legacy call log compaction finished without VACUUM:", message);
   }
 }
 
@@ -834,11 +816,11 @@ function createManagedDbBackup(db: SqliteDatabase, reason: string): boolean {
     const escapedBackupPath = backupPath.replace(/'/g, "''");
 
     db.exec(`VACUUM INTO '${escapedBackupPath}'`);
-    log.info({ reason, backupPath }, "Backup created");
+    console.log(`[DB] Backup created (${reason}): ${backupPath}`);
     return true;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    log.warn({ err: message, reason }, "Failed to create backup");
+    console.warn(`[DB] Failed to create ${reason} backup:`, message);
     return false;
   }
 }
@@ -890,10 +872,7 @@ function autoMigrateLegacyEncryptedConnections(db: SqliteDatabase): number {
 
   if (migratedCount > 0) {
     invalidateDbCache("connections");
-    log.info(
-      { migratedCount },
-      "Auto-migrated connections to new static-salt encryption"
-    );
+    console.log(`[DB] Auto-migrated ${migratedCount} connection(s) to new static-salt encryption.`);
   }
 
   return migratedCount;
@@ -937,7 +916,7 @@ function startDbHealthCheckScheduler(db: SqliteDatabase) {
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
-      log.warn({ err: message }, "Periodic health-check failed");
+      console.warn("[DB] Periodic health-check failed:", message);
     }
   }, intervalMs);
   dbHealthCheckTimer.unref?.();
@@ -958,7 +937,7 @@ export function getDbInstance(): SqliteDatabase {
 
   if (isCloud || isBuildPhase) {
     if (isBuildPhase) {
-      log.info("Build phase detected — using in-memory SQLite (read-only)");
+      console.log("[DB] Build phase detected — using in-memory SQLite (read-only)");
     }
     const memoryDb = openSqliteDatabase(":memory:");
     memoryDb.pragma("journal_mode = WAL");
@@ -1000,9 +979,8 @@ export function getDbInstance(): SqliteDatabase {
     const latestBackup = probeFailureBackups[0];
     try {
       fs.renameSync(latestBackup, sqliteFile);
-      log.info(
-        { preservedBackup: path.basename(latestBackup) },
-        "Auto-restored preserved database from previous probe failure"
+      console.log(
+        `[DB] Auto-restored preserved database from previous probe failure: ${path.basename(latestBackup)}`
       );
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
@@ -1051,8 +1029,8 @@ export function getDbInstance(): SqliteDatabase {
         probe.close();
 
         if (hasData) {
-          log.info(
-            "Old schema_migrations table found but data exists — preserving data (#146)"
+          console.log(
+            `[DB] Old schema_migrations table found but data exists — preserving data (#146)`
           );
           const fixDb = openSqliteDatabase(sqliteFile);
           try {
@@ -1060,15 +1038,14 @@ export function getDbInstance(): SqliteDatabase {
             fixDb.pragma("wal_checkpoint(TRUNCATE)");
           } catch (e: unknown) {
             const message = e instanceof Error ? e.message : String(e);
-            log.warn({ err: message }, "Could not clean up old schema table");
+            console.warn("[DB] Could not clean up old schema table:", message);
           } finally {
             fixDb.close();
           }
         } else {
           const oldPath = sqliteFile + ".old-schema";
-          log.info(
-            { renamedTo: path.basename(oldPath) },
-            "Old incompatible schema detected (empty) — renaming"
+          console.log(
+            `[DB] Old incompatible schema detected (empty) — renaming to ${path.basename(oldPath)}`
           );
           fs.renameSync(sqliteFile, oldPath);
           for (const ext of ["-wal", "-shm"]) {
@@ -1084,7 +1061,7 @@ export function getDbInstance(): SqliteDatabase {
       }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
-      log.warn({ err: message }, "Could not probe existing DB");
+      console.warn("[DB] Could not probe existing DB:", message);
 
       // If the error is a Node module/ABI failure, throw it immediately to avoid renaming the database
       if (
@@ -1099,22 +1076,6 @@ export function getDbInstance(): SqliteDatabase {
       // immediately gives the user a clear "increase --max-old-space-size"
       // signal instead of silently renaming a perfectly good DB.
       if (/out of memory|allocation failure|Array buffer allocation failed|allocation failed/i.test(message)) {
-        // Cycle-breaker (#6835): the OOM path never renames the file away,
-        // so it never trips the generic probe-failed/restore cap above. Cap
-        // it independently after 3 consecutive OOM failures (same threshold
-        // as the generic path) so repeated polling doesn't hang forever with
-        // no actionable terminal diagnostic.
-        if (
-          (globalThis.__omnirouteDbOomFailureCount =
-            (globalThis.__omnirouteDbOomFailureCount || 0) + 1) > 3
-        ) {
-          throw new Error(
-            `[DB] Aborting startup: persistent out-of-memory probing ${sqliteFile} after 3 attempts. ` +
-              `Increase the V8 heap with NODE_OPTIONS=--max-old-space-size=4096 (or higher) — the ` +
-              `current heap is insufficient for this database — and restart, or shrink/restore the ` +
-              `database from a backup. Original error: ${message}`
-          );
-        }
         throw new Error(
           `[DB] Out of memory while probing ${sqliteFile}. ` +
             `The bundled sql.js driver loads the entire file into WASM memory; ` +
@@ -1130,7 +1091,7 @@ export function getDbInstance(): SqliteDatabase {
       const failedPath = sqliteFile + `.probe-failed-${Date.now()}`;
       try {
         fs.renameSync(sqliteFile, failedPath);
-        log.warn({ renamedTo: path.basename(failedPath) }, "Renamed corrupt DB");
+        console.warn(`[DB] Renamed corrupt DB to ${path.basename(failedPath)}`);
         failedProbePath = failedPath;
         failedProbeMessage = message;
       } catch {
@@ -1197,9 +1158,10 @@ export function getDbInstance(): SqliteDatabase {
   if (failedProbePath && preservedCriticalState.preservedTables.length > 0) {
     try {
       const restoredTables = restoreCriticalDbState(db, preservedCriticalState);
-      log.info(
-        { restored: summarizePreservedTables(restoredTables) },
-        "Restored preserved critical DB state after probe failure"
+      console.log(
+        `[DB] Restored preserved critical DB state after probe failure: ${summarizePreservedTables(
+          restoredTables
+        )}`
       );
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
@@ -1225,7 +1187,7 @@ export function getDbInstance(): SqliteDatabase {
   if (shouldRunStartupDbHealthCheck()) {
     const skipIntegrityCheck = process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1";
     if (skipIntegrityCheck) {
-      log.info("Health check skipped (OMNIROUTE_SKIP_DB_HEALTHCHECK=1)");
+      console.log("[DB] Health check skipped (OMNIROUTE_SKIP_DB_HEALTHCHECK=1)");
     }
     runDbHealthCheck(db, {
       autoRepair: true,
@@ -1242,7 +1204,7 @@ export function getDbInstance(): SqliteDatabase {
     autoMigrateLegacyEncryptedConnections(db);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    log.error({ err: message }, "Legacy encryption migration failed");
+    console.error(`[DB] Legacy encryption migration failed: ${message}`);
   }
 
   startDbHealthCheckScheduler(db);
@@ -1250,12 +1212,9 @@ export function getDbInstance(): SqliteDatabase {
   // multi-replica / Docker volume-topology mismatch (each replica opening a
   // different on-disk DB → "phantom"/missing combos & connections) is
   // diagnosable straight from the logs. (#3147)
-  log.info(
-    {
-      sqliteFile,
-      dataDir: path.resolve(DATA_DIR),
-    },
-    "SQLite database ready"
+  console.log(
+    `[DB] SQLite database ready: ${sqliteFile} ` +
+      `(DATA_DIR=${path.resolve(DATA_DIR)}, SQLITE_FILE=${path.resolve(sqliteFile)})`
   );
   return db;
 }
@@ -1285,11 +1244,11 @@ export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | nu
     if (checkpointMode) {
       try {
         if (checkpointDb(db, checkpointMode)) {
-          log.info({ checkpointMode }, "SQLite WAL checkpoint completed");
+          console.log(`[DB] SQLite WAL checkpoint completed (${checkpointMode}).`);
         }
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        log.warn({ err: message, checkpointMode }, "WAL checkpoint failed during close");
+        console.warn(`[DB] WAL checkpoint failed during close (${checkpointMode}):`, message);
       }
     }
   } finally {
@@ -1358,7 +1317,7 @@ export async function ensureDbInitialized(): Promise<void> {
   }
 
   // No synchronous driver available — pre-initialize sql.js (WASM, async)
-  log.warn("Pre-initializing sql.js WASM (synchronous drivers unavailable)");
+  console.warn("[DB] Pre-initializing sql.js WASM (synchronous drivers unavailable)...");
   await preInitSqlJs(SQLITE_FILE);
   // Agora getSqlJsAdapter() retornará o adapter, e getDbInstance() vai usá-lo
   getDbInstance();
@@ -1376,14 +1335,13 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
     const keyCount = (data.apiKeys || []).length;
 
     if (connCount === 0 && nodeCount === 0 && keyCount === 0) {
-      log.info("db.json has no data to migrate, skipping");
+      console.log("[DB] db.json has no data to migrate, skipping");
       fs.renameSync(jsonPath, jsonPath + ".empty");
       return;
     }
 
-    log.info(
-      { connCount, nodeCount, keyCount },
-      "Migrating db.json → SQLite"
+    console.log(
+      `[DB] Migrating db.json → SQLite (${connCount} connections, ${nodeCount} nodes, ${keyCount} keys)...`
     );
 
     const migrate = db.transaction(() => {
@@ -1542,24 +1500,19 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
 
     const migratedPath = jsonPath + ".migrated";
     fs.renameSync(jsonPath, migratedPath);
-    log.info({ migratedPath }, "Migration from db.json complete");
+    console.log(`[DB] ✓ Migration complete. Original saved as ${migratedPath}`);
 
     const legacyBackupDir = path.join(DATA_DIR, "db_backups");
     if (fs.existsSync(legacyBackupDir)) {
       const jsonBackups = fs.readdirSync(legacyBackupDir).filter((f) => f.endsWith(".json"));
       if (jsonBackups.length > 0) {
-        log.info(
-          { legacyJsonBackups: jsonBackups.length, legacyBackupDir },
-          "Legacy .json backups remain in db_backups"
+        console.log(
+          `[DB] Note: ${jsonBackups.length} legacy .json backups remain in ${legacyBackupDir}`
         );
       }
     }
   } catch (err) {
-    // Preserved console.error here: tests/unit/db-core-migration.test.ts asserts
-    // that a corrupted db.json surfaces a console.error so the failure is visible
-    // in CI logs without depending on pino transport being attached.
-    console.error("[DB] Migration from db.json failed:", (err as Error)?.message ?? String(err));
-    log.error({ err: (err as Error)?.message ?? String(err) }, "Migration from db.json failed");
+    console.error("[DB] Migration from db.json failed:", err.message);
   }
 }
 
@@ -1582,14 +1535,14 @@ export function runManualVacuum(): { success: boolean; duration: number; error?:
   const startTime = Date.now();
 
   try {
-    log.info("Starting manual VACUUM");
+    console.log("[DB] Starting manual VACUUM...");
     db.exec("VACUUM");
     const duration = Date.now() - startTime;
-    log.info({ durationMs: duration }, "Manual VACUUM completed");
+    console.log(`[DB] Manual VACUUM completed in ${duration}ms`);
     return { success: true, duration };
   } catch (err: unknown) {
     const duration = Date.now() - startTime;
-    log.error({ err, durationMs: duration }, "Manual VACUUM failed");
+    console.error("[DB] Manual VACUUM failed:", err);
     const message = err instanceof Error ? err.message : String(err);
     return { success: false, duration, error: message };
   }

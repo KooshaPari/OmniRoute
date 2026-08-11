@@ -247,6 +247,18 @@ export const comboRuntimeConfigSchema = z
       })
       .strict()
       .optional(),
+    // Context window requirements for combo target filtering and sorting.
+    // minContextWindow: filters out models with context windows below this threshold.
+    // preferLargeContext: sorts remaining targets by context size (descending).
+    // contextFilterMode: "strict" excludes unknown-context models, "lenient" includes them.
+    contextRequirements: z
+      .object({
+        minContextWindow: z.coerce.number().int().min(0).max(10_000_000).optional(),
+        preferLargeContext: z.boolean().optional(),
+        contextFilterMode: z.enum(["strict", "lenient"]).optional(),
+      })
+      .strict()
+      .optional(),
   })
   .passthrough()
   .transform((config) => {
