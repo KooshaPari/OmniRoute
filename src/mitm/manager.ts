@@ -5,9 +5,7 @@ import { resolveMitmDataDir } from "./dataDir.ts";
 import { removeDNSEntry, removeDNSEntries } from "./dns/dnsConfig.ts";
 import { provisionDnsEntries } from "./dns/provision.ts";
 import { generateCert } from "./cert/generate.ts";
-import { installCertResult, installCaCert } from "./cert/install.ts";
-import { loadOrCreateMitmCa, resolveMitmCertDir } from "./cert/rootCa.ts";
-import { decideCertMigration } from "./cert/migration.ts";
+import { installCertResult, uninstallCert } from "./cert/install.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
 import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
@@ -600,27 +598,45 @@ async function startMitmInternal(
     );
   }
 
-  // 1. Generate (or load the persisted) certificate material. #6684: a
-  //    pre-existing trusted legacy leaf keeps this run on the legacy
-  //    self-signed path (no silent trust-model upgrade — a MITM root CA that
-  //    can sign a leaf for ANY host is materially more powerful than the old
-  //    fixed-SAN leaf); fresh installs, and installs with `MITM_ROOT_CA_ENABLED
-  //    =true`, get the persisted root-CA + per-host-leaf model instead
-  //    (`cert/rootCa.ts`, reusing the CA/leaf crypto proven for TPROXY in
-  //    `tproxy/dynamicCert.ts`).
-  const certDir = resolveMitmCertDir();
-  const rootCaEnabled = process.env.MITM_ROOT_CA_ENABLED === "true";
-  const migrationDecision = decideCertMigration(certDir, rootCaEnabled);
-  let certPath: string;
-  if (migrationDecision === "use-legacy-leaf") {
-    certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
-    if (!fs.existsSync(certPath)) {
-      log.info("Generating SSL certificate...");
-      try {
-        await generateCert();
-      } catch (err) {
-        log.error({ err }, "Failed to generate SSL certificate");
-        throw err;
+  // 1. Generate SSL certificate if not exists
+  const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
+  if (!fs.existsSync(certPath)) {
+    log.info("Generating SSL certificate...");
+    await generateCert();
+  }
+
+  // 2. Install certificate to system keychain. A failure here must NOT abort the
+  //    bridge: in containers/headless the system trust store can't be written,
+  //    so we start in "untrusted" mode and let the operator trust the CA by hand
+  //    (mirrors the best-effort "continuing" pattern used for DNS below). (#4546)
+  let certTrusted = false;
+  try {
+    const certResult = await installCertResult(sudoPassword, certPath);
+    certTrusted = certResult.installed;
+    if (!certResult.installed) {
+      log.warn(
+        { reason: certResult.reason },
+        "MITM cert not auto-trusted; bridge starting in skip mode (manual trust required)"
+      );
+    }
+  } catch (err) {
+    log.error({ err }, "installCertResult threw unexpectedly (continuing without trusted cert)");
+  }
+
+  // 3. Add DNS entries: Antigravity defaults + all agents with dns_enabled=true +
+  //    all custom hosts with enabled=true.
+  log.info("Adding DNS entries...");
+  await addDNSEntry(sudoPassword);
+
+  // Collect hosts from agents that have dns_enabled=true in the DB.
+  try {
+    const agentStates = getAllAgentBridgeStates();
+    const agentHostsToAdd: string[] = [];
+    for (const state of agentStates) {
+      if (!state.dns_enabled) continue;
+      const target = ALL_TARGETS.find((t) => t.id === state.agent_id);
+      if (target) {
+        agentHostsToAdd.push(...target.hosts);
       }
     }
   } else {

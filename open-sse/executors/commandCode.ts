@@ -199,7 +199,7 @@ function convertMessages(
     }
 
     if (role === "user") {
-      out.push({ role: "user", content: convertUserContentParts(message.content, isVision) });
+      out.push({ role: "user", content: normalizeContentText(message.content) });
       continue;
     }
 

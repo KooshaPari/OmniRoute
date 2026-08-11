@@ -414,11 +414,9 @@ function getModelLockKey(
 ) {
   const canonicalProvider = getCanonicalLockProvider(provider);
   const lockModel =
-    reason === "not_found" || status === 404
-      ? model
-      : canonicalProvider === "codex"
-        ? getCodexModelScope(model)
-        : getQuotaScopedModelForProvider(canonicalProvider, model) || model;
+    canonicalProvider === "codex"
+      ? getCodexModelScope(model)
+      : getQuotaScopedModelForProvider(canonicalProvider, model) || model;
   return `${canonicalProvider}:${connectionId}:${lockModel}`;
 }
 

@@ -27,146 +27,6 @@ export function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date 
   return new Date(value);
 }
 
-// Issue #6427: some providers mask credit/quota exhaustion behind an HTTP 200 —
-// either an OpenAI-shape top-level `error` object, or a known exhaustion phrase
-// living in the error envelope itself (never in assistant prose — see
-// `extractEnvelopeErrorText`). Single-quantifier-per-token-class alternation,
-// no nested/overlapping quantifiers — cannot backtrack catastrophically.
-const EXHAUSTION_MARKER_PATTERN =
-  /\b(insufficient\s+credit|insufficient\s+balance|quota\s+exceeded|out\s+of\s+credits?|credit\s+exhausted)\b/i;
-
-/**
- * Collect the small set of top-level "error envelope" strings a 200 response may
- * carry alongside (or instead of) a normal completion: the OpenAI-shape `error`
- * object's `message`/`code`/`type`, a bare string `error`, or sibling top-level
- * `message`/`detail` fields some providers use for the same purpose. Deliberately
- * does NOT look inside `choices[].message.content` — assistant prose that merely
- * mentions "quota" or "credits" must never be misclassified as an upstream failure.
- */
-function extractEnvelopeErrorText(json: Record<string, unknown>): string | null {
-  const parts: string[] = [];
-  const err = json.error;
-  if (err && typeof err === "object") {
-    const e = err as Record<string, unknown>;
-    if (typeof e.message === "string") parts.push(e.message);
-    if (typeof e.code === "string") parts.push(e.code);
-    if (typeof e.type === "string") parts.push(e.type);
-  } else if (typeof err === "string" && err.length > 0) {
-    parts.push(err);
-  }
-  if (typeof json.message === "string") parts.push(json.message);
-  if (typeof json.detail === "string") parts.push(json.detail);
-  return parts.length > 0 ? parts.join(" ") : null;
-}
-
-/** Mutable lifecycle flags threaded through {@link applySseLifecycleEvent}. */
-interface SseLifecycleFlags {
-  hasMessageStart: boolean;
-  hasContentBlock: boolean;
-  hasRealContent: boolean;
-  hasLifecycleEnd: boolean;
-}
-
-/** Read `parsed.<key>` as a nested object bag, or null when absent/not an object. */
-function asObject(parsed: Record<string, unknown>, key: string): Record<string, unknown> | null {
-  const value = parsed[key];
-  return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
-}
-
-/**
- * A content_block_start is real signal only for tool_use / redacted_thinking —
- * a tool call is meaningful even before its input_json_delta arrives. text and
- * thinking blocks routinely open empty; keep peeking for a delta instead.
- */
-function contentBlockStartIsRealSignal(parsed: Record<string, unknown>): boolean {
-  const blockType = asObject(parsed, "content_block")?.type;
-  return blockType === "tool_use" || blockType === "redacted_thinking";
-}
-
-/**
- * A content_block_delta is real signal when it carries non-empty text/thinking,
- * or any input_json_delta fragment — even an empty-string first chunk proves a
- * tool_use block is actively streaming its arguments.
- */
-function contentBlockDeltaIsRealSignal(parsed: Record<string, unknown>): boolean {
-  const delta = asObject(parsed, "delta");
-  if (!delta) return false;
-  const deltaType = typeof delta.type === "string" ? delta.type : "";
-  if (deltaType === "input_json_delta") return true;
-  if (deltaType !== "text_delta" && deltaType !== "thinking_delta") return false;
-  const text = delta.text ?? delta.thinking;
-  return typeof text === "string" && text.length > 0;
-}
-
-/** A message_delta closes the lifecycle once it carries a stop_reason. */
-function messageDeltaEndsLifecycle(parsed: Record<string, unknown>): boolean {
-  return asObject(parsed, "delta")?.stop_reason != null;
-}
-
-/**
- * Mutable OpenAI-shape lifecycle flags (#7285) — tracked independently of
- * {@link SseLifecycleFlags} because the truncation signal here (a stream that
- * closes without ever carrying `finish_reason` or a `[DONE]` sentinel) is
- * orthogonal to the Claude event switch and must fire even when
- * `hasOpenAICompatibleStreamValue()` never sees real content (e.g. a
- * role-only delta).
- */
-interface OpenAiLifecycleFlags {
-  hasChoicePayload: boolean;
-  hasTerminalMarker: boolean;
-}
-
-/** Update `flags` in place from one parsed OpenAI-shape SSE `data:` payload. */
-function applyOpenAiLifecycleEvent(
-  parsed: Record<string, unknown>,
-  flags: OpenAiLifecycleFlags
-): void {
-  if (!isOpenAIChoicesPayload(parsed)) return;
-  flags.hasChoicePayload = true;
-  if (hasOpenAIFinishReason(parsed)) flags.hasTerminalMarker = true;
-}
-
-/**
- * Apply a single parsed Claude SSE event to the peeked lifecycle `flags`
- * (mutated in place). Extracted from `parseAccumulatedSse`'s inline switch to
- * keep that function under the complexity/line ratchets — logic unchanged.
- *
- * Returns true once REAL content (not just an empty content_block_start) is
- * detected — the caller should stop peeking and treat the stream as non-empty.
- */
-function applySseLifecycleEvent(
-  eventType: string,
-  parsed: Record<string, unknown>,
-  flags: SseLifecycleFlags
-): boolean {
-  switch (eventType) {
-    case "message_start":
-      flags.hasMessageStart = true;
-      return false;
-    case "content_block_start":
-      flags.hasContentBlock = true;
-      if (!contentBlockStartIsRealSignal(parsed)) return false;
-      flags.hasRealContent = true;
-      return true;
-    case "content_block_delta":
-      flags.hasContentBlock = true;
-      if (!contentBlockDeltaIsRealSignal(parsed)) return false;
-      flags.hasRealContent = true;
-      return true;
-    case "content_block_stop":
-      flags.hasContentBlock = true;
-      return false;
-    case "message_stop":
-      flags.hasLifecycleEnd = true;
-      return false;
-    case "message_delta":
-      if (messageDeltaEndsLifecycle(parsed)) flags.hasLifecycleEnd = true;
-      return false;
-    default:
-      return false;
-  }
-}
-
 function responsesApiOutputHasContent(output: unknown): boolean {
   return (
     Array.isArray(output) &&
@@ -188,21 +48,6 @@ function responsesApiOutputHasContent(output: unknown): boolean {
     })
   );
 }
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === "object" && !Array.isArray(value);
-}
-
-function isStreamingUpstreamError(parsed: unknown, eventType: string): boolean {
-  if (eventType === "response.failed" || eventType === "error") return true;
-  if (!isRecord(parsed)) return false;
-  if (parsed.error != null) return true;
-
-  const nestedResponse = isRecord(parsed.response) ? parsed.response : null;
-  return nestedResponse?.status === "failed" && nestedResponse.error != null;
-}
-
-type StreamingPeekOutcome = "content" | "error" | null;
 
 /**
  * Validate that a successful (HTTP 200) non-streaming response actually contains
@@ -520,12 +365,31 @@ export async function validateResponseQuality(
     return { valid: false, reason: "response is not valid JSON" };
   }
 
-  // Feature 4985: apply the combo's configured response-body predicate. A failure here
-  // fails over to the next target via the same path as the built-in empty-content checks.
-  if (responseValidation) {
-    const verdict = evaluateResponseValidation(json, responseValidation);
-    if (!verdict.valid) {
-      return { valid: false, reason: verdict.reason };
+  const choices = json?.choices;
+  if (json?.object === "response") {
+    if (!responsesApiOutputHasContent(json.output)) return { valid: false, reason: "empty_choices" };
+    const status = typeof json.status === "string" ? json.status : "";
+    if (status && !["completed", "done"].includes(status)) {
+      return { valid: false, reason: "no_terminal" };
+    }
+    return {
+      valid: true,
+      clonedResponse: new Response(text, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      }),
+    };
+  }
+
+  if (!Array.isArray(choices) || choices.length === 0) {
+    if (json?.output || json?.result || json?.data || json?.response) return { valid: true };
+    if (json?.error) {
+      const err = json.error as Record<string, unknown>;
+      return {
+        valid: false,
+        reason: `upstream error in 200 body: ${err?.message || JSON.stringify(json.error).substring(0, 200)}`,
+      };
     }
   }
 

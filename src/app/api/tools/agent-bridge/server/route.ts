@@ -6,7 +6,7 @@
  * Body: AgentBridgeServerActionSchema
  */
 import { AgentBridgeServerActionSchema } from "@/shared/schemas/agentBridge";
-import { getCachedPassword, setCachedPassword } from "@/mitm/manager";
+import { startMitm, stopMitm, getMitmStatus, setCachedPassword, getCachedPassword } from "@/mitm/manager";
 import { installCertResult, checkCertInstalled } from "@/mitm/cert/install";
 import { generateCert } from "@/mitm/cert/generate";
 import { resolveMitmDataDir } from "@/mitm/dataDir";
@@ -97,13 +97,9 @@ export async function POST(request: Request): Promise<Response> {
         return createErrorResponse({ status: 400, message: "Missing sudoPassword" });
       }
       const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
-      const result = await installCertResult(sudoPassword, certPath);
+      const pwd = sudoPassword || getCachedPassword() || "";
+      const result = await installCertResult(pwd, certPath);
       if (result.installed) {
-        const suppliedPassword =
-          typeof raw.sudoPassword === "string" ? normalizeMitmSudoPasswordInput(raw.sudoPassword) : "";
-        if (process.platform !== "win32" && suppliedPassword) {
-          setCachedPassword(suppliedPassword);
-        }
         const trusted = await checkCertInstalled(certPath);
         return Response.json({ ok: true, trusted });
       }

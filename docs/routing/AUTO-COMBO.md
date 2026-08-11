@@ -672,11 +672,11 @@ See `docs/marketing/TIERS.md` for tier definitions and provider classification.
 
 ### Deterministic routing-decision matrix (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` proves the routing **decision** of all 18
+`tests/integration/combo-matrix/*.test.ts` proves the routing **decision** of all 17
 public strategies end-to-end through the real combo pipeline with a mocked upstream.
 Coverage includes:
 
-- All 18 `ROUTING_STRATEGY_VALUES` strategies (ordered, weighted, cost, context, fusion, …).
+- All 17 `ROUTING_STRATEGY_VALUES` strategies (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (internal) end-to-end: DRR fairness + saturation deprioritization via the
   real `selectQuotaShareTarget` seam (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -687,11 +687,11 @@ This suite runs in CI (`test:integration` job) with `--test-concurrency=1` and
 
 ### Gated live smoke (NOT in CI — real providers)
 
-| Command                                | What it does                                                                   |
-| :------------------------------------- | :----------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | In-process real routing with `RUN_COMBO_LIVE=1`; snapshots a live OmniRoute DB |
-| `npm run test:combo:live:vps`          | HTTP calls against a live OmniRoute server (set `COMBO_LIVE_BASE_URL`)         |
-| `npm run test:combo:live:vps:failover` | Same, with deliberate failover scenarios                                       |
+| Command | What it does |
+| :--- | :--- |
+| `npm run test:combo:live` | In-process real routing with `RUN_COMBO_LIVE=1`; snapshots a live OmniRoute DB |
+| `npm run test:combo:live:vps` | HTTP calls against a live OmniRoute server (set `COMBO_LIVE_BASE_URL`) |
+| `npm run test:combo:live:vps:failover` | Same, with deliberate failover scenarios |
 
 These smoke tests exercise the real wire path (combo → provider → completion). They are
 intentionally excluded from CI because they require live credentials and VPS access.

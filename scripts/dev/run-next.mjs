@@ -71,7 +71,6 @@ for (const [key, value] of Object.entries(mergedEnv)) {
 // '@'` on the `@import "tailwindcss"` line. Force NODE_ENV to track the run
 // mode, exactly like the `next` CLI does.
 process.env.NODE_ENV = dev ? "development" : "production";
-process.env.OMNIROUTE_INTERNAL_SCHEME = "http";
 
 const { dashboardPort } = runtimePorts;
 const hostname = process.env.HOST || "0.0.0.0";

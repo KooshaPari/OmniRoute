@@ -160,7 +160,7 @@ export function collectCompactableArrays(
     while ((m = regex.exec(text)) !== null) pushIfCompactable(m[1].trim());
   };
   for (const msg of messages) {
-    if (msg.role === "system" || msg.role === "developer") continue;
+    if (msg.role === "system") continue;
     if (typeof msg.content === "string") scanText(msg.content);
     else if (Array.isArray(msg.content)) {
       for (const part of msg.content) {

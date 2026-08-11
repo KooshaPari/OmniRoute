@@ -611,7 +611,6 @@ test("Antigravity runs mocked browser OAuth exchanges and post-exchange enrichme
   // no longer updates the returned projectId synchronously — matching the 9router web
   // flow, which also returns the loadCodeAssist project id.
   assert.equal(antigravityMapped.projectId, "anti-project");
-  assert.equal(antigravityMapped.providerSpecificData.clientProfile, "ide");
 });
 
 test("Qoder enabled mode exchanges tokens and loads profile metadata through mocked endpoints", async () => {

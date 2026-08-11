@@ -2,16 +2,7 @@ import {
   copyOpenAICompatibleReasoningFields,
   getReadableReasoningValue,
 } from "../utils/reasoningFields.ts";
-import { stripInternalReasoningPlaceholder } from "../utils/reasoningPlaceholder.ts";
 import { normalizeOpenAICompatibleFinishReason } from "../utils/finishReason.ts";
-import {
-  collapseExcessiveNewlines,
-  extractThinkingFromContent,
-} from "./responseSanitizer/reasoning.ts";
-export {
-  extractThinkingFromContent,
-  shouldParseTextualReasoningTags,
-} from "./responseSanitizer/reasoning.ts";
 
 /**
  * Response Sanitizer — Normalizes LLM responses to strict OpenAI SDK format.

@@ -83,11 +83,7 @@ export async function isProxyReachable(
   }
 
   const probe = tcpCheckImpl(host, port, timeoutMs).then((healthy) => {
-    proxyHealthCache.set(proxyUrl, {
-      healthy,
-      checkedAt: Date.now(),
-      ttlMs: healthy ? cacheTtlMs : Math.min(cacheTtlMs, UNHEALTHY_CACHE_TTL_MS),
-    });
+    proxyHealthCache.set(proxyUrl, { healthy, checkedAt: Date.now(), ttlMs: cacheTtlMs });
     return healthy;
   });
 

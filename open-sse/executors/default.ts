@@ -694,8 +694,7 @@ export class DefaultExecutor extends BaseExecutor {
       } else if (stream && targetFormat === "openai" && requestFormat !== "openai-responses") {
         // Do not inject stream_options when the outgoing body explicitly disables streaming.
         const defaultsRecord = withDefaults as Record<string, unknown>;
-        const bodyDisablesStreamOptions =
-          defaultsRecord.stream !== undefined && defaultsRecord.stream !== true;
+        const bodyDisablesStreamOptions = defaultsRecord.stream !== undefined && defaultsRecord.stream !== true;
         const qwenBlocksStreamOptions =
           this.provider === "qwen" &&
           (Boolean(defaultsRecord.thinking) || Boolean(defaultsRecord.enable_thinking));

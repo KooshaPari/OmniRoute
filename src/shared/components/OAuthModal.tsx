@@ -9,20 +9,6 @@ import LinkifiedText from "./LinkifiedText";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
 import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oauthBlobSubmit";
-import {
-  looksLikeCodexSessionJson,
-  parseCodexSessionJson,
-} from "@/lib/oauth/utils/codexSessionImport";
-import GheConfigStep from "@/shared/components/oauthModal/GheConfigStep";
-import GitlabDuoSetupStep from "@/shared/components/oauthModal/GitlabDuoSetupStep";
-import OAuthErrorStep from "@/shared/components/oauthModal/OAuthErrorStep";
-import OAuthWaitingStep from "@/shared/components/oauthModal/OAuthWaitingStep";
-import { parseGrokCliPasteToken } from "@/lib/oauth/utils/grokCliAuthJson";
-import { buildGoogleLoopbackHint } from "@/lib/oauth/utils/googleLoopbackHint";
-import {
-  buildPkceLoopbackMismatchHint,
-  type PkceLoopbackMismatchHint,
-} from "@/lib/oauth/utils/pkceLoopbackWarning";
 
 const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy"]);
 
@@ -979,26 +965,6 @@ export default function OAuthModal({
         await submitCredentialBlob(provider, callbackUrl, reauthConnection, setStep, onSuccess);
         return;
       }
-
-      // Codex: a bare ChatGPT access token (JWT, no refresh token) pasted
-      // directly instead of a callback URL/code — mirrors the grok-cli
-      // raw-token paste pattern. Routed through the access-token-only import
-      // endpoint (#1290) instead of the authorization-code exchange below.
-      if (provider === "codex" && /^eyJ/.test(callbackUrl.trim())) {
-        const res = await fetch("/api/oauth/codex/import-token", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accessToken: callbackUrl.trim() }),
-        });
-        const data = (await parseResponseBody(res)) as Record<string, unknown>;
-        if (!res.ok) {
-          throw new Error(getErrorMessage(data, res.status, "Failed to import access token"));
-        }
-        setStep("success");
-        onSuccess?.();
-        return;
-      }
-
       if (!authData) {
         throw new Error(
           "OAuth session not initialized. Restart the connection flow and try again."
@@ -1213,7 +1179,7 @@ export default function OAuthModal({
                     </div>
                   )}
                   {/* Actionable remote paste instruction — shown for ALL remote providers,
-                      including Google OAuth (antigravity/agy). The Google
+                      including Google OAuth (antigravity/agy/gemini-cli). The Google
                       loopback creds redirect to 127.0.0.1:<port>/callback, which on a
                       remotely-accessed dashboard lands on the operator's own machine and
                       shows a "can't reach this page" error. That is expected: the URL bar

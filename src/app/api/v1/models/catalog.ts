@@ -839,18 +839,8 @@ async function buildUnifiedModelsResponseCore(
     // combo cannot be materialized (e.g. no eligible connections yet) the minimal
     // #4164 entry is emitted instead, so the id is never dropped.
     // #4235 Phase B: also advertise the curated `auto/<category>[:<tier>]` combos.
-    // #6453: also advertise the `auto/<family>` combos (auto/glm, auto/minimax, ...).
-    for (const autoId of [
-      ...Object.keys(AUTO_TEMPLATE_VARIANTS),
-      ...AUTO_SUFFIX_VARIANTS,
-      ...AUTO_FAMILY_IDS,
-    ]) {
+    for (const autoId of [...Object.keys(AUTO_TEMPLATE_VARIANTS), ...AUTO_SUFFIX_VARIANTS]) {
       if (blockedProviders.has("auto") || listedIds.has(autoId)) continue; // #5192
-      // #6328 (follow-up to #6495 / #6512): REMOVE — not just hide — paid-tier
-      // auto/* ids (auto/pro-* + auto/*:pro) from the advertised catalog when the
-      // operator opts into hidePaidModels. The candidate-pool filter in
-      // virtualFactory (#6512) still gates request-time routing for the rest.
-      if (hidePaid && isPaidTierAutoId(autoId)) continue;
       listedIds.add(autoId);
       const baseAutoEntry = {
         id: autoId,

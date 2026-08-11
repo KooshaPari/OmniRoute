@@ -316,9 +316,9 @@ function redactBody(body) {
   const messageSource = clone.messages !== undefined ? clone.messages : clone.input;
   const messages = Array.isArray(messageSource)
     ? messageSource
-    : messageSource === undefined || messageSource === null
-      ? []
-      : [messageSource];
+    : messageSource && typeof messageSource === "object"
+      ? [messageSource]
+      : [];
 
   const redactContentValue = (value) => {
     if (typeof value === "string") {

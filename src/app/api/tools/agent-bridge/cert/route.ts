@@ -61,12 +61,6 @@ export async function POST(request: Request): Promise<Response> {
     }
     const result = await installCertResult(sudoPassword, crtPath);
     if (result.installed) {
-      const suppliedPassword = parsed.success
-        ? normalizeMitmSudoPasswordInput(parsed.data.sudoPassword)
-        : "";
-      if (process.platform !== "win32" && suppliedPassword) {
-        setCachedPassword(suppliedPassword);
-      }
       const trusted = await checkCertInstalled(crtPath);
       return Response.json({ ok: true, trusted });
     }

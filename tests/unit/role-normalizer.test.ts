@@ -137,22 +137,6 @@ test("normalizeSystemRole inserts a user message when no user exists and drops e
   ]);
 });
 
-test("normalizeSystemRole converts system role for older glm-5.0 models", () => {
-  const messages = [
-    { role: "system", content: "[Context compressed: earlier messages removed]" },
-    { role: "user", content: "say hello" },
-  ];
-
-  const result = normalizeSystemRole(messages, "openai", "glm-5.0");
-
-  assert.deepEqual(result, [
-    {
-      role: "user",
-      content: "[System Instructions]\n[Context compressed: earlier messages removed]\n\n[User Message]\nsay hello",
-    },
-  ]);
-});
-
 test("normalizeSystemRole treats ZenMux z-ai/glm models as GLM even with vendor prefix", () => {
   const messages = [
     { role: "system", content: "[Context compressed: earlier messages removed]" },

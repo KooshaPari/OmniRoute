@@ -34,6 +34,7 @@ import {
 } from "../services/cloudCodeThinking.ts";
 import { buildGeminiTools } from "../translator/helpers/geminiToolsSanitizer.ts";
 import { DEFAULT_SAFETY_SETTINGS } from "../translator/helpers/geminiHelper.ts";
+import { normalizeOpenAICompatibleFinishReasonString } from "../utils/finishReason.ts";
 import {
   type AntigravityCollectedStream,
   processAntigravitySSEText,
@@ -286,6 +287,84 @@ export function markConnectionQuotaExhausted(connectionId: string, retryAfterMs:
  * Accumulate one Antigravity SSE `data:` payload into `collected`. Exported for unit
  * tests (the markdown / candidate-parts extraction branches). @internal
  */
+export function processAntigravitySSEPayload(
+  payload: string,
+  collected: AntigravityCollectedStream,
+  log?: { debug?: (scope: string, message: string) => void }
+) {
+  if (!payload || payload === "[DONE]") return;
+  try {
+    const parsed = JSON.parse(payload);
+    const markdown =
+      typeof parsed?.markdown === "string"
+        ? parsed.markdown
+        : typeof parsed?.response?.markdown === "string"
+          ? parsed.response.markdown
+          : null;
+    if (markdown) {
+      collected.textContent += markdown;
+    }
+    const candidate = parsed?.response?.candidates?.[0];
+    if (candidate?.content?.parts) {
+      for (const part of candidate.content.parts) {
+        if (typeof part.text === "string" && !part.thought && !part.thoughtSignature) {
+          const textualToolCall = parseAntigravityTextualToolCall(part.text);
+          if (textualToolCall) {
+            addAntigravityTextualToolCall(collected, textualToolCall);
+          } else {
+            collected.textContent += part.text;
+          }
+        }
+      }
+    }
+    if (candidate?.finishReason) {
+      collected.finishReason = normalizeOpenAICompatibleFinishReasonString(
+        String(candidate.finishReason).toLowerCase()
+      );
+    }
+    if (parsed?.response?.usageMetadata) {
+      const um = parsed.response.usageMetadata;
+      collected.usage = {
+        prompt_tokens: um.promptTokenCount || 0,
+        completion_tokens: um.candidatesTokenCount || 0,
+        total_tokens: um.totalTokenCount || 0,
+      };
+    }
+    if (Array.isArray(parsed?.remainingCredits)) {
+      collected.remainingCredits = parsed.remainingCredits;
+    }
+  } catch {
+    log?.debug?.("SSE_PARSE", `Skipping malformed SSE line: ${payload.slice(0, 80)}`);
+  }
+}
+
+function processAntigravitySSEText(
+  text: string,
+  partialLine: { value: string },
+  collected: AntigravityCollectedStream,
+  log?: { debug?: (scope: string, message: string) => void }
+) {
+  partialLine.value += text;
+  const lines = partialLine.value.split("\n");
+  partialLine.value = lines.pop() || "";
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("data:")) continue;
+    processAntigravitySSEPayload(trimmed.slice(5).trim(), collected, log);
+  }
+}
+
+function flushAntigravitySSEText(
+  partialLine: { value: string },
+  collected: AntigravityCollectedStream,
+  log?: { debug?: (scope: string, message: string) => void }
+) {
+  const trimmed = partialLine.value.trim();
+  partialLine.value = "";
+  if (!trimmed.startsWith("data:")) return;
+  processAntigravitySSEPayload(trimmed.slice(5).trim(), collected, log);
+}
 
 /**
  * Strip provider prefixes (e.g. "antigravity/model" → "model").

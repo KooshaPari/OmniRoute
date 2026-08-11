@@ -2,23 +2,15 @@ import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { platform, totalmem, hostname as osHostname } from "node:os";
+import { platform, totalmem } from "node:os";
 import { t } from "../i18n.mjs";
 import { writePidFile, cleanupPidFile, waitForServer } from "../utils/pid.mjs";
 import { ServerSupervisor, detectMitmCrash } from "../runtime/processSupervisor.mjs";
 import { isTermux } from "../../../scripts/build/postinstallSupport.mjs";
 import {
-  ensureAndroidCacheDir,
-  isFatalInstrumentationHookFailure,
-  formatAndroidInstrumentationFailureHint,
-} from "../utils/ensureAndroidCacheDir.mjs";
-import {
   resolveMaxOldSpaceMb,
   calibrateHeapFallbackMb,
-  buildServerNodeOptions,
-  buildNodeHeapArgs,
 } from "../../../scripts/build/runtime-env.mjs";
-import { resolveTlsOptions } from "../../../scripts/dev/tls-options.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const _pkg = JSON.parse(readFileSync(join(__dirname, "..", "..", "..", "package.json"), "utf8"));
@@ -192,27 +184,13 @@ export async function runServe(opts = {}) {
     calibrateHeapFallbackMb(totalmem())
   );
 
-  // #5242: opt-in native HTTPS. CLI flags take precedence over env; the child
-  // server (server-ws.mjs) reads these and terminates TLS on the same listener.
-  const tlsCert = opts.tlsCert ?? process.env.OMNIROUTE_TLS_CERT;
-  const tlsKey = opts.tlsKey ?? process.env.OMNIROUTE_TLS_KEY;
-
   const env = {
     ...process.env,
     OMNIROUTE_PORT: String(port),
     PORT: String(dashboardPort),
     DASHBOARD_PORT: String(dashboardPort),
     API_PORT: String(apiPort),
-    // #6194: POSIX shells (bash/zsh) auto-set HOSTNAME to the machine name — the
-    // .env loader (first-wins) can never override it. Ignore HOSTNAME when it
-    // matches the OS-reported hostname (the auto-set signature). OMNIROUTE_SERVER_HOST
-    // takes precedence; legacy HOSTNAME values that don't match os.hostname() are
-    // still honoured for backward compatibility (e.g. Windows CMD/PowerShell users
-    // who set HOSTNAME in .env where it is NOT auto-set).
-    HOSTNAME:
-      process.env.OMNIROUTE_SERVER_HOST ||
-      (process.env.HOSTNAME !== osHostname() ? process.env.HOSTNAME : undefined) ||
-      "0.0.0.0",
+    HOSTNAME: process.env.HOSTNAME || "0.0.0.0",
     NODE_ENV: "production",
     // #5238: preserve a user-set NODE_OPTIONS (incl. their own
     // `--max-old-space-size=…`) instead of clobbering it with the calibrated

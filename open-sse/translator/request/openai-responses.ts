@@ -8,26 +8,70 @@ import { isOpenAIResponsesStoreEnabled } from "@/lib/providers/requestDefaults";
 import { FORMATS } from "../formats.ts";
 import { register } from "../registry.ts";
 import { normalizeResponsesInputForChat } from "../../utils/responsesInputNormalization.ts";
-import { openaiToOpenAIResponsesRequest } from "./openai-responses/toResponses.ts";
-import {
-  JsonRecord,
-  RESPONSES_STORE_MARKER,
-  COPILOT_REASONING_SUMMARY_MARKER,
-  WEB_SEARCH_TOOL_TYPES,
-  TOOL_SEARCH_TOOL_TYPES,
-  IMAGE_GENERATION_TOOL_TYPES,
-  toRecord,
-  toArray,
-  toString,
-  normalizeVerbosity,
-  normalizeResponsesReasoningEffort,
-  shouldRequestClaudeSummarizedThinking,
-  unsupportedFeature,
-} from "./openai-responses/helpers.ts";
+type JsonRecord = Record<string, unknown>;
+const RESPONSES_STORE_MARKER = "_omnirouteResponsesStore";
+const COPILOT_REASONING_SUMMARY_MARKER = "_omnirouteCopilotReasoningSummary";
 
-// chat -> Responses direction extracted to a pure leaf; re-exported for external
-// importers (tests). Host imports it back for registration below.
-export { openaiToOpenAIResponsesRequest } from "./openai-responses/toResponses.ts";
+// Forward-compatible regex: matches web_search, web_search_20250305, and future versioned names.
+const WEB_SEARCH_TOOL_TYPES = /^web_search/;
+// tool_search is a Responses API built-in sent by newer Codex clients; it has no Chat Completions
+// equivalent and must be silently dropped (not rejected with 400).
+const TOOL_SEARCH_TOOL_TYPES = /^tool_search/;
+// image_generation is a Responses API hosted tool that Codex Desktop injects into every request
+// (even text-only ones); it has no Chat Completions equivalent and must be silently dropped (#2950).
+const IMAGE_GENERATION_TOOL_TYPES = /^image_generation/;
+
+// GPT-5 output verbosity: `verbosity` on Chat Completions, `text.verbosity` on the
+// Responses API. Only these three levels are valid upstream; anything else is dropped.
+const VERBOSITY_LEVELS = new Set(["low", "medium", "high"]);
+function normalizeVerbosity(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const level = value.toLowerCase();
+  return VERBOSITY_LEVELS.has(level) ? level : undefined;
+}
+
+function toRecord(value: unknown): JsonRecord {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+}
+
+// The Responses API rejects call_id values longer than 64 characters (9router#396).
+// Clamp deterministically so a function_call and its matching function_call_output keep
+// the same id and stay paired through the orphaned-output filter below.
+const MAX_CALL_ID_LEN = 64;
+function clampCallId(id: string): string {
+  return id.length > MAX_CALL_ID_LEN ? id.slice(0, MAX_CALL_ID_LEN) : id;
+}
+
+function toArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function toString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function imageUrlToText(value: unknown): string {
+  if (typeof value === "string") return value;
+  const record = toRecord(value);
+  return toString(record.url);
+}
+
+function normalizeResponsesReasoningEffort(value: unknown): string {
+  const effort = toString(value).toLowerCase();
+  return effort === "max" ? "xhigh" : effort;
+}
+
+function shouldRequestClaudeSummarizedThinking(value: unknown): boolean {
+  const summary = toString(value).toLowerCase();
+  return !!summary && summary !== "off" && summary !== "none" && summary !== "disabled";
+}
+
+function unsupportedFeature(message: string): Error & { statusCode: number; errorType: string } {
+  const error = new Error(message) as Error & { statusCode: number; errorType: string };
+  error.statusCode = 400;
+  error.errorType = "unsupported_feature";
+  return error;
+}
 
 /**
  * Convert OpenAI Responses API request to OpenAI Chat Completions format
@@ -163,6 +207,7 @@ export function openaiResponsesToOpenAIRequest(
   // Upstream providers reject messages:[] with "400: at least one message is required".
   // When the client sends input:[] (empty), inject a placeholder user message — mirrors
   // upstream 9router#419 (and the existing empty-string handling elsewhere in this file).
+  const rawInputItems = normalizeResponsesInputForChat(root.input);
   const inputItems: unknown[] =
     rawInputItems.length === 0
       ? [{ type: "message", role: "user", content: [{ type: "input_text", text: "..." }] }]

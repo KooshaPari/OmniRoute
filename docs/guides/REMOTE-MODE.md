@@ -102,7 +102,8 @@ A token with insufficient scope gets `403` with a clear message.
 
 ## Connecting Antigravity on a remote install
 
-Antigravity uses Google's firstparty/nativeapp consent screen. Google only
+Antigravity (and other Google "native/desktop" OAuth providers such as
+`gemini-cli`) use Google's `firstparty/nativeapp` consent screen. Google only
 releases the authorization code when the **loopback redirect**
 (`http://127.0.0.1:<port>/callback`) is **reachable from the browser that
 approves the sign-in**. On a remote VPS install that loopback lives on the
@@ -110,12 +111,6 @@ server, not on your machine, so the consent screen **hangs forever and never
 emits a code** — the normal "paste the callback URL" fallback has nothing to
 paste. (This is a Google-side constraint: the same hang happens in any proxy
 that uses the bundled Antigravity desktop client, not just OmniRoute.)
-
-The dashboard detects this before you get stuck: opening **Providers → Antigravity →
-Connect** from a non-localhost address replaces the generic "copy the callback URL"
-notice with the two remedies below, each with your host and port already filled in.
-(A LAN address counts — `192.168.x.x` is not localhost as far as this callback is
-concerned.)
 
 There are two supported ways to connect Antigravity to a remote OmniRoute.
 
@@ -152,7 +147,7 @@ loopback callback resolves back to the server through the tunnel:
 
 ```bash
 # On your LOCAL machine:
-ssh -L 20128:127.0.0.1:20128 user@your-vps
+ssh -L 20128:localhost:20128 user@your-vps
 # then open http://localhost:20128 in your LOCAL browser and connect Antigravity
 # normally — the 127.0.0.1:20128/callback redirect now reaches the VPS via SSH.
 ```
@@ -161,61 +156,9 @@ Because you reach the dashboard as `localhost:20128`, the Google consent
 completes and the callback is delivered to the server through the same tunnel —
 no blob needed. Keep the tunnel open until the connection shows as active.
 
-Unlike the fixed-loopback providers below, **one forward is enough** here: the
-Antigravity callback rides the dashboard port itself, so there is no second
-provider-specific port to tunnel.
-
 > A fully headless alternative (no helper, no tunnel) is to configure your **own**
 > Google OAuth web credentials + a public base URL; see the provider's OAuth
 > environment variables. The two options above need no extra Google setup.
-
----
-
-## Connecting Codex / Grok on a remote install (fixed-loopback providers)
-
-Codex, xAI (`xai-oauth`) and Grok CLI (`grok-cli`) register a **fixed** loopback
-`redirect_uri` with their upstream OAuth app. OmniRoute cannot change it — the
-provider always sends the browser back to the same hardcoded address:
-
-| Provider    | Fixed callback the provider redirects to |
-| ----------- | ---------------------------------------- |
-| `codex`     | `http://localhost:1455/auth/callback`    |
-| `xai-oauth` | `http://127.0.0.1:56121/callback`        |
-| `grok-cli`  | `http://127.0.0.1:56122/callback`        |
-
-`localhost` there means **the machine running the browser**, while OmniRoute's PKCE
-callback server listens on the **server's** loopback. Open the dashboard at a LAN
-address like `http://192.168.0.15:20128` and the two never meet: the authorization
-code is delivered to your own laptop's `localhost:1455`, where nothing is listening,
-and the provider fails the sign-in without surfacing an error.
-
-The dashboard detects this before opening the popup and shows the tunnel command
-instead of letting the login fail silently (#8046).
-
-### Fix — forward **both** ports
-
-```bash
-# On the machine running the BROWSER:
-ssh -L 20128:127.0.0.1:20128 -L 1455:127.0.0.1:1455 <user>@192.168.0.15
-# then browse to http://localhost:20128 and connect Codex from there
-```
-
-Two forwards are required, and forwarding only one still fails:
-
-- **`20128`** (the dashboard port) makes the origin true-localhost, which is what
-  makes OmniRoute start the PKCE callback server at all — a LAN origin never
-  reaches that branch.
-- **`1455`** (the provider's fixed callback port) is where the browser is sent back
-  to; it has to tunnel through to the server's loopback.
-
-Swap `1455` for `56121`/`56122` when connecting xAI or Grok CLI, and `20128` for
-your actual dashboard port. Keep the tunnel open until the connection shows as
-active.
-
-> **No SSH access?** Codex and Grok CLI also accept a pasted token — the **Paste API
-> Key** / **Import auth.json** tab on the connect dialog. That path has no loopback
-> callback, so it works from any origin. Codex additionally accepts a bare access
-> token or a `~/.codex/auth.json` session blob.
 
 ---
 
