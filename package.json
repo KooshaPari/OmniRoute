@@ -417,17 +417,8 @@
       "undici": "^7.29.0"
     },
     "node-gyp": {
-      "undici": "^6.28.0"
+      "undici": "^6.27.0"
     },
-    "concurrently": {
-      "shell-quote": "^1.9.0"
-    },
-    "adm-zip": "^0.6.0",
-    "promptfoo": {
-      "js-yaml": "^5.2.2",
-      "@apidevtools/json-schema-ref-parser": {
-        "js-yaml": "^4.2.0"
-      }
-    }
+    "adm-zip": "^0.6.0"
   }
 }
