@@ -61,6 +61,9 @@ const IGNORE_FROM_CODE = new Set([
   "APPDATA",
   "LOCALAPPDATA",
   "XDG_CONFIG_HOME",
+  // XDG Base Directory cache root — read (never defined by OmniRoute) so the
+  // Android/Termux serve path can honor an operator-set cache location (#8519).
+  "XDG_CACHE_HOME",
   "USERPROFILE",
   "PREFIX",
   // X11 display server — set by the OS/session manager, not OmniRoute config.

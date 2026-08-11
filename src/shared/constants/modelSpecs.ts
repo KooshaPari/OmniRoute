@@ -22,14 +22,27 @@ export interface ModelSpec {
   // Model ONLY supports adaptive thinking: manual extended thinking was removed. Sending
   // `thinking.type:"enabled"` or any `thinking.budget_tokens` returns HTTP 400; reasoning
   // is steered exclusively by `output_config.effort` (low/medium/high/xhigh/max). True for
-  // Claude Opus 4.7 and later (Opus 4.7/4.8, Fable 5). Per Anthropic's migration guide
-  // (2026-05-19): "Any request that tries to set a fixed thinking budget gets a 400 error."
+  // Claude Opus 4.7 and later (Opus 4.7/4.8/5, Fable 5). Per Anthropic's migration guide,
+  // any request that tries to set a fixed thinking budget gets a 400 error.
   adaptiveThinkingOnly?: boolean;
+  // Highest effort accepted while `thinking.type:"disabled"` is present. Claude Opus 5
+  // rejects disabled thinking with xhigh/max, while accepting it through high.
+  maxEffortWhenThinkingDisabled?: "high";
   // Explicit operator override for the no-thinking gateway alias (Fase 8.1). When unset,
   // the catalog auto-advertises a `no-think/…` variant for
   // Claude-family thinking-capable models that honor `disabled`. Set `true` to force the
   // variant on for any other model, or `false` to suppress it. See open-sse/utils/noThinkingAlias.ts.
   noThinkingAlias?: boolean;
+  // Per-model default reasoning effort (#6879). When the incoming request carries no
+  // `reasoning_effort` / `reasoning` / `thinking` field of any shape, the resolved
+  // upstream model's `defaultReasoningEffort` is injected as `reasoning_effort` on the
+  // OpenAI-format dispatch path before the request leaves the gateway. An explicit
+  // client value — including one forwarded verbatim through a combo leg — always wins;
+  // this is a no-op for it. Unset preserves current behavior (no injection). Lets an
+  // operator strip-by-default a thinks-by-default model (measured: gemini-flash-lite
+  // burns ~277 reasoning tokens on a plain request; `reasoning_effort:"none"` → 0)
+  // without patching every client. See open-sse/services/defaultReasoningEffort.ts.
+  defaultReasoningEffort?: "none" | "low" | "medium" | "high";
 }
 
 const BEDROCK_CLAUDE_ALIASES = (...modelIds: string[]) => [
@@ -68,7 +81,19 @@ const AUTHORITATIVE_PROVIDER_CONTEXT_WINDOWS = new Map<string, number>([
 const GPT_5_6_MODEL_SPEC = {
   maxOutputTokens: 128000,
   contextWindow: 1050000,
+  // Reserve 32K for visible response: thinking + response must both fit
+  // under maxOutputTokens. A cap equal to maxOutputTokens leaves zero room
+  // for the actual response when thinking consumes the full budget.
+  thinkingBudgetCap: 96000,
   supportsThinking: true,
+  supportsTools: true,
+  supportsVision: true,
+} satisfies ModelSpec;
+
+const GEMINI_35_FLASH_MODEL_SPEC = {
+  maxOutputTokens: 65536,
+  contextWindow: 1048576,
+  supportsThinking: false,
   supportsTools: true,
   supportsVision: true,
 } satisfies ModelSpec;
@@ -137,13 +162,23 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
   },
-  "gemini-3.5-flash-low": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    supportsThinking: false,
-    supportsTools: true,
-    supportsVision: true,
+  "gemini-3.5-flash-extra-low": {
+    ...GEMINI_35_FLASH_MODEL_SPEC,
+    thinkingBudgetCap: 0,
   },
+  "gemini-3.5-flash-low": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3-flash-agent": {
+    ...GEMINI_35_FLASH_MODEL_SPEC,
+    thinkingBudgetCap: 0,
+  },
+
+  // ── Gemini 3.6 Flash (Antigravity live tiers) ───────────────────
+  // The model id itself selects the upstream 10k/4k/1k reasoning tier. Antigravity
+  // still rejects client-supplied thinking parameters, so keep the explicit-parameter
+  // capability aligned with the existing Gemini 3.5 tier ids.
+  "gemini-3.6-flash-high": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3.6-flash-medium": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3.6-flash-low": { ...GEMINI_35_FLASH_MODEL_SPEC },
 
   // ── Gemini 3 Flash series ───────────────────────────────────────
   "gemini-3-flash": {
@@ -168,6 +203,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
     aliases: [
+      "gemini-pro-agent",
       "gemini-3.1-pro-high",
       "gemini-3-pro-high",
       "gemini-3-pro-preview",
@@ -190,11 +226,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
 
   // ── Gemini 3.5 Flash ─────────────────────────────────────────────
   "gemini-3.5-flash": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    supportsThinking: false,
-    supportsTools: true,
-    supportsVision: true,
+    ...GEMINI_35_FLASH_MODEL_SPEC,
     aliases: ["gemini-3.5-flash-high"],
   },
 
@@ -213,6 +245,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-sonnet-4-5": {
     maxOutputTokens: 64000,
     contextWindow: 200000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -234,6 +267,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-sonnet-4-6": {
     maxOutputTokens: 64000,
     contextWindow: 1000000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -305,6 +339,20 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: BEDROCK_CLAUDE_ALIASES("claude-fable-5"),
   },
 
+  // ── Claude Opus 5 ───────────────────────────────────────────────
+  "claude-opus-5": {
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    adaptiveThinkingOnly: true,
+    maxEffortWhenThinkingDisabled: "high",
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-5"),
+  },
+
   // ── Claude Opus 4.8 ─────────────────────────────────────────────
   "claude-opus-4-8": {
     maxOutputTokens: 128000,
@@ -324,6 +372,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-sonnet-4-5-20250929": {
     maxOutputTokens: 64000,
     contextWindow: 200000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -334,20 +383,34 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-haiku-4-5-20251001": {
     maxOutputTokens: 64000,
     contextWindow: 200000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
     aliases: ["claude-haiku-4.5"],
   },
 
-  // ── Kimi K2.6 (Moonshot Kimi Code OAuth — 262K native) ──────────
-  "kimi-k2.6": {
-    maxOutputTokens: 262144,
-    contextWindow: 262144,
+  // ── Kimi K3 (Moonshot API — 1M context/output, native vision) ────
+  // `k3` is the Kimi Coding / kimi-coding-apikey wire id (#8250).
+  "kimi-k3": {
+    maxOutputTokens: 1048576,
+    contextWindow: 1048576,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["kimi-k2.6-thinking", "kimi-for-coding"],
+    aliases: ["k3"],
+  },
+
+  // ── Kimi K2.6 (Moonshot API — 262K native) ──────────────────────
+  "kimi-k2.6": {
+    maxOutputTokens: 262144,
+    contextWindow: 262144,
+    thinkingBudgetCap: 32768,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["kimi-k2.6-thinking"],
   },
 
   // ── Kimi K2.7 Code (Moonshot — 262K native, parity with K2.6) ───
@@ -356,16 +419,18 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "kimi-k2.7-code": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["kimi-k2.7", "kimi-k2.7-code-thinking"],
+    aliases: ["kimi-k2.7", "kimi-k2.7-code-thinking", "kimi-k2.7-code-highspeed"],
   },
 
   // ── Kimi K2.5 (Moonshot — 262K native, parity with K2.6) ────────
   "kimi-k2.5": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -376,14 +441,24 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "qwen3-max": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
     aliases: ["qwen3.7-max", "qwen3-max-2026-01-23"],
   },
+  "qwen3.8-max-preview": {
+    maxOutputTokens: 65536,
+    contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
   "qwen3.6-plus": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -391,6 +466,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "qwen3.5-plus": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -435,18 +511,21 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "glm-5.2": {
     maxOutputTokens: 131072,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
   "glm-5.2-high": {
     maxOutputTokens: 131072,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
   "glm-5.2-max": {
     maxOutputTokens: 131072,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
@@ -455,12 +534,14 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "glm-5.1": {
     maxOutputTokens: 128000,
     contextWindow: 200000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
   "glm-5": {
     maxOutputTokens: 128000,
     contextWindow: 200000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
@@ -471,21 +552,45 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "minimax-m3": {
     maxOutputTokens: 512000,
     contextWindow: 1048576,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     aliases: ["MiniMax-M3", "MiniMaxAI/MiniMax-M3"],
+  },
+
+  // ── MiniMax M2.x (200K context family) ───────────────────────────
+  "minimax-m2.7": {
+    maxOutputTokens: 131072,
+    contextWindow: 204800,
+    thinkingBudgetCap: 32768,
+    supportsThinking: true,
+    supportsTools: true,
+    aliases: ["MiniMax-M2.7", "MiniMaxAI/MiniMax-M2.7"],
+  },
+  "minimax-m2.5": {
+    maxOutputTokens: 131072,
+    contextWindow: 200000,
+    thinkingBudgetCap: 32768,
+    supportsThinking: true,
+    supportsTools: true,
+    aliases: ["MiniMax-M2.5"],
   },
 
   // ── DeepSeek V4 (1M context, 384K max output) ────────────────────
   "deepseek-v4-pro": {
     maxOutputTokens: 384000,
     contextWindow: 1000000,
+    // Reserve 4K for visible response: thinking + response must both fit
+    // under maxOutputTokens. A cap equal to maxOutputTokens leaves zero room
+    // for the actual response when thinking consumes the full budget.
+    thinkingBudgetCap: 380000,
     supportsThinking: true,
     supportsTools: true,
   },
   "deepseek-v4-flash": {
     maxOutputTokens: 384000,
     contextWindow: 1000000,
+    thinkingBudgetCap: 380000,
     supportsThinking: true,
     supportsTools: true,
   },
@@ -494,6 +599,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "hy3-preview": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
   },
@@ -601,6 +707,13 @@ export function getDefaultThinkingBudget(modelId: string): number {
 export function isAdaptiveThinkingOnly(modelId: string | null | undefined): boolean {
   if (typeof modelId !== "string" || modelId.length === 0) return false;
   return getModelSpec(modelId)?.adaptiveThinkingOnly === true;
+}
+
+export function getMaxEffortWhenThinkingDisabled(
+  modelId: string | null | undefined
+): "high" | null {
+  if (typeof modelId !== "string" || modelId.length === 0) return null;
+  return getModelSpec(modelId)?.maxEffortWhenThinkingDisabled ?? null;
 }
 
 export function capThinkingBudget(modelId: string, budget: number): number {

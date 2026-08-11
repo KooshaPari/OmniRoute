@@ -31,6 +31,17 @@ const LOOPBACK_HOSTNAMES = new Set(["localhost", "::1"]);
 function hasConfiguredPassword(settings: Record<string, unknown>): boolean {
   return typeof settings.password === "string" && settings.password.length > 0;
 }
+function hasConfiguredOidc(settings: Record<string, unknown>): boolean {
+  return (
+    settings.oidcEnabled === true &&
+    typeof settings.oidcIssuer === "string" &&
+    settings.oidcIssuer.trim().length > 0 &&
+    typeof settings.oidcClientId === "string" &&
+    settings.oidcClientId.trim().length > 0 &&
+    typeof settings.oidcClientSecret === "string" &&
+    settings.oidcClientSecret.trim().length > 0
+  );
+}
 
 function getRequestPathname(request: RequestLike | Request | null | undefined): string | null {
   const nextPathname =
@@ -335,7 +346,11 @@ export async function isAuthRequired(
     const settings = await getSettings();
     if (settings.requireLogin === false) return false;
 
-    if (!hasConfiguredPassword(settings) && !process.env.INITIAL_PASSWORD) {
+    if (
+      !hasConfiguredPassword(settings) &&
+      !hasConfiguredOidc(settings) &&
+      !process.env.INITIAL_PASSWORD
+    ) {
       if (!request) return false;
 
       const pathname = getRequestPathname(request);

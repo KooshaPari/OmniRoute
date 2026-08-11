@@ -1,5 +1,6 @@
 // src/lib/db/adapters/sqljsAdapter.ts
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { createLogger } from "@/shared/utils/logger";
 import type { SqliteAdapter, PreparedStatement, RunResult } from "./types";
@@ -8,6 +9,7 @@ const log = createLogger("db:adapter:sqljs");
 
 const SAVE_DEBOUNCE_MS = 100;
 const CHECKPOINT_INTERVAL_MS = 60_000;
+const _require = createRequire(import.meta.url);
 
 let _sqlJsLib: Awaited<ReturnType<(typeof import("sql.js"))["default"]>> | null = null;
 
@@ -25,13 +27,23 @@ function resolveSqlJsWasmPath(): string {
     ),
   ];
 
+  // Global Bun installs do not use the application's cwd as the package root.
+  // Resolve the actual JavaScript entrypoint so sql.js can find its sibling WASM
+  // asset when OmniRoute is launched from ~/.bun/install/global.
+  try {
+    const sqlJsEntry = _require.resolve("sql.js");
+    candidatePaths.push(path.join(path.dirname(sqlJsEntry), "sql-wasm.wasm"));
+  } catch {}
+
   for (const candidatePath of candidatePaths) {
     if (fs.existsSync(candidatePath)) {
       return candidatePath;
     }
   }
 
-  return candidatePaths[0];
+  throw new Error(
+    `[sqljsAdapter] Could not locate sql-wasm.wasm. Checked:\n${candidatePaths.join("\n")}`
+  );
 }
 
 /**
@@ -87,8 +99,16 @@ function toBindValue(params: unknown[]): unknown[] | Record<string, unknown> | u
 
 async function loadSqlJs(): Promise<typeof _sqlJsLib> {
   if (_sqlJsLib) return _sqlJsLib;
-  const initSqlJs = ((await import("sql.js")) as { default: (typeof import("sql.js"))["default"] })
-    .default;
+  // Use a non-literal specifier so the bundler doesn't try to statically
+  // resolve sql.js (and its package.json) during the build phase.
+  // sql.js is an optional/fallback adapter — only needed at runtime when
+  // better-sqlite3 and node:sqlite are both unavailable.
+  const moduleName = "sql." + "js";
+  const mod = (await import(
+    /* webpackIgnore: true */
+    moduleName
+  )) as { default: (typeof import("sql.js"))["default"] };
+  const initSqlJs = mod.default;
   const wasmPath = resolveSqlJsWasmPath();
 
   _sqlJsLib = await initSqlJs({
@@ -210,6 +230,16 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
   }, CHECKPOINT_INTERVAL_MS);
   (checkpointTimer as unknown as NodeJS.Timeout).unref?.();
 
+  const flush = (): void => {
+    if (dirty)
+      try {
+        persist();
+      } catch {}
+  };
+  process.on("beforeExit", flush);
+  process.on("SIGINT", flush);
+  process.on("SIGTERM", flush);
+
   function gracefulClose(): void {
     clearInterval(checkpointTimer as unknown as NodeJS.Timeout);
     if (saveTimer) clearTimeout(saveTimer);
@@ -225,19 +255,13 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
       log.error({ err, filePath }, "sqljsAdapter: db.close failed during gracefulClose");
     }
     _isOpen = false;
+    // Without this, a closed adapter's whole closure (raw sql.js Database +
+    // buffers) stays pinned in memory forever by these 3 process-level
+    // listeners, compounding the OOM every failed boot leaves behind (#7494).
+    process.removeListener("beforeExit", flush);
+    process.removeListener("SIGINT", flush);
+    process.removeListener("SIGTERM", flush);
   }
-
-  const flush = (): void => {
-    if (dirty)
-      try {
-        persist();
-      } catch (err) {
-        log.error({ err, filePath }, "sqljsAdapter: flush persist failed (signal handler)");
-      }
-  };
-  process.on("beforeExit", flush);
-  process.on("SIGINT", flush);
-  process.on("SIGTERM", flush);
 
   return {
     driver: "sql.js",

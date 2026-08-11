@@ -349,7 +349,7 @@ export function useModelVisibilityHandlers({
               results?: Record<
                 string,
                 {
-                  status?: "ok" | "error";
+                  status?: "ok" | "error" | "slow";
                   rateLimited?: boolean;
                   isTimeout?: boolean;
                   error?: string;

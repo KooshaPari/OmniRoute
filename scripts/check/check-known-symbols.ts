@@ -78,10 +78,20 @@ const REPO_ROOT = resolvePath(HERE, "..", "..");
  */
 export const IMPLICIT_DEFAULT_STRATEGIES: Record<string, string> = {};
 
-/** Extrai todas as strings literais de `strategy === "..."` da fonte do combo. */
+/**
+ * Extrai todas as strings literais de `strategy === "..."` / `strategy !== "..."`
+ * da fonte do combo.
+ *
+ * Ambas as formas contam como despacho fiado. A decomposição do god-file (#3501)
+ * troca `if (strategy === "X") { ...corpo... }` por uma leaf `tryXDispatch()` cujo
+ * guard de saída antecipada é `if (strategy !== "X") return null;` — mesma branch,
+ * forma invertida. Reconhecer só `===` faria o gate acusar `canonicalNotHandled`
+ * para uma estratégia que continua perfeitamente fiada, e pressionaria o código a
+ * se contorcer para agradar a regex.
+ */
 export function extractHandledStrategies(comboSource: string): Set<string> {
   const handled = new Set<string>();
-  const re = /strategy\s*===\s*"([a-z0-9-]+)"/g;
+  const re = /strategy\s*[!=]==\s*"([a-z0-9-]+)"/g;
   let match: RegExpExecArray | null;
   while ((match = re.exec(comboSource)) !== null) {
     handled.add(match[1]);
@@ -479,6 +489,10 @@ async function main(): Promise<void> {
     "open-sse/services/combo.ts",
     "open-sse/services/combo/applyStrategyOrdering.ts",
     "open-sse/services/combo/resolveAutoStrategy.ts",
+    // #3501: the fusion/pipeline dispatch branches moved here with the prelude
+    // extraction; the `strategy === "..."` checks are unchanged, just relocated.
+    "open-sse/services/combo/dispatchPrelude.ts",
+    "open-sse/services/combo/targetResolution.ts",
   ];
   const comboSource = comboDispatchFiles
     .map((rel) => readFileSync(resolvePath(REPO_ROOT, rel), "utf8"))

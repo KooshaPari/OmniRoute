@@ -2,156 +2,98 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
-  aggregateRouterObservations,
   compareRouterEvalRuns,
-  computeParetoFrontier,
-  formatRouterEvalComparison,
-  formatRouterEvalReport,
-  parseObservation,
-  type RouterEvalComparison,
-  type RouterEvalObservation,
-} from "../../src/lib/routerEval/index.ts";
+  createRouterEvalArtifact,
+  runRouterEval,
+  toRouterObservation,
+} from "@/lib/routerEval/index.ts";
 
-test("parseObservation reads mixed JSONL field names", () => {
-  const parsed = parseObservation({
-    sample_id: "s1",
-    config_id: "cfg-a",
-    expected_model: "gpt-4o",
-    selected_model: "gpt-4o",
-    latency_ms: 123,
-    cost_usd: 0.007,
+function obs(overrides: Record<string, unknown>) {
+  return toRouterObservation({
+    sampleId: "sample-1",
+    configId: "config",
+    selectedModel: "gpt-4.1",
+    expectedModel: "gpt-4.1",
+    latencyMs: 120,
+    costUsd: 0.05,
+    success: true,
+    timestamp: "2026-01-01T00:00:00.000Z",
+    ...overrides,
+  })!;
+}
+
+test("toRouterObservation normalizes token cost and booleans", () => {
+  const observation = toRouterObservation({
+    sampleId: "s-1",
+    configId: "combo-a",
+    selectedModel: "gpt-4.1",
+    requestedModel: "gpt-4.1",
+    durationMs: 240,
+    tokens: { input: 100, output: 50 },
     status: 200,
   });
 
-  assert.equal(parsed.sampleId, "s1");
-  assert.equal(parsed.configId, "cfg-a");
-  assert.equal(parsed.expectedModel, "gpt-4o");
-  assert.equal(parsed.selectedModel, "gpt-4o");
-  assert.equal(parsed.latencyMs, 123);
-  assert.equal(parsed.costUsd, 0.007);
-  assert.equal(parsed.success, true);
+  assert.ok(observation);
+  assert.equal(observation!.sampleId, "s-1");
+  assert.equal(observation!.configId, "combo-a");
+  assert.equal(observation!.latencyMs, 240);
+  assert.equal(observation!.costUsd, 0.00015);
+  assert.equal(observation!.success, true);
+  assert.equal(observation!.expectedModel, "gpt-4.1");
 });
 
-test("aggregateRouterObservations computes deterministic config summaries", () => {
-  const observations: RouterEvalObservation[] = [
-    {
-      sampleId: "a1",
-      configId: "alpha",
-      expectedModel: "gpt-4o",
-      selectedModel: "gpt-4o",
-      latencyMs: 100,
-      costUsd: 1,
-      success: true,
-    },
-    {
-      sampleId: "a2",
-      configId: "alpha",
-      expectedModel: "claude",
-      selectedModel: "gpt-4o",
-      latencyMs: 200,
-      costUsd: 2,
-      success: false,
-    },
-    {
-      sampleId: "b1",
-      configId: "beta",
-      expectedModel: "gpt-4o",
-      selectedModel: "gpt-4o",
-      latencyMs: 80,
-      costUsd: 4,
-      success: true,
-    },
-    {
-      sampleId: "b2",
-      configId: "beta",
-      expectedModel: "gpt-4o",
-      selectedModel: "gpt-4o",
-      latencyMs: 110,
-      costUsd: 5,
-      success: true,
-    },
-  ];
-
-  const report = aggregateRouterObservations(observations);
-
-  assert.equal(report.totalObservations, 4);
-  assert.equal(report.configs.length, 2);
-  assert.equal(report.bestConfigId, "beta");
-  assert.equal(report.configs[0]!.configId, "beta");
-  assert.ok(report.bestAiq >= 0);
-  assert.equal(report.paretoFrontier.length, 2);
-  assert.equal(report.configs[0]!.successRate, 1);
-});
-
-test("pareto frontier collapses dominated configs", () => {
-  const observations: RouterEvalObservation[] = [
-    {
-      sampleId: "x1",
-      configId: "fast-n-cheap",
-      expectedModel: "m1",
-      selectedModel: "m1",
-      latencyMs: 100,
-      costUsd: 1,
-      success: true,
-    },
-    {
-      sampleId: "x2",
-      configId: "slow-expensive",
-      expectedModel: "m1",
-      selectedModel: "m2",
-      latencyMs: 500,
-      costUsd: 100,
-      success: true,
-    },
-    {
-      sampleId: "x3",
-      configId: "mid-balanced",
-      expectedModel: "m1",
-      selectedModel: "m1",
-      latencyMs: 300,
-      costUsd: 10,
-      success: true,
-    },
-  ];
-
-  const report = aggregateRouterObservations(observations);
-  const frontier = computeParetoFrontier(report.configs);
-  assert.equal(frontier.length, 1);
-  assert.deepEqual(frontier.map((entry) => entry.configId), ["fast-n-cheap"]);
-});
-
-test("compareRouterEvalRuns reports regression signals and markdown", () => {
-  const candidate = aggregateRouterObservations([
-    {
-      sampleId: "c1",
-      configId: "cand",
-      expectedModel: "m1",
-      selectedModel: "m2",
-      latencyMs: 200,
-      costUsd: 2,
-      success: true,
-    },
-  ]);
-  const baseline = aggregateRouterObservations([
-    {
-      sampleId: "b1",
-      configId: "base",
-      expectedModel: "m1",
-      selectedModel: "m1",
-      latencyMs: 100,
-      costUsd: 1,
-      success: true,
-    },
+test("runRouterEval computes summary and frontiers", () => {
+  const report = runRouterEval([
+    obs({ sampleId: "s1", configId: "a", latencyMs: 100, costUsd: 0.01, success: true }),
+    obs({ sampleId: "s2", configId: "a", latencyMs: 100, costUsd: 0.01, success: true }),
+    obs({ sampleId: "s3", configId: "b", latencyMs: 80, costUsd: 0.02, success: true }),
+    obs({ sampleId: "s4", configId: "b", latencyMs: 120, costUsd: 0.02, success: false }),
   ]);
 
-  const comparison: RouterEvalComparison = compareRouterEvalRuns(candidate, baseline);
-  assert.equal(comparison.regressed, true);
-  assert.ok(comparison.aiqDelta < 0);
-  const formatted = formatRouterEvalComparison(comparison);
-  const report = formatRouterEvalReport(candidate);
+  assert.equal(report.summary.totalSamples, 4);
+  assert.equal(report.summary.validSamples, 4);
+  assert.equal(report.summary.uniqueConfigs, 2);
+  assert.equal(report.configurations.length, 2);
+  assert.equal(report.top[0]?.configId, "a");
+  assert.ok(report.frontier.length >= 1);
+});
 
-  assert.match(formatted, /Regression Comparison/);
-  assert.match(formatted, /AIQ delta/);
-  assert.match(report, /Router Eval Report/);
-  assert.match(report, /\| config \| samples/);
+test("compareRouterEvalRuns captures AIQ and cost regressions", () => {
+  const baseline = runRouterEval([
+    obs({ sampleId: "b1", configId: "a", latencyMs: 100, costUsd: 0.01, success: true }),
+    obs({ sampleId: "b2", configId: "a", latencyMs: 100, costUsd: 0.01, success: true }),
+  ]);
+  const candidate = runRouterEval([
+    obs({ sampleId: "c1", configId: "a", latencyMs: 300, costUsd: 0.03, success: true }),
+    obs({ sampleId: "c2", configId: "a", latencyMs: 300, costUsd: 0.03, success: true }),
+  ]);
+
+  const comparison = compareRouterEvalRuns(baseline, candidate, {
+    aiqDrop: 5,
+    relativeCostIncrease: 1.2,
+  });
+
+  assert.ok(
+    comparison.regressions.some((reason) => reason.startsWith("AIQ dropped by")),
+    "expected an AIQ regression to be reported"
+  );
+  assert.ok(
+    comparison.regressions.some((reason) => reason.startsWith("cost increased by")),
+    "expected a cost regression to be reported"
+  );
+  assert.equal(comparison.delta.aiq <= 0, true);
+  assert.equal(comparison.delta.costUsd > 0, true);
+});
+
+test("createRouterEvalArtifact wraps reports with a stable schema", () => {
+  const report = runRouterEval([
+    obs({ sampleId: "s1", configId: "a", latencyMs: 100, costUsd: 0.01, success: true }),
+  ]);
+
+  const artifact = createRouterEvalArtifact(report);
+
+  assert.equal(artifact.schemaVersion, 1);
+  assert.equal(artifact.kind, "router-eval-report");
+  assert.equal(artifact.generatedAt, report.evaluatedAt);
+  assert.equal(artifact.report?.summary.totalSamples, 1);
 });

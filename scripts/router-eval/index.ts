@@ -1,494 +1,483 @@
-/**
- * Router eval CLI (F0.2).
- *
- * Supports:
- * - JSONL replay: `--input /path/to/file.jsonl` or `--input -` for stdin
- * - SQLite replay: `--db /path/to/data-dir` (reads call_logs from storage.sqlite)
- * - Windowing: `--since`, `--limit`
- * - Baseline compare + regression gate: `--baseline-input`, `--baseline-db`,
- *   `--fail-on-regression`
- * - Artifact write: `--out /path/to/report.md` or `--json --out /path/to/report.json`
- */
-
+#!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
 
 import {
-  aggregateRouterObservations,
   compareRouterEvalRuns,
+  createRouterEvalArtifact,
   formatRouterEvalComparison,
   formatRouterEvalReport,
-  parseObservation,
-  type RouterEvalObservation,
-  type RouterEvalReport,
-} from "../../src/lib/routerEval/index.ts";
-import { SQLITE_FILE } from "../../src/lib/db/core.ts";
-import { openDatabaseAsync } from "../../src/lib/db/adapters/driverFactory.ts";
-import type { SqliteAdapter } from "../../src/lib/db/adapters/types.ts";
+  runRouterEval,
+  toRouterObservation,
+  type RouterEvalArtifact,
+  type RouterEvalArtifactMetadata,
+  type RouterObservation,
+} from "@/lib/routerEval/index.ts";
+import { SQLITE_FILE } from "@/lib/db/core.ts";
+
+type DbCallLogRow = {
+  id: string;
+  model: string | null;
+  requested_model: string | null;
+  duration: number | null;
+  tokens_in: number | null;
+  tokens_out: number | null;
+  status: number | null;
+  combo_name: string | null;
+  provider: string | null;
+  error_summary: string | null;
+  timestamp: string | null;
+  correlation_id: string | null;
+};
+
+type DbUsageHistoryRow = {
+  id: number;
+  provider: string | null;
+  model: string | null;
+  tokens_input: number | null;
+  tokens_output: number | null;
+  service_tier: string | null;
+  status: string | null;
+  success: number | null;
+  latency_ms: number | null;
+  error_code: string | null;
+  combo_strategy: string | null;
+  timestamp: string | null;
+};
 
 type DbReplaySource = "auto" | "call-logs" | "usage-history";
 
-type CliArgs = {
+type SqliteStatement = {
+  get: (...params: unknown[]) => unknown;
+  all: (...params: unknown[]) => unknown[];
+};
+
+type SqliteDatabase = {
+  prepare: (sql: string) => SqliteStatement;
+  close: () => void;
+};
+
+type ArgSpec = {
   input?: string;
-  baselineInput?: string;
   db?: string;
-  baselineDb?: string;
   dbSource?: DbReplaySource;
+  baselineInput?: string;
+  baselineDb?: string;
   baselineDbSource?: DbReplaySource;
   since?: string;
-  limit?: string;
-  provider?: string;
-  model?: string;
-  out?: string;
-  json?: boolean;
+  limit?: number;
+  aiqDrop?: number;
+  costIncrease?: number;
+  output?: string;
+  jsonOutput?: string;
+  exportCorpus?: string;
   failOnRegression?: boolean;
   help?: boolean;
 };
 
-type LoadResult = {
-  source: string;
-  report: RouterEvalReport;
-  observations: RouterEvalObservation[];
-};
-
-function parseCliArgs(argv: string[]): CliArgs {
-  const parsed: CliArgs = {};
-  for (let index = 0; index < argv.length; index++) {
-    const arg = argv[index];
-    if (!arg.startsWith("--")) continue;
-    const [key, inlineValue] = arg.slice(2).split("=", 2);
-    const nextValue = argv[index + 1];
-    const getValue = (defaultValue = "") => {
-      if (inlineValue != null && inlineValue.length > 0) return inlineValue;
-      if (!nextValue || nextValue.startsWith("--")) return defaultValue;
-      index++;
-      return nextValue;
-    };
-
-    if (key === "help") {
-      parsed.help = true;
-    } else if (key === "input") {
-      parsed.input = getValue(undefined);
-    } else if (key === "baseline-input") {
-      parsed.baselineInput = getValue(undefined);
-    } else if (key === "db") {
-      parsed.db = getValue(undefined);
-    } else if (key === "baseline-db") {
-      parsed.baselineDb = getValue(undefined);
-    } else if (key === "db-source") {
-      parsed.dbSource = parseReplaySource(getValue(""));
-    } else if (key === "baseline-db-source") {
-      parsed.baselineDbSource = parseReplaySource(getValue(""));
-    } else if (key === "since") {
-      parsed.since = getValue("");
-    } else if (key === "limit") {
-      parsed.limit = getValue("");
-    } else if (key === "provider") {
-      parsed.provider = getValue("");
-    } else if (key === "model") {
-      parsed.model = getValue("");
-    } else if (key === "out" || key === "output") {
-      parsed.out = getValue("");
-    } else if (key === "json") {
-      parsed.json = true;
-    } else if (key === "fail-on-regression") {
-      parsed.failOnRegression = true;
-    }
-  }
-  return parsed;
+function getArgValue(name: string): string | undefined {
+  const index = process.argv.indexOf(`--${name}`);
+  if (index < 0) return undefined;
+  const value = process.argv[index + 1];
+  if (!value || value.startsWith("--")) return undefined;
+  return value;
 }
 
-function usage(): string {
+function getNumericArg(name: string): number | undefined {
+  const value = getArgValue(name);
+  if (!value) return undefined;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
+}
+
+function getFloatArg(name: string): number | undefined {
+  const value = getArgValue(name);
+  if (!value) return undefined;
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function parseArgs(): ArgSpec {
+  return {
+    input: getArgValue("input"),
+    db: getArgValue("db"),
+    dbSource: parseReplaySource(getArgValue("db-source")),
+    baselineInput: getArgValue("baseline-input"),
+    baselineDb: getArgValue("baseline-db"),
+    baselineDbSource: parseReplaySource(getArgValue("baseline-db-source")),
+    since: getArgValue("since"),
+    limit: getNumericArg("limit"),
+    aiqDrop: getFloatArg("max-aiq-drop"),
+    costIncrease: getFloatArg("max-cost-increase"),
+    output: getArgValue("output"),
+    jsonOutput: getArgValue("json-output"),
+    exportCorpus: getArgValue("export-corpus"),
+    failOnRegression: process.argv.includes("--fail-on-regression"),
+    help: process.argv.includes("--help") || process.argv.includes("-h"),
+  };
+}
+
+function usage() {
   return [
-    "omniroute eval:router",
-    "",
     "Usage:",
-    "  bun scripts/router-eval/index.ts --input <jsonl|->",
-    "  bun scripts/router-eval/index.ts --db [DATA_DIR|storage.sqlite] [--db-source <source>] [--since <ts>] [--limit <n>]",
-    "  bun scripts/router-eval/index.ts --input <candidate> --baseline-input <baseline> --fail-on-regression",
+    "  npm run eval:router -- --input <file.ndjson> [--since <iso>] [--limit <n>]",
+    "  npm run eval:router -- --db [path] [--db-source usage-history|call-logs|auto] [--since <iso>] [--limit <n>]",
+    "  npm run eval:router -- --input <candidate> --baseline-input <baseline>",
+    "  npm run eval:router -- --db <path> --db-source usage-history",
+    "       [--max-aiq-drop <n>] [--max-cost-increase <n>] [--fail-on-regression]",
     "",
     "Options:",
-    "  --input             JSONL source (or - for stdin)",
-    "  --baseline-input     JSONL baseline for regression compare",
-    "  --db                 Offline replay from DATA_DIR/storage.sqlite or a SQLite file",
-    "  --db-source          auto, call-logs, or usage-history (default: auto)",
-    "  --baseline-db        DB baseline source",
-    "  --baseline-db-source auto, call-logs, or usage-history (default: auto)",
-    "  --since              Optional ISO timestamp filter for DB replay",
-    "  --limit              Max rows for DB replay",
-    "  --provider           Exact provider filter for DB replay",
-    "  --model              Exact model filter for DB replay",
-    "  --out, --output      Write report to file",
-    "  --json               Emit a machine-readable JSON artifact",
-    "  --fail-on-regression Exit non-zero when candidate AIQ drops or frontier shrinks",
+    "  --input <path>           JSONL observation corpus (or omit for stdin)",
+    "  --db [path]              Read SQLite rows from the routing-replay source",
+    "  --db-source <auto|call-logs|usage-history>  Source for --db reads (default: auto => call-logs then usage-history)",
+    "  --baseline-input <path>   Baseline corpus in JSONL",
+    "  --baseline-db <path>      Baseline corpus in SQLite",
+    "  --baseline-db-source <auto|call-logs|usage-history>  Source for baseline DB reads",
+    "  --since <ISO8601>        Filter rows newer than this value",
+    "  --limit <n>              Limit sample count",
+    "  --max-aiq-drop <n>       Regression threshold (default: 0)",
+    "  --max-cost-increase <n>   Relative increase threshold (default: 0)",
+    "  --output <path>          Write report to file",
+    "  --json-output <path>     Write machine-readable artifact JSON",
+    "  --export-corpus <path>   Write normalized RouterObservation JSONL",
+    "  --fail-on-regression      Exit 1 if candidate regresses vs baseline",
   ].join("\n");
 }
 
-async function readJsonlFromStdinOrFile(inputPath: string): Promise<unknown[]> {
-  const payload = inputPath === "-"
-    ? fs.readFileSync(0, "utf8")
-    : fs.readFileSync(inputPath, "utf8");
-  const lines = payload.trim().split("\n").filter((line) => line.trim().length > 0);
-  const entries: unknown[] = [];
-  for (let index = 0; index < lines.length; index++) {
-    const line = lines[index];
-    try {
-      entries.push(JSON.parse(line));
-    } catch (error) {
-      throw new Error(`Failed to parse JSONL line ${index + 1}: ${(error as Error).message}`);
-    }
+function parseInputLine(rawLine: string): RouterObservation | null {
+  const trimmed = rawLine.trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = JSON.parse(trimmed);
+    return toRouterObservation(parsed);
+  } catch {
+    return null;
   }
-  return entries;
 }
 
-function coerceLimit(limit: string | undefined): number | undefined {
-  if (!limit) return undefined;
-  const parsed = Number(limit);
-  if (!Number.isFinite(parsed) || parsed <= 0) return undefined;
-  return Math.trunc(parsed);
+async function readJsonl(inputPath?: string): Promise<RouterObservation[]> {
+  let text: string;
+  if (!inputPath) {
+    text = await new Response(process.stdin, { duplex: "half" }).text();
+  } else {
+    text = await fs.promises.readFile(path.resolve(inputPath), "utf8");
+  }
+
+  const observations: RouterObservation[] = [];
+  for (const line of text.split(/\r?\n/)) {
+    const parsed = parseInputLine(line);
+    if (parsed) observations.push(parsed);
+  }
+  return observations;
+}
+
+function estimateCost(tokensIn: unknown, tokensOut: unknown): number {
+  const inTokens = typeof tokensIn === "number" ? tokensIn : 0;
+  const outTokens = typeof tokensOut === "number" ? tokensOut : 0;
+  return Number(((inTokens + outTokens) * 0.000001).toFixed(6));
 }
 
 function parseReplaySource(rawSource?: string): DbReplaySource {
   if (!rawSource) return "auto";
   const normalized = rawSource.toLowerCase();
   if (normalized === "auto") return "auto";
-  if (normalized === "usage-history" || normalized === "usage_history") return "usage-history";
-  if (normalized === "call-logs" || normalized === "call_logs") return "call-logs";
+  if (normalized === "usage_history" || normalized === "usage-history") return "usage-history";
+  if (normalized === "call_logs" || normalized === "call-logs") return "call-logs";
   throw new Error(`Unsupported db source: ${rawSource}`);
 }
 
-function toObservationsFromRows(rows: unknown[], fallbackConfigId: string): RouterEvalObservation[] {
-  return rows.map((row) => parseObservation(row, fallbackConfigId));
-}
-
-function resolveSqliteFile(dbPath?: string): string {
-  if (!dbPath) {
-    if (!SQLITE_FILE) throw new Error("No SQLITE_FILE and no --db path provided");
-    return SQLITE_FILE;
-  }
-  return dbPath.endsWith(".sqlite")
-    ? path.resolve(dbPath)
-    : path.join(path.resolve(dbPath), "storage.sqlite");
-}
-
-function hasReplayTable(db: SqliteAdapter, tableName: string): boolean {
+function hasReplayTable(database: SqliteDatabase, tableName: string): boolean {
   return Boolean(
-    db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(tableName)
+    database.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(tableName)
   );
 }
 
-function getTableColumns(db: SqliteAdapter, tableName: string): Set<string> {
-  const rows = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name?: string }>;
-  return new Set(rows.map((row) => row.name).filter((name): name is string => typeof name === "string"));
-}
+function resolveReplaySource(
+  database: SqliteDatabase,
+  requestedSource: DbReplaySource
+): DbReplaySource {
+  const hasUsageHistory = hasReplayTable(database, "usage_history");
+  const hasCallLogs = hasReplayTable(database, "call_logs");
 
-function selectColumn(columns: Set<string>, column: string, alias = column): string {
-  return columns.has(column) ? column : `NULL AS ${alias}`;
-}
-
-function resolveReplaySource(db: SqliteAdapter, requestedSource: DbReplaySource): DbReplaySource {
-  const hasCallLogs = hasReplayTable(db, "call_logs");
-  const hasUsageHistory = hasReplayTable(db, "usage_history");
+  if (requestedSource === "usage-history") {
+    if (!hasUsageHistory) throw new Error("Table 'usage_history' missing in database");
+    return "usage-history";
+  }
 
   if (requestedSource === "call-logs") {
     if (!hasCallLogs) throw new Error("Table 'call_logs' missing in database");
     return "call-logs";
   }
-  if (requestedSource === "usage-history") {
-    if (!hasUsageHistory) throw new Error("Table 'usage_history' missing in database");
-    return "usage-history";
+
+  if (requestedSource === "auto") {
+    if (hasCallLogs) return "call-logs";
+    if (hasUsageHistory) return "usage-history";
   }
-  if (hasCallLogs) return "call-logs";
-  if (hasUsageHistory) return "usage-history";
-  throw new Error("No replay table found in database (expected call_logs or usage_history)");
+
+  throw new Error("No replay table found in database (expected usage_history or call_logs)");
 }
 
-function estimateCost(tokensIn: unknown, tokensOut: unknown): number | null {
-  const input = typeof tokensIn === "number" ? tokensIn : 0;
-  const output = typeof tokensOut === "number" ? tokensOut : 0;
-  const total = input + output;
-  return total > 0 ? Number((total * 0.000001).toFixed(6)) : null;
+function toSuccessFromStatus(status: unknown): boolean {
+  if (typeof status === "number") return status >= 200 && status < 400;
+  if (typeof status === "string") {
+    const parsed = Number.parseInt(status, 10);
+    if (Number.isFinite(parsed)) return parsed >= 200 && parsed < 400;
+    const normalized = status.trim().toLowerCase();
+    if (normalized === "ok" || normalized === "success" || normalized === "true") return true;
+  }
+  return false;
 }
 
-function addSharedDbFilters(
-  queryParts: string[],
-  params: unknown[],
-  options: { since?: string; provider?: string; model?: string },
-  modelColumns: string[],
-  tableColumns: Set<string>
-): void {
-  if (options.since && tableColumns.has("timestamp")) {
-    queryParts.push("AND timestamp >= ?");
-    params.push(options.since);
-  }
-  if (options.provider && tableColumns.has("provider")) {
-    queryParts.push("AND provider = ?");
-    params.push(options.provider);
-  }
-  if (options.model) {
-    const availableModelColumns = modelColumns.filter((column) => tableColumns.has(column));
-    if (availableModelColumns.length > 0) {
-      queryParts.push(`AND (${availableModelColumns.map((column) => `${column} = ?`).join(" OR ")})`);
-      params.push(...availableModelColumns.map(() => options.model));
-    }
-  }
-}
-
-function readCallLogDb(
-  db: SqliteAdapter,
-  options: { since?: string; limit?: string; provider?: string; model?: string }
-): RouterEvalObservation[] {
-  const columns = getTableColumns(db, "call_logs");
-  const params: unknown[] = [];
+function readCallLogDb(db: SqliteDatabase, since?: string, limit?: number): RouterObservation[] {
   const queryParts = [
-    `SELECT ${[
-      "id",
-      selectColumn(columns, "model"),
-      selectColumn(columns, "requested_model"),
-      selectColumn(columns, "combo_name"),
-      selectColumn(columns, "provider"),
-      selectColumn(columns, "status"),
-      selectColumn(columns, "duration"),
-      selectColumn(columns, "tokens_in"),
-      selectColumn(columns, "tokens_out"),
-      selectColumn(columns, "error_summary"),
-    ].join(", ")}`,
+    "SELECT id, model, requested_model, duration, tokens_in, tokens_out, status, combo_name, provider, error_summary, timestamp, correlation_id",
     "FROM call_logs",
     "WHERE 1=1",
   ];
-  addSharedDbFilters(queryParts, params, options, ["model", "requested_model"], columns);
-  queryParts.push(columns.has("timestamp") ? "ORDER BY timestamp ASC" : "ORDER BY id ASC");
-  const limitValue = coerceLimit(options.limit);
-  if (limitValue) {
-    queryParts.push("LIMIT ?");
-    params.push(limitValue);
+  const params: unknown[] = [];
+
+  if (since) {
+    queryParts.push("AND timestamp >= ?");
+    params.push(since);
   }
 
-  const logs = db.prepare(queryParts.join(" ")).all(...params) as Array<{
-    id: string | number;
-    model: string | null;
-    requested_model: string | null;
-    combo_name: string | null;
-    provider: string | null;
-    status: number | null;
-    duration: number | null;
-    tokens_in: number | null;
-    tokens_out: number | null;
-    error_summary: string | null;
-  }>;
+  queryParts.push("ORDER BY timestamp ASC");
+  if (limit) {
+    queryParts.push("LIMIT ?");
+    params.push(limit);
+  }
 
-  return toObservationsFromRows(
-    logs.map((log) => ({
-      sampleId: String(log.id),
-      configId: log.combo_name ?? log.provider ?? "default",
-      expected_model: log.requested_model ?? null,
-      selected_model: log.model ?? null,
-      latencyMs: log.duration ?? null,
-      costUsd: estimateCost(log.tokens_in, log.tokens_out),
-      success: log.status != null && log.status >= 200 && log.status < 300 && !log.error_summary,
-      status: log.status ?? null,
-    })),
-    "default"
-  );
+  const rows = db.prepare(queryParts.join(" ")).all(...params) as DbCallLogRow[];
+
+  const observations: RouterObservation[] = [];
+  for (const row of rows) {
+    const mapped = toRouterObservation({
+      sampleId: row.id,
+      model: row.model,
+      requestedModel: row.requested_model,
+      latency: row.duration ?? 0,
+      costUsd: estimateCost(row.tokens_in, row.tokens_out),
+      configId: row.combo_name || row.provider || "default",
+      success: row.status != null && row.status >= 200 && row.status < 400,
+      status: row.status ?? 0,
+      error: row.error_summary,
+      routeInput: {
+        correlationId: row.correlation_id ?? "",
+      },
+      timestamp: row.timestamp ?? new Date().toISOString(),
+    });
+    if (mapped) observations.push(mapped);
+  }
+  return observations;
 }
 
 function readUsageHistoryDb(
-  db: SqliteAdapter,
-  options: { since?: string; limit?: string; provider?: string; model?: string }
-): RouterEvalObservation[] {
-  const columns = getTableColumns(db, "usage_history");
-  const params: unknown[] = [];
+  db: SqliteDatabase,
+  since?: string,
+  limit?: number
+): RouterObservation[] {
   const queryParts = [
-    `SELECT ${[
-      "id",
-      selectColumn(columns, "provider"),
-      selectColumn(columns, "model"),
-      selectColumn(columns, "tokens_input"),
-      selectColumn(columns, "tokens_output"),
-      selectColumn(columns, "status"),
-      selectColumn(columns, "success"),
-      selectColumn(columns, "latency_ms"),
-      selectColumn(columns, "combo_strategy"),
-    ].join(", ")}`,
+    "SELECT id, provider, model, tokens_input, tokens_output, service_tier, status, success, latency_ms, error_code, combo_strategy, timestamp",
     "FROM usage_history",
     "WHERE 1=1",
   ];
-  addSharedDbFilters(queryParts, params, options, ["model"], columns);
-  queryParts.push(columns.has("timestamp") ? "ORDER BY timestamp ASC" : "ORDER BY id ASC");
-  const limitValue = coerceLimit(options.limit);
-  if (limitValue) {
-    queryParts.push("LIMIT ?");
-    params.push(limitValue);
+  const params: unknown[] = [];
+
+  if (since) {
+    queryParts.push("AND timestamp >= ?");
+    params.push(since);
   }
 
-  const rows = db.prepare(queryParts.join(" ")).all(...params) as Array<{
-    id: string | number;
-    provider: string | null;
-    model: string | null;
-    tokens_input: number | null;
-    tokens_output: number | null;
-    status: string | number | null;
-    success: number | boolean | null;
-    latency_ms: number | null;
-    combo_strategy: string | null;
-  }>;
+  queryParts.push("ORDER BY timestamp ASC");
+  if (limit) {
+    queryParts.push("LIMIT ?");
+    params.push(limit);
+  }
 
-  return toObservationsFromRows(
-    rows.map((row) => ({
-      sampleId: String(row.id),
-      configId: row.combo_strategy ?? row.provider ?? "default",
-      expected_model: row.model ?? null,
-      selected_model: row.model ?? null,
-      latencyMs: row.latency_ms ?? null,
-      costUsd: estimateCost(row.tokens_input, row.tokens_output),
-      success: row.success === true || row.success === 1,
-      status: row.status,
-    })),
-    "default"
-  );
+  const rows = db.prepare(queryParts.join(" ")).all(...params) as DbUsageHistoryRow[];
+
+  const observations: RouterObservation[] = [];
+  for (const row of rows) {
+    const cost = estimateCost(row.tokens_input, row.tokens_output);
+    const rowId = `${row.id}`;
+    const mapped = toRouterObservation({
+      sampleId: rowId,
+      model: row.model,
+      requestedModel: row.model,
+      latency: row.latency_ms ?? 0,
+      costUsd: cost,
+      configId: row.combo_strategy || row.provider || "default",
+      success: toSuccessFromStatus(row.status) || row.success === 1,
+      status: row.success === 1 ? 200 : 0,
+      routeInput: {},
+      metadata: {
+        provider: row.provider,
+        serviceTier: row.service_tier,
+        errorCode: row.error_code,
+      },
+      timestamp: row.timestamp ?? new Date().toISOString(),
+    });
+    if (mapped) observations.push(mapped);
+  }
+  return observations;
 }
 
-async function loadObservationsFromDb(
-  dbPath: string | undefined,
-  options: {
-    since?: string;
-    limit?: string;
-    provider?: string;
-    model?: string;
-    source?: DbReplaySource;
+async function openSqliteDatabase(sqliteFile: string): Promise<SqliteDatabase> {
+  if ("Bun" in globalThis) {
+    const sqlite = await import("bun:sqlite");
+    return new sqlite.Database(sqliteFile, { readonly: true });
   }
-): Promise<RouterEvalObservation[]> {
-  const sqliteFile = resolveSqliteFile(dbPath);
-  const db = await openDatabaseAsync(sqliteFile, { readonly: true });
+
+  const sqlite = await import("better-sqlite3");
+  return new sqlite.default(sqliteFile, { readonly: true });
+}
+
+async function readDb(
+  filePath: string,
+  since?: string,
+  limit?: number,
+  source: DbReplaySource = "auto"
+): Promise<RouterObservation[]> {
+  const sqliteFile = filePath || SQLITE_FILE;
+  if (!sqliteFile) throw new Error("SQLite mode requires a path or SQLITE_FILE");
+  const db = await openSqliteDatabase(sqliteFile);
   try {
-    const activeSource = resolveReplaySource(db, options.source ?? "auto");
-    return activeSource === "usage-history"
-      ? readUsageHistoryDb(db, options)
-      : readCallLogDb(db, options);
+    const normalized = parseReplaySource(source);
+    const activeSource = resolveReplaySource(db, normalized);
+    if (activeSource === "usage-history") {
+      return readUsageHistoryDb(db, since, limit);
+    }
+    return readCallLogDb(db, since, limit);
   } finally {
     db.close();
   }
 }
 
-function buildReportFromSource(args: CliArgs, isBaseline = false): Promise<LoadResult> {
-  const source = isBaseline ? (args.baselineInput ?? args.baselineDb) : (args.input ?? args.db);
-  if (!source) {
-    return Promise.resolve({
-      source: isBaseline ? "baseline" : "candidate",
-      report: aggregateRouterObservations([]),
-      observations: [],
-    });
-  }
-
-  if (isBaseline ? Boolean(args.baselineDb) : Boolean(args.db)) {
-    const dbPath = (isBaseline ? args.baselineDb : args.db) as string;
-    return loadDbReport(
-      dbPath,
-      {
-        since: args.since,
-        limit: args.limit,
-        provider: args.provider,
-        model: args.model,
-        source: isBaseline ? args.baselineDbSource : args.dbSource,
-      },
-      source
-    );
-  }
-  return loadJsonlReport(source, isBaseline);
+function resolveDbPath(rawArg?: string): string {
+  if (rawArg) return path.resolve(rawArg);
+  if (SQLITE_FILE) return SQLITE_FILE;
+  throw new Error("No SQLITE_FILE and no --db path provided");
 }
 
-async function loadDbReport(
+function describeInputSource(
+  inputPath: string | undefined,
   dbPath: string | undefined,
-  options: {
-    since?: string;
-    limit?: string;
-    provider?: string;
-    model?: string;
-    source?: DbReplaySource;
-  },
-  source: string
-): Promise<LoadResult> {
-  const observations = await loadObservationsFromDb(dbPath, options);
-  const report = aggregateRouterObservations(observations);
-  return { source, report, observations };
+  dbSource: DbReplaySource | undefined,
+  usesDb: boolean
+): { source: string; path?: string; dbSource?: string } {
+  if (inputPath) return { source: "jsonl", path: path.resolve(inputPath) };
+  if (usesDb) {
+    return {
+      source: "sqlite",
+      path: resolveDbPath(dbPath),
+      dbSource: dbSource ?? "auto",
+    };
+  }
+  return { source: "stdin" };
 }
 
-async function loadJsonlReport(input: string, isBaseline: boolean): Promise<LoadResult> {
-  const rows = await readJsonlFromStdinOrFile(input);
-  const observations = toObservationsFromRows(rows, isBaseline ? "baseline" : "candidate");
-  const report = aggregateRouterObservations(observations);
-  return { source: input, report, observations };
+function buildArtifactMetadata(args: ArgSpec, hasCandidateDb: boolean): RouterEvalArtifactMetadata {
+  const hasBaselineDb = Boolean(args.baselineDb);
+  return {
+    candidate: describeInputSource(args.input, args.db, args.dbSource, hasCandidateDb),
+    baseline:
+      args.baselineInput || hasBaselineDb
+        ? describeInputSource(
+            args.baselineInput,
+            args.baselineDb,
+            args.baselineDbSource,
+            hasBaselineDb
+          )
+        : undefined,
+    window: {
+      since: args.since,
+      limit: args.limit,
+    },
+    thresholds: {
+      maxAiqDrop: args.aiqDrop ?? 0,
+      maxCostIncrease: args.costIncrease ?? 0,
+    },
+    outputs: {
+      markdown: args.output ? path.resolve(args.output) : undefined,
+      json: args.jsonOutput ? path.resolve(args.jsonOutput) : undefined,
+      corpus: args.exportCorpus ? path.resolve(args.exportCorpus) : undefined,
+    },
+  };
 }
 
-function fail(message: string): string {
-  return `eval:router failed: ${message}\n`;
+async function writeCorpus(pathArg: string, observations: RouterObservation[]): Promise<void> {
+  const outPath = path.resolve(pathArg);
+  await fs.promises.mkdir(path.dirname(outPath), { recursive: true });
+  const lines = observations.map((observation) => JSON.stringify(observation));
+  await fs.promises.writeFile(outPath, `${lines.join("\n")}\n`, "utf8");
 }
 
-function writeArtifactIfRequested(outPath: string | undefined, output: string): void {
-  if (!outPath) return;
-  fs.writeFileSync(path.resolve(outPath), output, "utf8");
-}
-
-function formatJsonArtifact(payload: unknown): string {
-  return `${JSON.stringify(payload, null, 2)}\n`;
-}
-
-export async function runRouterEvalCli(argv: string[]): Promise<{ code: number; output: string }> {
-  const args = parseCliArgs(argv);
+async function run() {
+  const args = parseArgs();
   if (args.help) {
-    return { code: 0, output: `${usage()}\n` };
+    console.log(usage());
+    return;
   }
 
-  const candidate = await buildReportFromSource({ ...args }, false);
-  if (!candidate.report || candidate.observations.length === 0 && !args.baselineInput && !args.baselineDb && !args.db && !args.input) {
-    return { code: 2, output: fail("provide --input or --db") };
+  const hasCandidateDb = Boolean(args.db || process.argv.includes("--db"));
+  const candidate: RouterObservation[] = args.input
+    ? await readJsonl(args.input)
+    : hasCandidateDb
+      ? await readDb(resolveDbPath(args.db), args.since, args.limit, args.dbSource)
+      : await readJsonl();
+
+  const baseline: RouterObservation[] | undefined = args.baselineInput
+    ? await readJsonl(args.baselineInput)
+    : args.baselineDb
+      ? await readDb(resolveDbPath(args.baselineDb), args.since, args.limit, args.baselineDbSource)
+      : undefined;
+
+  if (candidate.length === 0) {
+    console.error("No candidate observations found");
+    process.exitCode = 2;
+    return;
   }
 
-  if (args.baselineInput || args.baselineDb) {
-    if ((args.db && args.baselineDb && path.resolve(args.db) !== path.resolve(args.baselineDb)) &&
-      args.since == null) {
-      return {
-        code: 2,
-        output: fail("--baseline-db must point to the same DB as --db for this implementation"),
-      };
+  if (args.exportCorpus) {
+    await writeCorpus(args.exportCorpus, candidate);
+  }
+
+  const report = runRouterEval(candidate);
+  const metadata = buildArtifactMetadata(args, hasCandidateDb);
+  let output = formatRouterEvalReport(report);
+  let artifact: RouterEvalArtifact = createRouterEvalArtifact(report, metadata);
+
+  if (baseline && baseline.length > 0) {
+    const comparison = compareRouterEvalRuns(runRouterEval(baseline), report, {
+      aiqDrop: args.aiqDrop ?? 0,
+      relativeCostIncrease: args.costIncrease ?? 0,
+    });
+    output = formatRouterEvalComparison(comparison);
+    artifact = createRouterEvalArtifact(comparison, metadata);
+    console.log(output);
+    if (args.failOnRegression && comparison.regressions.length > 0) {
+      process.exitCode = 1;
     }
-
-    const baseline = await buildReportFromSource({ ...args, input: args.baselineInput }, true);
-    const comparison = compareRouterEvalRuns(candidate.report, baseline.report);
-    const output = args.json
-      ? formatJsonArtifact({
-          kind: "router-eval-comparison",
-          candidateSource: candidate.source,
-          baselineSource: baseline.source,
-          comparison,
-        })
-      : formatRouterEvalComparison(comparison);
-    writeArtifactIfRequested(args.out, output);
-    if (args.failOnRegression && comparison.regressed) {
-      return { code: 2, output };
-    }
-    return { code: 0, output };
+  } else {
+    console.log(output);
   }
 
-  const report = args.json
-    ? formatJsonArtifact({
-        kind: "router-eval-report",
-        source: candidate.source,
-        report: candidate.report,
-      })
-    : formatRouterEvalReport(candidate.report);
-  writeArtifactIfRequested(args.out, report);
-  return { code: 0, output: report };
+  if (args.output) {
+    const outPath = path.resolve(args.output);
+    await fs.promises.writeFile(outPath, output, "utf8");
+  }
+
+  if (args.jsonOutput) {
+    const outPath = path.resolve(args.jsonOutput);
+    await fs.promises.writeFile(outPath, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
+  }
 }
 
-async function main() {
-  const result = await runRouterEvalCli(process.argv.slice(2));
-  process.stdout.write(result.output);
-  if (result.code !== 0) process.exitCode = result.code;
-}
-
-if (import.meta.url === new URL(process.argv[1] ?? "", "file:///").href) {
-  void main();
-}
-
-export { parseCliArgs, buildReportFromSource, formatRouterEvalReport, formatRouterEvalComparison };
+run().catch((error) => {
+  if (error && typeof error === "object" && "message" in error) {
+    console.error((error as Error).message);
+  } else {
+    console.error(String(error));
+  }
+  process.exitCode = 1;
+});

@@ -1,6 +1,53 @@
 import { getRequestConfig } from "next-intl/server";
-import { hasLocale } from "next-intl";
-import { LOCALES, DEFAULT_LOCALE } from "./config";
+import { cookies, headers } from "next/headers";
+import { LOCALES, DEFAULT_LOCALE, LOCALE_COOKIE } from "./config";
+import type { Locale } from "./config";
+
+const FALLBACK_LOCALE = "en";
+
+/**
+ * Sentinel prefix written by `scripts/i18n/sync-ui-keys.mjs` when backfilling a
+ * locale file with an untranslated key: `__MISSING__:<english value>`. Kept in
+ * sync manually with the scripts (plain .mjs, no shared TS module) — see
+ * `scripts/i18n/sync-ui-keys.mjs` and `scripts/i18n/check-ui-keys-coverage.mjs`.
+ */
+export const PLACEHOLDER_PREFIX = "__MISSING__:";
+
+function isUntranslatedPlaceholder(value: unknown): boolean {
+  return typeof value === "string" && value.startsWith(PLACEHOLDER_PREFIX);
+}
+
+/**
+ * Deep merge that mutates `target` with values from `source`.
+ * If both have an object at the same key, recurse.
+ * Otherwise prefer the existing value in `target` (locale-specific wins) —
+ * unless the target value is an untranslated `__MISSING__:` sentinel written
+ * by the i18n sync script, in which case it is treated as absent so the
+ * clean English fallback value wins instead (#7258).
+ */
+export function deepMergeFallback(
+  target: Record<string, unknown>,
+  source: Record<string, unknown>
+): Record<string, unknown> {
+  for (const [key, sourceValue] of Object.entries(source)) {
+    // Guard against prototype pollution from a crafted locale message tree.
+    if (key === "__proto__" || key === "constructor" || key === "prototype") continue;
+    const targetValue = target[key];
+    if (
+      sourceValue !== null &&
+      typeof sourceValue === "object" &&
+      !Array.isArray(sourceValue) &&
+      targetValue !== null &&
+      typeof targetValue === "object" &&
+      !Array.isArray(targetValue)
+    ) {
+      deepMergeFallback(targetValue as Record<string, unknown>, sourceValue as Record<string, unknown>);
+    } else if (targetValue === undefined || isUntranslatedPlaceholder(targetValue)) {
+      target[key] = sourceValue;
+    }
+  }
+  return target;
+}
 
 function setNestedValue(target: Record<string, unknown>, dottedKey: string, value: unknown): void {
   const segments = dottedKey.split(".").filter(Boolean);

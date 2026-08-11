@@ -250,8 +250,3 @@ tests/homolog/.auth/
 tests/homolog/ui/.auth/
 homolog-report/
 docker-compose.yml.bak
-
-# _tasks e um repo git SEPARADO (ver AGENTS.md). A linha _tasks/ (com barra) NAO
-# ignora um SYMLINK chamado _tasks; /_tasks (ancorado) cobre arquivo/symlink/dir na raiz
-# e impede que um git add -A recapture o symlink (incidente 2026-08-08).
-/_tasks

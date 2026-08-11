@@ -2,6 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   getBifrostRoutingConfig,
+  getRoutingFallbackHeader,
+  getRoutingFallbackReasonHeader,
   resolveRelayRoutingBackend,
   shouldTryBifrost,
 } from "../../../../src/app/api/v1/relay/chat/completions/routingBackend.ts";
@@ -65,4 +67,137 @@ test("relay routing backend falls back on invalid timeout values", () => {
   };
 
   assert.equal(getBifrostRoutingConfig(env)?.timeoutMs, 30000);
+});
+
+test("relay routing backend exposes TS fallback header only for enabled auto bifrost fallback", () => {
+  const config = getBifrostRoutingConfig({
+    BIFROST_BASE_URL: "http://127.0.0.1:8080",
+  });
+
+  assert.equal(getRoutingFallbackHeader("auto", config), "bifrost");
+  assert.equal(getRoutingFallbackHeader("ts", config), undefined);
+  assert.equal(getRoutingFallbackHeader("bifrost", config), undefined);
+  assert.equal(
+    getRoutingFallbackHeader(
+      "auto",
+      getBifrostRoutingConfig({
+        BIFROST_BASE_URL: "http://127.0.0.1:8080",
+        BIFROST_ENABLED: "0",
+      })
+    ),
+    undefined
+  );
+  assert.equal(getRoutingFallbackHeader("auto", null), undefined);
+});
+
+test("relay routing backend keeps strict bifrost failures out of auto fallback accounting", () => {
+  const config = getBifrostRoutingConfig({
+    BIFROST_BASE_URL: "http://127.0.0.1:8080",
+  });
+
+  assert.equal(shouldTryBifrost("bifrost", config), true);
+  assert.equal(getRoutingFallbackHeader("bifrost", config), undefined);
+  assert.equal(resolveRelayRoutingBackend({ OMNIROUTE_RELAY_BACKEND: "bifrost" }), "bifrost");
+});
+
+test("relay routing backend auto mode tries bifrost for manifest-eligible providers", () => {
+  const config = getBifrostRoutingConfig({
+    BIFROST_BASE_URL: "http://127.0.0.1:8080",
+  });
+
+  assert.deepEqual(
+    shouldTryBifrostForRequest("auto", config, { model: "openai/gpt-4.1" }, () => ({
+      eligible: true,
+      reasons: [],
+    })),
+    { tryBifrost: true }
+  );
+});
+
+test("relay routing backend auto mode skips bifrost for manifest-ineligible providers", () => {
+  const config = getBifrostRoutingConfig({
+    BIFROST_BASE_URL: "http://127.0.0.1:8080",
+  });
+
+  assert.deepEqual(
+    shouldTryBifrostForRequest("auto", config, { model: "cw/claude-sonnet-4.6" }, () => ({
+      eligible: false,
+      reasons: ["custom executor: claude-web"],
+    })),
+    { tryBifrost: false, fallbackReason: "bifrost-ineligible" }
+  );
+});
+
+test("relay routing backend auto mode keeps unknown providers on TS fallback", () => {
+  const config = getBifrostRoutingConfig({
+    BIFROST_BASE_URL: "http://127.0.0.1:8080",
+  });
+
+  assert.deepEqual(
+    shouldTryBifrostForRequest("auto", config, { model: "unknown/model" }, () => null),
+    { tryBifrost: false, fallbackReason: "bifrost-provider-unknown" }
+  );
+});
+
+test("relay routing backend strict bifrost bypasses manifest eligibility", () => {
+  const config = getBifrostRoutingConfig({
+    BIFROST_BASE_URL: "http://127.0.0.1:8080",
+  });
+
+  assert.deepEqual(
+    shouldTryBifrostForRequest("bifrost", config, { model: "cw/claude-sonnet-4.6" }, () => ({
+      eligible: false,
+      reasons: ["custom executor: claude-web"],
+    })),
+    { tryBifrost: true }
+  );
+});
+
+test("automatic relay keeps the Bifrost timeout active until an SSE stream finalizes", () => {
+  const routeSource = readFileSync(
+    new URL("../../../../src/app/api/v1/relay/chat/completions/route.ts", import.meta.url),
+    "utf8"
+  );
+  const forwardToBifrost = routeSource.slice(
+    routeSource.indexOf("async function forwardToBifrost"),
+    routeSource.indexOf("export async function OPTIONS")
+  );
+  const streamBranch = forwardToBifrost.slice(
+    forwardToBifrost.indexOf("if (wantsStream && upstream.body)"),
+    forwardToBifrost.indexOf("clearTimeout(tid);\n    recordUsage(")
+  );
+
+  assert.match(
+    streamBranch,
+    /finalizeReadableStream\(upstream\.body, \(error\) => \{\s*clearTimeout\(tid\)/
+  );
+  assert.match(streamBranch, /const statusCode = timedOut \? 504 : upstream\.status/);
+  assert.match(streamBranch, /error && backend === "auto"/);
+  assert.match(streamBranch, /recordBifrostFailure\(/);
+});
+
+test("relay routing fallback reason header strips dynamic cooldown detail to the stable code", () => {
+  assert.equal(
+    getRoutingFallbackReasonHeader("bifrost-cooldown; remaining=1500"),
+    "bifrost-cooldown"
+  );
+});
+
+test("relay routing fallback reason header passes already-stable reasons through unchanged", () => {
+  assert.equal(getRoutingFallbackReasonHeader("bifrost-error"), "bifrost-error");
+  assert.equal(getRoutingFallbackReasonHeader("bifrost-ineligible"), "bifrost-ineligible");
+  assert.equal(
+    getRoutingFallbackReasonHeader("bifrost-provider-unknown"),
+    "bifrost-provider-unknown"
+  );
+});
+
+test("relay routing fallback reason header stays unset for the bare static legacy value", () => {
+  assert.equal(getRoutingFallbackReasonHeader("bifrost"), undefined);
+});
+
+test("relay routing fallback reason header stays unset for null/undefined/unrecognized input", () => {
+  assert.equal(getRoutingFallbackReasonHeader(null), undefined);
+  assert.equal(getRoutingFallbackReasonHeader(undefined), undefined);
+  assert.equal(getRoutingFallbackReasonHeader("something-unrecognized"), undefined);
 });

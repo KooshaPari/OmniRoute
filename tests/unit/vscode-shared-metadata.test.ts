@@ -61,3 +61,63 @@ test("vscode raw and tokenized reasoning helpers share behavior", () => {
     rawReasoningMetadata.buildReasoningConfigSchema(["none", "high"], "high")
   );
 });
+
+test("vscode reasoning metadata supports GPT-5.6 Max and Ultra without splitting legacy slugs", () => {
+  const sol = {
+    id: "cx/gpt-5.6-sol",
+    owned_by: "codex",
+    capabilities: { reasoning: true },
+  };
+  const terra = {
+    id: "cx/gpt-5.6-terra",
+    owned_by: "codex",
+    capabilities: { reasoning: true },
+  };
+  const luna = {
+    id: "cx/gpt-5.6-luna",
+    owned_by: "codex",
+    capabilities: { reasoning: true },
+  };
+
+  assert.deepEqual(reasoningMetadata.getReasoningEffortValues(sol), [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+    "ultra",
+  ]);
+  assert.deepEqual(reasoningMetadata.getReasoningEffortValues(terra), [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+    "ultra",
+  ]);
+  assert.deepEqual(reasoningMetadata.getReasoningEffortValues(luna), [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+  ]);
+  assert.equal(reasoningMetadata.getDefaultReasoningEffort(sol), "low");
+  assert.equal(reasoningMetadata.getDefaultReasoningEffort(terra), "medium");
+  assert.equal(reasoningMetadata.getDefaultReasoningEffort(luna), "medium");
+  assert.equal(
+    reasoningMetadata.inferSelectedReasoningEffort(
+      { ...sol, id: "cx/gpt-5.6-sol-ultra" },
+      reasoningMetadata.getReasoningEffortValues(sol)
+    ),
+    "ultra"
+  );
+  assert.equal(
+    reasoningMetadata.getReasoningVariantBaseModelId("cx/gpt-5.6-sol-max"),
+    "cx/gpt-5.6-sol"
+  );
+  assert.equal(
+    reasoningMetadata.getReasoningVariantBaseModelId("cx/gpt-5.1-codex-max"),
+    "cx/gpt-5.1-codex-max"
+  );
+});

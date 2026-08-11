@@ -8,6 +8,11 @@ import { writePidFile, cleanupPidFile, waitForServer } from "../utils/pid.mjs";
 import { ServerSupervisor, detectMitmCrash } from "../runtime/processSupervisor.mjs";
 import { isTermux } from "../../../scripts/build/postinstallSupport.mjs";
 import {
+  ensureAndroidCacheDir,
+  isFatalInstrumentationHookFailure,
+  formatAndroidInstrumentationFailureHint,
+} from "../utils/ensureAndroidCacheDir.mjs";
+import {
   resolveMaxOldSpaceMb,
   calibrateHeapFallbackMb,
   buildServerNodeOptions,
@@ -59,7 +64,37 @@ export function registerServe(program) {
     });
 }
 
+/** Once-per-process guard so the Android/Termux cache hint is not spammed. */
+let instrumentationFailureHintPrinted = false;
+
+/**
+ * If child output looks like Next.js failed to load its instrumentation hook
+ * on Android/Termux, print a clear operator-facing fix hint.
+ * Exported for unit tests.
+ *
+ * @param {string} text
+ * @returns {boolean} true when a hint was printed
+ */
+export function maybeReportInstrumentationHookFailure(text) {
+  if (instrumentationFailureHintPrinted) return false;
+  if (!isFatalInstrumentationHookFailure(text)) return false;
+  instrumentationFailureHintPrinted = true;
+  process.stderr.write(formatAndroidInstrumentationFailureHint(process.env.XDG_CACHE_HOME));
+  return true;
+}
+
+/** Test-only reset for the once-per-process hint guard. */
+export function resetInstrumentationFailureHintForTests() {
+  instrumentationFailureHintPrinted = false;
+}
+
 export async function runServe(opts = {}) {
+  const startedAt = performance.now();
+
+  // Same prep as bin/omniroute.mjs — keep it here so a direct `runServe()` call
+  // (tests / programmatic) still gets a writable Next.js cache dir before spawn.
+  ensureAndroidCacheDir({ env: process.env });
+
   const { isNativeBinaryCompatible } =
     await import("../../../scripts/build/native-binary-compat.mjs");
   const { getNodeRuntimeSupport, getNodeRuntimeWarning } =
@@ -128,7 +163,11 @@ export async function runServe(opts = {}) {
     "Release",
     "better_sqlite3.node"
   );
-  if (existsSync(sqliteBinary) && !isNativeBinaryCompatible(sqliteBinary)) {
+  if (
+    !process.versions.bun &&
+    existsSync(sqliteBinary) &&
+    !isNativeBinaryCompatible(sqliteBinary)
+  ) {
     console.error(
       "\x1b[31m✖ better-sqlite3 native module is incompatible with this platform.\x1b[0m"
     );
@@ -206,12 +245,16 @@ export async function runServe(opts = {}) {
 function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
-  const server = spawn("node", [...buildNodeHeapArgs(process.env, memoryLimit), serverJs], {
-    cwd: APP_DIR,
-    env,
-    stdio: "ignore",
-    detached: true,
-  });
+  const server = spawn(
+    process.versions.bun ? process.execPath : "node",
+    [...(process.versions.bun ? [] : buildNodeHeapArgs(process.env, memoryLimit)), serverJs],
+    {
+      cwd: APP_DIR,
+      env,
+      stdio: "ignore",
+      detached: true,
+    }
+  );
   writePidFile("server", server.pid);
   server.unref();
   console.log(`\x1b[32m✔ OmniRoute started in background (PID: ${server.pid})\x1b[0m`);
@@ -222,11 +265,15 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
 function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen) {
   // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
-  const server = spawn("node", [...buildNodeHeapArgs(process.env, memoryLimit), serverJs], {
-    cwd: APP_DIR,
-    env,
-    stdio: "pipe",
-  });
+  const server = spawn(
+    process.versions.bun ? process.execPath : "node",
+    [...(process.versions.bun ? [] : buildNodeHeapArgs(process.env, memoryLimit)), serverJs],
+    {
+      cwd: APP_DIR,
+      env,
+      stdio: "pipe",
+    }
+  );
 
   writePidFile("server", server.pid);
 
@@ -235,6 +282,7 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
   server.stdout.on("data", (data) => {
     const text = data.toString();
     process.stdout.write(text);
+    maybeReportInstrumentationHookFailure(text);
     if (
       !started &&
       (text.includes("Ready") || text.includes("started") || text.includes("listening"))
@@ -244,7 +292,11 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
     }
   });
 
-  server.stderr.on("data", (data) => process.stderr.write(data));
+  server.stderr.on("data", (data) => {
+    const text = data.toString();
+    process.stderr.write(text);
+    maybeReportInstrumentationHookFailure(text);
+  });
 
   server.on("error", (err) => {
     console.error("\x1b[31m✖ Failed to start server:\x1b[0m", err.message);
@@ -328,6 +380,31 @@ async function runWithSupervisor(
         onReady(dashboardPort, apiPort, noOpen);
       }
     });
+  }
+}
+
+// #6321: waitForServer resolving `false` used to fall through silently — the CLI
+// printed the banner + "⏳ Starting server..." and then produced ZERO further
+// output forever, even though the child process may well have crashed or be
+// stuck (issue reports show the server sometimes actually comes up later, or is
+// reachable directly while the CLI still looks hung). Surface a clear diagnostic
+// plus whatever stdout/stderr the child buffered instead of going silent.
+export function reportReadinessTimeout(dashboardPort, supervisor) {
+  console.error(
+    `\n\x1b[33m⚠ Server did not respond within 60s.\x1b[0m It may still be starting, or may` +
+      ` have failed silently.`
+  );
+  console.error(`  Try:  curl -I http://localhost:${dashboardPort}/api/monitoring/health`);
+  console.error(`  Or:   rerun with \x1b[36m--log\x1b[0m to see live server output.\n`);
+
+  const recentLog = supervisor?.getRecentLog?.() ?? [];
+  if (recentLog.length) {
+    console.error("--- Recent server output ---");
+    recentLog.forEach((l) => console.error(l));
+    console.error("--- End recent output ---\n");
+    // If the buffered log already shows the Android instrumentation failure,
+    // print the actionable hint even when --log was off (default).
+    maybeReportInstrumentationHookFailure(recentLog.join("\n"));
   }
 }
 

@@ -1,368 +1,428 @@
-/**
- * Router evaluation core for offline corpus and replay-mode regression checks.
- *
- * Inputs are provider/router observations; this module aggregates by config,
- * computes Pareto frontiers, and computes a lightweight AIQ-like score with
- * stable normalization across a single run.
- */
+type JsonRecord = Record<string, unknown>;
 
-export interface RouterEvalObservation {
+export type RouterObservation = {
   sampleId: string;
+  routeInput: JsonRecord;
   configId: string;
-  expectedModel: string | null;
   selectedModel: string | null;
-  latencyMs: number | null;
-  costUsd: number | null;
-  success: boolean | null;
-}
+  expectedModel: string | null;
+  latencyMs: number;
+  costUsd: number;
+  success: boolean;
+  timestamp: string;
+  metadata: JsonRecord;
+};
 
-export interface RouterEvalConfigSummary {
+export type RouterObservationInput = {
+  sampleId?: unknown;
+  id?: unknown;
+  routeInput?: unknown;
+  configId?: unknown;
+  selectedModel?: unknown;
+  model?: unknown;
+  expectedModel?: unknown;
+  requestedModel?: unknown;
+  latencyMs?: unknown;
+  latency?: unknown;
+  durationMs?: unknown;
+  duration?: unknown;
+  costUsd?: unknown;
+  cost?: unknown;
+  success?: unknown;
+  status?: unknown;
+  error?: unknown;
+  timestamp?: unknown;
+  tokens?: {
+    input?: unknown;
+    output?: unknown;
+  };
+  metadata?: unknown;
+};
+
+export type RouterConfigAggregate = {
   configId: string;
-  totalObservations: number;
-  matchObservations: number;
-  successfulObservations: number;
-  avgLatencyMs: number | null;
-  avgCostUsd: number | null;
-  accuracyRate: number | null;
+  samples: number;
   successRate: number;
-  aiqScore: number;
-}
+  avgLatencyMs: number;
+  p50LatencyMs: number;
+  p95LatencyMs: number;
+  avgCostUsd: number;
+  aiq: number;
+};
 
-export interface RouterEvalReport {
-  generatedAt: string;
-  totalObservations: number;
-  configs: RouterEvalConfigSummary[];
-  paretoFrontier: RouterEvalConfigSummary[];
-  bestConfigId: string | null;
-  bestAiq: number;
-  medianAccuracyRate: number | null;
-}
+export type RouterEvalReport = {
+  evaluatedAt: string;
+  summary: {
+    totalSamples: number;
+    validSamples: number;
+    droppedSamples: number;
+    uniqueConfigs: number;
+  };
+  configurations: RouterConfigAggregate[];
+  frontier: RouterConfigAggregate[];
+  top: RouterConfigAggregate[];
+};
 
-export interface RouterEvalComparison {
-  candidate: RouterEvalReport;
+export type RouterEvalComparison = {
   baseline: RouterEvalReport;
-  aiqDelta: number;
-  frontierDelta: number;
-  baselineAiq: number;
-  candidateAiq: number;
-  candidateFrontierSize: number;
-  baselineFrontierSize: number;
-  regressed: boolean;
+  candidate: RouterEvalReport;
+  delta: {
+    aiq: number;
+    costUsd: number;
+  };
+  regressions: string[];
+};
+
+export type RouterEvalArtifact = {
+  schemaVersion: 1;
+  kind: "router-eval-report" | "router-eval-comparison";
+  generatedAt: string;
+  metadata?: RouterEvalArtifactMetadata;
+  report?: RouterEvalReport;
+  comparison?: RouterEvalComparison;
+};
+
+export type RouterEvalArtifactMetadata = {
+  candidate?: {
+    source: string;
+    path?: string;
+    dbSource?: string;
+  };
+  baseline?: {
+    source: string;
+    path?: string;
+    dbSource?: string;
+  };
+  window?: {
+    since?: string;
+    limit?: number;
+  };
+  thresholds?: {
+    maxAiqDrop: number;
+    maxCostIncrease: number;
+  };
+  outputs?: {
+    markdown?: string;
+    json?: string;
+    corpus?: string;
+  };
+};
+
+function asRecord(value: unknown): JsonRecord {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
-type QualitySourceRow = {
-  match: number;
-  denominator: number;
-};
+function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" && value.trim().length > 0 ? value : fallback;
+}
 
-type MutableSummary = {
-  configId: string;
-  totalObservations: number;
-  matchCount: number;
-  matchDenominator: number;
-  successCount: number;
-  latencySum: number;
-  latencyCount: number;
-  costSum: number;
-  costCount: number;
-};
-
-function toFiniteNumber(value: unknown): number | null {
+function asNumber(value: unknown, fallback = 0): number {
   if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
+  if (typeof value === "string") {
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
   }
-  return null;
+  return fallback;
 }
 
-function normalizeString(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
-
-function round(value: number | null, digits = 2): number | null {
-  if (!Number.isFinite(value as number)) return null;
-  return Number((value as number).toFixed(digits));
-}
-
-function computeAiq(qualityRate: number | null, avgLatency: number | null, avgCost: number | null, maxLatency: number, maxCost: number): number {
-  const quality = qualityRate == null ? 0 : qualityRate;
-  const latencyPenalty = maxLatency > 0 && avgLatency != null ? avgLatency / maxLatency : 0.5;
-  const costPenalty = maxCost > 0 && avgCost != null ? avgCost / maxCost : 0.25;
-  const penalty = 40 * Math.min(1, latencyPenalty) + 25 * Math.min(1, costPenalty);
-  return Math.max(0, round(quality * 100 - penalty, 6) as number);
-}
-
-function getQualityFromObservation(
-  observation: RouterEvalObservation
-): QualitySourceRow {
-  if (observation.expectedModel != null && observation.selectedModel != null) {
-    return { match: observation.selectedModel === observation.expectedModel ? 1 : 0, denominator: 1 };
+function asBoolean(value: unknown, fallback = false): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    if (value.toLowerCase() === "true") return true;
+    if (value.toLowerCase() === "false") return false;
   }
-  if (observation.success != null) {
-    return { match: observation.success ? 1 : 0, denominator: 1 };
-  }
-  return { match: 0, denominator: 0 };
+  if (typeof value === "number") return value !== 0;
+  return fallback;
 }
 
-function dominates(
-  left: RouterEvalConfigSummary,
-  right: RouterEvalConfigSummary
-): boolean {
-  const leftAccuracy = left.accuracyRate ?? 0;
-  const rightAccuracy = right.accuracyRate ?? 0;
-  const leftLatency = left.avgLatencyMs ?? Number.POSITIVE_INFINITY;
-  const rightLatency = right.avgLatencyMs ?? Number.POSITIVE_INFINITY;
-  const leftCost = left.avgCostUsd ?? Number.POSITIVE_INFINITY;
-  const rightCost = right.avgCostUsd ?? Number.POSITIVE_INFINITY;
-
-  const notWorse =
-    leftAccuracy >= rightAccuracy &&
-    leftLatency <= rightLatency &&
-    leftCost <= rightCost;
-  const strictlyBetter =
-    leftAccuracy > rightAccuracy ||
-    leftLatency < rightLatency ||
-    leftCost < rightCost;
-  return notWorse && strictlyBetter;
+function percentile(sortedValues: number[], p: number): number {
+  if (sortedValues.length === 0) return 0;
+  if (sortedValues.length === 1) return sortedValues[0];
+  const bounded = Math.min(1, Math.max(0, p));
+  const index = Math.floor((sortedValues.length - 1) * bounded);
+  return sortedValues[index] ?? 0;
 }
 
-export function aggregateRouterObservations(observations: RouterEvalObservation[]): RouterEvalReport {
-  const byConfig = new Map<string, MutableSummary>();
-  for (const observation of observations) {
-    const key = observation.configId.trim().length > 0 ? observation.configId : "default";
-    const summary = byConfig.get(key) ?? {
-      configId: key,
-      totalObservations: 0,
-      matchCount: 0,
-      matchDenominator: 0,
-      successCount: 0,
-      latencySum: 0,
-      latencyCount: 0,
-      costSum: 0,
-      costCount: 0,
-    };
+function computeAiq(successRate: number, avgLatencyMs: number, avgCostUsd: number): number {
+  const latencyPenalty = avgLatencyMs / 1_000;
+  const costPenalty = avgCostUsd * 1_000;
+  return Number((successRate * 100 - latencyPenalty - costPenalty).toFixed(3));
+}
 
-    summary.totalObservations++;
-    const quality = getQualityFromObservation(observation);
-    summary.matchCount += quality.match;
-    summary.matchDenominator += quality.denominator;
-    if (observation.success === true) summary.successCount++;
-
-    if (observation.latencyMs != null) {
-      summary.latencySum += observation.latencyMs;
-      summary.latencyCount++;
-    }
-    if (observation.costUsd != null) {
-      summary.costSum += observation.costUsd;
-      summary.costCount++;
-    }
-
-    byConfig.set(key, summary);
-  }
-
-  const intermediate = Array.from(byConfig.values()).map((summary) => {
-    const accuracyRate = summary.matchDenominator > 0
-      ? round(summary.matchCount / summary.matchDenominator, 6)
-      : null;
-    return {
-      configId: summary.configId,
-      totalObservations: summary.totalObservations,
-      matchObservations: summary.matchCount,
-      successfulObservations: summary.successCount,
-      avgLatencyMs: round(summary.latencyCount > 0 ? summary.latencySum / summary.latencyCount : null),
-      avgCostUsd: round(summary.costCount > 0 ? summary.costSum / summary.costCount : null),
-      accuracyRate,
-      successRate: round(summary.totalObservations > 0 ? summary.successCount / summary.totalObservations : 0, 6),
-      aiqScore: 0,
-    };
-  });
-
-  const finiteLatencies = intermediate
-    .map((item) => item.avgLatencyMs)
-    .filter((value): value is number => value != null && Number.isFinite(value));
-  const finiteCosts = intermediate
-    .map((item) => item.avgCostUsd)
-    .filter((value): value is number => value != null && Number.isFinite(value));
-  const maxLatency = finiteLatencies.length > 0 ? Math.max(...finiteLatencies) : 1;
-  const maxCost = finiteCosts.length > 0 ? Math.max(...finiteCosts) : 1;
-
-  const configs = intermediate.map((summary) => ({
-    ...summary,
-    aiqScore: computeAiq(summary.accuracyRate, summary.avgLatencyMs, summary.avgCostUsd, maxLatency, maxCost),
-  }));
-
-  const paretoFrontier = computeParetoFrontier(configs);
-  const sortedByAiq = [...configs].sort((left, right) => right.aiqScore - left.aiqScore || right.accuracyRate - left.accuracyRate);
-  const best = sortedByAiq[0] ?? null;
-  const accuracySamples = configs
-    .map((summary) => summary.accuracyRate)
-    .filter((accuracy): accuracy is number => accuracy != null)
-    .sort((left, right) => left - right);
-  const medianAccuracyRate = accuracySamples.length === 0
-    ? null
-    : accuracySamples[Math.floor(accuracySamples.length / 2)] ?? null;
-
+function aggregateValues(values: number[]) {
+  if (values.length === 0) return { avg: 0, p50: 0, p95: 0 };
+  const sorted = [...values].sort((a, b) => a - b);
+  const sum = sorted.reduce((acc, value) => acc + value, 0);
   return {
-    generatedAt: new Date().toISOString(),
-    totalObservations: observations.length,
-    configs: sortedByAiq,
-    paretoFrontier,
-    bestConfigId: best?.configId ?? null,
-    bestAiq: best?.aiqScore ?? 0,
-    medianAccuracyRate,
+    avg: sum / sorted.length,
+    p50: percentile(sorted, 0.5),
+    p95: percentile(sorted, 0.95),
   };
 }
 
-export function computeParetoFrontier(configs: RouterEvalConfigSummary[]): RouterEvalConfigSummary[] {
-  const result: RouterEvalConfigSummary[] = [];
-  for (const candidate of configs) {
-    const dominated = configs.some((other) => other.configId !== candidate.configId && dominates(other, candidate));
-    if (!dominated) {
-      result.push(candidate);
-    }
-  }
-  return result.sort((left, right) => {
-    const leftAccuracy = left.accuracyRate ?? 0;
-    const rightAccuracy = right.accuracyRate ?? 0;
-    if (leftAccuracy !== rightAccuracy) return rightAccuracy - leftAccuracy;
-    const leftLatency = left.avgLatencyMs ?? Number.POSITIVE_INFINITY;
-    const rightLatency = right.avgLatencyMs ?? Number.POSITIVE_INFINITY;
-    if (leftLatency !== rightLatency) return leftLatency - rightLatency;
-    const leftCost = left.avgCostUsd ?? Number.POSITIVE_INFINITY;
-    const rightCost = right.avgCostUsd ?? Number.POSITIVE_INFINITY;
-    return leftCost - rightCost;
-  });
+function resolveObservationSampleId(value: RouterObservationInput): string {
+  return asString(value.sampleId ?? value.id, "").trim();
 }
 
-export function compareRouterEvalRuns(candidate: RouterEvalReport, baseline: RouterEvalReport): RouterEvalComparison {
-  const candidateAiq = candidate.bestAiq;
-  const baselineAiq = baseline.bestAiq;
-  const aiqDelta = candidateAiq - baselineAiq;
-  const frontierDelta = candidate.paretoFrontier.length - baseline.paretoFrontier.length;
-  const regressed =
-    candidateAiq < baselineAiq - Number.EPSILON ||
-    candidate.paretoFrontier.length < baseline.paretoFrontier.length;
+function resolveObservationModelFields(value: RouterObservationInput): {
+  selectedModel: string | null;
+  expectedModel: string | null;
+} {
+  const selectedModel = asString(value.selectedModel ?? value.model);
+  const expectedModel = asString(value.expectedModel ?? value.requestedModel, null);
+  return { selectedModel: selectedModel || null, expectedModel };
+}
+
+function resolveObservationLatencyMs(value: RouterObservationInput): number {
+  return asNumber(value.latencyMs ?? value.latency ?? value.durationMs ?? value.duration, 0);
+}
+
+function resolveObservationCostUsd(value: RouterObservationInput): number {
+  const explicitCost = asNumber(value.costUsd ?? value.cost, NaN);
+  if (!Number.isNaN(explicitCost)) return explicitCost;
+
+  const promptTokens = asNumber(value.tokens?.input);
+  const completionTokens = asNumber(value.tokens?.output);
+  return Number(((promptTokens + completionTokens) * 0.000001).toFixed(6));
+}
+
+function resolveObservationSuccess(value: RouterObservationInput): boolean {
+  const status = asNumber(value.status, 500);
+  const statusIndicatesSuccess = status >= 200 && status < 400;
+  return asBoolean(value.success, statusIndicatesSuccess && !value.error);
+}
+
+export function toRouterObservation(input: unknown): RouterObservation | null {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return null;
+
+  const value = input as RouterObservationInput;
+  const sampleId = resolveObservationSampleId(value);
+  if (!sampleId) return null;
+
+  const { selectedModel, expectedModel } = resolveObservationModelFields(value);
 
   return {
-    candidate,
+    sampleId,
+    routeInput: asRecord(value.routeInput, {}),
+    configId: asString(value.configId, "default"),
+    selectedModel,
+    expectedModel,
+    latencyMs: resolveObservationLatencyMs(value),
+    costUsd: resolveObservationCostUsd(value),
+    success: resolveObservationSuccess(value),
+    timestamp: asString(value.timestamp, new Date(0).toISOString()),
+    metadata: asRecord(value.metadata),
+  };
+}
+
+export function summarizeRouterObservations(observations: RouterObservation[]) {
+  const byConfig = new Map<string, RouterObservation[]>();
+  for (const obs of observations) {
+    if (!byConfig.has(obs.configId)) byConfig.set(obs.configId, []);
+    byConfig.get(obs.configId)?.push(obs);
+  }
+
+  const configurations: RouterConfigAggregate[] = [];
+  for (const [configId, rows] of byConfig) {
+    const latencies = rows.map((row) => Math.max(0, row.latencyMs));
+    const costs = rows.map((row) => Math.max(0, row.costUsd));
+    const latencyStats = aggregateValues(latencies);
+    const costStats = aggregateValues(costs);
+    const successCount = rows.filter((row) => row.success).length;
+    const successRate = rows.length === 0 ? 0 : successCount / rows.length;
+    configurations.push({
+      configId,
+      samples: rows.length,
+      successRate,
+      avgLatencyMs: latencyStats.avg,
+      p50LatencyMs: latencyStats.p50,
+      p95LatencyMs: latencyStats.p95,
+      avgCostUsd: costStats.avg,
+      aiq: computeAiq(successRate, latencyStats.avg, costStats.avg),
+    });
+  }
+
+  const top = [...configurations].sort(
+    (a, b) =>
+      b.aiq - a.aiq ||
+      b.successRate - a.successRate ||
+      a.avgLatencyMs - b.avgLatencyMs ||
+      a.avgCostUsd - b.avgCostUsd
+  );
+  const frontier = computeParetoFrontier(configurations);
+
+  return {
+    configurations: configurations.sort((a, b) => b.aiq - a.aiq),
+    frontier,
+    top,
+  };
+}
+
+export function runRouterEval(observations: RouterObservation[]): RouterEvalReport {
+  const valid = observations.filter((value) => Boolean(value.selectedModel));
+  const droppedSamples = observations.length - valid.length;
+  const { configurations, frontier, top } = summarizeRouterObservations(valid);
+
+  return {
+    evaluatedAt: new Date().toISOString(),
+    summary: {
+      totalSamples: observations.length,
+      validSamples: valid.length,
+      droppedSamples,
+      uniqueConfigs: configurations.length,
+    },
+    configurations,
+    frontier,
+    top,
+  };
+}
+
+export function computeParetoFrontier(configs: RouterConfigAggregate[]) {
+  const ordered = [...configs].sort(
+    (a, b) => a.avgCostUsd - b.avgCostUsd || a.avgLatencyMs - b.avgLatencyMs
+  );
+  const frontier: RouterConfigAggregate[] = [];
+
+  for (const config of ordered) {
+    const dominated = frontier.some(
+      (candidate) =>
+        candidate.aiq >= config.aiq &&
+        candidate.avgCostUsd <= config.avgCostUsd &&
+        candidate.avgLatencyMs <= config.avgLatencyMs
+    );
+    if (!dominated) frontier.push(config);
+  }
+
+  return frontier.sort((a, b) => b.aiq - a.aiq || a.avgCostUsd - b.avgCostUsd);
+}
+
+export function compareRouterEvalRuns(
+  baseline: RouterEvalReport,
+  candidate: RouterEvalReport,
+  thresholds: {
+    aiqDrop: number;
+    relativeCostIncrease: number;
+  } = { aiqDrop: 0, relativeCostIncrease: 0 }
+) {
+  const baselineBest = baseline.top[0];
+  const candidateBest = candidate.top[0];
+  const regressions: string[] = [];
+  if (!baselineBest || !candidateBest) {
+    return { baseline, candidate, delta: { aiq: 0, costUsd: 0 }, regressions };
+  }
+
+  const aiq = candidateBest.aiq - baselineBest.aiq;
+  const baselineCost = baselineBest.avgCostUsd;
+  const cost = candidateBest.avgCostUsd;
+  const costIncrease =
+    baselineCost === 0 ? (cost > 0 ? Infinity : 0) : (cost - baselineCost) / baselineCost;
+
+  if (aiq < -Math.abs(thresholds.aiqDrop)) {
+    regressions.push(`AIQ dropped by ${(-aiq).toFixed(3)} below threshold`);
+  }
+
+  if (costIncrease > thresholds.relativeCostIncrease) {
+    regressions.push(`cost increased by ${(costIncrease * 100).toFixed(2)}% above threshold`);
+  }
+
+  return {
     baseline,
-    aiqDelta,
-    frontierDelta,
-    baselineAiq,
-    candidateAiq,
-    candidateFrontierSize: candidate.paretoFrontier.length,
-    baselineFrontierSize: baseline.paretoFrontier.length,
-    regressed,
+    candidate,
+    delta: {
+      aiq,
+      costUsd: costIncrease * baselineCost,
+    },
+    regressions,
   };
-}
-
-export function formatPercentage(value: number | null): string {
-  if (value == null) return "n/a";
-  return `${Math.round(value * 10000) / 100}%`;
-}
-
-export function formatCost(value: number | null): string {
-  if (value == null) return "n/a";
-  return `$${round(value, 4)}`;
-}
-
-export function formatLatency(value: number | null): string {
-  if (value == null) return "n/a";
-  return `${round(value, 2)}ms`;
 }
 
 export function formatRouterEvalReport(report: RouterEvalReport): string {
+  const best = report.top[0];
   const lines = [
     "# Router Eval Report",
-    `Generated at: ${report.generatedAt}`,
-    `Observations: ${report.totalObservations}`,
-    `Configs: ${report.configs.length}`,
-    `Pareto frontier size: ${report.paretoFrontier.length}`,
-    `Median quality rate: ${formatPercentage(report.medianAccuracyRate)}`,
+    `Generated: ${report.evaluatedAt}`,
+    `Samples: ${report.summary.validSamples}/${report.summary.totalSamples} valid, ${report.summary.uniqueConfigs} config(s)`,
     "",
-    "| config | samples | accuracy | success | avg latency | avg cost | AIQ |",
-    "|---|---:|---:|---:|---:|---:|---:|",
-    ...report.configs.map((config) =>
-      `| ${config.configId} | ${config.totalObservations} | ${formatPercentage(config.accuracyRate)} | ${formatPercentage(config.successRate)} | ${formatLatency(config.avgLatencyMs)} | ${formatCost(config.avgCostUsd)} | ${round(config.aiqScore, 4)} |`
-    ),
+    "## Top Configurations",
     "",
-    "## Pareto frontier",
-    report.paretoFrontier.length === 0
-      ? "_No frontier points computed._"
-      : report.paretoFrontier
-          .map((config, index) => `${index + 1}. ${config.configId} (AIQ=${round(config.aiqScore, 4)})`)
-          .join("\n"),
+    "| Config | Samples | AIQ | Success | Avg Latency | p50 | p95 | Avg Cost |",
+    "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
   ];
+
+  for (const config of report.top.slice(0, 10)) {
+    lines.push(
+      `| ${config.configId} | ${config.samples} | ${config.aiq.toFixed(3)} | ${(config.successRate * 100).toFixed(2)}% | ${config.avgLatencyMs.toFixed(2)}ms | ${config.p50LatencyMs.toFixed(2)}ms | ${config.p95LatencyMs.toFixed(2)}ms | $${config.avgCostUsd.toFixed(6)} |`
+    );
+  }
+
+  if (best) {
+    lines.push("");
+    lines.push(`Best: **${best.configId}** (AIQ ${best.aiq.toFixed(3)})`);
+  }
+
+  if (report.frontier.length > 0) {
+    lines.push("");
+    lines.push("## Pareto Frontier");
+    lines.push("");
+    lines.push("| Config | AIQ | Cost | Latency |");
+    lines.push("| --- | ---: | ---: | ---: |");
+    for (const config of report.frontier) {
+      lines.push(
+        `| ${config.configId} | ${config.aiq.toFixed(3)} | $${config.avgCostUsd.toFixed(6)} | ${config.avgLatencyMs.toFixed(2)}ms |`
+      );
+    }
+  }
 
   return `${lines.join("\n")}\n`;
 }
 
 export function formatRouterEvalComparison(comparison: RouterEvalComparison): string {
+  const bestCandidate = comparison.candidate.top[0];
+  const bestBaseline = comparison.baseline.top[0];
+  const passes = comparison.regressions.length === 0;
   const lines = [
-    "# Router Eval Regression Comparison",
-    `Candidate AIQ: ${round(comparison.candidateAiq, 4)}`,
-    `Baseline AIQ: ${round(comparison.baselineAiq, 4)}`,
-    `AIQ delta: ${round(comparison.aiqDelta, 4)}`,
-    `Frontier delta: ${comparison.frontierDelta}`,
-    "",
-    `Candidate frontier size: ${comparison.candidateFrontierSize}`,
-    `Baseline frontier size: ${comparison.baselineFrontierSize}`,
-    comparison.regressed ? "- Result: regression detected." : "- Result: no regression.",
+    "# Router Eval Comparison",
+    `Passed: ${passes ? "✅" : "❌"}`,
+    `AIQ delta: ${comparison.delta.aiq.toFixed(3)}`,
+    `Cost delta: $${comparison.delta.costUsd.toFixed(6)}`,
     "",
   ];
+
+  if (bestBaseline && bestCandidate) {
+    lines.push(`Baseline best: ${bestBaseline.configId} (AIQ ${bestBaseline.aiq.toFixed(3)})`);
+    lines.push(`Candidate best: ${bestCandidate.configId} (AIQ ${bestCandidate.aiq.toFixed(3)})`);
+    lines.push("");
+  }
+
+  if (comparison.regressions.length > 0) {
+    lines.push("## Regressions");
+    for (const reason of comparison.regressions) {
+      lines.push(`- ${reason}`);
+    }
+  }
 
   return `${lines.join("\n")}\n`;
 }
 
-export function parseObservation(raw: unknown, fallbackConfigId = "default"): RouterEvalObservation {
-  const row = raw as Record<string, unknown>;
-  const sampleId =
-    normalizeString(row.sampleId) ||
-    normalizeString(row.sample_id) ||
-    normalizeString(row.id) ||
-    normalizeString(row.requestId) ||
-    "sample-unknown";
-  const configId =
-    normalizeString(row.configId) ||
-    normalizeString(row.config_id) ||
-    normalizeString(row.comboName) ||
-    normalizeString(row.combo) ||
-    normalizeString(row.routingConfig) ||
-    fallbackConfigId;
-  const expectedModel =
-    normalizeString(row.expectedModel) ||
-    normalizeString(row.expected_model) ||
-    null;
-  const selectedModel =
-    normalizeString(row.selectedModel) ??
-    normalizeString(row.selected_model) ??
-    normalizeString(row.model) ??
-    normalizeString(row.requestedModel) ??
-    normalizeString(row.requested_model) ??
-    null;
-  const rawLatency = toFiniteNumber(
-    row.latency_ms ??
-      row.latencyMs ??
-      row.latency ??
-      row.duration
-  );
-  const rawCost = toFiniteNumber(row.costUsd ?? row.cost_usd ?? row.cost ?? row.totalCost ?? row.total_cost);
-  const status = toFiniteNumber(row.status);
-  const success = typeof row.success === "boolean"
-    ? row.success
-    : status != null
-      ? status >= 200 && status < 300
-      : null;
+export function createRouterEvalArtifact(
+  value: RouterEvalReport | RouterEvalComparison,
+  metadata?: RouterEvalArtifactMetadata
+): RouterEvalArtifact {
+  if ("candidate" in value && "baseline" in value) {
+    return {
+      schemaVersion: 1,
+      kind: "router-eval-comparison",
+      generatedAt: value.candidate.evaluatedAt,
+      metadata,
+      comparison: value,
+    };
+  }
+
   return {
-    sampleId,
-    configId,
-    expectedModel,
-    selectedModel,
-    latencyMs: rawLatency,
-    costUsd: rawCost,
-    success,
+    schemaVersion: 1,
+    kind: "router-eval-report",
+    generatedAt: value.evaluatedAt,
+    metadata,
+    report: value,
   };
 }

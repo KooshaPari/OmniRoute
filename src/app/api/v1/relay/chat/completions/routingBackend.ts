@@ -39,3 +39,67 @@ export function shouldTryBifrost(
 ): config is BifrostRoutingConfig {
   return Boolean(config?.enabled && backend !== "ts");
 }
+
+export function shouldTryBifrostForRequest(
+  backend: RelayRoutingBackend,
+  config: BifrostRoutingConfig | null,
+  body: unknown,
+  lookupProviderSidecar: ProviderSidecarLookup
+): BifrostRoutingDecision {
+  if (!shouldTryBifrost(backend, config)) {
+    return { tryBifrost: false };
+  }
+  if (backend === "bifrost") {
+    return { tryBifrost: true };
+  }
+
+  const model = typeof (body as { model?: unknown } | null)?.model === "string"
+    ? (body as { model: string }).model
+    : undefined;
+  const provider = lookupProviderSidecar(model);
+  if (provider?.eligible) {
+    return { tryBifrost: true };
+  }
+
+  return {
+    tryBifrost: false,
+    fallbackReason: provider ? "bifrost-ineligible" : "bifrost-provider-unknown",
+  };
+}
+
+export function getRoutingFallbackHeader(
+  backend: RelayRoutingBackend,
+  config: BifrostRoutingConfig | null
+): "bifrost" | undefined {
+  return backend === "auto" && config?.enabled ? "bifrost" : undefined;
+}
+
+export type RoutingFallbackReasonCode =
+  | "bifrost-cooldown"
+  | "bifrost-error"
+  | "bifrost-ineligible"
+  | "bifrost-provider-unknown";
+
+const ROUTING_FALLBACK_REASON_CODES = new Set<RoutingFallbackReasonCode>([
+  "bifrost-cooldown",
+  "bifrost-error",
+  "bifrost-ineligible",
+  "bifrost-provider-unknown",
+]);
+
+/**
+ * Derives the stable, machine-readable reason code for X-Routing-Fallback-Reason
+ * from the existing (possibly parameterized) X-Routing-Fallback detail string.
+ * #6872: splits the enum token from the legacy ad-hoc detail (e.g. strips the
+ * "; remaining=<ms>" suffix on the cooldown case) without changing the legacy
+ * X-Routing-Fallback value itself.
+ */
+export function getRoutingFallbackReasonHeader(
+  fallbackReason: string | null | undefined
+): RoutingFallbackReasonCode | undefined {
+  if (!fallbackReason) return undefined;
+  const code = fallbackReason.split(";", 1)[0]?.trim();
+  return code && ROUTING_FALLBACK_REASON_CODES.has(code as RoutingFallbackReasonCode)
+    ? (code as RoutingFallbackReasonCode)
+    : undefined;
+}

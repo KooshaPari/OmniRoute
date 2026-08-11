@@ -12,17 +12,14 @@
  * @module lib/gracefulShutdown
  */
 
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("lib:graceful-shutdown");
+import { markServerStopping } from "@/lib/serverLifecycle";
 
 /** Grace period before forced exit (default 30s, configurable) */
 const SHUTDOWN_TIMEOUT_MS = parseInt(process.env.SHUTDOWN_TIMEOUT_MS || "30000", 10);
 
 declare global {
   var __omnirouteShutdown:
-    | { init: boolean; shuttingDown: boolean; activeRequests: number }
-    | undefined;
+    { init: boolean; shuttingDown: boolean; activeRequests: number } | undefined;
 }
 
 function getShutdownState() {
@@ -125,7 +122,20 @@ async function cleanup(): Promise<void> {
       log.info("shutdown: SQLite database checkpointed and closed");
     }
     closeLogRotation();
-    log.info("shutdown: log rotation timer stopped");
+    console.log("[Shutdown] Log rotation timer stopped.");
+
+    // Tear down any persistent VNC login browser containers so they don't leak
+    // past the server process. Best-effort; no-op if the feature was never used
+    // or the docker CLI is unavailable.
+    try {
+      const { stopAllSessions, listSessions } = await import("@/lib/vncSession/service");
+      if (listSessions().length > 0) {
+        await stopAllSessions();
+        console.log("[Shutdown] VNC login sessions stopped.");
+      }
+    } catch {
+      /* feature unused / docker missing */
+    }
   } catch (err) {
     log.error({ err: (err as Error).message }, "shutdown: cleanup error");
   }
@@ -143,6 +153,7 @@ export function initGracefulShutdown(): void {
   const shutdown = async (signal: string) => {
     if (state.shuttingDown) return;
     state.shuttingDown = true;
+    markServerStopping();
 
     log.info(
       { signal, activeRequests: state.activeRequests },
@@ -158,6 +169,11 @@ export function initGracefulShutdown(): void {
 
   process.on("SIGTERM", () => shutdown("SIGTERM"));
   process.on("SIGINT", () => shutdown("SIGINT"));
+  // #8045: on Windows, closing the console window delivers CTRL_CLOSE_EVENT, which
+  // Node/libuv maps to a JS-visible "SIGHUP" event — without this listener, closing
+  // the window never runs cleanup() (WAL checkpoint + closeDbInstance()), leaving
+  // storage.sqlite's WAL un-checkpointed for the next launch.
+  process.on("SIGHUP", () => shutdown("SIGHUP"));
 
   log.info("shutdown: graceful shutdown handlers registered");
 }

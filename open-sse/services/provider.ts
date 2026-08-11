@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { PROVIDERS } from "../config/constants.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
+import { resolveAlternateFormat } from "../config/providers/alternateFormats.ts";
 import {
   buildClaudeCodeCompatibleHeaders,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
@@ -129,6 +130,12 @@ export function detectFormatFromEndpoint(body, endpointPath = "") {
   }
 
   return detectFormat(body);
+}
+
+// Thin wrapper for call sites that only have the full request URL (not the bare endpoint
+// path chatCore already threads) — single source of truth stays detectFormatFromEndpoint.
+export function detectFormatFromUrl(body, requestUrl) {
+  return detectFormatFromEndpoint(body, new URL(requestUrl).pathname);
 }
 
 // Detect request format from body structure
@@ -431,7 +438,13 @@ export function getTargetFormat(provider, providerSpecificData = null) {
   }
   // Registry-driven format lookup
   const entry = getRegistryEntry(provider);
-  if (entry) return entry.format || "openai";
+  if (entry) {
+    // Per-connection override (providerSpecificData.targetFormat), only valid
+    // when it matches an alternate declared by the provider.
+    const alternate = resolveAlternateFormat(entry, providerSpecificData);
+    if (alternate) return alternate.format;
+    return entry.format || "openai";
+  }
   const config = getProviderConfig(provider);
   return config.format || "openai";
 }

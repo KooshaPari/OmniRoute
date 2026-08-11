@@ -6,6 +6,7 @@ import { CORS_HEADERS } from "../utils/cors.ts";
 
 import { handleChatCore } from "./chatCore.ts";
 import { convertResponsesApiFormat } from "../translator/helpers/responsesApiHelper.ts";
+import { collectResponsesCustomToolNames } from "../translator/request/openai-responses/additionalTools.ts";
 import { createResponsesApiTransformStream } from "../transformer/responsesTransformer.ts";
 import { shouldParseTextualReasoningTags } from "./responseSanitizer.ts";
 import { createSseHeartbeatTransform, HEARTBEAT_SHAPES } from "../utils/sseHeartbeat.ts";
@@ -36,8 +37,11 @@ export async function handleResponsesCore({
   connectionId,
   signal,
 }) {
+  const inputItems = Array.isArray(body?.input) ? body.input : [];
+  const customToolNames = collectResponsesCustomToolNames(body?.tools, inputItems);
+
   // Convert Responses API format to Chat Completions format
-  const convertedBody = convertResponsesApiFormat(body, credentials);
+  const convertedBody = convertResponsesApiFormat(body, credentials, modelInfo?.provider);
 
   // Ensure stream is enabled
   convertedBody.stream = true;
@@ -57,6 +61,13 @@ export async function handleResponsesCore({
     comboName: null,
   });
 
+  // handleChatCore's union includes a bare Response (early returns that never
+  // reach the {success, response} envelope). Peel it off first so the envelope
+  // checks below are reading a shape that actually has those fields — the
+  // outcome is unchanged, a bare Response was already returned as-is.
+  if (result instanceof Response) {
+    return result;
+  }
   if (!result.success || !result.response) {
     return result;
   }
@@ -69,23 +80,8 @@ export async function handleResponsesCore({
     return result;
   }
 
-  // Transform SSE stream to Responses API format (no logging in worker).
-  // Pass the original request body + tools list so the transformer can:
-  //   - emit a parallel Anthropic-style `tool_use` block for every
-  //     `function_call` when the request's `tools[]` uses Anthropic shape
-  //     (has `input_schema` and no Chat-style `parameters`);
-  //   - echo back `prompt_cache_key` on the response object;
-  //   - attach `output_format` (structured outputs / json_schema) to the
-  //     response so the client can validate the emitted `message` content.
-  // These parity fields are inert when the request doesn't supply them.
-  const transformStream = createResponsesApiTransformStream(null, 3000, {
-    request: body,
-    tools: Array.isArray(body?.tools) ? body.tools : [],
-    parseTextualReasoningTags: shouldParseTextualReasoningTags(
-      modelInfo?.provider,
-      modelInfo?.model
-    ),
-  });
+  // Transform SSE stream to Responses API format (no logging in worker)
+  const transformStream = createResponsesApiTransformStream(null, undefined, { customToolNames });
   const transformedBody = response.body.pipeThrough(transformStream).pipeThrough(
     createSseHeartbeatTransform({
       signal,

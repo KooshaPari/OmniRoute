@@ -1,10 +1,10 @@
 import { createHash } from "crypto";
 
 import {
-  getProviderConnectionById,
   getProviderConnections,
   updateProviderConnection,
 } from "@/lib/db/providers";
+import { getCachedProviderConnectionById } from "@/lib/localDb";
 import { clearProviderFailure, clearModelLock } from "@omniroute/open-sse/services/accountFallback";
 import { createLogger } from "@/shared/utils/logger";
 
@@ -681,7 +681,7 @@ export async function executeProviderHealthAutopilotAction(
       if (!connectionId) {
         return { status: 400, body: { success: false, error: "connectionId is required" } };
       }
-      const connection = (await getProviderConnectionById(connectionId)) as JsonRecord | null;
+      const connection = (await getCachedProviderConnectionById(connectionId)) as JsonRecord | null;
       if (!connection || connection.provider !== provider) {
         return { status: 404, body: { success: false, error: "connection not found" } };
       }
@@ -701,7 +701,7 @@ export async function executeProviderHealthAutopilotAction(
           body: { success: false, error: "connectionId and model are required" },
         };
       }
-      const connection = (await getProviderConnectionById(connectionId)) as JsonRecord | null;
+      const connection = (await getCachedProviderConnectionById(connectionId)) as JsonRecord | null;
       if (!connection || connection.provider !== provider) {
         return { status: 404, body: { success: false, error: "connection not found" } };
       }
@@ -724,7 +724,7 @@ export async function executeProviderHealthAutopilotAction(
       if (!connectionId) {
         return { status: 400, body: { success: false, error: "connectionId is required" } };
       }
-      const connection = (await getProviderConnectionById(connectionId)) as JsonRecord | null;
+      const connection = (await getCachedProviderConnectionById(connectionId)) as JsonRecord | null;
       if (!connection || connection.provider !== provider) {
         return { status: 404, body: { success: false, error: "connection not found" } };
       }

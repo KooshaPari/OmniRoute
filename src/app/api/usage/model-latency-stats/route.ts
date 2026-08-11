@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { getModelLatencyStats, type ModelLatencyStatsEntry } from "@/lib/usage/usageHistory";
+import { getModelLatencyStats } from "@/lib/usageDb";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
 
 const querySchema = z.object({
@@ -10,64 +10,26 @@ const querySchema = z.object({
     .number()
     .positive()
     .max(24 * 30)
-    .default(24),
-  minSamples: z.coerce.number().int().positive().max(10_000).default(1),
-  maxRows: z.coerce.number().int().positive().max(100_000).default(10_000),
-  provider: z.string().trim().min(1).max(100).optional(),
-  model: z.string().trim().min(1).max(200).optional(),
-  connectionId: z.string().trim().min(1).max(200).optional(),
-  keyByConnectionId: z
-    .enum(["true", "false"])
-    .transform((value) => value === "true")
-    .default(true),
+    .optional(),
+  minSamples: z.coerce.number().int().positive().optional(),
+  maxRows: z.coerce.number().int().positive().max(50000).optional(),
+  provider: z.string().trim().min(1).max(64).optional(),
+  model: z.string().trim().min(1).max(256).optional(),
 });
-
-type ModelLatencyStatsOptions = Parameters<typeof getModelLatencyStats>[0];
-type ModelLatencyStatsReader = (
-  options: ModelLatencyStatsOptions
-) => Promise<Record<string, ModelLatencyStatsEntry>>;
-
-export function parseModelLatencyStatsQuery(url: string) {
-  const { searchParams } = new URL(url);
-  return querySchema.safeParse({
-    windowHours: searchParams.get("windowHours") || undefined,
-    minSamples: searchParams.get("minSamples") || undefined,
-    maxRows: searchParams.get("maxRows") || undefined,
-    provider: searchParams.get("provider") || undefined,
-    model: searchParams.get("model") || undefined,
-    connectionId: searchParams.get("connectionId") || undefined,
-    keyByConnectionId: searchParams.get("keyByConnectionId") || undefined,
-  });
-}
-
-export async function buildModelLatencyStatsResponse(
-  query: z.infer<typeof querySchema>,
-  readStats: ModelLatencyStatsReader = getModelLatencyStats
-) {
-  const { provider, model, ...options } = query;
-  const stats = await readStats(options);
-  const entries = Object.values(stats).filter((entry) => {
-    if (provider && entry.provider !== provider) return false;
-    if (model && entry.model !== model) return false;
-    return true;
-  });
-
-  return {
-    windowHours: options.windowHours,
-    minSamples: options.minSamples,
-    maxRows: options.maxRows,
-    keyByConnectionId: options.keyByConnectionId,
-    count: entries.length,
-    entries,
-  };
-}
 
 export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
   try {
-    const parsed = parseModelLatencyStatsQuery(request.url);
+    const { searchParams } = new URL(request.url);
+    const parsed = querySchema.safeParse({
+      windowHours: searchParams.get("windowHours") || undefined,
+      minSamples: searchParams.get("minSamples") || undefined,
+      maxRows: searchParams.get("maxRows") || undefined,
+      provider: searchParams.get("provider") || undefined,
+      model: searchParams.get("model") || undefined,
+    });
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -76,10 +38,23 @@ export async function GET(request: Request) {
       );
     }
 
-    return NextResponse.json(await buildModelLatencyStatsResponse(parsed.data));
+    const { windowHours, minSamples, maxRows, provider, model } = parsed.data;
+    const statsByKey = await getModelLatencyStats({
+      windowHours,
+      minSamples,
+      maxRows,
+      provider,
+      model,
+    });
+
+    return NextResponse.json({
+      entries: Object.values(statsByKey),
+      windowHours: windowHours ?? 24,
+      generatedAt: new Date().toISOString(),
+    });
   } catch (error) {
     console.error("[API] GET /api/usage/model-latency-stats error:", error);
-    return NextResponse.json(buildErrorBody(500, "Failed to load model latency stats"), {
+    return NextResponse.json(buildErrorBody(500, "Failed to build model latency stats"), {
       status: 500,
     });
   }

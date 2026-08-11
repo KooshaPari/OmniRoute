@@ -41,8 +41,29 @@ export type CatalogPayload = {
  */
 export const CATALOG_STALE_WHILE_REVALIDATE_MS = 30_000;
 
-/** Fallback memoization window; overridden by `settings.cache.modelCatalogCacheTtlMs`. */
-export const CATALOG_CACHE_TTL_MS_DEFAULT = 1500;
+/**
+ * Fallback memoization window; overridden by `settings.cache.modelCatalogCacheTtlMs`.
+ *
+ * This does NOT govern post-write freshness — `invalidateDbCache()` bumps
+ * `modelCatalogCacheVersion` on every settings/connections/combos/pricing write and
+ * `dropCatalogCacheIfStateChanged()` drops the whole cache the moment it moves, so a
+ * write is reflected on the very next read regardless of this value. What it governs is
+ * the "nothing was written" case, where replaying a body built seconds ago is precisely
+ * the point of the cache.
+ *
+ * It was 1500 ms, which was shorter than a single build: measured 2026-07-28 on the
+ * production VPS, the builder takes ~49 s for a 1.3 MB / 2645-model catalog. Any two
+ * requests more than 1.5 s apart therefore both missed the fresh window, and the second
+ * fell into stale-while-revalidate — which rebuilds via `setTimeout(…, 0)` and, because
+ * the builder is overwhelmingly synchronous under the single-threaded App Router, pins
+ * the event loop so even the "served immediately" stale body only reaches the client
+ * once the rebuild finishes. Net effect: ~50 s on essentially every call.
+ *
+ * Held at 60 s to match the ceiling the settings schema already allows for the override
+ * (`settingsSchemas.ts`, `.max(60000)`), so the default can never exceed what an
+ * operator is permitted to configure.
+ */
+export const CATALOG_CACHE_TTL_MS_DEFAULT = 60_000;
 
 const catalogCache = new Map<string, CachedCatalog>();
 const catalogInFlight = new Map<string, Promise<CachedCatalog>>();

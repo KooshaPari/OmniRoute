@@ -49,6 +49,22 @@ test("extractHandledStrategies ignores non-matching comparisons", () => {
   assert.deepEqual([...extractHandledStrategies(src)], ["auto"]);
 });
 
+test('extractHandledStrategies counts the `strategy !== "..."` early-return guard (#3501)', () => {
+  // The god-file decomposition turns `if (strategy === "X") { ...body... }` into a
+  // `tryXDispatch()` leaf whose guard is the inverted early return. Same dispatch
+  // branch, inverted form — the gate must not report it as canonicalNotHandled.
+  const src = [
+    'export async function tryFusionDispatch() { if (strategy !== "fusion") return null; }',
+    'export async function tryPipelineDispatch() { if (strategy !== "pipeline") return null; }',
+  ].join("\n");
+  assert.deepEqual([...extractHandledStrategies(src)].sort(), ["fusion", "pipeline"]);
+});
+
+test("extractHandledStrategies still rejects loose inequality", () => {
+  // Widening `===` to `[!=]==` must not accidentally admit the loose `!=`.
+  assert.deepEqual([...extractHandledStrategies('if (strategy != "loose") return null;')], []);
+});
+
 test("diffComboStrategies: no mismatch when dispatch + implicit defaults cover canonical exactly", () => {
   const canonical = ["priority", "weighted", "auto"];
   const handled = new Set(["weighted", "auto"]);

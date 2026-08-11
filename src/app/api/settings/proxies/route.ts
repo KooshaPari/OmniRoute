@@ -16,13 +16,25 @@ export async function GET(request: Request) {
     const lookupResponse = await resolveProxyLookupResponse(searchParams, "whereUsed");
     if (lookupResponse) return lookupResponse;
 
-    const proxies = await listProxies({ includeSecrets: false });
-    // #3508: expose the SOCKS5 feature flag at runtime so the dashboard reflects the live
-    // ENABLE_SOCKS5_PROXY env (the UI previously gated on NEXT_PUBLIC_*, which is baked at
-    // build time and ignored a runtime Docker env).
+    // Load with secrets so we can derive relay repair state (whether a relay's
+    // auth is missing and whether it can be recovered in place vs needs a
+    // redeploy). The secrets themselves never leave the server — we redact each
+    // row before responding and only surface the derived relayInfo booleans.
+    const rawProxies = await listProxies({ includeSecrets: true });
+    const items = rawProxies.items.map((p) => ({
+      ...redactProxySecrets(p),
+      relayInfo: {
+        isRelay: isRelayProxyType(p.type),
+        authMissing: isRelayAuthMissing(p.notes, p.type),
+        repairMode: relayRepairMode(p.notes, p.type),
+      },
+    }));
     return Response.json({
-      items: proxies,
-      total: proxies.length,
+      items,
+      total: rawProxies.total,
+      // #5890: coarse relay health pulse for the dashboard — how many relay
+      // probes have run, and how many came back alive.
+      relayProbeStats: getRelayProbeStats(),
       // Default ON (opt-out): only an explicit falsey value disables SOCKS5.
       socks5Enabled: !["false", "0", "no", "off"].includes(
         (process.env.ENABLE_SOCKS5_PROXY ?? "").trim().toLowerCase()

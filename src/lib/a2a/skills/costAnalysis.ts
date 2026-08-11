@@ -35,10 +35,10 @@
  *   }
  */
 
-import { A2ATask } from "../taskManager";
-import { A2ASkillResult } from "../taskExecution";
-import { getPricingForModel } from "@/shared/constants/pricing";
-import { computeCostFromPricing } from "@/lib/usage/costCalculator";
+import type { A2ATask, TaskArtifact } from "../taskManager";
+import { resolveOmniRouteBaseUrl } from "@/shared/utils/resolveOmniRouteBaseUrl";
+import { formatCost } from "@/shared/utils/formatting";
+import { toNumber } from "@/shared/utils/numeric";
 
 interface TokenUsageLite {
   input_tokens?: number;
@@ -59,20 +59,6 @@ interface CostAnalysisInput {
   fallback_models?: string[];
 }
 
-interface CostAnalysisOutput {
-  provider: string;
-  model: string;
-  pricing: { input: number; output: number; cached: number; reasoning: number } | null;
-  tokens: { input: number; output: number; cached: number; reasoning: number };
-  cost_usd: number;
-  budget_usd: number | null;
-  over_budget: boolean;
-  recommendation:
-    | "proceed"
-    | { action: "switch_model"; suggested: string; reason: string }
-    | { action: "estimate_only"; reason: string };
-  warnings: string[];
-}
 
 /**
  * Coerce a TokenUsageLite into the canonical TokenUsage shape that

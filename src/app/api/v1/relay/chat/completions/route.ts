@@ -20,6 +20,8 @@ import {
 } from "./relaySecurity";
 import {
   getBifrostRoutingConfig,
+  getRoutingFallbackHeader,
+  getRoutingFallbackReasonHeader,
   resolveRelayRoutingBackend,
   shouldTryBifrost,
   type BifrostRoutingConfig,
@@ -372,8 +374,17 @@ export async function POST(request: Request) {
     const newHeaders = new Headers(response.headers);
     newHeaders.set("X-Relay-Token", token.tokenPrefix + "...");
     newHeaders.set("X-Routing-Backend", "ts");
-    if (backend === "auto" && bifrostConfig?.enabled) {
-      newHeaders.set("X-Routing-Fallback", "bifrost");
+    const routingFallback = getRoutingFallbackHeader(backend, bifrostConfig);
+    if (routingFallback) {
+      // #5526 helper gates emission (auto + enabled); #5519 dynamic cooldown/error
+      // reason wins as the value when set, else falls back to the static "bifrost".
+      newHeaders.set("X-Routing-Fallback", bifrostFallbackReason ?? routingFallback);
+      // #6872: stable, machine-readable companion header — one of the 4 enum
+      // reason codes, or unset when the legacy value has no specific reason.
+      const fallbackReasonCode = getRoutingFallbackReasonHeader(bifrostFallbackReason);
+      if (fallbackReasonCode) {
+        newHeaders.set("X-Routing-Fallback-Reason", fallbackReasonCode);
+      }
     }
 
     return new Response(response.body, {

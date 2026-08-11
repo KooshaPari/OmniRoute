@@ -10,11 +10,14 @@ import {
   providerAllowsOptionalApiKey,
   WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
-import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
-import { resolveNvidiaValidationModel } from "@/lib/providers/nvidiaValidationModel";
-import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
+import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
+import { usesCcWireImage } from "@omniroute/open-sse/services/ccWireImageBuiltins.ts";
+import {
+  isAlibabaRegionalProvider,
+  resolveAlibabaProviderBaseUrl,
+} from "@/shared/constants/alibabaProviderRegions";
+import { buildProviderHeaders, buildProviderUrl } from "@omniroute/open-sse/services/provider.ts";
 
 import {
   OPENAI_LIKE_FORMATS,
@@ -23,8 +26,7 @@ import {
   addModelsSuffix,
   resolveBaseUrl,
 } from "./validation/urlHelpers";
-import { STANDARD_USER_AGENT, directHttpsRequest, buildBearerHeaders } from "./validation/headers";
-import { validationRead, validationWrite, toValidationErrorResult } from "./validation/transport";
+import { toValidationErrorResult } from "./validation/transport";
 import {
   validateDeepSeekWebProvider,
   validateQwenWebProvider,
@@ -42,6 +44,7 @@ import {
   validateT3WebProvider,
   validateJulesProvider,
   validateInnerAiProvider,
+  validateNotionWebProvider,
 } from "./validation/webProvidersB";
 import {
   validateHerokuProvider,
@@ -58,11 +61,13 @@ import {
 import {
   validateDeepgramProvider,
   validateAssemblyAIProvider,
+  validateRevAiProvider,
   validateElevenLabsProvider,
   validateInworldProvider,
   validateKieProvider,
   validateAwsPollyProvider,
   validateBailianCodingPlanProvider,
+  validateQwenCloudTokenPlanProvider,
   validateRekaProvider,
   validateMaritalkProvider,
   validateNlpCloudProvider,
@@ -89,6 +94,25 @@ import {
   validateAnthropicCompatibleProvider,
   validateClaudeCodeCompatibleProvider,
 } from "./validation/anthropicFormat";
+import {
+  validateWebCookieProvider,
+  bytezValidationResultFromStatus,
+  validateBytezProvider,
+} from "./validation/webCookie";
+import {
+  validateV0VercelProvider,
+  validateAuggieProvider,
+  validateQoderProvider,
+  validateKiroProvider,
+  validateGitlabProvider,
+  validateVertexProvider,
+  validateVertexPartnerProvider,
+  validateLongcatProvider,
+  validateNvidiaProvider,
+  validateZaiProvider,
+  validateXiaomiMimoProvider,
+  buildGitlawbValidators,
+} from "./validation/specialtyInline";
 // validateCommandCodeProvider + validateClaudeCodeCompatibleProvider have external importers
 // (provider-nodes/validate route + tests) — re-export to preserve the historical public surface.
 export { validateCommandCodeProvider, validateClaudeCodeCompatibleProvider };
@@ -97,92 +121,13 @@ export { validateCommandCodeProvider, validateClaudeCodeCompatibleProvider };
 // here to preserve the historical public surface (tests + route handlers import them via this module).
 export { isRetryableProxyTarget, isSecurityBlockError } from "./validation/transport";
 
-/**
- * Validates web-cookie providers by performing a ping request to check if the session is still valid.
- * Returns SESSION_EXPIRED error code if the upstream returns 401/403.
- */
-export async function validateWebCookieProvider({
-  provider,
-  apiKey,
-  providerSpecificData = {},
-}: any) {
-  try {
-    const entry = getRegistryEntry(provider);
-    if (!entry) {
-      return { valid: false, error: "Provider not found in registry", unsupported: true };
-    }
+// validateWebCookieProvider + bytezValidationResultFromStatus have external importers (tests +
+// the web-cookie fallback suites) — re-export to preserve the historical public surface.
+export { validateWebCookieProvider, bytezValidationResultFromStatus };
 
-    // For web-cookie providers, apiKey contains the cookie string
-    const cookie = (apiKey || "").trim();
-    if (!cookie) {
-      return { valid: false, error: "Cookie required for web-cookie provider", unsupported: false };
-    }
-
-    // Attempt a minimal request to check if the session is valid
-    // Use /models endpoint or a minimal completion request depending on the provider
-    const baseUrl = entry.baseUrl || "";
-    const testUrl = `${baseUrl}/models`;
-
-    const res = await directHttpsRequest(
-      testUrl,
-      {
-        method: "GET",
-        headers: {
-          "User-Agent": STANDARD_USER_AGENT,
-        },
-      },
-      10_000
-    );
-
-    if (res.status === 401 || res.status === 403) {
-      return {
-        valid: false,
-        error: "SESSION_EXPIRED",
-        errorCode: "AUTH_007",
-        unsupported: false,
-      };
-    }
-
-    // Any other response (200, 404, 405, 429, ...) means the cookie was accepted —
-    // a 401/403 from the /models probe is the only definitive "session expired" signal
-    // for web-cookie auth, so a non-auth status is treated as a valid session.
-    return { valid: true, error: null, unsupported: false };
-  } catch (error: any) {
-    return toValidationErrorResult(error);
-  }
-}
-
-// #5422: Bytez key validation cannot use a chat probe. A Bytez account only serves models
-// that have been added to its catalog, so even Bytez's own documented model ids return 404
-// ("Model does not exist or has yet to be added to the Bytez catalog") for a fresh/free key —
-// the generic OpenAI-like chat probe misreads that 404 as "endpoint not supported". Validate
-// against the model-independent, auth-only tasks endpoint instead (verified live):
-//   GET …/models/v2/list/tasks → 200 (valid key) | 401 { error: "Unauthorized" } (invalid).
-// The pure status→result mapping is factored out so it is unit-testable without network.
-export function bytezValidationResultFromStatus(status: number): {
-  valid: boolean;
-  error: string | null;
-} {
-  if (status === 200) {
-    return { valid: true, error: null };
-  }
-  if (status === 401 || status === 403) {
-    return { valid: false, error: "Invalid API key" };
-  }
-  return { valid: false, error: `Validation failed: ${status}` };
-}
-
-export async function validateBytezProvider({ apiKey, providerSpecificData = {} }: any) {
-  try {
-    const res = await validationRead("https://api.bytez.com/models/v2/list/tasks", {
-      method: "GET",
-      headers: buildBearerHeaders(apiKey, providerSpecificData),
-    });
-    return bytezValidationResultFromStatus(res.status);
-  } catch (error: unknown) {
-    return toValidationErrorResult(error);
-  }
-}
+// validateWebCookieProvider, bytezValidationResultFromStatus, validateBytezProvider, and
+// validateKiroApiKeyRuntimeProbe now live in ./validation/webCookie and ./validation/kiro.
+// They are re-exported above to preserve the historical public surface.
 
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey = !providerAllowsOptionalApiKey(provider);
@@ -215,89 +160,23 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     }
   }
 
-  /**
-   * Build Opengateway-style validators (xiaomi-mimo compatible).
-   * These providers share a POST /chat/completions auth check pattern and differ
-   * only in default baseUrl and test model name.
-   */
-  function buildOpengatewayValidator(defaultBaseUrl: string, model: string) {
-    return async ({ apiKey, providerSpecificData }: any) => {
-      try {
-        const baseUrl = normalizeBaseUrl(providerSpecificData?.baseUrl || defaultBaseUrl);
-        const chatUrl = `${baseUrl.replace(/\/chat\/completions$/, "")}/chat/completions`;
-        const res = await validationWrite(
-          chatUrl,
-          {
-            method: "POST",
-            headers: buildBearerHeaders(apiKey, providerSpecificData),
-            body: JSON.stringify({
-              model,
-              messages: [{ role: "user", content: "test" }],
-              max_tokens: 1,
-            }),
-          },
-          isLocal
-        );
-        if (res.status === 401 || res.status === 403) {
-          return { valid: false, error: "Invalid API key" };
-        }
-        // Any non-auth response (200, 400, 422, 429) means auth passed
-        return { valid: true, error: null };
-      } catch (error: any) {
-        return toValidationErrorResult(error);
-      }
-    };
-  }
-
-  // Same as buildOpengatewayValidator but returns an object spreadable into SPECIALTY_VALIDATORS.
-  // isLocal is captured via closure from the outer function scope.
-  function buildGitlawbValidators(
-    configs: [string, string, string][]
-  ): Record<string, ReturnType<typeof buildOpengatewayValidator>> {
-    return Object.fromEntries(
-      configs.map(([id, baseUrl, model]) => [id, buildOpengatewayValidator(baseUrl, model)])
-    );
-  }
+  // buildOpengatewayValidator + buildGitlawbValidators now live in ./validation/specialtyInline
+  // (god-file decomposition). The host still owns the SPECIALTY_VALIDATORS map below; only the
+  // validator bodies were extracted as leaf functions taking `isLocal` where the original
+  // closure captured it.
 
   // ── Specialty provider validation ──
   const SPECIALTY_VALIDATORS = {
+    "v0-vercel": ({ apiKey, providerSpecificData }: any) =>
+      validateV0VercelProvider({ apiKey, providerSpecificData, isLocal }),
     jules: validateJulesProvider,
-    qoder: async ({ apiKey, providerSpecificData }: any) => {
-      // Bifurcate validation: PAT tokens use Cosy auth against api1.qoder.sh;
-      // regular API keys validate against dashscope (OpenAI-compatible endpoint).
-      const key = (apiKey || "").trim();
-      if (key.startsWith("pt-")) {
-        return validateQoderCliPat({ apiKey: key, providerSpecificData });
-      }
-      // Non-PAT token → validate against dashscope (Alibaba Cloud).
-      // The executor routes these tokens to dashscope.aliyuncs.com, so the
-      // validation must test against dashscope, NOT the Cosy PAT endpoint.
-      try {
-        const dashscopeUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/models";
-        const res = await validationRead(
-          dashscopeUrl,
-          {
-            headers: {
-              Authorization: `Bearer ${key}`,
-            },
-          },
-          false
-        );
-        if (res.ok) return { valid: true, error: null };
-        if (res.status === 401 || res.status === 403) {
-          return {
-            valid: false,
-            error:
-              "Invalid Qoder API key. Make sure you're using a valid API key from Qoder / Alibaba Cloud Dashscope.",
-          };
-        }
-        // 4xx/5xx other than auth — treat as valid bypass to prevent false
-        // negatives from transient dashscope issues (consistent with PAT path).
-        return { valid: true, error: null };
-      } catch (err: unknown) {
-        return toValidationErrorResult(err);
-      }
-    },
+    // "devin" is the Cognition cloud-agent provider (distinct from the "devin-cli"
+    // LLM/ACP provider, which is already registered in providerRegistry). Wired here
+    // for parity with the "jules" cloud-agent entry above — see #6142.
+    devin: validateDevinCloudAgentProvider,
+    auggie: validateAuggieProvider,
+    qoder: validateQoderProvider,
+    kiro: validateKiroProvider,
     "command-code": validateCommandCodeProvider,
     huggingface: validateHuggingFaceProvider,
     // #5422: auth-only probe — Bytez 404s on every chat model until the account adds it to
@@ -305,6 +184,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     bytez: validateBytezProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
+    "rev-ai": validateRevAiProvider,
     "fal-ai": ({ apiKey, providerSpecificData }: any) =>
       validateImageProviderApiKey({ provider: "fal-ai", apiKey, providerSpecificData }),
     "stability-ai": ({ apiKey, providerSpecificData }: any) =>
@@ -320,6 +200,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     kie: validateKieProvider,
     "aws-polly": validateAwsPollyProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
+    "qwen-cloud-token-plan": validateQwenCloudTokenPlanProvider,
     heroku: validateHerokuProvider,
     databricks: validateDatabricksProvider,
     datarobot: validateDataRobotProvider,
@@ -356,6 +237,8 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "adapta-web": validateAdaptaWebProvider,
     "claude-web": validateClaudeWebProvider,
     "gemini-web": validateGeminiWebProvider,
+    "notion-web": validateNotionWebProvider,
+    "copilot-m365-web": validateCopilotM365WebProvider,
     "copilot-web": validateCopilotWebProvider,
     "t3-web": validateT3WebProvider,
     "azure-openai": validateAzureOpenAIProvider,
@@ -378,212 +261,26 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         modelId: rerankProvider?.models?.[0]?.id || "jina-reranker-v3",
       });
     },
-    gitlab: async ({ apiKey, providerSpecificData }: any) => {
-      try {
-        const configuredBaseUrl =
-          typeof providerSpecificData?.baseUrl === "string"
-            ? providerSpecificData.baseUrl.trim()
-            : "";
-        const root = (configuredBaseUrl || "https://gitlab.com").replace(/\/$/, "");
-        const res = await validationWrite(
-          `${root}/api/v4/code_suggestions/direct_access`,
-          {
-            method: "POST",
-            headers: buildBearerHeaders(apiKey, providerSpecificData),
-            body: "{}",
-          },
-          isLocal
-        );
-        if (res.status === 401) {
-          return { valid: false, error: "Invalid API key" };
-        }
-        return { valid: true, error: null };
-      } catch (error: any) {
-        return toValidationErrorResult(error);
-      }
-    },
-    vertex: async ({ apiKey }: any) => {
-      try {
-        const { parseSAFromApiKey, getAccessToken, isExpressApiKey } =
-          await import("@omniroute/open-sse/executors/vertex.ts");
-        // Express-mode API keys are opaque strings sent directly as the ?key= query param — there is
-        // no JWT to mint, so accept any non-empty Express key (the live chat/media call validates it).
-        if (isExpressApiKey(apiKey)) {
-          return { valid: true, error: null };
-        }
-        const sa = parseSAFromApiKey(apiKey);
-        // Validates credentials by successfully successfully exchanging them for a JWT from Google Identity
-        await getAccessToken(sa);
-        return { valid: true, error: null };
-      } catch (error: any) {
-        return { valid: false, error: "Invalid Service Account JSON: " + error.message };
-      }
-    },
-    "vertex-partner": async ({ apiKey }: any) => {
-      try {
-        const { parseSAFromApiKey, getAccessToken, isExpressApiKey } =
-          await import("@omniroute/open-sse/executors/vertex.ts");
-        if (isExpressApiKey(apiKey)) {
-          return { valid: true, error: null };
-        }
-        const sa = parseSAFromApiKey(apiKey);
-        await getAccessToken(sa);
-        return { valid: true, error: null };
-      } catch (error: any) {
-        return { valid: false, error: "Invalid Service Account JSON: " + error.message };
-      }
-    },
-    // LongCat AI — does not expose /v1/models; validate via chat completions directly (#592)
-    longcat: async ({ apiKey, providerSpecificData }: any) => {
-      try {
-        const res = await validationWrite(
-          "https://api.longcat.chat/openai/v1/chat/completions",
-          {
-            method: "POST",
-            headers: buildBearerHeaders(apiKey, providerSpecificData),
-            body: JSON.stringify({
-              model: "LongCat-2.0",
-              messages: [{ role: "user", content: "test" }],
-              max_tokens: 1,
-            }),
-          },
-          isLocal
-        );
-        if (res.status === 401 || res.status === 403) {
-          return { valid: false, error: "Invalid API key" };
-        }
-        // Any non-auth response (200, 400, 422) means auth passed
-        return { valid: true, error: null };
-      } catch (error: any) {
-        return toValidationErrorResult(error);
-      }
-    },
-    // NVIDIA NIM (#2463) — bypass the /models probe in favor of a direct
-    // chat/completions probe. NVIDIA NIM's /models endpoint returns model
-    // catalogs that vary by region and key-tier, and some keys 404 on it,
-    // which the generic flow misreads. The chat probe is also a stronger
-    // sanity check for streaming/key correctness.
-    nvidia: async ({ apiKey, providerSpecificData }: any) => {
-      try {
-        const baseUrlRaw =
-          providerSpecificData?.baseUrl || "https://integrate.api.nvidia.com/v1/chat/completions";
-        const normalized = normalizeBaseUrl(baseUrlRaw);
-        const chatBase = normalized.replace(/\/models$/, "");
-        const chatUrl = normalized.endsWith("/chat/completions")
-          ? normalized
-          : `${chatBase}/chat/completions`;
-        // #3116: probe a universally-available model rather than models[0]
-        // (z-ai/glm-5.1), which requires the "Public API Endpoints" account permission
-        // and can hang/be DEGRADED — making a *valid* key fail with "Upstream Error".
-        const modelId = resolveNvidiaValidationModel(providerSpecificData);
-        // #3226: use raw https (bypass the proxy/TLS-patched fetch) — the undici
-        // dispatcher stalls against NVIDIA's endpoint, causing a 504 timeout.
-        const res = await directHttpsRequest(
-          chatUrl,
-          {
-            method: "POST",
-            headers: buildBearerHeaders(apiKey, providerSpecificData),
-            body: JSON.stringify({
-              model: modelId,
-              messages: [{ role: "user", content: "test" }],
-              max_tokens: 1,
-            }),
-          },
-          20000
-        );
-        if (res.status === 401 || res.status === 403) {
-          return { valid: false, error: "Invalid API key" };
-        }
-        // Any non-auth response (200, 400, 422, 429) means auth passed
-        return { valid: true, error: null };
-      } catch (error: any) {
-        return toValidationErrorResult(error);
-      }
-    },
-    // Z.AI (glm) — bypass the proxy/TLS-patched fetch for the same reason as nvidia
-    // above (#3905): the undici dispatcher stalls against api.z.ai after the provider
-    // returns 502 "job timed out" responses, because z.ai silently drops idle
-    // keep-alive sockets without sending TCP RST. Using directHttpsRequest (native
-    // Node.js HTTPS, no undici pool) avoids the zombie-socket hang on validation.
-    // Z.AI uses the Anthropic wire format with x-api-key auth, not Bearer.
-    zai: async ({ apiKey, providerSpecificData }: any) => {
-      try {
-        // providerSpecificData.baseUrl allows test overrides to point at a local
-        // HTTP server; production always uses the fixed api.z.ai endpoint.
-        const messagesUrl = providerSpecificData?.baseUrl
-          ? `${normalizeBaseUrl(providerSpecificData.baseUrl).split("?")[0]}?beta=true`
-          : "https://api.z.ai/api/anthropic/v1/messages?beta=true";
-        const res = await directHttpsRequest(
-          messagesUrl,
-          {
-            method: "POST",
-            headers: {
-              "x-api-key": apiKey,
-              "anthropic-version": "2023-06-01",
-              "content-type": "application/json",
-            },
-            body: JSON.stringify({
-              model: "glm-5.1",
-              messages: [{ role: "user", content: "test" }],
-              max_tokens: 1,
-            }),
-          },
-          20000
-        );
-        if (res.status === 401 || res.status === 403) {
-          return { valid: false, error: "Invalid API key" };
-        }
-        if (res.status === 404 || res.status === 405) {
-          return { valid: false, error: "Provider validation endpoint not supported" };
-        }
-        if (res.status >= 500 && res.status !== 502) {
-          return { valid: false, error: `Provider unavailable (${res.status})` };
-        }
-        // Any non-auth response (200, 400, 422, 429, 502) means auth passed;
-        // 502 "job timed out" is z.ai's own server-side queue limit, not an auth error.
-        return { valid: true, error: null };
-      } catch (error: any) {
-        return toValidationErrorResult(error);
-      }
-    },
-    // Xiaomi MiMo — Token Plan keys (tp-*) only work on regional endpoints
-    // (e.g. token-plan-sgp, token-plan-ams), not api.xiaomimimo.com.
-    // /v1/models works but validate via chat/completions for stronger auth check.
-    "xiaomi-mimo": async ({ apiKey, providerSpecificData }: any) => {
-      try {
-        const baseUrl = normalizeBaseUrl(
-          providerSpecificData?.baseUrl || "https://api.xiaomimimo.com/v1"
-        );
-        const chatUrl = `${baseUrl.replace(/\/chat\/completions$/, "")}/chat/completions`;
-        const res = await validationWrite(
-          chatUrl,
-          {
-            method: "POST",
-            headers: buildBearerHeaders(apiKey, providerSpecificData),
-            body: JSON.stringify({
-              model: "mimo-v2.5-pro",
-              messages: [{ role: "user", content: "test" }],
-              max_tokens: 1,
-            }),
-          },
-          isLocal
-        );
-        if (res.status === 401 || res.status === 403) {
-          return { valid: false, error: "Invalid API key" };
-        }
-        // Any non-auth response (200, 400, 422, 429) means auth passed
-        return { valid: true, error: null };
-      } catch (error: any) {
-        return toValidationErrorResult(error);
-      }
-    },
+    gitlab: ({ apiKey, providerSpecificData }: any) =>
+      validateGitlabProvider({ apiKey, providerSpecificData, isLocal }),
+    vertex: validateVertexProvider,
+    "vertex-partner": validateVertexPartnerProvider,
+    longcat: ({ apiKey, providerSpecificData }: any) =>
+      validateLongcatProvider({ apiKey, providerSpecificData, isLocal }),
+    nvidia: validateNvidiaProvider,
+    zai: validateZaiProvider,
+    "xiaomi-mimo": ({ apiKey, providerSpecificData }: any) =>
+      validateXiaomiMimoProvider({ apiKey, providerSpecificData, isLocal }),
     // Gitlawb Opengateway — Xiaomi MiMo compatible, same /models endpoint limitation.
     // Bypass /models probe in favor of chat/completions, matching xiaomi-mimo's pattern.
     // Uses a factory to share validation logic across Opengateway provider variants.
-    ...buildGitlawbValidators([
-      ["gitlawb", "https://opengateway.gitlawb.com/v1/xiaomi-mimo", "mimo-v2.5-pro"],
-      ["gitlawb-gmi", "https://opengateway.gitlawb.com/v1/gmi-cloud", "XiaomiMiMo/MiMo-V2.5-Pro"],
-    ]),
+    ...buildGitlawbValidators(
+      [
+        ["gitlawb", "https://opengateway.gitlawb.com/v1/xiaomi-mimo", "mimo-v2.5-pro"],
+        ["gitlawb-gmi", "https://opengateway.gitlawb.com/v1/gmi-cloud", "XiaomiMiMo/MiMo-V2.5-Pro"],
+      ],
+      isLocal
+    ),
     // Search providers — use factored validator
     ...Object.fromEntries(
       Object.entries(SEARCH_VALIDATOR_CONFIGS).map(([id, configFn]) => [
@@ -639,7 +336,10 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   const validationEntry = entry.testKeyBaseUrl
     ? { ...entry, baseUrl: entry.testKeyBaseUrl }
     : entry;
-  const baseUrl = resolveBaseUrl(validationEntry, providerSpecificData);
+  const usesAlibabaRegionalEndpoint = isAlibabaRegionalProvider(provider);
+  const baseUrl = usesAlibabaRegionalEndpoint
+    ? resolveAlibabaProviderBaseUrl(provider, providerSpecificData, validationEntry.baseUrl)
+    : resolveBaseUrl(validationEntry, providerSpecificData);
 
   try {
     if (OPENAI_LIKE_FORMATS.has(entry.format)) {
@@ -649,7 +349,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         headers: entry.headers || {},
         providerSpecificData,
         modelId,
-        modelsUrl: entry.modelsUrl,
+        modelsUrl: usesAlibabaRegionalEndpoint ? "" : entry.testKeyModelsUrl || entry.modelsUrl,
         isLocal,
       });
     }

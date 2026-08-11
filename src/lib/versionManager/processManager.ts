@@ -11,6 +11,27 @@ const log = createLogger("version-manager:process-manager");
 const DEFAULT_PORT = 8317;
 const GRACEFUL_TIMEOUT_MS = 5000;
 
+/**
+ * Builds the `spawn()` options for the cliproxyapi child process.
+ * `windowsHide: true` suppresses the transient conhost.exe/cmd console
+ * window Windows briefly flashes open for spawned child processes (#8131).
+ * Exported (rather than inlined) so a unit test can assert on it directly
+ * instead of mocking `node:child_process`.
+ */
+export function buildCliproxyapiSpawnOptions(): {
+  detached: boolean;
+  stdio: ["ignore", "pipe", "pipe"];
+  env: NodeJS.ProcessEnv;
+  windowsHide: boolean;
+} {
+  return {
+    detached: false,
+    stdio: ["ignore", "pipe", "pipe"],
+    env: { ...process.env },
+    windowsHide: true,
+  };
+}
+
 function defaultConfigDir(): string {
   return process.env.CLIPROXYAPI_CONFIG_DIR || path.join(os.homedir(), ".cli-proxy-api");
 }
@@ -45,11 +66,11 @@ export async function startProcess(
   const actualConfigDir = configDir || defaultConfigDir();
   await writeConfig(actualConfigDir, actualPort);
 
-  const child = spawn(binaryPath, ["-c", path.join(actualConfigDir, "config.yaml")], {
-    detached: false,
-    stdio: ["ignore", "pipe", "pipe"],
-    env: { ...process.env },
-  });
+  const child = spawn(
+    binaryPath,
+    ["-c", path.join(actualConfigDir, "config.yaml")],
+    buildCliproxyapiSpawnOptions()
+  );
 
   child.stdout?.on("data", () => {});
   child.stderr?.on("data", () => {});
