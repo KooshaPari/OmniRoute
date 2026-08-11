@@ -270,6 +270,7 @@ function validateProviderSpecificData(
 // Helpers + oauthPasteCredentialsSchema re-exports (webpack barrel truncation).
 export { validateBody, isValidationFailure } from "./helpers";
 export { oauthPasteCredentialsSchema } from "./schemas/auth";
+export { cliMultiModelConfigSchema } from "./schemas/cli";
 // ──── Provider Schemas ────
 
 export const createProviderSchema = z

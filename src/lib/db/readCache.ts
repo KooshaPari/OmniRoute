@@ -154,6 +154,15 @@ export async function setCachedLKGP(
 // one and treat a mismatch as a cache miss — so combo edits take effect
 // immediately instead of after the 10s window (#3147).
 let combosCacheVersion = 0;
+let modelCatalogCacheVersion = 0;
+
+/**
+ * Monotonic invalidation version consumed by the model-catalog response cache.
+ * Any settings, pricing, provider, or combo write invalidates catalog output.
+ */
+export function getModelCatalogCacheVersion(): number {
+  return modelCatalogCacheVersion;
+}
 
 /**
  * Current combo-cache version. Cache layers snapshot this when they populate
@@ -171,6 +180,7 @@ export function getCombosCacheVersion(): number {
 export function invalidateDbCache(
   scope?: "settings" | "pricing" | "connections" | "combos"
 ): void {
+  modelCatalogCacheVersion++;
   if (!scope || scope === "settings") settingsCache.invalidate();
   if (!scope || scope === "pricing") pricingCache.invalidate();
   if (!scope || scope === "connections") connectionsCache.invalidate();
