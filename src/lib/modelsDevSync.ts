@@ -39,7 +39,6 @@ import type {
 // Re-export the pure transform layer (moved to ./modelsDevSync/transform)
 // so this module's public API is unchanged.
 export {
-  mapProviderId,
   transformModelsDevToPricing,
   transformModelsDevToCapabilities,
 } from "./modelsDevSync/transform";
@@ -48,27 +47,6 @@ export type {
   CapabilitiesByProvider,
   PricingByProvider,
 } from "./modelsDevSync/transform";
-
-import {
-  transformModelsDevToPricing,
-  transformModelsDevToCapabilities,
-} from "./modelsDevSync/transform";
-import type {
-  PricingModels,
-  PricingByProvider,
-  ModelCapabilityEntry,
-  CapabilitiesByProvider,
-  ModelsDevData,
-} from "./modelsDevSync/transform";
-
-// Re-export the pure transform layer (moved to ./modelsDevSync/transform)
-// so this module's public API is unchanged.
-export {
-  mapProviderId,
-  transformModelsDevToPricing,
-  transformModelsDevToCapabilities,
-} from "./modelsDevSync/transform";
-export type { ModelCapabilityEntry, CapabilitiesByProvider } from "./modelsDevSync/transform";
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -704,7 +682,11 @@ export function startPeriodicSync(intervalMs?: number): void {
     .then((result) => {
       if (result.success) {
         log.info(
-          { models: result.modelCount, capabilities: result.capabilityCount, providers: result.providerCount },
+          {
+            models: result.modelCount,
+            capabilities: result.capabilityCount,
+            providers: result.providerCount,
+          },
           "models-dev-sync: initial sync complete"
         );
       }
@@ -720,10 +702,7 @@ export function startPeriodicSync(intervalMs?: number): void {
     launchSync()
       .then((result) => {
         if (result.success) {
-          log.info(
-            { models: result.modelCount },
-            "models-dev-sync: periodic sync complete"
-          );
+          log.info({ models: result.modelCount }, "models-dev-sync: periodic sync complete");
         }
       })
       .catch((err) => {
