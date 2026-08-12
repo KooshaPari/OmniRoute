@@ -385,32 +385,7 @@ export async function buildAutoCandidates(
       const parsed = parseModel(t.modelStr);
       return t.provider || parsed.provider || parsed.providerAlias || "unknown";
     }
-    const connectionIds = providerConnections
-      .map((c) => (c && typeof c === "object" && typeof c.id === "string" ? c.id : null))
-      .filter((id): id is string => id !== null);
-    const allowedConnectionIds = Array.isArray(target.allowedConnectionIds)
-      ? new Set(
-          target.allowedConnectionIds.filter(
-            (connectionId): connectionId is string =>
-              typeof connectionId === "string" && connectionId.trim().length > 0
-          )
-        )
-      : null;
-    const scopedConnectionIds = allowedConnectionIds
-      ? connectionIds.filter((connectionId) => allowedConnectionIds.has(connectionId))
-      : connectionIds;
-    if (scopedConnectionIds.length === 0) {
-      expandedTargets.push(target);
-      continue;
-    }
-    for (const connectionId of scopedConnectionIds) {
-      expandedTargets.push({
-        ...target,
-        connectionId,
-        executionKey: `${target.executionKey}@${connectionId}`,
-      });
-    }
-  }
+  );
 
   const candidates = await Promise.all(
     fingerprintExpandedTargets.map(async (target) => {
