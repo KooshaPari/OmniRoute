@@ -43,9 +43,9 @@ test("issue #7773: a fatal (non-transient) boot-time DB init failure must be log
   // failed (core.ts:172-176) — the exact shape a Termux install with no working
   // SQLite driver at all would surface.
   const fatalMessage =
-    "[DB] Nenhum driver SQLite disponível para '/data/data/com.termux/files/home/.omniroute/storage.sqlite'. " +
-    "Drivers testados: better-sqlite3 (falhou), node:sqlite (indisponível), " +
-    "sql.js (falhou: ENOENT: no such file or directory, open '.../sql-wasm.wasm').";
+    "[DB] No SQLite driver available for '/data/data/com.termux/files/home/.omniroute/storage.sqlite'. " +
+    "Drivers tested: better-sqlite3 (failed), node:sqlite (unavailable), " +
+    "sql.js (failed: ENOENT: no such file or directory, open '.../sql-wasm.wasm').";
 
   const fakeEnsureDbInitialized = async () => {
     throw new Error(fatalMessage);

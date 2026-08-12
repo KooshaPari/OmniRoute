@@ -6,9 +6,9 @@
  * de protocolo troca URL, header de auth e headers extras — por isso a alternativa
  * carrega os tres, nao so a URL.
  *
- * A escolha vive na conexao, em providerSpecificData.targetFormat, e so vale se
- * casar com uma alternativa declarada: valor desconhecido cai no formato padrao,
- * nunca produz uma URL/auth orfas.
+ * The choice lives on the connection, in providerSpecificData.targetFormat, and
+ * only applies if it matches a declared alternative: an unknown value falls back
+ * to the default format, never producing an orphan URL/auth.
  */
 import type { RegistryEntry } from "./shared.ts";
 

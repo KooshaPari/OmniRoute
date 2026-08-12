@@ -1,21 +1,22 @@
 #!/usr/bin/env node
 // scripts/check/check-docs-symbols.mjs
-// Gate anti-alucinação (docs → código): toda referência a uma rota `/api/...` dentro de
-// docs/**/*.md deve resolver para um `route.ts` real em src/app/api/. Pega endpoint
-// INVENTADO/obsoleto que a IA escreve em docs/PRs descrevendo uma rota que não existe —
-// o padrão recorrente das PRs de docs (ex.: oyi77) que fabricam endpoints/APIs.
+// Anti-hallucination gate (docs → code): every reference to a `/api/...` route
+// inside docs/**/*.md must resolve to a real `route.ts` in src/app/api/.
+// Catches INVENTED/deprecated endpoints that LLMs write in docs/PRs describing a
+// route that doesn't exist — a recurring pattern from docs PRs (e.g. oyi77) that
+// fabricate endpoints/APIs.
 //
-// Complementa os outros gates anti-alucinação:
-//   - check-fetch-targets.mjs  : fetch("/api/...") na UI → route.ts (código → código)
-//   - check-openapi-routes.mjs : path da openapi.yaml → route.ts (spec → código)
-//   - este gate                : /api/... na prosa/markdown → route.ts (docs → código)
+// Complements the other anti-hallucination gates:
+//   - check-fetch-targets.mjs  : fetch("/api/...") in the UI → route.ts (code → code)
+//   - check-openapi-routes.mjs : openapi.yaml path → route.ts (spec → code)
+//   - this gate                : /api/... in prose/markdown → route.ts (docs → code)
 //
-// LOW-NOISE por design: escopo APENAS a paths de rota `/api/...` (sinal mais alto).
-// Tudo que é ruído conhecido (superfície proxy OpenAI-compat, refs a arquivos-fonte,
-// APIs upstream de terceiros, placeholders) vai para IGNORE com justificativa, NÃO para
-// a allowlist. A allowlist congela só drift REAL pré-existente de docs.
-// Stale-enforcement (6A.3): entrada em KNOWN_STALE_DOC_REFS que não suprime nenhum miss
-// real → gate falha com instrução de remoção (evita furo de regressão silencioso).
+// LOW-NOISE by design: scopes ONLY route paths `/api/...` (highest-signal target).
+// Anything that is known noise (OpenAI-compat proxy surface, source-file refs,
+// third-party upstream APIs, placeholders) goes to IGNORE with justification,
+// NOT to the allowlist. The allowlist freezes only REAL pre-existing doc drift.
+// Stale-enforcement (6A.3): an entry in KNOWN_STALE_DOC_REFS that suppresses no
+// real miss → gate fails with a removal instruction (avoids silent regression gaps).
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -25,47 +26,48 @@ import { collectApiRouteFiles } from "./lib/apiRoutes.mjs";
 const ROOT = process.cwd();
 const DOCS = path.join(ROOT, "docs");
 
-// Padrões que NÃO são rotas internas do OmniRoute (ruído estrutural, não drift).
-// Adicione aqui (com justificativa) em vez da allowlist quando uma categoria gera
-// falsos positivos — a allowlist é só para endpoints stale REAIS.
+// Patterns that are NOT internal OmniRoute routes (structural noise, not drift).
+// Add here (with justification) instead of the allowlist when a category
+// generates false positives — the allowlist is only for REAL stale endpoints.
 const IGNORE = [
-  /^\/api\/v1\//, // superfície OpenAI-compat (proxy), não rota interna
-  /^\/api\/v1beta\//, // superfície Gemini-compat (proxy)
-  /^\/api\/v0\//, // APIs upstream de terceiros citadas em docs de pesquisa
-  /^\/api\/v2\//, // idem (deployments etc.)
-  /^\/api\/(organizations|map-image|graphql|gql)\b/, // APIs de provedores externos documentadas
-  /your-/i, // placeholder de exemplo
-  /example/i, // placeholder de exemplo
-  /\.{3}/, // placeholder "..."
-  /\{\}/, // placeholder de param vazio
-  /_(POST|GET|PUT|DELETE|PATCH)$/, // refs estilo trace de rede (gql_POST)
+  /^\/api\/v1\//, // OpenAI-compat surface (proxy), not internal route
+  /^\/api\/v1beta\//, // Gemini-compat surface (proxy)
+  /^\/api\/v0\//, // third-party upstream APIs cited in research docs
+  /^\/api\/v2\//, // same (deployments etc.)
+  /^\/api\/(organizations|map-image|graphql|gql)\b/, // documented external provider APIs
+  /your-/i, // example placeholder
+  /example/i, // example placeholder
+  /\.{3}/, // "..." placeholder
+  /\{\}/, // empty param placeholder
+  /_(POST|GET|PUT|DELETE|PATCH)$/, // network-trace style refs (gql_POST)
 ];
 
-// Refs a ARQUIVOS-FONTE, não a URLs (ex.: src/app/api/.../route.ts citado em prosa).
-// O gate só valida URLs de rota, não caminhos de arquivo.
+// Refs to SOURCE FILES, not URLs (e.g. src/app/api/.../route.ts cited in prose).
+// The gate only validates route URLs, not file paths.
 function isFileRef(p) {
   return /\.(ts|tsx|js|mjs|jsx)$/.test(p) || /\/route$/.test(p);
 }
 
-// Refs a `/api/...` que NÃO resolvem para rota real, congeladas para triagem
-// (catraca: bloqueia QUALQUER nova ref inventada em docs). Estas são achados REAIS de
-// drift/alucinação em docs pré-existentes — cada uma precisa de: criar a rota, corrigir
-// o path na doc, ou remover a menção. NÃO adicione novas aqui sem justificativa — esse
-// é o ponto do gate. Issues de tracking devem ser abertas para cada cluster.
+// Refs to `/api/...` that do NOT resolve to a real route, frozen for triage
+// (ratchet: blocks ANY new invented refs in docs). These are REAL findings of
+// drift/hallucination in pre-existing docs — each one needs: create the route,
+// fix the path in the doc, or remove the mention. Do NOT add new entries here
+// without justification — that is the point of the gate. Tracking issues must
+// be opened for each cluster.
 export const KNOWN_STALE_DOC_REFS = new Set([
   // docs/reference/API_REFERENCE.md — guardrails/shadow doc-fiction RESOLVED in #3496:
   // GET /api/guardrails + POST /api/guardrails/test are now REAL routes (wrapping the
   // existing guardrailRegistry); the fictional enable/disable/logs rows and the entire
   // shadow table were removed from the doc (shadow A-B comparison is combo-config +
   // /api/combos/metrics). No allowlist entries needed for these anymore.
-  // (DISCOVERY_TOOL_DESIGN.md saiu de docs/research/ para o repo isolado _tasks/research/
-  // — gitignored, fora do escopo deste gate. As 4 entradas /api/discovery/* viraram
-  // obsoletas e foram removidas para satisfazer o stale-enforcement da allowlist.)
-  // docs/reference/ENVIRONMENT.md — endpoint UPSTREAM do provedor Blackbox Web,
-  // citado na descrição de env var (não é rota do OmniRoute):
+  // (DISCOVERY_TOOL_DESIGN.md moved out of docs/research/ into the isolated _tasks/research/
+  // repo — gitignored, outside this gate's scope. The 4 entries /api/discovery/* became
+  // obsolete and were removed to satisfy the allowlist's stale-enforcement.)
+  // docs/reference/ENVIRONMENT.md — UPSTREAM endpoint of the Blackbox Web provider,
+  // cited in an env-var description (not an OmniRoute route):
   "/api/chat",
-  // docs/ops/TUNNELS_GUIDE.md — a doc afirma EXPLICITAMENTE que este endpoint NÃO
-  // existe ("There is no central /api/settings/tunnels endpoint"); menção pedagógica:
+  // docs/ops/TUNNELS_GUIDE.md — the doc EXPLICITLY states that this endpoint does
+  // NOT exist ("There is no central /api/settings/tunnels endpoint"); pedagogical mention:
   "/api/settings/tunnels",
 ]);
 
@@ -93,9 +95,9 @@ function normSeg(seg) {
 }
 
 // /api/providers/{id}/models → src/app/api/providers/[id]/models/route.ts
-// Casa por contagem de segmentos OU por prefixo (uma doc pode citar só o prefixo de
-// uma rota mais profunda, ex.: /api/auth descrevendo a família /api/auth/login). Qualquer
-// segmento dinâmico ([..]/{..}/:..) casa com um segmento dinâmico real.
+// Matches by segment count OR by prefix (a doc may cite only the prefix of a
+// deeper route, e.g. /api/auth describing the /api/auth/login family). Any
+// dynamic segment ([..]/{..}/:..) matches a real dynamic segment.
 export function resolveApiDocPathToRoute(apiPath, routeFiles) {
   const segs = apiPath
     .replace(/^\//, "")
@@ -131,7 +133,7 @@ export function resolveApiDocPathToRoute(apiPath, routeFiles) {
   return false;
 }
 
-/** Limpa o path capturado: remove pontuação/ênfase de prosa, fecha brackets pendentes. */
+/** Clean the captured path: strip prose punctuation/emphasis, close pending brackets. */
 function cleanCapturedPath(raw) {
   let p = raw.replace(/[.,:;_)>]+$/, "");
   const ob = (p.match(/\[/g) || []).length;
@@ -139,17 +141,17 @@ function cleanCapturedPath(raw) {
   const oc = (p.match(/\{/g) || []).length;
   const cc = (p.match(/\}/g) || []).length;
   if (ob !== cb || oc !== cc) {
-    // segmento final truncado pelo regex (bracket aberto sem fechar na prosa) → descarta
+    // final segment truncated by the regex (open bracket without close in prose) → discard
     p = p.replace(/\/[^/]*[[{][^/]*$/, "");
   }
   return p.replace(/\/$/, ""); // remove barra final (forma de prefixo)
 }
 
-// /api/... só conta como URL quando NÃO é a cauda de um caminho de arquivo-fonte
+// /api/... only counts as a URL when it is NOT the tail of a source-file path
 // (src/lib/api/, @/app/api/, app/api/). O grupo 2 é o path.
 const API_PATH_RE = /(^|[^A-Za-z0-9_/])(\/api\/[A-Za-z0-9_\-/{}\[\].:]+)/g;
 
-/** Extrai os paths /api/... distintos de um arquivo markdown (forma URL, não arquivo). */
+/** Extract the distinct /api/... paths from a markdown file (URL form, not file form). */
 export function extractDocApiPaths(src) {
   const out = new Set();
   let m;
@@ -191,11 +193,11 @@ export function runDocsSymbolsCheck(opts = {}) {
   const root = opts.root || ROOT;
   const docsDir = path.join(root, "docs");
   const routeFiles = opts.routeFiles || collectApiRouteFiles(root);
-  // docs/i18n/** são espelhos auto-gerados das docs canônicas — validar só o canônico
-  // evita 40× de ruído duplicado (e os mirrors herdam qualquer fix do canônico).
-  // docs/superpowers/** são planos internos de implementação (snapshots históricos
-  // de intenção — podem citar rotas planejadas/abandonadas), não claims sobre o
-  // código atual; fora do escopo do gate (drift surgiu no ciclo v3.8.18).
+  // docs/i18n/** are auto-generated mirrors of the canonical docs — validate only
+  // the canonical to avoid 40× duplicated noise (and mirrors inherit any fix).
+  // docs/superpowers/** are internal implementation plans (historical intent
+  // snapshots — may cite planned/abandoned routes), not claims about the
+  // current code; out of the gate's scope (drift arose in the v3.8.18 cycle).
   const docFiles = walk(docsDir, (n) => /\.md$/.test(n)).filter((f) => {
     const rel = path.relative(root, f).replace(/\\/g, "/");
     return !rel.startsWith("docs/i18n/") && !rel.startsWith("docs/superpowers/");
@@ -213,18 +215,18 @@ export function runDocsSymbolsCheck(opts = {}) {
   const parts = [];
   if (stale.length) {
     parts.push(
-      `[check-docs-symbols] ${stale.length} entrada(s) obsoleta(s) na allowlist ` +
-        `— a violação foi corrigida; REMOVA a entrada para travar a correção:\n` +
+      `[check-docs-symbols] ${stale.length} obsolete entries in the allowlist ` +
+        `— the violation was fixed; REMOVE the entry to lock in the fix:\n` +
         stale.map((e) => `  ✗ ${e}`).join("\n")
     );
   }
   if (misses.length) {
     parts.push(
-      `[check-docs-symbols] ${misses.length} ref(s) /api em docs sem rota real:\n` +
+      `[check-docs-symbols] ${misses.length} ref(s) /api in docs without a real route:\n` +
         misses.map((m) => "  ✗ " + m).join("\n") +
-        `\n  → crie o route.ts, corrija o path na doc, ou (se for upstream/placeholder)` +
-        ` adicione um padrão a IGNORE com justificativa. NÃO adicione à allowlist sem` +
-        ` confirmar que é drift pré-existente real.`
+        `\n  → create the route.ts, fix the path in the doc, or (if upstream/placeholder)` +
+        ` add a pattern to IGNORE with justification. Do NOT add to the allowlist without` +
+        ` confirming it's real pre-existing drift.`
     );
   }
   if (parts.length) {
@@ -234,8 +236,8 @@ export function runDocsSymbolsCheck(opts = {}) {
     ok: true,
     exitCode: 0,
     message:
-      `[check-docs-symbols] OK — ${docFiles.length} docs canônicas, ` +
-      `${routeFiles.size} rotas conhecidas, ${KNOWN_STALE_DOC_REFS.size} stale congeladas`,
+      `[check-docs-symbols] OK — ${docFiles.length} canonical docs, ` +
+      `${routeFiles.size} known routes, ${KNOWN_STALE_DOC_REFS.size} frozen stale refs`,
   };
 }
 

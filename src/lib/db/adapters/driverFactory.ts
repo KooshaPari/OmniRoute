@@ -56,7 +56,7 @@ function getSqlJsPreInitErrorCache(): Map<string, string> {
 /**
  * Real cause of the most recent failed preInitSqlJs() attempt for a
  * filePath, if any (#7288). Lets callers replace the generic/misleading
- * "sql.js WASM ainda não foi pré-inicializado" message with the actual
+ * "sql.js WASM has not been pre-initialized yet" message with the actual
  * reason sql.js itself couldn't open the file, once pre-init was genuinely
  * attempted (as opposed to never having run at all).
  */
@@ -197,8 +197,8 @@ export function getSqlJsAdapter(filePath: string): SqliteAdapter | null {
 }
 
 /**
- * Factory assíncrona completa: tenta todos os drivers em cascata.
- * Ordem: bun:sqlite → better-sqlite3 → node:sqlite → sql.js
+ * Full async factory: tries all drivers in cascade order.
+ * Order: bun:sqlite → better-sqlite3 → node:sqlite → sql.js
  */
 export async function openDatabaseAsync(
   filePath: string,

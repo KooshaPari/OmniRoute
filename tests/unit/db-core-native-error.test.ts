@@ -55,7 +55,7 @@ test("isNativeSqliteLoadError returns false for unrelated errors", () => {
 
 test("isSqliteDriverUnavailableError detects pre-init sql.js fallback errors", () => {
   const err = new Error(
-    "[DB] Nenhum driver SQLite disponível para '/tmp/storage.sqlite'. Chame ensureDbInitialized() no startup. sql.js WASM ainda não foi pré-inicializado."
+    "[DB] No SQLite driver available for '/tmp/storage.sqlite'. Call ensureDbInitialized() during startup. sql.js WASM has not been pre-initialized yet."
   );
 
   assert.equal(isSqliteDriverUnavailableError(err), true);

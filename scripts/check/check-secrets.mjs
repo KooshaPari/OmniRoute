@@ -1,27 +1,29 @@
 #!/usr/bin/env node
 // scripts/check/check-secrets.mjs
-// Catraca de secret scanning via gitleaks (Task 7.18 — Fase 7).
+// Secret-scanning ratchet via gitleaks (Task 7.18 — Phase 7).
 //
-// Complementa `check-public-creds.mjs` (Fase 6, cobre credenciais OAuth públicas
-// conhecidas em 2 arquivos específicos): este gate pega a classe geral de secrets —
-// `const API_KEY = "sk-…"`, tokens em config/teste/docs, secrets em histórico.
+// Complements `check-public-creds.mjs` (Phase 6, covers known public OAuth
+// credentials in 2 specific files): this gate catches the general class of
+// secrets — `const API_KEY = "sk-…"`, tokens in config/test/docs, secrets in
+// history.
 //
-// Saída (stdout):
-//   secretFindings=N      — número de findings do gitleaks
-//   secretFindings=SKIP reason=binary-absent   — gitleaks não está no PATH
+// Output (stdout):
+//   secretFindings=N      — number of gitleaks findings
+//   secretFindings=SKIP reason=binary-absent   — gitleaks not in PATH
 //
-// Por default é ADVISORY (sai 0 sempre). Passe --ratchet para tornar BLOQUEANTE:
-// lê metrics.secretFindings.value de config/quality/quality-baseline.json, compara
-// a contagem MEDIDA e SAI 1 SE — E SOMENTE SE — a medida for MAIOR que o baseline
-// (regressão real, direction:down). Qualquer SKIP gracioso (binário ausente, nenhum
-// dir de fonte) SAI 0 mesmo com --ratchet — falta de infraestrutura nunca bloqueia,
-// só uma regressão medida bloqueia.
+// Default is ADVISORY (always exit 0). Pass --ratchet to make it BLOCKING:
+// reads metrics.secretFindings.value from config/quality/quality-baseline.json,
+// compares against the MEASURED count, and EXITS 1 IF — AND ONLY IF — the
+// measured value is GREATER than the baseline (real regression,
+// direction:down). Any graceful SKIP (binary absent, no source dir) EXITS 0
+// even with --ratchet — infrastructure gaps never block, only a measured
+// regression blocks.
 //
-// Uso:
+// Usage:
 //   node scripts/check/check-secrets.mjs
-//   node scripts/check/check-secrets.mjs --json     # imprime JSON bruto do gitleaks
-//   node scripts/check/check-secrets.mjs --quiet    # suprime logs de diagnóstico
-//   node scripts/check/check-secrets.mjs --ratchet   # falha (exit 1) numa regressão
+//   node scripts/check/check-secrets.mjs --json     # raw gitleaks JSON
+//   node scripts/check/check-secrets.mjs --quiet    # suppress diagnostic logs
+//   node scripts/check/check-secrets.mjs --ratchet  # exit 1 on regression
 
 import fs from "node:fs";
 import { execFileSync, spawnSync } from "node:child_process";
@@ -120,8 +122,8 @@ export function parseGitleaksJson(gitleaksJson) {
  * Avalia a contagem MEDIDA de secrets contra o baseline.
  * Direction: down (a contagem só pode CAIR — mais secrets = regressão).
  *
- * @param {number} current  - Contagem de findings medida agora.
- * @param {number} baseline - Contagem congelada em quality-baseline.json.
+ * @param {number} current  - Count of findings measured now.
+ * @param {number} baseline - Count frozen in quality-baseline.json.
  * @returns {{ regressed: boolean, improved: boolean }}
  */
 export function evaluateSecretsRatchet(current, baseline) {
@@ -157,8 +159,8 @@ export function readBaselineSecretsValue(baselinePath = BASELINE_PATH) {
 // ---------------------------------------------------------------------------
 
 /**
- * Detecta se o binário `gitleaks` está disponível no PATH.
- * Usa `which` (Unix) sem interpolação de shell — Hard Rule #13.
+ * Detects if the `gitleaks` binary is available on the PATH.
+ * Uses `which` (Unix) without shell interpolation — Hard Rule #13.
  *
  * @returns {string|null} Caminho para o binário, ou null se ausente.
  */
@@ -229,11 +231,11 @@ function main() {
     );
   }
 
-  // `gitleaks dir` aceita UM ÚNICO path posicional (uso: `gitleaks dir [flags]
-  // [path]`). Passar múltiplos paths faz o gitleaks ignorar os extras e cair para
-  // escanear o CWD inteiro (`.`) — o que re-traz node_modules/docs/tests e o
-  // timeout original. Por isso escaneamos CADA diretório de fonte em uma invocação
-  // separada e concatenamos os findings.
+  // `gitleaks dir` accepts a SINGLE positional path (usage: `gitleaks dir [flags]
+  // [path]`). Passing multiple paths causes gitleaks to ignore the extras and
+  // fall back to scanning the CWD (`.`) — which re-includes node_modules/docs/tests
+  // and the original timeout. So we scan EACH source directory in a separate
+  // invocation and concatenate the findings.
   const gitleaksJson = [];
   for (const dir of scanDirs) {
     const args = [
@@ -320,7 +322,7 @@ function main() {
     }
   }
 
-  // Medição bem-sucedida → aplica o ratchet (bloqueante só com --ratchet).
+  // Successful measurement → apply the ratchet (blocking only with --ratchet).
   applyRatchet(findingCount);
 }
 
@@ -329,7 +331,7 @@ function main() {
  * Sem --ratchet: advisory (exit 0). Com --ratchet: exit 1 numa regressão real
  * (medida > baseline). Baseline ausente → SKIP gracioso (exit 0).
  *
- * @param {number} findingCount - Contagem MEDIDA (medição bem-sucedida).
+ * @param {number} findingCount - MEASURED count (successful measurement).
  */
 function applyRatchet(findingCount) {
   if (!RATCHET) {

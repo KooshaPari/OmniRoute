@@ -365,8 +365,8 @@ export async function registerNodejs(): Promise<void> {
   // MUST run before ensureSecrets, clearStaleCrashCooldowns,
   // getSettings, initAuditLog below: those all reach getDbInstance()
   // transitively, and used to run ahead of this call (previously at the end
-  // of this function), throwing the misleading "sql.js WASM ainda não foi
-  // pré-inicializado" error for an existing DB file when both sync drivers
+  // of this function), throwing the misleading "sql.js WASM has not been
+  // pre-initialized yet" error for an existing DB file when both sync drivers
   // failed (#7288 / #7494). ensureDbInitialized() itself is idempotent and
   // caches the singleton, so every later getDbInstance() call below is a
   // free no-op re-read of the same connection — no double-init cost.

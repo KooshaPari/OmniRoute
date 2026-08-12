@@ -32,10 +32,10 @@ export interface CompressionEngineMetadata {
 export interface CompressionEngineApplyOptions {
   model?: string;
   supportsVision?: boolean | null;
-  /** Como o request chega ao provider: rota direta oficial ('direct') vs
-   *  agregador que pode reprocessar imagens ('aggregator'). O engine omniglyph
-   *  exige 'direct' — medição 2026-07-06: agregadores redimensionam as páginas
-   *  e destroem a legibilidade. undefined = desconhecido = skip (fail-closed). */
+  /** How the request reaches the provider: official direct route ('direct') vs
+   *  aggregator that may reprocess images ('aggregator'). The omniglyph engine
+   *  requires 'direct' — measurement 2026-07-06: aggregators downscale pages
+   *  and destroy legibility. undefined = unknown = skip (fail-closed). */
   providerTransport?: "direct" | "aggregator";
   config?: CompressionConfig;
   compressionComboId?: string | null;

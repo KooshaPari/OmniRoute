@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 // Regression guard for #7288 / #7494 — a startup step reaching
 // `getDbInstance()` before `preInitSqlJs()` had run threw the misleading
-// "sql.js WASM ainda não foi pré-inicializado" error for an EXISTING DB file
+// "sql.js WASM has not been pre-initialized yet" error for an EXISTING DB file
 // when both synchronous drivers (better-sqlite3, node:sqlite) failed.
 //
 // NOTE on approach: an earlier version of this fix added a top-level
@@ -112,7 +112,7 @@ test(
 test(
   "getDbInstance() called after the REAL ensureDbReadyForBoot() warm-up (the one " +
     "registerNodejs() now runs ahead of every other startup step) no longer throws " +
-    "the ordering-gap 'sql.js WASM ainda não foi pré-inicializado' error when both " +
+    "the ordering-gap 'sql.js WASM has not been pre-initialized yet' error when both " +
     "sync drivers fail on an EXISTING db file (#7288 / #7494)",
   async () => {
     dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-7288-"));

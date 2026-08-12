@@ -33,8 +33,8 @@ import path from "node:path";
 // that in-progress test's own lifecycle instead of the file root. The hook
 // then fired while `modelsRoute.GET()` was still executing inside that
 // subtest — closing the shared DB singleton and rm -rf'ing TEST_DATA_DIR out
-// from under it — surfaced nondeterministically as "Nenhum driver SQLite
-// disponível" / "Cannot open database because the directory does not exist"
+// from under it — surfaced nondeterministically as "No SQLite driver
+// available" / "Cannot open database because the directory does not exist"
 // 500s (#6967). Doing every await + `test.after()` up front, before any
 // `test()` call, guarantees the runner has no subtest running yet when the
 // hook is registered, so it binds to the file root as intended.

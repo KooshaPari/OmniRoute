@@ -27,8 +27,8 @@ const KNOWN_PLANS: Record<string, KnownPlanShape> = {
   glm: {
     provider: "glm",
     dimensions: [
-      // limit=0 = desconhecido; documentado. Mantido para correta detecção pelo planResolver.
-      // Sliding window / fair-share devem tratar limit=0 como "manual obrigatório".
+      // limit=Number.EPSILON (≈0) = unknown; documented. Kept so planResolver can detect it.
+      // Sliding-window / fair-share logic must treat near-zero limits as "manual override required".
       { unit: "tokens", window: "5h", limit: Number.EPSILON },
       { unit: "tokens", window: "weekly", limit: Number.EPSILON },
     ],
