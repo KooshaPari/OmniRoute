@@ -44,7 +44,7 @@ export const RetrievePreviewSchema = z
 /** POST /api/memory/reindex body (D21). */
 export const MemoryReindexSchema = z
   .object({
-    force: z.boolean().default(false), // true = regenera TODOS os vetores
+    force: z.boolean().default(false), // true = regenerate all vectors
   })
   .strict();
 

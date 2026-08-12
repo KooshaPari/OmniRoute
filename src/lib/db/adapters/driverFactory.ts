@@ -197,8 +197,8 @@ export function getSqlJsAdapter(filePath: string): SqliteAdapter | null {
 }
 
 /**
- * Factory assíncrona completa: tenta todos os drivers em cascata.
- * Ordem: bun:sqlite → better-sqlite3 → node:sqlite → sql.js
+ * Full async factory: tries all drivers in cascade order.
+ * Order: bun:sqlite → better-sqlite3 → node:sqlite → sql.js
  */
 export async function openDatabaseAsync(
   filePath: string,
