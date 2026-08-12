@@ -1,10 +1,6 @@
 import path from "path";
 import os from "os";
 import fs from "fs";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("lib:data-paths");
-
 export const APP_NAME = "omniroute";
 
 function fallbackHomeDir() {
@@ -103,10 +99,11 @@ export function resolveWritableDataDir({ isCloud = false }: { isCloud?: boolean 
     const code = (err as NodeJS.ErrnoException | null)?.code;
     if (code === "EACCES" || code === "EPERM") {
       const fallback = getDefaultDataDir();
-      log.warn(
-        { resolved, fallback, code },
-        "data-paths: configured DATA_DIR is not writable — falling back to default"
-      );
+      console.warn("data-paths: configured DATA_DIR is not writable; falling back to default", {
+        resolved,
+        fallback,
+        code,
+      });
       return fallback;
     }
     throw err;
