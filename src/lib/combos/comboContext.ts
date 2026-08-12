@@ -18,7 +18,7 @@ import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models
 import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
 import { buildAliasMaps, getComboTargetModelId } from "@/app/api/v1/models/catalogProviderMaps";
 
-/* ─── helpers ───────────────────────────────────────────────── */
+/* helpers */
 
 function isPositiveFiniteNumber(v: unknown): v is number {
   return typeof v === "number" && Number.isFinite(v) && v > 0;
@@ -41,7 +41,7 @@ function getRegistryModel(
   return providerModels.find((m) => m?.id === modelId) ?? null;
 }
 
-/* ─── public API ────────────────────────────────────────────── */
+/* public API */
 
 /**
  * Compute the effective context-length for a combo.
