@@ -1,7 +1,7 @@
 /**
  * tests/unit/ui/fleetAggregation.test.ts
  *
- * TDD for `aggregateComboEventsToSets` — fleet aggregation for Tela B U2.
+ * TDD for `aggregateComboEventsToSets` - fleet aggregation for Tela B U2.
  * Run: node --import tsx/esm --test tests/unit/ui/fleetAggregation.test.ts
  */
 
@@ -31,9 +31,9 @@ function ev(
   };
 }
 
-// ── aggregateComboEventsToSets ────────────────────────────────────────────
+// aggregateComboEventsToSets
 
-describe("aggregateComboEventsToSets — basic categorization", () => {
+describe("aggregateComboEventsToSets - basic categorization", () => {
   it("puts a recently failed provider in error set", () => {
     const events: ComboEventInput[] = [ev("failed", "openai", -1000)]; // 1s ago, within 10s window
     const { active, error, last } = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
@@ -79,12 +79,12 @@ describe("aggregateComboEventsToSets — basic categorization", () => {
   });
 });
 
-describe("aggregateComboEventsToSets — multiple providers and events", () => {
+describe("aggregateComboEventsToSets - multiple providers and events", () => {
   it("handles multiple providers independently", () => {
     const events: ComboEventInput[] = [
-      ev("failed", "openai", -500), // recent → error
-      ev("succeeded", "gemini", -1000), // recent → active
-      ev("attempt", "cohere", -(WINDOW_MS + 1)), // old → last
+      ev("failed", "openai", -500), // recent => error
+      ev("succeeded", "gemini", -1000), // recent => active
+      ev("attempt", "cohere", -(WINDOW_MS + 1)), // old => last
     ];
     const { active, error, last } = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
 
@@ -97,7 +97,7 @@ describe("aggregateComboEventsToSets — multiple providers and events", () => {
     // Two events for openai: succeeded first (older), then failed (newer)
     const events: ComboEventInput[] = [
       ev("succeeded", "openai", -3000), // older, within window
-      ev("failed", "openai", -500), // newer → should win
+      ev("failed", "openai", -500), // newer => should win
     ];
     const { active, error, last } = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
 
@@ -108,7 +108,7 @@ describe("aggregateComboEventsToSets — multiple providers and events", () => {
   it("latest event for provider wins (active beats old failure when newer event is success)", () => {
     const events: ComboEventInput[] = [
       ev("failed", "openai", -3000), // older failed, within window
-      ev("succeeded", "openai", -500), // newer success → should win
+      ev("succeeded", "openai", -500), // newer success => should win
     ];
     const { active, error, last } = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
 
@@ -137,19 +137,19 @@ describe("aggregateComboEventsToSets — multiple providers and events", () => {
   });
 });
 
-describe("aggregateComboEventsToSets — window boundary", () => {
+describe("aggregateComboEventsToSets - window boundary", () => {
   it("includes event exactly at the window boundary (now - windowMs) as 'last'", () => {
     const events: ComboEventInput[] = [ev("attempt", "boundary", -WINDOW_MS)];
     const { active, last } = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
 
-    // timestamp === NOW - WINDOW_MS: age === WINDOW_MS → not within (age < windowMs)
+    // timestamp === NOW - WINDOW_MS: age === WINDOW_MS => not within (age < windowMs)
     assert.ok(
       last.has("boundary") || !active.has("boundary"),
       "boundary event should be last or absent from active"
     );
   });
 
-  it("does not call Date.now() — pure function (same output with same now)", () => {
+  it("does not call Date.now() - pure function (same output with same now)", () => {
     const events: ComboEventInput[] = [ev("failed", "openai", -500)];
     const r1 = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
     const r2 = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
