@@ -22,6 +22,40 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+      - name: Validate SARIF rule identities
+        if: always()
+        run: |
+          node <<'NODE'
+          const { readFileSync, writeFileSync } = require("node:fs");
+
+          const report = JSON.parse(readFileSync("results.sarif", "utf8"));
+          if (!Array.isArray(report.runs)) throw new Error("SARIF report has no runs array");
+
+          for (const [index, run] of report.runs.entries()) {
+            const driver = run?.tool?.driver;
+            if (!driver || !Array.isArray(driver.rules)) {
+              throw new Error(`SARIF run ${index} has no tool.driver.rules array`);
+            }
+
+            const ruleIds = new Set();
+            driver.rules = driver.rules.filter((rule) => {
+              if (!rule || typeof rule.id !== "string" || rule.id.length === 0) {
+                throw new Error(`SARIF run ${index} contains a rule without a non-empty id`);
+              }
+              if (ruleIds.has(rule.id)) return false;
+              ruleIds.add(rule.id);
+              return true;
+            });
+
+            for (const result of run.results || []) {
+              if (typeof result.ruleId === "string" && !ruleIds.has(result.ruleId)) {
+                throw new Error(`SARIF run ${index} result references unknown ruleId ${result.ruleId}`);
+              }
+            }
+          }
+
+          writeFileSync("results.sarif", `${JSON.stringify(report, null, 2)}\n`);
+          NODE
       - name: Upload sarif
         if: always()
         uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
