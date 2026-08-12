@@ -2267,3 +2267,7 @@ export const zedImportSchema = z.object({
 });
 
 export type ConfirmedAccount = z.infer<typeof confirmedAccountSchema>;
+
+
+// CLI route schemas live in a focused module; expose the multi-model contract through the legacy barrel used by route handlers.
+export { cliMultiModelConfigSchema } from "./schemas/cli";
