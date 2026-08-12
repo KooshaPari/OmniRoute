@@ -133,7 +133,7 @@ export function resolveApiDocPathToRoute(apiPath, routeFiles) {
   return false;
 }
 
-/** Limpa o path capturado: remove pontuação/ênfase de prosa, fecha brackets pendentes. */
+/** Clean the captured path: strip prose punctuation/emphasis, close pending brackets. */
 function cleanCapturedPath(raw) {
   let p = raw.replace(/[.,:;_)>]+$/, "");
   const ob = (p.match(/\[/g) || []).length;
@@ -141,17 +141,17 @@ function cleanCapturedPath(raw) {
   const oc = (p.match(/\{/g) || []).length;
   const cc = (p.match(/\}/g) || []).length;
   if (ob !== cb || oc !== cc) {
-    // segmento final truncado pelo regex (bracket aberto sem fechar na prosa) → descarta
+    // final segment truncated by the regex (open bracket without close in prose) → discard
     p = p.replace(/\/[^/]*[[{][^/]*$/, "");
   }
   return p.replace(/\/$/, ""); // remove barra final (forma de prefixo)
 }
 
-// /api/... só conta como URL quando NÃO é a cauda de um caminho de arquivo-fonte
+// /api/... only counts as a URL when it is NOT the tail of a source-file path
 // (src/lib/api/, @/app/api/, app/api/). O grupo 2 é o path.
 const API_PATH_RE = /(^|[^A-Za-z0-9_/])(\/api\/[A-Za-z0-9_\-/{}\[\].:]+)/g;
 
-/** Extrai os paths /api/... distintos de um arquivo markdown (forma URL, não arquivo). */
+/** Extract the distinct /api/... paths from a markdown file (URL form, not file form). */
 export function extractDocApiPaths(src) {
   const out = new Set();
   let m;
@@ -215,8 +215,8 @@ export function runDocsSymbolsCheck(opts = {}) {
   const parts = [];
   if (stale.length) {
     parts.push(
-      `[check-docs-symbols] ${stale.length} entrada(s) obsoleta(s) na allowlist ` +
-        `— a violação foi corrigida; REMOVA a entrada para travar a correção:\n` +
+      `[check-docs-symbols] ${stale.length} obsolete entries in the allowlist ` +
+        `— the violation was fixed; REMOVE the entry to lock in the fix:\n` +
         stale.map((e) => `  ✗ ${e}`).join("\n")
     );
   }
