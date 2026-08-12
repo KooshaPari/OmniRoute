@@ -146,9 +146,9 @@ export function isSqliteDriverUnavailableError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
 
   return (
-    message.includes("Nenhum driver SQLite disponível") ||
-    message.includes("Chame ensureDbInitialized() no startup") ||
-    message.includes("sql.js WASM ainda não foi pré-inicializado")
+    message.includes("No SQLite driver available") ||
+    message.includes("Call ensureDbInitialized() during startup") ||
+    message.includes("sql.js WASM has not been pre-initialized yet")
   );
 }
 
@@ -191,17 +191,17 @@ function openSqliteDatabase(sqliteFile: string, options?: Record<string, unknown
     : "better-sqlite3 (failed), node:sqlite (unavailable)";
   if (preInitError) {
     throw new Error(
-      `[DB] Nenhum driver SQLite disponível para '${sqliteFile}'. ` +
-        `Drivers testados: ${syncDrivers}, ` +
-        `sql.js (falhou: ${preInitError}).`
+      `[DB] No SQLite driver available for '${sqliteFile}'. ` +
+        `Drivers tested: ${syncDrivers}, ` +
+        `sql.js (failed: ${preInitError}).`
     );
   }
 
   throw new Error(
-    `[DB] Nenhum driver SQLite disponível para '${sqliteFile}'. ` +
-      "Chame ensureDbInitialized() no startup. " +
-      `Drivers testados: ${syncDrivers}. ` +
-      "sql.js WASM ainda não foi pré-inicializado."
+    `[DB] No SQLite driver available for '${sqliteFile}'. ` +
+      "Call ensureDbInitialized() during startup. " +
+      `Drivers tested: ${syncDrivers}. ` +
+      "sql.js WASM has not been pre-initialized yet."
   );
 }
 
