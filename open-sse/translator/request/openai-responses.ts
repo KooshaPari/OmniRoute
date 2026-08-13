@@ -207,7 +207,6 @@ export function openaiResponsesToOpenAIRequest(
   // Upstream providers reject messages:[] with "400: at least one message is required".
   // When the client sends input:[] (empty), inject a placeholder user message — mirrors
   // upstream 9router#419 (and the existing empty-string handling elsewhere in this file).
-  const rawInputItems = normalizeResponsesInputForChat(root.input);
   const inputItems: unknown[] =
     rawInputItems.length === 0
       ? [{ type: "message", role: "user", content: [{ type: "input_text", text: "..." }] }]
