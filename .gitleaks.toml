@@ -74,25 +74,6 @@
 #       '''tests/unit/''',
 #     ]
 
-# ---------------------------------------------------------------------------
-# PR 381 historical cleanup regression:
-# The two generic-api-key findings below were corrected at HEAD in:
-#   - tests/unit/model-latency-stats-route.test.ts (provider/model literal pair)
-#   - bin/cli/commands/usage.mjs (P95 latency field literal)
-# Keep commit-scoped suppression only while those values remain at that exact historical
-# commit; remove this exception when the history-cleanup policy allows full-history scans.
-[[rules]]
-id = "generic-api-key"
-[rules.allowlist]
-  description = "Historical false positives in commit 67da48642 (source-level false-positive cleanup moved these literals to non-legacy form)."
-  commits = ["67da48642e0df089de1d5f9834ec34fe015ae020"]
-  paths = [
-    '''tests/unit/model-latency-stats-route.test.ts''',
-    '''bin/cli/commands/usage.mjs''',
-  ]
-
-#
-
 [[rules]]
   # Proven generic-api-key false positives — cleared on 2026-07-13 (WS6/D3,
   # v3.8.49 plan). Review in v3.9.0. None are credentials: two are FIELD NAMES
@@ -100,7 +81,12 @@ id = "generic-api-key"
   # header (publicly documented, not a secret).
   id = "generic-api-key"
   [rules.allowlist]
-    description = "Field names + public Anthropic beta-header value (not secrets)"
+    description = "Historical false positives for field names and public values (not secrets)"
+    commits = ["67da48642e0df089de1d5f9834ec34fe015ae020"]
+    paths = [
+      '''tests/unit/model-latency-stats-route.test.ts''',
+      '''bin/cli/commands/usage.mjs''',
+    ]
     regexes = [
       '''latencyP\d{2}Ms''',
       '''interleaved-thinking-2025-05-14''',
