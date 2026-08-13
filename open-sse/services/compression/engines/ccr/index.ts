@@ -65,7 +65,6 @@ const RETRIEVAL_RAMP_FACTOR_DEFAULT = 2;
  * When inserting beyond this cap, the oldest entry (Map insertion order) is evicted.
  * 5 000 entries × ~2 KB average ≈ 10 MB upper bound for each map.
  */
-const RETRIEVAL_RAMP_FACTOR_DEFAULT = 2;
 /** Maximum number of entries in the principal-scoped, LRU-ordered store. */
 export const MAX_CCR_ENTRIES = 5_000;
 export const MAX_CCR_BLOCK_BYTES = 2 * 1024 * 1024;
