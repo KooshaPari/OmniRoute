@@ -25,9 +25,6 @@ import {
 const CLAUDE_WEB_API_BASE = "https://claude.ai/api";
 const CLAUDE_WEB_ORGS_URL = `${CLAUDE_WEB_API_BASE}/organizations`;
 
-const CLAUDE_USER_AGENT =
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
-
 // Session cookie constants
 const CLAUDE_SESSION_COOKIE_NAME = "sessionKey";
 const MAX_ERROR_BODY_BYTES = 64 * 1024;
