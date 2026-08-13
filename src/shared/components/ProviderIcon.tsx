@@ -269,49 +269,35 @@ const KNOWN_PNGS = new Set([
   "dahl",
   "zeroclaw",
 ]);
-const KNOWN_SVGS = new Set([
-  "apikey",
-  "bazaarlink",
-  "brave",
-  "brave-search",
-  "cartesia",
-  "360ai",
-  "huggingchat",
-  "iflytek",
-  "sparkdesk",
-  "arcee-ai",
-  "inclusionai",
-  "liquid",
-  "monsterapi",
-  "nomic",
-  "poolside",
-  "clarifai",
-  "command-code",
-  "claude-web",
-  "docker-model-runner",
-  "droid",
-  "gitlab",
-  "gitlab-duo",
-  "inworld",
-  "kiro",
-  "kilo-gateway",
-  "kilocode",
-  "modal",
-  "nlpcloud",
-  "oauth",
-  "oci",
-  "opencode",
-  "playht",
-  "puter",
-  "qianfan",
-  "sap",
-  "scaleway",
-  "serper-search",
-  "searxng-search",
-  "synthetic",
-  "wandb",
-  "youcom-search",
-]);
+
+const THEMED_SVGS: Record<string, { light: string; dark: string }> = {
+  lmarena: {
+    light: "/providers/arena-light.svg",
+    dark: "/providers/arena-dark.svg",
+  },
+  lma: {
+    light: "/providers/arena-light.svg",
+    dark: "/providers/arena-dark.svg",
+  },
+  "kimi-coding": {
+    light: "/providers/kimi-logomark-light.svg",
+    dark: "/providers/kimi-logomark-dark.svg",
+  },
+  "kimi-web": {
+    light: "/providers/kimi-logomark-light.svg",
+    dark: "/providers/kimi-logomark-dark.svg",
+  },
+  moonshot: {
+    light: "/providers/kimi-logomark-light.svg",
+    dark: "/providers/kimi-logomark-dark.svg",
+  },
+};
+
+const PROVIDER_ICON_ALIASES: Record<string, string> = {
+  "opencode-go": "opencode",
+  "opencode-zen": "opencode",
+  "poe-web": "poe",
+};
 
 const ProviderIcon = memo(function ProviderIcon({
   providerId,
@@ -336,7 +322,6 @@ const ProviderIcon = memo(function ProviderIcon({
   const [remoteSrcFailed, setRemoteSrcFailed] = useState(false);
   const pngKey = `${normalizedId}:png`;
   const svgKey = `${normalizedId}:svg`;
-  const pngKey = `${normalizedId}:png`;
   const theSvgKey = `${normalizedId}:thesvg`;
 
   const trimmedSrc = typeof src === "string" ? src.trim() : "";
@@ -346,7 +331,10 @@ const ProviderIcon = memo(function ProviderIcon({
   // without requiring `images.remotePatterns` allow-listing for arbitrary domains.
   if (trimmedSrc && !remoteSrcFailed) {
     return (
-      <span className={className} style={{ display: "inline-flex", alignItems: "center", ...style }}>
+      <span
+        className={className}
+        style={{ display: "inline-flex", alignItems: "center", ...style }}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element -- operator-supplied remote URL, not a static/known asset */}
         <img
           src={trimmedSrc}
