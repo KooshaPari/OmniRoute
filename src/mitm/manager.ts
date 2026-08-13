@@ -230,46 +230,6 @@ function isProcessAlive(pid: number): boolean {
 }
 
 /**
- * Enumerate every hostname OmniRoute may have written to /etc/hosts during
- * startMitm(): the full agent-target registry plus all custom hosts. Removal
- * via removeDNSEntries() is idempotent (absent entries are skipped), so this
- * set is intentionally over-inclusive — a host that was never spoofed costs
- * nothing to "remove", but a host we forget to list leaks machine-wide.
- * (Gap 8 — clean-stop DNS leak.)
- */
-export function collectManagedHosts(): string[] {
-  const hosts = new Set<string>();
-  for (const target of ALL_TARGETS) {
-    for (const h of target.hosts) hosts.add(h);
-  }
-  try {
-    for (const ch of listCustomHosts()) hosts.add(ch.host);
-  } catch (err) {
-    log.error({ err }, "collectManagedHosts: failed to read custom hosts (continuing)");
-  }
-  return [...hosts];
-}
-
-export interface RepairPlan {
-  dnsHostsToRemove: string[];
-  removeCert: boolean;
-  revertSystemProxy: boolean;
-}
-
-/**
- * Pure description of what a repair must undo. Separated from repairMitm() so
- * the enumeration is unit-testable without touching the OS or requiring sudo.
- * (Gap 7.)
- */
-export function buildRepairPlan(): RepairPlan {
-  return {
-    dnsHostsToRemove: collectManagedHosts(),
-    removeCert: true,
-    revertSystemProxy: true,
-  };
-}
-
-/**
  * Best-effort revert of an applied system proxy. The applied state lives
  * in-memory (captureState), so this only succeeds within the same process that
  * applied it; after a crash the previousState is gone and this is a no-op. DNS
@@ -348,60 +308,6 @@ export function installCleanupHandlers(): void {
  *     for the dashboard's one-click Repair) — we have no way to prompt for a
  *     password inside a signal handler. (Gap 7.)
  * @param _depsOverride - optional dependency override, used in tests for DI.
- */
-export async function handleExitCleanup(
-  signal: string,
-  _depsOverride?: {
-    getCachedPassword?: () => string | null;
-    removeDNSEntry?: (sudoPassword: string) => Promise<void>;
-    removeDNSEntries?: (hosts: string[], sudoPassword: string) => Promise<void>;
-    collectManagedHosts?: () => string[];
-  }
-): Promise<void> {
-  const deps = {
-    getCachedPassword: _depsOverride?.getCachedPassword ?? getCachedPassword,
-    removeDNSEntry: _depsOverride?.removeDNSEntry ?? removeDNSEntry,
-    removeDNSEntries: _depsOverride?.removeDNSEntries ?? removeDNSEntries,
-    collectManagedHosts: _depsOverride?.collectManagedHosts ?? collectManagedHosts,
-  };
-
-  try {
-    if (serverProcess && !serverProcess.killed) serverProcess.kill("SIGTERM");
-  } catch {
-    // ignore
-  }
-
-  const sudoPassword = deps.getCachedPassword();
-  if (!sudoPassword) {
-    _orphanedStateDetected = true;
-    log.warn(
-      { signal },
-      "MITM parent received signal — child terminated; no cached sudo password, run Repair if DNS/CA/proxy were applied."
-    );
-    return;
-  }
-
-  try {
-    await deps.removeDNSEntry(sudoPassword);
-    const managed = deps.collectManagedHosts();
-    if (managed.length > 0) {
-      await deps.removeDNSEntries(managed, sudoPassword);
-    }
-    log.info(
-      { signal },
-      "MITM parent received signal — child terminated and privileged /etc/hosts entries reverted."
-    );
-  } catch (err) {
-    _orphanedStateDetected = true;
-    log.error(
-      { err, signal },
-      "MITM parent received signal — hosts cleanup failed; run Repair if DNS/CA/proxy were applied."
-    );
-  }
-}
-
-/**
- * Get MITM status
  */
 export async function handleExitCleanup(
   signal: string,
@@ -627,51 +533,6 @@ async function startMitmInternal(
   //    all custom hosts with enabled=true.
   log.info("Adding DNS entries...");
   await addDNSEntry(sudoPassword);
-
-  // Collect hosts from agents that have dns_enabled=true in the DB.
-  try {
-    const agentStates = getAllAgentBridgeStates();
-    const agentHostsToAdd: string[] = [];
-    for (const state of agentStates) {
-      if (!state.dns_enabled) continue;
-      const target = ALL_TARGETS.find((t) => t.id === state.agent_id);
-      if (target) {
-        agentHostsToAdd.push(...target.hosts);
-      }
-    }
-  } else {
-    log.info("Loading (or generating) persisted MITM root CA...");
-    try {
-      const ca = await loadOrCreateMitmCa(certDir);
-      certPath = ca.certPath;
-    } catch (err) {
-      log.error({ err }, "Failed to load/generate MITM root CA");
-      throw err;
-    }
-  }
-
-  // 2. Install certificate to system keychain. A failure here must NOT abort the
-  //    bridge: in containers/headless the system trust store can't be written,
-  //    so we start in "untrusted" mode and let the operator trust the CA by hand
-  //    (mirrors the best-effort "continuing" pattern used for DNS below). (#4546)
-  let certTrusted = false;
-  try {
-    const certResult = await installCertResult(sudoPassword, certPath);
-    certTrusted = certResult.installed;
-    if (!certResult.installed) {
-      log.warn(
-        { reason: certResult.reason },
-        "MITM cert not auto-trusted; bridge starting in skip mode (manual trust required)"
-      );
-    }
-  } catch (err) {
-    log.error({ err }, "installCertResult threw unexpectedly (continuing without trusted cert)");
-  }
-
-  // 3. Add DNS entries: Antigravity defaults + all agents with dns_enabled=true +
-  //    all custom hosts with enabled=true. Best-effort — see provisionDnsEntries.
-  log.info("Adding DNS entries...");
-  await provisionDnsEntries(sudoPassword);
 
   // 4. Start MITM server
   log.info("Starting MITM server...");
