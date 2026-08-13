@@ -18,8 +18,8 @@ if (typeof _detectedLimitsSweep === "object" && "unref" in _detectedLimitsSweep)
   (_detectedLimitsSweep as { unref?: () => void }).unref?.();
 }
 
-export function getEffectiveToolLimit(provider: string): number {
-  const proactiveLimit = PROVIDER_TOOL_LIMITS[provider];
+export function getKnownToolLimit(provider: string | null | undefined): number | null {
+  const proactiveLimit = provider ? PROVIDER_TOOL_LIMITS[provider] : undefined;
   if (proactiveLimit !== undefined) {
     return proactiveLimit;
   }
