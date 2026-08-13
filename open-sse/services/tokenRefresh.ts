@@ -14,8 +14,11 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { PROVIDERS } from "../config/constants.ts";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
 import { serializeRefresh, wasRefreshTokenRotated } from "./refreshSerializer.ts";
+import { extractOAuthErrorCode, isUnrecoverableRefreshError } from "./tokenRefresh/shared.ts";
 import { WINDSURF_CONFIG } from "@/lib/oauth/constants/oauth";
 import { buildGitLabOAuthEndpoints, resolveGitLabOAuthBaseUrl } from "@/lib/oauth/gitlab";
+
+export { extractOAuthErrorCode, isUnrecoverableRefreshError } from "./tokenRefresh/shared.ts";
 
 // Default token expiry buffer (refresh if expires within 5 minutes).
 // Used as fallback for providers without an explicit lead time in
@@ -1439,10 +1442,7 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
         !(credentials.projectId || credentials.providerSpecificData?.projectId)
       ) {
         try {
-          const discovered = await ensureAntigravityProjectAssigned(
-            result.accessToken,
-            fetch
-          );
+          const discovered = await ensureAntigravityProjectAssigned(result.accessToken, fetch);
           if (discovered) {
             result.projectId = discovered;
             result.providerSpecificData = {
@@ -1462,7 +1462,8 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
             });
           }
         } catch (discoveryError) {
-          const msg = discoveryError instanceof Error ? discoveryError.message : String(discoveryError);
+          const msg =
+            discoveryError instanceof Error ? discoveryError.message : String(discoveryError);
           log?.warn?.("TOKEN", `Antigravity projectId discovery failed: ${msg}`);
         }
       }
