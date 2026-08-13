@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 const ROOT = process.cwd();
 const DEFAULT_MANIFEST = "config/release/release-contract.json";
@@ -15,7 +16,7 @@ function fail(message) {
 }
 
 function parseArgs(argv = process.argv.slice(2)) {
-  const options = { scope: "all", manifest: DEFAULT_MANIFEST, product: null, json: false };
+  const options = { scope: "all", manifest: DEFAULT_MANIFEST, product: null };
   const seen = new Set();
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -23,13 +24,6 @@ function parseArgs(argv = process.argv.slice(2)) {
     if (argument === "--help" || argument === "-h") {
       return { ...options, help: true };
     }
-    if (argument === "--json") {
-      if (seen.has("json")) fail("duplicate option: --json");
-      seen.add("json");
-      options.json = true;
-      continue;
-    }
-
     const match = argument.match(/^--(scope|manifest|product)(?:=(.*))?$/);
     if (!match) fail(`unknown option: ${argument}`);
     const [, key, inlineValue] = match;
@@ -174,7 +168,7 @@ function extractOpenApiVersion(content) {
       continue;
     }
     if (line.length > 0 && !line.startsWith(" ")) break;
-    const match = line.match(/^\s{2}version:\s*["']?([^"'\s]+)["']?\s*$/);
+    const match = line.match(/^\s{2}version:\s*["']?([^"'\s#]+)["']?(?:\s+#.*)?\s*$/);
     if (match) return match[1];
   }
   return null;
@@ -211,8 +205,12 @@ function checkRelease(manifest) {
     fail('CHANGELOG.md first section must be "## [Unreleased]"');
   const releases = changelogSections.filter((section) => SEMVER.test(section));
   if (releases.length === 0) fail("CHANGELOG.md has no semver release section");
-  if (releases[0] !== version)
-    fail(`latest changelog release (${releases[0]}) differs from package.json (${version})`);
+  const versionOccurrences = releases.filter((release) => release === version).length;
+  if (versionOccurrences !== 1) {
+    fail(
+      `CHANGELOG.md must contain package.json version ${version} exactly once (found ${versionOccurrences})`
+    );
+  }
 
   console.log(`[docs-sync] release identity: ${manifest.product.id} ${version}`);
   console.log(
@@ -295,10 +293,12 @@ export {
   parseArgs,
 };
 
-try {
-  main();
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(`[docs-sync] FAIL - ${message}`);
-  process.exitCode = 1;
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  try {
+    main();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[docs-sync] FAIL - ${message}`);
+    process.exitCode = 1;
+  }
 }

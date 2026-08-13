@@ -2,13 +2,14 @@
 
 ## Current-main facts
 
-- `package.json` declares `@kooshapari/omniroute` version `3.8.49-koosha.0`.
-- `docs/openapi.yaml` and the newest semver `CHANGELOG.md` heading declare the
-  same version.
-- `open-sse` and `electron` intentionally carry independent `3.8.43` versions;
-  they are not declared release artifacts for this product release.
-- `config/i18n.json` declares 42 locales and `src/i18n/messages/` contains all
-  42 locale JSON files.
+- `package.json` declares `omniroute` version `3.8.38`.
+- `docs/openapi.yaml` declares `3.8.38`. CHANGELOG retains the completed
+  `3.8.45` release as its newest historical section while containing the
+  manifest version `3.8.38` exactly once.
+- Known subpackages carry independent `3.8.38` versions; they are not declared
+  release artifacts for this product release.
+- `config/i18n.json` declares 43 locales and `src/i18n/messages/` contains all
+  43 locale JSON files.
 
 ## Governing decision
 

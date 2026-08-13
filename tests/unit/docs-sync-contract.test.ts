@@ -123,6 +123,53 @@ test("rejects version drift in canonical artifacts", () => {
   }
 });
 
+test("accepts a retained newer changelog release when the package version appears once", () => {
+  const root = writeFixture();
+  try {
+    fs.writeFileSync(
+      path.join(root, "CHANGELOG.md"),
+      "# Changelog\n\n## [Unreleased]\n\n## [3.8.45]\n\nLater release\n\n## [1.2.3]\n\nContract release\n"
+    );
+    assert.match(run(root, "--scope=release"), /PASS - release contract/);
+  } finally {
+    removeFixture(root);
+  }
+});
+
+test("rejects duplicate package versions in changelog history", () => {
+  const root = writeFixture();
+  try {
+    fs.writeFileSync(
+      path.join(root, "CHANGELOG.md"),
+      "# Changelog\n\n## [Unreleased]\n\n## [1.2.3]\n\nFirst\n\n## [1.2.3]\n\nDuplicate\n"
+    );
+    runFailure(root, "--scope=release");
+  } finally {
+    removeFixture(root);
+  }
+});
+
+test("accepts an inline OpenAPI version comment while preserving strict semver", () => {
+  const root = writeFixture();
+  try {
+    fs.writeFileSync(path.join(root, "docs/openapi.yaml"), "info:\n  version: 1.2.3 # canonical release\n");
+    assert.match(run(root, "--scope=release"), /PASS - release contract/);
+    fs.writeFileSync(path.join(root, "docs/openapi.yaml"), "info:\n  version: not-semver # invalid\n");
+    runFailure(root, "--scope=release");
+  } finally {
+    removeFixture(root);
+  }
+});
+
+test("can be imported without executing the checker CLI", () => {
+  const output = execFileSync(
+    process.execPath,
+    ["--input-type=module", "--eval", `import ${JSON.stringify(`file://${checker}`)}; console.log(\"imported\");`],
+    { cwd: repositoryRoot, encoding: "utf8", stdio: "pipe" }
+  );
+  assert.equal(output.trim(), "imported");
+});
+
 test("rejects malformed package versions and changelog order", () => {
   const badPackage = writeFixture({ packagePatch: { version: "not-semver" } });
   try {
@@ -219,6 +266,7 @@ test("rejects invalid CLI values and mismatched product selection", () => {
     runFailure(root, "--product", "Fixture-Product");
     runFailure(root, "--product", "other-product");
     runFailure(root, "--scope", "all", "--scope", "release");
+    runFailure(root, "--json");
   } finally {
     removeFixture(root);
   }
