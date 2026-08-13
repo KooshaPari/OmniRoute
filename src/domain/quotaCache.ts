@@ -386,67 +386,6 @@ function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry |
   return entry;
 }
 
-function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry | null {
-  if (cache.has(connectionId)) return cache.get(connectionId) || null;
-
-  let snapshots;
-  try {
-    snapshots = getLatestQuotaSnapshotsForConnection(connectionId);
-  } catch {
-    return null;
-  }
-  if (!snapshots.length) return null;
-
-  const quotas: Record<string, QuotaInfo> = {};
-  let provider = "";
-  let fetchedAt = 0;
-  let exhausted = false;
-  let windowDurationMs: number | null = null;
-
-  for (const snapshot of snapshots) {
-    const camelSnapshot = snapshot as unknown as {
-      windowKey?: string;
-      remainingPercentage?: number | null;
-      isExhausted?: number;
-      nextResetAt?: string | null;
-      windowDurationMs?: number | null;
-      createdAt?: string;
-    };
-    const windowKey = camelSnapshot.windowKey ?? snapshot.window_key;
-    if (!windowKey) continue;
-    provider = provider || snapshot.provider || "";
-    quotas[windowKey] = {
-      remainingPercentage: clampPercent(
-        Number(camelSnapshot.remainingPercentage ?? snapshot.remaining_percentage ?? 0)
-      ),
-      resetAt: camelSnapshot.nextResetAt ?? snapshot.next_reset_at ?? null,
-    };
-    exhausted = exhausted || (camelSnapshot.isExhausted ?? snapshot.is_exhausted) === 1;
-    const snapshotWindowDurationMs =
-      camelSnapshot.windowDurationMs ?? snapshot.window_duration_ms ?? null;
-    if (snapshotWindowDurationMs && snapshotWindowDurationMs > 0) {
-      windowDurationMs = snapshotWindowDurationMs;
-    }
-    const createdAtVal = camelSnapshot.createdAt ?? snapshot.created_at;
-    const createdAtMs = createdAtVal ? parseDate(createdAtVal) : null;
-    if (createdAtMs !== null) fetchedAt = Math.max(fetchedAt, createdAtMs);
-  }
-
-  if (Object.keys(quotas).length === 0) return null;
-
-  const entry: QuotaCacheEntry = {
-    connectionId,
-    provider,
-    quotas,
-    fetchedAt: fetchedAt || Date.now(),
-    exhausted,
-    nextResetAt: exhausted ? earliestResetAt(quotas) : null,
-    windowDurationMs,
-  };
-  cache.set(connectionId, entry);
-  return entry;
-}
-
 /**
  * Check if an account's quota is exhausted based on cached data.
  * Returns false if no cache entry exists (unknown = assume available).
