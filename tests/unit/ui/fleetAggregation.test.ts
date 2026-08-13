@@ -31,7 +31,7 @@ function ev(
   };
 }
 
-// ── aggregateComboEventsToSets ────────────────────────────────────────────
+// aggregateComboEventsToSets
 
 describe("aggregateComboEventsToSets — basic categorization", () => {
   it("puts a recently failed provider in error set", () => {
