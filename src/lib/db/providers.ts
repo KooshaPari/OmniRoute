@@ -53,7 +53,7 @@ export async function getProviderConnections(
   filter: JsonRecord = {},
   limit?: number,
   offset?: number,
-  columns?: string[],
+  columns?: string[]
 ) {
   const useCache = !columns?.length && limit === undefined && offset === undefined;
   const raw = useCache
@@ -79,7 +79,7 @@ export async function getRawProviderConnections(
   filter: JsonRecord = {},
   limit?: number,
   offset?: number,
-  columns?: string[],
+  columns?: string[]
 ) {
   const db = getDbInstance() as unknown as DbLike;
   let selectCols = "*";
@@ -110,8 +110,6 @@ export async function getRawProviderConnections(
     conditions.push("auth_type = @authType");
     params.authType = filter.authType;
   }
-
-
 
   if (conditions.length > 0) {
     sql += " WHERE " + conditions.join(" AND ");
@@ -785,8 +783,9 @@ export async function clearConnectionErrorIfUnchanged(
   }
 ): Promise<boolean> {
   const db = getDbInstance() as unknown as DbLike;
-  const result = db.prepare(
-    `
+  const result = db
+    .prepare(
+      `
     UPDATE provider_connections SET
       test_status = 'active',
       last_error = NULL,
@@ -802,13 +801,14 @@ export async function clearConnectionErrorIfUnchanged(
       AND IFNULL(last_error_at, '') = ?
       AND IFNULL(rate_limited_until, '') = ?
     `
-  ).run(
-    new Date().toISOString(),
-    id,
-    expected.testStatus ?? "",
-    expected.lastErrorAt ?? "",
-    expected.rateLimitedUntil ?? ""
-  );
+    )
+    .run(
+      new Date().toISOString(),
+      id,
+      expected.testStatus ?? "",
+      expected.lastErrorAt ?? "",
+      expected.rateLimitedUntil ?? ""
+    );
   const applied = (result.changes ?? 0) > 0;
   if (applied) {
     backupDbFile("pre-write");
@@ -925,62 +925,7 @@ export async function getDistinctGroups(): Promise<string[]> {
   return rows.map((r) => String(r.group ?? "")).filter(Boolean);
 }
 
-export {
-  autoMigrateLegacyEncryptedConnections,
-  getGheCopilotHosts,
-} from "./providers/migrations";
-
-// ──────────────── Re-exports from leaf modules ────────────────
-
-  for (const row of rows) {
-    const camelRow = rowToCamel(row);
-    if (!camelRow) continue;
-
-    let updatedRow = false;
-
-    const encryptedFields = ["apiKey", "idToken", "accessToken", "refreshToken"];
-    for (const field of encryptedFields) {
-      if (typeof camelRow[field] === "string") {
-        const { updated, value } = migrateLegacyEncryptedString(camelRow[field] as string);
-        if (updated) {
-          camelRow[field] = value;
-          updatedRow = true;
-        }
-      }
-    }
-
-    if (updatedRow) {
-      // camelRow[field] is already re-encrypted!
-      // But _updateConnectionRow does not re-encrypt automatically, so we pass it safely.
-      // Wait, _updateConnectionRow runs the full data through `encryptConnectionFields`,
-      // but `encryptConnectionFields` will re-encrypt plain text.
-      // BUT `migrateLegacyEncryptedString` returns ALREADY ENCRYPTED ciphertext!
-      // Wait... if we pass ALREADY ENCRYPTED text to `_updateConnectionRow`,
-      // `encryptConnectionFields` in `_updateConnectionRow` will encrypt it AGAIN!
-      // Let's modify the DB directly so we don't double encrypt.
-
-      db.prepare(
-        "UPDATE provider_connections SET api_key = @apiKey, id_token = @idToken, access_token = @accessToken, refresh_token = @refreshToken, updated_at = @updatedAt WHERE id = @id"
-      ).run({
-        id: camelRow.id,
-        apiKey: camelRow.apiKey ?? null,
-        idToken: camelRow.idToken ?? null,
-        accessToken: camelRow.accessToken ?? null,
-        refreshToken: camelRow.refreshToken ?? null,
-        updatedAt: new Date().toISOString(),
-      });
-      migratedCount++;
-    }
-  }
-
-  if (migratedCount > 0) {
-    backupDbFile("pre-write");
-    invalidateDbCache("connections");
-    console.log(`[DB] Auto-migrated ${migratedCount} connection(s) to new static-salt encryption.`);
-  }
-
-  return migratedCount;
-}
+export { autoMigrateLegacyEncryptedConnections, getGheCopilotHosts } from "./providers/migrations";
 
 // ──────────────── Re-exports from leaf modules ────────────────
 
