@@ -3,7 +3,7 @@
   "product": {
     "id": "omniroute",
     "name": "OmniRoute",
-    "packageName": "@kooshapari/omniroute"
+    "packageName": "omniroute"
   },
   "versionSources": [
     { "path": "package.json", "kind": "package" },
