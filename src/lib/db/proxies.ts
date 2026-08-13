@@ -43,109 +43,6 @@ export function getProxyRegistryGeneration() {
   return proxyRegistryGeneration;
 }
 
-function toRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" ? (value as JsonRecord) : {};
-}
-
-function mapProxyRow(row: unknown): ProxyRegistryRecord {
-  const r = toRecord(row);
-  return {
-    id: typeof r.id === "string" ? r.id : "",
-    name: typeof r.name === "string" ? r.name : "",
-    type: typeof r.type === "string" ? r.type : "http",
-    host: typeof r.host === "string" ? r.host : "",
-    port: Number(r.port) || 0,
-    username: typeof r.username === "string" ? r.username : "",
-    password: typeof r.password === "string" ? r.password : "",
-    region: typeof r.region === "string" ? r.region : null,
-    notes: typeof r.notes === "string" ? r.notes : null,
-    status: typeof r.status === "string" ? r.status : "active",
-    source: typeof r.source === "string" ? r.source : "manual",
-    family: typeof r.family === "string" ? r.family : "auto",
-    createdAt: typeof r.created_at === "string" ? r.created_at : "",
-    updatedAt: typeof r.updated_at === "string" ? r.updated_at : "",
-  };
-}
-
-function mapAssignmentRow(row: unknown): ProxyAssignmentRecord {
-  const r = toRecord(row);
-  const scope = (typeof r.scope === "string" ? r.scope : "global") as ProxyScope;
-  const rawScopeId = typeof r.scope_id === "string" ? r.scope_id : null;
-  return {
-    id: Number(r.id) || 0,
-    proxyId: typeof r.proxy_id === "string" ? r.proxy_id : "",
-    scope,
-    scopeId: scope === "global" && rawScopeId === "__global__" ? null : rawScopeId,
-    createdAt: typeof r.created_at === "string" ? r.created_at : "",
-    updatedAt: typeof r.updated_at === "string" ? r.updated_at : "",
-  };
-}
-
-// Edge-relay proxy types. Mirrors RELAY_TYPES in open-sse/utils/proxyDispatcher.
-// Duplicated here (not imported) to keep src/lib/db/ free of open-sse runtime
-// imports; if a third relay backend lands, update BOTH sets.
-const RELAY_PROXY_TYPES = new Set(["vercel", "deno", "cloudflare"]);
-
-function isRelayProxyType(type: unknown): boolean {
-  return typeof type === "string" && RELAY_PROXY_TYPES.has(type);
-}
-
-export function extractRelayAuth(notes: unknown): string | undefined {
-  if (typeof notes !== "string") return undefined;
-  try {
-    const parsed = JSON.parse(notes) as {
-      relayAuth?: string;
-      relayAuthEnc?: string;
-    };
-    // Prefer the encrypted form when both are present (legacy plaintext rows
-    // are still readable until migrated). decrypt() is a no-op when encryption
-    // is disabled, matching the existing convention for webhook secrets.
-    if (parsed.relayAuthEnc) {
-      const dec = decrypt(parsed.relayAuthEnc);
-      if (dec) return dec;
-    }
-    return parsed.relayAuth || undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-function toRegistryProxyResolution(row: unknown, level: ProxyScope, levelId: string | null) {
-  const record = toRecord(row);
-  const relayAuth = isRelayProxyType(record.type) ? extractRelayAuth(record.notes) : undefined;
-  return {
-    proxy: {
-      type: record.type,
-      host: record.host,
-      port: record.port,
-      username: record.username,
-      password: record.password,
-      family: typeof record.family === "string" ? record.family : "auto",
-      ...(relayAuth !== undefined ? { relayAuth } : {}),
-    },
-    level,
-    levelId,
-    source: "registry",
-  };
-}
-
-function normalizeScope(scope: string): ProxyScope {
-  const value = String(scope || "").toLowerCase();
-  if (value === "key") return "account";
-  if (value === "provider") return "provider";
-  if (value === "account") return "account";
-  if (value === "combo") return "combo";
-  return "global";
-}
-
-function normalizeAssignmentScopeId(scope: ProxyScope, scopeId?: string | null) {
-  return scope === "global" ? "__global__" : scopeId || null;
-}
-
-function toLegacyProxyLevel(scope: ProxyScope) {
-  return scope === "account" ? "key" : scope;
-}
-
 // Mutate legacy proxyConfig rows directly so these writes stay inside the same
 // SQLite transaction as the proxy registry row and assignment upsert.
 function clearLegacyProxyForAssignment(
@@ -354,9 +251,7 @@ export async function listProxies(options?: { includeSecrets?: boolean }) {
     params.push(limit, offset);
   }
   const rows = db.prepare(sql).all(...params) as unknown[];
-  const total = (
-    db.prepare("SELECT count(*) as cnt FROM proxy_registry").get() as CountResult
-  ).cnt;
+  const total = (db.prepare("SELECT count(*) as cnt FROM proxy_registry").get() as CountResult).cnt;
   const proxies = rows.map(mapProxyRow);
   return { items: includeSecrets ? proxies : proxies.map(redactProxySecrets), total };
 }
@@ -812,13 +707,23 @@ function getOrCreateRotationRow(
   db: ReturnType<typeof getDbInstance>,
   normalizedScope: string,
   rotationScopeId: string
-): { strategy: ProxyRotationStrategy; cursor: number; stickyWindowMinutes: number; rotatedAt: string | null } {
+): {
+  strategy: ProxyRotationStrategy;
+  cursor: number;
+  stickyWindowMinutes: number;
+  rotatedAt: string | null;
+} {
   const row = db
     .prepare(
       "SELECT strategy, cursor, sticky_window_minutes, rotated_at FROM proxy_scope_rotation WHERE scope = ? AND scope_id IS ?"
     )
     .get(normalizedScope, rotationScopeId) as
-    | { strategy?: string; cursor?: number; sticky_window_minutes?: number; rotated_at?: string | null }
+    | {
+        strategy?: string;
+        cursor?: number;
+        sticky_window_minutes?: number;
+        rotated_at?: string | null;
+      }
     | undefined;
 
   if (row) {
@@ -871,7 +776,13 @@ function pickFromCandidates<T>(
       cursor = state.cursor + 1;
       db.prepare(
         "UPDATE proxy_scope_rotation SET cursor = ?, rotated_at = ?, updated_at = ? WHERE scope = ? AND scope_id IS ?"
-      ).run(cursor, new Date().toISOString(), new Date().toISOString(), normalizedScope, rotationScopeId);
+      ).run(
+        cursor,
+        new Date().toISOString(),
+        new Date().toISOString(),
+        normalizedScope,
+        rotationScopeId
+      );
     }
     const idx = ((cursor % candidates.length) + candidates.length) % candidates.length;
     return candidates[idx];
@@ -1105,7 +1016,8 @@ export async function migrateLegacyProxyConfigToRegistry(options?: { force?: boo
   const db = getDbInstance();
 
   const existingCountRow = db.prepare("SELECT COUNT(*) AS cnt FROM proxy_registry").get() as
-    { cnt?: number } | undefined;
+    | { cnt?: number }
+    | undefined;
   const existingCount = Number(existingCountRow?.cnt || 0);
   if (!force && existingCount > 0) {
     return { migrated: 0, skipped: true, reason: "registry_not_empty" as const };
