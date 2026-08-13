@@ -7,50 +7,102 @@ import test from "node:test";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "..", "..");
 
-test("ADR 0005 atomically excludes generated documentation mirrors from git", () => {
+test("ADR 0005 declares generated documentation mirrors as optional artifacts", () => {
   const adr = fs.readFileSync(
     path.join(repositoryRoot, "docs/adr/0005-i18n-gitignore-strategy.md"),
     "utf8",
   );
-  const gitignore = fs.readFileSync(path.join(repositoryRoot, ".gitignore"), "utf8");
-  const trackedMirrors = execFileSync("git", ["ls-files", "docs/i18n/**"], {
-    cwd: repositoryRoot,
-    encoding: "utf8",
-  }).trim();
 
   assert.match(adr, /> Status: \*\*Accepted\*\*/);
-  assert.match(gitignore, /^\/docs\/i18n\/$/m);
-  assert.match(gitignore, /^\/docs\/_audit\.json$/m);
-  assert.match(gitignore, /^\/docs\/_pending-keys\.json$/m);
-  assert.match(gitignore, /^\/scripts\/i18n\/_cache\/$/m);
-  assert.equal(trackedMirrors, "", "generated mirrors must be entirely untracked");
+  assert.match(adr, /\*\*Gitignore the entire `docs\/i18n\/` tree\*\* and any i18n sidecar files\./);
+  assert.match(adr, /CI\/CD pipeline regenerates the content as a build artifact\./);
+  assert.match(adr, /i18n is a build output, not a build input\./);
 });
 
 test("docs sync ignores generated i18n mirror artifacts per ADR 0005", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "docs-sync-"));
+  const version = "3.8.38";
+  fs.mkdirSync(path.join(root, "config/release"), { recursive: true });
+  fs.mkdirSync(path.join(root, "docs"), { recursive: true });
+  fs.mkdirSync(path.join(root, "src/i18n/messages"), { recursive: true });
+  fs.writeFileSync(path.join(root, "package.json"), '{"name":"omniroute","version":"3.8.38"}\n');
+  fs.writeFileSync(path.join(root, "docs/openapi.yaml"), `info:\n  version: ${version}\n`);
+  fs.writeFileSync(
+    path.join(root, "CHANGELOG.md"),
+    `# Changelog\n\n## [Unreleased]\n\n## [${version}]\n\nRelease\n`
+  );
+  fs.writeFileSync(
+    path.join(root, "config/i18n.json"),
+    JSON.stringify({ default: "en", locales: [{ code: "en" }, { code: "fr" }] }) + "\n"
+  );
+  fs.writeFileSync(path.join(root, "src/i18n/messages/en.json"), "{}\n");
+  fs.writeFileSync(path.join(root, "src/i18n/messages/fr.json"), "{}\n");
+  fs.writeFileSync(
+    path.join(root, "config/release/release-contract.json"),
+    JSON.stringify({
+      schemaVersion: 1,
+      product: { id: "omniroute", name: "OmniRoute", packageName: "omniroute" },
+      versionSources: [
+        { path: "package.json", kind: "package" },
+        { path: "docs/openapi.yaml", kind: "openapi" },
+        { path: "CHANGELOG.md", kind: "changelog" },
+      ],
+      i18n: {
+        policy: "generated-docs-ignored",
+        configPath: "config/i18n.json",
+        messagesPath: "src/i18n/messages",
+        statePath: ".i18n-state.json",
+        generatedDocsPath: "docs/i18n",
+        stateMode: "optional-artifact",
+      },
+    }) + "\n"
+  );
+  const script = path.join(repositoryRoot, "scripts/check/check-docs-sync.mjs");
+  const assertContractPasses = () => {
+    for (const scope of ["mirrors", "all"]) {
+      const output = execFileSync(process.execPath, [script, "--scope", scope], {
+        cwd: root,
+        encoding: "utf8",
+      });
+      assert.match(output, new RegExp(`PASS - ${scope} contract is consistent`));
+      assert.doesNotMatch(output, /i18n mirror|i18n translation/);
+    }
+  };
+
+  assertContractPasses();
   fs.mkdirSync(path.join(root, "docs/i18n/fr"), { recursive: true });
-  fs.mkdirSync(path.join(root, "docs/i18n/de"), { recursive: true });
-  fs.writeFileSync(path.join(root, "package.json"), '{"version":"1.2.3"}\n');
-  fs.writeFileSync(path.join(root, "docs/openapi.yaml"), "info:\n  version: 1.2.3\n");
-  fs.writeFileSync(path.join(root, "CHANGELOG.md"), "# Changelog\n\n## [Unreleased]\n\n## [1.2.3]\n\nRelease\n");
-  fs.writeFileSync(path.join(root, "llm.txt"), "# OmniRoute\n\nCanonical\n");
   fs.writeFileSync(path.join(root, "docs/i18n/fr/llm.txt"), "stale generated mirror\n");
   fs.writeFileSync(path.join(root, "docs/i18n/fr/CHANGELOG.md"), "stale generated mirror\n");
-
-  const script = path.join(repositoryRoot, "scripts/check/check-docs-sync.mjs");
-  const output = execFileSync(process.execPath, [script], { cwd: root, encoding: "utf8" });
-  assert.match(output, /PASS - documentation version sync is consistent/);
-  assert.doesNotMatch(output, /i18n mirror|i18n translation/);
+  assertContractPasses();
   fs.rmSync(root, { recursive: true, force: true });
 });
 
 test("docs sync remains strict for canonical version inputs", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "docs-sync-canonical-"));
+  fs.mkdirSync(path.join(root, "config/release"), { recursive: true });
   fs.mkdirSync(path.join(root, "docs"), { recursive: true });
-  fs.writeFileSync(path.join(root, "package.json"), '{"version":"1.2.3"}\n');
+  fs.writeFileSync(path.join(root, "package.json"), '{"name":"omniroute","version":"1.2.3"}\n');
   fs.writeFileSync(path.join(root, "docs/openapi.yaml"), "info:\n  version: 9.9.9\n");
   fs.writeFileSync(path.join(root, "CHANGELOG.md"), "# Changelog\n\n## [1.2.3]\n");
   fs.writeFileSync(path.join(root, "llm.txt"), "# OmniRoute\n");
+  fs.writeFileSync(
+    path.join(root, "config/release/release-contract.json"),
+    JSON.stringify({
+      schemaVersion: 1,
+      product: { id: "omniroute", name: "OmniRoute", packageName: "omniroute" },
+      versionSources: [
+        { path: "package.json", kind: "package" },
+        { path: "docs/openapi.yaml", kind: "openapi" },
+        { path: "CHANGELOG.md", kind: "changelog" },
+      ],
+      i18n: {
+        policy: "generated-docs-ignored",
+        configPath: "config/i18n.json",
+        messagesPath: "src/i18n/messages",
+        generatedDocsPath: "docs/i18n",
+      },
+    }) + "\n"
+  );
 
   const script = path.join(repositoryRoot, "scripts/check/check-docs-sync.mjs");
   assert.throws(
