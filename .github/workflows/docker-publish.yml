@@ -42,7 +42,7 @@ jobs:
       IMAGE_NAME: kooshapari/omniroute
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
         with:
           persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
@@ -145,7 +145,7 @@ jobs:
       GHCR_IMAGE_NAME: ghcr.io/kooshapari/omniroute
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
         with:
           persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
@@ -212,7 +212,7 @@ jobs:
           touch "/tmp/digests/web/${DIGEST_WEB#sha256:}"
 
       - name: Upload base digests
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a 
         with:
           name: digests-base-${{ matrix.arch }}
           path: /tmp/digests/base/*
@@ -220,7 +220,7 @@ jobs:
           retention-days: 1
 
       - name: Upload web digests
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a 
         with:
           name: digests-web-${{ matrix.arch }}
           path: /tmp/digests/web/*
@@ -245,7 +245,7 @@ jobs:
       PROMOTE_LATEST: ${{ needs.prepare.outputs.promote_latest }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
         with:
           persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
@@ -268,14 +268,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download base digests
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c 
         with:
           pattern: digests-base-*
           path: /tmp/digests/base
           merge-multiple: true
 
       - name: Download web digests
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c 
         with:
           pattern: digests-web-*
           path: /tmp/digests/web
@@ -390,7 +390,7 @@ jobs:
       - name: Upload Trivy SARIF to Security tab
         if: needs.prepare.outputs.version != 'main'
         continue-on-error: true
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 
         with:
           sarif_file: trivy-results.sarif
           category: trivy-image
