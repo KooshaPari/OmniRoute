@@ -11,7 +11,7 @@ import assert from "node:assert/strict";
 import { aggregateComboEventsToSets } from "../../../src/app/(dashboard)/dashboard/combos/live/fleetAggregation.ts";
 import type { ComboEventInput } from "../../../src/app/(dashboard)/dashboard/combos/live/comboFlowModel.ts";
 
-// ── helpers ───────────────────────────────────────────────────────────────
+// Helpers
 
 const WINDOW_MS = 10_000; // 10 seconds
 const NOW = 1_000_000; // fixed "now" for deterministic tests
