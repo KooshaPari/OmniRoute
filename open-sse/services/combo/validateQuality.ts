@@ -12,10 +12,7 @@ import {
   isKnownNonClaudeStreamPayload,
   isOpenAIChoicesPayload,
 } from "../../utils/streamHelpers.ts";
-import {
-  evaluateResponseValidation,
-  type ResponseValidationConfig,
-} from "./responseValidation.ts";
+import { evaluateResponseValidation, type ResponseValidationConfig } from "./responseValidation.ts";
 import { getReasoningTokens } from "../../../src/lib/usage/tokenAccounting.ts";
 import type { ComboRetryAfter } from "./types.ts";
 
@@ -25,6 +22,26 @@ export function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date 
     return new Date(Date.now() + value * 1000);
   }
   return new Date(value);
+}
+
+// Issue #6427: some providers mask credit/quota exhaustion behind an HTTP 200.
+const EXHAUSTION_MARKER_PATTERN =
+  /\b(insufficient\s+credit|insufficient\s+balance|quota\s+exceeded|out\s+of\s+credits?|credit\s+exhausted)\b/i;
+
+function extractEnvelopeErrorText(json: Record<string, unknown>): string | null {
+  const parts: string[] = [];
+  const err = json.error;
+  if (err && typeof err === "object") {
+    const envelope = err as Record<string, unknown>;
+    if (typeof envelope.message === "string") parts.push(envelope.message);
+    if (typeof envelope.code === "string") parts.push(envelope.code);
+    if (typeof envelope.type === "string") parts.push(envelope.type);
+  } else if (typeof err === "string" && err.length > 0) {
+    parts.push(err);
+  }
+  if (typeof json.message === "string") parts.push(json.message);
+  if (typeof json.detail === "string") parts.push(json.detail);
+  return parts.length > 0 ? parts.join(" ") : null;
 }
 
 function responsesApiOutputHasContent(output: unknown): boolean {
@@ -130,9 +147,9 @@ export async function validateResponseQuality(
     function isTerminalUsageOnlyChunk(parsed: Record<string, unknown>, eventType: string): boolean {
       return Boolean(
         parsed.usage &&
-          typeof parsed.usage === "object" &&
-          !Array.isArray(parsed.choices) &&
-          !eventType.startsWith("response.")
+        typeof parsed.usage === "object" &&
+        !Array.isArray(parsed.choices) &&
+        !eventType.startsWith("response.")
       );
     }
 
@@ -365,31 +382,30 @@ export async function validateResponseQuality(
     return { valid: false, reason: "response is not valid JSON" };
   }
 
-  const choices = json?.choices;
-  if (json?.object === "response") {
-    if (!responsesApiOutputHasContent(json.output)) return { valid: false, reason: "empty_choices" };
-    const status = typeof json.status === "string" ? json.status : "";
-    if (status && !["completed", "done"].includes(status)) {
-      return { valid: false, reason: "no_terminal" };
-    }
-    return {
-      valid: true,
-      clonedResponse: new Response(text, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-      }),
-    };
+  if (responseValidation) {
+    const verdict = evaluateResponseValidation(json, responseValidation);
+    if (!verdict.valid) return { valid: false, reason: verdict.reason };
   }
 
-  if (!Array.isArray(choices) || choices.length === 0) {
-    if (json?.output || json?.result || json?.data || json?.response) return { valid: true };
-    if (json?.error) {
-      const err = json.error as Record<string, unknown>;
-      return {
-        valid: false,
-        reason: `upstream error in 200 body: ${err?.message || JSON.stringify(json.error).substring(0, 200)}`,
-      };
+  const rawError = json.error;
+  const errorIsMeaningful =
+    (typeof rawError === "string" && rawError.length > 0) ||
+    (!!rawError && typeof rawError === "object" && Object.keys(rawError).length > 0);
+  if (errorIsMeaningful) {
+    const envelopeText = extractEnvelopeErrorText(json);
+    const errMsg =
+      rawError &&
+      typeof rawError === "object" &&
+      typeof (rawError as Record<string, unknown>).message === "string"
+        ? ((rawError as Record<string, unknown>).message as string)
+        : envelopeText || JSON.stringify(rawError).substring(0, 200);
+    return { valid: false, reason: `upstream error in 200 body: ${errMsg}` };
+  }
+  {
+    const envelopeText = extractEnvelopeErrorText(json);
+    if (envelopeText && EXHAUSTION_MARKER_PATTERN.test(envelopeText)) {
+      const snippet = envelopeText.length > 80 ? `${envelopeText.slice(0, 80)}...` : envelopeText;
+      return { valid: false, reason: `upstream exhaustion marker in 200 body: ${snippet}` };
     }
   }
 
