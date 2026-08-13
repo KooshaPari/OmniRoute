@@ -265,9 +265,9 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     // `arena-auth-prod-v1` cookie is now empty and the session is split across
     // `arena-auth-prod-v1.0`, `arena-auth-prod-v1.1`, … Users must paste the FULL
     // Cookie header so the executor can reconstruct the single cookie from chunks.
-    credentialName: "arena-auth-prod-v1",
+    credentialName: "full Cookie header (arena-auth-prod-v1.0 + arena-auth-prod-v1.1)",
     placeholder:
-      "Paste the full Cookie header from lmarena.ai (the session is now split across arena-auth-prod-v1.0, .1, …)",
+      "arena-auth-prod-v1.0=...; arena-auth-prod-v1.1=...; other=value (full Cookie header from arena.ai)",
     acceptsFullCookieHeader: true,
     storageKeys: [
       "cookie",
@@ -276,8 +276,11 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
       "arena-auth-prod-v1.1",
       "session",
     ],
+    hintKey: "lmarenaWebCookieHint",
+    hintFallback:
+      "Open arena.ai, sign in, then copy the full Cookie header from a Network request. Include arena-auth-prod-v1.0 and arena-auth-prod-v1.1 (and further chunks if present), preferably with cf_clearance. Do not paste only the empty arena-auth-prod-v1 cookie. Optional: providerSpecificData.recaptchaV3Token if create-evaluation still returns 403.",
   },
-  "promptql": {
+  promptql: {
     kind: "token",
     credentialName: "Bearer JWT (optional: projectId, session Cookie)",
     placeholder: "eyJ...  (Authorization Bearer from prompt.ql.app)",
