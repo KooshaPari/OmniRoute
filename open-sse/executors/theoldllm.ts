@@ -406,8 +406,9 @@ export class TheOldLlmExecutor extends BaseExecutor {
 
       if (upstream.status === 200 && finalBody) {
         const payload = stream ? finalBody : buildChatCompletion(parseSseContent(finalBody), model);
-        return {
-          response: new Response(encoder.encode(payload), {
+        return this.executionResult(
+          input,
+          new Response(encoder.encode(payload), {
             status: 200,
             headers: {
               "Content-Type": stream ? "text/event-stream" : "application/json",
@@ -433,19 +434,19 @@ export class TheOldLlmExecutor extends BaseExecutor {
       const proxyUnavailable = err instanceof TheOldLlmProxyUnavailableError;
       const msg = err instanceof Error ? err.message : String(err);
       log?.error?.("THEOLDLLM", `Executor error: ${msg}`);
-      return {
-        response: new Response(
-          encoder.encode(
-            JSON.stringify({
-              error: { message: msg, type: "upstream_error", code: "EXECUTOR_ERROR" },
-            })
-          ),
-          { status: 502, headers: { "Content-Type": "application/json" } }
-        ),
-        url: API_URL,
-        headers: this.buildHeaders(input.credentials),
-        transformedBody: body,
-      };
+      const errorPayload = proxyUnavailable
+        ? buildProxyUnavailableError()
+        : JSON.stringify({
+            error: { message: msg, type: "upstream_error", code: "EXECUTOR_ERROR" },
+          });
+      return this.executionResult(
+        input,
+        new Response(encoder.encode(errorPayload), {
+          status: proxyUnavailable ? 503 : 502,
+          headers: { "Content-Type": "application/json" },
+        }),
+        body
+      );
     }
   }
 }
