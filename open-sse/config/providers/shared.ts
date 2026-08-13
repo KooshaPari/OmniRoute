@@ -150,6 +150,23 @@ export interface RegistryEntry {
   forceStream?: boolean;
 }
 
+/**
+ * Build a standard OpenAI-compatible provider registry entry.
+ * Eliminates the repeated format, executor, and API-key auth boilerplate.
+ */
+export function buildOpenAiCompatibleRegistryEntry(
+  overrides: Pick<RegistryEntry, "id"> &
+    Partial<Omit<RegistryEntry, "id" | "format" | "executor" | "authType" | "authHeader">>
+): RegistryEntry {
+  return {
+    format: "openai",
+    executor: "default",
+    authType: "apikey",
+    authHeader: "bearer",
+    ...overrides,
+  } as RegistryEntry;
+}
+
 export interface LegacyProvider {
   format: string;
   baseUrl?: string;
