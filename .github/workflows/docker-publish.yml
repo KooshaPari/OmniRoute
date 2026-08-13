@@ -42,7 +42,7 @@ jobs:
       IMAGE_NAME: kooshapari/omniroute
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
@@ -145,23 +145,23 @@ jobs:
       GHCR_IMAGE_NAME: ghcr.io/kooshapari/omniroute
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
           fetch-depth: 0
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c  # yamllint disable-line rule:line-length
 
       - name: Login to Docker Hub
-        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0  # yamllint disable-line rule:line-length
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0  # yamllint disable-line rule:line-length
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -169,7 +169,7 @@ jobs:
 
       - name: Build and push platform image by digest
         id: build
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a  # yamllint disable-line rule:line-length
         with:
           context: .
           target: runner-base
@@ -186,7 +186,7 @@ jobs:
 
       - name: Build and push WEB platform image by digest
         id: build-web
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a  # yamllint disable-line rule:line-length
         with:
           context: .
           target: runner-web
@@ -212,7 +212,7 @@ jobs:
           touch "/tmp/digests/web/${DIGEST_WEB#sha256:}"
 
       - name: Upload base digests
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a 
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # yamllint disable-line rule:line-length
         with:
           name: digests-base-${{ matrix.arch }}
           path: /tmp/digests/base/*
@@ -220,7 +220,7 @@ jobs:
           retention-days: 1
 
       - name: Upload web digests
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a 
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # yamllint disable-line rule:line-length
         with:
           name: digests-web-${{ matrix.arch }}
           path: /tmp/digests/web/*
@@ -245,37 +245,37 @@ jobs:
       PROMOTE_LATEST: ${{ needs.prepare.outputs.promote_latest }}
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
           fetch-depth: 0
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c  # yamllint disable-line rule:line-length
 
       - name: Login to Docker Hub
-        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0  # yamllint disable-line rule:line-length
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0  # yamllint disable-line rule:line-length
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download base digests
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c 
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # yamllint disable-line rule:line-length
         with:
           pattern: digests-base-*
           path: /tmp/digests/base
           merge-multiple: true
 
       - name: Download web digests
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c 
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # yamllint disable-line rule:line-length
         with:
           pattern: digests-web-*
           path: /tmp/digests/web
@@ -390,7 +390,7 @@ jobs:
       - name: Upload Trivy SARIF to Security tab
         if: needs.prepare.outputs.version != 'main'
         continue-on-error: true
-        uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 
+        uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3  # yamllint disable-line rule:line-length
         with:
           sarif_file: trivy-results.sarif
           category: trivy-image
@@ -399,7 +399,7 @@ jobs:
         # Only refresh README/description when we actually promote :latest
         # (avoids overwriting from main pushes or back-fill builds).
         if: needs.prepare.outputs.promote_latest == 'true'
-        uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa
+        uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa  # yamllint disable-line rule:line-length
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
