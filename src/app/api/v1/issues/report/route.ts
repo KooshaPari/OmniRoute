@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   const repo = process.env.GITHUB_ISSUES_REPO;
   const token = process.env.GITHUB_ISSUES_TOKEN;
 
-  // ── Structured body for the GitHub issue ──
+  // Structured body for the GitHub issue
   const issueBody = [
     `## ${errorCode ?? "Key Issuance Event"}`,
     "",
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     .filter(Boolean)
     .join("\n");
 
-  // ── Log locally regardless ──
+  // Log locally regardless
   console.log(
     `[issues/report] title="${title}" errorCode=${errorCode ?? "—"} provider=${provider ?? "—"} accountId=${accountId ?? "—"}`
   );
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // ── Create GitHub issue ──
+  // Create GitHub issue
   try {
     const [owner, repoName] = repo.split("/");
     const ghRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/issues`, {

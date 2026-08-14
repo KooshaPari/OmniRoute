@@ -62,7 +62,7 @@ export async function GET(request: Request) {
   });
 }
 
-// ── kiro-cli SQLite reader ────────────────────────────────────────────────────
+// kiro-cli SQLite reader
 
 async function tryKiroCliSqlite(): Promise<{
   found: boolean;
@@ -206,7 +206,7 @@ async function tryKiroCliSqlite(): Promise<{
   return { found: false, triedPaths: candidatePaths };
 }
 
-// ── ~/.aws/sso/cache fallback ─────────────────────────────────────────────────
+// ~/.aws/sso/cache fallback
 
 /**
  * Read the Amazon Q Developer profileArn the Kiro IDE persists in its
@@ -401,7 +401,7 @@ async function tryAwsSsoCache(targetProvider: string): Promise<{
   return { found: false, triedPath: cachePath };
 }
 
-// ── Helpers (exported for unit-testing) ──────────────────────────────────────
+// Helpers (exported for unit-testing)
 
 /**
  * Derives a human-readable display name for a Kiro/AWS connection when the
@@ -450,7 +450,7 @@ export function findKiroConnectionByProfileArn(
   return findKiroConnectionByIdentity(connections, { profileArn });
 }
 
-// ── Save to OmniRoute DB ──────────────────────────────────────────────────────
+// Save to OmniRoute DB
 
 type SaveAndRespondResult = Awaited<ReturnType<typeof tryKiroCliSqlite>> & {
   // Fields added by tryAwsSsoCache for IDC tokens (#2059)

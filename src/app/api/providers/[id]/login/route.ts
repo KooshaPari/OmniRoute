@@ -11,7 +11,7 @@ import { getCachedProviderConnectionById, updateProviderConnection } from "@/lib
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
-// ─── POST: Start login flow ────────────────────────────────────────────────
+// POST: Start login flow
 
 export async function POST(
   req: NextRequest,

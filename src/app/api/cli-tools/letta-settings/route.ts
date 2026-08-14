@@ -13,7 +13,7 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const execAsync = promisify(exec);
 
-// ── Paths ──────────────────────────────────────────────────────────────
+// Paths
 const getLettaDir = () => path.join(os.homedir(), ".letta");
 const getSettingsPath = () => path.join(getLettaDir(), "settings.json");
 const getLocalBackendDir = () => path.join(getLettaDir(), "lc-local-backend");
@@ -21,14 +21,14 @@ const getProviderAuthPath = () => path.join(getLocalBackendDir(), "providers", "
 const getBackupPath = () =>
   path.join(getLocalBackendDir(), "providers", "auth.json.omniroute-backup");
 
-// ── Provider name in auth.json ─────────────────────────────────────────
+// Provider name in auth.json
 // "lmstudio" provider type has localModelDiscovery: "openai-compatible"
 // which auto-discovers models from /v1/models and shows them in /model picker
 // Models appear as "lmstudio/<model-id>" in the CLI
 const PROVIDER_NAME = "lmstudio";
 const PROVIDER_TYPE = "lmstudio_openai";
 
-// ── Check if Letta CLI is installed ────────────────────────────────────
+// Check if Letta CLI is installed
 const checkLettaInstalled = async () => {
   try {
     const isWindows = os.platform() === "win32";
@@ -49,7 +49,7 @@ const checkLettaInstalled = async () => {
   }
 };
 
-// ── Read settings.json ─────────────────────────────────────────────────
+// Read settings.json
 const readSettings = async () => {
   try {
     const content = await fs.readFile(getSettingsPath(), "utf-8");
@@ -60,7 +60,7 @@ const readSettings = async () => {
   }
 };
 
-// ── Read auth.json ──────────────────────────────────────────────────────
+// Read auth.json
 const readAuthFile = async () => {
   try {
     const content = await fs.readFile(getProviderAuthPath(), "utf-8");
@@ -71,13 +71,13 @@ const readAuthFile = async () => {
   }
 };
 
-// ── Check if a base_url points to OmniRoute ──────────────────────────────
+// Check if a base_url points to OmniRoute
 const isOmniRouteUrl = (baseUrl) => {
   if (!baseUrl) return false;
   return baseUrl.includes(":20128") || baseUrl.includes(":3000") || baseUrl.includes("omniroute");
 };
 
-// ── Check if OmniRoute is configured ─────────────────────────────────────
+// Check if OmniRoute is configured
 const hasOmniRouteConfig = (authFile) => {
   if (!authFile?.providers) return false;
   const provider = authFile.providers[PROVIDER_NAME];
@@ -85,7 +85,7 @@ const hasOmniRouteConfig = (authFile) => {
   return isOmniRouteUrl(provider.base_url);
 };
 
-// ── GET - Check Letta CLI and read current settings ────────────────────
+// GET - Check Letta CLI and read current settings
 export async function GET(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
@@ -129,7 +129,7 @@ export async function GET(request: Request) {
   }
 }
 
-// ── POST - Apply OmniRoute as LM Studio provider + switch to local mode ──
+// POST - Apply OmniRoute as LM Studio provider + switch to local mode
 /**
  * Steps 1-2 of POST: read the existing Letta auth.json, refuse to clobber a real
  * LM Studio configuration unless `overwrite` is set (409 with conflict info), and back
@@ -197,14 +197,14 @@ export async function POST(request: Request) {
 
     const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
 
-    // ── 1-2. Read auth.json, guard non-OmniRoute conflicts, back up before overwrite ──
+    // 1-2. Read auth.json, guard non-OmniRoute conflicts, back up before overwrite
     const prepared = await prepareLettaAuthFile(overwrite);
     if ("conflictResponse" in prepared) {
       return prepared.conflictResponse;
     }
     const { authFile, authPath } = prepared;
 
-    // ── 3. Switch to local mode in settings.json ──
+    // 3. Switch to local mode in settings.json
     const settingsPath = getSettingsPath();
     const lettaDir = getLettaDir();
     await fs.mkdir(lettaDir, { recursive: true });
@@ -220,7 +220,7 @@ export async function POST(request: Request) {
     settings.preferredBackendMode = "local";
     await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
 
-    // ── 4. Write lmstudio provider to auth.json ──
+    // 4. Write lmstudio provider to auth.json
     // Clean up legacy lc-omniroute provider if present
     if (authFile.providers?.["lc-omniroute"]) {
       delete authFile.providers["lc-omniroute"];
@@ -253,12 +253,12 @@ export async function POST(request: Request) {
   }
 }
 
-// ── DELETE - Remove OmniRoute configuration ──────────────────────────────
+// DELETE - Remove OmniRoute configuration
 export async function DELETE(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
   try {
-    // ── 1. Remove lmstudio provider from auth.json, restore backup if exists ──
+    // 1. Remove lmstudio provider from auth.json, restore backup if exists
     const authPath = getProviderAuthPath();
     const backupPath = getBackupPath();
     let authFile = { version: 1, providers: {} };
@@ -298,7 +298,7 @@ export async function DELETE(request: Request) {
       await fs.writeFile(authPath, JSON.stringify(authFile, null, 2));
     }
 
-    // ── 2. Reset backend mode to api in settings.json ──
+    // 2. Reset backend mode to api in settings.json
     const settingsPath = getSettingsPath();
     try {
       const existing = await fs.readFile(settingsPath, "utf-8");
