@@ -19,7 +19,7 @@ const NOW = 1_000_000; // fixed "now" for deterministic tests
 function ev(
   type: "attempt" | "succeeded" | "failed",
   provider: string,
-  timestampOffset: number // relative to NOW (negative = in the past)
+  timestampOffset: number, // relative to NOW (negative = in the past)
 ): ComboEventInput {
   return {
     comboName: "fleet-combo",
@@ -31,12 +31,16 @@ function ev(
   };
 }
 
-// ── aggregateComboEventsToSets ────────────────────────────────────────────
+// aggregateComboEventsToSets
 
 describe("aggregateComboEventsToSets — basic categorization", () => {
   it("puts a recently failed provider in error set", () => {
     const events: ComboEventInput[] = [ev("failed", "openai", -1000)]; // 1s ago, within 10s window
-    const { active, error, last } = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
+    const { active, error, last } = aggregateComboEventsToSets(
+      events,
+      WINDOW_MS,
+      NOW,
+    );
 
     assert.ok(error.has("openai"), "openai should be in error set");
     assert.ok(!active.has("openai"), "openai should not be in active set");
@@ -45,7 +49,11 @@ describe("aggregateComboEventsToSets — basic categorization", () => {
 
   it("puts a recent attempt provider in active set", () => {
     const events: ComboEventInput[] = [ev("attempt", "anthropic", -500)];
-    const { active, error, last } = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
+    const { active, error, last } = aggregateComboEventsToSets(
+      events,
+      WINDOW_MS,
+      NOW,
+    );
 
     assert.ok(active.has("anthropic"), "anthropic should be in active set");
     assert.ok(!error.has("anthropic"));
@@ -54,7 +62,11 @@ describe("aggregateComboEventsToSets — basic categorization", () => {
 
   it("puts a recent succeeded provider in active set", () => {
     const events: ComboEventInput[] = [ev("succeeded", "gemini", -2000)];
-    const { active, error, last } = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
+    const { active, error, last } = aggregateComboEventsToSets(
+      events,
+      WINDOW_MS,
+      NOW,
+    );
 
     assert.ok(active.has("gemini"), "gemini should be in active set");
     assert.ok(!error.has("gemini"));
@@ -62,8 +74,14 @@ describe("aggregateComboEventsToSets — basic categorization", () => {
   });
 
   it("puts an old event provider in last set (outside window)", () => {
-    const events: ComboEventInput[] = [ev("attempt", "cohere", -(WINDOW_MS + 1))]; // just outside window
-    const { active, error, last } = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
+    const events: ComboEventInput[] = [
+      ev("attempt", "cohere", -(WINDOW_MS + 1)),
+    ]; // just outside window
+    const { active, error, last } = aggregateComboEventsToSets(
+      events,
+      WINDOW_MS,
+      NOW,
+    );
 
     assert.ok(last.has("cohere"), "cohere should be in last set");
     assert.ok(!active.has("cohere"));
@@ -71,8 +89,14 @@ describe("aggregateComboEventsToSets — basic categorization", () => {
   });
 
   it("puts an old failed provider in last set (not error)", () => {
-    const events: ComboEventInput[] = [ev("failed", "mistral", -(WINDOW_MS + 5000))];
-    const { active, error, last } = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
+    const events: ComboEventInput[] = [
+      ev("failed", "mistral", -(WINDOW_MS + 5000)),
+    ];
+    const { active, error, last } = aggregateComboEventsToSets(
+      events,
+      WINDOW_MS,
+      NOW,
+    );
 
     assert.ok(last.has("mistral"), "old failed should be last, not error");
     assert.ok(!error.has("mistral"));
@@ -86,7 +110,11 @@ describe("aggregateComboEventsToSets — multiple providers and events", () => {
       ev("succeeded", "gemini", -1000), // recent → active
       ev("attempt", "cohere", -(WINDOW_MS + 1)), // old → last
     ];
-    const { active, error, last } = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
+    const { active, error, last } = aggregateComboEventsToSets(
+      events,
+      WINDOW_MS,
+      NOW,
+    );
 
     assert.ok(error.has("openai"));
     assert.ok(active.has("gemini"));
@@ -99,7 +127,11 @@ describe("aggregateComboEventsToSets — multiple providers and events", () => {
       ev("succeeded", "openai", -3000), // older, within window
       ev("failed", "openai", -500), // newer → should win
     ];
-    const { active, error, last } = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
+    const { active, error, last } = aggregateComboEventsToSets(
+      events,
+      WINDOW_MS,
+      NOW,
+    );
 
     assert.ok(error.has("openai"), "latest event (failed) should win");
     assert.ok(!active.has("openai"));
@@ -110,14 +142,25 @@ describe("aggregateComboEventsToSets — multiple providers and events", () => {
       ev("failed", "openai", -3000), // older failed, within window
       ev("succeeded", "openai", -500), // newer success → should win
     ];
-    const { active, error, last } = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
+    const { active, error, last } = aggregateComboEventsToSets(
+      events,
+      WINDOW_MS,
+      NOW,
+    );
 
-    assert.ok(active.has("openai"), "newer succeeded should win over older failed");
+    assert.ok(
+      active.has("openai"),
+      "newer succeeded should win over older failed",
+    );
     assert.ok(!error.has("openai"));
   });
 
   it("returns empty sets for empty events list", () => {
-    const { active, error, last } = aggregateComboEventsToSets([], WINDOW_MS, NOW);
+    const { active, error, last } = aggregateComboEventsToSets(
+      [],
+      WINDOW_MS,
+      NOW,
+    );
 
     assert.equal(active.size, 0);
     assert.equal(error.size, 0);
@@ -129,10 +172,16 @@ describe("aggregateComboEventsToSets — multiple providers and events", () => {
       ev("failed", "openai", -500),
       ev("attempt", "openai", -1000),
     ];
-    const { active, error, last } = aggregateComboEventsToSets(events, WINDOW_MS, NOW);
+    const { active, error, last } = aggregateComboEventsToSets(
+      events,
+      WINDOW_MS,
+      NOW,
+    );
 
     const inSets =
-      (active.has("openai") ? 1 : 0) + (error.has("openai") ? 1 : 0) + (last.has("openai") ? 1 : 0);
+      (active.has("openai") ? 1 : 0) +
+      (error.has("openai") ? 1 : 0) +
+      (last.has("openai") ? 1 : 0);
     assert.equal(inSets, 1, "provider should be in exactly one set");
   });
 });
@@ -145,7 +194,7 @@ describe("aggregateComboEventsToSets — window boundary", () => {
     // timestamp === NOW - WINDOW_MS: age === WINDOW_MS → not within (age < windowMs)
     assert.ok(
       last.has("boundary") || !active.has("boundary"),
-      "boundary event should be last or absent from active"
+      "boundary event should be last or absent from active",
     );
   });
 
