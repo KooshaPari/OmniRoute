@@ -54,7 +54,7 @@ const REQUIRED_ACCOUNT_KEY_LIMIT_FIELDS = [
   "updatedAt",
 ] as const satisfies ReadonlyArray<keyof AccountKeyLimit>;
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// --- Types -------------------------------------------------------------------
 
 export interface RegisteredKey {
   id: string;
@@ -119,7 +119,7 @@ export interface IssueKeyParams {
   hourlyBudget?: number;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// --- Helpers -----------------------------------------------------------------
 
 function nowDay(): string {
   return new Date().toISOString().slice(0, 10); // YYYY-MM-DD

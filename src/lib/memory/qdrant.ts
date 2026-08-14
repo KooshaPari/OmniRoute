@@ -14,7 +14,7 @@ import { getVectorStore } from "./vectorStore";
 
 type JsonRecord = Record<string, unknown>;
 
-// ──────────────── Config types (retained for Settings UI) ────────────────
+// ---------------- Config types (retained for Settings UI) ----------------
 
 /**
  * Vector quantization mode for the memory collection (F4.4 / Q1).
@@ -158,7 +158,7 @@ export async function getQdrantConfig(): Promise<QdrantConfig> {
   return normalizeQdrantConfig(settings);
 }
 
-// ──────────────── Embedding helper ────────────────
+// ---------------- Embedding helper ----------------
 
 async function embedText(text: string): Promise<Float32Array> {
   const settings = await getMemorySettings();

@@ -47,7 +47,7 @@ export interface ExpirationSummary {
   nextExpiration: ProviderExpiration | null;
 }
 
-// ── In-memory store ──────────────────────────────────────────────────────────
+// -- In-memory store ----------------------------------------------------------
 // In production, this would be persisted to SQLite alongside other domain state.
 // Using in-memory Map for the initial implementation.
 

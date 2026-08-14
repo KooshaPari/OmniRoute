@@ -34,7 +34,7 @@ export const CODEX_REASONING_EFFORT_VALUES = new Set([
 
 export const REQUEST_DEFAULT_SERVICE_TIER_VALUES = new Set(["default", "priority", "fast", "flex"]);
 
-// ──── Auth Schemas ────
+// ---- Auth Schemas ----
 
 export const loginSchema = z.object({
   password: z.string().min(1, "Password is required").max(200),
@@ -45,7 +45,7 @@ export const dbBackupCleanupSchema = z.object({
   retentionDays: z.number().int().min(0).max(3650).optional(),
 });
 
-// ──── API Route Payload Schemas (T06) ────
+// ---- API Route Payload Schemas (T06) ----
 
 export const modelIdSchema = z.string().trim().min(1, "Model is required").max(200);
 
@@ -198,7 +198,7 @@ export const versionManagerInstallSchema = versionManagerToolSchema.extend({
   version: z.string().trim().optional(),
 });
 
-// ── Zed Credential Import Flow ──────────────────────────────────────────────────
+// -- Zed Credential Import Flow --------------------------------------------------
 
 export const confirmedAccountSchema = z.object({
   service: z.string().min(1).max(500),

@@ -16,7 +16,7 @@ const DEFAULT_EXPIRY_MS = 10 * 24 * 60 * 60 * 1000;
 
 const BASE64_BLOCK_SIZE = 4;
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// -- Types ---------------------------------------------------------------------
 
 export type CodexImportPayload = {
   provider: "codex";
@@ -41,7 +41,7 @@ export type FlattenOk = { ok: true; records: unknown[] };
 export type FlattenErr = { ok: false; error: string };
 export type FlattenResult = FlattenOk | FlattenErr;
 
-// ── Internal helpers ──────────────────────────────────────────────────────────
+// -- Internal helpers ----------------------------------------------------------
 
 /**
  * Decode a JWT payload to a plain object (no signature verification).
@@ -173,7 +173,7 @@ function applyCamelCaseAliases(rec: Record<string, unknown>): Record<string, unk
   return out;
 }
 
-// ── Public API ────────────────────────────────────────────────────────────────
+// -- Public API ----------------------------------------------------------------
 
 /**
  * Normalize a single raw record from an uploaded JSON file into a

@@ -11,7 +11,7 @@
 
 import { getDbInstance } from "./core";
 
-// ──────────────── Types ────────────────
+// ---------------- Types ----------------
 
 export interface MemoryVecMeta {
   activeDim: number | null;
@@ -20,7 +20,7 @@ export interface MemoryVecMeta {
   vecLoaded: boolean;
 }
 
-// ──────────────── memory_vec_meta ────────────────
+// ---------------- memory_vec_meta ----------------
 
 /**
  * Get the singleton memory_vec_meta row.
@@ -87,7 +87,7 @@ export function setMemoryVecMeta(meta: Partial<MemoryVecMeta>): void {
   ).run(activeDim, embeddingSignature, lastResetAt, vecLoaded);
 }
 
-// ──────────────── memories.needs_reindex ────────────────
+// ---------------- memories.needs_reindex ----------------
 
 /**
  * Mark a single memory as needing reindex (or clear the flag).

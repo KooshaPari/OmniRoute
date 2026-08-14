@@ -27,7 +27,7 @@ import { globalTrafficBuffer } from "@/mitm/inspector/buffer";
 import { maskSecret } from "@/mitm/maskSecrets";
 import { sanitizeHeaders } from "@/mitm/sanitizeHeaders";
 
-// ── Token management ────────────────────────────────────────────────────────
+// -- Token management --------------------------------------------------------
 
 let _cachedToken: string | null = null;
 
@@ -55,7 +55,7 @@ function tokenMatches(received: string): boolean {
   }
 }
 
-// ── Partial schema (only required fields; rest optional) ───────────────────
+// -- Partial schema (only required fields; rest optional) -------------------
 
 const IngestBodySchema = InterceptedRequestSchema.partial().required({
   id: true,
@@ -71,7 +71,7 @@ const IngestBodySchema = InterceptedRequestSchema.partial().required({
   status: true,
 });
 
-// ── Handler ─────────────────────────────────────────────────────────────────
+// -- Handler -----------------------------------------------------------------
 
 export async function POST(request: Request): Promise<Response> {
   // Token gate (second layer after LOCAL_ONLY IP check).

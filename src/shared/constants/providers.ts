@@ -232,7 +232,7 @@ export function supportsBulkApiKey(providerId: unknown): boolean {
   return true;
 }
 
-// ── System Providers (virtual, not user-connectable) ──────────────────────────
+// -- System Providers (virtual, not user-connectable) --------------------------
 
 const _PROVIDER_SECTIONS = [
   NOAUTH_PROVIDERS,
@@ -457,7 +457,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "firecrawl",
 ];
 
-// ── Zod validation at module load (Phase 7.2) ──
+// -- Zod validation at module load (Phase 7.2) --
 
 // Re-export the extracted data catalogs so external importers of providers.ts are unchanged.
 export {

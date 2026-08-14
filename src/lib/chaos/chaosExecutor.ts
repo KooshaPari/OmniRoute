@@ -21,7 +21,7 @@ export const chatDispatch = {
   postChatCompletion,
 };
 
-// ── Exported types ───────────────────────────────────────────────────────────
+// -- Exported types -----------------------------------------------------------
 
 export interface ProviderInfo {
   id: string;
@@ -77,7 +77,7 @@ interface EffectiveRunParams {
   effectiveSystemPrompt: string;
 }
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// -- Constants -----------------------------------------------------------------
 
 export const DEFAULT_SYSTEM_PROMPT = `You are one of several AI models working in CHAOS MODE.
 
@@ -99,7 +99,7 @@ const DEFAULT_MAX_TOKENS = 4096;
 /** Maximum concurrent fetch requests in parallel mode */
 const MAX_CONCURRENCY = 10;
 
-// ── Internal helpers — config/param resolution ──────────────────────────────
+// -- Internal helpers — config/param resolution ------------------------------
 
 function resolveEffectiveRunParams(
   input: ChaosRunInput,
@@ -134,7 +134,7 @@ function resolveModelId(
   return conn.defaultModel || conn.provider || conn.id || "unknown";
 }
 
-// ── Internal helpers — provider selection ───────────────────────────────────
+// -- Internal helpers — provider selection -----------------------------------
 
 /** Narrow `active` connections down to the caller-requested `providers` filter. */
 function filterByRequestedProviders(active: any[], requested: string[]): any[] {
@@ -407,7 +407,7 @@ function buildCollaborativeSummary(mode: ChaosMode, results: ModelResult[]): str
   );
 }
 
-// ── Main execution function ──────────────────────────────────────────────────
+// -- Main execution function --------------------------------------------------
 
 /**
  * Execute a Chaos Mode run.

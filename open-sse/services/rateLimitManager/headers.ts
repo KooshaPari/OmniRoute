@@ -1,4 +1,4 @@
-// ─── Header Parsing ──────────────────────────────────────────────────────────
+// --- Header Parsing ----------------------------------------------------------
 
 /**
  * Standard headers used by most providers (OpenAI, Fireworks, etc.)

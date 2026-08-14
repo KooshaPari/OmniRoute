@@ -38,7 +38,7 @@ export class AgyAuthFileError extends Error {
   }
 }
 
-// ──── Public types ────────────────────────────────────────────────────────────
+// ---- Public types ------------------------------------------------------------
 
 export interface ParsedAgyAuth {
   accessToken: string;
@@ -60,7 +60,7 @@ export interface CreateAgyConnectionOptions {
   overwriteExisting?: boolean;
 }
 
-// ──── Parse & validate ────────────────────────────────────────────────────────
+// ---- Parse & validate --------------------------------------------------------
 
 /**
  * Parse the Antigravity CLI (`agy`) token file. It nests the token under `.token`,
@@ -107,7 +107,7 @@ export function parseAndValidateAgyToken(raw: unknown): ParsedAgyAuth {
   return { accessToken, refreshToken, tokenType, expiresAt, authMethod };
 }
 
-// ──── Enrich with the Antigravity Code Assist backend ─────────────────────────
+// ---- Enrich with the Antigravity Code Assist backend -------------------------
 
 /**
  * Resolve the account email (userinfo) and GCP project id (loadCodeAssist) for the token.

@@ -27,7 +27,7 @@ import { createLogger } from "@/shared/utils/logger";
 
 const log = createLogger("middleware:registry");
 
-// ── State (globalThis singleton) ──────────────────────────────────────────
+// -- State (globalThis singleton) ------------------------------------------
 
 declare global {
   var __omniroutePreRequestRegistry:
@@ -54,7 +54,7 @@ function getRegistryState() {
   return globalThis.__omniroutePreRequestRegistry;
 }
 
-// ── Compile hook code into middleware function ────────────────────────────
+// -- Compile hook code into middleware function ----------------------------
 
 /**
  * Max wall-clock time a single operator-authored hook may run.

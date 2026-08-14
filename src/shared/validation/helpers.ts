@@ -23,7 +23,7 @@ type ValidationFailure = {
 
 export type ValidationResult<TData> = ValidationSuccess<TData> | ValidationFailure;
 
-// ──── Helper ────
+// ---- Helper ----
 
 /**
  * Parse and validate request body with a Zod schema.

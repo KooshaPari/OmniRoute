@@ -7,7 +7,7 @@
 
 import { getDbInstance } from "./core";
 
-// ──────────────── Allowed patch columns ────────────────
+// ---------------- Allowed patch columns ----------------
 //
 // updateSkill builds a SET clause dynamically. To prevent SQL injection the
 // column names are validated against this allowlist of known, writable columns.

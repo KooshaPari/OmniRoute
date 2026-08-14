@@ -25,7 +25,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance } from "./core";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// --- Types -------------------------------------------------------------------
 
 export interface RecordCostEventInput {
   virtualKeyId: string;
@@ -126,7 +126,7 @@ function isoDay(occurredAt: string): string {
   return occurredAt.slice(0, 10);
 }
 
-// ─── Public API ──────────────────────────────────────────────────────────────
+// --- Public API --------------------------------------------------------------
 
 export function recordCostEvent(input: RecordCostEventInput): CostEvent {
   if (typeof input.virtualKeyId !== "string" || input.virtualKeyId.length === 0) {
@@ -226,7 +226,7 @@ export function summarizeCostForKey(
   return summariseEvents(events, since, until);
 }
 
-// ─── Internal ────────────────────────────────────────────────────────────────
+// --- Internal ----------------------------------------------------------------
 
 function summariseEvents(
   events: CostEvent[],

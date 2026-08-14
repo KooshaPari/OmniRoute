@@ -96,7 +96,7 @@ function canClearGitHubNoRefreshTokenState(conn: any): boolean {
   );
 }
 
-// ── Refresh circuit breaker ───────────────────────────────────────────────
+// -- Refresh circuit breaker -----------------------------------------------
 // A refresh that returns null (network blip, dead proxy, unclassified error)
 // leaves the connection active, so the next 60s sweep retries immediately —
 // the production refresh loop (claude/aa5dd5cf 1352×, kimi 270×). We track
@@ -203,7 +203,7 @@ function getHealthCheckSkipProviders(): Set<string> {
   );
 }
 
-// ── Logging helper ───────────────────────────────────────────────────────────
+// -- Logging helper -----------------------------------------------------------
 let cachedHideLogs: boolean | null = null;
 let cacheTimestamp = 0;
 let pendingHideLogs: Promise<boolean> | null = null;
@@ -273,7 +273,7 @@ export function clearHealthCheckLogCache() {
   cacheTimestamp = 0;
 }
 
-// ── Singleton guard (globalThis survives HMR re-evaluation) ─────────────────
+// -- Singleton guard (globalThis survives HMR re-evaluation) -----------------
 
 declare global {
   var __omnirouteTokenHC:

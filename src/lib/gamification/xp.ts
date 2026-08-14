@@ -5,7 +5,7 @@
  * No side effects or DB calls — all stateful logic lives in the persistence layer.
  */
 
-// ─── XP Curve ────────────────────────────────────────────────────────────────
+// --- XP Curve ----------------------------------------------------------------
 
 /**
  * XP required for a specific level (delta, not cumulative).
@@ -78,7 +78,7 @@ export function xpToNextLevel(totalXp: number): number {
   return nextLevelXp - totalXp;
 }
 
-// ─── Level Titles & Tiers ────────────────────────────────────────────────────
+// --- Level Titles & Tiers ----------------------------------------------------
 
 /**
  * Get a human-readable title for a given level.
@@ -122,7 +122,7 @@ export function getLevelTier(level: number): "bronze" | "silver" | "gold" | "pla
   return "bronze";
 }
 
-// ─── XP Rewards ──────────────────────────────────────────────────────────────
+// --- XP Rewards --------------------------------------------------------------
 
 /** Base XP rewards for each gamified action. */
 export const XP_REWARDS = {

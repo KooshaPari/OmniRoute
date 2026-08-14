@@ -10,14 +10,14 @@
 
 import type { BadgeDefinition } from "../db/gamification";
 
-// ─── Built-in Badge Definitions ──────────────────────────────────────────────
+// --- Built-in Badge Definitions ----------------------------------------------
 
 /**
  * All built-in badges shipped with OmniRoute.
  * Spread with `{ created_at: new Date().toISOString() }` when inserting.
  */
 export const BUILTIN_BADGES: Omit<BadgeDefinition, "createdAt">[] = [
-  // ── Token Usage (Milestone) ──────────────────────────────────────────────
+  // -- Token Usage (Milestone) ----------------------------------------------
   {
     id: "first-token",
     name: "First Token",
@@ -59,7 +59,7 @@ export const BUILTIN_BADGES: Omit<BadgeDefinition, "createdAt">[] = [
     hidden: 0,
   },
 
-  // ── Token Sharing (Social) ───────────────────────────────────────────────
+  // -- Token Sharing (Social) -----------------------------------------------
   {
     id: "generous",
     name: "Generous",
@@ -105,7 +105,7 @@ export const BUILTIN_BADGES: Omit<BadgeDefinition, "createdAt">[] = [
     hidden: 0,
   },
 
-  // ── Contribution (Achievement) ───────────────────────────────────────────
+  // -- Contribution (Achievement) -------------------------------------------
   {
     id: "explorer",
     name: "Explorer",
@@ -162,7 +162,7 @@ export const BUILTIN_BADGES: Omit<BadgeDefinition, "createdAt">[] = [
     hidden: 0,
   },
 
-  // ── Streak (Engagement) ──────────────────────────────────────────────────
+  // -- Streak (Engagement) --------------------------------------------------
   {
     id: "daily-user",
     name: "Daily User",
@@ -204,7 +204,7 @@ export const BUILTIN_BADGES: Omit<BadgeDefinition, "createdAt">[] = [
     hidden: 0,
   },
 
-  // ── Rare / Legendary ─────────────────────────────────────────────────────
+  // -- Rare / Legendary -----------------------------------------------------
   {
     id: "early-adopter",
     name: "Early Adopter",
@@ -257,7 +257,7 @@ export const BUILTIN_BADGES: Omit<BadgeDefinition, "createdAt">[] = [
   },
 ];
 
-// ─── Criteria Types ──────────────────────────────────────────────────────────
+// --- Criteria Types ----------------------------------------------------------
 
 interface ActionCountCriteria {
   type: "action_count";
@@ -306,7 +306,7 @@ type BadgeCriteria =
   | FirstCriteria
   | HiddenCriteria;
 
-// ─── Helper: Action Count ────────────────────────────────────────────────────
+// --- Helper: Action Count ----------------------------------------------------
 
 /**
  * Get the total count of a specific action for an API key from the XP audit log.
@@ -331,7 +331,7 @@ async function getActionCount(apiKeyId: string, action: string): Promise<number>
   return row?.total ?? 0;
 }
 
-// ─── Helper: Unique Count ────────────────────────────────────────────────────
+// --- Helper: Unique Count ----------------------------------------------------
 
 /**
  * Get the count of unique values for a given type (provider, model, etc.)
@@ -352,7 +352,7 @@ async function getUniqueCount(apiKeyId: string, type: string): Promise<number> {
   return row?.total ?? 0;
 }
 
-// ─── Helper: Streak ──────────────────────────────────────────────────────────
+// --- Helper: Streak ----------------------------------------------------------
 
 /**
  * Get the current streak count for an API key.
@@ -364,7 +364,7 @@ async function getStreak(apiKeyId: string): Promise<number> {
   return data.currentStreak;
 }
 
-// ─── Helper: Leaderboard Rank ────────────────────────────────────────────────
+// --- Helper: Leaderboard Rank ------------------------------------------------
 
 /**
  * Get the rank of an API key on the global leaderboard.
@@ -387,7 +387,7 @@ async function getRank(apiKeyId: string, scope: string): Promise<number> {
   return (rankRow?.rank ?? 0) + 1;
 }
 
-// ─── Badge Evaluation Engine ─────────────────────────────────────────────────
+// --- Badge Evaluation Engine -------------------------------------------------
 
 /**
  * Evaluate if an action triggers any badge unlocks.

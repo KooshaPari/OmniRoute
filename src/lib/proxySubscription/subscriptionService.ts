@@ -97,7 +97,7 @@ export interface SyncResult {
 
 const SUBSCRIPTION_FETCH_TIMEOUT_MS = 15_000;
 
-// ───────────────────────────── Row mapping ─────────────────────────────
+// ----------------------------- Row mapping -----------------------------
 
 function mapSubscriptionRow(row: unknown): ProxySubscriptionRecord {
   const r = (row && typeof row === "object" ? row : {}) as Record<string, unknown>;
@@ -139,7 +139,7 @@ function mapSubscriptionRow(row: unknown): ProxySubscriptionRecord {
   };
 }
 
-// ───────────────────────────── CRUD ─────────────────────────────
+// ----------------------------- CRUD -----------------------------
 
 export async function listSubscriptions(): Promise<ProxySubscriptionRecord[]> {
   const db = getDbInstance();
@@ -275,9 +275,9 @@ export async function deleteSubscription(id: string): Promise<boolean> {
   return res.changes > 0;
 }
 
-// ───────────────────────────── Scope resolution ─────────────────────────────
+// ----------------------------- Scope resolution -----------------------------
 
-// ───────────────────────────── Sync + apply ─────────────────────────────
+// ----------------------------- Sync + apply -----------------------------
 
 /**
  * Refuse to fetch a subscription URL unless it is http/https to a non-internal

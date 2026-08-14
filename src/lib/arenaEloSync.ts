@@ -23,7 +23,7 @@ import {
 
 const log = createLogger("lib:arena-elo-sync");
 
-// ─── Types ───────────────────────────────────────────────
+// --- Types -----------------------------------------------
 
 /**
  * A single model entry from the Arena AI leaderboard.
@@ -99,7 +99,7 @@ export interface SyncStatus {
   sources: string[];
 }
 
-// ─── Configuration ───────────────────────────────────────
+// --- Configuration ---------------------------------------
 
 const ARENA_ELO_API_BASE = "https://api.wulong.dev/arena-ai-leaderboards/v1/leaderboard";
 
@@ -171,7 +171,7 @@ const parsedInterval = parseInt(process.env.ARENA_ELO_SYNC_INTERVAL || "86400", 
 const SYNC_INTERVAL_MS =
   Number.isFinite(parsedInterval) && parsedInterval > 0 ? parsedInterval * 1000 : 86400 * 1000;
 
-// ─── Periodic sync state ─────────────────────────────────
+// --- Periodic sync state ---------------------------------
 
 let syncTimer: ReturnType<typeof setInterval> | null = null;
 let lastSyncTime: string | null = null;
@@ -196,7 +196,7 @@ function getEffectiveArenaEloSyncEnabled(): boolean {
   }
 }
 
-// ─── Model name normalization ────────────────────────────
+// --- Model name normalization ----------------------------
 
 /**
  * Normalize a model name from the Arena leaderboard.
@@ -218,7 +218,7 @@ export function normalizeModelName(rawName: string): string {
   return name;
 }
 
-// ─── Core: Fetch ─────────────────────────────────────────
+// --- Core: Fetch -----------------------------------------
 
 /**
  * Fetch leaderboards from the Arena AI API for all configured categories.

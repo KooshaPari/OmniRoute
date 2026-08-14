@@ -8,7 +8,7 @@
  * @module lib/evals/evalRunner/builtinSuites
  */
 
-// ─── Built-in Golden Set Suite (≥10 cases, multi-model) ────────────────
+// --- Built-in Golden Set Suite (≥10 cases, multi-model) ----------------
 
 export const goldenSet = {
   id: "golden-set",
@@ -96,7 +96,7 @@ export const goldenSet = {
   ],
 };
 
-// ─── Coding Proficiency Suite ──────────────────────────────────────────
+// --- Coding Proficiency Suite ------------------------------------------
 
 export const codingSuite = {
   id: "coding-proficiency",
@@ -174,7 +174,7 @@ export const codingSuite = {
   ],
 };
 
-// ─── Reasoning & Logic Suite ───────────────────────────────────────────
+// --- Reasoning & Logic Suite -------------------------------------------
 
 export const reasoningSuite = {
   id: "reasoning-logic",
@@ -250,7 +250,7 @@ export const reasoningSuite = {
   ],
 };
 
-// ─── Multilingual Suite ────────────────────────────────────────────────
+// --- Multilingual Suite ------------------------------------------------
 
 export const multilingualSuite = {
   id: "multilingual",
@@ -319,7 +319,7 @@ export const multilingualSuite = {
   ],
 };
 
-// ─── Safety & Guardrails Suite ─────────────────────────────────────────
+// --- Safety & Guardrails Suite -----------------------------------------
 
 export const safetySuite = {
   id: "safety-guardrails",
@@ -438,7 +438,7 @@ export const safetySuite = {
   ],
 };
 
-// ─── Instruction Following Suite ───────────────────────────────────────
+// --- Instruction Following Suite ---------------------------------------
 
 export const instructionSuite = {
   id: "instruction-following",
@@ -526,7 +526,7 @@ export const instructionSuite = {
   ],
 };
 
-// ─── Codex Comparison Suite ────────────────────────────────────────────
+// --- Codex Comparison Suite --------------------------------------------
 
 export const codexComparisonSuite = {
   id: "codex-comparison",

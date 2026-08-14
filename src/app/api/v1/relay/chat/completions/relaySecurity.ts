@@ -29,7 +29,7 @@ export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-// ── In-memory per-(token,IP) rate limit ─────────────────────────────────────
+// -- In-memory per-(token,IP) rate limit -------------------------------------
 // Defence-in-depth on top of the DB-backed per-token limit: a leaked relay
 // token redistributed across N IPs would otherwise consume the per-token quota
 // in parallel. This second gate caps a *single* IP using a token to

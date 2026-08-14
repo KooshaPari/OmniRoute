@@ -10,7 +10,7 @@
 import { getDbInstance } from "@/lib/db/core";
 import { randomUUID } from "crypto";
 
-// ── Types ────────────────────────────────────────────────────────────────
+// -- Types ----------------------------------------------------------------
 
 export interface KeyGroup {
   id: string;
@@ -41,7 +41,7 @@ export interface KeyGroupWithPermissions extends KeyGroup {
   memberCount: number;
 }
 
-// ── Key Groups CRUD ──────────────────────────────────────────────────────
+// -- Key Groups CRUD ------------------------------------------------------
 
 export function getAllKeyGroups(): KeyGroup[] {
   const db = getDbInstance() as any;

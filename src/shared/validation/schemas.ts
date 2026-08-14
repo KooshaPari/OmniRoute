@@ -17,7 +17,7 @@ export * from "./schemas/misc";
 export * from "./schemas/reasoningRouting";
 export { validateBody, isValidationFailure } from "./helpers";
 export { oauthPasteCredentialsSchema } from "./schemas/auth";
-// ──── Provider Schemas ────
+// ---- Provider Schemas ----
 
 export const createProviderSchema = z
   .object({
@@ -100,7 +100,7 @@ export const bulkCreateProviderSchema = z
     }
   });
 
-// ──── Bulk Web-Session Import Schema ────
+// ---- Bulk Web-Session Import Schema ----
 
 export const bulkWebSessionImportSchema = z.object({
   provider: z.string().min(1).max(100),
@@ -120,7 +120,7 @@ export const bulkWebSessionImportSchema = z.object({
   globalPriority: z.number().int().min(1).max(100).nullable().optional(),
 });
 
-// ──── Codex Import Schema ────
+// ---- Codex Import Schema ----
 
 export const importCodexAuthSchema = z.object({
   source: z.discriminatedUnion("kind", [
@@ -135,7 +135,7 @@ export const importCodexAuthSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Codex Import Bulk Schema ────
+// ---- Codex Import Bulk Schema ----
 
 export const importCodexAuthBulkSchema = z.object({
   entries: z
@@ -151,7 +151,7 @@ export const importCodexAuthBulkSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Claude Auth Import Schema ────
+// ---- Claude Auth Import Schema ----
 
 export const importClaudeAuthSchema = z.object({
   source: z.discriminatedUnion("kind", [
@@ -166,7 +166,7 @@ export const importClaudeAuthSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Claude Auth Import Bulk Schema ────
+// ---- Claude Auth Import Bulk Schema ----
 
 export const importClaudeAuthBulkSchema = z.object({
   entries: z
@@ -182,7 +182,7 @@ export const importClaudeAuthBulkSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Gemini CLI Auth Import Schema ────
+// ---- Gemini CLI Auth Import Schema ----
 
 export const importGeminiAuthSchema = z.object({
   source: z.discriminatedUnion("kind", [
@@ -197,7 +197,7 @@ export const importGeminiAuthSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Antigravity CLI (`agy`) Auth Import Schema ────
+// ---- Antigravity CLI (`agy`) Auth Import Schema ----
 // Same source/options shape as gemini-cli; the parser handles the agy-specific token JSON.
 
 export const importAgyAuthSchema = z.object({
@@ -213,7 +213,7 @@ export const importAgyAuthSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Antigravity CLI (`agy`) auto-detect local login Schema ────
+// ---- Antigravity CLI (`agy`) auto-detect local login Schema ----
 // No `source`: the route reads the token from the local agy CLI data dir on disk.
 
 export const applyLocalAgyAuthSchema = z.object({
@@ -222,7 +222,7 @@ export const applyLocalAgyAuthSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Gemini CLI Auth Import Bulk Schema ────
+// ---- Gemini CLI Auth Import Bulk Schema ----
 
 export const importGeminiAuthBulkSchema = z.object({
   entries: z
@@ -238,7 +238,7 @@ export const importGeminiAuthBulkSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Antigravity CLI (`agy`) Auth Import Bulk Schema ────
+// ---- Antigravity CLI (`agy`) Auth Import Bulk Schema ----
 
 export const importAgyAuthBulkSchema = z.object({
   entries: z
@@ -254,7 +254,7 @@ export const importAgyAuthBulkSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── API Key Schemas ────
+// ---- API Key Schemas ----
 
 export const createKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
@@ -266,7 +266,7 @@ export const createSyncTokenSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(200),
 });
 
-// ──── Combo Schemas ────
+// ---- Combo Schemas ----
 
 const comboStepMetaSchema = {
   id: z.string().trim().min(1).max(200).optional(),
@@ -475,7 +475,7 @@ export const createComboSchema = z.object({
   context_length: z.number().int().min(1000).max(2000000).optional(),
 });
 
-// ──── Settings Schemas ────
+// ---- Settings Schemas ----
 // FASE-01: Removed .passthrough() — only explicitly listed fields are accepted
 
 const settingsFallbackStrategySchema = z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES);
@@ -545,7 +545,7 @@ export const updateSettingsSchema = z.object({
   qdrantEmbeddingModel: z.string().max(200).optional(),
 });
 
-// ──── Auth Schemas ────
+// ---- Auth Schemas ----
 
 export const loginSchema = z.object({
   password: z.string().min(1, "Password is required").max(200),
@@ -556,7 +556,7 @@ export const dbBackupCleanupSchema = z.object({
   retentionDays: z.number().int().min(0).max(3650).optional(),
 });
 
-// ──── API Route Payload Schemas (T06) ────
+// ---- API Route Payload Schemas (T06) ----
 
 const modelIdSchema = z.string().trim().min(1, "Model is required").max(200);
 const nonEmptyStringSchema = z.string().trim().min(1, "Field is required");
@@ -2063,7 +2063,7 @@ export const guideSettingsSaveSchema = z
     path: ["model"],
   });
 
-// ── Search Schemas ─────────────────────────────────────────────────────
+// -- Search Schemas -----------------------------------------------------
 // Unified search request/response schemas. Final contract — all fields optional
 // with defaults. New features add implementations, not new fields.
 // Multi-query deferred to POST /v1/search/batch (separate PRD).
@@ -2211,7 +2211,7 @@ export const v1SearchResponseSchema = z.object({
     .optional(),
 });
 
-// ─── Auto-disable banned/error accounts ───────────────────────────────────
+// --- Auto-disable banned/error accounts -----------------------------------
 export const updateAutoDisableAccountsSchema = z
   .object({
     enabled: z.boolean(),
@@ -2243,7 +2243,7 @@ export const v1BatchCreateSchema = z.object({
     .optional(),
 });
 
-// ── Web Fetch ─────────────────────────────────────────────────────────────────
+// -- Web Fetch -----------------------------------------------------------------
 
 export const v1WebFetchSchema = z.object({
   url: z.string().url("url must be a valid URL (http/https)"),
@@ -2254,7 +2254,7 @@ export const v1WebFetchSchema = z.object({
   include_metadata: z.boolean().default(false),
 });
 
-// ── Zed Credential Import Flow ──────────────────────────────────────────────────
+// -- Zed Credential Import Flow --------------------------------------------------
 
 export const confirmedAccountSchema = z.object({
   service: z.string().min(1).max(500),

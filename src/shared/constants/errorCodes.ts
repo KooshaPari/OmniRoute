@@ -25,7 +25,7 @@ interface ErrorDetails {
 }
 
 export const ERROR_CODES: Record<string, ErrorCodeDef> = {
-  // ── Auth ──
+  // -- Auth --
   AUTH_001: {
     code: "AUTH_001",
     message: "Authentication required",
@@ -54,7 +54,7 @@ export const ERROR_CODES: Record<string, ErrorCodeDef> = {
     category: "AUTH",
   },
 
-  // ── Proxy ──
+  // -- Proxy --
   PROXY_001: {
     code: "PROXY_001",
     message: "Proxy connection failed",
@@ -69,7 +69,7 @@ export const ERROR_CODES: Record<string, ErrorCodeDef> = {
     category: "PROXY",
   },
 
-  // ── Rate Limiting ──
+  // -- Rate Limiting --
   RATE_001: {
     code: "RATE_001",
     message: "Rate limit exceeded",
@@ -89,7 +89,7 @@ export const ERROR_CODES: Record<string, ErrorCodeDef> = {
     category: "RATE_LIMIT",
   },
 
-  // ── Model / Routing ──
+  // -- Model / Routing --
   MODEL_001: { code: "MODEL_001", message: "Model not found", httpStatus: 404, category: "MODEL" },
   MODEL_002: {
     code: "MODEL_002",
@@ -104,7 +104,7 @@ export const ERROR_CODES: Record<string, ErrorCodeDef> = {
     category: "MODEL",
   },
 
-  // ── Provider ──
+  // -- Provider --
   PROVIDER_001: {
     code: "PROVIDER_001",
     message: "Provider error",
@@ -124,7 +124,7 @@ export const ERROR_CODES: Record<string, ErrorCodeDef> = {
     category: "PROVIDER",
   },
 
-  // ── Validation ──
+  // -- Validation --
   VALID_001: {
     code: "VALID_001",
     message: "Invalid request body",
@@ -144,7 +144,7 @@ export const ERROR_CODES: Record<string, ErrorCodeDef> = {
     category: "VALIDATION",
   },
 
-  // ── Combos (T-22.b — 400-shape standardization for /api/combos/{id}) ──
+  // -- Combos (T-22.b — 400-shape standardization for /api/combos/{id}) --
   COMBO_001: {
     code: "COMBO_001",
     message: "Request body is not valid JSON",
@@ -194,7 +194,7 @@ export const ERROR_CODES: Record<string, ErrorCodeDef> = {
     category: "COMBO",
   },
 
-  // ── Internal ──
+  // -- Internal --
   INTERNAL_001: {
     code: "INTERNAL_001",
     message: "Internal server error",

@@ -259,7 +259,7 @@ export const guideSettingsSaveSchema = z
     path: ["model"],
   });
 
-// ─── Auto-disable banned/error accounts ───────────────────────────────────
+// --- Auto-disable banned/error accounts -----------------------------------
 export const updateAutoDisableAccountsSchema = z
   .object({
     enabled: z.boolean(),

@@ -14,7 +14,7 @@
 import { getCachedProviderNodes } from "@/lib/localDb";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
-// ── Types ────────────────────────────────────────────────────────────────
+// -- Types ----------------------------------------------------------------
 
 export interface HealthStatus {
   nodeId: string;
@@ -26,7 +26,7 @@ export interface HealthStatus {
   responseTimeMs?: number;
 }
 
-// ── Config ───────────────────────────────────────────────────────────────
+// -- Config ---------------------------------------------------------------
 
 const BACKOFF_SCHEDULE = [30_000, 60_000, 120_000, 300_000];
 const CHECK_TIMEOUT_MS = 5_000;
@@ -38,7 +38,7 @@ function isBuildProcess(): boolean {
 }
 
 
-// ── State (globalThis survives HMR re-evaluation) ───────────────────────
+// -- State (globalThis survives HMR re-evaluation) -----------------------
 
 declare global {
   var __omnirouteLocalHC:
@@ -65,7 +65,7 @@ function getLHCState() {
 
 const healthCache = getLHCState().healthCache;
 
-// ── Helpers ──────────────────────────────────────────────────────────────
+// -- Helpers --------------------------------------------------------------
 
 function isEnvFlagEnabled(name: string): boolean {
   const value = process.env[name];
@@ -103,7 +103,7 @@ function getNextInterval(failures: number): number {
   return BACKOFF_SCHEDULE[Math.min(failures, BACKOFF_SCHEDULE.length - 1)];
 }
 
-// ── Core ─────────────────────────────────────────────────────────────────
+// -- Core -----------------------------------------------------------------
 
 async function checkNode(node: {
   id: string;

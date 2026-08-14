@@ -29,7 +29,7 @@ const REQUIRED_RELAY_TOKEN_FIELDS = [
   "metadata",
 ] as const satisfies ReadonlyArray<keyof RelayToken>;
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// -- Types --------------------------------------------------------------------
 
 export interface RelayToken {
   id: string;
@@ -104,7 +104,7 @@ export interface RelayLogRow {
   created_at: number;
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// -- Helpers ------------------------------------------------------------------
 
 function generateId(): string {
   return "rl_" + randomBytes(16).toString("hex");
@@ -120,7 +120,7 @@ function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-// ── CRUD ─────────────────────────────────────────────────────────────────────
+// -- CRUD ---------------------------------------------------------------------
 
 export function createRelayToken(input: CreateRelayTokenInput): RelayTokenWithSecret {
   const db = getDbInstance();

@@ -66,7 +66,7 @@ export function compareSemver(a: string, b: string): number {
   return aPat - bPat;
 }
 
-// ── SECURITY: CRITICAL-2 ────────────────────────────────────────────────────
+// -- SECURITY: CRITICAL-2 ----------------------------------------------------
 /**
  * Assert that `target` is strictly contained within `pluginRoot`.
  * Prevents a tampered/legacy DB `pluginDir` from causing deletion of an
@@ -84,7 +84,7 @@ function assertWithinPluginDir(pluginRoot: string, target: string): void {
   }
 }
 
-// ── SECURITY: CRITICAL-3 (shared) ──────────────────────────────────────────
+// -- SECURITY: CRITICAL-3 (shared) ------------------------------------------
 /**
  * Assert that `entryPoint` is strictly within `destDir`.
  * Called at install/upgrade time to reject `manifest.main` values like

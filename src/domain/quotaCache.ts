@@ -24,7 +24,7 @@ import {
 } from "@/lib/db/quotaSnapshots";
 import { recordProviderQuotaResetEventIfChanged } from "@/lib/db/quotaResetEvents";
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// --- Types ------------------------------------------------------------------
 
 interface QuotaInfo {
   remainingPercentage: number;
@@ -48,7 +48,7 @@ interface QuotaWindowStatus {
   reachedThreshold: boolean;
 }
 
-// ─── Constants ──────────────────────────────────────────────────────────────
+// --- Constants --------------------------------------------------------------
 
 const ACTIVE_TTL_MS = 5 * 60 * 1000; // 5 minutes for active accounts
 const EXHAUSTED_TTL_MS = 5 * 60 * 1000; // 5 minutes for 429-sourced entries (no resetAt)
@@ -56,7 +56,7 @@ const EXHAUSTED_REFRESH_MS = 5 * 60 * 1000; // 5 minutes: recheck exhausted acco
 const REFRESH_INTERVAL_MS = 60 * 1000; // Background tick every 1 minute
 export const DEFAULT_QUOTA_THRESHOLD_PERCENT = 99;
 
-// ─── State ──────────────────────────────────────────────────────────────────
+// --- State ------------------------------------------------------------------
 //
 // #8065 — Next.js `output: "standalone"` builds can load this module from
 // independent webpack chunks (e.g. the instrumentation-hook-started
@@ -93,7 +93,7 @@ function getState(): QuotaCacheState {
 
 const MAX_CONCURRENT_REFRESHES = 5;
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// --- Helpers ----------------------------------------------------------------
 
 function isExhausted(quotas: Record<string, QuotaInfo>): boolean {
   const entries = Object.values(quotas);

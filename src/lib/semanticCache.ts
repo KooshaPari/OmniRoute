@@ -89,7 +89,7 @@ function getHeaderValue(
   return null;
 }
 
-// ─── Singleton ─────────────────
+// --- Singleton -----------------
 
 let memoryCache: LRUCache | null = null;
 
@@ -105,7 +105,7 @@ function getMemoryCache() {
   return memoryCache;
 }
 
-// ─── Signature Generation ─────────────────
+// --- Signature Generation -----------------
 
 /**
  * Generate deterministic cache signature from request params.

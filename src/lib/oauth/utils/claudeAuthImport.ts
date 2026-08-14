@@ -17,7 +17,7 @@ function toNonEmptyString(value: unknown): string | null {
   return trimmed ? trimmed : null;
 }
 
-// ──── Public types ────────────────────────────────────────────────────────────
+// ---- Public types ------------------------------------------------------------
 
 export interface ParsedClaudeAuth {
   accessToken: string;
@@ -43,7 +43,7 @@ export interface CreateConnectionOptions {
   overwriteExisting?: boolean;
 }
 
-// ──── Parse & validate ────────────────────────────────────────────────────────
+// ---- Parse & validate --------------------------------------------------------
 
 export function parseAndValidateClaudeAuth(raw: unknown): ParsedClaudeAuth {
   const doc = toRecord(raw);
@@ -93,7 +93,7 @@ export function parseAndValidateClaudeAuth(raw: unknown): ParsedClaudeAuth {
   };
 }
 
-// ──── Bootstrap enrichment ────────────────────────────────────────────────────
+// ---- Bootstrap enrichment ----------------------------------------------------
 
 export async function enrichWithBootstrap(
   parsed: ParsedClaudeAuth,

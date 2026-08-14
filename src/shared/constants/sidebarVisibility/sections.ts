@@ -5,7 +5,7 @@ import type {
   SidebarSectionDefinition,
 } from "./types";
 
-// ─── Item arrays ────────────────────────────────────────────────────────────
+// --- Item arrays ------------------------------------------------------------
 
 const HOME_ITEMS: readonly SidebarItemDefinition[] = [
   {
@@ -687,7 +687,7 @@ const HELP_ITEMS: readonly SidebarItemDefinition[] = [
   },
 ];
 
-// ─── Sections ────────────────────────────────────────────────────────────────
+// --- Sections ----------------------------------------------------------------
 
 export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
   {

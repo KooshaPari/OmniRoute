@@ -20,7 +20,7 @@ interface RetrievalOptions extends Partial<MemoryConfig> {
   sessionId?: string;
 }
 
-// ──────────────── Types exposed publicly (§3.6) ────────────────
+// ---------------- Types exposed publicly (§3.6) ----------------
 
 export interface RetrievePreviewItem {
   memory: Memory;
@@ -49,7 +49,7 @@ export interface RetrievePreviewBundle {
 
 export { estimateTokens } from "./retrieval/scoring";
 
-// ──────────────── Helpers ────────────────
+// ---------------- Helpers ----------------
 
 function hasTable(tableName: string): boolean {
   const db = getDbInstance();

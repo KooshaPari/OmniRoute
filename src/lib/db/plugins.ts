@@ -9,7 +9,7 @@ import { logger } from "../../../open-sse/utils/logger.ts";
 
 const log = logger("DB_PLUGINS");
 
-// ── Types ──
+// -- Types --
 
 export interface PluginRow {
   id: string;
@@ -55,7 +55,7 @@ export interface PluginCreateInput {
   pluginDir: string;
 }
 
-// ── Helpers ──
+// -- Helpers --
 
 function rowToPlugin(row: any): PluginRow {
   return {
@@ -83,7 +83,7 @@ function rowToPlugin(row: any): PluginRow {
   };
 }
 
-// ── CRUD ──
+// -- CRUD --
 
 export function insertPlugin(input: PluginCreateInput): PluginRow {
   const db = getDbInstance();
@@ -197,7 +197,7 @@ export function pluginExists(name: string): boolean {
   return !!row;
 }
 
-// ── Analytics ──
+// -- Analytics --
 
 export interface PluginExecutionRow {
   pluginName: string;

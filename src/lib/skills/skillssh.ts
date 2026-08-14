@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// ─── skills.sh API response schemas ───
+// --- skills.sh API response schemas ---
 
 export const SkillsShSkillSchema = z.object({
   id: z.string(),

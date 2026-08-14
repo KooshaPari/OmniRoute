@@ -10,7 +10,7 @@ import { getDbInstance } from "@/lib/db/core";
 import { rowToCamel } from "@/lib/db/core";
 import type { HookConfig, HookConfigRow, HookLogEntry, HookScope } from "@/lib/middleware/types";
 
-// ── Helpers ───────────────────────────────────────────────────────────────
+// -- Helpers ---------------------------------------------------------------
 
 function rowToHookConfig(row: HookConfigRow): HookConfig {
   return {
@@ -46,7 +46,7 @@ function hookConfigToRow(config: HookConfig): HookConfigRow {
   };
 }
 
-// ── CRUD Operations ───────────────────────────────────────────────────────
+// -- CRUD Operations -------------------------------------------------------
 
 /**
  * Get all hooks from DB.
@@ -171,7 +171,7 @@ export function recordHookExecution(name: string, error?: string): void {
   }
 }
 
-// ── Log Operations ────────────────────────────────────────────────────────
+// -- Log Operations --------------------------------------------------------
 
 /**
  * Insert a hook execution log entry.

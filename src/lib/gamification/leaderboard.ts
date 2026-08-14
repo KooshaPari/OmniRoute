@@ -4,7 +4,7 @@
  * @module lib/gamification/leaderboard
  */
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// --- Types --------------------------------------------------------------------
 
 export type LeaderboardScope = "global" | "weekly" | "monthly" | "tokens_shared" | "contributions";
 
@@ -13,7 +13,7 @@ export interface LeaderboardEntry {
   score: number;
 }
 
-// ─── Score Management ────────────────────────────────────────────────────────
+// --- Score Management --------------------------------------------------------
 
 /**
  * Update score for an API key in a scope. Atomic increment.

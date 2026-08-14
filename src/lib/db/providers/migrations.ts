@@ -20,7 +20,7 @@ interface DbLike {
   transaction: <T>(fn: () => T) => () => T;
 }
 
-// ──────────────── Auto Migration ────────────────
+// ---------------- Auto Migration ----------------
 
 /**
  * Scans all connections and re-encrypts any fields using the old dynamic salt

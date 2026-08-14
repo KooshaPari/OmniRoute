@@ -179,7 +179,7 @@ const CLI_TOOLS: Record<string, any> = {
       env: ".qwen/.env",
     },
   },
-  // ── Plan 14 — new "custom" configType tools ───────────────────────────────
+  // -- Plan 14 — new "custom" configType tools -------------------------------
   forge: {
     defaultCommand: "forge",
     envBinKey: "CLI_FORGE_BIN",

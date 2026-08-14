@@ -125,7 +125,7 @@ function ensureBudgetSchema() {
   _budgetSchemaChecked = true;
 }
 
-// ──────────────── Fallback Chains ────────────────
+// ---------------- Fallback Chains ----------------
 
 /**
  * Save a fallback chain for a model.
@@ -189,7 +189,7 @@ export function deleteAllFallbackChains() {
   db.prepare("DELETE FROM domain_fallback_chains").run();
 }
 
-// ──────────────── Budgets ────────────────
+// ---------------- Budgets ----------------
 
 /**
  * Save a budget config for an API key.
@@ -362,7 +362,7 @@ export function deleteBudget(apiKeyId: string) {
   db.prepare("DELETE FROM domain_budget_reset_logs WHERE api_key_id = ?").run(apiKeyId);
 }
 
-// ──────────────── Cost History ────────────────
+// ---------------- Cost History ----------------
 
 /**
  * Record a cost entry.
@@ -487,7 +487,7 @@ export function deleteAllCostData() {
   db.prepare("DELETE FROM domain_budget_reset_logs").run();
 }
 
-// ──────────────── Lockout State ────────────────
+// ---------------- Lockout State ----------------
 
 /**
  * Save lockout state for an identifier.
@@ -551,7 +551,7 @@ export function loadAllLockedIdentifiers() {
     .filter((row) => row.identifier.length > 0);
 }
 
-// ──────────────── Circuit Breakers ────────────────
+// ---------------- Circuit Breakers ----------------
 
 /**
  * Save circuit breaker state.

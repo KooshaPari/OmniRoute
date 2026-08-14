@@ -171,7 +171,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   // validator bodies were extracted as leaf functions taking `isLocal` where the original
   // closure captured it.
 
-  // ── Specialty provider validation ──
+  // -- Specialty provider validation --
   const SPECIALTY_VALIDATORS = {
     "v0-vercel": async ({ apiKey, providerSpecificData }: any) => {
       try {

@@ -17,7 +17,7 @@ import { createLogger } from "@/shared/utils/logger";
 
 const log = createLogger("lib:pricing-sync");
 
-// ─── Types ───────────────────────────────────────────────
+// --- Types -----------------------------------------------
 
 type PricingEntry = {
   input: number;
@@ -84,7 +84,7 @@ interface SyncResult {
   error?: string;
 }
 
-// ─── Configuration ───────────────────────────────────────
+// --- Configuration ---------------------------------------
 
 const SUPPORTED_SOURCES = ["litellm"] as const;
 type SupportedSource = (typeof SUPPORTED_SOURCES)[number];
@@ -100,7 +100,7 @@ const SYNC_SOURCES = (process.env.PRICING_SYNC_SOURCES || "litellm")
 const LITELLM_PRICING_URL =
   "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json";
 
-// ─── Provider mapping: LiteLLM provider → OmniRoute aliases ─────
+// --- Provider mapping: LiteLLM provider → OmniRoute aliases -----
 
 const LITELLM_PROVIDER_MAP: Record<string, string[]> = {
   openai: ["openai", "cx"],
@@ -124,14 +124,14 @@ const LITELLM_PROVIDER_MAP: Record<string, string[]> = {
   stability: ["stability-ai"],
 };
 
-// ─── Periodic sync state ─────────────────────────────────
+// --- Periodic sync state ---------------------------------
 
 let syncTimer: ReturnType<typeof setInterval> | null = null;
 let lastSyncTime: string | null = null;
 let lastSyncModelCount = 0;
 let activeSyncIntervalMs = SYNC_INTERVAL_MS;
 
-// ─── Core: Fetch + Transform ─────────────────────────────
+// --- Core: Fetch + Transform -----------------------------
 
 /**
  * Fetch raw pricing data from LiteLLM GitHub.

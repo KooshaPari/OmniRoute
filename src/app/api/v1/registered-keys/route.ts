@@ -4,7 +4,7 @@ import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { issueRegisteredKey, checkQuota, listRegisteredKeys } from "@/lib/db/registeredKeys";
 
-// ─── Validation ───────────────────────────────────────────────────────────────
+// --- Validation ---------------------------------------------------------------
 
 const issueKeySchema = z.object({
   name: z.string().min(1).max(120),
@@ -16,7 +16,7 @@ const issueKeySchema = z.object({
   hourlyBudget: z.number().int().positive().optional(),
 });
 
-// ─── GET /api/v1/registered-keys ─────────────────────────────────────────────
+// --- GET /api/v1/registered-keys ---------------------------------------------
 
 /**
  * List registered keys (masked — no raw key material returned after creation).
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
   }
 }
 
-// ─── POST /api/v1/registered-keys ────────────────────────────────────────────
+// --- POST /api/v1/registered-keys --------------------------------------------
 
 /**
  * Issue a new registered key.
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
 
   const { provider, accountId } = validation.data;
 
-  // ── Quota check ──
+  // -- Quota check --
   try {
     const quota = checkQuota(provider, accountId);
     if (!quota.allowed) {
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Quota check failed" }, { status: 500 });
   }
 
-  // ── Issue ──
+  // -- Issue --
   try {
     const result = issueRegisteredKey(validation.data);
 

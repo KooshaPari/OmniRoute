@@ -61,7 +61,7 @@ const proxyLogs: ProxyLogEntry[] = [];
 
 // `public_ip` is the historical SQLite column name; API/UI expose the value as clientIp.
 
-// ──────────────── Startup: hydrate from DB ────────────────
+// ---------------- Startup: hydrate from DB ----------------
 
 function loadFromDb() {
   if (!shouldPersistToDisk) return;
@@ -104,7 +104,7 @@ function loadFromDb() {
 
 loadFromDb();
 
-// ──────────────── Log a proxy event ────────────────
+// ---------------- Log a proxy event ----------------
 
 export function logProxyEvent(entry: ProxyLogInput) {
   const log: ProxyLogEntry = {
@@ -187,7 +187,7 @@ export function logProxyEvent(entry: ProxyLogInput) {
   return log;
 }
 
-// ──────────────── Query ────────────────
+// ---------------- Query ----------------
 
 /**
  * Get proxy logs with optional filters.
@@ -234,7 +234,7 @@ export function getProxyLogs(filters: ProxyLogFilters = {}) {
   return logs.slice(0, limit);
 }
 
-// ──────────────── Clear ────────────────
+// ---------------- Clear ----------------
 
 export function clearProxyLogs() {
   proxyLogs.length = 0;

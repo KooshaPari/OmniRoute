@@ -37,7 +37,7 @@ export interface DegradedResult<T> {
   status: DegradationStatus;
 }
 
-// ── Global degradation registry ─────────────────────────────────────────────
+// -- Global degradation registry ---------------------------------------------
 
 const registry = new Map<string, DegradationStatus>();
 

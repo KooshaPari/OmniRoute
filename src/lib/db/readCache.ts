@@ -175,7 +175,7 @@ export async function getCachedProviderNodes(
   return value;
 }
 
-// ──────────────── LKGP Cache Wrappers ────────────────
+// ---------------- LKGP Cache Wrappers ----------------
 
 interface LKGPRecordCache {
   provider: string;

@@ -11,7 +11,7 @@ import { logger } from "../../../open-sse/utils/logger.ts";
 
 const log = logger("PLUGIN_HOOKS");
 
-// ── Types ──
+// -- Types --
 
 export type BlockingHookResult = {
   blocked?: boolean;
@@ -30,7 +30,7 @@ export interface HookRegistration {
   priority: number;
 }
 
-// ── Built-in events ──
+// -- Built-in events --
 
 export const BUILTIN_EVENTS = [
   "onRequest",
@@ -51,7 +51,7 @@ export const BUILTIN_EVENTS = [
 
 export type BuiltinEvent = (typeof BUILTIN_EVENTS)[number];
 
-// ── Rate limiting ──
+// -- Rate limiting --
 
 const RATE_LIMIT_MAX = 100; // max calls per plugin per window
 const RATE_LIMIT_WINDOW_MS = 1000; // 1 second window
@@ -81,7 +81,7 @@ function isRateLimited(pluginName: string): boolean {
   return false;
 }
 
-// ── Registry ──
+// -- Registry --
 
 const hooks: Map<string, HookRegistration[]> = new Map();
 
@@ -226,7 +226,7 @@ export async function emitHookBlocking(
   return { body: mergedBody, metadata: mergedMetadata };
 }
 
-// ── Lifecycle wrappers (for chatCore.ts convenience) ──
+// -- Lifecycle wrappers (for chatCore.ts convenience) --
 
 export interface PluginContext {
   requestId: string;
@@ -244,7 +244,7 @@ export interface PluginResult {
   metadata?: Record<string, unknown>;
 }
 
-// ── Plugin interface (for loader/manager compatibility) ──
+// -- Plugin interface (for loader/manager compatibility) --
 
 export interface Plugin {
   name: string;
@@ -253,7 +253,7 @@ export interface Plugin {
   onRequest?: (ctx: PluginContext) => Promise<PluginResult | void> | PluginResult | void;
   onResponse?: (ctx: PluginContext, response: unknown) => Promise<unknown | void> | unknown | void;
   onError?: (ctx: PluginContext, error: Error) => Promise<unknown | void> | unknown | void;
-  // ── Lifecycle hooks (fire-and-forget, non-blocking) ──
+  // -- Lifecycle hooks (fire-and-forget, non-blocking) --
   onInstall?: (payload: unknown) => Promise<void> | void;
   onActivate?: (payload: unknown) => Promise<void> | void;
   onDeactivate?: (payload: unknown) => Promise<void> | void;

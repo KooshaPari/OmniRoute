@@ -10,7 +10,7 @@
 
 import { getDbInstance, isBuildPhase, isCloud } from "../db/core";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// --- Types -------------------------------------------------------------------
 
 export interface StreakData {
   /** Current consecutive active days */
@@ -37,14 +37,14 @@ interface KeyValueRow {
   value: string;
 }
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// --- Constants ---------------------------------------------------------------
 
 const NAMESPACE = "gamification:streaks";
 
 /** One day in milliseconds */
 const MS_PER_DAY = 86_400_000;
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// --- Helpers -----------------------------------------------------------------
 
 /**
  * Get today's date as YYYY-MM-DD in UTC.
@@ -83,7 +83,7 @@ function parseStreakJson(raw: string): StreakData {
   }
 }
 
-// ─── Public API ──────────────────────────────────────────────────────────────
+// --- Public API --------------------------------------------------------------
 
 /**
  * Get the current streak data for an API key.

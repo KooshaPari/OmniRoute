@@ -9,7 +9,7 @@
 
 import { getDbInstance, rowToCamel } from "./core";
 
-// ──────────────── Types ────────────────
+// ---------------- Types ----------------
 
 export interface ModelIntelligenceEntry {
   model: string;
@@ -24,7 +24,7 @@ export interface ModelIntelligenceEntry {
   rank?: number;
 }
 
-// ──────────────── Helpers ────────────────
+// ---------------- Helpers ----------------
 
 function rowToEntry(row: Record<string, unknown>): ModelIntelligenceEntry {
   const camel = rowToCamel(row) ?? {};
@@ -40,7 +40,7 @@ function rowToEntry(row: Record<string, unknown>): ModelIntelligenceEntry {
   };
 }
 
-// ──────────────── CRUD ────────────────
+// ---------------- CRUD ----------------
 
 export function getModelIntelligence(model: string, category: string): ModelIntelligenceEntry | null {
   const db = getDbInstance();

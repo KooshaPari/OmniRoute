@@ -42,7 +42,7 @@ function toRecord(value: unknown): JsonRecord | null {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : null;
 }
 
-// ──────────────── Last Configured Timestamp ────────────────
+// ---------------- Last Configured Timestamp ----------------
 
 /**
  * Save last-configured timestamp for a CLI tool.
@@ -107,7 +107,7 @@ export function deleteCliToolLastConfigured(toolId: string): void {
   );
 }
 
-// ──────────────── Initial Config Snapshot ────────────────
+// ---------------- Initial Config Snapshot ----------------
 
 /**
  * Save the initial (pre-OmniRoute) config snapshot for a CLI tool.

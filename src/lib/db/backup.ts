@@ -21,7 +21,7 @@ type CountRow = { cnt?: number };
 
 const log = createLogger("db:backup");
 
-// ──────────────── Backup Config ────────────────
+// ---------------- Backup Config ----------------
 
 let _lastBackupAt = 0;
 const BACKUP_THROTTLE_MS = 60 * 60 * 1000; // 60 minutes
@@ -348,7 +348,7 @@ export async function unlinkFileWithRetry(
   }
 }
 
-// ──────────────── Backup ────────────────
+// ---------------- Backup ----------------
 
 export function backupDbFile(reason = "auto") {
   try {

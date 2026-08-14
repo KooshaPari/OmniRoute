@@ -110,7 +110,7 @@ export class RequestTelemetry {
   }
 }
 
-// ─── Telemetry Aggregator ────────────────────────
+// --- Telemetry Aggregator ------------------------
 
 const MAX_HISTORY = 1000;
 /** @type {Array<{ requestId: string, totalMs: number, phases: PhaseTiming[] }>} */

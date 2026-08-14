@@ -189,7 +189,7 @@ export function getSectionItems(
   );
 }
 
-// ─── Ordering & preset setting keys ──────────────────────────────────────────
+// --- Ordering & preset setting keys ------------------------------------------
 
 export const HIDDEN_SIDEBAR_ITEMS_SETTING_KEY = "hiddenSidebarItems";
 export const SIDEBAR_SECTION_ORDER_KEY = "sidebarSectionOrder";
@@ -293,7 +293,7 @@ export const SIDEBAR_PRESETS: readonly SidebarPresetDefinition[] = [
   { id: "admin", icon: "admin_panel_settings", hiddenItems: buildHiddenList(ADMIN_SHOWN) },
 ];
 
-// ─── Ordering utilities ───────────────────────────────────────────────────────
+// --- Ordering utilities -------------------------------------------------------
 
 export function applySectionOrder(
   sections: readonly SidebarSectionDefinition[],
@@ -329,7 +329,7 @@ export function applyItemOrder(
   });
 }
 
-// ─── Settings helpers ─────────────────────────────────────────────────────────
+// --- Settings helpers ---------------------------------------------------------
 
 export function normalizeHiddenSidebarItems(value: unknown): HideableSidebarItemId[] {
   if (!Array.isArray(value)) return [];

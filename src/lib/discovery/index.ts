@@ -19,7 +19,7 @@ import {
 
 const log = logger("DISCOVERY");
 
-// ── Types ──
+// -- Types --
 
 export interface DiscoveryConfig {
   enabled: boolean;
@@ -45,7 +45,7 @@ export interface DiscoveryResult {
   verifiedAt?: string;
 }
 
-// ── Default Config ──
+// -- Default Config --
 
 export const DEFAULT_DISCOVERY_CONFIG: DiscoveryConfig = {
   enabled: false,
@@ -54,7 +54,7 @@ export const DEFAULT_DISCOVERY_CONFIG: DiscoveryConfig = {
   targetProviders: [],
 };
 
-// ── Probe ──
+// -- Probe --
 
 /**
  * Probe a single URL for API availability.
@@ -79,7 +79,7 @@ export async function probeEndpoint(
   }
 }
 
-// ── Scan ──
+// -- Scan --
 
 /**
  * Scan a provider for free access methods.
@@ -107,7 +107,7 @@ export async function scanProvider(
   ];
 }
 
-// ── Results (Reporter — Phase 2) ──
+// -- Results (Reporter — Phase 2) --
 
 /**
  * Persist a discovery finding to the `discovery_results` table via the DB
@@ -127,7 +127,7 @@ export function getDiscoveryResults(providerId?: string): DiscoveryResult[] {
   return dbGetDiscoveryResults(providerId) as DiscoveryResult[];
 }
 
-// ── Config ──
+// -- Config --
 
 /**
  * Check if discovery service is enabled.

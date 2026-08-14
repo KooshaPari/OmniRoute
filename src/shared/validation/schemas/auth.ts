@@ -16,7 +16,7 @@ import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
 import { confirmedAccountSchema } from "./misc.ts";
 
-// ──── Codex Import Schema ────
+// ---- Codex Import Schema ----
 
 export const importCodexAuthSchema = z.object({
   source: z.discriminatedUnion("kind", [
@@ -31,7 +31,7 @@ export const importCodexAuthSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Codex Import Bulk Schema ────
+// ---- Codex Import Bulk Schema ----
 
 export const importCodexAuthBulkSchema = z.object({
   entries: z
@@ -47,7 +47,7 @@ export const importCodexAuthBulkSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Claude Auth Import Schema ────
+// ---- Claude Auth Import Schema ----
 
 export const importClaudeAuthSchema = z.object({
   source: z.discriminatedUnion("kind", [
@@ -62,7 +62,7 @@ export const importClaudeAuthSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Claude Auth Import Bulk Schema ────
+// ---- Claude Auth Import Bulk Schema ----
 
 export const importClaudeAuthBulkSchema = z.object({
   entries: z
@@ -78,7 +78,7 @@ export const importClaudeAuthBulkSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Antigravity CLI (`agy`) Auth Import Schema ────
+// ---- Antigravity CLI (`agy`) Auth Import Schema ----
 
 export const importAgyAuthSchema = z.object({
   source: z.discriminatedUnion("kind", [
@@ -93,7 +93,7 @@ export const importAgyAuthSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Antigravity CLI (`agy`) auto-detect local login Schema ────
+// ---- Antigravity CLI (`agy`) auto-detect local login Schema ----
 // No `source`: the route reads the token from the local agy CLI data dir on disk.
 
 export const applyLocalAgyAuthSchema = z.object({
@@ -102,7 +102,7 @@ export const applyLocalAgyAuthSchema = z.object({
   overwriteExisting: z.boolean().optional(),
 });
 
-// ──── Antigravity CLI (`agy`) Auth Import Bulk Schema ────
+// ---- Antigravity CLI (`agy`) Auth Import Bulk Schema ----
 
 export const importAgyAuthBulkSchema = z.object({
   entries: z

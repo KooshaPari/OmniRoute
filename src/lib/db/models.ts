@@ -40,7 +40,7 @@ export {
 } from "./models/aliases";
 export { getMitmAlias, setMitmAliasAll } from "./models/mitmAlias";
 
-// ──────────────── Custom Models ────────────────
+// ---------------- Custom Models ----------------
 
 export async function getCustomModels(providerId?: string) {
   const db = getDbInstance();
@@ -312,7 +312,7 @@ export async function removeCustomModel(providerId: string, modelId: string) {
   return true;
 }
 
-// ──────────────── Synced Available Models ────────────────
+// ---------------- Synced Available Models ----------------
 // Storage: namespace = 'syncedAvailableModels', key = '<providerId>:<connectionId>'
 // Each connection stores its own model list. Reads union across all connections
 // for a provider. Deleting a connection removes only its models.

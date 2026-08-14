@@ -12,7 +12,7 @@ export interface FeatureFlagDefinition {
 }
 
 export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
-  // ──────────────── Security (9) ────────────────
+  // ---------------- Security (9) ----------------
   {
     key: "REQUIRE_API_KEY",
     label: "Require API Key",
@@ -105,7 +105,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     requiresRestart: false,
     warningLevel: "danger",
   },
-  // ──────────────── Network (7) ────────────────
+  // ---------------- Network (7) ----------------
   {
     key: "ENABLE_TLS_FINGERPRINT",
     label: "TLS Fingerprint",
@@ -198,7 +198,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── Policies (3) ────────────────
+  // ---------------- Policies (3) ----------------
   {
     key: "TOOL_POLICY_MODE",
     label: "Tool Policy Mode",
@@ -234,7 +234,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── Runtime (13) ────────────────
+  // ---------------- Runtime (13) ----------------
   {
     key: "RESPONSES_PASSTHROUGH_DROP_COMMENTARY",
     label: "Drop Responses Commentary",
@@ -410,7 +410,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── CLI (5) ────────────────
+  // ---------------- CLI (5) ----------------
   {
     key: "CLI_COMPAT_ALL",
     label: "CLI Compat All",
@@ -470,7 +470,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
 
-  // ──────────────── Health (3) ────────────────
+  // ---------------- Health (3) ----------------
   {
     key: "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK",
     label: "Disable Local Health Check",

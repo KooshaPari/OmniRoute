@@ -37,7 +37,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getDbInstance } from "./core";
 import { recordCostEvent } from "./costTracking";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// --- Types -------------------------------------------------------------------
 
 export interface VirtualKey {
   id: string;
@@ -85,7 +85,7 @@ export type RecordUsageResult =
   | { ok: true; newCostUsd: number; newRpd: number }
   | { ok: false; reason: "over_budget" | "over_rpd" | "revoked" | "not_found" };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// --- Helpers -----------------------------------------------------------------
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
@@ -168,7 +168,7 @@ function normaliseAllowedModels(value: string[] | null | undefined): string | nu
   return filtered.length > 0 ? JSON.stringify(filtered) : null;
 }
 
-// ─── Public API ──────────────────────────────────────────────────────────────
+// --- Public API --------------------------------------------------------------
 
 /**
  * Mint a new virtual key. Returns the persisted row plus the rawKey,
@@ -423,7 +423,7 @@ export function recordVirtualKeyUsage(
   };
 }
 
-// ─── Internal ────────────────────────────────────────────────────────────────
+// --- Internal ----------------------------------------------------------------
 
 function getRow(
   db: ReturnType<typeof getDbInstance>,

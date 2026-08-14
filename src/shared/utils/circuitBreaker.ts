@@ -359,7 +359,7 @@ export class CircuitBreaker {
     this._persistToDb();
   }
 
-  // ─── Internal ─────────────────────────────────
+  // --- Internal ---------------------------------
 
   _onSuccess() {
     if (this.state === STATE.OPEN) {

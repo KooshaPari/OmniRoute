@@ -8,7 +8,7 @@
 import { getDbInstance } from "./core";
 import { calculateLevel } from "../gamification/xp";
 
-// ──────────────── Types ────────────────
+// ---------------- Types ----------------
 
 export interface LeaderboardRow {
   apiKeyId: string;
@@ -91,7 +91,7 @@ export interface CommunityServer {
   errorMessage: string | null;
 }
 
-// ──────────────── Helper ────────────────
+// ---------------- Helper ----------------
 
 interface StatementLike<TRow = unknown> {
   all: (...params: unknown[]) => TRow[];
@@ -107,7 +107,7 @@ function db(): DbLike {
   return getDbInstance() as unknown as DbLike;
 }
 
-// ──────────────── Leaderboard ────────────────
+// ---------------- Leaderboard ----------------
 
 export function updateScore(apiKeyId: string, scope: string, points: number): void {
   db()
@@ -151,7 +151,7 @@ export function getTopN(scope: string, limit: number, offset: number = 0): Leade
   }));
 }
 
-// ──────────────── XP & Levels ────────────────
+// ---------------- XP & Levels ----------------
 
 export function addXp(apiKeyId: string, action: string, amount: number, metadata?: string): void {
   db()
@@ -204,7 +204,7 @@ export function updateLevel(apiKeyId: string, level: number): void {
     .run(apiKeyId, level, level);
 }
 
-// ──────────────── Badges ────────────────
+// ---------------- Badges ----------------
 
 export function unlockBadge(apiKeyId: string, badgeId: string): void {
   db()
@@ -342,7 +342,7 @@ export function getAllEarnedBadges(): UserBadge[] {
   }));
 }
 
-// ──────────────── Token Ledger ────────────────
+// ---------------- Token Ledger ----------------
 
 export function transferTokens(
   fromId: string,
@@ -416,7 +416,7 @@ export function getHistory(apiKeyId: string, limit: number): TokenLedgerEntry[] 
   }));
 }
 
-// ──────────────── Invite Tokens ────────────────
+// ---------------- Invite Tokens ----------------
 
 export function createInviteToken(
   id: string,
@@ -483,7 +483,7 @@ export function revokeInvite(id: string): void {
   db().prepare(`UPDATE invite_tokens SET revoked_at = datetime('now') WHERE id = ?`).run(id);
 }
 
-// ──────────────── Community Servers ────────────────
+// ---------------- Community Servers ----------------
 
 /**
  * Look up a connected community server by its API key hash.

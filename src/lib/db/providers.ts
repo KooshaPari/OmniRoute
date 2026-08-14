@@ -36,7 +36,7 @@ interface DbLike {
   transaction: <T>(fn: () => T) => () => T;
 }
 
-// ──────────────── Provider Connections ────────────────
+// ---------------- Provider Connections ----------------
 
 /**
  * Returns provider connections as lazy-decrypting proxies: encrypted

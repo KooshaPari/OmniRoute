@@ -13,7 +13,7 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const execAsync = promisify(exec);
 
-// ── Paths ──────────────────────────────────────────────────────────────
+// -- Paths --------------------------------------------------------------
 const getLettaDir = () => path.join(os.homedir(), ".letta");
 const getSettingsPath = () => path.join(getLettaDir(), "settings.json");
 const getLocalBackendDir = () => path.join(getLettaDir(), "lc-local-backend");
@@ -21,14 +21,14 @@ const getProviderAuthPath = () => path.join(getLocalBackendDir(), "providers", "
 const getBackupPath = () =>
   path.join(getLocalBackendDir(), "providers", "auth.json.omniroute-backup");
 
-// ── Provider name in auth.json ─────────────────────────────────────────
+// -- Provider name in auth.json -----------------------------------------
 // "lmstudio" provider type has localModelDiscovery: "openai-compatible"
 // which auto-discovers models from /v1/models and shows them in /model picker
 // Models appear as "lmstudio/<model-id>" in the CLI
 const PROVIDER_NAME = "lmstudio";
 const PROVIDER_TYPE = "lmstudio_openai";
 
-// ── Check if Letta CLI is installed ────────────────────────────────────
+// -- Check if Letta CLI is installed ------------------------------------
 const checkLettaInstalled = async () => {
   try {
     const isWindows = os.platform() === "win32";

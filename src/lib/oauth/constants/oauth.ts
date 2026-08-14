@@ -417,7 +417,7 @@ export const WINDSURF_CONFIG = {
   apiServerUrl: "https://server.codeium.com",
   // RETIRED 2026-05-29 — see apiServerUrl.
   exchangePath: "/exa.seat_management_pb.SeatManagementService/ExchangePKCEAuthorizationCode",
-  // ── Active fields (still consumed by runtime) ─────────────────────────────
+  // -- Active fields (still consumed by runtime) -----------------------------
   // Inference server URL (gRPC-web requests go here)
   inferenceUrl: "https://server.self-serve.windsurf.com",
   // Primary login path: the user runs the "Windsurf: Provide Auth Token" command

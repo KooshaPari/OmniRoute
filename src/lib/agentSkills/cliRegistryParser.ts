@@ -15,7 +15,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { SkillArea } from "./types";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// -- Types --------------------------------------------------------------------
 
 export interface CliCommand {
   /** Canonical command string, e.g. "providers list" */
@@ -35,7 +35,7 @@ export interface ParsedCliRegistry {
   families: Map<SkillArea, CliCommand[]>;
 }
 
-// ── Mapping: file basename → CLI SkillArea ───────────────────────────────────
+// -- Mapping: file basename → CLI SkillArea -----------------------------------
 
 /**
  * Maps a commands/*.mjs basename to its CLI SkillArea.
@@ -93,7 +93,7 @@ const FILE_FAMILY_MAP: Record<string, SkillArea> = {
   autostart: "cli-setup",
 };
 
-// ── Regex patterns ───────────────────────────────────────────────────────────
+// -- Regex patterns -----------------------------------------------------------
 
 // Matches: .command("name") or .command('name') — capture group 1 = name
 const COMMAND_RE = /\.command\(\s*["']([^"']+)["']/g;
@@ -104,7 +104,7 @@ const DESCRIPTION_RE = /\.description\(\s*["']([^"']+)["']/g;
 // Matches: .option("--flag ...", "desc") — capture group 1 = flag string
 const OPTION_RE = /\.option\(\s*["']([^"']+)["']/g;
 
-// ── Parser helpers ───────────────────────────────────────────────────────────
+// -- Parser helpers -----------------------------------------------------------
 
 interface RawCommand {
   name: string;

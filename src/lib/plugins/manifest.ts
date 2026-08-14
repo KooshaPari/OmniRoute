@@ -6,12 +6,12 @@
 
 import { z } from "zod";
 
-// ── Permission enum ──
+// -- Permission enum --
 
 export const PermissionSchema = z.enum(["network", "file-read", "file-write", "env", "exec"]);
 export type Permission = z.infer<typeof PermissionSchema>;
 
-// ── Skill definition in manifest ──
+// -- Skill definition in manifest --
 
 export const ManifestSkillSchema = z.object({
   name: z.string().min(1).max(100),
@@ -21,7 +21,7 @@ export const ManifestSkillSchema = z.object({
 });
 export type ManifestSkill = z.infer<typeof ManifestSkillSchema>;
 
-// ── Config schema field ──
+// -- Config schema field --
 
 export const ConfigFieldSchema = z.object({
   type: z.enum(["string", "number", "boolean", "select"]),
@@ -33,7 +33,7 @@ export const ConfigFieldSchema = z.object({
 });
 export type ConfigField = z.infer<typeof ConfigFieldSchema>;
 
-// ── Hooks ──
+// -- Hooks --
 
 export const HooksSchema = z.object({
   onRequest: z.boolean().optional(),
@@ -45,14 +45,14 @@ export const HooksSchema = z.object({
   onUninstall: z.boolean().optional(),
 });
 
-// ── Requires ──
+// -- Requires --
 
 export const RequiresSchema = z.object({
   omniroute: z.string().optional(),
   permissions: z.array(PermissionSchema).optional(),
 });
 
-// ── Full manifest ──
+// -- Full manifest --
 
 export const PluginManifestSchema = z.object({
   name: z
@@ -89,7 +89,7 @@ export const PluginManifestSchema = z.object({
 
 export type PluginManifest = z.infer<typeof PluginManifestSchema>;
 
-// ── Defaults applied after parsing ──
+// -- Defaults applied after parsing --
 
 export interface PluginManifestWithDefaults extends PluginManifest {
   license: string;
@@ -137,7 +137,7 @@ export function applyDefaults(manifest: PluginManifest): PluginManifestWithDefau
   };
 }
 
-// ── Validation ──
+// -- Validation --
 
 export function validateManifest(raw: unknown): PluginManifestWithDefaults {
   const parsed = PluginManifestSchema.parse(raw);

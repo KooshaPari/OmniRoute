@@ -11,7 +11,7 @@
 import { z } from "zod";
 import { getSettings, updateSettings } from "@/lib/db/settings";
 
-// ── Schema ───────────────────────────────────────────────────────────────────
+// -- Schema -------------------------------------------------------------------
 
 export const chaosConfigSchema = z.object({
   enabled: z.boolean().default(false),
@@ -42,7 +42,7 @@ export const DEFAULT_CHAOS_CONFIG: ChaosConfig = {
   maxTokens: 4096,
 };
 
-// ── Persistence ──────────────────────────────────────────────────────────────
+// -- Persistence --------------------------------------------------------------
 //
 // Persisted via the shared settings store (src/lib/db/settings.ts::getSettings/
 // updateSettings — the `key_value` table, namespace 'settings') rather than

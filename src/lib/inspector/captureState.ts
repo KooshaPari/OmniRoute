@@ -11,7 +11,7 @@
 import type { HttpProxyServerHandle } from "@/mitm/inspector/httpProxyServer";
 import type { PreviousState } from "@/mitm/inspector/systemProxyConfig";
 
-// ── HTTP Proxy ──────────────────────────────────────────────────────────────
+// -- HTTP Proxy --------------------------------------------------------------
 
 let httpProxyHandle: HttpProxyServerHandle | null = null;
 
@@ -23,7 +23,7 @@ export function setHttpProxyHandle(handle: HttpProxyServerHandle | null): void {
   httpProxyHandle = handle;
 }
 
-// ── System Proxy ────────────────────────────────────────────────────────────
+// -- System Proxy ------------------------------------------------------------
 
 interface SystemProxyState {
   applied: boolean;
@@ -77,7 +77,7 @@ export function clearSystemProxy(): void {
   systemProxyState = { applied: false, port: null, guardUntil: null, previousState: null };
 }
 
-// ── TLS Intercept ───────────────────────────────────────────────────────────
+// -- TLS Intercept -----------------------------------------------------------
 
 let tlsInterceptEnabled = process.env.INSPECTOR_TLS_INTERCEPT === "true";
 

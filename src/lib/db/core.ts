@@ -78,13 +78,13 @@ type CriticalTableSpec = {
   readRows?: (db: SqliteDatabase) => JsonRecord[];
 };
 
-// ──────────────── Environment Detection ────────────────
+// ---------------- Environment Detection ----------------
 
 export const isCloud = typeof globalThis.caches === "object" && globalThis.caches !== null;
 
 export const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 
-// ──────────────── Paths ────────────────
+// ---------------- Paths ----------------
 
 export const DATA_DIR = resolveWritableDataDir({ isCloud });
 const LEGACY_DATA_DIR = isCloud ? null : getLegacyDotDataDir();

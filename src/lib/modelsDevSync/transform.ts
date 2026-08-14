@@ -43,7 +43,7 @@ export interface ModelCapabilityEntry {
 
 export type CapabilitiesByProvider = Record<string, Record<string, ModelCapabilityEntry>>;
 
-// ─── models.dev API types (raw) ──────────────────────────
+// --- models.dev API types (raw) --------------------------
 
 export interface ModelsDevCost {
   input?: number;
@@ -102,7 +102,7 @@ export interface ModelsDevProvider {
 
 export type ModelsDevData = Record<string, ModelsDevProvider>;
 
-// ─── Provider mapping: models.dev provider ID → OmniRoute provider IDs/aliases ──
+// --- Provider mapping: models.dev provider ID → OmniRoute provider IDs/aliases --
 //
 // models.dev uses canonical provider IDs (e.g. "openai", "anthropic", "google").
 // OmniRoute uses both full IDs and short aliases (e.g. "cc" for claude, "cx" for codex).
@@ -185,7 +185,7 @@ export function mapProviderId(modelsDevProviderId: string): string[] {
   return MODELS_DEV_PROVIDER_MAP[modelsDevProviderId] || [modelsDevProviderId];
 }
 
-// ─── Transform: Pricing ──────────────────────────────────
+// --- Transform: Pricing ----------------------------------
 
 /**
  * Transform models.dev raw data → OmniRoute PricingByProvider format.
@@ -231,7 +231,7 @@ export function transformModelsDevToPricing(raw: ModelsDevData): PricingByProvid
   return result;
 }
 
-// ─── Transform: Capabilities ─────────────────────────────
+// --- Transform: Capabilities -----------------------------
 
 /**
  * Transform models.dev raw data → CapabilitiesByProvider format.

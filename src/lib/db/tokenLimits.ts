@@ -130,7 +130,7 @@ function rowToTokenLimit(row: unknown): TokenLimit {
   };
 }
 
-// ──────────────── CRUD ────────────────
+// ---------------- CRUD ----------------
 
 /**
  * Insert or update a token limit. Upsert key is (api_key_id, scope_type, scope_value).
@@ -220,7 +220,7 @@ export function deleteTokenLimit(id: string): boolean {
   return info.changes > 0;
 }
 
-// ──────────────── Counters (concurrency-safe under WAL) ────────────────
+// ---------------- Counters (concurrency-safe under WAL) ----------------
 
 /**
  * Pure boundary calculator. Resolves the active window for a limit at `now`

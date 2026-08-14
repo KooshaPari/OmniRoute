@@ -28,7 +28,7 @@ export async function GET() {
   try {
     const catalog: Record<string, any> = {};
 
-    // ── 1. Registry models (hardcoded) ──────────────────────────────
+    // -- 1. Registry models (hardcoded) ------------------------------
     for (const entry of Object.values(REGISTRY)) {
       const alias = entry.alias || entry.id;
       if (!entry.models || entry.models.length === 0) continue;
@@ -86,7 +86,7 @@ export async function GET() {
       }
     };
 
-    // ── 2. Synced available models (DB) ─────────────────────────────
+    // -- 2. Synced available models (DB) -----------------------------
     let syncedModelsMap: Record<string, unknown> = {};
     try {
       syncedModelsMap = asRecord(await getAllSyncedAvailableModels());
@@ -98,7 +98,7 @@ export async function GET() {
       appendDbModels(providerId, rawModels);
     }
 
-    // ── 3. Custom models (DB) ───────────────────────────────────────
+    // -- 3. Custom models (DB) ---------------------------------------
     let customModelsMap: Record<string, unknown> = {};
     try {
       customModelsMap = asRecord(await getAllCustomModels());
@@ -110,7 +110,7 @@ export async function GET() {
       appendDbModels(providerId, rawModels);
     }
 
-    // ── 4. Pricing-only models (DB) ─────────────────────────────────
+    // -- 4. Pricing-only models (DB) ---------------------------------
     let pricingData: Record<string, any> = {};
     try {
       pricingData = await getPricing();

@@ -9,7 +9,7 @@ import { getDbInstance } from "./core";
 
 const NAMESPACE = "provider_param_filters";
 
-// ── Types ───────────────────────────────────────────────────────────────────
+// -- Types -------------------------------------------------------------------
 
 export interface ModelParamFilter {
   block?: string[];
@@ -27,7 +27,7 @@ export interface ProviderParamFilter {
   autoLearn?: boolean;
 }
 
-// ── Cache ───────────────────────────────────────────────────────────────────
+// -- Cache -------------------------------------------------------------------
 
 let filterCache: Map<string, ProviderParamFilter> | null = null;
 let cacheGeneration = 0;
@@ -37,7 +37,7 @@ function bumpCacheGeneration(): void {
   filterCache = null;
 }
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+// -- Helpers -----------------------------------------------------------------
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -90,7 +90,7 @@ function toProviderParamFilter(raw: unknown): ProviderParamFilter | null {
   return { block, allow, models: Object.keys(models).length > 0 ? models : undefined, autoLearn };
 }
 
-// ── Read ────────────────────────────────────────────────────────────────────
+// -- Read --------------------------------------------------------------------
 
 function readNamespace(namespace: string): Record<string, unknown> {
   const db = getDbInstance();
@@ -117,7 +117,7 @@ function loadAllConfigs(): Map<string, ProviderParamFilter> {
   return map;
 }
 
-// ── Public API ──────────────────────────────────────────────────────────────
+// -- Public API --------------------------------------------------------------
 
 /**
  * Warm the cache on module load so the first call to getParamFilterConfig
@@ -175,7 +175,7 @@ export function deleteParamFilterConfig(provider: string): void {
   bumpCacheGeneration();
 }
 
-// ── Global auto-learn flag ──────────────────────────────────────────────────
+// -- Global auto-learn flag --------------------------------------------------
 
 const GLOBAL_AUTOLEARN_KEY = "__global__";
 

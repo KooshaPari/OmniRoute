@@ -25,7 +25,7 @@ const _require = createRequire(import.meta.url);
 
 const log = logger("VECTOR_STORE");
 
-// ──────────────── Types ────────────────
+// ---------------- Types ----------------
 
 export interface VectorSearchHit {
   memoryId: string; // UUID (same as memories.id)
@@ -69,12 +69,12 @@ export interface VectorStore {
   resetForSignature(signature: string, dim: number): Promise<void>;
 }
 
-// ──────────────── Constants ────────────────
+// ---------------- Constants ----------------
 
 const RRF_K = Number(process.env["MEMORY_RRF_K"] ?? 60);
 const TOP_K_DEFAULT = Number(process.env["MEMORY_VEC_TOP_K"] ?? 20);
 
-// ──────────────── Helpers ────────────────
+// ---------------- Helpers ----------------
 
 /**
  * Encode a Float32Array as a Buffer of little-endian bytes.
@@ -85,7 +85,7 @@ function encodeVector(v: Float32Array): Buffer {
   return Buffer.from(v.buffer, v.byteOffset, v.byteLength);
 }
 
-// ──────────────── Quantization (F4.4 / Q2) ────────────────
+// ---------------- Quantization (F4.4 / Q2) ----------------
 
 /** Vector storage quantization mode. Opt-in via MEMORY_VEC_QUANTIZATION=int8. */
 export type VecQuantization = "none" | "int8";

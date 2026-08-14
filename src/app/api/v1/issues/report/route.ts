@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   const repo = process.env.GITHUB_ISSUES_REPO;
   const token = process.env.GITHUB_ISSUES_TOKEN;
 
-  // ── Structured body for the GitHub issue ──
+  // -- Structured body for the GitHub issue --
   const issueBody = [
     `## ${errorCode ?? "Key Issuance Event"}`,
     "",

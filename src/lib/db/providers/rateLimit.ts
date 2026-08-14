@@ -15,7 +15,7 @@ interface DbLike {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
 }
 
-// ──────────────── T05: Rate-Limit DB Persistence ──────────────────────────
+// ---------------- T05: Rate-Limit DB Persistence --------------------------
 // Allows rate-limit state to survive token refresh without being accidentally
 // cleared. DB column rate_limited_until already exists in schema.
 // Ref: sub2api PR #1218 (fix(openai): prevent rescheduling rate-limited accounts)
@@ -67,7 +67,7 @@ export function getRateLimitedConnections(
   return rows.map((r) => ({ id: r.id, rateLimitedUntil: r.rate_limited_until }));
 }
 
-// ──────────────── T13: Stale Quota Display Fix ─────────────────────────────
+// ---------------- T13: Stale Quota Display Fix -----------------------------
 // Codex/Claude quotas display stale cumulative usage after the window resets.
 // By comparing resetAt timestamp to now(), we can show 0 when window has passed.
 // Ref: sub2api PR #1171 (fix: quota display shows stale cumulative usage after reset)

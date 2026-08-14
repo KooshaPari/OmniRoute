@@ -11,7 +11,7 @@
  * @module lib/piiSanitizer
  */
 
-// ── Configuration ──
+// -- Configuration --
 
 import { isFeatureFlagEnabled, resolveFeatureFlag } from "@/shared/utils/featureFlags";
 
@@ -28,7 +28,7 @@ const getMode = (): PiiMode => {
   return "redact";
 };
 
-// ── PII Patterns ──
+// -- PII Patterns --
 
 interface PIIPattern {
   name: string;
@@ -106,7 +106,7 @@ const PII_PATTERNS: PIIPattern[] = [
   },
 ];
 
-// ── Public API ──
+// -- Public API --
 
 export interface SanitizeResult {
   text: string;

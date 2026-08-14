@@ -10,7 +10,7 @@
 import { parseEnvBoolean } from "@/shared/utils/envBoolean";
 import { resolveBlockThreshold, shouldBlockDetections } from "@/shared/utils/injectionSeverity";
 
-// ─── Prompt Injection Patterns ───────────────────────────────────────
+// --- Prompt Injection Patterns ---------------------------------------
 
 /** @type {Array<{name: string, pattern: RegExp, severity: string}>} */
 const INJECTION_PATTERNS = [
@@ -70,7 +70,7 @@ const INJECTION_PATTERNS = [
  */
 export const MAX_INJECTION_SCAN_BYTES = 16 * 1024;
 
-// ─── PII Patterns ────────────────────────────────────────────────────
+// --- PII Patterns ----------------------------------------------------
 
 /** @type {Array<{name: string, pattern: RegExp, replacement: string}>} */
 const PII_PATTERNS = [
@@ -106,7 +106,7 @@ const PII_PATTERNS = [
   },
 ];
 
-// ─── Configuration ────────────────────────────────────────────────────
+// --- Configuration ----------------------------------------------------
 
 /**
  * Get sanitizer configuration from environment.
@@ -122,7 +122,7 @@ function getConfig() {
   };
 }
 
-// ─── Core Functions ───────────────────────────────────────────────────
+// --- Core Functions ---------------------------------------------------
 
 /**
  * @typedef {Object} SanitizeResult
@@ -262,7 +262,7 @@ export function sanitizeRequest(body, logger = console) {
   const contents = extractMessageContents(body);
   const fullText = contents.join("\n");
 
-  // ── Prompt Injection Detection ──
+  // -- Prompt Injection Detection --
   const injections = detectInjection(fullText);
   if (injections.length > 0) {
     result.detections = injections;

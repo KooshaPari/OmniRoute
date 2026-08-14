@@ -8,7 +8,7 @@
 
 import { secureRandomInt } from "./secureRandom";
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// --- Types ------------------------------------------------------------------
 
 interface ShuffleDeck {
   order: readonly string[];
@@ -16,12 +16,12 @@ interface ShuffleDeck {
   idsKey: string;
 }
 
-// ─── State ──────────────────────────────────────────────────────────────────
+// --- State ------------------------------------------------------------------
 
 const decks = new Map<string, ShuffleDeck>();
 const mutexes = new Map<string, Promise<void>>();
 
-// ─── Fisher-Yates Shuffle ───────────────────────────────────────────────────
+// --- Fisher-Yates Shuffle ---------------------------------------------------
 
 /**
  * Fisher-Yates shuffle — returns a new shuffled copy of the array.
@@ -38,7 +38,7 @@ export function fisherYatesShuffle<T>(arr: readonly T[]): T[] {
   return result;
 }
 
-// ─── Deck Operations ────────────────────────────────────────────────────────
+// --- Deck Operations --------------------------------------------------------
 
 /**
  * Get next item from a namespaced shuffle deck.
@@ -101,7 +101,7 @@ export async function getNextFromDeck(
   }
 }
 
-// ─── Sync version (backwards compat for non-concurrent callers) ─────────────
+// --- Sync version (backwards compat for non-concurrent callers) -------------
 
 /**
  * Synchronous version of getNextFromDeck — NO mutex protection.
@@ -138,7 +138,7 @@ export function getNextFromDeckSync(namespace: string, itemIds: readonly string[
   return newOrder[0];
 }
 
-// ─── Test helpers ───────────────────────────────────────────────────────────
+// --- Test helpers -----------------------------------------------------------
 
 /** Reset all decks — for testing only. */
 export function _resetAllDecks(): void {

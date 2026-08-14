@@ -7,7 +7,7 @@
  * @module domain/assessment/types
  */
 
-// ── Model Assessment ────────────────────────────────────────────────────────
+// -- Model Assessment --------------------------------------------------------
 
 /** Assessment status for a model/provider pair */
 export type AssessmentStatus =
@@ -89,7 +89,7 @@ export interface ModelAssessment {
   updatedAt: string;
 }
 
-// ── Assessment Run ───────────────────────────────────────────────────────────
+// -- Assessment Run -----------------------------------------------------------
 
 /** Trigger source for an assessment run */
 export type AssessmentTrigger =
@@ -113,7 +113,7 @@ export interface AssessmentRun {
   createdAt: string;
 }
 
-// ── Combo Health ─────────────────────────────────────────────────────────────
+// -- Combo Health -------------------------------------------------------------
 
 /** Health status for a combo */
 export interface ComboHealth {
@@ -127,7 +127,7 @@ export interface ComboHealth {
   updatedAt: string;
 }
 
-// ── Self-Heal Actions ────────────────────────────────────────────────────────
+// -- Self-Heal Actions --------------------------------------------------------
 
 /** Types of actions the self-healer can take */
 export type HealActionType =
@@ -150,7 +150,7 @@ export interface HealAction {
   timestamp: string;
 }
 
-// ── Probe Configuration ──────────────────────────────────────────────────────
+// -- Probe Configuration ------------------------------------------------------
 
 /** Configuration for assessment probes */
 export interface AssessmentConfig {
@@ -193,7 +193,7 @@ export const DEFAULT_ASSESSMENT_CONFIG: AssessmentConfig = {
   skipBrokenModels: true,
 };
 
-// ── Probe Messages ───────────────────────────────────────────────────────────
+// -- Probe Messages -----------------------------------------------------------
 
 /** Probe messages for different assessment levels */
 export const PROBE_MESSAGES = {
@@ -214,7 +214,7 @@ export const PROBE_MAX_TOKENS = {
   deep: 50,
 } as const;
 
-// ── Auto-Combo Templates ────────────────────────────────────────────────────
+// -- Auto-Combo Templates ----------------------------------------------------
 
 /** Template for auto-generating combos from assessment results */
 export interface AutoComboTemplate {

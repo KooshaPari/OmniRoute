@@ -12,7 +12,7 @@
 
 import { z } from "zod";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// -- Types --------------------------------------------------------------------
 
 export interface GitHubSkillRepo {
   fullName: string;
@@ -42,7 +42,7 @@ export interface SkillInstallResult {
   destDir?: string;
 }
 
-// ── Constants ────────────────────────────────────────────────────────────────
+// -- Constants ----------------------------------------------------------------
 
 const BLOCKED_PATTERNS: { regex: RegExp; description: string }[] = [
   { regex: /eval\s*\(base64/i, description: "eval(base64) — dangerous code execution" },
@@ -140,7 +140,7 @@ const INSTALL_PATHS: Record<InstallTarget, string> = {
   opencode: "~/.opencode/skills/{category}",
 };
 
-// ── Scoring ──────────────────────────────────────────────────────────────────
+// -- Scoring ------------------------------------------------------------------
 
 /**
  * Score a GitHub repo for agent-skill relevance (0.0 – 1.0).
@@ -220,7 +220,7 @@ export function scoreRepo(params: {
   return Math.round(score * 10000) / 10000;
 }
 
-// ── Scanning ─────────────────────────────────────────────────────────────────
+// -- Scanning -----------------------------------------------------------------
 
 const DOC_FILES = new Set([
   "readme.md",

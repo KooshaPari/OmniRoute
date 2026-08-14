@@ -25,7 +25,7 @@ import {
 } from "./codegraphKnowledge";
 import { getAllKeyGroups } from "@/lib/db/apiKeyGroups";
 
-// ── Tool Types ───────────────────────────────────────────────────────────────
+// -- Tool Types ---------------------------------------------------------------
 
 export interface CopilotToolParam {
   name: string;
@@ -41,7 +41,7 @@ export interface CopilotTool {
   handler: (args: Record<string, unknown>) => Promise<string>;
 }
 
-// ── Helper: format CodeGraph results ─────────────────────────────────────────
+// -- Helper: format CodeGraph results -----------------------------------------
 
 function formatCodeGraphResult(result: CodeGraphQueryResult): string {
   if (!result.success) {
@@ -227,7 +227,7 @@ export const COPILOT_TOOLS: CopilotTool[] = [
     },
   },
 
-  // ── Key Group Tools ──
+  // -- Key Group Tools --
   {
     name: "listKeyGroups",
     description: "List all API key groups with their model permissions",

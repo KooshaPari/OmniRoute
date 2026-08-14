@@ -113,9 +113,9 @@ export function selectModelsForImport<T extends FreeModelCandidate>(
   return { models, freeFilterEmpty };
 }
 
-// ──────────────────────────────────────────────────────────
+// ----------------------------------------------------------
 // hidePaidModels save-time validation (#6540)
-// ──────────────────────────────────────────────────────────
+// ----------------------------------------------------------
 
 export type PaidModelTargetVerdict = "paid" | "free" | "unknown";
 

@@ -34,7 +34,7 @@ import * as log from "@/sse/utils/logger";
 
 export const dynamic = "force-dynamic";
 
-// ── Schema ───────────────────────────────────────────────────────────────────
+// -- Schema -------------------------------------------------------------------
 
 const chaosSchema = z.object({
   task: z.string().min(1, "task is required").max(100_000, "task too long"),
@@ -44,7 +44,7 @@ const chaosSchema = z.object({
   maxTokens: z.number().int().min(256).max(128_000).optional(),
 });
 
-// ── Auth helpers ─────────────────────────────────────────────────────────────
+// -- Auth helpers -------------------------------------------------------------
 
 /**
  * Extract Bearer token from Authorization header.
@@ -89,11 +89,11 @@ async function verifyChaosKey(bearerToken: string): Promise<{ ok: boolean; error
   return { ok: true };
 }
 
-// ── Main handler ─────────────────────────────────────────────────────────────
+// -- Main handler -------------------------------------------------------------
 
 export async function POST(request: Request) {
   try {
-    // ── API Key auth check ─────────────────────────────────────────────
+    // -- API Key auth check ---------------------------------------------
     const bearerToken = extractBearerToken(request);
     if (!bearerToken) {
       return NextResponse.json(
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
       return NextResponse.json(buildErrorBody(403, auth.error!), { status: 403 });
     }
 
-    // ── Parse request body ─────────────────────────────────────────────
+    // -- Parse request body ---------------------------------------------
     const rawBody = await request.json();
     const validation = validateBody(chaosSchema, rawBody);
     if (isValidationFailure(validation)) {
@@ -118,7 +118,7 @@ export async function POST(request: Request) {
 
     const { task, providers, mode, systemPrompt, maxTokens } = validation.data;
 
-    // ── Load global chaos config ───────────────────────────────────────
+    // -- Load global chaos config ---------------------------------------
     const globalConfig = await getChaosConfig();
     if (!globalConfig.enabled) {
       return NextResponse.json(
@@ -127,7 +127,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // ── Execute via the shared executor ────────────────────────────────
+    // -- Execute via the shared executor --------------------------------
     const result: ChaosRunResult = await executeChaosRun({
       task,
       providers,

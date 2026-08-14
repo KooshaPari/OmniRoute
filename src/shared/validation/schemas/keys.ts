@@ -16,7 +16,7 @@ import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
 import { accessScheduleSchema } from "./misc.ts";
 
-// ──── API Key Schemas ────
+// ---- API Key Schemas ----
 
 export const createKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(200),

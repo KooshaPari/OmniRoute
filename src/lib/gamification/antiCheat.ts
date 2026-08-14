@@ -6,7 +6,7 @@
 
 import { getDbInstance } from "../db/core";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// --- Types --------------------------------------------------------------------
 
 interface ScoreValidation {
   allowed: boolean;
@@ -19,7 +19,7 @@ interface AnomalyFlag {
   zScore: number;
 }
 
-// ─── Statement / DB helpers (match gamification.ts pattern) ──────────────────
+// --- Statement / DB helpers (match gamification.ts pattern) ------------------
 
 interface StatementLike<TRow = unknown> {
   all: (...params: unknown[]) => TRow[];
@@ -35,13 +35,13 @@ function db(): DbLike {
   return getDbInstance() as unknown as DbLike;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// --- Constants ----------------------------------------------------------------
 
 const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
 const MAX_XP_PER_WINDOW = 1000;
 const ANOMALY_Z_THRESHOLD = 3;
 
-// ─── Public API ──────────────────────────────────────────────────────────────
+// --- Public API --------------------------------------------------------------
 
 /**
  * Validate a score change. Returns true if allowed, false if suspicious.

@@ -11,7 +11,7 @@
 
 import { getDbInstance } from "./core";
 
-// ──────────────── Types ────────────────
+// ---------------- Types ----------------
 
 export interface ReasoningCacheEntry {
   toolCallId: string;
@@ -32,7 +32,7 @@ export interface ReasoningCacheStats {
   newestEntry: string | null;
 }
 
-// ──────────────── Constants ────────────────
+// ---------------- Constants ----------------
 
 const DEFAULT_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
@@ -68,7 +68,7 @@ function epochSecondsToIso(value: number | string): string {
 
 const MAX_ENTRY_BYTES = 10000;
 
-// ──────────────── CRUD ────────────────
+// ---------------- CRUD ----------------
 
 /**
  * Store a reasoning_content entry for a given tool_call_id.

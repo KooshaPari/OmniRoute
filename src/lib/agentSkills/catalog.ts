@@ -14,7 +14,7 @@ import {
   getAgentSkillBlobUrl,
 } from "@/shared/constants/agentSkills";
 
-// ── Canonical ID lists (D28) ────────────────────────────────────────────────
+// -- Canonical ID lists (D28) ------------------------------------------------
 
 /** 22 canonical API skill IDs, in spec order. */
 export const API_SKILL_IDS: readonly string[] = [
@@ -71,11 +71,11 @@ export const CLI_SKILL_IDS: readonly string[] = [
   "cli-skill-collector",
 ] as const;
 
-// ── Module-scope cache ──────────────────────────────────────────────────────
+// -- Module-scope cache ------------------------------------------------------
 
 let _cache: AgentSkill[] | null = null;
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+// -- Helpers -----------------------------------------------------------------
 
 function buildFullSkill(curated: (typeof CURATED_SKILLS)[number]): AgentSkill {
   return {
@@ -91,7 +91,7 @@ function deriveCatalog(): AgentSkill[] {
   return CURATED_SKILLS.map(buildFullSkill);
 }
 
-// ── Public API ───────────────────────────────────────────────────────────────
+// -- Public API ---------------------------------------------------------------
 
 /**
  * Returns the full catalog (43 entries). Cached in module scope after first call.

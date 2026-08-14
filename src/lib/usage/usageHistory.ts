@@ -131,7 +131,7 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
   return normalized;
 }
 
-// ──────────────── Pending Requests (in-memory) ────────────────
+// ---------------- Pending Requests (in-memory) ----------------
 
 const pendingRequests: {
   byModel: Record<string, number>;

@@ -135,7 +135,7 @@ export function getObservedReasoning(message: unknown): {
   return { source: null, chars: 0 };
 }
 
-// ─── Nullable variants ──────────────────────────────────────────────────
+// --- Nullable variants --------------------------------------------------
 // Return `null` when the provider simply doesn't report the field,
 // vs `0` when the provider explicitly reported zero.
 

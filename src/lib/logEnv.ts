@@ -140,7 +140,7 @@ export function getAppLogFormat(defaultFormat: string): string {
   return process.env.APP_LOG_FORMAT || defaultFormat;
 }
 
-// ─── Chat log truncation limits ─────────────────────────────────────────────
+// --- Chat log truncation limits ---------------------------------------------
 
 export function getChatLogTextLimit(): number {
   return parsePositiveInt(process.env.CHAT_LOG_TEXT_LIMIT, 64 * 1024);

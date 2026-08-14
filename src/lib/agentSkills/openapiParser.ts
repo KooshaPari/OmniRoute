@@ -12,7 +12,7 @@ import path from "node:path";
 import * as yaml from "js-yaml";
 import type { SkillArea } from "./types";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// -- Types --------------------------------------------------------------------
 
 export interface OpenapiPath {
   /** HTTP method (uppercase): "GET", "POST", etc. */
@@ -34,7 +34,7 @@ export interface ParsedOpenapi {
   areas: Map<SkillArea, OpenapiPath[]>;
 }
 
-// ── Mapping: path prefix → SkillArea ────────────────────────────────────────
+// -- Mapping: path prefix → SkillArea ----------------------------------------
 
 /**
  * Maps an API path prefix to the corresponding SkillArea.
@@ -99,11 +99,11 @@ const PATH_AREA_MAP: Array<[string, SkillArea]> = [
   ["/api/v1", "inference"],
 ];
 
-// ── HTTP methods recognised as operations ────────────────────────────────────
+// -- HTTP methods recognised as operations ------------------------------------
 
 const HTTP_METHODS = ["get", "post", "put", "patch", "delete", "head", "options"] as const;
 
-// ── Parser ───────────────────────────────────────────────────────────────────
+// -- Parser -------------------------------------------------------------------
 
 function resolveArea(urlPath: string): SkillArea | null {
   for (const [prefix, area] of PATH_AREA_MAP) {

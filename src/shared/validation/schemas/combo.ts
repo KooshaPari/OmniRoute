@@ -14,7 +14,7 @@ import {
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
-// ──── Combo Schemas ────
+// ---- Combo Schemas ----
 
 export const comboStepMetaSchema = {
   id: z.string().trim().min(1).max(200).optional(),

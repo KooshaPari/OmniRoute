@@ -87,7 +87,7 @@ function withFamilyDefault(value: ProxyValue): ProxyValue {
   return value;
 }
 
-// ──────────────── Settings ────────────────
+// ---------------- Settings ----------------
 
 /** Internal key_value row — not exposed as a user-facing settings field. */
 export const SETTINGS_REVISION_KEY = "_settingsRevision";
@@ -331,7 +331,7 @@ export async function isCloudEnabled() {
   return settings.cloudEnabled === true;
 }
 
-// ──────────────── Proxy Config ────────────────
+// ---------------- Proxy Config ----------------
 
 const DEFAULT_PROXY_CONFIG: ProxyConfig = { global: null, providers: {}, combos: {}, keys: {} };
 const ALIAS_TO_PROVIDER_ID = Object.entries(PROVIDER_ID_TO_ALIAS).reduce(

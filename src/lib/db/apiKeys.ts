@@ -52,7 +52,7 @@ import type { AccessSchedule, RateLimitRule } from "./apiKeys/types";
 
 const log = createLogger("db:api-keys");
 
-// ──────────────── Performance Optimizations ────────────────
+// ---------------- Performance Optimizations ----------------
 
 // Schema check memoization - only run once
 let _schemaChecked = false;

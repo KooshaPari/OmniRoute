@@ -60,7 +60,7 @@ export async function isSafeMarketplaceUrl(
 
 // Marketplace — local seed registry. Remote registry in Phase 2.
 
-// ── Types ──
+// -- Types --
 
 export interface MarketplaceEntry {
   name: string;
@@ -77,7 +77,7 @@ export interface MarketplaceEntry {
   lastUpdated: string;
 }
 
-// ── Seed Data ──
+// -- Seed Data --
 
 const SEED_REGISTRY: MarketplaceEntry[] = [
   {
@@ -134,7 +134,7 @@ const SEED_REGISTRY: MarketplaceEntry[] = [
   },
 ];
 
-// ── API ──
+// -- API --
 
 /**
  * List all available plugins in the marketplace.

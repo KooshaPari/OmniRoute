@@ -270,7 +270,7 @@ export async function isDashboardSessionAuthenticated(
   }
 }
 
-// ──────────────── Auth Verification ────────────────
+// ---------------- Auth Verification ----------------
 
 /**
  * Check if a request is authenticated.

@@ -62,7 +62,7 @@ export async function GET(request: Request) {
   });
 }
 
-// ── kiro-cli SQLite reader ────────────────────────────────────────────────────
+// -- kiro-cli SQLite reader ----------------------------------------------------
 
 async function tryKiroCliSqlite(): Promise<{
   found: boolean;

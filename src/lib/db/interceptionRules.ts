@@ -12,7 +12,7 @@ import { getDbInstance } from "./core";
 
 const NAMESPACE = "interception_rules";
 
-// ── Types ───────────────────────────────────────────────────────────────────
+// -- Types -------------------------------------------------------------------
 
 export type FetchInterceptionBackend = "firecrawl" | "jina" | "tavily";
 
@@ -35,7 +35,7 @@ export interface ProviderInterceptionRules {
   models?: Record<string, ModelInterceptionRule>;
 }
 
-// ── Cache ───────────────────────────────────────────────────────────────────
+// -- Cache -------------------------------------------------------------------
 
 let rulesCache: Map<string, ProviderInterceptionRules> | null = null;
 
@@ -43,7 +43,7 @@ function invalidateCache(): void {
   rulesCache = null;
 }
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+// -- Helpers -----------------------------------------------------------------
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -104,7 +104,7 @@ function toProviderInterceptionRules(raw: unknown): ProviderInterceptionRules | 
   };
 }
 
-// ── Read ────────────────────────────────────────────────────────────────────
+// -- Read --------------------------------------------------------------------
 
 function readNamespace(namespace: string): Record<string, unknown> {
   const db = getDbInstance();
@@ -136,7 +136,7 @@ function loadRulesCached(): Map<string, ProviderInterceptionRules> {
   return rulesCache;
 }
 
-// ── Public API ──────────────────────────────────────────────────────────────
+// -- Public API --------------------------------------------------------------
 
 /** Get the interception rules for a single provider, or null if not configured. */
 export function getInterceptionRules(provider: string): ProviderInterceptionRules | null {

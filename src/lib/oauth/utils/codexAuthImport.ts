@@ -88,7 +88,7 @@ function mergeCodexUserId(incomingUserId: string | null, existing: JsonRecord): 
   return incomingUserId ?? toNonEmptyString(toRecord(existing.providerSpecificData).chatgptUserId);
 }
 
-// ──── Public types ────────────────────────────────────────────────────────────
+// ---- Public types ------------------------------------------------------------
 
 export interface ParsedCodexAuth {
   idToken: string;
@@ -108,7 +108,7 @@ export interface CreateConnectionOptions {
   overwriteExisting?: boolean;
 }
 
-// ──── Parse & validate ────────────────────────────────────────────────────────
+// ---- Parse & validate --------------------------------------------------------
 
 export function parseAndValidateCodexAuth(raw: unknown): ParsedCodexAuth {
   const doc = toRecord(raw);
@@ -174,7 +174,7 @@ export function parseAndValidateCodexAuth(raw: unknown): ParsedCodexAuth {
   };
 }
 
-// ──── Create / update connection ──────────────────────────────────────────────
+// ---- Create / update connection ----------------------------------------------
 
 export async function createConnectionFromAuthFile(
   parsed: ParsedCodexAuth,

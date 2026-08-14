@@ -9,7 +9,7 @@
 import { getCopilotSystemPrompt } from "./systemPrompt";
 import { COPILOT_TOOLS, getCopilotTool, getCopilotToolDescriptions } from "./tools";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// -- Types --------------------------------------------------------------------
 
 export interface CopilotMessage {
   role: "user" | "assistant" | "system";
@@ -25,11 +25,11 @@ export interface CopilotResponse {
   toolCalls?: Array<{ name: string; args: Record<string, unknown>; result: string }>;
 }
 
-// ── Tool Lookup for Dynamic Dispatch ────────────────────────────────────────
+// -- Tool Lookup for Dynamic Dispatch ----------------------------------------
 
 const TOOL_NAMES = COPILOT_TOOLS.map((t) => t.name);
 
-// ── Knowledge-based responses ───────────────────────────────────────────────
+// -- Knowledge-based responses -----------------------------------------------
 
 function getKnowledgeResponse(query: string): string | null {
   const q = query.toLowerCase();
@@ -127,14 +127,14 @@ Use these search terms naturally and I'll query the CodeGraph index.`;
   return null;
 }
 
-// ── Intent Classification ────────────────────────────────────────────────────
+// -- Intent Classification ----------------------------------------------------
 
 const INTENT_PATTERNS: Array<{
   pattern: RegExp;
   tool: string;
   extractArgs: (match: RegExpMatchArray) => Record<string, unknown>;
 }> = [
-  // ── Provider tools ──
+  // -- Provider tools --
   {
     pattern: /list.*(?:providers?|connections?|accounts)/i,
     tool: "listProviders",
@@ -146,7 +146,7 @@ const INTENT_PATTERNS: Array<{
     extractArgs: (m) => ({ type: (m[1] || "").toLowerCase().replace(/[^a-z]/g, "") }),
   },
 
-  // ── Combo tools ──
+  // -- Combo tools --
   { pattern: /list.*(?:combo|route)/i, tool: "listCombos", extractArgs: () => ({}) },
   { pattern: /show.*(?:combo|route)/i, tool: "listCombos", extractArgs: () => ({}) },
   { pattern: /qu[eé].*combo/i, tool: "listCombos", extractArgs: () => ({}) },
@@ -158,7 +158,7 @@ const INTENT_PATTERNS: Array<{
     extractArgs: () => ({}),
   },
 
-  // ── API Key tools ──
+  // -- API Key tools --
   { pattern: /list.*(?:api.?key|key)/i, tool: "listApiKeys", extractArgs: () => ({}) },
   { pattern: /show.*(?:api.?key|key)/i, tool: "listApiKeys", extractArgs: () => ({}) },
   {
@@ -168,11 +168,11 @@ const INTENT_PATTERNS: Array<{
   },
   { pattern: /revoke|revocar|borrar.*key/i, tool: "revokeApiKey", extractArgs: () => ({}) },
 
-  // ── Key Group tools ──
+  // -- Key Group tools --
   { pattern: /list.*(?:group|grupo)/i, tool: "listKeyGroups", extractArgs: () => ({}) },
   { pattern: /show.*(?:group|grupo)/i, tool: "listKeyGroups", extractArgs: () => ({}) },
 
-  // ── CodeGraph tools ──
+  // -- CodeGraph tools --
   // Search symbols
   {
     pattern:
@@ -209,21 +209,21 @@ const INTENT_PATTERNS: Array<{
   },
   { pattern: /codegraph.*(?:stats|stat|status)/i, tool: "codeGraphStats", extractArgs: () => ({}) },
 
-  // ── CLI executor ──
+  // -- CLI executor --
   {
     pattern: /^(?:cli|terminal|ejecuta|run|exec)\s+(.+)/i,
     tool: "runOmniRouteCli",
     extractArgs: (m) => ({ command: m[1].trim() }),
   },
 
-  // ── Health / status ──
+  // -- Health / status --
   {
     pattern: /^(?:health|status|salud|estado)$/i,
     tool: "runOmniRouteCli",
     extractArgs: () => ({ command: "health" }),
   },
 
-  // ── Help ──
+  // -- Help --
   {
     pattern: /^(?:help|ayuda|que puedes hacer|qué puedes hacer|\?)$/i,
     tool: "help",
@@ -241,7 +241,7 @@ function classifyIntent(text: string): { tool: string; args: Record<string, unkn
   return null;
 }
 
-// ── Help Response ────────────────────────────────────────────────────────────
+// -- Help Response ------------------------------------------------------------
 
 function getHelpResponse(): string {
   return `## OmniRoute Copilot — Comandos disponibles

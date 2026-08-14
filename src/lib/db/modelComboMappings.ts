@@ -11,9 +11,9 @@ import { v4 as uuidv4 } from "uuid";
 import { getDbInstance } from "./core";
 import { globToRegex } from "@/shared/utils/globPattern";
 
-// ──────────────────────────────────────────────────────────
+// ----------------------------------------------------------
 // Types
-// ──────────────────────────────────────────────────────────
+// ----------------------------------------------------------
 
 export interface ModelComboMapping {
   id: string;
@@ -39,9 +39,9 @@ interface MappingRow {
   updated_at: string;
 }
 
-// ──────────────────────────────────────────────────────────
+// ----------------------------------------------------------
 // Row mapping
-// ──────────────────────────────────────────────────────────
+// ----------------------------------------------------------
 
 function rowToMapping(row: MappingRow): ModelComboMapping {
   return {
@@ -57,9 +57,9 @@ function rowToMapping(row: MappingRow): ModelComboMapping {
   };
 }
 
-// ──────────────────────────────────────────────────────────
+// ----------------------------------------------------------
 // CRUD
-// ──────────────────────────────────────────────────────────
+// ----------------------------------------------------------
 
 /**
  * List all model-combo mappings, joined with combo name.
@@ -202,9 +202,9 @@ export async function deleteModelComboMapping(id: string): Promise<boolean> {
   return (result.changes ?? 0) > 0;
 }
 
-// ──────────────────────────────────────────────────────────
+// ----------------------------------------------------------
 // Core: Resolve combo for a model string
-// ──────────────────────────────────────────────────────────
+// ----------------------------------------------------------
 
 /**
  * Check if a model string matches any enabled model-combo mapping.

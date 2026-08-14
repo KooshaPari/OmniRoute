@@ -30,13 +30,13 @@ export interface CredentialCacheEntry {
   expiresAt: number;
 }
 
-// ── Config ────────────────────────────────────────────────────────────────
+// -- Config ----------------------------------------------------------------
 
 const DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const STALE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes — considered stale
 const MAX_ENTRIES = 500;
 
-// ── State (globalThis singleton) ──────────────────────────────────────────
+// -- State (globalThis singleton) ------------------------------------------
 
 declare global {
   var __omnirouteCredentialCache:
@@ -57,7 +57,7 @@ function getCacheState() {
   return globalThis.__omnirouteCredentialCache;
 }
 
-// ── Public API ────────────────────────────────────────────────────────────
+// -- Public API ------------------------------------------------------------
 
 /**
  * Get cached credential health for a connection.

@@ -70,7 +70,7 @@ export {
 } from "./modelsDevSync/transform";
 export type { ModelCapabilityEntry, CapabilitiesByProvider } from "./modelsDevSync/transform";
 
-// ─── Types ───────────────────────────────────────────────
+// --- Types -----------------------------------------------
 
 interface SyncStatus {
   enabled: boolean;
@@ -91,7 +91,7 @@ interface SyncResult {
   error?: string;
 }
 
-// ─── Configuration ───────────────────────────────────────
+// --- Configuration ---------------------------------------
 
 const MODELS_DEV_API_URL = "https://models.dev/api.json";
 
@@ -99,7 +99,7 @@ const parsedInterval = parseInt(process.env.MODELS_DEV_SYNC_INTERVAL || "86400",
 const SYNC_INTERVAL_MS =
   Number.isFinite(parsedInterval) && parsedInterval > 0 ? parsedInterval * 1000 : 86400 * 1000;
 
-// ─── Provider mapping: models.dev provider ID → OmniRoute provider IDs/aliases ──
+// --- Provider mapping: models.dev provider ID → OmniRoute provider IDs/aliases --
 //
 // models.dev uses canonical provider IDs (e.g. "openai", "anthropic", "google").
 // OmniRoute uses both full IDs and short aliases (e.g. "cc" for claude, "cx" for codex).
@@ -182,7 +182,7 @@ export function mapProviderId(modelsDevProviderId: string): string[] {
   return MODELS_DEV_PROVIDER_MAP[modelsDevProviderId] || [modelsDevProviderId];
 }
 
-// ─── Periodic sync state ─────────────────────────────────
+// --- Periodic sync state ---------------------------------
 
 let syncTimer: ReturnType<typeof setInterval> | null = null;
 let activeSyncAbortController: AbortController | null = null;
@@ -240,7 +240,7 @@ async function sleepWithAbort(ms: number, signal?: AbortSignal): Promise<void> {
   });
 }
 
-// ─── Core: Fetch ─────────────────────────────────────────
+// --- Core: Fetch -----------------------------------------
 
 /**
  * Fetch raw data from models.dev API.
