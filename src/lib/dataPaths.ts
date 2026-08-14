@@ -1,11 +1,13 @@
 import path from "path";
 import os from "os";
 import fs from "fs";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("lib:data-paths");
 
 export const APP_NAME = "omniroute";
+
+type WritableDataDirOptions = {
+  isCloud?: boolean;
+  onPermissionFallback?: (details: { resolved: string; fallback: string; code: string }) => void;
+};
 
 function fallbackHomeDir() {
   const envHome = process.env.HOME || process.env.USERPROFILE;
@@ -86,7 +88,10 @@ export function resolveDataDir({ isCloud = false }: { isCloud?: boolean } = {}):
  * Use this only at the single startup site that owns directory creation
  * (currently `db/core.ts`); everywhere else keep using the pure resolver.
  */
-export function resolveWritableDataDir({ isCloud = false }: { isCloud?: boolean } = {}): string {
+export function resolveWritableDataDir({
+  isCloud = false,
+  onPermissionFallback,
+}: WritableDataDirOptions = {}): string {
   const resolved = resolveDataDir({ isCloud });
 
   // Cloud/serverless never owns a writable home dir; leave its sentinel alone.
@@ -103,10 +108,7 @@ export function resolveWritableDataDir({ isCloud = false }: { isCloud?: boolean 
     const code = (err as NodeJS.ErrnoException | null)?.code;
     if (code === "EACCES" || code === "EPERM") {
       const fallback = getDefaultDataDir();
-      log.warn(
-        { resolved, fallback, code },
-        "data-paths: configured DATA_DIR is not writable — falling back to default"
-      );
+      onPermissionFallback?.({ resolved, fallback, code });
       return fallback;
     }
     throw err;
