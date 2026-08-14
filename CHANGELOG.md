@@ -1416,7 +1416,7 @@ _In development — bullets added per PR; finalized at release._
 
 ---
 
-## [3.8.38] — 2026-06-27
+## Historical release details — 2026-06-27
 
 ### ✨ New Features
 

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "product": {
+    "id": "omniroute",
+    "name": "OmniRoute",
+    "packageName": "omniroute"
+  },
+  "versionSources": [
+    { "path": "package.json", "kind": "package" },
+    { "path": "docs/openapi.yaml", "kind": "openapi" },
+    { "path": "CHANGELOG.md", "kind": "changelog" }
+  ],
+  "i18n": {
+    "policy": "generated-docs-ignored",
+    "configPath": "config/i18n.json",
+    "messagesPath": "src/i18n/messages",
+    "statePath": ".i18n-state.json",
+    "generatedDocsPath": "docs/i18n",
+    "stateMode": "optional-artifact"
+  }
+}
