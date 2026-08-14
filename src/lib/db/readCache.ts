@@ -258,10 +258,6 @@ export function getModelCatalogCacheVersion(): number {
  * into its response cache key; a change means settings/connections/combos were
  * written since the cache was populated and the cached body is stale.
  */
-export function getModelCatalogCacheVersion(): number {
-  return modelCatalogCacheVersion;
-}
-
 /**
  * Invalidate caches (call after writes to any of: settings, pricing,
  * connections, combos, nodes).
@@ -271,7 +267,10 @@ export function getModelCatalogCacheVersion(): number {
  * cache must still be fully cleared since overlapping filter results
  * cannot be selectively invalidated).
  */
-export function invalidateDbCache(scope?: "settings" | "pricing" | "connections" | "combos"): void {
+export function invalidateDbCache(
+  scope?: "settings" | "pricing" | "connections" | "combos" | "nodes",
+  id?: string
+): void {
   if (!scope || scope === "settings") settingsCache.invalidate();
   if (!scope || scope === "pricing") pricingCache.invalidate();
   if (!scope || scope === "connections") {

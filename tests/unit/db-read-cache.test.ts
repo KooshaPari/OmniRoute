@@ -47,6 +47,15 @@ test.after(async () => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
+test("model catalog cache version advances when cache state is invalidated", async () => {
+  const readCache = await importFresh("src/lib/db/readCache.ts");
+  const before = readCache.getModelCatalogCacheVersion();
+
+  readCache.invalidateDbCache("settings");
+
+  assert.equal(readCache.getModelCatalogCacheVersion(), before + 1);
+});
+
 test("getCachedSettings returns cached data until TTL expires or cache is invalidated", async () => {
   const readCache = await importFresh("src/lib/db/readCache.ts");
   const db = core.getDbInstance();
