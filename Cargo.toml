@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
   "crates/omniroute-agent",
+  "crates/gateway",
 ]
 exclude = [
   "crates/omniroute-rs",
