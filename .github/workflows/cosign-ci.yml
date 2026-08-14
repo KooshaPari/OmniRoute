@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {id-token: write, contents: read}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 
-      - uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac 
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # yamllint disable-line rule:line-length
+      - uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac  # yamllint disable-line rule:line-length
       - run: cosign sign-blob --yes Cargo.lock --output-signature Cargo.lock.sig
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # yamllint disable-line rule:line-length
         with:
           name: cosign-signatures
           path: "*.sig"

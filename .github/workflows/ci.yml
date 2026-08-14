@@ -34,7 +34,7 @@ jobs:
       i18n: ${{ steps.classify.outputs.i18n }}
       workflow: ${{ steps.classify.outputs.workflow }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -86,7 +86,7 @@ jobs:
       - run: npm run check:node-runtime
       - run: npm run audit:deps
       - name: Restore ESLint file cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # yamllint disable-line rule:line-length
         with:
           path: |
             .eslintcache
@@ -100,7 +100,7 @@ jobs:
         run: npm run lint:json
       - name: Upload ESLint results
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a 
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # yamllint disable-line rule:line-length
         with:
           name: eslint-results
           path: .artifacts/eslint-results.json
@@ -151,16 +151,16 @@ jobs:
       contents: read
       security-events: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - name: Restore ESLint file cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # yamllint disable-line rule:line-length
         with:
           path: |
             .eslintcache
@@ -173,7 +173,7 @@ jobs:
       # SKIPPED (shard flaky). Nesse caso collect-metrics pula coverage.* (ausente sem
       # erro) e o ratchet roda com --allow-missing — as métricas determinísticas
       # (eslint/complexity/cognitive) seguem BLOQUEANTES.
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c 
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # yamllint disable-line rule:line-length
         continue-on-error: true
         with:
           name: coverage-report
@@ -181,7 +181,7 @@ jobs:
       # Prefer lint job's ESLint JSON (one inventory, two consumers).
       - name: Download ESLint results
         continue-on-error: true
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c 
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # yamllint disable-line rule:line-length
         with:
           name: eslint-results
           path: .artifacts/
@@ -230,7 +230,7 @@ jobs:
         run: cat .artifacts/quality-ratchet.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload ratchet report
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a 
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # yamllint disable-line rule:line-length
         with:
           name: quality-ratchet
           path: .artifacts/quality-ratchet.md
@@ -257,11 +257,11 @@ jobs:
       # fetch-depth: 0 — the OpenAPI breaking-change gate (oasdiff) reads the base
       # spec via `git show <base_ref>:docs/openapi.yaml`; a shallow clone
       # would lack the base ref and the gate would self-skip (base-unresolved).
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -364,10 +364,10 @@ jobs:
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -398,10 +398,10 @@ jobs:
     # existing doc corpus is brought up to style. Promote to blocking once it converges.
     continue-on-error: true
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -427,11 +427,11 @@ jobs:
       # fetch-depth: 0 — the value-drift gate diffs en.json against the merge base to
       # find rewritten English strings. On a shallow clone the base ref is missing and
       # the gate self-skips (base-unresolved), so it would never actually run.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -458,10 +458,10 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     continue-on-error: true
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # yamllint disable-line rule:line-length
         with:
           python-version: "3.12"
       - name: Validate all languages
@@ -485,7 +485,7 @@ jobs:
           exit "$FAIL"
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a 
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # yamllint disable-line rule:line-length
         with:
           name: i18n-results
           path: i18n-results/
@@ -495,11 +495,11 @@ jobs:
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
       - name: Fetch base branch
@@ -535,17 +535,17 @@ jobs:
     needs: changes
     if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Cache Next.js build cache
-        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8  # yamllint disable-line rule:line-length
         with:
           path: .build/next/cache
           key: nextjs-${{ runner.os }}-node-${{ env.CI_NODE_VERSION }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*', 'open-sse/**/*', 'db/**/*', 'next.config.mjs', 'tsconfig*.json', 'postcss.config.*', 'tailwind.config.*') }}
@@ -565,7 +565,7 @@ jobs:
             --exclude='.build/next/cache' \
             .build/next
       - name: Upload Next.js build for downstream jobs
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a 
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # yamllint disable-line rule:line-length
         with:
           name: next-build
           path: /tmp/e2e-build.tar.gz
@@ -578,17 +578,17 @@ jobs:
     env:
       JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Download Next.js build artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c 
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # yamllint disable-line rule:line-length
         with:
           name: next-build
           path: /tmp/
@@ -611,17 +611,17 @@ jobs:
       JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Download Next.js build artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c 
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # yamllint disable-line rule:line-length
         with:
           name: next-build
           path: /tmp/
@@ -660,10 +660,10 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -684,10 +684,10 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -715,10 +715,10 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_24_VERSION }}
           cache: npm
@@ -736,17 +736,17 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_26_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Cache Next.js build cache
-        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8  # yamllint disable-line rule:line-length
         with:
           path: .build/next/cache
           key: nextjs-${{ runner.os }}-node-${{ env.CI_NODE_26_VERSION }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*', 'open-sse/**/*', 'db/**/*', 'next.config.mjs', 'tsconfig*.json', 'postcss.config.*', 'tailwind.config.*') }}
@@ -768,10 +768,10 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_26_VERSION }}
           cache: npm
@@ -793,10 +793,10 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -821,7 +821,7 @@ jobs:
               --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
       - name: Upload raw shard coverage
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a 
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # yamllint disable-line rule:line-length
         with:
           name: coverage-shard-${{ matrix.shard }}
           path: coverage-shard/*.json
@@ -837,16 +837,16 @@ jobs:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - name: Download all shard coverage
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c 
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # yamllint disable-line rule:line-length
         with:
           pattern: coverage-shard-*
           path: coverage-shards/
@@ -915,7 +915,7 @@ jobs:
           fail_ci_if_error: false
       - name: Upload coverage artifacts
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a 
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # yamllint disable-line rule:line-length
         with:
           name: coverage-report
           path: |
@@ -933,11 +933,11 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c 
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # yamllint disable-line rule:line-length
         with:
           name: coverage-report
           path: .
@@ -961,7 +961,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
       - name: SonarQube Scan
         if: ${{ github.event_name == 'pull_request' && env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != '' }}
-        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f 
+        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f  # yamllint disable-line rule:line-length
         env:
           SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ env.SONAR_HOST_URL }}
@@ -988,7 +988,7 @@ jobs:
       - name: Download coverage artifact
         if: ${{ needs.test-coverage.result != 'cancelled' }}
         continue-on-error: true
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c 
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # yamllint disable-line rule:line-length
         with:
           name: coverage-report
           path: .
@@ -1017,7 +1017,7 @@ jobs:
               echo "This PR changes production code in \`src/\`, \`open-sse/\`, \`electron/\`, or \`bin/\` without accompanying automated tests."
             fi
           } > .artifacts/pr-coverage-comment.md
-      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # yamllint disable-line rule:line-length
         with:
           script: |
             const fs = require("fs");
@@ -1070,24 +1070,24 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
       OMNIROUTE_PLAYWRIGHT_SKIP_BUILD: "1"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # yamllint disable-line rule:line-length
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: playwright-chromium-${{ runner.os }}-
       - run: npx playwright install --with-deps chromium
       - name: Download Next.js build artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c 
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # yamllint disable-line rule:line-length
         with:
           name: next-build
           path: /tmp/
@@ -1141,10 +1141,10 @@ jobs:
       DATA_DIR: /tmp/omniroute-ci-${{ matrix.shard }}
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -1164,10 +1164,10 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # yamllint disable-line rule:line-length
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # yamllint disable-line rule:line-length
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -1200,7 +1200,7 @@ jobs:
     steps:
       - name: Download i18n results
         continue-on-error: true
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c 
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # yamllint disable-line rule:line-length
         with:
           pattern: i18n-*
           path: results
