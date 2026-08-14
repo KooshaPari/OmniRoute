@@ -254,15 +254,6 @@ export function getModelCatalogCacheVersion(): number {
 }
 
 /**
- * Current model-catalog-cache version. `getUnifiedModelsResponse()` folds this
- * into its response cache key; a change means settings/connections/combos were
- * written since the cache was populated and the cached body is stale.
- */
-export function getModelCatalogCacheVersion(): number {
-  return modelCatalogCacheVersion;
-}
-
-/**
  * Invalidate caches (call after writes to any of: settings, pricing,
  * connections, combos, nodes).
  *
