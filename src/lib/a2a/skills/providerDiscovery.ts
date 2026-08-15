@@ -383,12 +383,15 @@ async function discoverFromMcp(discoveredAt: string): Promise<SourceScanResult> 
   let mod: McpClient | undefined;
   // The MCP client module is optional infrastructure. We import lazily and
   // tolerate any failure (module missing, runtime error, network error).
-  // We route the module specifier through a `string` local so TypeScript
-  // does not statically resolve the path (the file may not exist in this
-  // checkout; the .catch() below ensures runtime tolerance regardless).
+  // Keep this import outside the build graph: the client may be provisioned
+  // only in a deployed runtime, and the .catch() below preserves its absence
+  // as an empty optional source.
   const mcpModuleSpec: string = "../../mcp/client.js";
   try {
-    mod = (await import(mcpModuleSpec).catch((err) => {
+    mod = (await import(
+      /* webpackIgnore: true */
+      mcpModuleSpec
+    ).catch((err) => {
       log.warn(
         { err, mcpModuleSpec },
         "a2a:providerDiscovery: optional MCP client module failed to load — 'mcp' source will be skipped"
