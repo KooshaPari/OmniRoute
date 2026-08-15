@@ -128,4 +128,20 @@ describe("typed proxy route handlers", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("set-cookie")).toContain("session=callback-session");
   });
+
+  it("rejects route families that are not BFF-owned before fetching", async () => {
+    const fetch = vi.fn();
+    const request = new Request("http://renderer.test/api/v1/telemetry/web-vitals");
+
+    await expect(
+      proxyGet({
+        params: { path: "v1/telemetry/web-vitals" },
+        request,
+        fetch,
+        url: new URL(request.url),
+      } as unknown as Parameters<typeof proxyGet>[0])
+    ).rejects.toMatchObject({ status: 404 });
+
+    expect(fetch).not.toHaveBeenCalled();
+  });
 });
