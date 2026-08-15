@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const {
   extractThinkingFromContent,
+  isResponsesCommentaryMessageItem,
   sanitizeOpenAIResponse,
   sanitizeResponsesApiResponse,
   sanitizeStreamingChunk,
@@ -899,4 +900,21 @@ test("sanitizeStreamingChunk leaves function_call_arguments.delta byte-exact (to
 
   assert.equal(sanitized.delta, '{"path":"o\u200dpencode"}');
   assert.equal((sanitized.delta as string).includes("\u200d"), true);
+});
+
+// Parser/import regression: an obsolete sanitizer body must never nest later module exports.
+test("response sanitizer imports and classifies commentary items", () => {
+  const sanitized = sanitizeOpenAIResponse({
+    choices: [{ message: { role: "assistant", content: "visible" } }],
+  }) as any;
+
+  assert.equal(sanitized.choices[0].message.content, "visible");
+  assert.equal(
+    isResponsesCommentaryMessageItem({ type: "message", role: "assistant", phase: "commentary" }),
+    true
+  );
+  assert.equal(
+    isResponsesCommentaryMessageItem({ type: "message", role: "assistant", phase: "final" }),
+    false
+  );
 });
