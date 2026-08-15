@@ -244,14 +244,6 @@ export function getCombosCacheVersion(): number {
 // the next read miss immediately instead of waiting out the TTL.
 let modelCatalogCacheVersion = 0;
 
-/**
- * Current model-catalog-cache version. `getUnifiedModelsResponse()` folds this
- * into its response cache key; a change means settings/connections/combos were
- * written since the cache was populated and the cached body is stale.
- */
-export function getModelCatalogCacheVersion(): number {
-  return modelCatalogCacheVersion;
-}
 
 /**
  * Current model-catalog-cache version. `getUnifiedModelsResponse()` folds this
