@@ -414,8 +414,8 @@ export class TheOldLlmExecutor extends BaseExecutor {
               "Cache-Control": "no-cache",
             },
           }),
-          body
-        );
+          body,
+        };
       }
 
       const errorPayload = vercelMitigated
