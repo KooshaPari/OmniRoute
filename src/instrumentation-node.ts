@@ -662,6 +662,7 @@ export async function registerNodejs(): Promise<void> {
           const msg = err instanceof Error ? err.message : String(err);
           console.warn("[STARTUP] context-window reconcile failed to start (non-fatal):", msg);
         }),
+    ]);
 
     // TV6 typed memory decay: optional periodic sweep of decayed episodic memories. Doubly
     // opt-in (no-op unless MEMORY_TYPED_DECAY_ENABLED=true AND
