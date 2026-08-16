@@ -2,6 +2,16 @@ import {
   copyOpenAICompatibleReasoningFields,
   getReadableReasoningValue,
 } from "../utils/reasoningFields.ts";
+import { stripInternalReasoningPlaceholder } from "../utils/reasoningPlaceholder.ts";
+import { normalizeOpenAICompatibleFinishReason } from "../utils/finishReason.ts";
+import {
+  collapseExcessiveNewlines,
+  extractThinkingFromContent,
+} from "./responseSanitizer/reasoning.ts";
+export {
+  extractThinkingFromContent,
+  shouldParseTextualReasoningTags,
+} from "./responseSanitizer/reasoning.ts";
 
 /**
  * Response Sanitizer — Normalizes LLM responses to strict OpenAI SDK format.
@@ -215,144 +225,6 @@ function containsTextualToolCallContent(content: unknown): boolean {
   );
 }
 
-const REASONING_TAG_NAMES = ["think", "thinking", "thought", "internal_thought"];
-const REASONING_TAG_PATTERN = REASONING_TAG_NAMES.join("|");
-// Matches complete <think>/<thinking>/<thought>/<internal_thought> blocks.
-const THINK_TAG_REGEX = new RegExp(
-  `<(${REASONING_TAG_PATTERN})\\b[^>]*>([\\s\\S]*?)<\\/\\1>`,
-  "gi"
-);
-const REASONING_CLOSE_TAG_REGEX = new RegExp(`</(${REASONING_TAG_PATTERN})>`, "i");
-const REASONING_TAG_FRAGMENT_REGEX = new RegExp(`</?(${REASONING_TAG_PATTERN})\\b[^>]*>`, "gi");
-const CONTENT_OPEN_TAG_REGEX = /<content\b[^>]*>/i;
-// Matches an unclosed reasoning tag at the end of a message. Some providers can
-// emit malformed/open reasoning wrappers (for example "<thought\n...") before a
-// tool call. Treat that tail as reasoning instead of visible assistant text.
-const UNCLOSED_REASONING_TAG_REGEX = new RegExp(
-  `<(${REASONING_TAG_PATTERN})(?:\\s[^>]*)?(?:>|\\r?\\n)([\\s\\S]*)$`,
-  "i"
-);
-
-// #638, #727: Collapse runs of 2+ consecutive newlines into \n\n
-// Tool call responses from thinking models often accumulate excessive newlines
-const EXCESSIVE_NEWLINES = /\n{2,}/g;
-function collapseExcessiveNewlines(text: string): string {
-  return text.replace(EXCESSIVE_NEWLINES, "\n\n");
-}
-
-function cleanReasoningFragment(text: string): string {
-  return text.replace(REASONING_TAG_FRAGMENT_REGEX, "").trim();
-}
-
-function splitClosingOnlyReasoningPrefix(text: string): {
-  content: string;
-  thinking: string | null;
-} | null {
-  const closeMatch = text.match(REASONING_CLOSE_TAG_REGEX);
-  if (!closeMatch || closeMatch.index === undefined || closeMatch.index === 0) return null;
-  const closeIndex = closeMatch.index;
-
-  const suffix = text.slice(closeIndex + closeMatch[0].length);
-  if (!CONTENT_OPEN_TAG_REGEX.test(suffix)) return null;
-
-  const thinking = cleanReasoningFragment(text.slice(0, closeIndex));
-  if (!thinking) return null;
-  return { content: suffix.trim(), thinking };
-}
-
-function movePrefixBeforeContentTagToThinking(cleaned: string, thinkingParts: string[]): string {
-  const contentMatch = cleaned.match(CONTENT_OPEN_TAG_REGEX);
-  if (!contentMatch || contentMatch.index === undefined || contentMatch.index <= 0) return cleaned;
-  const contentIndex = contentMatch.index;
-
-  const prefix = cleanReasoningFragment(cleaned.slice(0, contentIndex));
-  if (prefix) thinkingParts.unshift(prefix);
-  return cleaned.slice(contentIndex);
-}
-
-/**
- * Extract <think> blocks from text content and return separated parts.
- * @returns {{ content: string, thinking: string | null }}
- */
-export function extractThinkingFromContent(text: string): {
-  content: string;
-  thinking: string | null;
-} {
-  if (!text || typeof text !== "string") {
-    return { content: text || "", thinking: null };
-  }
-
-  const thinkingParts: string[] = [];
-  let hasThinkTags = false;
-
-  let cleaned = text.replace(THINK_TAG_REGEX, (_match, _tagName, thinkContent) => {
-    hasThinkTags = true;
-    const trimmed = thinkContent.trim();
-    if (trimmed) {
-      thinkingParts.push(trimmed);
-    }
-    return "";
-  });
-
-  if (!hasThinkTags) {
-    const closingOnly = splitClosingOnlyReasoningPrefix(cleaned);
-    if (closingOnly) {
-      return closingOnly;
-    }
-  }
-
-  const unclosedMatch = cleaned.match(UNCLOSED_REASONING_TAG_REGEX);
-  if (unclosedMatch?.index !== undefined) {
-    hasThinkTags = true;
-    const reasoning = String(unclosedMatch[2] || "").trim();
-    if (reasoning) thinkingParts.push(reasoning);
-    const prefix = cleaned.slice(0, unclosedMatch.index);
-    cleaned = /^(?:\s|§\d+§)*$/.test(prefix) ? "" : prefix;
-  }
-
-  if (!hasThinkTags) {
-    return { content: text, thinking: null };
-  }
-
-  cleaned = movePrefixBeforeContentTagToThinking(cleaned, thinkingParts);
-
-  return {
-    content: cleaned.trim(),
-    thinking: thinkingParts.length > 0 ? thinkingParts.join("\n\n") : null,
-  };
-}
-
-function normalizeReasoningRouteId(value: unknown): string {
-  return typeof value === "string" ? value.toLowerCase() : "";
-}
-
-function isAntigravityReasoningRoute(providerId: string, modelId: string): boolean {
-  return (
-    providerId.includes("antigravity") ||
-    providerId === "agy" ||
-    modelId.includes("antigravity/") ||
-    modelId.startsWith("agy/")
-  );
-}
-
-function isTextualReasoningTagNativeRoute(providerId: string, modelId: string): boolean {
-  const routeId = `${providerId}/${modelId}`;
-  return (
-    /deepseek[-_/]?r1\b/.test(routeId) ||
-    /r1[-_/]?distill\b/.test(routeId) ||
-    /(?:^|[/:_-])qwq(?:[/._:-]|$)/.test(routeId)
-  );
-}
-
-export function shouldParseTextualReasoningTags(provider?: unknown, model?: unknown): boolean {
-  const providerId = normalizeReasoningRouteId(provider);
-  const modelId = normalizeReasoningRouteId(model);
-  return (
-    !isAntigravityReasoningRoute(providerId, modelId) &&
-    isTextualReasoningTagNativeRoute(providerId, modelId)
-  );
-}
-
 /**
  * Sanitize a non-streaming OpenAI ChatCompletion response.
  * Strips non-standard fields and normalizes required fields.
@@ -396,7 +268,7 @@ export function sanitizeOpenAIResponse(
   // Sanitize choices
   if (Array.isArray(bodyRecord.choices)) {
     sanitized.choices = bodyRecord.choices.map((choice, idx) => {
-      const sanitizedChoice = sanitizeChoice(choice, idx);
+      const sanitizedChoice = sanitizeChoice(choice, idx, { parseTextualReasoningTags });
       const message = toRecord(sanitizedChoice.message);
       if (
         message &&
@@ -489,7 +361,11 @@ export function sanitizeResponsesApiResponse(body: unknown): unknown {
 /**
  * Sanitize a single choice object.
  */
-function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
+function sanitizeChoice(
+  choice: unknown,
+  defaultIndex: number,
+  options: ParseOptions = {}
+): JsonRecord {
   const choiceRecord = toRecord(choice);
   const sanitized: JsonRecord = {
     index: defaultIndex,
@@ -505,7 +381,7 @@ function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
   }
 
   if (choiceRecord?.message !== undefined) {
-    sanitized.message = sanitizeMessage(choiceRecord.message);
+    sanitized.message = sanitizeMessage(choiceRecord.message, options);
   }
   if (choiceRecord?.delta !== undefined) {
     sanitized.delta = sanitizeMessage(choiceRecord.delta, options);
@@ -518,36 +394,23 @@ function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
   return sanitized;
 }
 
-/**
- * Sanitize a message object, extracting <think> tags if present.
- */
-function sanitizeMessage(msg: unknown): unknown {
-  const msgRecord = toRecord(msg);
-  if (!msgRecord) return msg;
-
-  const sanitized: JsonRecord = {};
-
-  // Copy only allowed fields
-  if (msgRecord.role) sanitized.role = msgRecord.role;
-  if (msgRecord.refusal !== undefined) sanitized.refusal = msgRecord.refusal;
-
-  // Handle content — extract <think> tags
+function sanitizeMessageContent(msgRecord: JsonRecord, options: ParseOptions = {}): JsonRecord {
   if (typeof msgRecord.content === "string") {
-    const { content, thinking } = extractThinkingFromContent(
+    const strippedContent = stripInternalReasoningPlaceholder(
       stripInternalToolEnvelopeText(msgRecord.content)
     );
-    sanitized.content = collapseExcessiveNewlines(content);
-
-    // Set reasoning_content from prompt-format tags only when the provider did
-    // not also return a native OpenAI-compatible reasoning field.
-    if (thinking && !getReadableReasoningValue(msgRecord)) {
-      sanitized.reasoning_content = thinking;
-    }
-  } else if (msgRecord.content !== undefined) {
-    sanitized.content = msgRecord.content;
+    const nativeReasoning = getReadableReasoningValue(msgRecord);
+    const { content, thinking } =
+      options.parseTextualReasoningTags === true && !nativeReasoning
+        ? extractThinkingFromContent(strippedContent)
+        : { content: strippedContent, thinking: null };
+    const sanitized: JsonRecord = { content: collapseExcessiveNewlines(content) };
+    if (thinking) sanitized.reasoning_content = thinking;
+    return sanitized;
   }
 
-  copyOpenAICompatibleReasoningFields(msgRecord, sanitized);
+  return msgRecord.content !== undefined ? { content: msgRecord.content } : {};
+}
 
 function applyTextualToolCallSanitization(sanitized: JsonRecord, msgRecord: JsonRecord): void {
   const textualToolCall = parseTextualToolCallContent(sanitized.content);
@@ -821,8 +684,8 @@ function sanitizeResponsesStreamingOutput(output: unknown): JsonRecord[] {
 // Native Responses streaming events that carry raw model text directly on the
 // root `delta` field. These must get the same zero-width-joiner stripping as the
 // non-streaming path so agent words (opencode/cursor/aider) are not corrupted.
-// Scoped as an allow-list on purpose: `response.function_call_arguments.delta`
-// carries tool-call argument JSON that must pass through byte-exact.
+// Scoped as an allow-list on purpose: other root `delta` events may carry non-text payloads.
+// Function-call argument events are handled separately by stripping only zero-width code points.
 const RESPONSES_STREAMING_TEXT_DELTA_EVENTS = new Set([
   "response.output_text.delta",
   "response.reasoning_summary_text.delta",
@@ -849,6 +712,18 @@ function sanitizeResponsesStreamingEvent(parsedRecord: JsonRecord): JsonRecord {
   }
   if (RESPONSES_STREAMING_TEXT_DONE_EVENTS.has(eventType) && typeof sanitized.text === "string") {
     sanitized.text = stripZeroWidthText(sanitized.text);
+  }
+  if (
+    eventType === "response.function_call_arguments.delta" &&
+    typeof sanitized.delta === "string"
+  ) {
+    sanitized.delta = stripZeroWidthText(sanitized.delta);
+  }
+  if (
+    eventType === "response.function_call_arguments.done" &&
+    typeof sanitized.arguments === "string"
+  ) {
+    sanitized.arguments = stripZeroWidthText(sanitized.arguments);
   }
 
   if (parsedRecord.item !== undefined) {
@@ -1187,6 +1062,14 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
                 : deltaRecord.content;
           }
           copyOpenAICompatibleReasoningFields(deltaRecord, delta);
+          // Parity with the non-streaming path: strip the zero-width joiners that the
+          // request side injects into agent words. copyOpenAICompatibleReasoningFields
+          // is shared, so strip locally on the fields it writes (string values only).
+          for (const reasoningKey of ["reasoning_content", "reasoning", "reasoning_text"]) {
+            if (typeof delta[reasoningKey] === "string") {
+              delta[reasoningKey] = stripZeroWidthText(delta[reasoningKey] as string);
+            }
+          }
           if (deltaRecord.tool_calls !== undefined) {
             delta.tool_calls = Array.isArray(deltaRecord.tool_calls)
               ? deltaRecord.tool_calls.map((tc) => {
