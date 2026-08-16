@@ -19,7 +19,24 @@ import {
 import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("db:providers");
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
+import { pickCodexConnectionForUser } from "@/lib/oauth/utils/codexConnectionSelection";
+import { reconcileCodexUsageHistory } from "./providers/usageIdentityReconciliation";
+import {
+  withNullableMaxConcurrent,
+  withNullableQuotaWindowThresholds,
+  withNullableRateLimitOverrides,
+  normalizeBooleanColumn,
+  sanitizeRateLimitOverrides,
+  serializeJsonField,
+  toRecord,
+  sanitizeQuotaWindowThresholds,
+  toStringOrNull,
+  toNumberOrZero,
+} from "./providers/columns";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -35,6 +52,58 @@ interface DbLike {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
   transaction: <T>(fn: () => T) => () => T;
 }
+
+// Real column set for provider_connections (must match the CREATE TABLE in
+// core.ts's SCHEMA_SQL). getProviderConnections()'s optional `columns`
+// projection is interpolated directly into the SELECT clause, so every
+// requested name must be validated against this allowlist before use —
+// there is no current caller that passes untrusted input, but the
+// projection API itself must never accept an arbitrary string.
+const PROVIDER_CONNECTIONS_COLUMNS = new Set([
+  "id",
+  "provider",
+  "auth_type",
+  "name",
+  "email",
+  "priority",
+  "is_active",
+  "access_token",
+  "refresh_token",
+  "expires_at",
+  "token_expires_at",
+  "scope",
+  "project_id",
+  "test_status",
+  "error_code",
+  "last_error",
+  "last_error_at",
+  "last_error_type",
+  "last_error_source",
+  "backoff_level",
+  "rate_limited_until",
+  "health_check_interval",
+  "last_health_check_at",
+  "last_tested",
+  "api_key",
+  "id_token",
+  "provider_specific_data",
+  "expires_in",
+  "display_name",
+  "global_priority",
+  "default_model",
+  "token_type",
+  "consecutive_use_count",
+  "rate_limit_protection",
+  "last_used_at",
+  "group",
+  "max_concurrent",
+  "proxy_enabled",
+  "per_key_proxy_enabled",
+  "quota_window_thresholds_json",
+  "rate_limit_overrides_json",
+  "created_at",
+  "updated_at",
+]);
 
 // ──────────────── Provider Connections ────────────────
 
@@ -333,6 +402,14 @@ export async function createProviderConnection(data: JsonRecord) {
       data.name,
       normalizedProviderSpecificData
     );
+  } else if (data.authType === "access_token") {
+    // #1290 — bare access-token imports (e.g. a raw ChatGPT website access
+    // token with no refresh token) are intentionally never deduped: every
+    // import creates a new connection. Unlike oauth (workspace+email) or
+    // apikey (key-value) imports, a bare access token has no refresh token
+    // and no stable long-lived identity to safely dedup against — matching
+    // on email alone here would risk silently overwriting an existing full
+    // oauth connection for the same account.
   }
 
   if (existing) {
@@ -657,53 +734,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       updated_at = @updatedAt
     WHERE id = @id
   `
-  ).run({
-    id,
-    provider: data.provider,
-    authType: data.authType || null,
-    name: data.name || null,
-    email: data.email || null,
-    priority: data.priority || 0,
-    isActive: data.isActive === false ? 0 : 1,
-    accessToken: data.accessToken || null,
-    refreshToken: data.refreshToken || null,
-    expiresAt: data.expiresAt || null,
-    tokenExpiresAt: data.tokenExpiresAt || null,
-    scope: data.scope || null,
-    projectId: data.projectId || null,
-    testStatus: data.testStatus || null,
-    errorCode: data.errorCode || null,
-    lastError: data.lastError || null,
-    lastErrorAt: data.lastErrorAt || null,
-    lastErrorType: data.lastErrorType || null,
-    lastErrorSource: data.lastErrorSource || null,
-    backoffLevel: data.backoffLevel || 0,
-    rateLimitedUntil: data.rateLimitedUntil || null,
-    healthCheckInterval: data.healthCheckInterval ?? null,
-    lastHealthCheckAt: data.lastHealthCheckAt || null,
-    lastTested: data.lastTested || null,
-    apiKey: data.apiKey || null,
-    idToken: data.idToken || null,
-    providerSpecificData: data.providerSpecificData
-      ? JSON.stringify(data.providerSpecificData)
-      : null,
-    expiresIn: data.expiresIn || null,
-    displayName: data.displayName || null,
-    globalPriority: data.globalPriority || null,
-    defaultModel: data.defaultModel || null,
-    tokenType: data.tokenType || null,
-    consecutiveUseCount: data.consecutiveUseCount || 0,
-    rateLimitProtection:
-      data.rateLimitProtection === true || data.rateLimitProtection === 1 ? 1 : 0,
-    lastUsedAt: data.lastUsedAt || null,
-    group: data.group || null,
-    maxConcurrent: data.maxConcurrent ?? null,
-    quotaWindowThresholdsJson: serializeJsonField(data.quotaWindowThresholds),
-    proxyEnabled: normalizeBooleanColumn(data.proxyEnabled, true) ? 1 : 0,
-    perKeyProxyEnabled: normalizeBooleanColumn(data.perKeyProxyEnabled, false) ? 1 : 0,
-    rateLimitOverridesJson: serializeJsonField(data.rateLimitOverrides),
-    updatedAt: now,
-  });
+  ).run(_buildUpdateConnectionRowParams(id, data, now));
 }
 
 export async function updateProviderConnection(id: string, data: JsonRecord) {
@@ -785,8 +816,9 @@ export async function clearConnectionErrorIfUnchanged(
   }
 ): Promise<boolean> {
   const db = getDbInstance() as unknown as DbLike;
-  const result = db.prepare(
-    `
+  const result = db
+    .prepare(
+      `
     UPDATE provider_connections SET
       test_status = 'active',
       last_error = NULL,
@@ -802,13 +834,14 @@ export async function clearConnectionErrorIfUnchanged(
       AND IFNULL(last_error_at, '') = ?
       AND IFNULL(rate_limited_until, '') = ?
     `
-  ).run(
-    new Date().toISOString(),
-    id,
-    expected.testStatus ?? "",
-    expected.lastErrorAt ?? "",
-    expected.rateLimitedUntil ?? ""
-  );
+    )
+    .run(
+      new Date().toISOString(),
+      id,
+      expected.testStatus ?? "",
+      expected.lastErrorAt ?? "",
+      expected.rateLimitedUntil ?? ""
+    );
   const applied = (result.changes ?? 0) > 0;
   if (applied) {
     backupDbFile("pre-write");
@@ -816,6 +849,64 @@ export async function clearConnectionErrorIfUnchanged(
     bumpProxyConfigGeneration();
   }
   return applied;
+}
+
+/**
+ * Lightweight stat bump — updates lastUsedAt and consecutiveUseCount without
+ * SELECT, re-encrypt, cache invalidation, or file backup.
+ * Safe for the hot getProviderCredentials path where only usage stats change.
+ * Fixes the cache-thrashing bug where every credential selection invalidated
+ * the 5s TTL cache and paid 3000-row decryption cost on the next request.
+ */
+export async function touchConnectionLastUsed(
+  id: string,
+  consecutiveUseCount: number
+): Promise<void> {
+  if (!id) return;
+  const db = getDbInstance() as unknown as DbLike;
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE provider_connections SET
+      last_used_at = @lastUsedAt,
+      consecutive_use_count = @consecutiveUseCount,
+      updated_at = @updatedAt
+    WHERE id = @id`
+  ).run({
+    lastUsedAt: now,
+    consecutiveUseCount,
+    updatedAt: now,
+    id,
+  });
+}
+
+/**
+ * Lightweight backoff reset — runs a targeted UPDATE without SELECT or re-encrypt.
+ * Follows the `clearConnectionErrorIfUnchanged` pattern but without the CAS check,
+ * since the caller already verified the connection is eligible for reset.
+ * Resets all backoff/error columns so the connection re-enters the selection pool.
+ * Does invalidateDbCache + bumpProxyConfigGeneration since backoff affects priority.
+ */
+export async function resetConnectionBackoff(id: string): Promise<void> {
+  if (!id) return;
+  const db = getDbInstance() as unknown as DbLike;
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE provider_connections SET
+      backoff_level = 0,
+      test_status = 'active',
+      last_error = NULL,
+      last_error_at = NULL,
+      last_error_type = NULL,
+      last_error_source = NULL,
+      error_code = NULL,
+      updated_at = @updatedAt
+    WHERE id = @id`
+  ).run({
+    updatedAt: now,
+    id,
+  });
+  invalidateDbCache("connections");
+  bumpProxyConfigGeneration();
 }
 
 export async function deleteProviderConnection(id: string) {
@@ -932,60 +1023,9 @@ export {
 
 // ──────────────── Re-exports from leaf modules ────────────────
 
-  for (const row of rows) {
-    const camelRow = rowToCamel(row);
-    if (!camelRow) continue;
-
-    let updatedRow = false;
-
-    const encryptedFields = ["apiKey", "idToken", "accessToken", "refreshToken"];
-    for (const field of encryptedFields) {
-      if (typeof camelRow[field] === "string") {
-        const { updated, value } = migrateLegacyEncryptedString(camelRow[field] as string);
-        if (updated) {
-          camelRow[field] = value;
-          updatedRow = true;
-        }
-      }
-    }
-
-    if (updatedRow) {
-      // camelRow[field] is already re-encrypted!
-      // But _updateConnectionRow does not re-encrypt automatically, so we pass it safely.
-      // Wait, _updateConnectionRow runs the full data through `encryptConnectionFields`,
-      // but `encryptConnectionFields` will re-encrypt plain text.
-      // BUT `migrateLegacyEncryptedString` returns ALREADY ENCRYPTED ciphertext!
-      // Wait... if we pass ALREADY ENCRYPTED text to `_updateConnectionRow`,
-      // `encryptConnectionFields` in `_updateConnectionRow` will encrypt it AGAIN!
-      // Let's modify the DB directly so we don't double encrypt.
-
-      db.prepare(
-        "UPDATE provider_connections SET api_key = @apiKey, id_token = @idToken, access_token = @accessToken, refresh_token = @refreshToken, updated_at = @updatedAt WHERE id = @id"
-      ).run({
-        id: camelRow.id,
-        apiKey: camelRow.apiKey ?? null,
-        idToken: camelRow.idToken ?? null,
-        accessToken: camelRow.accessToken ?? null,
-        refreshToken: camelRow.refreshToken ?? null,
-        updatedAt: new Date().toISOString(),
-      });
-      migratedCount++;
-    }
-  }
-
-  if (migratedCount > 0) {
-    backupDbFile("pre-write");
-    invalidateDbCache("connections");
-    console.log(`[DB] Auto-migrated ${migratedCount} connection(s) to new static-salt encryption.`);
-  }
-
-  return migratedCount;
-}
-
-// ──────────────── Re-exports from leaf modules ────────────────
-
 export {
   getProviderNodes,
+  getProviderNodesCount,
   getProviderNodeById,
   resolveProviderNodeForConnection,
   createProviderNode,
@@ -994,9 +1034,11 @@ export {
 } from "./providers/nodes";
 export {
   setConnectionRateLimitUntil,
-  isConnectionRateLimited,
-  getRateLimitedConnections,
+  markConnectionRateLimitedUntil,
+  clearConnectionRateLimit,
   getEffectiveQuotaUsage,
   clearStaleCrashCooldowns,
   formatResetCountdown,
+  isConnectionRateLimited,
+  getRateLimitedConnections,
 } from "./providers/rateLimit";
