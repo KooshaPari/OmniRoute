@@ -98,6 +98,12 @@ const ENV_SUFFIXES = ["API_KEY", "TOKEN", "BASE_URL", "ENDPOINT"] as const;
 const MAX_FILE_BYTES = 1024 * 1024; // 1 MB
 const DEFAULT_SOURCES: DiscoverySource[] = ["env", "config", "filesystem", "mcp"];
 
+function getOptionalMcpClientModuleId(): string {
+  // Keep this computed: the MCP client is optional infrastructure, and a
+  // literal dynamic import makes Turbopack resolve the absent module at build time.
+  return ["..", "..", "mcp", "client.js"].join("/");
+}
+
 function nowIso(): string {
   return new Date().toISOString();
 }
@@ -129,23 +135,17 @@ function normalizeVendor(raw: string): string {
     .replace(/^-|-$/g, "");
 }
 
-function pickProviderShapeFields(
-  raw: Record<string, unknown>,
-): { id: string; vendor: string; hasApiKey: boolean; hasBaseUrl: boolean } {
+function pickProviderShapeFields(raw: Record<string, unknown>): {
+  id: string;
+  vendor: string;
+  hasApiKey: boolean;
+  hasBaseUrl: boolean;
+} {
   const idRaw =
-    coerceString(raw.id) ||
-    coerceString(raw.provider) ||
-    coerceString(raw.name) ||
-    "unknown";
+    coerceString(raw.id) || coerceString(raw.provider) || coerceString(raw.name) || "unknown";
   const vendorRaw =
-    coerceString(raw.vendor) ||
-    coerceString(raw.provider) ||
-    coerceString(raw.id) ||
-    idRaw;
-  const apiKey =
-    coerceString(raw.apiKey) ||
-    coerceString(raw.api_key) ||
-    coerceString(raw.token);
+    coerceString(raw.vendor) || coerceString(raw.provider) || coerceString(raw.id) || idRaw;
+  const apiKey = coerceString(raw.apiKey) || coerceString(raw.api_key) || coerceString(raw.token);
   const baseUrl =
     coerceString(raw.baseUrl) ||
     coerceString(raw.base_url) ||
@@ -165,12 +165,8 @@ function pickProviderShapeFields(
  * last underscore-separated suffix) so that OPENAI_API_KEY and
  * OPENAI_BASE_URL collapse into one `openai` provider.
  */
-function discoverFromEnv(
-  inputs: DiscoveryInputs,
-  discoveredAt: string,
-): DiscoveredProvider[] {
-  const env =
-    inputs.envSnapshot ?? (process.env as unknown as Record<string, string | undefined>);
+function discoverFromEnv(inputs: DiscoveryInputs, discoveredAt: string): DiscoveredProvider[] {
+  const env = inputs.envSnapshot ?? (process.env as unknown as Record<string, string | undefined>);
   const byPrefix = new Map<
     string,
     { hasApiKey: boolean; hasBaseUrl: boolean; rawKeys: string[] }
@@ -220,7 +216,7 @@ function discoverFromEnv(
  */
 async function discoverFromConfig(
   baseDir: string,
-  discoveredAt: string,
+  discoveredAt: string
 ): Promise<SourceScanResult> {
   const result: SourceScanResult = {
     providers: [],
@@ -281,7 +277,7 @@ async function discoverFromConfig(
  */
 async function discoverFromFilesystem(
   baseDir: string,
-  discoveredAt: string,
+  discoveredAt: string
 ): Promise<SourceScanResult> {
   const result: SourceScanResult = {
     providers: [],
@@ -296,7 +292,7 @@ async function discoverFromFilesystem(
     let entries: Dirent[];
     try {
       entries = (await fs.readdir(dir, { withFileTypes: true })).toSorted((left, right) =>
-        left.name.localeCompare(right.name),
+        left.name.localeCompare(right.name)
       );
     } catch {
       continue; // missing dir is not an error
@@ -381,16 +377,12 @@ async function discoverFromMcp(discoveredAt: string): Promise<SourceScanResult> 
 
   type McpClient = { listProviders?: () => Promise<unknown[]> };
   let mod: McpClient | undefined;
-  // The MCP client module is optional infrastructure. We import lazily and
-  // tolerate any failure (module missing, runtime error, network error).
-  // We route the module specifier through a `string` local so TypeScript
-  // does not statically resolve the path (the file may not exist in this
-  // checkout; the .catch() below ensures runtime tolerance regardless).
-  const mcpModuleSpec: string = "../../mcp/client.js";
+  // The MCP client module is optional infrastructure. The computed module id
+  // keeps Turbopack from resolving its absent source file in the build graph.
   try {
-    mod = (await import(mcpModuleSpec).catch((err) => {
+    mod = (await import(getOptionalMcpClientModuleId()).catch((err) => {
       log.warn(
-        { err, mcpModuleSpec },
+        { err },
         "a2a:providerDiscovery: optional MCP client module failed to load — 'mcp' source will be skipped"
       );
       return undefined;
@@ -429,14 +421,13 @@ async function discoverFromMcp(discoveredAt: string): Promise<SourceScanResult> 
 
 function matchesVendorFilter(
   provider: DiscoveredProvider,
-  vendorFilter: string | undefined,
+  vendorFilter: string | undefined
 ): boolean {
   if (!vendorFilter) return true;
   const needle = vendorFilter.trim().toLowerCase();
   if (!needle) return true;
   return (
-    provider.vendor.toLowerCase().includes(needle) ||
-    provider.id.toLowerCase().includes(needle)
+    provider.vendor.toLowerCase().includes(needle) || provider.id.toLowerCase().includes(needle)
   );
 }
 
@@ -480,7 +471,7 @@ function extractInputs(metadata: Record<string, unknown> | undefined): Discovery
   const sources = Array.isArray(metadata.sources)
     ? (metadata.sources as unknown[]).filter(
         (s): s is DiscoverySource =>
-          s === "env" || s === "config" || s === "filesystem" || s === "mcp",
+          s === "env" || s === "config" || s === "filesystem" || s === "mcp"
       )
     : undefined;
   const baseDir =
@@ -495,8 +486,8 @@ function extractInputs(metadata: Record<string, unknown> | undefined): Discovery
     metadata.envSnapshot && typeof metadata.envSnapshot === "object"
       ? Object.fromEntries(
           Object.entries(metadata.envSnapshot as Record<string, unknown>).filter(
-            (e): e is [string, string] => typeof e[1] === "string",
-          ),
+            (e): e is [string, string] => typeof e[1] === "string"
+          )
         )
       : undefined;
   return { sources, baseDir, vendor, envSnapshot };
@@ -504,8 +495,7 @@ function extractInputs(metadata: Record<string, unknown> | undefined): Discovery
 
 export async function executeProviderDiscovery(task: A2ATask): Promise<A2ASkillResult> {
   const inputs = extractInputs(task.metadata);
-  const sources =
-    inputs.sources && inputs.sources.length > 0 ? inputs.sources : DEFAULT_SOURCES;
+  const sources = inputs.sources && inputs.sources.length > 0 ? inputs.sources : DEFAULT_SOURCES;
   const baseDir = inputs.baseDir ?? defaultBaseDir();
   const discoveredAt = nowIso();
 
@@ -545,7 +535,7 @@ export async function executeProviderDiscovery(task: A2ATask): Promise<A2ASkillR
   }
 
   const filtered = deduplicateProviders(collected).filter((p) =>
-    matchesVendorFilter(p, inputs.vendor),
+    matchesVendorFilter(p, inputs.vendor)
   );
   const stats = buildStats(filtered);
   const output: ProviderDiscoveryOutput = { providers: filtered, stats };
