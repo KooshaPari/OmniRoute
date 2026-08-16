@@ -49,27 +49,6 @@ export type {
   PricingByProvider,
 } from "./modelsDevSync/transform";
 
-import {
-  transformModelsDevToPricing,
-  transformModelsDevToCapabilities,
-} from "./modelsDevSync/transform";
-import type {
-  PricingModels,
-  PricingByProvider,
-  ModelCapabilityEntry,
-  CapabilitiesByProvider,
-  ModelsDevData,
-} from "./modelsDevSync/transform";
-
-// Re-export the pure transform layer (moved to ./modelsDevSync/transform)
-// so this module's public API is unchanged.
-export {
-  mapProviderId,
-  transformModelsDevToPricing,
-  transformModelsDevToCapabilities,
-} from "./modelsDevSync/transform";
-export type { ModelCapabilityEntry, CapabilitiesByProvider } from "./modelsDevSync/transform";
-
 // ─── Types ───────────────────────────────────────────────
 
 interface SyncStatus {
@@ -98,89 +77,6 @@ const MODELS_DEV_API_URL = "https://models.dev/api.json";
 const parsedInterval = parseInt(process.env.MODELS_DEV_SYNC_INTERVAL || "86400", 10);
 const SYNC_INTERVAL_MS =
   Number.isFinite(parsedInterval) && parsedInterval > 0 ? parsedInterval * 1000 : 86400 * 1000;
-
-// ─── Provider mapping: models.dev provider ID → OmniRoute provider IDs/aliases ──
-//
-// models.dev uses canonical provider IDs (e.g. "openai", "anthropic", "google").
-// OmniRoute uses both full IDs and short aliases (e.g. "cc" for claude, "cx" for codex).
-// We map each models.dev provider to ALL OmniRoute identifiers that should receive
-// its pricing/capability data.
-
-const MODELS_DEV_PROVIDER_MAP: Record<string, string[]> = {
-  // Major providers
-  openai: ["openai", "cx"], // cx = Codex (uses OpenAI models)
-  anthropic: ["anthropic", "cc"], // cc = Claude Code
-  google: ["gemini"],
-  "google-vertex": ["gemini", "vertex"],
-  "google-vertex-anthropic": ["anthropic", "cc", "vertex"],
-  vertex_ai: ["gemini", "vertex"],
-  deepseek: ["deepseek", "if"], // if = Qoder (routes through DeepSeek)
-  groq: ["groq"],
-  xai: ["xai"],
-  mistral: ["mistral"],
-  togetherai: ["together", "openrouter"],
-  together_ai: ["together", "openrouter"],
-  "fireworks-ai": ["fireworks"],
-  fireworks: ["fireworks"],
-  cerebras: ["cerebras"],
-  cohere: ["cohere"],
-  nvidia: ["nvidia"],
-  nebius: ["nebius"],
-  siliconflow: ["siliconflow"],
-  hyperbolic: ["hyperbolic"],
-  huggingface: ["hf", "huggingface"],
-  openrouter: ["openrouter"],
-  perplexity: ["pplx", "perplexity"],
-  // OAuth / special providers
-  bedrock: ["kiro", "kr"], // kr = Kiro (AWS Bedrock)
-  "github-copilot": ["github", "gh"],
-  "github-models": ["github", "gh"],
-  kilo: ["kilocode", "kc", "kilo-gateway"],
-  kilocode: ["kilocode", "kc", "kilo-gateway"],
-  "kimi-for-coding": ["kimi-coding", "kmc", "kimi-coding-apikey", "kmca"],
-  // The `opencode` models.dev entry used to map only to "opencode-zen" because
-  // that is the historical alias pair. But OmniRoute's catalog & combo targets
-  // reference models under BOTH provider IDs:
-  //   - `opencode-zen/big-pickle` (alias form)
-  //   - `opencode/big-pickle`    (canonical id form, used by live API catalog
-  //                               and by combos like "Opencode FREE Omni")
-  // If we only store synced capabilities under "opencode-zen", the canonical
-  // `opencode/<model>` lookup in getCanonicalModelMetadata returns null and
-  // any combo that targets `opencode/...` ends up with no computed context.
-  // Symmetric mapping keeps both lookup paths populated.
-  opencode: ["opencode", "opencode-zen"],
-  "opencode-go": ["opencode-go", "opencode-zen"],
-  // Additional providers that may overlap with OmniRoute
-  alibaba: ["ali", "alibaba"],
-  "alibaba-cn": ["ali-cn", "alibaba-cn", "alibaba-china"],
-  "alibaba-coding-plan": ["bcp", "bailian-coding-plan"],
-  zai: ["zai", "glm"], // GLM models via Z.AI
-  "zai-coding-plan": ["zai", "glm"],
-  moonshotai: ["moonshot", "kimi"],
-  "moonshotai-cn": ["moonshot", "kimi"],
-  moonshot: ["moonshot", "kimi", "kimi-coding", "kmc", "kmca"],
-  minimax: ["minimax", "minimax-cn"],
-  "minimax-cn": ["minimax-cn"],
-  longcat: ["lc", "longcat"],
-  pollinations: ["pol", "pollinations"],
-  puter: ["pu", "puter"],
-  cloudflare: ["cf"],
-  scaleway: ["scw"],
-  ollama: ["ollamacloud", "ollama-cloud"],
-  blackbox: ["bb", "blackbox"],
-  cline: ["cl", "cline"],
-  cursor: ["cu", "cursor"],
-  github: ["gh", "github"],
-  // Fallback: if no mapping exists, use the models.dev ID as-is
-};
-
-/**
- * Map a models.dev provider ID to OmniRoute provider IDs.
- * Returns array of provider identifiers (may include aliases).
- */
-export function mapProviderId(modelsDevProviderId: string): string[] {
-  return MODELS_DEV_PROVIDER_MAP[modelsDevProviderId] || [modelsDevProviderId];
-}
 
 // ─── Periodic sync state ─────────────────────────────────
 
