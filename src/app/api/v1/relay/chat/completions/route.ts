@@ -342,8 +342,7 @@ export async function POST(request: Request) {
       bifrostFallbackReason = bifrostDecision.fallbackReason;
     }
     if (bifrostDecision.tryBifrost) {
-      const cooldown =
-        backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
+      const cooldown = backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
       if (cooldown) {
         bifrostFallbackReason = `bifrost-cooldown; remaining=${cooldown.remainingMs}`;
       } else {
@@ -369,8 +368,8 @@ export async function POST(request: Request) {
                 ...JSON_CORS_HEADERS,
                 "X-Bifrost-Fallback": "/api/v1/relay/chat/completions",
               },
-            }
-          );
+            });
+          }
         }
       }
     }
