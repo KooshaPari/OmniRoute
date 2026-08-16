@@ -2,6 +2,7 @@ import {
   copyOpenAICompatibleReasoningFields,
   getReadableReasoningValue,
 } from "../utils/reasoningFields.ts";
+import { toNumberOrNull as toNumber } from "@/shared/utils/numeric";
 import { stripInternalReasoningPlaceholder } from "../utils/reasoningPlaceholder.ts";
 import { normalizeOpenAICompatibleFinishReason } from "../utils/finishReason.ts";
 import {
@@ -56,10 +57,6 @@ function toRecord(value: unknown): JsonRecord | null {
 
 function toString(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
-}
-
-function toNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
 function deleteOpenAICompatibleReasoningFields(record: JsonRecord): void {
