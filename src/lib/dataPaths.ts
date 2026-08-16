@@ -1,11 +1,18 @@
 import path from "path";
 import os from "os";
 import fs from "fs";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("lib:data-paths");
 
 export const APP_NAME = "omniroute";
+
+function warnConfiguredDataDirFallback(resolved: string, fallback: string, code: string) {
+  try {
+    process.stderr.write(
+      `[data-paths] configured DATA_DIR is not writable (${code}); falling back from ${resolved} to ${fallback}\n`
+    );
+  } catch {
+    // Logging must not make data-directory recovery fail.
+  }
+}
 
 function fallbackHomeDir() {
   const envHome = process.env.HOME || process.env.USERPROFILE;
@@ -103,10 +110,7 @@ export function resolveWritableDataDir({ isCloud = false }: { isCloud?: boolean 
     const code = (err as NodeJS.ErrnoException | null)?.code;
     if (code === "EACCES" || code === "EPERM") {
       const fallback = getDefaultDataDir();
-      log.warn(
-        { resolved, fallback, code },
-        "data-paths: configured DATA_DIR is not writable — falling back to default"
-      );
+      warnConfiguredDataDirFallback(resolved, fallback, code);
       return fallback;
     }
     throw err;
