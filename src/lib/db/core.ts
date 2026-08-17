@@ -15,6 +15,7 @@ import {
 import path from "path";
 import fs from "fs";
 import { resolveWritableDataDir, getLegacyDotDataDir } from "../dataPaths";
+import { createLogger } from "@/shared/utils/logger";
 import { runMigrations } from "./migrationRunner";
 import { runDbHealthCheck } from "./healthCheck";
 import { resetAllDbModuleState } from "./stateReset";
@@ -86,7 +87,16 @@ export const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 
 // ──────────────── Paths ────────────────
 
-export const DATA_DIR = resolveWritableDataDir({ isCloud });
+const dataPathsLog = createLogger("lib:data-paths");
+export const DATA_DIR = resolveWritableDataDir({
+  isCloud,
+  onPermissionFallback: ({ resolved, fallback, code }) => {
+    dataPathsLog.warn(
+      { resolved, fallback, code },
+      "data-paths: configured DATA_DIR is not writable — falling back to default"
+    );
+  },
+});
 const LEGACY_DATA_DIR = isCloud ? null : getLegacyDotDataDir();
 export const SQLITE_FILE = isCloud ? null : path.join(DATA_DIR, "storage.sqlite");
 const JSON_DB_FILE = isCloud ? null : path.join(DATA_DIR, "db.json");
