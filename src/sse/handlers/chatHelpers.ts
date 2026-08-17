@@ -461,9 +461,19 @@ export async function executeChatWithBreaker({
                 "AUTH",
                 `A3 guard: skipping markAccountUnavailable for 401 with extra keys on ${credentials.connectionId.slice(0, 8)}`
               );
-            },
-          })
-        )
+              return;
+            }
+            await markAccountUnavailable(
+              credentials.connectionId,
+              Number(failure?.status || HTTP_STATUS.BAD_GATEWAY),
+              String(failure?.message || failure?.code || "stream failure"),
+              provider,
+              model,
+              providerProfile,
+              { isCombo }
+            );
+          },
+        })
       );
 
     if (isShadowTraffic) {
