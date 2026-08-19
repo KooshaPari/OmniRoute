@@ -41,6 +41,10 @@ jobs:
       - name: Build CLI bundle
         env:
           OMNIROUTE_BUILD_BACKEND_ONLY: "1"
+          # Next/Turbopack can panic while rendering a Unicode code frame.
+          # DAST validates the API only, so use the documented
+          # webpack compatibility escape hatch without changing release builds.
+          OMNIROUTE_USE_TURBOPACK: "0"
         run: npm run build:cli
       - name: Start OmniRoute
         env:

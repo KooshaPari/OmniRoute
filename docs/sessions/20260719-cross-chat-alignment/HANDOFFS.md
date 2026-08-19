@@ -744,3 +744,11 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - [DONE] Focused assembler/build tests pass 4/4, including the missing-manifest regression, package scope assertion, CJS guard assertion, and sidecar parity.
 - [WAIT] The next hosted DAST run is the authoritative proof that `dist/server.js` binds before Schemathesis; do not infer endpoint health until it does.
 - This entry is append-only.
+
+## 2026-08-17T00:37Z - DAST webpack compatibility control (fix-dast-webpack-compat-20260817)
+
+- [STATE] Opened draft PR #657 from `origin/main` `8a74889b2`: https://github.com/KooshaPari/OmniRoute/pull/657.
+- [ROOT CAUSE] The hosted DAST backend-only build panicked inside Next 16 Turbopack's Unicode code-frame renderer before the API server started. This is a bundler diagnostic failure, not proof of an application-route failure.
+- [DONE] DAST alone now sets the existing `OMNIROUTE_USE_TURBOPACK=0` webpack compatibility escape hatch; normal, package, and release builds retain the default Turbopack path. The workflow contract test was observed RED before the setting and GREEN 7/7 after; YAML, Actionlint, Prettier, and diff checks pass.
+- [LIMIT] The local backend-only webpack build reached `Creating an optimized production build ...` without that Turbopack panic but exited without `dist/server.js`; do not claim a local full-build pass. Hosted DAST is the authoritative remaining proof.
+- This entry is append-only.
