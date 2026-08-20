@@ -752,3 +752,12 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - [DONE] DAST alone now sets the existing `OMNIROUTE_USE_TURBOPACK=0` webpack compatibility escape hatch; normal, package, and release builds retain the default Turbopack path. The workflow contract test was observed RED before the setting and GREEN 7/7 after; YAML, Actionlint, Prettier, and diff checks pass.
 - [LIMIT] The local backend-only webpack build reached `Creating an optimized production build ...` without that Turbopack panic but exited without `dist/server.js`; do not claim a local full-build pass. Hosted DAST is the authoritative remaining proof.
 - This entry is append-only.
+
+## 2026-08-20T09:01Z - Kimi Web release-splice restoration (fix-kimi-web-release-splice-restore-20260820)
+
+- [ROOT CAUSE] Release commit `4e0fc462e9` removed the coherent non-streaming Connect-frame completion path from its parent and left an orphaned fragment after the streaming return, causing a duplicate `encoder` declaration and unexpected `catch` parser failure.
+- [RED] Esbuild failed on `open-sse/executors/kimi-web.ts` with exactly those two syntax errors.
+- [DONE] Restored the last coherent fork implementation from `4e0fc462e9^`; no hand-reconstructed protocol logic was introduced.
+- [GREEN BOUNDARY] Esbuild, Prettier, ESLint, and `git diff --check` pass for the changed executor. Focused Kimi tests now advance to the independently missing provider registry factory covered by PR #666.
+- [LIMIT] The pre-existing decoder test is not Prettier-compliant on main and is unchanged here. Hosted DAST after dependency repairs remains the authoritative bundle proof.
+- This entry is append-only.
