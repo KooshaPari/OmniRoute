@@ -752,3 +752,12 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - [DONE] DAST alone now sets the existing `OMNIROUTE_USE_TURBOPACK=0` webpack compatibility escape hatch; normal, package, and release builds retain the default Turbopack path. The workflow contract test was observed RED before the setting and GREEN 7/7 after; YAML, Actionlint, Prettier, and diff checks pass.
 - [LIMIT] The local backend-only webpack build reached `Creating an optimized production build ...` without that Turbopack panic but exited without `dist/server.js`; do not claim a local full-build pass. Hosted DAST is the authoritative remaining proof.
 - This entry is append-only.
+
+## 2026-08-20T08:28Z - Antigravity header-contract restoration (fix-antigravity-header-contract-restore-20260820)
+
+- [ROOT CAUSE] Current `antigravityHeaders.ts` evaluated undefined `ANTIGRAVITY_FALLBACK_VERSION` at module load and had overwritten the desktop user-agent builder with a CLI template that referenced undefined `authMethod`; the exported CLI builder was missing. The last known fork repair `63c5221f4c` and upstream establish the intended contract.
+- [RED] Existing header/client-profile tests failed on the undefined initialization and missing `antigravityCliUserAgent` export.
+- [DONE] Restored IDE fallback import, fixed darwin/arm64 identity constants, the desktop platform-fingerprint helper, and the distinct CLI user-agent builder.
+- [GREEN] `tests/unit/antigravity-headers.test.ts` passes 6/6; Esbuild, Prettier, ESLint, and `git diff --check` pass.
+- [LIMIT] `antigravity-client-profile.test.ts` still calls unimported legacy harness symbols and a retired cache API; that independently stale test is deliberately outside this source-restoration PR.
+- This entry is append-only.
