@@ -752,3 +752,11 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - [DONE] DAST alone now sets the existing `OMNIROUTE_USE_TURBOPACK=0` webpack compatibility escape hatch; normal, package, and release builds retain the default Turbopack path. The workflow contract test was observed RED before the setting and GREEN 7/7 after; YAML, Actionlint, Prettier, and diff checks pass.
 - [LIMIT] The local backend-only webpack build reached `Creating an optimized production build ...` without that Turbopack panic but exited without `dist/server.js`; do not claim a local full-build pass. Hosted DAST is the authoritative remaining proof.
 - This entry is append-only.
+
+## 2026-08-20T08:06Z - Executor release-corruption repair (fix-executor-helper-release-corruption-20260820)
+
+- [ROOT CAUSE] Release-train merges retained two copies of shared executor helpers. `codex.ts` imported/re-exported `isCodexFreePlan` and `normalizeCodexTools` from `codex/tools.ts` while also declaring them locally; `huggingchat.ts` duplicated its request helper block and renamed the original `getLocalTimezone()` to an invalid `parseJsonlLine()` declaration.
+- [RED] Existing Codex and HuggingChat executor suites failed deterministically with duplicate-export/declaration transform errors.
+- [DONE] Restored the upstream module boundary: Codex delegates solely to `codex/tools.ts`; HuggingChat has one request-helper block and its timezone helper is restored.
+- [GREEN] Both files parse with esbuild, pass ESLint and Prettier, and diff integrity passes. The same executor suites now proceed past these defects and stop at the independent current-main registry error `buildOpenAiCompatibleRegistryEntry` missing from `shared.ts`.
+- This entry is append-only.
