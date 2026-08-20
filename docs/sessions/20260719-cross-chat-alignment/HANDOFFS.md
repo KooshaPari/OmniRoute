@@ -752,3 +752,12 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - [DONE] DAST alone now sets the existing `OMNIROUTE_USE_TURBOPACK=0` webpack compatibility escape hatch; normal, package, and release builds retain the default Turbopack path. The workflow contract test was observed RED before the setting and GREEN 7/7 after; YAML, Actionlint, Prettier, and diff checks pass.
 - [LIMIT] The local backend-only webpack build reached `Creating an optimized production build ...` without that Turbopack panic but exited without `dist/server.js`; do not claim a local full-build pass. Hosted DAST is the authoritative remaining proof.
 - This entry is append-only.
+
+## 2026-08-20T09:24Z - LMArena split-helper restoration (fix-lmarena-helper-split-restore-20260820)
+
+- [ROOT CAUSE] Release code imported and re-exported LMArena cookie/stream helpers while retaining their prior inline definitions, producing duplicate `reconstructLMArenaCookie` and `parseArenaSSE` exports.
+- [RED] Esbuild rejected both duplicate exports.
+- [DONE] Restored the coherent pre-splice executor where `lmarena/cookie.ts`, `models.ts`, `stream.ts`, and `response.ts` are the only helper implementations.
+- [GREEN BOUNDARY] Esbuild, Prettier, and `git diff --check` pass.
+- [LIMIT] ESLint cannot resolve `eslint-config-next` in this isolated no-install worktree; no source lint diagnostic was produced. Hosted DAST is the authoritative integration gate.
+- This entry is append-only.
