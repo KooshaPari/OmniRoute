@@ -752,3 +752,12 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - [DONE] DAST alone now sets the existing `OMNIROUTE_USE_TURBOPACK=0` webpack compatibility escape hatch; normal, package, and release builds retain the default Turbopack path. The workflow contract test was observed RED before the setting and GREEN 7/7 after; YAML, Actionlint, Prettier, and diff checks pass.
 - [LIMIT] The local backend-only webpack build reached `Creating an optimized production build ...` without that Turbopack panic but exited without `dist/server.js`; do not claim a local full-build pass. Hosted DAST is the authoritative remaining proof.
 - This entry is append-only.
+
+## 2026-08-20T08:15Z - Provider registry factory restoration (fix-provider-registry-factory-restore-20260820)
+
+- [ROOT CAUSE] Current main provider modules and `refactor-registryFactory.test.ts` import `buildOpenAiCompatibleRegistryEntry`, but release-train commits `ffa6f5e13e` / `4e0fc462e9` removed its export from `config/providers/shared.ts`. Fork predecessor `9006473d90` and current upstream agree on the implementation.
+- [RED] `node --import tsx --test tests/unit/refactor-registryFactory.test.ts` failed exactly because `shared.ts` did not export the factory.
+- [DONE] Restored the lost factory only; it supplies the standard OpenAI format, default executor, API-key auth type, and bearer header while allowing explicit overrides.
+- [GREEN BOUNDARY] Esbuild parses `shared.ts` and a representative `registry/navy` consumer; Prettier, ESLint, and `git diff --check` pass. The focused runtime test now proceeds past the export and exposes independent current-main `ANTIGRAVITY_FALLBACK_VERSION` undefined initialization.
+- [WAIT] Hosted PR checks are authoritative; the Antigravity initialization error is not included in this scope.
+- This entry is append-only.
