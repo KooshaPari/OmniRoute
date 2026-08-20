@@ -752,3 +752,11 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - [DONE] DAST alone now sets the existing `OMNIROUTE_USE_TURBOPACK=0` webpack compatibility escape hatch; normal, package, and release builds retain the default Turbopack path. The workflow contract test was observed RED before the setting and GREEN 7/7 after; YAML, Actionlint, Prettier, and diff checks pass.
 - [LIMIT] The local backend-only webpack build reached `Creating an optimized production build ...` without that Turbopack panic but exited without `dist/server.js`; do not claim a local full-build pass. Hosted DAST is the authoritative remaining proof.
 - This entry is append-only.
+
+## 2026-08-20T09:17Z - Kiro runtime-host import restoration (fix-kiro-runtime-host-import-20260820)
+
+- [ROOT CAUSE] `kiroRuntimeHost` and `resolveKiroRuntimeRegion` live in `services/kiroRegion.ts`, but the executor used and re-exported them without an import; hosted webpack correctly rejected `export { kiroRuntimeHost }` as undefined.
+- [DONE] Restored the upstream import pair only, retaining the existing executor compatibility re-export.
+- [GREEN BOUNDARY] Esbuild and Prettier pass; `git diff --check` passes. Prettier also made three existing formatting-only normalizations in the same file.
+- [LIMIT] ESLint could not resolve `eslint-config-next` because this isolated worktree's dependency install was interrupted with `ENOTEMPTY`; no source lint diagnostic was produced.
+- This entry is append-only.
