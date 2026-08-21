@@ -9,3 +9,7 @@ open-sse/config/freeModelCatalog.data.ts
 # Prettier reformats the frontmatter (blank line after ---), which makes the gate
 # fail on any skill that happens to pass through lint-staged.
 skills/*/SKILL.md
+
+# Append-only cross-chat handoff ledger. Formatting historical entries rewrites
+# provenance, so the ledger is exempt from Prettier.
+docs/sessions/20260719-cross-chat-alignment/HANDOFFS.md
