@@ -90,6 +90,30 @@ export const SUPERSEDED_DUPLICATE_MIGRATIONS = [
     supersededByVersion: "050",
     supersededByName: "session_account_affinity",
   },
+  {
+    version: "102",
+    name: "virtual_keys",
+    supersededByVersion: "122",
+    supersededByName: "virtual_keys",
+  },
+  {
+    version: "103",
+    name: "fleet_config",
+    supersededByVersion: "123",
+    supersededByName: "fleet_config",
+  },
+  {
+    version: "104",
+    name: "traffic_shadow_log",
+    supersededByVersion: "124",
+    supersededByName: "traffic_shadow_log",
+  },
+  {
+    version: "105",
+    name: "traffic_shadow_config",
+    supersededByVersion: "125",
+    supersededByName: "traffic_shadow_config",
+  },
 ] as const;
 
 export const PHYSICAL_SCHEMA_SENTINELS = [
