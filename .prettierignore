@@ -1,6 +1,10 @@
 # Long reference tables are manually aligned; formatting the whole file causes noisy diffs.
 docs/reference/ENVIRONMENT.md
 
+# This is an append-only cross-chat handoff ledger. Reformatting historical
+# entries rewrites provenance rather than changing a document's meaning.
+docs/sessions/20260719-cross-chat-alignment/HANDOFFS.md
+
 # Dense auto-generated free-tier budget rows (one object per line) — prettier multi-line expand blows past file-size cap 800.
 open-sse/config/freeModelCatalog.data.ts
 
