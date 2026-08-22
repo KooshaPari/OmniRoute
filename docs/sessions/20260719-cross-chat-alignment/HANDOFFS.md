@@ -752,3 +752,10 @@ Status: [complete] — PR #420 merge conflict resolved, pushed.
 - [DONE] DAST alone now sets the existing `OMNIROUTE_USE_TURBOPACK=0` webpack compatibility escape hatch; normal, package, and release builds retain the default Turbopack path. The workflow contract test was observed RED before the setting and GREEN 7/7 after; YAML, Actionlint, Prettier, and diff checks pass.
 - [LIMIT] The local backend-only webpack build reached `Creating an optimized production build ...` without that Turbopack panic but exited without `dist/server.js`; do not claim a local full-build pass. Hosted DAST is the authoritative remaining proof.
 - This entry is append-only.
+
+## 2026-08-21T06:01Z - DB cache invalidation argument contract repair
+
+- [STATE] qgate evidence identified `ReferenceError: id is not defined` in `src/lib/db/readCache.ts`; new branch starts from `origin/main:dc22b8e1` and applies a narrow scope-only repair.
+- [DONE] `invalidateDbCache()` now accepts optional `id?: string` and includes `"nodes"` in scope typing while preserving existing cache-version behavior.
+- [WAIT] Open a dedicated qgate-focused PR and validate hosted execution before claiming merge-readiness.
+- This entry is append-only.

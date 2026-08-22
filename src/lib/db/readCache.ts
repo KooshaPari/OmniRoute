@@ -262,7 +262,10 @@ export function getModelCatalogCacheVersion(): number {
  * cache must still be fully cleared since overlapping filter results
  * cannot be selectively invalidated).
  */
-export function invalidateDbCache(scope?: "settings" | "pricing" | "connections" | "combos"): void {
+export function invalidateDbCache(
+  scope?: "settings" | "pricing" | "connections" | "combos" | "nodes",
+  id?: string
+): void {
   if (!scope || scope === "settings") settingsCache.invalidate();
   if (!scope || scope === "pricing") pricingCache.invalidate();
   if (!scope || scope === "connections") {
