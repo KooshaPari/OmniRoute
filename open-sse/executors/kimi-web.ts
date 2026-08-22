@@ -26,7 +26,10 @@
  * session; the upstream returns the same response either way.
  */
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import { makeExecutorErrorResult as makeErrorResult, sanitizeErrorMessage } from "../utils/error.ts";
+import {
+  makeExecutorErrorResult as makeErrorResult,
+  sanitizeErrorMessage,
+} from "../utils/error.ts";
 import { extractKimiJwt } from "@/lib/providers/webCookieAuth";
 
 export { extractKimiJwt };
@@ -35,6 +38,93 @@ const BASE_URL = "https://www.kimi.com";
 const CHAT_URL = `${BASE_URL}/apiv2/kimi.gateway.chat.v1.ChatService/Chat`;
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
+
+const DEFAULT_SCENARIO = "SCENARIO_K2D5";
+
+export function frameConnectMessage(json: string): Uint8Array {
+  const payload = new TextEncoder().encode(json);
+  const framed = new Uint8Array(5 + payload.length);
+  framed[0] = 0;
+  const len = payload.length;
+  framed[1] = (len >>> 24) & 0xff;
+  framed[2] = (len >>> 16) & 0xff;
+  framed[3] = (len >>> 8) & 0xff;
+  framed[4] = len & 0xff;
+  framed.set(payload, 5);
+  return framed;
+}
+
+interface ConnectFrame {
+  flags: number;
+  message: Record<string, unknown> | null;
+}
+
+const MAX_FRAME_LEN = 8 * 1024 * 1024;
+
+export function decodeConnectFrame(
+  buf: Uint8Array,
+  byteOffset: number
+): { consumed: number; frame: ConnectFrame | null } {
+  if (byteOffset + 5 > buf.length) return { consumed: 0, frame: null };
+  const flags = buf[byteOffset];
+  const len =
+    (buf[byteOffset + 1] << 24) |
+    (buf[byteOffset + 2] << 16) |
+    (buf[byteOffset + 3] << 8) |
+    buf[byteOffset + 4];
+  const msgLen = len < 0 ? len + 0x100000000 : len;
+  if (msgLen > MAX_FRAME_LEN) return { consumed: -1, frame: null };
+  if (byteOffset + 5 + msgLen > buf.length) return { consumed: 0, frame: null };
+  const payload = buf.subarray(byteOffset + 5, byteOffset + 5 + msgLen);
+  let message: Record<string, unknown> | null = null;
+  if (msgLen > 0) {
+    try {
+      message = JSON.parse(new TextDecoder().decode(payload));
+    } catch {
+      message = null;
+    }
+  }
+  return { consumed: 5 + msgLen, frame: { flags, message } };
+}
+
+export function extractDelta(
+  msg: Record<string, unknown> | null
+): { kind: "text" | "think"; text: string } | null {
+  if (!msg) return null;
+  const op = String(msg.op ?? "");
+  const mask = String(msg.mask ?? "");
+  const block = (msg.block ?? {}) as Record<string, unknown>;
+  const key =
+    mask === "block.text" || mask === "block.text.content"
+      ? "text"
+      : mask === "block.think" || mask === "block.think.content"
+        ? "think"
+        : null;
+  if (!key || (op !== "set" && op !== "append")) return null;
+  const text = String(((block[key] ?? {}) as Record<string, unknown>).content ?? "");
+  return text ? { kind: key, text } : null;
+}
+
+export function isEndOfStream(msg: Record<string, unknown> | null): boolean {
+  if (!msg) return false;
+  const message = (msg.message ?? null) as Record<string, unknown> | null;
+  return Boolean(
+    message && message.role === "assistant" && message.status === "MESSAGE_STATUS_COMPLETED"
+  );
+}
+
+export function foldMessages(messages: Array<{ role: string; content: unknown }>): string {
+  let system = "";
+  let user = "";
+  for (const m of messages) {
+    const text = typeof m.content === "string" ? m.content : JSON.stringify(m.content ?? "");
+    if (m.role === "system") system += (system ? "\n\n" : "") + text;
+    else if (m.role === "user") user = user ? `${user}\n\n${text}` : text;
+    else if (m.role === "assistant")
+      user = user ? `${user}\n\nAssistant: ${text}` : `Assistant: ${text}`;
+  }
+  return system ? `${system}\n\n${user}` : user;
+}
 
 export class KimiWebExecutor extends BaseExecutor {
   constructor() {
@@ -120,7 +210,12 @@ export class KimiWebExecutor extends BaseExecutor {
 
     if (!upstream.ok) {
       const errText = await upstream.text().catch(() => "");
-      return makeErrorResult(upstream.status, `Kimi error: ${sanitizeErrorMessage(errText)}`, body, CHAT_URL);
+      return makeErrorResult(
+        upstream.status,
+        `Kimi error: ${sanitizeErrorMessage(errText)}`,
+        body,
+        CHAT_URL
+      );
     }
 
     const encoder = new TextEncoder();
@@ -231,61 +326,24 @@ export class KimiWebExecutor extends BaseExecutor {
       };
     }
 
-    // Streaming
-    const encoder = new TextEncoder();
-    const decoder = new TextDecoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = upstream.body?.getReader();
-        if (!reader) {
-          controller.close();
-          return;
-        }
-        let buffer = "";
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop() || "";
-            for (const line of lines) {
-              if (!line.startsWith("data:")) continue;
-              const data = line.slice(5).trim();
-              if (data === "[DONE]") {
-                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-                continue;
-              }
-              try {
-                const parsed = JSON.parse(data);
-                const text = parsed.choices?.[0]?.delta?.content || "";
-                if (text) {
-                  const chunk = {
-                    id: `chatcmpl-kimi-${Date.now()}`,
-                    object: "chat.completion.chunk",
-                    created: Math.floor(Date.now() / 1000),
-                    model: modelId,
-                    choices: [{ index: 0, delta: { content: text }, finish_reason: null }],
-                  };
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
-                }
-              } catch {}
-            }
-          }
-        } catch (err) {
-          if (!signal?.aborted) controller.error(err);
-        } finally {
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          controller.close();
-        }
-      },
-    });
-
+    // Non-streaming: collect all deltas into a single chat.completion JSON.
+    let answer = "";
+    let reasoning = "";
+    const reader = sourceStream.getReader();
+    let buffer = new Uint8Array(0);
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (!value) continue;
+        const merged = new Uint8Array(buffer.length + value.length);
+        merged.set(buffer, 0);
+        merged.set(value, buffer.length);
+        buffer = merged;
         let offset = 0;
         while (offset < buffer.length) {
           const { consumed, frame } = decodeConnectFrame(buffer, offset);
-          if (consumed === -1) break; // oversized frame — abort, return what we have
-          if (consumed === 0) break;
+          if (consumed === -1 || consumed === 0) break;
           offset += consumed;
           if (!frame?.message) continue;
           const delta = extractDelta(frame.message);
@@ -294,7 +352,7 @@ export class KimiWebExecutor extends BaseExecutor {
             else answer += delta.text;
           }
           if (isEndOfStream(frame.message)) {
-            offset = buffer.length; // drain
+            offset = buffer.length;
             break;
           }
         }
@@ -314,12 +372,8 @@ export class KimiWebExecutor extends BaseExecutor {
       choices: [{ index: 0, message, finish_reason: "stop" }],
     };
     return {
-      response: new Response(stream, {
-        headers: {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          Connection: "keep-alive",
-        },
+      response: new Response(JSON.stringify(completion), {
+        headers: { "Content-Type": "application/json" },
       }),
       url: CHAT_URL,
       headers: reqHeaders,
