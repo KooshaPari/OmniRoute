@@ -1,0 +1,285 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-20T02:13:15.838558+00:00",
+  "repo": "OmniRoute-transport-worker-20260805-0550",
+  "repo_path": "C:\\Users\\koosh\\OmniRoute-transport-worker-20260805-0550",
+  "head": {
+    "sha": "",
+    "branch": "HEAD"
+  },
+  "scoring": {
+    "scale": "0..3 (0=missing, 1=seeded, 2=partial, 3=complete)",
+    "total_pillars": 30,
+    "max_possible": 90,
+    "total_score": 5,
+    "percentage": 5.6,
+    "tier": "D"
+  },
+  "pillar_scores": [
+    {
+      "pillar": "L0_license",
+      "name": "License Present",
+      "category": "legal",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L1_ci_workflows",
+      "name": "CI Workflows",
+      "category": "ci_cd",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L2_source_builds",
+      "name": "Source Builds",
+      "category": "ci_cd",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L3_tests_pass",
+      "name": "Tests Pass",
+      "category": "ci_cd",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L4_cli_binary",
+      "name": "CLI Binary",
+      "category": "cli",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L5_spec_or_prd",
+      "name": "Spec / PRD",
+      "category": "specification",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L6_worktree_clean",
+      "name": "Worktree Clean",
+      "category": "hygiene",
+      "score": 3,
+      "max_score": 3
+    },
+    {
+      "pillar": "L7_conventional_commits",
+      "name": "Conventional Commits",
+      "category": "hygiene",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L8_sqlite_sha256",
+      "name": "SQLite + SHA256",
+      "category": "sota",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L9_harbor_fixtures",
+      "name": "Harbor Task Fixtures",
+      "category": "sota",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L10_criterion_regression",
+      "name": "Criterion Regression",
+      "category": "sota",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L11_asgi_rust_python",
+      "name": "ASGI / Rust-Python Hybrid",
+      "category": "sota",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L12_modernc_sqlite",
+      "name": "modernc SQLite (CGO-free)",
+      "category": "sota",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L13_process_compose_nvms",
+      "name": "Process-Compose / NVMS",
+      "category": "sota",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L14_gvisor_firecracker",
+      "name": "gVisor / Firecracker Tiers",
+      "category": "sota",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L15_tauri_sveltekit",
+      "name": "Tauri + SvelteKit",
+      "category": "sota",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L16_l7_propagation",
+      "name": "L7 Request-ID Propagation",
+      "category": "sota",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L17_bench_harness",
+      "name": "Bench Harness",
+      "category": "cli",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L18_pyproject_uv",
+      "name": "pyproject.toml + uv",
+      "category": "cli",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L19_pre_commit",
+      "name": "Pre-commit Hooks",
+      "category": "hygiene",
+      "score": 2,
+      "max_score": 3
+    },
+    {
+      "pillar": "L20_adaptive_concurrency",
+      "name": "Adaptive Concurrency",
+      "category": "sota",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L21_dependency_audit",
+      "name": "Dependency Audit",
+      "category": "supply_chain",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L22_changelog",
+      "name": "Changelog",
+      "category": "specification",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L23_contributing",
+      "name": "Contributing Guide",
+      "category": "specification",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L24_security_policy",
+      "name": "Security Policy",
+      "category": "specification",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L25_codeowners",
+      "name": "CODEOWNERS",
+      "category": "sota",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L26_editorconfig",
+      "name": ".editorconfig",
+      "category": "hygiene",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L27_devcontainer",
+      "name": "DevContainer / Dockerfile",
+      "category": "ci_cd",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L28_taskfile",
+      "name": "Taskfile / mise.toml",
+      "category": "hygiene",
+      "score": 0,
+      "max_score": 3
+    },
+    {
+      "pillar": "L29_renovate",
+      "name": "Renovate / Dependabot",
+      "category": "supply_chain",
+      "score": 0,
+      "max_score": 3
+    }
+  ],
+  "bottom_5_pillars": [
+    {
+      "pillar": "L0_license",
+      "name": "License Present",
+      "category": "legal",
+      "current_score": 0,
+      "max_score": 3,
+      "recommendation": "[CRITICAL] Add a LICENSE file at the repo root. Use SPDX identifier (MIT, Apache-2.0, etc.)."
+    },
+    {
+      "pillar": "L1_ci_workflows",
+      "name": "CI Workflows",
+      "category": "ci_cd",
+      "current_score": 0,
+      "max_score": 3,
+      "recommendation": "[CRITICAL] Add GitHub Actions workflows in .github/workflows/. Start with a CI workflow for build+test."
+    },
+    {
+      "pillar": "L2_source_builds",
+      "name": "Source Builds",
+      "category": "ci_cd",
+      "current_score": 0,
+      "max_score": 3,
+      "recommendation": "[CRITICAL] Ensure the project builds cleanly. Add a build script or fix compilation errors."
+    },
+    {
+      "pillar": "L3_tests_pass",
+      "name": "Tests Pass",
+      "category": "ci_cd",
+      "current_score": 0,
+      "max_score": 3,
+      "recommendation": "[CRITICAL] Add unit tests. Create a tests/ directory or add #[test] modules in Rust. Use pytest for Python."
+    },
+    {
+      "pillar": "L4_cli_binary",
+      "name": "CLI Binary",
+      "category": "cli",
+      "current_score": 0,
+      "max_score": 3,
+      "recommendation": "[CRITICAL] Expose a CLI binary. In Rust, add a [[bin]] section. In Python, add [project.scripts]."
+    }
+  ],
+  "summary": {
+    "strengths": [
+      "Worktree Clean"
+    ],
+    "gaps": [
+      "License Present",
+      "CI Workflows",
+      "Source Builds",
+      "Tests Pass",
+      "CLI Binary"
+    ],
+    "action_count": 5
+  }
+}
