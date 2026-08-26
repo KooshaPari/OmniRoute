@@ -120,4 +120,3 @@
 - [ ] Validate a packaged Tauri artifact on macOS and record launch/readiness/shutdown evidence.
 - [ ] Record upstream 53-commit disposition and final human acceptance.
 - [ ] Declare idle only after the exact SHA has green required gates and no active owned backlog remains.
-

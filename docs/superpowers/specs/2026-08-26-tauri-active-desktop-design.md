@@ -39,4 +39,3 @@ Electron and Electrobun remain in the repository for provenance and rollback evi
 | Inactive desktop policy | docs/scripts/workflow scan | no active release/setup gate requires Electron or Electrobun |
 | Traceability | AgilePlus or repository fallback ledger | requirement, owner, files, tests, run IDs, and acceptance state are linked |
 | Release | hosted required checks | qgate, Scorecard/security aggregate, cross-platform, and release readiness are green on one SHA |
-
