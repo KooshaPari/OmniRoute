@@ -13,6 +13,7 @@
 ### Task 1: Establish the active desktop contract
 
 **Files:**
+
 - Create: `apps/desktop/package.json`
 - Create: `apps/desktop/src-tauri/Cargo.toml`
 - Create: `apps/desktop/src-tauri/tauri.conf.json`
@@ -32,6 +33,7 @@
 ### Task 2: Replace active desktop references with Tauri
 
 **Files:**
+
 - Modify: `apps/desktop/README.md`
 - Modify: `docs/guides/SETUP_GUIDE.md`
 - Modify: `docs/architecture/CODEBASE_DOCUMENTATION.md`
@@ -51,6 +53,7 @@
 ### Task 3: Add browser/Tauri parity fixtures
 
 **Files:**
+
 - Create: `apps/desktop/tests/parity-matrix.ts`
 - Create: `apps/desktop/tests/desktop-smoke.test.ts`
 - Create: `apps/web/src/lib/parity/workflows.ts`
@@ -66,6 +69,7 @@
 ### Task 4: Validate routing and response-healing parity
 
 **Files:**
+
 - Create: `tests/integration/desktop-routing-parity.test.ts`
 - Create: `tests/integration/response-healing-matrix.test.ts`
 - Modify: `docs/architecture/RESILIENCE_GUIDE.md`
@@ -80,6 +84,7 @@
 ### Task 5: Make inactive desktop policy enforceable
 
 **Files:**
+
 - Create: `scripts/check/check-active-desktop.mjs`
 - Modify: `package.json`
 - Modify: `.github/workflows/apps-quality.yml`
@@ -95,6 +100,7 @@
 ### Task 6: Restore machine-linked AgilePlus traceability
 
 **Files:**
+
 - Create: `.agileplus/tauri-active-desktop/meta.json`
 - Create: `.agileplus/tauri-active-desktop/spec.md`
 - Create: `.agileplus/tauri-active-desktop/plan.md`
@@ -110,6 +116,7 @@
 ### Task 7: Prove release readiness and closeout
 
 **Files:**
+
 - Create: `docs/operations/tauri-release-runbook.md`
 - Modify: `docs/ROADMAP.md`
 - Modify: `docs/ROUTING-CONVERGENCE-STATUS.md`

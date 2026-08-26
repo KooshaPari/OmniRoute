@@ -30,12 +30,12 @@ Electron and Electrobun remain in the repository for provenance and rollback evi
 
 ## Acceptance gates
 
-| Gate | Evidence | Completion condition |
-|---|---|---|
-| Tauri build | `apps/desktop` build output and CI run | macOS build succeeds and artifact is inspectable |
-| Runtime lifecycle | Rust unit/integration tests | start, readiness, stop, and error paths are deterministic |
-| UI parity | browser/Tauri parity matrix | every listed workflow has a shared fixture and passing test |
-| Routing/healing | failure matrix and existing resilience tests | bounded retry, fallback, quality gate, and recovery behavior pass |
-| Inactive desktop policy | docs/scripts/workflow scan | no active release/setup gate requires Electron or Electrobun |
-| Traceability | AgilePlus or repository fallback ledger | requirement, owner, files, tests, run IDs, and acceptance state are linked |
-| Release | hosted required checks | qgate, Scorecard/security aggregate, cross-platform, and release readiness are green on one SHA |
+| Gate                    | Evidence                                     | Completion condition                                                                            |
+| ----------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Tauri build             | `apps/desktop` build output and CI run       | macOS build succeeds and artifact is inspectable                                                |
+| Runtime lifecycle       | Rust unit/integration tests                  | start, readiness, stop, and error paths are deterministic                                       |
+| UI parity               | browser/Tauri parity matrix                  | every listed workflow has a shared fixture and passing test                                     |
+| Routing/healing         | failure matrix and existing resilience tests | bounded retry, fallback, quality gate, and recovery behavior pass                               |
+| Inactive desktop policy | docs/scripts/workflow scan                   | no active release/setup gate requires Electron or Electrobun                                    |
+| Traceability            | AgilePlus or repository fallback ledger      | requirement, owner, files, tests, run IDs, and acceptance state are linked                      |
+| Release                 | hosted required checks                       | qgate, Scorecard/security aggregate, cross-platform, and release readiness are green on one SHA |
