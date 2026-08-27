@@ -35,15 +35,15 @@ must fail when an implementation exceeds them or retries a request after a
 terminal outcome. The canonical gate IDs are reused by the repository
 traceability ledger and CI summaries.
 
-| Gate ID | Gate | Evidence | Completion condition |
-| --- | --- | --- | --- |
-| `DESKTOP-TAURI-BUILD` | Tauri build | `apps/desktop` build output and CI run | macOS build succeeds and the artifact is inspectable |
-| `DESKTOP-RUNTIME-LIFECYCLE` | Runtime lifecycle | Rust unit/integration tests | start, readiness, stop, repeated calls, and sanitized error paths are deterministic |
-| `DESKTOP-UI-PARITY` | UI parity | browser/Tauri parity matrix and existing browser tests | every listed workflow has a shared fixture and passing test |
-| `ROUTING-HEALING-BOUNDS` | Routing/healing | failure matrix plus `tests/integration/gemini-combo-cooldown-wait.test.ts` and resilience E2E tests | at most 2 retries for one provider request, at most 3 provider candidates per request, one response-repair pass, and no retry after a terminal quality-gate or malformed-response result |
-| `DESKTOP-INACTIVE-POLICY` | Inactive desktop policy | `npm run check:active-desktop` and workflow scan | no active release/setup gate requires Electron or Electrobun |
-| `DESKTOP-TRACEABILITY` | Traceability | AgilePlus or repository fallback ledger | requirement, owner, files, tests, CI run IDs, and acceptance state are linked |
-| `RELEASE-READINESS` | Release | `qgate`, `Scorecard`, security aggregate, cross-platform, and release-readiness hosted checks | all required checks are green on one SHA and human package acceptance is recorded |
+| Gate ID                     | Gate                    | Evidence                                                                                            | Completion condition                                                                                                                                                                     |
+| --------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DESKTOP-TAURI-BUILD`       | Tauri build             | `apps/desktop` build output and CI run                                                              | macOS build succeeds and the artifact is inspectable                                                                                                                                     |
+| `DESKTOP-RUNTIME-LIFECYCLE` | Runtime lifecycle       | Rust unit/integration tests                                                                         | start, readiness, stop, repeated calls, and sanitized error paths are deterministic                                                                                                      |
+| `DESKTOP-UI-PARITY`         | UI parity               | browser/Tauri parity matrix and existing browser tests                                              | every listed workflow has a shared fixture and passing test                                                                                                                              |
+| `ROUTING-HEALING-BOUNDS`    | Routing/healing         | failure matrix plus `tests/integration/gemini-combo-cooldown-wait.test.ts` and resilience E2E tests | at most 2 retries for one provider request, at most 3 provider candidates per request, one response-repair pass, and no retry after a terminal quality-gate or malformed-response result |
+| `DESKTOP-INACTIVE-POLICY`   | Inactive desktop policy | `npm run check:active-desktop` and workflow scan                                                    | no active release/setup gate requires Electron or Electrobun                                                                                                                             |
+| `DESKTOP-TRACEABILITY`      | Traceability            | AgilePlus or repository fallback ledger                                                             | requirement, owner, files, tests, CI run IDs, and acceptance state are linked                                                                                                            |
+| `RELEASE-READINESS`         | Release                 | `qgate`, `Scorecard`, security aggregate, cross-platform, and release-readiness hosted checks       | all required checks are green on one SHA and human package acceptance is recorded                                                                                                        |
 
 Coverage is a separate invariant of `RELEASE-READINESS`: the existing
 repository threshold remains at least 60% statements, lines, functions, and
