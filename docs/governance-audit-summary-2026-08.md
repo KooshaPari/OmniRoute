@@ -12,7 +12,7 @@ governance debt that were not actively tracked:
 
 - **Silent fail-open patterns**: empty catches, `.catch(() => null|undefined|false|"")`,
   and `console.*` callsites that swallowed real errors.
-- **Console.* sprawl**: hundreds of `console.log|warn|error` calls scattered
+- _*Console.* sprawl_*: hundreds of `console.log|warn|error` calls scattered
   through `src/lib/` and `open-sse/`, with no structured logging.
 - **Type drift**: the quota keystore had ghost-type imports from an unfinished
   refactor (PR #505 root cause).
@@ -45,31 +45,32 @@ For each pattern class, the audit followed:
 
 ### Silent fail-open patterns (PRs #506, #507, #509, #510, #512, #518, #526)
 
-| File pattern | Count | PR |
-|---|---|---|
-| `} catch { /* swallow */ }` in src/lib | ~50 | #506, #512, #526 |
-| `} catch (err) { /* swallow */ }` with empty body | ~30 | #512, #526 |
-| `.catch(() => null)` / `.catch(() => undefined)` weak fallbacks | ~10 | #526 |
-| `} catch { return "" }` after crypto API | ~6 | #509, #510 |
-| `} catch { return { alive: true } }` lie | 1 | #507 |
-| `console.*` swallows crypto errors | ~7 | #510 |
+| File pattern                                                    | Count | PR               |
+| --------------------------------------------------------------- | ----- | ---------------- |
+| `} catch { /* swallow */ }` in src/lib                          | ~50   | #506, #512, #526 |
+| `} catch (err) { /* swallow */ }` with empty body               | ~30   | #512, #526       |
+| `.catch(() => null)` / `.catch(() => undefined)` weak fallbacks | ~10   | #526             |
+| `} catch { return "" }` after crypto API                        | ~6    | #509, #510       |
+| `} catch { return { alive: true } }` lie                        | 1     | #507             |
+| `console.*` swallows crypto errors                              | ~7    | #510             |
 
 Total: **~100 silent fail-open patterns** converted to structured `log.error`
 across 50+ files.
 
 ### Console.* → pino migration (PRs #522, #525)
 
-| File group | Count | PR |
-|---|---|---|
-| `src/lib/db/*.ts` | ~155 | #522 |
-| `src/lib/*.ts` (rest) | ~50 | #525 |
-| `open-sse/*.ts` | ~30 | #525 |
-| `src/server/*` | ~5 | #525 |
-| `src/sse/*` | ~5 | #525 |
+| File group            | Count | PR   |
+| --------------------- | ----- | ---- |
+| `src/lib/db/*.ts`     | ~155  | #522 |
+| `src/lib/*.ts` (rest) | ~50   | #525 |
+| `open-sse/*.ts`       | ~30   | #525 |
+| `src/server/*`        | ~5    | #525 |
+| `src/sse/*`           | ~5    | #525 |
 
-Total: **~245 console.* callsites migrated** to `createLogger("domain:subsystem")`.
+Total: _*~245 console.* callsites migrated_* to `createLogger("domain:subsystem")`.
 
 Remaining intentionally NOT migrated:
+
 - `src/app/*` (browser-side React; devtools output)
 - `src/lib/oauth/utils/ui.ts` (CLI formatting with picocolors)
 - `src/mitm/*` (CLI-driven tooling)
@@ -105,21 +106,21 @@ failures (lies when process is gone). Fixed to return `{pid, alive: false}`.
 
 ## PRs shipped (chronological)
 
-| PR | Title | Files | +/− |
-|---|---|---|---|
-| [#505](https://github.com/KooshaPari/OmniRoute/pull/505) | fix(quota): rewrite KeyvQuotaStore | 10 | +1033/−100 |
-| [#506](https://github.com/KooshaPari/OmniRoute/pull/506) | fix(governance): 5 silent try/catch → log.error | 5 | +51/−9 |
-| [#507](https://github.com/KooshaPari/OmniRoute/pull/507) | fix(governance): broken imports + 3 fail-opens | 6 | +121/−7 |
-| [#509](https://github.com/KooshaPari/OmniRoute/pull/509) | fix(security): 3 crypto catches | 2 | +30/−4 |
-| [#510](https://github.com/KooshaPari/OmniRoute/pull/510) | fix(security): 4 audit findings + encryption pino | 5 | +58/−18 |
-| [#511](https://github.com/KooshaPari/OmniRoute/pull/511) | docs(plans): 2 governance specs | 2 | +1581/−0 |
-| [#512](https://github.com/KooshaPari/OmniRoute/pull/512) | fix(governance): empty catches in binaryManager + adapters | 5 | +112/−22 |
-| [#518](https://github.com/KooshaPari/OmniRoute/pull/518) | feat(security): encryption.ts failclosed | 9 | +2175/−14 |
-| [#521](https://github.com/KooshaPari/OmniRoute/pull/521) | feat(quota): Keyv as embedded default | 10 | +3089/−48 |
-| [#522](https://github.com/KooshaPari/OmniRoute/pull/522) | refactor(db): console.* → pino in src/lib/db/ | 17 | +365/−232 |
-| [#525](https://github.com/KooshaPari/OmniRoute/pull/525) | refactor: console.* → pino in remaining src/open-sse | 37 | +401/−233 |
-| [#526](https://github.com/KooshaPari/OmniRoute/pull/526) | fix(governance): 6 empty catches + 10 weak fallbacks | 13 | +155/−18 |
-| [#527](https://github.com/KooshaPari/OmniRoute/pull/527) | fix(encryption): F8 decrypt error distinction | 2 | +74/−7 |
+| PR                                                       | Title                                                      | Files | +/−        |
+| -------------------------------------------------------- | ---------------------------------------------------------- | ----- | ---------- |
+| [#505](https://github.com/KooshaPari/OmniRoute/pull/505) | fix(quota): rewrite KeyvQuotaStore                         | 10    | +1033/−100 |
+| [#506](https://github.com/KooshaPari/OmniRoute/pull/506) | fix(governance): 5 silent try/catch → log.error            | 5     | +51/−9     |
+| [#507](https://github.com/KooshaPari/OmniRoute/pull/507) | fix(governance): broken imports + 3 fail-opens             | 6     | +121/−7    |
+| [#509](https://github.com/KooshaPari/OmniRoute/pull/509) | fix(security): 3 crypto catches                            | 2     | +30/−4     |
+| [#510](https://github.com/KooshaPari/OmniRoute/pull/510) | fix(security): 4 audit findings + encryption pino          | 5     | +58/−18    |
+| [#511](https://github.com/KooshaPari/OmniRoute/pull/511) | docs(plans): 2 governance specs                            | 2     | +1581/−0   |
+| [#512](https://github.com/KooshaPari/OmniRoute/pull/512) | fix(governance): empty catches in binaryManager + adapters | 5     | +112/−22   |
+| [#518](https://github.com/KooshaPari/OmniRoute/pull/518) | feat(security): encryption.ts failclosed                   | 9     | +2175/−14  |
+| [#521](https://github.com/KooshaPari/OmniRoute/pull/521) | feat(quota): Keyv as embedded default                      | 10    | +3089/−48  |
+| [#522](https://github.com/KooshaPari/OmniRoute/pull/522) | refactor(db): console.* → pino in src/lib/db/              | 17    | +365/−232  |
+| [#525](https://github.com/KooshaPari/OmniRoute/pull/525) | refactor: console.* → pino in remaining src/open-sse       | 37    | +401/−233  |
+| [#526](https://github.com/KooshaPari/OmniRoute/pull/526) | fix(governance): 6 empty catches + 10 weak fallbacks       | 13    | +155/−18   |
+| [#527](https://github.com/KooshaPari/OmniRoute/pull/527) | fix(encryption): F8 decrypt error distinction              | 2     | +74/−7     |
 
 Total: 13 PRs, ~123 files, ~8,200 lines added, ~1,200 lines removed.
 
@@ -202,11 +203,11 @@ log.info({ count }, "processed items");
 
 Three new governance check scripts in `scripts/check/`:
 
-| Script | Detects | Exit code |
-|---|---|---|
+| Script                  | Detects                                     | Exit code    |
+| ----------------------- | ------------------------------------------- | ------------ |
 | `check:crypto-failures` | crypto API calls followed by silent catches | 1 on finding |
-| `check:console-in-src` | console.* in `src/lib/` + `open-sse/` | 1 on finding |
-| `check:broken-imports` | known broken import paths (registry-driven) | 1 on finding |
+| `check:console-in-src`  | console.* in `src/lib/` + `open-sse/`       | 1 on finding |
+| `check:broken-imports`  | known broken import paths (registry-driven) | 1 on finding |
 
 Combined: `npm run check:governance` runs all 3 + the existing `check:fail-open`.
 
@@ -261,7 +262,7 @@ run locally only. Run before merging any PR.
 
 The remaining governance debt after this pass:
 
-- **Console.* cleanup in CLI files**: `src/mitm/*` and `src/lib/oauth/utils/ui.ts`
+- _*Console.* cleanup in CLI files_*: `src/mitm/*` and `src/lib/oauth/utils/ui.ts`
   intentionally use console; document why in per-file comments.
 - **Encrypt/decrypt typed-error propagation**: PR #527 added the
   `EncryptionDecryptionError` class but kept `decrypt()` returning `null`. A
