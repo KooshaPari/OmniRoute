@@ -1,0 +1,75 @@
+{
+  "feature": "tauri-active-desktop",
+  "updated_at_utc": "2026-08-27T08:32:00Z",
+  "source": "branch-local fallback ledger",
+  "engine_reconciliation": "pending_agileplus_daemon",
+  "pull_request": {
+    "number": 695,
+    "url": "https://github.com/KooshaPari/OmniRoute/pull/695",
+    "state": "open",
+    "merge_state": "blocked",
+    "review": "required"
+  },
+  "work_packages": {
+    "WP01": {
+      "status": "in_review",
+      "files": [
+        "apps/desktop/package.json",
+        "apps/desktop/src-tauri/Cargo.toml",
+        "apps/desktop/src-tauri/tauri.conf.json",
+        "apps/desktop/src-tauri/capabilities/default.json",
+        "apps/desktop/src-tauri/src/main.rs",
+        "apps/desktop/src-tauri/src/commands.rs",
+        "apps/desktop/src-tauri/src/lifecycle.rs"
+      ],
+      "commands": [
+        "cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml",
+        "npm --prefix apps/desktop run smoke"
+      ],
+      "commit": "ea60dd6c3",
+      "result": "local Rust lifecycle suite: 5 passed"
+    },
+    "WP02": {
+      "status": "in_review",
+      "files": [
+        "scripts/check/check-active-desktop.mjs",
+        "package.json",
+        "docs/guides/SETUP_GUIDE.md",
+        "docs/architecture/CODEBASE_DOCUMENTATION.md",
+        "docs/architecture/REPOSITORY_MAP.md",
+        "docs/adr/CODE_SIGNING.md",
+        ".github/copilot-instructions.md"
+      ],
+      "commands": ["npm run check:active-desktop"],
+      "commit": "527f626b0",
+      "result": "Dependency Review passed on PR #695"
+    },
+    "WP03": {
+      "status": "in_review",
+      "commit": "6111e3532",
+      "files": [
+        "apps/desktop/tests/parity-matrix.ts",
+        "apps/web/src/lib/parity/workflows.ts",
+        "apps/web/src/lib/parity/workflows.test.ts"
+      ],
+      "remaining": "desktop matrix must consume the shared browser fixture in an executable test"
+    },
+    "WP04": {
+      "status": "in_review",
+      "evidence": [
+        "tests/unit/combo-decision-matrix.test.ts",
+        "tests/unit/auth-noauth-fallback-loop-3061.test.ts",
+        "tests/unit/8376-econnrefused-breaker.test.ts"
+      ],
+      "remaining": "add desktop/API integration harness and record deterministic response-healing results"
+    },
+    "WP05": {
+      "status": "in_progress",
+      "commit": "9c28716b1",
+      "hosted_run": "33052205467",
+      "hosted_checks": "in_progress"
+    },
+    "WP06": { "status": "planned", "commit": null, "hosted_run": null }
+  },
+  "human_acceptance": { "status": "pending", "required": true }
+}

@@ -17,7 +17,9 @@ lastUpdated: 2026-06-28
 OmniRoute/
 ├── src/                  # Next.js 16 application (UI + API routes + libs + domain + server)
 ├── open-sse/             # Streaming engine workspace (handlers, executors, translator, MCP server)
-├── electron/             # Desktop wrapper (Electron 41 + electron-builder 26.10)
+├── apps/desktop/          # Active Tauri 2 desktop shell over SvelteKit
+├── desktop-electrobun/    # Preserved inactive Electrobun spike
+├── electron/              # Preserved inactive Electron wrapper
 ├── bin/                  # CLI entry point and command handlers
 ├── scripts/              # Build, check, sync, and one-off scripts
 ├── docs/                 # Public documentation (you are here)
@@ -182,7 +184,7 @@ src/
 | `compliance/`                            | Audit log + provider audit — see `docs/security/COMPLIANCE.md`                                                                                                                                                                                                                                                          |
 | `compression/`                           | Compression engine glue (engines live in `open-sse/services/compression/`)                                                                                                                                                                                                                                              |
 | `config/`                                | Runtime config helpers                                                                                                                                                                                                                                                                                                  |
-| `db/`                                    | 95+ domain DB modules + 110+ migrations (always go through here for SQLite)                                                                                                                                                                                                                                               |
+| `db/`                                    | 95+ domain DB modules + 110+ migrations (always go through here for SQLite)                                                                                                                                                                                                                                             |
 | `quota/`                                 | Quota Sharing Engine: `dimensions.ts` (types/Zod), `types.ts` (QuotaStore interface), `sqliteQuotaStore.ts`, `redisQuotaStore.ts`, `storeFactory.ts`, `fairShare.ts`, `burnRate.ts`, `planResolver.ts`, `planRegistry.ts`, `saturationSignals.ts`, `enforce.ts`, `spendRecorder.ts` — see `docs/routing/QUOTA_SHARE.md` |
 | `display/`                               | UI formatting helpers (cost, latency, etc.)                                                                                                                                                                                                                                                                             |
 | `embeddings/`                            | Embeddings service helpers                                                                                                                                                                                                                                                                                              |
@@ -297,7 +299,11 @@ open-sse/
 
 ---
 
-## `electron/` — Desktop Wrapper
+## `electron/` — Historical desktop wrapper (inactive)
+
+`apps/desktop/` is the sole active Tauri 2 desktop surface. The Electron tree
+below is retained for provenance and rollback evidence only; its commands and
+artifacts are not active setup, release, or required CI paths.
 
 | File             | Purpose                                                                           |
 | ---------------- | --------------------------------------------------------------------------------- |
