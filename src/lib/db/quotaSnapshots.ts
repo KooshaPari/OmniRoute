@@ -34,6 +34,20 @@ const log = createLogger("db:quota-snapshots");
 
 let lastCleanupAt = 0;
 
+function normalizeQuotaSnapshot(row: unknown): QuotaSnapshotRow {
+  const normalized = rowToCamel(row);
+  if (!normalized) {
+    throw new Error("db.quotaSnapshots: expected a quota snapshot row");
+  }
+
+  // Older databases may have the core quota table but predate these nullable
+  // analytics fields. Preserve the strict check for every non-additive field.
+  return toRecord<QuotaSnapshotRow>(
+    { windowDurationMs: null, rawData: null, ...normalized },
+    REQUIRED_QUOTA_SNAPSHOT_FIELDS
+  )!;
+}
+
 export function saveQuotaSnapshot(snapshot: Omit<QuotaSnapshotRow, "id" | "createdAt">): void {
   const db = getDbInstance() as unknown as DbLike;
   const now = new Date().toISOString();
@@ -92,9 +106,7 @@ export function getQuotaSnapshots(opts: {
   try {
     const sql = `SELECT * FROM quota_snapshots WHERE ${conditions.join(" AND ")} ORDER BY created_at ASC`;
     const rows = db.prepare(sql).all(...params);
-    return rows.map((r) =>
-      toRecord<QuotaSnapshotRow>(rowToCamel(r), REQUIRED_QUOTA_SNAPSHOT_FIELDS)
-    );
+    return rows.map(normalizeQuotaSnapshot);
   } catch (err: any) {
     if (err?.message?.includes("no such table")) {
       return [];
@@ -133,7 +145,7 @@ export function getLatestQuotaSnapshotsForConnection(connectionId: string): Quot
       )
       .all(connectionId);
 
-    return rows.map((row) => rowToCamel(row) as unknown as QuotaSnapshotRow);
+    return rows.map(normalizeQuotaSnapshot);
   } catch (err: any) {
     if (err?.message?.includes("no such table")) {
       return [];
