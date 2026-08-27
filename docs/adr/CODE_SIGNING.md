@@ -7,12 +7,14 @@
 ## Context
 
 OmniRoute ships as:
+
 1. **CLI** — `npm` package (omniroute), distributed via npm registry
 2. **Desktop** — Tauri 2 app (Windows, macOS, Linux), distributed via GitHub Releases
 
 > The Electron signing sections below are retained as historical implementation
 > evidence only. They are not active release gates. Tauri signing and notarization
 > are the active desktop release work package.
+
 3. **Docker** — Container image, distributed via GHCR
 
 Each distribution channel requires platform-appropriate code signing for user trust and secure delivery.
@@ -20,10 +22,12 @@ Each distribution channel requires platform-appropriate code signing for user tr
 ## Decision
 
 ### npm package — no signing required
+
 - npm packages are integrity-checked via `npm audit` + lockfile + `--require=key` signing for published maintainers
 - Enable provenance attestation in npm (GitHub Actions + `--provenance` flag): `npm publish --provenance`
 
 ### Electron macOS — hardened runtime + notarization
+
 - Use `@electron/notarize` to:
   - Sign the `.app` bundle with Apple Developer ID Application certificate
   - Submit to Apple Notary service for notarization
@@ -31,26 +35,29 @@ Each distribution channel requires platform-appropriate code signing for user tr
 - CI: `electron-builder` with `mac.sign` and `mac.notarize` config (see `.github/workflows/release.yml`)
 
 ### Electron Windows — Authenticode
+
 - Use `electron-builder` with `win.certificateSubjectName` or `win.certificateFile`
 - Azure Key Vault for HSM-backed code signing key storage
 
 ### Electron Linux — no system-required signing
+
 - Package as `.snap` (Snapcraft signing) and `.deb`/`.AppImage` (unsigned)
 - Snap: `snapcraft sign` with Snap Store account
 
 ### Docker — Cosign
+
 - Sign container image with Cosign keyless signing (`cosign sign --keyless`)
 - Attach CycloneDX SBOM as attestation (`cosign attest`)
 - Automate in release CI (`.github/workflows/release.yml`)
 
 ## Consequences
 
-| Pro | Con |
-|-----|-----|
-| macOS users get Gatekeeper-trustworthy builds | Requires Apple Developer Program ($99/yr) |
-| Docker users can verify image provenance | Additional CI build time (~2 min per platform) |
-| npm provenance confirms maintainer identity | Windows certs require EV code signing ($250+/yr) |
-| Users can verify build traceability | Key management overhead |
+| Pro                                           | Con                                              |
+| --------------------------------------------- | ------------------------------------------------ |
+| macOS users get Gatekeeper-trustworthy builds | Requires Apple Developer Program ($99/yr)        |
+| Docker users can verify image provenance      | Additional CI build time (~2 min per platform)   |
+| npm provenance confirms maintainer identity   | Windows certs require EV code signing ($250+/yr) |
+| Users can verify build traceability           | Key management overhead                          |
 
 ## Implementation Path
 
