@@ -26,7 +26,7 @@ Each distribution channel requires platform-appropriate code signing for user tr
 - npm packages are integrity-checked via `npm audit` + lockfile + `--require=key` signing for published maintainers
 - Enable provenance attestation in npm (GitHub Actions + `--provenance` flag): `npm publish --provenance`
 
-### Electron macOS — hardened runtime + notarization
+### Historical: Electron macOS — hardened runtime + notarization (inactive)
 
 - Use `@electron/notarize` to:
   - Sign the `.app` bundle with Apple Developer ID Application certificate
@@ -34,12 +34,12 @@ Each distribution channel requires platform-appropriate code signing for user tr
   - Staple the ticket to the executable
 - CI: `electron-builder` with `mac.sign` and `mac.notarize` config (see `.github/workflows/release.yml`)
 
-### Electron Windows — Authenticode
+### Historical: Electron Windows — Authenticode (inactive)
 
 - Use `electron-builder` with `win.certificateSubjectName` or `win.certificateFile`
 - Azure Key Vault for HSM-backed code signing key storage
 
-### Electron Linux — no system-required signing
+### Historical: Electron Linux — no system-required signing (inactive)
 
 - Package as `.snap` (Snapcraft signing) and `.deb`/`.AppImage` (unsigned)
 - Snap: `snapcraft sign` with Snap Store account
@@ -63,5 +63,9 @@ Each distribution channel requires platform-appropriate code signing for user tr
 
 1. **Phase 1**: npm provenance `--provenance` flag — already supported by GitHub Actions OIDC
 2. **Phase 2**: Cosign Docker signing — configure cosign in release CI
-3. **Phase 3**: macOS notarization — add Apple Developer cert to GitHub secrets + electron-builder config
-4. **Phase 4**: Windows EV signing — acquire cert, add to Azure Key Vault, wire electron-builder
+3. **Phase 3**: macOS notarization — add Apple Developer cert to GitHub secrets + Tauri bundle configuration
+4. **Phase 4**: Windows signing — acquire cert, add to Azure Key Vault, and wire Tauri bundle signing
+
+Electron commands and `electron-builder` examples above are retained solely as
+historical migration evidence. They must not be added to active setup, release,
+or required CI workflows; current release work belongs to the Tauri 2 bundle.

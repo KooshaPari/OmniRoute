@@ -582,7 +582,12 @@ Streaming primitives and provider helpers: `stream.ts`, `streamHandler.ts`,
 
 ---
 
-## 5. `electron/` — Desktop wrapper
+## 5. `electron/` — Historical desktop wrapper (inactive)
+
+This directory is preserved for provenance and rollback analysis only. Tauri 2
+in `apps/desktop/` is the sole active desktop architecture. The commands,
+dependencies, and build outputs described below are not supported setup or
+release instructions and are excluded from required CI gates.
 
 ```
 electron/

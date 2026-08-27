@@ -8,6 +8,21 @@
 
 **Tech Stack:** Tauri 2, Rust, SvelteKit 5, Hono, Bun, Vitest, Playwright, existing OmniRoute TypeScript/Rust FFI workspace, GitHub Actions.
 
+**Lifecycle ownership:** The Tauri process owns only desktop lifecycle and
+local-path selection. The existing OmniRoute backend owns provider processes,
+HTTP serving, routing, retries, response healing, and shutdown of its child
+services. `runtime_start` must request or supervise the backend through the
+existing service boundary; it must not reimplement routing. `runtime_stop` must
+request graceful backend shutdown, wait for the health endpoint to leave the
+ready state, and report a bounded timeout as an error. The BFF/API origin is
+injected from the runtime status/configuration (defaulting to the documented
+local origin), never hard-coded separately in the Svelte and Tauri clients.
+
+**Health contract:** Browser and desktop fixtures use the same health response
+shape and distinguish `starting`, `ready`, `degraded`, and `stopped`. A fixture
+must cover backend unavailable, recovery to ready, and graceful stop; a green
+Tauri compile without these observations is not parity evidence.
+
 ---
 
 ### Task 1: Establish the active desktop contract
@@ -29,6 +44,7 @@
 - [ ] Keep the shell thin: no provider selection, retry, response healing, or routing logic may be duplicated in Rust.
 - [ ] Add unit tests for lifecycle state transitions and repeated start/stop calls.
 - [ ] Run `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml` and `bun --cwd apps/desktop run typecheck`.
+- [ ] Prove backend start/stop ownership and BFF origin injection with a deterministic health-contract fixture; record the fixture ID in the traceability ledger.
 
 ### Task 2: Replace active desktop references with Tauri
 
@@ -80,6 +96,7 @@
 - [ ] Assert bounded retries and no infinite fallback loops.
 - [ ] Compare TypeScript relay and Bifrost fallback results for the same deterministic fixtures.
 - [ ] Record test IDs and expected evidence locations in the parity matrix.
+- [ ] Enforce the routing/healing bounds: no more than 2 retries per provider request, 3 provider candidates per request, or 1 response-repair pass; terminal quality-gate and malformed-response outcomes stop the loop.
 
 ### Task 5: Make inactive desktop policy enforceable
 
@@ -123,6 +140,7 @@
 - Modify: `docs/operations/RUNBOOK.md`
 
 - [ ] Run local parity, routing/healing, Svelte/Hono, Rust, documentation, and security checks.
+- [ ] Preserve the existing 60% statements/lines/functions/branches coverage threshold and update the coverage ratchet for every new desktop/parity fixture; no blanket exclusion of new code is allowed.
 - [ ] Open a focused PR, wait for all required hosted checks, and address bot/CI feedback.
 - [ ] Validate a packaged Tauri artifact on macOS and record launch/readiness/shutdown evidence.
 - [ ] Record upstream 53-commit disposition and final human acceptance.

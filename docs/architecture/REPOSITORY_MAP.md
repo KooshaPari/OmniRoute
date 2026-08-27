@@ -299,7 +299,11 @@ open-sse/
 
 ---
 
-## `electron/` — Desktop Wrapper
+## `electron/` — Historical desktop wrapper (inactive)
+
+`apps/desktop/` is the sole active Tauri 2 desktop surface. The Electron tree
+below is retained for provenance and rollback evidence only; its commands and
+artifacts are not active setup, release, or required CI paths.
 
 | File             | Purpose                                                                           |
 | ---------------- | --------------------------------------------------------------------------------- |
