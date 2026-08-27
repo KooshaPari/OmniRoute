@@ -12,7 +12,7 @@ governance debt that were not actively tracked:
 
 - **Silent fail-open patterns**: empty catches, `.catch(() => null|undefined|false|"")`,
   and `console.*` callsites that swallowed real errors.
-- _*Console.* sprawl_*: hundreds of `console.log|warn|error` calls scattered
+- _*Console.* sprawl_\*: hundreds of `console.log|warn|error` calls scattered
   through `src/lib/` and `open-sse/`, with no structured logging.
 - **Type drift**: the quota keystore had ghost-type imports from an unfinished
   refactor (PR #505 root cause).
@@ -57,7 +57,7 @@ For each pattern class, the audit followed:
 Total: **~100 silent fail-open patterns** converted to structured `log.error`
 across 50+ files.
 
-### Console.* → pino migration (PRs #522, #525)
+### Console.\* → pino migration (PRs #522, #525)
 
 | File group            | Count | PR   |
 | --------------------- | ----- | ---- |
@@ -67,7 +67,7 @@ across 50+ files.
 | `src/server/*`        | ~5    | #525 |
 | `src/sse/*`           | ~5    | #525 |
 
-Total: _*~245 console.* callsites migrated_* to `createLogger("domain:subsystem")`.
+Total: _*~245 console.* callsites migrated_\* to `createLogger("domain:subsystem")`.
 
 Remaining intentionally NOT migrated:
 
@@ -117,8 +117,8 @@ failures (lies when process is gone). Fixed to return `{pid, alive: false}`.
 | [#512](https://github.com/KooshaPari/OmniRoute/pull/512) | fix(governance): empty catches in binaryManager + adapters | 5     | +112/−22   |
 | [#518](https://github.com/KooshaPari/OmniRoute/pull/518) | feat(security): encryption.ts failclosed                   | 9     | +2175/−14  |
 | [#521](https://github.com/KooshaPari/OmniRoute/pull/521) | feat(quota): Keyv as embedded default                      | 10    | +3089/−48  |
-| [#522](https://github.com/KooshaPari/OmniRoute/pull/522) | refactor(db): console.* → pino in src/lib/db/              | 17    | +365/−232  |
-| [#525](https://github.com/KooshaPari/OmniRoute/pull/525) | refactor: console.* → pino in remaining src/open-sse       | 37    | +401/−233  |
+| [#522](https://github.com/KooshaPari/OmniRoute/pull/522) | refactor(db): console.\* → pino in src/lib/db/             | 17    | +365/−232  |
+| [#525](https://github.com/KooshaPari/OmniRoute/pull/525) | refactor: console.\* → pino in remaining src/open-sse      | 37    | +401/−233  |
 | [#526](https://github.com/KooshaPari/OmniRoute/pull/526) | fix(governance): 6 empty catches + 10 weak fallbacks       | 13    | +155/−18   |
 | [#527](https://github.com/KooshaPari/OmniRoute/pull/527) | fix(encryption): F8 decrypt error distinction              | 2     | +74/−7     |
 
@@ -206,7 +206,7 @@ Three new governance check scripts in `scripts/check/`:
 | Script                  | Detects                                     | Exit code    |
 | ----------------------- | ------------------------------------------- | ------------ |
 | `check:crypto-failures` | crypto API calls followed by silent catches | 1 on finding |
-| `check:console-in-src`  | console.* in `src/lib/` + `open-sse/`       | 1 on finding |
+| `check:console-in-src`  | console.\* in `src/lib/` + `open-sse/`      | 1 on finding |
 | `check:broken-imports`  | known broken import paths (registry-driven) | 1 on finding |
 
 Combined: `npm run check:governance` runs all 3 + the existing `check:fail-open`.
@@ -245,7 +245,7 @@ run locally only. Run before merging any PR.
 
 5. **Per-file allow-lists are essential.** The `check:console-in-src` and
    `check:crypto-failures` scripts produce false positives (intentional
-   console.* in CLI tools, legitimate crypto checks in fallback paths).
+   console.\* in CLI tools, legitimate crypto checks in fallback paths).
    Allow-lists via `--allow-list=path` keep the checks useful without
    exempting entire classes.
 
@@ -262,7 +262,7 @@ run locally only. Run before merging any PR.
 
 The remaining governance debt after this pass:
 
-- _*Console.* cleanup in CLI files_*: `src/mitm/*` and `src/lib/oauth/utils/ui.ts`
+- _*Console.* cleanup in CLI files__: `src/mitm/_`and`src/lib/oauth/utils/ui.ts`
   intentionally use console; document why in per-file comments.
 - **Encrypt/decrypt typed-error propagation**: PR #527 added the
   `EncryptionDecryptionError` class but kept `decrypt()` returning `null`. A
