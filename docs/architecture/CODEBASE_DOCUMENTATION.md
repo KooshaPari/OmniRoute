@@ -29,7 +29,7 @@ without inventing new modules.
 | Language      | **TypeScript 6.0+** — target `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                    |
 | Runtime       | **Node.js** `>=22.22.2 <23` or `>=24.0.0 <27` (enforced via `engines` + `SUPPORTED_NODE_RANGE`)                          |
 | Database      | **SQLite** via `better-sqlite3` (singleton, WAL journaling)                                                              |
-| Desktop       | **Electron 41** + `electron-builder` 26.10 (separate workspace at `electron/`)                                           |
+| Desktop       | **Tauri 2** shell in `apps/desktop/` over the SvelteKit frontend; Electron is preserved but inactive                            |
 | Tests         | **Node native test runner** (unit/integration), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
 | Build         | Next.js standalone via `scripts/build/build-next-isolated.mjs`                                                           |
 | Lint/format   | ESLint flat config + Prettier (`lint-staged` via Husky pre-commit)                                                       |
@@ -53,7 +53,9 @@ directory is `DATA_DIR` env var, defaulting to `~/.omniroute/`.
 OmniRoute/
 ├── src/                  Next.js application (App Router, libs, domain, server, shared)
 ├── open-sse/             Streaming engine workspace (@omniroute/open-sse)
-├── electron/             Desktop wrapper (Electron 41 main + preload)
+├── apps/desktop/          Active Tauri 2 desktop shell
+├── desktop-electrobun/    Preserved inactive Electrobun spike
+├── electron/              Preserved inactive Electron wrapper
 ├── bin/                  CLI entry points (omniroute, reset-password)
 ├── tests/                Unit, integration, e2e, protocols-e2e, translator, security, fixtures
 ├── scripts/              Build, sync, check, migration, and runtime helper scripts

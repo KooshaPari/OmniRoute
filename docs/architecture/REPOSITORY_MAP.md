@@ -17,7 +17,9 @@ lastUpdated: 2026-06-28
 OmniRoute/
 ├── src/                  # Next.js 16 application (UI + API routes + libs + domain + server)
 ├── open-sse/             # Streaming engine workspace (handlers, executors, translator, MCP server)
-├── electron/             # Desktop wrapper (Electron 41 + electron-builder 26.10)
+├── apps/desktop/          # Active Tauri 2 desktop shell over SvelteKit
+├── desktop-electrobun/    # Preserved inactive Electrobun spike
+├── electron/              # Preserved inactive Electron wrapper
 ├── bin/                  # CLI entry point and command handlers
 ├── scripts/              # Build, check, sync, and one-off scripts
 ├── docs/                 # Public documentation (you are here)

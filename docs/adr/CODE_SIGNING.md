@@ -8,7 +8,11 @@
 
 OmniRoute ships as:
 1. **CLI** — `npm` package (omniroute), distributed via npm registry
-2. **Desktop** — Electron app (Windows, macOS, Linux), distributed via GitHub Releases
+2. **Desktop** — Tauri 2 app (Windows, macOS, Linux), distributed via GitHub Releases
+
+> The Electron signing sections below are retained as historical implementation
+> evidence only. They are not active release gates. Tauri signing and notarization
+> are the active desktop release work package.
 3. **Docker** — Container image, distributed via GHCR
 
 Each distribution channel requires platform-appropriate code signing for user trust and secure delivery.
