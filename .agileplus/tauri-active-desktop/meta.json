@@ -10,5 +10,7 @@
     "reason": "Canonical AgilePlus daemon/CLI was not present during this run; no live engine state is synthesized.",
     "checked_at_utc": "2026-08-27T00:47:00Z"
   },
-  "updated_at_utc": "2026-08-27T00:47:00Z"
+  "pr": 695,
+  "head_commit": "b0c9bb99d",
+  "updated_at_utc": "2026-08-27T00:54:47Z"
 }
