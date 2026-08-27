@@ -18,7 +18,10 @@ impl Default for AppState {
     }
 }
 fn runtime_origin() -> String {
-    std::env::var("OMNIROUTE_RUNTIME_ORIGIN").unwrap_or_else(|_| "http://localhost:20128".into())
+    runtime_origin_from(std::env::var("OMNIROUTE_RUNTIME_ORIGIN").ok())
+}
+fn runtime_origin_from(value: Option<String>) -> String {
+    value.unwrap_or_else(|| "http://localhost:20128".into())
 }
 fn runtime_addr(origin: &str) -> Result<SocketAddr, String> {
     let (authority, default_port) = if let Some(rest) = origin.strip_prefix("http://") {
@@ -28,7 +31,7 @@ fn runtime_addr(origin: &str) -> Result<SocketAddr, String> {
     } else {
         return Err("invalid runtime origin".to_string());
     };
-    let authority = authority.split('/').next().unwrap_or_default();
+    let authority = authority.split(['/', '?', '#']).next().unwrap_or_default();
     if authority.is_empty() {
         return Err("invalid runtime origin".to_string());
     }
@@ -58,6 +61,14 @@ fn runtime_addr(origin: &str) -> Result<SocketAddr, String> {
         .ok_or_else(|| "invalid runtime origin".to_string())
 }
 
+fn apply_probe_result(runtime: &mut RuntimeStatus, reachable: bool) {
+    runtime.state = if reachable {
+        RuntimeState::Running
+    } else {
+        RuntimeState::Stopped
+    };
+}
+
 #[tauri::command]
 pub fn runtime_start(state: State<'_, AppState>) -> Result<RuntimeStatus, String> {
     let mut runtime = state
@@ -75,11 +86,10 @@ pub fn runtime_start(state: State<'_, AppState>) -> Result<RuntimeStatus, String
             return Err(error);
         }
     };
-    runtime.state = if TcpStream::connect_timeout(&addr, Duration::from_millis(150)).is_ok() {
-        RuntimeState::Running
-    } else {
-        RuntimeState::Stopped
-    };
+    apply_probe_result(
+        &mut runtime,
+        TcpStream::connect_timeout(&addr, Duration::from_millis(150)).is_ok(),
+    );
     Ok(runtime.clone())
 }
 
@@ -102,15 +112,24 @@ pub fn runtime_readiness(state: State<'_, AppState>) -> Result<RuntimeStatus, St
 }
 #[tauri::command]
 pub fn runtime_data_dir() -> Result<String, String> {
-    if let Ok(path) = std::env::var("DATA_DIR").or_else(|_| std::env::var("OMNIROUTE_DATA_DIR")) {
-        return Ok(path);
+    if let Some(path) =
+        std::env::var_os("DATA_DIR").or_else(|| std::env::var_os("OMNIROUTE_DATA_DIR"))
+    {
+        return Ok(PathBuf::from(path).to_string_lossy().into_owned());
     }
     #[cfg(target_os = "windows")]
-    let base = std::env::var("APPDATA").map(PathBuf::from);
-    #[cfg(not(target_os = "windows"))]
-    let base = std::env::var("HOME").map(|home| PathBuf::from(home).join(".omniroute"));
-    base.map(|path| path.to_string_lossy().into_owned())
-        .map_err(|_| "home directory unavailable".to_string())
+    let fallback = std::env::var_os("APPDATA").map(|path| PathBuf::from(path).join("omniroute"));
+    #[cfg(target_os = "macos")]
+    let fallback = std::env::var_os("HOME")
+        .map(|path| PathBuf::from(path).join("Library/Application Support/omniroute"));
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let fallback = std::env::var_os("XDG_DATA_HOME")
+        .map(PathBuf::from)
+        .or_else(|| std::env::var_os("HOME").map(|path| PathBuf::from(path).join(".local/share")))
+        .map(|path| path.join("omniroute"));
+    fallback
+        .map(|path| path.to_string_lossy().into_owned())
+        .ok_or_else(|| "application data directory unavailable".to_string())
 }
 
 #[cfg(test)]
@@ -124,8 +143,21 @@ mod tests {
         );
     }
     #[test]
+    fn default_runtime_origin_is_localhost() {
+        assert_eq!(runtime_origin_from(None), "http://localhost:20128");
+    }
+    #[test]
     fn rejects_origin_without_scheme() {
         assert!(runtime_addr("localhost:20128").is_err());
+    }
+    #[test]
+    fn failed_start_does_not_remain_starting() {
+        let mut status = RuntimeStatus {
+            state: RuntimeState::Starting,
+            origin: "http://localhost:20128".into(),
+        };
+        apply_probe_result(&mut status, false);
+        assert_eq!(status.state, RuntimeState::Stopped);
     }
 }
 #[tauri::command]
