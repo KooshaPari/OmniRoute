@@ -125,6 +125,19 @@ Total: 13 PRs, ~123 files, ~8,200 lines added, ~1,200 lines removed.
 
 ## Patterns to avoid (for future contributors)
 
+## Active desktop governance (2026-08-27)
+
+Tauri 2 is the active desktop architecture. Electron and Electrobun remain
+preserved for provenance and historical comparison, but active setup, policy,
+and release work must not select them. The machine-enforced check is
+`npm run check:active-desktop`; its source-of-truth ledger is
+`.agileplus/tauri-active-desktop/`.
+
+The AgilePlus daemon was not available during this update. The branch-local
+ledger explicitly records that gap and must not be treated as live AgilePlus
+state. Hosted CI, packaged macOS launch/readiness/shutdown, parity fixtures,
+and human acceptance remain open gates.
+
 ### Don't write these
 
 ```ts

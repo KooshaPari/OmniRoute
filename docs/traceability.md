@@ -14,6 +14,7 @@ Minimal traceability of core OmniRoute features to source and test files.
 | Account fallback & resilience | `src/lib/resilience/settings.ts` | `tests/unit/account-fallback-service.test.ts`, `tests/unit/account-fallback-anthropic-quota.test.ts` | 🟡 Partial |
 | API key lifecycle | `src/lib/apiBridgeServer.ts`, `src/lib/system/` | `tests/unit/api-key-policy.test.ts`, `tests/unit/api-key-rotator-health.test.ts` | 🟡 Partial |
 | Usage & quota tracking | `src/lib/usage/`, `src/lib/providerModels/` | `tests/unit/antigravity-usage-service.test.ts`, `tests/unit/antigravity-usage-fetcher.test.ts` | 🟡 Partial |
+| Active Tauri desktop shell | `apps/desktop/src-tauri/`, `apps/desktop/src-tauri/tauri.conf.json` | `apps/desktop/src-tauri/src/lifecycle.rs`, `apps/desktop/tests/desktop-smoke.test.mjs` | 🟡 Partial |
 
 **Legend**
 - 🟢 Covered — tests exist and are passing in CI
@@ -21,3 +22,8 @@ Minimal traceability of core OmniRoute features to source and test files.
 - 🔴 Missing — no dedicated tests found or feature is experimental
 
 > This is a living skeleton. Update rows as features stabilize and tests are added.
+
+The desktop migration ledger with work-package state and exact gate commands is
+maintained at `.agileplus/tauri-active-desktop/`. Its `meta.json` records when
+the canonical AgilePlus service is unavailable; this fallback must be
+reconciled through AgilePlus before final acceptance.

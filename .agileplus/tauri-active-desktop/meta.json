@@ -1,0 +1,14 @@
+{
+  "slug": "tauri-active-desktop",
+  "title": "Tauri active desktop parity",
+  "intent": "Promote Tauri 2 as the active desktop shell while preserving Electron and Electrobun as inactive historical evidence.",
+  "owner": "omniroute",
+  "status": "in_progress",
+  "source_of_truth": "git",
+  "agileplus": {
+    "status": "unavailable",
+    "reason": "Canonical AgilePlus daemon/CLI was not present during this run; no live engine state is synthesized.",
+    "checked_at_utc": "2026-08-27T00:47:00Z"
+  },
+  "updated_at_utc": "2026-08-27T00:47:00Z"
+}

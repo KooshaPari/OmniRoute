@@ -1,0 +1,44 @@
+{
+  "feature": "tauri-active-desktop",
+  "updated_at_utc": "2026-08-27T00:47:00Z",
+  "source": "branch-local fallback ledger",
+  "engine_reconciliation": "pending_agileplus_daemon",
+  "work_packages": {
+    "WP01": {
+      "status": "in_review",
+      "files": [
+        "apps/desktop/package.json",
+        "apps/desktop/src-tauri/Cargo.toml",
+        "apps/desktop/src-tauri/tauri.conf.json",
+        "apps/desktop/src-tauri/capabilities/default.json",
+        "apps/desktop/src-tauri/src/main.rs",
+        "apps/desktop/src-tauri/src/commands.rs",
+        "apps/desktop/src-tauri/src/lifecycle.rs"
+      ],
+      "commands": [
+        "cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml",
+        "npm --prefix apps/desktop run smoke"
+      ],
+      "commit": "9f7b53f44"
+    },
+    "WP02": {
+      "status": "in_review",
+      "files": [
+        "scripts/check/check-active-desktop.mjs",
+        "package.json",
+        "docs/guides/SETUP_GUIDE.md",
+        "docs/architecture/CODEBASE_DOCUMENTATION.md",
+        "docs/architecture/REPOSITORY_MAP.md",
+        "docs/adr/CODE_SIGNING.md",
+        ".github/copilot-instructions.md"
+      ],
+      "commands": ["npm run check:active-desktop"],
+      "commit": "9f7b53f44"
+    },
+    "WP03": {"status": "planned", "commit": null, "hosted_run": null},
+    "WP04": {"status": "planned", "commit": null, "hosted_run": null},
+    "WP05": {"status": "blocked", "commit": null, "hosted_run": null},
+    "WP06": {"status": "planned", "commit": null, "hosted_run": null}
+  },
+  "human_acceptance": {"status": "pending", "required": true}
+}
