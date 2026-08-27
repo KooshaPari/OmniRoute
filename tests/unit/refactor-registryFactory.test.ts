@@ -14,6 +14,7 @@ describe("buildOpenAiCompatibleRegistryEntry", () => {
     assert.equal(entry.executor, "default");
     assert.equal(entry.authType, "apikey");
     assert.equal(entry.authHeader, "bearer");
+    assert.deepEqual(entry.models, []);
   });
 
   it("includes baseUrl when provided", () => {

@@ -165,6 +165,7 @@ export function buildOpenAiCompatibleRegistryEntry(
     authType: "apikey",
     authHeader: "bearer",
     ...overrides,
+    models: overrides.models ?? [],
   } as RegistryEntry;
 }
 
