@@ -28,6 +28,18 @@ import {
   supportsReasoning,
 } from "@/lib/modelCapabilities";
 
+// Re-export so consumers can import from this module
+export { getDefaultThinkingBudget };
+
+// topUpThinkingBudget — adds additional tokens to a current budget
+export function topUpThinkingBudget(
+  currentBudget: number,
+  _model: string | undefined,
+  additionalTokens: number,
+): number {
+  return currentBudget + additionalTokens;
+}
+
 // Effort → budget token mapping
 export const EFFORT_BUDGETS: Record<string, number> = {
   none: 0,

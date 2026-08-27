@@ -185,6 +185,7 @@ const nextConfig = {
       "./app.__qa_backup/**/*",
       "./tests/**/*",
       "./logs/**/*",
+      "./docs/**/*",
     ],
   },
   serverExternalPackages: [

@@ -1,4 +1,4 @@
-// AUTO-GENERATED from docs/openapi.yaml. Do not edit.
+// AUTO-GENERATED from C:\Users\koosh\OmniRoute-clean\docs\openapi.yaml. Do not edit.
 import { apiFetch } from "../api.mjs";
 import { emit } from "../output.mjs";
 import { readFileSync } from "node:fs";
@@ -27,6 +27,15 @@ export function register_settings(parent) {
           : JSON.parse(opts.body);
       }
       const res = await apiFetch(url, { method: "PATCH", body, baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
+      const data = res.ok ? await res.json() : await res.text();
+      emit(data, gOpts);
+    });
+  tag.command("post-api-settings-purge-request-history")
+    .description("Clear request log history")
+    .action(async (opts, cmd) => {
+      const gOpts = cmd.optsWithGlobals();
+      let url = "/api/settings/purge-request-history";
+      const res = await apiFetch(url, { method: "POST", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });

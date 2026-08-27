@@ -1,3 +1,6 @@
+---
+title: Signed Commits Guide
+---
 # Signed Commits Guide
 
 > OmniRoute requires GPG-signed commits on the `main` branch.

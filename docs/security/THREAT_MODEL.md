@@ -1,3 +1,6 @@
+---
+title: OmniRoute Threat Model
+---
 # OmniRoute Threat Model
 
 > STRIDE-based threat model for the OmniRoute AI gateway.
