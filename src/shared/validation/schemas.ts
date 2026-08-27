@@ -270,6 +270,7 @@ function validateProviderSpecificData(
 // Re-export validation helpers from dedicated module to avoid webpack barrel-file
 // optimization bug that truncates exports from large files.
 export { validateBody, isValidationFailure } from "./helpers";
+export { oauthPasteCredentialsSchema } from "./schemas/auth";
 
 // ──── Provider Schemas ────
 
@@ -2519,3 +2520,5 @@ export const zedImportSchema = z.object({
 });
 
 export type ConfirmedAccount = z.infer<typeof confirmedAccountSchema>;
+
+export { cliMultiModelConfigSchema } from "./schemas/cli";

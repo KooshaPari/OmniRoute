@@ -10,7 +10,6 @@ import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
 import { getPort } from "./getPort";
 import { logger } from "./logger";
-import { MITM_SERVER_PATH } from "./serverPath";
 import { streamProcessLines } from "./streamProcessLines";
 import { injectInspectorIngestToken } from "./token";
 import { waitForPort, waitForStderrReady } from "./util";
@@ -713,6 +712,7 @@ export async function startMitm(
     pid: serverPid,
     certTrusted,
   };
+  }
 }
 
 /**
