@@ -262,7 +262,7 @@ run locally only. Run before merging any PR.
 
 The remaining governance debt after this pass:
 
-- _*Console.* cleanup in CLI files__: `src/mitm/_`and`src/lib/oauth/utils/ui.ts`
+- _*Console.* cleanup in CLI files\_\_: `src/mitm/_`and`src/lib/oauth/utils/ui.ts`
   intentionally use console; document why in per-file comments.
 - **Encrypt/decrypt typed-error propagation**: PR #527 added the
   `EncryptionDecryptionError` class but kept `decrypt()` returning `null`. A
