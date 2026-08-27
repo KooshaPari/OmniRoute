@@ -6,7 +6,8 @@
     "tauri": "tauri",
     "dev": "tauri dev",
     "build": "tauri build",
-    "smoke": "node tests/desktop-smoke.test.mjs"
+    "smoke": "node tests/desktop-smoke.test.mjs",
+    "parity": "node --import tsx tests/parity-contract.test.mts"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.8.0"
