@@ -93,7 +93,7 @@ export function getQuotaSnapshots(opts: {
     const sql = `SELECT * FROM quota_snapshots WHERE ${conditions.join(" AND ")} ORDER BY created_at ASC`;
     const rows = db.prepare(sql).all(...params);
     return rows.map((r) =>
-      toRecord<QuotaSnapshotRow>(rowToCamel(r), REQUIRED_QUOTA_SNAPSHOT_FIELDS),
+      toRecord<QuotaSnapshotRow>(rowToCamel(r), REQUIRED_QUOTA_SNAPSHOT_FIELDS)
     );
   } catch (err: any) {
     if (err?.message?.includes("no such table")) {
@@ -134,37 +134,6 @@ export function getLatestQuotaSnapshotsForConnection(connectionId: string): Quot
       .all(connectionId);
 
     return rows.map((row) => rowToCamel(row) as unknown as QuotaSnapshotRow);
-  } catch (err: any) {
-    if (err?.message?.includes("no such table")) {
-      return [];
-    }
-    throw err;
-  }
-}
-
-export function getLatestQuotaSnapshotsForConnection(connectionId: string): QuotaSnapshotRow[] {
-  const db = getDbInstance() as unknown as DbLike;
-
-  try {
-    const rows = db
-      .prepare(
-        `SELECT * FROM quota_snapshots
-         WHERE connection_id = ?
-         ORDER BY created_at DESC
-         LIMIT 200`
-      )
-      .all(connectionId);
-    const latestByWindow = new Map<string, QuotaSnapshotRow>();
-
-    for (const row of rows) {
-      const snapshot = rowToCamel(row) as unknown as QuotaSnapshotRow;
-      const windowKey =
-        (snapshot as unknown as { windowKey?: string }).windowKey ?? snapshot.window_key;
-      if (!windowKey || latestByWindow.has(windowKey)) continue;
-      latestByWindow.set(windowKey, snapshot);
-    }
-
-    return [...latestByWindow.values()];
   } catch (err: any) {
     if (err?.message?.includes("no such table")) {
       return [];
