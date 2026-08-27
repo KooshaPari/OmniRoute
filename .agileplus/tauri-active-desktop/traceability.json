@@ -3,7 +3,13 @@
   "updated_at_utc": "2026-08-27T00:54:47Z",
   "source": "branch-local fallback ledger",
   "engine_reconciliation": "pending_agileplus_daemon",
-  "pull_request": {"number": 695, "url": "https://github.com/KooshaPari/OmniRoute/pull/695", "state": "open", "merge_state": "blocked", "review": "required"},
+  "pull_request": {
+    "number": 695,
+    "url": "https://github.com/KooshaPari/OmniRoute/pull/695",
+    "state": "open",
+    "merge_state": "blocked",
+    "review": "required"
+  },
   "work_packages": {
     "WP01": {
       "status": "in_review",
@@ -36,10 +42,15 @@
       "commands": ["npm run check:active-desktop"],
       "commit": "9f7b53f44"
     },
-    "WP03": {"status": "planned", "commit": null, "hosted_run": null},
-    "WP04": {"status": "planned", "commit": null, "hosted_run": null},
-    "WP05": {"status": "in_progress", "commit": "b0c9bb99d", "hosted_run": "33028375665", "hosted_checks": "in_progress"},
-    "WP06": {"status": "planned", "commit": null, "hosted_run": null}
+    "WP03": { "status": "planned", "commit": null, "hosted_run": null },
+    "WP04": { "status": "planned", "commit": null, "hosted_run": null },
+    "WP05": {
+      "status": "in_progress",
+      "commit": "b0c9bb99d",
+      "hosted_run": "33028375665",
+      "hosted_checks": "in_progress"
+    },
+    "WP06": { "status": "planned", "commit": null, "hosted_run": null }
   },
-  "human_acceptance": {"status": "pending", "required": true}
+  "human_acceptance": { "status": "pending", "required": true }
 }
