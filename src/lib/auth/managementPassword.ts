@@ -25,10 +25,6 @@ const ARGON2ID_HASH_PATTERN = /^\$argon2(id|i)\$v=\d+\$/;
 // with it leaves the dashboard open to anyone, so we warn loudly on boot (Seg2 hardening).
 const INSECURE_DEFAULT_PASSWORDS = new Set(["CHANGEME"]);
 
-// Well-known placeholder shipped in `.env.example` (INITIAL_PASSWORD=CHANGEME). Bootstrapping
-// with it leaves the dashboard open to anyone, so we warn loudly on boot (Seg2 hardening).
-const INSECURE_DEFAULT_PASSWORDS = new Set(["CHANGEME"]);
-
 type JsonRecord = Record<string, unknown>;
 
 type MigrationSource = "stored_hash" | "stored_plaintext" | "env" | "missing";
@@ -90,7 +86,7 @@ export async function verifyManagementPassword(
   storedHash: string,
   upgrader: (nextHash: string) => Promise<void> = async (nextHash) => {
     await updateSettings({ managementPasswordHash: nextHash });
-  },
+  }
 ): Promise<boolean> {
   if (!storedHash) return false;
   if (isArgon2idHash(storedHash)) {
@@ -121,7 +117,7 @@ export async function verifyManagementPassword(
 }
 
 export async function ensurePersistentManagementPasswordHash(
-  options: EnsureManagementPasswordOptions = {},
+  options: EnsureManagementPasswordOptions = {}
 ): Promise<EnsuredManagementPassword> {
   const settings = options.settings ?? ((await getSettings()) as JsonRecord);
   const storedPassword = getStoredManagementPassword(settings);
