@@ -20,6 +20,7 @@ import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
+import { setConnectionRateLimitUntil } from "./providers/rateLimit";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -53,7 +54,7 @@ export async function getProviderConnections(
   filter: JsonRecord = {},
   limit?: number,
   offset?: number,
-  columns?: string[],
+  columns?: string[]
 ) {
   const useCache = !columns?.length && limit === undefined && offset === undefined;
   const raw = useCache
@@ -79,7 +80,7 @@ export async function getRawProviderConnections(
   filter: JsonRecord = {},
   limit?: number,
   offset?: number,
-  columns?: string[],
+  columns?: string[]
 ) {
   const db = getDbInstance() as unknown as DbLike;
   let selectCols = "*";
@@ -110,8 +111,6 @@ export async function getRawProviderConnections(
     conditions.push("auth_type = @authType");
     params.authType = filter.authType;
   }
-
-
 
   if (conditions.length > 0) {
     sql += " WHERE " + conditions.join(" AND ");
@@ -785,8 +784,9 @@ export async function clearConnectionErrorIfUnchanged(
   }
 ): Promise<boolean> {
   const db = getDbInstance() as unknown as DbLike;
-  const result = db.prepare(
-    `
+  const result = db
+    .prepare(
+      `
     UPDATE provider_connections SET
       test_status = 'active',
       last_error = NULL,
@@ -802,13 +802,14 @@ export async function clearConnectionErrorIfUnchanged(
       AND IFNULL(last_error_at, '') = ?
       AND IFNULL(rate_limited_until, '') = ?
     `
-  ).run(
-    new Date().toISOString(),
-    id,
-    expected.testStatus ?? "",
-    expected.lastErrorAt ?? "",
-    expected.rateLimitedUntil ?? ""
-  );
+    )
+    .run(
+      new Date().toISOString(),
+      id,
+      expected.testStatus ?? "",
+      expected.lastErrorAt ?? "",
+      expected.rateLimitedUntil ?? ""
+    );
   const applied = (result.changes ?? 0) > 0;
   if (applied) {
     backupDbFile("pre-write");
@@ -925,10 +926,33 @@ export async function getDistinctGroups(): Promise<string[]> {
   return rows.map((r) => String(r.group ?? "")).filter(Boolean);
 }
 
-export {
-  autoMigrateLegacyEncryptedConnections,
-  getGheCopilotHosts,
-} from "./providers/migrations";
+/**
+ * Mark a connection as rate-limited until `Date.now() + retryAfterMs`.
+ *
+ * This is intentionally best-effort because callers use it on request error
+ * paths, where a database failure must not replace the upstream failure.
+ */
+export function markConnectionRateLimitedUntil(connectionId: string, retryAfterMs: number): void {
+  if (typeof connectionId !== "string" || connectionId.length === 0) return;
+  if (!Number.isFinite(retryAfterMs) || retryAfterMs <= 0) return;
+  try {
+    setConnectionRateLimitUntil(connectionId, Date.now() + retryAfterMs);
+  } catch {
+    // Best-effort persistence for request error paths.
+  }
+}
+
+/** Clear a connection's persisted rate-limit cooldown without throwing. */
+export function clearConnectionRateLimit(connectionId: string): void {
+  if (typeof connectionId !== "string" || connectionId.length === 0) return;
+  try {
+    setConnectionRateLimitUntil(connectionId, null);
+  } catch {
+    // Best-effort persistence for request recovery paths.
+  }
+}
+
+export { autoMigrateLegacyEncryptedConnections, getGheCopilotHosts } from "./providers/migrations";
 
 // ──────────────── Re-exports from leaf modules ────────────────
 
