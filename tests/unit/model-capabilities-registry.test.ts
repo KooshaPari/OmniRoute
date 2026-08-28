@@ -50,6 +50,20 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
+test("GPT-5.6 variants retain their shared static capability profile", () => {
+  for (const modelId of ["gpt-5.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"]) {
+    const spec = MODEL_SPECS[modelId];
+    assert.ok(spec, `missing exact MODEL_SPECS entry for ${modelId}`);
+    assert.equal(spec.maxOutputTokens, 128000, modelId);
+    assert.equal(spec.contextWindow, 1050000, modelId);
+    assert.equal(spec.thinkingBudgetCap, 96000, modelId);
+    assert.equal(spec.supportsThinking, true, modelId);
+    assert.equal(spec.supportsTools, true, modelId);
+    assert.equal(spec.supportsVision, true, modelId);
+    assert.deepEqual(spec.aliases, [`openai/${modelId}`], modelId);
+  }
+});
+
 test("canonical model capability resolver lets exact synced metadata override global specs", () => {
   modelsDevSync.saveModelsDevCapabilities({
     openai: {
