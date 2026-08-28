@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  ACCOUNT_FALLBACK_STRATEGY_VALUES,
+  ROUTING_STRATEGY_VALUES,
+} from "@/shared/constants/routingStrategies";
 
 export * from "./schemas/auth";
 export * from "./schemas/combo";
