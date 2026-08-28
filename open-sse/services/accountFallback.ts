@@ -35,8 +35,20 @@ import { resolveProviderId } from "../../src/shared/constants/providers";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
 import { getCodexModelScope } from "../config/codexQuotaScopes.ts";
 import { getQuotaScopedModelForProvider } from "./antigravityQuotaFamily.ts";
-import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
-import { parseRetryHintFromJsonBody } from "./retryAfterJson.ts";
+import { capScaledCooldownMs } from "./accountFallback/cooldownCap.ts";
+import { evictLockoutOverflow } from "./accountFallback/lockoutEviction.ts";
+export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts";
+import { resolveApiKeyForbiddenFallback } from "./accountFallback/nonRetryableUpstream.ts";
+import {
+  classifyGeminiQuotaMetricFromText,
+  isRpdExhausted,
+  isRpmExhausted,
+  isTpmExhausted,
+} from "./geminiRateLimitTracker.ts";
+import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
+import { buildWeeklyQuotaFallback, isSubscriptionQuotaText } from "./quotaTextCooldowns.ts";
+import { parseDelayString, parseRetryHintFromJsonBody } from "./retryAfterJson.ts";
+import { setConnectionRateLimitUntil } from "@/lib/db/providers";
 
 export type ProviderProfile = {
   baseCooldownMs: number;
@@ -1601,7 +1613,11 @@ export function checkFallbackError(
       !errorStr.toLowerCase().includes("hour quota") &&
       !errorStr.toLowerCase().includes("quota has been exceeded")
     ) {
-      return resolveApiKeyForbiddenFallback(errorStr, buildRetryableFallback, RateLimitReason.AUTH_ERROR);
+      return resolveApiKeyForbiddenFallback(
+        errorStr,
+        buildRetryableFallback,
+        RateLimitReason.AUTH_ERROR
+      );
     }
   }
 

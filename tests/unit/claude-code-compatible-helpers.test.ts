@@ -15,6 +15,7 @@ const {
   joinClaudeCodeCompatibleUrl,
   buildClaudeCodeCompatibleHeaders,
   buildClaudeCodeCompatibleValidationPayload,
+  modelHasNativeContext1m,
   resolveClaudeCodeCompatibleAnthropicBeta,
   resolveClaudeCodeCompatibleSessionId,
 } = await import("../../open-sse/services/claudeCodeCompatible.ts");
@@ -26,6 +27,12 @@ test("Claude Code compatible provider detection matches the shared prefix contra
   assert.equal(isClaudeCodeCompatible("anthropic-compatible-cc-demo"), true);
   assert.equal(isClaudeCodeCompatibleProvider("anthropic-compatible-demo"), false);
   assert.equal(isClaudeCodeCompatible(null), false);
+});
+
+test("Claude Code compatible exports the canonical native 1M model helper", () => {
+  assert.equal(modelHasNativeContext1m("claude-opus-5"), true);
+  assert.equal(modelHasNativeContext1m("claude-opus-5-20260801"), true);
+  assert.equal(modelHasNativeContext1m("claude-sonnet-5"), false);
 });
 
 test("base URL helpers strip messages suffixes and join canonical paths", () => {

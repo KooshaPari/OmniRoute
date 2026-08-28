@@ -54,10 +54,11 @@ test("registries do not contain getOrCreate* functions", async () => {
 });
 
 test("audioRegistry exports per-type provider lookup functions", async () => {
-  const { getTranscriptionProvider, getSpeechProvider } = await import(
+  const { getTranscriptionProvider, getTranslationProvider, getSpeechProvider } = await import(
     "../../open-sse/config/audioRegistry.ts"
   );
   // Should return null for unknown providers (not throw)
   assert.equal(getTranscriptionProvider("nonexistent-provider"), null);
+  assert.equal(getTranslationProvider("nonexistent-provider"), null);
   assert.equal(getSpeechProvider("nonexistent-provider"), null);
 });

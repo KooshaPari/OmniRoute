@@ -58,6 +58,48 @@ test("quotaSnapshots save and query rows with provider and connection filters", 
   assert.equal(openaiRows[0].connectionId, "conn-1");
 });
 
+test("quotaSnapshots reads legacy rows without nullable analytics columns", () => {
+  const db = coreDb.getDbInstance();
+  db.exec("DROP TABLE quota_snapshots");
+  db.exec(`
+    CREATE TABLE quota_snapshots (
+      id INTEGER PRIMARY KEY,
+      provider TEXT NOT NULL,
+      connection_id TEXT NOT NULL,
+      window_key TEXT NOT NULL,
+      remaining_percentage REAL,
+      is_exhausted INTEGER DEFAULT 0,
+      next_reset_at TEXT,
+      created_at TEXT NOT NULL
+    )
+  `);
+  db.prepare(
+    `INSERT INTO quota_snapshots
+     (id, provider, connection_id, window_key, remaining_percentage, is_exhausted, next_reset_at, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(1, "openai", "legacy-conn", "daily", 42, 0, null, "2026-01-01T00:00:00.000Z");
+
+  const rows = quotaSnapshotsDb.getQuotaSnapshots({
+    connectionId: "legacy-conn",
+    since: "2000-01-01T00:00:00.000Z",
+  });
+
+  assert.deepEqual(rows, [
+    {
+      id: 1,
+      provider: "openai",
+      connectionId: "legacy-conn",
+      windowKey: "daily",
+      remainingPercentage: 42,
+      isExhausted: 0,
+      nextResetAt: null,
+      windowDurationMs: null,
+      rawData: null,
+      createdAt: "2026-01-01T00:00:00.000Z",
+    },
+  ]);
+});
+
 test("quotaSnapshots aggregates by provider or connection and rejects invalid buckets", () => {
   quotaSnapshotsDb.saveQuotaSnapshot({
     provider: "openai",
