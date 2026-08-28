@@ -132,13 +132,53 @@ const OPENAI_FORMAT_CACHE_CONTROL_PROVIDERS = new Set([
 ]);
 
 /**
+ * Per-connection override for cache behavior, resolved from the connection's
+ * `providerSpecificData.cache` JSON sub-object. This lets a custom
+ * OpenAI-compatible connection opt into cache behavior that cannot be inferred
+ * from its provider id alone.
+ */
+export interface ConnectionCacheOverride {
+  supportsPromptCaching?: boolean;
+  cacheControlPassthrough?: "strip" | "openai-format" | "claude-format";
+}
+
+/**
+ * Extract a valid cache override from provider-specific connection data.
+ * Malformed or empty overrides are ignored so callers can use the hardcoded
+ * provider policy as their fallback.
+ */
+export function resolveConnectionCacheOverride(
+  providerSpecificData: unknown
+): ConnectionCacheOverride | null {
+  if (!providerSpecificData || typeof providerSpecificData !== "object") return null;
+  const cache = (providerSpecificData as Record<string, unknown>).cache;
+  if (!cache || typeof cache !== "object" || Array.isArray(cache)) return null;
+  const record = cache as Record<string, unknown>;
+  const result: ConnectionCacheOverride = {};
+  if (typeof record.supportsPromptCaching === "boolean") {
+    result.supportsPromptCaching = record.supportsPromptCaching;
+  }
+  if (
+    record.cacheControlPassthrough === "strip" ||
+    record.cacheControlPassthrough === "openai-format" ||
+    record.cacheControlPassthrough === "claude-format"
+  ) {
+    result.cacheControlPassthrough = record.cacheControlPassthrough;
+  }
+  return Object.keys(result).length > 0 ? result : null;
+}
+
+/**
  * Whether `cache_control` markers should be PASSED THROUGH the OpenAI-format
  * translation for this provider (vs. stripped). Used to gate the request-side
  * passthrough so generic / implicit-cache OpenAI providers keep getting cleaned.
  */
 export function providerHonorsOpenAIFormatCacheControl(
-  provider: string | null | undefined
+  provider: string | null | undefined,
+  connectionCacheOverride?: ConnectionCacheOverride | null
 ): boolean {
+  if (connectionCacheOverride?.cacheControlPassthrough === "openai-format") return true;
+  if (connectionCacheOverride?.cacheControlPassthrough === "strip") return false;
   if (!provider) return false;
   return OPENAI_FORMAT_CACHE_CONTROL_PROVIDERS.has(provider.toLowerCase());
 }
