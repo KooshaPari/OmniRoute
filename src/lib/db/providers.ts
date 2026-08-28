@@ -21,6 +21,10 @@ import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
 import { setConnectionRateLimitUntil } from "./providers/rateLimit";
+import {
+  connectionRateLimitConnectionIdSchema,
+  connectionRateLimitRetryAfterMsSchema,
+} from "@/shared/validation/schemas/misc";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -947,10 +951,14 @@ export function getProviderNodesCount(filter: JsonRecord = {}): number {
  * paths, where a database failure must not replace the upstream failure.
  */
 export function markConnectionRateLimitedUntil(connectionId: string, retryAfterMs: number): void {
-  if (typeof connectionId !== "string" || connectionId.length === 0) return;
-  if (!Number.isFinite(retryAfterMs) || retryAfterMs <= 0) return;
+  const parsedConnectionId = connectionRateLimitConnectionIdSchema.safeParse(connectionId);
+  if (!parsedConnectionId.success) return;
+
+  const parsedRetryAfterMs = connectionRateLimitRetryAfterMsSchema.safeParse(retryAfterMs);
+  if (!parsedRetryAfterMs.success) return;
+
   try {
-    setConnectionRateLimitUntil(connectionId, Date.now() + retryAfterMs);
+    setConnectionRateLimitUntil(parsedConnectionId.data, Date.now() + parsedRetryAfterMs.data);
   } catch {
     // Best-effort persistence for request error paths.
   }
@@ -958,9 +966,11 @@ export function markConnectionRateLimitedUntil(connectionId: string, retryAfterM
 
 /** Clear a connection's persisted rate-limit cooldown without throwing. */
 export function clearConnectionRateLimit(connectionId: string): void {
-  if (typeof connectionId !== "string" || connectionId.length === 0) return;
+  const parsedConnectionId = connectionRateLimitConnectionIdSchema.safeParse(connectionId);
+  if (!parsedConnectionId.success) return;
+
   try {
-    setConnectionRateLimitUntil(connectionId, null);
+    setConnectionRateLimitUntil(parsedConnectionId.data, null);
   } catch {
     // Best-effort persistence for request recovery paths.
   }
