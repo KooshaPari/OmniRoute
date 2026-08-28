@@ -56,6 +56,57 @@ describe("KimiWebExecutor", () => {
       globalThis.fetch = originalFetch;
     }
   });
+
+  it("buffers Connect frames into a JSON completion for non-streaming requests", async () => {
+    const executor = new mod.KimiWebExecutor();
+    const originalFetch = globalThis.fetch;
+    const frames = [
+      mod.frameConnectMessage(
+        JSON.stringify({ op: "set", mask: "block.text", block: { text: { content: "Hello" } } })
+      ),
+      mod.frameConnectMessage(
+        JSON.stringify({
+          op: "append",
+          mask: "block.think.content",
+          block: { think: { content: " reason" } },
+        })
+      ),
+      mod.frameConnectMessage(
+        JSON.stringify({
+          op: "set",
+          mask: "message",
+          message: { role: "assistant", status: "MESSAGE_STATUS_COMPLETED" },
+        })
+      ),
+    ];
+    try {
+      globalThis.fetch = (async () =>
+        new Response(
+          new ReadableStream({
+            start(controller) {
+              for (const frame of frames) controller.enqueue(frame);
+              controller.close();
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/connect+json" } }
+        )) as typeof fetch;
+      const result = await executor.execute({
+        model: "kimi-default",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: "kimi-auth=fake.jwt.token" },
+        signal: null,
+      } as never);
+      const completion = (await result.response.json()) as {
+        choices: Array<{ message: { content: string; reasoning_content?: string } }>;
+      };
+      assert.equal(result.response.headers.get("content-type"), "application/json");
+      assert.equal(completion.choices[0].message.content, "Hello");
+      assert.equal(completion.choices[0].message.reasoning_content, " reason");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
 });
 
 describe("extractKimiJwt", () => {
