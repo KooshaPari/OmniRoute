@@ -73,6 +73,7 @@ interface QuotaCacheState {
   refreshingSet: Set<string>;
   refreshTimer: ReturnType<typeof setInterval> | null;
   tickRunning: boolean;
+  generation: number;
 }
 
 declare global {
@@ -86,6 +87,7 @@ function getState(): QuotaCacheState {
       refreshingSet: new Set(),
       refreshTimer: null,
       tickRunning: false,
+      generation: 0,
     };
   }
   return globalThis.__omnirouteQuotaCacheState;
@@ -231,7 +233,11 @@ function normalizeQuotas(rawQuotas: Record<string, any>): Record<string, QuotaIn
 // ─── Public API ─────────────────────────────────────────────────────────────
 
 export function __clearForTests() {
-  getState().cache.clear();
+  const state = getState();
+  state.generation += 1;
+  stopBackgroundRefresh();
+  state.cache.clear();
+  state.refreshingSet.clear();
 }
 
 export function isQuotaExhaustedForRequest(
@@ -470,13 +476,15 @@ export function markAccountExhaustedFrom429(connectionId: string, provider: stri
 
 // ─── Background Refresh ─────────────────────────────────────────────────────
 
-async function refreshEntry(entry: QuotaCacheEntry) {
+async function refreshEntry(entry: QuotaCacheEntry, generation: number) {
   const { cache, refreshingSet } = getState();
+  if (generation !== getState().generation) return;
   if (refreshingSet.has(entry.connectionId)) return;
   refreshingSet.add(entry.connectionId);
 
   try {
     const connection = await getCachedProviderConnectionById(entry.connectionId);
+    if (generation !== getState().generation) return;
     if (!connection || connection.authType !== "oauth" || !connection.isActive) {
       cache.delete(entry.connectionId);
       return;
@@ -487,7 +495,7 @@ async function refreshEntry(entry: QuotaCacheEntry) {
       getUsageForProvider(connection)
     );
 
-    if (usage?.quotas) {
+    if (generation === getState().generation && usage?.quotas) {
       setQuotaCache(entry.connectionId, entry.provider, usage.quotas);
     }
   } catch (err) {
@@ -496,7 +504,7 @@ async function refreshEntry(entry: QuotaCacheEntry) {
       (err as any)?.message || err
     );
   } finally {
-    refreshingSet.delete(entry.connectionId);
+    if (generation === getState().generation) refreshingSet.delete(entry.connectionId);
   }
 }
 
@@ -516,16 +524,19 @@ async function backgroundRefreshTick() {
   const state = getState();
   if (state.tickRunning) return;
   state.tickRunning = true;
+  const generation = state.generation;
 
   try {
     cleanupOldSnapshots();
+    if (generation !== state.generation) return;
     const now = Date.now();
     const pending = [...state.cache.values()].filter((e) => needsRefresh(e, now));
 
     // Refresh in batches to avoid thundering herd
     for (let i = 0; i < pending.length; i += MAX_CONCURRENT_REFRESHES) {
+      if (generation !== state.generation) return;
       const batch = pending.slice(i, i + MAX_CONCURRENT_REFRESHES);
-      await Promise.allSettled(batch.map(refreshEntry));
+      await Promise.allSettled(batch.map((entry) => refreshEntry(entry, generation)));
     }
   } finally {
     state.tickRunning = false;
