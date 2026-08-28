@@ -108,13 +108,9 @@ export function mapModel(model: string): string {
 const TOKEN_SEED = "oldllm-client-2026";
 const UA_PREFIX = CHROME_UA.slice(0, 20); // "Mozilla/5.0 (Windows"
 
-type TheOldLlmProxy = {
-  type?: string;
-  host: string;
-  port: number;
-  username?: string | null;
-  password?: string | null;
-} | null;
+type TheOldLlmProxy = Awaited<
+  ReturnType<typeof import("../../src/lib/db/proxies").resolveProxyForProvider>
+>;
 
 interface TheOldLlmFetchDependencies {
   resolveProxy: () => Promise<TheOldLlmProxy>;
@@ -146,12 +142,22 @@ export const tokenCache: { value: string; expiresAt: number } = { value: "", exp
 
 export async function fetchTheOldLlmWithProviderProxy(
   reqBody: Record<string, unknown>,
-  signal?: AbortSignal | null
+  signal?: AbortSignal | null,
+  dependencies?: TheOldLlmFetchDependencies
 ): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 120_000);
-  const onSignal = signal ? () => controller.abort(signal.reason) : undefined;
-  signal?.addEventListener("abort", onSignal!, { once: true });
+  let deps = dependencies;
+  if (!deps) {
+    const [
+      { resolveProxyForProvider, hasBlockingProxyAssignmentForProvider },
+      { runWithProxyContext },
+    ] = await Promise.all([import("../../src/lib/db/proxies"), import("../utils/proxyFetch.ts")]);
+    deps = {
+      resolveProxy: () => resolveProxyForProvider("theoldllm"),
+      runWithProxy: runWithProxyContext,
+      fetch: globalThis.fetch,
+      hasBlockingProxyAssignment: () => hasBlockingProxyAssignmentForProvider("theoldllm"),
+    };
+  }
 
   const proxy = await deps.resolveProxy();
   if (!proxy && deps.hasBlockingProxyAssignment?.()) {
@@ -406,8 +412,9 @@ export class TheOldLlmExecutor extends BaseExecutor {
 
       if (upstream.status === 200 && finalBody) {
         const payload = stream ? finalBody : buildChatCompletion(parseSseContent(finalBody), model);
-        return {
-          response: new Response(encoder.encode(payload), {
+        return this.executionResult(
+          input,
+          new Response(encoder.encode(payload), {
             status: 200,
             headers: {
               "Content-Type": stream ? "text/event-stream" : "application/json",
