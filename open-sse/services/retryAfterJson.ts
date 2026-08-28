@@ -1,5 +1,8 @@
 type JsonRecord = Record<string, unknown>;
 
+const MAX_DELAY_TEXT_LENGTH = 64;
+const MAX_DELAY_MS = 30 * 24 * 60 * 60 * 1000;
+
 function objectRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -23,19 +26,32 @@ function futureTimestampMs(value: unknown, maxMs: number): number | null {
  * number of seconds. Shared by account-fallback retry parsing and rate-limit handling.
  */
 export function parseDelayString(value: unknown): number | null {
-  if (!value) return null;
-  const str = String(value).trim();
+  if (typeof value === "number") {
+    return Number.isFinite(value) && value >= 0 && value * 1000 <= MAX_DELAY_MS
+      ? Math.round(value * 1000)
+      : null;
+  }
+  if (typeof value !== "string" || value.length > MAX_DELAY_TEXT_LENGTH) return null;
+  const str = value.trim();
+  if (!str || str.length > MAX_DELAY_TEXT_LENGTH) return null;
+
+  function toDelayMs(amount: string, multiplier: number): number | null {
+    const delayMs = Number(amount) * multiplier;
+    return Number.isFinite(delayMs) && delayMs >= 0 && delayMs <= MAX_DELAY_MS
+      ? Math.round(delayMs)
+      : null;
+  }
+
   const msMatch = /^(\d+(?:\.\d+)?)\s*ms$/i.exec(str);
-  if (msMatch) return Math.round(Number.parseFloat(msMatch[1]));
+  if (msMatch) return toDelayMs(msMatch[1], 1);
   const secMatch = /^(\d+(?:\.\d+)?)\s*s$/i.exec(str);
-  if (secMatch) return Math.round(Number.parseFloat(secMatch[1]) * 1000);
+  if (secMatch) return toDelayMs(secMatch[1], 1000);
   const minMatch = /^(\d+(?:\.\d+)?)\s*m$/i.exec(str);
-  if (minMatch) return Math.round(Number.parseFloat(minMatch[1]) * 60 * 1000);
+  if (minMatch) return toDelayMs(minMatch[1], 60 * 1000);
   const hrMatch = /^(\d+(?:\.\d+)?)\s*h$/i.exec(str);
-  if (hrMatch) return Math.round(Number.parseFloat(hrMatch[1]) * 3600 * 1000);
+  if (hrMatch) return toDelayMs(hrMatch[1], 3600 * 1000);
   // Bare number means seconds.
-  const num = Number.parseFloat(str);
-  return Number.isFinite(num) ? Math.round(num * 1000) : null;
+  return /^\d+(?:\.\d+)?$/.test(str) ? toDelayMs(str, 1000) : null;
 }
 
 /**
