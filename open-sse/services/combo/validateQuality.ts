@@ -393,7 +393,6 @@ export async function validateResponseQuality(
     }
   }
 
-  const choices = json?.choices;
   if (json?.object === "response") {
     if (!responsesApiOutputHasContent(json.output))
       return { valid: false, reason: "empty_choices" };
