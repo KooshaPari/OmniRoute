@@ -20,6 +20,7 @@ import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
+import { setConnectionRateLimitUntil } from "./providers/rateLimit";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -923,6 +924,32 @@ export async function getDistinctGroups(): Promise<string[]> {
     )
     .all() as Array<{ group?: string }>;
   return rows.map((r) => String(r.group ?? "")).filter(Boolean);
+}
+
+/**
+ * Mark a connection as rate-limited until `Date.now() + retryAfterMs`.
+ *
+ * This is intentionally best-effort because callers use it on request error
+ * paths, where a database failure must not replace the upstream failure.
+ */
+export function markConnectionRateLimitedUntil(connectionId: string, retryAfterMs: number): void {
+  if (typeof connectionId !== "string" || connectionId.length === 0) return;
+  if (!Number.isFinite(retryAfterMs) || retryAfterMs <= 0) return;
+  try {
+    setConnectionRateLimitUntil(connectionId, Date.now() + retryAfterMs);
+  } catch {
+    // Best-effort persistence for request error paths.
+  }
+}
+
+/** Clear a connection's persisted rate-limit cooldown without throwing. */
+export function clearConnectionRateLimit(connectionId: string): void {
+  if (typeof connectionId !== "string" || connectionId.length === 0) return;
+  try {
+    setConnectionRateLimitUntil(connectionId, null);
+  } catch {
+    // Best-effort persistence for request recovery paths.
+  }
 }
 
 export {
