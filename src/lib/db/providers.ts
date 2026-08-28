@@ -926,6 +926,20 @@ export async function getDistinctGroups(): Promise<string[]> {
   return rows.map((r) => String(r.group ?? "")).filter(Boolean);
 }
 
+export function getProviderNodesCount(filter: JsonRecord = {}): number {
+  const db = getDbInstance() as unknown as DbLike;
+  let sql = "SELECT count(*) as cnt FROM provider_nodes";
+  const params: Record<string, unknown> = {};
+
+  if (filter.type) {
+    sql += " WHERE type = @type";
+    params.type = filter.type;
+  }
+
+  const row = db.prepare(sql).get(params) as { cnt: number };
+  return row.cnt;
+}
+
 /**
  * Mark a connection as rate-limited until `Date.now() + retryAfterMs`.
  *
