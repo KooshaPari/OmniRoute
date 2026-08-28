@@ -14,8 +14,16 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { PROVIDERS } from "../config/constants.ts";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
 import { serializeRefresh, wasRefreshTokenRotated } from "./refreshSerializer.ts";
+import {
+  buildFormParams,
+  extractOAuthErrorCode,
+  isUnrecoverableRefreshError,
+  readRefreshErrorBody,
+} from "./tokenRefresh/shared.ts";
 import { WINDSURF_CONFIG } from "@/lib/oauth/constants/oauth";
 import { buildGitLabOAuthEndpoints, resolveGitLabOAuthBaseUrl } from "@/lib/oauth/gitlab";
+
+export { extractOAuthErrorCode, isUnrecoverableRefreshError };
 
 // Default token expiry buffer (refresh if expires within 5 minutes).
 // Used as fallback for providers without an explicit lead time in
