@@ -36,7 +36,7 @@ describe("KimiWebExecutor", () => {
     let capturedUrl = "";
     const originalFetch = globalThis.fetch;
     try {
-      globalThis.fetch = (async (url: any) => {
+      globalThis.fetch = (async (url: RequestInfo | URL) => {
         capturedUrl = String(url);
         return new Response(new ReadableStream({ start: (c) => c.close() }), {
           status: 200,
@@ -103,6 +103,102 @@ describe("KimiWebExecutor", () => {
       assert.equal(result.response.headers.get("content-type"), "application/json");
       assert.equal(completion.choices[0].message.content, "Hello");
       assert.equal(completion.choices[0].message.reasoning_content, " reason");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("cancels the upstream reader after a terminal Connect frame", async () => {
+    const executor = new mod.KimiWebExecutor();
+    const originalFetch = globalThis.fetch;
+    let cancelled = false;
+    const terminalFrame = mod.frameConnectMessage(
+      JSON.stringify({
+        op: "set",
+        mask: "message",
+        message: { role: "assistant", status: "MESSAGE_STATUS_COMPLETED" },
+      })
+    );
+    try {
+      globalThis.fetch = (async () =>
+        new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue(terminalFrame);
+            },
+            cancel() {
+              cancelled = true;
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/connect+json" } }
+        )) as typeof fetch;
+      const result = await executor.execute({
+        model: "kimi-default",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: true,
+        credentials: { apiKey: "kimi-auth=fake.jwt.token" },
+        signal: null,
+      } as never);
+      await result.response.text();
+      assert.equal(cancelled, true);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("cancels the upstream reader after an oversized Connect frame", async () => {
+    const executor = new mod.KimiWebExecutor();
+    const originalFetch = globalThis.fetch;
+    let cancelled = false;
+    const oversizedHeader = new Uint8Array([0, 0x80, 0, 0, 0]);
+    try {
+      globalThis.fetch = (async () =>
+        new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue(oversizedHeader);
+            },
+            cancel() {
+              cancelled = true;
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/connect+json" } }
+        )) as typeof fetch;
+      const result = await executor.execute({
+        model: "kimi-default",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: true,
+        credentials: { apiKey: "kimi-auth=fake.jwt.token" },
+        signal: null,
+      } as never);
+      await assert.rejects(() => result.response.text(), /exceeded MAX_FRAME_LEN/);
+      assert.equal(cancelled, true);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("returns an upstream error when the non-streaming reader rejects", async () => {
+    const executor = new mod.KimiWebExecutor();
+    const originalFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = (async () =>
+        new Response(
+          new ReadableStream({
+            pull() {
+              return Promise.reject(new Error("reader failed"));
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/connect+json" } }
+        )) as typeof fetch;
+      const result = await executor.execute({
+        model: "kimi-default",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: "kimi-auth=fake.jwt.token" },
+        signal: null,
+      } as never);
+      assert.equal(result.response.status, 502);
     } finally {
       globalThis.fetch = originalFetch;
     }
