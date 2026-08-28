@@ -231,7 +231,11 @@ function normalizeQuotas(rawQuotas: Record<string, any>): Record<string, QuotaIn
 // ─── Public API ─────────────────────────────────────────────────────────────
 
 export function __clearForTests() {
-  getState().cache.clear();
+  stopBackgroundRefresh();
+  const state = getState();
+  state.cache.clear();
+  state.refreshingSet.clear();
+  state.tickRunning = false;
 }
 
 export function isQuotaExhaustedForRequest(
