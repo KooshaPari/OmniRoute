@@ -158,6 +158,16 @@ describe("providerDiscovery A2A skill", () => {
     expect(result.metadata?.errorsEncountered).toBe(0);
   });
 
+  it("keeps the optional MCP import out of the build module graph", async () => {
+    const source = await fs.readFile(
+      path.join(process.cwd(), "src/lib/a2a/skills/providerDiscovery.ts"),
+      "utf8",
+    );
+
+    expect(source).toContain("/* webpackIgnore: true */");
+    expect(source).toMatch(/import\(\s*\/\* webpackIgnore: true \*\/\s*mcpModuleSpec/);
+  });
+
   it("filters by vendor substring", async () => {
     const cfg = {
       providers: [

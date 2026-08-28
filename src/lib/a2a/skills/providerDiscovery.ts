@@ -388,7 +388,10 @@ async function discoverFromMcp(discoveredAt: string): Promise<SourceScanResult> 
   // checkout; the .catch() below ensures runtime tolerance regardless).
   const mcpModuleSpec: string = "../../mcp/client.js";
   try {
-    mod = (await import(mcpModuleSpec).catch((err) => {
+    mod = (await import(
+      /* webpackIgnore: true */
+      mcpModuleSpec
+    ).catch((err) => {
       log.warn(
         { err, mcpModuleSpec },
         "a2a:providerDiscovery: optional MCP client module failed to load — 'mcp' source will be skipped"
