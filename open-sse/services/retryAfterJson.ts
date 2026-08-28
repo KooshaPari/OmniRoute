@@ -19,6 +19,26 @@ function futureTimestampMs(value: unknown, maxMs: number): number | null {
 }
 
 /**
+ * Parse delay strings like "33s", "26.660853464s", "2m", "1h", "1500ms", or a bare
+ * number of seconds. Shared by account-fallback retry parsing and rate-limit handling.
+ */
+export function parseDelayString(value: unknown): number | null {
+  if (!value) return null;
+  const str = String(value).trim();
+  const msMatch = /^(\d+(?:\.\d+)?)\s*ms$/i.exec(str);
+  if (msMatch) return Math.round(Number.parseFloat(msMatch[1]));
+  const secMatch = /^(\d+(?:\.\d+)?)\s*s$/i.exec(str);
+  if (secMatch) return Math.round(Number.parseFloat(secMatch[1]) * 1000);
+  const minMatch = /^(\d+(?:\.\d+)?)\s*m$/i.exec(str);
+  if (minMatch) return Math.round(Number.parseFloat(minMatch[1]) * 60 * 1000);
+  const hrMatch = /^(\d+(?:\.\d+)?)\s*h$/i.exec(str);
+  if (hrMatch) return Math.round(Number.parseFloat(hrMatch[1]) * 3600 * 1000);
+  // Bare number means seconds.
+  const num = Number.parseFloat(str);
+  return Number.isFinite(num) ? Math.round(num * 1000) : null;
+}
+
+/**
  * Parse Retry-After hints from a 429 JSON response body. Providers use both
  * top-level and nested `error` fields for ISO timestamps and millisecond values.
  */
