@@ -250,8 +250,10 @@ import {
   ccrStatsInput,
 } from "../schemas/tools.ts";
 import {
+  MAX_CCR_MCP_FULL_BYTES,
   buildCcrReference,
   handleCcrRetrieve,
+  inspectCcrBlock,
   tryStoreBlock,
 } from "../../services/compression/engines/ccr/index.ts";
 import {
@@ -330,6 +332,71 @@ const ccrRetrieveInput = z.object({
   pattern: z.string().max(512).optional().describe("grep: regex (validated safe; ReDoS-rejected)"),
   unique: z.boolean().optional().describe("grep: dedupe matching lines"),
 });
+
+export async function handleCcrRetrieveTool(
+  args: z.infer<typeof ccrRetrieveInput>,
+  extra?: McpToolExtraLike
+) {
+  const start = Date.now();
+  const principal = await resolveCcrPrincipal(extra, ["read:compression"]);
+  const metadata = inspectCcrBlock(args.hash, principal);
+  if (!metadata) {
+    const output = { found: false as const, error: "CCR block not found or expired" };
+    await logToolCall(
+      "omniroute_ccr_retrieve",
+      args,
+      output,
+      Date.now() - start,
+      false,
+      "NOT_FOUND"
+    );
+    return output;
+  }
+  if ((!args.mode || args.mode === "full") && metadata.bytes > MAX_CCR_MCP_FULL_BYTES) {
+    const output = {
+      found: true as const,
+      tooLargeForFull: true as const,
+      metadata,
+      suggestedModes: ["head", "tail", "lines", "grep", "stats"] as const,
+    };
+    await logToolCall("omniroute_ccr_retrieve", args, output, Date.now() - start, true);
+    return output;
+  }
+  const queried = handleCcrRetrieve(args, principal);
+  const refreshedMetadata = inspectCcrBlock(args.hash, principal) ?? metadata;
+  const output =
+    "content" in queried
+      ? { found: true as const, metadata: refreshedMetadata, content: queried.content }
+      : { found: true as const, metadata: refreshedMetadata, error: queried.error };
+  await logToolCall(
+    "omniroute_ccr_retrieve",
+    args,
+    {
+      ...output,
+      ...(typeof output.content === "string"
+        ? { content: `[${Buffer.byteLength(output.content, "utf8")} bytes]` }
+        : {}),
+    },
+    Date.now() - start,
+    !("error" in output),
+    "error" in output ? "INVALID_QUERY" : undefined
+  );
+  return output;
+}
+
+export async function handleCcrInspectTool(
+  args: z.infer<typeof ccrInspectInput>,
+  extra?: McpToolExtraLike
+) {
+  const start = Date.now();
+  const principal = await resolveCcrPrincipal(extra, ["read:compression"]);
+  const metadata = inspectCcrBlock(args.hash, principal);
+  const output = metadata
+    ? { found: true as const, reference: buildCcrReference(args.hash, metadata.chars), metadata }
+    : { found: false as const };
+  await logToolCall("omniroute_ccr_inspect", args, output, Date.now() - start, Boolean(metadata));
+  return output;
+}
 
 export async function handleSetCompressionEngine(
   args: z.infer<typeof setCompressionEngineInput>
