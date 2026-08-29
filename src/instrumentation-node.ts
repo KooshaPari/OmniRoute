@@ -662,17 +662,7 @@ export async function registerNodejs(): Promise<void> {
           const msg = err instanceof Error ? err.message : String(err);
           console.warn("[STARTUP] context-window reconcile failed to start (non-fatal):", msg);
         }),
-
-    // TV6 typed memory decay: optional periodic sweep of decayed episodic memories. Doubly
-    // opt-in (no-op unless MEMORY_TYPED_DECAY_ENABLED=true AND
-    // MEMORY_TYPED_DECAY_SWEEP_INTERVAL>0). Never deletes by default. Never fatal.
-    try {
-      const { startMemoryDecaySweep } = await import("@/lib/memory/typedDecay");
-      startMemoryDecaySweep();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
-    }
+    ]);
 
     // Real-time dashboard WebSocket daemon (port 20129): powers Combo Studio Live,
     // the Home live-pulse, and Live Compression. liveServer.ts auto-starts the
