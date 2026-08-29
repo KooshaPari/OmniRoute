@@ -261,6 +261,7 @@
     "jsonc-parser": "^3.3.1",
     "keyv": "^5.6.0",
     "lowdb": "^7.0.1",
+    "lru-cache": "^11.5.2",
     "lucide-react": "^1.21.0",
     "marked": "^18.0.4",
     "marked-terminal": "^7.3.0",
