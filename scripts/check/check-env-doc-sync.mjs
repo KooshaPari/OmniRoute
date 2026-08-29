@@ -176,6 +176,14 @@ const IGNORE_FROM_CODE = new Set([
   // Test-only override: points setup-open-code.mjs at a fixture plugin dir without
   // requiring the real bundled plugin to be built.
   "OMNIROUTE_OPENCODE_PLUGIN_DIR",
+  // Homolog is an opt-in verification harness under scripts/homolog/, not an
+  // OmniRoute runtime configuration surface. Its endpoint and credentials must
+  // never be copied into the public environment contract.
+  "HOMOLOG_ADMIN_PASSWORD",
+  "HOMOLOG_API_KEY",
+  "HOMOLOG_BASE_URL",
+  "HOMOLOG_CRITICAL_PROVIDERS",
+  "HOMOLOG_EXPECT_VERSION",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.
@@ -236,6 +244,10 @@ const ENV_ONLY_ALLOWLIST = new Set([
   "PII_WINDOW_SIZE",
   "TRAE_STREAM_TIMEOUT_MS",
   "TRAE_TOKEN",
+  // Changelog-integrity gate inputs are supplied by CI/release tooling, not
+  // consumed by the runtime.
+  "ALLOW_CHANGELOG_REMOVALS",
+  "CHANGELOG_BASE_REF",
 ]);
 
 // ─── Parsing helpers ───────────────────────────────────────────────────────
