@@ -254,6 +254,7 @@ import {
   buildCcrReference,
   handleCcrRetrieve,
   inspectCcrBlock,
+  listCcrBlocks,
   tryStoreBlock,
 } from "../../services/compression/engines/ccr/index.ts";
 import {
@@ -395,6 +396,24 @@ export async function handleCcrInspectTool(
     ? { found: true as const, reference: buildCcrReference(args.hash, metadata.chars), metadata }
     : { found: false as const };
   await logToolCall("omniroute_ccr_inspect", args, output, Date.now() - start, Boolean(metadata));
+  return output;
+}
+
+export async function handleCcrListTool(
+  args: z.infer<typeof ccrListInput>,
+  extra?: McpToolExtraLike
+) {
+  const start = Date.now();
+  const principal = await resolveCcrPrincipal(extra, ["read:compression"]);
+  const result = listCcrBlocks(principal, args);
+  const output = {
+    ...result,
+    entries: result.entries.map((metadata) => ({
+      reference: buildCcrReference(metadata.hash, metadata.chars),
+      metadata,
+    })),
+  };
+  await logToolCall("omniroute_ccr_list", args, output, Date.now() - start, true);
   return output;
 }
 
