@@ -124,6 +124,7 @@ export async function POST(request) {
       chatPath,
       modelsPath,
       customHeaders,
+      iconUrl,
     } = validation.data;
 
     // Determine type
