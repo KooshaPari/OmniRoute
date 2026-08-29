@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createProviderNode, getProviderNodes } from "@/models";
-import { getProviderNodesCount } from "@/lib/db/providers/nodes";
+import { getProviderNodesCount } from "@/lib/db/providers";
 import {
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
