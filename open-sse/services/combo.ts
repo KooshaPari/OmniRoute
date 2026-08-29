@@ -61,7 +61,11 @@ import { handlePipelineCombo, buildPipelineResponse } from "./autoCombo/pipeline
 import { type ProviderCandidate } from "./autoCombo/scoring.ts";
 import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
-import { applySessionStickiness, recordStickyBinding } from "./combo/sessionStickiness.ts";
+import {
+  applySessionStickiness,
+  recordStickyBinding,
+  resolveDisableSessionStickiness,
+} from "./combo/sessionStickiness.ts";
 import { selectQuotaShareTarget } from "./combo/quotaShareStrategy.ts";
 import { makeConnectionConcurrencyResolver, lookupPositiveCap } from "./combo/concurrencyCaps.ts";
 import { acquireQuotaShareConcurrencySlot } from "./combo/quotaShareConcurrency.ts";
