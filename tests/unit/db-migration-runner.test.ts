@@ -123,6 +123,56 @@ function buildMockMigrationFiles(startVersion, endVersion, prefix) {
   return files;
 }
 
+test(
+  "fresh replay from the real 001 baseline applies the current migration sequence",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(fs.readFileSync("src/lib/db/migrations/001_initial_schema.sql", "utf8"));
+      db.exec(`
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "001",
+        "initial_schema"
+      );
+
+      const applied = runner.runMigrations(db, { isNewDb: true });
+      assert.ok(applied > 0);
+
+      const columns = new Set(
+        db
+          .prepare("PRAGMA table_info(usage_history)")
+          .all()
+          .map((column) => column.name)
+      );
+      assert.ok(columns.has("account_key"));
+      assert.ok(columns.has("account_label"));
+      assert.ok(columns.has("account_label_priority"));
+
+      const records = db
+        .prepare(
+          "SELECT version, name FROM _omniroute_migrations WHERE version IN ('129', '147', '148') ORDER BY version"
+        )
+        .all();
+      assert.deepEqual(records, [
+        { version: "129", name: "usage_history_codex_strong_identity" },
+        { version: "147", name: "usage_history_account_identity" },
+        { version: "148", name: "auto_candidate_overrides" },
+      ]);
+    } finally {
+      db.close();
+    }
+  }
+);
+
 function withNonTestEnvironment(fn) {
   const originalNodeEnv = process.env.NODE_ENV;
   const originalVitest = process.env.VITEST;
