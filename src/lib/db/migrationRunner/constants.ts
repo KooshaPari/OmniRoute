@@ -69,6 +69,96 @@ export const RENAMED_MIGRATION_COMPATIBILITY = [
     toVersion: "059",
     toName: "manifest_routing",
   },
+  {
+    fromVersion: "113",
+    fromName: "provider_node_icon_url",
+    toVersion: "134",
+    toName: "provider_node_icon_url",
+  },
+  {
+    fromVersion: "114",
+    fromName: "mux_service_seed",
+    toVersion: "135",
+    toName: "mux_service_seed",
+  },
+  {
+    fromVersion: "115",
+    fromName: "bifrost_service",
+    toVersion: "136",
+    toName: "bifrost_service",
+  },
+  {
+    fromVersion: "116",
+    fromName: "call_logs_reasoning_source",
+    toVersion: "137",
+    toName: "call_logs_reasoning_source",
+  },
+  {
+    fromVersion: "117",
+    fromName: "proxy_pool_rotation",
+    toVersion: "138",
+    toName: "proxy_pool_rotation",
+  },
+  {
+    fromVersion: "118",
+    fromName: "provider_param_filters",
+    toVersion: "139",
+    toName: "provider_param_filters",
+  },
+  {
+    fromVersion: "119",
+    fromName: "model_capability_overrides",
+    toVersion: "140",
+    toName: "model_capability_overrides",
+  },
+  {
+    fromVersion: "120",
+    fromName: "interception_rules",
+    toVersion: "141",
+    toName: "interception_rules",
+  },
+  {
+    fromVersion: "122",
+    fromName: "free_proxy_sync_errors",
+    toVersion: "142",
+    toName: "free_proxy_sync_errors",
+  },
+  {
+    fromVersion: "123",
+    fromName: "quota_auto_ping",
+    toVersion: "143",
+    toName: "quota_auto_ping",
+  },
+  {
+    fromVersion: "124",
+    fromName: "generic_session_affinity_ttl",
+    toVersion: "144",
+    toName: "generic_session_affinity_ttl",
+  },
+  {
+    fromVersion: "125",
+    fromName: "provider_connection_quota_visibility",
+    toVersion: "145",
+    toName: "provider_connection_quota_visibility",
+  },
+  {
+    fromVersion: "126",
+    fromName: "reasoning_routing_rules",
+    toVersion: "146",
+    toName: "reasoning_routing_rules",
+  },
+  {
+    fromVersion: "127",
+    fromName: "usage_history_account_identity",
+    toVersion: "147",
+    toName: "usage_history_account_identity",
+  },
+  {
+    fromVersion: "128",
+    fromName: "auto_candidate_overrides",
+    toVersion: "148",
+    toName: "auto_candidate_overrides",
+  },
 ] as const;
 
 export const LEGACY_VERSION_SLOT_MIGRATIONS = [
