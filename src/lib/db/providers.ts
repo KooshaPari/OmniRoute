@@ -25,7 +25,7 @@ import {
   connectionRateLimitConnectionIdSchema,
   connectionRateLimitRetryAfterMsSchema,
 } from "@/shared/validation/schemas/misc";
-import { toStringOrNull } from "./providers/columns";
+import { toRecord, toStringOrNull } from "./providers/columns";
 
 type JsonRecord = Record<string, unknown>;
 
