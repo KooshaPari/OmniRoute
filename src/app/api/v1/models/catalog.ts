@@ -318,60 +318,6 @@ async function getModelCatalogAuthRejection(
   );
 }
 
-function buildAliasMaps() {
-  const aliasToProviderId: Record<string, string> = {};
-  const providerIdToAlias: Record<string, string> = {};
-
-  // Canonical source for ID/alias pairs used across dashboard/provider config.
-  for (const provider of Object.values(AI_PROVIDERS)) {
-    const providerId = provider?.id;
-    const alias = provider?.alias || providerId;
-    if (!providerId) continue;
-    aliasToProviderId[providerId] = providerId;
-    aliasToProviderId[alias] = providerId;
-    if (!providerIdToAlias[providerId]) {
-      providerIdToAlias[providerId] = alias;
-    }
-  }
-
-  for (const [left, right] of Object.entries(PROVIDER_ID_TO_ALIAS)) {
-    // Handle both possible directions:
-    // - providerId -> alias
-    // - alias -> providerId
-    if (PROVIDER_MODELS[left]) {
-      aliasToProviderId[left] = aliasToProviderId[left] || right;
-      continue;
-    }
-    if (PROVIDER_MODELS[right]) {
-      aliasToProviderId[right] = aliasToProviderId[right] || left;
-      continue;
-    }
-    aliasToProviderId[right] = aliasToProviderId[right] || left;
-  }
-
-  for (const alias of Object.keys(PROVIDER_MODELS)) {
-    if (!aliasToProviderId[alias]) {
-      aliasToProviderId[alias] = alias;
-    }
-  }
-
-  for (const [alias, providerId] of Object.entries(aliasToProviderId)) {
-    if (!providerIdToAlias[providerId]) {
-      providerIdToAlias[providerId] = alias;
-    }
-  }
-
-  // Safety net for environments where alias maps are partially loaded during
-  // module initialization/circular imports.
-  for (const [alias, providerId] of Object.entries(FALLBACK_ALIAS_TO_PROVIDER)) {
-    if (!aliasToProviderId[alias]) aliasToProviderId[alias] = providerId;
-    if (!aliasToProviderId[providerId]) aliasToProviderId[providerId] = providerId;
-    if (!providerIdToAlias[providerId]) providerIdToAlias[providerId] = alias;
-  }
-
-  return { aliasToProviderId, providerIdToAlias };
-}
-
 /**
  * Detect the Codex CLI's model-catalog refresh client. Codex sends an `originator` header
  * of `codex_exec` (codex exec) / `codex_cli_rs` (interactive TUI) — see openai/codex
