@@ -34,7 +34,6 @@ import {
   isPaidTierAutoId,
 } from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
 import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
-import { getModelCatalogCacheVersion } from "@/lib/db/readCache";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { getOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
@@ -59,6 +58,7 @@ import {
 } from "@/shared/utils/noAuthProviders";
 import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
 import { extractApiKey } from "@/sse/services/auth";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import type { ComboModelStep } from "@/lib/combos/steps";
 import {
   type CustomModelEntry,
@@ -80,6 +80,18 @@ import {
 import { getVisionCapabilityFields, getCustomVisionCapabilityFields } from "./catalogVision";
 import { FALLBACK_ALIAS_TO_PROVIDER, buildAliasMaps } from "./catalogProviderMaps";
 import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catalogRequest";
+import { CATALOG_CACHE_TTL_MS_DEFAULT, resolveCachedCatalogResponse } from "./catalogCache";
+
+export {
+  CATALOG_STALE_WHILE_REVALIDATE_MS,
+  __resetCatalogBuilderRunsForTest,
+  __getCatalogBuilderRunsForTest,
+  __expireCatalogCacheForTest,
+  __setCatalogCacheEntryForTest,
+  __flushCatalogBackgroundRefreshForTest,
+  __forceCatalogInFlightRejectionForTest,
+} from "./catalogCache";
+export type { CachedCatalog } from "./catalogCache";
 
 interface CustomModelEntry {
   id?: string;
@@ -195,7 +207,11 @@ function getVisionCapabilityFields(modelId: string) {
 export function getCustomVisionCapabilityFields(
   entry: { supportsVision?: boolean } | null | undefined,
   ...candidateIds: Array<string | null | undefined>
-): { capabilities: { vision: true }; input_modalities: string[]; output_modalities: string[] } | null {
+): {
+  capabilities: { vision: true };
+  input_modalities: string[];
+  output_modalities: string[];
+} | null {
   if (entry && entry.supportsVision === false) return null;
   if (entry && entry.supportsVision === true) {
     return {
@@ -399,48 +415,19 @@ export async function getUnifiedModelsResponse(
     // Fall through to full builder on auth-check failure; core handles errors.
   }
 
-  dropCatalogCacheIfStateChanged();
-  const cacheKey = buildCatalogCacheKey(request);
-  const cached = catalogCache.get(cacheKey);
-  if (cached && cached.expiresAt > Date.now()) {
-    return new Response(cached.body, {
-      status: cached.status,
-      headers: mergeCatalogHeaders(corsHeaders, cached.headers, diagnosticHeaders),
-    });
-  }
-
-  let inflight = catalogInFlight.get(cacheKey);
-  if (!inflight) {
-    inflight = buildCatalogPayload(request).then((payload) => {
-      catalogCache.set(cacheKey, {
-        body: payload.body,
-        headers: payload.headers,
-        status: payload.status,
-        expiresAt: Date.now() + CATALOG_CACHE_TTL_MS,
-      });
-      return payload;
-    });
-    catalogInFlight.set(cacheKey, inflight);
-    inflight.finally(() => {
-      if (catalogInFlight.get(cacheKey) === inflight) catalogInFlight.delete(cacheKey);
-    });
-  }
-
   try {
-    const payload = await inflight;
-    return new Response(payload.body, {
-      status: payload.status,
-      headers: mergeCatalogHeaders(corsHeaders, payload.headers, diagnosticHeaders),
-    });
+    return await resolveCachedCatalogResponse(
+      request,
+      { corsHeaders, diagnosticHeaders },
+      buildCatalogPayload
+    );
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
     return Response.json(
-      {
-        error: {
-          message: err instanceof Error ? err.message : String(err),
-          type: "server_error",
-          code: INTERNAL_PROXY_ERROR,
-        },
-      },
+      buildErrorBody(500, message, undefined, {
+        type: "server_error",
+        code: INTERNAL_PROXY_ERROR,
+      }),
       { status: 500, headers: { ...corsHeaders, ...diagnosticHeaders } }
     );
   }
@@ -448,21 +435,21 @@ export async function getUnifiedModelsResponse(
 
 async function buildCatalogPayload(
   request: Request
-): Promise<{ body: string; headers: Record<string, string>; status: number }> {
-  _catalogBuilderRuns++;
+): Promise<{ body: string; headers: Record<string, string>; status: number; cacheTTL: number }> {
   const built = await buildUnifiedModelsResponseCore(request);
   const body = await built.text();
   const headers: Record<string, string> = {};
   built.headers.forEach((value, key) => {
     headers[key] = value;
   });
-  // buildUnifiedModelsResponseCore() itself returns a real error Response (status 500)
-  // when the builder crashes (e.g. a DB read throws) instead of throwing — status must
-  // be captured and replayed through the cache/coalescing wrapper above, otherwise the
-  // caller-facing Response (built with a fresh `new Response(...)`, defaulting to 200)
-  // silently downgrades a genuine server error into an HTTP 200 with an `error`-shaped
-  // JSON body.
-  return { body, headers, status: built.status };
+  let cacheTTL = CATALOG_CACHE_TTL_MS_DEFAULT;
+  try {
+    const dbSettings = await getDatabaseSettings();
+    cacheTTL = dbSettings.cache?.modelCatalogCacheTtlMs ?? CATALOG_CACHE_TTL_MS_DEFAULT;
+  } catch {
+    // Use the default when the settings read is unavailable.
+  }
+  return { body, headers, status: built.status, cacheTTL };
 }
 
 /**
