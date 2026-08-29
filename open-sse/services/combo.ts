@@ -999,6 +999,9 @@ export async function handleComboChat({
   // 16 strategies (priority, weighted, etc.) that funnel through executeTarget.
   const quotaCutoffResetWindowConfig = resolveResetWindowConfig(config as Record<string, unknown>);
 
+  // QA P0 diagnostics: record the order targets are actually attempted across set retries.
+  const comboAttemptOrder: Array<{ provider: string; model: string }> = [];
+
   if (orderedTargets.length === 0) {
     // Surface a recovery hint + auto-clear the session pin after enough consecutive
     // no-target failures (silent-stop fix). Threshold of 3 prevents a one-off account
