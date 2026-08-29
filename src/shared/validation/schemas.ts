@@ -14,6 +14,7 @@ import {
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 import { validateProviderSpecificData } from "@/shared/validation/providerSpecificData";
+import { selfHealingSettingsSchema } from "./selfHealingSchema";
 
 export * from "./schemas/auth";
 export * from "./schemas/combo";
