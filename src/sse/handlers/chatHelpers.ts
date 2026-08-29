@@ -461,9 +461,19 @@ export async function executeChatWithBreaker({
                 "AUTH",
                 `A3 guard: skipping markAccountUnavailable for 401 with extra keys on ${credentials.connectionId.slice(0, 8)}`
               );
-            },
-          })
-        )
+              return;
+            }
+            await markAccountUnavailable(
+              credentials.connectionId,
+              Number(failure?.status || HTTP_STATUS.BAD_GATEWAY),
+              String(failure?.message || failure?.code || "stream failure"),
+              provider,
+              model,
+              providerProfile,
+              { isCombo }
+            );
+          },
+        })
       );
 
     if (isShadowTraffic) {
@@ -680,7 +690,10 @@ export async function safeResolveProxy(
     // is dead/inactive must fail closed — egressing on the real IP leaks it. Reuse
     // the existing proxy-resolution-failure policy (blocks by default; PROXY_FAIL_OPEN
     // opts back into direct). Explicit "proxy off" is not a leak (see the guard).
-    if (!(resolved as { proxy?: unknown } | null)?.proxy && hasBlockingProxyAssignment(connectionId)) {
+    if (
+      !(resolved as { proxy?: unknown } | null)?.proxy &&
+      hasBlockingProxyAssignment(connectionId)
+    ) {
       return decideProxyResolutionFailure(
         Object.assign(
           new Error(
