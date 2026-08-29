@@ -88,6 +88,22 @@ describe("DashScope OpenAI-compat cache_control preservation (#2069)", () => {
     assert.equal(untagged?.cache_control, undefined);
   });
 
+  test("connection openai-format override preserves markers for a custom provider", () => {
+    const out = translateRequest(
+      "claude",
+      "openai",
+      "custom/model",
+      buildClaudeBody(),
+      false,
+      { providerSpecificData: { cache: { cacheControlPassthrough: "openai-format" } } },
+      "custom-openai-compatible",
+      null,
+      { preserveCacheControl: true }
+    ) as { messages: Array<Record<string, unknown>> };
+
+    assert.equal(hasCacheControl(out.messages), true);
+  });
+
   test("preserveCacheControl=false strips cache_control (OmniRoute manages caching)", () => {
     const out = translateRequest(
       "claude",

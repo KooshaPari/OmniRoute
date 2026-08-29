@@ -282,7 +282,7 @@ export function translateRequest(
           // stripped.
           const preserveCacheControl =
             options?.preserveCacheControl === true &&
-            providerHonorsOpenAIFormatCacheControl(provider);
+            providerHonorsOpenAIFormatCacheControl(provider, connectionCacheOverride);
           const step1Credentials =
             options?.copilotClient || hasTargetHint || preserveCacheControl
               ? {
@@ -349,7 +349,8 @@ export function translateRequest(
     // requested upstream; generic/implicit-cache OpenAI providers stay stripped.
     result = filterToOpenAIFormat(result, {
       preserveCacheControl:
-        options?.preserveCacheControl === true && providerHonorsOpenAIFormatCacheControl(provider),
+        options?.preserveCacheControl === true &&
+        providerHonorsOpenAIFormatCacheControl(provider, connectionCacheOverride),
       // #4849 regression guard: keep client reasoning_content for replay providers.
       preserveReasoningContent: isReasoner,
     });
