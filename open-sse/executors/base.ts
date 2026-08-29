@@ -1,10 +1,12 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
+import { CLAUDE_CODE_CLIENT_BILLING_VERSION as CLAUDE_CLI_BILLING_VERSION } from "@/shared/constants/claudeCodeClient";
 import {
   resolveAlternateFormat,
   type AlternateFormat,
 } from "../config/providers/alternateFormats.ts";
 import {
+  CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
   mergeClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
 } from "../config/anthropicHeaders.ts";
@@ -85,6 +87,11 @@ import {
   stripProxyToolPrefix,
 } from "./claudeIdentity.ts";
 import { withForcedResponsesUpstream } from "./forceResponsesUpstream.ts";
+import { applyPeerTraceHeader } from "@/shared/resilience/peerRouting";
+import { applyClineProtocolHeaders } from "@/shared/utils/clineAuth";
+import { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
+
+export { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
