@@ -45,6 +45,7 @@ import {
 } from "@/lib/modelMetadataRegistry";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { getModelSpec } from "@/shared/constants/modelSpecs";
+import { isVisionModelId } from "@/shared/constants/visionModels";
 import {
   isModelCatalogNamesEnabled,
   getModelsCatalogPrefixMode,
@@ -78,7 +79,13 @@ import {
   getOpenRouterDisplayName,
 } from "./catalogOpenrouter";
 import { getVisionCapabilityFields, getCustomVisionCapabilityFields } from "./catalogVision";
-import { FALLBACK_ALIAS_TO_PROVIDER, buildAliasMaps } from "./catalogProviderMaps";
+import {
+  buildAliasMaps,
+  prefixRoutesToProvider,
+  resolveCanonicalProviderId as resolveCanonicalProviderIdFromMaps,
+  getProviderPrefixes as getProviderPrefixesFromMaps,
+  getComboTargetModelId as getComboTargetModelIdFromMaps,
+} from "./catalogProviderMaps";
 import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catalogRequest";
 import { CATALOG_CACHE_TTL_MS_DEFAULT, resolveCachedCatalogResponse } from "./catalogCache";
 
