@@ -9,6 +9,7 @@ import {
   containsTextualToolCallMarker,
 } from "../../utils/textualToolCall.ts";
 import { normalizeOpenAICompatibleFinishReasonString } from "../../utils/finishReason.ts";
+import { stripAnsiCodes } from "../../utils/streamHelpers.ts";
 
 type GeminiToOpenAIState = {
   functionIndex: number;
