@@ -19,6 +19,7 @@ import {
 import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
 import { filterPaidOnlyCandidates } from "./paidModelFilter";
+import { SYNTHETIC_NOAUTH_CONNECTION_ID as RESILIENCE_NOAUTH_CONNECTION_ID } from "./resilienceCandidateFilter";
 
 /** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos.
  * #6453: optional `family` overlay for `auto/<family>` combos (e.g. `auto/glm`) —
@@ -396,7 +397,10 @@ export async function createVirtualAutoCombo(
   // `/v1/models` listing — so auto-routing never picks a model that will 402/403.
   // If this empties the pool the existing graceful empty-pool path below handles it
   // (consistent with the opt-in intent). Default OFF → pool unchanged.
-  const paidFilteredPool = filterPaidOnlyCandidates(candidatePool, settings.hidePaidModels === true);
+  const paidFilteredPool = filterPaidOnlyCandidates(
+    candidatePool,
+    settings.hidePaidModels === true
+  );
   if (paidFilteredPool !== candidatePool) {
     candidatePool.length = 0;
     candidatePool.push(...paidFilteredPool);
