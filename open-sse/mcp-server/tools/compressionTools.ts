@@ -252,6 +252,7 @@ import {
 import {
   MAX_CCR_MCP_FULL_BYTES,
   buildCcrReference,
+  deleteCcrBlock,
   getCcrStoreStats,
   handleCcrRetrieve,
   inspectCcrBlock,
@@ -415,6 +416,17 @@ export async function handleCcrListTool(
     })),
   };
   await logToolCall("omniroute_ccr_list", args, output, Date.now() - start, true);
+  return output;
+}
+
+export async function handleCcrDeleteTool(
+  args: z.infer<typeof ccrDeleteInput>,
+  extra?: McpToolExtraLike
+) {
+  const start = Date.now();
+  const principal = await resolveCcrPrincipal(extra, ["write:compression"]);
+  const output = { deleted: deleteCcrBlock(args.hash, principal) };
+  await logToolCall("omniroute_ccr_delete", args, output, Date.now() - start, true);
   return output;
 }
 
