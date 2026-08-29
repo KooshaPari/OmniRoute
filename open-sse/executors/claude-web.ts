@@ -20,6 +20,7 @@ import {
   transformToClaude,
   transformFromClaude,
 } from "./claude-web/payload.ts";
+import { sendClaudeWebDirect } from "./claude-web/transport.ts";
 
 const CLAUDE_WEB_API_BASE = "https://claude.ai/api";
 const CLAUDE_WEB_ORGS_URL = `${CLAUDE_WEB_API_BASE}/organizations`;
