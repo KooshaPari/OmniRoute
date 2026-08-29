@@ -249,7 +249,11 @@ import {
   ccrDeleteInput,
   ccrStatsInput,
 } from "../schemas/tools.ts";
-import { handleCcrRetrieve } from "../../services/compression/engines/ccr/index.ts";
+import {
+  buildCcrReference,
+  handleCcrRetrieve,
+  tryStoreBlock,
+} from "../../services/compression/engines/ccr/index.ts";
 import {
   listRtkCommandSamples,
   discoverRepeatedNoise,
@@ -258,6 +262,57 @@ import {
 } from "../../services/compression/engines/rtk/index.ts";
 import { resolveCallerScopeContext } from "../scopeEnforcement.ts";
 import { resolveMcpCallerApiKeyId } from "../mcpCallerIdentity.ts";
+
+async function resolveCcrPrincipal(
+  extra: McpToolExtraLike | undefined,
+  scopes: readonly string[]
+): Promise<string | undefined> {
+  const apiKeyPrincipal = await resolveMcpCallerApiKeyId();
+  if (apiKeyPrincipal) return apiKeyPrincipal;
+  const { callerId } = resolveCallerScopeContext(extra, scopes);
+  return callerId === "anonymous" ? undefined : callerId;
+}
+
+export function buildCcrStoreAuditInput(args: z.infer<typeof ccrStoreInput>) {
+  return {
+    bytes: Buffer.byteLength(args.content, "utf8"),
+    contentType: args.contentType,
+    ttlSeconds: args.ttlSeconds,
+  };
+}
+
+export async function handleCcrStoreTool(
+  args: z.infer<typeof ccrStoreInput>,
+  extra?: McpToolExtraLike
+) {
+  const start = Date.now();
+  const principal = await resolveCcrPrincipal(extra, ["write:compression"]);
+  const result = tryStoreBlock(args.content, principal, {
+    contentType: args.contentType,
+    source: "mcp",
+    ttlSeconds: args.ttlSeconds,
+  });
+  const auditInput = buildCcrStoreAuditInput(args);
+  if (!result.stored) {
+    const output = { stored: false as const, reason: result.reason };
+    await logToolCall(
+      "omniroute_ccr_store",
+      auditInput,
+      output,
+      Date.now() - start,
+      false,
+      result.reason
+    );
+    return output;
+  }
+  const output = {
+    stored: true as const,
+    reference: buildCcrReference(result.hash, result.metadata.chars),
+    metadata: result.metadata,
+  };
+  await logToolCall("omniroute_ccr_store", auditInput, output, Date.now() - start, true);
+  return output;
+}
 
 const ccrRetrieveInput = z.object({
   hash: z
