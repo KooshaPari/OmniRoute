@@ -1064,8 +1064,6 @@ export function createMcpServer(): McpServer {
     )
   );
 
-  server.registerTool("omniroute_pick_fastest_model", { description: "Picks the fastest reliable provider-model pair from live telemetry.", inputSchema: pickFastestModelInput }, withScopeEnforcement("omniroute_pick_fastest_model", (args) => handlePickFastestModel(pickFastestModelInput.parse(args))));
-
   server.registerTool(
     "omniroute_pick_fastest_model",
     {
