@@ -20,6 +20,12 @@ import {
   transformToClaude,
   transformFromClaude,
 } from "./claude-web/payload.ts";
+import {
+  applyClaudeWebBrowserTemplate,
+  sendClaudeWebBrowser,
+  type ClaudeWebTransportRequest,
+  type ClaudeWebTransportResult,
+} from "./claude-web/browserTransport.ts";
 import { sendClaudeWebDirect } from "./claude-web/transport.ts";
 
 const CLAUDE_WEB_API_BASE = "https://claude.ai/api";
