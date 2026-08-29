@@ -58,6 +58,7 @@ import {
   getUnsupportedReasoningValue,
   hasUnsupportedReasoningSignal,
 } from "./reasoningFields.ts";
+import { applyThinkTag, flushThink, initThinkState } from "./thinkTagParser.ts";
 
 /**
  * Race a response body read against a timeout.
