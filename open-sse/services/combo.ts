@@ -95,6 +95,7 @@ import {
   MAX_RR_COUNTERS,
   rrCounters,
   rrStickyTargets,
+  weightedStickyTargets,
   clampStickyRoundRobinTargetLimit,
   clampStickyWeightedTargetLimit,
   getStickyRoundRobinStartIndex,
