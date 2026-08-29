@@ -36,6 +36,7 @@ import { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-ref
 import { AdaptaWebExecutor } from "./adapta-web.ts";
 import { CopilotWebExecutor } from "./copilot-web.ts";
 import { CopilotM365WebExecutor } from "./copilot-m365-web.ts";
+import { MicrosoftDesignerWebExecutor } from "./microsoft-designer-web.ts";
 import { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
 import { DuckDuckGoWebExecutor } from "./duckduckgo-web.ts";
 import { FeloWebExecutor } from "./felo-web.ts";
