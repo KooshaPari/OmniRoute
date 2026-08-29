@@ -1402,7 +1402,8 @@ export async function handleChatCore({
         // that selectCompressionStrategy can only partially apply via the mode string.
         const cacheCtx = { provider, targetFormat, model: effectiveModel };
         const compressionConfig = resolveCacheAwareConfig(config, compressionInputBody, cacheCtx);
-        const result = await applyCompressionAsync(compressionInputBody, mode, {
+        const compressionPrincipalId = apiKeyInfo?.id ? String(apiKeyInfo.id) : undefined;
+        const compressionOptions = {
           model: effectiveModel,
           // #7237: feed the AUTHORITATIVE capability (model spec / models.dev sync / DB
           // override, with the conservative model-id fragment heuristic only as its
