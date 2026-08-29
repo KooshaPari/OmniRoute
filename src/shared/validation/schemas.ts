@@ -15,6 +15,7 @@ import {
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 import { validateProviderSpecificData } from "@/shared/validation/providerSpecificData";
 import { selfHealingSettingsSchema } from "./selfHealingSchema";
+import { MAX_PROVIDER_CREDENTIAL_LENGTH } from "./schemas/provider";
 
 export * from "./schemas/auth";
 export * from "./schemas/combo";
@@ -40,7 +41,7 @@ export { oauthPasteCredentialsSchema } from "./schemas/auth";
 export const createProviderSchema = z
   .object({
     provider: z.string().min(1).max(100),
-    apiKey: z.string().max(10000).optional(),
+    apiKey: z.string().max(MAX_PROVIDER_CREDENTIAL_LENGTH).optional(),
     name: z.string().min(1).max(200),
     priority: z.number().int().min(1).max(100).optional(),
     globalPriority: z.number().int().min(1).max(100).nullable().optional(),
@@ -87,7 +88,7 @@ export const bulkCreateProviderSchema = z
       .array(
         z.object({
           name: z.string().min(1).max(200),
-          apiKey: z.string().min(1).max(10000),
+          apiKey: z.string().min(1).max(MAX_PROVIDER_CREDENTIAL_LENGTH),
         })
       )
       .min(1, "entries must contain at least 1 item")
@@ -1814,7 +1815,7 @@ export const updateProviderConnectionSchema = z
     globalPriority: z.union([z.coerce.number().int().min(1).max(100), z.null()]).optional(),
     defaultModel: z.union([z.string().max(200), z.null()]).optional(),
     isActive: z.boolean().optional(),
-    apiKey: z.string().max(10000).optional(),
+    apiKey: z.string().max(MAX_PROVIDER_CREDENTIAL_LENGTH).optional(),
     testStatus: z.string().max(50).optional(),
     lastError: z.union([z.string(), z.null()]).optional(),
     lastErrorAt: z.union([z.string(), z.null()]).optional(),
