@@ -14,6 +14,7 @@ import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { randomUUID } from "crypto";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import { tryBackedChat } from "../services/browserBackedChat.ts";
+import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "./base.ts";
 import {
   type ClaudeWebRequestPayload,
   transformToClaude,
