@@ -1175,6 +1175,108 @@ jobs:
       - run: npm run check:node-runtime
       - run: npm run test:security
 
+  # Stable branch-protection compatibility gates. Keep their visible names in
+  # sync with main's strict required-status contexts.
+  protected-lint:
+    name: ci / lint
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [lint]
+    steps:
+      - name: Require lint success
+        env:
+          LINT_RESULT: ${{ needs.lint.result }}
+        run: |
+          set -euo pipefail
+          case "$LINT_RESULT" in
+            success)
+              echo "Lint passed."
+              ;;
+            skipped)
+              echo "Lint was intentionally skipped by its existing condition."
+              ;;
+            *)
+              echo "::error::Lint did not pass: $LINT_RESULT"
+              exit 1
+              ;;
+          esac
+
+  protected-test:
+    name: ci / test
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs:
+      - changes
+      - test-unit
+      - test-vitest
+      - node-24-compat
+      - node-26-compat-build
+      - node-26-compat
+      - test-coverage-shard
+      - test-coverage
+      - test-e2e
+      - test-integration
+      - test-security
+    steps:
+      - name: Require selected test gates
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          CODE_CHANGED: ${{ needs.changes.outputs.code }}
+          IS_DRAFT: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft }}
+        run: |
+          set -euo pipefail
+          case "$CHANGES_RESULT" in
+            success)
+              ;;
+            *)
+              echo "::error::Change classification did not pass: $CHANGES_RESULT"
+              exit 1
+              ;;
+          esac
+
+          case "$CODE_CHANGED" in
+            true | false)
+              ;;
+            *)
+              echo "::error::Unexpected code-change classification: $CODE_CHANGED"
+              exit 1
+              ;;
+          esac
+
+          failed=0
+          for result in \
+            "test-unit:${{ needs.test-unit.result }}" \
+            "test-vitest:${{ needs.test-vitest.result }}" \
+            "node-24-compat:${{ needs.node-24-compat.result }}" \
+            "node-26-compat-build:${{ needs.node-26-compat-build.result }}" \
+            "node-26-compat:${{ needs.node-26-compat.result }}" \
+            "test-coverage-shard:${{ needs.test-coverage-shard.result }}" \
+            "test-coverage:${{ needs.test-coverage.result }}" \
+            "test-e2e:${{ needs.test-e2e.result }}" \
+            "test-integration:${{ needs.test-integration.result }}" \
+            "test-security:${{ needs.test-security.result }}"; do
+            name="${result%%:*}"
+            status="${result#*:}"
+            case "$status" in
+              success)
+                echo "$name: passed"
+                ;;
+              skipped)
+                if [ "$CODE_CHANGED" = "false" ] || [ "$IS_DRAFT" = "true" ]; then
+                  echo "$name: intentionally skipped"
+                else
+                  echo "::error::$name was skipped for a code-changing ready PR"
+                  failed=$((failed + 1))
+                fi
+                ;;
+              *)
+                echo "::error::$name did not pass: $status"
+                failed=$((failed + 1))
+                ;;
+            esac
+          done
+          test "$failed" -eq 0
+
   ci-summary:
     name: CI Dashboard
     runs-on: ubuntu-latest
