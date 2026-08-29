@@ -36,6 +36,7 @@ import {
   SKIP_UNIVERSAL_HANDOFF_FLAG,
   type MessageLike,
 } from "./contextHandoff.ts";
+import { recordComboFailure } from "./combo/failureTracker.ts";
 import {
   recordSessionModelUsage,
   getLastSessionModel,
