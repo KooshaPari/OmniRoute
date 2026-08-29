@@ -106,6 +106,7 @@ import {
 import {
   validateResponseQuality,
   releaseQualityClone,
+  releaseRejectedQualityResponse,
   toRetryAfterDisplayValue,
 } from "./combo/validateQuality.ts";
 import { resolveComboCooldownWaitDecision } from "./combo/comboCooldownRetry.ts";
@@ -1447,12 +1448,19 @@ export async function handleComboChat({
               undefined;
             const effectiveConnectionId = selectedConnectionId || target.connectionId || "";
 
+            let qualityClone: Response;
+            try {
+              qualityClone = result.clone();
+            } catch {
+              qualityClone = result;
+            }
             const quality = await validateResponseQuality(
-              result,
+              qualityClone,
               clientRequestedStream,
               log,
               config.responseValidation
             );
+            releaseQualityClone(qualityClone, result, quality);
             if (!quality.valid) {
               releaseRejectedQualityResponse(qualityClone, result);
               log.warn(
@@ -2777,12 +2785,19 @@ async function handleRoundRobinCombo({
 
         // Success — validate response quality before returning
         if (result.ok) {
+          let rrClone: Response;
+          try {
+            rrClone = result.clone();
+          } catch {
+            rrClone = result;
+          }
           const quality = await validateResponseQuality(
-            result,
+            rrClone,
             clientRequestedStream,
             log,
             config.responseValidation
           );
+          releaseQualityClone(rrClone, result, quality);
           if (!quality.valid) {
             releaseRejectedQualityResponse(rrClone, result);
             log.warn(
