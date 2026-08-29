@@ -18,6 +18,7 @@ import {
 } from "./suffixComposition";
 import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
+import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import { filterPaidOnlyCandidates } from "./paidModelFilter";
 import { SYNTHETIC_NOAUTH_CONNECTION_ID as RESILIENCE_NOAUTH_CONNECTION_ID } from "./resilienceCandidateFilter";
 
