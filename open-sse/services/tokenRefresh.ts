@@ -29,6 +29,7 @@ import {
 import { persistDiscoveredAntigravityProjectId } from "./antigravityProjectPersist.ts";
 
 export { extractOAuthErrorCode, isUnrecoverableRefreshError };
+export { refreshWithRetry } from "./tokenRefresh/circuitBreaker.ts";
 
 // Default token expiry buffer (refresh if expires within 5 minutes).
 // Used as fallback for providers without an explicit lead time in
