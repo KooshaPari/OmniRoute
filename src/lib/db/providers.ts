@@ -20,6 +20,7 @@ import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
+import { pickCodexConnectionForUser } from "@/lib/oauth/utils/codexConnectionSelection";
 import { reconcileCodexUsageHistory } from "./providers/usageIdentityReconciliation";
 import { setConnectionRateLimitUntil } from "./providers/rateLimit";
 import {
