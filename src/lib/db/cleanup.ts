@@ -8,6 +8,7 @@ import { getDbInstance } from "./core";
 import { getUserDatabaseSettings } from "./databaseSettings";
 import { rollupUsageHistoryBeforeDate } from "@/lib/usage/aggregateHistory";
 import { purgeCallLogArtifactDirectory } from "@/lib/usage/callLogArtifacts";
+import { createLogger } from "@/shared/utils/logger";
 import {
   collectCallLogArtifactsBefore,
   deleteAllFromTable,
@@ -15,6 +16,8 @@ import {
   deleteFromTableBefore,
   type DeleteByPeriodTarget,
 } from "./cleanup/usagePurge";
+
+const log = createLogger("db:cleanup");
 
 interface CleanupResult {
   deleted: number;
