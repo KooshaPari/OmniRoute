@@ -36,6 +36,7 @@ import {
   resolveAntigravityCliVersion,
   resolveAntigravityIdeVersion,
 } from "@omniroute/open-sse/services/antigravityVersion.ts";
+import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
 import { fetchGitHubCopilotModels } from "@omniroute/open-sse/services/githubCopilotModels.ts";
 import { fetchKiroAvailableModels } from "@omniroute/open-sse/services/kiroModels.ts";
