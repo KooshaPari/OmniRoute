@@ -103,6 +103,7 @@ import type {
   HandleComboChatOptions,
   HandleRoundRobinOptions,
   ResolvedComboTarget,
+  ComboRuntimeStep,
   AutoProviderCandidate,
   HistoricalLatencyStatsEntry,
 } from "./combo/types.ts";
