@@ -6,6 +6,7 @@ import {
   isSelfHostedChatProvider,
   NOAUTH_PROVIDERS,
 } from "@/shared/constants/providers";
+import { normalizeAntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { getStaticModelsForProvider } from "@/lib/providers/staticModels";
