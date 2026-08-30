@@ -62,6 +62,7 @@ import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { parseModel } from "./model.ts";
 import { createComboContext } from "./combo/context.ts";
 import { phaseComboSetup } from "./combo/comboSetup.ts";
+import { expandPromptCacheAffinityTargetsFromConnections } from "./combo/promptCacheAffinity.ts";
 import { checkCredentialGate, logCredentialSkip } from "./credentialGate.ts";
 import { emit } from "../../src/lib/events/eventBus";
 import { notifyWebhookEvent } from "../../src/lib/webhookDispatcher";
