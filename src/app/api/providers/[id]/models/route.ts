@@ -107,6 +107,7 @@ import {
 import { getSyncedAvailableModels, getCustomModels } from "@/lib/db/models";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
 import { buildStaleEncryptionKeyResponse } from "./staleEncryptionGuard";
+import { mergeSpecialtyCatalogIntoLiveModels } from "./discovery/helpers";
 
 type JsonRecord = Record<string, unknown>;
 const antigravityDiscoveryInflight = new Map<
