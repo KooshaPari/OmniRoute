@@ -112,10 +112,7 @@ export function applyComboTargetExhaustion(
       `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
     );
   } else {
-    if (result.status === 429 && !isTokenLimitBreach && provider && provider !== "unknown") {
-      transientRateLimitedProviders.add(provider);
-    }
-    markConnectionLevelExhaustion(target, { result, errorText, sets, log, tag, rawModel });
+    markTransientOrConnectionLevel(target, opts);
   }
 
   return providerExhausted;
