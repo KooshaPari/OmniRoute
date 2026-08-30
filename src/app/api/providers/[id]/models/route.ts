@@ -31,7 +31,10 @@ import {
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
-import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
+import {
+  getAntigravityFetchAvailableModelsUrls,
+  getAntigravityModelsDiscoveryUrls,
+} from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import {
   resolveAntigravityCliVersion,
   resolveAntigravityIdeVersion,
