@@ -277,34 +277,6 @@ function getBootstrapLatencyMs(modelId: string): number {
   return DEFAULT_MODEL_P95_MS[normalized] ?? 1500;
 }
 
-function clampPercent(value: number): number {
-  if (!Number.isFinite(value)) return 100;
-  return Math.max(0, Math.min(100, value));
-}
-
-function quotaRemainingPercentFromQuota(quota: unknown): number {
-  if (!quota || typeof quota !== "object") return 100;
-  const record = quota as Record<string, unknown>;
-  if (record.limitReached === true) return 0;
-
-  const windows = record.windows;
-  if (windows && typeof windows === "object" && !Array.isArray(windows)) {
-    let minRemaining: number | null = null;
-    for (const windowInfo of Object.values(windows as Record<string, unknown>)) {
-      if (!windowInfo || typeof windowInfo !== "object") continue;
-      const percentUsed = Number((windowInfo as Record<string, unknown>).percentUsed);
-      if (!Number.isFinite(percentUsed)) continue;
-      const remaining = clampPercent((1 - percentUsed) * 100);
-      minRemaining = minRemaining === null ? remaining : Math.min(minRemaining, remaining);
-    }
-    if (minRemaining !== null) return minRemaining;
-  }
-
-  const percentUsed = Number(record.percentUsed);
-  if (Number.isFinite(percentUsed)) return clampPercent((1 - percentUsed) * 100);
-  return 100;
-}
-
 export async function buildAutoCandidates(
   targets: ResolvedComboTarget[],
   comboName: string,
