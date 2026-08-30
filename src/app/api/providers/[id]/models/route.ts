@@ -27,6 +27,7 @@ import {
 } from "@/shared/network/outboundUrlGuardPolicy";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
+import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
 import { fetchGitHubCopilotModels } from "@omniroute/open-sse/services/githubCopilotModels.ts";
@@ -313,7 +314,7 @@ async function fetchAntigravityDiscoveryModelsCached(
           guard: getProviderOutboundGuard(),
           proxyConfig: proxy,
           method: "POST",
-          headers: getAntigravityHeaders("models", accessToken),
+          headers: getAntigravityContentHeaders(profile, accessToken),
           body: JSON.stringify({}),
         });
 
@@ -492,7 +493,7 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
   antigravity: {
     url: getAntigravityModelsDiscoveryUrls()[0],
     method: "POST",
-    headers: getAntigravityHeaders("models"),
+    headers: getAntigravityContentHeaders("ide"),
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     body: {},
