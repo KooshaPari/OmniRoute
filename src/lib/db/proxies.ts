@@ -31,6 +31,7 @@ import {
   coerceProxyPayload,
   redactProxySecrets,
 } from "./proxies/mappers";
+import { isGlobalProxyEnabled } from "./proxies/guards";
 export { extractRelayAuth, redactProxySecrets } from "./proxies/mappers";
 
 let proxyRegistryGeneration = 0;
