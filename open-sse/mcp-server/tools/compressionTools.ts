@@ -319,23 +319,6 @@ export async function handleCcrStoreTool(
   return output;
 }
 
-const ccrRetrieveInput = z.object({
-  hash: z
-    .string()
-    .min(6)
-    .max(64)
-    .describe("24-hex content hash from a [CCR retrieve hash=<hash>] marker"),
-  mode: z
-    .enum(["full", "head", "tail", "lines", "grep", "stats"])
-    .optional()
-    .describe("Retrieval mode: full (default) | head | tail | lines | grep | stats"),
-  n: z.number().int().positive().max(10000).optional().describe("head/tail: number of lines"),
-  start: z.number().int().positive().optional().describe("lines: 1-indexed inclusive start"),
-  end: z.number().int().positive().optional().describe("lines: 1-indexed inclusive end"),
-  pattern: z.string().max(512).optional().describe("grep: regex (validated safe; ReDoS-rejected)"),
-  unique: z.boolean().optional().describe("grep: dedupe matching lines"),
-});
-
 export async function handleCcrRetrieveTool(
   args: z.infer<typeof ccrRetrieveInput>,
   extra?: McpToolExtraLike
