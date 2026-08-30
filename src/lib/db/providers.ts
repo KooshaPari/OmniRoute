@@ -728,53 +728,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       updated_at = @updatedAt
     WHERE id = @id
   `
-  ).run({
-    id,
-    provider: data.provider,
-    authType: data.authType || null,
-    name: data.name || null,
-    email: data.email || null,
-    priority: data.priority || 0,
-    isActive: data.isActive === false ? 0 : 1,
-    accessToken: data.accessToken || null,
-    refreshToken: data.refreshToken || null,
-    expiresAt: data.expiresAt || null,
-    tokenExpiresAt: data.tokenExpiresAt || null,
-    scope: data.scope || null,
-    projectId: data.projectId || null,
-    testStatus: data.testStatus || null,
-    errorCode: data.errorCode || null,
-    lastError: data.lastError || null,
-    lastErrorAt: data.lastErrorAt || null,
-    lastErrorType: data.lastErrorType || null,
-    lastErrorSource: data.lastErrorSource || null,
-    backoffLevel: data.backoffLevel || 0,
-    rateLimitedUntil: data.rateLimitedUntil || null,
-    healthCheckInterval: data.healthCheckInterval ?? null,
-    lastHealthCheckAt: data.lastHealthCheckAt || null,
-    lastTested: data.lastTested || null,
-    apiKey: data.apiKey || null,
-    idToken: data.idToken || null,
-    providerSpecificData: data.providerSpecificData
-      ? JSON.stringify(data.providerSpecificData)
-      : null,
-    expiresIn: data.expiresIn || null,
-    displayName: data.displayName || null,
-    globalPriority: data.globalPriority || null,
-    defaultModel: data.defaultModel || null,
-    tokenType: data.tokenType || null,
-    consecutiveUseCount: data.consecutiveUseCount || 0,
-    rateLimitProtection:
-      data.rateLimitProtection === true || data.rateLimitProtection === 1 ? 1 : 0,
-    lastUsedAt: data.lastUsedAt || null,
-    group: data.group || null,
-    maxConcurrent: data.maxConcurrent ?? null,
-    quotaWindowThresholdsJson: serializeJsonField(data.quotaWindowThresholds),
-    proxyEnabled: normalizeBooleanColumn(data.proxyEnabled, true) ? 1 : 0,
-    perKeyProxyEnabled: normalizeBooleanColumn(data.perKeyProxyEnabled, false) ? 1 : 0,
-    rateLimitOverridesJson: serializeJsonField(data.rateLimitOverrides),
-    updatedAt: now,
-  });
+  ).run(_buildUpdateConnectionRowParams(id, data, now));
 }
 
 export async function updateProviderConnection(id: string, data: JsonRecord) {
