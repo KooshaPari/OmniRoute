@@ -101,8 +101,11 @@ export const PROVIDER_CONNECTIONS_COLUMNS = new Set([
   "max_concurrent",
   "proxy_enabled",
   "per_key_proxy_enabled",
+  "quota_visible",
   "quota_window_thresholds_json",
   "rate_limit_overrides_json",
+  "last_ping_at",
+  "last_pinged_reset_key",
   "created_at",
   "updated_at",
 ]);
