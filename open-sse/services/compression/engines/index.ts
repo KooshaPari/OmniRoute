@@ -6,6 +6,7 @@ import { headroomEngine } from "./headroom/index.ts";
 import { ccrEngine } from "./ccr/index.ts";
 import { llmlinguaEngine } from "./llmlingua/index.ts";
 import { ionizerEngine } from "./ionizer/index.ts";
+import { codexResponsesEngine } from "./codexResponses/index.ts";
 
 let registered = false;
 
