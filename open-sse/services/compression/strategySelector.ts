@@ -661,6 +661,8 @@ interface StackOptions {
   compressionComboId?: string | null;
   /** TV1 bail-out discipline (opt-in, default disabled). */
   bailout?: BailoutConfig;
+  /** T02 per-engine circuit-breaker (opt-in, default disabled). Falls back to config + env. */
+  circuitBreaker?: Partial<PipelineCircuitBreakerConfig>;
   /** Opt-in per-step fidelity gate (default disabled). */
   fidelityGate?: FidelityGateConfig;
   /** Authenticated principal id — threaded through to CCR engine for store scoping. */
@@ -886,6 +888,10 @@ function runStackedCompression(
   const start = performance.now();
 
   const bailout = options?.bailout;
+  const breaker = resolvePipelineBreakerConfig(
+    options?.circuitBreaker ?? options?.config?.pipelineCircuitBreaker
+  );
+  const breakerOn = breaker.enabled;
   const fidelityGate = options?.fidelityGate ?? options?.config?.fidelityGate;
   const onStep = options?.onEngineStep;
   const totalSteps = steps.length;
@@ -918,7 +924,10 @@ function runStackedCompression(
         continue;
       }
       mergeStackStep(acc, step.engine, result);
-      if (decideStep(result, bailout).advance && gateAdvance(result, currentBody, fidelityGate, acc, step.engine)) {
+      if (
+        decideStep(result, bailout).advance &&
+        gateAdvance(result, currentBody, fidelityGate, acc, step.engine)
+      ) {
         currentBody = result.body;
         compressed = true;
       }
@@ -973,6 +982,10 @@ async function runStackedCompressionAsync(
   const start = performance.now();
 
   const bailout = options?.bailout;
+  const breaker = resolvePipelineBreakerConfig(
+    options?.circuitBreaker ?? options?.config?.pipelineCircuitBreaker
+  );
+  const breakerOn = breaker.enabled;
   const fidelityGate = options?.fidelityGate ?? options?.config?.fidelityGate;
   const onStep = options?.onEngineStep;
   const totalSteps = steps.length;
@@ -1006,7 +1019,10 @@ async function runStackedCompressionAsync(
         continue;
       }
       mergeStackStep(acc, step.engine, result);
-      if (decideStep(result, bailout).advance && gateAdvance(result, currentBody, fidelityGate, acc, step.engine)) {
+      if (
+        decideStep(result, bailout).advance &&
+        gateAdvance(result, currentBody, fidelityGate, acc, step.engine)
+      ) {
         currentBody = result.body;
         compressed = true;
       }
