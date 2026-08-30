@@ -90,6 +90,7 @@ import {
 } from "@/lib/providerModels/geminiModelsParser";
 import { getSyncedAvailableModels, getCustomModels } from "@/lib/db/models";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
+import { buildStaleEncryptionKeyResponse } from "./staleEncryptionGuard";
 
 type JsonRecord = Record<string, unknown>;
 const antigravityDiscoveryInflight = new Map<
