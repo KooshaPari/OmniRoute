@@ -129,7 +129,10 @@ import {
   releaseRejectedQualityResponse,
   toRetryAfterDisplayValue,
 } from "./combo/validateQuality.ts";
-import { resolveComboCooldownWaitDecision } from "./combo/comboCooldownRetry.ts";
+import {
+  resolveComboCooldownWaitDecision,
+  type ResolveComboCooldownDecisionResult,
+} from "./combo/comboCooldownRetry.ts";
 import {
   computeClosestRetryAfter,
   waitForCooldownAwareRetry,
