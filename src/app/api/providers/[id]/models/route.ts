@@ -35,7 +35,10 @@ import {
   getAntigravityFetchAvailableModelsUrls,
   getAntigravityModelsDiscoveryUrls,
 } from "@omniroute/open-sse/config/antigravityUpstream.ts";
-import { isUserCallableAntigravityModelId } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
+import {
+  isUserCallableAntigravityModelId,
+  toClientAntigravityModelId,
+} from "@omniroute/open-sse/config/antigravityModelAliases.ts";
 import {
   resolveAntigravityCliVersion,
   resolveAntigravityIdeVersion,
