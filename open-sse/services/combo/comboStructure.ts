@@ -529,6 +529,19 @@ function hasOnlyContextWindowFailures(reasons: string[]): boolean {
   return reasons.length > 0 && reasons.every((reason) => reason === "context_window");
 }
 
+/**
+ * Vision is a hard requirement: targets without confirmed vision support
+ * cannot be reconsidered after request compatibility filtering.
+ */
+export function isVisionIncompatibleTarget(
+  target: ResolvedComboTarget,
+  requirements: RequestCompatibilityRequirements
+): boolean {
+  if (!requirements.requiresVision) return false;
+  const capabilities = getResolvedModelCapabilities(target.modelStr);
+  return capabilities.supportsVision !== true;
+}
+
 function getTargetCompatibilityFailures(
   target: ResolvedComboTarget,
   requirements: RequestCompatibilityRequirements
