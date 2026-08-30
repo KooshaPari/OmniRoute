@@ -27,6 +27,7 @@ import {
   decideStep,
   mergeStackStep,
 } from "./stackedStepCore.ts";
+import { resolveStepDetailConfig } from "./stepDetailConfig.ts";
 import { registerBuiltinCompressionEngines } from "./engines/index.ts";
 import { getCompressionEngine, getEngineEntry } from "./engines/registry.ts";
 import { codexResponsesEngine } from "./engines/codexResponses/index.ts";
