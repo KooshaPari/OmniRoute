@@ -305,7 +305,8 @@ test("AntigravityExecutor.transformRequest still 422s when loadCodeAssist finds 
     if (!(result instanceof Response)) throw new Error("Expected a 422 Response");
     assert.equal(result.status, 422);
     const payload = (await result.json()) as ErrorPayload;
-    assert.equal(payload.error.code, "missing_project_id");
+    assert.equal(payload.error.code, "gcp_project_required");
+    assert.match(payload.error.message, /GCP_PROJECT_REQUIRED/);
   } finally {
     globalThis.fetch = originalFetch;
     clearAntigravityProjectCache();
