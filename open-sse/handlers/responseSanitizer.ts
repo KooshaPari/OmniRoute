@@ -2,6 +2,8 @@ import {
   copyOpenAICompatibleReasoningFields,
   getReadableReasoningValue,
 } from "../utils/reasoningFields.ts";
+import { stripInternalReasoningPlaceholder } from "../utils/reasoningPlaceholder.ts";
+import { normalizeOpenAICompatibleFinishReason } from "../utils/finishReason.ts";
 
 /**
  * Response Sanitizer — Normalizes LLM responses to strict OpenAI SDK format.
@@ -396,7 +398,7 @@ export function sanitizeOpenAIResponse(
   // Sanitize choices
   if (Array.isArray(bodyRecord.choices)) {
     sanitized.choices = bodyRecord.choices.map((choice, idx) => {
-      const sanitizedChoice = sanitizeChoice(choice, idx);
+      const sanitizedChoice = sanitizeChoice(choice, idx, { parseTextualReasoningTags });
       const message = toRecord(sanitizedChoice.message);
       if (
         message &&
@@ -489,7 +491,11 @@ export function sanitizeResponsesApiResponse(body: unknown): unknown {
 /**
  * Sanitize a single choice object.
  */
-function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
+function sanitizeChoice(
+  choice: unknown,
+  defaultIndex: number,
+  options: ParseOptions = {}
+): JsonRecord {
   const choiceRecord = toRecord(choice);
   const sanitized: JsonRecord = {
     index: defaultIndex,
@@ -505,7 +511,7 @@ function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
   }
 
   if (choiceRecord?.message !== undefined) {
-    sanitized.message = sanitizeMessage(choiceRecord.message);
+    sanitized.message = sanitizeMessage(choiceRecord.message, options);
   }
   if (choiceRecord?.delta !== undefined) {
     sanitized.delta = sanitizeMessage(choiceRecord.delta, options);
@@ -516,6 +522,26 @@ function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
   }
 
   return sanitized;
+}
+
+function sanitizeMessageContent(msgRecord: JsonRecord, options: ParseOptions = {}): JsonRecord {
+  if (typeof msgRecord.content === "string") {
+    const strippedContent = stripInternalReasoningPlaceholder(
+      stripInternalToolEnvelopeText(msgRecord.content)
+    );
+    const nativeReasoning = getReadableReasoningValue(msgRecord);
+    const hasNativeReasoningContent = typeof msgRecord.reasoning_content === "string";
+    const { content, thinking } =
+      (options.parseTextualReasoningTags === true || nativeReasoning.length > 0) &&
+      !hasNativeReasoningContent
+        ? extractThinkingFromContent(strippedContent)
+        : { content: strippedContent, thinking: null };
+    const sanitized: JsonRecord = { content: collapseExcessiveNewlines(content) };
+    if (thinking && !nativeReasoning) sanitized.reasoning_content = thinking;
+    return sanitized;
+  }
+
+  return msgRecord.content !== undefined ? { content: msgRecord.content } : {};
 }
 
 function applyTextualToolCallSanitization(sanitized: JsonRecord, msgRecord: JsonRecord): void {
@@ -1156,6 +1182,11 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
                 : deltaRecord.content;
           }
           copyOpenAICompatibleReasoningFields(deltaRecord, delta);
+          for (const field of ["reasoning_content", "reasoning", "reasoning_text"] as const) {
+            if (typeof delta[field] === "string") {
+              delta[field] = stripZeroWidthText(delta[field]);
+            }
+          }
           if (deltaRecord.tool_calls !== undefined) {
             delta.tool_calls = Array.isArray(deltaRecord.tool_calls)
               ? deltaRecord.tool_calls.map((tc) => {
