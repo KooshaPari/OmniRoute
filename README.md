@@ -34,6 +34,7 @@
 <h3>
 
 ⭐ Star the repo if OMNIROUTE helped you save money and make your work easier. [![Stars](https://img.shields.io/github/stars/diegosouzapw/OmniRoute?style=social)](https://github.com/diegosouzapw/OmniRoute)
+
 </h3>
 
 <a href="https://trendshift.io/repositories/23589" target="_blank"><img src="https://trendshift.io/api/badge/repositories/23589" alt="diegosouzapw%2FOmniRoute | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
@@ -1297,10 +1298,10 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 
 ### 🛰️ Traffic inspection, MITM & transparent proxy
 
-| Project                                                                           |   ⭐ | How it inspired OmniRoute                                                                                                                                                        |
-| --------------------------------------------------------------------------------- | ---: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Project                                                                           |   ⭐ | How it inspired OmniRoute                                                                                                                                                         |
+| --------------------------------------------------------------------------------- | ---: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **[llm-interceptor](https://github.com/chouzz/llm-interceptor)** · chouzz         |   48 | MITM interception/analysis of coding-assistant ↔ LLM traffic — our Traffic Inspector ports its SSE merge, conversation normalization, host passthrough and secret masking (MIT). |
-| **[ProxyBridge](https://github.com/InterceptSuite/ProxyBridge)** · InterceptSuite | 5.3k | Transparent per-process proxy routing — inspired our crash-safe MITM teardown, socket idle-timeouts, `/proc` process attribution and TPROXY capture.                             |
+| **[ProxyBridge](https://github.com/InterceptSuite/ProxyBridge)** · InterceptSuite | 5.3k | Transparent per-process proxy routing — inspired our crash-safe MITM teardown, socket idle-timeouts, `/proc` process attribution and TPROXY capture.                              |
 
 ### 📚 Model data, observability & UI
 
