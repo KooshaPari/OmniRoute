@@ -96,7 +96,8 @@ async function exchangeAntigravityToken(
     body: new URLSearchParams(bodyParams),
   });
   if (!response.ok) {
-    throw new Error(`Token exchange failed: ${await response.text()}`);
+    const errorText = await response.text().catch(() => "Unknown error");
+    throw new Error(`Token exchange failed: ${errorText}`);
   }
   return (await response.json()) as AntigravityTokenPayload;
 }
