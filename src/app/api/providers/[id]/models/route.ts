@@ -32,6 +32,10 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
+import {
+  resolveAntigravityCliVersion,
+  resolveAntigravityIdeVersion,
+} from "@omniroute/open-sse/services/antigravityVersion.ts";
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
 import { fetchGitHubCopilotModels } from "@omniroute/open-sse/services/githubCopilotModels.ts";
 import { fetchKiroAvailableModels } from "@omniroute/open-sse/services/kiroModels.ts";
@@ -301,7 +305,7 @@ async function fetchAntigravityDiscoveryModelsCached(
   if (inflight) return inflight;
 
   const promise = (async () => {
-    await resolveAntigravityVersion();
+    await (profile === "cli" ? resolveAntigravityCliVersion() : resolveAntigravityIdeVersion());
     await ensureAntigravityProjectAssigned(
       accessToken,
       fetch,
