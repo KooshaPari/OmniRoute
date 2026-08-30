@@ -177,9 +177,9 @@ export interface RegistryEntry {
    */
   requiresPlainStringContent?: boolean;
   /**
-   * Protocolos alternativos que este provedor aceita (ex.: um endpoint
-   * Anthropic-compatible alem do OpenAI-compatible padrao). A conexao escolhe
-   * via providerSpecificData.targetFormat; ver config/providers/alternateFormats.ts.
+   * Alternative protocols this provider accepts (e.g. an Anthropic-compatible
+   * endpoint in addition to the default OpenAI-compatible one). The connection
+   * chooses via providerSpecificData.targetFormat; see config/providers/alternateFormats.ts.
    */
   alternateFormats?: import("./alternateFormats.ts").AlternateFormat[];
 }
