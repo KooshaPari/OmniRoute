@@ -422,6 +422,12 @@ export async function createProviderConnection(data: JsonRecord) {
         persistence[field] = rawExisting[field];
       }
     }
+    const fieldsToWrite = encryptConnectionFields(persistence);
+    if (fieldsToWrite === null) {
+      throw new Error(
+        `[providers] Cannot update connection ${existingId}: encryption layer failed`
+      );
+    }
     db.transaction(() => {
       if (promotedCodexIdentity) {
         reconcileCodexUsageHistory(db, {
@@ -431,7 +437,7 @@ export async function createProviderConnection(data: JsonRecord) {
           matchedExistingCodexByWorkspace: true,
         });
       }
-      _updateConnectionRow(db, existingId, encryptConnectionFields(persistence));
+      _updateConnectionRow(db, existingId, fieldsToWrite);
     })();
     backupDbFile("pre-write");
     return withNullableRateLimitOverrides(
@@ -757,6 +763,10 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
     merged.rateLimitOverrides = sanitizeRateLimitOverrides(merged.rateLimitOverrides);
   }
   const existingRecord = toRecord(existing);
+  const fieldsToWrite = encryptConnectionFields({ ...merged });
+  if (fieldsToWrite === null) {
+    throw new Error(`[providers] Cannot update connection ${id}: encryption layer failed`);
+  }
 
   db.transaction(() => {
     reconcileCodexUsageHistory(db, {
@@ -764,7 +774,7 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
       existing: existingRecord,
       merged,
     });
-    _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
+    _updateConnectionRow(db, id, fieldsToWrite);
   })();
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
