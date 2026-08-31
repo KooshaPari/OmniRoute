@@ -3,6 +3,8 @@ import crypto from "crypto";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { getQoderCliCommand } from "./qoderCliResolve";
+export { getQoderCliCommand }; // #6263 public entry point
 
 const DEFAULT_TIMEOUT_MS = 45_000;
 const DEFAULT_MODELS_TIMEOUT_MS = 20_000;
