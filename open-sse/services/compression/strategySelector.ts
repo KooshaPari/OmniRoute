@@ -22,11 +22,13 @@ import {
 } from "./pipelineEngineBreaker.ts";
 import {
   type BailoutConfig,
-  type StackAccumulator,
   createStackAccumulator,
   decideStep,
   mergeStackStep,
 } from "./stackedStepCore.ts";
+import type { StackAccumulator } from "./stackedStepCore.ts";
+// Compatibility bridge for fidelityGateStep; canonical callers import this type from stackedStepCore.
+export type { StackAccumulator } from "./stackedStepCore.ts";
 import { resolveStepDetailConfig } from "./stepDetailConfig.ts";
 import { registerBuiltinCompressionEngines } from "./engines/index.ts";
 import { getCompressionEngine, getEngineEntry } from "./engines/registry.ts";
@@ -694,29 +696,6 @@ function reportEngineStep(
   });
 }
 
-/** Accumulates per-step telemetry across a stacked run (shared sync/async). */
-export interface StackAccumulator {
-  techniques: Set<string>;
-  rules: Set<string>;
-  breakdown: NonNullable<CompressionStats["engineBreakdown"]>;
-  rtkRawOutputPointers: NonNullable<CompressionStats["rtkRawOutputPointers"]>;
-  validationWarnings: Set<string>;
-  validationErrors: Set<string>;
-  fallbackApplied: boolean;
-}
-
-function createStackAccumulator(): StackAccumulator {
-  return {
-    techniques: new Set<string>(),
-    rules: new Set<string>(),
-    breakdown: [],
-    rtkRawOutputPointers: [],
-    validationWarnings: new Set<string>(),
-    validationErrors: new Set<string>(),
-    fallbackApplied: false,
-  };
-}
-
 function resolveStackSteps(
   pipeline?: Array<CompressionPipelineStep | string>
 ): CompressionPipelineStep[] {
@@ -924,14 +903,9 @@ function runStackedCompression(
         recordStepFailure(acc, step.engine, err, ctx);
         continue;
       }
-      mergeStackStep(acc, step.engine, result);
-      if (
-        decideStep(result, bailout).advance &&
-        gateAdvance(result, currentBody, fidelityGate, acc, step.engine)
-      ) {
-        currentBody = result.body;
-        compressed = true;
-      }
+      const committed = commitStepResult(acc, step, result, currentBody, ctx);
+      currentBody = committed.body;
+      if (committed.advanced) compressed = true;
     } else {
       const result = engine.apply(currentBody, buildStepOptions(step, options));
       mergeStackStep(acc, step.engine, result);
@@ -1019,14 +993,9 @@ async function runStackedCompressionAsync(
         recordStepFailure(acc, step.engine, err, ctx);
         continue;
       }
-      mergeStackStep(acc, step.engine, result);
-      if (
-        decideStep(result, bailout).advance &&
-        gateAdvance(result, currentBody, fidelityGate, acc, step.engine)
-      ) {
-        currentBody = result.body;
-        compressed = true;
-      }
+      const committed = commitStepResult(acc, step, result, currentBody, ctx);
+      currentBody = committed.body;
+      if (committed.advanced) compressed = true;
     } else {
       result = engine.applyAsync
         ? await engine.applyAsync(currentBody, stepOptions)
