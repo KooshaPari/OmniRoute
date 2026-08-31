@@ -246,6 +246,15 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     format: "dashscope-video",
     models: [{ id: "wan2.7-t2v", name: "Wan 2.7 T2V" }],
   },
+
+  deepinfra: {
+    id: "deepinfra",
+    baseUrl: "https://api.deepinfra.com/v1/inference",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "deepinfra-video",
+    models: [{ id: "Wan-AI/Wan2.2-T2V-A14B", name: "Wan 2.2 T2V A14B" }],
+  },
 };
 
 /**
