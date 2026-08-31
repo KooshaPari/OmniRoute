@@ -34,6 +34,7 @@ import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import AgentrouterConsoleFields from "./AgentrouterConsoleFields";
 import * as ProviderRegion from "./AlibabaProviderRegionField";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
+import GlmTeamQuotaFields from "./GlmTeamQuotaFields";
 import { buildAddProviderSpecificData } from "./connectionProviderSpecificData";
 import { computeConnectionDefaultName } from "./computeConnectionDefaultName";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
