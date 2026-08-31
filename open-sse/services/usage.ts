@@ -627,8 +627,9 @@ export async function getUsageForProvider(
     case "vertex-partner":
       return await getVertexUsage(id || "", provider);
     case "kimi-coding":
+      return await getKimiUsage(accessToken, apiKey);
     case "kimi-coding-apikey":
-      return await getKimiUsage(accessToken, apiKey, providerSpecificData);
+      return await getKimiUsage(undefined, apiKey);
     case "qoder":
       // Qoder PATs live in `apiKey` (decrypted) or `providerSpecificData.qoderPat`,
       // never in `accessToken`.
