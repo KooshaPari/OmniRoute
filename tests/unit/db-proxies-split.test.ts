@@ -15,7 +15,7 @@
  *
  * Verifies that:
  *   1. The pure mappers behave correctly (DB-free).
- *   2. The host proxies.ts still re-exports the FULL public API (20 functions).
+ *   2. The host proxies.ts still re-exports the FULL public API (22 functions).
  *   3. The mappers leaf exports its pieces directly.
  *
  * Pure typeof/behaviour checks only — no DB handle is opened.
@@ -105,10 +105,12 @@ describe("proxies/mappers — extractRelayAuth", () => {
 
 const host = await import("../../src/lib/db/proxies.ts");
 
-describe("proxies.ts public API surface (20 symbols)", () => {
+describe("proxies.ts public API surface (22 symbols)", () => {
   const expected = [
+    "addProxiesToScopePool", // split proxy-subscription pool operation
     "assignProxyToScope",
     "bulkAssignProxyToScope",
+    "bumpProxyRegistryGeneration", // shared split-module generation counter
     "createProxy",
     "createProxyAndAssign",
     "deleteProxyById",
@@ -135,7 +137,7 @@ describe("proxies.ts public API surface (20 symbols)", () => {
     });
   }
 
-  it("exposes exactly the 20 expected callables (no public symbol lost)", () => {
+  it("exposes all expected callables (no public symbol lost)", () => {
     const missing = expected.filter((n) => typeof host[n] !== "function");
     assert.deepEqual(missing, [], `missing public exports: ${missing.join(", ")}`);
   });
