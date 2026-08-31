@@ -56,6 +56,7 @@ import {
 import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
 import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts";
 import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProviderRegions";
+import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -329,8 +330,9 @@ export class DefaultExecutor extends BaseExecutor {
       }
       case "zai":
       case "glm-coding-apikey": {
-        const zaiBaseUrl = this.resolveBaseUrl(credentials);
-        return `${zaiBaseUrl}?beta=true`;
+        return resolveZaiUrl(credentials, (fallback) =>
+          this.resolveBaseUrl(credentials, fallback)
+        );
       }
       case "claude":
       case "glm":
