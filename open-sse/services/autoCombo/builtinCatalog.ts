@@ -90,6 +90,21 @@ export function isRecognizedBuiltinAuto(modelStr: string, suffix: string): boole
   );
 }
 
+/**
+ * Return whether an advertised built-in auto id explicitly selects the pro tier.
+ *
+ * Flat `auto/pro-*` variants and the compositional `auto/<category>:pro` ids are
+ * paid-tier entries. Other auto ids, including family selectors, remain visible;
+ * their candidate-pool filtering is handled separately by the virtual factory.
+ */
+export function isPaidTierAutoId(autoId: string): boolean {
+  if (typeof autoId !== "string" || !autoId.startsWith("auto/")) return false;
+  const suffix = autoId.slice("auto/".length);
+  if (suffix.startsWith("pro-")) return true;
+  const parsed = parseAutoSuffix(suffix);
+  return parsed.valid && parsed.tier === "pro";
+}
+
 export async function createBuiltinAutoCombo(modelStr: string, suffix: string) {
   const { createVirtualAutoCombo } = await import("./virtualFactory.ts");
 
