@@ -13,6 +13,9 @@
  */
 
 import { markServerStopping } from "@/lib/serverLifecycle";
+import { createLogger } from "@/shared/utils/logger";
+
+const log = createLogger("graceful-shutdown");
 
 /** Grace period before forced exit (default 30s, configurable) */
 const SHUTDOWN_TIMEOUT_MS = parseInt(process.env.SHUTDOWN_TIMEOUT_MS || "30000", 10);
