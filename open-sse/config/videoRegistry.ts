@@ -155,6 +155,16 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     ],
   },
 
+  xai: {
+    id: "xai",
+    baseUrl: "https://api.x.ai/v1/videos",
+    statusUrl: "https://api.x.ai/v1/videos",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "xai-video",
+    models: [{ id: "grok-imagine-video", name: "Grok Imagine Video" }],
+  },
+
   together: {
     id: "together",
     baseUrl: "https://api.together.xyz/videos",
