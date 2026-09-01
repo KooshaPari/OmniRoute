@@ -7,6 +7,7 @@ import { Button, Card, Modal } from "@/shared/components";
 import { parseBulkImportText } from "./parseBulkProxyImport.ts";
 import type { ParsedProxyEntry, ParseError } from "./parseBulkProxyImport.ts";
 import { ProxyBatchActions } from "./ProxyBatchActions";
+import { ProxyCheckboxCell } from "./ProxyCheckboxCell";
 
 type ProxyItem = {
   id: string;
