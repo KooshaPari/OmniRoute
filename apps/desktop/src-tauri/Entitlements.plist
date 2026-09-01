@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Minimal entitlements for Tauri 2 desktop apps.
+  Copy to apps/<desktop>/src-tauri/Entitlements.plist and adjust.
+
+  See: https://developer.apple.com/documentation/bundleresources/entitlements
+-->
+<plist version="1.0">
+<dict>
+  <!-- Required: hardened runtime for notarization. Set via --options=runtime during sign. -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+
+  <!-- Network client (most Tauri apps need outbound HTTP). -->
+  <key>com.apple.security.network.client</key>
+  <true/>
+
+  <!-- If the app spawns child processes or shells out, you may need:
+       <key>com.apple.security.inherit</key>
+       <true/>
+  -->
+
+  <!-- If the app reads/writes files outside its sandbox (e.g. ~/Downloads):
+       <key>com.apple.security.files.user-selected.read-write</key>
+       <true/>
+       <key>com.apple.security.files.downloads.read-write</key>
+       <true/>
+  -->
+
+  <!-- Apple Silicon Metal compute (uncomment if the app uses GPU via tauri-plugin-shell etc):
+       <key>com.apple.security.device.metal</key>
+       <true/>
+  -->
+
+  <!-- OmniRoute desktop talks to the local OmniRoute daemon on localhost:20128 -->
+  <key>com.apple.security.network.client</key>
+  <true/>
+
+  <!-- WebView2-equivalent: Tauri uses WKWebView on macOS, needs JIT for V8-style optimizations -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+</dict>
+</plist>
