@@ -6,6 +6,7 @@ import {
   getCachedProviderNodes,
   validateApiKey,
   updateProviderConnection,
+  resetConnectionBackoff,
   clearConnectionErrorIfUnchanged,
   getSettings,
   getCachedSettings,

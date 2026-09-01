@@ -856,6 +856,34 @@ export async function clearConnectionErrorIfUnchanged(
   return applied;
 }
 
+/**
+ * Lightweight backoff reset for connections whose cooldown has expired.
+ * The caller performs eligibility checks; this targeted update avoids a
+ * read, re-encryption, and backup on the credential-selection hot path.
+ */
+export async function resetConnectionBackoff(id: string): Promise<void> {
+  if (!id) return;
+  const db = getDbInstance() as unknown as DbLike;
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE provider_connections SET
+      backoff_level = 0,
+      test_status = 'active',
+      last_error = NULL,
+      last_error_at = NULL,
+      last_error_type = NULL,
+      last_error_source = NULL,
+      error_code = NULL,
+      updated_at = @updatedAt
+    WHERE id = @id`
+  ).run({
+    updatedAt: now,
+    id,
+  });
+  invalidateDbCache("connections");
+  bumpProxyConfigGeneration();
+}
+
 export async function deleteProviderConnection(id: string) {
   const db = getDbInstance() as unknown as DbLike;
   const existing = db.prepare("SELECT provider FROM provider_connections WHERE id = ?").get(id);
