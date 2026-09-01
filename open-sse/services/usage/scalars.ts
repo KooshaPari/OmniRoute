@@ -8,20 +8,14 @@
  * per-provider fetcher leaves) import without a cycle. Behavior-preserving move.
  */
 
+import { toNumber } from "@/shared/utils/numeric";
+
+export { toNumber } from "@/shared/utils/numeric";
+
 type JsonRecord = Record<string, unknown>;
 
 export function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
-export function toNumber(value: unknown, fallback = 0): number {
-  const parsed =
-    typeof value === "number"
-      ? value
-      : typeof value === "string" && value.trim().length > 0
-        ? Number(value)
-        : Number.NaN;
-  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 export function toPercentage(value: unknown): number {
