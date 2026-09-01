@@ -277,20 +277,28 @@ jobs:
   # contribuidor NUNCA é bloqueado nem cobrado).
   lint-guard:
     name: No new ESLint warnings
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true') }}
     runs-on: ubuntu-latest
     continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true }}
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - run: >
-          node --max-old-space-size=4096 --import tsx
-          --import ./tests/_setup/isolateDataDir.ts
-          --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2
-          tests/unit/*.test.ts
-          "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
+      - name: Restore ESLint file cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            .eslintcache
+            .eslintcache-complexity
+          key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'package-lock.json') }}
+          restore-keys: |
+            eslint-${{ runner.os }}-
+      - name: ESLint (baseline congelado - warning novo = vermelho)
+        # lint:json writes the report; --max-warnings 0 keeps no-new-warnings policy.
+        run: npm run lint:json -- --max-warnings 0
