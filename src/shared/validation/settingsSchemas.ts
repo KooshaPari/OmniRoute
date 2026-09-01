@@ -18,6 +18,8 @@ import { RESPONSES_PREVIOUS_RESPONSE_ID_MODES } from "@/shared/constants/respons
 import { SPAWN_CAPABLE_PREFIXES } from "@/shared/constants/spawnCapablePrefixes";
 
 const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
+const MAX_PROVIDER_STRATEGY_KEY_LENGTH = 200;
+const MAX_PROVIDER_STRATEGY_ENTRIES = 100;
 
 const transformDropParagraphIfContainsSchema = z.object({
   kind: z.literal("drop_paragraph_if_contains"),
@@ -209,12 +211,15 @@ export const updateSettingsSchema = z.object({
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
   providerStrategies: z
     .record(
-      z.string().trim().min(1),
+      z.string().trim().min(1).max(MAX_PROVIDER_STRATEGY_KEY_LENGTH),
       z.object({
         fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
         stickyRoundRobinLimit: z.number().int().min(1).max(1000).optional(),
       })
     )
+    .refine((value) => Object.keys(value).length <= MAX_PROVIDER_STRATEGY_ENTRIES, {
+      message: `at most ${MAX_PROVIDER_STRATEGY_ENTRIES} provider strategy overrides`,
+    })
     .optional(),
   // #6168: global session-stickiness opt-out (per-combo config overrides this).
   disableSessionStickiness: z.boolean().optional(),

@@ -30,3 +30,31 @@ test("updateSettingsSchema rejects malformed provider strategy overrides", () =>
     assert.equal(updateSettingsSchema.safeParse(body).success, false);
   }
 });
+
+test("updateSettingsSchema enforces provider strategy key and entry bounds", () => {
+  const maxKey = "p".repeat(200);
+  const valid = updateSettingsSchema.safeParse({
+    providerStrategies: {
+      [maxKey]: { fallbackStrategy: "p2c" },
+    },
+  });
+  assert.equal(valid.success, true);
+
+  const oversizedKey = updateSettingsSchema.safeParse({
+    providerStrategies: {
+      ["p".repeat(201)]: { fallbackStrategy: "p2c" },
+    },
+  });
+  assert.equal(oversizedKey.success, false);
+
+  const tooManyEntries = Object.fromEntries(
+    Array.from({ length: 101 }, (_, index) => [
+      `provider-${index}`,
+      { fallbackStrategy: "p2c" },
+    ])
+  );
+  const overLimit = updateSettingsSchema.safeParse({
+    providerStrategies: tooManyEntries,
+  });
+  assert.equal(overLimit.success, false);
+});
