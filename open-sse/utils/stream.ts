@@ -793,6 +793,9 @@ export function createSSEStream(options: StreamOptions = {}) {
   const streamStartedAt = Date.now();
   let firstTokenAt: number | null = null;
   const hasFirstTokenContent = (payload: Record<string, unknown>, format: string): boolean => {
+    const eventPayload =
+      typeof payload.event === "string" ? asRecord(payload.data) : payload;
+    payload = eventPayload;
     if (format === FORMATS.OPENAI) {
       const choice = Array.isArray(payload.choices) ? payload.choices[0] : null;
       const delta = asRecord(asRecord(choice).delta);
@@ -2723,6 +2726,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 onComplete({
                   status: err.status,
                   usage: state?.usage,
+                  ttft: firstTokenAt,
                   responseBody: errorBody,
                   error: err.message,
                   errorCode: err.code,
@@ -2939,7 +2943,8 @@ export function createSSETransformStreamWithLogger(
   copilotCompatibleReasoning = false,
   suppressThinkClose = false,
   customToolNames: ReadonlySet<string> = new Set(),
-  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null
+  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null,
+  requestStartedAt = Date.now()
 ) {
   return createSSEStream({
     mode: STREAM_MODE.TRANSLATE,
@@ -2958,6 +2963,7 @@ export function createSSETransformStreamWithLogger(
     suppressThinkClose,
     customToolNames,
     requestToolIdentityMap,
+    requestStartedAt,
   });
 }
 
@@ -2972,7 +2978,8 @@ export function createPassthroughStreamWithLogger(
   apiKeyInfo: unknown = null,
   onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
   clientResponseFormat: string | null = null,
-  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null
+  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null,
+  requestStartedAt = Date.now()
 ) {
   return createSSEStream({
     mode: STREAM_MODE.PASSTHROUGH,
@@ -2987,5 +2994,6 @@ export function createPassthroughStreamWithLogger(
     onFailure,
     clientResponseFormat,
     requestToolIdentityMap,
+    requestStartedAt,
   });
 }

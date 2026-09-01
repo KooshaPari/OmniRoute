@@ -90,6 +90,77 @@ test("createSSEStream leaves TTFT unset when the stream has no token", async () 
   assert.equal(completion.ttft, null);
 });
 
+test("stream wrappers forward request start time and Responses tool identity", async () => {
+  const requestStartedAt = Date.now() - 25;
+  const identityMap = new Map([
+    ["mcp__server__read", { namespace: "mcp__server", name: "read" }],
+  ]);
+  let translatedCompletion = null;
+  const translatedText = await readWithTransform(
+    [
+      `data: ${JSON.stringify({
+        choices: [{
+          delta: {
+            tool_calls: [{
+              index: 0,
+              id: "call_read",
+              type: "function",
+              function: { name: "mcp__server__read", arguments: "{}" },
+            }],
+          },
+        }],
+      })}\n\n`,
+      `data: ${JSON.stringify({ choices: [{ delta: {}, finish_reason: "tool_calls" }] })}\n\n`,
+    ],
+    createSSETransformStreamWithLogger(
+      FORMATS.OPENAI,
+      FORMATS.OPENAI_RESPONSES,
+      "openai",
+      null,
+      null,
+      "gpt-4.1",
+      null,
+      { messages: [{ role: "user", content: "read" }] },
+      (payload) => {
+        translatedCompletion = payload;
+      },
+      null,
+      null,
+      false,
+      false,
+      new Set(),
+      identityMap,
+      requestStartedAt
+    )
+  );
+
+  assert.ok(translatedCompletion.ttft > 0);
+  assert.match(translatedText, /"namespace":"mcp__server"/);
+  assert.match(translatedText, /"name":"read"/);
+
+  let passthroughCompletion = null;
+  await readWithTransform(
+    [`data: ${JSON.stringify({ choices: [{ delta: { content: "wrapped" } }] })}\n\n`],
+    createPassthroughStreamWithLogger(
+      "openai",
+      null,
+      null,
+      "gpt-4.1",
+      null,
+      null,
+      (payload) => {
+        passthroughCompletion = payload;
+      },
+      null,
+      null,
+      FORMATS.OPENAI,
+      null,
+      requestStartedAt
+    )
+  );
+  assert.ok(passthroughCompletion.ttft > 0);
+});
+
 function multilineDataEvent(payload, splitBeforeKey) {
   const json = JSON.stringify(payload);
   const splitAt = json.indexOf(`"${splitBeforeKey}"`) - 1;
@@ -1262,6 +1333,10 @@ test("createSSEStream translate mode aborts on Responses failure with rate limit
           },
         })}\n\n`,
         `data: ${JSON.stringify({
+          type: "response.output_text.delta",
+          delta: "partial",
+        })}\n\n`,
+        `data: ${JSON.stringify({
           type: "response.failed",
           response: {
             id: "resp_fail",
@@ -1293,6 +1368,7 @@ test("createSSEStream translate mode aborts on Responses failure with rate limit
 
   assert.ok(onCompletePayload, "should capture completion payload before aborting");
   assert.equal(onCompletePayload.status, 429);
+  assert.ok(onCompletePayload.ttft > 0);
   assert.equal(onCompletePayload.responseBody.error.type, "rate_limit_error");
   assert.equal(onCompletePayload.responseBody.error.code, "rate_limit_exceeded");
   assert.match(onCompletePayload.responseBody.error.message, /Rate limit reached/);
