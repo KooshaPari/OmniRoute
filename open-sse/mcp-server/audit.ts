@@ -8,6 +8,7 @@
 
 import { hashInput, summarizeOutput } from "./schemas/audit.ts";
 import { isNativeSqliteLoadError } from "../../src/lib/db/core.ts";
+import { toNumber } from "@/shared/utils/numeric";
 
 // ============ Database Connection ============
 
@@ -190,16 +191,6 @@ function getCachedAuditDb(): AuditDatabase | null {
 
 function setCachedAuditDb(database: AuditDatabase | null): void {
   globalThis.__omnirouteMcpAuditDb = database;
-}
-
-function toNumber(value: unknown, fallback = 0): number {
-  const parsed =
-    typeof value === "number"
-      ? value
-      : typeof value === "string" && value.trim().length > 0
-        ? Number(value)
-        : Number.NaN;
-  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function toString(value: unknown): string {
