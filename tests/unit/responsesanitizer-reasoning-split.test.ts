@@ -48,6 +48,10 @@ describe("responseSanitizer/reasoning — shouldParseTextualReasoningTags", () =
   it("returns false when provider/model are missing", () => {
     assert.equal(shouldParseTextualReasoningTags(undefined, undefined), false);
   });
+  it("recognizes K3 by model ID without matching an unrelated provider name", () => {
+    assert.equal(shouldParseTextualReasoningTags("kimi-coding", "k3"), true);
+    assert.equal(shouldParseTextualReasoningTags("k3-provider", "general-model"), false);
+  });
 });
 
 // ── host public API surface ──────────────────────────────────────────────────
