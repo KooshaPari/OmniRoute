@@ -60,6 +60,7 @@ export const COLLECTORS = [
     glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts",
     sources: ["package.json", ".github/workflows/ci.yml"],
   },
+  { glob: "tests/unit/serial/**/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:integration (top-level only; tests/integration/services/ NÃO roda)
   { glob: "tests/integration/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:combo:matrix / test:integration (combo strategy decision matrix, 17 strategies)
