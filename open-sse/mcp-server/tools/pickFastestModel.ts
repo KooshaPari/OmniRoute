@@ -10,6 +10,7 @@ import {
 import type { AutoRoutingStrategyValue } from "../../../src/shared/constants/routingStrategies.ts";
 import { rankBySpeed, DEFAULT_SPEED_WEIGHTS } from "../../services/autoCombo/speedRanking.ts";
 import type { SpeedCandidate } from "../../services/autoCombo/speedRanking.ts";
+import { toNumber } from "@/shared/utils/numeric";
 
 const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
 const OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY || "";
@@ -63,10 +64,6 @@ function isRecord(value: unknown): value is JsonRecord { return !!value && typeo
 function toRecord(value: unknown): JsonRecord { return isRecord(value) ? value : {}; }
 function toArrayOfRecords(value: unknown): JsonRecord[] { return Array.isArray(value) ? value.filter(isRecord) : []; }
 function toString(value: unknown, fallback = ""): string { return typeof value === "string" ? value : fallback; }
-function toNumber(value: unknown, fallback = 0): number {
-  const parsed = typeof value === "number" ? value : typeof value === "string" && value.trim().length > 0 ? Number(value) : Number.NaN;
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
 function getComboModels(combo: JsonRecord): ComboModel[] {
   const directModels = toArrayOfRecords(combo.models);
   const nestedModels = toArrayOfRecords(toRecord(combo.data).models);
