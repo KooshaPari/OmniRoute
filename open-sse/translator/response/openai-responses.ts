@@ -7,9 +7,63 @@ import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
+import {
+  isInternalReasoningPlaceholder,
+  stripInternalReasoningPlaceholder,
+} from "../../utils/reasoningPlaceholder.ts";
+import {
+  normalizeToolName,
+  stripEmptyOptionalToolArgs,
+  normalizeOutputIndex,
+  normalizeUpstreamFailure,
+} from "./openai-responses/pureHelpers.ts";
+import { createEventEmitter } from "./openai-responses/eventEmitter.ts";
+import { buildResponsesToolCallItem } from "./responsesToolItem.ts";
+import { resolveRequestToolIdentity } from "./openai-responses/requestToolIdentity.ts";
+import { synthesizeCompletedToolCalls } from "./openai-responses/synthesizeCompletedToolCalls.ts";
 
 // normalizeUpstreamFailure is re-exported for external importers (tests).
 export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
+
+interface JsonStringEscapeState {
+  inString: boolean;
+  pendingEscape: boolean;
+}
+
+function createJsonStringEscapeState(): JsonStringEscapeState {
+  return { inString: false, pendingEscape: false };
+}
+
+/** Escape raw control characters inside streamed JSON string values without double-escaping. */
+function escapeJsonStringValues(json: string, escapeState: JsonStringEscapeState): string {
+  let result = "";
+  let { inString, pendingEscape } = escapeState;
+  for (const ch of json) {
+    if (pendingEscape) {
+      result += ch;
+      pendingEscape = false;
+      continue;
+    }
+    if (inString && ch === "\\") {
+      result += ch;
+      pendingEscape = true;
+      continue;
+    }
+    if (ch === '"') {
+      result += ch;
+      inString = !inString;
+      continue;
+    }
+    if (inString && (ch === "\n" || ch === "\r" || ch === "\t")) {
+      result += ch === "\n" ? "\\n" : ch === "\r" ? "\\r" : "\\t";
+      continue;
+    }
+    result += ch;
+  }
+  escapeState.inString = inString;
+  escapeState.pendingEscape = pendingEscape;
+  return result;
+}
 
 /**
  * Translate OpenAI chunk to Responses API events
@@ -126,47 +180,51 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     });
   }
 
-  if (delta.reasoning_content) {
+  if (delta.reasoning_content && !isInternalReasoningPlaceholder(delta.reasoning_content)) {
     startReasoning(state, emit, idx);
     emitReasoningDelta(state, emit, delta.reasoning_content);
   }
+  // Strip the internal reasoning placeholder if the model echoed it through ordinary content.
   if (delta.content) {
-    if (
-      state.reasoningId &&
-      !state.reasoningDone &&
-      (!parseTextualReasoningTags || !state.inThinking)
-    ) {
-      closeReasoning(state, emit);
-    }
+    const strippedContent = stripInternalReasoningPlaceholder(delta.content);
+    if (strippedContent) {
+      if (
+        state.reasoningId &&
+        !state.reasoningDone &&
+        (!parseTextualReasoningTags || !state.inThinking)
+      ) {
+        closeReasoning(state, emit);
+      }
 
       let content = strippedContent;
 
-    if (parseTextualReasoningTags) {
-      if (content.includes("<think>")) {
-        state.inThinking = true;
-        content = content.replaceAll("<think>", "");
-        startReasoning(state, emit, idx);
+      if (parseTextualReasoningTags) {
+        if (content.includes("<think>")) {
+          state.inThinking = true;
+          content = content.replaceAll("<think>", "");
+          startReasoning(state, emit, idx);
+        }
+
+        if (content.includes("</think>")) {
+          const parts = content.split("</think>");
+          const thinkPart = parts[0];
+          const textPart = parts.slice(1).join("</think>");
+          if (thinkPart) emitReasoningDelta(state, emit, thinkPart);
+          closeReasoning(state, emit);
+          state.inThinking = false;
+          content = textPart;
+        }
+
+        if (state.inThinking && content) {
+          emitReasoningDelta(state, emit, content);
+          return events;
+        }
       }
 
-      if (content.includes("</think>")) {
-        const parts = content.split("</think>");
-        const thinkPart = parts[0];
-        const textPart = parts.slice(1).join("</think>");
-        if (thinkPart) emitReasoningDelta(state, emit, thinkPart);
-        closeReasoning(state, emit);
-        state.inThinking = false;
-        content = textPart;
+      if (content) {
+        const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
+        emitTextContent(state, emit, msgIdx, content);
       }
-
-      if (state.inThinking && content) {
-        emitReasoningDelta(state, emit, content);
-        return events;
-      }
-    }
-
-    if (content) {
-      const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
-      emitTextContent(state, emit, msgIdx, content);
     }
   }
 
@@ -441,7 +499,14 @@ function emitToolCall(state, emit, tc) {
   if (tc.function?.arguments) {
     const refCallId = state.funcCallIds[tcIdx] || newCallId;
     const existingArgs = state.funcArgsBuf[tcIdx] || "";
-    const sanitized = escapeJsonStringValues(tc.function.arguments);
+    if (!state.funcArgsEscapeState) state.funcArgsEscapeState = {};
+    if (!state.funcArgsEscapeState[tcIdx]) {
+      state.funcArgsEscapeState[tcIdx] = createJsonStringEscapeState();
+    }
+    const sanitized = escapeJsonStringValues(
+      tc.function.arguments,
+      state.funcArgsEscapeState[tcIdx]
+    );
     const nextArgs = appendToolCallArgumentDelta(existingArgs, sanitized);
     const emittedDelta = nextArgs.slice(existingArgs.length);
     state.funcArgsBuf[tcIdx] = nextArgs;
