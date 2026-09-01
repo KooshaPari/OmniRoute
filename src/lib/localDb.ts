@@ -15,6 +15,7 @@ export {
   updateProviderConnection,
   resetConnectionBackoff,
   clearConnectionErrorIfUnchanged,
+  touchConnectionLastUsed,
   deleteProviderConnection,
   deleteProviderConnections,
   deleteProviderConnectionsByProvider,

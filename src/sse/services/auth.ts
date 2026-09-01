@@ -7,6 +7,7 @@ import {
   validateApiKey,
   updateProviderConnection,
   resetConnectionBackoff,
+  touchConnectionLastUsed,
   clearConnectionErrorIfUnchanged,
   getSettings,
   getCachedSettings,

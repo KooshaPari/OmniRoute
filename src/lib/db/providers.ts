@@ -857,6 +857,31 @@ export async function clearConnectionErrorIfUnchanged(
 }
 
 /**
+ * Lightweight usage-stat update for the credential-selection hot path.
+ * Avoids SELECT, re-encryption, cache invalidation, and file backup.
+ */
+export async function touchConnectionLastUsed(
+  id: string,
+  consecutiveUseCount: number
+): Promise<void> {
+  if (!id) return;
+  const db = getDbInstance() as unknown as DbLike;
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE provider_connections SET
+      last_used_at = @lastUsedAt,
+      consecutive_use_count = @consecutiveUseCount,
+      updated_at = @updatedAt
+    WHERE id = @id`
+  ).run({
+    lastUsedAt: now,
+    consecutiveUseCount,
+    updatedAt: now,
+    id,
+  });
+}
+
+/**
  * Lightweight backoff reset for connections whose cooldown has expired.
  * The caller performs eligibility checks; this targeted update avoids a
  * read, re-encryption, and backup on the credential-selection hot path.
