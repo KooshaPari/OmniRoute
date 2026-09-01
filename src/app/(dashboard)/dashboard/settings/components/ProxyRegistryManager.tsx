@@ -8,6 +8,7 @@ import { parseBulkImportText } from "./parseBulkProxyImport.ts";
 import type { ParsedProxyEntry, ParseError } from "./parseBulkProxyImport.ts";
 import { ProxyBatchActions } from "./ProxyBatchActions";
 import { ProxyCheckboxCell } from "./ProxyCheckboxCell";
+import { ProxyHealthCell } from "./ProxyHealthCell";
 import { ProxyStatusBadge } from "./ProxyStatusBadge";
 
 type ProxyItem = {
