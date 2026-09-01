@@ -58,6 +58,25 @@ describe("responseSanitizer/reasoning — shouldParseTextualReasoningTags", () =
 
 const host = await import("../../open-sse/handlers/responseSanitizer.ts");
 
+describe("host and leaf reasoning policies", () => {
+  it("agree for K3 route boundaries and the Antigravity veto", () => {
+    const cases = [
+      ["kimi-coding", "k3", true],
+      ["kimi-coding", "k30", false],
+      ["k3-provider", "general-model", false],
+      ["antigravity", "k3", false],
+    ] as const;
+
+    for (const [provider, model, expected] of cases) {
+      const hostResult = host.shouldParseTextualReasoningTags(provider, model);
+      const leafResult = shouldParseTextualReasoningTags(provider, model);
+      assert.equal(hostResult, expected, `${provider}/${model} host policy`);
+      assert.equal(leafResult, expected, `${provider}/${model} leaf policy`);
+      assert.equal(hostResult, leafResult, `${provider}/${model} policy parity`);
+    }
+  });
+});
+
 describe("responseSanitizer.ts public API surface (7 names)", () => {
   const expectedFns = [
     "extractThinkingFromContent", // re-exported from leaf
