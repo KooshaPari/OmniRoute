@@ -292,7 +292,6 @@ const ProviderIcon = memo(function ProviderIcon({
   const [remoteSrcFailed, setRemoteSrcFailed] = useState(false);
   const pngKey = `${normalizedId}:png`;
   const svgKey = `${normalizedId}:svg`;
-  const pngKey = `${normalizedId}:png`;
   const theSvgKey = `${normalizedId}:thesvg`;
 
   const trimmedSrc = typeof src === "string" ? src.trim() : "";
