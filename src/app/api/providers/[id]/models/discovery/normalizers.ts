@@ -11,7 +11,10 @@ import {
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
 import { normalizeAntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
-import { resolveAntigravityVersion } from "@omniroute/open-sse/services/antigravityVersion.ts";
+import {
+  resolveAntigravityCliVersion,
+  resolveAntigravityIdeVersion,
+} from "@omniroute/open-sse/services/antigravityVersion.ts";
 import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
 import { asRecord, toNonEmptyString } from "./helpers";
 
@@ -90,7 +93,7 @@ export async function fetchAntigravityDiscoveryModelsCached(
   if (inflight) return inflight;
 
   const promise = (async () => {
-    await resolveAntigravityVersion();
+    await (profile === "cli" ? resolveAntigravityCliVersion() : resolveAntigravityIdeVersion());
     await ensureAntigravityProjectAssigned(
       accessToken,
       fetch,
