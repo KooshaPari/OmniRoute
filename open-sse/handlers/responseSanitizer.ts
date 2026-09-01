@@ -4,6 +4,7 @@ import {
 } from "../utils/reasoningFields.ts";
 import { stripInternalReasoningPlaceholder } from "../utils/reasoningPlaceholder.ts";
 import { normalizeOpenAICompatibleFinishReason } from "../utils/finishReason.ts";
+import { toNumberOrNull } from "@/shared/utils/numeric";
 
 /**
  * Response Sanitizer — Normalizes LLM responses to strict OpenAI SDK format.
@@ -48,10 +49,6 @@ function toRecord(value: unknown): JsonRecord | null {
 
 function toString(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
-}
-
-function toNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
 function deleteOpenAICompatibleReasoningFields(record: JsonRecord): void {
@@ -392,7 +389,7 @@ export function sanitizeOpenAIResponse(
   // Ensure required fields exist
   sanitized.id = normalizeResponseId(bodyRecord.id);
   sanitized.object = toString(bodyRecord.object) || "chat.completion";
-  sanitized.created = toNumber(bodyRecord.created) ?? Math.floor(Date.now() / 1000);
+    sanitized.created = toNumberOrNull(bodyRecord.created) ?? Math.floor(Date.now() / 1000);
   sanitized.model = toString(bodyRecord.model) || "unknown";
 
   // Sanitize choices
@@ -447,8 +444,8 @@ export function sanitizeResponsesApiResponse(body: unknown): unknown {
     id: normalizeResponsesId(responseRoot.id),
     object: "response",
     created_at:
-      toNumber(responseRoot.created_at) ??
-      toNumber(responseRoot.created) ??
+      toNumberOrNull(responseRoot.created_at) ??
+      toNumberOrNull(responseRoot.created) ??
       Math.floor(Date.now() / 1000),
     model: toString(responseRoot.model) || "unknown",
     status: toString(responseRoot.status) || "completed",
@@ -616,9 +613,9 @@ function sanitizeUsage(usage: unknown): unknown {
   }
 
   // Ensure required fields
-  const promptTokens = toNumber(sanitized.prompt_tokens) ?? 0;
-  const completionTokens = toNumber(sanitized.completion_tokens) ?? 0;
-  const totalTokens = toNumber(sanitized.total_tokens) ?? promptTokens + completionTokens;
+  const promptTokens = toNumberOrNull(sanitized.prompt_tokens) ?? 0;
+  const completionTokens = toNumberOrNull(sanitized.completion_tokens) ?? 0;
+  const totalTokens = toNumberOrNull(sanitized.total_tokens) ?? promptTokens + completionTokens;
 
   sanitized.prompt_tokens = promptTokens;
   sanitized.completion_tokens = completionTokens;
@@ -682,9 +679,9 @@ function sanitizeResponsesUsage(usage: unknown): unknown {
     }
   }
 
-  const inputTokens = toNumber(sanitized.input_tokens) ?? 0;
-  const outputTokens = toNumber(sanitized.output_tokens) ?? 0;
-  const totalTokens = toNumber(sanitized.total_tokens) ?? inputTokens + outputTokens;
+  const inputTokens = toNumberOrNull(sanitized.input_tokens) ?? 0;
+  const outputTokens = toNumberOrNull(sanitized.output_tokens) ?? 0;
+  const totalTokens = toNumberOrNull(sanitized.total_tokens) ?? inputTokens + outputTokens;
 
   sanitized.input_tokens = inputTokens;
   sanitized.output_tokens = outputTokens;
@@ -1037,7 +1034,7 @@ function extractResponsesOutputText(output: JsonRecord[]): string {
 
 function convertOpenAIResponseToResponses(openaiResponse: JsonRecord): JsonRecord {
   const responseId = normalizeResponsesId(openaiResponse.id);
-  const createdAt = toNumber(openaiResponse.created) ?? Math.floor(Date.now() / 1000);
+  const createdAt = toNumberOrNull(openaiResponse.created) ?? Math.floor(Date.now() / 1000);
   const model = toString(openaiResponse.model) || "unknown";
   const choice = Array.isArray(openaiResponse.choices)
     ? (toRecord(openaiResponse.choices[0]) ?? {})
@@ -1168,7 +1165,7 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
       const choiceRecord = toRecord(choice);
       if (!choiceRecord) return c;
 
-      c.index = toNumber(choiceRecord.index) ?? 0;
+      c.index = toNumberOrNull(choiceRecord.index) ?? 0;
 
       if (choiceRecord.delta !== undefined) {
         const deltaRecord = toRecord(choiceRecord.delta);
