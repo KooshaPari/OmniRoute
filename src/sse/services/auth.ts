@@ -1192,6 +1192,7 @@ export async function getProviderCredentials(
 
     let modelLockedCount = 0;
     let familyLockedCount = 0;
+    const connectionFilterStatus = new Map<string, string>();
     // Filter out unavailable accounts and excluded connection
     const availableConnections = connections.filter((c) => {
       if (excludedConnectionIds.has(c.id)) {
@@ -1203,11 +1204,21 @@ export async function getProviderCredentials(
         return false;
       }
       if (!allowSuppressedConnections) {
-        if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) return false;
-        if (isTerminalConnectionStatus(c)) return false;
-        if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) return false;
+        if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) {
+          connectionFilterStatus.set(c.id, "rateLimited");
+          return false;
+        }
+        if (isTerminalConnectionStatus(c)) {
+          connectionFilterStatus.set(c.id, "terminalStatus");
+          return false;
+        }
+        if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) {
+          connectionFilterStatus.set(c.id, "codexScopeLimited");
+          return false;
+        }
         // Per-model lockout: if this specific model/family is locked on this connection, skip it
         if (requestedModel && isModelLocked(provider, c.id, requestedModel)) {
+          connectionFilterStatus.set(c.id, "modelLocked");
           if (
             provider === "antigravity" &&
             getQuotaScopeLabelForProvider(provider, requestedModel) === "family"
