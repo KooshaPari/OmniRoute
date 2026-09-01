@@ -1136,32 +1136,17 @@ export function createSSEStream(options: StreamOptions = {}) {
       : "";
   };
 
-  const ensureVisibleResponsesReasoningSummary = (payload: Record<string, unknown>): boolean => {
-    const item =
-      payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)
-        ? (payload.item as Record<string, unknown>)
-        : null;
-    if (!item || item.type !== "reasoning") {
-      return false;
-    }
-
-    if (getResponsesReasoningSummaryText(item)) {
-      return false;
+  const getVisibleResponsesReasoningSummary = (item: Record<string, unknown>): string => {
+    const existingSummary = getResponsesReasoningSummaryText(item);
+    if (existingSummary) {
+      return existingSummary;
     }
 
     const hasEncryptedReasoning =
       typeof item.encrypted_content === "string" && item.encrypted_content.length > 0;
-    if (!hasEncryptedReasoning) {
-      return false;
-    }
-
-    item.summary = [
-      {
-        type: "summary_text",
-        text: "Codex is reasoning, but the upstream Responses API exposed this reasoning block only as encrypted state. OmniRoute cannot recover the private reasoning text.",
-      },
-    ];
-    return true;
+    return hasEncryptedReasoning
+      ? "Codex is reasoning, but the upstream Responses API exposed this reasoning block only as encrypted state. OmniRoute cannot recover the private reasoning text."
+      : "";
   };
 
   const emitSyntheticResponsesReasoningSummary = (
@@ -1176,8 +1161,7 @@ export function createSSEStream(options: StreamOptions = {}) {
       return;
     }
 
-    ensureVisibleResponsesReasoningSummary(payload);
-    const visibleSummary = getResponsesReasoningSummaryText(item);
+    const visibleSummary = getVisibleResponsesReasoningSummary(item);
 
     if (!visibleSummary) {
       return;
@@ -1623,13 +1607,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // response.completed snapshot can be backfilled when upstream
                   // returns an empty `output` (happens with store: false).
                   if (parsed.type === "response.output_item.done" && parsed.item) {
-                    const reasoningSummaryInjected = ensureVisibleResponsesReasoningSummary(parsed);
                     emitSyntheticResponsesReasoningSummary(controller, parsed);
                     pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [parsed.item]);
-                    if (reasoningSummaryInjected) {
-                      output = `data: ${JSON.stringify(parsed)}\n\n`;
-                      injectedUsage = true;
-                    }
                     if (parsed.item?.type === "function_call") {
                       const pendingKey =
                         typeof parsed.item.id === "string"
@@ -2349,7 +2328,6 @@ export function createSSEStream(options: StreamOptions = {}) {
               markResponsesReasoningSummarySeen: (key: string) => {
                 passthroughResponsesReasoningSummarySeen.add(key);
               },
-              ensureVisibleResponsesReasoningSummary,
               emitSyntheticResponsesReasoningSummary: (payload: Record<string, unknown>) =>
                 emitSyntheticResponsesReasoningSummary(controller, payload),
               passthroughResponsesOutputItems,
