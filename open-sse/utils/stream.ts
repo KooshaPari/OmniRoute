@@ -139,6 +139,7 @@ type StreamOptions = {
   connectionId?: string | null;
   apiKeyInfo?: unknown;
   body?: unknown;
+  requestStartedAt?: number;
   onComplete?: ((payload: StreamCompletePayload) => void) | null;
   onFailure?: ((payload: StreamFailurePayload) => boolean | void | Promise<void>) | null;
   /**
@@ -677,6 +678,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     connectionId = null,
     apiKeyInfo = null,
     body = null,
+    requestStartedAt = Date.now(),
     onComplete = null,
     onFailure = null,
     dropResponsesCommentary,
@@ -789,6 +791,52 @@ export function createSSEStream(options: StreamOptions = {}) {
     return false;
   };
   const streamStartedAt = Date.now();
+  let firstTokenAt: number | null = null;
+  const hasFirstTokenContent = (payload: Record<string, unknown>, format: string): boolean => {
+    if (format === FORMATS.OPENAI) {
+      const choice = Array.isArray(payload.choices) ? payload.choices[0] : null;
+      const delta = asRecord(asRecord(choice).delta);
+      return (
+        (typeof delta.content === "string" && delta.content.length > 0) ||
+        Object.keys(delta).some(
+          (key) =>
+            ["reasoning", "reasoning_content", "reasoningContent"].includes(key) &&
+            Boolean(delta[key])
+        ) ||
+        (Array.isArray(delta.tool_calls) && delta.tool_calls.length > 0)
+      );
+    }
+    if (format === FORMATS.CLAUDE) {
+      const delta = asRecord(payload.delta);
+      return (
+        (typeof delta.text === "string" && delta.text.length > 0) ||
+        (typeof delta.thinking === "string" && delta.thinking.length > 0) ||
+        (typeof delta.partial_json === "string" && delta.partial_json.length > 0)
+      );
+    }
+    if (typeof payload.type === "string" && payload.type.includes("delta")) {
+      return typeof payload.delta === "string" && payload.delta.length > 0;
+    }
+    if (Array.isArray(payload.candidates)) {
+      const parts = asRecord(asRecord(payload.candidates[0]).content).parts;
+      return (
+        Array.isArray(parts) &&
+        parts.some((part) => {
+          const item = asRecord(part);
+          return (
+            Boolean(item.functionCall || item.executableCode) ||
+            (typeof item.text === "string" && item.text.length > 0)
+          );
+        })
+      );
+    }
+    return false;
+  };
+  const captureFirstToken = (payload: Record<string, unknown>, format: string) => {
+    if (firstTokenAt === null && hasFirstTokenContent(payload, format)) {
+      firstTokenAt = Math.max(1, Date.now() - requestStartedAt);
+    }
+  };
 
   let lastToolCallChunkTime: number | null = null;
   let toolFinishTime: number | null = null;
@@ -1022,6 +1070,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     }
 
     const output = formatSSE(itemSanitized, sourceFormat);
+    captureFirstToken(itemSanitized, sourceFormat);
     clientPayloadCollector.push(itemSanitized);
     reqLogger?.appendConvertedChunk?.(output);
     controller.enqueue(encoder.encode(output));
@@ -2000,6 +2049,16 @@ export function createSSEStream(options: StreamOptions = {}) {
             output = passthroughEventPrefix.prefixData(output, line);
 
             if (clientPayload) {
+              if (
+                clientPayload &&
+                typeof clientPayload === "object" &&
+                !Array.isArray(clientPayload)
+              ) {
+                captureFirstToken(
+                  clientPayload as Record<string, unknown>,
+                  clientResponseFormat || sourceFormat || FORMATS.OPENAI
+                );
+              }
               clientPayloadCollector.push(clientPayload);
             }
 
@@ -2334,6 +2393,10 @@ export function createSSEStream(options: StreamOptions = {}) {
                 if (isClaudeEventPayload(bufferedPayload)) {
                   updateClaudeEmptyResponseLifecycle(claudeEmptyResponseLifecycle, bufferedPayload);
                 }
+                captureFirstToken(
+                  bufferedPayload,
+                  clientResponseFormat || sourceFormat || FORMATS.OPENAI
+                );
                 clientPayloadCollector.push(bufferedPayload);
 
                 // Normalize numeric IDs for final buffered data: chunk (same as transform path)
@@ -2566,6 +2629,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 onComplete({
                   status: 200,
                   usage,
+                  ttft: firstTokenAt,
                   responseBody,
                   providerPayload: providerPayloadCollector.build(
                     buildStreamSummaryFromEvents(
@@ -2821,6 +2885,7 @@ export function createSSEStream(options: StreamOptions = {}) {
               onComplete({
                 status: 200,
                 usage: state?.usage,
+                ttft: firstTokenAt,
                 responseBody,
                 providerPayload: providerPayloadCollector.build(
                   buildStreamSummaryFromEvents(
