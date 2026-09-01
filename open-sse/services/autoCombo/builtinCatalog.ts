@@ -100,9 +100,11 @@ export function isRecognizedBuiltinAuto(modelStr: string, suffix: string): boole
 export function isPaidTierAutoId(autoId: string): boolean {
   if (typeof autoId !== "string" || !autoId.startsWith("auto/")) return false;
   const suffix = autoId.slice("auto/".length);
-  if (suffix.startsWith("pro-")) return true;
+  if (Object.prototype.hasOwnProperty.call(AUTO_TEMPLATE_VARIANTS, autoId)) {
+    return suffix.startsWith("pro-");
+  }
   const parsed = parseAutoSuffix(suffix);
-  return parsed.valid && parsed.tier === "pro";
+  return AUTO_SUFFIX_VARIANTS.includes(autoId) && parsed.valid && parsed.tier === "pro";
 }
 
 export async function createBuiltinAutoCombo(modelStr: string, suffix: string) {
