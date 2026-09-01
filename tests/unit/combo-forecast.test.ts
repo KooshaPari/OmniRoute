@@ -131,23 +131,23 @@ test("combo forecast projects cost and quota risk from combo history", async () 
 
   quotaSnapshotsDb.saveQuotaSnapshot({
     provider: "openai",
-    connection_id: "forecast-conn-a",
-    window_key: "daily",
-    remaining_percentage: 90,
-    is_exhausted: 0,
-    next_reset_at: null,
-    window_duration_ms: 86_400_000,
-    raw_data: null,
+    connectionId: "forecast-conn-a",
+    windowKey: "daily",
+    remainingPercentage: 90,
+    isExhausted: 0,
+    nextResetAt: null,
+    windowDurationMs: 86_400_000,
+    rawData: null,
   });
   quotaSnapshotsDb.saveQuotaSnapshot({
     provider: "openai",
-    connection_id: "forecast-conn-a",
-    window_key: "daily",
-    remaining_percentage: 20,
-    is_exhausted: 0,
-    next_reset_at: null,
-    window_duration_ms: 86_400_000,
-    raw_data: null,
+    connectionId: "forecast-conn-a",
+    windowKey: "daily",
+    remainingPercentage: 20,
+    isExhausted: 0,
+    nextResetAt: null,
+    windowDurationMs: 86_400_000,
+    rawData: null,
   });
 
   const forecast = await comboForecast.buildComboForecastResponse({
