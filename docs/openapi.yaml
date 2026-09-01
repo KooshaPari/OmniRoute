@@ -6352,11 +6352,12 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              error:
-                type: string
-                example: Unauthorized
+            $ref: "#/components/schemas/ApiErrorResponse"
+          example:
+            error:
+              code: AUTH_001
+              message: Authentication required
+              correlation_id: 3f9f6f5a-509a-4b35-b0a7-2d2d99d73a01
     ManagementAuthenticationRequired:
       description: Authentication required for management routes
       content:
