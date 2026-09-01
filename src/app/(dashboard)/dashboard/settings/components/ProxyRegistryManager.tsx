@@ -6,6 +6,7 @@ import { z } from "zod";
 import { Button, Card, Modal } from "@/shared/components";
 import { parseBulkImportText } from "./parseBulkProxyImport.ts";
 import type { ParsedProxyEntry, ParseError } from "./parseBulkProxyImport.ts";
+import { ProxyBatchActions } from "./ProxyBatchActions";
 
 type ProxyItem = {
   id: string;
