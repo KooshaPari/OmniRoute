@@ -27,6 +27,7 @@ import {
   parseResetTime,
   toPlainHeaders,
 } from "./rateLimitManager/headers";
+import { toNumber } from "@/shared/utils/numeric";
 
 interface LearnedLimitEntry {
   provider: string;
@@ -50,16 +51,6 @@ type RateLimitFn<T = unknown> = () => Promise<T>;
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
-function toNumber(value: unknown, fallback = 0): number {
-  const parsed =
-    typeof value === "number"
-      ? value
-      : typeof value === "string" && value.trim().length > 0
-        ? Number(value)
-        : Number.NaN;
-  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function isNodeTestRunnerChild(): boolean {
