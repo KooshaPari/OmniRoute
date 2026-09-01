@@ -17,6 +17,7 @@ import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveTh
 import {
   admitChatRequest,
   admitChatStructure,
+  checkChatAdmission,
   releaseChatAdmissionAfterHandler,
   releaseChatAdmissionWhenDone,
 } from "@/shared/middleware/chatBodyAdmission";
