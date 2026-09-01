@@ -23,6 +23,7 @@ import {
   isQuotaExhaustedForRequest,
 } from "@/domain/quotaCache";
 import { getQuotaScopeLabelForProvider } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
+import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -1465,7 +1466,12 @@ export async function getProviderCredentials(
 
     const orderedConnections = withQuota;
 
-    const strategy = settings.fallbackStrategy || "fill-first";
+    const providerStrategyOverrides = (settings.providerStrategies || {}) as Record<
+      string,
+      { fallbackStrategy?: string; stickyRoundRobinLimit?: number }
+    >;
+    const providerOverride = providerStrategyOverrides[resolvedId] || {};
+    const strategy = providerOverride.fallbackStrategy || settings.fallbackStrategy || "fill-first";
 
     let connection;
     const affinityConnection = await selectSessionAffinityConnection(
