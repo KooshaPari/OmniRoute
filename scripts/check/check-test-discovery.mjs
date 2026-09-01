@@ -61,6 +61,7 @@ export const COLLECTORS = [
     sources: ["package.json", ".github/workflows/ci.yml"],
   },
   { glob: "tests/unit/serial/**/*.test.ts", sources: ["package.json"] },
+  { glob: "tests/unit/**/*.test.mjs", sources: ["package.json"] },
   // Node native runner — test:integration (top-level only; tests/integration/services/ NÃO roda)
   { glob: "tests/integration/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:combo:matrix / test:integration (combo strategy decision matrix, 17 strategies)

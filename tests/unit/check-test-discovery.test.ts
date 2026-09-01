@@ -24,6 +24,13 @@ test("globToRegExp: glob recursivo ** casa subdiretórios em qualquer profundida
   assert.equal(re.test("tests/e2e/foo.test.ts"), false);
 });
 
+test("globToRegExp: collector MJS recursivo cobre testes em qualquer subdiretório", () => {
+  const re = globToRegExp("tests/unit/**/*.test.mjs");
+  assert.equal(re.test("tests/unit/example.test.mjs"), true);
+  assert.equal(re.test("tests/unit/db/encryption-strict.test.mjs"), true);
+  assert.equal(re.test("tests/unit/example.test.ts"), false);
+});
+
 test("globToRegExp: braces {ts,tsx} expandem alternativas", () => {
   const re = globToRegExp("src/**/*.test.{ts,tsx}");
   assert.equal(re.test("src/shared/components/Foo.test.tsx"), true);

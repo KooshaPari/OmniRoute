@@ -64,6 +64,7 @@ const testFiles = globSync(
     "tests/unit/*.test.ts",
     "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts",
     "tests/unit/serial/**/*.test.ts",
+    "tests/unit/**/*.test.mjs",
   ],
   { cwd: ROOT, absolute: true }
 );

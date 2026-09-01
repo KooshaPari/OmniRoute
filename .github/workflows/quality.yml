@@ -261,7 +261,7 @@ jobs:
       # silenciosamente não rodavam no fast path) e o setupPolyfill não era importado.
       - run: npm run test:unit:ci:shard
         env:
-          TEST_SHARD: ${{ matrix.shard }}/2
+          TEST_SHARD: ${{ matrix.shard }}/4
 
   # ── Pacote 4 (plano mestre testes+CI, aprovado 2026-07-04) ─────────────────────────
   # No-new-warnings por PR via ESLint bulk suppressions nativo (>=9.24). O baseline
