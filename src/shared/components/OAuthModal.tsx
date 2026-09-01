@@ -137,6 +137,8 @@ export default function OAuthModal({
   const [deviceData, setDeviceData] = useState(null);
   const [gheUrl, setGheUrl] = useState("");
   const [polling, setPolling] = useState(false);
+  const [deviceCodeExpiresAt, setDeviceCodeExpiresAt] = useState<number | null>(null);
+  const [deviceCodeSecondsRemaining, setDeviceCodeSecondsRemaining] = useState<number | null>(null);
   // API-key paste mode: for providers that accept a token directly (windsurf, devin-cli)
   const [showPasteToken, setShowPasteToken] = useState(
     provider === "windsurf" || provider === "devin-cli" || provider === "grok-cli"
@@ -620,6 +622,22 @@ export default function OAuthModal({
       grokBrowserMode,
     ]
   );
+
+  useEffect(() => {
+    if (!deviceCodeExpiresAt) {
+      setDeviceCodeSecondsRemaining(null);
+      return;
+    }
+
+    const updateRemaining = () => {
+      setDeviceCodeSecondsRemaining(
+        Math.max(0, Math.ceil((deviceCodeExpiresAt - Date.now()) / 1000))
+      );
+    };
+    updateRemaining();
+    const timer = window.setInterval(updateRemaining, 1000);
+    return () => window.clearInterval(timer);
+  }, [deviceCodeExpiresAt]);
 
   useEffect(() => {
     invalidateDeviceFlow();
