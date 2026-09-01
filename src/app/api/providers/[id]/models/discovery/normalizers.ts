@@ -4,7 +4,7 @@ import {
   getAntigravityModelsDiscoveryUrls,
   getAntigravityFetchAvailableModelsUrls,
 } from "@omniroute/open-sse/config/antigravityUpstream.ts";
-import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import {
   getClientVisibleAntigravityModelName,
   isUserCallableAntigravityModelId,
@@ -107,7 +107,7 @@ export async function fetchAntigravityDiscoveryModelsCached(
           guard: getProviderOutboundGuard(),
           proxyConfig: proxy,
           method: "POST",
-          headers: getAntigravityHeaders("models", accessToken),
+          headers: getAntigravityContentHeaders(profile, accessToken),
           body: JSON.stringify({}),
         });
 
