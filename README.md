@@ -7,6 +7,8 @@
 
 # 🚀 OmniRoute — The Free AI Gateway
 
+
+[![AI slop inside](https://sladge.net/badge.svg)](https://sladge.net) [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/KooshaPari/OmniRoute/total)](https://github.com/KooshaPari/OmniRoute/releases)
 ### Never stop coding. Connect every AI tool to **237 providers** — **50+ free** — through one endpoint.
 
 </div>
