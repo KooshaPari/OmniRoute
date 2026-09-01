@@ -1,5 +1,6 @@
 import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import { toNumber } from "@/shared/utils/numeric";
 
 /**
  * Extract a provider error message from a buffered SSE stream that carries an
@@ -146,15 +147,6 @@ function toRecord(value) {
 
 function toString(value, fallback = "") {
   return typeof value === "string" ? value : fallback;
-}
-
-function toNumber(value, fallback = 0) {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-  return fallback;
 }
 
 export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
