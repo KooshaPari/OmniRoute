@@ -16,6 +16,7 @@
 
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
+import { resolveDataDir } from "../../src/lib/dataPaths";
 import { createLogger } from "@/shared/utils/logger";
 
 const log = createLogger("open-sse:credential-loader");
@@ -43,20 +44,6 @@ function credGlobals(): CredGlobals {
 }
 
 function resolveCredentialsPath(): string {
-  let resolveDataDir: (options?: { isCloud?: boolean }) => string;
-
-  try {
-    resolveDataDir = require("@/lib/dataPaths").resolveDataDir;
-  } catch (err) {
-    const fallbackDataDir = process.env.DATA_DIR || join(process.cwd(), "data");
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    log.error(
-      { err, fallbackDataDir },
-      `Could not load dataPaths module (${errorMessage}); using fallback credentials path: ${fallbackDataDir}`
-    );
-    return join(fallbackDataDir, "provider-credentials.json");
-  }
-
   return join(resolveDataDir(), "provider-credentials.json");
 }
 
