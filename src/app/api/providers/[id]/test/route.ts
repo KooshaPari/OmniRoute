@@ -27,8 +27,8 @@ import { OAUTH_TEST_CONFIG } from "./oauthTestConfig";
 // forever (#1449). Mirrors the 30s timeout the API-key path uses via validateProviderApiKey.
 const OAUTH_TEST_TIMEOUT_MS = 30_000;
 
-// OAuth provider test endpoints
-const OAUTH_TEST_CONFIG = {
+/* OAuth provider test endpoints live in oauthTestConfig.ts. */
+/*
   claude: {
     // Claude doesn't have userinfo, we verify token exists and not expired
     checkExpiry: true,
@@ -150,7 +150,7 @@ const OAUTH_TEST_CONFIG = {
     checkExpiry: true,
     refreshable: true,
   },
-};
+}; */
 
 import { CLI_RUNTIME_PROVIDER_MAP } from "./cliRuntimeProviderMap";
 

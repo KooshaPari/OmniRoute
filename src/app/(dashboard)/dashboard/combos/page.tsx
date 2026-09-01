@@ -1575,7 +1575,7 @@ function ComboReadinessPanel({ checks, blockers, showDescription = true }) {
   );
 }
 
-function ComboCard({
+function ComboCardInner({
   combo,
   metrics,
   compressionEnabled,

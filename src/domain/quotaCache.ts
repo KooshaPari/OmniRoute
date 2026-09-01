@@ -23,6 +23,7 @@ import {
   getLatestQuotaSnapshotsForConnection,
 } from "@/lib/db/quotaSnapshots";
 import { recordProviderQuotaResetEventIfChanged } from "@/lib/db/quotaResetEvents";
+import { getCodexQuotaWindowFilterForModel } from "@omniroute/open-sse/config/codexQuotaScopes.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -305,17 +306,18 @@ export function setQuotaCache(
           : null,
       });
       // #4438 — only persist on the first observation or a real change.
+      const windowExhausted = remainingPercentage <= 0;
       if (!quotaSnapshotChanged(prior, windowKey, remainingPercentage, windowExhausted)) continue;
       try {
         saveQuotaSnapshot({
           provider,
-          connection_id: connectionId,
-          window_key: windowKey,
-          remaining_percentage: remainingPercentage,
-          is_exhausted: windowExhausted ? 1 : 0,
-          next_reset_at: quotaInfo.resetAt ?? null,
-          window_duration_ms: entry.windowDurationMs ?? null,
-          raw_data: null,
+          connectionId,
+          windowKey,
+          remainingPercentage,
+          isExhausted: windowExhausted ? 1 : 0,
+          nextResetAt: quotaInfo.resetAt ?? null,
+          windowDurationMs: entry.windowDurationMs ?? null,
+          rawData: null,
         });
       } catch (error) {
         console.error("[quotaCache] Failed to save snapshot:", error);

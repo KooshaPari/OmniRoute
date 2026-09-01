@@ -181,3 +181,14 @@ export function formatResetCountdown(resetAt: string | number | null | undefined
   if (minutes > 0) return `${minutes}m ${seconds}s`;
   return `${seconds}s`;
 }
+
+/** Coerce persisted structured errors into safe text for React rendering. */
+export function formatErrorForDisplay(err: unknown): string | null {
+  if (err == null) return null;
+  if (typeof err === "string") return err;
+  try {
+    return JSON.stringify(err, null, 2);
+  } catch {
+    return String(err);
+  }
+}

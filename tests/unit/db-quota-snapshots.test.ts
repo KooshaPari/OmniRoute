@@ -28,23 +28,23 @@ test.after(() => {
 test("quotaSnapshots save and query rows with provider and connection filters", () => {
   quotaSnapshotsDb.saveQuotaSnapshot({
     provider: "openai",
-    connection_id: "conn-1",
-    window_key: "hourly",
-    remaining_percentage: 60,
-    is_exhausted: 0,
-    next_reset_at: "2026-01-01T01:00:00.000Z",
-    window_duration_ms: 3600000,
-    raw_data: JSON.stringify({ source: "first" }),
+    connectionId: "conn-1",
+    windowKey: "hourly",
+    remainingPercentage: 60,
+    isExhausted: 0,
+    nextResetAt: "2026-01-01T01:00:00.000Z",
+    windowDurationMs: 3600000,
+    rawData: JSON.stringify({ source: "first" }),
   });
   quotaSnapshotsDb.saveQuotaSnapshot({
     provider: "anthropic",
-    connection_id: "conn-2",
-    window_key: "daily",
-    remaining_percentage: 30,
-    is_exhausted: 1,
-    next_reset_at: "2026-01-02T00:00:00.000Z",
-    window_duration_ms: 86400000,
-    raw_data: JSON.stringify({ source: "second" }),
+    connectionId: "conn-2",
+    windowKey: "daily",
+    remainingPercentage: 30,
+    isExhausted: 1,
+    nextResetAt: "2026-01-02T00:00:00.000Z",
+    windowDurationMs: 86400000,
+    rawData: JSON.stringify({ source: "second" }),
   });
 
   const openaiRows = quotaSnapshotsDb.getQuotaSnapshots({
@@ -103,23 +103,23 @@ test("quotaSnapshots reads legacy rows without nullable analytics columns", () =
 test("quotaSnapshots aggregates by provider or connection and rejects invalid buckets", () => {
   quotaSnapshotsDb.saveQuotaSnapshot({
     provider: "openai",
-    connection_id: "conn-a",
-    window_key: "hourly",
-    remaining_percentage: 50,
-    is_exhausted: 0,
-    next_reset_at: "2026-01-01T01:00:00.000Z",
-    window_duration_ms: 3600000,
-    raw_data: "{}",
+    connectionId: "conn-a",
+    windowKey: "hourly",
+    remainingPercentage: 50,
+    isExhausted: 0,
+    nextResetAt: "2026-01-01T01:00:00.000Z",
+    windowDurationMs: 3600000,
+    rawData: "{}",
   });
   quotaSnapshotsDb.saveQuotaSnapshot({
     provider: "openai",
-    connection_id: "conn-a",
-    window_key: "hourly",
-    remaining_percentage: 70,
-    is_exhausted: 0,
-    next_reset_at: "2026-01-01T01:10:00.000Z",
-    window_duration_ms: 3600000,
-    raw_data: "{}",
+    connectionId: "conn-a",
+    windowKey: "hourly",
+    remainingPercentage: 70,
+    isExhausted: 0,
+    nextResetAt: "2026-01-01T01:10:00.000Z",
+    windowDurationMs: 3600000,
+    rawData: "{}",
   });
 
   const providerAgg = quotaSnapshotsDb.getAggregatedSnapshots({
