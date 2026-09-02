@@ -226,7 +226,13 @@
     "system-info": "node scripts/dev/system-info.mjs",
     "build:cli-api": "node --import tsx/esm scripts/cli/generate-api-commands.mjs",
     "release:contributors": "node scripts/release/gen-contributors.mjs",
-    "release:uncovered": "node scripts/release/list-uncovered-commits.mjs"
+    "release:uncovered": "node scripts/release/list-uncovered-commits.mjs",
+    "docs:dev": "vitepress dev docs-site --port 5173 --host 127.0.0.1",
+    "docs:build": "vitepress build docs-site",
+    "docs:preview": "vitepress preview docs-site",
+    "demo:gui": "bun run demo/gui-walkthrough.ts",
+    "demo:stress": "bun run demo/stress.ts --burst 200 --rps 100 --duration 30",
+    "demo:on-device": "sh demo/on-device.sh"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1073.0",
@@ -368,7 +374,8 @@
     "typescript-eslint": "^8.59.4",
     "vitest": "^4.1.7",
     "wait-on": "^9.0.10",
-    "wtfnode": "^0.10.1"
+    "wtfnode": "^0.10.1",
+    "vitepress": "^1.6.4"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs}": [
