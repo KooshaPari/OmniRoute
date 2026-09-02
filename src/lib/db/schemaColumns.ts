@@ -27,6 +27,8 @@ export function ensureProviderConnectionsColumns(db: SqliteDatabase) {
       ["rate_limit_protection", "INTEGER DEFAULT 0"],
       ["last_used_at", "TEXT"],
       ["default_model", "TEXT"], // legacy-schema hole; later data migrations read it
+      ["last_ping_at", "TEXT"], // added by 123_quota_auto_ping; back-filled here for divergent lineages
+      ["last_pinged_reset_key", "TEXT"], // added by 123_quota_auto_ping; back-filled here for divergent lineages
     ]) {
       if (!columnNames.has(column)) {
         db.exec(`ALTER TABLE provider_connections ADD COLUMN ${column} ${type}`);
