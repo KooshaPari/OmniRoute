@@ -2,6 +2,9 @@ import {
   copyOpenAICompatibleReasoningFields,
   getReadableReasoningValue,
 } from "../utils/reasoningFields.ts";
+import { stripInternalReasoningPlaceholder } from "../utils/reasoningPlaceholder.ts";
+import { normalizeOpenAICompatibleFinishReason } from "../utils/finishReason.ts";
+import { toNumberOrNull } from "@/shared/utils/numeric";
 
 /**
  * Response Sanitizer — Normalizes LLM responses to strict OpenAI SDK format.
@@ -46,10 +49,6 @@ function toRecord(value: unknown): JsonRecord | null {
 
 function toString(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
-}
-
-function toNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
 function deleteOpenAICompatibleReasoningFields(record: JsonRecord): void {
@@ -340,7 +339,8 @@ function isTextualReasoningTagNativeRoute(providerId: string, modelId: string): 
   return (
     /deepseek[-_/]?r1\b/.test(routeId) ||
     /r1[-_/]?distill\b/.test(routeId) ||
-    /(?:^|[/:_-])qwq(?:[/._:-]|$)/.test(routeId)
+    /(?:^|[/:_-])qwq(?:[/._:-]|$)/.test(routeId) ||
+    /(?:^|[/_-])k3(?:[/._:-]|$)/.test(modelId)
   );
 }
 
@@ -390,13 +390,13 @@ export function sanitizeOpenAIResponse(
   // Ensure required fields exist
   sanitized.id = normalizeResponseId(bodyRecord.id);
   sanitized.object = toString(bodyRecord.object) || "chat.completion";
-  sanitized.created = toNumber(bodyRecord.created) ?? Math.floor(Date.now() / 1000);
+    sanitized.created = toNumberOrNull(bodyRecord.created) ?? Math.floor(Date.now() / 1000);
   sanitized.model = toString(bodyRecord.model) || "unknown";
 
   // Sanitize choices
   if (Array.isArray(bodyRecord.choices)) {
     sanitized.choices = bodyRecord.choices.map((choice, idx) => {
-      const sanitizedChoice = sanitizeChoice(choice, idx);
+      const sanitizedChoice = sanitizeChoice(choice, idx, { parseTextualReasoningTags });
       const message = toRecord(sanitizedChoice.message);
       if (
         message &&
@@ -445,8 +445,8 @@ export function sanitizeResponsesApiResponse(body: unknown): unknown {
     id: normalizeResponsesId(responseRoot.id),
     object: "response",
     created_at:
-      toNumber(responseRoot.created_at) ??
-      toNumber(responseRoot.created) ??
+      toNumberOrNull(responseRoot.created_at) ??
+      toNumberOrNull(responseRoot.created) ??
       Math.floor(Date.now() / 1000),
     model: toString(responseRoot.model) || "unknown",
     status: toString(responseRoot.status) || "completed",
@@ -489,7 +489,11 @@ export function sanitizeResponsesApiResponse(body: unknown): unknown {
 /**
  * Sanitize a single choice object.
  */
-function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
+function sanitizeChoice(
+  choice: unknown,
+  defaultIndex: number,
+  options: ParseOptions = {}
+): JsonRecord {
   const choiceRecord = toRecord(choice);
   const sanitized: JsonRecord = {
     index: defaultIndex,
@@ -505,7 +509,7 @@ function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
   }
 
   if (choiceRecord?.message !== undefined) {
-    sanitized.message = sanitizeMessage(choiceRecord.message);
+    sanitized.message = sanitizeMessage(choiceRecord.message, options);
   }
   if (choiceRecord?.delta !== undefined) {
     sanitized.delta = sanitizeMessage(choiceRecord.delta, options);
@@ -518,36 +522,25 @@ function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
   return sanitized;
 }
 
-/**
- * Sanitize a message object, extracting <think> tags if present.
- */
-function sanitizeMessage(msg: unknown): unknown {
-  const msgRecord = toRecord(msg);
-  if (!msgRecord) return msg;
-
-  const sanitized: JsonRecord = {};
-
-  // Copy only allowed fields
-  if (msgRecord.role) sanitized.role = msgRecord.role;
-  if (msgRecord.refusal !== undefined) sanitized.refusal = msgRecord.refusal;
-
-  // Handle content — extract <think> tags
+function sanitizeMessageContent(msgRecord: JsonRecord, options: ParseOptions = {}): JsonRecord {
   if (typeof msgRecord.content === "string") {
-    const { content, thinking } = extractThinkingFromContent(
+    const strippedContent = stripInternalReasoningPlaceholder(
       stripInternalToolEnvelopeText(msgRecord.content)
     );
-    sanitized.content = collapseExcessiveNewlines(content);
-
-    // Set reasoning_content from prompt-format tags only when the provider did
-    // not also return a native OpenAI-compatible reasoning field.
-    if (thinking && !getReadableReasoningValue(msgRecord)) {
-      sanitized.reasoning_content = thinking;
-    }
-  } else if (msgRecord.content !== undefined) {
-    sanitized.content = msgRecord.content;
+    const nativeReasoning = getReadableReasoningValue(msgRecord);
+    const hasNativeReasoningContent = typeof msgRecord.reasoning_content === "string";
+    const { content, thinking } =
+      (options.parseTextualReasoningTags === true || nativeReasoning.length > 0) &&
+      !hasNativeReasoningContent
+        ? extractThinkingFromContent(strippedContent)
+        : { content: strippedContent, thinking: null };
+    const sanitized: JsonRecord = { content: collapseExcessiveNewlines(content) };
+    if (thinking && !nativeReasoning) sanitized.reasoning_content = thinking;
+    return sanitized;
   }
 
-  copyOpenAICompatibleReasoningFields(msgRecord, sanitized);
+  return msgRecord.content !== undefined ? { content: msgRecord.content } : {};
+}
 
 function applyTextualToolCallSanitization(sanitized: JsonRecord, msgRecord: JsonRecord): void {
   const textualToolCall = parseTextualToolCallContent(sanitized.content);
@@ -621,9 +614,9 @@ function sanitizeUsage(usage: unknown): unknown {
   }
 
   // Ensure required fields
-  const promptTokens = toNumber(sanitized.prompt_tokens) ?? 0;
-  const completionTokens = toNumber(sanitized.completion_tokens) ?? 0;
-  const totalTokens = toNumber(sanitized.total_tokens) ?? promptTokens + completionTokens;
+  const promptTokens = toNumberOrNull(sanitized.prompt_tokens) ?? 0;
+  const completionTokens = toNumberOrNull(sanitized.completion_tokens) ?? 0;
+  const totalTokens = toNumberOrNull(sanitized.total_tokens) ?? promptTokens + completionTokens;
 
   sanitized.prompt_tokens = promptTokens;
   sanitized.completion_tokens = completionTokens;
@@ -687,9 +680,9 @@ function sanitizeResponsesUsage(usage: unknown): unknown {
     }
   }
 
-  const inputTokens = toNumber(sanitized.input_tokens) ?? 0;
-  const outputTokens = toNumber(sanitized.output_tokens) ?? 0;
-  const totalTokens = toNumber(sanitized.total_tokens) ?? inputTokens + outputTokens;
+  const inputTokens = toNumberOrNull(sanitized.input_tokens) ?? 0;
+  const outputTokens = toNumberOrNull(sanitized.output_tokens) ?? 0;
+  const totalTokens = toNumberOrNull(sanitized.total_tokens) ?? inputTokens + outputTokens;
 
   sanitized.input_tokens = inputTokens;
   sanitized.output_tokens = outputTokens;
@@ -1042,7 +1035,7 @@ function extractResponsesOutputText(output: JsonRecord[]): string {
 
 function convertOpenAIResponseToResponses(openaiResponse: JsonRecord): JsonRecord {
   const responseId = normalizeResponsesId(openaiResponse.id);
-  const createdAt = toNumber(openaiResponse.created) ?? Math.floor(Date.now() / 1000);
+  const createdAt = toNumberOrNull(openaiResponse.created) ?? Math.floor(Date.now() / 1000);
   const model = toString(openaiResponse.model) || "unknown";
   const choice = Array.isArray(openaiResponse.choices)
     ? (toRecord(openaiResponse.choices[0]) ?? {})
@@ -1173,7 +1166,7 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
       const choiceRecord = toRecord(choice);
       if (!choiceRecord) return c;
 
-      c.index = toNumber(choiceRecord.index) ?? 0;
+      c.index = toNumberOrNull(choiceRecord.index) ?? 0;
 
       if (choiceRecord.delta !== undefined) {
         const deltaRecord = toRecord(choiceRecord.delta);
@@ -1187,6 +1180,11 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
                 : deltaRecord.content;
           }
           copyOpenAICompatibleReasoningFields(deltaRecord, delta);
+          for (const field of ["reasoning_content", "reasoning", "reasoning_text"] as const) {
+            if (typeof delta[field] === "string") {
+              delta[field] = stripZeroWidthText(delta[field]);
+            }
+          }
           if (deltaRecord.tool_calls !== undefined) {
             delta.tool_calls = Array.isArray(deltaRecord.tool_calls)
               ? deltaRecord.tool_calls.map((tc) => {

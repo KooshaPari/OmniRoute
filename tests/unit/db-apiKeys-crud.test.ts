@@ -2,7 +2,7 @@
  * Tests for src/lib/db/apiKeys.ts — API key lifecycle, validation, caching, wildcard matching.
  *
  * Coverage targets:
- *   - createApiKey, getApiKeys, getApiKeyById
+ *   - createApiKey, getApiKeys, getApiKeysCount, getApiKeyById
  *   - validateApiKey (env key, DB-backed, cache, banned/revoked/expired/inactive)
  *   - getApiKeyMetadata (env key, DB-backed, cache)
  *   - isModelAllowedForKey (no restrictions, exact, prefix, wildcard, group deny)
@@ -87,6 +87,15 @@ test("getApiKeys returns all created keys", async () => {
   assert.equal(all.length, 2);
   const names = all.map((k) => k.name).sort();
   assert.deepEqual(names, ["Key A", "Key B"]);
+});
+
+test("getApiKeysCount returns the full table total", async () => {
+  await resetStorage();
+  assert.equal(apiKeys.getApiKeysCount(), 0);
+
+  await apiKeys.createApiKey("Count A", "ma-count-a");
+  await apiKeys.createApiKey("Count B", "ma-count-b");
+  assert.equal(apiKeys.getApiKeysCount(), 2);
 });
 
 // ──────────────── getApiKeyById ────────────────

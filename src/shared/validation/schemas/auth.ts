@@ -133,7 +133,10 @@ export const oauthPollSchema = z.object({
 
 /** Import a raw API token (e.g. WINDSURF_API_KEY) without going through the browser OAuth flow. */
 export const oauthImportTokenSchema = z.object({
-  token: z.union([z.string().trim().min(1, "Token is required"), z.record(z.string(), z.unknown())]),
+  token: z.union([
+    z.string().trim().min(1, "Token is required"),
+    z.record(z.string(), z.unknown()),
+  ]),
   connectionId: z.string().optional(),
 });
 
@@ -190,6 +193,11 @@ export const kiroImportSchema = z.object({
   clientSecret: z.string().optional(),
   authMethod: z.string().optional(),
   profileArn: z.string().optional(),
+});
+
+export const kiroApiKeyImportSchema = z.object({
+  apiKey: z.string().trim().min(1, "API key is required"),
+  region: z.string().trim().default("us-east-1"),
 });
 
 export const kiroSocialExchangeSchema = z.object({

@@ -31,17 +31,14 @@ import {
   coerceProxyPayload,
   redactProxySecrets,
 } from "./proxies/mappers";
+import { isGlobalProxyEnabled } from "./proxies/guards";
 export { extractRelayAuth, redactProxySecrets } from "./proxies/mappers";
-
-let proxyRegistryGeneration = 0;
-
-function bumpProxyRegistryGeneration() {
-  proxyRegistryGeneration++;
-}
-
-export function getProxyRegistryGeneration() {
-  return proxyRegistryGeneration;
-}
+export { addProxiesToScopePool } from "./proxySubscriptions";
+export {
+  bumpProxyRegistryGeneration,
+  getProxyRegistryGeneration,
+} from "./proxies/registryGeneration";
+import { bumpProxyRegistryGeneration } from "./proxies/registryGeneration";
 
 // Mutate legacy proxyConfig rows directly so these writes stay inside the same
 // SQLite transaction as the proxy registry row and assignment upsert.

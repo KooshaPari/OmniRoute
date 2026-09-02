@@ -1,7 +1,22 @@
 import { test } from "node:test";
 import assert from "node:assert";
 // @ts-expect-error — .mjs module has no type declarations
-import { extractModuleCoverage, CRITICAL_MODULE_PATHS } from "../../scripts/quality/collect-metrics.mjs";
+import {
+  extractModuleCoverage,
+  CRITICAL_MODULE_PATHS,
+  parseEslintResults,
+} from "../../scripts/quality/collect-metrics.mjs";
+
+test("quality collector parses ESLint JSON reports", () => {
+  assert.deepEqual(
+    parseEslintResults('[{"warningCount":2,"errorCount":1}]'),
+    [{ warningCount: 2, errorCount: 1 }]
+  );
+});
+
+test("quality collector tolerates ESLint non-JSON output", () => {
+  assert.deepEqual(parseEslintResults("stale suppression warning"), []);
+});
 
 // ─── Task 7.9: extractModuleCoverage (pure function) ─────────────────────────
 //

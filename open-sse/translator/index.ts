@@ -9,7 +9,6 @@ import {
   prepareClaudeRequest,
 } from "./helpers/claudeHelper.ts";
 import { filterToOpenAIFormat } from "./helpers/openaiHelper.ts";
-import { providerHonorsOpenAIFormatCacheControl } from "../utils/cacheControlPolicy.ts";
 import {
   providerHonorsOpenAIFormatCacheControl,
   resolveConnectionCacheOverride,
@@ -283,7 +282,7 @@ export function translateRequest(
           // stripped.
           const preserveCacheControl =
             options?.preserveCacheControl === true &&
-            providerHonorsOpenAIFormatCacheControl(provider);
+            providerHonorsOpenAIFormatCacheControl(provider, connectionCacheOverride);
           const step1Credentials =
             options?.copilotClient || hasTargetHint || preserveCacheControl
               ? {
@@ -351,7 +350,7 @@ export function translateRequest(
     result = filterToOpenAIFormat(result, {
       preserveCacheControl:
         options?.preserveCacheControl === true &&
-        providerHonorsOpenAIFormatCacheControl(provider),
+        providerHonorsOpenAIFormatCacheControl(provider, connectionCacheOverride),
       // #4849 regression guard: keep client reasoning_content for replay providers.
       preserveReasoningContent: isReasoner,
     });

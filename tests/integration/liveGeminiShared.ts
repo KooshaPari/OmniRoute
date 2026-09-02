@@ -381,6 +381,24 @@ export function genAgenticTaskMessage(): Message {
   return { role: "user", content: pick(AGENTIC_TASKS) };
 }
 
+// #7360 follow-up: exercise Gemini's free-tier TPM path with a genuinely large
+// prompt rather than the smaller prompts used by the normal workload cases.
+export function genHugeContextMessage(approxTokens = 12000): Message {
+  const CHARS_PER_TOKEN = 4;
+  const targetChars = approxTokens * CHARS_PER_TOKEN;
+  const chunks = [...LONG_DOCUMENTS, ...CODE_BLOCKS];
+  let content = "";
+  let i = 0;
+  while (content.length < targetChars) {
+    content += `\n\n--- Section ${i + 1} ---\n\n${chunks[i % chunks.length]}`;
+    i++;
+  }
+  return {
+    role: "user",
+    content: `I'm pasting a large batch of internal documentation and code samples below. Read through all of it, then give me a single consolidated summary (max 200 words) covering the recurring themes.\n${content}`,
+  };
+}
+
 export function genMultiTurnConversation(turns: number): Message[] {
   const messages: Message[] = [];
 
@@ -475,6 +493,54 @@ interface StreamResult {
   totalTokens: number;
 }
 
+export async function readResponsesSSEStream(response: Response): Promise<StreamResult> {
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let fullContent = "";
+  let finishReason = "unknown";
+  let totalTokens = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const data = line.slice(6).trim();
+      if (data === "[DONE]") continue;
+
+      try {
+        const parsed = JSON.parse(data) as Record<string, unknown>;
+        const type = parsed.type as string | undefined;
+        if (
+          type === "response.output_text.delta" ||
+          type === "response.reasoning_summary_text.delta"
+        ) {
+          const delta = parsed.delta as string | undefined;
+          if (delta) fullContent += delta;
+        } else if (type === "response.completed") {
+          const completedResponse = parsed.response as Record<string, unknown> | undefined;
+          finishReason = (completedResponse?.status as string) || "unknown";
+          const usage = completedResponse?.usage as Record<string, number> | undefined;
+          if (usage) {
+            totalTokens =
+              usage.total_tokens ?? (usage.input_tokens ?? 0) + (usage.output_tokens ?? 0);
+          }
+        }
+      } catch {
+        // Ignore malformed SSE records and continue consuming the stream.
+      }
+    }
+  }
+
+  return { fullContent, finishReason, totalTokens };
+}
+
 export async function readSSEStream(response: Response): Promise<StreamResult> {
   const reader = response.body!.getReader();
   const decoder = new TextDecoder();
@@ -516,6 +582,329 @@ export async function readSSEStream(response: Response): Promise<StreamResult> {
   }
 
   return { fullContent, finishReason, totalTokens };
+}
+
+export interface ToolCall {
+  id: string;
+  type: string;
+  function: { name: string; arguments: string };
+}
+
+export interface ResponsesToolCall {
+  id: string;
+  type: "function_call";
+  call_id: string;
+  name: string;
+  arguments: string;
+}
+
+export interface ChatResponse {
+  choices: Choice[];
+  model: string;
+}
+
+interface Choice {
+  finish_reason: string;
+  message: { role: string; content: string | null; tool_calls?: ToolCall[] };
+}
+
+export interface ResponsesResponse {
+  id: string;
+  object: string;
+  status: string;
+  model: string;
+  output: Array<{
+    id: string;
+    type: string;
+    role?: string;
+    content?: Array<{ type: string; text?: string; annotations?: unknown[] }>;
+    call_id?: string;
+    name?: string;
+    arguments?: string;
+  }>;
+  usage?: { input_tokens: number; output_tokens: number; total_tokens: number };
+}
+
+export const TOOL_DEFINITION = {
+  type: "function" as const,
+  function: {
+    name: "write_file",
+    description: "Write content to a file",
+    parameters: {
+      type: "object" as const,
+      properties: {
+        path: { type: "string" as const, description: "File path" },
+        content: { type: "string" as const, description: "File content" },
+      },
+      required: ["path", "content"],
+    },
+    strict: true,
+  },
+};
+
+export function extractToolCalls(data: ChatResponse): ToolCall[] {
+  for (const choice of data.choices) {
+    if (choice.finish_reason === "tool_calls" && choice.message.tool_calls?.length) {
+      return choice.message.tool_calls;
+    }
+  }
+  return [];
+}
+
+export function extractToolCallsFromResponses(data: ResponsesResponse): ResponsesToolCall[] {
+  return data.output
+    .filter((item) => item.type === "function_call" && item.arguments)
+    .map((item) => ({
+      id: item.id,
+      type: "function_call" as const,
+      call_id: item.call_id || item.id,
+      name: item.name || "",
+      arguments: item.arguments || "",
+    }));
+}
+
+export function validateToolCallArguments(toolCalls: ToolCall[] | ResponsesToolCall[]): void {
+  assert.ok(toolCalls.length > 0, "expected at least one tool call");
+  for (const toolCall of toolCalls) {
+    const rawArgs = "function" in toolCall ? toolCall.function.arguments : toolCall.arguments;
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = JSON.parse(rawArgs);
+    } catch (error) {
+      assert.fail(
+        `tool call arguments are NOT valid JSON: ${error}\n` +
+          `arguments repr: ${JSON.stringify(rawArgs)}\n` +
+          `arguments first 500 chars: ${rawArgs.slice(0, 500)}`
+      );
+      return;
+    }
+    assert.ok(typeof parsed === "object", "arguments must parse to an object");
+    assert.ok(typeof parsed.content === "string", "content must be a string");
+    assert.ok(typeof parsed.path === "string", "path must be a string");
+    const content = parsed.content as string;
+    if (content.includes("for ") || content.includes("def ")) {
+      assert.ok(content.includes("\n"), "multi-line code should contain actual newline characters");
+    }
+    assert.ok(
+      !rawArgs.includes(String.raw`\\n`),
+      String.raw`arguments should NOT contain double-escaped \\n sequences`
+    );
+    assert.doesNotThrow(
+      () => JSON.parse(JSON.stringify(parsed)),
+      "re-serialized args should be valid JSON"
+    );
+  }
+}
+
+const FORCE_TOOL_CHOICE_REQUIRED = process.env.FORCE_TOOL_CHOICE_REQUIRED === "1";
+
+export async function sendToolCallChatRequest(
+  model: string,
+  prompt: string
+): Promise<ChatResponse> {
+  const response = await fetch(`${BASE_URL}/v1/chat/completions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: "user", content: prompt }],
+      tools: [TOOL_DEFINITION],
+      temperature: 0.1,
+      stream: false,
+      max_tokens: 4096,
+      ...(FORCE_TOOL_CHOICE_REQUIRED ? { tool_choice: "required" } : {}),
+    }),
+    signal: AbortSignal.timeout(90_000),
+  });
+  assert.equal(response.status, 200, `HTTP ${response.status}`);
+  const data = (await response.json()) as ChatResponse;
+  assert.ok(data.choices?.length > 0, "expected at least one choice");
+  return data;
+}
+
+export async function sendStreamingToolCallChatRequest(
+  model: string,
+  prompt: string
+): Promise<ChatResponse> {
+  const response = await fetch(`${BASE_URL}/v1/chat/completions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: "user", content: prompt }],
+      tools: [TOOL_DEFINITION],
+      temperature: 0.1,
+      stream: true,
+      max_tokens: 4096,
+      ...(FORCE_TOOL_CHOICE_REQUIRED ? { tool_choice: "required" } : {}),
+    }),
+    signal: AbortSignal.timeout(120_000),
+  });
+  assert.equal(response.status, 200, `HTTP ${response.status}`);
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  const toolCallDeltas = new Map<string, { id: string; name: string; arguments: string }>();
+  let finalFinishReason = "";
+  let finalModel = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const data = line.slice(6).trim();
+      if (data === "[DONE]") continue;
+      try {
+        const parsed = JSON.parse(data) as Record<string, unknown>;
+        const choice = (parsed.choices as Array<Record<string, unknown>> | undefined)?.[0];
+        if (choice?.finish_reason) finalFinishReason = choice.finish_reason as string;
+        if (parsed.model && !finalModel) finalModel = parsed.model as string;
+        const delta = choice?.delta as Record<string, unknown> | undefined;
+        const deltas = delta?.tool_calls as Array<Record<string, unknown>> | undefined;
+        for (const item of deltas || []) {
+          const index = String(item.index as number);
+          const fn = item.function as Record<string, unknown> | undefined;
+          const entry = toolCallDeltas.get(index) || { id: "", name: "", arguments: "" };
+          if (item.id) entry.id = item.id as string;
+          if (fn?.name) entry.name = fn.name as string;
+          if (fn?.arguments) entry.arguments += fn.arguments as string;
+          toolCallDeltas.set(index, entry);
+        }
+      } catch {
+        // Ignore malformed SSE records.
+      }
+    }
+  }
+  return {
+    model: finalModel,
+    choices: [
+      {
+        finish_reason: finalFinishReason,
+        message: {
+          role: "assistant",
+          content: null,
+          tool_calls: [...toolCallDeltas.values()].map((item) => ({
+            id: item.id,
+            type: "function",
+            function: { name: item.name, arguments: item.arguments },
+          })),
+        },
+      },
+    ],
+  };
+}
+
+export async function sendToolCallResponsesRequest(
+  model: string,
+  prompt: string
+): Promise<ResponsesResponse> {
+  const response = await fetch(`${BASE_URL}/v1/responses`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
+    body: JSON.stringify({
+      model,
+      input: prompt,
+      tools: [
+        {
+          type: "function",
+          name: TOOL_DEFINITION.function.name,
+          description: TOOL_DEFINITION.function.description,
+          parameters: TOOL_DEFINITION.function.parameters,
+          strict: TOOL_DEFINITION.function.strict,
+        },
+      ],
+      temperature: 0.1,
+      stream: false,
+      max_output_tokens: 4096,
+      ...(FORCE_TOOL_CHOICE_REQUIRED ? { tool_choice: "required" } : {}),
+    }),
+    signal: AbortSignal.timeout(90_000),
+  });
+  assert.equal(response.status, 200, `HTTP ${response.status}`);
+  return (await response.json()) as ResponsesResponse;
+}
+
+export async function sendStreamingToolCallResponsesRequest(
+  model: string,
+  prompt: string
+): Promise<ResponsesToolCall[]> {
+  const response = await fetch(`${BASE_URL}/v1/responses`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
+    body: JSON.stringify({
+      model,
+      input: prompt,
+      tools: [
+        {
+          type: "function",
+          name: TOOL_DEFINITION.function.name,
+          description: TOOL_DEFINITION.function.description,
+          parameters: TOOL_DEFINITION.function.parameters,
+          strict: TOOL_DEFINITION.function.strict,
+        },
+      ],
+      temperature: 0.1,
+      stream: true,
+      max_output_tokens: 4096,
+      ...(FORCE_TOOL_CHOICE_REQUIRED ? { tool_choice: "required" } : {}),
+    }),
+    signal: AbortSignal.timeout(120_000),
+  });
+  assert.equal(response.status, 200, `HTTP ${response.status}`);
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  const calls = new Map<string, ResponsesToolCall>();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const data = line.slice(6).trim();
+      if (data === "[DONE]") continue;
+      try {
+        const parsed = JSON.parse(data) as Record<string, unknown>;
+        const type = parsed.type as string;
+        if (type === "response.output_item.added") {
+          const item = parsed.item as Record<string, unknown> | undefined;
+          if (item?.type === "function_call") {
+            const id = item.id as string;
+            calls.set(id, {
+              id,
+              type: "function_call",
+              call_id: (item.call_id as string) || id,
+              name: (item.name as string) || "",
+              arguments: "",
+            });
+          }
+        } else if (
+          type === "response.function_call_arguments.delta" ||
+          type === "response.function_call_arguments.done"
+        ) {
+          const id = parsed.item_id as string;
+          const call = calls.get(id) || {
+            id,
+            type: "function_call" as const,
+            call_id: id,
+            name: "",
+            arguments: "",
+          };
+          if (type.endsWith(".delta")) call.arguments += parsed.delta as string;
+          else call.arguments = parsed.arguments as string;
+          calls.set(id, call);
+        }
+      } catch {
+        // Ignore malformed SSE records.
+      }
+    }
+  }
+  return [...calls.values()];
 }
 
 // --------------------------------------------------------------------------

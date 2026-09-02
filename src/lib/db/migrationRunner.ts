@@ -19,6 +19,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import type { SqliteAdapter } from "./adapters/types";
 import { DEFAULT_DATABASE_SETTINGS } from "@/types/databaseSettings";
+import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 import {
   RENAMED_MIGRATION_COMPATIBILITY,
   LEGACY_VERSION_SLOT_MIGRATIONS,
@@ -27,6 +28,7 @@ import {
   INITIAL_SCHEMA_SENTINELS,
   OPTIONAL_FTS5_MIGRATION_VERSIONS,
 } from "./migrationRunner/constants";
+import { getExtraMigrationFiles } from "./migrationRunner/extraDirs";
 
 const isNodeTestRunnerChild = typeof process.env.NODE_TEST_CONTEXT === "string";
 
@@ -137,6 +139,15 @@ function resolveMaxPendingMigrations(): number {
   }
   return DEFAULT_MAX_PENDING_MIGRATIONS_ON_EXISTING_DB;
 }
+
+export class MigrationSafetyAbortError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MigrationSafetyAbortError";
+  }
+}
+
+let memoizedSafetyAbort: MigrationSafetyAbortError | null = null;
 
 const fts5SupportCache = new WeakMap<SqliteAdapter, boolean>();
 
@@ -434,12 +445,35 @@ function isSchemaAlreadyApplied(
       // was dropped on integration; this canonical migration creates the table
       // that recordPluginExecution()/getPluginAnalytics() rely on.
       return hasTable(db, "plugin_analytics");
-    case "117":
+    case "134":
+      // provider_node_icon_url was renumbered from 113 after that slot collided
+      // with cli_access_tokens. Existing DBs may have the column without the
+      // renamed tracker row, so never replay its non-idempotent ALTER.
+      return hasColumn(db, "provider_nodes", "icon_url");
+    case "137":
+      // call_logs_reasoning_source was renumbered from 116. Both ALTERs must
+      // already be present before the migration can be recorded as applied.
+      return (
+        hasColumn(db, "call_logs", "reasoning_source") &&
+        hasColumn(db, "call_logs", "reasoning_chars")
+      );
+    case "138":
       // Proxy-pool rotation (#6365): the assignments table was rebuilt to add a
       // `position` column and drop UNIQUE(scope, scope_id). If `position` already
       // exists the rebuild ran — skip re-executing the rename/copy/drop, which
       // would fail on the missing proxy_assignments_pre117 table.
       return hasColumn(db, "proxy_assignments", "position");
+    case "143":
+      // quota_auto_ping was renumbered from 123. Its two ALTERs are safe to
+      // record only when the historical schema is fully present.
+      return (
+        hasColumn(db, "provider_connections", "last_ping_at") &&
+        hasColumn(db, "provider_connections", "last_pinged_reset_key")
+      );
+    case "145":
+      // provider_connection_quota_visibility was renumbered from 125; avoid
+      // replaying its non-idempotent ALTER on schema-present upgrades.
+      return hasColumn(db, "provider_connections", "quota_visible");
     default:
       return false;
   }

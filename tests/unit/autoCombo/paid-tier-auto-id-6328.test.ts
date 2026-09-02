@@ -6,7 +6,11 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
 
-import { isPaidTierAutoId } from "../../../open-sse/services/autoCombo/builtinCatalog.ts";
+import {
+  AUTO_SUFFIX_VARIANTS,
+  AUTO_TEMPLATE_VARIANTS,
+  isPaidTierAutoId,
+} from "../../../open-sse/services/autoCombo/builtinCatalog.ts";
 
 test("flat auto/pro-* variants are paid-tier", () => {
   assert.equal(isPaidTierAutoId("auto/pro-coding"), true);
@@ -14,9 +18,29 @@ test("flat auto/pro-* variants are paid-tier", () => {
   assert.equal(isPaidTierAutoId("auto/pro-fast"), true);
 });
 
+test("only advertised flat pro aliases are paid-tier", () => {
+  const advertisedFlatProIds = Object.keys(AUTO_TEMPLATE_VARIANTS).filter((id) =>
+    id.slice("auto/".length).startsWith("pro-")
+  );
+  for (const autoId of advertisedFlatProIds) {
+    assert.equal(isPaidTierAutoId(autoId), true, `${autoId} should remain paid-tier`);
+  }
+  assert.equal(isPaidTierAutoId("auto/pro-unicorn"), false);
+  assert.equal(isPaidTierAutoId("auto/pro-"), false);
+});
+
 test("suffix auto/<category>:pro variants are paid-tier", () => {
   assert.equal(isPaidTierAutoId("auto/coding:pro"), true);
   assert.equal(isPaidTierAutoId("auto/reasoning:pro"), true);
+});
+
+test("only advertised compositional pro aliases are paid-tier", () => {
+  const advertisedSuffixProIds = AUTO_SUFFIX_VARIANTS.filter((id) => id.endsWith(":pro"));
+  for (const autoId of advertisedSuffixProIds) {
+    assert.equal(isPaidTierAutoId(autoId), true, `${autoId} should remain paid-tier`);
+  }
+  assert.equal(isPaidTierAutoId("auto/chat:pro"), false);
+  assert.equal(isPaidTierAutoId("auto/vision:pro"), false);
 });
 
 test("non-pro auto/* ids are NOT paid-tier (kept in advertised catalog)", () => {

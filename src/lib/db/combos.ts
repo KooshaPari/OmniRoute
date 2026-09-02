@@ -9,6 +9,7 @@ import { invalidateDbCache } from "./readCache";
 import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeComboRecord } from "@/lib/combos/steps";
 import { clearSessionModelHistoryForCombo } from "./contextHandoffs";
+import { validateComboInvariant } from "@/lib/combos/invariants";
 
 type JsonRecord = Record<string, unknown>;
 

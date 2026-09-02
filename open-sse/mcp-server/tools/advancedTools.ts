@@ -25,6 +25,7 @@ import {
   getComboModelString,
   getComboStepTarget,
 } from "../../../src/lib/combos/steps.ts";
+import { toNumber } from "@/shared/utils/numeric";
 import type {
   AutoRoutingStrategyValue,
   RoutingStrategyValue,
@@ -73,16 +74,6 @@ function toArrayOfRecords(value: unknown): JsonRecord[] {
 
 function toString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
-}
-
-function toNumber(value: unknown, fallback = 0): number {
-  const parsed =
-    typeof value === "number"
-      ? value
-      : typeof value === "string" && value.trim().length > 0
-        ? Number(value)
-        : Number.NaN;
-  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function toBoolean(value: unknown, fallback = false): boolean {

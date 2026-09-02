@@ -58,6 +58,8 @@ import {
   getUnsupportedReasoningValue,
   hasUnsupportedReasoningSignal,
 } from "./reasoningFields.ts";
+import { applyThinkTag, flushThink, initThinkState } from "./thinkTagParser.ts";
+import { extractToolSchemaMap } from "../translator/response/openai-responses/toolSchemas.ts";
 
 /**
  * Race a response body read against a timeout.
@@ -137,6 +139,7 @@ type StreamOptions = {
   connectionId?: string | null;
   apiKeyInfo?: unknown;
   body?: unknown;
+  requestStartedAt?: number;
   onComplete?: ((payload: StreamCompletePayload) => void) | null;
   onFailure?: ((payload: StreamFailurePayload) => boolean | void | Promise<void>) | null;
   /**
@@ -675,9 +678,12 @@ export function createSSEStream(options: StreamOptions = {}) {
     connectionId = null,
     apiKeyInfo = null,
     body = null,
+    requestStartedAt = Date.now(),
     onComplete = null,
     onFailure = null,
     dropResponsesCommentary,
+    customToolNames = new Set<string>(),
+    requestToolIdentityMap = null,
   } = options;
   const signatureNamespace = connectionId;
   // Request-body-size metric (for monitoring payload size distribution & correlation with TTFT).
@@ -785,6 +791,55 @@ export function createSSEStream(options: StreamOptions = {}) {
     return false;
   };
   const streamStartedAt = Date.now();
+  let firstTokenAt: number | null = null;
+  const hasFirstTokenContent = (payload: Record<string, unknown>, format: string): boolean => {
+    const eventPayload =
+      typeof payload.event === "string" ? asRecord(payload.data) : payload;
+    payload = eventPayload;
+    if (format === FORMATS.OPENAI) {
+      const choice = Array.isArray(payload.choices) ? payload.choices[0] : null;
+      const delta = asRecord(asRecord(choice).delta);
+      return (
+        (typeof delta.content === "string" && delta.content.length > 0) ||
+        Object.keys(delta).some(
+          (key) =>
+            ["reasoning", "reasoning_content", "reasoningContent"].includes(key) &&
+            Boolean(delta[key])
+        ) ||
+        (Array.isArray(delta.tool_calls) && delta.tool_calls.length > 0)
+      );
+    }
+    if (format === FORMATS.CLAUDE) {
+      const delta = asRecord(payload.delta);
+      return (
+        (typeof delta.text === "string" && delta.text.length > 0) ||
+        (typeof delta.thinking === "string" && delta.thinking.length > 0) ||
+        (typeof delta.partial_json === "string" && delta.partial_json.length > 0)
+      );
+    }
+    if (typeof payload.type === "string" && payload.type.includes("delta")) {
+      return typeof payload.delta === "string" && payload.delta.length > 0;
+    }
+    if (Array.isArray(payload.candidates)) {
+      const parts = asRecord(asRecord(payload.candidates[0]).content).parts;
+      return (
+        Array.isArray(parts) &&
+        parts.some((part) => {
+          const item = asRecord(part);
+          return (
+            Boolean(item.functionCall || item.executableCode) ||
+            (typeof item.text === "string" && item.text.length > 0)
+          );
+        })
+      );
+    }
+    return false;
+  };
+  const captureFirstToken = (payload: Record<string, unknown>, format: string) => {
+    if (firstTokenAt === null && hasFirstTokenContent(payload, format)) {
+      firstTokenAt = Math.max(1, Date.now() - requestStartedAt);
+    }
+  };
 
   let lastToolCallChunkTime: number | null = null;
   let toolFinishTime: number | null = null;
@@ -1018,6 +1073,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     }
 
     const output = formatSSE(itemSanitized, sourceFormat);
+    captureFirstToken(itemSanitized, sourceFormat);
     clientPayloadCollector.push(itemSanitized);
     reqLogger?.appendConvertedChunk?.(output);
     controller.enqueue(encoder.encode(output));
@@ -1080,32 +1136,17 @@ export function createSSEStream(options: StreamOptions = {}) {
       : "";
   };
 
-  const ensureVisibleResponsesReasoningSummary = (payload: Record<string, unknown>): boolean => {
-    const item =
-      payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)
-        ? (payload.item as Record<string, unknown>)
-        : null;
-    if (!item || item.type !== "reasoning") {
-      return false;
-    }
-
-    if (getResponsesReasoningSummaryText(item)) {
-      return false;
+  const getVisibleResponsesReasoningSummary = (item: Record<string, unknown>): string => {
+    const existingSummary = getResponsesReasoningSummaryText(item);
+    if (existingSummary) {
+      return existingSummary;
     }
 
     const hasEncryptedReasoning =
       typeof item.encrypted_content === "string" && item.encrypted_content.length > 0;
-    if (!hasEncryptedReasoning) {
-      return false;
-    }
-
-    item.summary = [
-      {
-        type: "summary_text",
-        text: "Codex is reasoning, but the upstream Responses API exposed this reasoning block only as encrypted state. OmniRoute cannot recover the private reasoning text.",
-      },
-    ];
-    return true;
+    return hasEncryptedReasoning
+      ? "Codex is reasoning, but the upstream Responses API exposed this reasoning block only as encrypted state. OmniRoute cannot recover the private reasoning text."
+      : "";
   };
 
   const emitSyntheticResponsesReasoningSummary = (
@@ -1120,8 +1161,7 @@ export function createSSEStream(options: StreamOptions = {}) {
       return;
     }
 
-    ensureVisibleResponsesReasoningSummary(payload);
-    const visibleSummary = getResponsesReasoningSummaryText(item);
+    const visibleSummary = getVisibleResponsesReasoningSummary(item);
 
     if (!visibleSummary) {
       return;
@@ -1567,13 +1607,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // response.completed snapshot can be backfilled when upstream
                   // returns an empty `output` (happens with store: false).
                   if (parsed.type === "response.output_item.done" && parsed.item) {
-                    const reasoningSummaryInjected = ensureVisibleResponsesReasoningSummary(parsed);
                     emitSyntheticResponsesReasoningSummary(controller, parsed);
                     pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [parsed.item]);
-                    if (reasoningSummaryInjected) {
-                      output = `data: ${JSON.stringify(parsed)}\n\n`;
-                      injectedUsage = true;
-                    }
                     if (parsed.item?.type === "function_call") {
                       const pendingKey =
                         typeof parsed.item.id === "string"
@@ -1996,6 +2031,16 @@ export function createSSEStream(options: StreamOptions = {}) {
             output = passthroughEventPrefix.prefixData(output, line);
 
             if (clientPayload) {
+              if (
+                clientPayload &&
+                typeof clientPayload === "object" &&
+                !Array.isArray(clientPayload)
+              ) {
+                captureFirstToken(
+                  clientPayload as Record<string, unknown>,
+                  clientResponseFormat || sourceFormat || FORMATS.OPENAI
+                );
+              }
               clientPayloadCollector.push(clientPayload);
             }
 
@@ -2283,7 +2328,6 @@ export function createSSEStream(options: StreamOptions = {}) {
               markResponsesReasoningSummarySeen: (key: string) => {
                 passthroughResponsesReasoningSummarySeen.add(key);
               },
-              ensureVisibleResponsesReasoningSummary,
               emitSyntheticResponsesReasoningSummary: (payload: Record<string, unknown>) =>
                 emitSyntheticResponsesReasoningSummary(controller, payload),
               passthroughResponsesOutputItems,
@@ -2330,6 +2374,10 @@ export function createSSEStream(options: StreamOptions = {}) {
                 if (isClaudeEventPayload(bufferedPayload)) {
                   updateClaudeEmptyResponseLifecycle(claudeEmptyResponseLifecycle, bufferedPayload);
                 }
+                captureFirstToken(
+                  bufferedPayload,
+                  clientResponseFormat || sourceFormat || FORMATS.OPENAI
+                );
                 clientPayloadCollector.push(bufferedPayload);
 
                 // Normalize numeric IDs for final buffered data: chunk (same as transform path)
@@ -2562,6 +2610,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 onComplete({
                   status: 200,
                   usage,
+                  ttft: firstTokenAt,
                   responseBody,
                   providerPayload: providerPayloadCollector.build(
                     buildStreamSummaryFromEvents(
@@ -2655,6 +2704,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 onComplete({
                   status: err.status,
                   usage: state?.usage,
+                  ttft: firstTokenAt,
                   responseBody: errorBody,
                   error: err.message,
                   errorCode: err.code,
@@ -2817,6 +2867,7 @@ export function createSSEStream(options: StreamOptions = {}) {
               onComplete({
                 status: 200,
                 usage: state?.usage,
+                ttft: firstTokenAt,
                 responseBody,
                 providerPayload: providerPayloadCollector.build(
                   buildStreamSummaryFromEvents(
@@ -2870,7 +2921,8 @@ export function createSSETransformStreamWithLogger(
   copilotCompatibleReasoning = false,
   suppressThinkClose = false,
   customToolNames: ReadonlySet<string> = new Set(),
-  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null
+  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null,
+  requestStartedAt = Date.now()
 ) {
   return createSSEStream({
     mode: STREAM_MODE.TRANSLATE,
@@ -2889,6 +2941,7 @@ export function createSSETransformStreamWithLogger(
     suppressThinkClose,
     customToolNames,
     requestToolIdentityMap,
+    requestStartedAt,
   });
 }
 
@@ -2903,7 +2956,8 @@ export function createPassthroughStreamWithLogger(
   apiKeyInfo: unknown = null,
   onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
   clientResponseFormat: string | null = null,
-  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null
+  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null,
+  requestStartedAt = Date.now()
 ) {
   return createSSEStream({
     mode: STREAM_MODE.PASSTHROUGH,
@@ -2918,5 +2972,6 @@ export function createPassthroughStreamWithLogger(
     onFailure,
     clientResponseFormat,
     requestToolIdentityMap,
+    requestStartedAt,
   });
 }

@@ -6,6 +6,10 @@ import { z } from "zod";
 import { Button, Card, Modal } from "@/shared/components";
 import { parseBulkImportText } from "./parseBulkProxyImport.ts";
 import type { ParsedProxyEntry, ParseError } from "./parseBulkProxyImport.ts";
+import { ProxyBatchActions } from "./ProxyBatchActions";
+import { ProxyCheckboxCell } from "./ProxyCheckboxCell";
+import { ProxyHealthCell } from "./ProxyHealthCell";
+import { ProxyStatusBadge } from "./ProxyStatusBadge";
 
 type ProxyItem = {
   id: string;
@@ -128,29 +132,6 @@ export default function ProxyRegistryManager() {
     updated: number;
     failed: number;
   } | null>(null);
-
-  const {
-    selectedIds,
-    setSelectedIds,
-    batchDeleting,
-    autoTesting,
-    toggleSelectAll: hookToggleSelectAll,
-    toggleSelect,
-    handleBatchDelete: hookHandleBatchDelete,
-    handleAutoTestAll: hookHandleAutoTestAll,
-  } = useProxyBatchOperations(load);
-
-  const allSelected = items.length > 0 && items.every((item) => selectedIds.has(item.id));
-
-
-  const handleBatchDelete = useCallback(() => {
-    hookHandleBatchDelete(setError);
-  }, [hookHandleBatchDelete, setError]);
-
-  const handleAutoTestAll = useCallback(() => {
-    hookHandleAutoTestAll(setError, setTestById);
-  }, [hookHandleAutoTestAll, setError, setTestById]);
-
 
   const editingId = useMemo(() => form.id || "", [form.id]);
 

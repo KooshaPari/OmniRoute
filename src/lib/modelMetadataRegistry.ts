@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { parseModel } from "@omniroute/open-sse/services/model.ts";
 import { getModelInfo } from "@/sse/services/model";
 import { getModelAliases } from "@/lib/db/models";
+import { getResolvedModelCapabilities, isNonChatCatalogSurface } from "@/lib/modelCapabilities";
 import {
   getAuthoritativeContextWindow,
   getAuthoritativeProviderContextWindow,
@@ -346,6 +347,7 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
     getAuthoritativeProviderContextWindow(provider, model) ??
     getAuthoritativeContextWindow(metadata.model) ??
     getAuthoritativeContextWindow(model);
+  const specialtySurface = isNonChatCatalogSurface(entry.type);
   const capabilityFields = {
     ...(typeof metadata.capabilities.vision === "boolean"
       ? { vision: metadata.capabilities.vision }

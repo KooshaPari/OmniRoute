@@ -34,3 +34,19 @@ test("Codex CLI fingerprint orders prompt_cache_key before include", () => {
     "include",
   ]);
 });
+
+test("Qwen CLI fingerprint injects the canonical OAuth wire headers", () => {
+  const result = applyFingerprint("qwen", {}, { model: "qwen3-coder", messages: [] });
+
+  assert.match(result.headers["User-Agent"], /^QwenCode\//);
+  assert.equal(result.headers["X-Dashscope-AuthType"], "qwen-oauth");
+  assert.equal(result.headers["X-Dashscope-CacheControl"], "enable");
+  assert.equal(result.headers["X-Stainless-Lang"], "js");
+  assert.deepEqual(Object.keys(result.headers).slice(0, 5), [
+    "User-Agent",
+    "X-Dashscope-AuthType",
+    "X-Dashscope-CacheControl",
+    "X-Dashscope-UserAgent",
+    "X-Stainless-Arch",
+  ]);
+});

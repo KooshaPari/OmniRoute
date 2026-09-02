@@ -269,50 +269,6 @@ const KNOWN_PNGS = new Set([
   "dahl",
   "zeroclaw",
 ]);
-const KNOWN_SVGS = new Set([
-  "apikey",
-  "bazaarlink",
-  "brave",
-  "brave-search",
-  "cartesia",
-  "360ai",
-  "huggingchat",
-  "iflytek",
-  "sparkdesk",
-  "arcee-ai",
-  "inclusionai",
-  "liquid",
-  "monsterapi",
-  "nomic",
-  "poolside",
-  "clarifai",
-  "command-code",
-  "claude-web",
-  "docker-model-runner",
-  "droid",
-  "gitlab",
-  "gitlab-duo",
-  "inworld",
-  "kiro",
-  "kilo-gateway",
-  "kilocode",
-  "modal",
-  "nlpcloud",
-  "oauth",
-  "oci",
-  "opencode",
-  "playht",
-  "puter",
-  "qianfan",
-  "sap",
-  "scaleway",
-  "serper-search",
-  "searxng-search",
-  "synthetic",
-  "wandb",
-  "youcom-search",
-]);
-
 const ProviderIcon = memo(function ProviderIcon({
   providerId,
   size = 24,
@@ -336,7 +292,6 @@ const ProviderIcon = memo(function ProviderIcon({
   const [remoteSrcFailed, setRemoteSrcFailed] = useState(false);
   const pngKey = `${normalizedId}:png`;
   const svgKey = `${normalizedId}:svg`;
-  const pngKey = `${normalizedId}:png`;
   const theSvgKey = `${normalizedId}:thesvg`;
 
   const trimmedSrc = typeof src === "string" ? src.trim() : "";

@@ -3,12 +3,28 @@ import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { callCloudWithMachineId } from "@/shared/utils/cloud";
 import { handleChat } from "@/sse/handlers/chat";
 import { generateRequestId } from "@/shared/utils/requestId";
+import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
-import { withEarlyStreamKeepalive } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
+import {
+  OPENAI_CHAT_ERROR_FRAME,
+  OPENAI_KEEPALIVE_FRAME,
+  OPENAI_STARTUP_FRAME,
+  withEarlyStreamKeepalive,
+} from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
-import { checkChatAdmission } from "@/shared/middleware/chatBodyAdmission";
+import {
+  admitChatRequest,
+  admitChatStructure,
+  checkChatAdmission,
+  releaseChatAdmissionAfterHandler,
+  releaseChatAdmissionWhenDone,
+} from "@/shared/middleware/chatBodyAdmission";
+import {
+  readCompressionRequestHeader,
+  withCompressionHeaderEcho,
+} from "@/shared/utils/compressionHeaderEcho";
 
 let initPromise = null;
 
@@ -30,6 +46,13 @@ function ensureInitialized() {
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
+
+const chatCompletionsRouteShapeSchema = z
+  .object({
+    model: z.string().nullable().optional(),
+    messages: z.array(z.unknown()).optional(),
+  })
+  .passthrough();
 
 /**
  * Handle CORS preflight

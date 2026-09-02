@@ -60,6 +60,8 @@ export const COLLECTORS = [
     glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts",
     sources: ["package.json", ".github/workflows/ci.yml"],
   },
+  { glob: "tests/unit/serial/**/*.test.ts", sources: ["package.json"] },
+  { glob: "tests/unit/**/*.test.mjs", sources: ["package.json"] },
   // Node native runner — test:integration (top-level only; tests/integration/services/ NÃO roda)
   { glob: "tests/integration/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:combo:matrix / test:integration (combo strategy decision matrix, 17 strategies)
@@ -79,11 +81,15 @@ export const COLLECTORS = [
   },
   { glob: "tests/unit/autoCombo/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "tests/unit/encryption.spec.ts", sources: ["vitest.mcp.config.ts"] },
-  { glob: "src/shared/components/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
-  { glob: "src/shared/hooks/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
-  { glob: "src/app/(dashboard)/**/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
-  // vitest.config.ts via test:vitest:ui (roda com path-filter `tests/unit/ui`, então o
-  // conjunto EFETIVO é a interseção do include `tests/unit/**/*.test.tsx` com o filtro)
+  { glob: "src/shared/components/**/*.test.tsx", sources: ["vitest.config.ts"] },
+  { glob: "src/shared/hooks/__tests__/**/*.test.tsx", sources: ["vitest.config.ts"] },
+  // vitest.config.ts via test:vitest:ui; the command supplies explicit source/UI filters.
+  { glob: "src/app/**/dashboard/cache/__tests__/**/*.test.tsx", sources: ["vitest.config.ts"] },
+  { glob: "src/app/**/dashboard/endpoint/__tests__/**/*.test.tsx", sources: ["vitest.config.ts"] },
+  { glob: "src/app/**/dashboard/providers/**/__tests__/**/*.test.tsx", sources: ["vitest.config.ts"] },
+  { glob: "src/app/**/dashboard/webhooks/__tests__/**/*.test.tsx", sources: ["vitest.config.ts"] },
+  { glob: "src/app/**/dashboard/discovery/__tests__/**/*.test.tsx", sources: ["vitest.config.ts"] },
+  // tests/unit/ui remains an explicit path filter in the same runner.
   {
     glob: "tests/unit/ui/**/*.test.tsx",
     sources: ["package.json", "vitest.config.ts"],

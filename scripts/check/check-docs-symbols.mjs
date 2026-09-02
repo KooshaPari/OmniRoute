@@ -63,12 +63,6 @@ export const KNOWN_STALE_DOC_REFS = new Set([
   // (DISCOVERY_TOOL_DESIGN.md moved out of docs/research/ into the isolated _tasks/research/
   // repo — gitignored, outside this gate's scope. The 4 entries /api/discovery/* became
   // obsolete and were removed to satisfy the allowlist's stale-enforcement.)
-  // docs/reference/ENVIRONMENT.md — UPSTREAM endpoint of the Blackbox Web provider,
-  // cited in an env-var description (not an OmniRoute route):
-  "/api/chat",
-  // docs/ops/TUNNELS_GUIDE.md — the doc EXPLICITLY states that this endpoint does
-  // NOT exist ("There is no central /api/settings/tunnels endpoint"); pedagogical mention:
-  "/api/settings/tunnels",
 ]);
 
 function walk(dir, filter, acc = []) {

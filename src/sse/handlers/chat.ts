@@ -73,11 +73,7 @@ import {
   withSelectedConnectionHeader,
   withCorrelationId,
 } from "./chatHelpers";
-import {
-  isAntigravityMissingProjectError,
-  PROVIDER_BREAKER_FAILURE_STATUSES,
-  shouldTripProviderBreakerForResult,
-} from "./chatPredicates";
+import { isAntigravityMissingProjectError } from "./chatPredicates";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import {
   extractReasoningIntent,

@@ -32,3 +32,20 @@ export function isAntigravityMissingProjectError(
     result.errorType === "oauth_missing_project_id"
   );
 }
+
+/**
+ * Decide whether an all-rate-limited credential lookup should trip the provider breaker.
+ */
+export function shouldTripBreakerForAllRateLimited(
+  forceLiveComboTest: boolean,
+  allRateLimited: boolean | null | undefined,
+  status: number | null | undefined
+): boolean {
+  return (
+    !forceLiveComboTest &&
+    allRateLimited === true &&
+    typeof status === "number" &&
+    Number.isFinite(status) &&
+    PROVIDER_BREAKER_FAILURE_STATUSES.has(status)
+  );
+}

@@ -85,7 +85,11 @@ export class InAppLoginService extends EventEmitter {
 
     // Device-code OAuth: try HTTP-based flow before Playwright (avoids headful browser)
     try {
-      const { tryDeviceCodeForProvider } = await import("../lib/deviceCodeProviders.js");
+      const deviceCodeModuleSpec: string = "../lib/deviceCodeProviders.js";
+      const { tryDeviceCodeForProvider } = await import(
+        /* webpackIgnore: true */
+        deviceCodeModuleSpec
+      );
       const deviceCodeResult = await tryDeviceCodeForProvider(providerId);
       if (deviceCodeResult.success && deviceCodeResult.tokens) {
         this.log("info", `Device-code OAuth succeeded for ${providerId}`);

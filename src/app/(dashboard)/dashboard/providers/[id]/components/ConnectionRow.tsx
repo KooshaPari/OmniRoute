@@ -11,6 +11,7 @@ import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 import { shouldShowConnectionLastError } from "./connectionRowHelpers";
+import ProviderQuotaVisibilityToggle from "./ProviderQuotaVisibilityToggle";
 import {
   getCodexEffectiveServiceTier,
   type CodexGlobalServiceMode,

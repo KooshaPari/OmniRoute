@@ -1,4 +1,5 @@
 import { createHash, createHmac } from "node:crypto";
+import nodeMachineId from "node-machine-id";
 import { createLogger } from "@/shared/utils/logger";
 
 const log = createLogger("auth:machine-token");
@@ -6,9 +7,7 @@ let fallbackLogged = false;
 
 let machineIdSync: (original?: boolean) => string;
 try {
-  // Use require() to bypass webpack static analysis that breaks the default export
-  const mod = require("node-machine-id");
-  machineIdSync = mod.machineIdSync || mod.default?.machineIdSync;
+  machineIdSync = nodeMachineId.machineIdSync;
 } catch (err) {
   if (!fallbackLogged) {
     fallbackLogged = true;

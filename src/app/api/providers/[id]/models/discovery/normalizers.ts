@@ -4,14 +4,17 @@ import {
   getAntigravityModelsDiscoveryUrls,
   getAntigravityFetchAvailableModelsUrls,
 } from "@omniroute/open-sse/config/antigravityUpstream.ts";
-import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import {
   getClientVisibleAntigravityModelName,
   isUserCallableAntigravityModelId,
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
 import { normalizeAntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
-import { resolveAntigravityVersion } from "@omniroute/open-sse/services/antigravityVersion.ts";
+import {
+  resolveAntigravityCliVersion,
+  resolveAntigravityIdeVersion,
+} from "@omniroute/open-sse/services/antigravityVersion.ts";
 import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
 import { asRecord, toNonEmptyString } from "./helpers";
 
@@ -90,7 +93,7 @@ export async function fetchAntigravityDiscoveryModelsCached(
   if (inflight) return inflight;
 
   const promise = (async () => {
-    await resolveAntigravityVersion();
+    await (profile === "cli" ? resolveAntigravityCliVersion() : resolveAntigravityIdeVersion());
     await ensureAntigravityProjectAssigned(
       accessToken,
       fetch,
@@ -107,7 +110,7 @@ export async function fetchAntigravityDiscoveryModelsCached(
           guard: getProviderOutboundGuard(),
           proxyConfig: proxy,
           method: "POST",
-          headers: getAntigravityHeaders("models", accessToken),
+          headers: getAntigravityContentHeaders(profile, accessToken),
           body: JSON.stringify({}),
         });
 

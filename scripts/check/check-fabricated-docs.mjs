@@ -6,7 +6,7 @@
 // by default) and exits 1 with `--strict` so CI can block fabricated claims.
 //
 // What it checks:
-//   1. /api/... endpoint paths        → must match a route.ts file under src/app/api/
+//   1. /api/... endpoint paths        → must match a route handler under src/app/api/ or apps/
 //   2. UPPER_SNAKE env var names        → must have a process.env.X or env.X read
 //   3. CLI commands `omniroute ...`     → must exist in bin/cli/commands/ or bin/
 //   4. BUILTIN_EVENTS hook names        → must be exported from hooks.ts
@@ -114,6 +114,7 @@ const ENV_VAR_ALLOWLIST = new Set([
   "LINUX_GPG_KEY", // electron AppImage signing key, CI/build only (ELECTRON_GUIDE.md)
   "BRANCH_LOCK_TOKEN", // release branch-protection ops token (QUALITY_GATE_PLAYBOOK.md)
   "NEXT_LOCALE", // next-intl locale cookie name (I18N.md)
+  "GITHUB_PATH", // GitHub Actions runtime file-command path, supplied by the runner
 ]);
 
 // Common pluralized / column-header all-caps that aren't env vars
@@ -373,6 +374,11 @@ const SKIP_DOC_FILES = new Set([
   // Rewriting them to today's layout would falsify history — out of scope for a
   // living-docs accuracy gate.
   "docs/releases",
+  // Snapshot and session records preserve the exact state and terminology at a past
+  // point in time. Rewriting old paths or runner variables would falsify evidence;
+  // current docs remain covered by this gate.
+  "docs/legacy",
+  "docs/sessions",
   // Forward-looking coverage plan: a `- [ ]` checklist of test targets and helper
   // components to be created. Same rationale as the design/plan docs above.
   "docs/ops/COVERAGE_PLAN.md",
@@ -483,6 +489,37 @@ export function buildCodebaseIndex(root = ROOT) {
   }
   walkApiRoutes("src/app/api");
 
+  // SvelteKit uses +server.ts files rather than Next's route.ts convention. Index
+  // only its API subtree so pages and non-API server handlers cannot become routes.
+  function walkSvelteKitApiRoutes(dir) {
+    const abs = path.join(root, dir);
+    if (!fs.existsSync(abs)) return;
+    for (const name of fs.readdirSync(abs)) {
+      const child = path.join(abs, name);
+      const s = fs.statSync(child);
+      if (s.isDirectory()) walkSvelteKitApiRoutes(path.relative(root, child));
+      else if (name === "+server.ts" || name === "+server.js") {
+        const rel = path.relative(path.join(root, "apps", "web", "src", "routes"), child);
+        const parts = rel.replace(/\\/g, "/").split("/");
+        parts.pop(); // +server.ts
+        if (parts[0] !== "api") continue;
+        const routePath = "/" + parts.join("/");
+        apiRoutes.add(routePath);
+        apiRoutes.add(routePath + "/");
+        // `/api` alone is not a meaningful endpoint prefix: registering it would
+        // accept every arbitrary `/api/...` claim. Start at the concrete BFF/API
+        // segment instead.
+        for (let i = 2; i <= parts.length; i++) {
+          const prefix = "/" + parts.slice(0, i).join("/");
+          const bracePrefix = "/" + parts.slice(0, i).map(dynToBrace).join("/");
+          apiPrefixes.add(prefix);
+          apiPrefixes.add(bracePrefix);
+        }
+      }
+    }
+  }
+  walkSvelteKitApiRoutes("apps/web/src/routes");
+
   // Set of env var names that are actually read in code, and the set of
   // ALL_CAPS code identifiers (export const / enum / object-literal keys). A
   // documented `UPPER_SNAKE` that resolves to a code identifier (e.g.
@@ -534,6 +571,8 @@ export function buildCodebaseIndex(root = ROOT) {
   walkForEnv("open-sse");
   walkForEnv("bin");
   walkForEnv("scripts");
+  // BFF and web app configuration belongs to the deployed product surface too.
+  walkForEnv("apps");
   // Env vars that are only read by the test harness (e.g. RUN_CHAOS_INT) are still
   // real env vars and must not be flagged as fabricated.
   walkForEnv("tests");

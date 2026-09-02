@@ -121,6 +121,28 @@ export async function handleVideoGeneration({ body, credentials, log }) {
     });
   }
 
+  if (providerConfig.format === "xai-video") {
+    return handleXaiVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "deepinfra-video") {
+    return handleDeepinfraVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
   return {
     success: false,
     status: 400,

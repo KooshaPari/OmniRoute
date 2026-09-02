@@ -6,6 +6,8 @@ import {
   getCachedProviderNodes,
   validateApiKey,
   updateProviderConnection,
+  resetConnectionBackoff,
+  touchConnectionLastUsed,
   clearConnectionErrorIfUnchanged,
   getSettings,
   getCachedSettings,
@@ -22,6 +24,7 @@ import {
   isQuotaExhaustedForRequest,
 } from "@/domain/quotaCache";
 import { getQuotaScopeLabelForProvider } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
+import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -75,6 +78,7 @@ import { resolveAccountProxiesFromRegistry } from "./noAuthProxyResolution";
 import { getNoAuthHydrationProviderIds } from "./noAuthProviderSiblings";
 import { getResource404Bypass } from "./requestResourceHealth";
 import * as log from "../utils/logger";
+import { toNumber } from "@/shared/utils/numeric";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 
 type JsonRecord = Record<string, unknown>;
@@ -119,15 +123,6 @@ function asRecord(value: unknown): JsonRecord {
 
 function toStringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
-
-function toNumber(value: unknown, fallback = 0): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-  return fallback;
 }
 
 function toNullableNumber(value: unknown): number | null {
@@ -1192,6 +1187,7 @@ export async function getProviderCredentials(
 
     let modelLockedCount = 0;
     let familyLockedCount = 0;
+    const connectionFilterStatus = new Map<string, string>();
     // Filter out unavailable accounts and excluded connection
     const availableConnections = connections.filter((c) => {
       if (excludedConnectionIds.has(c.id)) {
@@ -1203,11 +1199,21 @@ export async function getProviderCredentials(
         return false;
       }
       if (!allowSuppressedConnections) {
-        if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) return false;
-        if (isTerminalConnectionStatus(c)) return false;
-        if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) return false;
+        if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) {
+          connectionFilterStatus.set(c.id, "rateLimited");
+          return false;
+        }
+        if (isTerminalConnectionStatus(c)) {
+          connectionFilterStatus.set(c.id, "terminalStatus");
+          return false;
+        }
+        if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) {
+          connectionFilterStatus.set(c.id, "codexScopeLimited");
+          return false;
+        }
         // Per-model lockout: if this specific model/family is locked on this connection, skip it
         if (requestedModel && isModelLocked(provider, c.id, requestedModel)) {
+          connectionFilterStatus.set(c.id, "modelLocked");
           if (
             provider === "antigravity" &&
             getQuotaScopeLabelForProvider(provider, requestedModel) === "family"
@@ -1453,7 +1459,12 @@ export async function getProviderCredentials(
 
     const orderedConnections = withQuota;
 
-    const strategy = settings.fallbackStrategy || "fill-first";
+    const providerStrategyOverrides = (settings.providerStrategies || {}) as Record<
+      string,
+      { fallbackStrategy?: string; stickyRoundRobinLimit?: number }
+    >;
+    const providerOverride = providerStrategyOverrides[resolvedId] || {};
+    const strategy = providerOverride.fallbackStrategy || settings.fallbackStrategy || "fill-first";
 
     let connection;
     const affinityConnection = await selectSessionAffinityConnection(

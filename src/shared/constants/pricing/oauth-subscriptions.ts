@@ -2,7 +2,14 @@
  * Pricing data — oauth-subscriptions family (OAuth / IDE subscription aliases (cc, codex, antigravity, copilot, kiro…)).
  * Pure data; merged by default-pricing.ts via spread (god-file decomposition; semantic split).
  */
-import { GPT_5_3_CODEX_PRICING, GPT_5_5_PRICING } from "./shared-tiers";
+import {
+  CLAUDE_OPUS_5_PRICING,
+  GPT_5_3_CODEX_PRICING,
+  GPT_5_5_PRICING,
+  GPT_5_6_LUNA_PRICING,
+  GPT_5_6_SOL_PRICING,
+  GPT_5_6_TERRA_PRICING,
+} from "./shared-tiers";
 
 export const DEFAULT_PRICING_OAUTH = {
   cc: {

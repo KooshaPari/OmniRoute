@@ -4,6 +4,7 @@
 // Órfão novo → fail; entrada de baseline que deixou de ser órfã → fail (stale).
 import { test } from "node:test";
 import assert from "node:assert";
+import { readFileSync } from "node:fs";
 import {
   globToRegExp,
   findOrphans,
@@ -22,6 +23,13 @@ test("globToRegExp: glob recursivo ** casa subdiretórios em qualquer profundida
   assert.equal(re.test("tests/unit/authz/routeGuard.test.ts"), true);
   assert.equal(re.test("tests/unit/a/b/c.test.ts"), true);
   assert.equal(re.test("tests/e2e/foo.test.ts"), false);
+});
+
+test("globToRegExp: collector MJS recursivo cobre testes em qualquer subdiretório", () => {
+  const re = globToRegExp("tests/unit/**/*.test.mjs");
+  assert.equal(re.test("tests/unit/example.test.mjs"), true);
+  assert.equal(re.test("tests/unit/db/encryption-strict.test.mjs"), true);
+  assert.equal(re.test("tests/unit/example.test.ts"), false);
 });
 
 test("globToRegExp: braces {ts,tsx} expandem alternativas", () => {
@@ -86,4 +94,28 @@ test("findCollectorDrift: sem drift quando o glob aparece em todas as fontes", (
   const collectors = [{ glob: "tests/unit/*.test.ts", sources: ["package.json"] }];
   const contents = { "package.json": '"test:unit": "node --test tests/unit/*.test.ts"' };
   assert.deepEqual(findCollectorDrift(collectors, contents), []);
+});
+
+test("source/UI Vitest runner uses its config and activates the drift families", () => {
+  const pkg = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
+  const config = readFileSync(new URL("../../vitest.config.ts", import.meta.url), "utf8");
+  const script = pkg.scripts["test:vitest:ui"];
+
+  assert.match(script, /vitest run --config vitest\.config\.ts/);
+  assert.doesNotMatch(script, /vitest\.mcp\.config\.ts/);
+  assert.ok(script.includes('"src/shared/components/**/*.test.tsx"'));
+  assert.ok(script.includes('"src/shared/hooks/__tests__/**/*.test.tsx"'));
+  assert.ok(script.includes('"src/app/**/dashboard/**/__tests__/**/*.test.tsx"'));
+
+  for (const glob of [
+    "src/shared/components/**/*.test.tsx",
+    "src/shared/hooks/__tests__/**/*.test.tsx",
+    "src/app/**/dashboard/cache/__tests__/**/*.test.tsx",
+    "src/app/**/dashboard/endpoint/__tests__/**/*.test.tsx",
+    "src/app/**/dashboard/providers/**/__tests__/**/*.test.tsx",
+    "src/app/**/dashboard/webhooks/__tests__/**/*.test.tsx",
+    "src/app/**/dashboard/discovery/__tests__/**/*.test.tsx",
+  ]) {
+    assert.ok(config.includes(`\"${glob}\"`), `vitest.config.ts must include ${glob}`);
+  }
 });

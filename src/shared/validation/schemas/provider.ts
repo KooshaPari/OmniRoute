@@ -327,6 +327,9 @@ export function validateProviderSpecificData(
 
 // ──── Provider Schemas ────
 
+// Cookie-backed provider credentials can exceed the legacy 10,000-character cap.
+export const MAX_PROVIDER_CREDENTIAL_LENGTH = 100_000;
+
 // #2166: shared optional remote icon URL for compatible provider nodes. Empty string
 // is accepted as "no custom icon" (clears any previously stored value). Restricted to
 // http(s) — `.url()` alone also accepts syntactically-valid-but-unsafe schemes like
@@ -408,7 +411,7 @@ export const bulkCreateProviderSchema = z
       .array(
         z.object({
           name: z.string().min(1).max(200),
-          apiKey: z.string().min(1).max(10000),
+          apiKey: z.string().min(1).max(MAX_PROVIDER_CREDENTIAL_LENGTH),
           // Per-key account id — required for cloudflare-ai (enforced in superRefine below).
           accountId: z.string().min(1).max(200).optional(),
         })

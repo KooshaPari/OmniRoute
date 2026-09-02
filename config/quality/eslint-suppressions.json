@@ -4,21 +4,6 @@
       "count": 1
     }
   },
-  "open-sse/executors/claude-web-with-auto-refresh.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
-  "open-sse/executors/claude-web.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
-    }
-  },
-  "open-sse/executors/claudeIdentity.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
   "open-sse/executors/cliproxyapi.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -60,11 +45,6 @@
     }
   },
   "open-sse/executors/vertex.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
-    }
-  },
-  "open-sse/handlers/imageGeneration.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
     }
@@ -169,30 +149,12 @@
       "count": 2
     }
   },
-  "open-sse/translator/helpers/claudeHelper.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
   "open-sse/utils/setupPolyfill.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 5
     }
   },
   "src/app/(dashboard)/dashboard/HomePageClient.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient.tsx": {
-    "no-restricted-syntax": {
-      "count": 3
-    }
-  },
-  "src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx": {
-    "no-restricted-syntax": {
-      "count": 2
-    },
     "react-hooks/exhaustive-deps": {
       "count": 1
     }
@@ -207,27 +169,12 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/cli-code/components/DefaultToolCard.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 2
-    }
-  },
   "src/app/(dashboard)/dashboard/costs/costExplorerUtils.ts": {
     "no-restricted-syntax": {
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/media-providers/components/ImageExampleCard.tsx": {
-    "@next/next/no-img-element": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/playground/components/tabs/ApiTab.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx": {
     "react-hooks/exhaustive-deps": {
       "count": 1
     }
@@ -242,11 +189,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/settings/components/ModelLockoutCard.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/settings/components/SessionInfoCard.tsx": {
     "react-hooks/exhaustive-deps": {
       "count": 1
@@ -255,11 +197,6 @@
   "src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentList.tsx": {
     "no-restricted-syntax": {
       "count": 3
-    }
-  },
-  "src/app/(dashboard)/dashboard/tools/agent-bridge/components/ModelSelectorModal.tsx": {
-    "no-restricted-syntax": {
-      "count": 2
     }
   },
   "src/app/api/services/[name]/logs/route.ts": {
@@ -278,11 +215,6 @@
     }
   },
   "src/shared/components/CursorAuthModal.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 1
-    }
-  },
-  "src/shared/components/KiroSocialOAuthModal.tsx": {
     "react-hooks/exhaustive-deps": {
       "count": 1
     }
@@ -330,11 +262,6 @@
   "tests/e2e/system-failover.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
-    }
-  },
-  "tests/integration/_chatPipelineHarness.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 8
     }
   },
   "tests/integration/_comboRoutingHarness.ts": {
@@ -542,11 +469,6 @@
       "count": 3
     }
   },
-  "tests/unit/antigravity-tool-cloaking.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 4
-    }
-  },
   "tests/unit/api-key-reveal-route.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 8
@@ -724,7 +646,7 @@
   },
   "tests/unit/chatcore-translation-paths.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 40
+      "count": 34
     }
   },
   "tests/unit/chatgpt-web-tools-5240.test.ts": {
@@ -1059,7 +981,7 @@
   },
   "tests/unit/combo-strategy-fallbacks.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 35
+      "count": 33
     }
   },
   "tests/unit/combo-stream-readiness-fallback.test.ts": {
@@ -1209,7 +1131,7 @@
   },
   "tests/unit/db-migration-runner.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 12
+      "count": 10
     }
   },
   "tests/unit/db-model-aliases-cascade.test.ts": {
@@ -1369,7 +1291,7 @@
   },
   "tests/unit/executor-default-base.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 43
+      "count": 42
     }
   },
   "tests/unit/executor-github.test.ts": {
@@ -1380,11 +1302,6 @@
   "tests/unit/executor-gitlab.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 4
-    }
-  },
-  "tests/unit/executor-kimi-web.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
     }
   },
   "tests/unit/executor-nlpcloud.test.ts": {
@@ -1479,17 +1396,12 @@
   },
   "tests/unit/guide-settings-route.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 4
+      "count": 1
     }
   },
   "tests/unit/i18n-nest-dotted-keys.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 4
-    }
-  },
-  "tests/unit/image-generation-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 11
     }
   },
   "tests/unit/inspector-agent-bridge-hook.test.ts": {
@@ -1505,11 +1417,6 @@
   "tests/unit/live-ws-public-url.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 5
-    }
-  },
-  "tests/unit/lmarena-provider.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 9
     }
   },
   "tests/unit/lmarena-split-cookie-4271.test.ts": {
@@ -1707,11 +1614,6 @@
       "count": 2
     }
   },
-  "tests/unit/perplexity-web.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 11
-    }
-  },
   "tests/unit/persist-429-cooldown-account-fallback.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 7
@@ -1747,11 +1649,6 @@
       "count": 3
     }
   },
-  "tests/unit/prompt-required-routes.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
   "tests/unit/provider-connection-apikey-dedup.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -1784,7 +1681,7 @@
   },
   "tests/unit/provider-models-route.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 58
+      "count": 55
     }
   },
   "tests/unit/provider-models-token-limits.test.ts": {
@@ -1817,11 +1714,6 @@
       "count": 6
     }
   },
-  "tests/unit/provider-scoped-models-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 7
-    }
-  },
   "tests/unit/provider-validation-hardening.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 6
@@ -1830,11 +1722,6 @@
   "tests/unit/provider-validation-qwen-web-5855.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
-    }
-  },
-  "tests/unit/provider-validation-specialty.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 8
     }
   },
   "tests/unit/providers-route-managed-catalog.test.ts": {
@@ -1869,7 +1756,7 @@
   },
   "tests/unit/proxy-registry.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 55
+      "count": 54
     }
   },
   "tests/unit/proxy-resolution-status-filter.test.ts": {
@@ -2079,7 +1966,7 @@
   },
   "tests/unit/sse-parser.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 15
+      "count": 6
     }
   },
   "tests/unit/startup-stale-cooldown-recovery.test.ts": {
@@ -2242,11 +2129,6 @@
       "count": 75
     }
   },
-  "tests/unit/translator-resp-openai-responses.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 5
-    }
-  },
   "tests/unit/translator-resp-openai-to-claude.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 14
@@ -2289,7 +2171,7 @@
   },
   "tests/unit/usage-service-hardening.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 59
+      "count": 58
     }
   },
   "tests/unit/v1-ws-bridge.test.ts": {

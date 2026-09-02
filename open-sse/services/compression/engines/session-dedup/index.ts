@@ -145,7 +145,9 @@ function dedupeWithinMessage(
 
   for (const { block } of sortedBlocks) {
     // Only dedup blocks that appear 2+ times in the text.
-    const occurrences = (result.match(new RegExp(block.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []).length;
+    const occurrences = (
+      result.match(new RegExp(block.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []
+    ).length;
     if (occurrences < 2) continue;
 
     const sha = hashBlock(block);
@@ -289,7 +291,18 @@ function processMessages(
   }
 
   if (msgTexts.length === 0) {
-    return { messages, dedupCount: 0 };
+    return { messages, dedupCount: 0, suffixWorkBudgetExceeded: false };
+  }
+
+  // Single-message exact dedup enumerates suffixes once; cross-message dedup does so
+  // in both passes. Reserve the request-wide work up front so no quadratic suffix graph
+  // is partially materialized before the engine decides to fail open.
+  const suffixWorkBudget: SuffixWorkBudget = { remaining: MAX_SUFFIX_WORK_CHARS };
+  const passCount = msgTexts.length === 1 ? 1 : 2;
+  for (const { text } of msgTexts) {
+    if (!reserveSuffixWork(text, passCount, suffixWorkBudget)) {
+      return { messages, dedupCount: 0, suffixWorkBudgetExceeded: true };
+    }
   }
 
   const { deduped, dedupCount } = dedupMessageTexts(msgTexts, minBlockChars);
@@ -370,7 +383,8 @@ function validateSessionDedupConfig(config: Record<string, unknown>): EngineVali
     const f = config["fuzzy"];
     if (typeof f === "object" && f !== null) {
       const fe = (f as Record<string, unknown>)["enabled"];
-      if (fe !== undefined && typeof fe !== "boolean") errors.push("fuzzy.enabled must be a boolean");
+      if (fe !== undefined && typeof fe !== "boolean")
+        errors.push("fuzzy.enabled must be a boolean");
     } else if (typeof f !== "boolean") {
       errors.push("fuzzy must be an object { enabled } or a boolean");
     }
@@ -421,10 +435,18 @@ export const sessionDedupEngine: CompressionEngine = {
     }
 
     const start = performance.now();
-    const { messages: exactMessages, dedupCount } = processMessages(
-      messages as MessageLike[],
-      minBlockChars
-    );
+    const {
+      messages: exactMessages,
+      dedupCount,
+      suffixWorkBudgetExceeded,
+    } = processMessages(messages as MessageLike[], minBlockChars);
+
+    if (suffixWorkBudgetExceeded) {
+      const durationMs = Math.round(performance.now() - start);
+      const stats = createCompressionStats(body, body, "stacked", [], undefined, durationMs);
+      stats.validationWarnings = [SUFFIX_WORK_BUDGET_WARNING];
+      return { body, compressed: false, stats };
+    }
 
     const { messages: finalMessages, fuzzyCount } = runFuzzyPass(
       exactMessages,

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createProviderNode, getProviderNodes } from "@/models";
-import { getProviderNodesCount } from "@/lib/db/providers/nodes";
+import { getProviderNodesCount } from "@/lib/db/providers";
 import {
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
@@ -124,12 +124,14 @@ export async function POST(request) {
       chatPath,
       modelsPath,
       customHeaders,
+      iconUrl,
     } = validation.data;
 
     // Determine type
     const nodeType = type || "openai-compatible";
 
     if (nodeType === "openai-compatible") {
+      const resolvedPrefix = (prefix || "").trim();
       const resolvedBaseUrl = (baseUrl || OPENAI_COMPATIBLE_DEFAULTS.baseUrl).trim();
       const baseUrlError = validateProviderNodeBaseUrl(resolvedBaseUrl);
       if (baseUrlError) return baseUrlError;

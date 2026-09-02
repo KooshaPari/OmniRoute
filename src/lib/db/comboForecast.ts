@@ -1,4 +1,5 @@
 import { getDbInstance } from "./core";
+import { toNumber } from "@/shared/utils/numeric";
 
 export type ComboForecastUsageRow = {
   comboName: string;
@@ -39,10 +40,6 @@ type ComboForecastUsageSqlRow = {
   avgLatencyMs: number | null;
   lastUsedAt: string | null;
 };
-
-function toNumber(value: unknown): number {
-  return typeof value === "number" && Number.isFinite(value) ? value : 0;
-}
 
 function toString(value: unknown, fallback = "unknown"): string {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : fallback;

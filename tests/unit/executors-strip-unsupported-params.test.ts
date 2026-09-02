@@ -189,11 +189,37 @@ test("stripUnsupportedParams: volcengine kimi-k2-5-260127 also clamps max_comple
 test("stripUnsupportedParams: volcengine non-kimi model (glm-4-7-251222) is NOT clamped by the kimi rule", () => {
   const body: Record<string, unknown> = { max_tokens: 65536 };
   stripUnsupportedParams("volcengine", "glm-4-7-251222", body);
-  assert.equal(body.max_tokens, 65536, "kimi-specific cap must not apply to other volcengine models");
+  assert.equal(
+    body.max_tokens,
+    65536,
+    "kimi-specific cap must not apply to other volcengine models"
+  );
 });
 
 test("stripUnsupportedParams: kimi rule is provider-scoped (no-op for non-volcengine providers)", () => {
   const body: Record<string, unknown> = { max_tokens: 65536 };
   stripUnsupportedParams("kimi", "kimi-k2-5-260127", body);
-  assert.equal(body.max_tokens, 65536, "the Ark-specific cap must not leak to other kimi-hosting providers");
+  assert.equal(
+    body.max_tokens,
+    65536,
+    "the Ark-specific cap must not leak to other kimi-hosting providers"
+  );
+});
+
+test("stripUnsupportedParams: Z.AI GLM-4.6V clamps output tokens to the endpoint cap (#7364)", () => {
+  const body: Record<string, unknown> = {
+    max_tokens: 4_500_000,
+    max_completion_tokens: 40_000,
+    max_output_tokens: 32_000,
+  };
+  stripUnsupportedParams("zai", "glm-4.6v", body);
+  assert.equal(body.max_tokens, 32768);
+  assert.equal(body.max_completion_tokens, 32768);
+  assert.equal(body.max_output_tokens, 32_000);
+});
+
+test("stripUnsupportedParams: GLM-4.6V cap is also applied on the glm provider path (#7364)", () => {
+  const body: Record<string, unknown> = { max_tokens: 65_536 };
+  stripUnsupportedParams("glm", "GLM-4.6V", body);
+  assert.equal(body.max_tokens, 32768);
 });

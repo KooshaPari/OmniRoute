@@ -55,6 +55,7 @@ import EmptyConnectionsPlaceholder from "./components/EmptyConnectionsPlaceholde
 import UpstreamProxyCard from "./components/UpstreamProxyCard";
 import SearchProviderCard from "./components/SearchProviderCard";
 import NoAuthProviderControls from "./components/NoAuthProviderControls";
+import ProviderAccountRoutingCard from "../../settings/components/ProviderAccountRoutingCard";
 // providerText used by UpstreamProxyCard (Phase 1t.7)
 
 export default function ProviderDetailPageClient() {

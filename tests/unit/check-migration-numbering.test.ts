@@ -99,9 +99,12 @@ test("the real migrations dir produces ZERO anomalies under the frozen allowlist
   assert.deepEqual(r.gaps, [], `unexpected sequence gaps: ${r.gaps.join(", ")}`);
 });
 
-test("frozen allowlists match the documented audit (026 & 055 gaps)", () => {
+test("frozen allowlists match the documented audit gaps", () => {
   assert.ok((KNOWN_GAPS as Set<string>).has("026"));
   assert.ok((KNOWN_GAPS as Set<string>).has("055"));
+  assert.ok((KNOWN_GAPS as Set<string>).has("102"));
+  assert.ok((KNOWN_GAPS as Set<string>).has("104"));
+  assert.ok((KNOWN_GAPS as Set<string>).has("105"));
   // "041" was removed from KNOWN_DUPLICATE_VERSIONS in 6A.3 (stale: no physical
   // duplicate for that prefix on disk anymore — only 041_compression_receipts.sql exists).
   assert.equal((KNOWN_DUPLICATE_VERSIONS as Set<string>).has("041"), false);

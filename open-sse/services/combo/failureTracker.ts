@@ -27,7 +27,7 @@
  * No barrel import — consistent with the other combo/* leaves.
  */
 
-import { deleteSessionModelHistory } from "@/lib/db/contextHandoffs";
+import { getDbInstance } from "@/lib/db/core";
 
 /** Default threshold — after this many consecutive failures the pin is cleared. */
 export const COMBO_FAILURE_THRESHOLD = 3 as const;
@@ -48,6 +48,12 @@ interface FailureEntry {
 }
 
 const failureMap = new Map<string, FailureEntry>();
+
+function deleteSessionModelHistory(sessionId: string, comboName: string): void {
+  getDbInstance()
+    .prepare("DELETE FROM session_model_history WHERE session_id = ? AND combo_name = ?")
+    .run(sessionId, comboName);
+}
 
 /** Pure keying helper — keeps the lookup format in one place. */
 function keyOf(sessionId: string, comboName: string): string {

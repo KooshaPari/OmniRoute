@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   getKeyvQuotaStore,
   __resetKeyvQuotaStoreForTests,
@@ -58,9 +58,14 @@ describe("KeyvQuotaStore", () => {
   });
 
   it("dispose clears the internal timer", async () => {
-    await store.consume("key-1", dim, 5);
-    await store.dispose();
-    // no crash or timer leak
-    expect(true).toBe(true);
+    const clearIntervalSpy = vi.spyOn(globalThis, "clearInterval");
+    try {
+      await store.consume("key-1", dim, 5);
+      await store.dispose();
+
+      expect(clearIntervalSpy).toHaveBeenCalled();
+    } finally {
+      clearIntervalSpy.mockRestore();
+    }
   });
 });

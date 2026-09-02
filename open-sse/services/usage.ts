@@ -61,8 +61,7 @@ import {
 } from "./usage/antigravity.ts";
 import { getCursorUsage } from "./usage/cursor.ts";
 import { getKimiUsage } from "./usage/kimi.ts";
-import { getCodexUsage } from "./usage/codex.ts";
-import { getClaudeUsage, getClaudePlanLabel } from "./usage/claude.ts";
+import { getClaudePlanLabel } from "./usage/claude.ts";
 import { getKiroUsage } from "./usage/kiro.ts";
 // Re-exported para os testes kiro-* (importam de services/usage).
 export { buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
@@ -628,8 +627,9 @@ export async function getUsageForProvider(
     case "vertex-partner":
       return await getVertexUsage(id || "", provider);
     case "kimi-coding":
+      return await getKimiUsage(accessToken, apiKey);
     case "kimi-coding-apikey":
-      return await getKimiUsage(accessToken, apiKey, providerSpecificData);
+      return await getKimiUsage(undefined, apiKey);
     case "qoder":
       // Qoder PATs live in `apiKey` (decrypted) or `providerSpecificData.qoderPat`,
       // never in `accessToken`.

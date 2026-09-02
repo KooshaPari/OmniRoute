@@ -129,7 +129,8 @@ export function isTextualReasoningTagNativeRoute(providerId: string, modelId: st
   return (
     /deepseek[-_/]?r1\b/.test(routeId) ||
     /r1[-_/]?distill\b/.test(routeId) ||
-    /(?:^|[/:_-])qwq(?:[/._:-]|$)/.test(routeId)
+    /(?:^|[/:_-])qwq(?:[/._:-]|$)/.test(routeId) ||
+    /(?:^|[/_-])k3(?:[/._:-]|$)/.test(modelId)
   );
 }
 

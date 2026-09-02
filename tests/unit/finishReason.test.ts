@@ -1,9 +1,25 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  isAbortFinishReason,
   normalizeOpenAICompatibleFinishReason,
   normalizeOpenAICompatibleFinishReasonString,
 } from "../../open-sse/utils/finishReason.ts";
+
+test("aborted Gemini/Antigravity finish reasons are recognized case-insensitively", () => {
+  for (const reason of [
+    "malformed_function_call",
+    "UNEXPECTED_TOOL_CALL",
+    "finish_reason_unspecified",
+    "other",
+    "language",
+    "no_image",
+  ]) {
+    assert.equal(isAbortFinishReason(reason), true, `${reason} must be treated as an aborted turn`);
+  }
+  assert.equal(isAbortFinishReason("stop"), false);
+  assert.equal(isAbortFinishReason(null), false);
+});
 
 // ── normalizeOpenAICompatibleFinishReason ──────────────────────────────────
 

@@ -20,6 +20,25 @@ import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
+import { pickCodexConnectionForUser } from "@/lib/oauth/utils/codexConnectionSelection";
+import { reconcileCodexUsageHistory } from "./providers/usageIdentityReconciliation";
+import { setConnectionRateLimitUntil } from "./providers/rateLimit";
+import {
+  connectionRateLimitConnectionIdSchema,
+  connectionRateLimitRetryAfterMsSchema,
+} from "@/shared/validation/schemas/misc";
+import {
+  normalizeBooleanColumn,
+  sanitizeQuotaWindowThresholds,
+  sanitizeRateLimitOverrides,
+  serializeJsonField,
+  toNumberOrZero,
+  toRecord,
+  toStringOrNull,
+  withNullableMaxConcurrent,
+  withNullableQuotaWindowThresholds,
+  withNullableRateLimitOverrides,
+} from "./providers/columns";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -35,6 +54,61 @@ interface DbLike {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
   transaction: <T>(fn: () => T) => () => T;
 }
+
+// Real column set for provider_connections (must match the CREATE TABLE in
+// core.ts's SCHEMA_SQL). getProviderConnections()'s optional `columns`
+// projection is interpolated directly into the SELECT clause, so every
+// requested name must be validated against this allowlist before use -
+// there is no current caller that passes untrusted input, but the
+// projection API itself must never accept an arbitrary string.
+export const PROVIDER_CONNECTIONS_COLUMNS = new Set([
+  "id",
+  "provider",
+  "auth_type",
+  "name",
+  "email",
+  "priority",
+  "is_active",
+  "access_token",
+  "refresh_token",
+  "expires_at",
+  "token_expires_at",
+  "scope",
+  "project_id",
+  "test_status",
+  "error_code",
+  "last_error",
+  "last_error_at",
+  "last_error_type",
+  "last_error_source",
+  "backoff_level",
+  "rate_limited_until",
+  "health_check_interval",
+  "last_health_check_at",
+  "last_tested",
+  "api_key",
+  "id_token",
+  "provider_specific_data",
+  "expires_in",
+  "display_name",
+  "global_priority",
+  "default_model",
+  "token_type",
+  "consecutive_use_count",
+  "rate_limit_protection",
+  "last_used_at",
+  "group",
+  "max_concurrent",
+  "proxy_enabled",
+  "per_key_proxy_enabled",
+  "quota_visible",
+  "quota_window_thresholds_json",
+  "rate_limit_overrides_json",
+  "last_ping_at",
+  "last_pinged_reset_key",
+  "created_at",
+  "updated_at",
+]);
 
 // ──────────────── Provider Connections ────────────────
 
@@ -351,6 +425,12 @@ export async function createProviderConnection(data: JsonRecord) {
         persistence[field] = rawExisting[field];
       }
     }
+    const fieldsToWrite = encryptConnectionFields(persistence);
+    if (fieldsToWrite === null) {
+      throw new Error(
+        `[providers] Cannot update connection ${existingId}: encryption layer failed`
+      );
+    }
     db.transaction(() => {
       if (promotedCodexIdentity) {
         reconcileCodexUsageHistory(db, {
@@ -360,7 +440,7 @@ export async function createProviderConnection(data: JsonRecord) {
           matchedExistingCodexByWorkspace: true,
         });
       }
-      _updateConnectionRow(db, existingId, encryptConnectionFields(persistence));
+      _updateConnectionRow(db, existingId, fieldsToWrite);
     })();
     backupDbFile("pre-write");
     return withNullableRateLimitOverrides(
@@ -657,53 +737,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       updated_at = @updatedAt
     WHERE id = @id
   `
-  ).run({
-    id,
-    provider: data.provider,
-    authType: data.authType || null,
-    name: data.name || null,
-    email: data.email || null,
-    priority: data.priority || 0,
-    isActive: data.isActive === false ? 0 : 1,
-    accessToken: data.accessToken || null,
-    refreshToken: data.refreshToken || null,
-    expiresAt: data.expiresAt || null,
-    tokenExpiresAt: data.tokenExpiresAt || null,
-    scope: data.scope || null,
-    projectId: data.projectId || null,
-    testStatus: data.testStatus || null,
-    errorCode: data.errorCode || null,
-    lastError: data.lastError || null,
-    lastErrorAt: data.lastErrorAt || null,
-    lastErrorType: data.lastErrorType || null,
-    lastErrorSource: data.lastErrorSource || null,
-    backoffLevel: data.backoffLevel || 0,
-    rateLimitedUntil: data.rateLimitedUntil || null,
-    healthCheckInterval: data.healthCheckInterval ?? null,
-    lastHealthCheckAt: data.lastHealthCheckAt || null,
-    lastTested: data.lastTested || null,
-    apiKey: data.apiKey || null,
-    idToken: data.idToken || null,
-    providerSpecificData: data.providerSpecificData
-      ? JSON.stringify(data.providerSpecificData)
-      : null,
-    expiresIn: data.expiresIn || null,
-    displayName: data.displayName || null,
-    globalPriority: data.globalPriority || null,
-    defaultModel: data.defaultModel || null,
-    tokenType: data.tokenType || null,
-    consecutiveUseCount: data.consecutiveUseCount || 0,
-    rateLimitProtection:
-      data.rateLimitProtection === true || data.rateLimitProtection === 1 ? 1 : 0,
-    lastUsedAt: data.lastUsedAt || null,
-    group: data.group || null,
-    maxConcurrent: data.maxConcurrent ?? null,
-    quotaWindowThresholdsJson: serializeJsonField(data.quotaWindowThresholds),
-    proxyEnabled: normalizeBooleanColumn(data.proxyEnabled, true) ? 1 : 0,
-    perKeyProxyEnabled: normalizeBooleanColumn(data.perKeyProxyEnabled, false) ? 1 : 0,
-    rateLimitOverridesJson: serializeJsonField(data.rateLimitOverrides),
-    updatedAt: now,
-  });
+  ).run(_buildUpdateConnectionRowParams(id, data, now));
 }
 
 export async function updateProviderConnection(id: string, data: JsonRecord) {
@@ -732,6 +766,10 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
     merged.rateLimitOverrides = sanitizeRateLimitOverrides(merged.rateLimitOverrides);
   }
   const existingRecord = toRecord(existing);
+  const fieldsToWrite = encryptConnectionFields({ ...merged });
+  if (fieldsToWrite === null) {
+    throw new Error(`[providers] Cannot update connection ${id}: encryption layer failed`);
+  }
 
   db.transaction(() => {
     reconcileCodexUsageHistory(db, {
@@ -739,7 +777,7 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
       existing: existingRecord,
       merged,
     });
-    _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
+    _updateConnectionRow(db, id, fieldsToWrite);
   })();
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
@@ -816,6 +854,59 @@ export async function clearConnectionErrorIfUnchanged(
     bumpProxyConfigGeneration();
   }
   return applied;
+}
+
+/**
+ * Lightweight usage-stat update for the credential-selection hot path.
+ * Avoids SELECT, re-encryption, cache invalidation, and file backup.
+ */
+export async function touchConnectionLastUsed(
+  id: string,
+  consecutiveUseCount: number
+): Promise<void> {
+  if (!id) return;
+  const db = getDbInstance() as unknown as DbLike;
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE provider_connections SET
+      last_used_at = @lastUsedAt,
+      consecutive_use_count = @consecutiveUseCount,
+      updated_at = @updatedAt
+    WHERE id = @id`
+  ).run({
+    lastUsedAt: now,
+    consecutiveUseCount,
+    updatedAt: now,
+    id,
+  });
+}
+
+/**
+ * Lightweight backoff reset for connections whose cooldown has expired.
+ * The caller performs eligibility checks; this targeted update avoids a
+ * read, re-encryption, and backup on the credential-selection hot path.
+ */
+export async function resetConnectionBackoff(id: string): Promise<void> {
+  if (!id) return;
+  const db = getDbInstance() as unknown as DbLike;
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE provider_connections SET
+      backoff_level = 0,
+      test_status = 'active',
+      last_error = NULL,
+      last_error_at = NULL,
+      last_error_type = NULL,
+      last_error_source = NULL,
+      error_code = NULL,
+      updated_at = @updatedAt
+    WHERE id = @id`
+  ).run({
+    updatedAt: now,
+    id,
+  });
+  invalidateDbCache("connections");
+  bumpProxyConfigGeneration();
 }
 
 export async function deleteProviderConnection(id: string) {
@@ -923,6 +1014,52 @@ export async function getDistinctGroups(): Promise<string[]> {
     )
     .all() as Array<{ group?: string }>;
   return rows.map((r) => String(r.group ?? "")).filter(Boolean);
+}
+
+export function getProviderNodesCount(filter: JsonRecord = {}): number {
+  const db = getDbInstance() as unknown as DbLike;
+  let sql = "SELECT count(*) as cnt FROM provider_nodes";
+  const params: Record<string, unknown> = {};
+
+  if (filter.type) {
+    sql += " WHERE type = @type";
+    params.type = filter.type;
+  }
+
+  const row = db.prepare(sql).get(params) as { cnt: number };
+  return row.cnt;
+}
+
+/**
+ * Mark a connection as rate-limited until `Date.now() + retryAfterMs`.
+ *
+ * This is intentionally best-effort because callers use it on request error
+ * paths, where a database failure must not replace the upstream failure.
+ */
+export function markConnectionRateLimitedUntil(connectionId: string, retryAfterMs: number): void {
+  const parsedConnectionId = connectionRateLimitConnectionIdSchema.safeParse(connectionId);
+  if (!parsedConnectionId.success) return;
+
+  const parsedRetryAfterMs = connectionRateLimitRetryAfterMsSchema.safeParse(retryAfterMs);
+  if (!parsedRetryAfterMs.success) return;
+
+  try {
+    setConnectionRateLimitUntil(parsedConnectionId.data, Date.now() + parsedRetryAfterMs.data);
+  } catch {
+    // Best-effort persistence for request error paths.
+  }
+}
+
+/** Clear a connection's persisted rate-limit cooldown without throwing. */
+export function clearConnectionRateLimit(connectionId: string): void {
+  const parsedConnectionId = connectionRateLimitConnectionIdSchema.safeParse(connectionId);
+  if (!parsedConnectionId.success) return;
+
+  try {
+    setConnectionRateLimitUntil(parsedConnectionId.data, null);
+  } catch {
+    // Best-effort persistence for request recovery paths.
+  }
 }
 
 export {
