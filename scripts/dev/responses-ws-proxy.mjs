@@ -666,7 +666,7 @@ class ResponsesWsSession {
         browser: prepared.json.browser || "chrome_149",
         os: prepared.json.os || "windows",
         headers: prepared.json.headers || {},
-      };
+      });
       // #5611: forward the configured proxy so the upstream WS connect honors the
       // Proxy Registry in no-direct-egress deployments.
       if (prepared.json.proxy) wsOptions.proxy = prepared.json.proxy;

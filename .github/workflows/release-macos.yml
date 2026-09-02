@@ -1,0 +1,36 @@
+name: Release macOS (OmniRoute)
+
+# Calls the reusable workflow at kooshapari/phenotype-fleet-ops.
+# Self-hosted runners only (zero billed minutes).
+# All Apple Developer secrets live in Infisical project 8efe392e-56a6-4c3c-89f9-8141183dd7e8.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+concurrency:
+  group: macos-release-OmniRoute-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  macos:
+    name: Build, sign, notarize OmniRoute
+    uses: kooshapari/phenotype-fleet-ops/.github/workflows/macos-release.yml@main
+    with:
+      app-name: OmniRoute
+      app-bundle-id: online.omniroute.desktop
+      build-cmd: |
+          pnpm install --frozen-lockfile
+          pnpm --filter desktop tauri build --target universal-apple-darwin
+          cp -R apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/OmniRoute.app dist/macos/
+      entitlements-file: apps/desktop/src-tauri/Entitlements.plist
+      artifact-dir: dist/macos
+      create-dmg: true
+      sign-identity: "Developer ID Application"
+    secrets:
+      INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
