@@ -7,8 +7,8 @@
 
 # 🚀 OmniRoute — The Free AI Gateway
 
-
 [![AI slop inside](https://sladge.net/badge.svg)](https://sladge.net) [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/KooshaPari/OmniRoute/total)](https://github.com/KooshaPari/OmniRoute/releases)
+
 ### Never stop coding. Connect every AI tool to **237 providers** — **50+ free** — through one endpoint.
 
 </div>
@@ -1300,10 +1300,10 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 
 ### 🛰️ Traffic inspection, MITM & transparent proxy
 
-| Project                                                                           |   ⭐ | How it inspired OmniRoute                                                                                                                                                        |
-| --------------------------------------------------------------------------------- | ---: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Project                                                                           |   ⭐ | How it inspired OmniRoute                                                                                                                                                         |
+| --------------------------------------------------------------------------------- | ---: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **[llm-interceptor](https://github.com/chouzz/llm-interceptor)** · chouzz         |   48 | MITM interception/analysis of coding-assistant ↔ LLM traffic — our Traffic Inspector ports its SSE merge, conversation normalization, host passthrough and secret masking (MIT). |
-| **[ProxyBridge](https://github.com/InterceptSuite/ProxyBridge)** · InterceptSuite | 5.3k | Transparent per-process proxy routing — inspired our crash-safe MITM teardown, socket idle-timeouts, `/proc` process attribution and TPROXY capture.                             |
+| **[ProxyBridge](https://github.com/InterceptSuite/ProxyBridge)** · InterceptSuite | 5.3k | Transparent per-process proxy routing — inspired our crash-safe MITM teardown, socket idle-timeouts, `/proc` process attribution and TPROXY capture.                              |
 
 ### 📚 Model data, observability & UI
 
