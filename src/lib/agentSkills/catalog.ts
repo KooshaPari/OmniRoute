@@ -150,7 +150,7 @@ export function computeCoverage(): SkillCoverage {
 
   return {
     api: { have: apiHave, total: 23 },
-    cli: { have: cliHave, total: 20 },
+    cli: { have: cliHave, total: 21 },
     config: { have: configHave, total: configTotal },
     totalSkills: apiHave + cliHave + configHave,
     generatedAt: new Date().toISOString(),
