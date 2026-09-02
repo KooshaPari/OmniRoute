@@ -91,22 +91,6 @@ function sessionStore(
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
-
-function cleanResponse(text: string, strip = true): string {
-  let t = text;
-  t = t.replace(XML_DECL_RE, "");
-  t = t.replace(CITATION_RE, "");
-  t = t.replace(GROK_TAG_RE, "");
-  t = t.replace(GROK_SELF_RE, "");
-  t = t.replace(RESPONSE_TAG_RE, "");
-  if (strip) {
-    t = t.replace(MULTI_SPACE, " ");
-    t = t.replace(MULTI_NL, "\n\n");
-    t = t.trim();
-  }
-  return t;
-}
-
 // ─── SSE types ──────────────────────────────────────────────────────────────
 
 interface PplxDiffPatch {
@@ -226,123 +210,11 @@ interface ParsedMessages {
   history: Array<{ role: string; content: string }>;
   currentMsg: string;
 }
-
-function parseOpenAIMessages(messages: Array<Record<string, unknown>>): ParsedMessages {
-  let systemMsg = "";
-  const history: Array<{ role: string; content: string }> = [];
-
-  for (const msg of messages) {
-    let role = String(msg.role || "user");
-    if (role === "developer") role = "system";
-
-    let content = "";
-    if (typeof msg.content === "string") {
-      content = msg.content;
-    } else if (Array.isArray(msg.content)) {
-      content = (msg.content as Array<Record<string, unknown>>)
-        .filter((c) => c.type === "text")
-        .map((c) => String(c.text || ""))
-        .join(" ");
-    }
-    if (!content.trim()) continue;
-
-    if (role === "system") {
-      systemMsg += content + "\n";
-    } else if (role === "user" || role === "assistant") {
-      history.push({ role, content });
-    }
-  }
-
-  let currentMsg = "";
-  if (history.length > 0 && history[history.length - 1].role === "user") {
-    currentMsg = history.pop()!.content;
-  }
-
-  return { systemMsg, history, currentMsg };
-}
-
-function buildPplxRequestBody(
-  query: string,
-  dslQuery: string,
-  mode: string,
-  modelPref: string,
-  followUpUuid: string | null,
-  requestId: string
-): Record<string, unknown> {
-  const tz = typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC";
-
-  // Mirrors the current www.perplexity.ai/rest/sse/perplexity_ask request body. Perplexity's
-  // schematized API validates this shape; an outdated version or missing required fields → HTTP 400.
-  const params: Record<string, unknown> = {
-    attachments: [],
-    language: "en-US",
-    timezone: tz,
-    search_focus: "internet",
-    sources: ["web"],
-    frontend_uuid: requestId,
-    mode,
-    model_preference: modelPref,
-    is_related_query: false,
-    is_sponsored: false,
-    frontend_context_uuid: crypto.randomUUID(),
-    prompt_source: "user",
-    query_source: "home",
-    is_incognito: true,
-    local_search_enabled: false,
-    use_schematized_api: true,
-    send_back_text_in_streaming_api: false,
-    supported_block_use_cases: PPLX_SUPPORTED_BLOCK_USE_CASES,
-    client_coordinates: null,
-    mentions: [],
-    dsl_query: dslQuery && dslQuery.trim() ? dslQuery : query,
-    skip_search_enabled: true,
-    is_nav_suggestions_disabled: false,
-    source: "default",
-    always_search_override: false,
-    override_no_search: false,
-    client_search_results_cache_key: requestId,
-    should_ask_for_mcp_tool_confirmation: true,
-    browser_agent_allow_once_from_toggle: false,
-    force_enable_browser_agent: false,
-    supported_features: ["browser_agent_permission_banner_v1.1"],
-    extended_context: false,
-    version: PPLX_API_VERSION,
-    rum_session_id: crypto.randomUUID(),
-  };
-
-  // Only present on follow-ups (matches the browser, which omits it for a fresh query).
-  if (followUpUuid) {
-    params.last_backend_uuid = followUpUuid;
-  }
-
   return {
     query_str: query,
     params,
   };
 }
-
-function buildQuery(parsed: ParsedMessages, followUpUuid: string | null): string {
-  if (followUpUuid) return parsed.currentMsg;
-
-  const obj: Record<string, unknown> = {};
-  if (parsed.systemMsg.trim()) {
-    obj.instructions = [
-      parsed.systemMsg.trim(),
-      "You have built-in web search. Answer questions directly using search results.",
-    ];
-  }
-  if (parsed.history.length > 0) {
-    obj.history = parsed.history;
-  }
-  if (parsed.currentMsg) {
-    obj.query = parsed.currentMsg;
-  } else if (parsed.history.length === 0) {
-    obj.query = "";
-  }
-  const json = JSON.stringify(obj);
-  return json.length > 96000 ? json.slice(-96000) : json;
-}
-
 // ─── Content extraction ─────────────────────────────────────────────────────
 
 interface ContentChunk {
@@ -513,11 +385,6 @@ async function* extractContent(
 }
 
 // ─── OpenAI SSE format ──────────────────────────────────────────────────────
-
-function sseChunk(data: unknown): string {
-  return `data: ${JSON.stringify(data)}\n\n`;
-}
-
 function buildStreamingResponse(
   eventStream: ReadableStream<Uint8Array>,
   model: string,
