@@ -481,6 +481,12 @@ export async function getApiKeys(limit?: number, offset?: number) {
   });
 }
 
+export function getApiKeysCount(): number {
+  const db = getDbInstance() as ApiKeysDbLike;
+  const row = db.prepare<{ cnt: number }>("SELECT COUNT(*) as cnt FROM api_keys").get();
+  return row?.cnt ?? 0;
+}
+
 /**
  * Select an API key for internal OmniRoute operations (combo health checks,
  * cloud-sync verify pings, etc.).

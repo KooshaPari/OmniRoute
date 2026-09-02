@@ -26,6 +26,7 @@ import {
   resetSpendBatchWriterForTests,
   spendBatchWriter,
 } from "@/lib/spend/batchWriter";
+import { toNumber } from "@/shared/utils/numeric";
 
 export type BudgetResetInterval = "daily" | "weekly" | "monthly";
 
@@ -96,15 +97,6 @@ const RESET_TIME_REGEX = /^(\d{2}):(\d{2})$/;
 
 /** @type {Map<string, NormalizedBudgetConfig>} In-memory cache for budgets */
 const budgets = new Map<string, NormalizedBudgetConfig>();
-
-function toNumber(value: unknown, fallback = 0): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-  return fallback;
-}
 
 function toCostEntries(value: unknown): CostEntry[] {
   if (!Array.isArray(value)) return [];

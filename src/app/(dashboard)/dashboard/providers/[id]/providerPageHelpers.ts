@@ -20,26 +20,6 @@ import { type WebSessionCredentialRequirement } from "./webSessionCredentials";
 import { CC_COMPATIBLE_DEFAULT_CHAT_PATH } from "./providerDetailConstants";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry";
 import type { AlternateFormat } from "@omniroute/open-sse/config/providers/alternateFormats";
-import {
-  type ProviderMessageTranslator,
-  providerText,
-  getWebSessionCredentialLabel,
-  getWebSessionCredentialHint,
-  getWebSessionCredentialCheckLabel,
-  getAddCredentialModalTitle,
-} from "./providerCredentialText";
-
-// Re-exported for backward compatibility — these used to be defined here
-// (Issue #3501 strangler-fig home), but were extracted to providerCredentialText.ts
-// once this leaf hit its frozen file-size cap (#1904 own growth).
-export {
-  type ProviderMessageTranslator,
-  providerText,
-  getWebSessionCredentialLabel,
-  getWebSessionCredentialHint,
-  getWebSessionCredentialCheckLabel,
-  getAddCredentialModalTitle,
-};
 
 // ---------------------------------------------------------------------------
 // Types shared between page + modals
@@ -313,6 +293,15 @@ export function isBaseUrlOverrideEligibleProvider(providerId?: string | null): b
   if (!providerId) return false;
   if (isBaseUrlConfigurableProvider(providerId)) return false;
   return true;
+}
+
+/**
+ * Alternate API protocols the provider declares in the registry. An empty list
+ * keeps the protocol selector hidden for providers without alternate formats.
+ */
+export function getAlternateFormats(providerId?: string | null): AlternateFormat[] {
+  if (!providerId) return [];
+  return getRegistryEntry(providerId)?.alternateFormats ?? [];
 }
 
 export function getProviderBaseUrlDefault(providerId?: string | null) {

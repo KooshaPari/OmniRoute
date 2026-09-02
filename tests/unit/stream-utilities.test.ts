@@ -265,10 +265,14 @@ test("createPassthroughStreamWithLogger backfills completed output with encrypte
   await writer.write(
     new TextEncoder().encode(
       [
-        "event: response.output_item.done",
         'data: {"type":"response.output_item.done","response_id":"resp_reasoning_3","output_index":0,"item":{"id":"rs_resp_reasoning_3_0","type":"reasoning","encrypted_content":"enc_opaque_state"}}',
         "",
-        "event: response.completed",
+      ].join("\n")
+    )
+  );
+  await writer.write(
+    new TextEncoder().encode(
+      [
         'data: {"type":"response.completed","response":{"id":"resp_reasoning_3","model":"gpt-5.5-low","status":"completed","output":[],"usage":{"input_tokens":1,"output_tokens":1,"total_tokens":2}}}',
         "",
       ].join("\n")

@@ -19,7 +19,7 @@ import { handleFusionChat, type FusionTuning } from "../fusion.ts";
 import { parseModel } from "../model.ts";
 import { handlePipelineChat, type PipelineStep } from "../pipeline.ts";
 import type { resolveComboSetupConfig } from "../comboConfig.ts";
-import { clampComboDepth, MAX_GLOBAL_ATTEMPTS, resolveDelayMs } from "./comboPredicates.ts";
+import { clampComboDepth, MAX_GLOBAL_ATTEMPTS } from "./comboPredicates.ts";
 import { resolveComboRuntimeUnits, resolveComboTargets } from "./comboStructure.ts";
 import { buildFusionHandleSingleModel, extractFusionPanelSpec } from "./fusionPanel.ts";
 import {
@@ -415,8 +415,6 @@ export async function tryPipelineDispatch(args: {
     handleSingleModel: handleSingleModelWithTimeout,
     log,
     comboName: combo.name,
-    maxRetries: config.maxRetries ?? 0,
-    retryDelayMs: resolveDelayMs(config.retryDelayMs, 1000),
   });
 }
 

@@ -12,19 +12,22 @@ test("theoldllm dispatches through its provider proxy assignment", async () => {
     password: "secret",
   };
   let observedProxy: unknown = null;
+  const controller = new AbortController();
+  let observedSignal: AbortSignal | null | undefined;
   let fetchCalls = 0;
 
   const response = await fetchTheOldLlmWithProviderProxy(
     { model: "GPT_5_4", messages: [], stream: true },
-    new AbortController().signal,
+    controller.signal,
     {
       resolveProxy: async () => assignedProxy,
       runWithProxy: async (proxy, request) => {
         observedProxy = proxy;
         return request();
       },
-      fetch: (async () => {
+      fetch: (async (_input, init) => {
         fetchCalls++;
+        observedSignal = init?.signal;
         return new Response("ok", { status: 200 });
       }) as typeof fetch,
     }
@@ -33,6 +36,7 @@ test("theoldllm dispatches through its provider proxy assignment", async () => {
   assert.equal(response.status, 200);
   assert.equal(fetchCalls, 1);
   assert.deepEqual(observedProxy, assignedProxy);
+  assert.equal(observedSignal, controller.signal, "must forward the caller abort signal");
 });
 
 test("theoldllm fails closed when an assigned proxy pool has no active proxy", async () => {

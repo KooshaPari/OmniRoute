@@ -9,6 +9,7 @@ import {
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
+import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
   mergeClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
@@ -43,6 +44,7 @@ import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
+import { applyClineAuthHeaders } from "@/shared/utils/clineAuth";
 import { buildClineHeaders } from "@/shared/utils/clineAuth";
 import { normalizeBaseUrl } from "../utils/urlSanitize.ts";
 import {
@@ -52,6 +54,9 @@ import {
   normalizeGigachatChatUrl,
 } from "@/lib/providers/validation/urlHelpers";
 import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
+import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts";
+import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProviderRegions";
+import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -325,8 +330,9 @@ export class DefaultExecutor extends BaseExecutor {
       }
       case "zai":
       case "glm-coding-apikey": {
-        const zaiBaseUrl = this.resolveBaseUrl(credentials);
-        return `${zaiBaseUrl}?beta=true`;
+        return resolveZaiUrl(credentials, (fallback) =>
+          this.resolveBaseUrl(credentials, fallback)
+        );
       }
       case "claude":
       case "glm":

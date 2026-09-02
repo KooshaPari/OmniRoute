@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import test from "node:test";
+import * as yaml from "js-yaml";
 
 const require = createRequire(import.meta.url);
 const { maybeHandleDisallowedMethod } = require("../../scripts/dev/http-method-guard.cjs");
@@ -125,9 +126,32 @@ test("OpenAPI documents high-risk route auth and setup responses", () => {
   const loginStart = spec.indexOf("  /api/auth/login:");
   const loginEnd = spec.indexOf("\n  /api/auth/logout:", loginStart);
   const login = spec.slice(loginStart, loginEnd);
-  assert.match(login, /maxLength: 200/);
+  assert.match(login, /minLength: 1/);
   assert.match(login, /"400":\n\s+description: Invalid login request/);
   assert.match(login, /"401":\n\s+description: Invalid password/);
   assert.match(login, /"403":\n\s+description: Password setup required/);
   assert.match(login, /"429":\n\s+description: Too many failed attempts/);
+});
+
+test("OpenAPI Unauthorized response matches the structured auth error envelope", () => {
+  const parsed = yaml.load(readFileSync("docs/openapi.yaml", "utf8")) as {
+    components?: {
+      responses?: {
+        Unauthorized?: {
+          content?: {
+            "application/json"?: { schema?: { $ref?: string } };
+          };
+        };
+      };
+    };
+    paths?: Record<string, { get?: { responses?: Record<string, { $ref?: string }> } }>;
+  };
+  assert.equal(
+    parsed.components?.responses?.Unauthorized?.content?.["application/json"]?.schema?.$ref,
+    "#/components/schemas/ApiErrorResponse"
+  );
+  assert.equal(
+    parsed.paths?.["/api/keys/{id}/devices"]?.get?.responses?.["401"]?.$ref,
+    "#/components/responses/Unauthorized"
+  );
 });

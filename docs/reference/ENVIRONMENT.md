@@ -185,6 +185,15 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 | `OMNIROUTE_CHAT_LARGE_BODY_BYTES`       | `262144` (256 KB)       | `src/shared/middleware/chatBodyAdmission.ts`     | Heap-pressure admission threshold for `POST /v1/chat/completions` (#5152). Bodies below this are always admitted and never sample the heap; at or above it the heap-pressure check applies.                                                                                                                                                                          |
 | `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`    | `52428800` (50 MB)      | `src/shared/middleware/chatBodyAdmission.ts`     | Chat-route hard cap. Bodies larger than this are rejected with `413` before being cloned/parsed, regardless of heap state.                                                                                                                                                                                                                                          |
 | `OMNIROUTE_CHAT_HEAP_SHED_RATIO`        | `0.75`                  | `src/shared/middleware/chatBodyAdmission.ts`     | Shed a large chat body with `503` + `Retry-After` once `heapUsed / heap_size_limit` reaches this ratio (`0 < r < 1`). Turns a process-wide V8 OOM under concurrent large compacts into a single graceful client retry; a healthy heap admits every body untouched.                                                                                                  |
+| `OMNIROUTE_CHAT_ADMISSION_HEAP_SHED_RATIO` | `0.75`              | `src/shared/middleware/chatBodyAdmission.ts`     | Heap-pressure ratio used by bounded chat admission to shed heavyweight requests with a retryable `503` when the process is under pressure.                                                                                                                                                                                                                 |
+| `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`    | `1`                     | `src/shared/middleware/chatBodyAdmission.ts`     | Maximum concurrent heavyweight chat requests admitted per process.                                                                                                                                                                                                                                                                                                                                                |
+| `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`     | `2000`                  | `src/shared/middleware/chatBodyAdmission.ts`     | Maximum bounded wait in milliseconds for heavyweight admission capacity before returning a retryable `503`.                                                                                                                                                                                                                                                                                                        |
+| `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` | `4194304` (4 MB)      | `src/shared/middleware/chatBodyAdmission.ts`     | Maximum aggregate body bytes retained by queued admission waiters.                                                                                                                                                                                                                                                                                                                                                |
+| `OMNIROUTE_CHAT_HEAVY_MESSAGE_COUNT`    | `200`                   | `src/shared/middleware/chatBodyAdmission.ts`     | Message-count threshold for classifying a parsed chat body as structurally heavy.                                                                                                                                                                                                                                                                                                                                  |
+| `OMNIROUTE_CHAT_HEAVY_TOOL_COUNT`       | `64`                    | `src/shared/middleware/chatBodyAdmission.ts`     | Tool-count threshold for classifying a parsed chat body as structurally heavy.                                                                                                                                                                                                                                                                                                                                     |
+| `OMNIROUTE_CHAT_HEAVY_ESTIMATED_TOKENS`  | `32000`                 | `src/shared/middleware/chatBodyAdmission.ts`     | Conservative estimated-token threshold for structural admission.                                                                                                                                                                                                                                                                                                                                                 |
+| `OMNIROUTE_CHAT_ADMISSION_HEALTHY_HEADROOM` | `1`                  | `src/shared/middleware/chatBodyAdmission.ts`     | Additional bounded heavyweight capacity available while the heap-pressure probe is healthy.                                                                                                                                                                                                                                                                                                                       |
+| `OMNIROUTE_CHAT_HARD_MAX_MESSAGES`      | `0`                     | `src/shared/middleware/chatBodyAdmission.ts`     | Optional hard chat-history message cap; `0` disables the cap by default.                                                                                                                                                                                                                                                                                                                                           |
 | `OMNIROUTE_MAX_NONSTREAMING_RESPONSE_BYTES` | `67108864` (64 MB)  | `open-sse/handlers/chatCore/nonStreamingResponseBody.ts` | Hard cap for a non-streaming upstream response buffered fully into memory. Past this the upstream reader is cancelled and the request fails fast instead of growing an unbounded string until the heap is exhausted.                                                                                                                                                 |
 | `CORS_ORIGIN`                           | _(unset)_               | `src/server/cors/origins.ts`                    | Legacy single-origin CORS allowlist. Prefer `CORS_ALLOWED_ORIGINS` for new deployments. CORS is only for cross-origin browser API clients; authenticated dashboard writes use same-origin requests plus session-bound CSRF protection instead.                                                                                                                     |
 | `CORS_ALLOWED_ORIGINS`                  | _(unset)_               | `src/server/cors/origins.ts`                    | Comma-separated CORS allowlist. No wildcard is sent unless `CORS_ALLOW_ALL=true` is explicitly configured.                                                                                                                                                                                                                                                         |
@@ -1016,6 +1025,7 @@ Provider quota endpoints, network tunnels (Tailscale, Ngrok, MITM debug proxy), 
 | `MITM_DISABLE_TLS_VERIFY`                   | `0`                                                                         | `src/mitm/server.cjs`                                                     | Set `1` to disable upstream TLS verification (development only).                                                                                                                                                                                                                                                                                                      |
 | `MITM_IDLE_TIMEOUT_MS`                      | `60000`                                                                     | `src/mitm/socketTimeouts.ts`, `src/mitm/server.cjs`                       | Idle socket timeout (ms) for proxied connections; idle sockets past this are torn down to avoid leaking half-open tunnels.                                                                                                                                                                                                                                            |
 | `MITM_VERBOSE`                              | `1`                                                                         | `src/mitm/server.cjs`, `src/mitm/_internal/bypass.cjs`                    | Routing-decision log verbosity: `0` silences, higher values log more bypass/route decisions.                                                                                                                                                                                                                                                                          |
+| `MITM_ROOT_CA_ENABLED`                      | `false`                                                                     | `src/mitm/manager.ts`                                                     | Set `true` to opt in to the root-CA + per-host-leaf cert model (#6684). Fresh installs get it automatically; installs with a pre-existing trusted legacy leaf keep the legacy fixed-SAN cert unless opted in.                                                                                                                                                          |
 | `ONEPROXY_ENABLED`                          | `true`                                                                      | `src/lib/oneproxySync.ts`                                                 | Enable the 1Proxy egress pool sync.                                                                                                                                                                                                                                                                                                                                   |
 | `ONEPROXY_API_URL`                          | `https://1proxy-api.aitradepulse.com`                                       | `src/lib/oneproxySync.ts`                                                 | 1Proxy service API URL override.                                                                                                                                                                                                                                                                                                                                      |
 | `ONEPROXY_MAX_PROXIES`                      | `500`                                                                       | `src/lib/oneproxySync.ts`                                                 | Maximum proxies imported per sync.                                                                                                                                                                                                                                                                                                                                    |
@@ -1079,6 +1089,153 @@ Provider quota endpoints, network tunnels (Tailscale, Ngrok, MITM debug proxy), 
 | `QDRANT_EMBEDDING_MODEL`                    | `text-embedding-3-small`                                                    | _(opt-in cluster profile)_                                                | Default embedding model name recorded in the Qdrant collection metadata. Actual embeddings are generated by whatever provider the `embeddingModel` field in OmniRoute's settings points to.                                                                                                                                                                           |
 | `QDRANT_VECTOR_SIZE`                        | `1536`                                                                      | _(opt-in cluster profile)_                                                | Embedding vector dimension. Must match the model you embed with (text-embedding-3-small → 1536; ada-002 → 1536; nomic-embed-text → 768).                                                                                                                                                                                                                              |
 | `QDRANT_HNSW_EF_CONSTRUCT`                  | `128`                                                                       | _(opt-in cluster profile)_                                                | HNSW index construction-time accuracy. Higher = slower build, faster search.                                                                                                                                                                                                                                                                                          |
+
+### Additional runtime controls
+
+The variables below are optional runtime controls already present in the
+example contract. Defaults are code-defined unless a value is shown. Keep
+credential values out of checked-in files; use empty placeholders for secrets.
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `BIFROST_KILLSWITCH_DISABLED` | `false` | Prevents the Bifrost executor kill switch from disabling the sidecar. |
+| `BIFROST_SHADOW_COST_OR_LATENCY_WINS` | `false` | Records a Bifrost shadow win when either cost or latency is better. |
+| `BIFROST_SHADOW_ENABLED` | `false` | Enables Bifrost shadow traffic. |
+| `BIFROST_SHADOW_SAMPLE_RATE` | `0` | Fraction of eligible requests sent through the Bifrost shadow path. |
+| `CIRCUIT_BREAKER_OPOSSUM_PRIMARY` | `false` | Enables the Opossum-backed primary circuit breaker implementation. |
+| `CIRCUIT_BREAKER_OPOSSUM_SHADOW` | `false` | Enables shadow evaluation of the Opossum circuit breaker. |
+| `CURSOR_AGENT_CLI_VERSION` | _(detected)_ | Pins the Cursor Agent CLI compatibility version. |
+| `CURSOR_DATA_DIR` | _(default Cursor path)_ | Overrides Cursor Agent CLI state storage. |
+| `MITM_CERT_MODE` | _(code-defined)_ | Selects the certificate mode for the MITM runtime. |
+| `NEXT_PUBLIC_OMNIROUTE_BASE_PATH` | _(unset)_ | Browser-visible base-path override for deployments behind a URL prefix. |
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `OMNIROUTE_CGPT_WEB_PRO_POLL_INTERVAL_MS` | _(code-defined)_ | Poll interval for ChatGPT Web Pro completion state. |
+| `OMNIROUTE_CGPT_WEB_PRO_TIMEOUT_MS` | _(code-defined)_ | Overall timeout for ChatGPT Web Pro completion state. |
+| `OMNIROUTE_CHATGPT_STREAM_FIRST_BYTE_TIMEOUT_MS` | _(code-defined)_ | First-byte deadline for the ChatGPT TLS stream. |
+| `OMNIROUTE_DEBUG_COMPLETION` | `false` | Emits CLI completion diagnostics. |
+| `OMNIROUTE_DISPATCH_RECONCILER_ENABLED` | `false` | Enables RPC dispatch reconciliation. |
+| `OMNIROUTE_EDGE_HTTP_BASE` | _(unset)_ | Base URL for the edge RPC HTTP transport. |
+| `OMNIROUTE_FFI_ABI_VERSION` | _(code-defined)_ | Expected ABI version for native RPC bindings. |
+| `OMNIROUTE_FFI_COMBO_SCORER_DISABLE_NAPI` | `false` | Disables the N-API combo scorer path. |
+| `OMNIROUTE_FFI_COMBO_SCORER_ENABLED` | `false` | Enables the native combo scorer path. |
+| `OMNIROUTE_FFI_COMBO_SCORER_NAPI_PATH` | _(unset)_ | Explicit N-API combo scorer module path. |
+| `OMNIROUTE_FFI_COMBO_SCORER_PATH` | _(unset)_ | Explicit combo scorer native library path. |
+| `OMNIROUTE_FFI_GUARDRAILS_PII_PATH` | _(unset)_ | Explicit native PII guardrail library path. |
+| `OMNIROUTE_FFI_PATH` | _(unset)_ | Explicit general RPC native library path. |
+| `OMNIROUTE_HTTP_PORT` | _(code-defined)_ | Port used by the edge RPC HTTP transport. |
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `OMNIROUTE_METRICS_HOST` | _(code-defined)_ | Bind host for OmniRoute metrics. |
+| `OMNIROUTE_METRICS_PORT` | _(code-defined)_ | Bind port for OmniRoute metrics. |
+| `OMNIROUTE_OTLP_ENDPOINT` | _(unset)_ | OmniRoute OTLP collector endpoint. |
+| `OMNIROUTE_OTLP_PUSH_INTERVAL_MS` | _(code-defined)_ | OTLP push interval. |
+| `OMNIROUTE_OTLP_PUSH_TIMEOUT_MS` | _(code-defined)_ | OTLP push deadline. |
+| `OMNIROUTE_OTLP_RESOURCE_ATTRIBUTES` | _(unset)_ | Comma-separated OTLP resource attributes. |
+| `OMNIROUTE_SKIP_DNS_WRITE` | `false` | Prevents MITM DNS configuration writes. |
+| `OMNIROUTE_UDS_REQUIRE_AUTH` | `true` | Requires authentication for the RPC Unix-domain socket. |
+| `OMNIROUTE_UDS_SHARED_SECRET` | _(unset)_ | Shared secret for authenticated RPC Unix-domain socket peers. |
+| `OMNIROUTE_UDS_SOCKET` | _(code-defined)_ | Unix-domain socket path for RPC dispatch. |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | _(unset)_ | Standard OpenTelemetry exporter endpoint. |
+| `OTEL_EXPORTER_PROMETHEUS_PORT` | _(unset)_ | Prometheus exporter port. |
+| `OTEL_SDK_DISABLED` | `false` | Disables the OpenTelemetry SDK. |
+| `OTEL_SERVICE_NAME` | `omniroute` | OpenTelemetry service name. |
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `PROMPT_CACHE_MAX_ENTRIES` | _(code-defined)_ | Maximum entries held by the prompt cache. |
+| `PROXY_AUTO_REMOVE` | `false` | Enables automatic removal of unhealthy proxies. |
+| `PROXY_AUTO_REMOVE_AFTER` | _(code-defined)_ | Unhealthy duration before automatic proxy removal. |
+| `PROXY_HEALTH_ENABLED` | `false` | Enables scheduled proxy health checks. |
+| `PROXY_HEALTH_INTERVAL_MS` | _(code-defined)_ | Proxy health-check interval. |
+| `PROXY_HEALTH_TEST_URL` | _(code-defined)_ | URL used for proxy health checks. |
+| `PROXY_LATENCY_WINDOW_HOURS` | _(code-defined)_ | Retention window for proxy latency calculations. |
+| `QUOTA_STORE_KEYV_URL` | _(unset)_ | Keyv-compatible quota-store URL. |
+| `SKILLS_SANDBOX_RUNTIME` | _(auto)_ | Selects the skill sandbox runtime implementation. |
+| `SUBSTRATE_BIN` | _(auto-detect)_ | Path to the Substrate dispatch binary. |
+| `SUBSTRATE_HTTP_URL` | _(unset)_ | HTTP endpoint for Substrate dispatch. |
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `BIFROST_PORT` | `8080` | Port used by the managed Bifrost sidecar. |
+| `COMPRESSION_CCR_RETRIEVAL_RAMP_FACTOR` | `2` | Retrieval-feedback multiplier for CCR compression. |
+| `COMPRESSION_PIPELINE_BREAKER_COOLDOWN_MS` | _(code-defined)_ | Compression pipeline breaker cooldown. |
+| `COMPRESSION_PIPELINE_BREAKER_ENABLED` | _(code-defined)_ | Enables the compression pipeline breaker. |
+| `COMPRESSION_PIPELINE_BREAKER_THRESHOLD` | _(code-defined)_ | Failure threshold for the compression pipeline breaker. |
+| `COMPRESSION_PREFIX_FREEZE_ENABLED` | _(code-defined)_ | Enables repeated-prefix preservation. |
+| `COMPRESSION_PREFIX_FREEZE_THRESHOLD` | _(code-defined)_ | Observation threshold for repeated-prefix preservation. |
+| `CONTEXT_KEEP_LATEST_IMAGES` | _(code-defined)_ | Number of latest image parts retained in context. |
+| `DESIGNER_WEB_POLL_INTERVAL_MS` | _(code-defined)_ | Microsoft Designer polling interval. |
+| `DESIGNER_WEB_POLL_TIMEOUT_MS` | _(code-defined)_ | Microsoft Designer polling deadline. |
+| `FIRECRAWL_BASE_URL` | _(code-defined)_ | Firecrawl API base URL. |
+| `FIRECRAWL_TIMEOUT_MS` | _(code-defined)_ | Firecrawl request deadline. |
+| `GROK_AUTH_PATH` | _(default auth path)_ | Grok quota-fetcher authentication file path. |
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `FREE_PROXY_AUTO_SYNC_ENABLED` | `true` | Enables scheduled free-proxy synchronization. |
+| `FREE_PROXY_AUTO_SYNC_INTERVAL_MS` | `1800000` | Free-proxy synchronization interval. |
+| `FREE_PROXY_WEBSHARE_API_KEY` | _(unset)_ | Webshare API key; leave blank in examples. |
+| `FREE_PROXY_WEBSHARE_API_URL` | `https://proxy.webshare.io/api/v2/proxy/list/` | Webshare proxy-list endpoint. |
+| `FREE_PROXY_WEBSHARE_ENABLED` | `true` | Enables Webshare as a free-proxy source. |
+| `FREE_PROXY_WEBSHARE_MAX` | `500` | Maximum proxies fetched from Webshare per sync. |
+| `HEALTHCHECK_BATCH_SIZE` | _(code-defined)_ | Credential health-check batch size. |
+| `HEALTHCHECK_JITTER_MAX_MS` | _(code-defined)_ | Maximum health-check scheduling jitter. |
+| `HEALTHCHECK_JITTER_MIN_MS` | _(code-defined)_ | Minimum health-check scheduling jitter. |
+| `MUX_SERVICE_PORT` | `8322` | Port used by the managed Mux service. |
+| `OMNI_MAX_CONCURRENT_CONNECTIONS` | `0` | Maximum concurrent chat connections; `0` disables the cap. |
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `OMNIROUTE_AGENT_GOAL_POLICY_ENABLED` | _(code-defined)_ | Enables the agent-goal policy. |
+| `OMNIROUTE_AGENT_GOAL_READINESS_MAX_TIMEOUT_MS` | _(code-defined)_ | Agent-goal readiness deadline. |
+| `OMNIROUTE_AGENT_GOAL_STREAM_RECOVERY` | _(code-defined)_ | Enables agent-goal stream recovery. |
+| `OMNIROUTE_BACKUP_SCHEDULE_JOB_INTERVAL_MS` | _(code-defined)_ | Backup scheduler interval. |
+| `OMNIROUTE_CHAOS_MAX_PANEL` | _(code-defined)_ | Maximum synthetic auto-combo chaos panel size. |
+| `OMNIROUTE_CHAOS_MIN_PANEL` | _(code-defined)_ | Minimum synthetic auto-combo chaos panel size. |
+| `OMNIROUTE_CHAOS_PANEL_TIMEOUT_MS` | _(code-defined)_ | Synthetic auto-combo chaos panel deadline. |
+| `OMNIROUTE_INSTANCE_ID` | _(unset)_ | Stable instance identity for peer routing. |
+| `OMNIROUTE_ISSUE_AGENT_ENABLED` | _(code-defined)_ | Enables the issue-agent execution route. |
+| `OMNIROUTE_ISSUE_AGENT_TIMEOUT_MS` | _(code-defined)_ | Issue-agent execution deadline. |
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `OMNIROUTE_NO_SUDO` | _(code-defined)_ | Prevents system-command helpers from invoking sudo. |
+| `OMNIROUTE_NOTION_TLS_GRACE_MS` | _(code-defined)_ | Notion TLS client grace period. |
+| `OMNIROUTE_NOTION_TLS_TIMEOUT_MS` | _(code-defined)_ | Notion TLS client request deadline. |
+| `OMNIROUTE_PEER_MAX_HOPS` | `4` | Maximum OmniRoute peer-routing hops. |
+| `OMNIROUTE_PEER_URLS` | _(unset)_ | Comma-separated allowlisted OmniRoute peer URLs. |
+| `OMNIROUTE_PROVIDER_MANIFEST_URL` | _(code-defined)_ | Provider-plugin manifest URL override. |
+| `OMNIROUTE_PUBLIC_PROTOCOL` | _(code-defined)_ | Public protocol used for provider-plugin URLs. |
+| `OMNIROUTE_QUOTA_FETCH_MIN_INTERVAL_MS` | _(code-defined)_ | Minimum interval between quota fetches. |
+| `OMNIROUTE_RELAY_BACKEND` | _(code-defined)_ | Relay routing backend selection. |
+| `RELAY_ROUTING_BACKEND` | _(code-defined)_ | Alias for relay routing backend selection. |
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `OMNIROUTE_ROTATE_400_THRESHOLD` | _(code-defined)_ | HTTP 400 rotation threshold. |
+| `OMNIROUTE_ROTATE_400_WINDOW_SECONDS` | _(code-defined)_ | HTTP 400 rotation window. |
+| `OMNIROUTE_ROTATE_429_THRESHOLD` | _(code-defined)_ | HTTP 429 rotation threshold. |
+| `OMNIROUTE_ROTATE_429_WINDOW_SECONDS` | _(code-defined)_ | HTTP 429 rotation window. |
+| `OMNIROUTE_ROTATE_500_THRESHOLD` | _(code-defined)_ | HTTP 500 rotation threshold. |
+| `OMNIROUTE_ROTATE_500_WINDOW_SECONDS` | _(code-defined)_ | HTTP 500 rotation window. |
+| `OMNIROUTE_ROTATE_502_THRESHOLD` | _(code-defined)_ | HTTP 502 rotation threshold. |
+| `OMNIROUTE_ROTATE_502_WINDOW_SECONDS` | _(code-defined)_ | HTTP 502 rotation window. |
+| `OMNIROUTE_ROTATE_ON_400` | _(code-defined)_ | Enables connection rotation after HTTP 400 responses. |
+| `OMNIROUTE_ROTATE_ON_429` | _(code-defined)_ | Enables connection rotation after HTTP 429 responses. |
+| `OMNIROUTE_ROTATE_ON_500` | _(code-defined)_ | Enables connection rotation after HTTP 500 responses. |
+| `OMNIROUTE_ROTATE_ON_502` | _(code-defined)_ | Enables connection rotation after HTTP 502 responses. |
+| `OMNIROUTE_ROTATION_DISABLE_TAG_WITHOUT_RESET` | _(code-defined)_ | Disables tags that lack a rate-limit reset signal. |
+| `OMNIROUTE_ROTATION_ENABLED` | _(code-defined)_ | Enables adaptive connection rotation. |
+| `OMNIROUTE_ROTATION_RATE_LIMIT_RESET_SECONDS` | _(code-defined)_ | Fallback rate-limit reset duration for rotation. |
+| `OMNIROUTE_SKIP_SYSTEM_TRUST` | `false` | Prevents certificate tooling from changing the host trust store. |
+| `OMNIROUTE_SSE_COMMENTS` | _(code-defined)_ | Enables SSE comment heartbeat frames. |
+| `OMNIROUTE_TLS_CERT` | _(unset)_ | PEM certificate path for the CLI HTTPS server. |
+| `OMNIROUTE_TLS_KEY` | _(unset)_ | PEM private-key path for the CLI HTTPS server. |
+| `RATE_LIMIT_MAX_QUEUE_DEPTH` | `0` | Maximum queued rate-limited requests; `0` is unbounded. |
+| `STREAM_READINESS_MAX_TIMEOUT_MS` | _(code-defined)_ | Maximum wait for stream readiness. |
 
 ---
 

@@ -81,6 +81,7 @@ describe("resilience/settings normalize split-guard", () => {
       "connectionCooldown",
       "providerBreaker",
       "providerCooldown",
+      "providerQuotaOverrides",
       "quotaPreflight",
       "quotaShareConcurrencyLimit",
       "requestQueue",
@@ -108,6 +109,24 @@ describe("resilience/settings normalize split-guard", () => {
     });
     assert.equal(merged.requestQueue.concurrentRequests, 7);
     assert.equal(merged.requestQueue.requestsPerMinute, base.requestQueue.requestsPerMinute);
+  });
+
+  it("normalizes provider quota overrides and drops invalid entries", () => {
+    const resolved = resolveResilienceSettings({
+      resilienceSettings: {
+        providerQuotaOverrides: {
+          nvidia: { rpm: "60", concurrency: 2.8 },
+          zero: { rpm: 0, concurrency: 0 },
+          malformed: "invalid",
+        },
+      },
+    });
+    assert.deepEqual(resolved.providerQuotaOverrides, { nvidia: { rpm: 60, concurrency: 2 } });
+
+    const merged = mergeResilienceSettings(resolved, {
+      providerQuotaOverrides: { nvidia: { rpm: 30 } },
+    });
+    assert.deepEqual(merged.providerQuotaOverrides, { nvidia: { rpm: 30 } });
   });
 
   it("host buildLegacyResilienceCompat round-trips connection cooldown into profiles", () => {

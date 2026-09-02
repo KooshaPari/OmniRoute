@@ -478,6 +478,16 @@ test("getProviderConnections rejects column names outside the real provider_conn
   ]);
   assert.equal(withGroup.length, 1);
   assert.equal(withGroup[0].group, "team-a");
+
+  // Schema-backed quota metadata columns must remain valid projection targets.
+  const withQuotaMetadata = await providersDb.getProviderConnections(
+    { authType: "oauth" },
+    undefined,
+    undefined,
+    ["id", "quota_visible", "last_ping_at", "last_pinged_reset_key"]
+  );
+  assert.equal(withQuotaMetadata.length, 1);
+  assert.equal(withQuotaMetadata[0].id, withGroup[0].id);
 });
 
 test("getProviderConnections supports limit/offset pagination", async () => {

@@ -37,6 +37,57 @@ export function renameProcessTitle(currentTitle: string): string {
   return `omniroute${currentTitle.slice("next-server".length)}`;
 }
 
+/**
+ * Normalize boot failures before they leave the instrumentation hook.
+ *
+ * Next.js annotates rejected instrumentation errors by assigning to their
+ * `message` property. Some SQLite adapters can throw a primitive string (for
+ * example, `Database closed`), so propagating it directly masks the database
+ * failure with a TypeError. Always return a real Error for the framework.
+ */
+export function normalizeBootError(err: unknown): Error {
+  return err instanceof Error ? err : new Error(String(err));
+}
+
+const TRANSIENT_DB_CLOSED_RE = /database\s*(connection\s*)?(is\s*)?closed/i;
+
+/**
+ * Initialize the database before startup reaches any database-backed service.
+ * A single transient closed-adapter error is retried after the adapter cache
+ * has been refreshed; all other failures are logged and propagated.
+ */
+export async function ensureDbReadyForBoot(
+  ensureDbInitializedFn?: () => Promise<void>
+): Promise<void> {
+  const ensureDbInitialized =
+    ensureDbInitializedFn ?? (await import("@/lib/db/core")).ensureDbInitialized;
+
+  try {
+    await ensureDbInitialized();
+  } catch (err: unknown) {
+    const normalized = normalizeBootError(err);
+    if (!TRANSIENT_DB_CLOSED_RE.test(normalized.message)) {
+      console.error("[STARTUP] Fatal: Database driver initialization failed:", normalized.message);
+      throw normalized;
+    }
+
+    console.warn(
+      "[STARTUP] Database was closed by a prior reload/shutdown — retrying with a fresh connection (#6560):",
+      normalized.message
+    );
+    try {
+      await ensureDbInitialized();
+    } catch (retryErr: unknown) {
+      const normalizedRetryErr = normalizeBootError(retryErr);
+      console.error(
+        "[STARTUP] Fatal: Database driver initialization failed after retry:",
+        normalizedRetryErr.message
+      );
+      throw normalizedRetryErr;
+    }
+  }
+}
+
 function isBackgroundServicesDisabled(): boolean {
   const raw = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
   if (!raw) return false;
@@ -662,17 +713,7 @@ export async function registerNodejs(): Promise<void> {
           const msg = err instanceof Error ? err.message : String(err);
           console.warn("[STARTUP] context-window reconcile failed to start (non-fatal):", msg);
         }),
-
-    // TV6 typed memory decay: optional periodic sweep of decayed episodic memories. Doubly
-    // opt-in (no-op unless MEMORY_TYPED_DECAY_ENABLED=true AND
-    // MEMORY_TYPED_DECAY_SWEEP_INTERVAL>0). Never deletes by default. Never fatal.
-    try {
-      const { startMemoryDecaySweep } = await import("@/lib/memory/typedDecay");
-      startMemoryDecaySweep();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
-    }
+    ]);
 
     // Real-time dashboard WebSocket daemon (port 20129): powers Combo Studio Live,
     // the Home live-pulse, and Live Compression. liveServer.ts auto-starts the

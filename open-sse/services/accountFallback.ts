@@ -1357,6 +1357,9 @@ export function checkFallbackError(
    * circuit-breaker failure when this flag is set. */
   skipProviderBreaker?: boolean;
   quotaResetHintMs?: number;
+  /** #6061: the provider-configured cooldown (ms) before backoff scaling, surfaced so the
+   * caller can persist an explicit reset window instead of the engine's scaled cooldown. */
+  configuredCooldownMs?: number;
 } {
   const svc = serviceSupervisorCooldown(status, headers);
   if (svc) return svc;
@@ -1677,7 +1680,7 @@ export function checkFallbackError(
       cooldownMs,
       baseCooldownMs: cooldownMs,
       configuredCooldownMs: cooldownMs,
-      reason: configuredRule.reason ?? RateLimitReason.UNKNOWN,
+      reason: providerMatch?.reason ?? configuredRule.reason ?? RateLimitReason.UNKNOWN,
     };
   }
 
@@ -1906,8 +1909,8 @@ export function applyErrorState<T extends AccountState | null | undefined>(
   const nextState: T | AccountState = {
     ...account,
     rateLimitedUntil: effectiveCooldownMs > 0 ? getUnavailableUntil(effectiveCooldownMs) : null,
-    backoffLevel: newBackoffLevel ?? backoffLevel,
-    lastError: { status, message: errorText, timestamp: new Date().toISOString(), reason },
+    backoffLevel: newBackoffLevel ?? lvl,
+    lastError: { status, message: errText, timestamp: new Date().toISOString(), reason },
     status: "error",
   };
 

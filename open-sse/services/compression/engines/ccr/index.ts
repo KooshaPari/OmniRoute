@@ -39,6 +39,7 @@
 import crypto from "node:crypto";
 import { createCompressionStats } from "../../stats.ts";
 import { queryBlock, type CcrQuery } from "./ccrQuery.ts";
+import { injectCcrProtocolInstruction } from "./protocolInstruction.ts";
 import type {
   CompressionEngine,
   CompressionEngineApplyOptions,
@@ -58,12 +59,6 @@ const RETRIEVAL_THRESHOLD = 3;
  * H8 — default retrieval ramp factor. Each prior retrieval (below the threshold) raises a block's
  * effective `minChars` linearly, so hot content is compressed progressively less; `1` disables the
  * ramp (only the >= threshold cliff remains — the legacy binary behavior).
- */
-const RETRIEVAL_RAMP_FACTOR_DEFAULT = 2;
-/**
- * Maximum number of entries in each bounded store.
- * When inserting beyond this cap, the oldest entry (Map insertion order) is evicted.
- * 5 000 entries × ~2 KB average ≈ 10 MB upper bound for each map.
  */
 const RETRIEVAL_RAMP_FACTOR_DEFAULT = 2;
 /** Maximum number of entries in the principal-scoped, LRU-ordered store. */

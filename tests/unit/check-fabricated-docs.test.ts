@@ -6,6 +6,7 @@ import os from "node:os";
 import { pathToFileURL } from "node:url";
 
 import {
+  buildCodebaseIndex,
   runFabricatedDocsCheck,
   formatHumanReport,
   isDirectExecution,
@@ -234,6 +235,30 @@ test("api-path: a dynamic-segment prefix (/api/services/{name}/) is NOT flagged"
     !found.has("api-path::/api/services/{name}/status"),
     "[name] dynamic segments must match the documented {name} convention"
   );
+});
+
+test("apps: SvelteKit BFF routes and env reads are indexed without suppressing neighbors", () => {
+  const found = findingsFor({
+    files: {
+      "apps/web/src/routes/api/bff/healthz/+server.ts":
+        "export const GET = () => new Response();\n",
+      "apps/bff/src/env.ts": "const key = env.BFF_API_KEY;\n",
+    },
+    docs: {
+      "bff.md":
+        "Use `/api/bff/healthz` with `BFF_API_KEY`; `/api/imaginary/widget` stays invalid.\n",
+    },
+  });
+  assert.ok(!found.has("api-path::/api/bff/healthz"));
+  assert.ok(!found.has("env-var::BFF_API_KEY"));
+  assert.ok(found.has("api-path::/api/imaginary/widget"));
+});
+
+test("apps: real repository BFF health route is indexed", () => {
+  const index = buildCodebaseIndex();
+  assert.ok(index.apiRoutes.has("/api/bff/healthz"));
+  assert.ok(index.envVars.has("BFF_API_KEY"));
+  assert.ok(index.envVars.has("BFF_ORIGIN"));
 });
 
 test("hook: a real callback now in KNOWN_HOOKS (onChunk) is NOT flagged", () => {

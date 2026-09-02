@@ -26,7 +26,10 @@
  * session; the upstream returns the same response either way.
  */
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
-import { makeExecutorErrorResult as makeErrorResult, sanitizeErrorMessage } from "../utils/error.ts";
+import {
+  makeExecutorErrorResult as makeErrorResult,
+  sanitizeErrorMessage,
+} from "../utils/error.ts";
 import { extractKimiJwt } from "@/lib/providers/webCookieAuth";
 
 export { extractKimiJwt };
@@ -35,6 +38,125 @@ const BASE_URL = "https://www.kimi.com";
 const CHAT_URL = `${BASE_URL}/apiv2/kimi.gateway.chat.v1.ChatService/Chat`;
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
+
+const DEFAULT_SCENARIO = "SCENARIO_K2D5";
+
+/** Wrap a JSON message in the 5-byte Connect streaming envelope (flags + length). */
+export function frameConnectMessage(json: string): Uint8Array {
+  const payload = new TextEncoder().encode(json);
+  const framed = new Uint8Array(5 + payload.length);
+  framed[0] = 0;
+  const len = payload.length;
+  framed[1] = (len >>> 24) & 0xff;
+  framed[2] = (len >>> 16) & 0xff;
+  framed[3] = (len >>> 8) & 0xff;
+  framed[4] = len & 0xff;
+  framed.set(payload, 5);
+  return framed;
+}
+
+interface ConnectFrame {
+  flags: number;
+  message: Record<string, unknown> | null;
+}
+
+const MAX_FRAME_LEN = 8 * 1024 * 1024;
+const MAX_BUFFER_LEN = MAX_FRAME_LEN + 4;
+
+export function decodeConnectFrame(
+  buf: Uint8Array,
+  byteOffset: number
+): { consumed: number; frame: ConnectFrame | null } {
+  if (byteOffset + 5 > buf.length) return { consumed: 0, frame: null };
+  const flags = buf[byteOffset];
+  const len =
+    (buf[byteOffset + 1] << 24) |
+    (buf[byteOffset + 2] << 16) |
+    (buf[byteOffset + 3] << 8) |
+    buf[byteOffset + 4];
+  const messageLength = len < 0 ? len + 0x100000000 : len;
+  if (messageLength > MAX_FRAME_LEN) return { consumed: -1, frame: null };
+  if (byteOffset + 5 + messageLength > buf.length) return { consumed: 0, frame: null };
+
+  const payload = buf.subarray(byteOffset + 5, byteOffset + 5 + messageLength);
+  let message: Record<string, unknown> | null = null;
+  if (messageLength > 0) {
+    try {
+      message = JSON.parse(new TextDecoder().decode(payload));
+    } catch {
+      message = null;
+    }
+  }
+  return { consumed: 5 + messageLength, frame: { flags, message } };
+}
+
+type DeltaKind = "text" | "think";
+
+export function extractDelta(
+  message: Record<string, unknown> | null
+): { kind: DeltaKind; text: string } | null {
+  if (!message) return null;
+  const op = String(message.op ?? "");
+  const mask = String(message.mask ?? "");
+  const block = (message.block ?? {}) as Record<string, unknown>;
+  if (op === "append") {
+    if (mask === "block.text.content") {
+      const text = String(((block.text ?? {}) as Record<string, unknown>).content ?? "");
+      return text ? { kind: "text", text } : null;
+    }
+    if (mask === "block.think.content") {
+      const text = String(((block.think ?? {}) as Record<string, unknown>).content ?? "");
+      return text ? { kind: "think", text } : null;
+    }
+    return null;
+  }
+  if (op === "set") {
+    if (mask === "block.text") {
+      const text = String(((block.text ?? {}) as Record<string, unknown>).content ?? "");
+      return text ? { kind: "text", text } : null;
+    }
+    if (mask === "block.think") {
+      const text = String(((block.think ?? {}) as Record<string, unknown>).content ?? "");
+      return text ? { kind: "think", text } : null;
+    }
+  }
+  return null;
+}
+
+export function isEndOfStream(message: Record<string, unknown> | null): boolean {
+  if (!message) return false;
+  const eventMessage = (message.message ?? null) as Record<string, unknown> | null;
+  return (
+    eventMessage != null &&
+    String(eventMessage.status ?? "") === "MESSAGE_STATUS_COMPLETED" &&
+    String(eventMessage.role ?? "") === "assistant"
+  );
+}
+
+export function foldMessages(messages: Array<{ role: string; content: unknown }>): string {
+  let system = "";
+  let user = "";
+  for (const message of messages) {
+    const text =
+      typeof message.content === "string" ? message.content : JSON.stringify(message.content ?? "");
+    if (message.role === "system") {
+      system += (system ? "\n\n" : "") + text;
+    } else if (message.role === "user") {
+      user = user ? `${user}\n\n${text}` : text;
+    } else if (message.role === "assistant") {
+      user = user ? `${user}\n\nAssistant: ${text}` : `Assistant: ${text}`;
+    }
+  }
+  return system ? `${system}\n\n${user}` : user;
+}
+
+async function cancelReader(reader: ReadableStreamDefaultReader<Uint8Array>, reason: string) {
+  try {
+    await reader.cancel(reason);
+  } catch {
+    // A failed source may already be canceled; preserve the protocol error instead.
+  }
+}
 
 export class KimiWebExecutor extends BaseExecutor {
   constructor() {
@@ -120,7 +242,12 @@ export class KimiWebExecutor extends BaseExecutor {
 
     if (!upstream.ok) {
       const errText = await upstream.text().catch(() => "");
-      return makeErrorResult(upstream.status, `Kimi error: ${sanitizeErrorMessage(errText)}`, body, CHAT_URL);
+      return makeErrorResult(
+        upstream.status,
+        `Kimi error: ${sanitizeErrorMessage(errText)}`,
+        body,
+        CHAT_URL
+      );
     }
 
     const encoder = new TextEncoder();
@@ -158,6 +285,12 @@ export class KimiWebExecutor extends BaseExecutor {
               const { done, value } = await reader.read();
               if (done) break;
               if (value) {
+                if (buffer.length + value.length > MAX_BUFFER_LEN) {
+                  buffer = new Uint8Array(0);
+                  await cancelReader(reader, "Kimi Connect buffer exceeded MAX_FRAME_LEN");
+                  controller.error(new Error("Kimi Connect frame exceeded MAX_FRAME_LEN"));
+                  return;
+                }
                 const merged = new Uint8Array(buffer.length + value.length);
                 merged.set(buffer, 0);
                 merged.set(value, buffer.length);
@@ -168,6 +301,8 @@ export class KimiWebExecutor extends BaseExecutor {
                   const { consumed, frame } = decodeConnectFrame(buffer, offset);
                   if (consumed === -1) {
                     // Frame header claims a length above MAX_FRAME_LEN — stream-fatal.
+                    buffer = new Uint8Array(0);
+                    await cancelReader(reader, "Kimi Connect frame exceeded MAX_FRAME_LEN");
                     controller.error(new Error("Kimi Connect frame exceeded MAX_FRAME_LEN"));
                     return;
                   }
@@ -188,6 +323,8 @@ export class KimiWebExecutor extends BaseExecutor {
                     }
                   }
                   if (isEndOfStream(frame.message)) {
+                    buffer = new Uint8Array(0);
+                    await cancelReader(reader, "Kimi Connect stream completed");
                     emitChunk(controller, {}, "stop");
                     controller.enqueue(encoder.encode("data: [DONE]\n\n"));
                     controller.close();
@@ -213,6 +350,8 @@ export class KimiWebExecutor extends BaseExecutor {
                 /* controller already closed */
               }
             }
+          } finally {
+            reader.releaseLock();
           }
         },
       });
@@ -231,61 +370,44 @@ export class KimiWebExecutor extends BaseExecutor {
       };
     }
 
-    // Streaming
-    const encoder = new TextEncoder();
-    const decoder = new TextDecoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = upstream.body?.getReader();
-        if (!reader) {
-          controller.close();
-          return;
+    // Non-streaming requests consume the same Connect-framed upstream, then
+    // materialize the accumulated assistant content as one OpenAI completion.
+    const reader = sourceStream.getReader();
+    let buffer = new Uint8Array(0);
+    let answer = "";
+    let reasoning = "";
+    let completed = false;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (!value) continue;
+
+        if (buffer.length + value.length > MAX_BUFFER_LEN) {
+          buffer = new Uint8Array(0);
+          await cancelReader(reader, "Kimi Connect buffer exceeded MAX_FRAME_LEN");
+          return makeErrorResult(502, "Kimi Connect frame exceeded MAX_FRAME_LEN", body, CHAT_URL);
         }
-        let buffer = "";
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop() || "";
-            for (const line of lines) {
-              if (!line.startsWith("data:")) continue;
-              const data = line.slice(5).trim();
-              if (data === "[DONE]") {
-                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-                continue;
-              }
-              try {
-                const parsed = JSON.parse(data);
-                const text = parsed.choices?.[0]?.delta?.content || "";
-                if (text) {
-                  const chunk = {
-                    id: `chatcmpl-kimi-${Date.now()}`,
-                    object: "chat.completion.chunk",
-                    created: Math.floor(Date.now() / 1000),
-                    model: modelId,
-                    choices: [{ index: 0, delta: { content: text }, finish_reason: null }],
-                  };
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
-                }
-              } catch {}
-            }
-          }
-        } catch (err) {
-          if (!signal?.aborted) controller.error(err);
-        } finally {
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          controller.close();
-        }
-      },
-    });
+
+        const merged = new Uint8Array(buffer.length + value.length);
+        merged.set(buffer, 0);
+        merged.set(value, buffer.length);
+        buffer = merged;
 
         let offset = 0;
         while (offset < buffer.length) {
           const { consumed, frame } = decodeConnectFrame(buffer, offset);
-          if (consumed === -1) break; // oversized frame — abort, return what we have
-          if (consumed === 0) break;
+          if (consumed === -1) {
+            buffer = new Uint8Array(0);
+            await cancelReader(reader, "Kimi Connect frame exceeded MAX_FRAME_LEN");
+            return makeErrorResult(
+              502,
+              "Kimi Connect frame exceeded MAX_FRAME_LEN",
+              body,
+              CHAT_URL
+            );
+          }
+          if (consumed === 0) break; // need more bytes
           offset += consumed;
           if (!frame?.message) continue;
           const delta = extractDelta(frame.message);
@@ -294,14 +416,24 @@ export class KimiWebExecutor extends BaseExecutor {
             else answer += delta.text;
           }
           if (isEndOfStream(frame.message)) {
-            offset = buffer.length; // drain
+            buffer = new Uint8Array(0);
+            await cancelReader(reader, "Kimi Connect stream completed");
+            completed = true;
             break;
           }
         }
         buffer = buffer.subarray(offset);
+        if (completed) break;
       }
-    } catch {
-      /* best-effort — return what we have */
+    } catch (err) {
+      return makeErrorResult(
+        502,
+        `Kimi response stream failed: ${err instanceof Error ? err.message : "unknown"}`,
+        body,
+        CHAT_URL
+      );
+    } finally {
+      reader.releaseLock();
     }
 
     const message: Record<string, unknown> = { role: "assistant", content: answer };
@@ -314,11 +446,9 @@ export class KimiWebExecutor extends BaseExecutor {
       choices: [{ index: 0, message, finish_reason: "stop" }],
     };
     return {
-      response: new Response(stream, {
+      response: new Response(JSON.stringify(completion), {
         headers: {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          Connection: "keep-alive",
+          "Content-Type": "application/json",
         },
       }),
       url: CHAT_URL,

@@ -9,6 +9,17 @@ const CODEX_QUOTA_ORDER: Record<string, number> = {
   gpt_5_3_codex_spark_weekly: 3,
   banked_reset_credits: 4,
 };
+const GLM_FAMILY_PROVIDERS = ["glm", "glm-cn", "glmt", "opencode-go"];
+
+/**
+ * Providers whose quotas already get a deterministic fixed-window order from
+ * sortGlmOrder()/sortCodexOrder() below. Display layers must not re-sort these
+ * by remaining percentage, or they undo this order.
+ */
+export function hasFixedQuotaOrder(providerId: string | undefined): boolean {
+  const id = String(providerId || "").toLowerCase();
+  return id === "codex" || GLM_FAMILY_PROVIDERS.includes(id);
+}
 
 function quotaEntries(data: any): Array<[string, any]> {
   return data?.quotas && typeof data.quotas === "object" ? Object.entries(data.quotas) : [];
@@ -176,6 +187,13 @@ function parseClaude(data: any) {
   const quotas = quotaEntries(data).map(([name, quota]) =>
     normalizeQuotaEntry(name, quota, { isPercentageOnly: true })
   );
+
+  if (data?.extraUsage?.is_enabled) {
+    quotas.push(buildClaudeExtraUsageQuota(data.extraUsage));
+  }
+
+  return quotas;
+}
 
 function parseDeepseekQuota(quotaKey: string, quota: any) {
   const match = quotaKey.match(/^credits(?:_([a-z]{3}))?$/);

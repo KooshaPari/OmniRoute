@@ -13,6 +13,7 @@ import { withRateLimit } from "@omniroute/open-sse/services/rateLimitManager";
 
 const INTERNAL_ORIGIN = "http://omniroute.internal";
 const DEFAULT_TEST_TIMEOUT_MS = 10_000;
+export const DEFAULT_MODEL_TEST_TIMEOUT_MS = DEFAULT_TEST_TIMEOUT_MS;
 const DOLA_PRO_TEST_TIMEOUT_MS = 90_000;
 const DOUBAO_WEB_PROVIDER_ID = "doubao-web";
 const SLOW_WEB_TEST_MODELS = new Set(["dola-pro"]);

@@ -1402,7 +1402,8 @@ export async function handleChatCore({
         // that selectCompressionStrategy can only partially apply via the mode string.
         const cacheCtx = { provider, targetFormat, model: effectiveModel };
         const compressionConfig = resolveCacheAwareConfig(config, compressionInputBody, cacheCtx);
-        const result = await applyCompressionAsync(compressionInputBody, mode, {
+        const compressionPrincipalId = apiKeyInfo?.id ? String(apiKeyInfo.id) : undefined;
+        const compressionOptions = {
           model: effectiveModel,
           // #7237: feed the AUTHORITATIVE capability (model spec / models.dev sync / DB
           // override, with the conservative model-id fragment heuristic only as its
@@ -4861,10 +4862,12 @@ export async function handleChatCore({
       apiKeyInfo,
       handleStreamFailure,
       copilotCompatibleReasoning,
+      false,
       // openai-responses → openai translation still wants the namespace identity
       // map for #7936-style round-trip closure when the client also speaks
       // Responses (Codex CLI).
-      requestToolIdentityMap
+      requestToolIdentityMap,
+      startTime
     );
   } else if (needsTranslation(targetFormat, clientResponseFormat)) {
     // Standard translation for other providers
@@ -4894,7 +4897,8 @@ export async function handleChatCore({
         clientResponseFormat,
       }),
       customToolNames,
-      requestToolIdentityMap
+      requestToolIdentityMap,
+      startTime
     );
   } else {
     log?.debug?.("STREAM", `Standard passthrough mode`);
@@ -4909,7 +4913,8 @@ export async function handleChatCore({
       apiKeyInfo,
       handleStreamFailure,
       clientResponseFormat,
-      requestToolIdentityMap
+      requestToolIdentityMap,
+      startTime
     );
   }
 

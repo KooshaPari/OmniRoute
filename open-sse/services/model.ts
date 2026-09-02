@@ -540,10 +540,14 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
     };
   }
 
-  const [activeProviders, preferClaudeCodeForUnprefixedClaudeModels] = await Promise.all([
-    getActiveProviderSet(),
-    getPreferClaudeCodeForUnprefixedClaudeModels(),
-  ]);
+  const [activeProviders, activeSyncedProviders, preferClaudeCodeForUnprefixedClaudeModels] =
+    await Promise.all([
+      getActiveProviderSet(),
+      getActiveSyncedProvidersForModel(modelId),
+      getPreferClaudeCodeForUnprefixedClaudeModels(),
+    ]);
+  const providers = getInferredProvidersForModel(modelId, activeSyncedProviders);
+  const nonOpenAIProviders = providers.filter((p) => p !== "openai");
 
   // Codex-only setups must keep auto-routing codex-preferred unprefixed models
   // (e.g. `gpt-5.5`) to codex even after those ids were added to the OpenAI
@@ -574,7 +578,10 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
   }
 
   // Fallback for newly released OpenAI-family model IDs that may not be in the local catalog yet.
-  if (/^gpt-/i.test(modelId) || /^o1/i.test(modelId) || /^o3/i.test(modelId)) {
+  if (
+    providers.length === 0 &&
+    (/^gpt-/i.test(modelId) || /^o1/i.test(modelId) || /^o3/i.test(modelId))
+  ) {
     return {
       provider: "openai",
       model: modelId,

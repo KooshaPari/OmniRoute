@@ -27,6 +27,87 @@ export function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date 
   return new Date(value);
 }
 
+/** Mutable lifecycle flags threaded through {@link applySseLifecycleEvent}. */
+interface SseLifecycleFlags {
+  hasMessageStart: boolean;
+  hasContentBlock: boolean;
+  hasRealContent: boolean;
+  hasLifecycleEnd: boolean;
+}
+
+/** Read `parsed.<key>` as a nested object bag, or null when absent/not an object. */
+function asObject(parsed: Record<string, unknown>, key: string): Record<string, unknown> | null {
+  const value = parsed[key];
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+}
+
+function contentBlockStartIsRealSignal(parsed: Record<string, unknown>): boolean {
+  const blockType = asObject(parsed, "content_block")?.type;
+  return blockType === "tool_use" || blockType === "redacted_thinking";
+}
+
+function contentBlockDeltaIsRealSignal(parsed: Record<string, unknown>): boolean {
+  const delta = asObject(parsed, "delta");
+  if (!delta) return false;
+  const deltaType = typeof delta.type === "string" ? delta.type : "";
+  if (deltaType === "input_json_delta") return true;
+  if (deltaType !== "text_delta" && deltaType !== "thinking_delta") return false;
+  const text = delta.text ?? delta.thinking;
+  return typeof text === "string" && text.length > 0;
+}
+
+function messageDeltaEndsLifecycle(parsed: Record<string, unknown>): boolean {
+  return asObject(parsed, "delta")?.stop_reason != null;
+}
+
+/** Mutable OpenAI-shape lifecycle flags tracked independently from Claude SSE events. */
+interface OpenAiLifecycleFlags {
+  hasChoicePayload: boolean;
+  hasTerminalMarker: boolean;
+}
+
+function applyOpenAiLifecycleEvent(
+  parsed: Record<string, unknown>,
+  flags: OpenAiLifecycleFlags
+): void {
+  if (!isOpenAIChoicesPayload(parsed)) return;
+  flags.hasChoicePayload = true;
+  if (hasOpenAIFinishReason(parsed)) flags.hasTerminalMarker = true;
+}
+
+function applySseLifecycleEvent(
+  eventType: string,
+  parsed: Record<string, unknown>,
+  flags: SseLifecycleFlags
+): boolean {
+  switch (eventType) {
+    case "message_start":
+      flags.hasMessageStart = true;
+      return false;
+    case "content_block_start":
+      flags.hasContentBlock = true;
+      if (!contentBlockStartIsRealSignal(parsed)) return false;
+      flags.hasRealContent = true;
+      return true;
+    case "content_block_delta":
+      flags.hasContentBlock = true;
+      if (!contentBlockDeltaIsRealSignal(parsed)) return false;
+      flags.hasRealContent = true;
+      return true;
+    case "content_block_stop":
+      flags.hasContentBlock = true;
+      return false;
+    case "message_stop":
+      flags.hasLifecycleEnd = true;
+      return false;
+    case "message_delta":
+      if (messageDeltaEndsLifecycle(parsed)) flags.hasLifecycleEnd = true;
+      return false;
+    default:
+      return false;
+  }
+}
+
 function responsesApiOutputHasContent(output: unknown): boolean {
   return (
     Array.isArray(output) &&
@@ -48,6 +129,21 @@ function responsesApiOutputHasContent(output: unknown): boolean {
     })
   );
 }
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function isStreamingUpstreamError(parsed: unknown, eventType: string): boolean {
+  if (eventType === "response.failed" || eventType === "error") return true;
+  if (!isRecord(parsed)) return false;
+  if (parsed.error != null) return true;
+
+  const nestedResponse = isRecord(parsed.response) ? parsed.response : null;
+  return nestedResponse?.status === "failed" && nestedResponse.error != null;
+}
+
+type StreamingPeekOutcome = "content" | "error" | null;
 
 /**
  * Validate that a successful (HTTP 200) non-streaming response actually contains
@@ -105,12 +201,16 @@ export async function validateResponseQuality(
     // between iterations (incomplete lines are deferred to the next chunk).
     let decodedSoFar = "";
 
-    // SSE lifecycle state.
-    let hasMessageStart = false;
-    let hasContentBlock = false;
-    let hasLifecycleEnd = false;
+    const sse: SseLifecycleFlags = {
+      hasMessageStart: false,
+      hasContentBlock: false,
+      hasRealContent: false,
+      hasLifecycleEnd: false,
+    };
     let anyContentFound = false;
-    let sawAnyBytes = false;
+    const openAi: OpenAiLifecycleFlags = { hasChoicePayload: false, hasTerminalMarker: false };
+    let sawStructuredSSE = false;
+    let sawTerminator = false;
     const sseLineNormalizer = createSSEDataLineNormalizer();
     let pendingEventType = "";
 
@@ -265,7 +365,7 @@ export async function validateResponseQuality(
             return { valid: false, reason: "streaming upstream error" };
           }
 
-          if (hasMessageStart && hasLifecycleEnd && !hasContentBlock) {
+          if (sse.hasMessageStart && sse.hasLifecycleEnd && !sse.hasContentBlock) {
             // Complete Claude lifecycle with zero content blocks → failover.
             log.warn?.(
               "COMBO",
@@ -274,18 +374,20 @@ export async function validateResponseQuality(
             return { valid: false, reason: "streaming empty content block" };
           }
 
-          // Stream ended with a truly EMPTY body (e.g. Gemini returning HTTP
-          // 200 with zero bytes) — mark as invalid for combo failover so the
-          // sibling model gets tried. Streams that carried ANY SSE activity
-          // (an explicit `data: [DONE]`, ping/metadata events, an incomplete
-          // Claude lifecycle) keep the pass-through contract (#3399/#3685):
-          // those are handled by the stream-readiness timeout, not failover.
-          if (!anyContentFound && !hasContentBlock && !sawAnyBytes) {
+          if (!anyContentFound && !sse.hasContentBlock && !sawTerminator && !sawStructuredSSE) {
             log.warn?.(
               "COMBO",
-              "Streaming response ended with no recognized content — marking as invalid for combo failover"
+              "Streaming response ended with no recognized content or SSE terminator — marking as invalid for combo failover"
             );
             return { valid: false, reason: "streaming no recognized content" };
+          }
+
+          if (openAi.hasChoicePayload && !openAi.hasTerminalMarker && !anyContentFound) {
+            log.warn?.(
+              "COMBO",
+              "Streaming OpenAI-shape response ended with no finish_reason or [DONE] — marking as invalid for combo failover"
+            );
+            return { valid: false, reason: "streaming openai truncated without finish_reason" };
           }
 
           // Incomplete lifecycle or non-Claude stream — replay all buffered
@@ -297,13 +399,21 @@ export async function validateResponseQuality(
 
         // Accumulate raw bytes for potential replay.
         bufferedChunks.push(value);
-        if (value && value.length > 0) sawAnyBytes = true;
 
         // Decode incrementally (stream:true keeps multi-byte char state).
         decodedSoFar += decoder.decode(value, { stream: true });
         const outcome = parseAccumulatedSse();
 
-        if (foundContent) {
+        if (outcome === "error") {
+          reader.cancel().catch(() => {});
+          log.warn?.(
+            "COMBO",
+            "Streaming response reported an upstream error before content — marking as invalid for combo failover"
+          );
+          return { valid: false, reason: "streaming upstream error" };
+        }
+
+        if (outcome === "content") {
           anyContentFound = true;
           // A content_block_* event was found — stop peeking. Return a
           // clonedResponse that replays all buffered bytes (the current chunk
@@ -393,7 +503,6 @@ export async function validateResponseQuality(
     }
   }
 
-  const choices = json?.choices;
   if (json?.object === "response") {
     if (!responsesApiOutputHasContent(json.output))
       return { valid: false, reason: "empty_choices" };
@@ -517,4 +626,20 @@ export function releaseQualityClone(
 ): void {
   if (clone === original) return;
   void quality.clonedResponse?.body?.cancel().catch(() => {});
+}
+
+/**
+ * Cancel every response branch after a failed quality check when the caller is
+ * discarding the upstream response and falling back to another target.
+ *
+ * Streaming validation cancels its reader, but a reader on a `Response.clone()`
+ * tee cannot cancel the shared source until the untouched original branch is
+ * cancelled too. Best-effort cancellation of both branches also releases an
+ * unread quality clone for non-streaming failures.
+ */
+export function releaseRejectedQualityResponse(clone: Response, original: Response): void {
+  if (clone !== original) {
+    void clone.body?.cancel().catch(() => {});
+  }
+  void original.body?.cancel().catch(() => {});
 }

@@ -15,6 +15,22 @@ import * as yaml from "js-yaml";
 const cwd = process.cwd();
 const out = {};
 
+/**
+ * Parse ESLint's JSON report while keeping the collector usable when ESLint
+ * exits non-zero for lint findings or stale suppression metadata.
+ *
+ * @param {string} stdout
+ * @returns {Array<{ warningCount?: number, errorCount?: number }>}
+ */
+export function parseEslintResults(stdout) {
+  try {
+    const parsed = JSON.parse(stdout);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 // 1) ESLint: contagem de warnings/errors NOVOS além do baseline congelado.
 // Pacote 4 (plano mestre testes+CI, 2026-07-04): a dívida pré-existente vive em
 // config/quality/eslint-suppressions.json (ESLint bulk suppressions nativo) e é
@@ -37,6 +53,7 @@ function eslintCounts() {
     // eslint sai com código != 0 quando há errors; o JSON ainda vem no stdout
     stdout = e.stdout?.toString() || "[]";
   }
+  const results = parseEslintResults(stdout);
   out.eslintWarnings = results.reduce((n, r) => n + (r.warningCount || 0), 0);
   out.eslintErrors = results.reduce((n, r) => n + (r.errorCount || 0), 0);
 }

@@ -44,6 +44,10 @@ const STRIP_RULES: StripRule[] = [
   // (format:"openai") does not accept the Claude-style `thinking` body field
   // and returns 400 "Unsupported parameter(s): thinking". Upstream #2268.
   { provider: "nvidia", match: /minimax-m2\.7/i, drop: ["thinking"] },
+  // Z.AI GLM-4.6V accepts at most 32768 output tokens on both its OpenAI and
+  // Anthropic-compatible provider paths. #7364
+  { provider: "zai", match: /^glm-4\.6v$/i, maxOutputCap: 32768 },
+  { provider: "glm", match: /^glm-4\.6v$/i, maxOutputCap: 32768 },
 ];
 
 function matches(rule: StripRule, model: string): boolean {

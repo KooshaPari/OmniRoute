@@ -4,6 +4,7 @@ import {
   providerAllowsOptionalApiKey,
   SELF_HOSTED_CHAT_PROVIDER_IDS,
 } from "@/shared/constants/providers";
+import { OAUTH_TEST_CONFIG } from "../../src/app/api/providers/[id]/test/oauthTestConfig.ts";
 
 // ── Import test targets from connection test route ──────────────────────────
 
@@ -288,8 +289,8 @@ test("OAuth test config covers all expected providers", () => {
     "antigravity",
     "github",
     "gitlab-duo",
-    "qoder",
     "cursor",
+    "qwen",
     "kimi-coding",
     "kilocode",
     "cline",
@@ -297,22 +298,7 @@ test("OAuth test config covers all expected providers", () => {
     "amazon-q",
   ];
 
-  // Reimport of OAUTH_TEST_CONFIG keys (verify by name)
-  // These are the providers defined in the test route
-  const configuredProviders = [
-    "claude",
-    "codex",
-    "antigravity",
-    "github",
-    "gitlab-duo",
-    "qoder",
-    "cursor",
-    "kimi-coding",
-    "kilocode",
-    "cline",
-    "kiro",
-    "amazon-q",
-  ];
+  const configuredProviders = Object.keys(OAUTH_TEST_CONFIG);
 
   for (const provider of expected) {
     assert.ok(
@@ -360,19 +346,28 @@ test("testApiKeyConnection: providers requiring an API key are correctly identif
 
 test("Refreshable OAuth providers are correctly identified", () => {
   const refreshable = [
+    "claude",
     "codex",
     "antigravity",
     "gitlab-duo",
-    "qoder",
     "kimi-coding",
     "cline",
     "kiro",
     "amazon-q",
+    "qwen",
   ];
-  const nonRefreshable = ["claude", "github", "cursor", "kilocode"];
+  const nonRefreshable = ["github", "cursor", "kilocode", "devin-cli"];
 
-  // Verify these two sets are mutually exclusive and cover all providers
+  // Keep the representative contract sets disjoint and backed by production config.
   const allProviders = [...refreshable, ...nonRefreshable];
-  assert.equal(allProviders.length, 13);
-  assert.equal(new Set(allProviders).size, 13);
+  assert.equal(new Set(allProviders).size, allProviders.length);
+  for (const provider of allProviders) {
+    assert.ok(provider in OAUTH_TEST_CONFIG, `Missing OAUTH_TEST_CONFIG for ${provider}`);
+  }
+  for (const provider of refreshable) {
+    assert.equal(OAUTH_TEST_CONFIG[provider].refreshable, true, `${provider} must be refreshable`);
+  }
+  for (const provider of nonRefreshable) {
+    assert.notEqual(OAUTH_TEST_CONFIG[provider].refreshable, true, `${provider} must not refresh`);
+  }
 });

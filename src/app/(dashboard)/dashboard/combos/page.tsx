@@ -45,6 +45,7 @@ import KimiComboPresetCard from "./KimiComboPresetCard";
 import { KIMI_CODING_PRESET, hasKimiCodingPreset } from "./kimiComboPreset";
 import BuilderIntelligentStep from "./BuilderIntelligentStep";
 import IntelligentComboPanel from "./IntelligentComboPanel";
+import ReasoningTokenBufferToggle from "./ReasoningTokenBufferToggle";
 import {
   filterCombosByStrategyCategory,
   getStrategyCategory,
@@ -1574,7 +1575,7 @@ function ComboReadinessPanel({ checks, blockers, showDescription = true }) {
   );
 }
 
-function ComboCard({
+function ComboCardInner({
   combo,
   metrics,
   compressionEnabled,

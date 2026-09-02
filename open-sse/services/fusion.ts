@@ -330,6 +330,7 @@ export async function handleFusionChat({
 
   // 2. Collect successful answers + per-member failure reasons (issue #6454).
   const answers: Array<{ model: string; text: string }> = [];
+  const failures: Array<{ model: string; reason: string }> = [];
   const rateLimited: string[] = [];
   for (let i = 0; i < settled.length; i++) {
     const res = settled[i];
@@ -354,6 +355,7 @@ export async function handleFusionChat({
     }
     const resp = res as Response;
     if (!resp.ok) {
+      failures.push({ model, reason: `status_${resp.status}` });
       if (resp.status === 429) {
         rateLimited.push(model);
         log.warn("FUSION", `Panel ${model} rate-limited`, { status: resp.status });
@@ -382,12 +384,14 @@ export async function handleFusionChat({
 
   // 3. Degrade gracefully when the panel is too thin to fuse.
   if (answers.length === 0) {
+    const failureDetails = failures.map((f) => `${f.model}=${f.reason}`).join(", ");
     const detail =
       rateLimited.length > 0
         ? `${rateLimited.length} models rate-limited, ${panel.length - rateLimited.length} failed`
         : `all ${panel.length} models failed`;
-    log.warn("FUSION", `No live models: ${detail}`);
-    return errorResponse(503, `All fusion panel models failed (${detail})`);
+    const diagnostic = failureDetails ? `${detail}: ${failureDetails}` : detail;
+    log.warn("FUSION", `No live models: ${diagnostic}`);
+    return errorResponse(503, `All fusion panel models failed (${diagnostic})`);
   }
   if (answers.length === 1) {
     // No explicit judgeModel configured: the "judge" is just panel[0], so

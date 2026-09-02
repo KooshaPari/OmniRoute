@@ -278,10 +278,7 @@ export async function updateSettings(
   );
   const tx = db.transaction(() => {
     const currentRevision = readSettingsRevision(db);
-    if (
-      options?.expectedRevision !== undefined &&
-      options.expectedRevision !== currentRevision
-    ) {
+    if (options?.expectedRevision !== undefined && options.expectedRevision !== currentRevision) {
       throw new SettingsRevisionConflictError(currentRevision);
     }
     for (const [key, value] of Object.entries(updates)) {
@@ -801,3 +798,4 @@ export {
   getCacheTrend,
   resetCacheMetrics,
 } from "./settings/cacheMetrics";
+export { getCachedSettings } from "./readCache";

@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import Database from "better-sqlite3";
+import { RENAMED_MIGRATION_COMPATIBILITY } from "../../src/lib/db/migrationRunner/constants.ts";
 
 const serial = { concurrency: false };
 
@@ -121,6 +122,56 @@ function buildMockMigrationFiles(startVersion, endVersion, prefix) {
 
   return files;
 }
+
+test(
+  "fresh replay from the real 001 baseline applies the current migration sequence",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(fs.readFileSync("src/lib/db/migrations/001_initial_schema.sql", "utf8"));
+      db.exec(`
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "001",
+        "initial_schema"
+      );
+
+      const applied = runner.runMigrations(db, { isNewDb: true });
+      assert.ok(applied > 0);
+
+      const columns = new Set(
+        db
+          .prepare("PRAGMA table_info(usage_history)")
+          .all()
+          .map((column) => column.name)
+      );
+      assert.ok(columns.has("account_key"));
+      assert.ok(columns.has("account_label"));
+      assert.ok(columns.has("account_label_priority"));
+
+      const records = db
+        .prepare(
+          "SELECT version, name FROM _omniroute_migrations WHERE version IN ('129', '147', '148') ORDER BY version"
+        )
+        .all();
+      assert.deepEqual(records, [
+        { version: "129", name: "usage_history_codex_strong_identity" },
+        { version: "147", name: "usage_history_account_identity" },
+        { version: "148", name: "auto_candidate_overrides" },
+      ]);
+    } finally {
+      db.close();
+    }
+  }
+);
 
 function withNonTestEnvironment(fn) {
   const originalNodeEnv = process.env.NODE_ENV;
@@ -258,39 +309,176 @@ test("runMigrations skips versions that are already tracked as applied", serial,
   }
 });
 
-test("runMigrations records renumbered 122-125 migrations when their tables already exist", serial, async () => {
+test("reconciles every 113-128 collision tracker row to its renamed slot", serial, async () => {
   const runner = await importFresh("src/lib/db/migrationRunner.ts");
-  const db = createDb();
-  const migrations = {
-    "122_virtual_keys.sql": "CREATE TABLE virtual_keys (id INTEGER);",
-    "123_fleet_config.sql": "CREATE TABLE fleet_config (id INTEGER);",
-    "124_traffic_shadow_log.sql": "CREATE TABLE traffic_shadow_log (id INTEGER);",
-    "125_traffic_shadow_config.sql": "CREATE TABLE traffic_shadow_config (id INTEGER);",
+  const incumbents: Record<string, string> = {
+    "113": "cli_access_tokens",
+    "114": "provider_health_history",
+    "115": "api_key_usage_limits",
+    "116": "compression_engines_map",
+    "117": "strip_legacy_combo_config_keys",
+    "118": "normalize_database_cache_size",
+    "119": "usage_history_endpoint",
+    "120": "routing_decisions_audit",
+    "122": "virtual_keys",
+    "123": "fleet_config",
+    "124": "traffic_shadow_log",
+    "125": "traffic_shadow_config",
+    "126": "alert_rules",
+    "127": "fleet_nodes",
+    "128": "scaling_policies",
   };
+  const collisionRehomes = RENAMED_MIGRATION_COMPATIBILITY.filter(
+    (entry) => Number(entry.fromVersion) >= 113 && Number(entry.fromVersion) <= 128
+  );
 
-  try {
-    db.exec(`
-      CREATE TABLE virtual_keys (id INTEGER);
-      CREATE TABLE fleet_config (id INTEGER);
-      CREATE TABLE traffic_shadow_log (id INTEGER);
-      CREATE TABLE traffic_shadow_config (id INTEGER);
-    `);
+  for (const compatibility of collisionRehomes) {
+    const db = createDb();
+    try {
+      db.exec(`
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        compatibility.fromVersion,
+        compatibility.fromName
+      );
 
-    const firstRun = withMockedMigrationFs(migrations, () => runner.runMigrations(db));
-    const secondRun = withMockedMigrationFs(migrations, () => runner.runMigrations(db));
+      withMockedMigrationFs(
+        {
+          [`${compatibility.fromVersion}_${incumbents[compatibility.fromVersion]}.sql`]:
+            "CREATE TABLE incumbent_slot (id INTEGER);",
+          [`${compatibility.toVersion}_${compatibility.toName}.sql`]:
+            "CREATE TABLE renamed_slot (id INTEGER);",
+        },
+        () => runner.runMigrations(db)
+      );
 
-    assert.equal(firstRun, 4);
-    assert.equal(secondRun, 0);
-    assert.deepEqual(
-      db.prepare(
-        "SELECT version FROM _omniroute_migrations WHERE version BETWEEN '122' AND '125' ORDER BY version"
-      ).all(),
-      [{ version: "122" }, { version: "123" }, { version: "124" }, { version: "125" }]
-    );
-  } finally {
-    db.close();
+      assert.deepEqual(
+        db.prepare("SELECT version, name FROM _omniroute_migrations ORDER BY version").all(),
+        [
+          { version: compatibility.fromVersion, name: incumbents[compatibility.fromVersion] },
+          { version: compatibility.toVersion, name: compatibility.toName },
+        ],
+        `${compatibility.fromVersion}_${compatibility.fromName} must rehome to ${compatibility.toVersion}`
+      );
+    } finally {
+      db.close();
+    }
   }
 });
+
+test(
+  "records schema-present non-idempotent collision renames without replaying SQL",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const cases = [
+      {
+        version: "134",
+        name: "provider_node_icon_url",
+        setup: "CREATE TABLE provider_nodes (id TEXT PRIMARY KEY, icon_url TEXT);",
+      },
+      {
+        version: "137",
+        name: "call_logs_reasoning_source",
+        setup:
+          "CREATE TABLE call_logs (id TEXT PRIMARY KEY, reasoning_source TEXT, reasoning_chars INTEGER);",
+      },
+      {
+        version: "138",
+        name: "proxy_pool_rotation",
+        setup: "CREATE TABLE proxy_assignments (id INTEGER PRIMARY KEY, position INTEGER);",
+      },
+      {
+        version: "143",
+        name: "quota_auto_ping",
+        setup:
+          "CREATE TABLE provider_connections (id TEXT PRIMARY KEY, last_ping_at TEXT, last_pinged_reset_key TEXT);",
+      },
+      {
+        version: "145",
+        name: "provider_connection_quota_visibility",
+        setup: "CREATE TABLE provider_connections (id TEXT PRIMARY KEY, quota_visible INTEGER);",
+      },
+    ];
+
+    for (const migration of cases) {
+      const db = createDb();
+      try {
+        db.exec(migration.setup);
+        const files = {
+          [`${migration.version}_${migration.name}.sql`]: "THIS SQL MUST NOT RUN;",
+        };
+
+        assert.equal(
+          withMockedMigrationFs(files, () => runner.runMigrations(db)),
+          1
+        );
+        assert.equal(
+          withMockedMigrationFs(files, () => runner.runMigrations(db)),
+          0
+        );
+        assert.deepEqual(db.prepare("SELECT version, name FROM _omniroute_migrations").all(), [
+          { version: migration.version, name: migration.name },
+        ]);
+      } finally {
+        db.close();
+      }
+    }
+  }
+);
+
+test(
+  "runMigrations records renamed 142-145 collision migrations when their schema already exists",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+    const migrations = {
+      "142_free_proxy_sync_errors.sql":
+        "CREATE TABLE IF NOT EXISTS free_proxy_sync_errors (id INTEGER);",
+      "143_quota_auto_ping.sql":
+        "ALTER TABLE provider_connections ADD COLUMN last_ping_at TEXT; ALTER TABLE provider_connections ADD COLUMN last_pinged_reset_key TEXT;",
+      "144_generic_session_affinity_ttl.sql":
+        "INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('settings', 'sessionAffinityTtlMs', '1');",
+      "145_provider_connection_quota_visibility.sql":
+        "ALTER TABLE provider_connections ADD COLUMN quota_visible INTEGER NOT NULL DEFAULT 1;",
+    };
+
+    try {
+      db.exec(`
+      CREATE TABLE free_proxy_sync_errors (id INTEGER);
+      CREATE TABLE provider_connections (
+        id INTEGER,
+        last_ping_at TEXT,
+        last_pinged_reset_key TEXT,
+        quota_visible INTEGER NOT NULL DEFAULT 1
+      );
+      CREATE TABLE key_value (namespace TEXT, key TEXT, value TEXT, PRIMARY KEY (namespace, key));
+    `);
+
+      const firstRun = withMockedMigrationFs(migrations, () => runner.runMigrations(db));
+      const secondRun = withMockedMigrationFs(migrations, () => runner.runMigrations(db));
+
+      assert.equal(firstRun, 4);
+      assert.equal(secondRun, 0);
+      assert.deepEqual(
+        db
+          .prepare(
+            "SELECT version FROM _omniroute_migrations WHERE version BETWEEN '142' AND '145' ORDER BY version"
+          )
+          .all(),
+        [{ version: "142" }, { version: "143" }, { version: "144" }, { version: "145" }]
+      );
+    } finally {
+      db.close();
+    }
+  }
+);
 
 test(
   "runMigrations upgrades the legacy routing decisions schema before recording 120",

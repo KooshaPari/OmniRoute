@@ -80,6 +80,42 @@ export default function AgentBridgePageClient({
   const [actionError, setActionError] = useState<string | null>(null);
   const [certGuide, setCertGuide] = useState<CertManualGuide | null>(null);
 
+  const { runPrivileged, sudoModalProps } = useMitmSudoPrompt({
+    hasCachedPassword: data.serverState.hasCachedPassword === true,
+    needsSudoPassword: data.serverState.needsSudoPassword === true,
+    isWin: data.serverState.isWin === true,
+  });
+
+  const postServerAction = useCallback(
+    async (
+      action: "start" | "stop" | "restart" | "trust-cert" | "regenerate-cert",
+      sudoPassword?: string
+    ) => {
+      const res = await fetch("/api/tools/agent-bridge/server", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          sudoPassword ? { action, sudoPassword } : { action }
+        ),
+      });
+      const payload = (await res.json().catch(() => ({}))) as {
+        error?: { message?: string };
+        skippable?: boolean;
+        manualGuide?: CertManualGuide;
+      };
+      if (!res.ok) {
+        throw new Error(payload.error?.message ?? `HTTP ${res.status}`);
+      }
+      if (payload.skippable && payload.manualGuide) {
+        setCertGuide(payload.manualGuide);
+      } else if (action === "trust-cert") {
+        setCertGuide(null);
+      }
+      await refresh();
+    },
+    [refresh]
+  );
+
   // ── Server actions ────────────────────────────────────────────────────────
 
   const handleServerAction = useCallback(
@@ -89,22 +125,10 @@ export default function AgentBridgePageClient({
         await runPrivileged(async (password) => {
           await postServerAction("trust-cert", password || undefined);
         });
-        const payload = (await res.json().catch(() => ({}))) as {
-          error?: { message?: string };
-          skippable?: boolean;
-          manualGuide?: CertManualGuide;
-        };
-        if (!res.ok) {
-          throw new Error(payload.error?.message ?? `HTTP ${res.status}`);
-        }
-        // Cert couldn't be auto-installed (container / headless): not an error —
-        // surface the manual-install guide instead of blocking. (#4546)
-        if (payload.skippable && payload.manualGuide) {
-          setCertGuide(payload.manualGuide);
-        } else if (action === "trust-cert") {
-          setCertGuide(null);
-        }
-        await refresh();
+        return;
+      }
+      try {
+        await postServerAction(action);
       } catch (err) {
         setActionError(err instanceof Error ? err.message : t("unknownError"));
       }

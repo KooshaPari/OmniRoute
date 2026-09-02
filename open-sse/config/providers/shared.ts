@@ -148,6 +148,40 @@ export interface RegistryEntry {
    * OmniRoute accumulates the stream and converts it to a JSON body for the client. (#2081)
    */
   forceStream?: boolean;
+  /**
+   * Literal API key sent as the bearer token when the request has no real
+   * credential (synthetic noauth fallback). Lets a primarily-authenticated
+   * provider expose its free tier anonymously: e.g. Kilo's gateway accepts
+   * `Authorization: Bearer anonymous` for its free models (#4019). Only the
+   * DefaultExecutor honors it, and only when no effectiveKey/accessToken exists,
+   * so the authenticated path is never affected.
+   */
+  anonymousApiKey?: string;
+  /**
+   * Provider-wide fallback for `RegistryModel.unsupportedParams`, applied when a
+   * model has no per-model override AND (for `passthroughModels: true`
+   * providers) isn't one of the few models statically listed here at all —
+   * e.g. AI Horde's live-discovered models change as workers come and go, and
+   * every one of them shares the same hard limitation ("the workers run raw
+   * text-completion backends" — no tool calling on any model, not just the
+   * 3 statically catalogued ones). Checked by `getUnsupportedParams()` after
+   * the per-model lookup misses.
+   */
+  unsupportedParams?: readonly string[];
+  /**
+   * True for strict/naive OpenAI-compatible backends that reject a single-text-part
+   * content array (`[{ type: "text", text }]`) and only accept the equivalent plain
+   * string. Used by the Responses→Chat translator to collapse single-part text
+   * content down to a string for this provider only, leaving every other provider's
+   * standard OpenAI array-shaped content untouched (see openai-responses.ts).
+   */
+  requiresPlainStringContent?: boolean;
+  /**
+   * Alternative protocols this provider accepts (e.g. an Anthropic-compatible
+   * endpoint in addition to the default OpenAI-compatible one). The connection
+   * chooses via providerSpecificData.targetFormat; see config/providers/alternateFormats.ts.
+   */
+  alternateFormats?: import("./alternateFormats.ts").AlternateFormat[];
 }
 
 /**

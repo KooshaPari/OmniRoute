@@ -48,11 +48,34 @@ describe("responseSanitizer/reasoning — shouldParseTextualReasoningTags", () =
   it("returns false when provider/model are missing", () => {
     assert.equal(shouldParseTextualReasoningTags(undefined, undefined), false);
   });
+  it("recognizes K3 by model ID without matching an unrelated provider name", () => {
+    assert.equal(shouldParseTextualReasoningTags("kimi-coding", "k3"), true);
+    assert.equal(shouldParseTextualReasoningTags("k3-provider", "general-model"), false);
+  });
 });
 
 // ── host public API surface ──────────────────────────────────────────────────
 
 const host = await import("../../open-sse/handlers/responseSanitizer.ts");
+
+describe("host and leaf reasoning policies", () => {
+  it("agree for K3 route boundaries and the Antigravity veto", () => {
+    const cases = [
+      ["kimi-coding", "k3", true],
+      ["kimi-coding", "k30", false],
+      ["k3-provider", "general-model", false],
+      ["antigravity", "k3", false],
+    ] as const;
+
+    for (const [provider, model, expected] of cases) {
+      const hostResult = host.shouldParseTextualReasoningTags(provider, model);
+      const leafResult = shouldParseTextualReasoningTags(provider, model);
+      assert.equal(hostResult, expected, `${provider}/${model} host policy`);
+      assert.equal(leafResult, expected, `${provider}/${model} leaf policy`);
+      assert.equal(hostResult, leafResult, `${provider}/${model} policy parity`);
+    }
+  });
+});
 
 describe("responseSanitizer.ts public API surface (7 names)", () => {
   const expectedFns = [

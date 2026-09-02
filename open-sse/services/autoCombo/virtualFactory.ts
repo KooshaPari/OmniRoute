@@ -18,7 +18,9 @@ import {
 } from "./suffixComposition";
 import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
+import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import { filterPaidOnlyCandidates } from "./paidModelFilter";
+import { SYNTHETIC_NOAUTH_CONNECTION_ID as RESILIENCE_NOAUTH_CONNECTION_ID } from "./resilienceCandidateFilter";
 
 /** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos.
  * #6453: optional `family` overlay for `auto/<family>` combos (e.g. `auto/glm`) —
@@ -349,30 +351,50 @@ export async function createVirtualAutoCombo(
   const registry = getProviderRegistry();
   const connectionsByProvider = new Map<string, VirtualFactoryConn[]>();
   for (const conn of validConnections) {
-    // #5873: custom OpenAI-/Anthropic-compatible providers have dynamic connection
-    // IDs (`*-compatible-*`) that are never keys of the static registry. Do NOT drop
-    // them from `auto/` routing — only fall back to the registry's first model when
-    // the connection has no explicit defaultModel.
-    const providerInfo = getProviderRegistry()[conn.provider];
+    const providerConnections = connectionsByProvider.get(conn.provider) ?? [];
+    providerConnections.push(conn);
+    connectionsByProvider.set(conn.provider, providerConnections);
+  }
 
-    let modelId: string | undefined = conn.defaultModel;
-    if (!modelId && providerInfo) {
-      const firstModel = providerInfo.models[0];
-      modelId = firstModel?.id;
+  // Build one logical candidate per provider/model and keep account fallback as an
+  // allowlist on that candidate. This avoids both the old "first registry model per
+  // connection" blind spot and a connections x models Cartesian candidate pool.
+  for (const [providerId, providerConnections] of connectionsByProvider) {
+    const providerInfo = registry[providerId];
+    const registryModelIds = Array.isArray(providerInfo?.models)
+      ? providerInfo.models
+          .map((model) => (typeof model?.id === "string" ? model.id.trim() : ""))
+          .filter(Boolean)
+      : [];
+    const registryModelIdSet = new Set(registryModelIds);
+    const defaultModelIds = providerConnections
+      .map((conn) => (typeof conn.defaultModel === "string" ? conn.defaultModel.trim() : ""))
+      .filter(Boolean);
+    const modelIds = Array.from(new Set([...registryModelIds, ...defaultModelIds]));
+    const hiddenModels = hiddenModelsMap.get(providerId);
+
+    for (const modelId of modelIds) {
+      if (hiddenModels?.has(modelId)) continue;
+
+      const allowedConnectionIds = providerConnections
+        .filter((conn) => {
+          if (isModelExcludedByConnection(modelId, conn.providerSpecificData)) return false;
+          // Registry models are provider-wide. A non-registry default (for a custom
+          // or passthrough model) is scoped only to connections that selected it.
+          return registryModelIdSet.has(modelId) || conn.defaultModel?.trim() === modelId;
+        })
+        .map((conn) => conn.id);
+      if (allowedConnectionIds.length === 0) continue;
+
+      candidatePool.push({
+        provider: providerId,
+        connectionId: null,
+        allowedConnectionIds,
+        model: modelId,
+        modelStr: `${providerId}/${modelId}`,
+        costPer1MTokens: 0, // Not used in virtual auto-combo (LKGP uses session stickiness)
+      });
     }
-    if (!modelId) continue; // Skip providers without a resolvable model
-
-    // Skip models that the user has hidden in the dashboard
-    const hiddenModels = hiddenModelsMap.get(conn.provider);
-    if (hiddenModels?.has(modelId)) continue;
-
-    candidatePool.push({
-      provider: conn.provider,
-      connectionId: conn.id,
-      model: modelId,
-      modelStr: `${conn.provider}/${modelId}`,
-      costPer1MTokens: 0, // Not used in virtual auto-combo (LKGP uses session stickiness)
-    });
   }
 
   candidatePool.push(
@@ -396,7 +418,10 @@ export async function createVirtualAutoCombo(
   // `/v1/models` listing — so auto-routing never picks a model that will 402/403.
   // If this empties the pool the existing graceful empty-pool path below handles it
   // (consistent with the opt-in intent). Default OFF → pool unchanged.
-  const paidFilteredPool = filterPaidOnlyCandidates(candidatePool, settings.hidePaidModels === true);
+  const paidFilteredPool = filterPaidOnlyCandidates(
+    candidatePool,
+    settings.hidePaidModels === true
+  );
   if (paidFilteredPool !== candidatePool) {
     candidatePool.length = 0;
     candidatePool.push(...paidFilteredPool);

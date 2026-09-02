@@ -36,6 +36,8 @@
  */
 
 import type { A2ATask, TaskArtifact } from "../taskManager";
+import { getPricingForModel } from "@/shared/constants/pricing";
+import { computeCostFromPricing } from "@/lib/usage/costCalculator";
 import { resolveOmniRouteBaseUrl } from "@/shared/utils/resolveOmniRouteBaseUrl";
 import { formatCost } from "@/shared/utils/formatting";
 import { toNumber } from "@/shared/utils/numeric";
@@ -58,7 +60,6 @@ interface CostAnalysisInput {
   budget_usd?: number;
   fallback_models?: string[];
 }
-
 
 /**
  * Coerce a TokenUsageLite into the canonical TokenUsage shape that

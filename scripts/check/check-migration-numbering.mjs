@@ -42,12 +42,13 @@ export const KNOWN_DUPLICATE_VERSIONS = new Set([
 
 // ---------------------------------------------------------------------------
 // ALLOWLIST 2 — gaps de sequência CONHECIDOS.
-// Fonte: auditoria do disco (src/lib/db/migrations/) — a sequência pula 026 e 055.
+// Fonte: auditoria do disco (src/lib/db/migrations/) — a sequência pula 026, 055,
+// 102, 104 e 105.
 // Estes números nunca tiveram arquivo físico (slots legados que viraram outros
 // números via RENAMED_MIGRATION_COMPATIBILITY em migrationRunner.ts). Congelados
 // para que o gate bloqueie apenas NOVOS buracos inexplicados na sequência.
 // ---------------------------------------------------------------------------
-export const KNOWN_GAPS = new Set(["026", "055", "121"]); // 121: número queimado no ciclo v3.8.47 — 122 (#6909) mergeou antes e 121 nunca aterrissou (validação e2e 2026-07-12)
+export const KNOWN_GAPS = new Set(["026", "055", "102", "104", "105"]);
 
 function pad3(n) {
   return String(n).padStart(3, "0");

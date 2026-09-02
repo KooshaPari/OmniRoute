@@ -102,6 +102,11 @@ export const toggleRateLimitSchema = z.object({
   enabled: z.boolean(),
 });
 
+// Persistence helpers intentionally preserve opaque, non-empty connection IDs.
+// Do not trim them: the legacy wrappers accepted whitespace-only IDs as values.
+export const connectionRateLimitConnectionIdSchema = z.string().min(1);
+export const connectionRateLimitRetryAfterMsSchema = z.number().positive();
+
 export const jsonObjectSchema = z.record(z.string(), z.unknown());
 
 export const resetStatsActionSchema = z.object({

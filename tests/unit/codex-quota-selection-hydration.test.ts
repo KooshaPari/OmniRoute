@@ -57,13 +57,13 @@ test("Codex selection ignores hydrated Spark-only exhaustion for normal Codex mo
   for (const [windowKey, remaining, exhausted, resetAt] of snapshots) {
     quotaSnapshotsDb.saveQuotaSnapshot({
       provider: "codex",
-      connection_id: connectionId,
-      window_key: windowKey,
-      remaining_percentage: remaining,
-      is_exhausted: exhausted,
-      next_reset_at: resetAt,
-      window_duration_ms: null,
-      raw_data: JSON.stringify({ source: "test" }),
+      connectionId,
+      windowKey,
+      remainingPercentage: remaining,
+      isExhausted: exhausted,
+      nextResetAt: resetAt,
+      windowDurationMs: null,
+      rawData: JSON.stringify({ source: "test" }),
     });
   }
 

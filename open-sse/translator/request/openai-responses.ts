@@ -8,6 +8,12 @@ import { isOpenAIResponsesStoreEnabled } from "@/lib/providers/requestDefaults";
 import { FORMATS } from "../formats.ts";
 import { register } from "../registry.ts";
 import { normalizeResponsesInputForChat } from "../../utils/responsesInputNormalization.ts";
+import {
+  getRegisteredProviders,
+  requiresPlainStringContent,
+} from "../../config/providerRegistry.ts";
+import { collectResponsesTools } from "./openai-responses/additionalTools.ts";
+import { flattenNamespaceToolName } from "./openai-responses/namespaceFlatten.ts";
 type JsonRecord = Record<string, unknown>;
 const RESPONSES_STORE_MARKER = "_omnirouteResponsesStore";
 const COPILOT_REASONING_SUMMARY_MARKER = "_omnirouteCopilotReasoningSummary";
@@ -71,6 +77,42 @@ function unsupportedFeature(message: string): Error & { statusCode: number; erro
   error.statusCode = 400;
   error.errorType = "unsupported_feature";
   return error;
+}
+
+/** Convert Responses tool-output parts to safe Chat Completions tool content. */
+function toolOutputContentToString(output: unknown): string {
+  if (typeof output === "string") return output;
+  if (!Array.isArray(output)) return JSON.stringify(output);
+
+  const parts: string[] = [];
+  for (const item of output) {
+    if (typeof item !== "object" || item === null) {
+      parts.push(String(item));
+      continue;
+    }
+    const record = item as Record<string, unknown>;
+    const type = typeof record.type === "string" ? record.type : "";
+    if (type === "input_text" || type === "output_text") {
+      const text = typeof record.text === "string" ? record.text : "";
+      if (text) parts.push(text);
+    } else if (type === "input_image") {
+      parts.push("[Image omitted: not supported on Chat Completions tool results]");
+    } else {
+      try {
+        parts.push(JSON.stringify(item));
+      } catch {
+        parts.push(String(item));
+      }
+    }
+  }
+  return parts.join("\n");
+}
+
+function extractProviderHint(model: unknown): string {
+  if (typeof model !== "string" || model.length === 0) return "";
+  if (getRegisteredProviders().includes(model)) return model;
+  const prefix = model.split("/")[0];
+  return getRegisteredProviders().includes(prefix) ? prefix : "";
 }
 
 /**
@@ -794,8 +836,7 @@ export function openaiToOpenAIResponsesRequest(
                 }
                 if (contentItem.type === "image_url") {
                   const imgUrl = contentItem.image_url as
-                    | string
-                    | { url?: string; detail?: string };
+                    string | { url?: string; detail?: string };
                   const imgResult: JsonRecord = {
                     type: "input_image",
                     image_url: typeof imgUrl === "string" ? imgUrl : imgUrl?.url || "",

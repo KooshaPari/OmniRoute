@@ -74,6 +74,45 @@ export function extractRelayAuth(notes: unknown): string | undefined {
   }
 }
 
+/**
+ * Reports when a relay proxy has neither plaintext nor decryptable auth.
+ * Non-relay proxies do not require relay credentials and always return false.
+ */
+export function isRelayAuthMissing(notes: unknown, type: unknown): boolean {
+  return isRelayProxyType(type) && extractRelayAuth(notes) === undefined;
+}
+
+export type RelayRepairMode = "noop" | "recovered" | "redeploy" | null;
+
+/**
+ * Classifies whether a relay can be repaired from the credentials retained in
+ * its notes, without persisting a deployment token during the repair flow.
+ */
+export function relayRepairMode(notes: unknown, type: unknown): RelayRepairMode {
+  if (!isRelayProxyType(type)) return null;
+
+  const parsed = safeParseNotes(notes);
+  if (typeof parsed?.relayAuth === "string" && parsed.relayAuth) return "noop";
+  if (
+    typeof parsed?.relayAuthEnc === "string" &&
+    parsed.relayAuthEnc &&
+    decrypt(parsed.relayAuthEnc)
+  ) {
+    return "recovered";
+  }
+  return "redeploy";
+}
+
+function safeParseNotes(notes: unknown): { relayAuth?: string; relayAuthEnc?: string } | null {
+  if (typeof notes !== "string") return null;
+  try {
+    const parsed = JSON.parse(notes) as { relayAuth?: string; relayAuthEnc?: string };
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 export function toRegistryProxyResolution(row: unknown, level: ProxyScope, levelId: string | null) {
   const record = toRecord(row);
   const relayAuth = isRelayProxyType(record.type) ? extractRelayAuth(record.notes) : undefined;

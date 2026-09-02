@@ -27,12 +27,12 @@ This runbook is the on-call operator's reference for OmniRoute in production. It
 
 Use this matrix to triage within 5 minutes of detection. When in doubt, classify one level higher and downgrade later.
 
-| Sev | User impact | Examples | First-response SLA |
-| --- | --- | --- | --- |
-| **SEV-1** | Total outage, data loss, security breach | API returning 5xx >50%, DB corruption, exposed secrets, ransomware | Page on-call, acknowledge in 5 min, status page update in 15 min |
-| **SEV-2** | Major degradation, subset of users blocked | Single provider 100% failing, encryption decrypt errors >1%, auth broken | Acknowledge in 15 min, status page update in 30 min |
-| **SEV-3** | Minor degradation, workaround available | Elevated latency p99 >2s for one route, single API key quota miscalc | Acknowledge in 1h, ticket in business hours |
-| **SEV-4** | Cosmetic, no functional impact | Typo in docs, broken non-critical link, dashboard widget misalignment | Next-business-day ticket |
+| Sev       | User impact                                | Examples                                                                 | First-response SLA                                               |
+| --------- | ------------------------------------------ | ------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| **SEV-1** | Total outage, data loss, security breach   | API returning 5xx >50%, DB corruption, exposed secrets, ransomware       | Page on-call, acknowledge in 5 min, status page update in 15 min |
+| **SEV-2** | Major degradation, subset of users blocked | Single provider 100% failing, encryption decrypt errors >1%, auth broken | Acknowledge in 15 min, status page update in 30 min              |
+| **SEV-3** | Minor degradation, workaround available    | Elevated latency p99 >2s for one route, single API key quota miscalc     | Acknowledge in 1h, ticket in business hours                      |
+| **SEV-4** | Cosmetic, no functional impact             | Typo in docs, broken non-critical link, dashboard widget misalignment    | Next-business-day ticket                                         |
 
 ### Escalation path
 
@@ -75,7 +75,7 @@ Run these steps in order. Stop and escalate as soon as you have enough informati
 
 ### 3.1 Database locked / contention
 
-**Symptoms**: `SQLITE_BUSY` errors in logs, `app.db-journal` growing, request latency spike.
+**Symptoms**: SQLite busy errors in logs, `app.db-journal` growing, request latency spike.
 
 **Root causes**:
 
@@ -91,7 +91,7 @@ docker exec omniroute-db sqlite3 /data/omniroute.db "PRAGMA wal_checkpoint(TRUNC
 docker exec omniroute-db lsof /data/omniroute.db
 ```
 
-**Fix**: identify the holder, kill the offending connection, set `SQLITE_BUSY_TIMEOUT=5000` if not already.
+**Fix**: identify the holder and stop the offending connection. The runtime configures SQLite's busy timeout in `src/lib/db/core.ts`; investigate sustained contention rather than relying on an undocumented environment override.
 
 ### 3.2 Encryption failures
 
@@ -99,7 +99,7 @@ docker exec omniroute-db lsof /data/omniroute.db
 
 **Root causes**:
 
-- `ENCRYPTION_KEY` rotated without re-encrypting existing rows.
+- `STORAGE_ENCRYPTION_KEY` rotated without re-encrypting existing rows.
 - Backup restored from before a key rotation.
 - Corrupt ciphertext (disk corruption, partial write).
 
@@ -109,7 +109,7 @@ docker exec omniroute-db lsof /data/omniroute.db
 
 - If auth-tag-failure on a single row → log and quarantine, continue serving others.
 - If auth-tag-failure on >1% of rows → STOP, page @KooshaPari/core. Do not attempt to "fix" data.
-- If `ENCRYPTION_KEY` env var unset → startup canary will exit; check `.env`.
+- If `STORAGE_ENCRYPTION_KEY` is unset, encrypted credentials cannot be decrypted; restore the known key or a compatible backup before changing data.
 
 ### 3.3 Provider 5xx cascade
 
@@ -145,7 +145,7 @@ docker stats omniroute --no-stream
 docker exec omniroute node -e "require('v8').writeHeapSnapshot('/tmp/heap.heapsnapshot')"
 ```
 
-**Fix**: short-term restart + reduce `MAX_CONCURRENT_STREAMS`. Long-term: profile with `clinic.js`.
+**Fix**: short-term restart + reduce `OMNI_MAX_CONCURRENT_CONNECTIONS` when the connection cap is enabled. Long-term: profile with `clinic.js`.
 
 ---
 
@@ -297,13 +297,13 @@ sqlite3 /data/omniroute-recovered.db < /tmp/dump.sql
 
 ### 6.3 When all else fails
 
-Last-resort: rebuild from upstream PR merge state using `scripts/db/rebuild-from-migrations.ts` (regenerates an empty DB and replays schema migrations). **All data is lost** — escalate to @KooshaPari/owner before running.
+Last-resort: restore a known-good backup using the supported backup/restore flow in §6. Do not perform an ad hoc migration replay against production data; escalate to @KooshaPari/owner before any destructive recovery action.
 
 ---
 
 ## 7. Encryption-key recovery
 
-> **WARNING**: Rotating `ENCRYPTION_KEY` without re-encrypting existing rows makes all encrypted data permanently unreadable. There is no recovery path for data encrypted under a lost key.
+> **WARNING**: Rotating `STORAGE_ENCRYPTION_KEY` without re-encrypting existing rows makes all encrypted data permanently unreadable. There is no recovery path for data encrypted under a lost key.
 
 ### 7.1 Confirm the situation
 
@@ -324,7 +324,7 @@ There is no recovery. Restore from a backup taken when the key was known (see §
 
 1. Decrypt all rows with the old key.
 2. Re-encrypt with the new key.
-3. Use the `scripts/db/reencrypt-all.ts` helper (kept off-path; ask @KooshaPari/core).
+3. There is no general-purpose re-encryption helper. Escalate to @KooshaPari/core and restore a backup encrypted with the known key when recovery is required.
 4. Verify zero failures: `docker logs omniroute --since 5m 2>&1 | jq 'select(.classification)' | wc -l`
 
 ---
@@ -392,16 +392,16 @@ Action items become Linear/GitHub issues with label `postmortem-action`. They ar
 
 ## Appendix A — Quick reference
 
-| Need | Look here |
-| --- | --- |
-| Service won't start | §4.1 health, §3.2 encryption canary, `.env` validation |
-| Provider failing | §3.3 cascade, `bifrost-migration.md` §9 troubleshooting |
-| DB issue | §6 recovery, `docs/db-migration-author.md` |
-| Encryption issue | §7, `docs/encryption-error-handling-migration.md` |
-| Roll back a release | §5.1 app, §5.2 DB, §5.3 config |
-| Write a postmortem | §9, `~/.claude/skills/incident-postmortem/SKILL.md` |
-| Add an alert | `deploy/monitoring/` (Prometheus rules) |
-| Change severity scheme | This file, §1 + linked issue |
+| Need                   | Look here                                               |
+| ---------------------- | ------------------------------------------------------- |
+| Service won't start    | §4.1 health, §3.2 encryption canary, `.env` validation  |
+| Provider failing       | §3.3 cascade, `bifrost-migration.md` §9 troubleshooting |
+| DB issue               | §6 recovery, `docs/db-migration-author.md`              |
+| Encryption issue       | §7, `docs/encryption-error-handling-migration.md`       |
+| Roll back a release    | §5.1 app, §5.2 DB, §5.3 config                          |
+| Write a postmortem     | §9, `~/.claude/skills/incident-postmortem/SKILL.md`     |
+| Add an alert           | `deploy/monitoring/` (Prometheus rules)                 |
+| Change severity scheme | This file, §1 + linked issue                            |
 
 ## Appendix B — Related documents
 

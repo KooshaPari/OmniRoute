@@ -11,7 +11,9 @@ import {
   type ModelSpec,
 } from "@/shared/constants/modelSpecs";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
+import { MODELS_DEV_PROVIDER_MAP } from "@/lib/modelsDevSync/transform";
 import { getModelContextOverride } from "@/lib/db/modelContextOverrides";
+import { getModelCapabilityOverride } from "@/lib/db/modelCapabilityOverrides";
 import { isVisionModelId } from "@/shared/constants/visionModels";
 import { getUnsupportedParams } from "@omniroute/open-sse/config/providerRegistry.ts";
 import {
@@ -240,6 +242,29 @@ function getStaticSpec(modelId: string | null, rawModel: string | null): ModelSp
   }
   if (rawModel && rawModel !== modelId) {
     return getModelSpec(rawModel);
+  }
+  return undefined;
+}
+
+/**
+ * #8032: vision-only leaf fallback for path-shaped routed ids.
+ *
+ * Must NOT live in getStaticSpec() — that helper also feeds supportsTools /
+ * supportsThinking / contextWindow / maxOutputTokens. A shared leaf lookup
+ * incorrectly promotes e.g. aihorde/deepseek/deepseek-v4-flash to the real
+ * DeepSeek V4 Flash tool-calling spec (#8212 regression).
+ */
+function getVisionStaticSpec(
+  modelId: string | null,
+  rawModel: string | null
+): ModelSpec | undefined {
+  const direct = getStaticSpec(modelId, rawModel);
+  if (direct) return direct;
+  for (const candidate of [modelId, rawModel]) {
+    const leaf = leafModelId(candidate);
+    if (!leaf) continue;
+    const byLeaf = getModelSpec(leaf);
+    if (byLeaf) return byLeaf;
   }
   return undefined;
 }

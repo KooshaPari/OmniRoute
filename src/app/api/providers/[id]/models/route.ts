@@ -3,11 +3,14 @@ import {
   isClaudeCodeCompatibleProvider,
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
+  isSelfHostedChatProvider,
   NOAUTH_PROVIDERS,
 } from "@/shared/constants/providers";
+import { normalizeAntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { getStaticModelsForProvider } from "@/lib/providers/staticModels";
+import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
 import {
   getCachedProviderConnectionById,
@@ -27,6 +30,21 @@ import {
 } from "@/shared/network/outboundUrlGuardPolicy";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
+import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import {
+  getAntigravityFetchAvailableModelsUrls,
+  getAntigravityModelsDiscoveryUrls,
+} from "@omniroute/open-sse/config/antigravityUpstream.ts";
+import {
+  getClientVisibleAntigravityModelName,
+  isUserCallableAntigravityModelId,
+  toClientAntigravityModelId,
+} from "@omniroute/open-sse/config/antigravityModelAliases.ts";
+import {
+  resolveAntigravityCliVersion,
+  resolveAntigravityIdeVersion,
+} from "@omniroute/open-sse/services/antigravityVersion.ts";
+import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
 import { fetchGitHubCopilotModels } from "@omniroute/open-sse/services/githubCopilotModels.ts";
 import { fetchKiroAvailableModels } from "@omniroute/open-sse/services/kiroModels.ts";
@@ -88,6 +106,8 @@ import {
 } from "@/lib/providerModels/geminiModelsParser";
 import { getSyncedAvailableModels, getCustomModels } from "@/lib/db/models";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
+import { buildStaleEncryptionKeyResponse } from "./staleEncryptionGuard";
+import { mergeSpecialtyCatalogIntoLiveModels } from "./discovery/helpers";
 
 type JsonRecord = Record<string, unknown>;
 const antigravityDiscoveryInflight = new Map<
@@ -295,7 +315,7 @@ async function fetchAntigravityDiscoveryModelsCached(
   if (inflight) return inflight;
 
   const promise = (async () => {
-    await resolveAntigravityVersion();
+    await (profile === "cli" ? resolveAntigravityCliVersion() : resolveAntigravityIdeVersion());
     await ensureAntigravityProjectAssigned(
       accessToken,
       fetch,
@@ -312,7 +332,7 @@ async function fetchAntigravityDiscoveryModelsCached(
           guard: getProviderOutboundGuard(),
           proxyConfig: proxy,
           method: "POST",
-          headers: getAntigravityHeaders("models", accessToken),
+          headers: getAntigravityContentHeaders(profile, accessToken),
           body: JSON.stringify({}),
         });
 
@@ -491,7 +511,7 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
   antigravity: {
     url: getAntigravityModelsDiscoveryUrls()[0],
     method: "POST",
-    headers: getAntigravityHeaders("models"),
+    headers: getAntigravityContentHeaders("ide"),
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     body: {},

@@ -14,11 +14,19 @@ import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { randomUUID } from "crypto";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import { tryBackedChat } from "../services/browserBackedChat.ts";
+import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "./base.ts";
 import {
   type ClaudeWebRequestPayload,
   transformToClaude,
   transformFromClaude,
 } from "./claude-web/payload.ts";
+import {
+  applyClaudeWebBrowserTemplate,
+  sendClaudeWebBrowser,
+  type ClaudeWebTransportRequest,
+  type ClaudeWebTransportResult,
+} from "./claude-web/browserTransport.ts";
+import { sendClaudeWebDirect } from "./claude-web/transport.ts";
 
 const CLAUDE_WEB_API_BASE = "https://claude.ai/api";
 const CLAUDE_WEB_ORGS_URL = `${CLAUDE_WEB_API_BASE}/organizations`;

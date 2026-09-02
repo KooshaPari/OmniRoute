@@ -16,10 +16,14 @@ import {
   ATTACHMENT,
 } from "./scalar.ts";
 
+type GcfPrimitive = string | number | boolean | null;
+type GcfValue = GcfPrimitive | GcfValue[] | { [key: string]: GcfValue };
+type GcfObject = { [key: string]: GcfValue };
+
 /**
  * Decode GCF generic or graph profile text into a JS value.
  */
-export function decodeGeneric(input: string): any {
+export function decodeGeneric(input: string): GcfValue {
   input = input.trimEnd();
   if (!input) throw new Error("missing_header: empty input");
 
@@ -83,7 +87,7 @@ export function decodeGeneric(input: string): any {
   }
 
   // Root object.
-  const result: Record<string, any> = {};
+  const result: GcfObject = {};
   parseObjectBody(contentLines, 0, 0, result);
   return result;
 }
@@ -109,7 +113,7 @@ function parseObjectBody(
   lines: string[],
   start: number,
   depth: number,
-  out: Record<string, any>
+  out: GcfObject
 ): number {
   const ind = "  ".repeat(depth);
   let i = start;
@@ -137,7 +141,7 @@ function parseObjectBody(
       const name = parseKeyFromHeader(hdr);
       checkDup(out, name);
       i++;
-      const nested: Record<string, any> = {};
+      const nested: GcfObject = {};
       const consumed = parseObjectBody(lines, i, depth + 1, nested);
       safeAssign(out, name, nested);
       i += consumed;
@@ -208,7 +212,7 @@ function parseKeyFromHeader(s: string): string {
   return s;
 }
 
-function checkDup(obj: Record<string, any>, key: string): void {
+function checkDup(obj: GcfObject, key: string): void {
   // Own-property check only: `key in obj` would spuriously fire on inherited
   // names like "toString"/"constructor" and mislabel them as duplicates.
   if (Object.prototype.hasOwnProperty.call(obj, key)) throw new Error(`duplicate_key: ${key}`);
@@ -219,7 +223,7 @@ function parseArrayFromHeader(
   headerLine: number,
   depth: number,
   bracketPart: string
-): [any, number] {
+): [GcfValue, number] {
   const bp = bracketPart.trimStart();
   if (!bp.startsWith("[")) throw new Error("invalid_count");
   const closeIdx = bp.indexOf("]");
@@ -310,9 +314,9 @@ function safeAssign(obj: Record<string, unknown>, key: string, value: unknown): 
 
 function unflattenPaths(
   pathColumns: Map<string, string[]>,
-  flatValues: Map<string, any>,
+  flatValues: Map<string, GcfValue>,
   flatAbsent: Set<string>
-): Record<string, any> {
+): GcfObject {
   // Group by top-level parent.
   const groups = new Map<string, string[]>();
   const groupOrder: string[] = [];
@@ -330,7 +334,7 @@ function unflattenPaths(
     groups.get(top)!.push(fieldName);
   }
 
-  const result: Record<string, any> = {};
+  const result: GcfObject = {};
 
   for (const top of groupOrder) {
     const fieldNames = groups.get(top)!;
@@ -381,9 +385,9 @@ function parseTabularBody(
   depth: number,
   fields: string[],
   expectedCount: number
-): [any[], number] {
+): [GcfObject[], number] {
   const ind = "  ".repeat(depth);
-  const rows: any[] = [];
+  const rows: GcfObject[] = [];
   let i = start;
 
   // Detect path columns: fields containing ">".
@@ -434,14 +438,14 @@ function parseTabularBody(
       throw new Error(`row_width_mismatch: expected ${fields.length}, got ${vals.length}`);
 
     // Parse cells: scalars, traditional attachments, and inline schema attachments.
-    const cellValues = new Map<string, any>();
+    const cellValues = new Map<string, GcfValue>();
     const traditionalAttFields: string[] = [];
     const inlineAttFields: string[] = [];
     const inlineAttOrder: string[] = [];
     const missingFields = new Set<string>();
 
     // Collect path column values for unflattening.
-    const flatValues = new Map<string, any>();
+    const flatValues = new Map<string, GcfValue>();
     const flatAbsent = new Set<string>();
 
     for (let j = 0; j < fields.length; j++) {
@@ -497,7 +501,7 @@ function parseTabularBody(
 
     // Parse attachments in line order.
     const allAttFields = [...traditionalAttFields, ...inlineAttFields];
-    const attachmentValues = new Map<string, any>();
+    const attachmentValues = new Map<string, GcfValue>();
 
     if (rowHasID) {
       let inlineIdx = 0;
@@ -535,7 +539,7 @@ function parseTabularBody(
               throw new Error(
                 `inline_width_mismatch: ${attName} expected ${ifs.length}, got ${inlineVals.length}`
               );
-            const obj: Record<string, any> = {};
+            const obj: GcfObject = {};
             for (let k = 0; k < ifs.length; k++) {
               const p = parseScalar(inlineVals[k], true);
               if (p !== MISSING) obj[ifs[k]] = p;
@@ -584,7 +588,7 @@ function parseTabularBody(
           throw new Error(
             `inline_width_mismatch: ${nextInlineField} expected ${ifs.length}, got ${inlineVals.length}`
           );
-        const obj: Record<string, any> = {};
+        const obj: GcfObject = {};
         for (let k = 0; k < ifs.length; k++) {
           const p = parseScalar(inlineVals[k], true);
           if (p !== MISSING) obj[ifs[k]] = p;
@@ -623,7 +627,7 @@ function parseTabularBody(
     }
 
     // Build row in field declaration order.
-    const row: Record<string, any> = {};
+    const row: GcfObject = {};
     for (const f of fields) {
       if (missingFields.has(f)) continue;
       if (cellValues.has(f)) {
@@ -681,12 +685,12 @@ function parseAttachment(
   rest: string,
   depth: number,
   sharedSchemas: Map<string, string[]>
-): [string, any, number, string[] | null] {
+): [string, GcfValue, number, string[] | null] {
   const [name, afterNameRaw] = parseAttachmentName(rest);
   const afterName = afterNameRaw.trimStart();
 
   if (afterName.startsWith("{}")) {
-    const nested: Record<string, any> = {};
+    const nested: GcfObject = {};
     const consumed = parseObjectBody(lines, lineIdx + 1, depth, nested);
     return [name, nested, consumed + 1, null];
   }
@@ -764,9 +768,9 @@ function parseAttachment(
   throw new Error(`invalid attachment form: ${afterName}`);
 }
 
-function parseExpandedBody(lines: string[], start: number, depth: number): [any[], number] {
+function parseExpandedBody(lines: string[], start: number, depth: number): [GcfValue[], number] {
   const ind = "  ".repeat(depth);
-  const items: any[] = [];
+  const items: GcfValue[] = [];
   let i = start;
 
   while (i < lines.length) {
@@ -793,7 +797,7 @@ function parseExpandedBody(lines: string[], start: number, depth: number): [any[
       continue;
     }
     if (marker.startsWith("{}")) {
-      const nested: Record<string, any> = {};
+      const nested: GcfObject = {};
       i++;
       const consumed = parseObjectBody(lines, i, depth + 1, nested);
       items.push(nested);
