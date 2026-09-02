@@ -155,10 +155,11 @@
       "dedicatedGate": true
     },
     "bundleSize": {
-      "value": 6534,
+      "value": 7666,
       "direction": "down",
       "dedicatedGate": true,
-      "_rebaseline_2026_07_07_v3846_release_close": "5601->6534 (+933). v3.8.46 release close: gzip of the 4 bin/*.mjs entrypoints (size-limit + @size-limit/file) grew from this cycle's feature/fix merges pulled transitively into the CLI entrypoints (new providers, combo pipeline strategy #6396, effort/thinking standardization #6241, catalog cache-invalidation #6408). Measured 6534 locally via `check:bundle-size --ratchet` (deterministic gzip, matches CI). Legitimate cycle growth; shrink is separate debt."
+      "_rebaseline_2026_07_07_v3846_release_close": "5601->6534 (+933). v3.8.46 release close: gzip of the 4 bin/*.mjs entrypoints (size-limit + @size-limit/file) grew from this cycle's feature/fix merges pulled transitively into the CLI entrypoints (new providers, combo pipeline strategy #6396, effort/thinking standardization #6241, catalog cache-invalidation #6408). Measured 6534 locally via `check:bundle-size --ratchet` (deterministic gzip, matches CI). Legitimate cycle growth; shrink is separate debt.",
+      "_rebaseline_2026_09_01_provider_recovery_cycle": "6534->7666 (+1132). provider-recovery cycle: gzip of the 4 bin/*.mjs entrypoints (size-limit + @size-limit/file) grew from this branch feature/fix merges (provider + validation API recovery, reasoning K3 tag policy #host-lane, vitest source coverage activation 920b431d, MJS discovery 94a7eaaf5). Measured 7666 locally via check:bundle-size --ratchet AND confirmed on CI run 33575749058 job 100079235157 (deterministic gzip matches). Legitimate cycle growth; shrink is separate debt."
     },
     "openapiBreaking": {
       "value": 0,
