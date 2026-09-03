@@ -179,3 +179,4 @@ export function registerSetupQwen(program) {
       if (code !== 0) process.exitCode = code;
     });
 }
+}
