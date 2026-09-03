@@ -7,7 +7,11 @@ on:
 
 concurrency:
   group: nightly-${{ github.ref }}
-  cancel-in-progress: true
+  # FIX (W9.05, fork patch 2026-09-02): see nightly-release-green.yml — same
+  # `cancel-in-progress: true` was racing the 06:00 UTC mutation + 10x flake
+  # matrix, truncating the bench/compression artifacts. `queue` keeps both
+  # finishes intact and the schedule never returns a misleading "cancelled".
+  cancel-in-progress: false
 
 permissions:
   contents: read

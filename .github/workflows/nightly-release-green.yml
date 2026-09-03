@@ -29,7 +29,15 @@ permissions:
 
 concurrency:
   group: nightly-release-green
-  cancel-in-progress: true
+  # FIX (W9.05, fork patch 2026-09-02): `cancel-in-progress: true` was killing
+  # the in-flight run when a 24h cron race re-triggered, which silently dropped
+  # the upload-artifact step (the report JSON/log never made it to the GH UI).
+  # `queue` lets the next run wait until the current one finishes — the report
+  # artifact is now always available, and the schedule never returns
+  # "cancelled" instead of the actual validation verdict. Tracked under the
+  # upstream-PR campaign W10.03 (queue concurrency is an uncontroversial,
+  # issue-independent hygiene improvement).
+  cancel-in-progress: false
 
 env:
   OMNIROUTE_SKIP_SYSTEM_TRUST: "1"
