@@ -60,6 +60,7 @@ import { parse as parseYaml } from "yaml";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
+export const ESLINT_TIMEOUT_MS = 60 * 60 * 1000;
 
 // Per-gate captured output. execFileSync buffers everything and the report only
 // shows a one-line summary, so without these files every red requires RE-RUNNING
@@ -177,6 +178,56 @@ export function parseEslintJson(out) {
     }
   }
   return null;
+}
+
+/**
+ * Turn one ESLint process result into release-green records.
+ *
+ * Keep process failures distinct from report parsing failures. In particular, a timed-out
+ * ESLint process has no JSON report by definition; collapsing its code-124 diagnostic into
+ * "could not parse eslint json" hides the actionable cause and sends maintainers debugging
+ * the parser instead of the gate ceiling.
+ */
+export function evaluateEslintRun({ code, out }, warningBaseline) {
+  const parsed = parseEslintJson(out);
+  if (!parsed) {
+    return [
+      {
+        id: "lint",
+        label: "ESLint",
+        kind: "hard",
+        ok: false,
+        detail:
+          code === 0
+            ? "ESLint exited successfully but produced no valid JSON report"
+            : firstFailureLine(out),
+      },
+    ];
+  }
+
+  const { errors, warnings } = eslintCounts(parsed);
+  const warningDrift = isDrift(warnings, warningBaseline);
+  return [
+    {
+      id: "lint-errors",
+      label: "ESLint errors",
+      kind: "hard",
+      ok: errors === 0,
+      detail: `${errors} error(s)`,
+    },
+    {
+      id: "eslint-warnings",
+      label: "ESLint warnings (ratchet)",
+      kind: "drift",
+      ok: !warningDrift,
+      detail:
+        warningBaseline == null
+          ? `${warnings} (no baseline)`
+          : `${warnings} vs baseline ${warningBaseline}${
+              warningDrift ? ` (+${warnings - warningBaseline} drift → rebaseline at release)` : ""
+            }`,
+    },
+  ];
 }
 
 /** Pull the cognitive-complexity violation count from the gate's output. */
@@ -451,16 +502,19 @@ async function main() {
 
   // ESLint: ONE pass → errors (hard) + warnings (drift)
   {
-    announce("ESLint (errors + warnings — ~5-15min)");
+    announce("ESLint (errors + warnings — ~15-45min)");
     // Suppressions-aware, matching `npm run lint` (Pacote 4 no-new-warnings): the frozen
     // pre-existing debt in config/quality/eslint-suppressions.json must not count as
-    // errors here — only NET-NEW violations are release reds. Timeout raised: a full
-    // repo pass takes ~14min alone and this pre-flight often runs alongside test suites.
-    const { out } = run(
+    // errors here — only NET-NEW violations are release reds. The cold release runner can
+    // exceed 30 minutes as the repository grows, and this pre-flight often runs under load.
+    const lintRun = run(
       "npx",
       [
         "eslint",
         ".",
+        "--cache",
+        "--cache-location",
+        ".eslintcache",
         "--format",
         "json",
         "--suppressions-location",
@@ -471,39 +525,16 @@ async function main() {
         // reason alone, which used to mask the real `--format json` report (#7837).
         "--pass-on-unpruned-suppressions",
       ],
-      { timeout: 30 * 60 * 1000 }
+      // The cold release runner crossed the old 30-minute ceiling as the repository grew,
+      // then the timeout text was misreported as invalid JSON. Keep a real upper bound, but
+      // leave enough headroom for the same full-tree walk that completes immediately after it
+      // under the complexity config on that runner.
+      { timeout: ESLINT_TIMEOUT_MS }
     );
+    const { out } = lintRun;
     saveGateLog("lint", out);
-    const parsed = parseEslintJson(out);
-    if (!parsed) {
-      record({
-        id: "lint",
-        label: "ESLint",
-        kind: "hard",
-        ok: false,
-        detail: "could not parse eslint json",
-      });
-    } else {
-      const { errors, warnings } = eslintCounts(parsed);
-      record({
-        id: "lint-errors",
-        label: "ESLint errors",
-        kind: "hard",
-        ok: errors === 0,
-        detail: `${errors} error(s)`,
-      });
-      const base = baselineValue("eslintWarnings");
-      const over = isDrift(warnings, base);
-      record({
-        id: "eslint-warnings",
-        label: "ESLint warnings (ratchet)",
-        kind: "drift",
-        ok: !over,
-        detail:
-          base == null
-            ? `${warnings} (no baseline)`
-            : `${warnings} vs baseline ${base}${over ? ` (+${warnings - base} drift → rebaseline at release)` : ""}`,
-      });
+    for (const result of evaluateEslintRun(lintRun, baselineValue("eslintWarnings"))) {
+      record(result);
     }
   }
 
@@ -638,7 +669,8 @@ async function main() {
         // forever) into a visible failure — survives at 100min.
         // Measured on idle .113: unavailable (checkout not found). Tightened to 80min from 100min as a conservative step. TODO: re-measure on idle .113 and tighten to ~1.8× measured.
         id: "unit",
-        label: "Unit tests (full suite, CI concurrency — ~30-50min idle, up to ~80min under load (awaiting idle .113 measurement, #9532))",
+        label:
+          "Unit tests (full suite, CI concurrency — ~30-50min idle, up to ~80min under load (awaiting idle .113 measurement, #9532))",
         args: ["run", "test:unit:ci"],
         timeout: 80 * 60 * 1000,
       },
