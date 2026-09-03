@@ -46,6 +46,9 @@ const commits = blocks.map(b => {
     })
   );
   const wClass = noteMatch ? noteMatch[1].toUpperCase() : (trailer['W-class'] || 'unclassified');
+  // PR-target from git notes (refs/notes/prtarget) or body trailer.
+  const prNote = sh(`git notes --ref=prtarget show ${sha} 2>/dev/null`).trim();
+  const prTarget = prNote || trailer['PR-target'] || null;
   // Files changed.
   const files = sh(`git show --name-only --pretty='' ${sha}`).split('\n').filter(Boolean);
   return {
@@ -53,7 +56,7 @@ const commits = blocks.map(b => {
     author, date, subject,
     files,
     wClass,
-    prTarget: trailer['PR-target'] || null,
+    prTarget,
     portable: wClass === 'P',
     forkOnly: wClass === 'F',
     blocking: wClass === 'B',
