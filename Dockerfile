@@ -55,6 +55,17 @@ ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 # are reproducible.
 RUN test -f package-lock.json \
   || (echo "package-lock.json is required for reproducible Docker builds" >&2 && exit 1)
+# Pin the upstream bogdanfinn/tls-client native binary to a known-good version.
+# Trivy gates every release on zero CRITICAL CVEs in the prebuilt .so/.dylib;
+# the postinstall fetches the version requested here. Bump deliberately when
+# upstream ships a security release (currently 1.16.0 — fixes CVE-2025-68121 in
+# the Go stdlib 1.24.1 that shipped with 1.15.x; see issue #12084).
+ARG TLS_CLIENT_VERSION=1.16.0
+ENV TLS_CLIENT_VERSION=${TLS_CLIENT_VERSION}
+# Clear any cached .so/.dylib from a previous build that may pin a vulnerable
+# version, otherwise the postinstall short-circuits at "binary already exists"
+# and we ship a stale CVE-bearing binary.
+RUN find node_modules/tls-client-node/bin -type f \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) -delete || true
 RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
   npm ci --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
   && (cd node_modules/better-sqlite3 \
@@ -62,7 +73,12 @@ RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
   && node -e "require('better-sqlite3')(':memory:').close()" \
   && node node_modules/tls-client-node/scripts/postinstall.js \
   && (test -n "$(find node_modules/tls-client-node/bin -mindepth 1 -print -quit 2>/dev/null)" \
-      || (echo "tls-client-node native binary missing after postinstall — GitHub API fetch likely rate-limited or failed (#7802)" >&2 && exit 1))
+      || (echo "tls-client-node native binary missing after postinstall — GitHub API fetch likely rate-limited or failed (#7802)" >&2 && exit 1)) \
+  && (find node_modules/tls-client-node/bin -type f \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) -printf '%f\n' \
+      | grep -q "${TLS_CLIENT_VERSION}" \
+      || (echo "tls-client binary version mismatch: expected ${TLS_CLIENT_VERSION} in bin/, got:" \
+          && find node_modules/tls-client-node/bin -type f \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) -printf '%f\n' \
+          && exit 1))
 
 # Build with Turbopack (stable in Next 16, the repo default). The v3.8.27-era
 # TurbopackInternalError panic ("entered unreachable code: there must be a path to a
