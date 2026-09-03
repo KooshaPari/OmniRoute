@@ -1,0 +1,168 @@
+name: Release rollback (manual)
+
+# W9.25 - manually-triggered rollback for a broken release. Runs Path A of
+# docs/operations/RELEASE_ROLLBACK.md. Idempotent at every step. Requires
+# a maintainer to invoke (workflow_dispatch) and supply the broken and good
+# versions.
+on:
+  workflow_dispatch:
+    inputs:
+      broken_version:
+        description: "Broken version to demote (e.g. 3.8.50)"
+        required: true
+        type: string
+      good_version:
+        description: "Good version to re-promote (e.g. 3.8.49)"
+        required: true
+        type: string
+      good_digest_base:
+        description: "sha256:... of the good runner-base image (from green run log)"
+        required: true
+        type: string
+      good_digest_web:
+        description: "sha256:... of the good runner-web image (from green run log)"
+        required: false
+        type: string
+      confirm:
+        description: "Type ROLLBACK to confirm (safety interlock)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write    # for ghcr.io image re-tag
+  id-token: write    # for npm OIDC if we choose to use it
+  # npm publish is NOT in this list on purpose — this workflow must NEVER
+  # publish a new version, only repoint dist-tags.
+
+concurrency:
+  # Two rollbacks racing is dangerous. Serialize.
+  group: release-rollback
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    if: inputs.confirm == 'ROLLBACK'
+    runs-on: ubuntu-latest
+    env:
+      BROKEN: ${{ inputs.broken_version }}
+      GOOD: ${{ inputs.good_version }}
+      GOOD_DIGEST_BASE: ${{ inputs.good_digest_base }}
+      GOOD_DIGEST_WEB: ${{ inputs.good_digest_web }}
+      PKG: '@kooshapari/omniroute'
+      IMAGE: kooshapari/omniroute
+      GHCR_IMAGE: ghcr.io/kooshapari/omniroute
+    steps:
+      - name: Print plan
+        run: |
+          {
+            echo "## Rollback plan"
+            echo ""
+            echo "| Field | Value |"
+            echo "|-------|-------|"
+            echo "| Broken version | \`${BROKEN}\` → demote to \`historic\` |"
+            echo "| Good version | \`${GOOD}\` → promote to \`latest\` |"
+            echo "| Base image digest | \`${GOOD_DIGEST_BASE}\` |"
+            echo "| Web image digest | \`${GOOD_DIGEST_WEB:-<unchanged>}\` |"
+            echo "| Run | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: npm — confirm good version exists on registry
+        run: |
+          set -euo pipefail
+          PUBLISHED="$(npm view "${PKG}@${GOOD}" version 2>/dev/null || true)"
+          if [ "$PUBLISHED" != "$GOOD" ]; then
+            echo "::error::${PKG}@${GOOD} not found on npm. Cannot roll back." >&2
+            exit 1
+          fi
+          echo "✅ ${PKG}@${GOOD} confirmed on registry"
+
+      - name: npm — demote broken, promote good
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Demote broken to historic so it stays installable but not @latest.
+          npm dist-tag add "${PKG}@${BROKEN}" historic || \
+            echo "::warning::${PKG}@${BROKEN} not on registry (probably never published) — skipping demote"
+          # Promote good to latest. This is the actual rollback.
+          npm dist-tag add "${PKG}@${GOOD}" latest
+          echo "✅ npm dist-tag latest → ${GOOD}"
+
+      - name: Docker — re-tag :latest to the good digest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Docker Hub
+          docker buildx imagetools create \
+            -t "${IMAGE}:latest" \
+            "${IMAGE}@${GOOD_DIGEST_BASE}"
+          # GHCR
+          docker buildx imagetools create \
+            -t "${GHCR_IMAGE}:latest" \
+            "${GHCR_IMAGE}@${GOOD_DIGEST_BASE}"
+          echo "✅ Docker :latest re-tagged to ${GOOD_DIGEST_BASE}"
+
+      - name: GitHub Release — banner the broken release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="v${BROKEN}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            BANNER="> ⛔ ROLLED BACK at $(date -u +%Y-%m-%dT%H:%M:%SZ) — use v${GOOD}"
+            # Prepend the banner to the existing notes; never overwrite.
+            NOTES="$(gh release view "$TAG" --json body -q .body)"
+            gh release edit "$TAG" --notes "${BANNER}\n\n---\n\n${NOTES}"
+            echo "✅ Banner added to ${TAG}"
+          else
+            echo "::notice::Release ${TAG} not found — skipping banner"
+          fi
+
+      - name: Verify
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="$(npm view "${PKG}@latest" dist-tags.latest 2>/dev/null || true)"
+          if [ "$TAG" = "$GOOD" ]; then
+            echo "✅ npm @latest = ${GOOD} (matches expected)"
+          else
+            echo "::error::npm @latest = ${TAG:-<unset>}, expected ${GOOD}" >&2
+            exit 1
+          fi
+          # Docker Hub manifest check.
+          if docker buildx imagetools inspect "${IMAGE}:latest" --raw 2>/dev/null \
+            | grep -q "${GOOD_DIGEST_BASE#sha256:}"; then
+            echo "✅ Docker :latest manifest references ${GOOD_DIGEST_BASE}"
+          else
+            echo "::error::Docker :latest does not reference ${GOOD_DIGEST_BASE}" >&2
+            exit 1
+          fi
+
+      - name: Open incident doc stub
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TITLE="[incident] rollback v${BROKEN} → v${GOOD}"
+          BODY=$(cat <<'ENDOFINCIDENT'
+          ## Summary
+
+          - **Broken:** v${BROKEN}
+          - **Promoted:** v${GOOD}
+          - **Rolled back at:** $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          - **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          ## Next steps
+
+          - [ ] Fill in the timeline
+          - [ ] Root cause analysis
+          - [ ] Action items assigned
+          - [ ] Postmortem published (see docs/incidents/TEMPLATE.md)
+          ENDOFINCIDENT
+          )
+          gh issue create --title "$TITLE" --body "$BODY" --label "incident,postmortem-action" \
+            || echo "::warning::could not open incident issue (label may not exist yet)"

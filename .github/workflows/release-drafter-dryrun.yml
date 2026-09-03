@@ -1,0 +1,55 @@
+name: release-drafter (dry-run on PR)
+
+# W9.19 — run release-drafter in dry-run mode on every PR open/sync.
+# If the .github/release-drafter.yml template has a syntax error, or if the
+# PR's labels produce a broken changelog, we surface it HERE rather than
+# at release time, when a tag has already shipped.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read  # to read PR labels for the dry-run
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
+
+      - name: Validate release-drafter config syntax
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/rd
+          # release-drafter ships a CLI. --dry-run writes the generated body
+          # to RELEASE_TEMPLATE.md and exits 0. On config/template error it
+          # exits non-zero; stderr shows what went wrong.
+          if npx --yes release-drafter@5.7.5 --dry-run >/tmp/rd/CHANGELOG.md 2>/tmp/rd/stderr; then
+            bytes=$(wc -c </tmp/rd/CHANGELOG.md)
+            echo "✅ release-drafter dry-run ok (${bytes} bytes drafted for next release)"
+          else
+            echo "::error title=release-drafter dry-run failed::config or template error — check CI logs"
+            echo "--- stderr ---"
+            cat /tmp/rd/stderr || true
+            echo "--- stdout (partial) ---"
+            head -20 /tmp/rd/CHANGELOG.md || true
+            echo "--- .github/release-drafter.yml ---"
+            cat .github/release-drafter.yml || true
+            exit 1
+          fi
+
+      - name: Upload draft changelog artifact
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: release-drafter-dryrun-${{ github.event.pull_request.number || 'manual' }}
+          path: /tmp/rd/
+          if-no-files-found: warn
+          retention-days: 7
