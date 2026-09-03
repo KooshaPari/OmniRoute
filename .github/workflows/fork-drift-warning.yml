@@ -1,0 +1,120 @@
+name: Fork Drift Warning
+
+# W1.13 — Warn (not block) when the local fork drifts too far ahead of upstream.
+#
+# The fork's strategic value depends on staying mergeable. >10 commits ahead
+# means rebase pain, >25 means a "gh fork-rebase" style rebase is overdue.
+# This workflow fires a soft warning on the PR/merge UI when those thresholds
+# are crossed, but never blocks — that's the rebase-cadence doc's job.
+
+on:
+  schedule:
+    # Daily at 14:00 UTC (off-peak for the other nightlies, which fire 03:00,
+    # 05:23, 06:00, 07:00).
+    - cron: "0 14 * * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-drift:
+    name: Count commits ahead of upstream/main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5f3643e0a07ce4d2c8b4e2c6b3b0  # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Fetch upstream
+        run: git fetch --depth=200 upstream main 2>&1 || echo "::warning::upstream fetch failed; skipping drift check"
+
+      - name: Compute commits-ahead
+        id: count
+        run: |
+          set -euo pipefail
+          if ! git rev-parse upstream/main >/dev/null 2>&1; then
+            echo "::warning::upstream/main not available; skipping"
+            echo "ahead=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          AHEAD=$(git rev-list --count upstream/main..main || echo 0)
+          BEHIND=$(git rev-list --count main..upstream/main || echo 0)
+          echo "ahead=$AHEAD" >> "$GITHUB_OUTPUT"
+          echo "behind=$BEHIND" >> "$GITHUB_OUTPUT"
+          echo "Commits ahead: $AHEAD  ·  behind: $BEHIND"
+
+      - name: Open drift warning at 10+
+        if: steps.count.outputs.ahead >= 10
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AHEAD: ${{ steps.count.outputs.ahead }}
+          BEHIND: ${{ steps.count.outputs.behind }}
+        run: |
+          set -euo pipefail
+          TITLE="⚠️ Fork drift: $AHEAD commits ahead of upstream/main"
+          BODY=$(cat <<EOF
+          Automated drift warning (W1.13).
+
+          - Commits ahead of upstream/main: **$AHEAD**
+          - Commits behind upstream/main: **$BEHIND**
+
+          The fork's rebase-cadence policy (see UPSTREAM.md) recommends rebasing at
+          every 5-10 ahead or weekly, whichever comes first. Above 10 the merge
+          conflict surface gets uncomfortable.
+
+          Recommended actions:
+          1. \`git fetch upstream && git rebase upstream/main\`
+          2. Resolve conflicts (most are in \`target/\` and \`docs-site/\`; consider
+             \`.gitignore\` cleanup first)
+          3. Push the rebased branch and re-run CI
+
+          _Triggered by \`.github/workflows/fork-drift-warning.yml\` on every push
+          to \`main\` and daily at 14:00 UTC._
+          EOF
+          )
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title $TITLE" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body "$BODY"
+            echo "Updated issue #$EXISTING"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY"
+          fi
+
+      - name: Open CRITICAL drift warning at 25+
+        if: steps.count.outputs.ahead >= 25
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AHEAD: ${{ steps.count.outputs.ahead }}
+        run: |
+          set -euo pipefail
+          TITLE="🛑 Fork drift CRITICAL: $AHEAD commits ahead of upstream/main"
+          BODY=$(cat <<EOF
+          **CRITICAL drift threshold (W1.13).** The fork is $AHEAD commits ahead
+          of upstream/main — a rebase at this point is high-risk and likely
+          requires manual intervention.
+
+          Recommended actions:
+          1. Schedule a rebase window (typically weekend / off-hours)
+          2. \`git rebase --interactive upstream/main\` to clean up the commit history
+          3. Consider rebasing on a release branch (\`release/vX.Y.Z\`) instead of \`main\`
+             to reduce the live conflict surface
+          4. Audit \`bin/upstream-intel.mjs\` output for upstream PRs we should
+             adopt instead of forking
+
+          _This is a soft warning, not a block. The fork remains usable but
+          maintenance cost is rising. See UPSTREAM.md for the full policy._
+          EOF
+          )
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title $TITLE" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body "$BODY"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --label "drift,priority:high" --body "$BODY"
+          fi
