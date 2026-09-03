@@ -334,6 +334,14 @@ jobs:
         run: |
           docker buildx imagetools inspect "${IMAGE_NAME}:${VERSION}"
 
+      - name: Attest build provenance (Docker image, SLSA L3)
+        if: needs.prepare.outputs.version != 'main'
+        uses: actions/attest-build-provenance@b637a0b413edcf3a5b95e4fb1cf1ddd5c98184b0  # yamllint disable-line rule:line-length
+        with:
+          subject-name: ${{ env.GHCR_IMAGE_NAME }}
+          subject-digest: sha256:${{ github.sha }}
+          push-to-registry: true
+
       - name: Generate CycloneDX SBOM (image, advisory)
         if: needs.prepare.outputs.version != 'main'
         continue-on-error: true
