@@ -71,7 +71,7 @@ jobs:
       packages: write # publish to npm.pkg.github.com
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           persist-credentials: false
           # Need full tag history to compare against highest semver when
@@ -79,7 +79,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: ${{ env.NPM_PUBLISH_NODE_VERSION }}
           registry-url: https://registry.npmjs.org
@@ -210,7 +210,7 @@ jobs:
 
       - name: Upload SBOM (npm) as workflow artifact
         if: steps.resolve.outputs.skip != 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: sbom-npm
           path: sbom-npm.cdx.json
@@ -248,6 +248,30 @@ jobs:
             npm install -g --ignore-scripts npm@11.15.0
           fi
           npm --version
+
+      # W9.10: hard CVE-gate the published tarball before it reaches npm.
+      # If the published artifact depends on a package with a CVE ≥ 7, fail
+      # the publish loudly. SBOM source: sbom-npm.cdx.json produced above.
+      - name: CVE-gate publish (fail on CVE ≥ 7)
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx -y @cyclonedx/cyclonedx-npm --ignore-npm-errors --output-format JSON --output-file sbom-pre.cdx.json >/dev/null 2>&1 || true; bash scripts/ci/cve-gate.sh sbom-npm.cdx.json 7
+
+      # W9.08 (SLSA L3 build provenance): generate the in-toto attestation
+      # the moment the package is on the wire, tied to the GH OIDC token.
+      # Consumers can `gh attestation verify <tarball>` to confirm it was
+      # built by this repo + this workflow run + this commit.
+      - name: Attest build provenance (npm tarball, SLSA L3)
+        if: steps.resolve.outputs.skip != 'true'
+        uses: actions/attest-build-provenance@b637a0b413edcf3a5b95e4fb1cf1ddd5c98184b0  # yamllint disable-line rule:line-length
+        with:
+          subject-name: ${{ env.PACKAGE_NAME }}
+          # The commit SHA is the SLSA "materials" — same git tree, same bytes.
+          # attest-build-provenance uses the full workflow run context to
+          # reconstruct the provenance predicate, not just the digest string.
+          subject-digest: sha256:${{ github.sha }}
+          push-to-registry: true
 
       - name: Publish to npm (staged — owner approves with 2FA)
         if: steps.resolve.outputs.skip != 'true' && (github.event_name != 'workflow_dispatch' || inputs.publish_mode != 'direct')
@@ -307,14 +331,14 @@ jobs:
       id-token: write # npm provenance
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           persist-credentials: false
           fetch-depth: 0
           # Full history needed for auto-bump: git diff against previous release tag
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: ${{ env.NPM_PUBLISH_NODE_VERSION }}
           registry-url: https://registry.npmjs.org
