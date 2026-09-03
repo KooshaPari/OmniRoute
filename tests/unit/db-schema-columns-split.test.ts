@@ -136,6 +136,8 @@ test("ensureProviderConnectionsColumns restores base columns required by later m
 
     assert.equal(hasColumn(db, "provider_connections", "provider_specific_data"), true);
     assert.equal(hasColumn(db, "provider_connections", "default_model"), true);
+    assert.equal(hasColumn(db, "provider_connections", "last_ping_at"), true);
+    assert.equal(hasColumn(db, "provider_connections", "last_pinged_reset_key"), true);
     const columnsAfterFirstRun = getTableColumns(db, "provider_connections").sort();
     const indexesAfterFirstRun = (
       db.prepare("PRAGMA index_list(provider_connections)").all() as Array<{ name: string }>
@@ -159,6 +161,23 @@ test("ensureProviderConnectionsColumns restores base columns required by later m
       indexesAfterFirstRun
     );
     assert.deepEqual(warnings, []);
+  } finally {
+    db.close?.();
+  }
+});
+
+test("ensureProviderConnectionsColumns back-fills last_ping columns on a pre-123 lineage", () => {
+  const db = openMemoryDb();
+  try {
+    db.exec("CREATE TABLE provider_connections (id TEXT PRIMARY KEY, provider TEXT NOT NULL)");
+    assert.equal(hasColumn(db, "provider_connections", "last_ping_at"), false);
+    assert.equal(hasColumn(db, "provider_connections", "last_pinged_reset_key"), false);
+
+    ensureProviderConnectionsColumns(db);
+
+    assert.equal(hasColumn(db, "provider_connections", "last_ping_at"), true);
+    assert.equal(hasColumn(db, "provider_connections", "last_pinged_reset_key"), true);
+    assert.doesNotThrow(() => ensureProviderConnectionsColumns(db));
   } finally {
     db.close?.();
   }
