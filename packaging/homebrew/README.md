@@ -30,5 +30,5 @@ brew install omniroute
 Migrated from the standalone `KooshaPari/homebrew-omniroute` tap on
 2026-09-03 as part of monorepo consolidation. See
 `koosha-phenotype/docs/omniroute-integration/INTEGRATION_MANIFEST.md` for
-the decision and `repos/.archive/2026-09-03-monorepo-consolidation/` for
+the decision and `repos/zz-archive/2026-09-03-monorepo-consolidation/` for
 the archive.
