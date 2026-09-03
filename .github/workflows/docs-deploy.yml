@@ -1,0 +1,25 @@
+name: docs-deploy
+
+on:
+  push:
+    branches: [main]
+    paths: [".vitepress/**", "docs-site/**", "demo/**", ".github/workflows/docs-deploy.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile || bun install
+      - run: bun run docs:build
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs-site/.vitepress/dist
+          publish_branch: gh-pages
+          force_orphan: true
