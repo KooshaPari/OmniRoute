@@ -334,6 +334,17 @@ jobs:
         run: |
           docker buildx imagetools inspect "${IMAGE_NAME}:${VERSION}"
 
+      # W9.15: smoke-test the published image before any human ever pulls it.
+      # Boots the tag, hits /healthz 5s, asserts the container stays running.
+      # This catches the class of "image builds clean but won't start" bugs
+      # that the user has reported as 'nightly release errors' — a real
+      # published-image regression, not just a CI-green build.
+      - name: Smoke-test published image (boots, /healthz 5s)
+        if: needs.prepare.outputs.version != 'main'
+        env:
+          IMAGE: ${{ env.GHCR_IMAGE_NAME }}:${{ env.VERSION }}
+        run: bash scripts/ci/docker-smoke.sh "$IMAGE" /healthz 5
+
       - name: Attest build provenance (Docker image, SLSA L3)
         if: needs.prepare.outputs.version != 'main'
         uses: actions/attest-build-provenance@b637a0b413edcf3a5b95e4fb1cf1ddd5c98184b0  # yamllint disable-line rule:line-length
