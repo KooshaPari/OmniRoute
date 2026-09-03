@@ -5934,7 +5934,8 @@
     "kimiWebLabel": "Kimi Web",
     "kimiWebDesc": "Moonshot AI consumer chat via www.kimi.com (international, Connect-RPC API)",
     "doubaoWebLabel": "Doubao Web",
-    "doubaoWebDesc": "ByteDance AI chat via doubao.com"
+    "doubaoWebDesc": "ByteDance AI chat via doubao.com",
+    "antigravityClientProfileHarness": "Harness / CLI"
   },
   "settings": {
     "title": "Settings",
@@ -7484,7 +7485,15 @@
     "modelLockoutMaxBackoffSteps": "Max Backoff Steps",
     "modelLockoutMaxBackoffStepsDescription": "Maximum number of backoff steps before the cooldown stops growing. The Max Cooldown cap is reached first in most configurations, making this a safety ceiling for when Max Cooldown is raised.",
     "disableSessionStickiness": "Disable session stickiness",
-    "disableSessionStickinessDesc": "Round-robin and random combos rotate to a different connection on every request instead of pinning a whole conversation to one connection by the first-message hash. Leave off to preserve prompt-cache hits for multi-turn chats. Per-combo overrides take precedence."
+    "disableSessionStickinessDesc": "Round-robin and random combos rotate to a different connection on every request instead of pinning a whole conversation to one connection by the first-message hash. Leave off to preserve prompt-cache hits for multi-turn chats. Per-combo overrides take precedence.",
+    "compressionExclusionsTitle": "Compression Exclusions",
+    "compressionExclusionsDesc": "Model ids or provider/model patterns that must never be compressed. `*` is the only wildcard (e.g. `openai/*`, `*embedding*`). A matching request passes through byte-identical — no compression engine runs.",
+    "compressionExclusionsPlaceholder": "One pattern per line, e.g.\nopenai/text-embedding-3-large\nanthropic/*",
+    "compressionExclusionsSave": "Save",
+    "compressionExclusionsSaved": "Saved",
+    "compressionExclusionsCount": "{count, plural, one {# exclusion} other {# exclusions}} configured",
+    "compressionExclusionsEmpty": "No exclusions configured — every model/endpoint is eligible for compression (default behavior).",
+    "resetUsageDataDesc": "Select how far back you want to delete usage, request logs, and analytics data. Provider configuration, connections, API keys, combos, and settings are preserved. This action cannot be undone."
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9620,7 +9629,14 @@
     "successMessage": "Your {providerName} account has been connected.",
     "done": "Done",
     "error": "Connection failed",
-    "tryAgain": "Try again"
+    "tryAgain": "Try again",
+    "googleLoopbackTitle": "Google sign-in can't complete from this address",
+    "googleLoopbackWhatHappens": "Google only releases the authorization code once <code>{redirectUri}</code> is reachable from the browser that approves the sign-in. Here that address points at this computer, not at the OmniRoute server — so the consent screen hangs instead of redirecting, and there is no callback URL to copy.",
+    "googleLoopbackRecommended": "Recommended — run this on your own computer, then paste the result below:",
+    "googleLoopbackHelperNote": "It opens the Google consent locally (where 127.0.0.1 works) and prints a one-line omniroute-cred-v1.… blob. Paste that blob into the Step 2 field below — it accepts a credential blob as well as a callback URL.",
+    "googleLoopbackTunnelLabel": "Or forward the dashboard port over SSH and reload OmniRoute through the tunnel:",
+    "googleLoopbackTunnelNote": "Replace {userPlaceholder} with your SSH username, keep the terminal open, then open {localUrl} and connect again from there.",
+    "googleLoopbackHeadlessAlt": "For fully headless use with no local callback at all, <a>configure your own Google OAuth credentials</a> plus a public base URL."
   },
   "cursorAuthModal": {
     "title": "Connect Cursor IDE",
@@ -11281,5 +11297,8 @@
     "auth": "Auth",
     "feasibility": "Feasibility",
     "models": "Models"
+  },
+  "featureFlags": {
+    "ccDiscoveryAliasesEnvWarning": "Active via environment variable (EXPOSE_CC_DISCOVERY_ALIASES) — this overrides any dashboard toggle below."
   }
 }
