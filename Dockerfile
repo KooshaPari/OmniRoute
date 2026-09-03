@@ -112,6 +112,16 @@ RUN test -f package-lock.json \
 # `console.warn`s and exits 0 — so a rate-limited or offline build would
 # otherwise succeed silently with an empty bin/ and only fail at first request
 # in production (TlsClientUnavailableError, #7802). Run it explicitly here so
+# CVE-2025-68121 (Trivy CRITICAL, CVSS 9.8): the Go stdlib 1.24.1 that ships
+# with bogdanfinn/tls-client v1.15.1 contains an out-of-bounds slice read in
+# net/http. The postinstall.js below fetches 'latest' by default, which on
+# 2026-09-02 was still v1.15.1 — every build from a clean checkout silently
+# shipped the vulnerable binary. Pin to v1.16.0 (Go stdlib 1.24.7) explicitly
+# so the version is auditable and reproducible. Override via
+# --build-arg TLS_CLIENT_VERSION=1.16.0 (or a newer patch).
+ARG TLS_CLIENT_VERSION=1.16.0
+ENV TLS_CLIENT_VERSION=${TLS_CLIENT_VERSION}
+
 # a broken/rate-limited fetch fails the BUILD loudly instead of shipping a
 # broken image.
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm \
