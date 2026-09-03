@@ -54,7 +54,14 @@ concurrency:
   # long-running push that finally passes doesn't queue behind an earlier
   # one that's stuck on flaky CI.
   group: auto-release-${{ github.ref }}
-  cancel-in-progress: true
+  # FIX (W9.05, fork patch 2026-09-02): switched to `cancel-in-progress: false`
+  # to stop the previous run from being killed mid-publish — the npm dist-tag
+  # and GH release could land in a half-state, leaving the registry with a
+  # versioned package whose Docker image was never built. The CI-bottleneck
+  # scenario (a stuck run blocking subsequent ones) is handled below by
+  # setting a 30-minute timeout on each job; if a job really is stuck the
+  # timeout aborts it cleanly and the next run can proceed.
+  cancel-in-progress: false
 
 jobs:
   trigger:
