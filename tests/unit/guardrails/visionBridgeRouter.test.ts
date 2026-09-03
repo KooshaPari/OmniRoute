@@ -194,7 +194,7 @@ test("getBestVisionModel — revalidates a cached model against the current live
 });
 
 test("getBestVisionModel — accepts a registry model whose liveCatalogIds match upstream", async () => {
-  // #11754 retired ChatGPT Web (cgpt-web) after this test was authored — it was the
+  // #11754 retired the legacy ChatGPT Web implementation after this test was authored — it was the
   // only registry provider populating `liveCatalogIds` (curated ids whose public name
   // differs from the id sent upstream). No live provider currently uses that field, so
   // this exercises the same production predicate (createCatalogModelPredicate's
@@ -263,12 +263,12 @@ test("getFallbackModels — excludes fallbacks missing from an authoritative liv
 
 test("getFallbackModels — keeps registered effort variants backed by a live base model", async () => {
   const fallbacks = await getFallbackModels(
-    "cu/gpt-5.3-codex",
+    "cu/claude-fable-5-1-thinking-max",
     { maxFallbackAttempts: 6 },
-    authoritativeCatalogDeps("cu", () => ["gpt-5.3-codex"])
+    authoritativeCatalogDeps("cu", () => ["claude-fable-5-1"])
   );
 
-  assert.ok(fallbacks.includes("cu/gpt-5.3-codex-low"));
+  assert.ok(fallbacks.includes("cu/claude-fable-5-1-thinking-high"));
 });
 
 // ── recordLatency / getLatencyStats ─────────────────────────────────────────

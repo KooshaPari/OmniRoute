@@ -349,9 +349,6 @@ const nextConfig = {
     "keytar",
     "wreq-js",
     "zod",
-    "tls-client-node",
-    "koffi",
-    "tough-cookie",
     "@ngrok/ngrok",
     "@huggingface/transformers",
     // The ESM entry imports tiktoken_bg.wasm as a module. Turbopack can compile

@@ -8,6 +8,7 @@ import { useOrchestrationSnapshot } from "./hooks/useOrchestrationSnapshot";
 import { AgentsTab } from "./tabs/AgentsTab";
 import { RoutingTab } from "./tabs/RoutingTab";
 import { OverviewTab } from "./tabs/OverviewTab";
+import { HistoryTab } from "./tabs/HistoryTab";
 import { OrchestrationDrawer } from "./drawer/OrchestrationDrawer";
 import { OrchestrationToolbar } from "./OrchestrationToolbar";
 import { collectProviderKeys, filterSnapshot } from "./model/filterSnapshot";
@@ -15,7 +16,7 @@ import type { OrchFilter } from "./model/filterSnapshot";
 import { ORCH_STATES } from "./model/orchestrationTypes";
 import type { OrchSource, OrchState } from "./model/orchestrationTypes";
 
-const TABS = ["agents", "routing", "overview"] as const;
+const TABS = ["agents", "routing", "overview", "history"] as const;
 type Tab = (typeof TABS)[number];
 
 const VALID_STATES: ReadonlySet<OrchState> = new Set(ORCH_STATES);
@@ -44,6 +45,7 @@ const TAB_KEY: Record<Tab, string> = {
   agents: "tabAgents",
   routing: "tabRouting",
   overview: "tabOverview",
+  history: "tabHistory",
 };
 
 /**
@@ -137,10 +139,20 @@ export default function OrchestrationPageClient() {
     id.startsWith("overflow:")
       ? setParams({ tab: "overview", node: null })
       : setParams({ node: id });
+  // History renders its own local-state drawer (HistoryTab.tsx) over persisted runs that
+  // generally are not present in the live snapshot `?node=` resolves against — so switching to
+  // it must drop `?node=` (otherwise the page-level drawer below would still open once its tab
+  // becomes active again) and the page-level drawer itself must not render while History is
+  // active (it is a fixed overlay with an `inset-0` backdrop that would otherwise sit on top of
+  // the History grid, including on a deep link like `?tab=history&node=<id>`).
+  const onSelectTab = useCallback(
+    (tb: Tab) => setParams(tb === "history" ? { tab: tb, node: null } : { tab: tb }),
+    [setParams]
+  );
 
   return (
     <div className="flex flex-col h-[calc(100dvh-6rem)] min-h-[480px] p-4 gap-3">
-      <TabList tab={tab} t={t} onSelect={(tb) => setParams({ tab: tb })} />
+      <TabList tab={tab} t={t} onSelect={onSelectTab} />
       <div className="flex-1 min-h-0 flex flex-col gap-2">
         {(tab === "agents" || tab === "overview") && (
           <OrchestrationToolbar filter={filter} providerKeys={providerKeys} setParams={setParams} />
@@ -173,9 +185,12 @@ export default function OrchestrationPageClient() {
               onSeeInGraph={(id) => setParams({ tab: "agents", node: id })}
             />
           )}
+          {tab === "history" && <HistoryTab />}
         </div>
       </div>
-      <OrchestrationDrawer node={selectedNode} onClose={closeDrawer} onActionDone={refetch} />
+      {tab !== "history" && (
+        <OrchestrationDrawer node={selectedNode} onClose={closeDrawer} onActionDone={refetch} />
+      )}
     </div>
   );
 }

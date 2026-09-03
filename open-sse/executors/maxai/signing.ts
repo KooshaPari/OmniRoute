@@ -23,7 +23,7 @@
  * The non-secret STRUCTURAL fields (appVersion, ctxKey, header names) carry safe
  * defaults so a transient parse miss can't break an otherwise-working signer.
  */
-import { createHmac, createHash, createCipheriv, randomBytes } from "node:crypto";
+import { createHmac, createHash, createCipheriv, randomBytes, randomInt } from "node:crypto";
 import type { MaxaiSigningConstants, MaxaiHeaderNames } from "./constants.ts";
 import { MAXAI_DEFAULT_HEADER_NAMES } from "./constants.ts";
 
@@ -39,8 +39,22 @@ const BLANK_USER_ROUTES = new Set([
 
 const MAGIC = Buffer.from("Salted__", "ascii");
 
+/**
+ * The wire `X-Random` slot: a 6-digit decimal string (100000-999999).
+ *
+ * Uses `crypto.randomInt`, which rejection-samples internally, instead of
+ * `randomBytes(4) % 900000` — a plain modulo over a 32-bit draw does not divide
+ * evenly by 900000, so the low ~4772 values of the range came out marginally
+ * more often. The emitted shape is unchanged (always exactly 6 digits).
+ */
+export function maxaiRandomSlot(): string {
+  return String(randomInt(100000, 1000000));
+}
+
 function hmacSha1Hex(message: string, key: string): string {
-  return createHmac("sha1", Buffer.from(key, "utf8")).update(Buffer.from(message, "utf8")).digest("hex");
+  return createHmac("sha1", Buffer.from(key, "utf8"))
+    .update(Buffer.from(message, "utf8"))
+    .digest("hex");
 }
 
 function sm3Hex(message: string): string {
@@ -58,7 +72,9 @@ function evpBytesToKey(
   let block = Buffer.alloc(0);
   const pass = Buffer.from(passphrase, "utf8");
   while (derived.length < keyLen + ivLen) {
-    block = createHash("md5").update(Buffer.concat([block, pass, salt])).digest();
+    block = createHash("md5")
+      .update(Buffer.concat([block, pass, salt]))
+      .digest();
     derived = Buffer.concat([derived, block]);
   }
   return { key: derived.subarray(0, keyLen), iv: derived.subarray(keyLen, keyLen + ivLen) };
@@ -124,8 +140,7 @@ export function buildMaxaiSignedHeaders(
   constants: MaxaiSigningConstants
 ): Record<string, string> {
   const reqTime = (input.now ?? (() => Date.now()))();
-  const random =
-    input.random?.() ?? String((randomBytes(4).readUInt32BE(0) % 900000) + 100000);
+  const random = input.random?.() ?? maxaiRandomSlot();
   const h: MaxaiHeaderNames = { ...MAXAI_DEFAULT_HEADER_NAMES, ...constants.headerNames };
   const ctxKey = constants.ctxKey;
   const appVersion = constants.appVersion;

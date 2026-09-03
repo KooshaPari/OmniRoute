@@ -9,6 +9,7 @@ import {
   UC_DIRECT_IMAGE_URL,
 } from "../../open-sse/handlers/imageGeneration/providers/ucImage.ts";
 import { IMAGE_PROVIDERS, parseImageModel } from "../../open-sse/config/imageRegistry.ts";
+import { isUcClerkMintUrl } from "./helpers/ucClerkUrl.ts";
 
 // A valid PERSONA credential (durable Clerk cookie + sid + uid in psd). No API
 // key, so the handler takes the persona web path (mint -> POST -> poll).
@@ -144,7 +145,7 @@ function personaFetch(opts: {
   let pollsSeen = 0;
   return (async (url: string, init: RequestInit = {}) => {
     // 1) Clerk mint
-    if (url.includes("clerk.uncensored.com")) {
+    if (isUcClerkMintUrl(url)) {
       return {
         ok: true,
         status: 200,
@@ -265,7 +266,7 @@ test("handleUcImageGeneration (persona) times out with 504 when the result never
 
 test("handleUcImageGeneration (persona) surfaces a Clerk mint failure", async () => {
   const fetchImpl = (async (url: string) => {
-    if (url.includes("clerk.uncensored.com")) {
+    if (isUcClerkMintUrl(url)) {
       return {
         ok: false,
         status: 401,

@@ -110,8 +110,9 @@ test("shared guard keeps retired Qwen Web ids reserved after registry removal", 
   assert.equal(isReservedProviderPrefix("\u00a0QW\uFEFF"), true);
 });
 
-test("retired ChatGPT Web ids remain permanently reserved without capturing Codex variants", () => {
-  for (const prefix of ["chatgpt-web", "cgpt-web", " ChatGPT-Web ", "CGPT-WEB"]) {
+test("clean-room ChatGPT Web and its retired alias stay reserved without capturing Codex variants", () => {
+  assert.equal(isReservedProviderPrefix("chatgpt-web"), true);
+  for (const prefix of ["cgpt-web", " CGPT-Web ", "CGPT-WEB"]) {
     assert.equal(isReservedProviderPrefix(prefix), true, `${prefix} must stay reserved`);
   }
   assert.equal(buildReservedPrefixes().has("chatgpt-web"), true);
@@ -121,11 +122,12 @@ test("retired ChatGPT Web ids remain permanently reserved without capturing Code
     assert.equal(isReservedProviderPrefix(prefix), true, `${prefix} remains a live built-in`);
     assert.equal(isCommonChatGptWebRetiredProviderId(prefix), false);
   }
+  assert.equal(isReservedProviderPrefix("ChatGPT-Web"), false);
   assert.equal(isReservedProviderPrefix("chatgpt-web-preview"), false);
   assert.equal(isCommonChatGptWebRetiredProviderId("chatgpt-web-preview"), false);
 });
 
-test("mixed-case retired ChatGPT Web prefixes are never advertised as compatible nodes", async () => {
+test("mixed-case legacy aliases stay retired while live ids retain case-sensitive semantics", async () => {
   for (const [index, prefix] of ["ChatGPT-Web", "CGPT-WEB"].entries()) {
     const id = `openai-compatible-retired-prefix-${index}`;
     await providerNodesDb.createProviderNode({
@@ -139,10 +141,10 @@ test("mixed-case retired ChatGPT Web prefixes are never advertised as compatible
   }
 
   const index = await getProviderPrefixIndex();
-  for (const prefix of ["ChatGPT-Web", "CGPT-WEB"]) {
-    assert.equal(index.entries.get(prefix)?.status, "reserved");
-    assert.equal(index.prefixToNode.has(prefix), false);
-  }
+  assert.equal(index.entries.get("ChatGPT-Web")?.status, "unique");
+  assert.equal(index.prefixToNode.has("ChatGPT-Web"), true);
+  assert.equal(index.entries.get("CGPT-WEB")?.status, "reserved");
+  assert.equal(index.prefixToNode.has("CGPT-WEB"), false);
 });
 
 test("shared set is case-sensitive like the runtime guard", () => {
@@ -263,8 +265,8 @@ test("provider node schemas reject retired Qwen Web prefixes and normalized vari
   }
 });
 
-test("provider-node schemas reject both retired common ChatGPT Web prefixes", () => {
-  for (const prefix of ["chatgpt-web", "cgpt-web", "CHATGPT-WEB"]) {
+test("provider-node schemas reject the live canonical id and normalized retired alias", () => {
+  for (const prefix of ["chatgpt-web", "cgpt-web", "CGPT-WEB"]) {
     const createResult = createProviderNodeSchema.safeParse({
       name: "Retired provider shadow",
       prefix,
@@ -279,6 +281,14 @@ test("provider-node schemas reject both retired common ChatGPT Web prefixes", ()
     });
     assert.equal(updateResult.success, false, `update accepted ${prefix}`);
   }
+
+  const mixedCaseLiveId = createProviderNodeSchema.safeParse({
+    name: "Case-sensitive compatible node",
+    prefix: "ChatGPT-Web",
+    apiType: "chat",
+    baseUrl: "https://example.invalid/v1",
+  });
+  assert.equal(mixedCaseLiveId.success, true);
 });
 
 test("createProviderNodeSchema accepts mixed-case 'TokenRouter' (no runtime collision)", () => {

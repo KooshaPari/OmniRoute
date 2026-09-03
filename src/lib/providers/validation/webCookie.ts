@@ -6,6 +6,7 @@ import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts
 import { extractZaiToken } from "@omniroute/open-sse/executors/zai-web.ts";
 import { normalizeBaseUrl } from "./urlHelpers";
 import { STANDARD_USER_AGENT, buildBearerHeaders } from "./headers";
+import { validateChatGptWebProvider } from "./chatgptWeb";
 import {
   validationRead,
   toValidationErrorResult,
@@ -115,6 +116,7 @@ export async function validateWebCookieProvider({
   apiKey?: string;
   providerSpecificData?: Record<string, unknown>;
 }) {
+  if (provider === "chatgpt-web") return validateChatGptWebProvider({ apiKey });
   try {
     // For web-cookie providers, apiKey contains the cookie string
     const probe = resolveWebCookieProbe(provider, (apiKey || "").trim());

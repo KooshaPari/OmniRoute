@@ -842,6 +842,29 @@
       "stream": "https://api.chatanywhere.org/v1/chat/completions"
     }
   },
+  "chatgpt-web": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://chatgpt.com",
+      "stream": "https://chatgpt.com"
+    }
+  },
   "chatgpt-web-codex": {
     "format": "openai-responses",
     "headers": {
@@ -1194,7 +1217,7 @@
     }
   },
   "clova-studio": {
-    "format": "openai",
+    "format": "clova",
     "headers": {
       "apiKey": {
         "Accept": "text/event-stream",
@@ -1212,8 +1235,8 @@
       }
     },
     "url": {
-      "nonStream": "https://clovastudio.stream.ntruss.com/v1/openai/chat/completions",
-      "stream": "https://clovastudio.stream.ntruss.com/v1/openai/chat/completions"
+      "nonStream": "https://clovastudio.stream.ntruss.com/v3/chat-completions",
+      "stream": "https://clovastudio.stream.ntruss.com/v3/chat-completions"
     }
   },
   "codebuddy-cn": {

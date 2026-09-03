@@ -178,6 +178,8 @@ type StreamOptions = {
    * codex-compatible `namespace` + `name` fields.
    */
   requestToolIdentityMap?: Map<string, { namespace: string; name: string }> | null;
+  /** High water mark for the TransformStream internal buffer (default: 16384) */
+  highWaterMark?: number;
 };
 
 type TranslateState = ReturnType<typeof initState> & {
@@ -1172,6 +1174,8 @@ export function createSSEStream(options: StreamOptions = {}) {
       forward(controller, encoder.encode(output));
     }
   };
+
+  const highWaterMark = options.highWaterMark ?? 16384;
 
   return new TransformStream(
     {
@@ -2992,8 +2996,8 @@ export function createSSEStream(options: StreamOptions = {}) {
         clearIdleTimer();
       },
     },
-    { highWaterMark: 16384 },
-    { highWaterMark: 16384 }
+    { highWaterMark },
+    { highWaterMark }
   );
 }
 
@@ -3015,7 +3019,8 @@ export function createSSETransformStreamWithLogger(
   copilotCompatibleReasoning = false,
   suppressThinkClose = false,
   customToolNames: ReadonlySet<string> = new Set(),
-  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null
+  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null,
+  highWaterMark?: number
 ) {
   return createSSEStream({
     mode: STREAM_MODE.TRANSLATE,
@@ -3034,6 +3039,7 @@ export function createSSETransformStreamWithLogger(
     suppressThinkClose,
     customToolNames,
     requestToolIdentityMap,
+    highWaterMark,
   });
 }
 
@@ -3048,7 +3054,8 @@ export function createPassthroughStreamWithLogger(
   apiKeyInfo: unknown = null,
   onFailure: ((payload: StreamFailurePayload) => boolean | void | Promise<void>) | null = null,
   clientResponseFormat: string | null = null,
-  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null
+  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null,
+  highWaterMark?: number
 ) {
   return createSSEStream({
     mode: STREAM_MODE.PASSTHROUGH,
@@ -3063,6 +3070,7 @@ export function createPassthroughStreamWithLogger(
     onFailure,
     clientResponseFormat,
     requestToolIdentityMap,
+    highWaterMark,
   });
 }
 

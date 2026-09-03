@@ -90,6 +90,11 @@
       "configSource": "<custom-config>",
       "provider": "chatgpt-web-codex"
     },
+    "chatgpt-web": {
+      "className": "ChatGptWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "chatgpt-web"
+    },
     "chatgpt-web-codex": {
       "className": "ChatGptWebCodexExecutor",
       "configSource": "<custom-config>",
@@ -129,6 +134,11 @@
       "className": "CloudflarePlaygroundExecutor",
       "configSource": "<custom-config>",
       "provider": "cloudflare-playground"
+    },
+    "clova-studio": {
+      "className": "ClovaStudioExecutor",
+      "configSource": "clova-studio",
+      "provider": "clova-studio"
     },
     "cmd": {
       "className": "CommandCodeExecutor",
@@ -666,6 +676,6 @@
       "provider": "zai-web"
     }
   },
-  "keyCount": 133,
+  "keyCount": 135,
   "sharedInstances": []
 }

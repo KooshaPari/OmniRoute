@@ -12,6 +12,7 @@ import {
   computeMaxaiProof,
   maxaiAesEncrypt,
   buildMaxaiSignedHeaders,
+  maxaiRandomSlot,
 } from "../../open-sse/executors/maxai/signing.ts";
 import {
   assembleMaxaiContext,
@@ -103,7 +104,13 @@ test("computeMaxaiProof blanks the user id only on /oauth/* routes", () => {
   // A blank-user route yields a different proof than the same route with a uid,
   // proving the uid is dropped for /oauth/* (and only there).
   const t = 1784594159681;
-  const oauthWithUid = computeMaxaiProof("/oauth/signin_with_email", t, USER_ID, HMAC_KEY, APP_VERSION);
+  const oauthWithUid = computeMaxaiProof(
+    "/oauth/signin_with_email",
+    t,
+    USER_ID,
+    HMAC_KEY,
+    APP_VERSION
+  );
   const oauthNoUid = computeMaxaiProof("/oauth/signin_with_email", t, "", HMAC_KEY, APP_VERSION);
   assert.equal(oauthWithUid, oauthNoUid); // uid ignored for /oauth/*
   const chatWithUid = computeMaxaiProof("/gpt/cwc/chat", t, USER_ID, HMAC_KEY, APP_VERSION);
@@ -306,7 +313,28 @@ test("buildMaxaiSignedHeaders emits the X-App/X-Browser companions + X-Authoriza
   assert.equal(h["X-App-Version"], MOCK_APP_VERSION);
   assert.equal(h["X-App-Env"], "MaxAI-Browser-Extension");
   assert.ok(h["X-Authorization"].length > 0);
-  assert.equal(Buffer.from(h["X-Authorization"], "base64").subarray(0, 8).toString("ascii"), "Salted__");
+  assert.equal(
+    Buffer.from(h["X-Authorization"], "base64").subarray(0, 8).toString("ascii"),
+    "Salted__"
+  );
+});
+
+test("maxaiRandomSlot emits an unbiased 6-digit X-Random slot", () => {
+  // The wire slot is always exactly 6 decimal digits, i.e. 100000-999999.
+  const samples = Array.from({ length: 4000 }, () => maxaiRandomSlot());
+  for (const s of samples) {
+    assert.match(s, /^\d{6}$/, `X-Random must be 6 digits, got: ${s}`);
+    const n = Number(s);
+    assert.ok(n >= 100000 && n <= 999999, `X-Random out of range: ${s}`);
+  }
+  // Regression guard for the modulo bias the previous
+  // `randomBytes(4).readUInt32BE(0) % 900000` draw introduced: the value must
+  // still spread across the whole range, not collapse onto its low end.
+  assert.ok(new Set(samples).size > samples.length * 0.9, "X-Random must not repeat heavily");
+  assert.ok(
+    samples.some((s) => Number(s) < 550000) && samples.some((s) => Number(s) >= 550000),
+    "X-Random must cover both halves of the 100000-999999 range"
+  );
 });
 
 // ── Context assembly ─────────────────────────────────────────────────────────
@@ -364,7 +392,12 @@ test("contentToText flattens multipart content, dropping non-text parts", () => 
 });
 
 test("buildMaxaiChatBody pins field order + constants", () => {
-  const body = buildMaxaiChatBody({ conversationId: "conv-1", text: "hi", modelName: "gpt-5.6", appVersion: APP_VERSION });
+  const body = buildMaxaiChatBody({
+    conversationId: "conv-1",
+    text: "hi",
+    modelName: "gpt-5.6",
+    appVersion: APP_VERSION,
+  });
   const keys = Object.keys(body);
   assert.equal(keys[0], "chat_mode");
   assert.equal(keys[3], "message_content");
@@ -379,7 +412,12 @@ test("buildMaxaiChatBody pins field order + constants", () => {
 // ── Vision input (image_url parts) ───────────────────────────────────────────
 
 test("buildMaxaiChatBody text-only path is unchanged (no imageUrls)", () => {
-  const body = buildMaxaiChatBody({ conversationId: "c", text: "hi", modelName: "gpt-5.6", appVersion: APP_VERSION });
+  const body = buildMaxaiChatBody({
+    conversationId: "c",
+    text: "hi",
+    modelName: "gpt-5.6",
+    appVersion: APP_VERSION,
+  });
   // Byte-identical to the pre-vision shape: a single text part.
   assert.deepEqual(body.message_content, [{ type: "text", text: "hi" }]);
   assert.deepEqual(body.doc_list, []);
@@ -563,8 +601,7 @@ test("maxaiRefreshAccessToken sends the exact web-app request + parses data.acce
 
 test("maxaiRefreshAccessToken returns a structured error on non-200 (no throw)", async () => {
   const nowSec = Math.floor(Date.now() / 1000);
-  const fakeFetch = (async () =>
-    new Response("nope", { status: 418 })) as unknown as typeof fetch;
+  const fakeFetch = (async () => new Response("nope", { status: 418 })) as unknown as typeof fetch;
   const result = await maxaiRefreshAccessToken({
     refreshToken: fakeJwt(nowSec + 1000, USER_ID),
     deviceId: "dev",
@@ -687,7 +724,9 @@ test("verifyMaxaiEmailCode maps code 10119 to an expired-code message", async ()
 
 test("verifyMaxaiEmailCode defaults to an invalid-code message otherwise", async () => {
   const fakeFetch = (async () =>
-    new Response(JSON.stringify({ data: { status: "FAIL" } }), { status: 200 })) as unknown as typeof fetch;
+    new Response(JSON.stringify({ data: { status: "FAIL" } }), {
+      status: 200,
+    })) as unknown as typeof fetch;
   const r = await verifyMaxaiEmailCode({
     email: "x@y.z",
     code: "999999",
@@ -1009,10 +1048,9 @@ test("discoverMaxaiModels drops deprecated, non-chat, and non-curated models", a
 
 test("discoverMaxaiModels falls back to the catalog window when max_tokens is absent", async () => {
   const fakeFetch = (async () =>
-    new Response(
-      modelsConfigBody([{ model_name: "claude-5-sonnet", type: "chat" }]),
-      { status: 200 }
-    )) as unknown as typeof fetch;
+    new Response(modelsConfigBody([{ model_name: "claude-5-sonnet", type: "chat" }]), {
+      status: 200,
+    })) as unknown as typeof fetch;
   const { models } = await discoverMaxaiModels({
     providerSpecificData: DISCOVERY_CRED.providerSpecificData,
     accessToken: DISCOVERY_CRED.accessToken,

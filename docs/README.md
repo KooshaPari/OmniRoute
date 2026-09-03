@@ -79,6 +79,7 @@ Lookup material — API surface, environment variables, CLI flags, provider cata
 
 - [API_REFERENCE.md](reference/API_REFERENCE.md) — REST API endpoints and shapes.
 - [PROVIDER_REFERENCE.md](reference/PROVIDER_REFERENCE.md) — auto-generated provider catalog (do not edit by hand).
+- [REMOVED_PROVIDERS.md](reference/REMOVED_PROVIDERS.md) — providers removed at their operator's request; never reintroduce without written permission.
 - [PROVIDER_PLUGIN_MANIFEST.md](reference/PROVIDER_PLUGIN_MANIFEST.md) — sidecar-safe provider plugin contract for Bifrost and CLIProxyAPI migration.
 - [openapi.yaml](openapi.yaml) — OpenAPI spec for the public API.
 - [ENVIRONMENT.md](reference/ENVIRONMENT.md) — environment variables reference.
@@ -203,7 +204,7 @@ Mermaid sources and exported SVG/PNG diagrams referenced from the docs above. Se
 
 ## i18n/
 
-Translated mirrors of the documentation in 42 locales (plus the English originals — 43 languages in total). See [i18n/README.md](i18n/README.md) for the supported language list.
+Translated mirrors of the documentation in 41 locales (plus the English originals — 42 languages in total). See [i18n/README.md](i18n/README.md) for the supported language list.
 
 ## screenshots/
 

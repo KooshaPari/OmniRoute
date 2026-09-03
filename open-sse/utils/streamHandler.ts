@@ -629,7 +629,11 @@ function resolveSilentCloseOutcome(input: {
   return null;
 }
 
-export function createDisconnectAwareStream(transformStream, streamController) {
+export function createDisconnectAwareStream(
+  transformStream,
+  streamController,
+  options: { highWaterMark?: number } = {}
+) {
   const reader = transformStream.readable.getReader();
   const writer = transformStream.writable.getWriter();
   const terminalDecoder = new TextDecoder();
@@ -696,6 +700,8 @@ export function createDisconnectAwareStream(transformStream, streamController) {
       streamController.markClientTerminalSeen?.();
     }
   };
+
+  const highWaterMark = options.highWaterMark ?? 16384;
 
   return new ReadableStream(
     {
@@ -818,7 +824,7 @@ export function createDisconnectAwareStream(transformStream, streamController) {
         await Promise.allSettled([reader.cancel(reason), writer.abort(reason)]);
       },
     },
-    { highWaterMark: 16384 }
+    { highWaterMark }
   );
 }
 
@@ -845,7 +851,7 @@ export function pipeWithDisconnect(
   providerResponse: Response,
   transformStream: TransformStream<Uint8Array, Uint8Array>,
   streamController: StreamController,
-  opts: { stallTimeoutMs?: number } = {}
+  opts: { stallTimeoutMs?: number; highWaterMark?: number } = {}
 ) {
   const stallTimeoutMs = opts.stallTimeoutMs ?? DEFAULT_STREAM_STALL_TIMEOUT_MS;
 
@@ -854,7 +860,8 @@ export function pipeWithDisconnect(
     const transformedBody = providerResponse.body.pipeThrough(transformStream);
     return createDisconnectAwareStream(
       { readable: transformedBody, writable: createNoopAbortWritable() },
-      streamController
+      streamController,
+      { highWaterMark: opts.highWaterMark }
     );
   }
 
@@ -956,6 +963,7 @@ export function pipeWithDisconnect(
     .pipeThrough(transformStream);
   return createDisconnectAwareStream(
     { readable: transformedBody, writable: createNoopAbortWritable() },
-    wrappedController
+    wrappedController,
+    { highWaterMark: opts.highWaterMark }
   );
 }

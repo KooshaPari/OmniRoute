@@ -73,6 +73,12 @@ vi.mock("@/app/(dashboard)/dashboard/orchestration/drawer/OrchestrationDrawer", 
   },
 }));
 
+// HistoryTab fetches its own data on mount (see tests/unit/ui/orchestrationHistoryTab.test.tsx
+// for that behavior) — stubbed here so this page-level suite stays about URL/tab wiring only.
+vi.mock("@/app/(dashboard)/dashboard/orchestration/tabs/HistoryTab", () => ({
+  HistoryTab: () => <div data-testid="history-tab-stub" />,
+}));
+
 import OrchestrationPageClient from "@/app/(dashboard)/dashboard/orchestration/OrchestrationPageClient";
 
 function render(el: React.ReactElement) {
@@ -251,6 +257,55 @@ describe("OrchestrationPageClient", () => {
     const [url] = replaceMock.mock.calls[0];
     expect(url).toContain("tab=overview");
     expect(url).not.toContain("node=");
+    cleanup();
+  });
+
+  it("switching to the History tab while ?node= is set clears the param and does not render the page-level drawer", () => {
+    snapshot = {
+      nodes: [
+        { id: "orchestrator", kind: "orchestrator", label: "OmniRoute" },
+        {
+          id: "cloud-agent:1",
+          kind: "work",
+          source: "cloud-agent",
+          state: "running",
+          label: "task A",
+        },
+      ],
+      edges: [],
+      sources: [],
+      generatedAt: "x",
+    } as never;
+
+    searchState.current = "tab=agents&node=cloud-agent:1";
+    const { c, cleanup } = render(<OrchestrationPageClient />);
+    // Sanity: the page-level drawer is up before switching, open on the selected node.
+    expect((drawerCalls.at(-1) as { node: { id: string } | null }).node?.id).toBe(
+      "cloud-agent:1"
+    );
+
+    const historyTabButton = Array.from(c.querySelectorAll('[role="tab"]')).find(
+      (el) => el.textContent === "tabHistory"
+    ) as HTMLButtonElement;
+    expect(historyTabButton).toBeTruthy();
+    act(() => {
+      historyTabButton.click();
+    });
+
+    expect(replaceMock).toHaveBeenCalledTimes(1);
+    const [url] = replaceMock.mock.calls[0];
+    expect(url).toContain("tab=history");
+    expect(url).not.toContain("node=");
+    cleanup();
+  });
+
+  it("?tab=history (including a deep link with ?node= still present) never renders the page-level drawer", () => {
+    const drawerCallsBefore = drawerCalls.length;
+    searchState.current = "tab=history&node=cloud-agent:1";
+    const { c, cleanup } = render(<OrchestrationPageClient />);
+    expect(c.querySelector('[data-testid="history-tab-stub"]')).toBeTruthy();
+    expect(c.querySelector('[data-testid="drawer-stub"]')).toBeFalsy();
+    expect(drawerCalls.length).toBe(drawerCallsBefore);
     cleanup();
   });
 });

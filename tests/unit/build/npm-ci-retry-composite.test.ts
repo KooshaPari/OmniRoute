@@ -45,7 +45,7 @@ test("composite restores node_modules via actions/cache with an exact, fully-qua
     "scripts/build/postinstall.mjs",
     "scripts/build/postinstallSupport.mjs",
     "scripts/build/colocateOptionals.mjs",
-    "scripts/build/fixTlsClientNodeBinary.mjs",
+    "scripts/build/wreqJsNative.mjs",
     "scripts/build/fixPlaywrightAndroid.mjs",
     "scripts/build/native-binary-compat.mjs",
   ]) {

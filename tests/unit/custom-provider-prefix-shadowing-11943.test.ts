@@ -95,10 +95,14 @@ test("handleChat names the shadowed custom node when the built-in prefix has no 
     /prefix "of" is reserved by the built-in provider "openference"/,
     `runtime error must explain that the prefix resolved to the built-in, got: ${message}`
   );
-  assert.match(
-    message,
-    new RegExp(`"${SHADOWED_NODE_NAME.replace(/[()]/g, "\\$&")}" \\(${SHADOWED_NODE_ID}\\)`),
-    `runtime error must name the shadowed node and its id, got: ${message}`
+  // Exact substring, not a hand-escaped RegExp: the name carries regex
+  // metacharacters (parentheses) and the previous `.replace(/[()]/g, …)` escaped
+  // only those, so any other metachar in a future name would have been
+  // interpreted instead of matched literally (CodeQL js/incomplete-sanitization).
+  const expectedNodeMention = `"${SHADOWED_NODE_NAME}" (${SHADOWED_NODE_ID})`;
+  assert.ok(
+    message.includes(expectedNodeMention),
+    `runtime error must name the shadowed node and its id (${expectedNodeMention}), got: ${message}`
   );
   assert.match(message, /Rename that node's prefix/);
 });

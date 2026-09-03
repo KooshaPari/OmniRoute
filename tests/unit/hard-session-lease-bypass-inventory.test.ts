@@ -66,10 +66,11 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "open-sse/handlers/chatCore.ts": 3,
     "open-sse/handlers/chatCore/cliproxyModelMapping.ts": 1,
     "open-sse/handlers/chatCore/cliproxyapiCredentials.ts": 1,
-    // v3.8.51 #11754: the retired common ChatGPT Web's synthetic
+    // v3.8.51 #11754: the legacy common ChatGPT Web's synthetic
     // image-edit-continuation ChatGptWebExecutor.execute() call (the sole
     // executor.execute() site in this file) was removed with the provider;
-    // no executor site remains here.
+    // no executor site remains here. The clean-room restoration delegates
+    // through its adapter and does not reintroduce this bypass call site.
     // Gemini Web's own image handler+file (open-sse/handlers/imageGeneration/providers/geminiWeb.ts)
     // was already retired by #11708 (its .execute() site removed then too).
     "open-sse/handlers/videoGeneration.ts": 1,

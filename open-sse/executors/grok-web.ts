@@ -939,8 +939,8 @@ export class GrokWebExecutor extends BaseExecutor {
 
     // Fetch from Grok via TLS-impersonating client (#3180).
     // Grok sits behind Cloudflare Enterprise which rejects Node's native TLS
-    // fingerprint even with valid sso+sso-rw cookies. We use tls-client-node
-    // to send a Chrome-like handshake instead.
+    // fingerprint even with valid sso+sso-rw cookies. The pinned wreq-js
+    // transport sends a Chrome-like handshake instead.
     let tlsResult: TlsFetchResult;
     try {
       tlsResult = await tlsFetchGrok(GROK_CHAT_API, {

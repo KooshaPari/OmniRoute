@@ -139,14 +139,14 @@ test("image routes expose CORS preflight handlers", async () => {
   }
 });
 
-test("v1 image routes fail closed for retired common ChatGPT Web ids without network", async () => {
+test("v1 image routes fail closed for the retired ChatGPT Web alias without network", async () => {
   let fetchCalls = 0;
   globalThis.fetch = async () => {
     fetchCalls += 1;
     throw new Error("Retired image providers must not reach the network");
   };
 
-  for (const provider of ["chatgpt-web", "cgpt-web"]) {
+  for (const provider of ["cgpt-web"]) {
     const generationResponse = await imageRoute.POST(
       new Request("http://localhost/api/v1/images/generations", {
         method: "POST",
@@ -339,7 +339,7 @@ test("v1 image edit retirement takes precedence over API key policy", async () =
     throw new Error("Retired image providers must not reach the network");
   };
 
-  for (const provider of ["chatgpt-web", "cgpt-web"]) {
+  for (const provider of ["cgpt-web"]) {
     const response = await imageEditRoute.POST(
       new Request("http://localhost/api/v1/images/edits", {
         method: "POST",

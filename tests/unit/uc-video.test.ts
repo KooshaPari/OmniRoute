@@ -13,6 +13,7 @@ import {
   UC_DIRECT_VIDEO_URL,
 } from "../../open-sse/handlers/videoGeneration/providers/ucVideo.ts";
 import { VIDEO_PROVIDERS } from "../../open-sse/config/videoRegistry.ts";
+import { isUcClerkMintUrl } from "./helpers/ucClerkUrl.ts";
 
 // A valid PERSONA credential (durable Clerk cookie + sid + uid in psd). No API
 // key, so the handler takes the persona web path (mint -> generate -> poll).
@@ -148,7 +149,7 @@ function personaFetch(opts: {
   let pollsSeen = 0;
   return (async (url: string, init: RequestInit = {}) => {
     // Clerk mint
-    if (url.includes("clerk.uncensored.com")) {
+    if (isUcClerkMintUrl(url)) {
       return {
         ok: true,
         status: 200,
@@ -339,7 +340,7 @@ test("handleUcVideoGeneration (persona) times out with 504 when never ready", as
 
 test("handleUcVideoGeneration (persona) surfaces a Clerk mint failure", async () => {
   const fetchImpl = (async (url: string) => {
-    if (url.includes("clerk.uncensored.com")) {
+    if (isUcClerkMintUrl(url)) {
       return {
         ok: false,
         status: 401,

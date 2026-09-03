@@ -33,6 +33,15 @@ interface CachedSession {
   jwtExpiresAt: number; // unix ms
 }
 
+const SESSION_CACHE_MAX = 100;
+
+function evictOldest(cache: Map<string, CachedSession>): void {
+  if (cache.size >= SESSION_CACHE_MAX) {
+    const first = cache.keys().next().value;
+    if (first) cache.delete(first);
+  }
+}
+
 // Keyed by the first 32 chars of the stored __client JWT
 const sessionCache = new Map<string, CachedSession>();
 
@@ -44,11 +53,15 @@ function cachedJwt(clientJwt: string): string | null {
   const entry = sessionCache.get(cacheKey(clientJwt));
   if (!entry) return null;
   // Keep a 30-second buffer before expiry
-  if (Date.now() >= entry.jwtExpiresAt - 30_000) return null;
+  if (Date.now() >= entry.jwtExpiresAt - 30_000) {
+    sessionCache.delete(cacheKey(clientJwt));
+    return null;
+  }
   return entry.jwt;
 }
 
 function storeSession(clientJwt: string, sessionId: string, jwt: string, expMs: number): void {
+  evictOldest(sessionCache);
   sessionCache.set(cacheKey(clientJwt), { sessionId, jwt, jwtExpiresAt: expMs });
 }
 

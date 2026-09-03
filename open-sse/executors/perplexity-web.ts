@@ -501,7 +501,7 @@ export class PerplexityWebExecutor extends BaseExecutor {
         if (isCloudflareChallenge(response.text)) {
           errMsg =
             "Cloudflare blocked the request — Perplexity's edge rejected this server's TLS fingerprint " +
-            "(common on VPS/datacenter IPs). Ensure tls-client-node is installed with its native binary, " +
+            "(common on VPS/datacenter IPs). Verify the wreq-js 3.2 native binding, " +
             "or route perplexity-web through a residential proxy.";
           log?.error?.("PPLX-WEB", "Cloudflare challenge detected — TLS bypass failed");
         } else {

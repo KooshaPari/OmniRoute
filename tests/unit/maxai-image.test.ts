@@ -9,6 +9,7 @@ import {
 } from "../../open-sse/handlers/imageGeneration/providers/maxaiImage.ts";
 import { IMAGE_PROVIDERS } from "../../open-sse/config/imageRegistry.ts";
 import { __setMaxaiConstantsForTest } from "../../open-sse/executors/maxai/constantsStore.ts";
+import { MAXAI_BASE_URL } from "../../open-sse/executors/maxai/protocol.ts";
 import { MOCK_CONSTANTS } from "./helpers/maxaiMockConstants.ts";
 
 // Image generation signs like any request; seed the in-process constants memo
@@ -28,7 +29,9 @@ const CRED = {
 // --- Registry ------------------------------------------------------------
 
 test("maxai is registered in IMAGE_PROVIDERS with the maxai-image format + 6 models", () => {
-  const entry = (IMAGE_PROVIDERS as Record<string, { format?: string; baseUrl?: string; models?: unknown[] }>)["maxai"];
+  const entry = (
+    IMAGE_PROVIDERS as Record<string, { format?: string; baseUrl?: string; models?: unknown[] }>
+  )["maxai"];
   assert.ok(entry, "maxai must exist in IMAGE_PROVIDERS");
   assert.equal(entry.format, "maxai-image");
   assert.match(String(entry.baseUrl), /api\.maxai\.me\/gpt\/get_image_generate_response/);
@@ -93,7 +96,10 @@ test("handleMaxaiImageGeneration returns OpenAI image data on success", async ()
       ok: true,
       status: 200,
       async json() {
-        return { status: "OK", data: [{ png_url: "https://cdn/x.png", webp_url: "https://cdn/x.webp" }] };
+        return {
+          status: "OK",
+          data: [{ png_url: "https://cdn/x.png", webp_url: "https://cdn/x.webp" }],
+        };
       },
       async text() {
         return "";
@@ -111,8 +117,12 @@ test("handleMaxaiImageGeneration returns OpenAI image data on success", async ()
 
   assert.equal(result.success, true);
   assert.deepEqual(result.data?.data, [{ url: "https://cdn/x.png" }]);
-  // Hit the image endpoint with the signed body.
-  assert.match(capturedUrl, new RegExp(MAXAI_IMAGE_PATH.replace(/\//g, "\\/")));
+  // Hit the image endpoint with the signed body. Exact URL equality instead of a
+  // hand-escaped RegExp over the path — the old `.replace(/\//g, "\\/")` escaped
+  // only slashes (which need no escaping in a RegExp anyway) and would have let
+  // any other metacharacter through (CodeQL js/incomplete-sanitization), while
+  // also accepting the path appearing anywhere in a wrong URL.
+  assert.equal(capturedUrl, MAXAI_BASE_URL + MAXAI_IMAGE_PATH);
   assert.equal(capturedBody.model_name, "flux-1-schnell");
   assert.equal(capturedBody.size, "512x512"); // flux passes size through
   assert.equal(capturedBody.n, 2);

@@ -3,6 +3,20 @@
  * Pure data literal; re-exported by the providers.ts barrel. No behavior change.
  */
 export const WEB_COOKIE_PROVIDERS = {
+  "chatgpt-web": {
+    id: "chatgpt-web",
+    serviceKinds: ["llm"],
+    name: "ChatGPT Web (Clean Room)",
+    icon: "auto_awesome",
+    color: "#10A37F",
+    textIcon: "CG",
+    website: "https://chatgpt.com",
+    authHint:
+      "Paste Playwright-compatible storage-state JSON exported from a logged-in chatgpt.com browser context. Cookie headers and individual token values are not accepted.",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    toolCalling: "none",
+  },
   "chatgpt-web-codex": {
     id: "chatgpt-web-codex",
     serviceKinds: ["llm"],

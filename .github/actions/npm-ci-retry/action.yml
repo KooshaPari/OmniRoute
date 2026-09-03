@@ -35,7 +35,7 @@ runs:
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: node_modules
-        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.version }}-${{ hashFiles('package-lock.json', '.npmrc', 'scripts/build/postinstall.mjs', 'scripts/build/postinstallSupport.mjs', 'scripts/build/colocateOptionals.mjs', 'scripts/build/fixTlsClientNodeBinary.mjs', 'scripts/build/fixPlaywrightAndroid.mjs', 'scripts/build/native-binary-compat.mjs') }}
+        key: node-modules-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.version }}-${{ hashFiles('package-lock.json', '.npmrc', 'scripts/build/postinstall.mjs', 'scripts/build/postinstallSupport.mjs', 'scripts/build/colocateOptionals.mjs', 'scripts/build/wreqJsNative.mjs', 'scripts/build/fixPlaywrightAndroid.mjs', 'scripts/build/native-binary-compat.mjs') }}
 
     - name: npm ci (with retry)
       if: steps.node-modules.outputs.cache-hit != 'true'

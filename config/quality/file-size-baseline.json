@@ -1,4 +1,7 @@
 {
+  "_rebaseline_2026_09_02_12429_wreq_migration_suite": "PR #12429 (wreq-js web-cookie transport): new test file tests/unit/tls-client-wreq-migration.test.ts at 1374 lines, above the 1200 new-file testCap. Frozen rather than split: it is the single cohesive regression suite for the transport migration (31 cases covering streaming, fragmented EOF sentinels, proxy isolation, first-byte and hard deadlines, binary responses and cancellation), and the cases share the native-transport harness the file sets up once. Splitting it during a merge would duplicate that harness across files for no coverage gain. Entered at the exact LOC, so it can only ratchet down from here.",
+  "_rebaseline_2026_09_02_12239_chatgpt_web_cleanroom": "PR #12239 (backryun, codex/restore-chatgpt-web-cleanroom) own growth at the two existing chat chokepoints for the clean-room ChatGPT Web transport: src/sse/handlers/chat.ts 2384->2424 (+40); open-sse/handlers/chatCore.ts 5946->5976 (+30). Additive dispatch wiring; the retirement guard is narrowed to the GPL-derived cgpt-web alias rather than removed, so #11754's provenance decision still holds for the old implementation. Same own-growth rationale as _rebaseline_2026_08_20_10531_freebuff_provider.",
+  "_rebaseline_2026_09_02_12412_grok_web_prettier": "PR #12412 (repository Prettier style applied to tests/unit/grok-web.test.ts): the reformat expands the file +277 lines (2436 -> 2713) with an identical parsed AST — no production code, no assertion changes. Cap set to 2985 rather than the exact 2713 on the operator's instruction (2026-09-02): ~10% headroom so routine additions to this suite do not re-trip the gate on formatting alone. Previous cap 2437. This is a deliberate exception to the down-only ratchet for one reformatted test file; every other entry keeps the #12411 tightening.",
   "_rebaseline_2026_09_02_v3851_merged_growth_basereds": "Base-red drain: the 2026-09-02 merge waves (#12359-#12404, #11461, #11513, #12423) each grew a frozen file at an existing chokepoint, but the rebaseline was computed in the throwaway combined validation worktree and never reached any PR branch, so the growth landed while the caps did not and check-file-size went red on the release tip. Recorded here against the merged state: src/app/api/providers/[id]/models/route.ts 2429->2432 (#12389 gemini-business listing on top of #11461's 2429); src/app/api/v1/models/catalog.ts 2066->2075 (#12381 self-aliased canonical rows + #12403 NUL escape); src/lib/db/core.ts 1740->1745 (#12394 busy_timeout ordering + probe classification); src/sse/handlers/chat.ts 2375->2384 (#12360 breaker result classification + #12365 shadowed-node error); src/sse/services/auth.ts 3420->3427 (#12375 backoffLevel tie-break); open-sse/handlers/imageGeneration.ts 3255->3259 (#11513 uc-image branch + #12423 uc-image id scoping); open-sse/utils/proxyFetch.ts 1261->1271 (#12380 hasAmbientProxyContext()); tests/unit/image-generation-handler.test.ts 2110->2133 (#12362 regression coverage); tests/unit/sse-auth.test.ts 1697->1729 (#12375 regression coverage). No cap is raised beyond the merged LOC; every other entry is untouched.",
   "_rebaseline_2026_09_02_11513_uc_provider": "PR #11513 (arminanton, feat/uc-native-standalone) own growth: open-sse/handlers/imageGeneration.ts 3243->3255 (+12) — the uc-image format branch for the UC persona provider's image surface. Additive at the existing per-format chokepoint, same rationale as _rebaseline_2026_09_02_11461_maxai_tls_profile.",
   "_rebaseline_2026_09_02_11461_maxai_tls_profile": "PR #11461 (arminanton, feat/maxai-provider) own growth, three files at existing per-provider chokepoints: open-sse/utils/proxyFetch.ts 1241->1261 (+20, the TLS_PROVIDER_PROFILE map giving MaxAI a Windows/firefox_150 impersonation profile instead of the tlsClient chrome_124/macos default); open-sse/handlers/imageGeneration.ts 3231->3243 (+12, the maxai-image format branch); src/app/api/providers/[id]/models/route.ts 2381->2429 (+48, live model listing via maxaiModels). Additive data, same no-split rationale as _rebaseline_2026_08_20_10531_freebuff_provider.",
@@ -210,7 +213,7 @@
     "tests/unit/db-migration-runner.test.ts": 1509,
     "tests/unit/executor-codex.test.ts": 1465,
     "tests/unit/executor-default-base.test.ts": 1632,
-    "tests/unit/grok-web.test.ts": 2437,
+    "tests/unit/grok-web.test.ts": 2985,
     "tests/unit/image-generation-handler.test.ts": 2133,
     "tests/unit/models-catalog-route.test.ts": 1652,
     "tests/unit/perplexity-web.test.ts": 1384,
@@ -226,7 +229,8 @@
     "tests/unit/translator-openai-to-kiro.test.ts": 1275,
     "tests/unit/translator-resp-gemini-to-openai.test.ts": 1234,
     "tests/unit/usage-service-hardening.test.ts": 1487,
-    "tests/unit/vscode-token-routes.test.ts": 1267
+    "tests/unit/vscode-token-routes.test.ts": 1267,
+    "tests/unit/tls-client-wreq-migration.test.ts": 1374
   },
   "_rebaseline_2026_06_09": "Re-baseline consciente pre-release v3.8.19: 9 arquivos cresceram durante o ciclo (features mergeadas: RequestLoggerV2 +281 request-logger rework, stream +101, combo +73, chatCore +45, catalog +32 fable-5/catalog-flag, callLogs +4, accountFallback +2, usageHistory novo 840) + core.ts +7 (fix resetAllDbModuleState, PR 3536). A catraca segue valendo destes valores — proximo crescimento falha. Decisao: encolher (esp. RequestLoggerV2/chatCore) e a issue #3501 ficam para o ciclo seguinte.",
   "_rebaseline_2026_06_11_phase1f": "Phase 1f (#3501): ProviderDetailPageClient.tsx 4948→4062 (-886 LOC); 3 novos hooks extraídos. useProviderConnections.ts=954 acima do cap=800 — justificado: extração direta do god-component (zero lógica nova), própria redução do cliente supera o custo. useProviderSettings.ts=263 e useProviderModels.ts=154 já abaixo do cap.",
@@ -408,7 +412,7 @@
     "open-sse/executors/codex.ts": 1499,
     "open-sse/executors/cursor.ts": 1759,
     "open-sse/executors/muse-spark-web.ts": 1405,
-    "open-sse/handlers/chatCore.ts": 5946,
+    "open-sse/handlers/chatCore.ts": 5976,
     "open-sse/handlers/imageGeneration.ts": 3259,
     "open-sse/handlers/search.ts": 1789,
     "open-sse/mcp-server/schemas/tools.ts": 1621,
@@ -447,7 +451,7 @@
     "src/shared/components/RequestLoggerV2.tsx": 1718,
     "src/shared/constants/providers/apikey/gateways.ts": 1439,
     "src/shared/services/cliRuntime.ts": 1296,
-    "src/sse/handlers/chat.ts": 2384,
+    "src/sse/handlers/chat.ts": 2424,
     "src/sse/services/auth.ts": 3427,
     "tests/unit/account-fallback-service.test.ts": 2453,
     "tests/unit/provider-validation-specialty.test.ts": 4656

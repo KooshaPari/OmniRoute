@@ -28,6 +28,21 @@ export type WebSessionCredentialRequirement =
     };
 
 export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
+  "chatgpt-web": {
+    kind: "cookie",
+    credentialName: "Playwright storage-state JSON",
+    placeholder: '{"cookies":[...],"origins":[...]}',
+    acceptsFullCookieHeader: false,
+    storageKeys: ["storageState", "cookies", "origins"],
+    hintFallback:
+      "Export storageState from a browser context that is already signed in to chatgpt.com, then paste the complete JSON object. Raw Cookie headers are intentionally rejected.",
+    guideSteps: [
+      "Sign in to chatgpt.com in a dedicated browser profile.",
+      "Export that profile's Playwright-compatible storageState object.",
+      "Paste the complete JSON object here and validate it before saving.",
+    ],
+    guideNote: "The credential is encrypted at rest and is used only by the local browser context.",
+  },
   "chatgpt-web-codex": {
     kind: "cookie",
     credentialName: "ChatGPT Cookie header (full)",
