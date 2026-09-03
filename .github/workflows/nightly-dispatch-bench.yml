@@ -4,6 +4,14 @@ on:
     - cron: "0 3 * * *"
   workflow_dispatch:
 
+# FIX (W9.06, fork patch 2026-09-02): explicit least-privilege default.
+# The job only checks out the repo, runs benchmarks, and uploads the result
+# as an artifact. It does not modify the repo, comment on issues, or push
+# to any registry — contents:read is sufficient. Without this, the
+# default GITHUB_TOKEN scope is write-all.
+permissions:
+  contents: read
+
 env:
   CARGO_TERM_COLOR: always
 

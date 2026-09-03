@@ -13,6 +13,15 @@ on:
       - '.github/workflows/infisical.yml'
   pull_request:
 
+# FIX (W9.06, fork patch 2026-09-02): explicit least-privilege default.
+# Without this, GITHUB_TOKEN defaults to write-all on every scope — a prompt
+# injection in a PR description could escalate to write access on this
+# workflow's PR runs. contents:read matches what the job actually does
+# (clone the repo, write a local .env). The artifact upload only runs on
+# failure() so a default-scope write isn't needed.
+permissions:
+  contents: read
+
 jobs:
   sync-secrets:
     name: Pull secrets from Infisical
