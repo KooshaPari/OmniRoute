@@ -461,6 +461,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # W9.15: smoke-test the just-published image before the summary job
+      # declares success. Catches "image builds but won't start" regressions.
+      - name: Smoke-test published image
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/omniroute:${{ needs.resolve.outputs.resolved }}
+        run: bash scripts/ci/docker-smoke.sh "$IMAGE" /healthz 5
+
   summary:
     name: Release summary
     needs: [trigger, resolve, publish-github, publish-npm, publish-docker]
