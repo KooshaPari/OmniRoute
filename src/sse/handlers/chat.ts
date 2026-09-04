@@ -17,13 +17,11 @@ import {
   extractSessionAffinityKey,
 } from "../services/auth";
 import {
-  getRuntimeProviderProfile,
-  shouldMarkAccountExhaustedFrom429,
-  clearModelLock,
-  lockModel,
-  recordModelLockoutFailure,
-  isDailyQuotaExhausted,
-} from "@omniroute/open-sse/services/accountFallback.ts";
+  cooldownAwareProvider,
+  selectFirstHealthy,
+  type CooldownDecision,
+} from "../services/cooldownAwareRetry";
+import { withTransientBackendRetry } from "../../../open-sse/services/transientBackendRetry";
 import { getCombo, getComboForModel, getModelInfo } from "../services/model";
 import { stripContextWindowSuffix } from "@omniroute/open-sse/services/model.ts";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
@@ -1149,24 +1147,34 @@ async function handleChatImplementation(
         `Combo "${combo.name}" exhausted — attempting global fallback: ${fallbackModel}`
       );
       try {
-        const fallbackResponse = await handleSingleModelChat(
-          body,
-          fallbackModel,
-          clientRawRequest,
-          request,
-          combo.name,
-          apiKeyInfo,
-          telemetry,
-          {
-            sessionId,
-            sessionAffinityKey,
-            emergencyFallbackTried: true,
-            forceLiveComboTest: isComboLiveTest,
-            conversationId,
-            managedLease,
-          },
-          combo.strategy,
-          true
+        // Wrap with retry-with-jitter for transient 5xx so a single 503 from the
+        // global fallback doesn't immediately bubble up. The retry helper
+        // classifies 502/503/504 (and 429) as transient, retries once with
+        // 100-300ms jittered backoff, then returns the original error on budget
+        // exhaustion. Aborts cleanly on AbortSignal.
+        // W2/W9 reliability follow-up — fork-portable, PR-able upstream.
+        const fallbackResponse = await withTransientBackendRetry(
+          () =>
+            handleSingleModelChat(
+              body,
+              fallbackModel,
+              clientRawRequest,
+              request,
+              combo.name,
+              apiKeyInfo,
+              telemetry,
+              {
+                sessionId,
+                sessionAffinityKey,
+                emergencyFallbackTried: true,
+                forceLiveComboTest: isComboLiveTest,
+                conversationId,
+                managedLease,
+              },
+              combo.strategy,
+              true
+            ),
+          { abortSignal: request?.signal, log }
         );
         if (fallbackResponse.ok) {
           log.info("GLOBAL_FALLBACK", `Global fallback ${fallbackModel} succeeded`);
