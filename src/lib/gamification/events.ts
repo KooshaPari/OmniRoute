@@ -158,18 +158,59 @@ async function checkAndUnlockBadge(
 /**
  * Check action count badges after an action.
  */
-async function checkActionCountBadges(apiKeyId: string, action: string): Promise<void> {
+/**
+ * Read the action-count for the given (api_key_id, action) pair.
+ *
+ * Prefers the xp_action_counts cache table (O(1) PK lookup, written on every
+ * XP grant). Falls back to COUNT(*) over xp_audit_log if the cache row is
+ * absent (e.g. row was never inserted due to a bug in a pre-cache version,
+ * or schema migration hasn't run yet).
+ */
+async function getActionCount(apiKeyId: string, action: string): Promise<number> {
   const { getDbInstance } = await import("../db/core");
   const db = getDbInstance();
 
-  // Count total actions of this type
+  // 1) Fast path: cache table (xp_action_counts).
+  try {
+    const cached = db
+      .prepare(
+        "SELECT count FROM xp_action_counts WHERE api_key_id = ? AND action = ?"
+      )
+      .get(apiKeyId, action) as { count: number } | undefined;
+
+    if (cached && typeof cached.count === "number") {
+      return cached.count;
+    }
+  } catch {
+    // Table may not exist on a pre-migration database — fall through to audit log.
+  }
+
+  // 2) Slow path: derive count from xp_audit_log.
   const row = db
     .prepare(
       "SELECT COALESCE(COUNT(*), 0) AS count FROM xp_audit_log WHERE api_key_id = ? AND action = ?"
     )
     .get(apiKeyId, action) as { count: number };
 
-  const count = row.count;
+  return row.count;
+}
+
+/**
+ * Increment the cached action count for (api_key_id, action) by 1.
+ *
+ * Thin wrapper over `incrementActionCount` in src/lib/db/gamification.ts so the
+ * cache stays in sync whenever any non-addXp() caller grants XP. addXp() itself
+ * calls the db version synchronously; this async wrapper is for callers that
+ * prefer to await it (e.g. event handlers).
+ */
+async function incrementActionCount(apiKeyId: string, action: string): Promise<void> {
+  const { incrementActionCount: dbIncrement } = await import("../db/gamification");
+  dbIncrement(apiKeyId, action);
+}
+
+async function checkActionCountBadges(apiKeyId: string, action: string): Promise<void> {
+  // Read from the cache table (xp_action_counts); falls back to xp_audit_log if missing.
+  const count = await getActionCount(apiKeyId, action);
 
   // Badge thresholds
   const thresholds: Record<string, Array<{ id: string; threshold: number }>> = {

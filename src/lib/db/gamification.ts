@@ -172,6 +172,13 @@ export function addXp(apiKeyId: string, action: string, amount: number, metadata
     )
     .run(apiKeyId, action, amount, metadata ?? null);
 
+  // #12546: keep the action-count cache table in sync with the audit log so the badge
+  // threshold check in checkActionCountBadges() can read the count in O(1) PK lookup
+  // instead of COUNT(*) over the whole xp_audit_log table. Best-effort — if the cache
+  // table doesn't exist on a pre-migration DB the upsert will throw and we just won't
+  // populate it; getActionCount() falls back to the audit log on cache miss.
+  incrementActionCount(apiKeyId, action);
+
   db()
     .prepare(
       `INSERT INTO user_levels (api_key_id, total_xp, current_level, updated_at)
@@ -180,6 +187,34 @@ export function addXp(apiKeyId: string, action: string, amount: number, metadata
      DO UPDATE SET total_xp = total_xp + excluded.total_xp, updated_at = datetime('now')`
     )
     .run(apiKeyId, amount, calculateLevel(amount));
+}
+
+/**
+ * Increment the cached action count for (api_key_id, action) by 1, or insert it at 1 if
+ * the row doesn't exist. Wraps the UPSERT in a CREATE TABLE IF NOT EXISTS so the call
+ * is safe on both post-migration and pre-migration databases.
+ *
+ * Synchronous to match the other mutators in this module. Called from addXp() (#12546).
+ */
+export function incrementActionCount(apiKeyId: string, action: string): void {
+  const d = db();
+  d.prepare(
+    `CREATE TABLE IF NOT EXISTS xp_action_counts (
+       api_key_id TEXT NOT NULL,
+       action     TEXT NOT NULL,
+       count      INTEGER NOT NULL DEFAULT 0,
+       updated_at TEXT NOT NULL,
+       PRIMARY KEY (api_key_id, action)
+     )`
+  ).run();
+
+  d.prepare(
+    `INSERT INTO xp_action_counts (api_key_id, action, count, updated_at)
+       VALUES (?, ?, 1, datetime('now'))
+     ON CONFLICT(api_key_id, action) DO UPDATE SET
+       count = count + 1,
+       updated_at = datetime('now')`
+  ).run(apiKeyId, action);
 }
 
 export function getXp(apiKeyId: string): UserLevelRow | null {
