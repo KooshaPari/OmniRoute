@@ -22,6 +22,7 @@
     "src/types/",
     ".env.example",
     "config/i18n.json",
+    ".npmrc",
     "scripts/build/postinstall.mjs",
     "scripts/build/fixPlaywrightAndroid.mjs",
     "bin/cli/runtime/",
