@@ -48,6 +48,19 @@ export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && FREE_APIKEY_PROVIDER_IDS.has(providerId);
 }
 
+export const PROVIDER_CONNECTION_FAMILY_ALIASES: Readonly<Record<string, readonly string[]>> = {
+  alibaba: ["alibaba-cn"],
+  "kimi-coding": ["kimi-coding-apikey"],
+  xai: ["xai-oauth", "xao"],
+  magnific: ["freepik"],
+  freepik: ["magnific"],
+};
+
+export function getProviderConnectionFamilyIds(providerId: unknown): readonly string[] {
+  if (typeof providerId !== "string" || providerId.length === 0) return [];
+  return [providerId, ...(PROVIDER_CONNECTION_FAMILY_ALIASES[providerId] || [])];
+}
+
 // Web / Cookie Providers
 
 // API Key Providers
