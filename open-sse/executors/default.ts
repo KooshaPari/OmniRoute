@@ -230,7 +230,8 @@ export class DefaultExecutor extends BaseExecutor {
         const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeSapChatUrl(baseUrl);
       }
-      case "xiaomi-mimo": {
+      case "xiaomi-mimo":
+      case "xiaomi-mimo-token-plan": {
         const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeXiaomiMimoChatUrl(baseUrl);
       }
@@ -457,7 +458,8 @@ export class DefaultExecutor extends BaseExecutor {
           // An alternate protocol selected on the connection carries its own auth
           // scheme (e.g. claude uses x-api-key where openai uses bearer).
           const entry = getRegistryEntry(this.provider);
-          const authHeader = entry?.authHeader || "bearer";
+          const alternate = this.resolveAlternate(credentials);
+          const authHeader = alternate?.authHeader || entry?.authHeader || "bearer";
           const token = effectiveKey || credentials.accessToken || entry?.anonymousApiKey;
           if (token) {
             if (authHeader === "x-api-key") {
