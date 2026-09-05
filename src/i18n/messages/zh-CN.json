@@ -12982,7 +12982,7 @@
         "description": "提供者-模型同步后，从实时目录重新生成 ~/.codex/*.config.toml 配置文件。这绝不会更改活动或默认的 Codex 配置，并且默认关闭。"
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "提供者-模型同步后，从实时目录重新生成 ~/.claude/profiles/<name>/settings.json 配置文件。这绝不会更改活动或默认的 Claude 配置，并且默认关闭。"
+        "description": "提供者-模型同步后，从实时目录重新生成 ~/.claude/profiles/'<name>'/settings.json 配置文件。这绝不会更改活动或默认的 Claude 配置，并且默认关闭。"
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "禁用本地实例健康检查端点。"

@@ -12982,7 +12982,7 @@
         "description": "Selepas penyegerakan penyedia-model, jana semula profil ~/.codex/*.config.toml daripada katalog langsung. Ini tidak pernah mengubah konfigurasi Codex yang aktif atau lalai dan dinyahdayakan secara lalai."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Selepas penyegerakan penyedia-model, jana semula profil ~/.claude/profiles/<name>/settings.json daripada katalog langsung. Ini tidak pernah mengubah konfigurasi Claude yang aktif atau lalai dan dinyahdayakan secara lalai."
+        "description": "Selepas penyegerakan penyedia-model, jana semula profil ~/.claude/profiles/'<name>'/settings.json daripada katalog langsung. Ini tidak pernah mengubah konfigurasi Claude yang aktif atau lalai dan dinyahdayakan secara lalai."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Nyahdayakan titik akhir pemeriksaan kesihatan tika tempatan."

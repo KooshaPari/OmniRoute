@@ -12982,7 +12982,7 @@
         "description": "Efter udbyder-model-synkronisering regenereres ~/.codex/*.config.toml-profiler fra det aktive katalog. Dette ændrer aldrig den aktive eller standardmæssige Codex-konfiguration og er deaktiveret som standard."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Efter udbyder-model-synkronisering regenereres ~/.claude/profiles/<name>/settings.json-profiler fra det aktive katalog. Dette ændrer aldrig den aktive eller standardmæssige Claude-konfiguration og er deaktiveret som standard."
+        "description": "Efter udbyder-model-synkronisering regenereres ~/.claude/profiles/'<name>'/settings.json-profiler fra det aktive katalog. Dette ændrer aldrig den aktive eller standardmæssige Claude-konfiguration og er deaktiveret som standard."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Deaktivér slutpunktet for den lokale instans' tilstandstjek."

@@ -12993,7 +12993,7 @@
         "description": "Após a sincronização de modelos do provedor, regenera os perfis ~/.codex/*.config.toml a partir do catálogo ativo. Isso nunca altera a configuração ativa ou padrão do Codex e está desativado por padrão."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Após a sincronização de modelos do provedor, regenera os perfis ~/.claude/profiles/<name>/settings.json a partir do catálogo ativo. Isso nunca altera a configuração ativa ou padrão do Claude e está desativado por padrão."
+        "description": "Após a sincronização de modelos do provedor, regenera os perfis ~/.claude/profiles/'<name>'/settings.json a partir do catálogo ativo. Isso nunca altera a configuração ativa ou padrão do Claude e está desativado por padrão."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Desativa o endpoint de verificação de saúde da instância local."

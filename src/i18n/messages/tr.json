@@ -12982,7 +12982,7 @@
         "description": "Sağlayıcı-model senkronizasyonundan sonra, canlı katalogdan ~/.codex/*.config.toml profillerini yeniden oluşturun. Bu işlem aktif veya varsayılan Codex yapılandırmasını asla değiştirmez ve varsayılan olarak kapalıdır."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Sağlayıcı-model senkronizasyonundan sonra, canlı katalogdan ~/.claude/profiles/<name>/settings.json profillerini yeniden oluşturun. Bu işlem aktif veya varsayılan Claude yapılandırmasını asla değiştirmez ve varsayılan olarak kapalıdır."
+        "description": "Sağlayıcı-model senkronizasyonundan sonra, canlı katalogdan ~/.claude/profiles/'<name>'/settings.json profillerini yeniden oluşturun. Bu işlem aktif veya varsayılan Claude yapılandırmasını asla değiştirmez ve varsayılan olarak kapalıdır."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Yerel örnek sağlık kontrolü (health-check) uç noktasını devre dışı bırakın."

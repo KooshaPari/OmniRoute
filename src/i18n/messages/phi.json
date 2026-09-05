@@ -12982,7 +12982,7 @@
         "description": "Pagkatapos ng pag-synchronize ng provider-model, muling buuin ang mga profile ng ~/.codex/*.config.toml mula sa live catalog. Hindi nito kailanman binabago ang aktibo o default na configuration ng Codex at naka-off bilang default."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Pagkatapos ng pag-synchronize ng provider-model, muling buuin ang mga profile ng ~/.claude/profiles/<name>/settings.json mula sa live catalog. Hindi nito kailanman binabago ang aktibo o default na configuration ng Claude at naka-off bilang default."
+        "description": "Pagkatapos ng pag-synchronize ng provider-model, muling buuin ang mga profile ng ~/.claude/profiles/'<name>'/settings.json mula sa live catalog. Hindi nito kailanman binabago ang aktibo o default na configuration ng Claude at naka-off bilang default."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "I-disable ang health-check endpoint ng lokal na instance."

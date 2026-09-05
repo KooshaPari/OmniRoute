@@ -12982,7 +12982,7 @@
         "description": "Tarjoajamallien synkronoinnin jälkeen luo ~/.codex/*.config.toml -profiilit uudelleen reaaliaikaisesta luettelosta. Tämä ei koskaan muuta aktiivista tai oletusarvoista Codex-konfiguraatiota ja on oletuksena pois päältä."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Tarjoajamallien synkronoinnin jälkeen luo ~/.claude/profiles/<name>/settings.json -profiilit uudelleen reaaliaikaisesta luettelosta. Tämä ei koskaan muuta aktiivista tai oletusarvoista Claude-konfiguraatiota ja on oletuksena pois päältä."
+        "description": "Tarjoajamallien synkronoinnin jälkeen luo ~/.claude/profiles/'<name>'/settings.json -profiilit uudelleen reaaliaikaisesta luettelosta. Tämä ei koskaan muuta aktiivista tai oletusarvoista Claude-konfiguraatiota ja on oletuksena pois päältä."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Poista käytöstä paikallisen instanssin terveystarkistuksen päätepiste."

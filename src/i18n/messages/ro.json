@@ -12982,7 +12982,7 @@
         "description": "După sincronizarea furnizor-model, regenerează profilurile ~/.codex/*.config.toml din catalogul live. Acest lucru nu modifică niciodată configurația Codex activă sau implicită și este dezactivat în mod implicit."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "După sincronizarea furnizor-model, regenerează profilurile ~/.claude/profiles/<name>/settings.json din catalogul live. Acest lucru nu modifică niciodată configurația Claude activă sau implicită și este dezactivat în mod implicit."
+        "description": "După sincronizarea furnizor-model, regenerează profilurile ~/.claude/profiles/'<name>'/settings.json din catalogul live. Acest lucru nu modifică niciodată configurația Claude activă sau implicită și este dezactivat în mod implicit."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Dezactivează endpoint-ul de health-check al instanței locale."

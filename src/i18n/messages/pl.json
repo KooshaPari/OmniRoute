@@ -12982,7 +12982,7 @@
         "description": "Po synchronizacji dostawców i modeli wygeneruj ponownie profile ~/.codex/*.config.toml z aktywnego katalogu. To nigdy nie zmienia aktywnej ani domyślnej konfiguracji Codex i jest domyślnie wyłączone."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Po synchronizacji dostawców i modeli wygeneruj ponownie profile ~/.claude/profiles/<name>/settings.json z aktywnego katalogu. To nigdy nie zmienia aktywnej ani domyślnej konfiguracji Claude i jest domyślnie wyłączone."
+        "description": "Po synchronizacji dostawców i modeli wygeneruj ponownie profile ~/.claude/profiles/'<name>'/settings.json z aktywnego katalogu. To nigdy nie zmienia aktywnej ani domyślnej konfiguracji Claude i jest domyślnie wyłączone."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Wyłącz punkt końcowy sprawdzania stanu lokalnej instancji."

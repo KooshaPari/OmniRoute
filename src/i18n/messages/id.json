@@ -12982,7 +12982,7 @@
         "description": "Setelah sinkronisasi model penyedia, buat ulang profil ~/.codex/*.config.toml dari katalog langsung. Ini tidak pernah mengubah konfigurasi Codex yang aktif atau default dan nonaktif secara default."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Setelah sinkronisasi model penyedia, buat ulang profil ~/.claude/profiles/<name>/settings.json dari katalog langsung. Ini tidak pernah mengubah konfigurasi Claude yang aktif atau default dan nonaktif secara default."
+        "description": "Setelah sinkronisasi model penyedia, buat ulang profil ~/.claude/profiles/'<name>'/settings.json dari katalog langsung. Ini tidak pernah mengubah konfigurasi Claude yang aktif atau default dan nonaktif secara default."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Nonaktifkan titik akhir health-check instans lokal."

@@ -12989,7 +12989,7 @@
         "description": "Nach der Anbieter-Modell-Synchronisierung ~/.codex/*.config.toml-Profile aus dem Live-Katalog neu generieren. Dies ändert niemals die aktive oder Standard-Codex-Konfiguration und ist standardmäßig deaktiviert."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Nach der Anbieter-Modell-Synchronisierung ~/.claude/profiles/<name>/settings.json-Profile aus dem Live-Katalog neu generieren. Dies ändert niemals die aktive oder Standard-Claude-Konfiguration und ist standardmäßig deaktiviert."
+        "description": "Nach der Anbieter-Modell-Synchronisierung ~/.claude/profiles/'<name>'/settings.json-Profile aus dem Live-Katalog neu generieren. Dies ändert niemals die aktive oder Standard-Claude-Konfiguration und ist standardmäßig deaktiviert."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Den Health-Check-Endpunkt der lokalen Instanz deaktivieren."

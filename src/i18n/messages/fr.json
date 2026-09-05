@@ -12982,7 +12982,7 @@
         "description": "Après la synchronisation fournisseur-modèle, régénérer les profils ~/.codex/*.config.toml à partir du catalogue en direct. Cela ne modifie jamais la configuration Codex active ou par défaut et est désactivé par défaut."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Après la synchronisation fournisseur-modèle, régénérer les profils ~/.claude/profiles/<name>/settings.json à partir du catalogue en direct. Cela ne modifie jamais la configuration Claude active ou par défaut et est désactivé par défaut."
+        "description": "Après la synchronisation fournisseur-modèle, régénérer les profils ~/.claude/profiles/'<name>'/settings.json à partir du catalogue en direct. Cela ne modifie jamais la configuration Claude active ou par défaut et est désactivé par défaut."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Désactiver le point de terminaison de vérification de l'état de l'instance locale."

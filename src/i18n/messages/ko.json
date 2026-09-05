@@ -12982,7 +12982,7 @@
         "description": "공급자-모델 동기화 후 라이브 카탈로그에서 ~/.codex/*.config.toml 프로필을 재생성합니다. 이는 활성 또는 기본 Codex 구성을 변경하지 않으며 기본적으로 꺼져 있습니다."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "공급자-모델 동기화 후 라이브 카탈로그에서 ~/.claude/profiles/<name>/settings.json 프로필을 재생성합니다. 이는 활성 또는 기본 Claude 구성을 변경하지 않으며 기본적으로 꺼져 있습니다."
+        "description": "공급자-모델 동기화 후 라이브 카탈로그에서 ~/.claude/profiles/'<name>'/settings.json 프로필을 재생성합니다. 이는 활성 또는 기본 Claude 구성을 변경하지 않으며 기본적으로 꺼져 있습니다."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "로컬 인스턴스 상태 확인 엔드포인트를 비활성화합니다."

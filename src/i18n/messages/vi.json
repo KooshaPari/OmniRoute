@@ -12993,7 +12993,7 @@
         "description": "Sau khi đồng bộ mô hình nhà cung cấp, tạo lại các hồ sơ ~/.codex/*.config.toml từ danh mục trực tiếp. Không bao giờ thay đổi cấu hình Codex đang hoạt động hoặc cấu hình mặc định. Tính năng này mặc định tắt."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Sau khi đồng bộ mô hình nhà cung cấp, tạo lại các hồ sơ Claude Code tại ~/.claude/profiles/<name>/settings.json từ danh mục trực tiếp. Không bao giờ thay đổi cấu hình Claude đang hoạt động hoặc cấu hình mặc định. Tính năng này mặc định tắt."
+        "description": "Sau khi đồng bộ mô hình nhà cung cấp, tạo lại các hồ sơ Claude Code tại ~/.claude/profiles/'<name>'/settings.json từ danh mục trực tiếp. Không bao giờ thay đổi cấu hình Claude đang hoạt động hoặc cấu hình mặc định. Tính năng này mặc định tắt."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Tắt endpoint kiểm tra tình trạng của phiên bản cục bộ."

@@ -12982,7 +12982,7 @@
         "description": "Efter synkronisering av leverantörsmodell, generera om ~/.codex/*.config.toml-profiler från den aktiva katalogen. Detta ändrar aldrig den aktiva eller standardinställda Codex-konfigurationen och är inaktiverat som standard."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Efter synkronisering av leverantörsmodell, generera om ~/.claude/profiles/<name>/settings.json-profiler från den aktiva katalogen. Detta ändrar aldrig den aktiva eller standardinställda Claude-konfigurationen och är inaktiverat som standard."
+        "description": "Efter synkronisering av leverantörsmodell, generera om ~/.claude/profiles/'<name>'/settings.json-profiler från den aktiva katalogen. Detta ändrar aldrig den aktiva eller standardinställda Claude-konfigurationen och är inaktiverat som standard."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Inaktivera slutpunkten för hälsokontroll av den lokala instansen."

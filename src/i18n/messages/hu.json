@@ -12982,7 +12982,7 @@
         "description": "A szolgáltató-modell szinkronizálás után a ~/.codex/*.config.toml profilok újragenerálása az élő katalógusból. Ez soha nem változtatja meg az aktív vagy alapértelmezett Codex konfigurációt, és alapértelmezés szerint ki van kapcsolva."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "A szolgáltató-modell szinkronizálás után a ~/.claude/profiles/<name>/settings.json profilok újragenerálása az élő katalógusból. Ez soha nem változtatja meg az aktív vagy alapértelmezett Claude konfigurációt, és alapértelmezés szerint ki van kapcsolva."
+        "description": "A szolgáltató-modell szinkronizálás után a ~/.claude/profiles/'<name>'/settings.json profilok újragenerálása az élő katalógusból. Ez soha nem változtatja meg az aktív vagy alapértelmezett Claude konfigurációt, és alapértelmezés szerint ki van kapcsolva."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "A helyi példány állapotellenőrző végpontjának letiltása."

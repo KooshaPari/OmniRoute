@@ -12982,7 +12982,7 @@
         "description": "Po synchronizaci poskytovatelů a modelů regenerovat profily ~/.codex/*.config.toml z živého katalogu. Toto nikdy nemění aktivní nebo výchozí konfiguraci Codexu a je ve výchozím nastavení vypnuto."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Po synchronizaci poskytovatelů a modelů regenerovat profily ~/.claude/profiles/<name>/settings.json z živého katalogu. Toto nikdy nemění aktivní nebo výchozí konfiguraci Claude a je ve výchozím nastavení vypnuto."
+        "description": "Po synchronizaci poskytovatelů a modelů regenerovat profily ~/.claude/profiles/'<name>'/settings.json z živého katalogu. Toto nikdy nemění aktivní nebo výchozí konfiguraci Claude a je ve výchozím nastavení vypnuto."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Zakázat koncový bod kontroly stavu lokální instance."

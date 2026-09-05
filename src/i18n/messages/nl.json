@@ -12982,7 +12982,7 @@
         "description": "Genereer na provider-modelsynchronisatie ~/.codex/*.config.toml-profielen opnieuw vanuit de live catalogus. Dit wijzigt nooit de actieve of standaard Codex-configuratie en is standaard uitgeschakeld."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Genereer na provider-modelsynchronisatie ~/.claude/profiles/<name>/settings.json-profielen opnieuw vanuit de live catalogus. Dit wijzigt nooit de actieve of standaard Claude-configuratie en is standaard uitgeschakeld."
+        "description": "Genereer na provider-modelsynchronisatie ~/.claude/profiles/'<name>'/settings.json-profielen opnieuw vanuit de live catalogus. Dit wijzigt nooit de actieve of standaard Claude-configuratie en is standaard uitgeschakeld."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Schakel het health-check-eindpunt van de lokale instantie uit."

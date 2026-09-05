@@ -12982,7 +12982,7 @@
         "description": "След синхронизиране на доставчик-модел, регенериране на ~/.codex/*.config.toml профили от каталога на живо. Това никога не променя активната или подразбиращата се конфигурация на Codex и е изключено по подразбиране."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "After provider-model synchronization, regenerate ~/.claude/profiles/<name>/settings.json profiles from the live catalog. This never changes the active or default Claude configuration and is off by default."
+        "description": "After provider-model synchronization, regenerate ~/.claude/profiles/'<name>'/settings.json profiles from the live catalog. This never changes the active or default Claude configuration and is off by default."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Деактивиране на крайната точка за проверка на състоянието на локалния екземпляр."

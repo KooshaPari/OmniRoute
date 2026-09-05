@@ -12982,7 +12982,7 @@
         "description": "Provayder-model sinxronizasiyasından sonra canlı kataloqdan ~/.codex/*.config.toml profillərini yenidən yaradın. Bu, heç vaxt aktiv və ya defolt Codex konfiqurasiyasını dəyişmir və defolt olaraq qapalıdır."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "Provayder-model sinxronizasiyasından sonra canlı kataloqdan ~/.claude/profiles/<name>/settings.json profillərini yenidən yaradın. Bu, heç vaxt aktiv və ya defolt Claude konfiqurasiyasını dəyişmir və defolt olaraq qapalıdır."
+        "description": "Provayder-model sinxronizasiyasından sonra canlı kataloqdan ~/.claude/profiles/'<name>'/settings.json profillərini yenidən yaradın. Bu, heç vaxt aktiv və ya defolt Claude konfiqurasiyasını dəyişmir və defolt olaraq qapalıdır."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Yerli instansiyanın sağlamlıq yoxlaması son nöqtəsini sıradan çıxarın."

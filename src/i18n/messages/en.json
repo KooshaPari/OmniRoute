@@ -12992,7 +12992,7 @@
         "description": "After provider-model synchronization, regenerate ~/.codex/*.config.toml profiles from the live catalog. This never changes the active or default Codex configuration and is off by default."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "After provider-model synchronization, regenerate ~/.claude/profiles/<name>/settings.json profiles from the live catalog. This never changes the active or default Claude configuration and is off by default."
+        "description": "After provider-model synchronization, regenerate ~/.claude/profiles/'<name>'/settings.json profiles from the live catalog. This never changes the active or default Claude configuration and is off by default."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Disable the local instance health-check endpoint."

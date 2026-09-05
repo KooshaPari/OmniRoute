@@ -12982,7 +12982,7 @@
         "description": "Baada ya ulandanishi wa mtoa huduma na mfano, zalisha upya wasifu wa ~/.codex/*.config.toml kutoka kwenye katalogi hai. Hii haibadilishi kamwe usanidi amilifu au wa chaguomsingi wa Codex na imezimwa kwa chaguomsingi."
       },
       "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
-        "description": "After provider-model synchronization, regenerate ~/.claude/profiles/<name>/settings.json profiles from the live catalog. This never changes the active or default Claude configuration and is off by default."
+        "description": "After provider-model synchronization, regenerate ~/.claude/profiles/'<name>'/settings.json profiles from the live catalog. This never changes the active or default Claude configuration and is off by default."
       },
       "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
         "description": "Zima kituo cha mwisho cha ukaguzi wa afya wa mfano wa ndani."
