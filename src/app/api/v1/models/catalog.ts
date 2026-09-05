@@ -1410,8 +1410,9 @@ async function buildUnifiedModelsResponseCore(
           ) {
             continue;
           }
-          const visionFields =
-            modelType === "chat" ? getCustomVisionCapabilityFields(model, aliasId, modelId) : null;
+          const visionFields = !modelType
+            ? getCustomVisionCapabilityFields(model, aliasId, modelId)
+            : null;
 
           if (includeAlias) {
             models.push({
@@ -1441,10 +1442,9 @@ async function buildUnifiedModelsResponseCore(
           if (includeCanonical && canonicalProviderId !== alias && !prefix && !isNoAuthProvider) {
             const providerPrefixedId = `${canonicalProviderId}/${modelId}`;
             if (models.some((m) => m.id === providerPrefixedId)) continue;
-            const providerVisionFields =
-              modelType === "chat"
-                ? getCustomVisionCapabilityFields(model, providerPrefixedId, modelId)
-                : null;
+            const providerVisionFields = !modelType
+              ? getCustomVisionCapabilityFields(model, providerPrefixedId, modelId)
+              : null;
             models.push({
               id: providerPrefixedId,
               object: "model",
