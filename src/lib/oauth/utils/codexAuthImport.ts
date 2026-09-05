@@ -180,7 +180,7 @@ export async function createConnectionFromAuthFile(
   parsed: ParsedCodexAuth,
   options: CreateConnectionOptions
 ): Promise<{ connection: JsonRecord; created: boolean }> {
-  const existing = await findExistingCodexConnection(parsed.accountId, parsed.userId, parsed.email);
+  const existing = await findExistingCodexConnection(parsed.accountId, parsed.userId);
 
   if (existing) {
     if (!options.overwriteExisting) {
@@ -259,8 +259,7 @@ export async function createConnectionFromAuthFile(
 
 async function findExistingCodexConnection(
   accountId: string,
-  userId: string | null,
-  email: string | null
+  userId: string | null
 ): Promise<JsonRecord | null> {
   const connections = await getProviderConnections({ provider: "codex" });
   const workspaceMatches = (connections as JsonRecord[]).filter(
@@ -269,5 +268,5 @@ async function findExistingCodexConnection(
   if (workspaceMatches.length === 0) return null;
   // No incoming userId → legacy accountId-only dedup with the first workspace match.
   if (!userId) return workspaceMatches[0];
-  return pickCodexConnectionForUser(workspaceMatches, userId, email);
+  return pickCodexConnectionForUser(workspaceMatches, userId, null);
 }

@@ -26,7 +26,6 @@ import {
   parseOpenAIMessages,
   buildPplxRequestBody,
   buildQuery,
-  extractContent,
   sseChunk,
 } from "./perplexity-web/protocol.ts";
 
