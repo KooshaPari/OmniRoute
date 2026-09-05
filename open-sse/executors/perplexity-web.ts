@@ -16,6 +16,7 @@ import {
 import { prepareToolMessages } from "../translator/webTools.ts";
 import { buildToolModeResponse } from "./chatgptWebTools.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import { buildSessionCookieHeader } from "../utils/nextAuthCookie.ts";
 import {
   PPLX_SSE_ENDPOINT,
   PPLX_USER_AGENT,
@@ -25,6 +26,7 @@ import {
   parseOpenAIMessages,
   buildPplxRequestBody,
   buildQuery,
+  extractContent,
   sseChunk,
 } from "./perplexity-web/protocol.ts";
 
