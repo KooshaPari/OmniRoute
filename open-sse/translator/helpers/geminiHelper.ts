@@ -444,10 +444,13 @@ function normalizeAdditionalProperties(obj: unknown): void {
 
   const record = obj as JsonRecord;
 
-  // Gemini API does not support `additionalProperties` at all in function_declarations
-  // schemas (returns 400 "Unknown name"). Since Gemini defaults to allowing additional
-  // properties anyway, stripping it unconditionally is safe and prevents errors (#1421).
-  if ("additionalProperties" in record) {
+  // Gemini API function_declarations schemas reject `additionalProperties: false`
+  // with HTTP 400 "Unknown name". Strip only the `false` value (the default-permissive
+  // case Gemini already enforces). Preserve `additionalProperties: true` as a positive
+  // signal that the caller wants strict-by-default schema validation
+  // (Gemini rejects with 400 in that case too, so we keep the original error path
+  // rather than silently masking it). #12509
+  if (record.additionalProperties === false) {
     delete record.additionalProperties;
   }
 
