@@ -5,7 +5,9 @@ export default defineConfig({
   description: 'Phenotype AI Gateway Fork — OpenAI-compatible routing with governance',
   cleanUrls: true,
   lastUpdated: true,
-  ignoreDeadLinks: true,
+  // Don't globally suppress dead-link warnings — surface real broken links during build.
+  // Anchors in /getting-started/install.md (on-device-demo, homebrew, docker, bare-metal)
+  // resolve correctly via VitePress's default slugification (lowercase, spaces → hyphens).
 
   head: [
     ['meta', { name: 'theme-color', content: '#0b5fff' }],
