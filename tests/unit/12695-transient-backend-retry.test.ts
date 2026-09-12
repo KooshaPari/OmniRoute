@@ -148,3 +148,53 @@ test("transientBackendRetry: decorrelated jitter is bounded by capMs", async () 
   );
   assert.equal(calls, 5);
 });
+
+// #PR-12695 follow-up (chatgpt-codex-connector P1 review): the wrapper cannot
+// recover the scenario it targets if the inner action poisons the connection's
+// `rateLimitedUntil` on attempt #1 — attempt #2 then cannot re-select the only
+// eligible credential. The fix is at the call site: pass
+// `suppressConnectionCooldown: true` to `handleSingleModelChat` so the action
+// does NOT call `markAccountUnavailable`. These tests pin the wrapper-level
+// contract the fix relies on.
+test("transientBackendRetry: re-invokes the action on every attempt (caller relies on this to retry after suppressConnectionCooldown)", async () => {
+  const seenAtAttempt: number[] = [];
+  let attempt = 0;
+  const result = await runWithTransientBackendRetry(
+    async () => {
+      attempt += 1;
+      seenAtAttempt.push(attempt);
+      // Simulate the fixed call site: by the time attempt #2 runs,
+      // `suppressConnectionCooldown: true` would have prevented the
+      // cooldown from being recorded, so this attempt still has the same
+      // connection available.
+      return attempt < 3
+        ? { ok: false, status: 502, body: null }
+        : { ok: true, status: 200, body: "recovered" };
+    },
+    { sleep: sleepImpl, maxAttempts: 3, baseMs: 1, capMs: 4 }
+  );
+  assert.equal(result.ok, true);
+  assert.equal(result.status, 200, "retry succeeded on attempt #3 after transient 502s");
+  assert.deepEqual(
+    seenAtAttempt,
+    [1, 2, 3],
+    "wrapper re-invoked action on every attempt — caller needs every attempt to be fresh"
+  );
+});
+
+test("transientBackendRetry: always invokes maxAttempts times for transient errors (never caches the first response)", async () => {
+  // Pins the contract that the wrapper does not short-circuit on its own.
+  // The CALLER (via suppressConnectionCooldown on handleSingleModelChat) is
+  // responsible for keeping each attempt meaningful; the wrapper's job is to
+  // drive the re-invocation.
+  let calls = 0;
+  const result = await runWithTransientBackendRetry(
+    async () => {
+      calls += 1;
+      return { ok: false, status: 502, body: null };
+    },
+    { sleep: sleepImpl, maxAttempts: 3, baseMs: 1, capMs: 4 }
+  );
+  assert.equal(calls, 3, "wrapper always invokes exactly maxAttempts times for transient errors");
+  assert.equal(result.status, 502, "returns the final transient response on exhaustion");
+});

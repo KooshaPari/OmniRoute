@@ -761,6 +761,13 @@ export async function handleChat(
         `Combo "${combo.name}" exhausted — attempting global fallback: ${fallbackModel}`
       );
       try {
+        // #PR-12695: suppress connection cooldowns so the wrapper's retry attempts
+        // can re-select the same connection. Without this, attempt #1 sets a
+        // 60s+ `rateLimitedUntil` on the only eligible credential, and
+        // attempt #2 inside `runWithTransientBackendRetry` short-circuits on
+        // the Anti-Thundering-Herd guard — the retry becomes a no-op. The
+        // wrapper itself is bounded to 3 attempts within ~7s wall-clock, so
+        // holding the cooldown is sufficient without poisoning the connection.
         const fallbackResponse = await runWithTransientBackendRetry(
           () => handleSingleModelChat(
             body,
@@ -775,6 +782,7 @@ export async function handleChat(
               sessionAffinityKey,
               emergencyFallbackTried: true,
               forceLiveComboTest: isComboLiveTest,
+              suppressConnectionCooldown: true,
             },
             combo.strategy,
             true
@@ -902,6 +910,18 @@ async function handleSingleModelChat(
     cachedSettings?: any;
     providerId?: string | null;
     correlationId?: string | null;
+    /**
+     * When true, the function does NOT call `markAccountUnavailable` after a
+     * transient failure and does NOT add the failing connection to the local
+     * `excludedConnectionIds` set. Use this from retry-wrapper call sites
+     * (e.g. `runWithTransientBackendRetry` global-fallback) where the caller
+     * intends to retry the same request shortly: setting a 60s–5min
+     * connection cooldown on attempt #1 makes the wrapper's attempt #2
+     * unable to re-select that connection, defeating the retry.
+     *
+     * Default: false (preserves existing account-fallback semantics).
+     */
+    suppressConnectionCooldown?: boolean;
   } = {},
   comboStrategy: string | null = null,
   isCombo: boolean = false
@@ -1681,24 +1701,45 @@ async function handleSingleModelChat(
         (is401 && hasExtraKeys) ||
         isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider);
 
-      const { shouldFallback, cooldownMs } = skipConnectionDisable
-        ? { shouldFallback: false, cooldownMs: 0 }
-        : await markAccountUnavailable(
-            credentials.connectionId,
-            result.status,
-            errorStr,
-            provider,
-            model,
-            providerProfile,
-            {
-              persistUnavailableState: !(
-                isCombo &&
-                result.status === 429 &&
-                (failureKind === "rate_limit" || failureKind === "transient")
-              ),
-              isCombo,
-            }
-          );
+      const { shouldFallback, cooldownMs } =
+        skipConnectionDisable || runtimeOptions.suppressConnectionCooldown === true
+          ? { shouldFallback: false, cooldownMs: 0 }
+          : await markAccountUnavailable(
+              credentials.connectionId,
+              result.status,
+              errorStr,
+              provider,
+              model,
+              providerProfile,
+              {
+                persistUnavailableState: !(
+                  isCombo &&
+                  result.status === 429 &&
+                  (failureKind === "rate_limit" || failureKind === "transient")
+                ),
+                isCombo,
+              }
+            );
+
+      // When the caller (e.g. runWithTransientBackendRetry wrapping a
+      // single-model global-fallback call) will retry this same request
+      // shortly, do NOT cool the connection down and do NOT exclude it
+      // locally — otherwise the wrapper's next attempt cannot re-select the
+      // only available credential and the retry is a no-op.
+      if (runtimeOptions.suppressConnectionCooldown === true) {
+        log.debug(
+          "AUTH",
+          `Account ${accountId}... returned ${result.status}; caller will retry (cooldown suppressed)`
+        );
+        lastError = result.error;
+        lastStatus = result.status;
+        requestRetryLastError = result.error;
+        requestRetryLastStatus = result.status;
+        return withSelectedConnectionHeader(
+          result.response,
+          credentials?.connectionId
+        );
+      }
 
       if (shouldFallback) {
         recordAccountCooldown(cooldownMs, { lastCooldownMs, requestRetryLastCooldownMs });
