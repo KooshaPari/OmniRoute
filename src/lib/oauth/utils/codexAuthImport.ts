@@ -269,5 +269,8 @@ async function findExistingCodexConnection(
   if (workspaceMatches.length === 0) return null;
   // No incoming userId → legacy accountId-only dedup with the first workspace match.
   if (!userId) return workspaceMatches[0];
-  return pickCodexConnectionForUser(workspaceMatches, userId, email);
+  // Legacy rows may have no stored user IDs; if pickCodexConnectionForUser cannot
+  // disambiguate (returns null), fall back to the first workspace match to avoid
+  // creating a duplicate connection. See review comment on PR #725.
+  return pickCodexConnectionForUser(workspaceMatches, userId, email) ?? workspaceMatches[0];
 }
