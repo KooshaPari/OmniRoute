@@ -271,3 +271,132 @@ describe("runWithTransientBackendRetry — abort signal", () => {
     );
   });
 });
+
+describe("runWithTransientBackendRetry — input validation", () => {
+  // #PR-12695 review (kilo-code-bot CRITICAL): the wrapper used to accept any
+  // caller-supplied maxAttempts (0, negative, NaN, Infinity) and either
+  // return undefined or loop forever. The fix clamps to the documented
+  // default of 3 when the input is not a positive integer.
+  it("clamps maxAttempts=0 to the default of 3", async () => {
+    let invocations = 0;
+    const result = await runWithTransientBackendRetry(
+      async () => {
+        invocations += 1;
+        return ok(502);
+      },
+      { maxAttempts: 0, baseMs: 1, capMs: 2, sleep: sleep() }
+    );
+    assert.equal(result.status, 502);
+    assert.equal(invocations, 3, "maxAttempts:0 falls back to the default of 3");
+  });
+
+  it("clamps negative maxAttempts to the default of 3", async () => {
+    let invocations = 0;
+    await runWithTransientBackendRetry(
+      async () => {
+        invocations += 1;
+        return ok(502);
+      },
+      { maxAttempts: -5, baseMs: 1, capMs: 2, sleep: sleep() }
+    );
+    assert.equal(invocations, 3, "negative maxAttempts falls back to the default");
+  });
+
+  it("clamps NaN/Infinity maxAttempts to the default of 3", async () => {
+    let invocations = 0;
+    await runWithTransientBackendRetry(
+      async () => {
+        invocations += 1;
+        return ok(502);
+      },
+      { maxAttempts: Number.NaN, baseMs: 1, capMs: 2, sleep: sleep() }
+    );
+    assert.equal(invocations, 3, "NaN maxAttempts falls back to the default");
+  });
+
+  it("clamps a non-integer maxAttempts (1.5) to the default of 3", async () => {
+    let invocations = 0;
+    await runWithTransientBackendRetry(
+      async () => {
+        invocations += 1;
+        return ok(502);
+      },
+      { maxAttempts: 1.5, baseMs: 1, capMs: 2, sleep: sleep() }
+    );
+    assert.equal(invocations, 3, "non-integer maxAttempts falls back to the default");
+  });
+});
+
+describe("runWithTransientBackendRetry — isTransientError predicate", () => {
+  // #PR-12695 review (kilo-code-bot CRITICAL): the catch block used to retry
+  // every thrown error. The fix lets callers supply `isTransientError` to
+  // opt into stricter classification; the default stays permissive so
+  // network blips don't drop requests on a global-fallback call site.
+  it("rethrows immediately when isTransientError returns false", async () => {
+    let invocations = 0;
+    await assert.rejects(
+      () =>
+        runWithTransientBackendRetry(
+          async () => {
+            invocations += 1;
+            throw new TypeError("bad config");
+          },
+          {
+            maxAttempts: 5,
+            baseMs: 1,
+            capMs: 2,
+            sleep: sleep(),
+            isTransientError: () => false,
+          }
+        ),
+      /bad config/
+    );
+    assert.equal(
+      invocations,
+      1,
+      "non-transient error must not retry — caller classified it as fatal"
+    );
+  });
+
+  it("still retries transient errors when isTransientError returns true", async () => {
+    let invocations = 0;
+    await assert.rejects(
+      () =>
+        runWithTransientBackendRetry(
+          async () => {
+            invocations += 1;
+            throw new Error("ECONNRESET");
+          },
+          {
+            maxAttempts: 3,
+            baseMs: 1,
+            capMs: 2,
+            sleep: sleep(),
+            isTransientError: (e) => (e as Error).message === "ECONNRESET",
+          }
+        ),
+      /ECONNRESET/
+    );
+    assert.equal(invocations, 3, "transient-classified error is retried up to maxAttempts");
+  });
+
+  it("default behaviour: every thrown error is treated as transient (back-compat)", async () => {
+    let invocations = 0;
+    await assert.rejects(
+      () =>
+        runWithTransientBackendRetry(
+          async () => {
+            invocations += 1;
+            throw new Error("anything");
+          },
+          { maxAttempts: 2, baseMs: 1, capMs: 2, sleep: sleep() }
+        ),
+      /anything/
+    );
+    assert.equal(
+      invocations,
+      2,
+      "without isTransientError, the wrapper still retries on every thrown error"
+    );
+  });
+});

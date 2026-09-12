@@ -749,9 +749,13 @@ export async function handleChat(
 
     // ── Global Fallback Provider (#689) ────────────────────────────────────
     // If combo exhausted all models, try the global fallback before giving up.
+    // #PR-12695 follow-up: 504 Gateway Timeout must also trigger this path —
+    // the retry wrapper handles 502/503/504, so excluding 504 here leaves a
+    // hole where the combo returns 504, the global fallback (which uses the
+    // same transient-aware retry) is skipped, and the client sees the raw 504.
     if (
       !response.ok &&
-      [502, 503].includes(response.status) &&
+      [502, 503, 504].includes(response.status) &&
       typeof (settings as any)?.globalFallbackModel === "string" &&
       (settings as any).globalFallbackModel.trim()
     ) {

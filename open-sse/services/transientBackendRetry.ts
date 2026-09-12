@@ -31,6 +31,14 @@ export interface TransientRetryOptions {
   sleep?: (ms: number, signal?: AbortSignal) => Promise<void>;
   signal?: AbortSignal;
   onRetry?: (info: { attempt: number; delayMs: number; status?: number; error?: unknown; source?: string }) => void;
+  /**
+   * Predicate classifying a thrown error as transient (worth retrying). Defaults
+   * to "any thrown error is transient" because the wrapper is bounded to a
+   * small number of attempts — preferring to retry-then-fail over silently
+   * dropping a request on the first network blip is the safer default for
+   * the global-fallback call site.
+   */
+  isTransientError?: (error: unknown) => boolean;
 }
 
 export interface ResponseLike {
@@ -66,13 +74,25 @@ export async function runWithTransientBackendRetry<T extends ResponseLike>(
   action: () => Promise<T>,
   options: TransientRetryOptions = {},
 ): Promise<T> {
-  const maxAttempts = options.maxAttempts ?? 3;
+  // #PR-12695 review (kilo-code-bot CRITICAL): validate maxAttempts so a
+  // caller-supplied 0/negative/NaN/Infinity doesn't make the loop a no-op
+  // (and silently drop the request) or never terminate.
+  const rawMaxAttempts = options.maxAttempts ?? 3;
+  const maxAttempts =
+    Number.isFinite(rawMaxAttempts) && Number.isInteger(rawMaxAttempts) && rawMaxAttempts >= 1
+      ? rawMaxAttempts
+      : 3;
   const baseMs = options.baseMs ?? 200;
   const capMs = options.capMs ?? 2000;
   const sleep = options.sleep ?? DEFAULT_SLEEP;
   const signal = options.signal;
   const onRetry = options.onRetry;
   const source = options.source;
+  // #PR-12695 review (kilo-code-bot CRITICAL): default to "any thrown error
+  // is transient" so a single network blip doesn't drop the request. Callers
+  // that want stricter classification (e.g. "only ECONNRESET / ETIMEDOUT")
+  // can supply `isTransientError` to opt in.
+  const isTransientError = options.isTransientError ?? (() => true);
 
   let prev = baseMs;
   let lastResult: T | undefined;
@@ -104,6 +124,14 @@ export async function runWithTransientBackendRetry<T extends ResponseLike>(
       prev = delayMs;
     } catch (error) {
       if (signal?.aborted) {
+        throw error;
+      }
+      // #PR-12695 review (kilo-code-bot CRITICAL): respect the caller's
+      // classification. By default every thrown error is treated as
+      // transient (network blips are too costly to drop); a caller can
+      // supply `isTransientError` to opt into stricter handling (e.g.
+      // "only retry on ECONNRESET / ETIMEDOUT, rethrow on TypeError").
+      if (!isTransientError(error)) {
         throw error;
       }
       if (attempt >= maxAttempts) throw error;
