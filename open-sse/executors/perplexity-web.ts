@@ -210,11 +210,6 @@ interface ParsedMessages {
   history: Array<{ role: string; content: string }>;
   currentMsg: string;
 }
-  return {
-    query_str: query,
-    params,
-  };
-}
 // ─── Content extraction ─────────────────────────────────────────────────────
 
 interface ContentChunk {
