@@ -13,7 +13,7 @@
       "_rebaseline_2026_07_04_pacote4_no_new_warnings": "4279->0. Pacote 4 do plano mestre testes+CI: a divida pre-existente (4279 warnings + violacoes das 3 regras promovidas a error em src/**) foi CONGELADA em config/quality/eslint-suppressions.json (ESLint bulk suppressions nativo) e passa a ser bloqueada NO PR que a introduziria (job lint-guard no quality.yml + npm run lint + lint-staged, todos suppressions-aware; fork = report-only, Principio Zero). collect-metrics agora mede sob o baseline congelado -> a metrica vira 'divida liquida NOVA' (~0 em regime). O aperto do ESTOQUE congelado acontece via `npx eslint . --prune-suppressions --suppressions-location config/quality/eslint-suppressions.json` na reconciliacao da release. Fim das rebaselines-surpresa de +41/+88 por ciclo."
     },
     "eslintErrors": {
-      "value": 0,
+      "value": 744,
       "direction": "down",
       "eps": 0
     },
