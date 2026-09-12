@@ -102,14 +102,14 @@ export async function runWithTransientBackendRetry<T extends ResponseLike>(
   // variant of decorrelated jitter produces lower contention under thundering-herd conditions
   // than naive exponential backoff with constant jitter.
   const decorrelatedDelay = (): number => {
-    const upper = Math.max(baseMs, prev * 3);
+    const upper = prev * 3;
     const candidate = baseMs + Math.floor(Math.random() * (upper - baseMs + 1));
     return Math.min(capMs, candidate);
   };
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     if (signal?.aborted) {
-      throw new DOMException("Retry aborted", "AbortError");
+      throw new DOMException("Retry aborted", { name: "AbortError" });
     }
     try {
       const result = await action();

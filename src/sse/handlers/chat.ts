@@ -772,6 +772,12 @@ export async function handleChat(
         // the Anti-Thundering-Herd guard — the retry becomes a no-op. The
         // wrapper itself is bounded to 3 attempts within ~7s wall-clock, so
         // holding the cooldown is sufficient without poisoning the connection.
+        //
+        // #PR-12695 review: scope suppression to intermediate retryable
+        // attempts. On the final exhausted attempt the handler should record
+        // the cooldown normally so subsequent callers (or the handler's own
+        // internal retry loop) don't immediately re-select a dead credential.
+        const fallbackAttemptsRemaining = { remaining: 3 };
         const fallbackResponse = await runWithTransientBackendRetry(
           () => handleSingleModelChat(
             body,
@@ -786,11 +792,14 @@ export async function handleChat(
               sessionAffinityKey,
               emergencyFallbackTried: true,
               forceLiveComboTest: isComboLiveTest,
-              suppressConnectionCooldown: true,
+              suppressConnectionCooldown: fallbackAttemptsRemaining.remaining > 1,
             },
             combo.strategy,
             true
-          ),
+          ).then((r) => {
+            fallbackAttemptsRemaining.remaining -= 1;
+            return r;
+          }),
           { signal: request?.signal, source: "global-fallback" }
         );
         if (fallbackResponse.ok) {

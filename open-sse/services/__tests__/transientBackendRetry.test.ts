@@ -27,7 +27,6 @@ const sleep = (): ((ms: number) => Promise<void>) => {
   const fn = async (_ms: number): Promise<void> => {
     captured.push(_ms);
   };
-  (fn as any).captured = captured;
   return fn;
 };
 
