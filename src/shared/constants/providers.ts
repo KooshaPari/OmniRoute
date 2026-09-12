@@ -390,7 +390,13 @@ export function getProviderAlias(providerId: string): string {
 
 export const ALIAS_TO_ID = new Proxy({} as Record<string, string>, {
   get(_, key) {
-    return typeof key === "string" ? getOrCreateAliasToId()[key] : undefined;
+    const obj = getOrCreateAliasToId();
+    // Guard against inherited keys (constructor, toString, __proto__) which
+    // would return Object.prototype methods instead of undefined.
+    if (typeof key === "string" && Object.prototype.hasOwnProperty.call(obj, key)) {
+      return obj[key];
+    }
+    return undefined;
   },
   ownKeys() {
     return Reflect.ownKeys(getOrCreateAliasToId());

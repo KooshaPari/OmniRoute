@@ -410,7 +410,7 @@ export class ZedHostedExecutor extends BaseExecutor {
     }
   }
 
-  async execute({ model, body, stream, credentials, signal, log }: ExecuteInput): Promise<{
+  async execute({ model, body, stream, credentials, signal, log, clientHeaders, clientResponseFormat }: ExecuteInput): Promise<{
     response: Response;
     url: string;
     headers: Record<string, string>;
@@ -445,7 +445,16 @@ export class ZedHostedExecutor extends BaseExecutor {
       },
     });
 
-    const wrapped = response.ok ? wrapZedCompletionStream(response, provider, model) : response;
+    // Resolve marker suppression from client headers so live streams
+    // (not just test harnesses) honour the x-omniroute-thinking-marker flag.
+    const suppressThinkClose = resolveSuppressThinkClose({
+      thinkingMarkerHeader: clientHeaders?.[THINKING_MARKER_HEADER] ?? null,
+      clientResponseFormat: clientResponseFormat ?? null,
+    });
+
+    const wrapped = response.ok
+      ? wrapZedCompletionStream(response, provider, model, { suppressThinkClose })
+      : response;
     return {
       response: wrapped,
       url: `${(this.config as Record<string, unknown>)?.llmBaseUrl || "https://cloud.zed.dev"}/completions`,

@@ -519,8 +519,11 @@ export class DoubaoWebExecutor extends BaseExecutor {
                 );
               }
               if (event.event === "SSE_REPLY_END") {
+                // Defer [DONE] to the finally block so deferred reasoning text
+                // (buffered by createDolaTextExtractionState) is flushed first.
+                // Sending [DONE] before content causes OpenAI clients to discard
+                // the trailing reasoning deltas.
                 sentDone = true;
-                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
               }
             }
           }

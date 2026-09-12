@@ -20,8 +20,9 @@ jobs:
   analysis:
     name: Scorecard analysis
     runs-on: ubuntu-latest
-    security:
-      permissions: read-all
+    permissions:
+      security-events: write
+      checks: read
 
     steps:
       - name: Checkout

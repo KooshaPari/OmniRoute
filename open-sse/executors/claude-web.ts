@@ -17,6 +17,7 @@ import { tryBackedChat } from "../services/browserBackedChat.ts";
 import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "./base.ts";
 import {
   type ClaudeWebRequestPayload,
+  validateClaudeWebRequest,
   transformToClaude,
   transformFromClaude,
 } from "./claude-web/payload.ts";
