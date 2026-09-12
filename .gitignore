@@ -203,7 +203,7 @@ scripts/i18n/_pending-keys.json
 # Fumadocs generated source
 .source/
 
-# VitePress build artifacts (docs-site/)
+# VitePress build artifacts (docs-site/ is VitePress; dist + cache are generated)
 docs-site/.vitepress/dist/
 docs-site/.vitepress/cache/
 
