@@ -1,20 +1,23 @@
 <script lang="ts">
   import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
+  import { onMount } from 'svelte';
+  import { page } from '$app/stores';
 
   let kind = $state('');
   let providers = $state<{ id: string; name: string }[]>([]);
   let loading = $state(true);
   let error = $state<string | null>(null);
 
-  $effect(() => {
-    kind = new URLSearchParams(window.location.search).get('kind') ?? '';
+  onMount(async () => {
+    kind = $page.params.kind ?? '';
     if (!kind) { loading = false; return; }
-    fetch(bffApiUrl(`/api/dashboard/media-providers/${encodeURIComponent(kind)}`))
-      .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
-      .then(d => { providers = d.providers ?? []; error = null; })
-      .catch(e => error = (e as Error).message)
-      .finally(() => loading = false);
+    try {
+      const r = await fetch(bffApiUrl(`/api/dashboard/media-providers/${encodeURIComponent(kind)}`));
+      if (r.ok) { const d = await r.json(); providers = d.providers ?? []; error = null; }
+      else error = `HTTP ${r.status}`;
+    } catch (e) { error = (e as Error).message; }
+    finally { loading = false; }
   });
 </script>
 

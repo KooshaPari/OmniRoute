@@ -1,19 +1,23 @@
 <script lang="ts">
   import { bffApiUrl } from '$lib/bff-origin';
   import Card from '$lib/components/ui/Card.svelte';
+  import { onMount } from 'svelte';
+  import { page } from '$app/stores';
 
   let provider = $state<{ kind: string; id: string; name: string; config?: Record<string, unknown> } | null>(null);
   let loading = $state(true);
   let error = $state<string | null>(null);
 
-  $effect(() => {
-    const { kind, id } = Object.fromEntries(new URLSearchParams(window.location.search));
+  onMount(async () => {
+    const kind = $page.params.kind ?? '';
+    const id = $page.params.id ?? '';
     if (!kind || !id) { error = 'Missing kind or id'; loading = false; return; }
-    fetch(bffApiUrl(`/api/dashboard/media-providers/${encodeURIComponent(kind)}/${encodeURIComponent(id)}`))
-      .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
-      .then(d => { provider = d; error = null; })
-      .catch(e => error = (e as Error).message)
-      .finally(() => loading = false);
+    try {
+      const r = await fetch(bffApiUrl(`/api/dashboard/media-providers/${encodeURIComponent(kind)}/${encodeURIComponent(id)}`));
+      if (r.ok) { provider = await r.json(); error = null; }
+      else error = `HTTP ${r.status}`;
+    } catch (e) { error = (e as Error).message; }
+    finally { loading = false; }
   });
 </script>
 
