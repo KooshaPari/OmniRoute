@@ -2,6 +2,8 @@ import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
 import { dashboardRoutes } from './routes/dashboard';
+import { settingsRoutes } from './routes/dashboard/settings';
+import { pluginsRoutes } from './routes/dashboard/plugins';
 import { authProxyRoutes, proxyRoutes } from './routes/proxy';
 import { gatewayRoutes } from './routes/gateway/proxy';
 import { trpcRoutes } from './trpc/hono';
@@ -82,6 +84,8 @@ app.post('/api/v1/telemetry/web-vitals', async (c) => {
 });
 
 app.route('/api/dashboard', dashboardRoutes);
+app.route('/api/dashboard/settings', settingsRoutes);
+app.route('/api/dashboard/plugins', pluginsRoutes);
 app.route('/api/v1', proxyRoutes);
 app.route('/api/auth', authProxyRoutes);
 app.route('/api/dashboard/gateway', gatewayRoutes);
