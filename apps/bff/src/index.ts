@@ -14,6 +14,7 @@ import { tokensRoutes } from './routes/dashboard/tokens';
 import { providerStatsRoutes } from './routes/dashboard/provider-stats';
 import { skillsRoutes } from './routes/dashboard/skills';
 import { toolsRoutes } from './routes/dashboard/tools';
+import { autoComboRoutes } from './routes/dashboard/auto-combo';
 import { contextRoutes } from './routes/dashboard/context';
 import { combosRoutes } from './routes/dashboard/combos';
 import { gamificationRoutes } from './routes/dashboard/gamification';
