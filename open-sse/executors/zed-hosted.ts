@@ -461,7 +461,14 @@ export class ZedHostedExecutor extends BaseExecutor {
   }> {
     const zedCredentials = credentials as ZedCredentials;
     const { provider } = await this.resolveModel(model, zedCredentials, signal, log);
-    const providerRequest = buildProviderRequest(provider, model, body, stream, credentials);
+
+    // Strip the provider prefix (e.g. "zed-hosted/claude-haiku-4-5-20251001" →
+    // "claude-haiku-4-5-20251001") before passing to translators.  The capability
+    // lookup in fitThinkingToMaxTokens uses static MODEL_SPECS keyed by bare model
+    // id, so a prefixed name silently misses the output cap and causes max_tokens
+    // inflation (e.g. 32000 + 131072 = 163072 for Haiku 4.5, #13364).
+    const bareModel = model.includes("/") ? model.slice(model.lastIndexOf("/") + 1) : model;
+    const providerRequest = buildProviderRequest(provider, bareModel, body, stream, credentials);
     const bodyRecord = (body ?? {}) as Record<string, unknown>;
     const payload = {
       thread_id: bodyRecord.thread_id || (credentials as Record<string, unknown>)?._clientSessionId,
