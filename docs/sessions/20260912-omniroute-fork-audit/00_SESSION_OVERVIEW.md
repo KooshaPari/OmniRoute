@@ -78,10 +78,10 @@ All 7 batches committed and pushed to origin/main.
 - 52 remaining vulnerabilities (4 low, 20 moderate, 28 high — all deep transitive)
 
 ## Remaining Work
-1. **Bifrost integration**: Decision deadline Sept 17. Shadow mode active. Benchmarks pending.
-2. **pnpm audit**: 52 remaining vulns (0 critical). Deep transitive deps, need upstream fixes.
-3. **Feature branches**: feat/docs-site, feat/omniroute-macos-signing, fix-13472
-4. **CI workflow convergence**: 79 workflows (56 fork-only) — review for redundancy
+1. **Bifrost benchmarks**: Script created (`docs/benchmarks/bifrost-benchmark.sh`). Run locally with Bifrost sidecar installed. Decision deadline Sept 17.
+2. **pnpm audit**: 52 vulns (0 critical), all deep transitive. Accept risk — no fixable items.
+3. **CI workflow convergence**: 79 workflows. Recommend: delete 7 one-time, consolidate 4 redundant, review 6 low-priority. Net ~62 after cleanup.
+4. **Feature branches**: docs-site (active), macos-signing (local-only), pheno-otel (active worktree)
 
 ## Key Files
 ```
