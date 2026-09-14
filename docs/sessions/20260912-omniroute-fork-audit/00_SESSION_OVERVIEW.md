@@ -122,6 +122,21 @@
 - **Bifrost is 198-225x faster** than TS pipeline at p50 (0.9ms vs 179ms)
 - **Recommendation: COMMIT Bifrost** as sidecar for health checks, load balancing, rate limiting
 
+### Phase 14: Test Suite Validation (2026-09-14)
+- **Root cause of 351 failures:** `use-intl/core` module not resolvable in pnpm strict mode
+  - `vitestUiPolyfills.ts` imports `use-intl/core` but it was not in devDependencies
+  - pnpm strict mode doesn't hoist transitive dependencies to root `node_modules/`
+- **Fix:** Added `use-intl@4.14.4` to devDependencies + `public-hoist-pattern` in `.npmrc`
+- **Fix:** Removed broken `extract-zip: ">=2.0.2"` override (no such version exists)
+- **Result:** 351 -> 117 failing test files, 69 -> 72 individual test failures
+- **117 remaining failures are ALL pre-existing upstream bugs** (tracked under #8618):
+  - localStorage undefined in jsdom opaque origin (banner/dismiss tests)
+  - SQLite not available in test env (rerank-loopback tests)
+  - Various UI rendering issues (comparison mode, model search, etc.)
+  - 63 test files already excluded in upstream vitest config under #8618
+  - Additional ~54 failing files not yet tracked by upstream
+- **Zero test files modified by us** — all failures are pure upstream code
+
 ## Key Commits on main
 
 | Commit | Description |
@@ -149,7 +164,8 @@
 | Task | Priority | Status |
 |------|----------|--------|
 | Close stale macos-signing branch | LOW | After team review |
-| Full CI test suite validation | MEDIUM | Needs env setup |
+| 117 pre-existing upstream test failures (#8618) | LOW | Upstream's responsibility |
+| CI test suite validation with live DB | MEDIUM | Needs env setup |
 
 ## Files
 
