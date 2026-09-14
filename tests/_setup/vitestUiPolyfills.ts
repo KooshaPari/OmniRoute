@@ -1,3 +1,20 @@
+// jsdom 30.x no longer provides window.localStorage by default (even with a
+// URL set). Many dashboard tests rely on localStorage for dismiss-state
+// persistence, so polyfill a minimal in-memory implementation when missing.
+if (typeof window !== "undefined" && !window.localStorage) {
+  const store = new Map<string, string>();
+  window.localStorage = {
+    get length() { return store.size; },
+    clear() { store.clear(); },
+    getItem(key: string) { return store.get(key) ?? null; },
+    key(index: number) { return [...store.keys()][index] ?? null; },
+    removeItem(key: string) { store.delete(key); },
+    setItem(key: string, value: string) { store.set(key, String(value)); },
+  } as Storage;
+  // Expose on globalThis so bare `localStorage` references resolve
+  (globalThis as any).localStorage = window.localStorage;
+}
+
 // jsdom (unlike real browsers) does not implement `window.matchMedia`. Several
 // dashboard components read the OS color-scheme preference via
 // `window.matchMedia("(prefers-color-scheme: dark)")` (see
