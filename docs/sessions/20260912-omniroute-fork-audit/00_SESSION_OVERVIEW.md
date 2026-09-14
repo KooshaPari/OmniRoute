@@ -137,6 +137,14 @@
   - Additional ~54 failing files not yet tracked by upstream
 - **Zero test files modified by us** — all failures are pure upstream code
 
+### Phase 14b: jsdom 30.x localStorage Polyfill (2026-09-14)
+- jsdom 30.x silently removed `window.localStorage` (even with URL set)
+- Added in-memory localStorage polyfill to `vitestUiPolyfills.ts`
+- Added `environmentOptions: { jsdom: { url: "http://localhost:3000" } }` to vitest config
+- **Result:** 117 -> 107 failing files, 72 -> 32 individual test failures
+- Remaining 32 failures: abort signal handling (8), SQLite migrations (2), React 19 compat (22)
+- **Total improvement from session start:** 351 -> 107 failing files, 351 -> 32 failing tests
+
 ## Key Commits on main
 
 | Commit | Description |
