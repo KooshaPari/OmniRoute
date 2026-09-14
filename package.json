@@ -437,7 +437,8 @@
     "typescript-eslint": "^8.68.0",
     "vitest": "^4.1.11",
     "wait-on": "^9.1.0",
-    "wtfnode": "^0.10.1"
+    "wtfnode": "^0.10.1",
+    "use-intl": "4.14.4"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs}": [
@@ -471,7 +472,6 @@
       "adm-zip": ">=0.6.0",
       "dompurify": ">=3.4.13",
       "sharp": ">=0.35.4",
-      "extract-zip": ">=2.0.2",
       "@vitest/mocker": ">=4.1.11"
     }
   },
