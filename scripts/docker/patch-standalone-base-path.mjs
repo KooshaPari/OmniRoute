@@ -67,19 +67,74 @@ export function patchJsonManifestFile(filePath, basePath) {
 }
 
 const BASE_PATH_LITERAL_RE =
-  /basePath\s*:\s*(?:""|''|`{2})|basePath\s*:\s*void 0|"basePath"\s*:\s*""/g;
+  /(?:basePath|assetPrefix)\s*:\s*(?:""|''|``)|(?:basePath|assetPrefix)\s*:\s*void 0|"(?:basePath|assetPrefix)"\s*:\s*""|"NEXT_PUBLIC_OMNIROUTE_BASE_PATH"\s*:\s*""|NEXT_PUBLIC_OMNIROUTE_BASE_PATH\s*:\s*""/g;
 
 /**
+ * Rewrite the bare config literals Next bakes into the standalone output:
+ *   - `basePath` (routing + server-rendered links) — the original scope;
+ *   - `assetPrefix` (Next 16 app-router renders SSR asset URLs from
+ *     `assetPrefix` ALONE — basePath only affects routing, so a subpath
+ *     deploy must mirror it or every `/_next/static` shell reference 404s);
+ *   - the `NEXT_PUBLIC_OMNIROUTE_BASE_PATH` env mirror in the inline
+ *     nextConfig (server.js) so server-side env reads stay consistent.
+ *
  * @param {string} content
  * @param {string} basePath
  */
 export function patchBasePathLiterals(content, basePath) {
   const escaped = basePath.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   return content.replace(BASE_PATH_LITERAL_RE, (match) => {
-    if (match.startsWith('"basePath"')) return `"basePath":"${escaped}"`;
-    if (match.includes("void 0")) return `basePath:"${escaped}"`;
-    return `basePath:"${escaped}"`;
+    if (match.startsWith('"NEXT_PUBLIC_OMNIROUTE_BASE_PATH"')) {
+      return `"NEXT_PUBLIC_OMNIROUTE_BASE_PATH":"${escaped}"`;
+    }
+    if (match.startsWith("NEXT_PUBLIC_OMNIROUTE_BASE_PATH")) {
+      return `NEXT_PUBLIC_OMNIROUTE_BASE_PATH:"${escaped}"`;
+    }
+    if (match.startsWith('"')) {
+      // `"basePath":""` / `"assetPrefix":""` (JSON-ish inline config)
+      const key = match.slice(1, match.indexOf('"', 1));
+      return `"${key}":"${escaped}"`;
+    }
+    // `basePath:""` / `basePath:void 0` / `assetPrefix:""` (minified code)
+    const key = match.slice(0, match.indexOf(":")).trim();
+    return `${key}:"${escaped}"`;
   });
+}
+
+/**
+ * Turbopack's client `process` shim ships an empty env object (`.env={}`).
+ * Next 16's client code reads NEXT_PUBLIC_* / OMNIROUTE_BASE_PATH from it at
+ * runtime, so without this the client never learns the subpath and the
+ * dashboard's fetch/EventSource rewriting (basePathFetch) silently stays on
+ * the root path. Populate the two keys the app reads.
+ *
+ * @param {string} content
+ * @param {string} basePath
+ */
+export function patchProcessEnvShim(content, basePath) {
+  const escaped = basePath.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  return content.replace(/\.env=\{\}/g, () => {
+    const keys = `OMNIROUTE_BASE_PATH:"${escaped}",NEXT_PUBLIC_OMNIROUTE_BASE_PATH:"${escaped}"`;
+    return `.env={${keys}}`;
+  });
+}
+
+/**
+ * Rewrite baked absolute asset URLs (`"/_next/static/..."`) to the subpath.
+ * Covers the client-reference-manifest chunk lists (they are serialized into
+ * the RSC flight payload verbatim) and the client/server chunk media imports
+ * — every `/ _next/static` reference must be prefixed because the standalone
+ * server only serves assets under basePath.
+ *
+ * @param {string} content
+ * @param {string} basePath
+ */
+export function patchBakedAssetUrls(content, basePath) {
+  const escaped = basePath.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  return content.replace(
+    /(["'`])\/_next\/static/g,
+    (_match, quote) => `${quote}${escaped}/_next/static`
+  );
 }
 
 /**
@@ -98,9 +153,12 @@ function walkAndPatchTextFiles(rootDir, basePath) {
         stack.push(full);
         continue;
       }
-      if (!/\.(?:js|json|cjs|mjs)$/.test(entry.name)) continue;
+      if (!/\.(?:js|json|cjs|mjs|html)$/.test(entry.name)) continue;
       const before = fs.readFileSync(full, "utf8");
-      const after = patchBasePathLiterals(before, basePath);
+      const after = [patchBasePathLiterals, patchProcessEnvShim, patchBakedAssetUrls].reduce(
+        (content, patch) => patch(content, basePath),
+        before
+      );
       if (after !== before) {
         fs.writeFileSync(full, after);
         patchedFiles += 1;

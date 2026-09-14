@@ -10,7 +10,7 @@ Manage API key authentication and session tokens. Start here to authenticate req
 
 ## Authentication
 
-All requests require a valid Bearer token or session cookie. Obtain a token via `POST /api/auth/login` or configure `REQUIRE_API_KEY=false` for local development.
+Remote API requests use a Bearer credential. Dashboard login is different: `POST /api/auth/login` accepts a management password and returns an `auth_token` session cookie.
 
 ## Endpoints
 
@@ -20,9 +20,9 @@ Authenticate user
 
 ```bash
 curl -X POST https://localhost:20128/api/auth/login \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
-  -d '{}'
+  -c cookie.jar \
+  -d '{"password":"<management-password>"}'
 ```
 
 ### POST /api/auth/logout
@@ -30,10 +30,61 @@ curl -X POST https://localhost:20128/api/auth/login \
 Log out
 
 ```bash
+CSRF_TOKEN=$(curl -s https://localhost:20128/api/auth/csrf -b cookie.jar | jq -r .token)
 curl -X POST https://localhost:20128/api/auth/logout \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -b cookie.jar \
+  -H "x-omniroute-csrf: $CSRF_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
+```
+
+### GET /api/auth/oidc/login
+
+Start OIDC login for the dashboard admin gate
+
+Builds an authorization URL from the configured OIDC issuer/client (discovered
+via `{issuer}/.well-known/openid-configuration`, falling back to `{issuer}/authorize`),
+sets a short-lived `oidc_state` cookie, and redirects the browser. Password login
+remains available as a fallback while OIDC is enabled.
+
+
+```bash
+curl https://localhost:20128/api/auth/oidc/login \
+  -b cookie.jar
+```
+
+### GET /api/auth/oidc/callback
+
+Complete OIDC login for the dashboard admin gate
+
+Validates the `state` cookie, exchanges the authorization `code` for tokens,
+verifies the ID token against the issuer's JWKS (audience = client id), and —
+if `oidcAllowedSubjects` is configured — checks the token's `sub`/`email` against
+that allowlist. On success it mints the same 30-day `auth_token` dashboard-session
+JWT used by password login and redirects to `/dashboard`.
+
+
+```bash
+curl https://localhost:20128/api/auth/oidc/callback \
+  -b cookie.jar
+```
+
+### GET /api/auth/csrf
+
+GET auth › csrf
+
+```bash
+curl https://localhost:20128/api/auth/csrf \
+  -b cookie.jar
+```
+
+### GET /api/auth/status
+
+GET auth › status
+
+```bash
+curl https://localhost:20128/api/auth/status \
+  -b cookie.jar
 ```
 
 ## Payloads
@@ -45,7 +96,7 @@ See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.y
 
 # OmniRoute
 
-Local/remote AI gateway exposing OpenAI-compatible REST. One key, 207+ providers,
+Local/remote AI gateway exposing OpenAI-compatible REST. One key, 327 providers,
 auto-fallback, RTK token saver, MCP server, A2A agents.
 
 ## Setup
@@ -83,7 +134,7 @@ Use `data[].id` as `model` field in requests. Combos appear with `owned_by:"comb
 | Embeddings            | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-embeddings/SKILL.md  |
 | Web search            | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-web-search/SKILL.md  |
 | Web fetch             | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-web-fetch/SKILL.md   |
-| MCP server (37 tools) | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-mcp/SKILL.md         |
+| MCP server (110 tools) | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omni-mcp/SKILL.md         |
 | A2A protocol          | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-a2a/SKILL.md         |
 | Routing & combos      | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-routing/SKILL.md     |
 | Token compression     | https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute-compression/SKILL.md |
@@ -108,7 +159,7 @@ Use `data[].id` as `model` field in requests. Combos appear with `owned_by:"comb
 
 ## Differentiators vs OpenAI direct
 
-- **Auto-fallback** combos (14 strategies): never stop coding even if a provider rate-limits
+- **Auto-fallback** combos (19 strategies): never stop coding even if a provider rate-limits
 - **RTK token saver**: tool_result compressed via 47 specialized filters (git-diff, test-jest, terraform-plan, docker-logs…) — 20-40% token reduction
 - **Caveman mode**: optional terse system prompt injection (LITE/FULL/ULTRA) — 15-25% completion reduction
 - **MCP + A2A** servers built-in (this is the only AI router that exposes both protocols)

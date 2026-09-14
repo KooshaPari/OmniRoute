@@ -11,6 +11,27 @@ import { guideSettingsSaveSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resolveApiKey, getOrCreateApiKey } from "@/shared/services/apiKeyResolver";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { guardCliConfigWrite } from "@/lib/api/cliConfigWriteGuard";
+
+/**
+ * Where each guide tool's config lands, and the host command that writes the
+ * same thing when OmniRoute itself runs in a container.
+ */
+const GUIDE_TOOL_TARGETS: Record<string, { resolve: () => string; hostCommand: string }> = {
+  continue: {
+    resolve: () => path.join(os.homedir(), ".continue", "config.json"),
+    hostCommand: "omniroute setup-continue",
+  },
+  opencode: {
+    resolve: () => getOpenCodeConfigPath(),
+    hostCommand: "omniroute setup-opencode",
+  },
+  hermes: {
+    resolve: () =>
+      getCliPrimaryConfigPath("hermes") || path.join(os.homedir(), ".hermes", "config.yaml"),
+    hostCommand: "omniroute config set hermes",
+  },
+};
 
 /**
  * POST /api/cli-tools/guide-settings/:toolId
@@ -58,13 +79,22 @@ export async function POST(request, { params }) {
     ? await resolveApiKey(apiKeyId, validation.data.apiKey)
     : await getOrCreateApiKey();
 
+  const target = GUIDE_TOOL_TARGETS[toolId];
+  if (target) {
+    const refusal = guardCliConfigWrite(target.resolve(), {
+      toolLabel: toolId,
+      hostCommand: target.hostCommand,
+    });
+    if (refusal) return refusal;
+  }
+
   try {
     switch (toolId) {
       case "continue":
         return await saveContinueConfig({ baseUrl, apiKey, model });
       case "opencode":
         // (#524) OpenCode config was never saved because only 'continue' was handled here.
-        // OpenCode reads ~/.config/opencode/opencode.json — write the OmniRoute settings there.
+        // OpenCode reads opencode.jsonc/opencode.json — update the active native config.
         return await saveOpenCodeConfig({ baseUrl, apiKey, model, models, modelLabels });
       case "hermes":
         return await saveHermesConfig({ baseUrl, apiKey, model });
@@ -161,7 +191,7 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
 }
 
 /**
- * Save OpenCode config to ~/.config/opencode/opencode.json on ALL platforms
+ * Save OpenCode config to the active opencode.jsonc/opencode.json on ALL platforms
  * (XDG_CONFIG_HOME aware). OpenCode uses XDG `~/.config` even on Windows
  * (%USERPROFILE%\.config), NOT %APPDATA% (#3330).
  *
@@ -182,8 +212,9 @@ async function saveOpenCodeConfig({ baseUrl, apiKey, model, models, modelLabels 
   let existingConfigText = "";
   try {
     existingConfigText = await fs.readFile(configPath, "utf-8");
-  } catch {
-    // File doesn't exist — start fresh
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    // File doesn't exist — start fresh.
   }
 
   const nextConfigText = mergeOpenCodeConfigText(existingConfigText, {
@@ -199,60 +230,6 @@ async function saveOpenCodeConfig({ baseUrl, apiKey, model, models, modelLabels 
   return NextResponse.json({
     success: true,
     message: `OpenCode config saved to ${configPath}`,
-    configPath,
-  });
-}
-
-/**
- * Save Qwen Code config to ~/.qwen/settings.json
- *
- * Uses security.auth format (not modelProviders) since Qwen Code
- * prioritizes security.auth.selectedType over modelProviders entries.
- * Per official docs: security.auth takes highest precedence.
- */
-async function saveQwenConfig({ baseUrl, apiKey, model }) {
-  const home = os.homedir();
-  const configPath = path.join(home, ".qwen", "settings.json");
-
-  await fs.mkdir(path.dirname(configPath), { recursive: true });
-
-  const normalizedBaseUrl = String(baseUrl || "")
-    .trim()
-    .replace(/\/+$/, "");
-  const resolvedApiKey = apiKey || "sk_omniroute";
-  const resolvedModel = model || "qwen/qwen3-coder-plus";
-
-  // Read existing config to preserve other settings (permissions, mcpServers, etc.)
-  let existingConfig: Record<string, any> = {};
-  try {
-    const raw = await fs.readFile(configPath, "utf-8");
-    existingConfig = JSON.parse(raw);
-  } catch {
-    // File doesn't exist or invalid JSON
-  }
-
-  // Set security.auth for openai auth type with direct credentials
-  // This takes priority over modelProviders entries (per Qwen docs)
-  existingConfig.security = {
-    ...existingConfig.security,
-    auth: {
-      selectedType: "openai",
-      apiKey: resolvedApiKey,
-      baseUrl: normalizedBaseUrl,
-    },
-  };
-
-  // Set model to the selected model
-  existingConfig.model = {
-    ...existingConfig.model,
-    name: resolvedModel,
-  };
-
-  await fs.writeFile(configPath, JSON.stringify(existingConfig, null, 2), "utf-8");
-
-  return NextResponse.json({
-    success: true,
-    message: `Qwen Code config saved to ${configPath}`,
     configPath,
   });
 }

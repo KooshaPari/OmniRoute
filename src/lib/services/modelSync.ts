@@ -12,9 +12,6 @@
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getServiceModels, saveServiceModels, type ServiceModel } from "@/lib/db/serviceModels";
 import { updateVersionManagerTool } from "@/lib/db/versionManager";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("services:model-sync");
 
 const SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const FETCH_TIMEOUT_MS = 10_000;
@@ -37,7 +34,7 @@ export async function syncServiceModels(
     });
 
     if (!res.ok) {
-      log.warn({ tool, status: res.status }, "model-sync: /v1/models returned non-OK status");
+      console.warn(`[ModelSync:${tool}] /v1/models returned HTTP ${res.status}`);
       return -1;
     }
 
@@ -60,11 +57,11 @@ export async function syncServiceModels(
     saveServiceModels(tool, models);
     await updateVersionManagerTool(tool, { lastSyncAt: new Date().toISOString() });
 
-    log.info({ tool, count: models.length }, "model-sync: synced models");
+    console.log(`[ModelSync:${tool}] synced ${models.length} model(s)`);
     return models.length;
   } catch (err) {
     const msg = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
-    log.warn({ tool, err: msg }, "model-sync: fetch failed");
+    console.warn(`[ModelSync:${tool}] fetch failed: ${msg}`);
     return -1;
   }
 }
@@ -90,7 +87,7 @@ export function scheduleServiceModelSync(
   timer.unref?.();
 
   activeTimers.set(tool, timer);
-  log.info({ tool, intervalSec: intervalMs / 1000 }, "model-sync: scheduler started");
+  console.log(`[ModelSync:${tool}] scheduler started (interval ${intervalMs / 1000}s)`);
 }
 
 /**
@@ -101,7 +98,7 @@ export function stopServiceModelSync(tool: string): void {
   if (!timer) return;
   clearInterval(timer);
   activeTimers.delete(tool);
-  log.info({ tool }, "model-sync: scheduler stopped");
+  console.log(`[ModelSync:${tool}] scheduler stopped`);
 }
 
 /** Re-export read path so consumers don't need to import two modules. */

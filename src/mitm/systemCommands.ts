@@ -27,12 +27,15 @@ export function isRoot(): boolean {
  * root, the underlying command is executed directly (same user, no elevation).
  *
  * Returns `false` on Windows — sudo is meaningless there (UAC path is used).
+ * Read `os.platform()` at call time: a literal `process.platform` is
+ * constant-folded to the Linux build host, so the published Windows artifact
+ * would probe and then spawn native `sudo.exe` with POSIX `-S` (#11430).
  *
  * `execFileSync` is invoked with a fixed-string `command` and `args`,
  * never user input, and `stdio: "ignore"` so the probe is silent.
  */
 export function isSudoAvailable(): boolean {
-  if (process.platform === "win32") return false;
+  if (os.platform() === "win32") return false;
   try {
     // nosemgrep: javascript.lang.security.detect-child-process.detect-child-process
     execFileSync("sh", ["-c", "command -v sudo"], { stdio: "ignore" });

@@ -42,13 +42,13 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Dashboard Login**   | Uwierzytelnianie hasłem z tokenami JWT (ciasteczka HttpOnly)                                                                                        |
 | **API Key Auth**      | Klucze podpisane HMAC z walidacją CRC                                                                                                               |
-| **OAuth 2.0 + PKCE**  | 13 dostawców (Claude, Codex, GitHub, Cursor, Antigravity, Gemini, Kimi Coding, Kilo Code, Cline, Kiro, Qoder, Windsurf, GitLab Duo)                 |
+| **OAuth 2.0 + PKCE** | Przepływy OAuth w przeglądarce/na urządzeniu używają PKCE, gdy dostawca je obsługuje; importowane poświadczenia Devin są obsługiwane osobno. |
 | **Token Refresh**     | Automatyczne odświeżanie tokenów OAuth przed wygaśnięciem                                                                                           |
 | **Secure Cookies**    | `AUTH_COOKIE_SECURE=true` dla środowisk HTTPS                                                                                                       |
 | **Authz Pipeline**    | Klasyfikacja tras (PUBLIC / CLIENT_API / MANAGEMENT) — zob. `docs/architecture/AUTHZ_GUIDE.md`                                                      |
 | **Route Guard Tiers** | Model 3-poziomowy dla tras zarządzania (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — zob. `docs/security/ROUTE_GUARD_TIERS.md`                     |
 | **Manage-Scope MCP**  | Zdalny dostęp `/api/mcp/*` ograniczony kluczami API ze scope `manage`; `/api/cli-tools/runtime/*` pozostaje strict-loopback. Zob. ROUTE_GUARD_TIERS |
-| **MCP Scopes**        | ~13 granularnych scope'ów (read:health, write:combos, execute:completions itd.) — zob. `docs/frameworks/MCP-SERVER.md`                              |
+| **MCP Scopes**        | 32 granularne scope'y (read:health, write:combos, execute:completions itd.) — zob. `docs/frameworks/MCP-SERVER.md`                                  |
 
 ### 🛡️ Szyfrowanie w spoczynku
 

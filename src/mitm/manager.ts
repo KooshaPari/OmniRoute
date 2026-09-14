@@ -2,15 +2,21 @@ import { spawn, type ChildProcess } from "child_process";
 import path from "path";
 import fs from "fs";
 import { resolveMitmDataDir } from "./dataDir.ts";
-import { removeDNSEntry, removeDNSEntries } from "./dns/dnsConfig.ts";
+import {
+  removeDNSEntry,
+  removeDNSEntries,
+  checkDNSEntryForAgent,
+  checkDNSEntry,
+} from "./dns/dnsConfig.ts";
 import { provisionDnsEntries } from "./dns/provision.ts";
 import { generateCert } from "./cert/generate.ts";
-import { installCertResult, uninstallCert } from "./cert/install.ts";
+import { installCertResult, installCaCert } from "./cert/install.ts";
 import { loadOrCreateMitmCa, resolveMitmCertDir } from "./cert/rootCa.ts";
 import { decideCertMigration } from "./cert/migration.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
 import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
+import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState.ts";
 import { getUserBypassPatterns } from "@/lib/db/agentBridgeBypass.ts";
 import { getGheCopilotHosts } from "@/lib/db/providers.ts";
 import { configureUpstreamCa } from "./upstreamTrust.ts";
@@ -67,6 +73,17 @@ export function interpretMitmStartupError(stderr: string, port: number): string 
 // Store server process
 let serverProcess: ChildProcess | null = null;
 let serverPid: number | null = null;
+
+/**
+ * Test-only seam: install a fake server process (and pid) so stopMitm() can be
+ * exercised without spawning a real MITM child. Not part of the public API —
+ * only intended for unit tests that need to assert stopMitm()'s DNS/kill
+ * ordering (#1809). No-op in production code paths.
+ */
+export function __setServerProcessForTest(proc: ChildProcess | null, pid: number | null): void {
+  serverProcess = proc;
+  serverPid = pid;
+}
 
 // Set while startMitm() is in flight, from the guard check through spawn.
 // Guards a TOCTOU race: the "already running" check above only trips once
@@ -217,8 +234,12 @@ const urlPath =
     ? decodeURIComponent(MITM_SERVER_URL.pathname.slice(1))
     : decodeURIComponent(MITM_SERVER_URL.pathname);
 
-const cwdPath = path.join(process.cwd(), "src", "mitm", "server.cjs");
-const MITM_SERVER_PATH = fs.existsSync(cwdPath) ? cwdPath : urlPath;
+// Lazy-resolve to avoid module-level fs.existsSync + process.cwd() at module scope,
+// which causes Turbopack's NFT tracer to follow the path into the entire src/ tree.
+function resolveMitmServerPath(): string {
+  const cwdPath = path.join(/* turbopackIgnore: true */ process.cwd(), "src", "mitm", "server.cjs");
+  return fs.existsSync(cwdPath) ? cwdPath : urlPath;
+}
 
 // Check if a PID is alive
 function isProcessAlive(pid: number): boolean {
@@ -383,15 +404,16 @@ export async function getMitmStatus(agentId?: string): Promise<{
   }
 
   // Check DNS configuration. When an agentId is provided, check THAT agent's
-  // own hosts (#8466) instead of always checking the Antigravity host set —
-  // callers that don't pass agentId keep the legacy Antigravity-only check.
+  // own hosts (#8466) instead of always checking the Antigravity host set.
+  // Fix #8656: no-agentId path now uses checkDNSEntry() which is Windows-aware
+  // (reads HOSTS_FILE = C:\Windows\System32\drivers\etc\hosts on Windows).
   let dnsConfigured = false;
   try {
     if (agentId) {
       dnsConfigured = checkDNSEntryForAgent(agentId);
     } else {
-      const hostsContent = fs.readFileSync("/etc/hosts", "utf-8");
-      dnsConfigured = /\bdaily-cloudcode-pa\.googleapis\.com\b/.test(hostsContent);
+      // Use Windows-aware checkDNSEntry() instead of hardcoded /etc/hosts
+      dnsConfigured = checkDNSEntry();
     }
   } catch {
     // Ignore
@@ -489,7 +511,9 @@ async function startMitmInternal(
   //    self-signed path (no silent trust-model upgrade — a MITM root CA that
   //    can sign a leaf for ANY host is materially more powerful than the old
   //    fixed-SAN leaf); fresh installs, and installs with `MITM_ROOT_CA_ENABLED
-  //    =true`, get the persisted root-CA + per-host-leaf model instead.
+  //    =true`, get the persisted root-CA + per-host-leaf model instead
+  //    (`cert/rootCa.ts`, reusing the CA/leaf crypto proven for TPROXY in
+  //    `tproxy/dynamicCert.ts`).
   const certDir = resolveMitmCertDir();
   const rootCaEnabled = process.env.MITM_ROOT_CA_ENABLED === "true";
   const migrationDecision = decideCertMigration(certDir, rootCaEnabled);
@@ -518,16 +542,18 @@ async function startMitmInternal(
 
   // 2. Install certificate to system keychain. A failure here must NOT abort the
   //    bridge: in containers/headless the system trust store can't be written,
-  //    so we start in "untrusted" mode and let the operator trust the CA by hand.
+  //    so we start in "untrusted" mode and let the operator trust the CA by hand
+  //    (mirrors the best-effort "continuing" pattern used for DNS below). (#4546)
   let certTrusted = false;
   await runPrivilegedMitmStep(
     sudoPassword,
     "Skipping MITM cert trust — no sudo password available (#7938)",
     async () => {
       try {
-        // The historical installCaCert wrapper delegated to installCertResult;
-        // the current installer accepts both a root CA and a legacy leaf path.
-        const certResult = await installCertResult(sudoPassword, certPath);
+        const certResult =
+          migrationDecision === "use-root-ca"
+            ? await installCaCert(sudoPassword, certPath)
+            : await installCertResult(sudoPassword, certPath);
         certTrusted = certResult.installed;
         if (!certResult.installed) {
           log.warn(
@@ -544,7 +570,8 @@ async function startMitmInternal(
     }
   );
 
-  // 3. Add DNS entries. Best-effort — see provisionDnsEntries.
+  // 3. Add DNS entries: Antigravity defaults + all agents with dns_enabled=true +
+  //    all custom hosts with enabled=true. Best-effort — see provisionDnsEntries.
   await runPrivilegedMitmStep(
     sudoPassword,
     "Skipping DNS provisioning — no sudo password available (#7938)",
@@ -584,7 +611,7 @@ async function startMitmInternal(
     }
   }
 
-  serverProcess = spawn(process.execPath, [MITM_SERVER_PATH], {
+  serverProcess = spawn(process.execPath, [resolveMitmServerPath()], {
     windowsHide: true,
     env: {
       ...process.env,

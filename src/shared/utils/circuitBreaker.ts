@@ -9,36 +9,11 @@
  * - Transition history tracking for diagnostics
  * - DB persistence via domainState.js
  *
- * # Migration plan: opossum (deferred — high-risk 600-LOC refactor)
- *
- * The opossum library (https://github.com/nodeshift/opossum) provides a mature
- * circuit breaker (CLOSED / OPEN / HALF_OPEN, but NOT our DEGRADED state and
- * NOT per-kind thresholds natively). This file should be migrated to opossum
- * but the work is non-trivial because:
- *
- *   1. DEGRADED state — opossum has no equivalent. Migration must wrap a
- *      `DegradationTracker` sibling to opossum and fold the 4-state model
- *      into opossum's 3-state model for the opossum-owned breaker only.
- *   2. Per-kind thresholds (`kindThresholds`, `cooldownByKind`,
- *      `applyFailureIncrement`) — opossum only has one global threshold.
- *      Migration must dispatch to N child opossum breakers (one per
- *      FailureKind) and aggregate state as `max(children.states)`.
- *   3. Adaptive backoff escalation — migrate by mutating `resetTimeout`
- *      on the `open` event, persisted via `saveCircuitBreakerState`.
- *   4. DB persistence (`saveCircuitBreakerState`,
- *      `loadCircuitBreakerState`, `deleteCircuitBreakerState`) — wrap a
- *      thin `BreakerPersistence` snapshot for `{ state, failureCount,
- *      lastFailureTime, openCycleCount, kindFailureCounts }`.
- *   5. Registry (`getCircuitBreaker`, `getAllCircuitBreakers`,
- *      `deleteCircuitBreaker`, periodic sweep) — keep `Map<name, …>` +
- *      500 cap + cold-evict unchanged; only the entry type changes.
- *   6. Public surface (`CircuitBreakerOpenError`, registry helpers,
- *      `isLocalStreamLifecycleError`) — must be preserved unchanged. Wire
- *      `isLocalStreamLifecycleError` as opossum's `errorFilter` option so
- *      local stream-lifecycle errors never count as failures.
- *
- * Until the migration lands, this file's hand-rolled implementation remains
- * the source of truth. `opossum@10` is installed but unused.
+ * States:
+ *   CLOSED    — Normal operation, requests pass through
+ *   DEGRADED  — Failure rate elevated, requests pass through but warnings logged
+ *   OPEN      — Requests are short-circuited
+ *   HALF_OPEN — Probing: limited requests allowed to test recovery
  */
 
 import {
@@ -48,7 +23,6 @@ import {
   deleteCircuitBreakerState,
   deleteAllCircuitBreakerStates,
 } from "../../lib/db/domainState";
-import OpossumBreaker from "opossum";
 import type { FailureKind } from "./classify429";
 
 /**
@@ -89,6 +63,67 @@ export function isLocalStreamLifecycleError(error: unknown): boolean {
     /client disconnected/i.test(message) ||
     /operation was aborted/i.test(message)
   );
+}
+
+const LOCAL_EXECUTION_CODES = new Set([
+  "ENOENT",
+  "EACCES",
+  "EPIPE",
+  "ERR_CHILD_PROCESS_STDIO_MAXBUFFER",
+]);
+
+const LOCAL_EXECUTION_PATTERNS = [
+  /\bspawn\b.*\b(ENOENT|EACCES|EPIPE)\b/i,
+  /\bcommand not found\b/i,
+  /\bis not recognized as an internal or external command\b/i,
+  /\bchild process exited with code\b/i,
+  /\blocal host execution error\b/i,
+];
+
+/**
+ * Detect a LOCAL host execution error (missing binary ENOENT, permission EACCES,
+ * broken pipe EPIPE, child process exit errors, etc.) that must NOT count as a
+ * whole-provider failure or trip remote provider circuit breakers.
+ */
+export function isLocalExecutionError(error: unknown): boolean {
+  if (!error) return false;
+  const errObj = typeof error === "object" ? (error as Record<string, unknown>) : null;
+  const code = typeof errObj?.code === "string" ? errObj.code : "";
+  if (LOCAL_EXECUTION_CODES.has(code)) return true;
+
+  const message =
+    typeof error === "string"
+      ? error
+      : typeof errObj?.message === "string"
+        ? (errObj.message as string)
+        : "";
+  if (!message) return false;
+
+  return LOCAL_EXECUTION_PATTERNS.some((p) => p.test(message));
+}
+
+/**
+ * Anthropic/Claude model-capacity overload (HTTP 529, body "Overloaded", or a
+ * STREAM_EARLY_EOF that wraps that body as 502). This is one model being
+ * capacity-throttled, not a whole-provider outage — the same account still
+ * serves sibling models. Must not trip the provider circuit breaker.
+ *
+ * Accepts an error object/string OR a numeric HTTP status (529). Callers
+ * pass both `error` and `status` at the two breaker predicates.
+ *
+ * Live incident 2026-09-03: STREAM_EARLY_EOF: Overloaded opened `claude` and
+ * a single-target combo then pre-skipped with ALL_TARGETS_SKIPPED in ~43ms.
+ */
+export function isModelCapacityOverloadError(error: unknown): boolean {
+  if (error === 529) return true;
+  if (typeof error === "number") return false;
+  if (!error) return false;
+  const errObj = typeof error === "object" ? (error as Record<string, unknown>) : null;
+  if (errObj && (errObj.status === 529 || errObj.statusCode === 529)) return true;
+  const message =
+    typeof error === "string" ? error : typeof errObj?.message === "string" ? errObj.message : "";
+  if (!message) return false;
+  return /\boverloaded(?:_error)?\b/i.test(message);
 }
 
 export const STATE = {
@@ -139,12 +174,45 @@ interface CircuitBreakerOptions {
   backoffEscalationCount?: number;
 }
 
-interface TransitionRecord {
+/**
+ * How a RESOLVED `execute()` result is accounted (#12254). Callers such as
+ * `handleChatCore()` report most upstream failures by resolving with
+ * `{ success: false, status: 5xx }` instead of throwing, so a breaker that reads every
+ * resolution as a success never trips on that path.
+ */
+export type CircuitBreakerResultOutcome = "success" | "failure" | "ignore";
+
+export interface CircuitBreakerExecuteOptions<T> {
+  /**
+   * Classify a resolved result. Omitted: every resolution is a success (the
+   * throw-based contract every other caller relies on). Return "ignore" when the
+   * call site accounts for the outcome itself with request context the breaker
+   * does not have — the chat path does (`classifyProviderBreakerResult()` in
+   * chat.ts, `recordProviderFailure()`/`recordProviderSuccess()` in combo.ts).
+   */
+  classifyResult?: (result: T) => CircuitBreakerResultOutcome;
+}
+
+export interface TransitionRecord {
   from: string;
   to: string;
   timestamp: number;
   failureCount: number;
   reason?: string;
+}
+
+export interface CircuitBreakerStatus {
+  name: string;
+  state: string;
+  failureCount: number;
+  lastFailureTime: number | null;
+  retryAfterMs: number;
+  lastFailureKind: string | null;
+  openCycleCount: number;
+  kindFailureCounts: Record<string, number>;
+  degradationThreshold: number;
+  effectiveResetTimeout: number;
+  transitionHistory: TransitionRecord[];
 }
 
 export class CircuitBreaker {
@@ -275,7 +343,7 @@ export class CircuitBreaker {
     );
   }
 
-  async execute<T>(fn: () => Promise<T>): Promise<T> {
+  async execute<T>(fn: () => Promise<T>, options?: CircuitBreakerExecuteOptions<T>): Promise<T> {
     this._refreshOpenState();
 
     if (this.state === STATE.OPEN) {
@@ -300,7 +368,7 @@ export class CircuitBreaker {
 
     try {
       const result = await fn();
-      this._onSuccess();
+      this._recordResolvedResult(result, options?.classifyResult);
       return result;
     } catch (error) {
       if (this.isFailure(error)) {
@@ -326,7 +394,7 @@ export class CircuitBreaker {
     return false;
   }
 
-  getStatus() {
+  getStatus(): CircuitBreakerStatus {
     this._refreshOpenState();
     return {
       name: this.name,
@@ -339,6 +407,7 @@ export class CircuitBreaker {
       kindFailureCounts: { ...this.kindFailureCounts },
       degradationThreshold: this.degradationThreshold,
       effectiveResetTimeout: this._effectiveResetTimeout(),
+      transitionHistory: [...this.transitionHistory],
     };
   }
 
@@ -360,6 +429,29 @@ export class CircuitBreaker {
   }
 
   // ─── Internal ─────────────────────────────────
+
+  /**
+   * Account a resolved `execute()` result exactly once. A classifier that throws
+   * falls back to the legacy "resolved = success" reading, mirroring `classifyError`.
+   */
+  _recordResolvedResult<T>(
+    result: T,
+    classifyResult?: (result: T) => CircuitBreakerResultOutcome
+  ): void {
+    let outcome: CircuitBreakerResultOutcome = "success";
+    if (classifyResult) {
+      try {
+        outcome = classifyResult(result);
+      } catch {
+        outcome = "success";
+      }
+    }
+    if (outcome === "failure") {
+      this._onFailure();
+    } else if (outcome === "success") {
+      this._onSuccess();
+    }
+  }
 
   _onSuccess() {
     if (this.state === STATE.OPEN) {
@@ -574,15 +666,7 @@ function evictColdBreakersIfNeeded(): void {
   }
 }
 
-
-// Opossum primary mode: when CIRCUIT_BREAKER_OPOSSUM_PRIMARY=1, getCircuitBreaker returns
-// an OpossumCircuitBreaker wrapper that delegates to opossum under the hood.
-const _opossumPrimaryEnabled = process.env.CIRCUIT_BREAKER_OPOSSUM_PRIMARY === "1";
-
 export function getCircuitBreaker(name: string, options?: CircuitBreakerOptions): CircuitBreaker {
-  if (_opossumPrimaryEnabled) {
-    return getOrCreateOpossumBreaker(name, options) as unknown as CircuitBreaker;
-  }
   if (!registry.has(name)) {
     evictColdBreakersIfNeeded();
     registry.set(name, new CircuitBreaker(name, options));
@@ -660,128 +744,4 @@ export function resetAllCircuitBreakers() {
   } catch {
     // Non-critical
   }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PR-E: Opossum step-2 — primary circuit breaker adapter
-//
-
-
-// =============================================================================
-// Opossum Step-2: Primary Circuit Breaker (PR-P, closes #407)
-//
-// OpossumCircuitBreaker wraps opossum as the primary circuit breaker,
-// with DEGRADED state folding and per-kind child breakers.
-//
-// Enable: CIRCUIT_BREAKER_OPOSSUM_PRIMARY=1
-// =============================================================================
-
-interface OpossumOptions {
-  timeout?: number;
-  errorThresholdPercentage?: number;
-  resetTimeout?: number;
-  volumeThreshold?: number;
-}
-
-/** Opossum-backed circuit breaker — drop-in replacement for hand-rolled impl. */
-export class OpossumCircuitBreaker {
-  private readonly breakers: Map<string, OpossumBreaker<[], unknown>>;
-  private readonly primary: OpossumBreaker<[() => Promise<unknown>], unknown>;
-  private degraded = false;
-  private failureCount = 0;
-  private highWatermark = 5;
-
-  constructor(
-    public readonly name: string,
-    opts: OpossumOptions = {},
-  ) {
-    const oOpts = {
-      timeout: opts.timeout ?? 30_000,
-      errorThresholdPercentage: opts.errorThresholdPercentage ?? 50,
-      resetTimeout: opts.resetTimeout ?? 30_000,
-      volumeThreshold: opts.volumeThreshold ?? 5,
-    };
-    this.primary = new OpossumBreaker<[() => Promise<unknown>], unknown>(
-      async (fn) => fn(),
-      { ...oOpts, name },
-    );
-    this.breakers = new Map();
-    for (const kind of ["rate_limit", "transient", "quota", "auth"] as const) {
-      this.breakers.set(
-        kind,
-        new OpossumBreaker<[], unknown>(async () => {}, {
-          ...oOpts,
-          name: `${name}:${kind}`,
-        }),
-      );
-    }
-    this.primary.on("open", () => { this.failureCount++; if (this.failureCount >= this.highWatermark) this.degraded = true; });
-    this.primary.on("halfOpen", () => { if (this.failureCount < this.highWatermark) this.degraded = false; });
-    this.primary.on("close", () => { this.failureCount = 0; this.degraded = false; });
-  }
-
-  getState(): "CLOSED" | "OPEN" | "HALF_OPEN" | "DEGRADED" {
-    if (this.degraded) return "DEGRADED";
-    if (this.primary.opened) return "OPEN";
-    if (this.primary.halfOpen) return "HALF_OPEN";
-    return "CLOSED";
-  }
-
-  get name_(): string { return this.name; }
-
-  async execute<T>(fn: () => Promise<T>): Promise<T> {
-    return this.primary.fire(fn) as Promise<T>;
-  }
-}
-
-// ─── Opossum primary dispatch ──────────────────────────────────────────────
-
-const _opossumRegistry = new Map<string, OpossumCircuitBreaker>();
-
-function getOrCreateOpossumBreaker(
-  name: string,
-  options?: Partial<OpossumOptions>,
-): OpossumCircuitBreaker {
-  let breaker = _opossumRegistry.get(name);
-  if (!breaker) {
-    breaker = new OpossumCircuitBreaker(name, options);
-    _opossumRegistry.set(name, breaker);
-  }
-  return breaker;
-}
-
-// ─── Shadow telemetry (kept from step-1) ──────────────────────────────────
-const _opossumShadowEnabled = (() => {
-  try {
-    return process.env.CIRCUIT_BREAKER_OPOSSUM_SHADOW === "1";
-  } catch {
-    return false;
-  }
-})();
-
-export const opossumShadowEnabled = _opossumShadowEnabled;
-
-let _opossumShadowStats = { enabled: false, fires: 0, divergences: 0, opossumOpens: 0, primaryOpens: 0 };
-
-export function runOpossumShadow<T>(_primary: CircuitBreaker, fn: () => Promise<T>): Promise<T> {
-  if (!_opossumPrimaryEnabled && !_opossumShadowEnabled) return fn();
-  _opossumShadowStats.enabled = true;
-  _opossumShadowStats.fires++;
-  return fn().catch((err) => {
-    throw err;
-  });
-}
-
-export function recordOpossumDivergence(primaryState: string, opossumState: string): void {
-  if (primaryState !== opossumState) _opossumShadowStats.divergences++;
-  if (opossumState === "OPEN") _opossumShadowStats.opossumOpens++;
-  if (primaryState === "OPEN" || primaryState === "DEGRADED") _opossumShadowStats.primaryOpens++;
-}
-
-export function __getOpossumShadowStats() {
-  return { ..._opossumShadowStats };
-}
-
-export function __resetOpossumShadowStats() {
-  _opossumShadowStats = { enabled: false, fires: 0, divergences: 0, opossumOpens: 0, primaryOpens: 0 };
 }

@@ -3,8 +3,24 @@ import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// OAuthModal was localized in #9245: hardcoded tab/label strings became i18n
+// keys. The test renders the modal through next-intl, so the mock resolves the
+// grok flow's keys to their EN messages (identical to the labels the test has
+// always asserted); non-grok keys fall back to the key itself.
 vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
+  useTranslations: () => (key: string) =>
+    ({
+      tabDeviceCode: "Device Code",
+      tabBrowserLogin: "Browser Login",
+      tabImportAuthJson: "Import auth.json",
+      tabPasteApiKey: "Paste API Key",
+      grokAuthJsonLabel: "Grok Build auth.json",
+      grokAuthJsonDescription: "Paste your full auth.json",
+      grokAuthJsonPlaceholder: "Paste auth.json",
+      saveConnection: "Save Connection",
+      saving: "Saving…",
+      cancel: "Cancel",
+    })[key] ?? key,
 }));
 
 const { default: OAuthModal, formatDeviceCodeRemaining } =

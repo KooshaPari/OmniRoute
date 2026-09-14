@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { writePidFile, cleanupPidFile, killAllSubprocesses, isPidRunning } from "../utils/pid.mjs";
 import {
   RESTART_RESET_MS,
@@ -8,7 +9,7 @@ import {
   computeRestartDelayMs,
   waitUntilPortFree,
 } from "./supervisorPolicy.mjs";
-import { buildNodeHeapArgs } from "../../../scripts/build/runtime-env.mjs";
+import { buildNodeRuntimeArgs } from "../../../scripts/build/runtime-env.mjs";
 import { stopProcessGracefully } from "../../../src/shared/platform/windowsProcess.ts";
 import {
   isFatalInstrumentationHookFailure,
@@ -16,6 +17,24 @@ import {
 } from "../utils/ensureAndroidCacheDir.mjs";
 
 const CRASH_LOG_LINES = 50;
+
+const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+// Bun needs the Node-compat polyfill preloaded (#9761). The file ships at the
+// package root via package.json "files" (see scripts/build/pack-artifact-policy.ts)
+// and is never copied into dist/, so the path must resolve against the package
+// root — resolving it next to the server bundle fails with "preload not found" (#11980).
+export const BUN_PRELOAD_PATH = join(PACKAGE_ROOT, "open-sse", "utils", "setupPolyfill.ts");
+
+/**
+ * Argument vector for the server child. Kept pure so tests can assert on it
+ * directly: the bare `import { spawn }` above cannot be intercepted without
+ * --experimental-test-module-mocks (same seam as #8131).
+ */
+export function buildServerSpawnArgs(serverPath, memoryLimit, env = process.env) {
+  return process.versions.bun
+    ? ["--preload", BUN_PRELOAD_PATH, serverPath]
+    : buildNodeRuntimeArgs(env, memoryLimit, serverPath);
+}
 
 export class ServerSupervisor {
   constructor({
@@ -44,24 +63,22 @@ export class ServerSupervisor {
     this.instrumentationFailureHintPrinted = false;
 
     const showLog = process.env.OMNIROUTE_SHOW_LOG === "1";
-    // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
-    // heap via NODE_OPTIONS (a CLI arg would shadow/override their value). The
-    // calibrated heap is already carried by env.NODE_OPTIONS either way.
-    const heapArgs = buildNodeHeapArgs(process.env, this.memoryLimit);
     // #6321: stdout used to be discarded (`"ignore"`) whenever `--log`/OMNIROUTE_SHOW_LOG
     // wasn't set (the default) — any debug/pino output written to stdout vanished
     // silently, so a boot that never becomes ready looked like a dead hang with zero
     // output even at APP_LOG_LEVEL=debug. Pipe stdout too and buffer it alongside
     // stderr so a readiness timeout can surface what the child actually printed.
-    this.child = spawn(
-      process.versions.bun ? process.execPath : "node",
-      [...(process.versions.bun ? [] : heapArgs), this.serverPath],
-      {
-        cwd: dirname(this.serverPath),
-        env: this.env,
-        stdio: showLog ? "inherit" : ["ignore", "pipe", "pipe"],
-      }
-    );
+    // #9156: always spawn via process.execPath (absolute path to the running
+    // runtime — node or bun). Bare "node" is unresolvable under macOS launchd's
+    // minimal PATH; #9761's Bun ternary accidentally regressed the Node branch.
+    // Node args come from buildNodeRuntimeArgs (#9209 IPv4-first DNS + #5238
+    // heap flag handling); the Bun branch keeps #9761's polyfill preload —
+    // Bun does not accept the Node-only flags.
+    this.child = spawn(process.execPath, buildServerSpawnArgs(this.serverPath, this.memoryLimit), {
+      cwd: dirname(this.serverPath),
+      env: this.env,
+      stdio: showLog ? "inherit" : ["ignore", "pipe", "pipe"],
+    });
 
     writePidFile("server", this.child.pid);
 
@@ -88,13 +105,7 @@ export class ServerSupervisor {
       this.child.stdout.on("data", bufferOutput);
     }
     if (this.child.stderr) {
-      this.child.stderr.on("data", (data) => {
-        const lines = data.toString().split("\n").filter(Boolean);
-        this.crashLog.push(...lines);
-        if (this.crashLog.length > CRASH_LOG_LINES) {
-          this.crashLog = this.crashLog.slice(-CRASH_LOG_LINES);
-        }
-      });
+      this.child.stderr.on("data", bufferOutput);
     }
 
     this.child.on("error", (err) => this.handleExit(-1, err));
@@ -169,6 +180,12 @@ export class ServerSupervisor {
       await waitUntilPortFree(process.env.PORT || 20128);
       this.start();
     }, delay);
+  }
+
+  // #6321: exposes the buffered stdout+stderr lines so a caller (e.g. a readiness
+  // timeout) can print what the child actually said instead of silence.
+  getRecentLog() {
+    return [...this.crashLog];
   }
 
   dumpCrashLog() {

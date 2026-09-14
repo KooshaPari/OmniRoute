@@ -7,14 +7,27 @@ import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
 import { safeParseJSON } from "../helpers/jsonUtil.ts";
 import { applyKimiCodingThinking } from "../helpers/claudeHelper.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
-import { isAdaptiveThinkingOnly } from "../../../src/shared/constants/modelSpecs.ts";
+import {
+  getDefaultThinkingBudget,
+  isAdaptiveThinkingOnly,
+} from "../../../src/shared/constants/modelSpecs.ts";
 import { fitThinkingToMaxTokens } from "./openai-to-claude/thinkingBudget.ts";
 import { enforceToolResultAdjacency } from "./openai-to-claude/toolResultAdjacency.ts";
 import { sanitizeToolResultId } from "./openai-to-claude/sanitizeToolResultId.ts";
+import {
+  openAiImagePartToClaudeBlock,
+  normalizeToolResultImages,
+} from "./openai-to-claude/imageBlocks.ts";
 
 // Reasoning-effort levels Anthropic accepts on `output_config.effort`. Used to steer
 // adaptive-only Claude models (Opus 4.7+/Fable 5) without ever emitting a manual budget.
 const ADAPTIVE_EFFORT_LEVELS = new Set(["low", "medium", "high", "xhigh", "max"]);
+
+// Safe manual budget when `thinking:{type:"adaptive"}` must be downgraded to the
+// compatible manual `type:"enabled"` form for a model that does not support adaptive
+// thinking (#10119). 1024 is both Anthropic's MIN thinking budget (thinkingBudget.ts)
+// and the `low` effort bucket — conservative for small-context models like Haiku.
+const ADAPTIVE_DOWNGRADE_BUDGET = 1024;
 
 // Prefix for Claude OAuth tool names to avoid conflicts
 // Can be disabled per-request via body._disableToolPrefix = true
@@ -176,12 +189,30 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
   // extended thinking enabled — required to correctly gate the `redacted_thinking`
   // replay-placeholder injection (#5945). This block has no dependency on
   // `result.messages`/`toolNameMap`, so moving it earlier is safe.
-  if (body.thinking) {
-    result.thinking = {
-      type: body.thinking.type || "enabled",
-      ...(body.thinking.budget_tokens && { budget_tokens: body.thinking.budget_tokens }),
-      ...(body.thinking.max_tokens && { max_tokens: body.thinking.max_tokens }),
-    };
+  if (isKimiCoding) {
+    applyKimiCodingThinking(result, body);
+  } else if (body.thinking) {
+    const thinkingType = body.thinking.type || "enabled";
+    if (thinkingType === "adaptive" && !isAdaptiveThinkingOnly(model)) {
+      // Downgrade guard (#10119): a request can carry `thinking:{type:"adaptive"}` — the
+      // shape built for an adaptive-only sibling (Opus 4.7+/Sonnet-5) in a combo — and be
+      // re-routed by combo/fallback to a model that only accepts manual extended thinking
+      // (e.g. claude-haiku-4-5-20251001). Anthropic rejects `adaptive` on those models with
+      // "adaptive thinking is not supported on this model". Convert to the compatible manual
+      // `enabled` form with a safe budget instead of forwarding an incompatible type.
+      const callerBudget = Number(body.thinking.budget_tokens);
+      const safeBudget =
+        (Number.isFinite(callerBudget) && callerBudget > 0 ? callerBudget : 0) ||
+        getDefaultThinkingBudget(model) ||
+        ADAPTIVE_DOWNGRADE_BUDGET;
+      result.thinking = { type: "enabled", budget_tokens: safeBudget };
+    } else {
+      result.thinking = {
+        type: thinkingType,
+        ...(body.thinking.budget_tokens && { budget_tokens: body.thinking.budget_tokens }),
+        ...(body.thinking.max_tokens && { max_tokens: body.thinking.max_tokens }),
+      };
+    }
   } else if (body.reasoning_effort) {
     // Convert OpenAI reasoning_effort to Claude thinking format (#627)
     // Clients like OpenCode send reasoning_effort via @ai-sdk/openai-compatible
@@ -237,12 +268,19 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
   // Replaces the previous unconditional `budget + 8192` inflation, which
   // could exceed model caps (e.g. Opus 4.7's 128000 ceiling) and trigger
   // HTTP 400 from Anthropic.
-  const fitted = fitThinkingToMaxTokens(model, Number(result.max_tokens) || 0, result.thinking);
-  result.max_tokens = fitted.maxTokens;
-  if (fitted.thinking === undefined) {
-    delete result.thinking;
-  } else {
-    result.thinking = applyCopilotSummarizedThinkingDisplay(fitted.thinking, body);
+  if (!isKimiCoding) {
+    const fitted = fitThinkingToMaxTokens(
+      model,
+      Number(result.max_tokens) || 0,
+      result.thinking,
+      routedProvider
+    );
+    result.max_tokens = fitted.maxTokens;
+    if (fitted.thinking === undefined) {
+      delete result.thinking;
+    } else {
+      result.thinking = applyCopilotSummarizedThinkingDisplay(fitted.thinking, body);
+    }
   }
 
   delete result[COPILOT_REASONING_SUMMARY_MARKER];
@@ -299,7 +337,8 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
         msg,
         toolNameMap,
         disableToolPrefix,
-        thinkingEnabledForRequest
+        thinkingEnabledForRequest,
+        isKimiCoding
       );
       const hasToolUse = blocks.some((b) => b.type === "tool_use");
       const hasToolResult = blocks.some((b) => b.type === "tool_result");
@@ -367,7 +406,15 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
   if (body.tools && Array.isArray(body.tools)) {
     result.tools = body.tools
       .map((tool) => {
-        const toolData = tool.type === "function" && tool.function ? tool.function : tool;
+        // Function-shaped tools arrive in two flavors from real clients:
+        //   (a) openai-spec: { type: "function", function: { name, ... } }
+        //   (b) bare/loose:  { function: { name, ... } }   (no parent `type`)
+        // Unwrap `tool.function` whenever it is present, regardless of the
+        // parent `type` field — some OpenAI-shape clients omit the wrapper's
+        // `type: "function"` entirely. Previously that bare shape fell
+        // through to `toolData = tool` (the wrapper itself, with no `.name`),
+        // producing an empty `originalName` and silently dropping the tool.
+        const toolData = tool.function ?? tool;
         const originalName = typeof toolData.name === "string" ? toolData.name.trim() : "";
 
         if (!originalName) {
@@ -485,7 +532,8 @@ function getContentBlocksFromMessage(
   msg,
   toolNameMap = new Map(),
   disableToolPrefix = false,
-  thinkingEnabledForRequest = false
+  thinkingEnabledForRequest = false,
+  isKimiCoding = false
 ) {
   const blocks = [];
 
@@ -493,9 +541,10 @@ function getContentBlocksFromMessage(
     const sanitizedToolUseId = sanitizeToolResultId(msg.tool_call_id); // #7705
     if (!sanitizedToolUseId) return blocks;
     // T02: Strip empty text blocks from nested tool_result content to avoid Anthropic 400
-    const toolContent = Array.isArray(msg.content)
-      ? stripEmptyTextBlocks(msg.content)
-      : msg.content;
+    // #9692: rewrite OpenAI image_url parts to Claude image blocks (same as user turns)
+    const toolContent = normalizeToolResultImages(
+      Array.isArray(msg.content) ? stripEmptyTextBlocks(msg.content) : msg.content
+    );
     blocks.push({
       type: "tool_result",
       tool_use_id: sanitizedToolUseId,
@@ -514,42 +563,48 @@ function getContentBlocksFromMessage(
           // Skip tool_result with no tool_use_id (would be useless and may cause errors)
           if (!part.tool_use_id) continue;
           // T02: strip empty text blocks from nested content before passing to Anthropic
-          const resultContent = Array.isArray(part.content)
-            ? stripEmptyTextBlocks(part.content)
-            : part.content;
+          // #9692: convert OpenAI image_url nested in tool_result the same way
+          const resultContent = normalizeToolResultImages(
+            Array.isArray(part.content) ? stripEmptyTextBlocks(part.content) : part.content
+          );
           blocks.push({
             type: "tool_result",
             tool_use_id: sanitizeToolId(part.tool_use_id), // #7705
             content: resultContent,
             ...(part.is_error && { is_error: part.is_error }),
           });
-        } else if (part.type === "image_url") {
-          const url = part.image_url.url;
-          const match = url.match(/^data:([^;]+);base64,(.+)$/);
-          if (match) {
+        } else if (part.type === "image_url" || part.type === "image") {
+          const imageBlock = openAiImagePartToClaudeBlock(part);
+          if (imageBlock) blocks.push(imageBlock);
+        } else if (part.type === "file" && (part.file?.file_data || part.file?.data)) {
+          // OpenAI Chat Completions file block:
+          // {type:"file", file:{filename, file_data:"data:<mime>;base64,..."}}.
+          // Map PDFs to a Claude document block and image mimes to an image block so the
+          // attachment reaches the model instead of being silently dropped. Claude has no
+          // native video input, so non-pdf/non-image files are skipped here.
+          const fileData = part.file.file_data || part.file.data;
+          const fmatch =
+            typeof fileData === "string" ? fileData.match(/^data:([^;]+);base64,(.+)$/) : null;
+          if (fmatch) {
+            const mediaType = fmatch[1];
+            if (mediaType === "application/pdf") {
+              blocks.push({
+                type: "document",
+                source: { type: "base64", media_type: mediaType, data: fmatch[2] },
+                ...(part.file.filename ? { title: part.file.filename } : {}),
+              });
+            } else if (mediaType.startsWith("image/")) {
+              blocks.push({
+                type: "image",
+                source: { type: "base64", media_type: mediaType, data: fmatch[2] },
+              });
+            }
+          } else if (typeof fileData === "string" && /^https?:\/\//i.test(fileData)) {
             blocks.push({
-              type: "image",
-              source: { type: "base64", media_type: match[1], data: match[2] },
+              type: "document",
+              source: { type: "url", url: fileData },
+              ...(part.file.filename ? { title: part.file.filename } : {}),
             });
-          } else if (typeof url === "string" && url.trim()) {
-            blocks.push({
-              type: "image",
-              source: { type: "url", url },
-            });
-          }
-        } else if (part.type === "image" && part.source) {
-          blocks.push({ type: "image", source: part.source });
-        } else if (part.type === "image" && typeof part.image === "string") {
-          // AI SDK-style image part: { type: "image", image: "data:...;base64,..." } (#1330)
-          const url = part.image;
-          const match = url.match(/^data:([^;]+);base64,(.+)$/);
-          if (match) {
-            blocks.push({
-              type: "image",
-              source: { type: "base64", media_type: match[1], data: match[2] },
-            });
-          } else if (url.trim()) {
-            blocks.push({ type: "image", source: { type: "url", url } });
           }
         }
       }
@@ -560,7 +615,26 @@ function getContentBlocksFromMessage(
         if (part.type === "text" && part.text) {
           blocks.push({ type: "text", text: part.text });
         } else if (part.type === "thinking" || part.type === "redacted_thinking") {
-          // Preserve thinking blocks with signature
+          // #6953 — thinking blocks with signature:"" (empty string) come from non-Anthropic
+          // providers (codex/gpt-5.x).  Anthropic rejects replayed `thinking` blocks that
+          // carry a foreign or fabricated signature with HTTP 400.  Fabricating a default
+          // signature (the old behaviour) made the poisoning permanent: once a codex-served
+          // turn introduced a `signature:""` thinking block, every subsequent Anthropic leg
+          // attempt 400'd and the router silently fell back to codex forever.
+          //
+          // Fix: strip thinking blocks that carry no signature at all. `signature: ""` is the
+          // shape codex/gpt-5.x emit; a MISSING field is what the response translator produces
+          // from cross-provider `reasoning_content` (#12105). Neither can be replayed to
+          // Anthropic, and fabricating DEFAULT_THINKING_CLAUDE_SIGNATURE is worse than dropping:
+          // prepareClaudeRequest treats any non-empty signature on the latest assistant turn as
+          // genuine and forwards the block verbatim, so the fake signature 400s upstream. This
+          // mirrors the stricter "non-empty string" check already used in claudeHelper.ts.
+          if (part.type === "thinking" && !part.signature) {
+            continue; // drop — no replayable signature (empty or absent)
+          }
+          if (part.type === "redacted_thinking" && part.data === "") {
+            continue; // drop — same: empty data from non-Anthropic provider
+          }
           blocks.push({
             ...part,
             signature: part.signature || DEFAULT_THINKING_CLAUDE_SIGNATURE,
@@ -628,7 +702,14 @@ function getContentBlocksFromMessage(
       (b) => b.type === "thinking" || b.type === "redacted_thinking"
     );
     const hasToolUseBlock = blocks.some((b) => b.type === "tool_use");
-    if (msg.reasoning_content && thinkingEnabledForRequest && hasToolUseBlock && !hasThinkingBlock) {
+    if (isKimiCoding && typeof msg.reasoning_content === "string" && !hasThinkingBlock) {
+      blocks.unshift({ type: "thinking", thinking: msg.reasoning_content });
+    } else if (
+      msg.reasoning_content &&
+      thinkingEnabledForRequest &&
+      hasToolUseBlock &&
+      !hasThinkingBlock
+    ) {
       blocks.unshift({
         type: "redacted_thinking",
         data: DEFAULT_THINKING_CLAUDE_SIGNATURE,

@@ -1,10 +1,65 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
-import { createFile, listFiles, formatFileResponse, countFiles } from "@/lib/localDb";
+import { createFile, listFiles, formatFileResponse, countFiles } from "@/lib/db/files";
 import { NextResponse } from "next/server";
 import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
 
 export async function OPTIONS() {
   return handleCorsOptions();
+}
+
+const DEFAULT_LIST_LIMIT = 20;
+const MAX_LIST_LIMIT = 10000;
+
+export function parseFilesListQuery(searchParams: URLSearchParams):
+  | {
+      ok: true;
+      limit: number;
+      after: string | undefined;
+      order: "asc" | "desc";
+      purpose: string | undefined;
+    }
+  | { ok: false; response: Response } {
+  const rawLimit = searchParams.get("limit");
+  let limit = DEFAULT_LIST_LIMIT;
+
+  if (rawLimit !== null) {
+    if (!/^\d+$/.test(rawLimit)) {
+      return {
+        ok: false,
+        response: NextResponse.json(
+          { error: { message: "limit must be a positive integer", type: "invalid_request_error" } },
+          { status: 400, headers: CORS_HEADERS }
+        ),
+      };
+    }
+
+    limit = Number.parseInt(rawLimit, 10);
+    if (limit < 1 || limit > MAX_LIST_LIMIT) {
+      return {
+        ok: false,
+        response: NextResponse.json(
+          {
+            error: {
+              message: `limit must be between 1 and ${MAX_LIST_LIMIT}`,
+              type: "invalid_request_error",
+            },
+          },
+          { status: 400, headers: CORS_HEADERS }
+        ),
+      };
+    }
+  }
+
+  const orderParam = searchParams.get("order");
+  const order = orderParam === "asc" ? "asc" : "desc";
+
+  return {
+    ok: true,
+    limit,
+    after: searchParams.get("after") || undefined,
+    order,
+    purpose: searchParams.get("purpose") || undefined,
+  };
 }
 
 export async function POST(request: Request) {
@@ -78,10 +133,9 @@ export async function GET(request: Request) {
   const apiKeyId = scope.apiKeyId;
 
   const { searchParams } = new URL(request.url);
-  const limit = Math.min(Number.parseInt(searchParams.get("limit") || "20") || 20, 10000);
-  const after = searchParams.get("after") || undefined;
-  const order = (searchParams.get("order") as "asc" | "desc") || "desc";
-  const purpose = searchParams.get("purpose") || undefined;
+  const parsed = parseFilesListQuery(searchParams);
+  if (!parsed.ok) return parsed.response;
+  const { limit, after, order, purpose } = parsed;
 
   // We fetch limit + 1 to check if there are more items
   const files = listFiles({

@@ -138,6 +138,87 @@ test("Responses -> Chat rejects input item types without a lossless Chat equival
   }
 });
 
+test("Responses -> Chat converts plaintext agent_message items to assistant history", () => {
+  const result = translate({
+    input: [
+      { type: "message", role: "user", content: [{ type: "input_text", text: "Run the task" }] },
+      {
+        type: "agent_message",
+        author: "worker",
+        recipient: "parent",
+        content: [{ type: "input_text", text: "Task completed" }],
+      },
+    ],
+  });
+
+  assert.deepEqual(result.messages, [
+    { role: "user", content: [{ type: "text", text: "Run the task" }] },
+    { role: "assistant", content: [{ type: "text", text: "Task completed" }] },
+  ]);
+});
+
+test("Responses -> Chat skips encrypted or mixed agent_message items", () => {
+  const result = translate({
+    input: [
+      { type: "message", role: "user", content: [{ type: "input_text", text: "Run the task" }] },
+      {
+        type: "agent_message",
+        author: "worker",
+        recipient: "parent",
+        content: [
+          { type: "input_text", text: "Message Type: NEW_TASK\nPayload:\n" },
+          { type: "encrypted_content", encrypted_content: "opaque" },
+        ],
+      },
+    ],
+  });
+
+  assert.deepEqual(result.messages, [
+    { role: "user", content: [{ type: "text", text: "Run the task" }] },
+  ]);
+});
+
+test("Responses -> Chat converts string-content agent_message items to assistant history", () => {
+  const result = translate({
+    input: [
+      { type: "message", role: "user", content: [{ type: "input_text", text: "Run the task" }] },
+      { type: "agent_message", author: "worker", content: "Task completed" },
+    ],
+  });
+
+  assert.deepEqual(result.messages, [
+    { role: "user", content: [{ type: "text", text: "Run the task" }] },
+    { role: "assistant", content: [{ type: "text", text: "Task completed" }] },
+  ]);
+});
+
+test("Responses -> Chat converts role-based agent_message items without a type field", () => {
+  const result = translate({
+    input: [
+      { type: "message", role: "user", content: [{ type: "input_text", text: "Run the task" }] },
+      { role: "agent_message", content: [{ type: "text", text: "Worker reply" }] },
+    ],
+  });
+
+  assert.deepEqual(result.messages, [
+    { role: "user", content: [{ type: "text", text: "Run the task" }] },
+    { role: "assistant", content: [{ type: "text", text: "Worker reply" }] },
+  ]);
+});
+
+test("Responses -> Chat does not throw when an agent_message item slips past normalize", () => {
+  const result = translate({
+    input: [
+      { type: "message", role: "user", content: [{ type: "input_text", text: "Run the task" }] },
+      { type: "agent_message", content: [{ type: "unknown_part" }] },
+    ],
+  });
+
+  assert.deepEqual(result.messages, [
+    { role: "user", content: [{ type: "text", text: "Run the task" }] },
+  ]);
+});
+
 test("Responses -> Chat consumes additional_tools input items without emitting messages", () => {
   const result = translate({
     input: [

@@ -4,12 +4,14 @@ import {
   RESPONSES_PREVIOUS_RESPONSE_ID_MODES,
   type ResponsesPreviousResponseIdMode,
 } from "@/shared/constants/responsesPreviousResponseId";
+import { CHATGPT_WEB_CODEX_PROVIDER_ID } from "@/shared/constants/chatgptWebCodex";
 import { FORMATS } from "../translator/formats.ts";
 
 type JsonRecord = Record<string, unknown>;
 
 type ApplyResponsesPreviousResponseIdPolicyOptions = {
   mode: unknown;
+  provider?: unknown;
   sourceFormat?: unknown;
   targetFormat?: unknown;
   credentials?: unknown;
@@ -32,6 +34,7 @@ export function normalizeResponsesPreviousResponseIdMode(
 
 export function shouldStripPreviousResponseId({
   mode,
+  provider,
   sourceFormat,
   targetFormat,
   credentials,
@@ -39,6 +42,7 @@ export function shouldStripPreviousResponseId({
   const normalizedMode = normalizeResponsesPreviousResponseIdMode(mode);
   if (normalizedMode === "preserve") return false;
   if (normalizedMode === "strip") return true;
+  if (provider === CHATGPT_WEB_CODEX_PROVIDER_ID) return false;
 
   const isResponsesSource = sourceFormat === FORMATS.OPENAI_RESPONSES;
   const isResponsesTarget = targetFormat === FORMATS.OPENAI_RESPONSES;

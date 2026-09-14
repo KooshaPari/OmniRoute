@@ -1,20 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
-import { AI_MODELS } from "@/shared/constants/models";
 import { getProviderConnections } from "@/lib/db/providers";
+import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
+import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import {
+  buildRegistryEmbeddingOptions,
+  mergeEmbeddingOptions,
+} from "./catalog";
 
 type EmbeddingModelOption = {
   value: string;
   label: string;
+  dimensions?: number;
 };
 
-function isLikelyEmbeddingModel(provider: string, model: string, name: string): boolean {
-  const haystack = `${provider}/${model} ${name}`.toLowerCase();
-  if (haystack.includes("embedding")) return true;
-  if (haystack.includes("embed")) return true;
-  if (haystack.includes("text-embedding")) return true;
-  return false;
+function modelLabel(value: string, name: string, dimensions?: number): string {
+  return `${value} - ${name}${dimensions ? ` (${dimensions}d)` : ""}`;
 }
 
 export async function GET(request: NextRequest) {
@@ -23,24 +25,42 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const options: EmbeddingModelOption[] = AI_MODELS.filter((m: any) =>
-      isLikelyEmbeddingModel(String(m.provider || ""), String(m.model || ""), String(m.name || ""))
-    )
-      .map((m: any) => ({
-        value: `${m.provider}/${m.model}`,
-        label: `${m.provider}/${m.model} - ${m.name}`,
+    const activeConnections = (await getProviderConnections({ isActive: true })) as Array<
+      Record<string, unknown>
+    >;
+    const configuredProviders = new Set(
+      activeConnections
+        .filter(
+          (connection) =>
+            (typeof connection.apiKey === "string" && connection.apiKey.trim().length > 0) ||
+            connection.authType === "oauth" ||
+            // Local/self-hosted providers (ollama-local, lm-studio, etc.) and other
+            // no-key-required providers connect with no apiKey and authType "apikey"
+            // (see src/app/api/providers/route.ts) — they are still "configured" the
+            // moment the connection is active. See issue #11949.
+            providerAllowsOptionalApiKey(connection.provider)
+        )
+        .map((connection) => String(connection.provider || ""))
+        .filter(Boolean)
+    );
+
+    const options: EmbeddingModelOption[] = getAllEmbeddingModels()
+      .filter((model) => configuredProviders.has(model.provider))
+      .map((model) => ({
+        value: model.id,
+        label: modelLabel(model.id, model.name, model.dimensions),
+        ...(model.dimensions ? { dimensions: model.dimensions } : {}),
       }))
-      .sort((a, b) => a.value.localeCompare(b.value)); // teknik sıralama: ASCII kasıtlı
+      .sort((a, b) => a.value.localeCompare(b.value));
 
     // Add OpenRouter account models that explicitly support embeddings.
     try {
-      const connections = (await getProviderConnections({
-        provider: "openrouter",
-        isActive: true,
-      })) as Array<Record<string, unknown>>;
-      const apiKey = connections.find(
-        (c) => typeof c.apiKey === "string" && (c.apiKey as string).trim().length > 0
-      )?.apiKey as string | undefined;
+      const apiKey = activeConnections
+        .filter((connection) => connection.provider === "openrouter")
+        .find(
+          (connection) =>
+            typeof connection.apiKey === "string" && connection.apiKey.trim().length > 0
+        )?.apiKey as string | undefined;
 
       if (apiKey) {
         const controller = new AbortController();
@@ -49,9 +69,7 @@ export async function GET(request: NextRequest) {
         try {
           res = await fetch("https://openrouter.ai/api/v1/models?output_modalities=embeddings", {
             method: "GET",
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-            },
+            headers: { Authorization: `Bearer ${apiKey}` },
             cache: "no-store",
             signal: controller.signal,
           });
@@ -65,11 +83,8 @@ export async function GET(request: NextRequest) {
             const id = typeof row?.id === "string" ? row.id.trim() : "";
             if (!id) continue;
             const value = `openrouter/${id}`;
-            if (options.some((o) => o.value === value)) continue;
-            options.push({
-              value,
-              label: `${value} - ${String(row?.name || id)}`,
-            });
+            if (options.some((option) => option.value === value)) continue;
+            options.push({ value, label: modelLabel(value, String(row?.name || id)) });
           }
         }
       }
@@ -85,9 +100,14 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    options.sort((a, b) => a.value.localeCompare(b.value)); // teknik sıralama: ASCII kasıtlı
+    // Merge curated registry models (EMBEDDING_PROVIDERS — cohere, voyage,
+    // jina, ...) so the Quick select lists real
+    // embedding providers instead of only chat-catalog text matches and
+    // OpenRouter live discovery. Registry options dedupe against the above;
+    // mergeEmbeddingOptions returns value-sorted options for stable UI order.
+    const withRegistry = mergeEmbeddingOptions(options, buildRegistryEmbeddingOptions());
 
-    return NextResponse.json({ models: options });
+    return NextResponse.json({ models: withRegistry });
   } catch (error) {
     const message = sanitizeErrorMessage(error instanceof Error ? error.message : String(error));
     return NextResponse.json({ error: { message }, models: [] }, { status: 500 });

@@ -27,8 +27,8 @@ const KNOWN_PLANS: Record<string, KnownPlanShape> = {
   glm: {
     provider: "glm",
     dimensions: [
-      // limit=Number.EPSILON (≈0) = unknown; documented. Kept so planResolver can detect it.
-      // Sliding-window / fair-share logic must treat near-zero limits as "manual override required".
+      // limit=0 = desconhecido; documentado. Mantido para correta detecção pelo planResolver.
+      // Sliding window / fair-share devem tratar limit=0 como "manual obrigatório".
       { unit: "tokens", window: "5h", limit: Number.EPSILON },
       { unit: "tokens", window: "weekly", limit: Number.EPSILON },
     ],
@@ -94,6 +94,11 @@ const KNOWN_PLANS: Record<string, KnownPlanShape> = {
   // Grok Build (xAI) — rate limits from x-ratelimit-* headers:
   // Daily: 864 requests, 18M tokens (from API headers)
   // Weekly: derived from daily * 7
+  // #6844: this static estimate is now the fallback used only when the live
+  // grok-cli quota fetcher (open-sse/services/grokCliQuotaFetcher.ts) returns
+  // null (both credentials missing and upstream fetch/parse failures fail
+  // open to this static plan) — the shared weekly percent-based credit pool
+  // it estimates is not observable from local request/token counters alone.
   "grok-cli": {
     provider: "grok-cli",
     dimensions: [

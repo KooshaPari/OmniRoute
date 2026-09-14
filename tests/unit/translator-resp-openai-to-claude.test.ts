@@ -105,7 +105,9 @@ test("OpenAI stream: internal reasoning replay placeholder stays hidden from Cla
   const result = flatten([placeholder, text]);
 
   assert.equal(
-    result.some((event) => event.type === "content_block_start" && event.content_block?.type === "thinking"),
+    result.some(
+      (event) => event.type === "content_block_start" && event.content_block?.type === "thinking"
+    ),
     false
   );
   assert.equal(result[0].type, "message_start");
@@ -217,10 +219,7 @@ test("OpenAI stream: multi-chunk content without the placeholder passes through 
     textDeltas.map((event) => event.delta.text),
     ["Hello, ", "world.", " Bye."]
   );
-  assert.equal(
-    textDeltas.map((event) => event.delta.text).join(""),
-    "Hello, world. Bye."
-  );
+  assert.equal(textDeltas.map((event) => event.delta.text).join(""), "Hello, world. Bye.");
 });
 
 test("OpenAI stream: tool calls strip Claude OAuth prefix and keep cache usage", () => {
@@ -427,9 +426,11 @@ test("OpenAI stream: XML <invoke> block in content becomes tool_use at finish", 
   // message_start → (no text block since all content was XML)
   assert.equal(result[0].type, "message_start");
   // At finish: tool_use content_block_start
-  const toolStart = result.find((e) => e.type === "content_block_start" && e.content_block?.type === "tool_use");
+  const toolStart = result.find(
+    (e) => e.type === "content_block_start" && e.content_block?.type === "tool_use"
+  );
   assert.ok(toolStart, "expected tool_use content_block_start");
-  assert.equal(toolStart.content_block.name, "bash"); // normalized via REVERSE_MAP
+  assert.equal(toolStart.content_block.name, "Bash"); // canonical echo kept (#11085 live repro)
   assert.deepEqual(toolStart.content_block.input, { command: "ls -la" });
   // tool_use content_block_stop
   const toolStop = result.find((e) => e.type === "content_block_stop");
@@ -465,7 +466,7 @@ test("OpenAI stream: XML invoke block across two streaming chunks", () => {
       choices: [
         {
           index: 0,
-          delta: { content: 'hosts</parameter></invoke>' },
+          delta: { content: "hosts</parameter></invoke>" },
           finish_reason: null,
         },
       ],
@@ -487,9 +488,11 @@ test("OpenAI stream: XML invoke block across two streaming chunks", () => {
   // Buffer should be cleared after chunk2
   assert.equal(state._xmlInvokeBuffer, "", "buffer cleared after complete block");
 
-  const toolStart = result.find((e) => e.type === "content_block_start" && e.content_block?.type === "tool_use");
+  const toolStart = result.find(
+    (e) => e.type === "content_block_start" && e.content_block?.type === "tool_use"
+  );
   assert.ok(toolStart, "expected tool_use content_block_start");
-  assert.equal(toolStart.content_block.name, "read");
+  assert.equal(toolStart.content_block.name, "Read"); // canonical echo kept (#11085 live repro)
   assert.deepEqual(toolStart.content_block.input, { file_path: "/etc/hosts" });
 });
 
@@ -538,15 +541,25 @@ test("OpenAI stream: text before XML block is emitted as text content", () => {
   const result = flatten([chunk1, chunk2, chunk3]);
 
   // "Checking..." should be emitted as text
-  const textDeltas = result.filter((e) => e.type === "content_block_delta" && e.delta?.type === "text_delta");
+  const textDeltas = result.filter(
+    (e) => e.type === "content_block_delta" && e.delta?.type === "text_delta"
+  );
   assert.ok(textDeltas.length > 0, "expected at least one text delta");
-  assert.ok(textDeltas.some((d) => d.delta.text.includes("Checking...")), "text before XML preserved");
-  assert.ok(textDeltas.some((d) => d.delta.text.includes("Done.")), "text after XML preserved");
+  assert.ok(
+    textDeltas.some((d) => d.delta.text.includes("Checking...")),
+    "text before XML preserved"
+  );
+  assert.ok(
+    textDeltas.some((d) => d.delta.text.includes("Done.")),
+    "text after XML preserved"
+  );
 
   // Tool call should still be emitted
-  const toolStart = result.find((e) => e.type === "content_block_start" && e.content_block?.type === "tool_use");
+  const toolStart = result.find(
+    (e) => e.type === "content_block_start" && e.content_block?.type === "tool_use"
+  );
   assert.ok(toolStart, "expected tool_use content_block_start");
-  assert.equal(toolStart.content_block.name, "bash");
+  assert.equal(toolStart.content_block.name, "Bash"); // canonical echo kept (#11085 live repro)
   assert.deepEqual(toolStart.content_block.input, { command: "date" });
 });
 

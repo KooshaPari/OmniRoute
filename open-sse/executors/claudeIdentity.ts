@@ -13,11 +13,15 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import {
   CLAUDE_CODE_CLIENT_VERSION,
   CLAUDE_CODE_SDK_PACKAGE_VERSION,
+  getClaudeCodeClientVersion,
 } from "@/shared/constants/claudeCodeClient";
 
 // ---------- Versions ------------------------------------------------------
 
-export const CLAUDE_CODE_VERSION = "2.1.195";
+export const CLAUDE_CODE_VERSION = CLAUDE_CODE_CLIENT_VERSION;
+export function getClaudeCodeVersion(): string {
+  return getClaudeCodeClientVersion();
+}
 /** Bundled @anthropic-ai/sdk version for the pinned CLI release. */
 export const CLAUDE_CODE_STAINLESS_VERSION = CLAUDE_CODE_SDK_PACKAGE_VERSION;
 
@@ -156,7 +160,7 @@ export async function fetchClaudeBootstrap(accessToken: string): Promise<ClaudeB
       headers: {
         Authorization: `Bearer ${accessToken}`,
         Accept: "application/json",
-        "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
+        "User-Agent": `claude-cli/${getClaudeCodeVersion()} (external, cli)`,
         "anthropic-beta": "oauth-2025-04-20",
       },
       signal: ctrl.signal,
@@ -323,6 +327,23 @@ function isContext1mModel(model: unknown): boolean {
   );
 }
 
+export function shouldUseMidConversationSystem(
+  body: Record<string, unknown> | null | undefined,
+  model?: string | null
+): boolean {
+  const payload = body || {};
+  const hasSystem =
+    !!payload.system &&
+    (typeof payload.system === "string" ||
+      (Array.isArray(payload.system) && payload.system.length > 0));
+  const hasTools = Array.isArray(payload.tools) && payload.tools.length > 0;
+  const effectiveModel = model ?? (typeof payload.model === "string" ? payload.model : "");
+
+  return (
+    hasSystem && hasTools && matchesModelPrefix(effectiveModel, CONTEXT_1M_BETA_MODEL_PREFIXES)
+  );
+}
+
 /**
  * Pick the anthropic-beta flag set that matches the request shape. Real CLI
  * uses three patterns: minimal probe, structured-output, and full agent.
@@ -357,10 +378,11 @@ export function selectBetaFlags(
   // betas it actually asked for. Opaque clients (clientBetaSet === null) keep them all.
   const allowThinking =
     clientBetaSet === null || clientBetaSet.has("interleaved-thinking-2025-05-14");
-  const allowHeavy =
-    clientBetaSet === null ||
-    clientBetaSet.has("advanced-tool-use-2025-11-20") ||
-    clientBetaSet.has("effort-2025-11-24");
+  // effort-2025-11-24 must NOT imply advanced-tool-use-2025-11-20 (#9505): Claude
+  // Code sends effort on every request and never sends ATU, so treating effort as
+  // a proxy for ATU force-injects the heavy-agent pair the client never negotiated —
+  // the same class of mutation #3415 closed. Opaque clients keep the full set.
+  const allowHeavy = clientBetaSet === null || clientBetaSet.has("advanced-tool-use-2025-11-20");
   const hasSystem =
     !!b.system &&
     (typeof b.system === "string" || (Array.isArray(b.system) && b.system.length > 0));
@@ -373,8 +395,7 @@ export function selectBetaFlags(
   const isFullAgent = hasTools && hasSystem;
   const effectiveModel = model ?? (typeof b.model === "string" ? b.model : "");
   const isHeavyAgent = isFullAgent && isHeavyAgentModel(effectiveModel);
-  const isOpusAgent =
-    isFullAgent && matchesModelPrefix(effectiveModel, CONTEXT_1M_BETA_MODEL_PREFIXES);
+  const isOpusAgent = shouldUseMidConversationSystem(b, effectiveModel);
   const isContext1m = isFullAgent && isContext1mModel(effectiveModel);
 
   const flags: string[] = [];

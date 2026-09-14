@@ -9,11 +9,8 @@
  */
 
 import type { SqliteAdapter } from "./adapters/types";
-import { createLogger } from "@/shared/utils/logger";
 
 type SqliteDatabase = SqliteAdapter;
-
-const log = createLogger("db:schema-columns");
 
 export function ensureProviderConnectionsColumns(db: SqliteDatabase) {
   try {
@@ -27,41 +24,36 @@ export function ensureProviderConnectionsColumns(db: SqliteDatabase) {
       ["email", "TEXT"],
       ["display_name", "TEXT"],
       ["provider_specific_data", "TEXT"],
+      ["rate_limit_protection", "INTEGER DEFAULT 0"],
+      ["last_used_at", "TEXT"],
+      ["default_model", "TEXT"], // legacy-schema hole; later data migrations read it
+      ["last_ping_at", "TEXT"], // added by 123_quota_auto_ping; back-filled here for divergent lineages
+      ["last_pinged_reset_key", "TEXT"], // added by 123_quota_auto_ping; back-filled here for divergent lineages
     ]) {
       if (!columnNames.has(column)) {
         db.exec(`ALTER TABLE provider_connections ADD COLUMN ${column} ${type}`);
         console.log(`[DB] Added provider_connections.${column} column`);
       }
     }
-    if (!columnNames.has("rate_limit_protection")) {
-      db.exec(
-        "ALTER TABLE provider_connections ADD COLUMN rate_limit_protection INTEGER DEFAULT 0"
-      );
-      log.info({ table: "provider_connections", column: "rate_limit_protection" }, "Added column");
-    }
-    if (!columnNames.has("last_used_at")) {
-      db.exec("ALTER TABLE provider_connections ADD COLUMN last_used_at TEXT");
-      log.info({ table: "provider_connections", column: "last_used_at" }, "Added column");
-    }
     if (!columnNames.has("group")) {
       db.exec('ALTER TABLE provider_connections ADD COLUMN "group" TEXT');
-      log.info({ table: "provider_connections", column: "group" }, "Added column");
+      console.log('[DB] Added provider_connections."group" column');
     }
     if (!columnNames.has("max_concurrent")) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN max_concurrent INTEGER");
-      log.info({ table: "provider_connections", column: "max_concurrent" }, "Added column");
+      console.log("[DB] Added provider_connections.max_concurrent column");
     }
     if (!columnNames.has("proxy_enabled")) {
       db.exec(
         "ALTER TABLE provider_connections ADD COLUMN proxy_enabled INTEGER NOT NULL DEFAULT 1"
       );
-      log.info({ table: "provider_connections", column: "proxy_enabled" }, "Added column");
+      console.log("[DB] Added provider_connections.proxy_enabled column");
     }
     if (!columnNames.has("per_key_proxy_enabled")) {
       db.exec(
         "ALTER TABLE provider_connections ADD COLUMN per_key_proxy_enabled INTEGER NOT NULL DEFAULT 0"
       );
-      log.info({ table: "provider_connections", column: "per_key_proxy_enabled" }, "Added column");
+      console.log("[DB] Added provider_connections.per_key_proxy_enabled column");
     }
     if (!columnNames.has("quota_visible")) {
       db.exec(
@@ -71,17 +63,11 @@ export function ensureProviderConnectionsColumns(db: SqliteDatabase) {
     }
     if (!columnNames.has("quota_window_thresholds_json")) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN quota_window_thresholds_json TEXT");
-      log.info(
-        { table: "provider_connections", column: "quota_window_thresholds_json" },
-        "Added column"
-      );
+      console.log("[DB] Added provider_connections.quota_window_thresholds_json column");
     }
     if (!columnNames.has("rate_limit_overrides_json")) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN rate_limit_overrides_json TEXT");
-      log.info(
-        { table: "provider_connections", column: "rate_limit_overrides_json" },
-        "Added column"
-      );
+      console.log("[DB] Added provider_connections.rate_limit_overrides_json column");
     }
     // `refresh_token` is part of 001_initial_schema.sql, but `CREATE TABLE IF NOT EXISTS`
     // is a no-op on a pre-existing legacy table that predates it — heal it defensively
@@ -101,7 +87,7 @@ export function ensureProviderConnectionsColumns(db: SqliteDatabase) {
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    log.warn({ err: message, table: "provider_connections" }, "Failed to verify schema");
+    console.warn("[DB] Failed to verify provider_connections schema:", message);
   }
 }
 
@@ -123,28 +109,28 @@ export function ensureUsageHistoryColumns(db: SqliteDatabase) {
 
     if (!columnNames.has("success")) {
       db.exec("ALTER TABLE usage_history ADD COLUMN success INTEGER DEFAULT 1");
-      log.info({ table: "usage_history", column: "success" }, "Added column");
+      console.log("[DB] Added usage_history.success column");
     }
     if (!columnNames.has("latency_ms")) {
       db.exec("ALTER TABLE usage_history ADD COLUMN latency_ms INTEGER DEFAULT 0");
-      log.info({ table: "usage_history", column: "latency_ms" }, "Added column");
+      console.log("[DB] Added usage_history.latency_ms column");
     }
     if (!columnNames.has("ttft_ms")) {
       db.exec("ALTER TABLE usage_history ADD COLUMN ttft_ms INTEGER DEFAULT 0");
-      log.info({ table: "usage_history", column: "ttft_ms" }, "Added column");
+      console.log("[DB] Added usage_history.ttft_ms column");
     }
     if (!columnNames.has("error_code")) {
       db.exec("ALTER TABLE usage_history ADD COLUMN error_code TEXT");
-      log.info({ table: "usage_history", column: "error_code" }, "Added column");
+      console.log("[DB] Added usage_history.error_code column");
     }
     if (!columnNames.has("service_tier")) {
       db.exec("ALTER TABLE usage_history ADD COLUMN service_tier TEXT DEFAULT 'standard'");
-      log.info({ table: "usage_history", column: "service_tier" }, "Added column");
+      console.log("[DB] Added usage_history.service_tier column");
     }
     db.exec("CREATE INDEX IF NOT EXISTS idx_uh_service_tier ON usage_history(service_tier)");
     if (!columnNames.has("combo_strategy")) {
       db.exec("ALTER TABLE usage_history ADD COLUMN combo_strategy TEXT DEFAULT 'direct'");
-      log.info({ table: "usage_history", column: "combo_strategy" }, "Added column");
+      console.log("[DB] Added usage_history.combo_strategy column");
     }
     db.exec("CREATE INDEX IF NOT EXISTS idx_uh_combo_strategy ON usage_history(combo_strategy)");
     if (!columnNames.has("account_key")) {
@@ -175,7 +161,7 @@ export function ensureUsageHistoryColumns(db: SqliteDatabase) {
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    log.warn({ err: message, table: "usage_history" }, "Failed to verify schema");
+    console.warn("[DB] Failed to verify usage_history schema:", message);
   }
 }
 
@@ -188,75 +174,83 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
 
     if (!columnNames.has("artifact_relpath")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN artifact_relpath TEXT");
-      log.info({ table: "call_logs", column: "artifact_relpath" }, "Added column");
+      console.log("[DB] Added call_logs.artifact_relpath column");
     }
     if (!columnNames.has("has_pipeline_details")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN has_pipeline_details INTEGER DEFAULT 0");
-      log.info({ table: "call_logs", column: "has_pipeline_details" }, "Added column");
+      console.log("[DB] Added call_logs.has_pipeline_details column");
     }
     if (!columnNames.has("requested_model")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN requested_model TEXT DEFAULT NULL");
-      log.info({ table: "call_logs", column: "requested_model" }, "Added column");
+      console.log("[DB] Added call_logs.requested_model column");
     }
     if (!columnNames.has("request_type")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN request_type TEXT DEFAULT NULL");
-      log.info({ table: "call_logs", column: "request_type" }, "Added column");
+      console.log("[DB] Added call_logs.request_type column");
     }
     if (!columnNames.has("tokens_cache_read")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN tokens_cache_read INTEGER DEFAULT NULL");
-      log.info({ table: "call_logs", column: "tokens_cache_read" }, "Added column");
+      console.log("[DB] Added call_logs.tokens_cache_read column");
     }
     if (!columnNames.has("tokens_cache_creation")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN tokens_cache_creation INTEGER DEFAULT NULL");
-      log.info({ table: "call_logs", column: "tokens_cache_creation" }, "Added column");
+      console.log("[DB] Added call_logs.tokens_cache_creation column");
     }
     if (!columnNames.has("tokens_reasoning")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN tokens_reasoning INTEGER DEFAULT NULL");
-      log.info({ table: "call_logs", column: "tokens_reasoning" }, "Added column");
+      console.log("[DB] Added call_logs.tokens_reasoning column");
     }
     if (!columnNames.has("cache_source")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN cache_source TEXT DEFAULT 'upstream'");
-      log.info({ table: "call_logs", column: "cache_source" }, "Added column");
+      console.log("[DB] Added call_logs.cache_source column");
     }
     if (!columnNames.has("combo_step_id")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN combo_step_id TEXT DEFAULT NULL");
-      log.info({ table: "call_logs", column: "combo_step_id" }, "Added column");
+      console.log("[DB] Added call_logs.combo_step_id column");
     }
     if (!columnNames.has("combo_execution_key")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN combo_execution_key TEXT DEFAULT NULL");
-      log.info({ table: "call_logs", column: "combo_execution_key" }, "Added column");
+      console.log("[DB] Added call_logs.combo_execution_key column");
     }
     if (!columnNames.has("error_summary")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN error_summary TEXT DEFAULT NULL");
-      log.info({ table: "call_logs", column: "error_summary" }, "Added column");
+      console.log("[DB] Added call_logs.error_summary column");
     }
     if (!columnNames.has("detail_state")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN detail_state TEXT DEFAULT 'none'");
-      log.info({ table: "call_logs", column: "detail_state" }, "Added column");
+      console.log("[DB] Added call_logs.detail_state column");
     }
     if (!columnNames.has("artifact_size_bytes")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN artifact_size_bytes INTEGER DEFAULT NULL");
-      log.info({ table: "call_logs", column: "artifact_size_bytes" }, "Added column");
+      console.log("[DB] Added call_logs.artifact_size_bytes column");
     }
     if (!columnNames.has("artifact_sha256")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN artifact_sha256 TEXT DEFAULT NULL");
-      log.info({ table: "call_logs", column: "artifact_sha256" }, "Added column");
+      console.log("[DB] Added call_logs.artifact_sha256 column");
     }
     if (!columnNames.has("has_request_body")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN has_request_body INTEGER DEFAULT 0");
-      log.info({ table: "call_logs", column: "has_request_body" }, "Added column");
+      console.log("[DB] Added call_logs.has_request_body column");
     }
     if (!columnNames.has("has_response_body")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN has_response_body INTEGER DEFAULT 0");
-      log.info({ table: "call_logs", column: "has_response_body" }, "Added column");
+      console.log("[DB] Added call_logs.has_response_body column");
     }
     if (!columnNames.has("request_summary")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN request_summary TEXT DEFAULT NULL");
-      log.info({ table: "call_logs", column: "request_summary" }, "Added column");
+      console.log("[DB] Added call_logs.request_summary column");
+    }
+    // added by 173_call_logs_video_content_removed; back-filled here because
+    // resolvePreviousResponseState SELECTs it on every continuation lookup — a
+    // lineage that skipped the migration would throw "no such column" there
+    // rather than fail closed. Same hole #12470 closed for provider_connections.
+    if (!columnNames.has("video_content_removed")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN video_content_removed INTEGER NOT NULL DEFAULT 0");
+      console.log("[DB] Added call_logs.video_content_removed column");
     }
     if (!columnNames.has("correlation_id")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN correlation_id TEXT DEFAULT NULL");
-      log.info({ table: "call_logs", column: "correlation_id" }, "Added column");
+      console.log("[DB] Added call_logs.correlation_id column");
     }
     if (!columnNames.has("model_pinned")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN model_pinned INTEGER DEFAULT 0");
@@ -265,14 +259,6 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
     if (!columnNames.has("session_tag")) {
       db.exec("ALTER TABLE call_logs ADD COLUMN session_tag TEXT DEFAULT NULL");
       console.log("[DB] Added call_logs.session_tag column");
-    }
-    if (!columnNames.has("model_pinned")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN model_pinned INTEGER DEFAULT 0");
-      console.log("[DB] Added call_logs.model_pinned column");
-    }
-    if (!columnNames.has("correlation_id")) {
-      db.exec("ALTER TABLE call_logs ADD COLUMN correlation_id TEXT DEFAULT NULL");
-      console.log("[DB] Added call_logs.correlation_id column");
     }
 
     db.exec(
@@ -283,9 +269,26 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
       "CREATE INDEX IF NOT EXISTS idx_cl_combo_target ON call_logs(combo_name, combo_execution_key, timestamp)"
     );
     db.exec("CREATE INDEX IF NOT EXISTS idx_cl_correlation_id ON call_logs(correlation_id)");
+    db.exec("CREATE INDEX IF NOT EXISTS idx_cl_session_tag ON call_logs(session_tag)");
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    log.warn({ err: message, table: "call_logs" }, "Failed to verify schema");
+    console.warn("[DB] Failed to verify call_logs schema:", message);
+  }
+}
+
+export function ensureProxyLogsColumns(db: SqliteDatabase) {
+  try {
+    const columns = db.prepare("PRAGMA table_info(proxy_logs)").all() as Array<{
+      name?: string;
+    }>;
+    const columnNames = new Set(columns.map((column) => String(column.name ?? "")));
+    if (!columnNames.has("egress_ip")) {
+      db.exec("ALTER TABLE proxy_logs ADD COLUMN egress_ip TEXT");
+      console.log("[DB] Added proxy_logs.egress_ip column");
+    }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn("[DB] Failed to verify proxy_logs schema:", message);
   }
 }
 

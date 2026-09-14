@@ -62,13 +62,40 @@ export function decideStep(
   return { advance: true };
 }
 
+/**
+ * A dispatched step whose engine found nothing eligible (e.g. session-dedup with no repeated
+ * blocks, ccr below its min-chars threshold) returns `stats: null` instead of throwing or
+ * advancing. Left unrecorded, that step vanishes from the pipeline's telemetry with zero trace —
+ * no `engineBreakdown` entry, no warning, no error (#6479, #6491). Surface it as a validation
+ * warning so operators can tell "engine ran but had nothing to do" apart from "engine never ran".
+ */
+function recordNullStatsStep(acc: StackAccumulator, engineId: string): void {
+  acc.validationWarnings.add(`${engineId}: skipped (no eligible content)`);
+}
+
 /** Folds one engine result into the accumulator (telemetry + breakdown entry). */
 export function mergeStackStep(
   acc: StackAccumulator,
   engineId: string,
   result: CompressionResult
 ): void {
-  if (!result.stats) return;
+  if (!result.stats) {
+    // No-op engine (e.g. ccr / session-dedup found no candidate): stats is null so there is no
+    // telemetry to fold, but the engine still RAN — record a zero-savings breakdown entry so its
+    // identity survives. Without this the breakdown stays empty and ensureEngineBreakdown
+    // synthesizes a generic "stacked" 0% node, hiding which engine an operator actually asked for.
+    // Also surface a validation warning so operators can tell "engine ran but had nothing to do"
+    // apart from "engine never ran" (#6479, #6491).
+    recordNullStatsStep(acc, engineId);
+    acc.breakdown.push({
+      engine: engineId,
+      originalTokens: 0,
+      compressedTokens: 0,
+      savingsPercent: 0,
+      techniquesUsed: [],
+    });
+    return;
+  }
   result.stats.techniquesUsed.forEach((technique) => acc.techniques.add(technique));
   result.stats.rulesApplied?.forEach((rule) => acc.rules.add(rule));
   result.stats.rtkRawOutputPointers?.forEach((pointer) => acc.rtkRawOutputPointers.push(pointer));
@@ -83,5 +110,8 @@ export function mergeStackStep(
     techniquesUsed: result.stats.techniquesUsed,
     ...(result.stats.rulesApplied ? { rulesApplied: result.stats.rulesApplied } : {}),
     ...(result.stats.durationMs !== undefined ? { durationMs: result.stats.durationMs } : {}),
+    // O agregado do pipeline soma tokens de todas as engines; a contabilidade
+    // física do omniglyph só faz sentido no passo que a produziu.
+    ...(result.stats.omniglyph ? { omniglyph: result.stats.omniglyph } : {}),
   });
 }

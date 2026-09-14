@@ -81,19 +81,19 @@ test("getMcpModelsCatalog exposes codex default thinking effort when no override
 
 test("getMcpModelsCatalog exposes stored thinking effort overrides", async () => {
   const result = await getMcpModelsCatalog(
-    { provider: "chatgpt-web" },
+    { provider: "gemini-web" },
     {
       listProviderConnections: async () => [
         {
-          id: "conn-chatgpt",
-          provider: "chatgpt-web",
+          id: "conn-gemini-web",
+          provider: "gemini-web",
           isActive: true,
           providerSpecificData: { thinkingEffort: "extended" },
         },
       ],
       fetchJson: async () => ({
         source: "api",
-        models: [{ id: "gpt-5", owned_by: "chatgpt-web", supportedEndpoints: ["chat"] }],
+        models: [{ id: "gemini-3.1-pro", owned_by: "gemini-web", supportedEndpoints: ["chat"] }],
       }),
     }
   );
@@ -132,7 +132,9 @@ test("getMcpModelsCatalog returns empty result when requested provider has no ac
   const result = await getMcpModelsCatalog(
     { provider: "github" },
     {
-      listProviderConnections: async () => [{ id: "conn-codex", provider: "codex", isActive: true }],
+      listProviderConnections: async () => [
+        { id: "conn-codex", provider: "codex", isActive: true },
+      ],
       fetchJson: async () => {
         throw new Error("fetchJson should not be called without a matching active provider");
       },

@@ -8,22 +8,18 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-batch-api
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-secret-123";
 
+const { createFile, getFileContent, getFile, listFiles, formatFileResponse, deleteFile } =
+  await import("@/lib/db/files");
 const {
-  createFile,
   createBatch,
   getBatch,
-  getFileContent,
   updateBatch,
-  createProviderConnection,
-  createApiKey,
-  getFile,
-  listFiles,
-  formatFileResponse,
-  deleteFile,
   getTerminalBatches,
   ensureBatchItemCheckpoints,
   markBatchItemResult,
-} = await import("../../src/lib/localDb.ts");
+} = await import("@/lib/db/batches");
+const { createProviderConnection } = await import("@/lib/db/providers");
+const { createApiKey } = await import("@/lib/db/apiKeys");
 const { getDbInstance } = await import("../../src/lib/db/core.ts");
 const {
   initBatchProcessor,
@@ -206,6 +202,13 @@ test("Batch API and Processing", async () => {
 });
 
 test("Batch handles and counts failures correctly", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ error: { message: "Model not found" } }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
+
   initBatchProcessor();
   try {
     // 1. Create a file with a request that will fail (invalid provider/model)
@@ -268,6 +271,7 @@ test("Batch handles and counts failures correctly", async () => {
     }
   } finally {
     stopBatchProcessor();
+    globalThis.fetch = originalFetch;
   }
 });
 
@@ -394,6 +398,21 @@ test("Batch rejects input lines whose url does not match the batch endpoint", as
 });
 
 test("Batch forces stream: false for all requests", async () => {
+  const originalFetch = globalThis.fetch;
+  let dispatchedBody: Record<string, unknown> | null = null;
+  globalThis.fetch = async (_input, init) => {
+    dispatchedBody = JSON.parse(String(init?.body));
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "batch response" } }],
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  };
+
   initBatchProcessor();
   try {
     const batchItems = [
@@ -453,8 +472,10 @@ test("Batch forces stream: false for all requests", async () => {
         "Should not have JSON parsing error from SSE stream"
       );
     }
+    assert.strictEqual(dispatchedBody?.stream, false, "Batch dispatch must disable streaming");
   } finally {
     stopBatchProcessor();
+    globalThis.fetch = originalFetch;
   }
 });
 
@@ -580,7 +601,7 @@ test("List batches pagination and response format", async () => {
   const batchIds = batchOrder.map((entry) => entry.id);
 
   // 2. Test listBatches logic (direct DB call)
-  const { listBatches } = await import("../../src/lib/localDb");
+  const { listBatches } = await import("@/lib/db/batches");
   const allBatches = listBatches(apiKey.id, 10);
   assert.strictEqual(allBatches.length, 5);
   assert.strictEqual(allBatches[0].id, batchIds[0]);

@@ -1,3 +1,13 @@
+// ENVIRONMENT NOTE (sandbox better-sqlite3 / glibc limitation, not a code defect):
+// This test constructs or exercises a real better-sqlite3-backed SQLite database.
+// better-sqlite3 is a native addon; production and CI load it normally, but some
+// sandboxes/dev boxes ship a system glibc older than the prebuilt binary requires
+// ("GLIBC_2.29 not found"), so the native module fails to dlopen and any test that
+// reaches better-sqlite3 directly (or asserts stdout that the load-failure warning
+// would pollute) fails HERE while passing in CI. This is a known environment
+// limitation, not a defect in the code under test: the OmniRoute runtime itself
+// cascades to node:sqlite/sql.js when better-sqlite3 is unavailable. See
+// tests/unit/_helpers/betterSqlite3Availability.ts for a guard helper.
 /**
  * Unit tests for src/lib/db/omp.ts — OMP (Oh My Pi) credential CRUD.
  *
@@ -15,11 +25,8 @@ import os from "node:os";
 import path from "node:path";
 import Database from "better-sqlite3";
 
-const {
-  getOmpCredentials,
-  saveOmpCredentials,
-  deleteOmpCredentials,
-} = await import("../../../src/lib/db/omp.ts");
+const { getOmpCredentials, saveOmpCredentials, deleteOmpCredentials } =
+  await import("../../../src/lib/db/omp.ts");
 
 const PROVIDER_ID = "omniroute";
 
@@ -57,7 +64,7 @@ beforeEach(() => {
 
 afterEach(() => {
   process.env.HOME = origHome;
-  fs.rmSync(tmpHome, { recursive: true, force: true });
+  fs.rmSync(tmpHome, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 describe("db/omp.ts — getOmpCredentials", () => {

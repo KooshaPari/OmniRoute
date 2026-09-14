@@ -9,7 +9,11 @@ import { matchRtkFilter } from "./filterLoader.ts";
 import { applyLineFilter } from "./lineFilter.ts";
 import { smartTruncate } from "./smartTruncate.ts";
 import { normalizeCodeLanguage, stripCode } from "./codeStripper.ts";
-import { maybePersistRtkRawOutput, type RtkRawOutputPointer } from "./rawOutput.ts";
+import {
+  maybePersistRtkRawOutput,
+  scheduleRtkRawOutputPurge,
+  type RtkRawOutputPointer,
+} from "./rawOutput.ts";
 import { applyRenderer } from "./renderers/index.ts";
 import { isTextBlock } from "../../messageContent.ts";
 import { adaptBodyForCompression } from "../../bodyAdapter.ts";
@@ -121,6 +125,15 @@ function mergeRtkConfig(base?: Partial<RtkConfig>, override?: Record<string, unk
       typeof merged.rawOutputMaxBytes === "number" && Number.isFinite(merged.rawOutputMaxBytes)
         ? Math.max(1024, Math.floor(merged.rawOutputMaxBytes))
         : DEFAULT_RTK_CONFIG.rawOutputMaxBytes,
+    rawOutputMaxFiles:
+      typeof merged.rawOutputMaxFiles === "number" && Number.isFinite(merged.rawOutputMaxFiles)
+        ? Math.max(1, Math.floor(merged.rawOutputMaxFiles))
+        : DEFAULT_RTK_CONFIG.rawOutputMaxFiles,
+    rawOutputMaxAgeDays:
+      typeof merged.rawOutputMaxAgeDays === "number" &&
+      Number.isFinite(merged.rawOutputMaxAgeDays)
+        ? Math.max(1, Math.floor(merged.rawOutputMaxAgeDays))
+        : DEFAULT_RTK_CONFIG.rawOutputMaxAgeDays,
   };
 }
 
@@ -351,6 +364,14 @@ export function processRtkText(
       rawOutputPointers.push(pointer);
       techniquesUsed.push("rtk-raw-output-retention");
       rulesApplied.push("rtk:raw-output-retention");
+    }
+    // #10659: bounded retention — schedule a throttled async purge whenever retention is
+    // on so the store cannot grow unbounded again. Never blocks the hot path.
+    if (config.rawOutputRetention !== "never") {
+      scheduleRtkRawOutputPurge({
+        maxFiles: config.rawOutputMaxFiles,
+        maxAgeDays: config.rawOutputMaxAgeDays,
+      });
     }
   }
   return {
@@ -634,6 +655,18 @@ export function applyRtkCompression(
       content: processed.content,
     };
   });
+
+  // Mirror the sibling stacked engines (headroom, session-dedup, ccr, relevance,
+  // ionizer, readLifecycle): skip the expensive createCompressionStats() pass
+  // (full JSON.stringify + tokenizer over the whole body, twice) when nothing
+  // actually changed. Untouched messages keep their original reference above,
+  // so a reference-identity scan is enough to detect the no-op case (#10765).
+  const anyMessageChanged = compressedMessages.some(
+    (message, index) => message !== messages[index]
+  );
+  if (!anyMessageChanged) {
+    return { body, compressed: false, stats: null };
+  }
 
   const compressedBody = { ...adapter.body, messages: compressedMessages };
   const stats = createCompressionStats(

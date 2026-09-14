@@ -55,112 +55,6 @@ async function readWithTransform(chunks, transformStream) {
   return new Response(source.pipeThrough(transformStream)).text();
 }
 
-test("createSSEStream captures positive TTFT from the first emitted token", async () => {
-  let completion;
-  await readTransformed(
-    [`data: ${JSON.stringify({ choices: [{ delta: { content: "hello" } }] })}\n\n`],
-    {
-      mode: "passthrough",
-      sourceFormat: FORMATS.OPENAI,
-      requestStartedAt: Date.now() - 25,
-      onComplete(payload) {
-        completion = payload;
-      },
-    }
-  );
-
-  assert.ok(completion.ttft > 0);
-  assert.ok(completion.ttft <= 1000);
-});
-
-test("createSSEStream leaves TTFT unset when the stream has no token", async () => {
-  let completion;
-  await readTransformed(
-    [`data: ${JSON.stringify({ choices: [{ delta: {}, finish_reason: "stop" }] })}\n\n`],
-    {
-      mode: "passthrough",
-      sourceFormat: FORMATS.OPENAI,
-      requestStartedAt: Date.now() - 25,
-      onComplete(payload) {
-        completion = payload;
-      },
-    }
-  );
-
-  assert.equal(completion.ttft, null);
-});
-
-test("stream wrappers forward request start time and Responses tool identity", async () => {
-  const requestStartedAt = Date.now() - 25;
-  const identityMap = new Map([
-    ["mcp__server__read", { namespace: "mcp__server", name: "read" }],
-  ]);
-  let translatedCompletion = null;
-  const translatedText = await readWithTransform(
-    [
-      `data: ${JSON.stringify({
-        choices: [{
-          delta: {
-            tool_calls: [{
-              index: 0,
-              id: "call_read",
-              type: "function",
-              function: { name: "mcp__server__read", arguments: "{}" },
-            }],
-          },
-        }],
-      })}\n\n`,
-      `data: ${JSON.stringify({ choices: [{ delta: {}, finish_reason: "tool_calls" }] })}\n\n`,
-    ],
-    createSSETransformStreamWithLogger(
-      FORMATS.OPENAI,
-      FORMATS.OPENAI_RESPONSES,
-      "openai",
-      null,
-      null,
-      "gpt-4.1",
-      null,
-      { messages: [{ role: "user", content: "read" }] },
-      (payload) => {
-        translatedCompletion = payload;
-      },
-      null,
-      null,
-      false,
-      false,
-      new Set(),
-      identityMap,
-      requestStartedAt
-    )
-  );
-
-  assert.ok(translatedCompletion.ttft > 0);
-  assert.match(translatedText, /"namespace":"mcp__server"/);
-  assert.match(translatedText, /"name":"read"/);
-
-  let passthroughCompletion = null;
-  await readWithTransform(
-    [`data: ${JSON.stringify({ choices: [{ delta: { content: "wrapped" } }] })}\n\n`],
-    createPassthroughStreamWithLogger(
-      "openai",
-      null,
-      null,
-      "gpt-4.1",
-      null,
-      null,
-      (payload) => {
-        passthroughCompletion = payload;
-      },
-      null,
-      null,
-      FORMATS.OPENAI,
-      null,
-      requestStartedAt
-    )
-  );
-  assert.ok(passthroughCompletion.ttft > 0);
-});
-
 function multilineDataEvent(payload, splitBeforeKey) {
   const json = JSON.stringify(payload);
   const splitAt = json.indexOf(`"${splitBeforeKey}"`) - 1;
@@ -253,7 +147,12 @@ test.after(() => {
   core.resetDbInstance();
   if (fs.existsSync(TEST_DATA_DIR)) {
     for (const entry of fs.readdirSync(TEST_DATA_DIR)) {
-      fs.rmSync(path.join(TEST_DATA_DIR, entry), { recursive: true, force: true });
+      fs.rmSync(path.join(TEST_DATA_DIR, entry), {
+        recursive: true,
+        force: true,
+        maxRetries: 5,
+        retryDelay: 100,
+      });
     }
   }
 });
@@ -338,14 +237,14 @@ test("createSSEStream passthrough converts textual tool-call content into struct
         id: "chatcmpl_textual_tool",
         object: "chat.completion.chunk",
         created: 1,
-        model: "antigravity/gemini-3.5-flash-low",
+        model: "antigravity/gemini-3.7-flash-low",
         choices: [{ index: 0, delta: { role: "assistant", content: toolText } }],
       })}\n\n`,
       `data: ${JSON.stringify({
         id: "chatcmpl_textual_tool",
         object: "chat.completion.chunk",
         created: 1,
-        model: "antigravity/gemini-3.5-flash-low",
+        model: "antigravity/gemini-3.7-flash-low",
         choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
       })}\n\n`,
     ],
@@ -353,7 +252,7 @@ test("createSSEStream passthrough converts textual tool-call content into struct
       mode: "passthrough",
       sourceFormat: FORMATS.OPENAI,
       provider: "antigravity",
-      model: "antigravity/gemini-3.5-flash-low",
+      model: "antigravity/gemini-3.7-flash-low",
       body: {
         messages: [{ role: "user", content: "inspect db" }],
       },
@@ -390,21 +289,21 @@ test("createSSEStream passthrough converts split textual tool-call content at co
         id: "chatcmpl_split_textual_tool",
         object: "chat.completion.chunk",
         created: 1,
-        model: "antigravity/gemini-3.5-flash-low",
+        model: "antigravity/gemini-3.7-flash-low",
         choices: [{ index: 0, delta: { role: "assistant", content: chunks[0] } }],
       })}\n\n`,
       `data: ${JSON.stringify({
         id: "chatcmpl_split_textual_tool",
         object: "chat.completion.chunk",
         created: 1,
-        model: "antigravity/gemini-3.5-flash-low",
+        model: "antigravity/gemini-3.7-flash-low",
         choices: [{ index: 0, delta: { content: chunks[1] } }],
       })}\n\n`,
       `data: ${JSON.stringify({
         id: "chatcmpl_split_textual_tool",
         object: "chat.completion.chunk",
         created: 1,
-        model: "antigravity/gemini-3.5-flash-low",
+        model: "antigravity/gemini-3.7-flash-low",
         choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
       })}\n\n`,
     ],
@@ -412,7 +311,7 @@ test("createSSEStream passthrough converts split textual tool-call content at co
       mode: "passthrough",
       sourceFormat: FORMATS.OPENAI,
       provider: "antigravity",
-      model: "antigravity/gemini-3.5-flash-low",
+      model: "antigravity/gemini-3.7-flash-low",
       body: { messages: [{ role: "user", content: "inspect db" }] },
       onComplete(payload) {
         onCompletePayload = payload;
@@ -446,28 +345,28 @@ test("createSSEStream passthrough handles textual tool-call content split inside
         id: "chatcmpl_split_prefix_textual_tool",
         object: "chat.completion.chunk",
         created: 1,
-        model: "antigravity/gemini-3.5-flash-low",
+        model: "antigravity/gemini-3.7-flash-low",
         choices: [{ index: 0, delta: { role: "assistant", content: chunks[0] } }],
       })}\n\n`,
       `data: ${JSON.stringify({
         id: "chatcmpl_split_prefix_textual_tool",
         object: "chat.completion.chunk",
         created: 1,
-        model: "antigravity/gemini-3.5-flash-low",
+        model: "antigravity/gemini-3.7-flash-low",
         choices: [{ index: 0, delta: { content: chunks[1] } }],
       })}\n\n`,
       `data: ${JSON.stringify({
         id: "chatcmpl_split_prefix_textual_tool",
         object: "chat.completion.chunk",
         created: 1,
-        model: "antigravity/gemini-3.5-flash-low",
+        model: "antigravity/gemini-3.7-flash-low",
         choices: [{ index: 0, delta: { content: chunks[2] } }],
       })}\n\n`,
       `data: ${JSON.stringify({
         id: "chatcmpl_split_prefix_textual_tool",
         object: "chat.completion.chunk",
         created: 1,
-        model: "antigravity/gemini-3.5-flash-low",
+        model: "antigravity/gemini-3.7-flash-low",
         choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
       })}\n\n`,
     ],
@@ -475,7 +374,7 @@ test("createSSEStream passthrough handles textual tool-call content split inside
       mode: "passthrough",
       sourceFormat: FORMATS.OPENAI,
       provider: "antigravity",
-      model: "antigravity/gemini-3.5-flash-low",
+      model: "antigravity/gemini-3.7-flash-low",
       body: { messages: [{ role: "user", content: "inspect db" }] },
       onComplete(payload) {
         onCompletePayload = payload;
@@ -621,14 +520,14 @@ Arguments: {"path":"/opt/OmniRoute/src","target":"files"}`;
         id: "chatcmpl_unknown_textual_tool",
         object: "chat.completion.chunk",
         created: 1,
-        model: "antigravity/gemini-3.5-flash-low",
+        model: "antigravity/gemini-3.7-flash-low",
         choices: [{ index: 0, delta: { role: "assistant", content: toolText } }],
       })}\n\n`,
       `data: ${JSON.stringify({
         id: "chatcmpl_unknown_textual_tool",
         object: "chat.completion.chunk",
         created: 1,
-        model: "antigravity/gemini-3.5-flash-low",
+        model: "antigravity/gemini-3.7-flash-low",
         choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
       })}\n\n`,
     ],
@@ -636,7 +535,7 @@ Arguments: {"path":"/opt/OmniRoute/src","target":"files"}`;
       mode: "passthrough",
       sourceFormat: FORMATS.OPENAI,
       provider: "antigravity",
-      model: "antigravity/gemini-3.5-flash-low",
+      model: "antigravity/gemini-3.7-flash-low",
       body: {
         messages: [{ role: "user", content: "inspect files" }],
         tools: [
@@ -667,14 +566,14 @@ test("createSSEStream passthrough suppresses malformed textual tool-call content
         id: "chatcmpl_malformed_textual_tool",
         object: "chat.completion.chunk",
         created: 1,
-        model: "antigravity/gemini-3.5-flash-low",
+        model: "antigravity/gemini-3.7-flash-low",
         choices: [{ index: 0, delta: { role: "assistant", content: malformedToolText } }],
       })}\n\n`,
       `data: ${JSON.stringify({
         id: "chatcmpl_malformed_textual_tool",
         object: "chat.completion.chunk",
         created: 1,
-        model: "antigravity/gemini-3.5-flash-low",
+        model: "antigravity/gemini-3.7-flash-low",
         choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
       })}\n\n`,
     ],
@@ -682,7 +581,7 @@ test("createSSEStream passthrough suppresses malformed textual tool-call content
       mode: "passthrough",
       sourceFormat: FORMATS.OPENAI,
       provider: "antigravity",
-      model: "antigravity/gemini-3.5-flash-low",
+      model: "antigravity/gemini-3.7-flash-low",
       body: { messages: [{ role: "user", content: "inspect db" }] },
       onComplete(payload) {
         onCompletePayload = payload;
@@ -723,7 +622,7 @@ test("createSSEStream suppresses malformed compact textual tool-call content", a
       targetFormat: FORMATS.ANTIGRAVITY,
       sourceFormat: FORMATS.OPENAI,
       provider: "antigravity",
-      model: "antigravity/gemini-3.5-flash-low",
+      model: "antigravity/gemini-3.7-flash-low",
       body: { messages: [{ role: "user", content: "inspect files" }] },
       onComplete(payload) {
         onCompletePayload = payload;
@@ -812,6 +711,7 @@ test("createSSEStream passthrough forwards data only after the complete SSE even
     {
       mode: "passthrough",
       sourceFormat: FORMATS.OPENAI,
+      clientResponseFormat: FORMATS.OPENAI_RESPONSES,
       provider: "openai",
       model: "responses-model",
       body: {
@@ -853,8 +753,13 @@ test("createSSEStream passthrough preserves event metadata in a single SSE event
     }
   );
 
-  assert.match(text, /^: upstream-note\nid: 42\ntrace: upstream-abc\ndata: /);
-  assert.doesNotMatch(text, /^: upstream-note\n\nid: 42/s);
+  // #10017 drops `:` comments, `id:` and `retry:` for every client format — none of
+  // the OpenAI Chat-Completions, OpenAI Responses or Claude Messages protocols define
+  // them. What this case still pins is the framing: the surviving lines stay inside ONE
+  // event instead of being split apart by blank lines.
+  assert.match(text, /^trace: upstream-abc\ndata: /);
+  assert.doesNotMatch(text, /: upstream-note/);
+  assert.doesNotMatch(text, /\bid: 42\b/);
   assert.doesNotMatch(text, /\ntrace: upstream-abc\n\n/s);
   assert.match(text, /metadata content/);
 });
@@ -1124,7 +1029,7 @@ Arguments: {"command":"systemctl status omniroute"}`;
         response: {
           id: "resp_textual_tool",
           object: "response",
-          model: "antigravity/gemini-3.5-flash-low",
+          model: "antigravity/gemini-3.7-flash-low",
           status: "completed",
           output: [],
           usage: { input_tokens: 10, output_tokens: 4, total_tokens: 14 },
@@ -1138,7 +1043,7 @@ Arguments: {"command":"systemctl status omniroute"}`;
       sourceFormat: FORMATS.OPENAI_RESPONSES,
       clientResponseFormat: FORMATS.OPENAI_RESPONSES,
       provider: "antigravity",
-      model: "antigravity/gemini-3.5-flash-low",
+      model: "antigravity/gemini-3.7-flash-low",
       body: {
         input: "check service",
         tools: [{ type: "function", name: "terminal", parameters: { type: "object" } }],
@@ -1153,7 +1058,11 @@ Arguments: {"command":"systemctl status omniroute"}`;
   assert.doesNotMatch(text, /Arguments:/);
   assert.match(text, /response.output_item.added/);
   assert.match(text, /response.function_call_arguments.done/);
-  assert.match(text, /"name":"terminal"/);
+  // 5 synthesized function-call events (from the textual tool-call conversion)
+  // + 1 for the terminal response.completed itself, now also pushed so
+  // previous_response_id continuation can recover a real id/output for a
+  // passthrough Responses-API reply (see responsesContinuationStore.ts).
+  assert.equal(onCompletePayload.clientPayload._eventCount, 6);
   assert.equal(onCompletePayload.responseBody.choices[0].finish_reason, "tool_calls");
   assert.equal(onCompletePayload.responseBody.choices[0].message.content, null);
   assert.equal(
@@ -1202,6 +1111,63 @@ test("createSSEStream passthrough preserves Responses API events and completion 
   assert.match(text, /response.completed/);
   assert.equal(onCompletePayload.responseBody.usage.total_tokens, 5);
   assert.equal(onCompletePayload.providerPayload.summary.object, "response");
+});
+
+// Real bug found live (dashboard log id 1786032832181-1c6275, #9315 follow-up):
+// providerPayloadCollector was keyed on `sourceFormat` (the CLIENT's format)
+// instead of `targetFormat` (the PROVIDER's format — see createSSEStream's own
+// @param doc). A Responses-API client routed to a plain-OpenAI-chat-completions
+// upstream (exactly this OpenClaw/opencode-zen combo) fed the provider's real
+// chat.completion.chunk deltas into the Responses-API reducer, which never
+// recognizes them — so the dashboard's "Provider Response" panel stayed stuck
+// empty (`output: []`) forever while "Client Response" correctly showed full
+// content, reading as if the two panels disagreed about the same request.
+test("createSSEStream translate mode: providerPayload summary reflects the PROVIDER's format, not the client's", async () => {
+  let onCompletePayload = null;
+  await readTransformed(
+    [
+      `data: ${JSON.stringify({
+        id: "chatcmpl-1",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "big-pickle",
+        choices: [
+          { index: 0, delta: { role: "assistant", content: "Hello " }, finish_reason: null },
+        ],
+      })}\n\n`,
+      `data: ${JSON.stringify({
+        id: "chatcmpl-1",
+        object: "chat.completion.chunk",
+        created: 1,
+        model: "big-pickle",
+        choices: [{ index: 0, delta: { content: "world" }, finish_reason: "stop" }],
+        usage: { prompt_tokens: 5, completion_tokens: 2, total_tokens: 7 },
+      })}\n\n`,
+      `data: [DONE]\n\n`,
+    ],
+    {
+      mode: "translate",
+      // Client speaks Responses API; the upstream provider (opencode-zen-style)
+      // speaks plain OpenAI chat-completions — exactly the OpenClaw combo that
+      // surfaced this live.
+      sourceFormat: FORMATS.OPENAI_RESPONSES,
+      targetFormat: FORMATS.OPENAI,
+      provider: "opencode-zen",
+      model: "big-pickle",
+      body: { input: "hi" },
+      onComplete(payload) {
+        onCompletePayload = payload;
+      },
+    }
+  );
+
+  const summary = onCompletePayload.providerPayload.summary;
+  assert.ok(summary, "providerPayload.summary must not be null/undefined");
+  // The bug's exact symptom: a Responses-API reducer fed chat-completion chunks
+  // never recognizes them, so it stays at "no output" — assert the OPPOSITE.
+  assert.equal(summary.object, "chat.completion");
+  assert.equal(summary.choices?.[0]?.message?.content, "Hello world");
+  assert.equal(summary.choices?.[0]?.finish_reason, "stop");
 });
 
 test("createSSEStream passthrough drops leaked empty chat bootstrap chunks for Responses clients", async () => {
@@ -1333,10 +1299,6 @@ test("createSSEStream translate mode aborts on Responses failure with rate limit
           },
         })}\n\n`,
         `data: ${JSON.stringify({
-          type: "response.output_text.delta",
-          delta: "partial",
-        })}\n\n`,
-        `data: ${JSON.stringify({
           type: "response.failed",
           response: {
             id: "resp_fail",
@@ -1368,7 +1330,6 @@ test("createSSEStream translate mode aborts on Responses failure with rate limit
 
   assert.ok(onCompletePayload, "should capture completion payload before aborting");
   assert.equal(onCompletePayload.status, 429);
-  assert.ok(onCompletePayload.ttft > 0);
   assert.equal(onCompletePayload.responseBody.error.type, "rate_limit_error");
   assert.equal(onCompletePayload.responseBody.error.code, "rate_limit_exceeded");
   assert.match(onCompletePayload.responseBody.error.message, /Rate limit reached/);

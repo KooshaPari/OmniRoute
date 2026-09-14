@@ -68,9 +68,14 @@ describe("proxyDispatcher connection pool", () => {
   it("keeps enough proxy connections for concurrent SSE streams by default", () => {
     const options = __getProxyDispatcherOptionsForTest({});
     assert.equal(options.connections, 32);
-    assert.equal(options.pipelining, 0);
-    assert.equal(options.keepAliveTimeout, 1);
-    assert.equal(options.keepAliveMaxTimeout, 1);
+    // #9100: the proxy path now keeps sockets alive (no more 1ms TTL) and
+    // pipelines up to 4 requests so concurrent SSE streams multiplex over one
+    // pooled TCP connection per proxy host. Stale sockets are recovered by the
+    // retry-once-with-fresh-socket path in proxyFetch, not by killing idle
+    // sockets after 1ms.
+    assert.equal(options.pipelining, 4);
+    assert.equal(options.keepAliveTimeout, 30000);
+    assert.equal(options.keepAliveMaxTimeout, 60000);
   });
 
   it("allows operators to force a single proxy connection for diagnostics", () => {
@@ -103,5 +108,68 @@ describe("proxyDispatcher connection pool", () => {
     clearDispatcherCache();
 
     assert.equal(closeCount, 1);
+  });
+});
+
+describe("proxyDispatcher CONNECT tunneling (undici 8.6+ proxyTunnel)", () => {
+  it("tunnels a plain-HTTP proxied request via CONNECT, not origin-forwarding", async () => {
+    const http = await import("node:http");
+    const net = await import("node:net");
+    const { createProxyDispatcher } = await import("../../open-sse/utils/proxyDispatcher.ts");
+    const { fetch: undiciFetch } = await import("undici");
+
+    // Upstream HTTP target.
+    const target = http.createServer((_req, res) => {
+      res.writeHead(200);
+      res.end("ok");
+    });
+    await new Promise((r) => target.listen(0, r));
+    const targetPort = (target.address() as { port: number }).port;
+
+    // Proxy that ONLY speaks CONNECT: 501 on a forwarded origin request, tunnels on CONNECT.
+    let sawConnect = false;
+    let sawForward = false;
+    const proxy = http.createServer((_req, res) => {
+      sawForward = true;
+      res.writeHead(501);
+      res.end("CONNECT only");
+    });
+    proxy.on("connect", (req, socket) => {
+      sawConnect = true;
+      const [host, port] = String(req.url).split(":");
+      const upstream = net.connect(Number(port), host, () => {
+        socket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
+        upstream.pipe(socket);
+        socket.pipe(upstream);
+      });
+      upstream.on("error", () => socket.destroy());
+    });
+    await new Promise((r) => proxy.listen(0, r));
+    const proxyPort = (proxy.address() as { port: number }).port;
+
+    try {
+      const dispatcher = createProxyDispatcher(`http://127.0.0.1:${proxyPort}`);
+      const res = await undiciFetch(`http://127.0.0.1:${targetPort}/token`, {
+        method: "POST",
+        // @ts-expect-error undici dispatcher option
+        dispatcher,
+        signal: AbortSignal.timeout(3000),
+      });
+      assert.equal(res.status, 200, "request must succeed via CONNECT tunnel");
+      assert.equal(
+        sawConnect,
+        true,
+        "proxy must receive a CONNECT (tunnel), not a forwarded request"
+      );
+      assert.equal(
+        sawForward,
+        false,
+        "proxy must NOT receive a forwarded origin request (undici 8.6+ regression)"
+      );
+    } finally {
+      proxy.close();
+      target.close();
+      clearDispatcherCache();
+    }
   });
 });

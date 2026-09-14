@@ -1,8 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
-import { createLogger } from "@/shared/utils/logger";
 import { classifyHostLocality } from "./routeGuard";
-
-const log = createLogger("authz:peer-stamp");
 
 /**
  * Resolve the real peer IP from the trusted `<token>|<ip>` stamp that the custom
@@ -31,15 +28,7 @@ export function resolveStampedPeer(
   if (provided.length !== token.length) return null;
   try {
     if (!timingSafeEqual(Buffer.from(provided), Buffer.from(token))) return null;
-  } catch (err) {
-    // SECURITY: log the failure. Constant-time comparison errors indicate
-    // a malformed stamp header (rare in practice but possible if a
-    // misconfigured proxy corrupts the stamp). The catch returns null
-    // (fail-closed) but operators need to know when this fires.
-    log.error(
-      { err, providedLength: provided.length, tokenLength: token.length },
-      "authz.peerStamp.resolveStampedPeer: timingSafeEqual failed (malformed stamp header)",
-    );
+  } catch {
     return null;
   }
   return ip;
@@ -76,14 +65,7 @@ export function resolveStampedViaProxy(
   if (provided.length !== token.length) return false;
   try {
     if (!timingSafeEqual(Buffer.from(provided), Buffer.from(token))) return false;
-  } catch (err) {
-    // SECURITY: log the failure. Constant-time comparison errors indicate
-    // a malformed stamp header. The catch returns false (fail-closed)
-    // but operators need to know when this fires.
-    log.error(
-      { err, providedLength: provided.length, tokenLength: token.length },
-      "authz.peerStamp.resolveStampedViaProxy: timingSafeEqual failed (malformed stamp header)",
-    );
+  } catch {
     return false;
   }
   return payload === "1";

@@ -99,12 +99,19 @@ test("the real migrations dir produces ZERO anomalies under the frozen allowlist
   assert.deepEqual(r.gaps, [], `unexpected sequence gaps: ${r.gaps.join(", ")}`);
 });
 
-test("frozen allowlists match the documented audit gaps", () => {
+test("frozen allowlists match the documented legacy and stacked-series gaps", () => {
   assert.ok((KNOWN_GAPS as Set<string>).has("026"));
   assert.ok((KNOWN_GAPS as Set<string>).has("055"));
-  assert.ok((KNOWN_GAPS as Set<string>).has("102"));
-  assert.ok((KNOWN_GAPS as Set<string>).has("104"));
-  assert.ok((KNOWN_GAPS as Set<string>).has("105"));
+  assert.ok((KNOWN_GAPS as Set<string>).has("121"));
+  assert.equal((KNOWN_GAPS as Set<string>).has("143"), false);
+  assert.equal((KNOWN_GAPS as Set<string>).has("144"), false);
+  assert.equal((KNOWN_GAPS as Set<string>).has("145"), false);
+  // 147 left the gap list when 147_api_keys_model_access_mode.sql landed (same pattern as 143).
+  assert.equal((KNOWN_GAPS as Set<string>).has("147"), false);
+  // 148 left the gap list when 148_provider_quota_state.sql landed on this branch (same pattern as 143/147).
+  assert.equal((KNOWN_GAPS as Set<string>).has("148"), false);
+  // 149 left the gap list when 149_api_key_combo_access.sql landed (#10066).
+  assert.equal((KNOWN_GAPS as Set<string>).has("149"), false);
   // "041" was removed from KNOWN_DUPLICATE_VERSIONS in 6A.3 (stale: no physical
   // duplicate for that prefix on disk anymore — only 041_compression_receipts.sql exists).
   assert.equal((KNOWN_DUPLICATE_VERSIONS as Set<string>).has("041"), false);

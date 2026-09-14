@@ -4,13 +4,18 @@ import assert from "node:assert/strict";
 import {
   GITHUB_COPILOT_API_VERSION,
   GITHUB_COPILOT_CHAT_PLUGIN_VERSION,
+  GITHUB_COPILOT_CLI_USER_AGENT,
   GITHUB_COPILOT_CHAT_USER_AGENT,
   GITHUB_COPILOT_EDITOR_VERSION,
+  GITHUB_COPILOT_INTEGRATION_ID,
+  GITHUB_COPILOT_INTERACTION_TYPE,
+  GITHUB_COPILOT_HARNESS_ID,
   GITHUB_COPILOT_REFRESH_PLUGIN_VERSION,
   GITHUB_COPILOT_REFRESH_USER_AGENT,
   KIRO_AMZ_USER_AGENT,
   KIRO_SDK_USER_AGENT,
   QWEN_CLI_VERSION,
+  getGitHubCopilotMachineId,
   getQwenCliUserAgent,
   getGitHubCopilotChatHeaders,
   getGitHubCopilotInternalUserHeaders,
@@ -21,12 +26,27 @@ import {
 
 test("provider header profiles expose current GitHub chat and internal headers", () => {
   const chatHeaders = getGitHubCopilotChatHeaders("text/event-stream", "agent");
+  // Chat/inference path matches the @github/copilot CLI 1.0.81-6 wire identity.
   assert.equal(chatHeaders["editor-version"], GITHUB_COPILOT_EDITOR_VERSION);
-  assert.equal(chatHeaders["editor-plugin-version"], GITHUB_COPILOT_CHAT_PLUGIN_VERSION);
-  assert.equal(chatHeaders["user-agent"], GITHUB_COPILOT_CHAT_USER_AGENT);
+  assert.equal(chatHeaders["user-agent"], GITHUB_COPILOT_CLI_USER_AGENT);
   assert.equal(chatHeaders["x-github-api-version"], GITHUB_COPILOT_API_VERSION);
+  assert.equal(chatHeaders["copilot-integration-id"], GITHUB_COPILOT_INTEGRATION_ID);
+  assert.equal(chatHeaders["x-interaction-type"], GITHUB_COPILOT_INTERACTION_TYPE);
+  assert.equal(chatHeaders["copilot-harness-id"], GITHUB_COPILOT_HARNESS_ID);
+  assert.equal(chatHeaders["x-client-machine-id"], getGitHubCopilotMachineId());
   assert.equal(chatHeaders["X-Initiator"], "agent");
   assert.equal(chatHeaders.Accept, "text/event-stream");
+  // The CLI does NOT send these on inference (VS Code Copilot Chat extension only).
+  assert.equal(
+    chatHeaders["editor-plugin-version"],
+    undefined,
+    "editor-plugin-version must NOT be on the CLI inference path"
+  );
+  assert.equal(
+    chatHeaders["x-vscode-user-agent-library-version"],
+    undefined,
+    "x-vscode-user-agent-library-version must NOT be on the CLI inference path"
+  );
 
   const internalHeaders = getGitHubCopilotInternalUserHeaders("token gh-access");
   assert.equal(internalHeaders.Authorization, "token gh-access");
@@ -34,6 +54,17 @@ test("provider header profiles expose current GitHub chat and internal headers",
   assert.equal(internalHeaders["Editor-Version"], GITHUB_COPILOT_EDITOR_VERSION);
   assert.equal(internalHeaders["Editor-Plugin-Version"], GITHUB_COPILOT_CHAT_PLUGIN_VERSION);
   assert.equal(internalHeaders["X-GitHub-Api-Version"], GITHUB_COPILOT_API_VERSION);
+});
+
+test("getGitHubCopilotMachineId is stable across calls and vision toggles the vision header", () => {
+  // Stable per-install fingerprint: same value every call (matches the CLI).
+  assert.equal(getGitHubCopilotMachineId(), getGitHubCopilotMachineId());
+  const plain = getGitHubCopilotChatHeaders("application/json");
+  assert.equal(plain["copilot-vision-request"], undefined);
+  const vision = getGitHubCopilotChatHeaders("application/json", "user", { vision: true });
+  assert.equal(vision["copilot-vision-request"], "true");
+  // Machine id is consistent between two header builds in the same process.
+  assert.equal(plain["x-client-machine-id"], vision["x-client-machine-id"]);
 });
 
 test("provider header profiles expose dedicated refresh, qoder and kiro variants", () => {

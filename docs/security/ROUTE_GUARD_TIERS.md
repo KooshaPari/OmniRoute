@@ -39,22 +39,41 @@ spawn-capable route: a leaked token over a tunnel still can't reach the spawn.
 `check-route-guard-membership` gate enumerates every `route.ts` under the
 spawn-capable prefixes and fails CI if any is not classified local-only.
 
-| Prefix / pattern                    | Why it's local-only                                                                      | Manage-scope bypassable?      |
-| ----------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------- |
-| `/api/mcp/`                         | MCP server — spawns stdio bridges + SSE handlers                                         | **Yes** (only one)            |
-| `/api/cli-tools/runtime/`           | CLI tool runtime — executes arbitrary plugin code                                        | No — spawn-capable            |
-| `/api/services/`                    | Embedded services (9router/CLIProxy) — `npm install` + spawn                             | No — spawn-capable            |
-| `/dashboard/providers/services/`    | Reverse proxy to embedded-service UIs                                                    | No                            |
-| `/api/copilot/`                     | Unauthenticated LLM driver — CLI-only by default                                         | Operator opt-in: manage/admin |
-| `/api/tools/agent-bridge/`          | AgentBridge — spawns MITM server + DNS edits                                             | No — spawn-capable            |
-| `/api/tools/traffic-inspector/`     | Traffic Inspector — http-proxy listener + system proxy                                   | No — spawn-capable            |
-| `/api/plugins/`, `/api/plugins`     | Plugins — load/execute via `worker_threads` + `child_process`                            | No — spawn-capable            |
-| `/api/system/version`               | Auto-update (POST only; GET/HEAD/OPTIONS exempt) — spawns `git checkout` + `npm install` | No                            |
-| `/api/db-backups/exportAll`         | Spawns `tar` for the export archive                                                      | No                            |
-| `/api/local/`                       | 1-click local launchers (Redis today) — spawns podman/docker                             | No — spawn-capable            |
-| `/api/headroom/start`, `/stop`      | Headroom proxy lifecycle — spawns python CLI / signals PID                               | No — spawn-capable            |
-| `/api/oauth/cursor/auto-import`     | `execFile("which", ["cursor"])` before importing creds                                   | No                            |
-| `/api/providers/{id}/login` (regex) | Launches a headful Playwright Chromium for web-cookie login                              | No                            |
+| Prefix / pattern                                                     | Why it's local-only                                                                      |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `/api/mcp/`                                                          | MCP server — spawns stdio bridges + SSE handlers                                         |
+| `/api/cli-tools/runtime/`                                            | CLI tool runtime — executes arbitrary plugin code                                        |
+| `/api/cli-tools/{omp,letta,grok-build,forge,jcode,qwen}-settings`    | Per-tool settings writers that can touch tool binaries/config on the host                |
+| `/api/cli-tools/antigravity-mitm`                                    | Antigravity MITM proxy control (spawns/points system proxy)                              |
+| `/api/modality-bridge/video/`                                        | Strict trusted-loopback Video Bridge runtime probe and internal extraction bridge        |
+| `/api/services/`                                                     | Embedded services (9Router / CLIProxy / Bifrost / Mux / Dario) — `npm install` + spawn   |
+| `/dashboard/providers/services/`                                     | Reverse proxy to embedded-service UIs                                                    |
+| `/api/tunnels/cloudflared`                                           | Installs/spawns the cloudflared binary                                                   |
+| `/api/tunnels/tailscale/{install,enable,disable,login,start-daemon}` | Installs/controls tailscaled on the host                                                 |
+| `/api/copilot/`                                                      | Unauthenticated LLM driver — CLI-only by default                                         |
+| `/api/tools/agent-bridge/`                                           | AgentBridge — spawns MITM server + DNS edits                                             |
+| `/api/tools/traffic-inspector/`                                      | Traffic Inspector — http-proxy listener + system proxy                                   |
+| `/api/settings/mitm`                                                 | Enables MITM interception (system-level proxy state)                                     |
+| `/api/issue-agent/`                                                  | Issue agent — spawns local tooling against the repo                                      |
+| `/api/plugins/`, `/api/plugins`                                      | Plugins — load/execute via `worker_threads` + `child_process`                            |
+| `/api/middleware/`                                                   | User middleware — loads/executes operator code in-process                                |
+| `/api/system/version`                                                | Auto-update (POST only; GET/HEAD/OPTIONS exempt) — spawns `git checkout` + `npm install` |
+| `/api/db-backups/exportAll`                                          | Spawns `tar` for the export archive                                                      |
+| `/api/local/`                                                        | 1-click local launchers (Redis today) — spawns podman/docker                             |
+| `/api/headroom/start`, `/api/headroom/stop`                          | Headroom proxy lifecycle — spawns python CLI / signals PID                               |
+| `/api/jobs`, `/api/jobs/`                                            | Job runner control — executes scheduled host-side work                                   |
+| `/api/oauth/cursor/auto-import`                                      | `execFile("which", ["cursor"])` before importing creds                                   |
+| `/api/oauth/kiro/auto-import`                                        | Reads Kiro CLI credential files from the host                                            |
+| `/api/skills/collect/`                                               | Skill collection — detects/installs local tooling                                        |
+| `/api/discovery/`                                                    | Local network/provider discovery probes                                                  |
+| `/api/vnc-session` (`VNC_ROUTE_PREFIX`)                              | Spawns a headful browser + VNC session for interactive logins                            |
+| `/api/acp/agents`                                                    | ACP — discovers and spawns local CLI agent binaries                                      |
+| `/api/resilience/connections`, `/dashboard/resilience/connections`   | Connection maintenance actions that can touch local CLI state                            |
+| `/api/providers/cursor/agent-availability`                           | Dashboard install-nudge check — spawns `cursor-agent status --format json`               |
+| `/api/providers/{id}/login` (regex)                                  | Launches a headful Playwright Chromium for web-cookie login                              |
+| `/api/providers/volcengine-plan/connect` (regex)                     | Manual headful flow + session-based phone/SMS auto-login (spawns Playwright)             |
+| `/api/providers/{id}/refresh-cursor` (regex)                         | Manual Cursor session renewal — nudges `cursor-agent`                                    |
+| `/api/providers/{id}/chatgpt-web-codex-doctor` (regex)               | Diagnoses the local Codex CLI install (spawns the binary)                                |
 
 **Response on violation:** `403 LOCAL_ONLY`
 
@@ -84,15 +103,15 @@ ever be added), and it is deliberately excluded from
 carve-out exactly as before; `mcp:connect` is a lower-privilege alternative
 for remote MCP-only callers who should not need broad management access.
 
-| Request                                          | Path                       | Result              |
-| ------------------------------------------------- | -------------------------- | ------------------- |
-| Non-loopback, no Bearer                           | `/api/mcp/*`               | 403 LOCAL_ONLY      |
-| Non-loopback, Bearer with `manage` scope          | `/api/mcp/*`               | Allow               |
-| Non-loopback, Bearer with `mcp:connect` scope     | `/api/mcp/*`               | Allow               |
-| Non-loopback, Bearer without `manage`/`mcp:connect` | `/api/mcp/*`             | 403 LOCAL_ONLY      |
-| Non-loopback, Bearer with `mcp:connect` scope     | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY      |
-| Non-loopback, Bearer with `manage` scope          | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY      |
-| Loopback, any/no Bearer                           | any LOCAL_ONLY             | Allow (gate passes) |
+| Request                                             | Path                       | Result              |
+| --------------------------------------------------- | -------------------------- | ------------------- |
+| Non-loopback, no Bearer                             | `/api/mcp/*`               | 403 LOCAL_ONLY      |
+| Non-loopback, Bearer with `manage` scope            | `/api/mcp/*`               | Allow               |
+| Non-loopback, Bearer with `mcp:connect` scope       | `/api/mcp/*`               | Allow               |
+| Non-loopback, Bearer without `manage`/`mcp:connect` | `/api/mcp/*`               | 403 LOCAL_ONLY      |
+| Non-loopback, Bearer with `mcp:connect` scope       | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY      |
+| Non-loopback, Bearer with `manage` scope            | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY      |
+| Loopback, any/no Bearer                             | any LOCAL_ONLY             | Allow (gate passes) |
 
 #### Operator guidance & auditing
 
@@ -110,36 +129,14 @@ operator responsibilities remain:
   only with a `manage`-scoped API key. The `SPAWN_CAPABLE_PREFIXES` can never be
   added to the bypass list — the zod schema rejects them and
   `isLocalOnlyBypassableByManageScope` denies them at runtime (defence-in-depth),
-  which is what the dashboard means by "cannot be made bypassable".
-
-**Auditing access** — to verify nothing off-host is reaching these routes:
-
-- Open the **Authorization Inventory** on `/dashboard/settings/security`: it renders the
-  live LOCAL_ONLY prefix list, which prefixes are bypassable, and the compile-time
-  spawn-capable ("cannot be made bypassable") set.
-- Grep your reverse-proxy / access logs for the prefixes above paired with a
-  non-loopback client address. Any such hit that returned `200` instead of
-  `403 LOCAL_ONLY` means the proxy is masking the real client IP — fix the proxy.
-- A `403 LOCAL_ONLY` in OmniRoute's logs for one of these paths is the guard
-  working as intended, not an error to suppress.
-
-#### Operator guidance & auditing
-
-If you run OmniRoute behind a reverse proxy or tunnel (nginx, Caddy, Cloudflare
-Tunnel, Tailscale, Ngrok), the loopback check still protects the spawn-capable
-routes above — a request whose client address is non-loopback is rejected with
-`403 LOCAL_ONLY` **before auth runs**, so a leaked JWT can't reach a spawn. Two
-operator responsibilities remain:
-
-- **Do not "fix" a 403 by forging the client IP as loopback.** Setting
-  `X-Forwarded-For: 127.0.0.1`, or a proxy that rewrites the source address to
-  loopback, re-opens exactly the RCE class this tier closes. Expose the
-  dashboard/API through the proxy — never the spawn-capable routes.
-- **Keep the manage-scope bypass minimal.** Only `/api/mcp/` is bypassable, and
-  only with a `manage`-scoped API key. The `SPAWN_CAPABLE_PREFIXES` can never be
-  added to the bypass list — the zod schema rejects them and
-  `isLocalOnlyBypassableByManageScope` denies them at runtime (defence-in-depth),
-  which is what the dashboard means by "cannot be made bypassable".
+  which is what the dashboard means by "cannot be made bypassable". Dynamic-segment
+  and static-path spawn-capable routes under `/api/providers/` (e.g. `/login`,
+  `/refresh-cursor`) are covered by the regex-based `SPAWN_CAPABLE_PATTERNS` /
+  `SPAWN_CAPABLE_PATTERN_ANCESTORS` companion in
+  `src/shared/constants/spawnCapablePrefixes.ts`, not by the flat
+  `SPAWN_CAPABLE_PREFIXES` array — the flat array would have to cover the
+  entire `/api/providers/` prefix to catch them, over-broadening a route tree
+  remote dashboards legitimately use for provider CRUD.
 
 **Auditing access** — to verify nothing off-host is reaching these routes:
 
@@ -161,10 +158,14 @@ These routes are destructive or irreversible. Allowing them in a "no-password"
 install would mean anyone on the same LAN could wipe the database or kill the
 server process.
 
-| Path                     | Reason                            |
-| ------------------------ | --------------------------------- |
-| `/api/shutdown`          | Terminates the server process     |
-| `/api/settings/database` | Database export, import, and wipe |
+| Path                                      | Reason                                         |
+| ----------------------------------------- | ---------------------------------------------- |
+| `/api/shutdown`                           | Terminates the server process                  |
+| `/api/settings/database`                  | Database export, import, and wipe              |
+| `/api/db-backups`                         | Full database backup archive access            |
+| `/api/settings/export-json`               | Exports the full settings blob (incl. secrets) |
+| `/api/settings/import-json`               | Replaces the full settings blob                |
+| `/api/providers/health-autopilot/actions` | Executes autopilot remediation actions         |
 
 **Response on violation:** `401 Authentication required`
 

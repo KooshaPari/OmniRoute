@@ -3,6 +3,7 @@ import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingS
 import { lookupReasoning, recordReplay } from "../../services/reasoningCache.ts";
 import { getModelTargetFormat } from "../../config/providerModels.ts";
 import { NON_ANTHROPIC_THINKING_PLACEHOLDER } from "../../utils/reasoningPlaceholder.ts";
+import { sanitizeToolId } from "./schemaCoercion.ts";
 
 export { NON_ANTHROPIC_THINKING_PLACEHOLDER } from "../../utils/reasoningPlaceholder.ts";
 
@@ -84,6 +85,10 @@ export function hasValidContent(msg: ClaudeMessage): boolean {
     return msg.content.some(
       (block) =>
         (block.type === "text" && block.text?.trim()) ||
+        (block.type === "thinking" && block.thinking?.trim()) ||
+        (block.type === "redacted_thinking" &&
+          typeof block.data === "string" &&
+          block.data.trim()) ||
         block.type === "tool_use" ||
         block.type === "tool_result" ||
         // #7777: media-only user turns are real content — dropping them
@@ -153,8 +158,18 @@ export function splitMisplacedToolResults(messages: ClaudeMessage[]): ClaudeMess
 // Fix tool_use/tool_result ordering for Claude API
 // 1. Assistant message with tool_use: remove text AFTER tool_use (Claude doesn't allow)
 // 2. Merge consecutive same-role messages
+// 3. Reconcile tool_result blocks against the immediately previous tool_use message
 export function fixToolUseOrdering(messages: ClaudeMessage[]): ClaudeMessage[] {
-  if (messages.length <= 1) return messages;
+  if (messages.length === 0) return messages;
+  if (
+    messages.length === 1 &&
+    !(
+      Array.isArray(messages[0]?.content) &&
+      messages[0].content.some((block) => block.type === "tool_result")
+    )
+  ) {
+    return messages;
+  }
 
   // Pass 1: Fix assistant messages with tool_use - remove text after tool_use
   for (const msg of messages) {
@@ -216,6 +231,53 @@ export function fixToolUseOrdering(messages: ClaudeMessage[]): ClaudeMessage[] {
         : [{ type: "text", text: msg.content }];
       merged.push({ role: msg.role, content: [...content] });
     }
+  }
+
+  // Claude accepts tool_result only for a tool_use in the immediately previous
+  // assistant message. Compacted cross-model history can retain an output after
+  // dropping its call; keep that output as user text instead of sending an
+  // invalid structured reference or discarding useful context.
+  for (let i = 0; i < merged.length; i++) {
+    const msg = merged[i];
+    if (msg.role !== "user" || !Array.isArray(msg.content)) continue;
+
+    const previous = merged[i - 1];
+    const validIds = new Set<string>(
+      previous?.role === "assistant" && Array.isArray(previous.content)
+        ? previous.content.flatMap((block) =>
+            block.type === "tool_use" && typeof block.id === "string" && block.id ? [block.id] : []
+          )
+        : []
+    );
+    const pairedById = new Map<string, ClaudeContentBlock>();
+    const otherContent: ClaudeContentBlock[] = [];
+
+    for (const block of msg.content) {
+      if (block.type !== "tool_result") {
+        otherContent.push(block);
+        continue;
+      }
+
+      const toolUseId = typeof block.tool_use_id === "string" ? block.tool_use_id : "";
+      if (validIds.has(toolUseId) && !pairedById.has(toolUseId)) {
+        pairedById.set(toolUseId, block);
+        continue;
+      }
+
+      const serialized =
+        typeof block.content === "string"
+          ? block.content
+          : (JSON.stringify(block.content ?? "") ?? "");
+      otherContent.push({
+        type: "text",
+        text: `[Unpaired tool result ${toolUseId || "unknown"}]\n${serialized}`,
+      });
+    }
+
+    const pairedResults = [...validIds].map(
+      (id) => pairedById.get(id) ?? { type: "tool_result", tool_use_id: id, content: "" }
+    );
+    msg.content = [...pairedResults, ...otherContent];
   }
 
   return merged;
@@ -368,6 +430,22 @@ export function prepareClaudeRequest(
         msg.content = msg.content.filter(
           (block) => block.type !== "tool_result" || block.tool_use_id
         );
+        // Anthropic-shape upstreams enforce `^[a-zA-Z0-9_-]+$` on tool ids. Client
+        // histories can carry ids with `.`/`:`/`#` (e.g. replayed from another
+        // provider), which 400s as TOOL_SCHEMA_INVALID. Rewrite both sides with the
+        // same function so tool_use/tool_result pairing survives — the later
+        // ordering passes match on these ids.
+        for (const block of msg.content) {
+          if (block.type === "tool_use" && typeof block.id === "string" && block.id) {
+            block.id = sanitizeToolId(block.id);
+          } else if (
+            block.type === "tool_result" &&
+            typeof block.tool_use_id === "string" &&
+            block.tool_use_id
+          ) {
+            block.tool_use_id = sanitizeToolId(block.tool_use_id);
+          }
+        }
       }
     }
 

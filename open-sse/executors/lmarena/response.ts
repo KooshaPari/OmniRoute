@@ -7,6 +7,8 @@ import { isCloudflareChallenge } from "../../services/lmarenaTlsClient.ts";
 import { markLMArenaCatalogModelDead } from "./models.ts";
 import { parseArenaSSE } from "./stream.ts";
 
+const encoder = new TextEncoder();
+
 export function errorResponse(
   status: number,
   message: string,
@@ -112,7 +114,7 @@ export function mapTlsUnavailable(
   return {
     response: errorResponse(
       502,
-      `Arena TLS impersonation unavailable: ${error.message}. Install/repair tls-client-node native binary.`,
+      `Arena TLS impersonation unavailable: ${error.message}. Verify the wreq-js 3.2 native binding.`,
       "upstream_error",
       "TLS_CLIENT_UNAVAILABLE"
     ),
@@ -165,7 +167,7 @@ function baseChunk(model: string) {
 }
 
 function enqueueSse(controller: ReadableStreamDefaultController, chunk: Record<string, unknown>) {
-  controller.enqueue(`data: ${JSON.stringify(chunk)}\n\n`);
+  controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
 }
 
 function emitStopAndDone(controller: ReadableStreamDefaultController, model: string) {
@@ -173,7 +175,8 @@ function emitStopAndDone(controller: ReadableStreamDefaultController, model: str
     ...baseChunk(model),
     choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
   });
-  controller.enqueue("data: [DONE]\n\n");
+
+  controller.enqueue(encoder.encode("data: [DONE]\n\n"));
   controller.close();
 }
 
@@ -213,7 +216,7 @@ export function createOpenAIArenaStream(opts: {
   model: string;
   signal?: AbortSignal;
   log?: { error?: (scope: string, msg: string) => void };
-}): ReadableStream<Uint8Array | string> {
+}): ReadableStream<Uint8Array> {
   const { reader, model, signal, log } = opts;
   const decoder = new TextDecoder();
   let buffer = "";

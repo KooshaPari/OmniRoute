@@ -5,16 +5,27 @@ type SqliteDatabase = SqliteAdapter;
 type JsonRecord = Record<string, unknown>;
 
 export type DbHealthIssueType =
-  | "integrity_check_failed"
-  | "broken_reference"
-  | "stale_snapshot"
-  | "invalid_state";
+  "integrity_check_failed" | "broken_reference" | "stale_snapshot" | "invalid_state";
 
 export interface DbHealthIssue {
   type: DbHealthIssueType;
   table: string;
   description: string;
   count: number;
+}
+
+/** Derived from the adapter contract so a new driver cannot drift out of sync here. */
+export type DbDriverName = SqliteAdapter["driver"];
+
+export interface DbDriverHealth {
+  name: DbDriverName;
+  /**
+   * True when writes are not durably backed by the database file: the `sql.js` WASM
+   * fallback, or an in-memory database — which the cloud/build path opens through the
+   * NATIVE cascade, so the driver name alone would read as healthy.
+   * Informative only; `isHealthy` stays defined by `issues`.
+   */
+  degraded: boolean;
 }
 
 export interface DbHealthCheckResult {
@@ -24,6 +35,64 @@ export interface DbHealthCheckResult {
   backupCreated: boolean;
   autoRepair: boolean;
   checkedAt: string;
+  driver: DbDriverHealth;
+}
+
+const IN_MEMORY_DB_NAME = ":memory:";
+
+/** PURE: describe the driver serving `db`, and whether its writes survive a crash. */
+export function describeDbDriver(db: Pick<SqliteAdapter, "driver" | "name">): DbDriverHealth {
+  return {
+    name: db.driver,
+    degraded: db.driver === "sql.js" || db.name === IN_MEMORY_DB_NAME,
+  };
+}
+
+export interface PagerCorruptionNote {
+  source: string;
+  message: string;
+  at: string;
+}
+
+let pagerCorruption: PagerCorruptionNote | null = null;
+
+function pagerErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object" && "message" in error) {
+    return String((error as { message?: unknown }).message ?? "");
+  }
+  return String(error ?? "unknown");
+}
+
+export function isSqlitePagerCorruptError(error: unknown): boolean {
+  const code =
+    error && typeof error === "object" && "code" in error
+      ? String((error as { code?: unknown }).code || "")
+      : "";
+  const message = pagerErrorMessage(error);
+  return (
+    code === "SQLITE_CORRUPT" ||
+    code === "SQLITE_NOTADB" ||
+    code === "SQLITE_IOERR" ||
+    /malformed|SQLITE_CORRUPT|SQLITE_NOTADB|SQLITE_IOERR/i.test(message)
+  );
+}
+
+export function notePagerCorruption(source: string, error: unknown): void {
+  const message = pagerErrorMessage(error) || "unknown";
+  pagerCorruption = {
+    source,
+    message,
+    at: new Date().toISOString(),
+  };
+}
+
+export function getPagerCorruption(): PagerCorruptionNote | null {
+  return pagerCorruption;
+}
+
+export function resetPagerCorruption(): void {
+  pagerCorruption = null;
 }
 
 interface RunDbHealthCheckOptions {
@@ -383,8 +452,7 @@ function repairInvalidJsonRows(
 function getSchemaVersionIssueCount(db: SqliteDatabase, expectedSchemaVersion: string): number {
   if (!hasRows(db, "db_meta")) return 0;
   const row = db.prepare("SELECT value FROM db_meta WHERE key = 'schema_version'").get() as
-    | { value?: string | null }
-    | undefined;
+    { value?: string | null } | undefined;
   const current = typeof row?.value === "string" ? row.value : null;
   return current === expectedSchemaVersion ? 0 : 1;
 }
@@ -404,6 +472,14 @@ export function runDbHealthCheck(
   const expectedSchemaVersion = options.expectedSchemaVersion || "1";
   const checkedAt = new Date().toISOString();
   const issues: DbHealthIssue[] = [];
+  if (pagerCorruption) {
+    issues.push({
+      type: "integrity_check_failed",
+      table: "sqlite",
+      description: `Pager reported SQLITE_CORRUPT during ${pagerCorruption.source}: ${pagerCorruption.message}`,
+      count: 1,
+    });
+  }
   let repairedCount = 0;
   let backupCreated = false;
   let backupAttempted = false;
@@ -561,5 +637,6 @@ export function runDbHealthCheck(
     backupCreated,
     autoRepair,
     checkedAt,
+    driver: describeDbDriver(db),
   };
 }

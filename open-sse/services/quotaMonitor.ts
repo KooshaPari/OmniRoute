@@ -8,11 +8,12 @@
  * Alertas deduplicados por sessão (janela de 5min).
  */
 
-import { registerQuotaFetcher, type QuotaFetcher } from "./quotaPreflight.ts";
+import {
+  registerQuotaFetcher,
+  resolveDynamicQuotaFetcher,
+  type QuotaFetcher,
+} from "./quotaPreflight.ts";
 import { getSessionInfo } from "./sessionManager.ts";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("open-sse:quota-monitor");
 
 export { registerQuotaFetcher };
 export type { QuotaFetcher };
@@ -123,9 +124,8 @@ function suppressedAlert(
     if (oldestKey !== undefined) alertSuppression.delete(oldestKey);
   }
   alertSuppression.set(key, Date.now());
-  log.warn(
-    { sessionId, provider, accountId, percentUsed },
-    "quota-monitor: session quota usage threshold reached"
+  console.warn(
+    `[QuotaMonitor] session=${sessionId} ${provider}/${accountId}: ${(percentUsed * 100).toFixed(1)}% quota used`
   );
   return true;
 }
@@ -203,7 +203,12 @@ function scheduleNextPoll(sessionId: string, intervalMs: number): void {
     }
 
     try {
-      const fetcher = quotaFetcherRegistry.get(provider);
+      let fetcher = quotaFetcherRegistry.get(provider);
+      // Dynamic fallback: for compatible-provider connections with the
+      // aggregator flag + feature flag, use the generalized New-API fetcher.
+      if (!fetcher && current.connectionSnapshot) {
+        fetcher = resolveDynamicQuotaFetcher(provider, current.connectionSnapshot);
+      }
       if (!fetcher) {
         current.status = current.lastQuotaPercent === null ? "idle" : current.status;
         scheduleNextPoll(sessionId, NORMAL_INTERVAL_MS);
@@ -241,9 +246,8 @@ function scheduleNextPoll(sessionId: string, intervalMs: number): void {
           current.totalAlerts += 1;
         }
         if (emittedAlert || previousStatus !== "exhausted") {
-          log.info(
-            { sessionId, accountId },
-            "quota-monitor: marking account for next-session cooldown"
+          console.info(
+            `[QuotaMonitor] session=${sessionId}: marking ${accountId} for next-session cooldown`
           );
         }
         scheduleNextPoll(sessionId, CRITICAL_INTERVAL_MS);

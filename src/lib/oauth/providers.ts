@@ -126,22 +126,21 @@ export function getProvider(name) {
  * Generate auth data for a provider.
  *
  * Returns `{ supported: false, error }` (no `authUrl`) for providers whose
- * browser-OAuth flow is currently disabled — e.g. windsurf / devin-cli post
- * 2026-05 rebrand, where the legacy PKCE endpoint at app.devin.ai returns 404.
+ * browser-OAuth flow is currently disabled — e.g. Devin Desktop / Devin CLI.
  * Callers (UI / API route) should surface the `error` string and route the
  * user to the import-token flow instead.
  */
 export function generateAuthData(providerName, redirectUri) {
   const provider = getProvider(providerName);
-  const pkce = generatePKCE();
+  const pkce = generatePKCE(provider.pkceVerifierBytes || 32);
   let codeVerifier = pkce.codeVerifier;
   const { codeChallenge, state } = pkce;
 
   if (provider.flowType === "import_token") {
     let error: string;
-    if (providerName === "windsurf" || providerName === "devin-cli") {
+    if (providerName === "devin-desktop" || providerName === "devin-cli") {
       error =
-        "Browser login disabled — paste token from https://windsurf.com/show-auth-token instead. Phase 2 will restore Firebase OAuth via app.devin.ai successor.";
+        "Browser login disabled — use the import-token flow. Paste an existing Devin API key from an authenticated Devin session; key export availability and steps vary by Devin version and account.";
     } else if (providerName === "zed") {
       error =
         "Zed does not use a browser OAuth flow. Use the Zed provider page to import credentials " +

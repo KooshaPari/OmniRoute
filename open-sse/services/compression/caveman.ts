@@ -12,6 +12,7 @@ import { createCompressionStats, estimateCompressionTokens } from "./stats.ts";
 import { validateCompression } from "./validation.ts";
 import { mapTextContent } from "./messageContent.ts";
 import { detectCompressionLanguage } from "./languageDetector.ts";
+import { isCodeLikeLine } from "./toolResultCompressor.ts";
 
 interface ChatMessage {
   role: string;
@@ -203,187 +204,31 @@ export function applyRulesToText(
 }
 
 function cleanupArtifacts(text: string): string {
-  let result = text;
-  if (hasRepeatedHorizontalWhitespace(result)) {
-    result = collapseHorizontalWhitespaceRuns(result);
-  }
-  result = removeHorizontalWhitespaceBeforePunctuation(result);
-  result = collapseRepeatedSentencePunctuation(result);
-  if (result.includes(" \n") || result.includes("\t\n")) {
-    result = stripLineTrailingHorizontalWhitespace(result);
-  }
-  if (result.endsWith(" ") || result.endsWith("\t")) result = result.trimEnd();
-  if (result.includes("\n\n\n")) result = collapseExcessNewlines(result);
-  if (result.startsWith("\n")) result = trimLeadingNewlines(result);
-  if (result.endsWith("\n")) result = trimTrailingNewlines(result);
-  return result;
+  if (!text) return "";
+  return text
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/[ \t]+([,.;:!?])/g, "$1")
+    .replace(/([.!?]){2,}/g, (m) => m[m.length - 1])
+    .replace(/[ \t]+$/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/^\n+/, "")
+    .replace(/\n+$/, "");
 }
 
-function isHorizontalWhitespace(char: string): boolean {
-  return char === " " || char === "\t";
-}
-
-function isSentencePunctuation(char: string): boolean {
-  return char === "." || char === "!" || char === "?";
-}
-
-function isCleanupPunctuation(char: string): boolean {
-  return (
-    char === "," || char === "." || char === ";" || char === ":" || char === "!" || char === "?"
-  );
-}
-
-function hasRepeatedHorizontalWhitespace(text: string): boolean {
-  let previousWasWhitespace = false;
-  for (const char of text) {
-    const currentIsWhitespace = isHorizontalWhitespace(char);
-    if (currentIsWhitespace && previousWasWhitespace) return true;
-    previousWasWhitespace = currentIsWhitespace;
-  }
-  return false;
-}
-
-function collapseHorizontalWhitespaceRuns(text: string): string {
-  let output = "";
-  let changed = false;
-
-  for (let index = 0; index < text.length; index++) {
-    const char = text[index];
-    if (!isHorizontalWhitespace(char)) {
-      output += char;
-      continue;
-    }
-
-    const start = index;
-    while (index + 1 < text.length && isHorizontalWhitespace(text[index + 1])) {
-      index++;
-    }
-
-    if (index > start) {
-      output += " ";
-      changed = true;
-    } else {
-      output += char;
-    }
-  }
-
-  return changed ? output : text;
-}
-
-function removeHorizontalWhitespaceBeforePunctuation(text: string): string {
-  let output = "";
-  let changed = false;
-
-  for (let index = 0; index < text.length; index++) {
-    const char = text[index];
-    if (!isHorizontalWhitespace(char)) {
-      output += char;
-      continue;
-    }
-
-    const start = index;
-    while (index + 1 < text.length && isHorizontalWhitespace(text[index + 1])) {
-      index++;
-    }
-
-    const nextChar = text[index + 1];
-    if (nextChar && isCleanupPunctuation(nextChar)) {
-      changed = true;
-      continue;
-    }
-
-    output += text.slice(start, index + 1);
-  }
-
-  return changed ? output : text;
-}
-
-function collapseRepeatedSentencePunctuation(text: string): string {
-  let output = "";
-  let changed = false;
-
-  for (let index = 0; index < text.length; index++) {
-    const char = text[index];
-    if (!isSentencePunctuation(char)) {
-      output += char;
-      continue;
-    }
-
-    let lastPunctuation = char;
-    const start = index;
-    while (index + 1 < text.length && isSentencePunctuation(text[index + 1])) {
-      index++;
-      lastPunctuation = text[index];
-    }
-
-    if (index > start) changed = true;
-    output += lastPunctuation;
-  }
-
-  return changed ? output : text;
-}
-
-function trimEndHorizontalWhitespace(text: string): string {
-  let end = text.length;
-  while (end > 0 && isHorizontalWhitespace(text[end - 1])) {
-    end--;
-  }
-  return end === text.length ? text : text.slice(0, end);
-}
-
-function stripLineTrailingHorizontalWhitespace(text: string): string {
-  const lines = text.split("\n");
-  let changed = false;
-  const cleanedLines = lines.map((line) => {
-    const cleaned = trimEndHorizontalWhitespace(line);
-    if (cleaned !== line) changed = true;
-    return cleaned;
-  });
-  return changed ? cleanedLines.join("\n") : text;
-}
-
-function collapseExcessNewlines(text: string): string {
-  let output = "";
-  let changed = false;
-
-  for (let index = 0; index < text.length; index++) {
-    const char = text[index];
-    if (char !== "\n") {
-      output += char;
-      continue;
-    }
-
-    const start = index;
-    while (index + 1 < text.length && text[index + 1] === "\n") {
-      index++;
-    }
-
-    const newlineCount = index - start + 1;
-    if (newlineCount > 2) {
-      output += "\n\n";
-      changed = true;
-    } else {
-      output += text.slice(start, index + 1);
-    }
-  }
-
-  return changed ? output : text;
-}
-
-function trimLeadingNewlines(text: string): string {
-  let start = 0;
-  while (start < text.length && text[start] === "\n") {
-    start++;
-  }
-  return start === 0 ? text : text.slice(start);
-}
-
-function trimTrailingNewlines(text: string): string {
-  let end = text.length;
-  while (end > 0 && text[end - 1] === "\n") {
-    end--;
-  }
-  return end === text.length ? text : text.slice(0, end);
+/**
+ * #9144: raw (unfenced) multi-line code — e.g. a Copilot `#file` reference — was
+ * getting whitespace-collapsed and sentence-recapitalized as if it were prose,
+ * corrupting keyword/identifier casing (`function`→`Function`) and indentation.
+ * Preservation only protects explicitly fenced/marked blocks; this catches the
+ * unfenced case by requiring a strong majority of lines to look like code before
+ * skipping prose normalization for the whole span — conservative on purpose
+ * (biases toward less compression, never toward destructive mutation).
+ */
+function isCodeDominantText(text: string): boolean {
+  const lines = text.split("\n").filter((line) => line.trim().length > 0);
+  if (lines.length < 3) return false;
+  const codeLikeCount = lines.filter(isCodeLikeLine).length;
+  return codeLikeCount / lines.length >= 0.3;
 }
 
 function recapitalizeSentences(text: string): string {
@@ -539,7 +384,9 @@ export function cavemanCompress(
       const { text: rulesApplied, appliedRules } = applyRulesToText(extractedText, rules);
       allAppliedRules.push(...appliedRules);
 
-      const normalized = recapitalizeSentences(cleanupArtifacts(rulesApplied));
+      const normalized = isCodeDominantText(rulesApplied)
+        ? rulesApplied
+        : recapitalizeSentences(cleanupArtifacts(rulesApplied));
       const cleaned =
         blocks.length > 0
           ? cleanupArtifacts(restorePreservedBlocks(normalized, blocks))

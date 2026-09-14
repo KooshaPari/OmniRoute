@@ -137,7 +137,7 @@ function convertGeminiContent(content) {
 
     if (part.functionCall) {
       toolCalls.push({
-        id: `call_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        id: part.functionCall.id || `call_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
         type: "function",
         function: {
           name: part.functionCall.name,
@@ -147,12 +147,13 @@ function convertGeminiContent(content) {
     }
 
     if (part.functionResponse) {
+      const resp = part.functionResponse.response;
+      const resultPayload =
+        resp && typeof resp === "object" && "result" in resp ? resp.result : (resp ?? {});
       return {
         role: "tool",
         tool_call_id: part.functionResponse.id || part.functionResponse.name,
-        content: JSON.stringify(
-          part.functionResponse.response?.result || part.functionResponse.response || {}
-        ),
+        content: JSON.stringify(resultPayload),
       };
     }
   }

@@ -1,4 +1,4 @@
-import { decrypt } from "../encryption";
+import { decrypt, looksEncrypted } from "../encryption";
 import type {
   JsonRecord,
   ProxyScope,
@@ -26,6 +26,7 @@ export function mapProxyRow(row: unknown): ProxyRegistryRecord {
     status: typeof r.status === "string" ? r.status : "active",
     source: typeof r.source === "string" ? r.source : "manual",
     family: typeof r.family === "string" ? r.family : "auto",
+    subscriptionId: typeof r.subscription_id === "string" ? r.subscription_id : null,
     createdAt: typeof r.created_at === "string" ? r.created_at : "",
     updatedAt: typeof r.updated_at === "string" ? r.updated_at : "",
   };
@@ -40,6 +41,7 @@ export function mapAssignmentRow(row: unknown): ProxyAssignmentRecord {
     proxyId: typeof r.proxy_id === "string" ? r.proxy_id : "",
     scope,
     scopeId: scope === "global" && rawScopeId === "__global__" ? null : rawScopeId,
+    position: Number(r.position) || 0,
     createdAt: typeof r.created_at === "string" ? r.created_at : "",
     updatedAt: typeof r.updated_at === "string" ? r.updated_at : "",
   };
@@ -67,16 +69,26 @@ export function extractRelayAuth(notes: unknown): string | undefined {
     if (parsed.relayAuthEnc) {
       const dec = decrypt(parsed.relayAuthEnc);
       if (dec) return dec;
+      // decrypt returned null despite a present blob — warn so operators
+      // know the key changed or went missing. The plaintext fallback below
+      // may still save us (legacy rows that never migrated).
+      if (looksEncrypted(parsed.relayAuthEnc)) {
+        console.warn(
+          `[relay] Failed to decrypt relayAuthEnc for proxy — ` +
+            `STORAGE_ENCRYPTION_KEY may have changed or been unset`
+        );
+      }
     }
     return parsed.relayAuth || undefined;
   } catch {
     return undefined;
   }
 }
-
 /**
- * Reports when a relay proxy has neither plaintext nor decryptable auth.
- * Non-relay proxies do not require relay credentials and always return false.
+ * True when a relay-type proxy has no usable auth in `notes` — neither a
+ * plaintext `relayAuth` nor a still-decryptable `relayAuthEnc` blob. This is
+ * the state that makes proxyFetch throw `missing relayAuth` at request time.
+ * Non-relay types are never "missing" (they have no relay auth to begin with).
  */
 export function isRelayAuthMissing(notes: unknown, type: unknown): boolean {
   return isRelayProxyType(type) && extractRelayAuth(notes) === undefined;
@@ -85,14 +97,20 @@ export function isRelayAuthMissing(notes: unknown, type: unknown): boolean {
 export type RelayRepairMode = "noop" | "recovered" | "redeploy" | null;
 
 /**
- * Classifies whether a relay can be repaired from the credentials retained in
- * its notes, without persisting a deployment token during the repair flow.
+ * Classifies how a relay's missing/uncertain auth can be fixed WITHOUT a full
+ * redeploy (the deploy token is never persisted):
+ * - "noop":      plaintext relayAuth already present — nothing to do.
+ * - "recovered": relayAuthEnc blob present and decrypts — re-derive plaintext
+ *               in place (key still set, blob intact).
+ * - "redeploy":  neither recoverable — token is unrecoverable, must redeploy.
+ * - null:       not a relay type (repair is N/A).
  */
 export function relayRepairMode(notes: unknown, type: unknown): RelayRepairMode {
   if (!isRelayProxyType(type)) return null;
-
+  // Plaintext relayAuth already in place: nothing to do.
   const parsed = safeParseNotes(notes);
   if (typeof parsed?.relayAuth === "string" && parsed.relayAuth) return "noop";
+  // Encrypted blob present and still decryptable: re-derive plaintext in place.
   if (
     typeof parsed?.relayAuthEnc === "string" &&
     parsed.relayAuthEnc &&
@@ -100,6 +118,7 @@ export function relayRepairMode(notes: unknown, type: unknown): RelayRepairMode 
   ) {
     return "recovered";
   }
+  // Neither recoverable: the deploy token (never persisted) is lost → redeploy.
   return "redeploy";
 }
 
@@ -124,6 +143,7 @@ export function toRegistryProxyResolution(row: unknown, level: ProxyScope, level
       username: record.username,
       password: record.password,
       family: typeof record.family === "string" ? record.family : "auto",
+      ...(typeof record.name === "string" && record.name ? { name: record.name } : {}),
       ...(relayAuth !== undefined ? { relayAuth } : {}),
     },
     level,

@@ -1,21 +1,23 @@
 import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuardPolicy";
 import {
   getAntigravityModelsDiscoveryUrls,
   getAntigravityFetchAvailableModelsUrls,
 } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { resolveAntigravityClientVersion } from "@omniroute/open-sse/services/antigravityClientProfile.ts";
 import {
   getClientVisibleAntigravityModelName,
-  isUserCallableAntigravityModelId,
+  isDiscoverableAntigravityModelId,
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
-import { normalizeAntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
 import {
-  resolveAntigravityCliVersion,
-  resolveAntigravityIdeVersion,
-} from "@omniroute/open-sse/services/antigravityVersion.ts";
+  getClientVisibleAgyModelName,
+  isDiscoverableAgyModelId,
+} from "@omniroute/open-sse/config/agyModels.ts";
+import { normalizeAntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
 import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
+import { persistDiscoveredAntigravityProjectId } from "@omniroute/open-sse/services/antigravityProjectPersist.ts";
 import { asRecord, toNonEmptyString } from "./helpers";
 
 const antigravityDiscoveryInflight = new Map<
@@ -23,9 +25,37 @@ const antigravityDiscoveryInflight = new Map<
   Promise<Array<{ id: string; name: string }>>
 >();
 
-export function normalizeAntigravityModelsResponse(
-  data: unknown
-): Array<{ id: string; name: string }> {
+type AntigravityDiscoveryModel = {
+  id: string;
+  name: string;
+  isInternal?: boolean;
+  /** Token window advertised by the upstream discovery payload, when present. */
+  inputTokenLimit?: number;
+  outputTokenLimit?: number;
+};
+
+/**
+ * Forward discovery-advertised token windows when the upstream payload carries
+ * them. Field names are probed defensively (payload shape is not contractual);
+ * absent/non-numeric fields yield no entry, so nothing downstream changes.
+ */
+function extractDiscoveryTokenLimits(item: Record<string, unknown>): {
+  inputTokenLimit?: number;
+  outputTokenLimit?: number;
+} {
+  const limits: { inputTokenLimit?: number; outputTokenLimit?: number } = {};
+  const input = item.inputTokenLimit ?? item.contextWindow;
+  if (typeof input === "number" && Number.isFinite(input) && input > 0) {
+    limits.inputTokenLimit = input;
+  }
+  const output = item.outputTokenLimit ?? item.maxOutputTokens;
+  if (typeof output === "number" && Number.isFinite(output) && output > 0) {
+    limits.outputTokenLimit = output;
+  }
+  return limits;
+}
+
+export function normalizeAntigravityModelsResponse(data: unknown): AntigravityDiscoveryModel[] {
   const payload = asRecord(data).models;
 
   if (Array.isArray(payload)) {
@@ -46,9 +76,16 @@ export function normalizeAntigravityModelsResponse(
             : typeof item.name === "string"
               ? item.name
               : id;
-        return id ? { id, name } : null;
+        return id
+          ? {
+              id,
+              name,
+              ...extractDiscoveryTokenLimits(item),
+              ...(item.isInternal === true ? { isInternal: true } : {}),
+            }
+          : null;
       })
-      .filter((value): value is { id: string; name: string } => Boolean(value));
+      .filter((value): value is AntigravityDiscoveryModel => Boolean(value));
   }
 
   const modelsById = asRecord(payload);
@@ -61,23 +98,53 @@ export function normalizeAntigravityModelsResponse(
           : typeof item.name === "string"
             ? item.name
             : id;
-      return id ? { id, name } : null;
+      return id
+        ? {
+            id,
+            name,
+            ...extractDiscoveryTokenLimits(item),
+            ...(item.isInternal === true ? { isInternal: true } : {}),
+          }
+        : null;
     })
-    .filter((value): value is { id: string; name: string } => Boolean(value));
+    .filter((value): value is AntigravityDiscoveryModel => Boolean(value));
 }
 
-export function filterUserCallableAntigravityModels(models: Array<{ id: string; name: string }>) {
-  return models.filter((model) => isUserCallableAntigravityModelId(model.id));
+export function filterUserCallableAntigravityModels(
+  models: AntigravityDiscoveryModel[],
+  provider: "antigravity" | "agy" = "antigravity"
+) {
+  return models.filter(
+    (model) =>
+      model.isInternal !== true &&
+      (provider === "agy"
+        ? isDiscoverableAgyModelId(model.id)
+        : isDiscoverableAntigravityModelId(model.id))
+  );
 }
 
-export function mapAntigravityModelForClient(model: { id: string; name: string }): {
+export function mapAntigravityModelForClient(
+  model: { id: string; name: string; inputTokenLimit?: number; outputTokenLimit?: number },
+  provider: "antigravity" | "agy" = "antigravity"
+): {
   id: string;
   name: string;
+  inputTokenLimit?: number;
+  outputTokenLimit?: number;
 } {
   const clientId = toClientAntigravityModelId(model.id);
   return {
     id: clientId,
-    name: getClientVisibleAntigravityModelName(clientId, model.name),
+    name:
+      provider === "agy"
+        ? getClientVisibleAgyModelName(clientId, model.name)
+        : getClientVisibleAntigravityModelName(clientId, model.name),
+    ...(typeof model.inputTokenLimit === "number"
+      ? { inputTokenLimit: model.inputTokenLimit }
+      : {}),
+    ...(typeof model.outputTokenLimit === "number"
+      ? { outputTokenLimit: model.outputTokenLimit }
+      : {}),
   };
 }
 
@@ -85,20 +152,28 @@ export async function fetchAntigravityDiscoveryModelsCached(
   accessToken: string,
   connectionId: string,
   proxy: unknown,
-  providerSpecificData?: unknown
-): Promise<Array<{ id: string; name: string }>> {
+  providerSpecificData?: unknown,
+  provider: "antigravity" | "agy" = "antigravity"
+): Promise<
+  Array<{ id: string; name: string; inputTokenLimit?: number; outputTokenLimit?: number }>
+> {
   const profile = normalizeAntigravityClientProfile(asRecord(providerSpecificData).clientProfile);
-  const cacheKey = `${connectionId}:${accessToken.substring(0, 16)}:${profile}`;
+  const cacheKey = `${provider}:${connectionId}:${accessToken.substring(0, 16)}:${profile}`;
   const inflight = antigravityDiscoveryInflight.get(cacheKey);
   if (inflight) return inflight;
 
   const promise = (async () => {
-    await (profile === "cli" ? resolveAntigravityCliVersion() : resolveAntigravityIdeVersion());
-    await ensureAntigravityProjectAssigned(
-      accessToken,
-      fetch,
-      normalizeAntigravityClientProfile(asRecord(providerSpecificData).clientProfile)
-    );
+    await resolveAntigravityClientVersion(profile);
+    const discovered = await ensureAntigravityProjectAssigned(accessToken, fetch, profile);
+    if (discovered) {
+      // #8491: persist the recovered id so it survives the next token refresh
+      // or process restart instead of being silently rediscovered every time.
+      await persistDiscoveredAntigravityProjectId(
+        connectionId,
+        discovered,
+        asRecord(providerSpecificData)
+      );
+    }
 
     for (const discoveryUrl of [
       ...getAntigravityFetchAvailableModelsUrls(),
@@ -117,20 +192,21 @@ export async function fetchAntigravityDiscoveryModelsCached(
         if (!response.ok) {
           const errorText = await response.text();
           console.warn(
-            `[models] antigravity discovery failed at ${discoveryUrl} (${response.status}): ${errorText}`
+            `[models] ${provider} discovery failed at ${discoveryUrl} (${response.status}): ${errorText}`
           );
           continue;
         }
 
         const models = filterUserCallableAntigravityModels(
-          normalizeAntigravityModelsResponse(await response.json())
-        ).map(mapAntigravityModelForClient);
+          normalizeAntigravityModelsResponse(await response.json()),
+          provider
+        ).map((model) => mapAntigravityModelForClient(model, provider));
         if (models.length > 0) {
           return models;
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[models] antigravity discovery threw for ${discoveryUrl}: ${message}`);
+        console.warn(`[models] ${provider} discovery threw for ${discoveryUrl}: ${message}`);
       }
     }
 
@@ -210,6 +286,45 @@ export function normalizeSapModelsResponse(
         toNonEmptyString(item.name) ||
         id;
       const ownedBy = toNonEmptyString(item.provider) || "sap";
+      return { id, name, owned_by: ownedBy };
+    })
+    .filter((value): value is { id: string; name: string; owned_by: string } => Boolean(value));
+}
+
+export function normalizeAzureModelsResponse(
+  data: unknown,
+  fallbackOwner = "azure-ai"
+): Array<{ id: string; name: string; owned_by: string }> {
+  const payload = asRecord(data);
+  const items = Array.isArray(data)
+    ? data
+    : Array.isArray(payload.data)
+      ? (payload.data as unknown[])
+      : Array.isArray(payload.models)
+        ? (payload.models as unknown[])
+        : Array.isArray(payload.value)
+          ? (payload.value as unknown[])
+          : Array.isArray(payload.deployments)
+            ? (payload.deployments as unknown[])
+            : [];
+
+  return items
+    .map((value) => {
+      const item = asRecord(value);
+      const id =
+        toNonEmptyString(item.id) ||
+        toNonEmptyString(item.deployment_name) ||
+        toNonEmptyString(item.deploymentName) ||
+        toNonEmptyString(item.name) ||
+        toNonEmptyString(item.model);
+      if (!id) return null;
+      const name =
+        toNonEmptyString(item.display_name) ||
+        toNonEmptyString(item.displayName) ||
+        toNonEmptyString(item.name) ||
+        id;
+      const ownedBy =
+        toNonEmptyString(item.owned_by) || toNonEmptyString(item.provider) || fallbackOwner;
       return { id, name, owned_by: ownedBy };
     })
     .filter((value): value is { id: string; name: string; owned_by: string } => Boolean(value));

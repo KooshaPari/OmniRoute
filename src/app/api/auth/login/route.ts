@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
 import { classifyIpScope } from "@/lib/ipUtils";
-import { getCachedSettings } from "@/lib/localDb";
+import { getCachedSettings } from "@/lib/db/settings";
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";
 import {
@@ -9,9 +10,11 @@ import {
   getStoredManagementPassword,
   verifyManagementPassword,
 } from "@/lib/auth/managementPassword";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { loginSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { checkLoginGuard, clearLoginAttempts, recordLoginFailure } from "@/server/auth/loginGuard";
+import { AUTHZ_HEADER_TRUSTED_PEER_IP } from "@/server/authz/headers";
 
 // SECURITY: No hardcoded fallback — JWT_SECRET must be configured.
 if (!process.env.JWT_SECRET) {
@@ -27,7 +30,7 @@ export const authRouteInternals = {
   getCookieStore: cookies,
 };
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   const auditContext = getAuditRequestContext(request);
 
   try {
@@ -74,8 +77,35 @@ export async function POST(request) {
       return NextResponse.json({ error: "Invalid password payload" }, { status: 400 });
     }
     const settings = await getCachedSettings();
+    const trustedPeerIp = process.env.OMNIROUTE_PEER_STAMP_TOKEN
+      ? request.headers.get(AUTHZ_HEADER_TRUSTED_PEER_IP)
+      : null;
+    const clientIp = trustedPeerIp || auditContext.ipAddress || null;
+    const oidcDisabledPassword =
+      settings.oidcEnabled === true &&
+      (settings.oidcDisablePasswordLogin === true ||
+        isFeatureFlagEnabled("OMNIROUTE_OIDC_DISABLE_PASSWORD_LOGIN") ||
+        process.env.OMNIROUTE_OIDC_DISABLE_PASSWORD_LOGIN === "true" ||
+        process.env.OIDC_DISABLE_PASSWORD_LOGIN === "true");
+
+    if (oidcDisabledPassword) {
+      logAuditEvent({
+        action: "auth.login.password_disabled_by_oidc",
+        actor: "anonymous",
+        target: "dashboard-auth",
+        resourceType: "auth_session",
+        status: "failed",
+        ipAddress: clientIp || undefined,
+        requestId: auditContext.requestId,
+        metadata: { reason: "password_login_disabled_when_oidc_active" },
+      });
+      return NextResponse.json(
+        { error: "Password login is disabled when OIDC is active. Please sign in with OIDC." },
+        { status: 403 }
+      );
+    }
+
     const bruteForceEnabled = settings.bruteForceProtection !== false;
-    const clientIp = auditContext.ipAddress || null;
 
     const guardCheck = checkLoginGuard(clientIp, { enabled: bruteForceEnabled });
     if (!guardCheck.allowed) {
@@ -93,9 +123,7 @@ export async function POST(request) {
         { error: "Too many failed attempts. Try again later." },
         {
           status: 429,
-          headers: guardCheck.retryAfterSeconds
-            ? { "Retry-After": String(guardCheck.retryAfterSeconds) }
-            : {},
+          headers: { "Retry-After": String(guardCheck.retryAfterSeconds || 60) },
         }
       );
     }
@@ -195,9 +223,7 @@ export async function POST(request) {
         { error: "Too many failed attempts. Try again later." },
         {
           status: 429,
-          headers: failureDecision.retryAfterSeconds
-            ? { "Retry-After": String(failureDecision.retryAfterSeconds) }
-            : {},
+          headers: { "Retry-After": String(failureDecision.retryAfterSeconds || 60) },
         }
       );
     }

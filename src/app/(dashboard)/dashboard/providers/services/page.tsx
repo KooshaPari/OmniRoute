@@ -7,14 +7,16 @@ import { CliproxyServiceTab } from "./tabs/CliproxyServiceTab";
 import { NinerouterServiceTab } from "./tabs/NinerouterServiceTab";
 import { MuxServiceTab } from "./tabs/MuxServiceTab";
 import { BifrostServiceTab } from "./tabs/BifrostServiceTab";
+import { DarioServiceTab } from "./tabs/DarioServiceTab";
 
-type Tab = "cliproxy" | "9router" | "mux" | "bifrost";
+type Tab = "cliproxy" | "9router" | "mux" | "bifrost" | "dario";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "cliproxy", label: "CLIProxyAPI", icon: "swap_horiz" },
   { id: "9router", label: "9Router", icon: "route" },
   { id: "mux", label: "Mux", icon: "hub" },
   { id: "bifrost", label: "Bifrost", icon: "bolt" },
+  { id: "dario", label: "Dario", icon: "shield_person" },
 ];
 
 export default function ServicesPage() {
@@ -30,11 +32,8 @@ export default function ServicesPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-xl font-semibold text-text-primary">Embedded Services</h1>
-        <p className="text-sm text-text-muted mt-1">
-          External engines managed on demand — CLIProxyAPI, 9Router, Mux, and Bifrost. Accessible on
-          loopback only.
-        </p>
+        <h1 className="text-xl font-semibold text-text-primary">{t("title")}</h1>
+        <p className="text-sm text-text-muted mt-1">{t("description")}</p>
       </header>
 
       {/* Tab strip */}
@@ -64,6 +63,7 @@ export default function ServicesPage() {
         {active === "9router" && <NinerouterServiceTab />}
         {active === "mux" && <MuxServiceTab />}
         {active === "bifrost" && <BifrostServiceTab />}
+        {active === "dario" && <DarioServiceTab />}
       </div>
     </div>
   );

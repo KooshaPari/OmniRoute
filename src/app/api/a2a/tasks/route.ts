@@ -1,5 +1,11 @@
+import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
 import { getTaskManager, type TaskState } from "@/lib/a2a/taskManager";
+import { authorizeA2ATaskRoute } from "@/app/api/a2a/_auth";
+import { createConductorTask } from "@/lib/conductor/hubProxy";
+import { getSettings } from "@/lib/db/settings";
 
 const VALID_TASK_STATES = new Set<TaskState>([
   "submitted",
@@ -17,6 +23,11 @@ function parseIntParam(value: string | null, fallback: number): number {
 }
 
 export async function GET(request: Request) {
+  // GHSA-jcm5-6wpp-wjj8: the list route had no auth call at all. Management
+  // (or the keyless posture) sees every task; a bare API key must be valid
+  // and is owner-scoped.
+  const auth = await authorizeA2ATaskRoute(request);
+  if (auth instanceof Response) return auth;
   try {
     const { searchParams } = new URL(request.url);
     const stateParam = searchParams.get("state");
@@ -31,7 +42,7 @@ export async function GET(request: Request) {
 
     const tm = getTaskManager();
     const total = tm.countTasks({ state, skill });
-    const tasks = tm.listTasks({ state, skill, limit, offset });
+    const tasks = tm.listTasks({ state, skill, limit, offset }, auth.owner);
 
     return NextResponse.json({
       tasks,
@@ -43,4 +54,129 @@ export async function GET(request: Request) {
     const message = error instanceof Error ? error.message : "Failed to list A2A tasks";
     return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+// ============ POST — delegação de entrada à frota do Conductor (PRD Conductor RF5) ============
+
+const delegationSchema = z.object({
+  skill: z.string().default("conductor"),
+  messages: z.array(z.object({ role: z.string(), content: z.string() })).min(1),
+  metadata: z
+    .object({
+      conductor: z
+        .object({
+          repo: z.object({ url: z.string().min(1), base_ref: z.string().optional() }).optional(),
+          mode: z.string().optional(),
+          cli: z.string().optional(),
+          model: z.string().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+});
+
+/**
+ * Constant-time comparison of the presented bearer token against the configured
+ * key. A plain `===` short-circuits on the first differing byte, leaking the
+ * length of the shared prefix through response timing; `timingSafeEqual` does
+ * not. It requires equal-length buffers, so mismatched lengths are rejected up
+ * front (the length itself is not secret).
+ *
+ * Exported as a test seam only — not part of the route contract.
+ */
+export function tokensMatch(provided: string, expected: string): boolean {
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
+
+/**
+ * Mesma semântica de auth do JSON-RPC A2A (src/app/a2a/route.ts): Bearer vs OMNIROUTE_API_KEY; aberto se não configurada.
+ *
+ * Exported as a test seam only — not part of the route contract.
+ */
+export function authenticateA2A(request: Request): boolean {
+  const configuredKey = process.env.OMNIROUTE_API_KEY;
+  if (!configuredKey) return true;
+  const token = (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
+  return tokensMatch(token, configuredKey);
+}
+
+/**
+ * Traduz uma task A2A externa em `POST /v1/tasks` do hub do OmniConductor.
+ * Só skills da frota (`conductor` / `conductor-cli-<profile>` — as anunciadas no
+ * Agent Card) são delegáveis; os estados voltam pelo espelho SSE→A2A (RF1).
+ */
+export async function POST(request: Request) {
+  if (!authenticateA2A(request)) {
+    return NextResponse.json(
+      { error: "Unauthorized: missing or invalid API key" },
+      { status: 401 }
+    );
+  }
+  const settings = await getSettings();
+  if (settings.a2aEnabled !== true) {
+    return NextResponse.json(
+      { error: "A2A endpoint is disabled. Enable it from the Endpoints page." },
+      { status: 503 }
+    );
+  }
+
+  let raw: unknown;
+  try {
+    raw = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+  const parsed = delegationSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid A2A task: provide messages[] (and metadata.conductor)" },
+      { status: 400 }
+    );
+  }
+  const { skill, messages, metadata } = parsed.data;
+  if (skill !== "conductor" && !skill.startsWith("conductor-cli-")) {
+    return NextResponse.json(
+      {
+        error:
+          "Only Conductor fleet skills are delegable here (conductor / conductor-cli-<profile>)",
+      },
+      { status: 400 }
+    );
+  }
+  const conductor = metadata?.conductor;
+  if (!conductor?.repo?.url) {
+    return NextResponse.json(
+      { error: "Delegation requires metadata.conductor.repo.url (the fleet works on git repos)" },
+      { status: 400 }
+    );
+  }
+  const prompt =
+    [...messages].reverse().find((m) => m.role === "user")?.content ??
+    messages[messages.length - 1].content;
+
+  const created = await createConductorTask({
+    repoUrl: conductor.repo.url,
+    baseRef: conductor.repo.base_ref,
+    prompt,
+    mode: conductor.mode,
+    cli: skill.startsWith("conductor-cli-") ? skill.slice("conductor-cli-".length) : conductor.cli,
+    model: conductor.model,
+  });
+  if (!created.ok) {
+    return NextResponse.json(
+      { error: `Conductor hub refused the delegation (HTTP ${created.status})` },
+      { status: created.status }
+    );
+  }
+  return NextResponse.json(
+    {
+      conductor_task_id: created.task_id,
+      state: "submitted",
+      note: "States flow back through the SSE→A2A mirror (GET /api/a2a/tasks, skill=conductor).",
+    },
+    { status: 201 }
+  );
 }

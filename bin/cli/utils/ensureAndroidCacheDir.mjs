@@ -94,10 +94,15 @@ export function ensureAndroidCacheDir(options = {}) {
  */
 export function isFatalInstrumentationHookFailure(text) {
   if (!text) return false;
-  return (
-    /Unsupported platform:\s*android/i.test(text) ||
-    /error occurred while loading instrumentation hook/i.test(text)
-  );
+  // Next.js wraps ANY throw inside instrumentation.register() with the generic
+  // "An error occurred while loading instrumentation hook:" prefix, on every
+  // platform (node_modules/next/dist/server/web/globals.js). That prefix alone
+  // therefore cannot identify the Android/Termux cache-probe failure — a bare
+  // generic instrumentation error on win32/desktop would be misreported as the
+  // Android bug and hide the real cause. Only match when the text actually
+  // carries the Android platform marker that Next's getCacheDirectory() emits.
+  // #10028
+  return /Unsupported platform:\s*android/i.test(text);
 }
 
 /**

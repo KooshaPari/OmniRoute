@@ -115,7 +115,7 @@ export const proxyRegistryFieldsSchema = z
     password: z.string().optional(),
     region: z.string().trim().max(64).nullable().optional(),
     notes: z.string().trim().max(1000).nullable().optional(),
-    status: z.enum(["active", "inactive"]).optional().default("active"),
+    status: z.enum(["active", "inactive", "dead"]).optional().default("active"),
     source: z
       .enum([
         "manual",
@@ -206,6 +206,7 @@ export const PROXY_POOL_ROTATION_STRATEGY_VALUES = [
   "round-robin",
   "random",
   "sticky",
+  "latency",
 ] as const;
 
 // Add/remove one proxy to/from a scope's pool. proxyId is REQUIRED (unlike the

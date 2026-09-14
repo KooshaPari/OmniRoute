@@ -17,6 +17,7 @@ import {
   isNewer,
   resolveLatestVersion,
   getLatestVersionFromGitHub,
+  getLatestVersionFromRegistry,
 } from "@/lib/system/versionCheck";
 
 test("normalizeVersion strips v-prefix, pre-release/build, returns numeric tuple", () => {
@@ -119,4 +120,67 @@ test("getLatestVersionFromGitHub returns null on a non-OK response", async () =>
   const fakeFetch = (async () =>
     new Response("rate limited", { status: 403 })) as unknown as typeof fetch;
   assert.equal(await getLatestVersionFromGitHub(fakeFetch), null);
+});
+
+test("HTTP version sources reject oversized bodies without parsing them", async () => {
+  let registryCancelled = false;
+  let githubCancelled = false;
+  const oversizedResponse = (onCancel: () => void) =>
+    new Response(
+      new ReadableStream({
+        start(controller) {
+          controller.enqueue(new Uint8Array(32 * 1024));
+        },
+        cancel() {
+          onCancel();
+        },
+      }),
+      { status: 200 }
+    );
+
+  assert.equal(
+    await getLatestVersionFromRegistry((async () =>
+      oversizedResponse(() => {
+        registryCancelled = true;
+      })) as unknown as typeof fetch),
+    null
+  );
+  assert.equal(
+    await getLatestVersionFromGitHub((async () =>
+      oversizedResponse(() => {
+        githubCancelled = true;
+      })) as unknown as typeof fetch),
+    null
+  );
+  assert.equal(registryCancelled, true);
+  assert.equal(githubCancelled, true);
+});
+
+test("HTTP version sources handle aborted stream signals gracefully", async () => {
+  let streamCancelled = false;
+  const hangingResponse = () =>
+    new Response(
+      new ReadableStream({
+        start() {
+          // Intentionally do not enqueue or close, simulating a hung stream
+        },
+        cancel() {
+          streamCancelled = true;
+        },
+      }),
+      { status: 200 }
+    );
+
+  const fakeFetchWithAbort = (async (_url: string, init?: RequestInit) => {
+    setImmediate(() => {
+      if (init?.signal && typeof init.signal.dispatchEvent === "function") {
+        init.signal.dispatchEvent(new Event("abort"));
+      }
+    });
+    return hangingResponse();
+  }) as unknown as typeof fetch;
+
+  assert.equal(await getLatestVersionFromRegistry(fakeFetchWithAbort), null);
+  assert.equal(await getLatestVersionFromGitHub(fakeFetchWithAbort), null);
+  assert.equal(streamCancelled, true);
 });

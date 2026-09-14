@@ -130,6 +130,9 @@ describe("isOriginAllowed", () => {
     assert.equal(isOriginAllowed("http://127.0.0.1:20128", EMPTY_ENV), true);
     assert.equal(isOriginAllowed("http://localhost:20128", EMPTY_ENV), true);
     assert.equal(isOriginAllowed("http://[::1]:20128", EMPTY_ENV), true);
+    // 0.0.0.0 is loopback-equivalent in the browser; the dashboard is often
+    // opened at http://0.0.0.0:20128, which sends exactly that Origin on WS.
+    assert.equal(isOriginAllowed("http://0.0.0.0:20128", EMPTY_ENV), true);
   });
 
   it("accepts an Origin matching LIVE_WS_ALLOWED_ORIGINS", () => {

@@ -182,7 +182,31 @@ export function formatResetCountdown(resetAt: string | number | null | undefined
   return `${seconds}s`;
 }
 
-/** Coerce persisted structured errors into safe text for React rendering. */
+/**
+ * Extract a git-log-style short identifier from a tool/call id for compact
+ * display. IDs carry decorative prefixes that vary by provider (call_,
+ * call-, toolu_, or composite forms like call_call-<uuid>_fc_cal_<hex>) and
+ * aren't unique on their own — naively slicing the whole id can leave as
+ * little as 3 significant characters visible. Finds the first UUID-shaped
+ * segment (or long hex run) and takes its leading characters instead, so the
+ * visible part is actually where the entropy is.
+ */
+export function shortCallId(id: string | null | undefined, length = 7): string {
+  if (!id) return "";
+  const uuidMatch = id.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+  if (uuidMatch) return uuidMatch[0].slice(0, length);
+  const hexMatch = id.match(/[0-9a-f]{8,}/i);
+  if (hexMatch) return hexMatch[0].slice(0, length);
+  return id.slice(0, length);
+}
+
+/**
+ * Coerces a persisted log `error` field into safe display text. It is
+ * legitimate for this field to be a structured object (e.g. `{ code,
+ * message }`) — only the RENDER needs to be a string, never the persisted
+ * artifact itself. Used by RequestLoggerDetail to avoid React error #31
+ * ("Objects are not valid as a React child") when rendering it. See #7845.
+ */
 export function formatErrorForDisplay(err: unknown): string | null {
   if (err == null) return null;
   if (typeof err === "string") return err;
@@ -191,4 +215,14 @@ export function formatErrorForDisplay(err: unknown): string | null {
   } catch {
     return String(err);
   }
+}
+
+/** Percentage of `tokensIn` served from cache, clamped to [0, 100]. */
+export function formatCachePercentage(
+  tokensIn: number | null | undefined,
+  cacheRead: number | null | undefined
+): number {
+  if (!tokensIn || tokensIn <= 0) return 0;
+  if (!cacheRead || cacheRead <= 0) return 0;
+  return Math.min(100, Math.round((cacheRead / tokensIn) * 100));
 }

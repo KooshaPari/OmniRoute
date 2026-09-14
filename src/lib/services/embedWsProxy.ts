@@ -27,9 +27,10 @@ import type { IncomingMessage } from "node:http";
 
 import { getSupervisor } from "./registry";
 import { getOrCreateApiKey } from "./apiKey";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("services:embed-ws-proxy");
+import {
+  attachRequestStreamGuards,
+  installProcessCrashGuard,
+} from "@/shared/utils/httpClientAbortGuard.mjs";
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 20131;
@@ -230,7 +231,7 @@ async function proxyUpgrade(req: IncomingMessage, socket: net.Socket, head: Buff
  *
  * `EMBED_WS_PROXY_HOST` takes precedence, but we fall back to `LIVE_WS_HOST`
  * so a single env var exposes BOTH WebSocket sockets (the Live dashboard server
- * on :20129 and this embed proxy on :20131) in Docker / behind a reverse proxy
+ * on :20132 and this embed proxy on :20131) in Docker / behind a reverse proxy
  * or tunnel. Without this fallback the embed proxy stayed bound to 127.0.0.1
  * even when the operator set `LIVE_WS_HOST=0.0.0.0`, so the Live view was
  * permanently "disconnected" in headless deployments (#5110). Defaults to
@@ -245,12 +246,21 @@ export function resolveEmbedWsHost(): string {
  * Idempotent — safe to call multiple times.
  */
 export function initEmbedWsProxy(): void {
+  // Safety net: a client aborting a connection can emit `Error: aborted`/
+  // ECONNRESET on the request stream; without this the single missed listener
+  // becomes an uncaughtException that kills the server. Benign aborts are
+  // swallowed; genuine errors still crash loudly (#fix-dev-server-aborted).
+  installProcessCrashGuard();
   if (globalThis.__omnirouteEmbedWsStarted) return;
 
   const host = resolveEmbedWsHost();
   const port = parseInt(process.env.EMBED_WS_PROXY_PORT ?? String(DEFAULT_PORT), 10);
 
   const server = http.createServer((_req, res) => {
+    // Absorb client-abort errors (browser closes the socket during navigation/
+    // HMR/bfcache) on the request/response streams so they never surface as an
+    // uncaughtException that kills the server (#fix-dev-server-aborted).
+    attachRequestStreamGuards(_req, res);
     res.writeHead(426, "Upgrade Required", { "content-type": "application/json" });
     res.end(JSON.stringify({ error: "upgrade_required", message: "Use WebSocket." }));
   });
@@ -264,15 +274,15 @@ export function initEmbedWsProxy(): void {
 
   server.on("error", (err: NodeJS.ErrnoException) => {
     if (err.code === "EADDRINUSE") {
-      log.warn({ port }, "embed-ws-proxy: port already in use — proxy disabled");
+      console.warn(`[EmbedWsProxy] Port ${port} is already in use — embed WS proxy disabled.`);
       return;
     }
-    log.warn({ err: err.message }, "embed-ws-proxy: failed to start");
+    console.warn("[EmbedWsProxy] Failed to start:", err.message);
   });
 
   server.listen(port, host, () => {
     globalThis.__omnirouteEmbedWsStarted = true;
-    log.info({ host, port }, "embed-ws-proxy: listening");
+    console.log(`[EmbedWsProxy] Listening on ${host}:${port}`);
   });
 }
 

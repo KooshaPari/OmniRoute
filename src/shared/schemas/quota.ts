@@ -38,9 +38,8 @@ export const PlanUpsertSchema = z.object({
 });
 
 export const QuotaStoreSettingsSchema = z.object({
-  driver: z.enum(["sqlite", "redis", "keyv"]),
+  driver: z.enum(["sqlite", "redis"]),
   redisUrl: z.string().url().nullable().optional(),
-  kvUrl: z.string().nullable().optional(),
 });
 
 export const QuotaPreviewQuerySchema = z.object({

@@ -13,33 +13,23 @@ import {
   DB_BACKUPS_DIR,
   DATA_DIR,
 } from "./core";
-import { createLogger } from "@/shared/utils/logger";
 import { resetAllDbModuleState } from "./stateReset";
+import {
+  MAX_DB_BACKUPS,
+  DEFAULT_DB_BACKUP_RETENTION_DAYS,
+  parsePositiveInt,
+  parseNonNegativeInt,
+  pruneBackupDirectory,
+} from "./backupRetention";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
 type CountRow = { cnt?: number };
 
-const log = createLogger("db:backup");
-
 // ──────────────── Backup Config ────────────────
 
 let _lastBackupAt = 0;
-const BACKUP_THROTTLE_MS = 60 * 60 * 1000; // 60 minutes
-const MAX_DB_BACKUPS = 20;
-const DEFAULT_DB_BACKUP_RETENTION_DAYS = 0;
+const BACKUP_THROTTLE_MS = 60 * 60 * 1000; // 60 minutes — high-churn pre-write (models.dev pricing) must not copy the whole SQLite file every call (#10351)
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
-
-function parsePositiveInt(value: string | undefined, fallback: number) {
-  if (!value) return fallback;
-  const parsed = Number.parseInt(value, 10);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
-}
-
-function parseNonNegativeInt(value: string | undefined, fallback: number) {
-  if (value === undefined) return fallback;
-  const parsed = Number.parseInt(value, 10);
-  return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
-}
 
 // #3834: the "Keep latest backups" UI value is persisted here so it survives a page
 // refresh / the loadStorageHealth() refetch. A dedicated namespace avoids any
@@ -111,108 +101,34 @@ function getBackupDir() {
   return DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups");
 }
 
-function getBackupFamilyBase(filename: string) {
-  if (filename.endsWith("-wal") || filename.endsWith("-shm")) return filename.slice(0, -4);
-  if (filename.endsWith("-journal")) return filename.slice(0, -8);
-  return filename;
-}
-
-function collectBackupFamilies(backupDir: string) {
-  if (!fs.existsSync(backupDir)) return [];
-
-  const families = new Map<
-    string,
-    {
-      base: string;
-      hasPrimary: boolean;
-      primaryMtimeMs: number;
-      latestMtimeMs: number;
-      files: string[];
-    }
-  >();
-
-  for (const name of fs.readdirSync(backupDir)) {
-    if (!name.startsWith("db_")) continue;
-    const base = getBackupFamilyBase(name);
-    const filePath = path.join(backupDir, name);
-
-    let stat;
-    try {
-      stat = fs.statSync(filePath);
-    } catch {
-      continue;
-    }
-
-    const family = families.get(base) || {
-      base,
-      hasPrimary: false,
-      primaryMtimeMs: 0,
-      latestMtimeMs: 0,
-      files: [],
-    };
-
-    family.files.push(name);
-    family.latestMtimeMs = Math.max(family.latestMtimeMs, stat.mtimeMs);
-    if (name === base && name.endsWith(".sqlite")) {
-      family.hasPrimary = true;
-      family.primaryMtimeMs = stat.mtimeMs;
-    }
-
-    families.set(base, family);
-  }
-
-  return [...families.values()];
-}
-
-export function cleanupDbBackups(options?: { maxFiles?: number; retentionDays?: number }) {
-  const backupDir = getBackupDir();
-  if (!fs.existsSync(backupDir)) {
-    return {
-      deletedBackupFamilies: 0,
-      deletedFiles: 0,
-      keptBackupFamilies: 0,
-      maxFiles: options?.maxFiles ?? getDbBackupMaxFiles(),
-      retentionDays: options?.retentionDays ?? getDbBackupRetentionDays(),
-    };
-  }
-
-  const maxFiles = Math.max(1, options?.maxFiles ?? getDbBackupMaxFiles());
-  const retentionDays = Math.max(0, options?.retentionDays ?? getDbBackupRetentionDays());
-  const cutoffMs = retentionDays > 0 ? Date.now() - retentionDays * 24 * 60 * 60 * 1000 : 0;
-  const families = collectBackupFamilies(backupDir);
-  const primaryFamilies = families
-    .filter((family) => family.hasPrimary)
-    .sort((a, b) => b.primaryMtimeMs - a.primaryMtimeMs);
-  const keepPrimaryBases = new Set(primaryFamilies.slice(0, maxFiles).map((family) => family.base));
-
-  let deletedBackupFamilies = 0;
-  let deletedFiles = 0;
-
-  for (const family of families) {
-    const isOverflowPrimary = family.hasPrimary && !keepPrimaryBases.has(family.base);
-    const isExpired = retentionDays > 0 && family.latestMtimeMs < cutoffMs;
-    const isOrphan = !family.hasPrimary;
-    if (!isOverflowPrimary && !isExpired && !isOrphan) continue;
-
-    deletedBackupFamilies += 1;
-    for (const name of family.files) {
+function listBackupFilesNewestFirst(backupDir: string) {
+  return fs
+    .readdirSync(backupDir)
+    .filter((filename) => filename.startsWith("db_") && filename.endsWith(".sqlite"))
+    .flatMap((filename) => {
       try {
-        fs.unlinkSync(path.join(backupDir, name));
-        deletedFiles += 1;
+        return [{ filename, stat: fs.statSync(path.join(backupDir, filename)) }];
       } catch {
-        /* ignore */
+        // A concurrent retention pass may remove an entry after readdir.
+        return [];
       }
-    }
-  }
+    })
+    .sort(
+      (left, right) =>
+        right.stat.mtimeMs - left.stat.mtimeMs || right.filename.localeCompare(left.filename)
+    );
+}
 
-  return {
-    deletedBackupFamilies,
-    deletedFiles,
-    keptBackupFamilies: collectBackupFamilies(backupDir).filter((family) => family.hasPrimary)
-      .length,
-    maxFiles,
-    retentionDays,
-  };
+export function cleanupDbBackups(options?: {
+  maxFiles?: number;
+  retentionDays?: number;
+  backupDir?: string;
+}) {
+  const backupDir = options?.backupDir ?? getBackupDir();
+  const maxFiles = options?.maxFiles ?? getDbBackupMaxFiles();
+  const retentionDays = options?.retentionDays ?? getDbBackupRetentionDays();
+
+  return pruneBackupDirectory({ backupDir, maxFiles, retentionDays });
 }
 
 function coerceBoolean(value: unknown): boolean | null {
@@ -291,12 +207,7 @@ export function isAutoBackupDisabledBySetting(): boolean {
     // Apply precedence: last non-null wins (mirrors getUserDatabaseSettings — flat alias
     // first, then nested key). Default (no persisted value) → not disabled.
     let enabled: boolean | null = null;
-    for (const candidate of [
-      fromSettingsNested,
-      fromSettingsBackup,
-      fromDbFlat,
-      fromDbNested,
-    ]) {
+    for (const candidate of [fromSettingsNested, fromSettingsBackup, fromDbFlat, fromDbNested]) {
       if (candidate !== null) enabled = candidate;
     }
 
@@ -363,7 +274,7 @@ export function backupDbFile(reason = "auto") {
 
     const stat = fs.statSync(SQLITE_FILE);
     if (stat.size < 4096) {
-      log.warn({ sizeBytes: stat.size }, "Backup SKIPPED — DB too small");
+      console.warn(`[DB] Backup SKIPPED — DB too small (${stat.size}B)`);
       return null;
     }
 
@@ -379,19 +290,26 @@ export function backupDbFile(reason = "auto") {
     if (reason !== "manual" && reason !== "pre-restore") {
       // Shrink detection is useful for automatic safety backups, but it should
       // never block an explicit operator action like manual backup or pre-restore.
+      // Only timestamp-named automatic/manual backups are shrink baselines. The
+      // content-addressed migration snapshots are restore points, not periodic size
+      // samples; excluding them also keeps this lookup to names only with a single stat
+      // even in legacy directories containing tens of thousands of timestamp backups.
       const existingBackups = fs
         .readdirSync(backupDir)
-        .filter((f) => f.startsWith("db_") && f.endsWith(".sqlite"))
+        .filter((filename) => /^db_\d{4}-.*\.sqlite$/.test(filename))
         .sort();
       if (existingBackups.length > 0) {
-        const latestBackup = existingBackups[existingBackups.length - 1];
-        const latestStat = fs.statSync(path.join(backupDir, latestBackup));
-        if (latestStat.size > 4096 && stat.size < latestStat.size * 0.5) {
-          log.warn(
-            { previousSizeBytes: latestStat.size, currentSizeBytes: stat.size },
-            "Backup SKIPPED — DB shrank"
-          );
-          return null;
+        const latestBackup = existingBackups.at(-1)!;
+        try {
+          const latestStat = fs.statSync(path.join(backupDir, latestBackup));
+          if (latestStat.size > 4096 && stat.size < latestStat.size * 0.5) {
+            console.warn(
+              `[DB] Backup SKIPPED — DB shrank from ${latestStat.size}B to ${stat.size}B`
+            );
+            return null;
+          }
+        } catch (error: unknown) {
+          if ((error as NodeJS.ErrnoException | null)?.code !== "ENOENT") throw error;
         }
       }
     }
@@ -403,18 +321,18 @@ export function backupDbFile(reason = "auto") {
     const db = getDbInstance();
     db.backup(backupFile)
       .then(() => {
-        log.info({ backupFile, sizeBytes: stat.size }, "Backup created");
+        console.log(`[DB] Backup created: ${backupFile} (${stat.size} bytes)`);
         cleanupDbBackups();
       })
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : String(err);
-        log.error({ err: message }, "Backup failed");
+        console.error("[DB] Backup failed:", message);
       });
 
     return { filename: path.basename(backupFile), size: stat.size };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    log.error({ err: message }, "Backup failed");
+    console.error("[DB] Backup failed:", message);
     return null;
   }
 }
@@ -426,16 +344,11 @@ export async function listDbBackups() {
   try {
     if (!fs.existsSync(backupDir)) return [];
 
-    const entries = fs
-      .readdirSync(backupDir)
-      .filter((f) => f.startsWith("db_") && f.endsWith(".sqlite"))
-      .sort()
-      .reverse();
+    const entries = listBackupFilesNewestFirst(backupDir);
 
     const { tryOpenSync } = await import("@/lib/db/adapters/driverFactory");
-    return entries.map((filename) => {
+    return entries.map(({ filename, stat }) => {
       const filePath = path.join(backupDir, filename);
-      const stat = fs.statSync(filePath);
       const match = filename.match(/^db_(.+?)_([^.]+)\.sqlite$/);
       const reason = match ? match[2] : "unknown";
 
@@ -582,7 +495,7 @@ export async function restoreDbBackup(backupId: string) {
   const keyCount =
     (db.prepare("SELECT COUNT(*) as cnt FROM api_keys").get() as CountRow | undefined)?.cnt || 0;
 
-  log.info({ backupId, connCount }, "Restored backup");
+  console.log(`[DB] Restored backup: ${backupId} (${connCount} connections)`);
 
   return {
     restored: true,

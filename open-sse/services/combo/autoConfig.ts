@@ -1,4 +1,9 @@
-import { DEFAULT_WEIGHTS, type ScoringWeights } from "../autoCombo/scoring.ts";
+import {
+  DEFAULT_WEIGHTS,
+  normalizeScoringWeights,
+  type ScoringWeights,
+} from "../autoCombo/scoring.ts";
+import { getModePack } from "../autoCombo/modePacks.ts";
 import { isRecord } from "./comboData.ts";
 import { resolveResetWindowConfig, resolveSlaRoutingPolicy } from "./quotaScoring.ts";
 import type { ComboLike, ResolvedComboTarget } from "./types.ts";
@@ -34,7 +39,7 @@ export function parseAutoConfig(combo: ComboLike, eligibleTargets: ResolvedCombo
     ? autoConfigSource.candidatePool
     : [...new Set(eligibleTargets.map((target) => target.provider))];
 
-  const weights =
+  const configuredWeights =
     autoConfigSource.weights && typeof autoConfigSource.weights === "object"
       ? (autoConfigSource.weights as ScoringWeights)
       : DEFAULT_WEIGHTS;
@@ -44,8 +49,17 @@ export function parseAutoConfig(combo: ComboLike, eligibleTargets: ResolvedCombo
   const budgetCap = Number.isFinite(Number(autoConfigSource.budgetCap))
     ? Number(autoConfigSource.budgetCap)
     : undefined;
+  // #3470: persisted fallback policy for when EVERY candidate exceeds budgetCap.
+  // Any other value (including absent) falls through to the engine's "cheapest" default.
+  const budgetFallback: "strict" | "cheapest" | undefined =
+    autoConfigSource.budgetFallback === "strict" || autoConfigSource.budgetFallback === "cheapest"
+      ? (autoConfigSource.budgetFallback as "strict" | "cheapest")
+      : undefined;
   const modePack =
     typeof autoConfigSource.modePack === "string" ? autoConfigSource.modePack : undefined;
+  const weights = normalizeScoringWeights(
+    modePack ? getModePack(modePack) || configuredWeights : configuredWeights
+  );
   const resetWindowConfig = resolveResetWindowConfig(autoConfigSource);
   const slaPolicy = resolveSlaRoutingPolicy(autoConfigSource);
 
@@ -55,6 +69,7 @@ export function parseAutoConfig(combo: ComboLike, eligibleTargets: ResolvedCombo
     weights,
     explorationRate,
     budgetCap,
+    budgetFallback,
     modePack,
     resetWindowConfig,
     slaPolicy,

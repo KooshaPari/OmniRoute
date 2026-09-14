@@ -175,30 +175,6 @@ export function wantsExtendedThinking(body: Record<string, unknown>): boolean {
   return resolveClaudeWebReasoningEffort(body) !== null;
 }
 
-/**
- * Validate the OpenAI-format request body before transformation.
- * Catches malformed payloads early so transformToClaude() only sees
- * shape-conformant input.
- */
-export function validateClaudeWebRequest(body: Record<string, unknown>): void {
-  if (!body || typeof body !== "object") {
-    throw new Error("Request body must be a JSON object");
-  }
-  const messages = body.messages;
-  if (!Array.isArray(messages) || messages.length === 0) {
-    throw new Error("Request must include a non-empty messages array");
-  }
-  for (const msg of messages) {
-    if (!msg || typeof msg !== "object") {
-      throw new Error("Each message must be a JSON object");
-    }
-    const role = (msg as Record<string, unknown>).role;
-    if (role !== "user" && role !== "assistant" && role !== "system" && role !== "tool") {
-      throw new Error(`Invalid message role: ${role}`);
-    }
-  }
-}
-
 const CLAUDE_WEB_REASONING_EFFORTS = ["low", "medium", "high", "xhigh", "max"] as const;
 const CLAUDE_WEB_OPUS_5_MODEL = "claude-opus-5";
 
@@ -343,13 +319,11 @@ export function transformToClaude(
   model: string,
   turn?: ClaudeWebTurnFields
 ): ClaudeWebRequestPayload {
-  // Validate before transformation to catch malformed payloads early
-  validateClaudeWebRequest(body);
-
   const messages = Array.isArray(body.messages) ? body.messages : [];
   const reasoningEffort = resolveClaudeWebReasoningEffort(body);
   const resolvedModel = model || DEFAULT_CLAUDE_MODEL;
-  const prompt = turn?.prompt ?? (buildPromptFromMessages(messages) || latestUserPrompt(messages));
+  const prompt =
+    turn?.prompt ?? (buildPromptFromMessages(messages) || latestUserPrompt(messages));
   const resolvedTurn = turn ?? defaultTurn(prompt);
 
   if (resolvedTurn.operation === "completion" && !resolvedTurn.prompt.trim()) {

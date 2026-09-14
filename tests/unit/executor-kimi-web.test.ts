@@ -1,7 +1,7 @@
-// Tests for the international Kimi web executor (www.kimi.com Connect-RPC API).
+// Tests for the international Kimi web executor (www.kimi.ai Connect-RPC API).
 //
 // Previously this provider targeted kimi.moonshot.cn; that domain now redirects
-// every non-CN visitor to www.kimi.com, which uses a Connect-RPC streaming API.
+// every non-CN visitor to www.kimi.ai, which uses a Connect-RPC streaming API.
 // These tests pin the parser behavior of the Connect envelope framing and the
 // JSON event-delta extractor.
 
@@ -17,10 +17,10 @@ describe("KimiWebExecutor", () => {
     assert.ok(executor);
   });
 
-  it("execute returns a 400 error when no JWT is provided", async () => {
+  it("execute returns a 400 error when no access token is provided", async () => {
     const executor = new mod.KimiWebExecutor();
     const result = await executor.execute({
-      model: "kimi-default",
+      model: "k2d6",
       body: { messages: [{ role: "user", content: "hi" }] },
       stream: false,
       credentials: { apiKey: "" },
@@ -31,12 +31,12 @@ describe("KimiWebExecutor", () => {
     assert.match(body.error.code, /HTTP_400|400/);
   });
 
-  it("execute targets www.kimi.com (not kimi.moonshot.cn)", async () => {
+  it("execute targets www.kimi.ai (not kimi.moonshot.cn)", async () => {
     const executor = new mod.KimiWebExecutor();
     let capturedUrl = "";
     const originalFetch = globalThis.fetch;
     try {
-      globalThis.fetch = (async (url: RequestInfo | URL) => {
+      globalThis.fetch = (async (url: Parameters<typeof fetch>[0]) => {
         capturedUrl = String(url);
         return new Response(new ReadableStream({ start: (c) => c.close() }), {
           status: 200,
@@ -44,197 +44,204 @@ describe("KimiWebExecutor", () => {
         });
       }) as typeof fetch;
       await executor.execute({
-        model: "kimi-default",
+        model: "k2d6",
         body: { messages: [{ role: "user", content: "hi" }] },
         stream: false,
-        credentials: { apiKey: "kimi-auth=fake.jwt.token" },
+        credentials: { apiKey: "opaque-kimi-access-token" },
         signal: null,
       } as never);
-      assert.ok(capturedUrl.startsWith("https://www.kimi.com/"), `got ${capturedUrl}`);
+      assert.ok(capturedUrl.startsWith("https://www.kimi.ai/"), `got ${capturedUrl}`);
       assert.ok(!capturedUrl.includes("moonshot.cn"));
     } finally {
       globalThis.fetch = originalFetch;
     }
   });
 
-  it("buffers Connect frames into a JSON completion for non-streaming requests", async () => {
+  it("builds the current snake_case ChatRequest without replaying cookies", async () => {
     const executor = new mod.KimiWebExecutor();
+    const endStream = mod.frameConnectMessage("{}");
+    endStream[0] = 2;
+    let capturedInit: RequestInit | undefined;
     const originalFetch = globalThis.fetch;
-    const frames = [
-      mod.frameConnectMessage(
-        JSON.stringify({ op: "set", mask: "block.text", block: { text: { content: "Hello" } } })
-      ),
-      mod.frameConnectMessage(
-        JSON.stringify({
-          op: "append",
-          mask: "block.think.content",
-          block: { think: { content: " reason" } },
-        })
-      ),
-      mod.frameConnectMessage(
-        JSON.stringify({
-          op: "set",
-          mask: "message",
-          message: { role: "assistant", status: "MESSAGE_STATUS_COMPLETED" },
-        })
-      ),
-    ];
     try {
-      globalThis.fetch = (async () =>
-        new Response(
-          new ReadableStream({
-            start(controller) {
-              for (const frame of frames) controller.enqueue(frame);
-              controller.close();
-            },
-          }),
-          { status: 200, headers: { "content-type": "application/connect+json" } }
-        )) as typeof fetch;
+      globalThis.fetch = (async (_url: Parameters<typeof fetch>[0], init?: RequestInit) => {
+        capturedInit = init;
+        return new Response(endStream, {
+          status: 200,
+          headers: { "content-type": "application/connect+json" },
+        });
+      }) as typeof fetch;
       const result = await executor.execute({
-        model: "kimi-default",
-        body: { messages: [{ role: "user", content: "hi" }] },
+        model: "k3",
+        body: {
+          model: "k3",
+          messages: [
+            { role: "system", content: "Be terse." },
+            { role: "user", content: "hi" },
+          ],
+          tools: null,
+          functions: null,
+        },
         stream: false,
-        credentials: { apiKey: "kimi-auth=fake.jwt.token" },
+        credentials: { apiKey: "access_token=opaque-token" },
         signal: null,
       } as never);
-      const completion = (await result.response.json()) as {
-        choices: Array<{ message: { content: string; reasoning_content?: string } }>;
+
+      assert.equal(result.response.status, 200);
+      const headers = capturedInit?.headers as Record<string, string>;
+      assert.equal(headers.Authorization, "Bearer opaque-token");
+      assert.equal(headers.Cookie, undefined);
+
+      const framed = capturedInit?.body as Uint8Array;
+      const decoded = mod.decodeConnectFrame(framed, 0);
+      const request = decoded.frame?.message as {
+        chat_id: string;
+        kimiplus_id: string;
+        scenario: string;
+        model?: unknown;
+        tools: unknown[];
+        message: { blocks: Array<{ text: { content: string } }> };
+        options: {
+          system_prompt: string;
+          thinking: boolean;
+          enable_plugin: boolean;
+          reasoning_effort: string;
+          context_length: string;
+        };
       };
-      assert.equal(result.response.headers.get("content-type"), "application/json");
-      assert.equal(completion.choices[0].message.content, "Hello");
-      assert.equal(completion.choices[0].message.reasoning_content, " reason");
+      assert.equal(request.chat_id, "");
+      assert.equal(request.kimiplus_id, undefined);
+      assert.equal(request.scenario, "SCENARIO_K2D5");
+      assert.equal(request.model, undefined);
+      assert.deepEqual(request.tools, []);
+      assert.equal(request.message.blocks[0].text.content, "hi");
+      assert.equal(request.options.system_prompt, "Be terse.");
+      assert.equal(request.options.thinking, true);
+      assert.equal(request.options.enable_plugin, false);
+      assert.equal(request.options.reasoning_effort, "REASONING_EFFORT_NONE");
+      assert.equal(request.options.context_length, undefined);
     } finally {
       globalThis.fetch = originalFetch;
     }
   });
 
-  it("cancels the upstream reader after a terminal Connect frame", async () => {
+  it("maps k2d6 effort exactly and rejects unsupported levels", async () => {
     const executor = new mod.KimiWebExecutor();
-    const originalFetch = globalThis.fetch;
-    let cancelled = false;
-    const terminalFrame = mod.frameConnectMessage(
-      JSON.stringify({
-        op: "set",
-        mask: "message",
-        message: { role: "assistant", status: "MESSAGE_STATUS_COMPLETED" },
-      })
-    );
-    try {
-      globalThis.fetch = (async () =>
-        new Response(
-          new ReadableStream({
-            start(controller) {
-              controller.enqueue(terminalFrame);
-            },
-            cancel() {
-              cancelled = true;
-            },
-          }),
-          { status: 200, headers: { "content-type": "application/connect+json" } }
-        )) as typeof fetch;
-      const result = await executor.execute({
-        model: "kimi-default",
-        body: { messages: [{ role: "user", content: "hi" }] },
-        stream: true,
-        credentials: { apiKey: "kimi-auth=fake.jwt.token" },
-        signal: null,
-      } as never);
-      await result.response.text();
-      assert.equal(cancelled, true);
-    } finally {
-      globalThis.fetch = originalFetch;
-    }
-  });
-
-  it("cancels the upstream reader after an oversized Connect frame", async () => {
-    const executor = new mod.KimiWebExecutor();
-    const originalFetch = globalThis.fetch;
-    let cancelled = false;
-    const oversizedHeader = new Uint8Array([0, 0x80, 0, 0, 0]);
-    try {
-      globalThis.fetch = (async () =>
-        new Response(
-          new ReadableStream({
-            start(controller) {
-              controller.enqueue(oversizedHeader);
-            },
-            cancel() {
-              cancelled = true;
-            },
-          }),
-          { status: 200, headers: { "content-type": "application/connect+json" } }
-        )) as typeof fetch;
-      const result = await executor.execute({
-        model: "kimi-default",
-        body: { messages: [{ role: "user", content: "hi" }] },
-        stream: true,
-        credentials: { apiKey: "kimi-auth=fake.jwt.token" },
-        signal: null,
-      } as never);
-      await assert.rejects(() => result.response.text(), /exceeded MAX_FRAME_LEN/);
-      assert.equal(cancelled, true);
-    } finally {
-      globalThis.fetch = originalFetch;
-    }
-  });
-
-  it("returns an upstream error when the non-streaming reader rejects", async () => {
-    const executor = new mod.KimiWebExecutor();
+    const endStream = mod.frameConnectMessage("{}");
+    endStream[0] = 2;
     const originalFetch = globalThis.fetch;
     try {
-      globalThis.fetch = (async () =>
-        new Response(
-          new ReadableStream({
-            pull() {
-              return Promise.reject(new Error("reader failed"));
-            },
-          }),
-          { status: 200, headers: { "content-type": "application/connect+json" } }
-        )) as typeof fetch;
-      const result = await executor.execute({
-        model: "kimi-default",
-        body: { messages: [{ role: "user", content: "hi" }] },
+      globalThis.fetch = (async () => new Response(endStream, { status: 200 })) as typeof fetch;
+      const accepted = await executor.execute({
+        model: "k2d6",
+        body: {
+          model: "k2d6",
+          messages: [{ role: "user", content: "hi" }],
+          reasoning_effort: "low",
+        },
         stream: false,
-        credentials: { apiKey: "kimi-auth=fake.jwt.token" },
+        credentials: { apiKey: "opaque-token" },
         signal: null,
       } as never);
-      assert.equal(result.response.status, 502);
+      assert.equal(accepted.transformedBody.options.reasoning_effort, "REASONING_EFFORT_LOW");
+
+      const rejected = await executor.execute({
+        model: "k2d6",
+        body: {
+          model: "k2d6",
+          messages: [{ role: "user", content: "hi" }],
+          reasoning_effort: "high",
+        },
+        stream: false,
+        credentials: { apiKey: "opaque-token" },
+        signal: null,
+      } as never);
+      assert.equal(rejected.response.status, 400);
     } finally {
       globalThis.fetch = originalFetch;
     }
   });
 });
 
-describe("extractKimiJwt", () => {
-  const { extractKimiJwt } = mod;
+describe("resolveModelConfig", () => {
+  const { resolveModelConfig } = mod;
+
+  it("maps k3 to the K2D5 route (same as K2.6, not premium OK Computer)", () => {
+    const cfg = resolveModelConfig("k3");
+    assert.ok(cfg);
+    assert.equal(cfg.scenario, "SCENARIO_K2D5");
+    assert.equal(cfg.kimiPlusId, undefined);
+    assert.deepEqual(cfg.supportedReasoningEfforts, [
+      "REASONING_EFFORT_NONE",
+      "REASONING_EFFORT_LOW",
+    ]);
+    assert.equal(cfg.defaultReasoningEffort, "REASONING_EFFORT_NONE");
+    assert.deepEqual(cfg.supportedContextLengths, []);
+    assert.equal(cfg.defaultContextLength, undefined);
+  });
+
+  it("maps k2d6 to the K2D5 route and its exact effort enum", () => {
+    const cfg = resolveModelConfig("k2d6");
+    assert.ok(cfg);
+    assert.equal(cfg.scenario, "SCENARIO_K2D5");
+    assert.deepEqual(cfg.supportedReasoningEfforts, [
+      "REASONING_EFFORT_NONE",
+      "REASONING_EFFORT_LOW",
+    ]);
+    assert.equal(cfg.defaultReasoningEffort, "REASONING_EFFORT_NONE");
+  });
+
+  it("does not silently route an unknown or unsupported agent model", () => {
+    assert.equal(resolveModelConfig("k2d6-thinking"), null);
+    assert.equal(resolveModelConfig("k3-agent-ultra"), null);
+  });
+});
+
+describe("kimi-web catalog", () => {
+  it("lists only currently supported non-agent web models", () => {
+    const models = getModelsByProviderId("kimi-web");
+    assert.deepEqual(
+      models.map((model) => ({ id: model.id, name: model.name })),
+      [
+        { id: "k3", name: "K3" },
+        { id: "k2d6", name: "K2.6" },
+      ]
+    );
+    assert.ok(models.every((model) => model.supportsReasoning));
+    assert.ok(!models.some((model) => model.id.includes("agent")));
+    assert.ok(
+      !models.some((model) => ["kimi-default", "kimi-k2.6", "kimi-128k"].includes(model.id))
+    );
+  });
+});
+
+describe("extractKimiAccessToken", () => {
+  const { extractKimiAccessToken } = mod;
 
   it("returns empty string for empty input", () => {
-    assert.equal(extractKimiJwt(""), "");
-    assert.equal(extractKimiJwt("   "), "");
+    assert.equal(extractKimiAccessToken(""), "");
+    assert.equal(extractKimiAccessToken("   "), "");
   });
 
-  it("extracts a bare JWT", () => {
-    const jwt = "eyJhbGci.eyJzdWIi.c2ln";
-    assert.equal(extractKimiJwt(jwt), jwt);
+  it("accepts the current opaque localStorage access token", () => {
+    assert.equal(extractKimiAccessToken("opaque-token"), "opaque-token");
   });
 
-  it("extracts kimi-auth from a full Cookie header", () => {
+  it("keeps legacy kimi-auth cookie input compatible", () => {
     const jwt = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ4In0.signature";
     const pasted = `_ga=GA1.1.x; theme=dark; kimi-auth=${jwt}; _gcl_au=1.1.x; lang=en-US`;
-    assert.equal(extractKimiJwt(pasted), jwt);
+    assert.equal(extractKimiAccessToken(pasted), jwt);
   });
 
-  it("strips a leading Cookie: header label", () => {
-    const jwt = "eyJhbGci.eyJzdWIi.c2ln";
-    assert.equal(extractKimiJwt(`Cookie: kimi-auth=${jwt}`), jwt);
+  it("extracts access_token from storage-like input", () => {
+    assert.equal(extractKimiAccessToken("access_token=current-token"), "current-token");
   });
 
   it("strips a leading Authorization: Bearer label", () => {
-    const jwt = "eyJhbGci.eyJzdWIi.c2ln";
-    assert.equal(extractKimiJwt(`Authorization: Bearer ${jwt}`), jwt);
+    assert.equal(extractKimiAccessToken("Authorization: Bearer current-token"), "current-token");
   });
 
-  it("returns empty when no JWT is present", () => {
-    assert.equal(extractKimiJwt("foo=bar; baz=qux"), "");
+  it("returns empty when no Kimi token is present", () => {
+    assert.equal(extractKimiAccessToken("foo=bar; baz=qux"), "");
   });
 });

@@ -1,21 +1,25 @@
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
+import { classifyProviderError } from "@omniroute/open-sse/services/errorClassifier.ts";
+import {
+  sanitizeErrorMessage,
+  sanitizeUpstreamDetails,
+} from "@omniroute/open-sse/utils/errorSanitization.ts";
 import { sanitizePII } from "../../piiSanitizer";
-import { protectPayloadForLog } from "../../logPayloads";
+import {
+  omitEncryptedReasoningFromLogChunks,
+  protectErrorPayloadForLog,
+  protectPayloadForLog,
+  sanitizeErrorFramesFromLogChunks,
+} from "../../logPayloads";
 import type { CallLogDetailState } from "../callLogArtifacts";
+// #7879: re-export the canonical helper so existing consumers of this module
+// keep importing `toNumber` from here unchanged.
+export { toNumber } from "@/shared/utils/numeric";
 
 type JsonRecord = Record<string, unknown>;
 
 export function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
-export function toNumber(value: unknown): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
 }
 
 export function toStringOrNull(value: unknown): string | null {
@@ -49,15 +53,24 @@ export function normalizeDetailState(value: unknown): CallLogDetailState {
 
 export function sanitizeErrorForLog(error: unknown): unknown {
   if (error === null || error === undefined) return null;
-  if (typeof error === "string") return sanitizePII(error).text;
-  if (error instanceof Error) {
-    return {
-      message: sanitizePII(error.message).text,
-      stack: sanitizePII(error.stack || "").text || undefined,
-      name: error.name,
-    };
+  if (typeof error === "string") {
+    return sanitizePII(sanitizeErrorMessage(error)).text;
   }
-  return protectPayloadForLog(error);
+  try {
+    if (error instanceof Error) {
+      const message = sanitizePII(sanitizeErrorMessage(error.message)).text;
+      const stack = sanitizePII(sanitizeErrorMessage(error.stack || "")).text;
+      const name = sanitizeErrorMessage(error.name) || "Error";
+      return {
+        message,
+        ...(stack ? { stack } : {}),
+        name,
+      };
+    }
+    return protectPayloadForLog(sanitizeUpstreamDetails(error));
+  } catch {
+    return "[REDACTED]";
+  }
 }
 
 export function toStoredErrorSummary(error: unknown): string | null {
@@ -75,7 +88,10 @@ export function toStoredErrorSummary(error: unknown): string | null {
   }
 }
 
-export function protectPipelinePayloads(payloads: unknown): RequestPipelinePayloads | null {
+export function protectPipelinePayloads(
+  payloads: unknown,
+  responseStatus?: unknown
+): RequestPipelinePayloads | null {
   if (!payloads || typeof payloads !== "object") return null;
 
   const protectedPayloads: RequestPipelinePayloads = {};
@@ -85,9 +101,14 @@ export function protectPipelinePayloads(payloads: unknown): RequestPipelinePaylo
     if (key === "streamChunks" && value && typeof value === "object") {
       const chunks = value as Record<string, unknown>;
       const compacted = Object.fromEntries(
-        Object.entries(chunks).filter(
-          ([, chunkValue]) => Array.isArray(chunkValue) && chunkValue.length > 0
-        )
+        Object.entries(chunks)
+          .filter(([, chunkValue]) => Array.isArray(chunkValue) && chunkValue.length > 0)
+          .map(([stage, chunkValue]) => [
+            stage,
+            sanitizeErrorFramesFromLogChunks(
+              omitEncryptedReasoningFromLogChunks(chunkValue as string[])
+            ),
+          ])
       );
       if (Object.keys(compacted).length > 0) {
         protectedPayloads.streamChunks = protectPayloadForLog(
@@ -95,6 +116,21 @@ export function protectPipelinePayloads(payloads: unknown): RequestPipelinePaylo
         ) as RequestPipelinePayloads["streamChunks"];
       }
       continue;
+    }
+
+    if (key === "providerResponse" || key === "clientResponse") {
+      const response = asRecord(value);
+      const status = Number(response.status ?? responseStatus);
+      if (Number.isFinite(status) && status >= 400 && status <= 599) {
+        const projectedResponse =
+          "body" in response
+            ? { ...response, body: protectErrorPayloadForLog(response.body) }
+            : protectErrorPayloadForLog(value);
+        protectedPayloads[key as "providerResponse" | "clientResponse"] = protectPayloadForLog(
+          projectedResponse
+        ) as RequestPipelinePayloads["providerResponse"];
+        continue;
+      }
     }
 
     protectedPayloads[key as keyof RequestPipelinePayloads] = protectPayloadForLog(value) as never;
@@ -126,4 +162,23 @@ export function buildRequestSummary(
 
   if (Object.keys(summary).length === 0) return null;
   return JSON.stringify(summary);
+}
+
+// #10670: per-call error family at the single write point. Reuses the
+// production classifier (chatCore.ts:3974, auth.ts:2598) so the persisted
+// vocabulary is exactly PROVIDER_ERROR_TYPES. Successes (status < 400 with no
+// error text) short-circuit to null — the classifier never returns a family
+// for them anyway, this only skips the call.
+// Normalization: strings pass through, Error objects yield .message, any other
+// object yields "" (no caller passes plain objects — verified: 35 callers use
+// strings and Error only). Deliberate deviation from design §4 ("objet →
+// JSON.stringify"): a stringified object carries no classifier signal.
+export function classifyCallLogError(
+  status: number,
+  error: unknown,
+  provider?: string | null
+): string | null {
+  const errorText = typeof error === "string" ? error : error instanceof Error ? error.message : "";
+  if (status < 400 && errorText.length === 0) return null;
+  return classifyProviderError(status, errorText, provider);
 }

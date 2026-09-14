@@ -89,7 +89,7 @@ test("CLI data-dir resolver preserves an existing legacy ~/.omniroute before XDG
       }
     );
   } finally {
-    fs.rmSync(tmp, { recursive: true, force: true });
+    fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -152,6 +152,6 @@ test("CLI startup loads later non-conflicting .env files without overriding earl
     assert.equal(current.OMNIROUTE_HTTP_TIMEOUT_MS, "1234");
     assert.equal(current.PORT, "34567");
   } finally {
-    fs.rmSync(tmp, { recursive: true, force: true });
+    fs.rmSync(tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

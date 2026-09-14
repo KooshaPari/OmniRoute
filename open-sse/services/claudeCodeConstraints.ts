@@ -7,6 +7,7 @@
  * 2. Disable thinking when tool_choice forces a specific tool
  * 3. Enforce max 4 cache_control breakpoints
  * 4. Normalize cache_control TTL ordering
+ * 5. Default missing cache_control.ttl to "1h" on the native Claude OAuth path
  */
 
 /**
@@ -128,17 +129,74 @@ export function ensureCacheControlOnLastUserMessage(body: Record<string, unknown
   const messages = body.messages as Array<Record<string, unknown>> | undefined;
   if (!Array.isArray(messages) || messages.length === 0) return;
 
+  const system = body.system as Array<Record<string, unknown>> | undefined;
+  let cacheControlCount = Array.isArray(system)
+    ? system.filter((block) => block.cache_control).length
+    : 0;
+  let hasFiveMinuteCacheControl = Array.isArray(system)
+    ? system.some(
+        (block) => (block.cache_control as Record<string, unknown> | undefined)?.ttl === "5m"
+      )
+    : false;
+
+  for (const message of messages) {
+    const content = message.content as Array<Record<string, unknown>> | undefined;
+    if (!Array.isArray(content)) continue;
+    cacheControlCount += content.filter((block) => block.cache_control).length;
+    hasFiveMinuteCacheControl ||= content.some(
+      (block) => (block.cache_control as Record<string, unknown> | undefined)?.ttl === "5m"
+    );
+  }
+
   // Find the last user message
   for (let i = messages.length - 1; i >= 0; i--) {
     if (String(messages[i].role) === "user") {
       const content = messages[i].content;
       if (Array.isArray(content) && content.length > 0) {
         const lastBlock = content[content.length - 1] as Record<string, unknown>;
-        if (!lastBlock.cache_control) {
-          lastBlock.cache_control = { type: "ephemeral" };
+        if (!lastBlock.cache_control && cacheControlCount < MAX_CACHE_CONTROL_BLOCKS) {
+          lastBlock.cache_control = hasFiveMinuteCacheControl
+            ? { type: "ephemeral", ttl: "5m" }
+            : { type: "ephemeral" };
         }
       }
       break;
+    }
+  }
+}
+
+/** Defaults missing TTLs to 1h until a 5m breakpoint; later defaults stay at 5m. */
+export function normalizeCacheControlTtl(body: Record<string, unknown>): void {
+  let hasFiveMinuteCacheControl = false;
+
+  const defaultMissingTtl = (block: Record<string, unknown> | null | undefined) => {
+    const cc = block?.cache_control as Record<string, unknown> | undefined;
+    if (!cc || cc.type !== "ephemeral") return;
+
+    if (cc.ttl === "5m") {
+      hasFiveMinuteCacheControl = true;
+    } else if (cc.ttl === undefined) {
+      cc.ttl = hasFiveMinuteCacheControl ? "5m" : "1h";
+    }
+  };
+
+  const tools = body.tools as Array<Record<string, unknown>> | undefined;
+  if (Array.isArray(tools)) {
+    for (const tool of tools) defaultMissingTtl(tool);
+  }
+
+  const system = body.system as Array<Record<string, unknown>> | undefined;
+  if (Array.isArray(system)) {
+    for (const block of system) defaultMissingTtl(block);
+  }
+
+  const messages = body.messages as Array<Record<string, unknown>> | undefined;
+  if (Array.isArray(messages)) {
+    for (const message of messages) {
+      const content = message.content as Array<Record<string, unknown>> | undefined;
+      if (Array.isArray(content)) {
+        for (const block of content) defaultMissingTtl(block);
+      }
     }
   }
 }

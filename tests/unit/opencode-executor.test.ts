@@ -36,6 +36,7 @@ describe("OpencodeExecutor", () => {
   let originalFetch;
   let originalZenModels;
   let originalGoModels;
+  let originalSynthesizeCliHeaders;
 
   beforeEach(() => {
     zenExecutor = new OpencodeExecutor("opencode-zen");
@@ -44,6 +45,15 @@ describe("OpencodeExecutor", () => {
     originalFetch = globalThis.fetch;
     originalZenModels = [...(PROVIDER_MODELS["opencode-zen"] || [])];
     originalGoModels = [...(PROVIDER_MODELS["opencode-go"] || [])];
+    // This suite characterizes header/URL-building behavior that predates PR #10571's
+    // CLI-identity synthesis default flip. #10571 turned synthesis ON by default, which
+    // would fabricate User-Agent / x-opencode-* values these tests deliberately assert are
+    // ABSENT (forward-only contract). Pin the flag off here so this suite keeps
+    // characterizing the forward-only path; the on-by-default synthesis path itself is
+    // covered by tests/unit/opencode-cli-headers-synthesis-5997.test.ts and
+    // tests/unit/opencode-session-fingerprint-headers-10571.test.ts.
+    originalSynthesizeCliHeaders = process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS;
+    process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS = "false";
     globalThis.fetch = (async (url, options) => {
       fetchCalls.push({ url, options });
       return createMockResponse();
@@ -54,6 +64,11 @@ describe("OpencodeExecutor", () => {
     globalThis.fetch = originalFetch;
     PROVIDER_MODELS["opencode-zen"] = originalZenModels;
     PROVIDER_MODELS["opencode-go"] = originalGoModels;
+    if (originalSynthesizeCliHeaders === undefined) {
+      delete process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS;
+    } else {
+      process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS = originalSynthesizeCliHeaders;
+    }
   });
 
   describe("execute", () => {
@@ -78,24 +93,30 @@ describe("OpencodeExecutor", () => {
       assert.equal(model.supportsReasoning, true);
     });
 
-    it("exposes DeepSeek V4 Pro effort variants on opencode-go only", () => {
+    it("declares V4 effort tiers on OpenCode Go base models only", () => {
       const goModels = PROVIDER_MODELS["opencode-go"] || [];
       const zenModels = PROVIDER_MODELS["opencode-zen"] || [];
-      const variants = ["low", "medium", "high", "max"].map((level) => `deepseek-v4-pro-${level}`);
-      for (const variant of variants) {
-        const model = goModels.find((m) => m.id === variant);
-        assert.ok(model, `${variant} should be in opencode-go model list`);
-        assert.equal(model?.supportsReasoning, true);
-        assert.equal(
-          zenModels.some((m) => m.id === variant),
-          false,
-          `${variant} should not be exposed on opencode-zen`
-        );
+      const efforts = ["none", "low", "high", "max"];
+
+      for (const modelId of ["deepseek-v4-pro", "deepseek-v4-flash"]) {
+        const base = goModels.find((model) => model.id === modelId);
+        assert.deepEqual(base?.supportedThinkingEfforts, efforts);
+        for (const effort of efforts) {
+          const variant = `${modelId}-${effort}`;
+          assert.equal(
+            goModels.some((model) => model.id === variant),
+            false
+          );
+          assert.equal(
+            zenModels.some((model) => model.id === variant),
+            false
+          );
+        }
       }
     });
 
     it("routes opencode zen default models to chat completions", async () => {
-      const minimaxResult = await zenExecutor.execute(createInput("minimax-m3-free"));
+      const minimaxResult = await zenExecutor.execute(createInput("minimax-m2.5-free"));
       assert.equal(minimaxResult.url, "https://opencode.ai/zen/v1/chat/completions");
       assert.equal(fetchCalls[0].url, "https://opencode.ai/zen/v1/chat/completions");
 
@@ -110,14 +131,14 @@ describe("OpencodeExecutor", () => {
 
     it("routes claude target format models to messages endpoint", async () => {
       const m27Result = await goExecutor.execute(
-        createInput("minimax-m3", true, { apiKey: "claude-key" })
+        createInput("minimax-m2.7", true, { apiKey: "claude-key" })
       );
       assert.equal(m27Result.url, "https://opencode.ai/zen/go/v1/messages");
       assert.equal(fetchCalls[0].url, "https://opencode.ai/zen/go/v1/messages");
       assert.equal(m27Result.headers["anthropic-version"], "2023-06-01");
 
       const m25Result = await goExecutor.execute(
-        createInput("minimax-m3", true, { apiKey: "claude-key" })
+        createInput("minimax-m2.5", true, { apiKey: "claude-key" })
       );
       assert.equal(m25Result.url, "https://opencode.ai/zen/go/v1/messages");
       assert.equal(fetchCalls[1].url, "https://opencode.ai/zen/go/v1/messages");
@@ -135,6 +156,16 @@ describe("OpencodeExecutor", () => {
 
       assert.equal(result.url, "https://opencode.ai/zen/v1/responses");
       assert.equal(fetchCalls[0].url, "https://opencode.ai/zen/v1/responses");
+    });
+
+    it("routes OpenCode Go DeepSeek V4 models to the responses endpoint", async () => {
+      const models = ["deepseek-v4-pro", "deepseek-v4-flash"];
+
+      for (const [index, model] of models.entries()) {
+        const result = await goExecutor.execute(createInput(model));
+        assert.equal(result.url, "https://opencode.ai/zen/go/v1/responses");
+        assert.equal(fetchCalls[index].url, "https://opencode.ai/zen/go/v1/responses");
+      }
     });
 
     it("routes gemini streaming requests to streamGenerateContent", async () => {
@@ -192,7 +223,7 @@ describe("OpencodeExecutor", () => {
 
     it("adds anthropic version for claude target format", async () => {
       const result = await goExecutor.execute(
-        createInput("minimax-m3", true, { apiKey: "claude-key" })
+        createInput("minimax-m2.7", true, { apiKey: "claude-key" })
       );
 
       assert.deepEqual(result.headers, {
@@ -215,7 +246,7 @@ describe("OpencodeExecutor", () => {
     });
 
     it("omits authorization when credentials are missing", async () => {
-      const result = await zenExecutor.execute(createInput("minimax-m3-free", true, null));
+      const result = await zenExecutor.execute(createInput("minimax-m2.5-free", true, null));
 
       assert.deepEqual(result.headers, {
         "Content-Type": "application/json",
@@ -324,7 +355,7 @@ describe("OpencodeExecutor", () => {
         { apiKey: "claude-key" },
         true,
         { "User-Agent": "opencode/1.0" },
-        "minimax-m3"
+        "minimax-m2.7"
       );
       assert.equal(headers["User-Agent"], "opencode/1.0");
       assert.equal(headers["x-api-key"], "claude-key");
@@ -411,7 +442,7 @@ describe("OpencodeExecutor", () => {
           "x-opencode-session": "sess-claude",
           "User-Agent": "opencode/1.0",
         },
-        "minimax-m3"
+        "minimax-m2.7"
       );
       assert.equal(headers["x-opencode-session"], "sess-claude");
       assert.equal(headers["x-api-key"], "claude-key");
@@ -544,7 +575,7 @@ describe("OpencodeExecutor", () => {
     });
   });
 
-  describe("DeepSeek V4 Pro reasoning-effort variants", () => {
+  describe("DeepSeek V4 reasoning-effort variants", () => {
     function baseBody(model) {
       return {
         model,
@@ -554,17 +585,19 @@ describe("OpencodeExecutor", () => {
       };
     }
 
-    const levels = ["low", "medium", "high", "max"];
-    for (const level of levels) {
-      it(`maps deepseek-v4-pro-${level} to base id + reasoning_effort=${level}`, () => {
-        const variant = `deepseek-v4-pro-${level}`;
-        const out = goExecutor.transformRequest(variant, baseBody(variant), false, {
-          apiKey: "test-key",
+    const levels = ["none", "low", "high", "max"];
+    for (const model of ["deepseek-v4-pro", "deepseek-v4-flash"]) {
+      for (const level of levels) {
+        it(`maps ${model}-${level} to base id + reasoning_effort=${level}`, () => {
+          const variant = `${model}-${level}`;
+          const out = goExecutor.transformRequest(variant, baseBody(variant), false, {
+            apiKey: "test-key",
+          });
+          assert.equal(out.model, model);
+          assert.equal(out.reasoning_effort, level);
+          assert.ok(!String(out.model).endsWith(`-${level}`));
         });
-        assert.equal(out.model, "deepseek-v4-pro");
-        assert.equal(out.reasoning_effort, level);
-        assert.ok(!String(out.model).endsWith(`-${level}`));
-      });
+      }
     }
 
     it("preserves explicit reasoning_effort over the variant suffix", () => {

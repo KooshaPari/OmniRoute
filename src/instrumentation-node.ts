@@ -7,6 +7,7 @@
  */
 
 import { markServerReady, markServerStarting } from "@/lib/serverLifecycle";
+import { normalizeBootError } from "@/lib/instrumentationBootError";
 
 function getRandomBytes(byteLength: number): Uint8Array {
   const bytes = new Uint8Array(byteLength);
@@ -37,24 +38,31 @@ export function renameProcessTitle(currentTitle: string): string {
   return `omniroute${currentTitle.slice("next-server".length)}`;
 }
 
-/**
- * Normalize boot failures before they leave the instrumentation hook.
- *
- * Next.js annotates rejected instrumentation errors by assigning to their
- * `message` property. Some SQLite adapters can throw a primitive string (for
- * example, `Database closed`), so propagating it directly masks the database
- * failure with a TypeError. Always return a real Error for the framework.
- */
-export function normalizeBootError(err: unknown): Error {
-  return err instanceof Error ? err : new Error(String(err));
-}
+// `normalizeBootError` now lives in `@/lib/instrumentationBootError` (imported
+// above) — shared, dependency-free, and reused by `src/instrumentation.ts`'s
+// outermost boot boundary (#10171) so both boot-failure logging sites agree
+// on the same normalization instead of maintaining two copies of the same
+// one-liner. Re-exported here so existing callers/tests importing it from
+// this module keep working unchanged.
+export { normalizeBootError };
 
+// Matches sql.js's raw `throw "Database closed"` (and similarly-worded
+// variants) thrown when a query runs against an already-closed WASM handle —
+// typically a stale globalThis-cached adapter left over by a prior
+// close/reload racing with this boot (#6560).
 const TRANSIENT_DB_CLOSED_RE = /database\s*(connection\s*)?(is\s*)?closed/i;
 
 /**
- * Initialize the database before startup reaches any database-backed service.
- * A single transient closed-adapter error is retried after the adapter cache
- * has been refreshed; all other failures are logged and propagated.
+ * Initialize the SQLite singleton for boot, tolerating one transient
+ * "database closed" failure (#6560) by retrying once — the driverFactory
+ * cache-eviction fix (`preInitSqlJs`) makes the retry create a fresh adapter
+ * instead of reusing the dead one. Any other failure (or a second consecutive
+ * "database closed") is re-thrown as a real `Error` via `normalizeBootError`
+ * so it can never crash instrumentation with a masking TypeError — the caller
+ * (`registerNodejs`) still surfaces it as a real boot failure.
+ *
+ * `ensureDbInitializedFn` is only for tests to inject a fake without
+ * module-mocking (`node:test` does not support `mock.module` reliably here).
  */
 export async function ensureDbReadyForBoot(
   ensureDbInitializedFn?: () => Promise<void>
@@ -67,10 +75,16 @@ export async function ensureDbReadyForBoot(
   } catch (err: unknown) {
     const normalized = normalizeBootError(err);
     if (!TRANSIENT_DB_CLOSED_RE.test(normalized.message)) {
+      // Fatal, non-transient boot-time DB init failure (e.g. the entire
+      // better-sqlite3 -> node:sqlite -> sql.js driver cascade failed, as on
+      // Termux/Android when no SQLite driver is usable). This runs BEFORE
+      // initConsoleInterceptor() is wired up, so this is the only chance to
+      // get the real root cause into stdout/app.log — without it, the
+      // process keeps its HTTP listener up while every DB-touching route
+      // 500s forever with a permanently empty log (#7773).
       console.error("[STARTUP] Fatal: Database driver initialization failed:", normalized.message);
       throw normalized;
     }
-
     console.warn(
       "[STARTUP] Database was closed by a prior reload/shutdown — retrying with a fresh connection (#6560):",
       normalized.message
@@ -92,188 +106,6 @@ function isBackgroundServicesDisabled(): boolean {
   const raw = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
   if (!raw) return false;
   return new Set(["1", "true", "yes", "on"]).has(raw.trim().toLowerCase());
-}
-
-/**
- * Has the operator opted in to OTel export AND the SDK isn't explicitly
- * disabled? Mirrors `isOtelEnabled()` from the open-sse facade but
- * available in this file before the facade is imported.
- */
-function isOtelOptIn(): boolean {
-  const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT?.trim();
-  if (!endpoint) return false;
-  const disabled = process.env.OTEL_SDK_DISABLED?.trim().toLowerCase();
-  if (disabled === "true" || disabled === "1" || disabled === "yes" || disabled === "on") {
-    return false;
-  }
-  return true;
-}
-
-/** B10 — Idempotency latch for `initOtel`. Survives across calls in the same process. */
-let __otelInitAttempted = false;
-/** B10 — Result of the first `initOtel` call (or `null` if not yet attempted). */
-let __otelInitResult: boolean | null = null;
-
-/** Idempotency latch for `initOtelMeter`. */
-let __otelMeterInitAttempted = false;
-let __otelMeterInitResult: boolean | null = null;
-
-/**
- * B10 (test-only) — Reset the idempotency latch so `initOtel` can run again.
- * Production code should never call this. Exported only so vitest's
- * `beforeEach` can re-attempt init under different env-var permutations.
- */
-export function __resetOtelInitForTests(): void {
-  __otelInitAttempted = false;
-  __otelInitResult = null;
-  __otelMeterInitAttempted = false;
-  __otelMeterInitResult = null;
-}
-
-/**
- * B10 — Initialize the OpenTelemetry Node SDK if the operator has set
- * `OTEL_EXPORTER_OTLP_ENDPOINT`. Otherwise this is a no-op (the dispatcher
- * path is unaffected, all `getTracer(name)` calls return no-op tracers).
- *
- * Implementation notes:
- *   - The SDK packages (`@opentelemetry/sdk-node`, `@opentelemetry/exporter-trace-otlp-http`,
- *     `@opentelemetry/resources`, `@opentelemetry/semantic-conventions`) are NOT a hard
- *     dependency of the project — they are dynamically imported only when the env var is set.
- *     This keeps `node_modules` lean for operators who don't run a collector.
- *   - On init failure, we log once and stay no-op; the request path is never blocked.
- *   - This is called once from `registerNodejs()` (the start of the Node.js startup chain).
- *   - Honors the OTel-spec standard `OTEL_SDK_DISABLED=true` switch.
- *
- * @returns true iff the SDK was successfully initialized; false otherwise.
- */
-export async function initOtel(): Promise<boolean> {
-  if (__otelInitAttempted) return __otelInitResult === true;
-  __otelInitAttempted = true;
-
-  const endpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT?.trim();
-  if (!endpoint) {
-    __otelInitResult = false;
-    return false;
-  }
-  if (!isOtelOptIn()) {
-    __otelInitResult = false;
-    return false;
-  }
-
-  try {
-    const [
-      { NodeSDK },
-      { OTLPTraceExporter },
-      { Resource },
-      { resourceFromAttributes },
-      { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION },
-    ] = await Promise.all([
-      import("@opentelemetry/sdk-node"),
-      import("@opentelemetry/exporter-trace-otlp-http"),
-      import("@opentelemetry/resources"),
-      import("@opentelemetry/resources"),
-      import("@opentelemetry/semantic-conventions"),
-    ]);
-
-    const serviceName = process.env.OTEL_SERVICE_NAME?.trim() || "omniroute";
-    const serviceVersion = process.env.npm_package_version ?? "unknown";
-    const resource = resourceFromAttributes
-      ? resourceFromAttributes({
-          [ATTR_SERVICE_NAME]: serviceName,
-          [ATTR_SERVICE_VERSION]: serviceVersion,
-        })
-      : new Resource({
-          [ATTR_SERVICE_NAME]: serviceName,
-          [ATTR_SERVICE_VERSION]: serviceVersion,
-        });
-
-    const sdk = new NodeSDK({
-      resource,
-      traceExporter: new OTLPTraceExporter({ url: `${endpoint.replace(/\/$/, "")}/v1/traces` }),
-    });
-    sdk.start();
-
-    // Stash SDK on globalThis so tests + graceful shutdown can flush it.
-    (globalThis as { __otelSdk?: { shutdown: () => Promise<void> } }).__otelSdk = {
-      shutdown: () => sdk.shutdown(),
-    };
-
-    console.log(
-      `[OTEL] OpenTelemetry SDK initialized (endpoint=${endpoint}, service=${serviceName})`
-    );
-    __otelInitResult = true;
-    return true;
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.warn(
-      `[OTEL] OTel SDK init failed (continuing without tracing): ${msg}. To enable, install: @opentelemetry/sdk-node, @opentelemetry/exporter-trace-otlp-http, @opentelemetry/resources, @opentelemetry/semantic-conventions, @opentelemetry/sdk-trace-base`
-    );
-    __otelInitResult = false;
-    return false;
-  }
-}
-
-/**
- * Initialize an OTel MeterProvider with a Prometheus exporter.
- *
- * This creates a `MeterProvider` backed by `PrometheusExporter` and
- * registers it as the global meter provider via `@opentelemetry/api`.
- * All subsequent `otelMetrics.getMeter(...)` calls (e.g. from the
- * dispatch metrics bridge) will produce metrics that are scrape-able
- * from the OTel Prometheus endpoint.
- *
- * Gated on `OTEL_EXPORTER_OTLP_ENDPOINT` being set (same as trace).
- * On failure, stays no-op; the request path is never blocked.
- *
- * @returns true iff the meter SDK was successfully initialized.
- */
-export async function initOtelMeter(): Promise<boolean> {
-  if (__otelMeterInitAttempted) return __otelMeterInitResult === true;
-  __otelMeterInitAttempted = true;
-
-  if (!isOtelOptIn()) {
-    __otelMeterInitResult = false;
-    return false;
-  }
-
-  try {
-    const [
-      { MeterProvider },
-      { PrometheusExporter },
-      api,
-    ] = await Promise.all([
-      import("@opentelemetry/sdk-metrics"),
-      import("@opentelemetry/exporter-prometheus"),
-      import("@opentelemetry/api"),
-    ]);
-
-    // Prometheus exporter exposes /metrics on its own HTTP server.
-    // Default port: 9464. Override via OTEL_EXPORTER_PROMETHEUS_PORT.
-    const port = Number.parseInt(
-      process.env.OTEL_EXPORTER_PROMETHEUS_PORT ?? "9464",
-      10,
-    );
-    const exporter = new PrometheusExporter({ port });
-
-    const meterProvider = new MeterProvider({
-      readers: [exporter],
-    });
-
-    api.metrics.setGlobalMeterProvider(meterProvider);
-
-    console.log(
-      `[OTEL] MeterProvider initialized (Prometheus exporter on :${port})`
-    );
-    __otelMeterInitResult = true;
-    return true;
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.warn(
-      `[OTEL] MeterProvider init failed (continuing without metrics export): ${msg}. To enable, install: @opentelemetry/sdk-metrics, @opentelemetry/exporter-prometheus`
-    );
-    __otelMeterInitResult = false;
-    return false;
-  }
 }
 
 async function ensureSecrets(): Promise<void> {
@@ -401,14 +233,114 @@ export async function scanComboModelNameCollisionsAtBoot(): Promise<void> {
   }
 }
 
+/**
+ * #9654 U7: fold a dashboard DB toggle for the adaptive virtual-lanes flag into
+ * the process-global admission runtime's env at boot. Env-wins: no-op when the
+ * operator's OMNIROUTE_CHAT_VIRTUAL_LANES env var is set (the lazy runtime
+ * already reads process.env correctly). The runtime reads env only at
+ * construction, so this must run before the first request touches it — hence
+ * awaited here, after ensureDbReadyForBoot(). Non-fatal.
+ *
+ * Exported (rather than inline in registerNodejs()) so it can be unit tested
+ * directly without exercising the rest of the startup sequence.
+ */
+export async function warmAdaptiveVirtualLanesIntoRuntime(): Promise<void> {
+  try {
+    const { warmAdaptiveVirtualLanesIntoRuntime: warm } =
+      await import("@/lib/admissionVirtualLanes");
+    const materialized = await warm();
+    if (materialized) {
+      console.log(
+        "[STARTUP] Adaptive virtual lanes flag materialized from dashboard override (#9654)"
+      );
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Could not warm adaptive virtual lanes flag (non-fatal):", msg);
+  }
+}
+
+/**
+ * Register bespoke + generic quota fetchers once at Node.js boot. The legacy
+ * `src/sse/handlers/chat.ts` path registered these at module load, but the
+ * Next.js App Router production entry (`registerNodejs`) never did, leaving
+ * `quotaFetcherRegistry` empty for generic providers (antigravity, claude,
+ * etc.) and causing reset-aware scoring to fall back to the 0.5 dead score.
+ *
+ * Each registration call is idempotent; bespoke fetchers are registered first
+ * so the generic registrar skips providers that already have a dedicated
+ * fetcher.
+ */
+export async function registerQuotaFetchers(): Promise<void> {
+  // Side-effect registrations for agentrouter, freeModel, grokCli, xaiOauth,
+  // firecrawl (same ordering as the legacy chat.ts path).
+  await import("@omniroute/open-sse/services/quotaTrackersBatch.ts");
+
+  const [
+    { registerCodexQuotaFetcher },
+    { registerBailianCodingPlanQuotaFetcher },
+    { registerQwenTokenPlanQuotaFetcher },
+    { registerCrofUsageFetcher },
+    { registerDeepseekQuotaFetcher },
+    { registerMoonshotQuotaFetcher, registerMoonshotFetchersForNodes },
+    { registerOpenrouterQuotaFetcher },
+    { registerOpencodeQuotaFetcher },
+    { registerGrokWebQuotaFetcher },
+    { registerGenericQuotaFetchers },
+  ] = await Promise.all([
+    import("@omniroute/open-sse/services/codexQuotaFetcher"),
+    import("@omniroute/open-sse/services/bailianQuotaFetcher"),
+    import("@omniroute/open-sse/services/qwenTokenPlanQuotaFetcher"),
+    import("@omniroute/open-sse/services/crofUsageFetcher"),
+    import("@omniroute/open-sse/services/deepseekQuotaFetcher"),
+    import("@omniroute/open-sse/services/moonshotQuotaFetcher"),
+    import("@omniroute/open-sse/services/openrouterQuotaFetcher"),
+    import("@omniroute/open-sse/services/opencodeQuotaFetcher"),
+    import("@omniroute/open-sse/services/grokQuotaFetcher"),
+    import("@omniroute/open-sse/services/genericQuotaFetcher"),
+  ]);
+
+  registerCodexQuotaFetcher();
+  registerBailianCodingPlanQuotaFetcher();
+  registerQwenTokenPlanQuotaFetcher();
+  registerCrofUsageFetcher();
+  registerDeepseekQuotaFetcher();
+  registerMoonshotQuotaFetcher();
+  try {
+    const { getProviderNodes } = await import("@/lib/db/providers");
+    const nodes = await getProviderNodes();
+    registerMoonshotFetchersForNodes(
+      (Array.isArray(nodes) ? nodes : []).map((node) => ({
+        id: typeof node.id === "string" ? node.id : null,
+        prefix: typeof node.prefix === "string" ? node.prefix : null,
+        baseUrl: typeof node.baseUrl === "string" ? node.baseUrl : null,
+      })),
+    );
+  } catch (error) {
+    console.warn("[STARTUP] Moonshot custom-node fetcher scan skipped:", error);
+  }
+  registerOpenrouterQuotaFetcher();
+  registerOpencodeQuotaFetcher();
+  registerGrokWebQuotaFetcher();
+  registerGenericQuotaFetchers();
+
+  console.log("[STARTUP] Quota fetchers registered");
+}
+
 export async function registerNodejs(): Promise<void> {
+  markServerStarting();
+
   // Rename the process title so OmniRoute is identifiable in ps/htop instead
   // of the generic "next-server" standalone server name.
   process.title = renameProcessTitle(process.title);
 
   // Initialize proxy fetch patch FIRST (before any HTTP requests)
-  await import("@omniroute/open-sse/index.ts");
+  await import("@omniroute/open-sse/utils/proxyFetch.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");
+
+  // Register quota fetchers early so combo routing can use real quota-aware
+  // scoring for generic providers in the App Router production runtime.
+  await registerQuotaFetchers();
 
   // Guarantee the SQLite singleton — including a sql.js WASM pre-init when
   // both synchronous drivers (better-sqlite3, node:sqlite) are unavailable —
@@ -416,8 +348,8 @@ export async function registerNodejs(): Promise<void> {
   // MUST run before ensureSecrets, clearStaleCrashCooldowns,
   // getSettings, initAuditLog below: those all reach getDbInstance()
   // transitively, and used to run ahead of this call (previously at the end
-  // of this function), throwing the misleading "sql.js WASM has not been
-  // pre-initialized yet" error for an existing DB file when both sync drivers
+  // of this function), throwing the misleading "sql.js WASM ainda não foi
+  // pré-inicializado" error for an existing DB file when both sync drivers
   // failed (#7288 / #7494). ensureDbInitialized() itself is idempotent and
   // caches the singleton, so every later getDbInstance() call below is a
   // free no-op re-read of the same connection — no double-init cost.
@@ -452,6 +384,7 @@ export async function registerNodejs(): Promise<void> {
   }
 
   await scanComboModelNameCollisionsAtBoot();
+  await warmAdaptiveVirtualLanesIntoRuntime();
 
   const [
     { initGracefulShutdown },
@@ -463,6 +396,7 @@ export async function registerNodejs(): Promise<void> {
     { applyRuntimeSettings },
     { startRuntimeConfigHotReload },
     { startSpendBatchWriter },
+    { startCleanupScheduler },
     { registerDefaultGuardrails },
     { ensurePersistentManagementPasswordHash },
     { skillExecutor },
@@ -477,6 +411,7 @@ export async function registerNodejs(): Promise<void> {
     import("@/lib/config/runtimeSettings"),
     import("@/lib/config/hotReload"),
     import("@/lib/spend/batchWriter"),
+    import("@/lib/db/cleanup"),
     import("@/lib/guardrails"),
     import("@/lib/auth/managementPassword"),
     import("@/lib/skills/executor"),
@@ -485,6 +420,9 @@ export async function registerNodejs(): Promise<void> {
 
   // Proxy health scheduler (auto-removes dead proxies on interval)
   await import("@/lib/proxyHealth/scheduler");
+
+  // Free-proxy auto-sync scheduler (re-fetches free-proxy sources on interval, #7079)
+  await import("@/lib/freeProxyProviders/scheduler");
 
   initGracefulShutdown();
   initApiBridgeServer();
@@ -550,11 +488,21 @@ export async function registerNodejs(): Promise<void> {
     // without this the dashboard mode (auto/custom/adaptive) silently reverts to
     // the passthrough default on every restart. Previously this was only wired into
     // the unused `server-init.ts`, so it never ran in production.
-    const { hydrateThinkingBudgetConfig } = await import(
-      "@omniroute/open-sse/services/thinkingBudget.ts"
-    );
+    const { hydrateThinkingBudgetConfig } =
+      await import("@omniroute/open-sse/services/thinkingBudget.ts");
     if (hydrateThinkingBudgetConfig(settings)) {
       console.log("[STARTUP] Thinking-Budget config restored from settings");
+    }
+
+    // Restore the Task-Aware Smart Routing config (#8601). It lives in
+    // `settings.taskRouting` (written as a JSON string by PUT /api/settings/task-routing)
+    // and is NOT covered by applyRuntimeSettings, so without this the feature silently
+    // reverts to disabled + the default model map on every restart. Same shape as the
+    // Thinking-Budget restore above; must live here, not in the unused server-init.ts.
+    const { hydrateTaskRoutingConfig } =
+      await import("@omniroute/open-sse/services/taskAwareRouter.ts");
+    if (hydrateTaskRoutingConfig(settings)) {
+      console.log("[STARTUP] Task-Aware Routing config restored from settings");
     }
 
     const seededModelAliases = await seedDefaultModelAliases();
@@ -594,8 +542,12 @@ export async function registerNodejs(): Promise<void> {
   // instrumentation startup), NOT in the unused src/server-init.ts.
   try {
     const { initCredentialHealthCheck } = await import("@/lib/credentialHealth/scheduler");
-    initCredentialHealthCheck();
-    console.log("[STARTUP] Credential health scheduler started");
+    const started = initCredentialHealthCheck();
+    console.log(
+      started
+        ? "[STARTUP] Credential health scheduler started"
+        : "[STARTUP] Credential health scheduler disabled"
+    );
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn("[STARTUP] Could not start credential health scheduler:", msg);
@@ -633,6 +585,17 @@ export async function registerNodejs(): Promise<void> {
     console.warn("[STARTUP] Could not initialize vacuum scheduler (non-fatal):", msg);
   }
 
+  // Retention cleanup scheduler (#4691/#6988, #9624): runs the general retention
+  // cleanup once after startup and then every 6 hours. Previously this was only
+  // wired into the unused src/server-init.ts, so telemetry tables grew unboundedly
+  // even with retention.autoCleanupEnabled=true. Idempotent (guarded internally).
+  try {
+    startCleanupScheduler();
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Could not start cleanup scheduler (non-fatal):", msg);
+  }
+
   // Warm the model catalog's durable, apiKey-independent sub-caches at
   // startup — see warmModelCatalogCache() for why the top-level Response
   // cache alone doesn't deliver this. Fire-and-forget, non-fatal.
@@ -665,6 +628,15 @@ export async function registerNodejs(): Promise<void> {
           console.warn("[STARTUP] Auto-refresh daemon failed to start (non-fatal):", msg);
         }),
 
+      // Conductor bridge (PRD Conductor RF1): mirrors OmniConductor hub tasks into the
+      // A2A TaskManager via the hub SSE. Opt-in — self-gated on CONDUCTOR_HUB_URL.
+      import("@/lib/conductor/boot").then((m) => {
+        if (m.initConductorBridge()) console.log("[STARTUP] Conductor bridge started");
+      }).catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn("[STARTUP] Conductor bridge failed to start (non-fatal):", msg);
+      }),
+
       // Proactive connection-cooldown recovery (#8): re-validate connections whose
       // transient `rate_limited_until` window has elapsed OUTSIDE the request hot path,
       // so the first request after a cooldown does not pay the probe latency.
@@ -687,6 +659,19 @@ export async function registerNodejs(): Promise<void> {
           console.warn("[STARTUP] Arena ELO sync failed to start (non-fatal):", msg);
         }),
 
+      // Radar daily feed sync: only arms itself when RADAR_ENABLED AND the user
+      // opt-in are already on (flag-off boot stays timer-free — Radar inertia
+      // contract). Non-blocking, never fatal.
+      import("@/lib/radar/scheduler")
+        .then((m) => {
+          const started = m.initRadarSyncScheduler();
+          if (started) console.log("[STARTUP] Radar sync scheduler initialized");
+        })
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] Radar sync scheduler failed to start (non-fatal):", msg);
+        }),
+
       // Pricing sync: opt-in external pricing data (self-gated by PRICING_SYNC_ENABLED inside
       // initPricingSync). Non-blocking, never fatal.
       import("@/lib/pricingSync")
@@ -694,6 +679,22 @@ export async function registerNodejs(): Promise<void> {
         .catch((err: unknown) => {
           const msg = err instanceof Error ? err.message : String(err);
           console.warn("[STARTUP] Pricing sync failed to start (non-fatal):", msg);
+        }),
+
+      // OpenRouter provider stats sync: provider directory + popularity enrichment
+      // for the dashboard Providers page. On by default; opt out with
+      // OPENROUTER_PROVIDER_STATS_ENABLED=false. Non-blocking, never fatal.
+      import("@/lib/catalog/openrouterProviderStats")
+        .then((m) => {
+          const started = m.initOpenRouterProviderStatsSync();
+          if (started) console.log("[STARTUP] OpenRouter provider stats sync initialized");
+        })
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn(
+            "[STARTUP] OpenRouter provider stats sync failed to start (non-fatal):",
+            msg
+          );
         }),
 
       // models.dev capability sync: opt-in via Settings > AI (self-gated by
@@ -713,47 +714,55 @@ export async function registerNodejs(): Promise<void> {
           const msg = err instanceof Error ? err.message : String(err);
           console.warn("[STARTUP] context-window reconcile failed to start (non-fatal):", msg);
         }),
+
+      // TV6 typed memory decay: optional periodic sweep of decayed episodic memories.
+      // Doubly opt-in (no-op unless MEMORY_TYPED_DECAY_ENABLED=true AND
+      // MEMORY_TYPED_DECAY_SWEEP_INTERVAL>0). Never deletes by default. Never fatal.
+      import("@/lib/memory/typedDecay")
+        .then((m) => m.startMemoryDecaySweep())
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
+        }),
+
+      // MemoryBackend provider pattern (PR #8752): initialize configured memory
+      // backends from settings (sqlite, obsidian, notion, custom HTTP, etc.).
+      // Reads the DB settings synchronously (non-blocking, never fatal). Must
+      // run after the DB is ready AND after getSettings/applyRuntimeSettings so
+      // memory backend config is hydrated.
+      import("@/lib/memory/index")
+        .then((m) => m.initMemoryBackends())
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] memory backend initialization failed (non-fatal):", msg);
+        }),
+
+      // Backup schedule (#8513): execute `backup-schedule.json` cron server-side.
+      // Reads the schedule written by `omniroute backup auto enable` and fires
+      // `runBackupCommand` when the cron expression matches. Self-gated: no-op
+      // when no schedule file exists or the schedule is disabled. Never fatal.
+      import("@/lib/jobs/backupScheduleJob")
+        .then((m) => m.startBackupScheduleJob())
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] backup schedule job failed to start (non-fatal):", msg);
+        }),
+
+      // Real-time dashboard WebSocket daemon (port 20132): powers Combo Studio Live,
+      // the Home live-pulse, and Live Compression. Side-effect import triggers the
+      // flag-gated auto-start (OMNIROUTE_ENABLE_LIVE_WS, default ON).
+      import("@/server/ws/liveServer")
+        .then(() => {
+          console.log("[STARTUP] Live dashboard WebSocket daemon bootstrap invoked");
+        })
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn(
+            "[STARTUP] Live dashboard WebSocket daemon failed to start (non-fatal):",
+            msg
+          );
+        }),
     ]);
-
-    // Real-time dashboard WebSocket daemon (port 20129): powers Combo Studio Live,
-    // the Home live-pulse, and Live Compression. liveServer.ts auto-starts the
-    // daemon on import (gated by OMNIROUTE_ENABLE_LIVE_WS, default ON) — but NOTHING
-    // imported it in the packaged standalone/PM2 runtime. Only the unused
-    // `server-init.ts` and a dev-only helper script (`scripts/start-ws-server.mjs`)
-    // ever pulled it into a module graph, so in the published `omniroute` bin the
-    // daemon never bound its port and every live dashboard reported "Live disabled —
-    // WebSocket disconnected". Importing it here (the instrumentation hook that DOES
-    // run in standalone) fires that flag-gated auto-start. Side-effect import + the
-    // module's own `.catch` keep it non-fatal.
-    try {
-      await import("@/server/ws/liveServer");
-      console.log("[STARTUP] Live dashboard WebSocket daemon bootstrap invoked");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] Live dashboard WebSocket daemon failed to start (non-fatal):", msg);
-    }
-
-    // Context-window self-correction (5004): periodically reconcile provider-declared
-    // windows (from /models discovery) into auto:discovery overrides. Reuses already-synced
-    // data (no new fetch); disable via CONTEXT_WINDOW_RECONCILE_INTERVAL=0. Never fatal.
-    try {
-      const { startContextWindowReconcile } = await import("@/lib/contextWindowResolver");
-      startContextWindowReconcile();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] context-window reconcile failed to start (non-fatal):", msg);
-    }
-
-    // TV6 typed memory decay: optional periodic sweep of decayed episodic memories. Doubly
-    // opt-in (no-op unless MEMORY_TYPED_DECAY_ENABLED=true AND
-    // MEMORY_TYPED_DECAY_SWEEP_INTERVAL>0). Never deletes by default. Never fatal.
-    try {
-      const { startMemoryDecaySweep } = await import("@/lib/memory/typedDecay");
-      startMemoryDecaySweep();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
-    }
   }
 
   markServerReady();

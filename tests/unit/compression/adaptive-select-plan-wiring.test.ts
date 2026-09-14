@@ -5,6 +5,7 @@ import {
   shouldAutoTrigger,
 } from "@omniroute/open-sse/services/compression/strategySelector.ts";
 import { getDefaultCompressionConfig } from "@omniroute/open-sse/services/compression/stats.ts";
+import type { CompressionConfig } from "@omniroute/open-sse/services/compression/types.ts";
 
 function legacyCfg() {
   return {
@@ -31,6 +32,32 @@ test("no contextBudget → auto-trigger path is byte-identical to legacy", () =>
 test("contextBudget.mode='off' → identical to no contextBudget", () => {
   const cfg = { ...legacyCfg(), contextBudget: { mode: "off" as const } };
   assert.equal(selectCompressionPlan(cfg as any, null, 200000).mode, "aggressive");
+});
+
+test("master off stays off when an adaptive context budget is exceeded", () => {
+  const cfg: CompressionConfig = {
+    ...legacyCfg(),
+    enabled: false,
+    contextBudget: {
+      mode: "floor" as const,
+      policy: "reserve-output" as const,
+      outputReserve: 4096,
+      safetyMargin: 1024,
+      pct: 0.85,
+      absoluteBudget: 0,
+    },
+  };
+  let adaptiveCalled = false;
+  const plan = selectCompressionPlan(cfg, null, 5_000_000, undefined, undefined, {}, null, {
+    modelContextLimit: 200000,
+    requestMaxTokens: 8000,
+    onAdaptive: () => {
+      adaptiveCalled = true;
+    },
+  });
+
+  assert.deepEqual(plan, { mode: "off", stackedPipeline: [], source: "off" });
+  assert.equal(adaptiveCalled, false, "adaptive planning must not run after the master hard kill");
 });
 
 test("adaptive floor: bypasses auto-trigger, escalates a base plan to fit", () => {

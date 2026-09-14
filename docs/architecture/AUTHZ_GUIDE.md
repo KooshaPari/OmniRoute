@@ -35,6 +35,14 @@ For dashboard pages and admin operations.
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
+A cookie is a session only when the JWT verifies **and** carries `authenticated: true`
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Every
+consumer of the cookie (route guard, authz pipeline refresh, WebSocket handshake, live
+server, `/api/settings/require-login`, `/api/auth/status`) goes through that helper.
+Other JWTs signed with `JWT_SECRET` exist — the Cursor CLI passthrough mints
+`iss "omniroute" / aud "cursor-cli"` tokens for key holders — and are never sessions
+(#13298).
+
 Verified by `isDashboardSessionAuthenticated()` in `src/shared/utils/apiAuth.ts`. The pipeline auto-refreshes the JWT when it has fewer than 7 days left in its 30-day lifetime.
 
 Some management routes accept **either** mode: cookie OR `Bearer <key>` when the API key has the `manage` (or `admin`) scope. This is what enables the "configurable via API calls" workflow added in v3.8.
@@ -108,24 +116,48 @@ A successful policy returns `AuthSubject` with `kind ∈ { client_api_key, dashb
 
 `src/shared/constants/publicApiRoutes.ts` is the explicit allowlist:
 
+The list is split by **shape**, and the split is load-bearing (GHSA-74g9-q8f6-793h): a prefix is
+matched with `startsWith()`, so it also matches every adjacent path sharing its leading characters.
+`/api/usage/om-usage` as a prefix marked `/api/usage/om-usage<anything>` PUBLIC, and Next resolves
+that to `/api/usage/[connectionId]` — a handler with no auth of its own.
+
 ```ts
+// Genuine subtrees. Every entry MUST end in "/" (asserted by a unit test).
 PUBLIC_API_ROUTE_PREFIXES = [
+  "/api/auth/oidc/",
+  "/api/v1/", // treated as CLIENT_API in classify, not as "no-auth public"
+  "/api/oauth/",
+  "/api/codex/connect/",
+  "/api/telegram/",
+  "/api/cursor-cli/",
+];
+
+// Single routes, matched EXACTLY (with or without a trailing slash).
+PUBLIC_API_ROUTES_EXACT = new Set([
   "/api/auth/login",
   "/api/auth/logout",
   "/api/auth/status",
   "/api/init",
-  "/api/v1/", // treated as CLIENT_API in classify, not as "no-auth public"
-  "/api/cloud/",
   "/api/sync/bundle",
-  "/api/oauth/",
+  "/api/cli/connect",
+  "/api/usage/om-usage",
+  "/api/skills/collect/chaos",
+]);
+
+// Read-only single routes that also take the CORS origin relaxation.
+PUBLIC_READONLY_CORS_API_ROUTES = [
+  "/api/health/ping",
+  "/api/monitoring/health",
+  "/api/settings/require-login",
 ];
 
-PUBLIC_READONLY_API_ROUTE_PREFIXES = ["/api/monitoring/health", "/api/settings/require-login"];
+// Read-only single route WITHOUT the CORS relaxation.
+PUBLIC_READONLY_API_ROUTES_EXACT = new Set(["/api/health"]);
 
 PUBLIC_READONLY_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 ```
 
-Read-only prefixes are public **only** for safe methods. Note: `classifyRoute()` excludes `/api/v1/*` and `/api/v1beta/*` from the PUBLIC fall-through — those are always `CLIENT_API` so the Bearer-key policy still applies.
+Read-only routes are public **only** for safe methods. Note: `classifyRoute()` excludes `/api/v1/*` and `/api/v1beta/*` from the PUBLIC fall-through — those are always `CLIENT_API` so the Bearer-key policy still applies.
 
 ## Adding a New Route
 
@@ -168,7 +200,7 @@ export async function POST(request: Request) {
 
 ### Pattern 3 — Adding to the public allowlist
 
-Add the prefix to `PUBLIC_API_ROUTE_PREFIXES` (or `PUBLIC_READONLY_API_ROUTE_PREFIXES` for GET-only). Update unit tests at `tests/unit/public-api-routes.test.ts` and `tests/unit/authz/classify.test.ts`.
+Pick the set by shape, not by convenience. One route goes in `PUBLIC_API_ROUTES_EXACT` (or `PUBLIC_READONLY_CORS_API_ROUTES` for GET-only); only a genuine subtree goes in `PUBLIC_API_ROUTE_PREFIXES`, and it **must end in `/`**. Putting a single route in the prefix list also publishes every adjacent path that shares its leading characters — including dynamic-segment siblings added later (GHSA-74g9-q8f6-793h). Update unit tests at `tests/unit/public-api-routes.test.ts`, `tests/unit/authz/public-route-exact-match.test.ts` and `tests/unit/authz/classify.test.ts`.
 
 ## Scopes
 

@@ -172,6 +172,7 @@ export const oauthPasteCredentialsSchema = z.object({
 export const cursorImportSchema = z.object({
   accessToken: z.string().trim().min(1, "Access token is required"),
   machineId: z.string().trim().optional(),
+  refreshToken: z.string().trim().min(1).optional(),
 });
 
 export const traeImportSchema = z.object({
@@ -182,6 +183,11 @@ export const traeImportSchema = z.object({
   scope: z.string().trim().optional(),
   tenant: z.string().trim().optional(),
   region: z.string().trim().optional(),
+  // Real account region (e.g. "SG") sent as the x-user-region header — the
+  // "US" default only works for US accounts and produces a 401 for others
+  // (#12190). Optional so existing imports keep behaving as before.
+  userRegion: z.string().trim().optional(),
+  userTimezone: z.string().trim().optional(),
 });
 
 export const kiroImportSchema = z.object({
@@ -193,17 +199,16 @@ export const kiroImportSchema = z.object({
   clientSecret: z.string().optional(),
   authMethod: z.string().optional(),
   profileArn: z.string().optional(),
+  // External IdP ("Your organization" / Microsoft Entra) token fields — present
+  // when authMethod === "external_idp". The token is refreshed via a public-client
+  // OAuth2 grant against `tokenEndpoint` using `clientId` + `scopes` (no secret).
+  tokenEndpoint: z.string().optional(),
+  scopes: z.union([z.string(), z.array(z.string())]).optional(),
 });
 
 export const kiroApiKeyImportSchema = z.object({
   apiKey: z.string().trim().min(1, "API key is required"),
   region: z.string().trim().default("us-east-1"),
-});
-
-export const kiroSocialExchangeSchema = z.object({
-  code: z.string().trim().min(1, "Code is required"),
-  codeVerifier: z.string().trim().min(1, "Code verifier is required"),
-  provider: z.enum(["google", "github"]),
 });
 
 export const zedImportSchema = z.object({

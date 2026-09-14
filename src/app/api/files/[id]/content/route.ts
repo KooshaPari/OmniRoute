@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getFile, getFileContent } from "@/lib/localDb";
+import { getFile, getFileContent } from "@/lib/db/files";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {

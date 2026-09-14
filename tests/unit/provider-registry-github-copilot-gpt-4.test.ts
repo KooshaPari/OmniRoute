@@ -55,5 +55,5 @@ test("gpt-4-0125-preview resolves through both the gh alias and the github id", 
   // Raw provider id resolves to the same entry via the alias map.
   const viaId = getModelsByProviderId("github").find((m) => m.id === "gpt-4-0125-preview");
   assert.ok(viaId, "gpt-4-0125-preview resolvable via the raw 'github' provider id");
-  assert.equal(isValidModel("gh", "gpt-4"), false, "bare gpt-4 is not in the curated list");
+  assert.equal(isValidModel("gh", "gpt-4"), true, "bare gpt-4 is in the curated list");
 });

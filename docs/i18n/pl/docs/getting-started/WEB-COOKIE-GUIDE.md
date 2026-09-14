@@ -80,14 +80,14 @@ Dokładne wymagane poświadczenia zależą od dostawcy.
 
 Różne witryny przechowują uwierzytelnianie na różne sposoby. Niektóre wymagają tylko ciasteczek, inne mogą wymagać dodatkowych nagłówków lub tokenów.
 
-| Dostawca    | Format poświadczeń            | Przewodnik dostawcy            |
-| ----------- | ----------------------------- | ------------------------------ |
-| Claude Web  | Pełny nagłówek żądania Cookie | `docs/providers/CLAUDE_WEB.md` |
-| ChatGPT Web | _(verify)_                    |                                |
-| Gemini Web  | _(verify)_                    |                                |
-| Copilot Web | _(verify)_                    |                                |
-| Grok Web    | _(verify)_                    |                                |
-| ...         | ...                           | ...                            |
+| Dostawca            | Format poświadczeń            | Przewodnik dostawcy             |
+| ------------------- | ----------------------------- | ------------------------------- |
+| Claude Web          | Pełny nagłówek żądania Cookie | `docs/providers/CLAUDE_WEB.md`  |
+| ChatGPT Web (Codex) | Pełny nagłówek Cookie         | `docs/providers/CHATGPT_WEB.md` |
+| Gemini Web          | _(verify)_                    |                                 |
+| Copilot Web         | _(verify)_                    |                                 |
+| Grok Web            | _(verify)_                    |                                 |
+| ...                 | ...                           | ...                             |
 
 > Aktualizuj tę tabelę, gdy dodawani są nowi dostawcy Web Cookie lub gdy istniejący dostawcy zmieniają wymagania uwierzytelniania.
 

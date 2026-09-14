@@ -40,9 +40,9 @@
 
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { findProvenanceOnSelfHosted, formatProvenanceFinding } from "./lib/provenanceRunner.mjs";
 
 const ROOT = process.cwd();
 const WORKFLOWS_DIR = path.join(ROOT, ".github", "workflows");
@@ -52,7 +52,6 @@ const BASELINE_PATH = path.join(ROOT, "config/quality/quality-baseline.json");
 const STRICT = process.argv.includes("--strict");
 const RATCHET = process.argv.includes("--ratchet");
 const QUIET = process.argv.includes("--quiet");
-const BASELINE_REF = process.argv.find((arg) => arg.startsWith("--baseline-ref="))?.split("=", 2)[1];
 
 // ---------------------------------------------------------------------------
 // Utility: resolve binary from PATH (cross-platform)
@@ -141,25 +140,6 @@ export function parseZizmorOutput(stdout) {
     const lines = trimmed.split("\n").filter(Boolean);
     return { count: lines.length, diagnostics: [] };
   }
-}
-
-/** Build a stable finding identity that ignores line/column drift. */
-export function zizmorDiagnosticKey(diagnostic) {
-  const location = diagnostic?.locations?.[0]?.symbolic;
-  const rawSource = location?.key?.Local?.verbatim_path ?? location?.key?.Remote?.url ?? "unknown";
-  const source = rawSource.replace(/^.*(?=\.github\/workflows\/)/, "");
-  return JSON.stringify([
-    diagnostic?.ident ?? diagnostic?.id ?? "unknown",
-    source,
-    location?.route?.route ?? [],
-    location?.annotation ?? "",
-  ]);
-}
-
-/** Return only diagnostics whose stable identity is absent from the base tree. */
-export function findNewZizmorDiagnostics(current, baseline) {
-  const known = new Set(baseline.map(zizmorDiagnosticKey));
-  return current.filter((diagnostic) => !known.has(zizmorDiagnosticKey(diagnostic)));
 }
 
 // ---------------------------------------------------------------------------
@@ -256,10 +236,27 @@ export function runActionlint(files) {
  * @param {string} workflowsDir - Path to .github/workflows
  * @returns {{ count: number, diagnostics: unknown[], skipped: boolean }}
  */
-export function runZizmor(workflowsDir, configPath = ZIZMOR_CONFIG) {
+/**
+ * The zizmor version actually doing the auditing, or "unknown".
+ *
+ * Emitted next to the count because the two must be read together. The GitHub runner measured
+ * 1 finding MORE than the devbox on the identical commit (190 vs 189) during the v3.8.49 cycle,
+ * which cost a second rebaseline push: CI installed whatever PyPI served that day while the
+ * devbox had an older build. A count without the version that produced it is not a
+ * reproducible number, and rebaselining against it just moves the disagreement.
+ */
+export function zizmorVersion() {
+  try {
+    return execFileSync("zizmor", ["--version"], { encoding: "utf8" }).trim() || "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+export function runZizmor(workflowsDir) {
   const args = ["--format", "json"];
-  if (fs.existsSync(configPath)) {
-    args.push("--config", configPath);
+  if (fs.existsSync(ZIZMOR_CONFIG)) {
+    args.push("--config", ZIZMOR_CONFIG);
   }
   args.push(workflowsDir);
 
@@ -275,25 +272,26 @@ export function runZizmor(workflowsDir, configPath = ZIZMOR_CONFIG) {
   }
 }
 
-/** Materialize only workflow audit inputs from a git ref into an isolated temp tree. */
-export function materializeWorkflowRef(ref) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-workflow-base-"));
-  const output = execFileSync(
-    "git",
-    ["ls-tree", "-r", "--name-only", ref, "--", ".github/workflows", ".zizmor.yml"],
-    { encoding: "utf8" }
-  );
-  for (const relativePath of output.split("\n").filter(Boolean)) {
-    const target = path.join(root, relativePath);
-    fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.writeFileSync(target, execFileSync("git", ["show", `${ref}:${relativePath}`]));
-  }
-  return root;
-}
-
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
+
+/**
+ * Hard rule (not a lint count): `--provenance` inside a job that runs on a
+ * self-hosted runner. npm answers 422 at the registry, and in v3.8.50 that
+ * answer only came after the tag, the GitHub Release and the Docker images were
+ * already out. Blocks under --strict AND --ratchet (the CI mode); plain mode
+ * reports it like everything else.
+ * @param {string[]} files absolute workflow paths
+ */
+export function runProvenanceRunnerCheck(files) {
+  const findings = [];
+  for (const file of files) {
+    const text = fs.readFileSync(file, "utf8");
+    findings.push(...findProvenanceOnSelfHosted(text, path.relative(ROOT, file)));
+  }
+  return findings;
+}
 
 function main() {
   const hasActionlint = isBinaryAvailable("actionlint");
@@ -329,7 +327,6 @@ function main() {
 
   let actionlintCount = 0;
   let zizmorCount = 0;
-  let zizmorDiagnostics = [];
 
   // ── actionlint ────────────────────────────────────────────────────────────
   if (hasActionlint) {
@@ -358,7 +355,6 @@ function main() {
     }
     const result = runZizmor(WORKFLOWS_DIR);
     zizmorCount = result.count;
-    zizmorDiagnostics = result.diagnostics;
 
     if (result.count > 0 && !QUIET) {
       console.error(`[check-workflows] zizmor: ${result.count} finding(s).`);
@@ -372,10 +368,32 @@ function main() {
     }
   }
 
+  const provenanceFindings = runProvenanceRunnerCheck(workflowFiles);
+  if (provenanceFindings.length > 0) {
+    console.error(
+      `[check-workflows] provenance×self-hosted: ${provenanceFindings.length} finding(s) — HARD RULE:`
+    );
+    provenanceFindings.forEach((f) => console.error(`  ${formatProvenanceFinding(f)}`));
+  } else if (!QUIET) {
+    console.log("[check-workflows] provenance×self-hosted: OK (0 findings)");
+  }
+
   const total = actionlintCount + zizmorCount;
   process.stdout.write(`workflowFindings=${total}\n`);
   process.stdout.write(`actionlintFindings=${actionlintCount}\n`);
   process.stdout.write(`zizmorFindings=${zizmorCount}\n`);
+  // Read this line with the count above: a finding total is only reproducible against the
+  // version that produced it. See zizmorVersion().
+  process.stdout.write(`zizmorVersion=${hasZizmor ? zizmorVersion() : "absent"}\n`);
+  process.stdout.write(`provenanceRunnerFindings=${provenanceFindings.length}\n`);
+  if ((STRICT || RATCHET) && provenanceFindings.length > 0) {
+    console.error(
+      `\n[check-workflows] FAIL — ${provenanceFindings.length} job(s) publish with --provenance from a self-hosted runner.\n` +
+        "  npm rejects that with 422 at the registry. Move the upload step to a github-hosted job\n" +
+        "  (see .github/workflows/npm-publish.yml `stage-npm` for the pattern)."
+    );
+    process.exit(1);
+  }
 
   if (STRICT && total > 0) {
     console.error(`\n[check-workflows] FAIL — ${total} workflow finding(s) total (--strict mode).`);
@@ -394,42 +412,6 @@ function main() {
         );
       }
       process.exit(0);
-    }
-
-    if (BASELINE_REF) {
-      let baselineRoot;
-      try {
-        baselineRoot = materializeWorkflowRef(BASELINE_REF);
-        const baseline = runZizmor(
-          path.join(baselineRoot, ".github", "workflows"),
-          path.join(baselineRoot, ".zizmor.yml")
-        );
-        const introduced = findNewZizmorDiagnostics(zizmorDiagnostics, baseline.diagnostics);
-        if (introduced.length > 0) {
-          const summary = introduced
-            .map((finding) => zizmorDiagnosticKey(finding))
-            .slice(0, 20)
-            .join("\n  ");
-          console.error(
-            `\n[check-workflows] REGRESSION — ${introduced.length} new zizmor finding(s) versus ${BASELINE_REF}:\n  ${summary}`
-          );
-          process.exitCode = 1;
-          return;
-        }
-        if (!QUIET) {
-          process.stderr.write(
-            `[check-workflows] --ratchet OK — no new normalized findings versus ${BASELINE_REF} ` +
-              `(${zizmorCount} current, ${baseline.count} base).\n`
-          );
-        }
-        return;
-      } catch (error) {
-        console.error(`[check-workflows] unable to audit baseline ref ${BASELINE_REF}: ${error}`);
-        process.exitCode = 1;
-        return;
-      } finally {
-        if (baselineRoot) fs.rmSync(baselineRoot, { recursive: true, force: true });
-      }
     }
 
     const baselineValue = readBaselineZizmorValue(BASELINE_PATH);

@@ -6,7 +6,10 @@
 // session-id threading.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { resolveExecutionCredentials } from "../../open-sse/handlers/chatCore/executionCredentials.ts";
+import {
+  getExecutionConnectionId,
+  resolveExecutionCredentials,
+} from "../../open-sse/handlers/chatCore/executionCredentials.ts";
 
 const RESPONSES = "openai-responses";
 
@@ -28,6 +31,16 @@ test("non-passthrough leaves credentials without a requestEndpointPath", () => {
 test("native Codex passthrough injects requestEndpointPath", () => {
   const out = resolveExecutionCredentials({
     ...base,
+    nativeCodexPassthrough: true,
+  }) as Record<string, unknown>;
+  assert.equal(out.requestEndpointPath, "/v1/responses");
+});
+
+test("native Responses passthrough (xAI via codex flag) injects requestEndpointPath (#8964)", () => {
+  // chatCore ORs xAI into nativeCodexPassthrough before calling this helper.
+  const out = resolveExecutionCredentials({
+    ...base,
+    provider: "xai-oauth",
     nativeCodexPassthrough: true,
   }) as Record<string, unknown>;
   assert.equal(out.requestEndpointPath, "/v1/responses");
@@ -79,6 +92,44 @@ test("non azure/oci providers never get apiType forcing", () => {
   assert.equal(psd._omnirouteForceResponsesUpstream, undefined);
 });
 
+test("AgentRouter threads the resolved Responses protocol only into execution credentials", () => {
+  const credentials = { providerSpecificData: { apiKeyHealth: {} } };
+  const out = resolveExecutionCredentials({
+    ...base,
+    provider: "agentrouter",
+    targetFormat: RESPONSES,
+    credentials,
+  }) as Record<string, unknown>;
+
+  assert.deepEqual(out.providerSpecificData, {
+    apiKeyHealth: {},
+    targetFormat: RESPONSES,
+  });
+  assert.deepEqual(credentials.providerSpecificData, { apiKeyHealth: {} });
+});
+
+test("#8969: poe + responses target sets the responses-upstream marker (no apiType)", () => {
+  const out = resolveExecutionCredentials({
+    ...base,
+    provider: "poe",
+    targetFormat: RESPONSES,
+  }) as Record<string, unknown>;
+  const psd = out.providerSpecificData as Record<string, unknown>;
+  assert.equal(psd.apiType, undefined);
+  assert.equal(psd._omnirouteForceResponsesUpstream, true);
+});
+
+test("#8969: poe + claude target disables OpenAI stream_options injection", () => {
+  const out = resolveExecutionCredentials({
+    ...base,
+    provider: "poe",
+    targetFormat: "claude",
+  }) as Record<string, unknown>;
+  const psd = out.providerSpecificData as Record<string, unknown>;
+  assert.equal(psd.disableStreamOptions, true);
+  assert.equal(psd._omnirouteForceResponsesUpstream, undefined);
+});
+
 test("ccSessionId is threaded into providerSpecificData when present", () => {
   const out = resolveExecutionCredentials({
     ...base,
@@ -95,6 +146,13 @@ test("missing providerSpecificData defaults to an empty object", () => {
     credentials: { connectionId: "c1" },
   }) as Record<string, unknown>;
   assert.deepEqual(out.providerSpecificData, {});
+  assert.equal(out.connectionId, "c1");
+});
+
+test("getExecutionConnectionId validates and trims the execution credential id", () => {
+  assert.equal(getExecutionConnectionId({ connectionId: "  c1  " }), "c1");
+  assert.equal(getExecutionConnectionId({ connectionId: 42 }), null);
+  assert.equal(getExecutionConnectionId(null), null);
 });
 
 test("Kimi execution credentials carry the discovered protocol and thinking policy", () => {

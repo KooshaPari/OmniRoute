@@ -4,14 +4,14 @@ import fs from "node:fs/promises";
 import fsSync from "node:fs";
 import os from "node:os";
 import path from "node:path";
-
-const {
+import {
   getTransientBuildPaths,
   movePath,
   pruneStandaloneArtifacts,
   resolveNextBuildEnv,
+  syncStandaloneExtraModules,
   syncStandaloneNativeAssets,
-} = await import("../../scripts/build/build-next-isolated.mjs");
+} from "../../scripts/build/build-next-isolated.mjs";
 
 async function withTempDir(fn) {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-build-next-isolated-"));
@@ -19,7 +19,7 @@ async function withTempDir(fn) {
   try {
     await fn(tempDir);
   } finally {
-    await fs.rm(tempDir, { recursive: true, force: true });
+    await fs.rm(tempDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 }
 
@@ -177,36 +177,49 @@ test("pruneStandaloneArtifacts removes traced _tasks from standalone output", as
   });
 });
 
-test("syncStandaloneNativeAssets copies wreq-js native runtime into standalone output", async () => {
+test("syncStandaloneExtraModules copies the complete wreq-js runtime", async () => {
   await withTempDir(async (tempDir) => {
-    const sourceNativeFile = path.join(
-      tempDir,
-      "node_modules",
-      "wreq-js",
-      "rust",
-      "wreq-js.linux-x64-gnu.node"
-    );
-    const destinationNativeFile = path.join(
+    const sourcePackage = path.join(tempDir, "node_modules", "wreq-js");
+    const destinationPackage = path.join(
       tempDir,
       ".build",
       "next",
       "standalone",
       "node_modules",
-      "wreq-js",
-      "rust",
-      "wreq-js.linux-x64-gnu.node"
+      "wreq-js"
     );
     const logs: string[] = [];
-
-    await fs.mkdir(path.dirname(sourceNativeFile), { recursive: true });
-    await fs.writeFile(sourceNativeFile, "native module bytes");
-
-    const changed = await syncStandaloneNativeAssets(tempDir, fs, {
+    const logger: Console = Object.assign(Object.create(console), {
       log: (message: unknown) => logs.push(String(message)),
     });
 
+    await fs.mkdir(path.join(sourcePackage, "dist"), { recursive: true });
+    await fs.mkdir(path.join(sourcePackage, "rust"), { recursive: true });
+    await fs.writeFile(path.join(sourcePackage, "package.json"), '{"name":"wreq-js"}');
+    await fs.writeFile(path.join(sourcePackage, "dist", "wreq-js.cjs"), "exports.fetch = () => {}");
+    await fs.writeFile(
+      path.join(sourcePackage, "rust", "wreq-js.linux-x64-gnu.node"),
+      "native module bytes"
+    );
+
+    const changed = await syncStandaloneExtraModules(tempDir, fs, logger);
+
     assert.equal(changed, true);
-    assert.equal(await fs.readFile(destinationNativeFile, "utf8"), "native module bytes");
-    assert.match((logs[0] ?? "").replaceAll("\\", "/"), /wreq-js\/rust/);
+    assert.equal(
+      await fs.readFile(path.join(destinationPackage, "package.json"), "utf8"),
+      '{"name":"wreq-js"}'
+    );
+    assert.equal(
+      await fs.readFile(path.join(destinationPackage, "dist", "wreq-js.cjs"), "utf8"),
+      "exports.fetch = () => {}"
+    );
+    assert.equal(
+      await fs.readFile(
+        path.join(destinationPackage, "rust", "wreq-js.linux-x64-gnu.node"),
+        "utf8"
+      ),
+      "native module bytes"
+    );
+    assert.match(logs[0] ?? "", /wreq-js TLS runtime/);
   });
 });

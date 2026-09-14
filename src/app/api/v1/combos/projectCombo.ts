@@ -5,6 +5,10 @@
  * returning combo metadata to API-key callers. Kept in a separate module so
  * the projection can be unit-tested without spinning up the Next.js route.
  *
+ * #10968: the projection also reports `accountPinned` per model step — a boolean
+ * derived from the stripped `connectionId`, so callers can distinguish a combo
+ * that fails over between two accounts of one provider from a duplicated step.
+ *
  * #3979: client-facing combo catalogs (the `/v1/combos`, VS Code and LobeHub /
  * OpenCode import surfaces) can opt into advertising the combo's resolved
  * capabilities (multimodal / reasoning / caching) so importing clients enable
@@ -17,6 +21,19 @@ export interface PublicComboStep {
   model?: string;
   comboName?: string;
   providerId?: string;
+  /**
+   * #10968: whether this step pins one specific account of its provider.
+   *
+   * Two steps that pin different accounts of the same provider project to
+   * identical `{kind, model, providerId}` objects, so a client cannot tell a
+   * two-account failover from the same step listed twice. This says which it
+   * is without exposing the `connectionId` the flag is derived from — not even
+   * a prefix, per the issue.
+   *
+   * Set on every `model` step. Absent on `combo-ref`, which routes through
+   * another combo and has no account of its own.
+   */
+  accountPinned?: boolean;
 }
 
 /**
@@ -66,6 +83,10 @@ export function projectComboStep(step: Record<string, unknown>): PublicComboStep
     if (typeof step.providerId === "string" && step.providerId.length > 0) {
       out.providerId = step.providerId;
     }
+    // Same shape test as providerId above. `cleanupComboConnectionRefs` drops the
+    // key when the connection is deleted, so a step whose pinned account is gone
+    // reports false rather than pointing at nothing.
+    out.accountPinned = typeof step.connectionId === "string" && step.connectionId.length > 0;
     return out;
   }
   return null;

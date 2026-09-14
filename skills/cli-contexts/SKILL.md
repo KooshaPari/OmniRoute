@@ -325,6 +325,20 @@ Import contexts from a JSON file
 omniroute contexts import <file>
 ```
 
+### `contexts migrate`
+
+Move legacy plaintext context credentials to the OS keychain
+
+**Flags:**
+
+- `--yes`
+
+**Example:**
+
+```bash
+omniroute contexts migrate
+```
+
 ### `sessions`
 
 **Example:**

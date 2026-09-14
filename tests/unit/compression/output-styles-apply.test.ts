@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   applyOutputStyles,
   OUTPUT_STYLE_MARKER,
+  resolveOutputStyleLanguage,
   type OutputStyleSelectionEntry,
 } from "../../../open-sse/services/compression/outputStyles/apply.ts";
 
@@ -153,3 +154,40 @@ test("terse-prose localizes per language (back-compat with the legacy caveman pa
 function escapeRe(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
+test("resolveOutputStyleLanguage: en when language support is disabled", () => {
+  const body = { messages: [{ role: "user", content: "preciso de ajuda com o arquivo" }] };
+  assert.equal(resolveOutputStyleLanguage(undefined, body), "en");
+  assert.equal(resolveOutputStyleLanguage({ enabled: false, defaultLanguage: "pt-BR" }, body), "en");
+});
+
+test("resolveOutputStyleLanguage: defaultLanguage when enabled without autoDetect", () => {
+  const body = { messages: [{ role: "user", content: "hello there" }] };
+  assert.equal(
+    resolveOutputStyleLanguage({ enabled: true, autoDetect: false, defaultLanguage: "ru" }, body),
+    "ru"
+  );
+});
+
+test("resolveOutputStyleLanguage: detects the last user message language when autoDetect is on", () => {
+  const de = { messages: [{ role: "user", content: "ich habe eine datei mit einem fehler, kannst du bitte helfen" }] };
+  const ru = { messages: [{ role: "user", content: "мне нужно исправить ошибку в этом файле" }] };
+  assert.equal(resolveOutputStyleLanguage({ enabled: true, autoDetect: true, defaultLanguage: "en" }, de), "de");
+  assert.equal(resolveOutputStyleLanguage({ enabled: true, autoDetect: true, defaultLanguage: "en" }, ru), "ru");
+});
+
+test("resolveOutputStyleLanguage: falls back to defaultLanguage when there is no user text", () => {
+  assert.equal(
+    resolveOutputStyleLanguage({ enabled: true, autoDetect: true, defaultLanguage: "ja" }, { messages: [] }),
+    "ja"
+  );
+});
+
+test("resolveOutputStyleLanguage: samples array content parts for detection", () => {
+  const body = {
+    messages: [
+      { role: "user", content: [{ type: "text", text: "necesito ayuda con este archivo, gracias" }] },
+    ],
+  };
+  assert.equal(resolveOutputStyleLanguage({ enabled: true, autoDetect: true, defaultLanguage: "en" }, body), "es");
+});

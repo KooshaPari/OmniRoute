@@ -1,13 +1,13 @@
 /** db/models/compat.ts — model-compat overrides (normalizeToolCallId, per-protocol flags, upstream headers). */
 
 import { getDbInstance } from "../core";
-import { backupDbFile } from "../backup";
 import {
   MODEL_COMPAT_PROTOCOL_KEYS,
   type ModelCompatProtocolKey,
 } from "@/shared/constants/modelCompat";
 import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
 import { getKeyValue } from "./shared";
+import { finishModelCatalogWriteWithBackup } from "./modelCatalogWriteSignals";
 
 /** Built-in / alias models: tool-call + developer-role flags without a full custom row */
 const MODEL_COMPAT_NAMESPACE = "modelCompatOverrides";
@@ -17,6 +17,7 @@ export { MODEL_COMPAT_PROTOCOL_KEYS, type ModelCompatProtocolKey };
 export type ModelCompatPerProtocol = {
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
+  preserveVideoUrl?: boolean;
   /** Merged into upstream HTTP requests for this model (after default auth headers). */
   upstreamHeaders?: Record<string, string>;
 };
@@ -76,6 +77,7 @@ export function deepMergeCompatByProtocol(
     const hasDelta =
       Object.prototype.hasOwnProperty.call(deltas, "normalizeToolCallId") ||
       Object.prototype.hasOwnProperty.call(deltas, "preserveOpenAIDeveloperRole") ||
+      Object.prototype.hasOwnProperty.call(deltas, "preserveVideoUrl") ||
       Object.prototype.hasOwnProperty.call(deltas, "upstreamHeaders");
     if (!hasDelta) continue;
     const cur: ModelCompatPerProtocol = { ...(out[key] || {}) };
@@ -84,6 +86,9 @@ export function deepMergeCompatByProtocol(
     }
     if ("preserveOpenAIDeveloperRole" in deltas) {
       cur.preserveOpenAIDeveloperRole = Boolean(deltas.preserveOpenAIDeveloperRole);
+    }
+    if ("preserveVideoUrl" in deltas) {
+      cur.preserveVideoUrl = Boolean(deltas.preserveVideoUrl);
     }
     if ("upstreamHeaders" in deltas) {
       const uh = deltas.upstreamHeaders;
@@ -105,20 +110,39 @@ export type ModelCompatOverride = {
   id: string;
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
+  preserveVideoUrl?: boolean;
   compatByProtocol?: CompatByProtocolMap;
   upstreamHeaders?: Record<string, string>;
   isHidden?: boolean;
   /**
-   * #3782 — distinct "deleted" marker, separate from {@link isHidden}.
-   *
-   * `isHidden` is set by the EYE/visibility toggle and must be PRESERVED across a
-   * re-sync (the model stays listed-but-hidden). `isDeleted` is set by the trash/
-   * DELETE route and means "drop this id on every re-import" (#3199). Keeping the
-   * two flags distinct is what lets {@link replaceSyncedAvailableModelsForConnection}
-   * preserve eye-hidden models while still dropping deleted ones.
+   * #12172: per-modality visibility override, keyed by endpoint/modality id
+   * (e.g. "chat", "images", "embeddings", ...). A key present here always wins
+   * over the legacy top-level `isHidden` for that specific modality — this is
+   * what lets an operator hide a model from Chat without also suppressing an
+   * identically-ID'd model in the Image (or any other) registry. A modality
+   * with no entry here falls back to `isHidden` (the pre-#12172 "hide
+   * everywhere" behavior), so existing rows keep working unchanged.
    */
-  isDeleted?: boolean;
+  hiddenModalities?: Record<string, boolean>;
+  apiFormat?: string;
+  targetFormat?: string;
+  supportsVision?: boolean;
 };
+
+/**
+ * Resolve whether an override hides its model for a given modality.
+ * Precedence: an explicit `hiddenModalities[modality]` entry always wins;
+ * otherwise fall back to the legacy all-modalities `isHidden` flag.
+ */
+export function isOverrideHiddenForModality(
+  override: Pick<ModelCompatOverride, "isHidden" | "hiddenModalities"> | null | undefined,
+  modality: string
+): boolean {
+  if (!override) return false;
+  const scoped = override.hiddenModalities?.[modality];
+  if (scoped !== undefined) return Boolean(scoped);
+  return Boolean(override.isHidden);
+}
 
 export function readCompatList(providerId: string): ModelCompatOverride[] {
   const db = getDbInstance();
@@ -128,8 +152,16 @@ export function readCompatList(providerId: string): ModelCompatOverride[] {
   const value = getKeyValue(row).value;
   if (!value) return [];
   try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed : [];
+    const parsed: unknown = JSON.parse(value);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.flatMap((raw): ModelCompatOverride[] => {
+      if (!raw || typeof raw !== "object") return [];
+      // Old releases persisted an `isDeleted` tombstone alongside `isHidden`.
+      // Ignore that retired state while preserving the visibility choice.
+      const entry = { ...(raw as Record<string, unknown>) };
+      delete entry.isDeleted;
+      return typeof entry.id === "string" ? [entry as ModelCompatOverride] : [];
+    });
   } catch {
     return [];
   }
@@ -149,7 +181,7 @@ export function writeCompatList(providerId: string, list: ModelCompatOverride[])
       JSON.stringify(list)
     );
   }
-  backupDbFile("pre-write");
+  finishModelCatalogWriteWithBackup();
 }
 
 export function getModelCompatOverrides(providerId: string): ModelCompatOverride[] {
@@ -159,12 +191,21 @@ export function getModelCompatOverrides(providerId: string): ModelCompatOverride
 export type ModelCompatPatch = {
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean | null;
+  preserveVideoUrl?: boolean | null;
   compatByProtocol?: CompatByProtocolMap;
   /** Replace top-level extra headers for override-only rows; omit to leave unchanged. */
   upstreamHeaders?: Record<string, string> | null;
   isHidden?: boolean | null;
-  /** #3782 — distinct delete marker; set by the DELETE route, never by the eye toggle. */
-  isDeleted?: boolean | null;
+  /**
+   * #12172: when set alongside `isHidden`, scopes the write to that one
+   * modality (see {@link ModelCompatOverride.hiddenModalities}) instead of
+   * the legacy all-modalities flag. `isHidden: null` with a `modality` clears
+   * just that modality's override (reverting it to inherit the legacy flag).
+   */
+  modality?: string | null;
+  apiFormat?: string | null;
+  targetFormat?: string | null;
+  supportsVision?: boolean | null;
 };
 
 export function compatByProtocolHasEntries(map: CompatByProtocolMap | undefined): boolean {
@@ -195,6 +236,13 @@ export function mergeModelCompatOverride(
       next.preserveOpenAIDeveloperRole = Boolean(patch.preserveOpenAIDeveloperRole);
     }
   }
+  if ("preserveVideoUrl" in patch) {
+    if (patch.preserveVideoUrl === null) {
+      delete next.preserveVideoUrl;
+    } else {
+      next.preserveVideoUrl = Boolean(patch.preserveVideoUrl);
+    }
+  }
   if (patch.compatByProtocol && Object.keys(patch.compatByProtocol).length > 0) {
     const merged = deepMergeCompatByProtocol(next.compatByProtocol, patch.compatByProtocol);
     if (compatByProtocolHasEntries(merged)) next.compatByProtocol = merged;
@@ -211,28 +259,60 @@ export function mergeModelCompatOverride(
   }
   const filtered = list.filter((e) => e.id !== modelId);
   const hasPreserveFlag = Object.prototype.hasOwnProperty.call(next, "preserveOpenAIDeveloperRole");
+  const hasVideoUrlFlag = Object.prototype.hasOwnProperty.call(next, "preserveVideoUrl");
   const hasTopUpstream = next.upstreamHeaders && Object.keys(next.upstreamHeaders).length > 0;
   if ("isHidden" in patch) {
-    if (patch.isHidden === null) {
+    const modality = typeof patch.modality === "string" && patch.modality ? patch.modality : null;
+    if (modality) {
+      const hiddenModalities = { ...(next.hiddenModalities || {}) };
+      if (patch.isHidden === null) {
+        delete hiddenModalities[modality];
+      } else {
+        hiddenModalities[modality] = Boolean(patch.isHidden);
+      }
+      if (Object.keys(hiddenModalities).length > 0) next.hiddenModalities = hiddenModalities;
+      else delete next.hiddenModalities;
+    } else if (patch.isHidden === null) {
       delete next.isHidden;
     } else {
       next.isHidden = Boolean(patch.isHidden);
     }
   }
-  if ("isDeleted" in patch) {
-    if (patch.isDeleted === null || patch.isDeleted === false) {
-      delete next.isDeleted;
+  if ("apiFormat" in patch) {
+    if (!patch.apiFormat) {
+      delete next.apiFormat;
     } else {
-      next.isDeleted = Boolean(patch.isDeleted);
+      next.apiFormat = patch.apiFormat;
     }
   }
-  const hasHiddenFlag = Object.prototype.hasOwnProperty.call(next, "isHidden");
-  const hasDeletedFlag = Object.prototype.hasOwnProperty.call(next, "isDeleted");
+  if ("targetFormat" in patch) {
+    if (!patch.targetFormat) {
+      delete next.targetFormat;
+    } else {
+      next.targetFormat = patch.targetFormat;
+    }
+  }
+  if ("supportsVision" in patch) {
+    if (patch.supportsVision === null) {
+      delete next.supportsVision;
+    } else {
+      next.supportsVision = Boolean(patch.supportsVision);
+    }
+  }
+  const hasHiddenFlag =
+    Object.prototype.hasOwnProperty.call(next, "isHidden") ||
+    (!!next.hiddenModalities && Object.keys(next.hiddenModalities).length > 0);
+  const hasApiFormat = Object.prototype.hasOwnProperty.call(next, "apiFormat");
+  const hasTargetFormat = Object.prototype.hasOwnProperty.call(next, "targetFormat");
+  const hasVisionFlag = Object.prototype.hasOwnProperty.call(next, "supportsVision");
   if (
     next.normalizeToolCallId ||
     hasPreserveFlag ||
+    hasVideoUrlFlag ||
     hasHiddenFlag ||
-    hasDeletedFlag ||
+    hasApiFormat ||
+    hasTargetFormat ||
+    hasVisionFlag ||
     compatByProtocolHasEntries(next.compatByProtocol) ||
     hasTopUpstream
   ) {

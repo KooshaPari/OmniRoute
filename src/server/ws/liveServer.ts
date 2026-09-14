@@ -11,15 +11,16 @@
  *   Server → Client: { type: "pong" }
  *   Server → Client: { type: "welcome", version, sessionId, channels, backlog }
  *   Server → Client: { type: "error", code, message }
+ *
+ * Liveness: besides the application ping/pong above, the server sends a protocol-level
+ * ping (RFC 6455 §5.5.2) each HEARTBEAT_INTERVAL_MS. Conformant clients answer it with a
+ * pong control frame automatically, so a quiet-but-alive subscriber survives.
  */
 
 import { WebSocketServer, WebSocket } from "ws";
-import { jwtVerify } from "jose";
 import { createServer, type IncomingMessage, type ServerResponse } from "http";
 import { randomUUID } from "crypto";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("ws:live-server");
+import { verifyDashboardSessionToken } from "@/shared/utils/dashboardSessionToken";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -31,6 +32,12 @@ import type { DashboardEventName, DashboardEventMap, DashboardChannel } from "@/
 
 import { CHANNEL_EVENTS, getChannelForEvent } from "@/lib/events/types";
 import { isAutomatedTestProcess, isBuildProcess } from "@/shared/utils/testProcess";
+import { warnIfNonLoopbackWithoutApiKey } from "@/lib/startup/nonLoopbackApiKeyGuard";
+
+import {
+  attachRequestStreamGuards,
+  installProcessCrashGuard,
+} from "@/shared/utils/httpClientAbortGuard.mjs";
 
 import {
   buildAllowedOrigins,
@@ -184,22 +191,7 @@ async function isDashboardCookieAuthenticated(
 ): Promise<boolean> {
   const token = getCookieValueFromHeader(request.headers, "auth_token");
   if (!token || !process.env.JWT_SECRET) return false;
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    await jwtVerify(token, secret);
-    return true;
-  } catch (err) {
-    // SECURITY: log the JWT verification failure so forged tokens are
-    // visible in audit logs. Live dashboard WS connections with invalid
-    // tokens are immediately rejected — but operators need to know if
-    // this fires repeatedly (attack probing) vs occasionally
-    // (misconfigured client).
-    log.debug(
-      { err: (err as Error)?.message },
-      "server.ws.liveServer: JWT verification failed",
-    );
-    return false;
-  }
+  return (await verifyDashboardSessionToken(token)) !== null;
 }
 
 function extractBearerToken(request: import("http").IncomingMessage): string | null {
@@ -412,14 +404,14 @@ async function seedLatestCompressionRunFromDb(): Promise<void> {
       },
       timestamp
     );
-    log.info(
-      { id: row.request_id || row.id },
-      "liveServer: seeded latest compression run from analytics"
+    console.log(
+      "[LiveWS] Seeded latest compression run from analytics: %s",
+      row.request_id || row.id
     );
   } catch (err) {
-    log.warn(
-      { err: err instanceof Error ? err.message : String(err) },
-      "liveServer: could not seed compression analytics backlog"
+    console.warn(
+      "[LiveWS] Could not seed compression analytics backlog: %s",
+      err instanceof Error ? err.message : String(err)
     );
   }
 }
@@ -440,8 +432,13 @@ function startHeartbeat(server: WebSocketServer): void {
         clients.delete(clientId);
         continue;
       }
-      // Send ping
+      // Send the application-level heartbeat response for clients that still rely on it.
       sendTo(client.ws, { type: "pong" } as WsServerMessage);
+      // Protocol-level ping: the client's automatic pong reply is what keeps a
+      // silent-but-alive subscriber alive, while a half-open socket stays silent and is
+      // still reaped. Nothing here refreshes lastActivity — only a received pong does,
+      // so #10452 holds.
+      client.ws.ping();
     }
   }, HEARTBEAT_INTERVAL_MS);
   // Don't keep the process alive solely for the heartbeat (it is also cleared on close).
@@ -463,6 +460,11 @@ export async function startLiveDashboardServer(
   port = DEFAULT_PORT,
   host = DEFAULT_HOST
 ): Promise<import("http").Server> {
+  // Safety net: a client aborting a connection can emit `Error: aborted`/
+  // ECONNRESET on the request stream; without this the single missed listener
+  // becomes an uncaughtException that kills the server. Benign aborts are
+  // swallowed; genuine errors still crash loudly (#fix-dev-server-aborted).
+  installProcessCrashGuard();
   if (!process.env.JWT_SECRET) {
     console.warn(
       "  \x1b[33m⚠ Warning: JWT_SECRET is not set in the environment.\x1b[0m\n" +
@@ -472,6 +474,10 @@ export async function startLiveDashboardServer(
   }
 
   const server = createServer((req, res) => {
+    // Absorb client-abort errors (browser closes the socket during navigation/
+    // HMR/bfcache) on the request/response streams so they never surface as an
+    // uncaughtException that kills the server (#fix-dev-server-aborted).
+    attachRequestStreamGuards(req, res);
     handleInternalEventRequest(req, res);
   });
   const wss = new WebSocketServer({ server });
@@ -484,12 +490,7 @@ export async function startLiveDashboardServer(
   // does not block the event loop on a cold import — which would starve concurrent
   // WebSocket handshakes (see loadAuthModule). A failed warm is non-fatal: the
   // handler retries the import lazily.
-  await loadAuthModule().catch((err) =>
-    log.error(
-      { err },
-      "liveServer: failed to warm auth module — clients may experience cold-import latency"
-    )
-  );
+  await loadAuthModule().catch(() => {});
 
   wss.on("connection", async (ws, request) => {
     const pendingMessages: string[] = [];
@@ -559,9 +560,11 @@ export async function startLiveDashboardServer(
     // Constant format string + %s args — keeps clientId / remoteAddress out
     // of the format slot so a malicious value cannot forge log lines via
     // injected format specifiers (CWE-134).
-    log.info(
-      { clientId, remoteAddress: client.remoteAddress, total: clients.size },
-      "liveServer: client connected"
+    console.log(
+      "[LiveWS] Client connected: %s (%s) [%d total]",
+      clientId,
+      client.remoteAddress,
+      clients.size
     );
 
     // Replay any subscribe/ping frames sent while auth was still pending.
@@ -572,13 +575,20 @@ export async function startLiveDashboardServer(
     // Handle close
     ws.on("close", () => {
       clients.delete(clientId);
-      log.info({ clientId, remaining: clients.size }, "liveServer: client disconnected");
+      console.log("[LiveWS] Client disconnected: %s [%d remaining]", clientId, clients.size);
     });
 
     // Handle errors
     ws.on("error", (err) => {
-      log.error({ clientId, err: err.message }, "liveServer: client error");
+      console.error("[LiveWS] Client error %s: %s", clientId, err.message);
       clients.delete(clientId);
+    });
+
+    // A control-frame pong (RFC 6455 §5.5.3) from the client is the only signal that
+    // proves the socket is not half-open (see startHeartbeat).
+    ws.on("pong", () => {
+      const current = clients.get(clientId);
+      if (current) current.lastActivity = Date.now();
     });
   });
 
@@ -623,9 +633,7 @@ export async function startLiveDashboardServer(
 // Build/test environments never auto-start regardless of the flag.
 
 function isBuildOrTest(): boolean {
-  return (
-    isBuildProcess() || isAutomatedTestProcess()
-  );
+  return isBuildProcess() || isAutomatedTestProcess();
 }
 
 export function isLiveWsEnabled(): boolean {
@@ -637,7 +645,8 @@ export function isLiveWsEnabled(): boolean {
 if (!isBuildOrTest() && isLiveWsEnabled()) {
   const port = parseInt(process.env.LIVE_WS_PORT || String(DEFAULT_PORT), 10);
   const host = process.env.LIVE_WS_HOST || DEFAULT_HOST;
+  warnIfNonLoopbackWithoutApiKey("Live dashboard WebSocket", host);
   startLiveDashboardServer(port, host).catch((err) => {
-    log.error({ err: err instanceof Error ? err.message : String(err) }, "liveServer: failed to start");
+    console.error("[LiveWS] Failed to start: %s", err instanceof Error ? err.message : String(err));
   });
 }

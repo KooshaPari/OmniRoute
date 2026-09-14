@@ -35,6 +35,7 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
   ],
   antigravity: () => ANTIGRAVITY_PUBLIC_MODELS.map((model) => ({ ...model })),
   claude: () => [
+    { id: "claude-fable-5-1", name: "Claude Fable 5.1" },
     { id: "claude-fable-5", name: "Claude Fable 5" },
     { id: "claude-opus-5", name: "Claude Opus 5" },
     { id: "claude-opus-4-8", name: "Claude Opus 4.8" },
@@ -60,6 +61,11 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
       id: model.id,
       name: model.name || model.id,
     })),
+  oneminai: () =>
+    getModelsByProviderId("oneminai").map((model) => ({
+      id: model.id,
+      name: model.name || model.id,
+    })),
   qoder: () => getStaticQoderModels(),
   // Non-LLM providers with no /v1/models endpoint — expose their selectable
   // capability ids as a static catalog so the model-import step shows a usable
@@ -67,6 +73,19 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
   jules: () => [
     // Google Labs async coding agent — single async session, no model selection.
     { id: "jules", name: "Jules (Google Labs coding agent)" },
+  ],
+  devin: () => [
+    // Cognition's Devin cloud-agent sessions don't expose per-request model
+    // selection like devin-cli's ACP models do — single non-selectable placeholder
+    // so the "Available Models" UI shows something instead of a hard failure (#6142).
+    { id: "devin", name: "Devin (Cognition cloud agent)" },
+  ],
+  "amazon-q": () => [
+    // Amazon Q Developer shares KiroExecutor + OAuth wiring with kiro but has no
+    // discovery config or registry catalog of its own — single non-selectable
+    // placeholder so the "Available Models" UI shows something instead of the
+    // hard "does not support models listing" failure (#7820).
+    { id: "amazon-q", name: "Amazon Q Developer" },
   ],
   "linkup-search": () => [
     // Linkup web search — the "model" is the search depth (docs.linkup.so #5571).
@@ -86,11 +105,31 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "google_scholar", name: "Google Scholar" },
     { id: "duckduckgo", name: "DuckDuckGo" },
   ],
+  "v0-vercel-web": () => [
+    // v0-vercel-web web-cookie codegen provider — no upstream /v1/models endpoint,
+    // no registry `models` and no discovery config, so seed the current v0 lineup
+    // as a static catalog mirroring the v0-vercel API provider (shared.ts) so the
+    // model-import UI serves a list instead of the tail 400 (#10990).
+    { id: "v0-1.0-md", name: "V0 1.0 MD" },
+    { id: "v0-1.5-lg", name: "V0 1.5 LG" },
+    { id: "v0-1.5-md", name: "V0 1.5 MD" },
+  ],
+  "venice-web": () => [
+    // Venice.ai web-cookie provider — no upstream /v1/models endpoint, so seed the
+    // current lineup as a static catalog (#6269). Venice rotates its catalog; keep
+    // in step with the published list at https://docs.venice.ai/models/overview.
+    { id: "venice-uncensored", name: "Venice Uncensored" },
+    { id: "llama-3.3-70b", name: "Llama 3.3 70B" },
+    { id: "qwen3-235b", name: "Qwen3 235B" },
+    { id: "qwen3-4b", name: "Qwen3 4B" },
+    { id: "deepseek-r1-671b", name: "DeepSeek R1 671B" },
+  ],
 };
 
 const SEARCH_TYPE_LABELS: Record<string, string> = {
   web: "Web Search",
   news: "News Search",
+  x: "X Search",
 };
 
 function formatSearchTypeLabel(searchType: string): string {
@@ -188,7 +227,7 @@ export function getStaticModelsForProvider(provider: string): LocalCatalogModel[
   if (speechProvider) {
     appendModels(speechProvider.models, {
       apiFormat: "audio",
-      supportedEndpoints: ["audio"],
+      supportedEndpoints: ["audio-speech"],
     });
   }
 
@@ -196,7 +235,7 @@ export function getStaticModelsForProvider(provider: string): LocalCatalogModel[
   if (transcriptionProvider) {
     appendModels(transcriptionProvider.models, {
       apiFormat: "audio",
-      supportedEndpoints: ["audio"],
+      supportedEndpoints: ["audio-transcriptions"],
     });
   }
 

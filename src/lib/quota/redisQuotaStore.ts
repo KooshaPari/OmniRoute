@@ -16,10 +16,7 @@
  * Part of: Group B — Quota Sharing Engine (plan 22, frente F6).
  */
 
-import {
-  getPool,
-  listAllocationsForApiKey,
-} from "@/lib/localDb";
+import { getPool, listAllocationsForApiKey } from "@/lib/db/quotaPools";
 import { WINDOW_MS, dimensionKeyToString } from "./dimensions";
 import type { DimensionKey } from "./dimensions";
 import type { QuotaStore, PoolUsageSnapshot } from "./types";
@@ -72,7 +69,7 @@ export function resetRedisClient(): void {
 // Key helpers
 // ---------------------------------------------------------------------------
 
-const KEY_PREFIX = "omniroute:quota";
+const KEY_PREFIX = `${process.env.REDIS_KEY_PREFIX?.trim() || "omniroute:"}quota`;
 
 function bucketKey(apiKeyId: string, dimensionKey: string, bucketIndex: number): string {
   return `${KEY_PREFIX}:${apiKeyId}:${dimensionKey}:${bucketIndex}`;

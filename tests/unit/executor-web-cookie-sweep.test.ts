@@ -44,7 +44,6 @@ const NOAUTH_IDS = Object.keys(NOAUTH_PROVIDERS) as NoauthId[];
  * not to actually authenticate.
  */
 const FAKE_CREDS: Record<string, string> = {
-  "chatgpt-web": "__Secure-next-auth.session-token=fake-audit-sweep",
   "grok-web": "sso=fake-audit-sweep",
   "gemini-web": "__Secure-1PSID=fake-audit-sweep",
   "perplexity-web": "__Secure-next-auth.session-token=fake-audit-sweep",
@@ -62,7 +61,6 @@ const FAKE_CREDS: Record<string, string> = {
   "v0-vercel-web": "fake-audit-sweep",
   "kimi-web": "fake-audit-sweep",
   "doubao-web": "sessionid=fake-audit-sweep; ttwid=fake-audit-sweep; s_v_web_id=verify_fake",
-  "qwen-web": "fake-audit-sweep",
   "duckduckgo-web": "",
   "veoaifree-web": "",
 };
@@ -119,7 +117,7 @@ describe("web-cookie + noauth executor wrapper contract sweep", () => {
   describe("WEB_COOKIE_PROVIDERS (26)", () => {
     for (const providerId of WEB_COOKIE_IDS) {
       it(`${providerId} executor returns wrapper shape`, async () => {
-        const executor = getExecutor(providerId);
+        const executor = await getExecutor(providerId);
         assert.ok(executor, `[${providerId}] getExecutor must return an executor`);
 
         const result = await executor.execute({
@@ -160,7 +158,7 @@ describe("web-cookie + noauth executor wrapper contract sweep", () => {
 
     for (const providerId of TARGETS) {
       it(`${providerId} noauth executor returns wrapper shape`, async () => {
-        const executor = getExecutor(providerId);
+        const executor = await getExecutor(providerId);
         assert.ok(executor, `[${providerId}] getExecutor must return an executor`);
 
         // Use a pre-aborted signal so the executor short-circuits via

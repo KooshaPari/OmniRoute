@@ -3,12 +3,18 @@ import assert from "node:assert/strict";
 
 import { IMAGE_PROVIDERS, parseImageModel } from "../../open-sse/config/imageRegistry.ts";
 
-test("ChatGPT Web image catalog exposes GPT-5.5 Instant instead of GPT-5.3 Instant", () => {
-  assert.deepEqual(IMAGE_PROVIDERS["chatgpt-web"].models, [
-    { id: "gpt-5.5", name: "GPT-5.5 Instant (ChatGPT Web Image)" },
-  ]);
+test("text-only ChatGPT Web and its retired alias stay absent from the image catalog", () => {
+  assert.equal(IMAGE_PROVIDERS["chatgpt-web"], undefined);
+  assert.deepEqual(parseImageModel("chatgpt-web/gpt-5-5-thinking"), {
+    provider: null,
+    model: "chatgpt-web/gpt-5-5-thinking",
+  });
   assert.deepEqual(parseImageModel("cgpt-web/gpt-5.5"), {
-    provider: "chatgpt-web",
+    provider: null,
+    model: "cgpt-web/gpt-5.5",
+  });
+  assert.deepEqual(parseImageModel("gpt-5.5"), {
+    provider: null,
     model: "gpt-5.5",
   });
 });

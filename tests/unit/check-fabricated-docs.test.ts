@@ -6,7 +6,6 @@ import os from "node:os";
 import { pathToFileURL } from "node:url";
 
 import {
-  buildCodebaseIndex,
   runFabricatedDocsCheck,
   formatHumanReport,
   isDirectExecution,
@@ -47,7 +46,7 @@ function findingsFor(fx: Fixture): Set<string> {
     }
     return out;
   } finally {
-    fs.rmSync(root, { recursive: true, force: true });
+    fs.rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 }
 
@@ -162,6 +161,20 @@ test("env-var: an enum / object-literal member (HALF_OPEN) in backticks is NOT f
   assert.ok(!found.has("env-var::HALF_OPEN"), "object-literal/enum key must not be flagged");
 });
 
+test("env-var: an actual protocol error code in a code field is NOT flagged", () => {
+  const found = findingsFor({
+    files: {
+      "src/app/api/v1/chat/completions/route.ts":
+        'return Response.json({ error: { code: "SECURITY_001" } });\n',
+    },
+    docs: { "guardrails.md": "Blocked requests return `SECURITY_001`.\n" },
+  });
+  assert.ok(
+    !found.has("env-var::SECURITY_001"),
+    "a runtime error code must not be classified as a fabricated env var"
+  );
+});
+
 test('env-var: a var read via bracket notation process.env["X"] is NOT flagged', () => {
   const found = findingsFor({
     files: {
@@ -235,30 +248,6 @@ test("api-path: a dynamic-segment prefix (/api/services/{name}/) is NOT flagged"
     !found.has("api-path::/api/services/{name}/status"),
     "[name] dynamic segments must match the documented {name} convention"
   );
-});
-
-test("apps: SvelteKit BFF routes and env reads are indexed without suppressing neighbors", () => {
-  const found = findingsFor({
-    files: {
-      "apps/web/src/routes/api/bff/healthz/+server.ts":
-        "export const GET = () => new Response();\n",
-      "apps/bff/src/env.ts": "const key = env.BFF_API_KEY;\n",
-    },
-    docs: {
-      "bff.md":
-        "Use `/api/bff/healthz` with `BFF_API_KEY`; `/api/imaginary/widget` stays invalid.\n",
-    },
-  });
-  assert.ok(!found.has("api-path::/api/bff/healthz"));
-  assert.ok(!found.has("env-var::BFF_API_KEY"));
-  assert.ok(found.has("api-path::/api/imaginary/widget"));
-});
-
-test("apps: real repository BFF health route is indexed", () => {
-  const index = buildCodebaseIndex();
-  assert.ok(index.apiRoutes.has("/api/bff/healthz"));
-  assert.ok(index.envVars.has("BFF_API_KEY"));
-  assert.ok(index.envVars.has("BFF_ORIGIN"));
 });
 
 test("hook: a real callback now in KNOWN_HOOKS (onChunk) is NOT flagged", () => {

@@ -41,8 +41,10 @@ test("each skill dir has SKILL.md with frontmatter", async () => {
     }
     // Skills `omni-*` são GERADOS por src/lib/agentSkills/generator.ts (alguns em
     // estado "no endpoints mapped yet", sem refs de uso) — o invariante de uso vale
-    // só para os manifests manuscritos (cli-* e config-*).
-    if (!dir.startsWith("omni-")) {
+    // só para os manifests manuscritos (cli-* e config-*). `ponytail` é a entrada
+    // `external` do catálogo (#9058, conteúdo MIT de terceiro) — não descreve uso
+    // do OmniRoute, então também fica fora do invariante.
+    if (!dir.startsWith("omni-") && dir !== "ponytail") {
       assert.ok(
         content.includes("OMNIROUTE_") || content.includes("omniroute "),
         `${dir}: missing usage references (OMNIROUTE_* env vars or omniroute CLI commands)`

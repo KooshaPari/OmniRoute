@@ -18,16 +18,56 @@ import { accessScheduleSchema } from "./misc.ts";
 
 // ──── API Key Schemas ────
 
-export const createKeySchema = z.object({
-  name: z.string().min(1, "Name is required").max(200),
-  noLog: z.boolean().optional(),
-  allowUsageCommand: z.boolean().optional(),
-  usageLimitEnabled: z.boolean().optional(),
-  dailyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
-  weeklyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
-  chaosModeEnabled: z.boolean().optional(),
-  scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
-});
+const requireExclusiveLeaseConnections = (
+  value: {
+    scopes?: string[];
+    allowedConnections?: string[];
+  },
+  ctx: z.RefinementCtx
+) => {
+  if (value.scopes?.includes("lease:exclusive") && !value.allowedConnections?.length)
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "lease:exclusive requires explicit allowedConnections",
+      path: ["allowedConnections"],
+    });
+};
+
+const requireConsistentModelAccess = (
+  value: {
+    modelAccessMode?: "all" | "restricted";
+    allowedModels?: string[];
+  },
+  ctx: z.RefinementCtx
+) => {
+  if (value.modelAccessMode === "all" && value.allowedModels && value.allowedModels.length > 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "allowedModels must be empty when modelAccessMode is 'all'",
+      path: ["allowedModels"],
+    });
+  }
+};
+
+export const createKeySchema = z
+  .object({
+    name: z.string().min(1, "Name is required").max(200),
+    modelAccessMode: z.enum(["all", "restricted"]).optional(),
+    allowedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
+    allowedCombos: z.array(z.string().trim().min(1).max(200)).max(500).optional(),
+    noLog: z.boolean().optional(),
+    allowUsageCommand: z.boolean().optional(),
+    usageLimitEnabled: z.boolean().optional(),
+    dailyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
+    weeklyUsageLimitUsd: z.coerce.number().min(0).optional().nullable(),
+    chaosModeEnabled: z.boolean().optional(),
+    scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
+    allowedConnections: z.array(z.string().uuid()).min(1).max(100).optional(),
+  })
+  .superRefine((value, ctx) => {
+    requireConsistentModelAccess(value, ctx);
+    requireExclusiveLeaseConnections(value, ctx);
+  });
 
 export const createSyncTokenSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(200),
@@ -82,6 +122,8 @@ export const setTokenLimitSchema = z
 export const updateKeyPermissionsSchema = z
   .object({
     name: z.string().trim().min(1).max(200).optional(),
+    modelAccessMode: z.enum(["all", "restricted"]).optional(),
+    connectionAccessMode: z.enum(["all", "restricted"]).optional(),
     allowedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
     allowedCombos: z.array(z.string().trim().min(1).max(200)).max(500).optional(),
     allowedConnections: z.array(z.string().uuid()).max(100).optional(),
@@ -106,6 +148,8 @@ export const updateKeyPermissionsSchema = z
     scopes: z.array(z.string().trim().min(1).max(64)).max(32).optional(),
     allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
     streamDefaultMode: z.enum(["legacy", "json"]).optional(),
+    compressionEnabled: z.boolean().optional(),
+    cacheDefaultMode: z.enum(["legacy", "bypass"]).optional(),
     disableNonPublicModels: z.boolean().optional(),
     allowUsageCommand: z.boolean().optional(),
     usageLimitEnabled: z.boolean().optional(),
@@ -114,8 +158,38 @@ export const updateKeyPermissionsSchema = z
     chaosModeEnabled: z.boolean().optional(),
   })
   .superRefine((value, ctx) => {
+    if (value.modelAccessMode === "all" && value.allowedModels && value.allowedModels.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "allowedModels must be empty when modelAccessMode is 'all'",
+        path: ["allowedModels"],
+      });
+    }
+    if (
+      value.connectionAccessMode === "restricted" &&
+      (!value.allowedConnections || value.allowedConnections.length === 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "allowedConnections must not be empty when connectionAccessMode is 'restricted'",
+        path: ["allowedConnections"],
+      });
+    }
+    if (
+      value.connectionAccessMode === "all" &&
+      value.allowedConnections &&
+      value.allowedConnections.length > 0
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "allowedConnections must be empty when connectionAccessMode is 'all'",
+        path: ["allowedConnections"],
+      });
+    }
     if (
       value.name === undefined &&
+      value.modelAccessMode === undefined &&
+      value.connectionAccessMode === undefined &&
       value.allowedModels === undefined &&
       value.allowedCombos === undefined &&
       value.allowedConnections === undefined &&
@@ -131,6 +205,8 @@ export const updateKeyPermissionsSchema = z
       value.scopes === undefined &&
       value.allowedEndpoints === undefined &&
       value.streamDefaultMode === undefined &&
+      value.compressionEnabled === undefined &&
+      value.cacheDefaultMode === undefined &&
       value.disableNonPublicModels === undefined &&
       value.allowUsageCommand === undefined &&
       value.usageLimitEnabled === undefined &&
@@ -143,5 +219,8 @@ export const updateKeyPermissionsSchema = z
         message: "No valid fields to update",
         path: [],
       });
+    }
+    if (value.scopes !== undefined && value.allowedConnections !== undefined) {
+      requireExclusiveLeaseConnections(value, ctx);
     }
   });

@@ -37,7 +37,7 @@ const obsidianDb = await import("../../src/lib/db/obsidian.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -53,7 +53,7 @@ test.beforeEach(async () => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 
   if (ORIGINAL_DATA_DIR === undefined) {
     delete process.env.DATA_DIR;
@@ -103,8 +103,14 @@ test("POST with a valid temp dir → returns { username, password }, GET shows e
 
     assert.equal(res.status, 200);
     const body = (await res.json()) as Record<string, unknown>;
-    assert.ok(typeof body.username === "string" && (body.username as string).length > 0, "username non-empty");
-    assert.ok(typeof body.password === "string" && (body.password as string).length > 0, "password non-empty");
+    assert.ok(
+      typeof body.username === "string" && (body.username as string).length > 0,
+      "username non-empty"
+    );
+    assert.ok(
+      typeof body.password === "string" && (body.password as string).length > 0,
+      "password non-empty"
+    );
     assert.ok(typeof body.vaultPath === "string", "vaultPath returned");
 
     // GET should now reflect enabled state
@@ -113,10 +119,55 @@ test("POST with a valid temp dir → returns { username, password }, GET shows e
     assert.equal(getRes.status, 200);
     const getBody = (await getRes.json()) as Record<string, unknown>;
     assert.equal(getBody.webdavEnabled, true);
-    assert.ok(typeof getBody.webdavUsername === "string" && (getBody.webdavUsername as string).length > 0);
-    assert.ok(typeof getBody.webdavPassword === "string" && (getBody.webdavPassword as string).length > 0);
+    assert.ok(
+      typeof getBody.webdavUsername === "string" && (getBody.webdavUsername as string).length > 0
+    );
+    // Anonymous GET (this request carries no management credential): the plaintext
+    // password is masked (GHSA-62vw), but the set/unset flag still reflects state.
+    assert.equal(getBody.webdavPassword, null);
+    assert.equal(getBody.webdavPasswordSet, true);
   } finally {
-    fs.rmSync(vaultDir, { recursive: true, force: true });
+    fs.rmSync(vaultDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
+test("GET masks the WebDAV password for anonymous callers but reveals it to a management session (GHSA-62vw)", async () => {
+  const vaultDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-vault-62vw-"));
+  try {
+    // Enable WebDAV so there is a stored password to leak.
+    const enableRes = await route.POST(
+      makeRequest("http://localhost/api/settings/obsidian/webdav", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ vaultPath: vaultDir }),
+      })
+    );
+    assert.equal(enableRes.status, 200);
+
+    // Anonymous (open-mode) caller: password masked, flag still set.
+    const anonBody = (await (
+      await route.GET(makeRequest("http://localhost/api/settings/obsidian/webdav"))
+    ).json()) as Record<string, unknown>;
+    assert.equal(anonBody.webdavEnabled, true);
+    assert.equal(
+      anonBody.webdavPassword,
+      null,
+      "anonymous caller must not receive the plaintext password"
+    );
+    assert.equal(anonBody.webdavPasswordSet, true);
+
+    // Genuine management session: the operator's reveal-password view still works.
+    const sessionReq = (await makeManagementSessionRequest(
+      "http://localhost/api/settings/obsidian/webdav"
+    )) as unknown as NextRequest;
+    const sessionBody = (await (await route.GET(sessionReq)).json()) as Record<string, unknown>;
+    assert.ok(
+      typeof sessionBody.webdavPassword === "string" &&
+        (sessionBody.webdavPassword as string).length > 0,
+      "a management session must still receive the plaintext password"
+    );
+  } finally {
+    fs.rmSync(vaultDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -131,7 +182,8 @@ test("POST with a non-existent path → 400, body does NOT contain a stack trace
 
   assert.equal(res.status, 400);
   const body = (await res.json()) as Record<string, unknown>;
-  const errorMsg = (body.error as Record<string, unknown> | undefined)?.message as string | undefined;
+  const errorMsg = (body.error as Record<string, unknown> | undefined)?.message as
+    string | undefined;
   // Must not leak stack trace
   assert.ok(
     !errorMsg || !errorMsg.includes("at /"),
@@ -178,7 +230,7 @@ test("DELETE after enable → webdavEnabled:false, creds cleared in GET", async 
     assert.equal(getBody.webdavUsername, null);
     assert.equal(getBody.webdavPassword, null);
   } finally {
-    fs.rmSync(vaultDir, { recursive: true, force: true });
+    fs.rmSync(vaultDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -204,7 +256,7 @@ test("GET when disabled does not leak password even if stale data exists", async
     assert.equal(getBody.webdavEnabled, false);
     assert.equal(getBody.webdavPassword, null);
   } finally {
-    fs.rmSync(vaultDir, { recursive: true, force: true });
+    fs.rmSync(vaultDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -233,7 +285,7 @@ test("Unauthenticated POST → 401 when auth is required", async () => {
     const res = await route.POST(req);
     assert.equal(res.status, 401);
   } finally {
-    fs.rmSync(vaultDir, { recursive: true, force: true });
+    fs.rmSync(vaultDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -297,5 +349,9 @@ test("encryption graceful fallback: plaintext stored without key reads back corr
 
   // Must read back the same value
   const retrieved = obsidianDb.getWebdavPassword();
-  assert.equal(retrieved, plaintext, "Plaintext value must read back unchanged when no encryption key");
+  assert.equal(
+    retrieved,
+    plaintext,
+    "Plaintext value must read back unchanged when no encryption key"
+  );
 });

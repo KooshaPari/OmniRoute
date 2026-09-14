@@ -11,33 +11,105 @@ import { z } from "zod";
  * provider-agnostic pair of request fields and folds them onto the fields the existing
  * mappers already read.
  *
- * Canonical effort vocabulary — the SAME five values used everywhere else in the codebase
- * (`providerSpecificData.ts` CODEX_REASONING_EFFORT_VALUES, `vscode/reasoningMetadata.ts`
- * KNOWN_REASONING_EFFORTS, `modelSpecs.ts`). We deliberately REUSE this set instead of
- * inventing a parallel Low/Medium/High/Extra/Max enum that would diverge from the rest of
- * the codebase.
+ * The provider-agnostic vocabulary is `none|low|medium|high|xhigh|max`. Provider-native
+ * additions such as Codex GPT-5.6 Ultra remain exposed separately.
  */
-export const CANONICAL_EFFORT_VALUES = ["none", "low", "medium", "high", "xhigh"] as const;
+export const CANONICAL_EFFORT_VALUES = ["none", "low", "medium", "high", "xhigh", "max"] as const;
 
 export type CanonicalEffort = (typeof CANONICAL_EFFORT_VALUES)[number];
 
+/** Use provider-native GPT-5.6 effort levels without widening the global request vocabulary. */
+export function extendCodexGpt56EffortValues(
+  provider: string | null | undefined,
+  model: string | null | undefined,
+  baseValues: readonly string[]
+): string[] {
+  const values = [...baseValues];
+  const normalizedProvider = provider?.trim().toLowerCase();
+  const normalizedModel = model
+    ?.trim()
+    .toLowerCase()
+    .replace(/^(?:codex|cx|kiro|kr)\//, "");
+  if (!normalizedModel) return values;
+
+  const match = normalizedModel.match(
+    /^gpt-5\.6-(sol|terra|luna)(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/
+  );
+  if (!match) return values;
+
+  const isKiroProvider = normalizedProvider === "kiro" || normalizedProvider === "kr";
+  if (isKiroProvider) {
+    return values.includes("max") ? values : [...values, "max"];
+  }
+
+  if (normalizedProvider !== "codex" && normalizedProvider !== "cx") return values;
+
+  const nativeValues = ["low", "medium", "high", "xhigh", "max"];
+  return match[1] === "luna" ? nativeValues : [...nativeValues, "ultra"];
+}
+
 /**
- * UI-facing tier synonyms mapped onto the canonical set. The issue (#6241) requested a
- * 5-tier UI vocabulary (Low / Medium / High / Extra / Max); that request collapses onto
- * the existing 5-value canonical set. "extra" and "max" are both synonyms for the top
- * reasoning tier and map to canonical `xhigh`. The per-provider mappers already down-shift
- * `xhigh` to `high` for models that do not support it (see
- * `open-sse/translator/request/openai-to-claude.ts`), so a caller can always request the
- * highest tier without knowing which models support `xhigh`.
+ * UI-facing tier synonyms mapped onto the canonical set. "extra" is a synonym for `xhigh`.
+ * `max` is a first-class canonical value and passes through natively.
  */
 const EFFORT_TIER_ALIASES: Record<string, CanonicalEffort> = {
   extra: "xhigh",
-  max: "xhigh",
 };
 
 /**
+ * DeepSeek V4 exposes a native `max` reasoning tier ABOVE its `high` tier.
+ *
+ * Per https://api-docs.deepseek.com/api/create-chat-completion the accepted
+ * `reasoning_effort` values are `low`, `high` and `max`, the default is `high`,
+ * and **`medium` / `xhigh` are both mapped to `high` upstream**. Canonical
+ * `max` is first-class (#11875) so `{"effort":"max"}` reaches DeepSeek's
+ * native top tier instead of collapsing onto `xhigh` → upstream `high`.
+ *
+ * Mirrors extendCodexGpt56EffortValues: keep catalog advertising of the native
+ * tier idempotent when `max` is already in the base vocabulary.
+ */
+export function extendDeepSeekEffortValues(
+  provider: string | null | undefined,
+  model: string | null | undefined,
+  baseValues: readonly string[]
+): string[] {
+  const values = [...baseValues];
+  if (!isDeepSeekNativeMaxModel(provider, model)) return values;
+  return values.includes("max") ? values : [...values, "max"];
+}
+
+/**
+ * Whether `<provider>/<model>` is a DeepSeek V4 model served by the native
+ * DeepSeek provider (registry id `deepseek`, alias `ds`).
+ *
+ * Deliberately scoped to the native provider: routed namespaces such as
+ * `openrouter/deepseek/...` or `oc/deepseek-v4-flash-free` terminate at a different
+ * upstream whose accepted effort vocabulary we do not control.
+ */
+export function isDeepSeekNativeMaxModel(
+  provider: string | null | undefined,
+  model: string | null | undefined
+): boolean {
+  const rawModel = model?.trim().toLowerCase();
+  if (!rawModel) return false;
+
+  // The provider is not always resolved yet at the point the canonical request
+  // params are folded in (see chat.ts), so accept either an explicit provider or
+  // a `<prefix>/<model>` id carrying the native DeepSeek prefix.
+  const prefixMatch = rawModel.match(/^(deepseek|ds)\//);
+  const normalizedProvider = provider?.trim().toLowerCase() || prefixMatch?.[1];
+  if (normalizedProvider !== "deepseek" && normalizedProvider !== "ds") return false;
+
+  const normalizedModel = rawModel.replace(/^(?:deepseek|ds)\//, "");
+  if (!normalizedModel) return false;
+  return /^deepseek-v4-(?:pro|flash)(?:-(?:none|minimal|low|medium|high|xhigh|max))?$/.test(
+    normalizedModel
+  );
+}
+
+/**
  * Normalize an arbitrary effort value onto the canonical vocabulary. Accepts the canonical
- * values plus the UI tier synonyms (`extra`/`max` → `xhigh`), case-insensitively. Returns
+ * values plus the UI tier synonym (`extra` → `xhigh`), case-insensitively. Returns
  * `undefined` for anything unrecognized so callers can leave the request untouched.
  */
 export function normalizeEffort(value: unknown): CanonicalEffort | undefined {
@@ -72,6 +144,11 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/** Read a request body's `model` field when it is a usable string. */
+function asModelId(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value : undefined;
+}
+
 /**
  * Fold the canonical `effort` / `thinking` request params onto the per-provider reasoning
  * fields the existing translators already consume (`reasoning_effort`, `reasoning.effort`,
@@ -84,10 +161,17 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  *  - An explicit object-shaped `thinking` (the Anthropic `{ type, budget_tokens }` config)
  *    is never overwritten by the canonical boolean `thinking`.
  */
-export function normalizeReasoningRequest<T>(body: T): T {
+export function normalizeReasoningRequest<T>(body: T, provider?: string | null): T {
   if (!isPlainObject(body)) return body;
 
-  const canonicalEffort = normalizeEffort(body.effort);
+  // DeepSeek V4 has a native `max` tier above `high`. Canonical `max` normally
+  // collapses to `xhigh`, which DeepSeek maps back down to `high` — so preserve
+  // the literal value for those models instead of round-tripping it away.
+  const rawEffort = typeof body.effort === "string" ? body.effort.trim().toLowerCase() : undefined;
+  const canonicalEffort =
+    rawEffort === "max" && isDeepSeekNativeMaxModel(provider, asModelId(body.model))
+      ? ("max" as const)
+      : normalizeEffort(body.effort);
   const canonicalThinking = body.thinking;
   const hasCanonicalThinkingBool = typeof canonicalThinking === "boolean";
 
@@ -95,18 +179,13 @@ export function normalizeReasoningRequest<T>(body: T): T {
 
   const reasoning = body.reasoning;
   const clientSetReasoningEffort = body.reasoning_effort !== undefined;
-  const clientSetReasoningObjEffort =
-    isPlainObject(reasoning) && reasoning.effort !== undefined;
+  const clientSetReasoningObjEffort = isPlainObject(reasoning) && reasoning.effort !== undefined;
 
   const next: Record<string, unknown> = { ...body };
 
   // Canonical effort → the fields the mappers read. Skip entirely if the client already
   // expressed a reasoning effort (either shape) so client intent is preserved.
-  if (
-    canonicalEffort !== undefined &&
-    !clientSetReasoningEffort &&
-    !clientSetReasoningObjEffort
-  ) {
+  if (canonicalEffort !== undefined && !clientSetReasoningEffort && !clientSetReasoningObjEffort) {
     next.reasoning_effort = canonicalEffort;
     next.reasoning = {
       ...(isPlainObject(reasoning) ? reasoning : {}),

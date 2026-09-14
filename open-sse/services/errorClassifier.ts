@@ -28,13 +28,17 @@ export function isEmptyContentResponse(responseBody: unknown): boolean {
 
     const content = message?.content ?? delta?.content;
     const reasoningContent = message?.reasoning_content ?? delta?.reasoning_content;
+    // opencode-routed gateways (e.g. opencode/mimo-v2.5-free) name the reasoning
+    // field `reasoning` instead of `reasoning_content` (#6623).
+    const reasoningAlt = message?.reasoning ?? delta?.reasoning;
     const hasToolCalls =
       (Array.isArray(message?.tool_calls) && (message.tool_calls as unknown[]).length > 0) ||
       (Array.isArray(delta?.tool_calls) && (delta.tool_calls as unknown[]).length > 0);
 
     const hasContent = content !== null && content !== undefined && content !== "";
     const hasReasoning =
-      reasoningContent !== null && reasoningContent !== undefined && reasoningContent !== "";
+      (reasoningContent !== null && reasoningContent !== undefined && reasoningContent !== "") ||
+      (reasoningAlt !== null && reasoningAlt !== undefined && reasoningAlt !== "");
 
     // A response truncated at the token limit (finish_reason "length") is a valid,
     // successful completion even with empty text — do not flag it as a fake success.
@@ -78,6 +82,12 @@ export const PROVIDER_ERROR_TYPES = {
   OAUTH_INVALID_TOKEN: "oauth_invalid_token",
   EMPTY_CONTENT: "empty_content",
   MODEL_NOT_FOUND: "model_not_found",
+  FINGERPRINT_REJECTION: "fingerprint_rejection",
+  GEO_BLOCKED: "geo_blocked",
+  // Antigravity BYOP fast-fail (executor 422, code gcp_project_required): the
+  // Google account must Bring Its Own GCP Project. Account-specific and
+  // fixable by entering a Project ID — never a model lockout and never a ban.
+  GCP_PROJECT_REQUIRED: "gcp_project_required",
 };
 
 export const CONTEXT_OVERFLOW_SIGNALS = [
@@ -111,6 +121,86 @@ const MODEL_NAMED_UNSUPPORTED_REGEX = /\bmodel\b[^\n]{0,80}\bis not supported\b/
 
 export function containsModelUnavailableMessage(errorMessage: string): boolean {
   return MODEL_NAMED_UNSUPPORTED_REGEX.test(String(errorMessage || "").toLowerCase());
+}
+
+// Google regional-availability rejection: the Cloud Code / Gemini Code Assist
+// API is not offered from every country, and the upstream answers with a 400
+// FAILED_PRECONDITION like "User location is not supported for the API use."
+// This is an ACCOUNT-INDEPENDENT, location-scoped refusal: every account on
+// this server egresses from the same region, so retrying another credential
+// cannot help — but routing egress through a proxy in a supported region can.
+// Detected here so routing treats it as a non-terminal, cached-per-connection
+// exclusion instead of a generic 400 (which would keep re-selecting the same
+// account and surface a cryptic "upstream error (400)").
+const GEO_BLOCK_SIGNALS = [
+  "user location is not supported",
+  "location is not supported",
+  "not supported for the api use",
+  "region is not supported",
+  "unsupported location",
+  "not available in your location",
+  "not available in your region",
+];
+
+export function isGeoBlockedError(errorMessage: string): boolean {
+  const lower = String(errorMessage || "").toLowerCase();
+  return GEO_BLOCK_SIGNALS.some((signal) => lower.includes(signal));
+}
+
+// Providers whose upstream surface emits Google's regional-availability
+// refusal (GEO_BLOCK_SIGNALS above): Cloud Code / Gemini Code Assist — the
+// antigravity executor (antigravity, agy) — and the Gemini Developer API
+// (generativelanguage.googleapis.com; gemini, vertex). The gate matters
+// because classifyProviderError is shared across every provider: an unrelated
+// upstream returning a lookalike "not available in your region" must NOT be
+// classified as an egress-fixable geo block, or it would get the non-terminal
+// 24h exclusion treatment instead of that provider's own (possibly terminal)
+// path.
+function isGeoBlockEligibleProvider(provider?: string | null): boolean {
+  const p = (provider || "").toLowerCase();
+  if (
+    p === "antigravity" ||
+    p === "agy" ||
+    p === "gemini" ||
+    p === "gemini-cli" ||
+    p === "vertex"
+  ) {
+    return true;
+  }
+  if (p.includes("cloudcode") || p.includes("cloud-code")) return true;
+  // Registry-driven fallback: any provider whose upstream surface is the Cloud
+  // Code API (executor/format "antigravity") or the Gemini API (format
+  // "gemini") stays eligible even when a new provider id is added later.
+  if (!provider) return false;
+  const entry = getRegistryEntry(provider);
+  if (!entry) return false;
+  const surface = `${entry.executor || ""} ${entry.format || ""}`.toLowerCase();
+  return surface.includes("antigravity") || surface.includes("gemini");
+}
+
+// Cloudflare 1010 "Access denied ... blocked based on your browser's signature" —
+// a fingerprint/browser-like rejection issued by the CDN in front of an upstream
+// (e.g. opencode.ai/zen/v1), carrying error_code 1010 or error_name
+// "browser_signature_banned". Distinct from an auth 403: the account is healthy,
+// the CLIENT's TLS/UA signature was refused.
+//
+// IMPORTANT: the bare number 1010 is NOT matched on its own — a 403 body can
+// legitimately contain "1010" as a port, count, request id, or model token
+// ("model foo-1010 is not supported", "retry after 1010 seconds"). 1010 is only
+// treated as a fingerprint rejection when it appears with an explicit Cloudflare
+// key (`error_code` / `error-code`) or the unique `browser_signature_banned` /
+// `fingerprint_rejection` tokens. `\\?` tolerates the escaped-quote form that
+// appears when the upstream body is nested inside the gateway's error.message JSON.
+const CLOUDFLARE_1010_REGEX =
+  /(?<![A-Za-z0-9_-])error[\s_-]?code[\\"':=\s]{0,12}1010(?!\w)|(?<![A-Za-z0-9_-])error[-_]\s?1010(?!\w)\/?/i;
+
+export function isCloudflareFingerprintRejection(errorText: string): boolean {
+  const text = String(errorText || "").toLowerCase();
+  return (
+    CLOUDFLARE_1010_REGEX.test(text) ||
+    text.includes("browser_signature_banned") ||
+    text.includes("fingerprint_rejection")
+  );
 }
 
 function responseBodyToString(responseBody: unknown): string {
@@ -166,7 +256,7 @@ export function classifyProviderError(
   const oauthInvalid = isOAuthInvalidToken(bodyStr);
   const preserveQuota429 = shouldPreserveQuotaSignalsFor429(provider);
 
-  if ((creditsExhausted || subscriptionQuotaExhausted) && [400, 402, 403].includes(statusCode)) {
+  if ((creditsExhausted || subscriptionQuotaExhausted) && [400, 401, 402, 403].includes(statusCode)) {
     return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
   }
 
@@ -216,6 +306,34 @@ export function classifyProviderError(
   }
 
   if (statusCode === 402) return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
+
+  // Google regional-availability refusal (400 FAILED_PRECONDITION "... location
+  // is not supported ..."), scoped to the Google AI surfaces that emit it
+  // (Cloud Code / Gemini Code Assist + Gemini Developer API — see
+  // isGeoBlockEligibleProvider). Account-independent: every credential egresses
+  // from the same server region, so fallback to another account cannot succeed
+  // — but the connection must be cached as excluded so routing does not
+  // re-select it on every request and surface a cryptic generic 400.
+  // Non-terminal, like PROJECT_ROUTE_ERROR: the account becomes usable again
+  // once egress is routed through a supported-region proxy.
+  if (
+    (statusCode === 400 || statusCode === 403) &&
+    isGeoBlockEligibleProvider(provider) &&
+    isGeoBlockedError(bodyStr)
+  ) {
+    return PROVIDER_ERROR_TYPES.GEO_BLOCKED;
+  }
+
+  if (statusCode === 403 && isCloudflareFingerprintRejection(bodyStr)) {
+    // Cloudflare 1010 / error_name "browser_signature_banned": the CDN in front of the
+    // upstream (e.g. opencode.ai/zen/v1) rejected the CLIENT's TLS/UA signature, not the
+    // account's credentials. It says nothing about account health — a different client on
+    // the same key succeeds (measured 2026-08-08: curl 200, urllib 403 on byte-identical
+    // body). Marking it FORBIDDEN would flow through markAccountUnavailable to the
+    // terminal "banned" state and, after two such calls, flip the whole free pool to
+    // ALL_ACCOUNTS_INACTIVE. Classify it separately so account state stays untouched.
+    return PROVIDER_ERROR_TYPES.FINGERPRINT_REJECTION;
+  }
   if (statusCode === 403 && accountDeactivated) {
     return PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED;
   }
@@ -245,11 +363,36 @@ export function classifyProviderError(
     if (recoverableProject403) {
       return PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR;
     }
+    // Kiro IDC missing profileArn — AWS returns 403 "User is not authorized to make this call"
+    // when the request is sent without a profileArn or to the wrong Q Developer region.
+    // This is a recoverable configuration issue, not a ban: the account still works in Kiro IDE.
+    // Do NOT classify as FORBIDDEN (which bans permanently). Treat as PROJECT_ROUTE_ERROR
+    // so the connection stays active and can be retried after profile discovery (#10725).
+    const isKiroProfile403 =
+      (p === "kiro" || p === "amazon-q") &&
+      bodyStr.includes("User is not authorized to make this call");
+    if (isKiroProfile403) {
+      return PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR;
+    }
+    // A Cloudflare Sentinel/Turnstile 403 is a TERMINAL block for browser-session
+    // providers: the user's IP/session needs a browser Turnstile challenge, and
+    // retrying the same connection will keep 403ing. Classify as FORBIDDEN so
+    // the connection gets banned and combo routing falls back to other providers.
+    // Must be checked BEFORE the generic apikey-403→null return below, which
+    // is designed for normal API-key auth 403s that ARE recoverable.
+    if (
+      bodyStr.includes("SENTINEL_BLOCKED") ||
+      /\bSentinel\b[^\n]{0,80}\bblocked\b/i.test(bodyStr) ||
+      /\bTurnstile required\b/i.test(bodyStr)
+    ) {
+      return PROVIDER_ERROR_TYPES.FORBIDDEN;
+    }
+
     if (provider && getProviderCategory(provider) === "apikey") {
       return null;
     }
     // No-credential ("authType: none") providers — free, stateless per-request
-    // token proxies like mimocode/theoldllm — have no real account/credential
+    // token proxies — have no real account/credential
     // to revoke. An unrecognized 403 from these is a transient upstream
     // rate-limit/blocklist signal, not an account ban: keep it recoverable so
     // the connection cooldown/retry layer handles it instead of a permanent
@@ -260,6 +403,15 @@ export function classifyProviderError(
     return PROVIDER_ERROR_TYPES.FORBIDDEN;
   }
   if (statusCode >= 500) return PROVIDER_ERROR_TYPES.SERVER_ERROR;
+
+  // Antigravity BYOP fast-fail (executor emits 422 with code
+  // gcp_project_required when the Google account must Bring Its Own GCP
+  // Project). Account-specific and fixable by entering a Project ID in the
+  // dashboard — classified separately so chatCore rotates to sibling accounts
+  // and excludes the connection instead of locking the model or banning it.
+  if (statusCode === 422 && bodyStr.includes("gcp_project_required")) {
+    return PROVIDER_ERROR_TYPES.GCP_PROJECT_REQUIRED;
+  }
 
   if (statusCode === 400) {
     if (isContextOverflow(bodyStr)) {

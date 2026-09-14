@@ -25,7 +25,6 @@ import {
   getComboModelString,
   getComboStepTarget,
 } from "../../../src/lib/combos/steps.ts";
-import { toNumber } from "@/shared/utils/numeric";
 import type {
   AutoRoutingStrategyValue,
   RoutingStrategyValue,
@@ -39,7 +38,8 @@ async function apiFetch(path: string, options: RequestInit = {}): Promise<unknow
   const url = `${OMNIROUTE_BASE_URL}${path}`;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...getMcpHttpAuthHeadersForInternalFetch(),
+    // Static env key is only a fallback; the per-caller MCP identity forwarded via
+    // withMcpHttpAuthContext must win over it (#5819).
     ...(OMNIROUTE_API_KEY ? { Authorization: `Bearer ${OMNIROUTE_API_KEY}` } : {}),
     ...getMcpHttpAuthHeadersForInternalFetch(),
     ...((options.headers as Record<string, string>) || {}),
@@ -74,6 +74,16 @@ function toArrayOfRecords(value: unknown): JsonRecord[] {
 
 function toString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
+}
+
+function toNumber(value: unknown, fallback = 0): number {
+  const parsed =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && value.trim().length > 0
+        ? Number(value)
+        : Number.NaN;
+  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function toBoolean(value: unknown, fallback = false): boolean {
@@ -538,7 +548,6 @@ export async function handleTestCombo(args: { comboId: string; testPrompt: strin
                 messages: [{ role: "user", content: prompt }],
                 max_tokens: 50,
                 stream: false,
-                "x-provider": model.provider,
               }),
             })
           );

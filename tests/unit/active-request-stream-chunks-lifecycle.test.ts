@@ -18,7 +18,7 @@ const stripChunkTs = (chunk: string): string => chunk.replace(/^\[\d{2}:\d{2}:\d
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ─── Helper: Simulates /api/logs/[id] API route logic ──────────────────────

@@ -1,5 +1,3 @@
-import { useDispatchForEdge } from "../../open-sse/rpc/dispatchHotPath.ts";
-
 import { BaseGuardrail, type GuardrailContext, type GuardrailResult } from "./base";
 import { processPII } from "@/shared/utils/inputSanitizer";
 import { sanitizePII, sanitizePIIResponse } from "@/lib/piiSanitizer";
@@ -59,11 +57,18 @@ function applyToContentValue(
           modified ||= result.modified;
           record.text = result.text;
         }
-        if (typeof record.content === "string") {
-          const result = sanitizeStringValue(record.content);
-          detections.push(...result.detections);
+        // Recurse rather than only masking a string `content`. A tool_result
+        // block carries its payload as an array of parts, which is what every
+        // agentic client sends back, and the string-only test walked straight
+        // past it: the outer text block was redacted while the tool output next
+        // to it reached the provider intact. This is the same call
+        // sanitizeMessageLikeList already makes one level up, so the two agree
+        // on how deep masking goes. The payload is a JSON round-trip, so it is
+        // acyclic and the recursion is bounded by its nesting.
+        if ("content" in record) {
+          const result = applyToContentValue(record.content, detections);
           modified ||= result.modified;
-          record.content = result.text;
+          record.content = result.value;
         }
         return record;
       }

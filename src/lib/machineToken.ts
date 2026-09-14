@@ -1,21 +1,15 @@
 import { createHash, createHmac } from "node:crypto";
-import nodeMachineId from "node-machine-id";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("auth:machine-token");
-let fallbackLogged = false;
+import * as nodeModule from "node:module";
 
 let machineIdSync: (original?: boolean) => string;
 try {
-  machineIdSync = nodeMachineId.machineIdSync;
-} catch (err) {
-  if (!fallbackLogged) {
-    fallbackLogged = true;
-    log.error(
-      { err },
-      "machineToken: node-machine-id unavailable — HMAC salt falls back to empty string (security-relevant, all tokens become constant-keyed)"
-    );
-  }
+  // Anchor runtime resolution to the process entrypoint. Turbopack rewrites
+  // createRequire(import.meta.url) into an in-bundle resolver, which cannot load
+  // external CommonJS packages from the installed standalone node_modules tree.
+  const runtimeRequire = nodeModule.createRequire(process.argv[1] || process.cwd());
+  const mod = runtimeRequire("node-machine-id");
+  machineIdSync = mod.machineIdSync || mod.default?.machineIdSync;
+} catch {
   machineIdSync = () => "";
 }
 
@@ -25,8 +19,17 @@ function getActiveSalt(): string {
   return process.env.OMNIROUTE_CLI_SALT || BUILTIN_DEFAULT_SALT;
 }
 
-function deriveToken(rawId: string, salt: string): string {
+export function deriveMachineToken(rawId: string, salt: string): string {
+  if (!rawId) return "";
   return createHmac("sha256", rawId).update(salt).digest("hex");
+}
+
+export function deriveLegacyCliToken(machineId: string, salt: string): string {
+  if (!machineId) return "";
+  return createHash("sha256")
+    .update(machineId + salt)
+    .digest("hex")
+    .substring(0, 32);
 }
 
 let cached: string | null = null;
@@ -37,18 +40,15 @@ export function getMachineTokenSync(salt?: string): string {
   try {
     // machineIdSync(true) returns the original unhashed hardware ID.
     const rawId = machineIdSync(true);
+    if (!rawId) return "";
     if (activeSalt === cachedSalt && cached !== null) return cached;
-    const token = deriveToken(rawId, activeSalt);
+    const token = deriveMachineToken(rawId, activeSalt);
     if (!salt) {
       cached = token;
       cachedSalt = activeSalt;
     }
     return token;
-  } catch (err) {
-    log.error(
-      { err },
-      "machineToken.getMachineTokenSync: deriveToken failed — returning empty string (security-relevant)"
-    );
+  } catch {
     return "";
   }
 }
@@ -57,15 +57,8 @@ export function getLegacyCliTokenSync(salt?: string): string {
   const activeSalt = salt ?? getActiveSalt();
   try {
     const machineId = machineIdSync();
-    return createHash("sha256")
-      .update(machineId + activeSalt)
-      .digest("hex")
-      .substring(0, 32);
-  } catch (err) {
-    log.error(
-      { err },
-      "machineToken.getLegacyCliTokenSync: hash derivation failed — returning empty string (security-relevant)"
-    );
+    return deriveLegacyCliToken(machineId, activeSalt);
+  } catch {
     return "";
   }
 }

@@ -70,6 +70,11 @@ omniroute combo switch <name>
 
 Create a new routing combo
 
+**Flags:**
+
+- `--models <spec>`
+- `--model <spec>`
+
 **Example:**
 
 ```bash

@@ -56,8 +56,18 @@ export function arePrivateProviderUrlsAllowed() {
   return false;
 }
 
+/**
+ * Guard mode for the provider OUTBOUND path (search-provider connection validation, image
+ * generation, remote image fetch, model discovery — anything that does not go through the
+ * chat validation path). Precedence — mirrors `getProviderValidationGuard()` (#9123):
+ *  1. explicit full opt-in (`arePrivateProviderUrlsAllowed`) → "none" (no checks; power users).
+ *  2. local-first default (`areLocalProviderUrlsAllowed`) → "block-metadata" (allow LAN, block IMDS).
+ *  3. otherwise → "public-only" (strict).
+ */
 export function getProviderOutboundGuard(): OutboundUrlGuardMode {
-  return arePrivateProviderUrlsAllowed() ? "none" : "public-only";
+  if (arePrivateProviderUrlsAllowed()) return "none";
+  if (areLocalProviderUrlsAllowed()) return "block-metadata";
+  return "public-only";
 }
 
 /**

@@ -24,9 +24,8 @@ const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
 process.env.DATA_DIR = TEST_DATA_DIR;
 delete process.env.INITIAL_PASSWORD;
 
-const { maybePersistRtkRawOutput } = await import(
-  "../../../../open-sse/services/compression/engines/rtk/index.ts"
-);
+const { maybePersistRtkRawOutput } =
+  await import("../../../../open-sse/services/compression/engines/rtk/index.ts");
 const discoverRoute = await import("../../../../src/app/api/context/rtk/discover/route.ts");
 const learnRoute = await import("../../../../src/app/api/context/rtk/learn/route.ts");
 
@@ -45,12 +44,12 @@ function get(url: string): Request {
 }
 
 test.beforeEach(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 });
 
 test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
   if (ORIGINAL_INITIAL_PASSWORD !== undefined)

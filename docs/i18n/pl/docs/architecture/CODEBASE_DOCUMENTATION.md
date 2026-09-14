@@ -234,7 +234,6 @@ v1/
 ├── audio/{speech, transcriptions}/      TTS + STT
 ├── batches/[id]/{cancel}, batches/      OpenAI Batches API
 ├── chat/completions/                    Chat Completions (główny endpoint)
-├── chatgpt-web/                         compat ChatGPT-Web
 ├── completions/                         Legacy text completions
 ├── embeddings/                          Embeddings
 ├── files/[id]/, files/                  Pliki API
@@ -317,7 +316,6 @@ Pliki najwyższego poziomu w `src/lib/`:
 
 - `localDb.ts` — wyłącznie warstwa re-export. **Nigdy** nie dodawaj tu logiki.
 - `proxyHealth.ts`, `proxyLogger.ts`, `tokenHealthCheck.ts`, `localHealthCheck.ts`
-- `oneproxyRotator.ts`, `oneproxySync.ts`
 - `apiBridgeServer.ts`, `cacheLayer.ts`, `semanticCache.ts`, `settingsCache.ts`
 - `cloudSync.ts`, `initCloudSync.ts`
 - `cloudflaredTunnel.ts`, `ngrokTunnel.ts`, `tailscaleTunnel.ts`
@@ -424,7 +422,7 @@ Podzielone na skupione podkatalogi:
   `bodySize.ts`, `colors.ts`, `appConfig.ts`, `config.ts`,
   `sidebarVisibility.ts`, `visionBridgeDefaults.ts`.
 - `validation/` — `schemas.ts` (~80 schematów Zod), `compressionConfigSchemas.ts`,
-  `oneproxySchemas.ts`, `providerSchema.ts`, `settingsSchemas.ts`, `helpers.ts`.
+  `providerSchema.ts`, `settingsSchemas.ts`, `helpers.ts`.
 - `contracts/` — publiczne kontrakty API dostarczane do npm.
 - `types/` — współdzielone typy TS.
 - `utils/` — `circuitBreaker.ts`, `apiAuth.ts`, `apiKey.ts`, `apiKeyPolicy.ts`,
@@ -444,63 +442,139 @@ Podzielone na skupione podkatalogi:
 Osobny npm workspace publikowany jako `@omniroute/open-sse`. Odpowiada za
 przetwarzanie requestów, executory, translatory, services, transformer i serwer MCP.
 
-```mermaid
-classDiagram
-    class BaseExecutor {
-        +buildUrl(model, stream, options)
-        +buildHeaders(credentials, stream, body)
-        +transformRequest(body, model, stream, credentials)
-        +execute(url, options)
-        +shouldRetry(status, error)
-        +refreshCredentials(credentials, log)
-    }
-
-    class DefaultExecutor {
-        +refreshCredentials()
-    }
-
-    class AntigravityExecutor {
-        +buildUrl()
-        +buildHeaders()
-        +transformRequest()
-        +shouldRetry()
-        +refreshCredentials()
-    }
-
-    class CursorExecutor {
-        +buildUrl()
-        +buildHeaders()
-        +transformRequest()
-        +parseResponse()
-        +generateChecksum()
-    }
-
-    class KiroExecutor {
-        +buildUrl()
-        +buildHeaders()
-        +transformRequest()
-        +parseEventStream()
-        +refreshCredentials()
-    }
-
-    BaseExecutor <|-- DefaultExecutor
-    BaseExecutor <|-- AntigravityExecutor
-    BaseExecutor <|-- CursorExecutor
-    BaseExecutor <|-- KiroExecutor
-    BaseExecutor <|-- CodexExecutor
-    BaseExecutor <|-- GithubExecutor
+```
+open-sse/
+├── index.ts                Publiczne eksporty
+├── package.json            Manifest workspace
+├── tsconfig.json
+├── types.d.ts
+├── config/                 Rejestry providerów, profile nagłówków, identity, …
+├── handlers/               Hilery requestów (chat, embeddings, audio, image, …)
+├── executors/              84 executory HTTP specyficzne dla providerów
+├── translator/             Konwersja formatów (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
+├── transformer/            Transformer strumienia Responses API ↔ Chat Completions
+├── services/               80+ modułów services (combos, fallback, quotas, identity, …)
+├── utils/                  Helpery streamingu, klient TLS, AWS SigV4, proxy fetch, …
+└── mcp-server/             serwer MCP (3 transports, 32 scopes, 107 tools)
 ```
 
-| Executor         | Provider                                   | Key Specializations                                                                                                 |
-| ---------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `base.ts`        | —                                          | Abstract base: URL building, headers, retry logic, credential refresh                                               |
-| `default.ts`     | Claude, Gemini, OpenAI, GLM, Kimi, MiniMax | Generic OAuth token refresh for standard providers                                                                  |
-| `antigravity.ts` | Google Cloud Code                          | Project/session ID generation, multi-URL fallback, custom retry parsing from error messages ("reset after 2h7m23s") |
-| `cursor.ts`      | Cursor IDE                                 | **Most complex**: SHA-256 checksum auth, Protobuf request encoding, binary EventStream → SSE response parsing       |
-| `codex.ts`       | OpenAI Codex                               | Injects system instructions, manages thinking levels, removes unsupported parameters                                |
-| `github.ts`      | GitHub Copilot                             | Dual token system (GitHub OAuth + Copilot token), VSCode header mimicking                                           |
-| `kiro.ts`        | AWS CodeWhisperer                          | AWS EventStream binary parsing, AMZN event frames, token estimation                                                 |
-| `index.ts`       | —                                          | Factory: maps provider name → executor class, with default fallback                                                 |
+### 4.1 `open-sse/handlers/`
+
+| Hiler                   | Przeznaczenie                                                                |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `chatCore.ts`           | Główny pipeline chatu (cache, rate limit, routing combo, dispatch executora) |
+| `responsesHiler.ts`     | Punkt wejścia OpenAI Responses API                                           |
+| `embeddings.ts`         | Embeddings                                                                   |
+| `imageGeneration.ts`    | Generowanie obrazów                                                          |
+| `audioSpeech.ts`        | Text-to-speech                                                               |
+| `audioTranscription.ts` | Speech-to-text                                                               |
+| `videoGeneration.ts`    | Generowanie wideo                                                            |
+| `musicGeneration.ts`    | Generowanie muzyki                                                           |
+| `rerank.ts`             | Reranking                                                                    |
+| `moderations.ts`        | Moderacja                                                                    |
+| `search.ts`             | Wyszukiwanie w sieci                                                         |
+| `sseParser.ts`          | Parser eventów SSE                                                           |
+| `usageExtractor.ts`     | Wyciąganie liczby tokenów ze strumieni upstream                              |
+| `responseSanitizer.ts`  | Usuwanie szumu specyficznego dla providera                                   |
+| `responseTranslator.ts` | Klej między odpowiedzią providera a warstwą translatora                      |
+
+### 4.2 `open-sse/executors/`
+
+107 executorów providerów, każdy rozszerza `BaseExecutor` (`base.ts`):
+
+`antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
+`chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commiCode`, `cursor`, `default`, `devin-cli`,
+`muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
+`pollinations`, `qoder`, `vertex`, `windsurf`, plus `claudeIdentity.ts`
+(współdzielony helper identity) i `index.ts` (rejestr).
+
+> Uwaga: providery niewymienione tutaj są obsługiwane przez `default.ts` z generycznym
+> executorem zgodnym z OpenAI. Pełny katalog providerów (351 wpisów) jest w
+> `src/shared/constants/providers.ts`.
+
+### 4.3 `open-sse/translator/`
+
+Tłumaczenie hub-i-spoke (OpenAI jest hubem).
+
+- **9 translatorów request** (`translator/request/`):
+  `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
+  `gemini-to-openai`, `openai-responses`, `openai-to-claude`,
+  `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`.
+- **9 translatorów response** (`translator/response/`):
+  `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`,
+  `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`,
+  `openai-to-claude`.
+- **9 helperów** (`translator/helpers/`):
+  `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
+  `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, plus
+  testy helperów.
+- **Helpery obrazów** (`translator/image/sizeMapper.ts`).
+- Najwyższy poziom: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
+
+### 4.4 `open-sse/transformer/`
+
+- `responsesTransformer.ts` — konwerter Responses API ↔ Chat oparty na `TransformStream`
+  Completions (używany przez catch-all trasy `responses/`).
+
+### 4.5 `open-sse/services/`
+
+Wyróżniki (pełna lista w `open-sse/services/`):
+
+| Zagadnienie           | Pliki                                                                                                                                                                                                                                           |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Combo routing         | `combo.ts` (19 public strategies), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                    |
+| Silnik Auto Combo     | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`    |
+| Resilience            | `accountFallback.ts` (cooldown + lockout), `errorClassifier.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                                            |
+| Quotas                | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts`                     |
+| Caching               | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                   |
+| Inteligencja routingu | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                    |
+| Obsługa modeli        | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                     |
+| Compression           | `compression/` — pełne okablowanie silnika kompresji                                                                                                                                                                                            |
+| Token + sesja         | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHioff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts` |
+| Tier / manifest       | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                   |
+| IP / sieć             | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                           |
+| Batches               | `batchProcessor.ts`                                                                                                                                                                                                                             |
+| Usage                 | `usage.ts`                                                                                                                                                                                                                                      |
+
+### 4.6 `open-sse/mcp-server/`
+
+- **32 registered tools** wired in `server.ts` (12 scoped under `schemas/tools.ts`,
+  5 compression tools, 3 memory tools, 4 skills tools, plus advanced tools added
+  through `advancedTools.ts`).
+- **3 transports**: stdio, HTTP Streamable, SSE.
+- **32 scopes** declared in `src/shared/constants/mcpScopes.ts`.
+- Audit table: `mcp_tool_audit` (populated by `audit.ts`).
+- Pliki: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
+  `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
+  `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
+  plus tests under `__tests__/`.
+- See [MCP-SERVER.md](../frameworks/MCP-SERVER.md) for the full tool catalog.
+
+### 4.7 `open-sse/config/`
+
+Provider registries (`providerRegistry.ts`, `providerModels.ts`,
+`providerHeaderProfiles.ts`), per-format model registries (`audioRegistry.ts`,
+`embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
+`musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`),
+identity helpers (`codexIdentity.ts`, `codexInstructions.ts`,
+`anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
+`cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`),
+credential helpers (`credentialLoader.ts`, `codexClient.ts`), i cloud
+adapters (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
+`maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
+`ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`).
+
+### 4.8 `open-sse/utils/`
+
+Streaming primitives i provider helpers: `stream.ts`, `streamHiler.ts`,
+`streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts`,
+`sseHeartbeat.ts`, `proxyFetch.ts`, `proxyDispatcher.ts`, `tlsClient.ts`,
+`networkProxy.ts`, `awsSigV4.ts`, `cacheControlPolicy.ts`,
+`cursorChecksum.ts`, `cursorAgentProtobuf.ts`, `cursorVersionDetector.ts`,
+`comfyuiClient.ts`, `kieTask.ts`, `bypassHiler.ts`, `aiSdkCompat.ts`,
+`thinkTagParser.ts`, `urlSanitize.ts`, `usageTracking.ts`, `requestLogger.ts`,
+`progressTracker.ts`, `cors.ts`, `error.ts`, `logger.ts`, `sleep.ts`,
+`ollamaTransform.ts`.
 
 ---
 
@@ -558,17 +632,17 @@ Dwa binaria są wystawione w `package.json` → `bin`:
 
 ## 7. `tests/`
 
-| Katalog                                                                        | Typ                                                                                                       |
-| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| `tests/unit/`                                                                  | Testy jednostkowe przez Node native test runner (1821 plików, plus `api/`, `auth/`, `authz/` podkatalogi) |
-| `tests/integration/`                                                           | Testy cross-module + stan DB                                                                              |
-| `tests/e2e/`                                                                   | Playwright UI tests                                                                                       |
-| `tests/protocols-e2e/`                                                         | MCP/A2A protocol e2e                                                                                      |
-| `tests/translator/`                                                            | Translator-specific tests                                                                                 |
-| `tests/security/`                                                              | Security regressions                                                                                      |
-| `tests/load/`                                                                  | Load / stress tests                                                                                       |
-| `tests/golden-set/`                                                            | Reference outputs for translator regressions                                                              |
-| `tests/helpers/`, `tests/fixtures/`, `tests/manual/`, `tests/scratch_test.mjs` | Support                                                                                                   |
+| Katalog                                              | Typ                                                                                                       |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `tests/unit/`                                        | Testy jednostkowe przez Node native test runner (1821 plików, plus `api/`, `auth/`, `authz/` podkatalogi) |
+| `tests/integration/`                                 | Testy cross-module + stan DB                                                                              |
+| `tests/e2e/`                                         | Playwright UI tests                                                                                       |
+| `tests/protocols-e2e/`                               | MCP/A2A protocol e2e                                                                                      |
+| `tests/translator/`                                  | Translator-specific tests                                                                                 |
+| `tests/security/`                                    | Security regressions                                                                                      |
+| `tests/load/`                                        | Load / stress tests                                                                                       |
+| `tests/golden-set/`                                  | Reference outputs for translator regressions                                                              |
+| `tests/helpers/`, `tests/fixtures/`, `tests/manual/` | Support                                                                                                   |
 
 Common commands:
 
@@ -619,107 +693,27 @@ Zorganizowane w 6 podkatalogów według przeznaczenia.
 
 > Źródło: [diagrams/request-pipeline.mmd](../diagrams/request-pipeline.mmd)
 
-| Route                                         | Methods         | Purpose                                                                               |
-| --------------------------------------------- | --------------- | ------------------------------------------------------------------------------------- |
-| `/api/provider-models`                        | GET/POST/DELETE | CRUD for custom models per provider                                                   |
-| `/api/models/catalog`                         | GET             | Aggregated catalog of all models (chat, embedding, image, custom) grouped by provider |
-| `/api/settings/proxy`                         | GET/PUT/DELETE  | Hierarchical outbound proxy configuration (`global/providers/combos/keys`)            |
-| `/api/settings/proxy/test`                    | POST            | Validates proxy connectivity and returns public IP/latency                            |
-| `/v1/providers/[provider]/chat/completions`   | POST            | Dedicated per-provider chat completions with model validation                         |
-| `/v1/providers/[provider]/embeddings`         | POST            | Dedicated per-provider embeddings with model validation                               |
-| `/v1/providers/[provider]/images/generations` | POST            | Dedicated per-provider image generation with model validation                         |
-| `/api/settings/ip-filter`                     | GET/PUT         | IP allowlist/blocklist management                                                     |
-| `/api/settings/thinking-budget`               | GET/PUT         | Reasoning token budget configuration (passthrough/auto/custom/adaptive)               |
-| `/api/settings/system-prompt`                 | GET/PUT         | Global system prompt injection for all requests                                       |
-| `/api/sessions`                               | GET             | Active session tracking and metrics                                                   |
-| `/api/rate-limits`                            | GET             | Per-account rate limit status                                                         |
-
----
-
-## 5. Key Design Patterns
-
-### 5.1 Hub-and-Spoke Translation
-
-All formats translate through **OpenAI format as the hub**. Adding a new provider only requires writing **one pair** of translators (to/from OpenAI), not N pairs.
-
-### 5.2 Executor Strategy Pattern
-
-Each provider has a dedicated executor class inheriting from `BaseExecutor`. The factory in `executors/index.ts` selects the right one at runtime.
-
-### 5.3 Self-Registering Plugin System
-
-Translator modules register themselves on import via `register()`. Adding a new translator is just creating a file and importing it.
-
-### 5.4 Account Fallback with Exponential Backoff
-
-When a provider returns 429/401/500, the system can switch to the next account, applying exponential cooldowns (1s → 2s → 4s → max 2min).
-
-### 5.5 Combo Model Chains
-
-A "combo" groups multiple `provider/model` strings. If the first fails, fallback to the next automatically.
-
-### 5.6 Stateful Streaming Translation
-
-Response translation maintains state across SSE chunks (thinking block tracking, tool call accumulation, content block indexing) via the `initState()` mechanism.
-
-### 5.7 Usage Safety Buffer
-
-A 2000-token buffer is added to reported usage to prevent clients from hitting context window limits due to overhead from system prompts and format translation.
-
----
-
-## 6. Supported Formats
-
-| Format                  | Direction       | Identifier         |
-| ----------------------- | --------------- | ------------------ |
-| OpenAI Chat Completions | source + target | `openai`           |
-| OpenAI Responses API    | source + target | `openai-responses` |
-| Anthropic Claude        | source + target | `claude`           |
-| Google Gemini           | source + target | `gemini`           |
-| Antigravity             | source + target | `antigravity`      |
-| AWS Kiro                | target only     | `kiro`             |
-| Cursor                  | target only     | `cursor`           |
-
----
-
-## 7. Supported Providers
-
-| Provider                 | Auth Method            | Executor    | Key Notes                                     |
-| ------------------------ | ---------------------- | ----------- | --------------------------------------------- |
-| Anthropic Claude         | API key or OAuth       | Default     | Uses `x-api-key` header                       |
-| Google Gemini            | API key or OAuth       | Default     | Uses `x-goog-api-key` header                  |
-| Antigravity              | OAuth                  | Antigravity | Multi-URL fallback, custom retry parsing      |
-| OpenAI                   | API key                | Default     | Standard Bearer auth                          |
-| Codex                    | OAuth                  | Codex       | Injects system instructions, manages thinking |
-| GitHub Copilot           | OAuth + Copilot token  | Github      | Dual token, VSCode header mimicking           |
-| Kiro (AWS)               | AWS SSO OIDC or Social | Kiro        | Binary EventStream parsing                    |
-| Cursor IDE               | Checksum auth          | Cursor      | Protobuf encoding, SHA-256 checksums          |
-| Qwen                     | OAuth                  | Default     | Standard auth                                 |
-| Qoder                    | OAuth (Basic + Bearer) | Default     | Dual auth header                              |
-| OpenRouter               | API key                | Default     | Standard Bearer auth                          |
-| GLM, Kimi, MiniMax       | API key                | Default     | Claude-compatible, use `x-api-key`            |
-| `openai-compatible-*`    | API key                | Default     | Dynamic: any OpenAI-compatible endpoint       |
-| `anthropic-compatible-*` | API key                | Default     | Dynamic: any Claude-compatible endpoint       |
-
----
-
-## 8. Data Flow Summary
-
-### Streaming Request
-
-```mermaid
-flowchart LR
-    A["Client"] --> B["detectFormat()"]
-    B --> C["translateRequest()\nsource → OpenAI → target"]
-    C --> D["Executor\nbuildUrl + buildHeaders"]
-    D --> E["fetch(providerURL)"]
-    E --> F["createSSEStream()\nTRANSLATE mode"]
-    F --> G["parseSSELine()"]
-    G --> H["translateResponse()\ntarget → OpenAI → source"]
-    H --> I["extractUsage()\n+ addBuffer"]
-    I --> J["formatSSE()"]
-    J --> K["Client receives\ntranslated SSE"]
-    K --> L["logUsage()\nsaveRequestUsage()"]
+```
+Client request
+  → /v1/chat/completions (route.ts)
+     CORS preflight check
+     Zod validation (chatCompletionsSchema in shared/validation/schemas.ts)
+     Auth (extractApiKey + isValidApiKey OR requireManagementAuth)
+     Policy engine (src/server/authz/pipeline.ts)
+     Guardrails (PII masker, prompt injection, vision bridge)
+  → handleChatCore() (open-sse/handlers/chatCore.ts)
+     Cache check (semantic + read cache)
+     Rate limit (rateLimitManager, accountSemaphore)
+     Combo routing (if model resolves to a combo)
+       comboResolver → loop per target → handleSingleModel()
+     translateRequest()  (open-sse/translator/request/*)
+     getExecutor(providerId).execute()  (open-sse/executors/*)
+       fetch upstream → retry/backoff via accountFallback
+     translateResponse() (open-sse/translator/response/*)
+     SSE stream OR JSON response
+     Jeśli Responses API: TransformStream via open-sse/transformer/responsesTransformer.ts
+  → Compliance audit (src/lib/compliance/)
+  → Odpowiedź do klienta
 ```
 
 ### Stan runtime resilience (trzy mechanizmy)

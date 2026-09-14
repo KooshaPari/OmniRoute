@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useDisplayBaseUrl } from "@/shared/hooks";
+import { FreeProviderOnboardingCard } from "./steps/FreeProviderOnboardingCard";
 import { TierTour } from "./steps/TierTour";
 
 const STEP_IDS = ["welcome", "tiers", "security", "provider", "test", "done"];
@@ -317,6 +318,11 @@ export default function OnboardingWizard() {
                   />
                   {t("skipPassword")}
                 </label>
+                {skipSecurity && (
+                  <p className="text-xs text-amber-400 text-center animate-in fade-in duration-200">
+                    {t("securityDescSkipWarning")}
+                  </p>
+                )}
                 {!skipSecurity && (
                   <div className="space-y-3">
                     <input
@@ -357,25 +363,40 @@ export default function OnboardingWizard() {
             {currentStep.id === "provider" && (
               <div className="space-y-4">
                 <p className="text-sm text-text-muted text-center">{t("providerDesc")}</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {COMMON_PROVIDERS.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => {
-                        setSelectedProvider(p.id);
-                        setProviderName(p.name);
-                      }}
-                      className={`p-3 rounded-xl border text-center text-xs font-medium transition-all cursor-pointer ${
-                        selectedProvider === p.id
-                          ? "border-primary/60 bg-primary/10 text-primary"
-                          : "border-white/10 bg-white/[0.03] text-text-muted hover:border-white/20"
-                      }`}
-                    >
-                      {p.name}
-                    </button>
-                  ))}
-                </div>
-                {selectedProvider && (
+                {skipSecurity && (
+                  <div className="text-center p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg animate-in fade-in duration-200">
+                    <p className="text-sm text-amber-400">{t("providerRequiresPassword")}</p>
+                  </div>
+                )}
+                {!skipSecurity && <FreeProviderOnboardingCard />}
+                {!skipSecurity && (
+                  <div className="flex items-center gap-3 text-[11px] text-text-muted">
+                    <span className="h-px flex-1 bg-white/10" />
+                    <span>{t("freeProviders.orUseApiKey")}</span>
+                    <span className="h-px flex-1 bg-white/10" />
+                  </div>
+                )}
+                {!skipSecurity && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {COMMON_PROVIDERS.map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() => {
+                          setSelectedProvider(p.id);
+                          setProviderName(p.name);
+                        }}
+                        className={`p-3 rounded-xl border text-center text-xs font-medium transition-all cursor-pointer ${
+                          selectedProvider === p.id
+                            ? "border-primary/60 bg-primary/10 text-primary"
+                            : "border-white/10 bg-white/[0.03] text-text-muted hover:border-white/20"
+                        }`}
+                      >
+                        {p.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {!skipSecurity && selectedProvider && (
                   <div className="space-y-3 mt-4">
                     <input
                       type="password"
@@ -497,7 +518,7 @@ export default function OnboardingWizard() {
                   {skipSecurity ? t("skipAndContinue") : t("setPassword")}
                 </button>
               )}
-              {currentStep.id === "provider" && (
+              {currentStep.id === "provider" && !skipSecurity ? (
                 <button
                   onClick={handleAddProvider}
                   disabled={!selectedProvider || !providerKey}
@@ -505,7 +526,7 @@ export default function OnboardingWizard() {
                 >
                   {t("addProvider")}
                 </button>
-              )}
+              ) : null}
               {currentStep.id === "test" && (
                 <button
                   onClick={handleNext}

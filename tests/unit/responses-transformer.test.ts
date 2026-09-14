@@ -76,8 +76,10 @@ test("createResponsesApiTransformStream converts plain chat deltas into Response
   assert.ok(types.includes("response.output_text.done"));
   assert.equal(completed.output[0].content[0].text, "Hello");
   assert.deepEqual(completed.usage, {
-    prompt_tokens: 1,
-    completion_tokens: 2,
+    input_tokens: 1,
+    input_tokens_details: { cached_tokens: 0 },
+    output_tokens: 2,
+    output_tokens_details: { reasoning_tokens: 0 },
     total_tokens: 3,
   });
   assert.equal(doneMarker.data, "[DONE]");
@@ -173,6 +175,48 @@ test("createResponsesApiTransformStream handles native reasoning content and too
       })),
     [{ id: "fc_call_2", call_id: "call_2", name: "lookup", arguments: "{}" }]
   );
+});
+
+test("createResponsesApiTransformStream converts OpenAI-compatible reasoning aliases", async () => {
+  const output = await runTransformStream([
+    'data: {"id":"chatcmpl_1","model":"gpt-oss:20b","choices":[{"index":0,"delta":{"reasoning":"plan "}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{"reasoning":"carefully","content":"answer"}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":3,"completion_tokens":4,"total_tokens":7}}\n\n',
+  ]);
+
+  const events = parseSseOutput(output);
+  const reasoningDeltas = events
+    .filter((event) => event.event === "response.reasoning_summary_text.delta")
+    .map((event) => JSON.parse(event.data).delta);
+  const addedItems = events
+    .filter((event) => event.event === "response.output_item.added")
+    .map((event) => JSON.parse(event.data).item);
+  const completed = JSON.parse(
+    events.find((event) => event.event === "response.completed").data
+  ).response;
+
+  assert.deepEqual(reasoningDeltas, ["plan ", "carefully"]);
+  assert.deepEqual(
+    addedItems.map((item) => item.type),
+    ["reasoning", "message"]
+  );
+  assert.equal(completed.output[0].type, "reasoning");
+  assert.equal(completed.output[0].summary[0].text, "plan carefully");
+  assert.equal(completed.output[1].content[0].text, "answer");
+});
+
+test("createResponsesApiTransformStream prefers reasoning_content without duplicating aliases", async () => {
+  const output = await runTransformStream([
+    'data: {"choices":[{"index":0,"delta":{"reasoning_content":"canonical","reasoning":"alias"}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}\n\n',
+  ]);
+
+  const events = parseSseOutput(output);
+  const reasoningDeltas = events
+    .filter((event) => event.event === "response.reasoning_summary_text.delta")
+    .map((event) => JSON.parse(event.data).delta);
+
+  assert.deepEqual(reasoningDeltas, ["canonical"]);
 });
 
 test("createResponsesApiTransformStream hides the internal reasoning replay placeholder", async () => {
@@ -332,8 +376,10 @@ test("createResponsesApiTransformStream ignores malformed events and preserves u
   assert.equal(completed.id, "resp_chatcmpl_edge");
   assert.equal(completed.output[0].content[0].text, "ok");
   assert.deepEqual(completed.usage, {
-    prompt_tokens: 2,
-    completion_tokens: 1,
+    input_tokens: 2,
+    input_tokens_details: { cached_tokens: 0 },
+    output_tokens: 1,
+    output_tokens_details: { reasoning_tokens: 0 },
     total_tokens: 3,
   });
 });
@@ -358,7 +404,12 @@ test("createResponsesLogger returns null for invalid base paths and swallows flu
   logger.logOutput("output");
 
   const sessionDir = readdirSync(join(logsDir, "logs"))[0];
-  rmSync(join(logsDir, "logs", sessionDir), { recursive: true, force: true });
+  rmSync(join(logsDir, "logs", sessionDir), {
+    recursive: true,
+    force: true,
+    maxRetries: 5,
+    retryDelay: 100,
+  });
   console.log = (...args) => capturedLogs.push(args.join(" "));
 
   try {

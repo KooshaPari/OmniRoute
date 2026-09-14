@@ -4,6 +4,12 @@ import { homedir } from "node:os";
 import { t } from "../i18n.mjs";
 import { apiFetch } from "../api.mjs";
 import { resolveDataDir } from "../data-dir.mjs";
+import { listManifestTargets } from "../cli-manifest.mjs";
+
+// Target lists shared with `omniroute run` / `omniroute configure` — always
+// derived from the canonical manifest so the completion scripts cannot drift.
+const RUN_TARGET_WORDS = listManifestTargets("run").join(" ");
+const CONFIGURE_TARGET_WORDS = listManifestTargets("configure").join(" ");
 
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1h
 
@@ -129,6 +135,14 @@ _omniroute() {
     'completion:Shell completion'
     'memory:Manage memory store'
     'skills:Manage skills'
+    'connect:Connect to a local or remote OmniRoute server'
+    'contexts:Manage local and remote server contexts'
+    'configure:Configure a supported AI CLI'
+    'launch:Launch an AI CLI through OmniRoute'
+    'launch-codex:Launch Codex through OmniRoute'
+    'run:Run a supported AI CLI through OmniRoute'
+    'runtime:Inspect CLI runtime capabilities'
+    'repair:Repair native runtime dependencies'
   )
 
   _arguments -C \\
@@ -153,7 +167,7 @@ _omniroute() {
               local -a providers
               providers=($(_omniroute_get_cache providers))
               _describe 'provider' providers ;;
-            *) _arguments '1:subcommand:(list add remove test)' ;;
+            *) _arguments '1:subcommand:(available list test test-all validate rotate status add import auth remove edit metrics metric)' ;;
           esac ;;
         chat|stream)
           _arguments \\
@@ -165,6 +179,12 @@ _omniroute() {
           _arguments '1:resource:(combos providers api-manager cli-tools agents settings logs memory skills evals audit cost resilience)' ;;
         completion) _arguments '1:subcommand:(zsh bash fish install refresh)' ;;
         config) _arguments '1:subcommand:(list get set validate contexts)' ;;
+        contexts) _arguments '1:subcommand:(list add use current show remove rename export import migrate)' ;;
+        configure) _arguments '1:target:(${CONFIGURE_TARGET_WORDS})' ;;
+        run) _arguments '1:target:(${RUN_TARGET_WORDS})' ;;
+        connect) _arguments '1:host:' ;;
+        launch|launch-codex) _arguments '--remote[Use a remote server]' '--context[Context name]:' '--model[Model ID]:' ;;
+        runtime) _arguments '1:subcommand:(check repair clean)' ;;
         *) ;;
       esac
       case $state in
@@ -208,15 +228,19 @@ _omniroute() {
   COMPREPLY=()
   cur="\${COMP_WORDS[COMP_CWORD]}"
   prev="\${COMP_WORDS[COMP_CWORD-1]}"
-  cmds="setup doctor status logs providers config test update serve stop restart keys models combo chat stream completion dashboard open backup restore health quota cache mcp a2a tunnel env memory skills"
+  cmds="setup doctor status logs providers config test update serve stop restart keys models combo chat stream completion dashboard open backup restore health quota cache mcp a2a tunnel env memory skills connect contexts configure launch launch-codex run runtime repair"
 
   case "\${prev}" in
     combo)       COMPREPLY=($(compgen -W "list switch create delete show suggest" -- "\${cur}")); return 0 ;;
     keys)        COMPREPLY=($(compgen -W "add list remove regenerate revoke reveal usage" -- "\${cur}")); return 0 ;;
-    providers)   COMPREPLY=($(compgen -W "available list test test-all" -- "\${cur}")); return 0 ;;
+    providers)   COMPREPLY=($(compgen -W "available list test test-all validate rotate status add import auth remove edit metrics metric" -- "\${cur}")); return 0 ;;
     config)      COMPREPLY=($(compgen -W "list get set validate contexts" -- "\${cur}")); return 0 ;;
     completion)  COMPREPLY=($(compgen -W "zsh bash fish install refresh" -- "\${cur}")); return 0 ;;
     open)        COMPREPLY=($(compgen -W "combos providers api-manager cli-tools agents settings logs memory skills evals audit cost resilience" -- "\${cur}")); return 0 ;;
+    contexts)    COMPREPLY=($(compgen -W "list add use current show remove rename export import migrate" -- "\${cur}")); return 0 ;;
+    configure)   COMPREPLY=($(compgen -W "${CONFIGURE_TARGET_WORDS}" -- "\${cur}")); return 0 ;;
+    run)         COMPREPLY=($(compgen -W "${RUN_TARGET_WORDS}" -- "\${cur}")); return 0 ;;
+    runtime)     COMPREPLY=($(compgen -W "check repair clean" -- "\${cur}")); return 0 ;;
     --model)
       local models
       models=$(_omniroute_get_cache models)
@@ -242,7 +266,7 @@ function generateFishScript() {
   return `# OmniRoute CLI fish completion (dynamic)
 complete -c omniroute -f
 
-set -l commands serve stop restart setup doctor status logs providers config keys models combo chat stream completion dashboard open backup restore health quota cache mcp a2a tunnel env memory skills update test
+set -l commands serve stop restart setup doctor status logs providers config keys models combo chat stream completion dashboard open backup restore health quota cache mcp a2a tunnel env memory skills connect contexts configure launch launch-codex update test run runtime repair
 
 for cmd in $commands
   complete -c omniroute -n '__fish_is_nth_token 1' -a $cmd
@@ -251,10 +275,14 @@ end
 # Subcommands
 complete -c omniroute -n '__fish_seen_subcommand_from combo' -a 'list switch create delete show suggest'
 complete -c omniroute -n '__fish_seen_subcommand_from keys' -a 'add list remove regenerate revoke reveal usage'
-complete -c omniroute -n '__fish_seen_subcommand_from providers' -a 'available list test test-all'
+complete -c omniroute -n '__fish_seen_subcommand_from providers' -a 'available list test test-all validate rotate status add import auth remove edit metrics metric'
 complete -c omniroute -n '__fish_seen_subcommand_from config' -a 'list get set validate contexts'
 complete -c omniroute -n '__fish_seen_subcommand_from completion' -a 'zsh bash fish install refresh'
 complete -c omniroute -n '__fish_seen_subcommand_from open' -a 'combos providers api-manager cli-tools agents settings logs memory skills evals audit cost resilience'
+complete -c omniroute -n '__fish_seen_subcommand_from contexts' -a 'list add use current show remove rename export import migrate'
+complete -c omniroute -n '__fish_seen_subcommand_from configure' -a '${CONFIGURE_TARGET_WORDS}'
+complete -c omniroute -n '__fish_seen_subcommand_from run' -a '${RUN_TARGET_WORDS}'
+complete -c omniroute -n '__fish_seen_subcommand_from runtime' -a 'check repair clean'
 
 # Dynamic completions from cache (requires python3)
 function __omniroute_cache_get

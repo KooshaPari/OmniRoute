@@ -69,8 +69,24 @@ function isValidPathSegment(segment: string): boolean {
   return !segment.includes("..") && !segment.includes("//");
 }
 
+/**
+ * A `.opus` file is Opus audio in an Ogg container (RFC 7845) — the same bytes
+ * a client would otherwise name `.ogg`. Whisper-compatible upstreams pick the
+ * decoder from the *filename* and their allow-list
+ * (`flac, m4a, mp3, mp4, mpeg, mpga, oga, ogg, wav, webm`) has no `opus`, so
+ * `note.opus` 400s while byte-identical `note.ogg` succeeds. Since
+ * `/v1/audio/speech` emits `audio/opus` for `response_format=opus`, clients
+ * round-tripping their own voice notes hit this constantly. Relabel to the
+ * container that actually describes the bytes.
+ */
+function normalizeUploadExtension(name: string): string {
+  return name.replace(/\.opus$/i, ".ogg");
+}
+
 function getUploadedFileName(file: Blob & { name?: unknown }): string {
-  return typeof file.name === "string" && file.name.length > 0 ? file.name : "audio.wav";
+  return typeof file.name === "string" && file.name.length > 0
+    ? normalizeUploadExtension(file.name)
+    : "audio.wav";
 }
 
 /**
@@ -334,6 +350,78 @@ async function handleGladiaTranscription(providerConfig, file, modelId, token) {
   }
 
   return errorResponse(504, "Gladia transcription timed out after 120s");
+}
+
+/**
+ * Handle Soniox transcription (async: upload file → create job → poll → get transcript)
+ */
+async function handleSonioxTranscription(providerConfig, file, modelId, token) {
+  const authHeaders = buildAuthHeaders(providerConfig, token);
+
+  const { body: uploadBody, contentType: uploadContentType } = await buildMultipartBody(file, {});
+  const uploadRes = await fetch("https://api.soniox.com/v1/files", {
+    method: "POST",
+    headers: { ...authHeaders, "Content-Type": uploadContentType },
+    body: uploadBody,
+  });
+  if (!uploadRes.ok) {
+    return upstreamErrorResponse(uploadRes, await uploadRes.text());
+  }
+  const fileId = (await uploadRes.json()).id;
+
+  const createRes = await fetch(providerConfig.baseUrl, {
+    method: "POST",
+    headers: { ...authHeaders, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: modelId,
+      file_id: fileId,
+      enable_language_identification: true,
+    }),
+  });
+  if (!createRes.ok) {
+    return upstreamErrorResponse(createRes, await createRes.text());
+  }
+  const { id: transcriptionId } = await createRes.json();
+
+  const statusUrl = `${providerConfig.baseUrl}/${transcriptionId}`;
+  const maxWait = 120_000;
+  const start = Date.now();
+  let completed = false;
+  while (Date.now() - start < maxWait) {
+    await new Promise((r) => setTimeout(r, 2000));
+    const pollRes = await fetch(statusUrl, { headers: authHeaders });
+    if (!pollRes.ok) {
+      continue;
+    }
+    const result = await pollRes.json();
+    if (result.status === "completed") {
+      completed = true;
+      break;
+    }
+    if (result.status === "error") {
+      return errorResponse(
+        500,
+        result.error_message || result.error || "Soniox transcription failed"
+      );
+    }
+  }
+  if (!completed) {
+    return errorResponse(504, "Soniox transcription timed out after 120s");
+  }
+
+  const transcriptRes = await fetch(`${statusUrl}/transcript`, { headers: authHeaders });
+  if (!transcriptRes.ok) {
+    return upstreamErrorResponse(transcriptRes, await transcriptRes.text());
+  }
+  const transcript = await transcriptRes.json();
+  const text =
+    typeof transcript.text === "string" && transcript.text.length > 0
+      ? transcript.text
+      : Array.isArray(transcript.tokens)
+        ? transcript.tokens.map((t: { text?: string }) => t.text ?? "").join("")
+        : "";
+
+  return Response.json({ text }, { headers: { ...CORS_HEADERS } });
 }
 
 /**
@@ -733,6 +821,10 @@ export async function handleAudioTranscription({
 
   if (providerConfig.format === "gladia") {
     return handleGladiaTranscription(providerConfig, file, modelId, token);
+  }
+
+  if (providerConfig.format === "soniox") {
+    return handleSonioxTranscription(providerConfig, file, modelId, token);
   }
 
   if (providerConfig.format === "nvidia-asr") {

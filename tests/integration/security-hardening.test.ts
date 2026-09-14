@@ -144,12 +144,6 @@ test("chat handler wires guardrail pre-call validation", () => {
   );
 });
 
-test("server-init.ts calls enforceSecrets", () => {
-  const content = readIfExists("src/server-init.ts");
-  assert.ok(content, "src/server-init.ts should exist");
-  assert.ok(content.includes("enforceSecrets"), "server-init.ts should call enforceSecrets");
-});
-
 test("instrumentation-node.ts validates runtime env after restoring secrets", () => {
   const content = readIfExists("src/instrumentation-node.ts");
   assert.ok(content, "src/instrumentation-node.ts should exist");
@@ -306,11 +300,44 @@ test("OAuth routes that can create provider connections require auth guard", () 
     "src/app/api/oauth/kiro/social-exchange/route.ts",
   ];
 
+
   for (const relPath of targets) {
     const content = readIfExists(relPath);
     assert.ok(content, `${relPath} should exist`);
-    assert.ok(content.includes("isAuthRequired"), `${relPath} should check whether auth is active`);
-    assert.ok(content.includes("isAuthenticated"), `${relPath} should require authenticated users`);
-    assert.ok(content.includes("Unauthorized"), `${relPath} should reject anonymous requests`);
+
+    // Two accepted guard shapes. GHSA-mg76 moved the cursor/kiro *import* routes
+    // onto requireManagementAuth, which is strictly STRONGER than the legacy
+    // pair: it demands a management principal (dashboard session, manage-scoped
+    // key, CLI token) instead of merely "any authenticated caller", and answers
+    // 401/403 itself — so the literal "Unauthorized" no longer appears in the
+    // route file. The remaining routes still carry the legacy triple.
+    const usesManagementGuard = content.includes("requireManagementAuth(request");
+    const usesLegacyGuard =
+      content.includes("isAuthRequired") &&
+      content.includes("isAuthenticated") &&
+      content.includes("Unauthorized");
+    assert.ok(
+      usesManagementGuard || usesLegacyGuard,
+      `${relPath} must guard connection-creating handlers with requireManagementAuth or the isAuthRequired/isAuthenticated pair`
+    );
+
+    // Positive anchor: a guard somewhere in the file proves nothing if one of the
+    // exported handlers skips it. Slice the file per exported handler and require
+    // EACH body to await a guard on its own `request` — a guard living only in a
+    // helper (or in a sibling handler) no longer satisfies this.
+    const handlerSlices = content
+      .split(/(?=export\s+async\s+function\s+(?:GET|POST|PUT|PATCH|DELETE)\b)/)
+      .filter((slice) =>
+        /^export\s+async\s+function\s+(?:GET|POST|PUT|PATCH|DELETE)\b/.test(slice)
+      );
+    assert.ok(handlerSlices.length > 0, `${relPath} should export at least one HTTP handler`);
+    for (const slice of handlerSlices) {
+      const verb = /export\s+async\s+function\s+(\w+)/.exec(slice)?.[1];
+      assert.match(
+        slice,
+        /await\s+(?:require\w*Auth|isAuthRequired)\s*\(\s*(?:request|req)\b/,
+        `${relPath}: exported handler ${verb} does not await an auth guard on its own request`
+      );
+    }
   }
 });

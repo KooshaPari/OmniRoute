@@ -364,13 +364,23 @@ export function OAuthManualInputPanel({
               code: (chunks) => <code className="font-mono">{chunks}</code>,
             })}
           </p>
+          {provider === "zed-hosted" && (
+            <p className="text-xs text-amber-500 mb-2">
+              After signing in, Zed redirects to a local address like{" "}
+              <code className="font-mono">http://127.0.0.1:&lt;port&gt;/?user_id=...</code> which the
+              browser may show as unreachable — that is expected. Copy the FULL URL from the
+              browser address bar (the access token is inside it) and paste it above.
+            </p>
+          )}
           <Input
             value={callbackUrl}
             onChange={(event) => onCallbackUrlChange(event.target.value)}
             placeholder={
               provider === "claude" || provider === "cline"
                 ? "code#state or /callback?code=..."
-                : placeholderUrl
+                : provider === "zed-hosted"
+                  ? "http://127.0.0.1:<port>/?user_id=...&access_token=..."
+                  : placeholderUrl
             }
             className="font-mono text-xs"
           />

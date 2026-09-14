@@ -1,35 +1,40 @@
 ---
 title: "Free Tiers & Free-Token Budget"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.50
+lastUpdated: 2026-09-03
 ---
 
 # Free Tiers & Free-Token Budget
 
 > **For Users**: Looking for a simple guide? See the [Free Tiers Guide](../getting-started/FREE-TIERS-GUIDE.md) for step-by-step instructions on getting free AI.
 
-> **Last researched:** 2026-06-17 — per-provider web research (official docs + last-7-days news, 50-agent pass with adversarial verification) refreshing every free-tier quota + ToS.
+> **Last researched:** 2026-06-17 — per-provider web research (official docs + last-7-days news, 50-agent pass with adversarial verification) refreshing every free-tier quota + ToS. **Partial re-audit 2026-09-02** (`gemini`, `ollama-cloud`, `groq`, `nara`, `mistral` — see the dated note below).
 > **Source of truth (catalog):** `open-sse/config/freeModelCatalog.ts` (per-MODEL budgets, pool-deduped). The token-budget numbers below come from live web research and are an **approximation** — see [Methodology & caveats](#methodology--caveats).
 
 ## TL;DR — how much free inference does OmniRoute actually aggregate?
 
-| Metric                                      | Tokens / month    | Meaning                                                                                                                                                                                                                                                |
-| ------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Documented recurring grant (steady)**     | **~1.53B**        | Free-tier **pools** (per-model catalog), each shared pool counted **once**. The live source behind `/api/free-tier/summary` and the dashboard's Free-Tier Budget page. **Use this number.**                                                            |
-| **+ first month with signup credits**       | **~2.15B**        | Steady + one-time signup credits (Together $25, Z.AI 20M, DeepSeek 5M, …), deduped per account. **First month only** — does not recur.                                                                                                                 |
-| **+ permanently free, no published cap**    | _un-quantifiable_ | `siliconflow`, `glm-cn` (GLM-4-Flash), `tencent`, `baidu`, `kilo-gateway`, `opencode-zen` — real recurring access, rate/concurrency-limited, **no token cap to count**. Listed, never summed (counting them at `RPM×24/7` is the inflation we reject). |
-| **+ deposit-unlock boost**                  | **+~24M**         | A one-time **$10** OpenRouter top-up raises its free pool from 50 → 1000 req/day. Reported separately so it never inflates the steady number.                                                                                                          |
-| Theoretical ceiling (all rate limits, 24/7) | ~10B              | Sum of every provider rate limit extrapolated to non-stop use. **Not a guarantee** — do not headline this.                                                                                                                                             |
+| Metric                                      | Tokens / month    | Meaning                                                                                                                                                                                                                                                                          |
+| ------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Documented recurring grant (steady)**     | **~1.47B**        | Free-tier **pools** (per-model catalog), each shared pool counted **once**. The live source behind `/api/free-tier/summary` and the dashboard's Free-Tier Budget page. **Use this number.**                                                                                      |
+| **+ first month with signup credits**       | **~2.10B**        | Steady + one-time signup credits (Together $25, Z.AI 20M, DeepSeek 5M, …), deduped per account. **First month only** — does not recur.                                                                                                                                           |
+| **+ permanently free, no published cap**    | _un-quantifiable_ | `siliconflow`, `glm-cn` (GLM-4-Flash), `tencent`, `baidu`, `kilo-gateway`, `opencode-zen`, `gemini`, `ollama-cloud` — real recurring access, rate/concurrency-limited, **no token cap to count**. Listed, never summed (counting them at `RPM×24/7` is the inflation we reject). |
+| **+ deposit-unlock boost**                  | **+~24M**         | A one-time **$10** OpenRouter top-up raises its free pool from 50 → 1000 req/day. Reported separately so it never inflates the steady number.                                                                                                                                    |
+| **+ behind a regional identity check**      | **+~6M**          | `modelscope` (Alibaba Cloud binding + mainland-China real-name verification). Real recurring quota, exposed as `gatedRecurringTokens` / `gatedProviders` and on the dashboard. Never summed into the headline: +~6M behind regional identity verification.                       |
+| Theoretical ceiling (all rate limits, 24/7) | ~10B              | Sum of every provider rate limit extrapolated to non-stop use. **Not a guarantee** — do not headline this.                                                                                                                                                                       |
 
-**Honest headline:** _OmniRoute aggregates **~1.53B documented free tokens per month** (up to ~2.15B in your first month with signup credits) across 43 free-tier pools — plus a long tail of permanently-free, no-cap providers — and RTK + Caveman compression (15–95% token savings) stretches that further._
+**Honest headline:** _OmniRoute aggregates **~1.47B documented free tokens per month** (up to ~2.10B in your first month with signup credits) across 34 free-tier pools — plus a long tail of permanently-free, no-cap providers — and RTK + Caveman compression (15–95% token savings) stretches that further._
 
-> **Why this dropped from the previous ~1.94B.** The 2026-06-17 refresh is an honesty correction, not a loss: `gemini` is now pool-deduped (was inflated by counting each Flash variant separately, 462M → 60M), `cloudflare-ai` corrected to its real 10k-Neurons/day (122M → 30M), `doubao` reclassified as a one-time signup credit (not recurring), and shut-down tiers removed (`github-models` closed to new signups, `chutes`/`phind`/`kluster` discontinued). Partly offset by `llm7` (correct 5M/day → 150M) and new free providers (Kilo, OpenCode Zen, Z.AI GLM-Flash).
+> **Why this dropped from the previous ~1.94B.** The 2026-06-17 refresh is an honesty correction, not a loss: `gemini` is now pool-deduped (was inflated by counting each Flash variant separately, 462M → 60M), `cloudflare-ai` corrected to its real 10k-Neurons/day (122M → 30M), `doubao` reclassified as a one-time signup credit (not recurring), and shut-down tiers removed (`chutes`/`phind`/`kluster` discontinued). Partly offset by `llm7` (correct 5M/day → 150M) and new free providers (Kilo, OpenCode Zen, Z.AI GLM-Flash).
 >
 > **Further corrected to ~1.37B in v3.8.42:** `longcat` was reclassified from a 150M/mo recurring grant to a one-time 10M signup credit after its free preview ended. Same honesty rule — no provider was dropped by mistake.
 >
-> **Updated to ~1.53B in v3.8.49:** the pool count grew from 39 to 43 after mapping free tiers that were documented upstream but missing from the catalog (`requesty`, `ovhcloud`, `agnes`, `glm`) plus new providers `navy` and `aihorde` (#7840). This is the live, CI-gated number (`check:docs-counts` fails the build if this drifts from `computeFreeModelTotals()`).
+> **Updated on 2026-08-26 after retiring Felo Web:** Felo Web is excluded while its GPL-derived provenance/licensing remains on HOLD; the source reported 38 pool keys at the time. The pool count is live and CI-gated (`check:docs-counts` fails the build if the numbers above drift from `computeFreeModelTotals()`).
+>
+> **Re-audited on 2026-09-02 against the providers' own pages** (sources: the `// evidence:` comments next to each re-audited entry in `open-sse/config/freeModelCatalog.data.ts`): `gemini` and `ollama-cloud` no longer publish a token figure (Google removed the per-model free table on 2025-12-23; Ollama's Free plan is "starter usage credits") and are now listed as **uncapped**, never summed (−80M); `groq` is five **per-model** 200K-TPD caps (6M each, +15M) with three retired IDs dropped; `nara` is one 7M/day bucket (+60M, 210M). `mistral`'s 1B is visible only in the account console — see _Evidence classes_ under Methodology. The source reported 35 such keys at that point (−3: `gemini` and `ollama-cloud` moved to the uncapped list, and Groq's per-model caps are not a shared pool).
+>
+> **Corrected to ~1.47B on 2026-09-03 (#11773):** `cerebras` was reclassified from a 30M/mo recurring grant (old no-card 1M tokens/day trial) to a one-time $5 signup credit that requires a payment method. Same honesty rule as LongCat. The source now reports 34 recurring pool keys and ~1.47B steady.
 
-Biggest **documented** contributors: `mistral` 1.00B, `llm7` 150M, `groq` 117M, `gemini` 60M, `cerebras` 30M, `cloudflare-ai` 30M, `sambanova` 30M. (`longcat` is excluded — its 10M LongCat-2.0 grant is a one-time, KYC-gated signup credit, not a recurring monthly budget.)
+Biggest **documented** contributors: `mistral` 1.00B, `nara` 210M, `llm7` 150M, `groq` 30M (five per-model caps), `cloudflare-ai` 30M, `api-airforce` 24M. (`longcat` is excluded — its 10M LongCat-2.0 grant is a one-time, KYC-gated signup credit, not a recurring monthly budget.)
 
 > ⚠️ The theoretical ceiling (~10B) is inflated by rate-limit-only providers with **no published token cap** (`tencent`, `siliconflow`, `nvidia`, `baidu`, `glm-cn`, `sparkdesk`) whose figures would be `RPM/TPM × 24/7 × 30d` — a theoretical maximum no single account will sustain. They are **excluded** from the defensible number (shown in the "permanently free, no cap" row instead). This is the same inflation that makes competitors' multi-billion claims unreliable.
 
@@ -39,8 +44,7 @@ Biggest **documented** contributors: `mistral` 1.00B, `llm7` 150M, `groq` 117M, 
 
 A 50-agent web-research pass (official docs + last-7-days news, adversarially verified) refreshed the whole catalog. Highlights:
 
-- **Removed / no free tier (2026):** `chutes` (free tier ended 2026-03), `phind` (company shut down 2026-01), `kluster` (sunset 2026-06-09 → MITO), `glhf` (beta ended), `gitlawb` + `gitlawb-gmi` (MiMo free revoked 2026-05-24, Nemotron promo ended 2026-06 — re-verified 2026-06-18), `aimlapi` (free tier paused — re-verified 2026-06-18), `yi` (Yi-Light retired, pay-as-you-go — re-verified 2026-06-18), `theoldllm` / `featherless-ai` (no current free tier). `iflytek` / `sparkdesk` stay listed but carry a ToS-caution note (Spark Lite is free; the ToS restricts proxy/relay use).
-- **GitHub Models** — closed to **new** customers on 2026-06-16; existing accounts keep API/playground access, so it stays in the catalog with a note (not removed).
+- **Removed / no free tier (2026):** `chutes` (free tier ended 2026-03), `phind` (company shut down 2026-01), `kluster` (sunset 2026-06-09 → MITO), `gitlawb` + `gitlawb-gmi` (MiMo free revoked 2026-05-24, Nemotron promo ended 2026-06 — re-verified 2026-06-18), `aimlapi` (free tier paused — re-verified 2026-06-18), `yi` (Yi-Light retired, pay-as-you-go — re-verified 2026-06-18), `featherless-ai` (no current free tier). `iflytek` / `sparkdesk` stay listed but carry a ToS-caution note (Spark Lite is free; the ToS restricts proxy/relay use).
 - **Gemini** — `2.0 Flash` / `2.0 Flash-Lite` shut down 2026-06-01 and `2.5 Pro` left the free tier (2026-04); free tier is now **Flash-family only** (2.5/3/3.1/3.5 Flash + Gemma). The catalog now **pools** the Flash family (was inflated by counting each variant separately: 462M → 60M).
 - **Corrected numbers:** `cloudflare-ai` 122M → **30M** (real 10k-Neurons/day), `doubao` reclassified as a one-time signup credit (not recurring), `llm7` 4M → **150M** (documented 5M tokens/day), `together` "-Free" endpoints discontinued → only the **$25** signup credit remains, `longcat` Preview ended + Flash models retired → **LongCat-2.0** only, reclassified as a one-time **10M**-token signup credit (KYC-gated, not recurring).
 - **New free providers discovered:** ⭐ **Kilo Code** (`kilo-gateway` — rotating "Auto Free" set: NVIDIA Nemotron 3 family, StepFun, Poolside, Nex-N2-Pro), ⭐ **OpenCode Zen** (`opencode-zen` — 6 rotating free coding models), ⭐ **Z.AI / Zhipu** (`glm-cn` — GLM-4-Flash / 4.5-Flash / 4.7-Flash permanently free + 20M signup bonus), and `arcee-ai` Trinity Large Preview.
@@ -50,21 +54,55 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 
 ---
 
+## Two regimes — counting vs deciding
+
+OmniRoute answers "is it free?" through two regimes that intentionally read
+different sources:
+
+| Regime                    | Source of truth                                                                                                                                                        | Surfaces                                                                                                                       |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Counting / displaying** | Resolved catalog — the shipped baseline overlaid by the Radar feed (`getRadarCatalog`)                                                                                 | Free-tier totals, budget card, dashboards                                                                                      |
+| **Deciding**              | Shipped catalog only (`FREE_MODEL_BUDGETS` in `open-sse/config/freeModelCatalog.data.ts`) plus the local heuristics (`:free` suffix, zero pricing, `grantsFreeAccess`) | Every consumer of `src/shared/utils/freeModels.ts`: model import, `auto/*` routing, `GET /v1/models`, and the browser previews |
+
+Counting can improve whenever a feed is available. Deciding stays on the
+release artifact, so the answer is identical in the browser and on the server,
+reproducible offline, and testable without a database. Letting the browser
+preview read one source while the server import reads another would produce a
+preview that disagrees with what happens on click — the split is kept on
+purpose.
+
 ## Methodology & caveats
 
-- Numbers are **upper-bound estimates** from each provider's documented free-tier limits as of **2026-06-17**, gathered by web research (confidence tagged per row). Free tiers change constantly — re-verify before relying on a figure.
+- Numbers are **upper-bound estimates** from each provider's documented free-tier limits as of **2026-06-17**, gathered by web research. Free tiers change constantly — re-verify before relying on a figure.
+- **What an entry actually vouches for.** No entry carries a per-row confidence rating, and the API serves none — treat every figure above as an estimate of the same, unstated quality. Two facts are different, because they are curated by hand rather than inferred: 5 entries carry an independently documented hard stop, and 13 entries carry a prompt-training disclosure. `hardStopGuaranteed` is set only when the provider's own terms say that exceeding the free allowance refuses the request rather than silently starting to bill you, with the source in a comment next to the entry; it is never defaulted to `true`, and an entry nobody has verified stays unset. So a missing hard-stop flag means "not established", not "known to bill you". **STRICT mode** (the opt-in `freeAccessPolicy=strict` routing guard) only trusts entries that carry the flag; every other free tier is excluded as `no-hard-stop` (see `open-sse/services/autoCombo/strictZeroCostFilter.ts`).
 - `estMonthlyFreeTokens` = recurring monthly tokens only. **One-time signup credits do not recur** and count as 0. Discontinued tiers are also 0.
 - Daily token cap → `monthly = daily × 30`. Only RPD documented → `RPD × ~800 output tokens × 30`. Only RPM/TPM (no daily cap) → **uncapped** (see below).
-- **Permanently free, but no published token cap** (`siliconflow`, `glm-cn`, `tencent`, `baidu`, `kilo-gateway`, `opencode-zen`): these are real recurring free access, rate/concurrency-limited. We classify them `recurring-uncapped` and **never sum them** — multiplying `RPM × 24/7 × 30d` would produce a fantasy ceiling (the inflation we reject). They are listed so you know they exist.
+- **Permanently free, but no published token cap** (`siliconflow`, `glm-cn`, `tencent`, `baidu`, `kilo-gateway`, `opencode-zen`, `gemini`, `ollama-cloud`): these are real recurring free access, rate/concurrency-limited. We classify them `recurring-uncapped` and **never sum them** — multiplying `RPM × 24/7 × 30d` would produce a fantasy ceiling (the inflation we reject). They are listed so you know they exist.
 - **Deposit-unlock boost:** a one-time small top-up that permanently raises a free quota (OpenRouter: $10 → 1000 req/day ≈ +24M/mo). Reported as a separate figure, kept out of the steady headline.
+- **Eligibility-gated quotas** (`eligibilityGate: "regional-identity"`): a real recurring quota that only opens after a region-bound identity check (mainland-China real-name verification today). Counted with the same pool-dedupe rule into a separate figure (`gatedRecurringTokens`), never into the steady headline. The regime (`freeType`) is unchanged, so routing is unchanged.
+- **Evidence classes.** The rule: a number in the catalog cites its source in an `// evidence:` comment next to the entry — `public-page` (a provider page anyone can read), `api-public` (an unauthenticated endpoint of the provider, e.g. NaraRouter's public plans endpoint at router.bynara.id), or `console-verified <date> por <who>` (the figure is only visible inside an account console; the comment records who saw it and when, and the public page that says the cap exists). The state today: the five blocks re-audited on 2026-09-02 carry it (`gemini`, `groq`, `mistral`, `ollama-cloud`, `nara`); entries that predate the 2026-09-02 re-audit inherit the earlier research until they are touched; any **new or changed** number without an evidence comment is a bug. Today only `mistral` is console-verified.
+
+---
+
+## Why our number is smaller than other aggregators'
+
+Most "free tokens per month" figures in this space are sums of per-model labels. Ours is not, on purpose:
+
+- **Each shared pool is counted once.** Mistral's free plan is one 1B/month allowance per organization; listing it under five models does not make it 5B. Summed per model, our own catalog would read **~7.4B** (recomputed on 2026-09-03; this figure is not CI-gated — re-measure it whenever the catalog changes) — the headline says **~1.47B** because that is what one account of each provider can actually spend.
+- **Daily caps are converted, rates are not.** A documented tokens/day cap becomes `× 30`; a documented requests/day cap becomes `RPD × ~800 tokens × 30`; a provider that only publishes requests-per-minute has **no** monthly figure and is listed as _uncapped_, never summed. Multiplying a rate limit by 24/7 is the inflation we refuse.
+- **Quotas behind a regional identity check are shown apart** (`+~6M behind regional identity verification`), because most readers cannot use them.
+- **Signup credits are first-month only** and reported as a second figure, never blended into the steady number.
+- **The figure is enforced by CI.** `npm run check:docs-counts` recomputes the totals from the catalog and fails the build when this file, the README or the budget card drift from them.
 
 ---
 
 ## ToS attention table
 
+> **ToS flag is advisory, not a routing gate.** Providers marked `tos` are still included in routing and combo/fallback by default; the flag only surfaces on `/dashboard/free-tiers` and `/api/free-tier/summary`. The `excludeTosAvoid` query parameter affects the summary view only, not global routing. The verdict lives in `open-sse/config/freeTierCatalog.ts` (informational, not read by routing engines).
+
 > A quick read on each provider's terms for a self-hosted, single-user personal proxy. `caution` = a personal-use or proxy clause worth checking; `ambiguous` = unclear; `ok` = explicitly permitted. Informational, not legal advice — you decide.
 
-### ⚠️ Caution — personal-use / proxy clauses worth checking (19)
+### ⚠️ Caution — personal-use / proxy clauses worth checking (16)
 
 > Their free access is real and OmniRoute can route to them; the clauses below are just worth knowing. The OAuth/keyless ones aren't token-quantifiable, so they're not in the headline number (not because they're unusable).
 
@@ -85,7 +123,6 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 | `muse-spark-web` | Meta ToS explicitly prohibits automated access without prior permission, reverse engineering without written permission, and circumventing technologi… |
 | `nlpcloud`       | ToS explicitly prohibits "setting up a proxy or other device that allows others to access the Service through it" and grants only a non-transferable,… |
 | `opencode`       | ToS (Anomaly Innovations, Inc.) explicitly restricts use to "your own internal use, and not on behalf of or for the benefit of any third party" — ope… |
-| `qwen-web`       | The free OAuth tier is discontinued; no ToS permits a self-hosted proxy using session tokens against chat.qwen.ai. Even before shutdown, automated/pr… |
 | `t3-web`         | ToS explicitly restricts accounts to personal use only, prohibits credential sharing with third parties, and bans automated/bot/scraping access — a s… |
 
 ### ✅ Generally permissive — caution / ambiguous / ok (the rest)
@@ -98,8 +135,6 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 | `bytez`          | ambiguous | No explicit ToS page was accessible (404); no public evaluation-only or no-proxy clauses found in docs, but the platfor… |
 | `doubao`         | ambiguous | No explicit proxy/resale prohibition found in publicly indexed documentation; Volcengine is a developer-oriented cloud … |
 | `gitlawb-gmi`    | ambiguous | No explicit ToS clause found prohibiting self-hosted personal proxy use; the free Nemotron model carries an NVIDIA disc… |
-| `inclusionai`    | ambiguous | No explicit ToS found prohibiting proxy/self-hosted use, but the platform is operated by Ant Group (Chinese company) an… |
-| `kluster`        | ambiguous | ToS primarily covers website content rights and does not specifically address API proxy use, resale, or self-hosted pro… |
 | `monsterapi`     | ambiguous | MonsterAPI's ToS page (monsterapi.ai/terms-of-service) was unreachable during research; no specific proxy/resale/person… |
 | `nous-research`  | ambiguous | Nous Portal itself is an aggregator/proxy service; using it as a backend for another self-hosted proxy creates a proxy-… |
 | `ollama-cloud`   | ambiguous | ToS prohibits using the service "to develop competing products" but has no explicit ban on self-hosted personal proxies… |
@@ -120,10 +155,7 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 | `exa-search`     | caution   | No explicit "no proxy" or "evaluation only" clauses found; Exa actively offers a reseller partner program allowing API … |
 | `firecrawl`      | caution   | Cloud API ToS has no explicit personal-proxy prohibition found, but the open-source self-hosted version is AGPL-3.0 (re… |
 | `gemini`         | caution   | ToS explicitly states the free tier is for "developers building with Google AI models for professional or business purp… |
-| `github-models`  | caution   | GitHub's Acceptable Use Policy prohibits reselling/proxying the service; GitHub Models ToS delegates to each model's ho… |
-| `glhf`           | caution   | ToS explicitly prohibits sharing account credentials or making the account available to any third party, which makes a … |
 | `groq`           | caution   | Services Agreement §6.3 prohibits reselling, sublicensing, or distributing API access; §3.2 bars reselling/leasing acco… |
-| `hackclub`       | caution   | Service is explicitly scoped to Hack Club teen members building projects/learning; no public ToS found explicitly permi… |
 | `huggingchat`    | caution   | Hugging Face ToS does not explicitly ban personal self-hosted proxies, but supplemental terms (referenced but not fully… |
 | `huggingface`    | caution   | ToS grants a limited license to access/use the service; the document does not explicitly permit or forbid a single-user… |
 | `hyperbolic`     | caution   | ToS grants API access "solely for your own personal or internal business purposes" and explicitly prohibits licensing, … |
@@ -143,7 +175,6 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 | `pollinations`   | caution   | MIT License cited in API docs suggests liberal reuse; no explicit prohibition on self-hosted proxying found. However, u… |
 | `predibase`      | caution   | Predibase is positioned as an enterprise fine-tuning/serving platform; the free trial is explicitly for exploration and… |
 | `publicai`       | caution   | ToS (publicai.co/tc) designates services as "primarily for research and educational use"; no explicit proxy or resale p… |
-| `puter`          | caution   | Puter ToS forbids using services for "commercial purpose" without written consent; a self-hosted personal proxy consumi… |
 | `qoder`          | caution   | ToS page returned no readable content; Qoder is a coding IDE client (not a public API), and third-party proxy wrappers … |
 | `reka`           | caution   | Business Terms prohibit sublicensing or distributing access to third parties; a personal single-user proxy is likely fi… |
 | `sambanova`      | caution   | ToS Section 1.5(c) explicitly prohibits reselling, sublicensing, or making the service available to third parties; a se… |
@@ -163,7 +194,6 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 | `freemodel-dev`  | unknown   | The Terms of Service page (freemodel.dev/terms) returned only a header with no readable content via WebFetch; no clause… |
 | `gitlawb`        | unknown   | No ToS or acceptable-use policy found; proxy/resale restrictions unknown — assume caution for self-hosted proxy use.     |
 | `liquid`         | unknown   | No hosted API exists to proxy; open-source model commercial use is free for orgs under $10M annual revenue. No self-hos… |
-| `theoldllm`      | unknown   | No terms of service document was found on the site; proxying, resale, or self-hosted use policy is entirely undocumente… |
 | `yi`             | unknown   | ToS not publicly accessible without login; no proxy/resale clauses could be reviewed. Self-hosted personal proxy use st… |
 | `comfyui`        | ok        | GPL-3.0 open-source license explicitly permits self-hosted personal proxy use; Comfy Org ToS confirms commercial use of… |
 | `scaleway`       | ok        | Scaleway's General Terms of Services are a standard commercial cloud agreement with no explicit prohibition on self-hos… |
@@ -172,23 +202,20 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 
 ---
 
-## Per-provider free-tier (refreshed 2026-06-17)
+## Per-provider free-tier (refreshed 2026-09-02 for the re-audited rows; 2026-06-17 otherwise)
 
 > Regenerated from the per-model catalog (`open-sse/config/freeModelCatalog.ts`), pool-deduped. Sorted by recurring steady tokens/mo. `uncapped*` = permanently free but no published token cap (rate/concurrency-limited) — real access, **not** summed into the headline. `—` = credit-only / keyless / not token-quantifiable.
 
 | Provider         | Free type     | Steady tokens/mo | First-month credit | ToS       | Models |
 | ---------------- | ------------- | ---------------- | ------------------ | --------- | ------ |
 | `mistral`        | recurring     | ~1.00B           | —                  | caution   | 5      |
+| `nara`           | recurring     | ~210M            | —                  | caution   | 8      |
 | `llm7`           | recurring     | ~150M            | —                  | caution   | 4      |
 | `longcat`        | one-time      | —                | 10M                | caution   | 1      |
-| `gemini`         | recurring     | ~60M             | —                  | caution   | 6      |
-| `cerebras`       | recurring     | ~30M             | —                  | caution   | 2      |
-| `cloudflare-ai`  | recurring     | ~30M             | —                  | caution   | 6      |
+| `cerebras`       | one-time      | —                | $5 credit          | caution   | 2      |
+| `cloudflare-ai`  | recurring     | ~30M             | —                  | caution   | 9      |
+| `groq`           | recurring     | ~30M             | —                  | caution   | 5      |
 | `api-airforce`   | recurring     | ~24M             | —                  | caution   | 7      |
-| `ollama-cloud`   | recurring     | ~20M             | —                  | ambiguous | 8      |
-| `github-models`  | recurring     | ~18M             | —                  | caution   | 14     |
-| `groq`           | recurring     | ~15M             | —                  | caution   | 5      |
-| `inclusionai`    | recurring     | ~15M             | —                  | ambiguous | 1      |
 | `bluesminds`     | recurring     | ~7M              | —                  | ambiguous | 22     |
 | `sambanova`      | recurring     | ~6M              | —                  | caution   | 5      |
 | `arcee-ai`       | recurring     | ~5M              | —                  | caution   | 1      |
@@ -201,7 +228,9 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 | `kiro`           | recurring     | ~25K             | —                  | avoid     | 12     |
 | `glm-cn`         | uncapped      | uncapped\*       | ~20M               | ok        | 4      |
 | `baidu`          | uncapped      | uncapped\*       | —                  | caution   | 1      |
+| `gemini`         | uncapped      | uncapped\*       | —                  | caution   | 4      |
 | `kilo-gateway`   | uncapped      | uncapped\*       | —                  | caution   | 7      |
+| `ollama-cloud`   | uncapped      | uncapped\*       | —                  | ambiguous | 8      |
 | `opencode-zen`   | uncapped      | uncapped\*       | —                  | caution   | 6      |
 | `siliconflow`    | uncapped      | uncapped\*       | —                  | caution   | 10     |
 | `tencent`        | uncapped      | uncapped\*       | —                  | caution   | 1      |
@@ -228,7 +257,6 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 | `duckduckgo-web` | keyless       | —                | —                  | avoid     | 6      |
 | `freemodel-dev`  | keyless       | —                | —                  | unknown   | 4      |
 | `friendliai`     | keyless       | —                | —                  | avoid     | 2      |
-| `hackclub`       | keyless       | —                | —                  | caution   | 3      |
 | `iflytek`        | keyless       | —                | —                  | avoid     | 1      |
 | `inference-net`  | keyless       | —                | —                  | caution   | 3      |
 | `liquid`         | keyless       | —                | —                  | unknown   | 1      |
@@ -240,8 +268,6 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 | `opencode`       | keyless       | —                | —                  | avoid     | 7      |
 | `pollinations`   | keyless       | —                | —                  | caution   | 31     |
 | `publicai`       | keyless       | —                | —                  | caution   | 3      |
-| `puter`          | keyless       | —                | —                  | caution   | 33     |
-| `qwen-web`       | keyless       | —                | —                  | avoid     | 3      |
 | `reka`           | keyless       | —                | —                  | caution   | 2      |
 | `sensenova`      | keyless       | —                | —                  | caution   | 1      |
 | `sparkdesk`      | keyless       | —                | —                  | caution   | 1      |
@@ -270,7 +296,7 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 - **`bluesminds`** — Our shipped freeNote was "(none)" — but BluesMinds does have a documented free tier: 500 pi credits, 20 RPM, 300 RPD, permanent free plan. The catalog significantly understates the offering.
 - **`brave-search`** — The catalog notes "(none)" suggesting no free tier was tracked, but in reality there was a free 5,000 queries/month tier (no card) until February 12, 2026, which has since been replaced by a $5/month…
 - **`byteplus`** — Our catalog shipped "(none)" but BytePlus ModelArk does have a free tier: a one-time trial credit of 500k tokens per LLM model for new accounts. The catalog underreports this.
-- **`cerebras`** — TPM appears tightened from 60K to 30K on current documented models (gpt-oss-120b, zai-glm-4.7). RPM of 5 is now explicitly documented (was not in our shipped note). Daily token cap of 1M/day is uncha…
+- **`cerebras`** — The no-card 1M tokens/day trial is gone. Live cerebras.ai/pricing (2026-09-03) is a one-time $5 signup credit, payment method required, 30-day validity. Reclassified as `one-time-initial` (LongCat-shaped); dropped from `LEGACY_FREE_PROVIDERS` and the recurring budget.
 - **`chutes`** — The shipped freeNote says "Free tier available" but as of March 15, 2026, the free tier has been officially discontinued. The catalog note is stale and should be updated to reflect that there is no r…
 - **`coze`** — The shipped note "Free ByteDance agent platform" is directionally accurate but omits that the free tier is now tightly credit-capped (10 credits/day ≈ 5–100 messages depending on model), a constraint…
 - **`deepinfra`** — Our shipped freeNote says "Free signup credits for API testing" — this appears stale. The official pricing page now requires card/prepayment with no documented general free signup credit. The free ti…
@@ -284,21 +310,16 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 - **`freemodel-dev`** — Our shipped freeNote is "(none)" — this was likely a placeholder meaning the provider was not yet cataloged. In reality the provider does have a $300 one-time trial credit offer. However, this is a o…
 - **`friendliai`** — The shipped freeNote ("Free tier for serverless inference") is partially accurate but misleading. There is free access via Tier 0 and free-designated models, but the rate limits are undefined and ada…
 - **`gemini`** — The shipped freeNote says "1,500 req/day for Gemini 2.5 Flash" — this was accurate before December 2025. Google cut free-tier limits by 50-80% in December 2025, reducing Gemini 2.5 Flash from 1,500 R…
-- **`github-models`** — Catalog note "Free GPT-5, o-series, DeepSeek-R1, Llama 4, Grok 3" is directionally correct about model availability but omits the daily rate limits (50 RPD for high-tier models, 150 RPD for low-tier)…
 - **`gitlawb`** — The shipped freeNote "Free tier available" is effectively stale. The original free MiMo access was removed in May 2026; the only remaining "free" option is a temporary promotional model (Nemotron 3 U…
 - **`gitlawb-gmi`** — Partially still accurate — free tier exists but is now narrowed to a single model (Nemotron 3 Ultra) after MiMo free access was revoked in late May 2026. The shipped note "Free tier available" unders…
-- **`glhf`** — The shipped freeNote ("Free tier for open-source model inference") is now stale. The free beta ended in January 2025; GLHF Chat is now a paid pay-as-you-go service. There is no ongoing recurring free…
-- **`groq`** — The shipped freeNote "30 RPM / 14.4K RPD" is accurate only for llama-3.1-8b-instant. Most other models (including llama-3.3-70b-versatile) have a much lower 1K RPD cap. The note omits model-specific …
-- **`hackclub`** — The "30+ models" count appears accurate and still matches. The core offering remains free for Hack Club members. No evidence of tightening — still "$0 ALWAYS FREE" per the homepage. The freeNote omit…
+- **`groq`** — The shipped freeNote "30 RPM / 14.4K RPD" is accurate only for llama-3.1-8b-instant. Most other models (including llama-3.3-70b-versatile) have a much lower 1K RPD cap. The note omits model-specific … **Resolved 2026-09-02:** the `freeNote` now reads "Free plan: per-model caps (200K tokens/day per chat model; see console.groq.com/docs/rate-limits for RPM/RPD) — no payment method on file." and the catalog carries five per-model 6M caps (llama-3.3-70b-versatile retired from the free tier on 2026-08-16) — see the [2026-09-02 re-audit note](#tldr--how-much-free-inference-does-omniroute-actually-aggregate).
 - **`huggingchat`** — The shipped freeNote ("Free LLM chat — no subscription required. Rate limits apply.") is partially accurate but significantly understates the restrictions. The free tier now operates on a hard $0.10/…
 - **`huggingface`** — Significantly tightened. The shipped freeNote ("Free Inference API for thousands of models") implied unlimited/generous free access, but as of mid-2025 the free tier is capped at $0.10/month in recur…
 - **`hyperbolic`** — Our shipped freeNote says "$1-5 trial credits on signup" — the $1 trial credit portion is accurate, but the "$5" figure refers to the minimum deposit required to unlock GPU rental (not free credits g…
 - **`iflytek`** — Catalog says "Free Spark Lite models" — this is broadly accurate. However the current reality is more nuanced: only Spark Lite is free (the Max 100M token offer was a one-time promo, not recurring); …
-- **`inclusionai`** — Our shipped freeNote says "Free Ling-2.6-flash model (262K context)" without specifying token limits. Reality is more specific: the free tier is 500K tokens/day (shared across all models), with a 2 Q…
 - **`inference-net`** — The shipped freeNote states "$25 free credits on signup plus research grants." The current pricing page shows only $1 recurring monthly credits with no mention of a $25 signup bonus or research grant…
 - **`jina-reader`** — Our shipped freeNote was "(none)", which is incorrect. Jina Reader has had a publicly documented free tier since launch: keyless access at 20 RPM plus a 10M one-time token grant with a free API key. …
 - **`kiro`** — Catalog shipped freeNote "(none)" — but Kiro has a documented, perpetual free tier of 50 credits/month. The free tier existed since Kiro's public launch (pricing formalized ~October 2025). This is a …
-- **`kluster`** — The $5 free credits on signup appears to still match. However, there is evidence of an additional permanent free tier (post-credit) with undocumented limits, which may represent an improvement over t…
 - **`llm7`** — Rate limits have increased from the shipped freeNote (20 RPM / 100 req/hr → 40 RPM / 200 req/hr). The "no signup required" claim is now outdated — a free token from token.llm7.io is now required (tho…
 - **`longcat`** — The public preview/beta ended and the Flash models were retired; only the GA `LongCat-2.0` remains. The free tier is a **one-time 10M-token grant** unlocked after account signup + **KYC verification** — it does **not** reset daily or monthly. Beyond the grant it is pay-as-you-go.
 - **`mistral`** — The shipped freeNote ("Free Experiment tier: rate-limited access to all models") is directionally correct but understated. Current reality adds specific documented limits: 2 RPM, 500K TPM, 1B tokens/…
@@ -315,9 +336,8 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 - **`pollinations`** — Partially matches — the "no API key required" claim is still true for anonymous access, but the catalog freeNote omits that: (1) rate limits do apply (interval throttle of ~1 req/6-15s for anonymous …
 - **`predibase`** — The shipped freeNote ($25 free trial credits, 30-day validity) still matches current documentation. However, the catalog omits the concurrent 20,000 tokens/day serverless rate limit that applies duri…
 - **`publicai`** — The shipped freeNote ("Free community inference tier") is broadly accurate but understates the specificity: the 20 RPM rate limit is now documented. No major tightening found; the service remains fre…
-- **`puter`** — Partially matches: the "500+ models" count is still accurate. However "users pay via Puter account" understates the reality — free accounts receive an undocumented starting credit that can be exhaust…
+- **`puter`** — **Fully removed** from the catalog (registry, executor, free-model catalog and API-key entry) at the request of Puter's owner (Nariman Jelveh) — see the dead-service-removal precedent above (`phind`).
 - **`qoder`** — Our catalog ships freeNote "(none)", but Qoder does have a free tier: a Community Edition with unlimited basic-model completions (daily-capped, unspecified limit) plus a one-time 14-day/300-credit Pr…
-- **`qwen-web`** — Session-token access against chat.qwen.ai is not a dependable free-provider path and may be rejected upstream.
 - **`sambanova`** — Our shipped note only described the one-time $5 credit (30-day validity). The current reality includes a permanent recurring free tier with documented rate limits (20 RPM, 20 RPD, 200k TPD) that pers…
 - **`sensenova`** — Our shipped freeNote says "Free SenseTime models" which is vague but directionally correct — free access does exist. However, reality is more nuanced: free access is a time-limited public beta (Token…
 - **`serper-search`** — The shipped freeNote says "(none)" which is partially accurate — there is no recurring free plan — but Serper does offer 2,500 one-time trial credits on signup. The catalog note could be more precise…
@@ -327,7 +347,6 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 - **`t3-web`** — The shipped freeNote is broadly accurate (limited model access, Pro unlocks 50+ models for $8/month), but misses two key updates: (1) the free tier now resets daily instead of monthly (changed around…
 - **`tavily-search`** — Catalog ships freeNote "(none)" implying no free tier, but Tavily does in fact offer a documented recurring free tier of 1,000 credits/month with no credit card required. This is a significant discre…
 - **`tencent`** — Largely matches — the shipped freeNote ("Free Hunyuan Lite models") is accurate. Hunyuan-lite has been permanently free since May 2024 and remains so as of 2026. The catalog note undersells the detai…
-- **`theoldllm`** — Our shipped freeNote was "(none)" — this still matches in the sense that no structured API/free tier offering exists; the service remains a UI-only chat wrapper with no catalogable API tier.
 - **`together`** — The shipped note says "$25 signup credits + 3 permanently free models" but reality shows far more permanently free models (~80, not 3). The $25 trial credit figure is contested — official billing doc…
 - **`uncloseai`** — Largely matches — still free forever with no signup. However, the ToS (terms-of-use.html) clarifies IP-based throttling exists for excessive use and prohibits building competing ML services without a…
 - **`veoaifree-web`** — The shipped freeNote states "6 requests/hour" but no such explicit limit is currently documented anywhere on veoaifree.com. The site claims unlimited free generation with no login. The models listed …

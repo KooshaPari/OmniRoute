@@ -1,20 +1,11 @@
 import { randomUUID } from "crypto";
-/**
- * Image Generation Handler
- *
- * Handles POST /v1/images/generations requests.
- * Proxies to upstream image generation providers using OpenAI-compatible format.
- *
- * Request format (OpenAI-compatible):
- * {
- *   "model": "openai/gpt-image-2",
- *   "prompt": "a beautiful sunset over mountains",
- *   "n": 1,
- *   "size": "1024x1024",
- *   "quality": "standard",       // optional: "standard" | "hd"
- *   "response_format": "url"     // optional: "url" | "b64_json"
- * }
- */
+/** Image generation handler for POST /v1/images/generations (OpenAI-compatible). */
+
+import {
+  CHATGPT_WEB_RETIRED_ERROR_CODE,
+  CHATGPT_WEB_RETIRED_MESSAGE,
+  isCommonChatGptWebRetiredProviderId,
+} from "@/shared/constants/chatgptWebRetirement";
 
 import { getImageProvider, parseImageModel } from "../config/imageRegistry.ts";
 import { HTTP_STATUS } from "../config/constants.ts";
@@ -23,10 +14,7 @@ import { getAntigravityEnvelopeUserAgent } from "../services/antigravityIdentity
 import { kieExecutor } from "../executors/kie.ts";
 import { mapImageSize } from "../translator/image/sizeMapper.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
-import { ChatGptWebExecutor } from "../executors/chatgpt-web.ts";
-import type { ExecutorLog, ProviderCredentials } from "../executors/base.ts";
-import { getChatGptImage, findChatGptImageBySha256 } from "../services/chatgptImageCache.ts";
-import { createHash } from "node:crypto";
+import { isCodexFreePlan } from "../executors/codex/tools.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { sleep } from "../utils/sleep.ts";
 import {
@@ -50,28 +38,33 @@ import {
   getConfiguredTimeout,
 } from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts";
+import {
+  isMicrosoftDesignerWebRetiredProviderId,
+  MICROSOFT_DESIGNER_WEB_RETIRED_MESSAGE,
+} from "@/shared/constants/designerWebRetirement";
 
-// --- Per-provider handlers (extracted to co-located files in PR-#4582-batch) ---
-// Imported locally so internal callers (handleImageGeneration / handleImageEdit)
-// resolve to a real binding. extractMarkdownImageUrls + CHATGPT_WEB_IMAGE_ID_RE
-// are still used by handleImageEdit below, so they are imported (not re-defined).
 import { handleSDWebUIImageGeneration } from "./imageGeneration/providers/sdWebUI.ts";
 import { handleHyperbolicImageGeneration } from "./imageGeneration/providers/hyperbolic.ts";
 import { handleHuggingFaceImageGeneration } from "./imageGeneration/providers/huggingface.ts";
 import { handleComfyUIImageGeneration } from "./imageGeneration/providers/comfyUI.ts";
 import { handleImagen3ImageGeneration } from "./imageGeneration/providers/imagen3.ts";
-import { handleGoogleImagenGeneration } from "./imageGeneration/providers/googleImagen.ts";
 import { handleIdeogramImageGeneration } from "./imageGeneration/providers/ideogram.ts";
 import { handleHaiperImageGeneration } from "./imageGeneration/providers/haiper.ts";
 import { handleLeonardoImageGeneration } from "./imageGeneration/providers/leonardo.ts";
-import { handleFreepikImageGeneration } from "./imageGeneration/providers/freepik.ts";
-import {
-  handleChatGptWebImageGeneration,
-  extractMarkdownImageUrls,
-  CHATGPT_WEB_IMAGE_ID_RE,
-} from "./imageGeneration/providers/chatgptWeb.ts";
-import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
+import { handleMagnificImageGeneration } from "./imageGeneration/providers/magnific.ts";
 import { handleNvidiaNimImageGeneration } from "./imageGeneration/providers/nvidiaNim.ts";
+import { handleSegmindImageGeneration } from "./imageGeneration/providers/segmind.ts";
+import { handleUcImageGeneration } from "./imageGeneration/providers/ucImage.ts";
+import { handleCursorAgentImageGeneration } from "./imageGeneration/providers/cursorAgentImage.ts";
+import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
+import { handleMaxaiImageGeneration } from "./imageGeneration/providers/maxaiImage.ts";
+import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
+import { handleAlibabaImageGeneration } from "./imageGeneration/providers/alibabaImage.ts";
+import { handleAiHordeImageGeneration } from "./imageGeneration/providers/aihorde.ts";
+import {
+  applyPollinationsAnonymousFallback,
+  reportPollinationsAnonOutcome,
+} from "./imageGeneration/pollinationsAnonAuth.ts";
 
 // Re-export so /v1/images/edits can dispatch Firefly reference-image edits.
 export { handleAdobeFireflyImageGeneration };
@@ -100,6 +93,73 @@ interface KieImageOptions {
   } | null;
 }
 
+// KIE Market catalog ids are namespaced for OmniRoute's catalog
+// (`<vendor>/<model>`), but the KIE Market createTask API expects
+// vendor-specific upstream ids that do not follow a single consistent
+// pattern. Every entry below was confirmed individually against the literal
+// example request JSON published on docs.kie.ai (never inferred by pattern —
+// see #11326's false "everything else already matches" claim and #11296's
+// follow-up correction):
+//   - google-imagen: nano-banana-2 and nano-banana-pro drop the vendor
+//     namespace entirely; nano-banana and nano-banana-edit use a `google/`
+//     prefix instead of `google-imagen/` (docs.kie.ai/market/google/*).
+//   - gpt: gpt-image-2-* drops the `gpt/` namespace entirely
+//     (docs.kie.ai/market/gpt/gpt-image-2-*); gpt-image-1.5-* uses a
+//     `gpt-image/` namespace instead of `gpt/gpt-image-1.5-`, and keeps the
+//     dot in "1.5" (docs.kie.ai/market/gpt-image/1-5-*).
+//   - seedream: 5.0-lite-* drops the ".0" — real id is `5-lite-*`
+//     (docs.kie.ai/market/seedream/5-lite-text-to-image); seedream 4.5 (T2I
+//     and edit) already matches byte-for-byte.
+//   - flux: `flux/2-*` uses a `flux-2/` namespace (dash, not slash); the
+//     generic (non-"pro") variant is named `flex` upstream, not `2`
+//     (docs.kie.ai/market/flux2/pro-*, .../flex-*).
+//   - wan: `wan/2.7-*` keeps the dot in our catalog, but KIE's documented
+//     enum uses a dash — real id is `wan/2-7-*`
+//     (docs.kie.ai/market/wan/2-7-image[-pro]).
+//   - ideogram (v3-text-to-image, v3-edit, v3-remix), qwen, qwen2, and
+//     grok-imagine already match byte-for-byte
+//     (docs.kie.ai/market/{ideogram,qwen,qwen2,grok-imagine}/*).
+//     ideogram/v3-reframe has no dedicated docs.kie.ai page as of this sweep
+//     (its 3 siblings above are all direct id matches, so it is assumed
+//     correct by pattern, not independently confirmed).
+// One catalog entry remains UNRESOLVED after this sweep and is deliberately
+// left untouched pending a follow-up (see #11296 discussion):
+//   - z-image/4.0-text-to-image and z-image/4.5-text-to-image: the only
+//     documented Z-Image Market page (docs.kie.ai/market/z-image/z-image)
+//     shows a single fixed `model` enum value `"z-image"` with no
+//     version-specific id or "version" input field found — unclear whether
+//     both catalog ids should collapse to the same upstream call.
+// flux/kontext is RESOLVED (#11296): it is catalogued with `isMarket: true`
+// but has no `docs.kie.ai/market/flux2/kontext` (or similar) Market page —
+// Flux Kontext is documented under the separate `/flux-kontext-api/*` docs
+// tree with its own endpoint (`POST /api/v1/flux/kontext/generate`, poll
+// `GET /api/v1/flux/kontext/record-info`, models `flux-kontext-pro`/
+// `flux-kontext-max`), not the Market `createTask` flow this map feeds. It is
+// NOT in KIE_MARKET_UPSTREAM_MODEL_IDS below on purpose — handleKieImageGeneration
+// reroutes it to the dedicated endpoint instead of rewriting its id.
+export const KIE_MARKET_UPSTREAM_MODEL_IDS: ReadonlyMap<string, string> = new Map([
+  ["google-imagen/nano-banana", "google/nano-banana"],
+  ["google-imagen/nano-banana-2", "nano-banana-2"],
+  ["google-imagen/nano-banana-pro", "nano-banana-pro"],
+  ["google-imagen/nano-banana-edit", "google/nano-banana-edit"],
+  ["gpt/gpt-image-2-text-to-image", "gpt-image-2-text-to-image"],
+  ["gpt/gpt-image-2-image-to-image", "gpt-image-2-image-to-image"],
+  ["gpt/gpt-image-1.5-text-to-image", "gpt-image/1.5-text-to-image"],
+  ["gpt/gpt-image-1.5-image-to-image", "gpt-image/1.5-image-to-image"],
+  ["seedream/5.0-lite-text-to-image", "seedream/5-lite-text-to-image"],
+  ["seedream/5.0-lite-image-to-image", "seedream/5-lite-image-to-image"],
+  ["flux/2-pro-text-to-image", "flux-2/pro-text-to-image"],
+  ["flux/2-pro-image-to-image", "flux-2/pro-image-to-image"],
+  ["flux/2-text-to-image", "flux-2/flex-text-to-image"],
+  ["flux/2-image-to-image", "flux-2/flex-image-to-image"],
+  ["wan/2.7-image", "wan/2-7-image"],
+  ["wan/2.7-image-pro", "wan/2-7-image-pro"],
+]);
+
+export function resolveKieMarketUpstreamModelId(publicModelId: string): string {
+  return KIE_MARKET_UPSTREAM_MODEL_IDS.get(publicModelId) ?? publicModelId;
+}
+
 const OPENAI_IMAGE_TO_IMAGE_MODELS = new Set([
   "black-forest-labs/FLUX.2-max",
   "black-forest-labs/FLUX.2-pro",
@@ -118,6 +178,7 @@ const OPENAI_IMAGE_TO_IMAGE_MODELS = new Set([
 ]);
 
 const IMAGE_ASPECT_RATIO_PATTERN = /^\d+:\d+$/;
+const IMAGE_SIZE_PATTERN = /^(?:1K|2K|4K)$/;
 
 /**
  * Resolve the upstream images endpoint for a custom (OpenAI-compatible) image
@@ -178,6 +239,13 @@ function normalizeImageAspectRatio(value: unknown, fallbackSize: unknown): strin
   return mapImageSize(typeof fallbackSize === "string" ? fallbackSize : null);
 }
 
+function normalizeImageGenerationSize(snakeCaseValue: unknown, camelCaseValue: unknown): string {
+  const value = snakeCaseValue ?? camelCaseValue;
+  if (typeof value !== "string") return "1K";
+  const normalized = value.trim().toUpperCase();
+  return IMAGE_SIZE_PATTERN.test(normalized) ? normalized : "1K";
+}
+
 function parseJsonOrNull(value: string): unknown | null {
   try {
     return JSON.parse(value);
@@ -192,6 +260,31 @@ function sanitizeImageProviderError(errorText: string): unknown {
     return sanitizeUpstreamDetails(parsed) || sanitizeErrorMessage(errorText);
   }
   return sanitizeErrorMessage(errorText);
+}
+
+// #8307 — some ChatGPT accounts can run Codex but lack entitlement for the specific
+// requested image model. Upstream signals this as a 400 with an exact, stable message
+// (not a generic "invalid request"). Classify it so the caller can mark the failure
+// `retryable: true`, which routes it through the same sibling-account fallback that
+// already handles 401s (executeImageWithCredentialFallback, src/sse/services/imageCredentialRetry.ts).
+function isCodexChatGptModelAccessError(status: number, errorText: string, model: string): boolean {
+  if (status !== 400) return false;
+  const parsed = parseJsonOrNull(errorText);
+  let detail: string | null = null;
+  if (typeof parsed === "string") {
+    detail = parsed;
+  } else if (parsed && typeof parsed === "object") {
+    const obj = parsed as Record<string, unknown>;
+    if (typeof obj.detail === "string") detail = obj.detail;
+    else if (typeof obj.message === "string") detail = obj.message;
+    else if (obj.error && typeof obj.error === "object") {
+      const nested = (obj.error as Record<string, unknown>).message;
+      if (typeof nested === "string") detail = nested;
+    }
+  }
+  return (
+    detail === `The '${model}' model is not supported when using Codex with a ChatGPT account.`
+  );
 }
 
 const BFL_MODEL_ENDPOINTS = {
@@ -287,6 +380,10 @@ const FAL_PRESET_SIZES = {
  * @param {object} options.credentials - Provider credentials { apiKey, accessToken }
  * @param {object} options.log - Logger
  * @param {string} [options.resolvedProvider] - Pre-resolved provider ID (from route layer custom model resolution)
+ * @param {string|null} [options.peerLocality] - Trusted "loopback"|"lan"|"remote" verdict
+ *   forwarded from `AUTHZ_HEADER_PEER_LOCALITY` (src/server/authz/headers.ts). Only consumed by
+ *   spawn-capable providers (e.g. cursor-agent-image) to enforce Hard Rules #15/#17 without
+ *   loopback-gating the whole route for every non-spawning image provider.
  */
 export async function handleImageGeneration({
   body,
@@ -295,7 +392,36 @@ export async function handleImageGeneration({
   resolvedProvider = null,
   signal = null,
   clientHeaders = null,
+  peerLocality = null,
 }) {
+  const requestedModel = typeof body?.model === "string" ? body.model : "";
+  const slash = requestedModel.indexOf("/");
+  const requestedPrefix = slash > 0 ? requestedModel.slice(0, slash) : requestedModel;
+  if (
+    isMicrosoftDesignerWebRetiredProviderId(resolvedProvider) ||
+    isMicrosoftDesignerWebRetiredProviderId(requestedPrefix)
+  ) {
+    return {
+      success: false,
+      status: HTTP_STATUS.GONE,
+      error: MICROSOFT_DESIGNER_WEB_RETIRED_MESSAGE,
+    };
+  }
+
+  const requestedProvider = slash > 0 ? requestedModel.slice(0, slash) : null;
+  if (
+    isCommonChatGptWebRetiredProviderId(resolvedProvider) ||
+    isCommonChatGptWebRetiredProviderId(requestedProvider) ||
+    isCommonChatGptWebRetiredProviderId(requestedModel)
+  ) {
+    return {
+      success: false,
+      status: 410,
+      error: CHATGPT_WEB_RETIRED_MESSAGE,
+      code: CHATGPT_WEB_RETIRED_ERROR_CODE,
+    };
+  }
+
   let provider, model;
 
   if (resolvedProvider) {
@@ -365,23 +491,24 @@ export async function handleImageGeneration({
     });
   }
 
-  if (providerConfig.format === "gemini-image") {
-    return handleGeminiImageGeneration({ model, providerConfig, body, credentials, log });
-  }
-
-  if (providerConfig.format === "imagen3") {
-    return handleImagen3ImageGeneration({
+  if (providerConfig.format === "aihorde") {
+    return handleAiHordeImageGeneration({
       model,
       provider,
       providerConfig,
       body,
       credentials,
       log,
+      signal,
     });
   }
 
-  if (providerConfig.format === "google-imagen") {
-    return handleGoogleImagenGeneration({
+  if (providerConfig.format === "gemini-image") {
+    return handleGeminiImageGeneration({ model, providerConfig, body, credentials, log });
+  }
+
+  if (providerConfig.format === "imagen3") {
+    return handleImagen3ImageGeneration({
       model,
       provider,
       providerConfig,
@@ -479,26 +606,37 @@ export async function handleImageGeneration({
     });
   }
 
-  if (providerConfig.format === "chatgpt-web") {
-    return handleChatGptWebImageGeneration({
-      model,
-      provider,
-      body,
-      credentials,
-      log,
-      signal,
-      clientHeaders,
-    });
-  }
-
-  if (providerConfig.format === "designer-web") {
-    return handleDesignerWebImageGeneration({
+  if (providerConfig.format === "cursor-agent-image") {
+    return handleCursorAgentImageGeneration({
       model,
       provider,
       providerConfig,
       body,
       credentials,
       log,
+      peerLocality,
+    });
+  }
+
+  if (providerConfig.format === "maxai-image") {
+    return handleMaxaiImageGeneration({
+      model,
+      provider,
+      body,
+      credentials,
+      log,
+      signal,
+    });
+  }
+
+  if (providerConfig.format === "uc-image") {
+    return handleUcImageGeneration({
+      model,
+      provider,
+      body,
+      credentials,
+      log,
+      signal,
     });
   }
 
@@ -586,8 +724,8 @@ export async function handleImageGeneration({
       log,
     });
   }
-  if (providerConfig.format === "freepik-image") {
-    return handleFreepikImageGeneration({
+  if (providerConfig.format === "magnific-image" || providerConfig.format === "freepik-image") {
+    return handleMagnificImageGeneration({
       model,
       provider,
       providerConfig,
@@ -620,23 +758,23 @@ export async function handleImageGeneration({
   }
 
   if (
+    providerConfig.format === "agnes-image" &&
+    (typeof body.size !== "string" || body.size.trim().length === 0)
+  ) {
+    return {
+      success: false,
+      status: 400,
+      error: "Size is required for Agnes Image 2.1 Flash",
+    };
+  }
+
+  if (
     providerConfig.format === "alibaba-image" ||
     providerConfig.format === "qwen-cloud-image" ||
     providerConfig.format === "qwen-token-plan-image" ||
     providerConfig.format === "bailian-coding-plan-image"
   ) {
     return handleAlibabaImageGeneration({
-      model,
-      provider,
-      providerConfig,
-      body,
-      credentials,
-      log,
-    });
-  }
-
-  if (providerConfig.format === "nvidia-nim") {
-    return handleNvidiaNimImageGeneration({
       model,
       provider,
       providerConfig,
@@ -711,24 +849,40 @@ async function handleKieImageGeneration({
   // Check if model is a Market model (unified API)
   const fullRegistry = getImageProvider(provider);
   const modelEntry = fullRegistry?.models?.find((m) => m.id === model);
-  const isMarket = modelEntry?.isMarket || model.includes("/");
+  // #11296 — flux/kontext is catalogued with `isMarket: true`, but KIE does not
+  // expose it through the Market catalog at all: it lives under a dedicated API
+  // tree (POST /api/v1/flux/kontext/generate, poll .../flux/kontext/record-info)
+  // that rejects the Market createTask flow with "model name not supported". Route
+  // it there instead of treating it as a Market entry (see KIE_MARKET_UPSTREAM_MODEL_IDS
+  // comment above for the same finding).
+  const isFluxKontext = model === "flux/kontext";
+  const isMarket = !isFluxKontext && (modelEntry?.isMarket || model.includes("/"));
 
   const { imageUrl } = extractImageInputs(body);
   let baseUrl = "";
   let payload: Record<string, unknown> = {};
 
-  if (isMarket) {
+  if (isFluxKontext) {
+    // Dedicated Flux Kontext API endpoint (not part of the Market catalog).
+    baseUrl = `${providerConfig.baseUrl.replace(/\/$/, "")}/api/v1/flux/kontext/generate`;
+    payload = {
+      prompt,
+      aspectRatio: mapImageSize(size),
+      model: "flux-kontext-pro",
+      ...(imageUrl ? { inputImage: imageUrl } : {}),
+    };
+  } else if (isMarket) {
     // Unified Market API endpoint
     baseUrl = `${providerConfig.baseUrl.replace(/\/$/, "")}/api/v1/jobs/createTask`;
     const input: Record<string, unknown> = {
       prompt,
-      aspect_ratio: mapImageSize(size, "1:1"),
+      aspect_ratio: mapImageSize(size),
     };
     if (imageUrl) {
       input.image_url = imageUrl;
     }
     payload = {
-      model,
+      model: resolveKieMarketUpstreamModelId(model),
       input,
     };
   } else {
@@ -740,7 +894,7 @@ async function handleKieImageGeneration({
 
     payload = {
       prompt,
-      size: mapImageSize(size, "1:1"),
+      size: mapImageSize(size),
       nVariants: body.n || 1,
     };
   }
@@ -749,13 +903,18 @@ async function handleKieImageGeneration({
     const promptPreview = String(body.prompt ?? "").slice(0, 60);
     log.info(
       "IMAGE",
-      `${provider}/${model} (${isMarket ? "market" : "direct"}) | prompt: "${promptPreview}..."`
+      `${provider}/${model} (${isFluxKontext ? "flux-kontext" : isMarket ? "market" : "direct"}) | prompt: "${promptPreview}..."`
     );
   }
 
   try {
-    const endpoint = isMarket ? "/api/v1/jobs/createTask" : new URL(baseUrl).pathname;
-    const createBaseUrl = isMarket ? providerConfig.baseUrl : baseUrl.replace(endpoint, "");
+    const endpoint = isFluxKontext
+      ? "/api/v1/flux/kontext/generate"
+      : isMarket
+        ? "/api/v1/jobs/createTask"
+        : new URL(baseUrl).pathname;
+    const createBaseUrl =
+      isFluxKontext || isMarket ? providerConfig.baseUrl : baseUrl.replace(endpoint, "");
     const createData = await kieExecutor.createTask({
       baseUrl: createBaseUrl,
       token,
@@ -784,11 +943,13 @@ async function handleKieImageGeneration({
     }
 
     // Use statusUrl from providerConfig if available, fallback to dynamic derivation
-    const statusUrl = isMarket
-      ? `${providerConfig.baseUrl.replace(/\/$/, "")}/api/v1/jobs/recordInfo`
-      : providerConfig.statusUrl && !providerConfig.statusUrl.includes("jobs/recordInfo")
-        ? providerConfig.statusUrl
-        : baseUrl.replace(/\/generate$/, "/record-info");
+    const statusUrl = isFluxKontext
+      ? `${providerConfig.baseUrl.replace(/\/$/, "")}/api/v1/flux/kontext/record-info`
+      : isMarket
+        ? `${providerConfig.baseUrl.replace(/\/$/, "")}/api/v1/jobs/recordInfo`
+        : providerConfig.statusUrl && !providerConfig.statusUrl.includes("jobs/recordInfo")
+          ? providerConfig.statusUrl
+          : baseUrl.replace(/\/generate$/, "/record-info");
 
     const { data: recordData, state } = await kieExecutor.pollTask({
       statusUrl,
@@ -868,12 +1029,16 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
   const candidateCount =
     typeof body.n === "number" && Number.isFinite(body.n) && body.n > 0 ? Math.floor(body.n) : 1;
   const promptText = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
+  const aspectRatio = normalizeImageAspectRatio(body.aspect_ratio, body.size);
+  const imageSize = normalizeImageGenerationSize(body.image_size, body.imageSize);
 
   // Summarized request for call log
   const logRequestBody = {
     model: body.model,
     prompt: promptText.slice(0, 200),
     size: body.size || "default",
+    aspect_ratio: aspectRatio,
+    image_size: imageSize,
     n: candidateCount,
   };
 
@@ -902,7 +1067,8 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
       generationConfig: {
         candidateCount,
         imageConfig: {
-          aspectRatio: normalizeImageAspectRatio(body.aspect_ratio, body.size),
+          aspectRatio,
+          imageSize,
         },
       },
     },
@@ -922,7 +1088,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
     const promptPreview = promptText.slice(0, 60);
     log.info(
       "IMAGE",
-      `antigravity/${model} (gemini) | prompt: "${promptPreview}..." | format: gemini-image`
+      `antigravity/${model} (gemini) | prompt: "${promptPreview}..." | ${aspectRatio} ${imageSize}`
     );
   }
 
@@ -1020,6 +1186,33 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
 /**
  * Handle OpenAI-compatible image generation (standard providers + Nebius fallback)
  */
+function buildAgnesImageRequestBody(model, body) {
+  const upstreamBody: Record<string, unknown> = {
+    model,
+    prompt: body.prompt,
+  };
+
+  if (body.size !== undefined) upstreamBody.size = body.size;
+  if (body.ratio !== undefined) {
+    upstreamBody.ratio = body.ratio;
+  } else if (body.aspect_ratio !== undefined) {
+    upstreamBody.ratio = body.aspect_ratio;
+  }
+  if (body.return_base64 !== undefined) upstreamBody.return_base64 = body.return_base64;
+
+  const explicitExtraBody =
+    body.extra_body && typeof body.extra_body === "object" && !Array.isArray(body.extra_body)
+      ? body.extra_body
+      : {};
+  const extraBody: Record<string, unknown> = { ...explicitExtraBody };
+  const { imageUrls } = extractImageInputs(body);
+  if (imageUrls.length > 0) extraBody.image = imageUrls;
+  if (body.response_format !== undefined) extraBody.response_format = body.response_format;
+  if (Object.keys(extraBody).length > 0) upstreamBody.extra_body = extraBody;
+
+  return upstreamBody;
+}
+
 async function handleOpenAIImageGeneration({
   model,
   provider,
@@ -1043,21 +1236,26 @@ async function handleOpenAIImageGeneration({
   };
 
   // Build upstream request (OpenAI-compatible format)
-  const upstreamBody: Record<string, unknown> = {
-    model: model,
-    prompt: body.prompt,
-  };
+  const upstreamBody: Record<string, unknown> =
+    providerConfig.format === "agnes-image"
+      ? buildAgnesImageRequestBody(model, body)
+      : {
+          model,
+          prompt: body.prompt,
+        };
 
-  // Pass optional parameters
-  if (body.n !== undefined) upstreamBody.n = body.n;
-  if (body.size !== undefined) upstreamBody.size = body.size;
-  if (body.quality !== undefined) upstreamBody.quality = body.quality;
-  if (body.response_format !== undefined) upstreamBody.response_format = body.response_format;
-  if (body.style !== undefined) upstreamBody.style = body.style;
+  if (providerConfig.format !== "agnes-image") {
+    // Pass optional parameters for ordinary OpenAI-compatible providers.
+    if (body.n !== undefined) upstreamBody.n = body.n;
+    if (body.size !== undefined) upstreamBody.size = body.size;
+    if (body.quality !== undefined) upstreamBody.quality = body.quality;
+    if (body.response_format !== undefined) upstreamBody.response_format = body.response_format;
+    if (body.style !== undefined) upstreamBody.style = body.style;
 
-  const { imageUrl } = extractImageInputs(body);
-  if (imageUrl && OPENAI_IMAGE_TO_IMAGE_MODELS.has(model)) {
-    upstreamBody.image_url = imageUrl;
+    const { imageUrl } = extractImageInputs(body);
+    if (imageUrl && OPENAI_IMAGE_TO_IMAGE_MODELS.has(model)) {
+      upstreamBody.image_url = imageUrl;
+    }
   }
 
   // Build headers
@@ -1155,8 +1353,7 @@ async function handleOpenAIImageGeneration({
  *
  * Mirrors `handleOpenAIImageGeneration` but posts multipart/form-data to the node's
  * `/images/edits` endpoint and returns the upstream OpenAI-compatible response. Kept
- * separate from the chatgpt-web edit flow, which continues a saved conversation node
- * rather than forwarding a stateless edit. The fetch helper leaves Content-Type unset so
+ * separate from provider-specific hosted-tool flows. The fetch helper leaves Content-Type unset so
  * `fetch` derives the multipart boundary from the FormData body.
  */
 export async function handleOpenAIImageEdit({
@@ -1269,183 +1466,105 @@ export async function handleOpenAIImageEdit({
   return result;
 }
 
-export async function handleImageEdit({
-  provider,
+/**
+ * Handle OpenRouter's unified Image API reference-image flow.
+ *
+ * OpenRouter does not expose `/images/edits`; image-to-image requests use
+ * `POST /api/v1/images` with `input_references` containing data-URL images.
+ * Keep this separate from the generic multipart `/images/edits` forwarder,
+ * whose contract is used by custom OpenAI-compatible nodes (#10197).
+ */
+export async function handleOpenRouterImageEdit({
   model,
-  body,
-  imageBytes,
+  provider,
+  baseUrl,
   credentials,
+  prompt,
+  imageBytes,
+  imageMime,
+  size,
+  n = 1,
   log,
-  signal = null,
-  clientHeaders = null,
 }: {
-  provider: string;
   model: string;
-  body: Record<string, unknown>;
+  provider: string;
+  baseUrl: string;
+  credentials:
+    | {
+        apiKey?: string;
+        accessToken?: string;
+      }
+    | null
+    | undefined;
+  prompt: string;
   imageBytes: Buffer;
-  imageMime?: string; // accepted for symmetry with route layer; not used
-  credentials: ProviderCredentials | null | undefined;
-  log: ExecutorLog | null | undefined;
-  signal?: AbortSignal | null;
-  clientHeaders?: Record<string, string> | null;
+  imageMime?: string | null;
+  size?: string | null;
+  n?: number;
+  log?: { info: (tag: string, message: string) => void } | null;
 }) {
   const startTime = Date.now();
-  const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
-  if (!prompt) {
-    return saveImageErrorResult({
-      provider,
-      model,
-      status: 400,
-      startTime,
-      error: "Prompt is required for image edit",
-    });
+  let url = baseUrl.trim();
+  while (url.endsWith("/")) url = url.slice(0, -1);
+  if (url.endsWith("/images/generations")) {
+    url = url.slice(0, -"/images/generations".length) + "/images";
+  } else if (!url.endsWith("/images")) {
+    url += "/images";
   }
 
-  if (!credentials?.apiKey) {
-    return saveImageErrorResult({
-      provider,
-      model,
-      status: 401,
-      startTime,
-      error: "ChatGPT Web credentials missing session cookie",
-    });
-  }
-
-  const imageHash = createHash("sha256").update(imageBytes).digest("hex");
-  const cached = findChatGptImageBySha256(imageHash);
-
-  const wantsBase64 = body.response_format === "b64_json";
-  const requestBody = {
+  const mime = imageMime || "image/png";
+  const upstreamBody: Record<string, unknown> = {
     model,
-    prompt: prompt.slice(0, 500),
-    size: body.size || undefined,
-    image_hash: imageHash.slice(0, 16),
-    image_bytes: imageBytes.length,
-    cached_match: Boolean(cached?.entry.context),
+    prompt,
+    input_references: [
+      {
+        type: "image_url",
+        image_url: {
+          url: `data:${mime};base64,${imageBytes.toString("base64")}`,
+        },
+      },
+    ],
+    n: n || 1,
   };
+  if (size) upstreamBody.size = size;
 
-  if (!cached?.entry.context) {
-    // chatgpt-web's image_gen tool can only edit an image when we continue
-    // the original conversation node. If we never generated this image (or
-    // its 30-minute TTL elapsed), there's no node to continue. Return a
-    // clear, actionable error — much better than silently spawning an
-    // unrelated image and confusing the user.
-    log?.warn?.(
-      "IMAGE",
-      `chatgpt-web edit: no cached match for sha256=${imageHash.slice(0, 16)} (bytes=${imageBytes.length}); returning 400`
-    );
-    return saveImageErrorResult({
-      provider,
-      model,
-      status: 400,
-      startTime,
-      error:
-        "chatgpt-web image edit only works for images recently generated through this OmniRoute instance " +
-        "(cache window: 30 minutes). Re-generate the image and try the edit immediately, or disable image-edit " +
-        "in your client to use plain chat-completion edit prompts instead.",
-      requestBody,
-    });
-  }
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  const token = credentials?.apiKey || credentials?.accessToken;
+  if (token) headers.Authorization = `Bearer ${token}`;
 
-  // Build a synthetic chat thread that surfaces the cached image URL on
-  // the assistant turn. The executor's parseOpenAIMessages picks up the
-  // URL, findCachedImageContext resolves it to {conversationId,
-  // parentMessageId}, and looksLikeImageEditRequest fires on the user
-  // prompt — together producing a continuation request that actually
-  // edits the saved image.
-  //
-  // The synthetic user prompt is anchored with both an edit verb AND an
-  // image-gen verb so the executor's heuristics fire regardless of what
-  // wording the caller used ("now make it brighter", "tweak this", ...):
-  //   - looksLikeImageEditRequest: matches "edit" + "image" within 120 chars
-  //   - looksLikeImageGenRequest:  matches "generate" + "image" within 40 chars
-  // Either match alone would set forImageGen, but covering both is cheap
-  // insurance for prompts that don't fit common phrasings.
-  const messages: Array<{ role: string; content: string }> = [
-    {
-      role: "assistant",
-      // The base URL is irrelevant — only the path is parsed by
-      // CACHED_IMAGE_URL_RE in the executor's findCachedImageContext.
-      content: `![image](http://internal/v1/chatgpt-web/image/${cached.id})`,
-    },
-    {
-      role: "user",
-      content: `Edit the image and generate the new image: ${prompt}`,
-    },
-  ];
+  log?.info(
+    "IMAGE",
+    `${provider}/${model} (reference edit) | prompt: "${prompt.slice(0, 60)}..." -> ${url}`
+  );
 
-  const executor = new ChatGptWebExecutor();
-  const result = await executor.execute({
-    model,
-    body: { messages },
-    stream: false,
-    credentials,
-    signal,
-    log,
-    clientHeaders,
-  });
-
-  const responseText = await result.response.text();
-  if (result.response.status >= 400) {
-    return saveImageErrorResult({
-      provider,
-      model,
-      status: result.response.status,
-      startTime,
-      error: responseText,
-      requestBody,
-    });
-  }
-
-  let content = "";
-  try {
-    const json = JSON.parse(responseText);
-    content = String(json?.choices?.[0]?.message?.content || "");
-  } catch {
-    content = responseText;
-  }
-
-  const urls = extractMarkdownImageUrls(content);
-  if (urls.length === 0) {
-    return saveImageErrorResult({
-      provider,
-      model,
-      status: 502,
-      startTime,
-      error: `ChatGPT Web edit completed without returning image markdown: ${content.slice(0, 300)}`,
-      requestBody,
-    });
-  }
-
-  const images: Array<{ url?: string; b64_json?: string }> = [];
-  for (const url of urls) {
-    if (!wantsBase64) {
-      images.push({ url });
-      continue;
-    }
-    const id = url.match(CHATGPT_WEB_IMAGE_ID_RE)?.[1];
-    const cachedNew = id ? getChatGptImage(id) : null;
-    if (!cachedNew) {
-      return saveImageErrorResult({
-        provider,
-        model,
-        status: 502,
-        startTime,
-        error: "ChatGPT Web image bytes expired before b64_json conversion",
-        requestBody,
-      });
-    }
-    images.push({ b64_json: cachedNew.bytes.toString("base64") });
-  }
-
-  return saveImageSuccessResult({
+  const result = await fetchImageEndpoint(
+    url,
+    headers,
+    JSON.stringify(upstreamBody),
     provider,
-    model,
-    startTime,
-    requestBody,
-    responseBody: { images_count: images.length, edit_match: Boolean(cached?.entry.context) },
-    images,
-  });
+    log
+  );
+
+  saveCallLog({
+    method: "POST",
+    path: "/v1/images/edits",
+    status: result.status || (result.success ? 200 : 502),
+    model: `${provider}/${model}`,
+    provider,
+    duration: Date.now() - startTime,
+    tokens: { prompt_tokens: 0, completion_tokens: 0 },
+    error: result.success
+      ? null
+      : typeof result.error === "string"
+        ? result.error.slice(0, 500)
+        : null,
+    requestBody: { model, prompt: prompt.slice(0, 200), size: size || "default", n: n || 1 },
+    responseBody: result.success ? { images_count: result.data?.data?.length || 0 } : null,
+  }).catch(() => {});
+
+  return result;
 }
 
 async function handleFalAIImageGeneration({
@@ -1458,6 +1577,7 @@ async function handleFalAIImageGeneration({
 }) {
   const startTime = Date.now();
   const token = credentials.apiKey || credentials.accessToken;
+  const falModel = model.startsWith("fal-ai/") ? model : `fal-ai/${model}`;
   const { imageUrl, imageUrls } = extractImageInputs(body);
   const upstreamBody: Record<string, unknown> = {
     prompt: body.prompt,
@@ -1503,7 +1623,7 @@ async function handleFalAIImageGeneration({
   }
 
   try {
-    const response = await fetch(`${providerConfig.baseUrl.replace(/\/$/, "")}/${model}`, {
+    const response = await fetch(`${providerConfig.baseUrl.replace(/\/$/, "")}/${falModel}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1527,7 +1647,7 @@ async function handleFalAIImageGeneration({
     }
 
     const payload = await response.json();
-    const images = await normalizeProviderImagePayload(payload, body, log);
+    const images = await normalizeProviderImagePayload(payload, body, log, "b64_json");
     return saveImageSuccessResult({
       provider,
       model,
@@ -1717,7 +1837,7 @@ async function handleStabilityAIImageGeneration({
       payload = { image: buffer.toString("base64") };
     }
 
-    const images = await normalizeProviderImagePayload(payload, body, log);
+    const images = await normalizeProviderImagePayload(payload, body, log, "b64_json");
     return saveImageSuccessResult({
       provider,
       model,
@@ -1836,7 +1956,7 @@ async function handleBlackForestLabsImageGeneration({
         })
       : initialPayload;
 
-    const images = await normalizeProviderImagePayload(finalPayload, body, log);
+    const images = await normalizeProviderImagePayload(finalPayload, body, log, "url");
     return saveImageSuccessResult({
       provider,
       model,
@@ -1911,7 +2031,7 @@ async function handleRecraftImageGeneration({
     }
 
     const payload = await response.json();
-    const images = await normalizeProviderImagePayload(payload, body, log);
+    const images = await normalizeProviderImagePayload(payload, body, log, "url");
     return saveImageSuccessResult({
       provider,
       model,
@@ -2152,7 +2272,7 @@ function parseSizeToDimensions(size, fallback = 1024) {
   };
 }
 
-function normalizeRequestedImageFormat(
+export function normalizeRequestedImageFormat(
   body,
   fallback = "png",
   allowedFormats = ["jpeg", "png", "webp"]
@@ -2172,7 +2292,7 @@ function normalizeRequestedImageFormat(
   return fallback;
 }
 
-function mapFalImageSize(size, fallback = "square_hd") {
+export function mapFalImageSize(size, fallback = "square_hd") {
   if (typeof size !== "string") return fallback;
   if (FAL_PRESET_SIZES[size]) return FAL_PRESET_SIZES[size];
   if (size.includes("x")) {
@@ -2203,7 +2323,7 @@ function shouldIncludeStabilityMask(model) {
   ]).has(model);
 }
 
-async function normalizeProviderImagePayload(payload, body, log) {
+export async function normalizeProviderImagePayload(payload, body, log, defaultFormat) {
   const candidates = [];
 
   const pushCandidate = (value) => {
@@ -2229,7 +2349,7 @@ async function normalizeProviderImagePayload(payload, body, log) {
 
   const normalized = [];
   for (const candidate of candidates) {
-    const item = await normalizeProviderImageCandidate(candidate, body);
+    const item = await normalizeProviderImageCandidate(candidate, body, defaultFormat);
     if (item) normalized.push(item);
   }
 
@@ -2243,8 +2363,8 @@ async function normalizeProviderImagePayload(payload, body, log) {
   return normalized;
 }
 
-async function normalizeProviderImageCandidate(candidate, body) {
-  const wantsBase64 = body?.response_format === "b64_json";
+async function normalizeProviderImageCandidate(candidate, body, defaultFormat) {
+  const wantsBase64 = body?.response_format === "b64_json" || defaultFormat === "b64_json";
   let url = null;
   let b64 = null;
 
@@ -2385,6 +2505,18 @@ async function handleCodexImageGeneration({
     });
   }
 
+  if (isCodexFreePlan(credentials?.providerSpecificData)) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 403,
+      startTime,
+      error: "Codex image_generation is unavailable on free-plan accounts",
+      path: logPath,
+      retryable: true,
+    });
+  }
+
   const workspaceId =
     credentials?.providerSpecificData &&
     typeof credentials.providerSpecificData === "object" &&
@@ -2495,6 +2627,7 @@ async function handleCodexImageGeneration({
       const safeErrorLog =
         typeof safeError === "string" ? safeError : JSON.stringify(safeError ?? {});
       if (log) log.error("IMAGE", `${provider} error ${response.status}: ${safeErrorLog}`);
+      const retryable = isCodexChatGptModelAccessError(response.status, errorText, model);
       return {
         ok: false as const,
         error: {
@@ -2505,6 +2638,7 @@ async function handleCodexImageGeneration({
           error: safeError,
           requestBody: requestBodyForLog,
           path: logPath,
+          ...(retryable ? { retryable: true } : {}),
         },
       };
     }
@@ -2545,7 +2679,11 @@ async function handleCodexImageGeneration({
     }
   }
 
-  const wantsUrl = body.response_format !== "b64_json";
+  // OpenAI returns b64_json for the gpt-image-* family and reserves `url` for
+  // fetchable HTTPS links, so clients that omit response_format (Codex CLI's
+  // built-in image_gen among them) expect the bytes in b64_json. Only emit the
+  // data: URI when the caller explicitly asks for `url` (#12268).
+  const wantsUrl = body.response_format === "url";
   const data = wantsUrl
     ? collected.map((item) => ({
         url: `data:image/png;base64,${item.b64_json}`,
@@ -2640,6 +2778,40 @@ export function saveImageSuccessResult({
   };
 }
 
+/**
+ * Render an arbitrary `error` value as a call-log string.
+ *
+ * `saveImageErrorResult` takes `error: unknown`, and the Codex fan-out forwards
+ * whatever `sanitizeImageProviderError()` produced — i.e. the output of
+ * `sanitizeUpstreamDetails()`, which builds every object with
+ * `Object.create(null)` on purpose (#12506) so a hostile upstream key such as
+ * `__proto__` or `constructor` can never reach a real prototype. That object
+ * therefore has NO `toString`/`Symbol.toPrimitive`, so a bare `String(value)`
+ * throws `TypeError: Cannot convert object to primitive value` and turned every
+ * Codex image failure into an unhandled crash instead of the sanitized error.
+ * The null prototype is the correct behavior at the source, so the sink is what
+ * has to be total: serialize objects structurally (the same way the Antigravity
+ * branch already logs its sanitized payload) and keep `String()` semantics for
+ * everything else.
+ */
+function stringifyImageErrorForLog(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (value instanceof Error) return `${value.name}: ${value.message}`;
+  if (value !== null && typeof value === "object") {
+    try {
+      const serialized = JSON.stringify(value);
+      if (typeof serialized === "string") return serialized;
+    } catch {
+      // Circular graph or a throwing toJSON — fall through to String().
+    }
+  }
+  try {
+    return String(value);
+  } catch {
+    return "[unserializable error]";
+  }
+}
+
 export function saveImageErrorResult({
   provider,
   model,
@@ -2648,6 +2820,22 @@ export function saveImageErrorResult({
   error,
   requestBody = null,
   path = "/v1/images/generations",
+  // #8307: opt-in signal for executeImageWithCredentialFallback — set by a
+  // provider handler when the failure is account/session-specific (expired
+  // or blocked credentials) rather than a generic request/provider error, so
+  // the retry loop tries the next eligible account even when the upstream
+  // status isn't a plain 401. Defaults to unset (existing 401-only behavior
+  // for every other provider is unchanged).
+  retryable = undefined,
+}: {
+  provider: string;
+  model: string;
+  status: number;
+  startTime: number;
+  error: unknown;
+  requestBody?: unknown;
+  path?: string;
+  retryable?: boolean;
 }) {
   saveCallLog({
     method: "POST",
@@ -2656,7 +2844,7 @@ export function saveImageErrorResult({
     model: `${provider}/${model}`,
     provider,
     duration: Date.now() - startTime,
-    error: typeof error === "string" ? error.slice(0, 500) : String(error).slice(0, 500),
+    error: stringifyImageErrorForLog(error).slice(0, 500),
     requestBody,
   }).catch(() => {});
 
@@ -2664,6 +2852,7 @@ export function saveImageErrorResult({
     success: false,
     status,
     error,
+    ...(retryable !== undefined ? { retryable } : {}),
   };
 }
 

@@ -38,27 +38,57 @@ export const PPLX_SUPPORTED_BLOCK_USE_CASES = [
   "inline_claims",
   "unified_assets",
   "workflow_steps",
+  "workflow_widgets",
+  "navigation_results",
   "background_agents",
 ];
+// Perplexity's live SSE terminator (not OpenAI's `data: [DONE]`). Using the wrong
+// EOF symbol can truncate or hang the Firefox-TLS stream tailer before answer
+// chunks land — which surfaces as "Provider returned empty content".
+export const PPLX_STREAM_EOF_SYMBOL = "event: end_of_stream";
 // Firefox 148 — must match the `firefox_148` TLS profile used by perplexityTlsClient.
 // A mismatched UA vs TLS fingerprint is itself a Cloudflare bot signal (issue #2459).
 export const PPLX_USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0";
 
+// mode / model_preference pairs — every entry posts mode:"copilot", like the live
+// www.perplexity.ai client does when a model is picked from the catalog.
+//
+// mode:"search" must NOT be used here. The backend now downgrades it to CONCISE and
+// drops model_preference entirely, answering with status:"FAILED" and the text
+// "Error in processing query." Verified against a paid `subscription_tier: "max"`
+// account: mode:"search" + claude50sonnet → {"mode":"CONCISE","status":"FAILED"},
+// while mode:"copilot" + the same preference → {"mode":"COPILOT",
+// "display_model":"claude50sonnet"} and a normal stream. Same for every other
+// catalog model, so "search" breaks the whole catalog, not just one entry.
 export const MODEL_MAP: Record<string, [string, string]> = {
-  "pplx-auto": ["concise", "pplx_pro"],
-  "pplx-sonar": ["copilot", "experimental"],
-  "pplx-gpt": ["copilot", "gpt54"],
-  "pplx-gemini": ["copilot", "gemini31pro_high"],
-  "pplx-sonnet": ["copilot", "claude46sonnet"],
-  "pplx-opus": ["copilot", "claude46opus"],
-  "pplx-nemotron": ["copilot", "nv_nemotron_3_super"],
+  // pplx-auto/pplx-sonar were already on "copilot" (with "search", pplx-sonar maps to
+  // "experimental" — that model no longer streams answer-text blocks for many
+  // sessions → empty content, issue #6955).
+  "pplx-auto": ["copilot", "pplx_pro"],
+  "pplx-sonar": ["copilot", "turbo"],
+  "pplx-gpt-5.6-terra": ["copilot", "gpt56_terra"],
+  "pplx-gpt-5.6-sol": ["copilot", "gpt56_sol"],
+  "pplx-gemini": ["copilot", "gemini37flash"],
+  "pplx-sonnet": ["copilot", "claude50sonnet"],
+  // Perplexity's catalog moved Opus to 5.0; claude48opus is still accepted but
+  // answers from the older model.
+  "pplx-opus": ["copilot", "claude50opus"],
+  "pplx-glm": ["copilot", "glm_5_2"],
+  // The current Kimi K3 catalog entry only exposes its reasoning model.
+  "pplx-kimi": ["copilot", "kimik3thinking"],
+  "pplx-grok-4.6": ["copilot", "grok46low"],
+  "pplx-nemotron": ["copilot", "nv_nemotron_3_ultra"],
 };
 
 export const THINKING_MAP: Record<string, string> = {
-  "pplx-gpt": "gpt54_thinking",
-  "pplx-sonnet": "claude46sonnetthinking",
-  "pplx-opus": "claude46opusthinking",
+  "pplx-gpt-5.6-terra": "gpt56_terra_thinking",
+  "pplx-gpt-5.6-sol": "gpt56_sol_thinking",
+  "pplx-gemini": "gemini37flashthinking",
+  "pplx-sonnet": "claude50sonnetthinking",
+  "pplx-opus": "claude50opusthinking",
+  "pplx-kimi": "kimik3thinking",
+  "pplx-grok-4.6": "grok46medium",
 };
 
 export const CITATION_RE = /\[\d+\]/g;
@@ -120,6 +150,44 @@ export interface PplxBlock {
     }>;
     goals?: Array<{ description?: string }>;
   };
+  // Workflow API (`intended_usage: "workflow_root"`). Perplexity moved the answer
+  // text here from markdown_block: it now arrives as one WORKFLOW_ITEM_TEXT item
+  // whose `text_payload.variant` is "answer", nested under a workflow step. Other
+  // variants ("thinking") and item types (queries, sources) are not answer text.
+  workflow_block?: PplxWorkflowBlock;
+}
+
+export interface PplxWorkflowTextPayload {
+  text?: string;
+  chunks?: string[];
+  variant?: string;
+  is_streaming?: boolean;
+}
+
+export interface PplxWorkflowItem {
+  type?: string;
+  variant?: string;
+  payload?: { text_payload?: PplxWorkflowTextPayload };
+}
+
+export interface PplxWorkflowStep {
+  status?: string;
+  title?: string;
+  tool_name?: string;
+  items?: PplxWorkflowItem[];
+}
+
+export interface PplxWorkflowBlock {
+  status?: string;
+  steps?: PplxWorkflowStep[];
+}
+
+export interface PplxUpsellInformation {
+  name?: string;
+  upsell_type?: string;
+  title?: string;
+  description?: string;
+  cta?: string;
 }
 
 export interface PplxStreamEvent {
@@ -132,6 +200,7 @@ export interface PplxStreamEvent {
   error_code?: string;
   error_message?: string;
   display_model?: string;
+  upsell_information?: PplxUpsellInformation;
 }
 
 // ─── SSE parsing ────────────────────────────────────────────────────────────
@@ -144,6 +213,19 @@ export async function* readPplxSseEvents(
   const decoder = new TextDecoder();
   let buffer = "";
   let dataLines: string[] = [];
+  let readerFinished = false;
+  let readerCancelRequested = false;
+
+  const cancelReader = (reason: unknown) => {
+    if (readerFinished || readerCancelRequested) return;
+    readerCancelRequested = true;
+    // Cancellation is a client-facing latency boundary. Request upstream cleanup once, but never
+    // await a hostile underlying source whose cancel hook does not settle.
+    void reader.cancel(reason).catch(() => undefined);
+  };
+  const handleAbort = () => cancelReader(signal?.reason ?? "perplexity_stream_aborted");
+  if (signal?.aborted) handleAbort();
+  else signal?.addEventListener("abort", handleAbort, { once: true });
 
   function flush(): PplxStreamEvent | null | "done" {
     if (dataLines.length === 0) return null;
@@ -162,7 +244,10 @@ export async function* readPplxSseEvents(
     while (true) {
       if (signal?.aborted) return;
       const { value, done } = await reader.read();
-      if (done) break;
+      if (done) {
+        readerFinished = true;
+        break;
+      }
       buffer += decoder.decode(value, { stream: true });
 
       while (true) {
@@ -194,7 +279,13 @@ export async function* readPplxSseEvents(
     const tail = flush();
     if (tail && tail !== "done") yield tail;
   } finally {
-    reader.releaseLock();
+    signal?.removeEventListener("abort", handleAbort);
+    cancelReader(signal?.reason ?? "perplexity_stream_reader_closed");
+    try {
+      reader.releaseLock();
+    } catch {
+      // A hostile source may keep its cancel promise pending; the lock can be released later by GC.
+    }
   }
 }
 
@@ -281,6 +372,7 @@ export function buildPplxRequestBody(
     override_no_search: false,
     client_search_results_cache_key: requestId,
     should_ask_for_mcp_tool_confirmation: true,
+    supports_tool_approval_modal: true,
     browser_agent_allow_once_from_toggle: false,
     force_enable_browser_agent: false,
     supported_features: ["browser_agent_permission_banner_v1.1"],
@@ -300,15 +392,29 @@ export function buildPplxRequestBody(
   };
 }
 
+const SEARCH_HINT = "You have built-in web search. Answer questions directly using search results.";
+
+/**
+ * Whether to append {@link SEARCH_HINT} to the caller's system message.
+ *
+ * It used to be unconditional. Perplexity's answer engine is search-first anyway, and
+ * for coding clients the sentence leaks into replies as meta-commentary ("I need to
+ * search before responding per my instructions"), so it is now opt-in via
+ * `OMNIROUTE_PPLX_SEARCH_HINT`. Read per call rather than at module load so the flag
+ * can be flipped without restarting the server (and so tests can toggle it).
+ */
+function searchHintEnabled(): boolean {
+  return /^(1|true|yes|on)$/i.test(process.env.OMNIROUTE_PPLX_SEARCH_HINT ?? "");
+}
+
 export function buildQuery(parsed: ParsedMessages, followUpUuid: string | null): string {
   if (followUpUuid) return parsed.currentMsg;
 
   const obj: Record<string, unknown> = {};
   if (parsed.systemMsg.trim()) {
-    obj.instructions = [
-      parsed.systemMsg.trim(),
-      "You have built-in web search. Answer questions directly using search results.",
-    ];
+    obj.instructions = searchHintEnabled()
+      ? [parsed.systemMsg.trim(), SEARCH_HINT]
+      : [parsed.systemMsg.trim()];
   }
   if (parsed.history.length > 0) {
     obj.history = parsed.history;
@@ -330,8 +436,21 @@ export interface ContentChunk {
   backendUuid?: string;
   thinking?: string;
   error?: string;
+  /** Structured error code for quota / rate-limit surfaces (e.g. quota_exhausted). */
+  errorCode?: string;
+  /**
+   * Suggested client/account cooldown in seconds when the stream failed due to
+   * advanced-model weekly quota (or similar). Downstream marks the connection
+   * rate_limited_until and VibeProxy limit badges parse this + "reset after Xs".
+   */
+  resetSeconds?: number;
   done?: boolean;
 }
+
+/** Default cooldown when Perplexity reports advanced-model weekly quota exhaustion
+ * without an explicit reset clock (weekly window is account-side). Long enough that
+ * rotation skips the account instead of hammering it every few seconds. */
+export const PPLX_ADVANCED_QUOTA_DEFAULT_RESET_SECONDS = 6 * 60 * 60;
 
 // The schematized API delivers the answer text in blocks whose `intended_usage`
 // is either the aggregate `ask_text` or per-segment `ask_text_<n>_markdown`
@@ -357,8 +476,15 @@ export function applyMarkdownDiff(acc: MarkdownAccumulator, patches: PplxDiffPat
   for (const patch of patches) {
     const path = patch.path ?? "";
     if (path === "") {
-      const value = (patch.value ?? {}) as { chunks?: unknown };
-      acc.chunks = Array.isArray(value.chunks) ? value.chunks.map((c) => String(c)) : [];
+      const value = (patch.value ?? {}) as { chunks?: unknown; answer?: unknown };
+      if (Array.isArray(value.chunks)) {
+        acc.chunks = value.chunks.map((c) => String(c));
+      } else if (typeof value.answer === "string" && value.answer.length > 0) {
+        // Some COMPLETED/replace frames only materialize `answer` (no chunks).
+        acc.chunks = [value.answer];
+      } else {
+        acc.chunks = [];
+      }
       continue;
     }
     const chunkMatch = /^\/chunks\/(\d+)$/.exec(path);
@@ -367,6 +493,290 @@ export function applyMarkdownDiff(acc: MarkdownAccumulator, patches: PplxDiffPat
       acc.chunks[idx] = patch.value;
     }
   }
+}
+
+/** Answer-text items carry this `variant`; "thinking" and friends are not answer text. */
+const WORKFLOW_ANSWER_VARIANT = "answer";
+
+/**
+ * mdState key for one workflow answer item. Keyed per step+item so the
+ * `/chunks/<k>` indices of two concurrent items can never overwrite each other.
+ */
+function workflowUsageKey(stepIdx: number, itemIdx: number): string {
+  return `workflow_root:${stepIdx}:${itemIdx}`;
+}
+
+function isAnswerItem(item: PplxWorkflowItem | undefined): boolean {
+  if (!item) return false;
+  const payloadVariant = item.payload?.text_payload?.variant;
+  return (payloadVariant ?? item.variant) === WORKFLOW_ANSWER_VARIANT;
+}
+
+/**
+ * Seed an accumulator from a materialized answer item. Chunks win over `text`:
+ * the terminal frame can carry a `text` that lags the chunk track (same
+ * precedence markdown_block already uses for `chunks` over `answer`).
+ */
+function seedFromAnswerItem(acc: MarkdownAccumulator, item: PplxWorkflowItem): void {
+  const tp = item.payload?.text_payload;
+  if (!tp) return;
+  if (Array.isArray(tp.chunks) && tp.chunks.length > 0) {
+    acc.chunks = tp.chunks.map((c) => String(c));
+  } else if (typeof tp.text === "string" && tp.text.length > 0) {
+    acc.chunks = [tp.text];
+  }
+}
+
+function ensureAcc(mdState: Map<string, MarkdownAccumulator>, key: string): MarkdownAccumulator {
+  let acc = mdState.get(key);
+  if (!acc) {
+    acc = { chunks: [] };
+    mdState.set(key, acc);
+  }
+  return acc;
+}
+
+/**
+ * Apply a `field: "workflow_block"` diff patch set.
+ *
+ * Live shapes (Aug 2026 capture, pplx-auto / mode=copilot):
+ *   {op:"add",     path:"/steps/1",                                        value:{items:[…]}}
+ *   {op:"add",     path:"/steps/0/items/1",                                value:{…}}
+ *   {op:"add",     path:"/steps/1/items/0/payload/text_payload/chunks/2",  value:"…"}
+ *   {op:"replace", path:"/steps/1/items/0/payload/text_payload/text",      value:"…"}
+ *
+ * Only answer-variant items are accumulated; step/status patches are ignored.
+ */
+export function applyWorkflowDiff(
+  mdState: Map<string, MarkdownAccumulator>,
+  patches: PplxDiffPatch[]
+): void {
+  for (const patch of patches) {
+    const path = patch.path ?? "";
+
+    // Whole step materialized — pick up every answer item it carries.
+    const stepMatch = /^\/steps\/(\d+)$/.exec(path);
+    if (stepMatch) {
+      const stepIdx = Number.parseInt(stepMatch[1], 10);
+      const step = (patch.value ?? {}) as PplxWorkflowStep;
+      (step.items ?? []).forEach((item, itemIdx) => {
+        if (!isAnswerItem(item)) return;
+        seedFromAnswerItem(ensureAcc(mdState, workflowUsageKey(stepIdx, itemIdx)), item);
+      });
+      continue;
+    }
+
+    // Single item appended to an existing step.
+    const itemMatch = /^\/steps\/(\d+)\/items\/(\d+)$/.exec(path);
+    if (itemMatch) {
+      const item = (patch.value ?? {}) as PplxWorkflowItem;
+      if (!isAnswerItem(item)) continue;
+      const key = workflowUsageKey(
+        Number.parseInt(itemMatch[1], 10),
+        Number.parseInt(itemMatch[2], 10)
+      );
+      seedFromAnswerItem(ensureAcc(mdState, key), item);
+      continue;
+    }
+
+    // Incremental chunk append — the streaming hot path.
+    const chunkMatch = /^\/steps\/(\d+)\/items\/(\d+)\/payload\/text_payload\/chunks\/(\d+)$/.exec(
+      path
+    );
+    if (chunkMatch && typeof patch.value === "string") {
+      const key = workflowUsageKey(
+        Number.parseInt(chunkMatch[1], 10),
+        Number.parseInt(chunkMatch[2], 10)
+      );
+      // Only extend a track already seeded by an answer item: a chunk patch
+      // carries no variant, so an unseeded key could be a "thinking" track.
+      const acc = mdState.get(key);
+      if (!acc) continue;
+      acc.chunks[Number.parseInt(chunkMatch[3], 10)] = patch.value;
+      continue;
+    }
+
+    // Terminal `text` materialization — only used when no chunks arrived.
+    const textMatch = /^\/steps\/(\d+)\/items\/(\d+)\/payload\/text_payload\/text$/.exec(path);
+    if (textMatch && typeof patch.value === "string" && patch.value.length > 0) {
+      const key = workflowUsageKey(
+        Number.parseInt(textMatch[1], 10),
+        Number.parseInt(textMatch[2], 10)
+      );
+      const acc = mdState.get(key);
+      if (!acc || acc.chunks.join("").length > 0) continue;
+      acc.chunks = [patch.value];
+    }
+  }
+}
+
+/** Accumulate every answer item of a materialized workflow_block. */
+export function applyWorkflowBlock(
+  mdState: Map<string, MarkdownAccumulator>,
+  workflow: PplxWorkflowBlock
+): void {
+  (workflow.steps ?? []).forEach((step, stepIdx) => {
+    (step.items ?? []).forEach((item, itemIdx) => {
+      if (!isAnswerItem(item)) return;
+      seedFromAnswerItem(ensureAcc(mdState, workflowUsageKey(stepIdx, itemIdx)), item);
+    });
+  });
+}
+
+/**
+ * Extract the assistant answer from the COMPLETED frame's `text` step-blob.
+ *
+ * Live shape (Jul 2026 browser capture):
+ *   text: '[{"step_type":"FINAL","content":{"answer":"{\\"answer\\":\\"Hi…\\",\\"chunks\\":[…]}"}}]'
+ *
+ * The nested `content.answer` is often a *double-encoded* JSON string. Used as a
+ * safety net when diff_block / markdown_block frames were missed (truncated TLS
+ * stream, FINAL-only delivery, etc.) so we don't return empty content.
+ */
+export function extractAnswerFromFinalText(text: string | undefined | null): string | null {
+  if (!text || typeof text !== "string") return null;
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  // Plain non-JSON text (legacy non-schematized path).
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+    return trimmed;
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    const steps = Array.isArray(parsed) ? parsed : [parsed];
+    for (const step of steps) {
+      if (!step || typeof step !== "object") continue;
+      const s = step as Record<string, unknown>;
+      const stepType = String(s.step_type || s.stepType || "");
+      if (stepType && stepType !== "FINAL") continue;
+
+      const content = s.content as Record<string, unknown> | string | undefined;
+      let rawAnswer: unknown =
+        typeof content === "string"
+          ? content
+          : content && typeof content === "object"
+            ? (content as Record<string, unknown>).answer
+            : undefined;
+      if (rawAnswer == null && typeof s.answer === "string") rawAnswer = s.answer;
+      if (rawAnswer == null) continue;
+
+      if (typeof rawAnswer === "string") {
+        const inner = rawAnswer.trim();
+        if (!inner) continue;
+        // Double-encoded JSON blob: {"answer":"…","chunks":[…],"structured_answer":[…]}
+        if (inner.startsWith("{") || inner.startsWith("[")) {
+          try {
+            const obj = JSON.parse(inner) as Record<string, unknown>;
+            if (typeof obj.answer === "string" && obj.answer.trim()) return obj.answer;
+            if (Array.isArray(obj.chunks) && obj.chunks.length > 0) {
+              return obj.chunks.map((c) => String(c)).join("");
+            }
+            if (Array.isArray(obj.structured_answer)) {
+              const joined = (obj.structured_answer as Array<Record<string, unknown>>)
+                .map((b) => (typeof b?.text === "string" ? b.text : ""))
+                .join("");
+              if (joined.trim()) return joined;
+            }
+          } catch {
+            // Fall through — treat as plain markdown.
+          }
+        }
+        return inner;
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+/** Pick the longest reconstructed answer across dual ask_text / ask_text_N_markdown tracks. */
+export function longestMarkdownAnswer(
+  mdState: Map<string, MarkdownAccumulator>,
+  preferredUsage: string | null
+): { usage: string | null; answer: string } {
+  let bestUsage: string | null = preferredUsage;
+  let bestAnswer = preferredUsage ? (mdState.get(preferredUsage)?.chunks ?? []).join("") : "";
+
+  for (const [usage, acc] of mdState) {
+    const joined = (acc.chunks ?? []).join("");
+    if (joined.length > bestAnswer.length) {
+      bestAnswer = joined;
+      bestUsage = usage;
+    }
+  }
+  return { usage: bestUsage, answer: bestAnswer };
+}
+
+/** Extract goal descriptions from a materialized or diff-patched plan block. */
+function extractPlanGoalDescriptions(block: PplxBlock): string[] {
+  const out: string[] = [];
+  if (block.plan_block?.goals) {
+    for (const goal of block.plan_block.goals) {
+      const desc = goal.description ?? "";
+      if (desc) out.push(desc);
+    }
+  }
+  // Live multi-step streams send plan as RFC-6902 diff patches, not plan_block.
+  const patches = block.diff_block?.patches;
+  if (Array.isArray(patches)) {
+    for (const patch of patches) {
+      const value = patch.value as { goals?: Array<{ description?: string }> } | undefined;
+      if (value && Array.isArray(value.goals)) {
+        for (const goal of value.goals) {
+          const desc = goal.description ?? "";
+          if (desc) out.push(desc);
+        }
+      }
+    }
+  }
+  return out;
+}
+
+export interface PplxQuotaError {
+  message: string;
+  errorCode: string;
+  resetSeconds: number;
+}
+
+function formatUpsellError(upsell: PplxUpsellInformation | undefined): PplxQuotaError | null {
+  if (!upsell) return null;
+  const name = String(upsell.name || "");
+  // advanced_models_quota_low = weekly advanced-model (Opus/Sonnet/GPT/…) budget
+  // exhausted. Browser still often downgrades to turbo; when no answer text is
+  // produced we must surface this instead of a silent "empty content" 502.
+  if (
+    name === "advanced_models_quota_low" ||
+    name.includes("quota") ||
+    String(upsell.upsell_type || "")
+      .toUpperCase()
+      .includes("UPGRADE")
+  ) {
+    const title = (upsell.title || "").trim();
+    const desc = (upsell.description || "").trim();
+    const detail = [title, desc].filter(Boolean).join(" — ");
+    const base = detail
+      ? `Perplexity advanced model quota exhausted: ${detail}`
+      : "Perplexity advanced model quota exhausted for this account this week. Use pplx-auto/pplx-sonar, wait for the weekly reset, or upgrade (Perplexity Max).";
+    const resetSeconds = PPLX_ADVANCED_QUOTA_DEFAULT_RESET_SECONDS;
+    // Append human "reset after …" so VibeProxy's existing message parsers
+    // (and accountFallback.formatRetryAfter consumers) pick up the cooldown.
+    const h = Math.floor(resetSeconds / 3600);
+    const m = Math.floor((resetSeconds % 3600) / 60);
+    const s = resetSeconds % 60;
+    const parts: string[] = [];
+    if (h > 0) parts.push(`${h}h`);
+    if (m > 0) parts.push(`${m}m`);
+    if (s > 0 || parts.length === 0) parts.push(`${s}s`);
+    return {
+      message: `${base} (reset after ${parts.join(" ")})`,
+      errorCode: "quota_exhausted",
+      resetSeconds,
+    };
+  }
+  return null;
 }
 
 export async function* extractContent(
@@ -380,6 +790,8 @@ export async function* extractContent(
   // Per-usage reconstructed answer-text blocks + the locked primary usage.
   const mdState = new Map<string, MarkdownAccumulator>();
   let primaryUsage: string | null = null;
+  let lastEventText: string | undefined;
+  let lastUpsell: PplxUpsellInformation | undefined;
 
   for await (const event of readPplxSseEvents(eventStream, signal)) {
     if (event.error_code || event.error_message) {
@@ -391,6 +803,8 @@ export async function* extractContent(
     }
 
     if (event.backend_uuid) backendUuid = event.backend_uuid;
+    if (event.text) lastEventText = event.text;
+    if (event.upsell_information) lastUpsell = event.upsell_information;
 
     const blocks = event.blocks ?? [];
     for (const block of blocks) {
@@ -418,10 +832,9 @@ export async function* extractContent(
         }
       }
 
-      // Thinking: plan goals
-      if (usage === "plan" && block.plan_block?.goals) {
-        for (const goal of block.plan_block.goals) {
-          const desc = goal.description ?? "";
+      // Thinking: plan goals (materialized plan_block OR live multi-step diff_block)
+      if (usage === "plan") {
+        for (const desc of extractPlanGoalDescriptions(block)) {
           if (desc && !seenThinking.has(desc)) {
             seenThinking.add(desc);
             yield { thinking: desc, backendUuid: backendUuid ?? undefined };
@@ -429,9 +842,31 @@ export async function* extractContent(
         }
       }
 
+      // Content: workflow_block answer items. Perplexity migrated the answer text
+      // here from markdown_block, so this must run BEFORE the isAnswerTextUsage
+      // gate — the carrying usage is "workflow_root", which that gate rejects.
+      if (block.workflow_block) {
+        applyWorkflowBlock(mdState, block.workflow_block);
+        continue;
+      }
+      if (block.diff_block?.field === "workflow_block") {
+        applyWorkflowDiff(mdState, block.diff_block.patches ?? []);
+        continue;
+      }
+
       // Content: answer-text blocks (schematized diff frames OR materialized
       // markdown_block on the final COMPLETED frame).
       if (!isAnswerTextUsage(usage)) continue;
+      // Only apply markdown patches when the diff targets markdown_block (or field
+      // is absent on older frames). Ignore answer_tabs/plan/etc. diffs that share
+      // the same event but different field names.
+      if (
+        block.diff_block &&
+        block.diff_block.field &&
+        block.diff_block.field !== "markdown_block"
+      ) {
+        continue;
+      }
       let acc = mdState.get(usage);
       if (!acc) {
         acc = { chunks: [] };
@@ -457,21 +892,20 @@ export async function* extractContent(
       }
     }
 
-    // Emit at most one content delta per event, from the locked primary usage.
-    if (primaryUsage) {
-      const currentAnswer = (mdState.get(primaryUsage)?.chunks ?? []).join("");
-      if (currentAnswer.length > seenLen) {
-        const delta = currentAnswer.slice(seenLen);
-        fullAnswer = currentAnswer;
-        seenLen = currentAnswer.length;
-        yield { delta, answer: fullAnswer, backendUuid: backendUuid ?? undefined };
-      }
+    // Emit at most one content delta per event from the longest reconstructed
+    // answer track (ask_text and ask_text_0_markdown often stream in parallel).
+    const { answer: currentAnswer } = longestMarkdownAnswer(mdState, primaryUsage);
+    if (currentAnswer.length > seenLen) {
+      const delta = currentAnswer.slice(seenLen);
+      fullAnswer = currentAnswer;
+      seenLen = currentAnswer.length;
+      yield { delta, answer: fullAnswer, backendUuid: backendUuid ?? undefined };
     }
 
     // Legacy fallback: a plain non-JSON `text` field with no structured blocks.
     // The schematized API's `text` field is a JSON step-blob (not user-facing),
     // so only use it when there are no answer-text blocks at all.
-    if (!primaryUsage && blocks.length === 0 && event.text) {
+    if (!primaryUsage && mdState.size === 0 && blocks.length === 0 && event.text) {
       const t = event.text.trim();
       const looksLikeJson = t.startsWith("{") || t.startsWith("[");
       if (!looksLikeJson && t.length > seenLen) {
@@ -485,7 +919,51 @@ export async function* extractContent(
     // Only stop on the terminal COMPLETED frame. A `final:true` flag can appear
     // on a still-PENDING frame BEFORE the COMPLETED frame that materializes the
     // full markdown_block — breaking on `final` there drops the answer.
-    if (event.status === "COMPLETED") break;
+    if (event.status === "COMPLETED") {
+      // Safety net: if diff/markdown tracks stayed empty, pull the answer from
+      // the COMPLETED frame's double-encoded FINAL step blob.
+      if (!fullAnswer.trim()) {
+        const fromText = extractAnswerFromFinalText(event.text || lastEventText);
+        if (fromText && fromText.trim()) {
+          const delta = fromText.slice(seenLen);
+          fullAnswer = fromText;
+          seenLen = fromText.length;
+          if (delta) {
+            yield { delta, answer: fullAnswer, backendUuid: backendUuid ?? undefined };
+          }
+        }
+      }
+      break;
+    }
+  }
+
+  // Cancellation is not a successful terminal event. In particular, do not synthesize the final
+  // `done` chunk: streaming callers use that signal to emit stop/[DONE] and persist the session.
+  if (signal?.aborted) return;
+
+  // End-of-stream without a COMPLETED frame still try the last text blob.
+  if (!fullAnswer.trim() && lastEventText) {
+    const fromText = extractAnswerFromFinalText(lastEventText);
+    if (fromText && fromText.trim()) {
+      fullAnswer = fromText;
+    }
+  }
+
+  // No answer materialized through any recovery path — if the stream surfaced
+  // an advanced-model quota upsell, report it clearly instead of a silent
+  // empty-content response so callers can cooldown/rotate the account.
+  if (!fullAnswer.trim()) {
+    const upsellErr = formatUpsellError(lastUpsell);
+    if (upsellErr) {
+      yield {
+        error: upsellErr.message,
+        errorCode: upsellErr.errorCode,
+        resetSeconds: upsellErr.resetSeconds,
+        done: true,
+        backendUuid: backendUuid ?? undefined,
+      };
+      return;
+    }
   }
 
   yield { delta: "", answer: fullAnswer, backendUuid: backendUuid ?? undefined, done: true };

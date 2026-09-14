@@ -26,6 +26,7 @@ import ProviderCard from "@/app/(dashboard)/dashboard/providers/components/Provi
 vi.mock("next-intl", () => ({ useTranslations: () => (k: string) => k }));
 vi.mock("@/shared/components/ProviderTestSlideOver", () => ({ default: () => null }));
 vi.mock("@/shared/components/ProviderIcon", () => ({ default: () => null }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: () => {} }) }));
 
 describe("ProviderCard — Kimi (Moonshot AI) founding-friend accent", () => {
   let container: HTMLDivElement | null = null;

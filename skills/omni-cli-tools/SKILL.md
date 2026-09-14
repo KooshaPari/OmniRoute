@@ -29,7 +29,7 @@ Create CLI tool backup
 
 ```bash
 curl -X POST https://localhost:20128/api/cli-tools/backups \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -67,7 +67,7 @@ Update Antigravity MITM proxy settings
 
 ```bash
 curl -X POST https://localhost:20128/api/cli-tools/antigravity-mitm \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -96,7 +96,7 @@ Update Antigravity MITM alias configuration
 
 ```bash
 curl -X PUT https://localhost:20128/api/cli-tools/antigravity-mitm/alias \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -116,7 +116,7 @@ Apply Claude CLI settings
 
 ```bash
 curl -X POST https://localhost:20128/api/cli-tools/claude-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -145,7 +145,7 @@ Apply Cline CLI settings
 
 ```bash
 curl -X POST https://localhost:20128/api/cli-tools/cline-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -174,7 +174,7 @@ Create Codex profile
 
 ```bash
 curl -X POST https://localhost:20128/api/cli-tools/codex-profiles \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -185,7 +185,7 @@ Update Codex profile
 
 ```bash
 curl -X PUT https://localhost:20128/api/cli-tools/codex-profiles \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -214,7 +214,7 @@ Apply Codex CLI settings
 
 ```bash
 curl -X POST https://localhost:20128/api/cli-tools/codex-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -243,7 +243,7 @@ Apply Droid CLI settings
 
 ```bash
 curl -X POST https://localhost:20128/api/cli-tools/droid-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -272,7 +272,7 @@ Apply Kilo CLI settings
 
 ```bash
 curl -X POST https://localhost:20128/api/cli-tools/kilo-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -301,7 +301,7 @@ Apply OpenClaw CLI settings
 
 ```bash
 curl -X POST https://localhost:20128/api/cli-tools/openclaw-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -334,7 +334,7 @@ Local-only. Registers OmniRoute as an `openai-compat` provider in Crush's config
 
 ```bash
 curl -X POST https://localhost:20128/api/cli-tools/crush-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -369,7 +369,7 @@ Local-only. Writes the OmniRoute config block in CodeWhale TOML format.
 
 ```bash
 curl -X POST https://localhost:20128/api/cli-tools/codewhale-settings \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
@@ -382,6 +382,372 @@ Local-only. Removes the OmniRoute config block from CodeWhale's config.
 
 ```bash
 curl -X DELETE https://localhost:20128/api/cli-tools/codewhale-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cli-tools/all-statuses
+
+GET cli tools › all statuses
+
+```bash
+curl https://localhost:20128/api/cli-tools/all-statuses \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/cli-tools/apply
+
+POST cli tools › apply
+
+```bash
+curl -X POST https://localhost:20128/api/cli-tools/apply \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/cli-tools/config
+
+GET cli tools › config
+
+```bash
+curl https://localhost:20128/api/cli-tools/config \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/cli-tools/config
+
+POST cli tools › config
+
+```bash
+curl -X POST https://localhost:20128/api/cli-tools/config \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/cli-tools/deepseek-tui-settings
+
+GET cli tools › deepseek tui settings
+
+```bash
+curl https://localhost:20128/api/cli-tools/deepseek-tui-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/cli-tools/deepseek-tui-settings
+
+POST cli tools › deepseek tui settings
+
+```bash
+curl -X POST https://localhost:20128/api/cli-tools/deepseek-tui-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/cli-tools/deepseek-tui-settings
+
+DELETE cli tools › deepseek tui settings
+
+```bash
+curl -X DELETE https://localhost:20128/api/cli-tools/deepseek-tui-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cli-tools/detect
+
+GET cli tools › detect
+
+```bash
+curl https://localhost:20128/api/cli-tools/detect \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cli-tools/forge-settings
+
+GET cli tools › forge settings
+
+```bash
+curl https://localhost:20128/api/cli-tools/forge-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/cli-tools/forge-settings
+
+POST cli tools › forge settings
+
+```bash
+curl -X POST https://localhost:20128/api/cli-tools/forge-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/cli-tools/forge-settings
+
+DELETE cli tools › forge settings
+
+```bash
+curl -X DELETE https://localhost:20128/api/cli-tools/forge-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cli-tools/grok-build-settings
+
+GET cli tools › grok build settings
+
+```bash
+curl https://localhost:20128/api/cli-tools/grok-build-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/cli-tools/grok-build-settings
+
+POST cli tools › grok build settings
+
+```bash
+curl -X POST https://localhost:20128/api/cli-tools/grok-build-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/cli-tools/grok-build-settings
+
+DELETE cli tools › grok build settings
+
+```bash
+curl -X DELETE https://localhost:20128/api/cli-tools/grok-build-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cli-tools/hermes-agent-settings
+
+GET cli tools › hermes agent settings
+
+```bash
+curl https://localhost:20128/api/cli-tools/hermes-agent-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/cli-tools/hermes-agent-settings
+
+POST cli tools › hermes agent settings
+
+```bash
+curl -X POST https://localhost:20128/api/cli-tools/hermes-agent-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/cli-tools/jcode-settings
+
+GET cli tools › jcode settings
+
+```bash
+curl https://localhost:20128/api/cli-tools/jcode-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/cli-tools/jcode-settings
+
+POST cli tools › jcode settings
+
+```bash
+curl -X POST https://localhost:20128/api/cli-tools/jcode-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/cli-tools/jcode-settings
+
+DELETE cli tools › jcode settings
+
+```bash
+curl -X DELETE https://localhost:20128/api/cli-tools/jcode-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cli-tools/keys
+
+GET cli tools › keys
+
+```bash
+curl https://localhost:20128/api/cli-tools/keys \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cli-tools/letta-settings
+
+GET cli tools › letta settings
+
+```bash
+curl https://localhost:20128/api/cli-tools/letta-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/cli-tools/letta-settings
+
+POST cli tools › letta settings
+
+```bash
+curl -X POST https://localhost:20128/api/cli-tools/letta-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/cli-tools/letta-settings
+
+DELETE cli tools › letta settings
+
+```bash
+curl -X DELETE https://localhost:20128/api/cli-tools/letta-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cli-tools/logs
+
+GET cli tools › logs
+
+```bash
+curl https://localhost:20128/api/cli-tools/logs \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cli-tools/omp-settings
+
+GET cli tools › omp settings
+
+```bash
+curl https://localhost:20128/api/cli-tools/omp-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/cli-tools/omp-settings
+
+POST cli tools › omp settings
+
+```bash
+curl -X POST https://localhost:20128/api/cli-tools/omp-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/cli-tools/omp-settings
+
+DELETE cli tools › omp settings
+
+```bash
+curl -X DELETE https://localhost:20128/api/cli-tools/omp-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cli-tools/openclaw/auto-order
+
+GET cli tools › openclaw › auto order
+
+```bash
+curl https://localhost:20128/api/cli-tools/openclaw/auto-order \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cli-tools/pi-settings
+
+GET cli tools › pi settings
+
+```bash
+curl https://localhost:20128/api/cli-tools/pi-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/cli-tools/pi-settings
+
+POST cli tools › pi settings
+
+```bash
+curl -X POST https://localhost:20128/api/cli-tools/pi-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/cli-tools/pi-settings
+
+DELETE cli tools › pi settings
+
+```bash
+curl -X DELETE https://localhost:20128/api/cli-tools/pi-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cli-tools/qwen-settings
+
+GET cli tools › qwen settings
+
+```bash
+curl https://localhost:20128/api/cli-tools/qwen-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/cli-tools/qwen-settings
+
+POST cli tools › qwen settings
+
+```bash
+curl -X POST https://localhost:20128/api/cli-tools/qwen-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/cli-tools/qwen-settings
+
+DELETE cli tools › qwen settings
+
+```bash
+curl -X DELETE https://localhost:20128/api/cli-tools/qwen-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cli-tools/smelt-settings
+
+GET cli tools › smelt settings
+
+```bash
+curl https://localhost:20128/api/cli-tools/smelt-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/cli-tools/smelt-settings
+
+POST cli tools › smelt settings
+
+```bash
+curl -X POST https://localhost:20128/api/cli-tools/smelt-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/cli-tools/smelt-settings
+
+DELETE cli tools › smelt settings
+
+```bash
+curl -X DELETE https://localhost:20128/api/cli-tools/smelt-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cli-tools/status
+
+GET cli tools › status
+
+```bash
+curl https://localhost:20128/api/cli-tools/status \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 

@@ -37,6 +37,7 @@ import {
   applyItemOrder,
   normalizeHiddenSidebarItems,
   HIDEABLE_SIDEBAR_ITEM_IDS,
+  resolveRuntimeSidebarSections,
   type HideableSidebarItemId,
   type SidebarItemId,
   type SidebarSectionId,
@@ -265,7 +266,9 @@ function ItemRow({ item, hiddenSet, onToggleItem, getLabel }: ItemRowProps) {
         <span className="material-symbols-outlined text-[16px] text-text-muted/50 shrink-0">
           {item.icon}
         </span>
-        <p className="font-medium truncate">{getLabel(item.i18nKey, item.id)}</p>
+        <p className="font-medium truncate">
+          {getLabel(item.i18nKey, item.labelFallback ?? item.id)}
+        </p>
       </div>
       {isProtected ? (
         <span
@@ -327,8 +330,8 @@ function GroupRow({
           </span>
         </button>
         <span className="text-xs text-text-muted/40">
-          {group.items.filter((i) => !isHideableSidebarItemId(i.id) || !hiddenSet.has(i.id)).length}/
-          {group.items.length}
+          {group.items.filter((i) => !isHideableSidebarItemId(i.id) || !hiddenSet.has(i.id)).length}
+          /{group.items.length}
         </span>
         {canToggleSeparator && (
           <div className="flex items-center gap-2 border-l border-border/60 pl-3">
@@ -349,7 +352,9 @@ function GroupRow({
                 <span className="material-symbols-outlined text-[14px] text-text-muted/40 shrink-0">
                   {item.icon}
                 </span>
-                <p className="text-sm font-medium truncate">{getLabel(item.i18nKey, item.id)}</p>
+                <p className="text-sm font-medium truncate">
+                  {getLabel(item.i18nKey, item.labelFallback ?? item.id)}
+                </p>
               </div>
               <GroupItemVisibilityControl
                 item={item}
@@ -391,6 +396,7 @@ export default function SidebarTab() {
   const [activePreset, setActivePreset] = useState<SidebarPresetId | null>(null);
   const [confirmPreset, setConfirmPreset] = useState<SidebarPresetId | null>(null);
   const [showDebug, setShowDebug] = useState(false);
+  const [radarAdminUrl, setRadarAdminUrl] = useState<unknown>(null);
 
   useEffect(() => {
     fetch("/api/settings")
@@ -412,6 +418,7 @@ export default function SidebarTab() {
         );
         setActivePreset(data?.[SIDEBAR_PRESET_KEY] ?? null);
         setShowDebug(data?.debugMode === true);
+        setRadarAdminUrl(data?.radarAdminUrl ?? null);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -458,9 +465,9 @@ export default function SidebarTab() {
     patch({ [HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY]: next, [SIDEBAR_PRESET_KEY]: null });
   };
 
-  const visibleSections = SIDEBAR_SECTIONS.filter(
-    (s) => s.visibility !== "debug" || showDebug
-  );
+  const visibleSections = resolveRuntimeSidebarSections(SIDEBAR_SECTIONS, {
+    radarAdminUrl,
+  }).filter((s) => s.visibility !== "debug" || showDebug);
 
   const orderedSections = applySectionOrder(visibleSections, sectionOrder).map((s) => ({
     ...s,
@@ -514,6 +521,7 @@ export default function SidebarTab() {
 
   const presetLabels: Record<SidebarPresetId, string> = {
     all: getSettingsLabel("presetAll", "All"),
+    essentials: getSettingsLabel("presetEssentials", "Essentials"),
     minimal: getSettingsLabel("presetMinimal", "Minimal"),
     developer: getSettingsLabel("presetDeveloper", "Developer"),
     admin: getSettingsLabel("presetAdmin", "Admin"),
@@ -521,6 +529,10 @@ export default function SidebarTab() {
 
   const presetDescriptions: Record<SidebarPresetId, string> = {
     all: getSettingsLabel("presetAllDesc", "Show everything"),
+    essentials: getSettingsLabel(
+      "presetEssentialsDesc",
+      "Beginner path — Advanced tools stay searchable"
+    ),
     minimal: getSettingsLabel("presetMinimalDesc", "Core pages only"),
     developer: getSettingsLabel("presetDeveloperDesc", "Dev & proxy tools"),
     admin: getSettingsLabel("presetAdminDesc", "Monitoring & audit"),

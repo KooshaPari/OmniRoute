@@ -36,7 +36,6 @@ function normalizeToolSchema(schema: unknown): Record<string, unknown> {
 function normalizeOpenAIReasoningEffort(effort: unknown): string | undefined {
   if (typeof effort !== "string") return undefined;
   const normalized = effort.toLowerCase();
-  if (normalized === "max") return "xhigh";
   return normalized || undefined;
 }
 
@@ -191,6 +190,24 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
   // Runs after regrouping so real results are already adjacent and only a truly
   // unanswered tool_call receives a "[No response received]" placeholder.
   fixMissingToolResponses(result.messages);
+
+  // GLM-family gateways (Z.AI / Zhipu — fronted by opencode-go / opencode-zen /
+  // glm-* targets) reject any payload whose messages array has NO role:"user"
+  // turn with `400 [1214] The messages parameter is illegal`. Claude Code agent
+  // loops legitimately produce such payloads: every inbound user turn carries
+  // only tool_result blocks (translated to role:"tool") and context compression
+  // can evict the original prompt. When the caller flags a GLM-family upstream
+  // (_ensureUserTurn), append a minimal synthetic user turn so the request
+  // satisfies the validator. Appending at the end keeps every earlier byte
+  // identical for upstream prompt caches.
+  const ensureUserTurn =
+    credentials !== null &&
+    typeof credentials === "object" &&
+    !Array.isArray(credentials) &&
+    (credentials as JsonRecord)._ensureUserTurn === true;
+  if (ensureUserTurn && !result.messages.some((m) => m && m.role === "user")) {
+    result.messages.push({ role: "user", content: "(continue)" });
+  }
 
   const useNativeResponsesWebSearch = shouldUseNativeResponsesWebSearch(credentials);
 
@@ -349,7 +366,15 @@ function fixMissingToolResponses(messages) {
 
 // Convert single Claude message - returns single message or array of messages
 function convertClaudeMessage(msg, preserveCacheControl = false) {
-  const role = msg.role === "user" || msg.role === "tool" ? "user" : "assistant";
+  // Preserve system role for mid-conversation system turns (#6954).
+  // Previously any role that wasn't "user" or "tool" was mapped to "assistant",
+  // which misattributed system messages as assistant output.
+  const role =
+    msg.role === "user" || msg.role === "tool"
+      ? "user"
+      : msg.role === "system"
+        ? "system"
+        : "assistant";
 
   // Simple string content
   if (typeof msg.content === "string") {
@@ -411,9 +436,7 @@ function convertClaudeMessage(msg, preserveCacheControl = false) {
             function: {
               name: block.name,
               arguments:
-                typeof block.input === "string"
-                  ? block.input
-                  : JSON.stringify(block.input || {}),
+                typeof block.input === "string" ? block.input : JSON.stringify(block.input || {}),
             },
           });
           break;

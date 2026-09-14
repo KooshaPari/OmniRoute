@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # OmniRoute — Dashboard Features Gallery
 
-🌐 **Translations:** Generated on demand; see [the i18n guide](I18N.md).
+🌐 **Languages:** 🇺🇸 [English](./FEATURES.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/FEATURES.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/FEATURES.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/FEATURES.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/FEATURES.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/FEATURES.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/FEATURES.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/FEATURES.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/FEATURES.md) | 🇪🇸 [Español](../i18n/es/docs/guides/FEATURES.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/FEATURES.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/FEATURES.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/FEATURES.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/FEATURES.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/FEATURES.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/FEATURES.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/FEATURES.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/FEATURES.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/FEATURES.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/FEATURES.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/FEATURES.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/FEATURES.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/FEATURES.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/FEATURES.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/FEATURES.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/FEATURES.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/FEATURES.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/FEATURES.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/FEATURES.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/FEATURES.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/FEATURES.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/FEATURES.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/FEATURES.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/FEATURES.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/FEATURES.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/FEATURES.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/FEATURES.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/FEATURES.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/FEATURES.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/FEATURES.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/FEATURES.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/FEATURES.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/FEATURES.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/FEATURES.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/FEATURES.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/FEATURES.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/FEATURES.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/FEATURES.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/FEATURES.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/FEATURES.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/FEATURES.md)
 
 Visual guide to every section of the OmniRoute dashboard.
 
@@ -18,11 +18,11 @@ Visual guide to every section of the OmniRoute dashboard.
 
 The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth flows, deeper resilience, and a much richer CLI experience. Headline features below — full details further in the document and in linked specs.
 
-- 🤖 **Auto Combo / Zero-config auto-routing** — use prefixes `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`. Backed by a 9-factor scoring engine and 4 curated **mode packs** (ship-fast, cost-saver, quality-first, offline-friendly)
+- 🤖 **Auto Combo / Zero-config auto-routing** — use prefixes `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Backed by a 16-factor scoring engine and 6 curated **mode packs** (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
 - 🆕 **Command Code provider** (#2199) — first-class registration with model catalog and quota tracking
 - 🆕 **Z.AI provider** — new free-tier provider with quota labels
 - 🎬 **KIE media expansion** — extended catalog including video generation models
-- 🔐 **Windsurf + Devin CLI OAuth flows** (#2168) — end-to-end browser-based login
+- 🔐 **Devin authentication** — Desktop imports an existing Devin API key; the CLI uses local `devin auth login` credentials
 - 🆓 **8 new free providers** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
 - 🎯 **Manifest-aware tier routing W1–W4** — provider manifests drive weighted tier selection
 - 🎨 **Cursor full OpenAI parity** — tool calls, streaming, session management end-to-end
@@ -51,7 +51,7 @@ The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth
 
 ## 🔌 Providers
 
-Manage AI provider connections: OAuth providers (Claude Code, Codex), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+Manage AI provider connections: OAuth providers (Claude Code, Codex), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
 
 OpenRouter connections can store a per-connection `preset` in Advanced Settings. When set, OmniRoute sends it as the OpenRouter top-level request field, for example `"preset": "email-copywriter"`, unless the client request already supplied its own `preset`.
 
@@ -61,7 +61,7 @@ OpenRouter connections can store a per-connection `preset` in Advanced Settings.
 
 ## 🎨 Combos
 
-Create model routing combos with 17 strategies: priority, weighted, fill-first, round-robin, p2c (power-of-two-choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, context-relay, and **fusion** (fan out to a panel of models in parallel, then synthesize one answer via a judge). Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+Create model routing combos with 19 public strategies: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (fan out to a panel of models in parallel, then synthesize one answer via a judge), and **pipeline**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
 
 Recent combo improvements:
 
@@ -69,6 +69,17 @@ Recent combo improvements:
 - **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
 - **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
 - **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
+- **System prompt templates** — combo `system_message` supports server-side
+  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` and `{{FINGERPRINT}}`
+  placeholders, expanded from the actually-routed target right before dispatch.
+  Allowlisted and non-recursive; unknown placeholders stay literal; empty values
+  expand to empty; client system prompts are never rewritten. `{{FINGERPRINT}}`
+  resolves only for fingerprint-based free providers with a pinned or
+  auto-rotated fingerprint — it expands to empty elsewhere (e.g.
+  single-fingerprint connections, non-fp providers). Expansion covers the
+  standard dispatch loop, round-robin, and pinned context-cache sessions;
+  fusion, chaos, pipeline and nested-execute strategies do not expand
+  placeholders yet.
 
 ![Combos Dashboard](../screenshots/02-combos.png)
 
@@ -136,13 +147,13 @@ One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, K
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 17 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
+Dashboard for discovering and managing CLI agents. Shows a grid of 16 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
 
 - **Installation status** — Installed / Not Found with version detection
 - **Protocol badges** — stdio, HTTP, etc.
 - **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
 - **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
-- **OAuth-backed agents** — Windsurf & Devin CLI now use browser OAuth flows for authentication (v3.8.0+)
+- **Local Devin authentication** — Devin CLI uses `devin auth login`; no browser OAuth flow is required
 
 ---
 

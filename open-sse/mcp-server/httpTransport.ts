@@ -11,7 +11,7 @@
 
 import { randomUUID } from "node:crypto";
 import { createMcpServer } from "./server.ts";
-import { withMcpHttpAuthContext } from "./httpAuthContext.ts";
+import { resolveMcpCallerAuthInfo, withMcpHttpAuthContext } from "./httpAuthContext.ts";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -210,13 +210,34 @@ async function handleStreamableRequest(request: Request): Promise<Response> {
       // terminated/unknown, the server MUST respond with HTTP 404 Not Found so the
       // client re-initializes. A 400 here is non-recoverable for spec-compliant
       // clients (they only re-init on 404). See issue #5169.
+      //
+      // Auto-recovery: if the client sends an initialize request with a stale session
+      // id (e.g. after a server restart or idle eviction), treat it as a fresh
+      // initialization rather than hard-failing with 404. This avoids requiring users
+      // to manually restart their MCP client after every server restart.
+      if (await isInitializeRequest(request)) {
+        const newSession = createStreamableSession();
+        try {
+          const response = await withMcpHttpAuthContext(request, () =>
+            handleRequestWithAuthInfo(newSession.transport, request)
+          );
+          return withSessionHeader(response, newSession.sessionId);
+        } catch (err) {
+          closeStreamableSession(newSession.sessionId);
+          console.error("[MCP] Streamable HTTP error during stale-session recovery:", err);
+          return new Response(JSON.stringify({ error: "MCP transport error" }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+      }
       return errorResponse("Not Found: Unknown Mcp-Session-Id header", -32000, 404);
     }
 
     try {
       session.lastActivityAt = Date.now();
       const response = await withMcpHttpAuthContext(request, () =>
-        session.transport.handleRequest(request)
+        handleRequestWithAuthInfo(session.transport, request)
       );
       if (request.method === "DELETE") {
         closeStreamableSession(sessionId);
@@ -242,7 +263,7 @@ async function handleStreamableRequest(request: Request): Promise<Response> {
 
   try {
     const response = await withMcpHttpAuthContext(request, () =>
-      session.transport.handleRequest(request)
+      handleRequestWithAuthInfo(session.transport, request)
     );
     return withSessionHeader(response, session.sessionId);
   } catch (err) {
@@ -263,16 +284,37 @@ export async function handleMcpStreamableHTTP(request: Request): Promise<Respons
   return protectMcpSseResponse(request, await handleStreamableRequest(request));
 }
 
+interface RpcRequest {
+  method?: string;
+  [key: string]: unknown;
+}
+
 /**
  * Handle SSE requests.
  * SSE transport is implemented via Streamable HTTP transport with GET for SSE stream
  * and POST for messages (the Streamable HTTP transport supports both patterns).
  */
 export async function handleMcpSSE(request: Request): Promise<Response> {
+  if (request.method === "POST") {
+    try {
+      const body = await request.clone().json();
+      const isInitialize = Array.isArray(body)
+        ? body.some((req: RpcRequest) => req?.method === "initialize")
+        : (body as RpcRequest)?.method === "initialize";
+
+      if (isInitialize) {
+        console.log("[MCP] New client initialize detected, resetting SSE singleton...");
+        closeSseTransport();
+      }
+    } catch (err) {}
+  }
   const { transport } = ensureSseServer();
 
   try {
-    return await withMcpHttpAuthContext(request, () => transport.handleRequest(request));
+    const response = await withMcpHttpAuthContext(request, () =>
+      handleRequestWithAuthInfo(transport, request)
+    );
+    return protectMcpSseResponse(request, response);
   } catch (err) {
     console.error("[MCP] SSE error:", err);
     return new Response(JSON.stringify({ error: "MCP SSE transport error" }), {

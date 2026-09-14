@@ -1,4 +1,5 @@
 import { SHARED_BOUNDARIES, shouldBypassCavemanOutputMode } from "../outputMode.ts";
+import { detectCompressionLanguage } from "../languageDetector.ts";
 import { OUTPUT_STYLE_IDS, outputStyleMeta } from "./catalog.ts";
 
 export type OutputStyleLevel = "lite" | "full" | "ultra";
@@ -27,6 +28,51 @@ export interface OutputStylesResult {
   skippedReason?: string;
   /** The styles actually injected (after unknown/locale filtering), in catalog order. */
   appliedStyles?: OutputStyleSelectionEntry[];
+}
+
+
+interface OutputStyleLanguageConfig {
+  enabled?: boolean;
+  autoDetect?: boolean;
+  defaultLanguage?: string;
+}
+
+function lastUserText(body: ChatRequestBody): string {
+  const messages = Array.isArray(body.messages) ? body.messages : [];
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const message = messages[i];
+    if (message?.role !== "user") continue;
+    if (typeof message.content === "string" && message.content.trim()) return message.content;
+    if (Array.isArray(message.content)) {
+      const text = message.content
+        .map((part) =>
+          part && typeof part === "object" && typeof (part as { text?: unknown }).text === "string"
+            ? (part as { text: string }).text
+            : ""
+        )
+        .join(" ")
+        .trim();
+      if (text) return text;
+    }
+  }
+  return "";
+}
+
+/**
+ * Resolve which language the output-style instructions inject in.
+ * Disabled → en. autoDetect → language of the latest user message (the input
+ * engines already use the same detector); otherwise the configured default.
+ */
+export function resolveOutputStyleLanguage(
+  languageConfig: OutputStyleLanguageConfig | undefined,
+  body: ChatRequestBody
+): string {
+  if (languageConfig?.enabled !== true) return "en";
+  if (languageConfig.autoDetect === true) {
+    const text = lastUserText(body);
+    if (text) return detectCompressionLanguage(text);
+  }
+  return languageConfig.defaultLanguage || "en";
 }
 
 /** Single idempotency marker guarding the unified injection (D-A: one marker for all styles). */

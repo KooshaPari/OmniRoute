@@ -8,7 +8,6 @@ import { handleChatCore } from "./chatCore.ts";
 import { convertResponsesApiFormat } from "../translator/helpers/responsesApiHelper.ts";
 import { collectResponsesCustomToolNames } from "../translator/request/openai-responses/additionalTools.ts";
 import { createResponsesApiTransformStream } from "../transformer/responsesTransformer.ts";
-import { shouldParseTextualReasoningTags } from "./responseSanitizer.ts";
 import { createSseHeartbeatTransform, HEARTBEAT_SHAPES } from "../utils/sseHeartbeat.ts";
 import { SSE_HEARTBEAT_INTERVAL_MS } from "../config/constants.ts";
 
@@ -41,7 +40,12 @@ export async function handleResponsesCore({
   const customToolNames = collectResponsesCustomToolNames(body?.tools, inputItems);
 
   // Convert Responses API format to Chat Completions format
-  const convertedBody = convertResponsesApiFormat(body, credentials, modelInfo?.provider);
+  const convertedBody = convertResponsesApiFormat(
+    body,
+    credentials,
+    modelInfo?.provider,
+    modelInfo?.model
+  );
 
   // Ensure stream is enabled
   convertedBody.stream = true;
@@ -59,6 +63,7 @@ export async function handleResponsesCore({
     connectionId,
     userAgent: null,
     comboName: null,
+    onStreamFailure: null,
   });
 
   // handleChatCore's union includes a bare Response (early returns that never

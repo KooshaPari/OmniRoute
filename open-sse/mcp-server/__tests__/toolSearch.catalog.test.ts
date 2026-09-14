@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { getAllToolDefinitions } from "../toolSearch/catalog.ts";
 
+const GITHUB_SKILL_TOOL_NAMES = [
+  "omniroute_github_skills_search",
+  "omniroute_github_skills_scan",
+  "omniroute_github_skills_install",
+] as const;
+
 describe("getAllToolDefinitions", () => {
   const all = getAllToolDefinitions();
   it("aggregates many tools across collections", () => {
@@ -18,10 +24,15 @@ describe("getAllToolDefinitions", () => {
     const names = all.map((t) => t.name);
     expect(new Set(names).size).toBe(names.length);
   });
-  it("includes compressionTools-only entries (omniroute_ccr_retrieve, not in MCP_TOOLS)", () => {
-    // Regression: compressionTools carries omniroute_ccr_retrieve, which is absent from
-    // MCP_TOOLS — if the collection is dropped from the catalog, tool_search can never
-    // surface it. Guards against the catalog omission caught in core review.
-    expect(all.find((t) => t.name === "omniroute_ccr_retrieve")).toBeTruthy();
+  it("includes all GitHub skill tools", () => {
+    const names = new Set(all.map((tool) => tool.name));
+    for (const name of GITHUB_SKILL_TOOL_NAMES) {
+      expect(names.has(name)).toBe(true);
+    }
+  });
+  it("includes every canonical CCR lifecycle tool", () => {
+    for (const name of ["store", "retrieve", "inspect", "list", "delete", "stats"]) {
+      expect(all.find((tool) => tool.name === `omniroute_ccr_${name}`)).toBeTruthy();
+    }
   });
 });

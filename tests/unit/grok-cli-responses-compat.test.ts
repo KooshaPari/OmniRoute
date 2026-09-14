@@ -23,6 +23,12 @@ test("grok-cli exposes the authenticated grok-build model catalog", () => {
     })),
     [
       {
+        id: "grok-4.6",
+        name: "Grok 4.6",
+        contextLength: 500000,
+        targetFormat: "openai-responses",
+      },
+      {
         id: "grok-4.5",
         name: "Grok 4.5",
         contextLength: 500000,
@@ -36,13 +42,15 @@ test("grok-cli exposes the authenticated grok-build model catalog", () => {
       },
     ]
   );
+  assert.equal(getModelTargetFormat("gc", "grok-4.6"), "openai-responses");
   assert.equal(getModelTargetFormat("gc", "grok-4.5"), "openai-responses");
   assert.equal(getModelTargetFormat("gc", "grok-composer-2.5-fast"), "openai-responses");
   assert.equal(grok_cliProvider.modelsUrl, GROK_BUILD_MODELS_URL);
 });
 
-test("grok-cli routes both models to the Responses endpoint", () => {
+test("grok-cli routes its catalog models to the Responses endpoint", () => {
   const executor = new GrokCliExecutor();
+  assert.equal(executor.buildUrl("grok-4.6", true), "https://cli-chat-proxy.grok.com/v1/responses");
   assert.equal(executor.buildUrl("grok-4.5", true), "https://cli-chat-proxy.grok.com/v1/responses");
   assert.equal(
     executor.buildUrl("grok-composer-2.5-fast", false),
@@ -169,6 +177,7 @@ test("grok-cli live model discovery uses the authenticated session contract", ()
       owned_by: "grok-cli",
       inputTokenLimit: 500000,
       supportsThinking: true,
+      supportedThinkingEfforts: ["low", "medium", "high"],
       apiFormat: "responses",
       supportedEndpoints: ["responses"],
     },

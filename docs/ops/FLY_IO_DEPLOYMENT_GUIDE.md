@@ -1,5 +1,5 @@
 ---
-title: "OmniRoute Fly.io 部署指南"
+title: "OmniRoute Fly.io Deployment Guide"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---

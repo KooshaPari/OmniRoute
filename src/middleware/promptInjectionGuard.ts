@@ -12,9 +12,6 @@ import {
 } from "@/lib/guardrails/promptInjection";
 import { resolveDisabledGuardrails } from "@/lib/guardrails/registry";
 import { CORS_HEADERS } from "@/shared/utils/cors";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("middleware:prompt-injection-guard");
 
 /**
  * Create a prompt injection guard middleware.
@@ -36,7 +33,12 @@ export function createInjectionGuard(options: PromptInjectionGuardrailOptions = 
 
     const decision = evaluatePromptInjection(body, options, {
       disabledGuardrails: resolveDisabledGuardrails({ body }),
-      log: options.logger || console,
+      // Omitted logger → console fallback: for middleware-only routes (embeddings,
+      // images, audio, moderations, …) this guard is the ONLY injection evaluation,
+      // so a silent guard would leave blocked requests with zero server-side trace.
+      // Chat-family routes are re-evaluated by the guardrail registry with a pino
+      // logger and opt out of the duplicate line with `logger: null` (#11936).
+      log: options.logger === undefined ? console : options.logger,
     });
     return {
       blocked: decision.blocked,
@@ -102,7 +104,7 @@ export function withInjectionGuard(handler: any, options: any = {}) {
         }
       }
     } catch (error) {
-      log.error({ err: error }, "prompt-injection-guard: security check failed");
+      console.error("[SECURITY] Injection guard error:", error);
       return new Response(JSON.stringify({ error: "Security check failed" }), {
         status: 500,
         headers: { "Content-Type": "application/json" },

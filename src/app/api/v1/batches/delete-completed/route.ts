@@ -1,5 +1,5 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
-import { deleteCompletedBatches } from "@/lib/localDb";
+import { deleteCompletedBatches } from "@/lib/db/batches";
 import { NextResponse } from "next/server";
 import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
 
@@ -19,7 +19,10 @@ export async function DELETE(request: Request) {
     );
   }
 
-  const result = deleteCompletedBatches();
+  // Scope the sweep to the caller. Only the operator's own dashboard (session
+  // auth) may clear the whole instance; an API key clears only its own
+  // completed batches (GHSA-wvxc-jp3v-5mg5).
+  const result = deleteCompletedBatches(scope.isSessionAuth ? undefined : scope.apiKeyId);
 
   return NextResponse.json(
     { deleted: true, deletedBatches: result.deletedBatches, deletedFiles: result.deletedFiles },

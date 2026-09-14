@@ -60,19 +60,27 @@ test("applyThinking: honors xAI-native reasoning.effort verbatim", () => {
   assert.equal((out as Record<string, unknown>).foo, 1);
 });
 
-test("normalizeXaiReasoningEffort: downgrades max/xhigh to xAI-supported high", () => {
+test("normalizeXaiReasoningEffort: downgrades max, passes xhigh through (#11816)", () => {
+  // "max" is not an xAI tier -> still folded onto "high".
   assert.equal(normalizeXaiReasoningEffort("max"), "high");
-  assert.equal(normalizeXaiReasoningEffort("xhigh"), "high");
+  // "xhigh" is a real xAI tier on grok-4.6+; xAI itself degrades it to "high"
+  // on older models, so forwarding it verbatim is always safe.
+  assert.equal(normalizeXaiReasoningEffort("xhigh"), "xhigh");
+  assert.equal(normalizeXaiReasoningEffort("XHIGH"), "xhigh");
   assert.equal(normalizeXaiReasoningEffort("HIGH"), "high");
   assert.equal(normalizeXaiReasoningEffort("ultra"), undefined);
 });
 
-test("applyThinking: normalizes xAI-native max/xhigh to high", () => {
+test("applyThinking: folds max to high, keeps xhigh intact (#11816)", () => {
   const maxOut = applyThinking({ reasoning: { effort: "max", summary: "auto" } });
   assert.deepStrictEqual(maxOut.reasoning, { effort: "high", summary: "auto" });
 
   const xhighOut = applyThinking({ reasoning: { effort: "xhigh" } });
-  assert.deepStrictEqual(xhighOut.reasoning, { effort: "high" });
+  assert.deepStrictEqual(xhighOut.reasoning, { effort: "xhigh" });
+
+  const chatOut = applyThinking({ reasoning_effort: "xhigh" });
+  assert.deepStrictEqual(chatOut.reasoning, { effort: "xhigh" });
+  assert.equal(chatOut.reasoning_effort, undefined);
 });
 
 test("applyThinking: rewrites OpenAI Chat reasoning_effort into reasoning.effort", () => {

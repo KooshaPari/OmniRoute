@@ -1,8 +1,36 @@
 import { FORMATS } from "../../translator/formats.ts";
+import { isVerifiedNativeCodexRequest } from "../../config/codexIdentity.ts";
 import { isClaudeCodeCompatibleProvider } from "../../services/claudeCodeCompatible.ts";
+import { isResponsesEndpointPath } from "../../utils/responsesEndpoint.ts";
 import { getHeaderValueCaseInsensitive } from "./headers.ts";
 
+export { isResponsesEndpointPath };
+
+export const XAI_API_PROVIDERS = new Set(["xai", "xai-oauth", "xao"]);
+
 export function shouldUseNativeCodexPassthrough({
+  provider,
+  sourceFormat,
+  endpointPath,
+  body,
+  headers,
+}: {
+  provider?: string | null;
+  sourceFormat?: string | null;
+  endpointPath?: string | null;
+  body?: unknown;
+  headers?: Headers | Record<string, unknown> | null;
+}): boolean {
+  if (provider !== "codex" && provider !== "chatgpt-web-codex") return false;
+  if (sourceFormat !== FORMATS.OPENAI_RESPONSES) return false;
+  let normalizedEndpoint = String(endpointPath || "");
+  while (normalizedEndpoint.endsWith("/")) normalizedEndpoint = normalizedEndpoint.slice(0, -1);
+  const segments = normalizedEndpoint.split("/");
+  if (!segments.includes("responses")) return false;
+  return provider === "codex" || isVerifiedNativeCodexRequest(body, headers);
+}
+
+export function shouldUseNativeXaiResponsesPassthrough({
   provider,
   sourceFormat,
   endpointPath,
@@ -11,12 +39,56 @@ export function shouldUseNativeCodexPassthrough({
   sourceFormat?: string | null;
   endpointPath?: string | null;
 }): boolean {
-  if (provider !== "codex") return false;
+  if (!provider || !XAI_API_PROVIDERS.has(provider)) return false;
   if (sourceFormat !== FORMATS.OPENAI_RESPONSES) return false;
-  let normalizedEndpoint = String(endpointPath || "");
-  while (normalizedEndpoint.endsWith("/")) normalizedEndpoint = normalizedEndpoint.slice(0, -1);
-  const segments = normalizedEndpoint.split("/");
-  return segments.includes("responses");
+  return isResponsesEndpointPath(endpointPath);
+}
+
+export function stampNativeResponsesPassthroughBody(
+  body: Record<string, unknown>,
+  mode: "codex" | "xai" | "openai-compatible"
+): Record<string, unknown> {
+  if (mode === "codex") return { ...body, _nativeCodexPassthrough: true };
+  if (mode === "xai") return { ...body, _nativeXaiResponsesPassthrough: true };
+  return { ...body, _nativeOpenAICompatibleResponsesPassthrough: true };
+}
+
+// A body only qualifies for the native-Responses passthrough fast path when it is
+// actually shaped like a Responses API request (`input`, no `messages`). Endpoint
+// path alone is not sufficient: an internally-synthesized Chat Completions-shaped
+// body (e.g. the context-handoff summary request) can be dispatched through a
+// closure that still carries the original client request's `/responses` endpoint,
+// which otherwise makes `sourceFormat` resolve to "openai-responses" even though
+// the body itself was never translated. See issue #12129.
+function isResponsesShapedBody(body: unknown): boolean {
+  if (!body || typeof body !== "object") return false;
+  const candidate = body as Record<string, unknown>;
+  return candidate.input !== undefined && candidate.messages === undefined;
+}
+
+export function shouldUseNativeOpenAICompatibleResponsesPassthrough({
+  provider,
+  sourceFormat,
+  endpointPath,
+  providerSpecificData,
+  body,
+}: {
+  provider?: string | null;
+  sourceFormat?: string | null;
+  endpointPath?: string | null;
+  providerSpecificData?: unknown;
+  body?: unknown;
+}): boolean {
+  if (!provider?.startsWith("openai-compatible-")) return false;
+  if (sourceFormat !== FORMATS.OPENAI_RESPONSES) return false;
+  if (body !== undefined && !isResponsesShapedBody(body)) return false;
+  if (providerSpecificData && typeof providerSpecificData === "object") {
+    const psd = providerSpecificData as Record<string, unknown>;
+    if (psd.apiType === "responses" || psd._omnirouteForceResponsesUpstream === true) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**

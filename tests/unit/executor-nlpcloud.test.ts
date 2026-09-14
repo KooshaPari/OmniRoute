@@ -30,9 +30,9 @@ function sseResponse(events: string[]) {
   );
 }
 
-test("NlpCloudExecutor is registered in the executor index", () => {
+test("NlpCloudExecutor is registered in the executor index", async () => {
   assert.equal(hasSpecializedExecutor("nlpcloud"), true);
-  assert.ok(getExecutor("nlpcloud") instanceof NlpCloudExecutor);
+  assert.ok((await getExecutor("nlpcloud")) instanceof NlpCloudExecutor);
 });
 
 test.skip("NlpCloudExecutor converts OpenAI messages into chatbot input/context/history and wraps JSON responses", async () => {

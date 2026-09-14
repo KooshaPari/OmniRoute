@@ -25,7 +25,17 @@ test("#7610: OAuthModal rejects bare Grok JWT paste instructions", () => {
 });
 
 test("#7610: OAuthModal paste UI is auth.json-oriented for grok-cli", () => {
-  assert.match(modalSource, /Import auth\.json/);
-  assert.match(modalSource, /Grok Build auth\.json/);
-  assert.match(modalSource, /refresh_token/);
+  // #9245 localized the hardcoded copy: the modal now renders i18n keys and the
+  // English source strings live in oauthModal.* inside en.json.
+  assert.match(modalSource, /tabImportAuthJson/);
+  assert.match(modalSource, /grokAuthJsonDescription/);
+  assert.match(modalSource, /grokAuthJsonPlaceholder/);
+  assert.match(modalSource, /grokAuthJsonLabel/);
+
+  const enMessages = readFileSync(join(here, "../../src/i18n/messages/en.json"), "utf8");
+  const oauthModal = (JSON.parse(enMessages) as { oauthModal: Record<string, string> }).oauthModal;
+  assert.equal(oauthModal.tabImportAuthJson, "Import auth.json");
+  assert.equal(oauthModal.grokAuthJsonLabel, "Grok Build auth.json");
+  assert.match(oauthModal.grokAuthJsonDescription, /refresh_token/);
+  assert.match(oauthModal.grokAuthJsonPlaceholder, /refresh_token/);
 });

@@ -24,7 +24,7 @@ The three are independent — pick any subset.
 ## Decision Tree
 
 ```
-Do you need a cloud service to do work outside this machine (Codex Cloud / Devin / Jules)?
+Do you need a cloud service to do work outside this machine (Codex Cloud / Cursor Cloud / Devin / Jules)?
 ├─ YES → Cloud Agents (POST /api/v1/agents/tasks)
 └─ NO → Continue
     │
@@ -129,7 +129,7 @@ Body shape for POST (`customAgentBodySchema` in `src/app/api/acp/agents/route.ts
 
 A uniform interface over third-party cloud coding agents. You submit a prompt + repo URL, OmniRoute dispatches to the right cloud agent, polls status, returns results.
 
-### Supported agents (3, all confirmed in `src/lib/cloudAgent/agents/`)
+### Supported agents (4, all confirmed in `src/lib/cloudAgent/agents/`)
 
 - `codex-cloud` — OpenAI Codex Cloud
 - `devin` — Cognition Devin
@@ -183,7 +183,7 @@ Both have "long-running tasks" but at different layers:
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Returns the Agent Card with all 5 skills, transports, and version.
+Returns the Agent Card with all 6 skills, transports, and version.
 
 ### Call OmniRoute as an A2A agent
 
@@ -195,7 +195,7 @@ curl -X POST http://localhost:20128/a2a \
     "method": "message/send",
     "params": {
       "messages": [{"role": "user", "content": "Route this prompt"}],
-      "skillId": "smart-routing"
+      "skill": "smart-routing"
     },
     "id": 1
   }'
@@ -231,10 +231,13 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks \
   -H "Cookie: auth_token=..." \
   -H "Content-Type: application/json" \
   -d '{
-    "agentId": "devin",
+    "providerId": "devin",
     "prompt": "Implement feature X in repo Y",
-    "repo": "https://github.com/user/repo",
-    "branch": "main"
+    "source": {
+      "repoName": "user/repo",
+      "repoUrl": "https://github.com/user/repo",
+      "branch": "main"
+    }
   }'
 ```
 
@@ -269,7 +272,7 @@ curl http://localhost:20128/api/v1/agents/tasks/<task-id> \
         ↓                 ↓            └────────────┘
    External peer    Local CLI               │
    agents that      binaries on             ↓
-   speak A2A v0.3   the host           Codex Cloud,
+   speak A2A v0.3   the host           Codex Cloud, Cursor,
                                         Devin, Jules
 ```
 

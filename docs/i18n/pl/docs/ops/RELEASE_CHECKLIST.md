@@ -125,7 +125,7 @@ automatycznie, bez żadnej etykiety.
 - [ ] `npm run test:vitest` — pass (MCP server, autoCombo, cache)
 - [ ] `npm run test:coverage` — bramka 60/60/60/60 spełniona (statements/lines/functions/branches)
 - [ ] `npm run test:integration` — pass (jeśli zmiany dotykają DB / handlerów)
-- [ ] `npm run test:combo:matrix` — pass (macierz strategii combo: deterministycznie dowodzi decyzji selekcji wszystkich 17 strategii routingu; uruchamiaj przy zmianach combo routing, strategy resolution lub logiki fallback)
+- [ ] `npm run test:combo:matrix` — pass (macierz strategii combo: deterministycznie dowodzi decyzji selekcji wszystkich 19 publicznych strategii routingu; uruchamiaj przy zmianach combo routing, strategy resolution lub logiki fallback)
 - [ ] `RUN_COMBO_LIVE=1 npm run test:combo:live` — **opcjonalne/ręczne** (bramkowany smoke na realnym upstreamie; bierze snapshot DB tylko do odczytu z VPS `root@192.168.0.15`; uderza w realnych providerów, zużywa kredyty; nigdy nie biegnie w CI; bez bramki pomija się czysto)
 - [ ] `npm run test:combo:live:vps` — **opcjonalne/ręczne** (Phase-3 VPS live smoke: 7 scenariuszy HTTP przeciw żywemu serwerowi `.15` przez plain Node ESM; wymaga `ssh root@192.168.0.15`; tworzy/usuwa tylko combo `__live_test__*`; uderza w realnych providerów; nigdy nie biegnie w CI)
 - [ ] `npm run test:e2e` — pass (zmiany UI)
@@ -326,13 +326,11 @@ Przed wypuszczeniem dowolnego wydania v3.8.x zweryfikuj te dodatkowe pozycje:
 - [ ] `npm install -g omniroute@<this-version>` uruchamia postinstall bez fatalnego wyjścia
 - [ ] Ścieżka update zachowuje optional deps: `omniroute update --apply` i auto-updater
       uruchamiają `npm install -g … --include=optional`, żeby `optionalDependencies` (better-sqlite3,
-      keytar, tls-client oraz stack SLM llmlingua: `@atjsh/llmlingua-2`,
-      `@huggingface/transformers@3.5.2`, `@tensorflow/tfjs`, `js-tiktoken`) przeżyły update.
-      `@huggingface/transformers` zostaje optional, żeby jego postinstall providera CUDA `onnxruntime-node`
-      nie mógł przerwać instalacji na hostach CUDA 11. Tier ultra `modelPath` SLM potrzebuje też
+      keytar, tls-client oraz stack SLM llmlingua: `@atjsh/llmlingua-2@2.0.5`,
+      `js-tiktoken`) przeżyły update. Tier ultra `modelPath` SLM potrzebuje też
       modelu tinybert, auto-pobieranego do `${DATA_DIR}/models/llmlingua` przy pierwszym użyciu. Postinstall
       (`scripts/build/colocateOptionals.mjs`) następnie ko-lokuje opcjonalne zamknięcie SLM do
-      `dist/node_modules`, żeby worker rozwiązywał JEDNĄ opcjonalną instancję `@huggingface/transformers` 3.5.2
+      `dist/node_modules`, żeby worker rozwiązywał JEDNĄ instancję `@huggingface/transformers` ^4.2.0
       — standalone trace bundluje tylko transformers, nie dynamicznie importowane
       optionals, więc bez tego worker załadowałby llmlingua-2 przeciw transformers z roota
       i tier SLM cicho fail-openowałby.

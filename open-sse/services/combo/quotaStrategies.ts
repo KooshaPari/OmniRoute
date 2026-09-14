@@ -1,27 +1,34 @@
 /**
  * Stateful + async reset-aware / reset-window quota strategies for combo routing.
  *
- * Holds the two mutable module-level caches that back reset-aware routing
- * (`resetAwareConnectionCache` for per-provider active connections and
- * `resetAwareQuotaCache` for per-connection quota snapshots), plus the helpers
+ * Holds the per-connection quota snapshot cache and helpers
  * that read/write them and the strategy orderers. Extracted byte-identically
  * from combo.ts (QG v2 Fase 9 T5 D7b) — the larger, stateful half of the
  * reset-aware quota block. The pure scoring/window-math half lives in
  * ./quotaScoring.ts and is imported here.
  *
- * State cohesion: `resetAwareConnectionCache`, `resetAwareQuotaCache`, and
+ * State cohesion: `resetAwareQuotaCache` and
  * `MAX_RESET_AWARE_CACHE` MUST remain single instances defined once here,
- * alongside their only readers/writers (getQuotaAwareConnectionsForTarget,
- * fetchResetAwareQuotaWithCache) — never duplicate a Map.
+ * alongside their only readers/writers (`fetchResetAwareQuotaWithCache`).
+ * Connection lists go through `getCachedProviderConnections` (5s TTL,
+ * invalidated on connection writes). Do not add a second connection cache.
  *
  * Cross-module state: the tie-band round-robin in orderTargetsByResetAwareQuota
  * and orderTargetsByResetWindow shares the same rrCounters Map from ./rrState.ts
  * (D7a) so reset-aware tie rotation stays consistent with round-robin routing.
  *
+ * @changes
+ * - [2026-07-24] [Composer] - Exclude Antigravity accounts without stored projectId from reset-aware pool
+ * - [2026-07-24] [Composer] - Skip quota-exhausted and rate-limited connections in reset-aware expansion
+ *
  * Pure leaf: this module never imports from the combo barrel.
  */
 
-import { getRuntimeProviderProfile, type ProviderProfile } from "../accountFallback.ts";
+import {
+  getRuntimeProviderProfile,
+  isAccountUnavailable,
+  type ProviderProfile,
+} from "../accountFallback.ts";
 import { PRE_SCREEN_CONCURRENCY } from "../comboConfig.ts";
 import { getQuotaFetcher } from "../quotaPreflight.ts";
 import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
@@ -33,21 +40,37 @@ import {
   resolveResetWindowConfig,
   getResetAwareProvider,
   scoreResetAwareQuota,
-  getResetWindowTimestampMs,
+  getResetAwareRemainingPercent,
+  getResetWindowRemainingMs,
   type QuotaFetchCacheConfig,
 } from "./quotaScoring.ts";
+import { secureRandomFloat, secureRandomInt } from "../../../src/shared/utils/secureRandom.ts";
 import { rankByHeadroom, type HeadroomSaturation } from "./headroomRanking.ts";
+import { getInflight, incrementInflight } from "./quotaShareInflight.ts";
+import { preferAntigravityConnectionsWithStoredProject } from "../antigravityProjectPersist.ts";
+import { getQuotaFetchScope } from "../antigravityQuotaFamily.ts";
+import {
+  getQuotaSnapshotFetchedAt,
+  getQuotaWeightedRemainingPercent,
+  isQuotaExhaustedForRequest,
+} from "../../../src/domain/quotaCache.ts";
 
-const RESET_AWARE_CONNECTION_CACHE_TTL_MS = 30_000;
+/**
+ * How long a stored quota snapshot stays good enough to be counted as confident
+ * headroom by the quota-weighted A pool.
+ *
+ * Matches the background refresh cadence for active accounts (quotaCache's
+ * ACTIVE_TTL_MS), doubled to absorb one missed refresh tick. Past that the
+ * snapshot says "unknown", not "empty": the connection drops to the B pool and
+ * is still routed to when nothing fresher has room.
+ */
+export const QUOTA_WEIGHTED_MAX_SNAPSHOT_AGE_MS = 10 * 60 * 1000;
+
 const RESET_AWARE_QUOTA_FETCH_CONCURRENCY = 5;
 const HEADROOM_SATURATION_FETCH_CONCURRENCY = 5;
 
 const MAX_RESET_AWARE_CACHE = 200;
 
-const resetAwareConnectionCache = new Map<
-  string,
-  { fetchedAt: number; connections: Array<Record<string, unknown>> }
->();
 const resetAwareQuotaCache = new Map<
   string,
   { fetchedAt: number; quota: unknown; refreshPromise: Promise<unknown> | null }
@@ -63,32 +86,24 @@ async function getQuotaAwareConnectionsForTarget(
   const provider = getResetAwareProvider(target);
   if (!provider || !getQuotaFetcher(provider)) return [];
   if (!connectionCache.has(provider)) {
-    const cached = resetAwareConnectionCache.get(provider);
-    if (cached && Date.now() - cached.fetchedAt < RESET_AWARE_CONNECTION_CACHE_TTL_MS) {
-      connectionCache.set(provider, cached.connections);
-      return cached.connections;
-    }
-
     if (!connectionLoadPromises.has(provider)) {
       connectionLoadPromises.set(
         provider,
         (async () => {
           try {
             const connections = await getCachedProviderConnections({ provider, isActive: true });
-            const activeConnections = Array.isArray(connections)
-              ? (connections as Array<Record<string, unknown>>)
+            let activeConnections = Array.isArray(connections)
+              ? (connections as Array<Record<string, unknown>>).filter(
+                  (connection) =>
+                    connection.isActive !== false &&
+                    String(connection.testStatus || "")
+                      .trim()
+                      .toLowerCase() !== "banned"
+                )
               : [];
-            if (
-              !resetAwareConnectionCache.has(provider) &&
-              resetAwareConnectionCache.size >= MAX_RESET_AWARE_CACHE
-            ) {
-              const oldest = resetAwareConnectionCache.keys().next().value;
-              if (oldest !== undefined) resetAwareConnectionCache.delete(oldest);
+            if (provider === "antigravity" || provider === "agy") {
+              activeConnections = preferAntigravityConnectionsWithStoredProject(activeConnections);
             }
-            resetAwareConnectionCache.set(provider, {
-              connections: activeConnections,
-              fetchedAt: Date.now(),
-            });
             return activeConnections;
           } catch (error) {
             log.warn?.("COMBO", "Reset-aware failed to load quota-aware connections.", {
@@ -150,11 +165,18 @@ function getTargetConnectionIds(
   return connectionIds;
 }
 
-async function expandTargetsByQuotaAwareConnections(
+/**
+ * Exported for the connection-aware expansion pipeline stage
+ * (connectionAwareExpansion.ts) so quota-aware combo strategies can share the
+ * A-group per-connection expander without duplicating its logic. The
+ * function body is unchanged; only the visibility is widened.
+ */
+export async function expandTargetsByQuotaAwareConnections(
   targets: ResolvedComboTarget[],
   comboName: string,
   log: { warn?: (...args: unknown[]) => void },
-  apiKeyAllowedConnectionIds?: string[] | null
+  apiKeyAllowedConnectionIds?: string[] | null,
+  opts?: { skipExhaustionFilter?: boolean }
 ): Promise<{
   connectionById: Map<string, Record<string, unknown>>;
   expandedTargets: ResolvedComboTarget[];
@@ -188,6 +210,8 @@ async function expandTargetsByQuotaAwareConnections(
       apiKeyAllowedConnectionIds
     );
     if (connectionIds.length === 0) {
+      const provider = getResetAwareProvider(target);
+      if (provider && getQuotaFetcher(provider)) continue;
       if (
         unrestrictedConnectionIds.length > 0 &&
         normalizeConnectionIds(apiKeyAllowedConnectionIds)
@@ -199,6 +223,28 @@ async function expandTargetsByQuotaAwareConnections(
     }
 
     for (const connectionId of connectionIds) {
+      const provider = getResetAwareProvider(target);
+      const connection = connectionById.get(connectionId);
+      if (provider && getQuotaFetcher(provider) && connection?.provider !== provider) continue;
+      if (
+        connection &&
+        typeof connection.rateLimitedUntil === "string" &&
+        isAccountUnavailable(connection.rateLimitedUntil)
+      ) {
+        continue;
+      }
+      if (
+        !opts?.skipExhaustionFilter &&
+        provider &&
+        isQuotaExhaustedForRequest(
+          connectionId,
+          provider,
+          target.modelStr || null,
+          connection?.providerSpecificData
+        )
+      ) {
+        continue;
+      }
       expandedTargets.push({
         ...target,
         connectionId,
@@ -238,14 +284,17 @@ async function scoreQuotaAwareTargets<TScore extends object>({
       const provider = getResetAwareProvider(target);
       const fetcher = provider ? getQuotaFetcher(provider) : null;
       if (fetcher && provider && target.connectionId) {
-        const quotaKey = `${provider}:${target.connectionId}`;
+        const quotaKey = `${provider}:${target.connectionId}:${getQuotaFetchScope(provider, target.modelStr)}`;
         if (!quotaPromises.has(quotaKey)) {
+          const connection = connectionById.get(target.connectionId);
           quotaPromises.set(
             quotaKey,
             fetchResetAwareQuotaWithCache({
               provider,
               connectionId: target.connectionId,
-              connection: connectionById.get(target.connectionId),
+              connection: connection
+                ? { ...connection, requestedModel: target.modelStr }
+                : connection,
               fetcher,
               config,
               log,
@@ -323,7 +372,10 @@ export async function fetchResetAwareQuotaWithCache({
   log: { debug?: (...args: unknown[]) => void; warn?: (...args: unknown[]) => void };
   comboName: string;
 }): Promise<unknown> {
-  const cacheKey = `${provider}:${connectionId}`;
+  const requestedModel =
+    typeof connection?.requestedModel === "string" ? connection.requestedModel : null;
+  const cacheScope = getQuotaFetchScope(provider, requestedModel);
+  const cacheKey = `${provider}:${connectionId}:${cacheScope}`;
   const ttlMs = config.quotaCacheTtlMs;
   const maxStaleMs = config.quotaCacheMaxStaleMs;
   const now = Date.now();
@@ -509,27 +561,35 @@ export async function orderTargetsByResetWindow(
     apiKeyAllowedConnectionIds
   );
 
+  // One `now` snapshot for the whole ranking: quota fetches run concurrently and
+  // can take seconds, so re-reading the clock per target would compare remaining
+  // times measured against different instants (#9330).
+  const now = Date.now();
   const scoredTargets = await scoreQuotaAwareTargets({
     comboName,
     config,
     connectionById,
     expandedTargets,
     log,
-    scoreQuota: (quota) => ({ resetMs: getResetWindowTimestampMs(quota, config.windows) }),
+    scoreQuota: (quota) => ({
+      remainingMs: getResetWindowRemainingMs(quota, config.windows, now),
+    }),
   });
 
+  // Ascending: the account whose quota resets SOONEST goes first. Targets with
+  // no known reset (Infinity) fall to the back, ordered by combo priority.
   scoredTargets.sort((a, b) => {
-    if (a.resetMs !== b.resetMs) return a.resetMs - b.resetMs;
+    if (a.remainingMs !== b.remainingMs) return a.remainingMs - b.remainingMs;
     return a.index - b.index;
   });
 
-  const bestResetMs = scoredTargets[0]?.resetMs ?? Infinity;
-  if (!Number.isFinite(bestResetMs) || config.tieBandMs <= 0) {
+  const bestRemainingMs = scoredTargets[0]?.remainingMs ?? Infinity;
+  if (!Number.isFinite(bestRemainingMs) || config.tieBandMs <= 0) {
     return scoredTargets.map((entry) => entry.target);
   }
 
   const tiedTargets = scoredTargets.filter(
-    (entry) => entry.resetMs - bestResetMs <= config.tieBandMs
+    (entry) => entry.remainingMs - bestRemainingMs <= config.tieBandMs
   );
   if (tiedTargets.length <= 1) return scoredTargets.map((entry) => entry.target);
 
@@ -547,7 +607,8 @@ export async function orderTargetsByResetWindow(
 type SaturationFetcher = (
   connectionId: string,
   provider: string,
-  dim: { unit: "percent"; window: "5h" | "weekly" }
+  dim: { unit: "percent"; window: "5h" | "weekly" },
+  connection?: Record<string, unknown>
 ) => Promise<number>;
 
 let _headroomSaturationFetcherOverride: SaturationFetcher | null = null;
@@ -585,7 +646,7 @@ export async function orderTargetsByHeadroom(
   if (targets.length <= 1) return targets;
 
   try {
-    const { expandedTargets } = await expandTargetsByQuotaAwareConnections(
+    const { expandedTargets, connectionById } = await expandTargetsByQuotaAwareConnections(
       targets,
       comboName,
       log,
@@ -607,18 +668,25 @@ export async function orderTargetsByHeadroom(
         if (!target.connectionId) return;
         const key = connKey(target);
         if (satByConnection.has(key)) return;
+        // #6379: thread the loaded connection snapshot (with decrypted
+        // credentials) through to getSaturation so provider-specific fetchers
+        // that need credentials (e.g. Codex's fetchCodexQuota) can actually
+        // read them, instead of failing open to 0 for every candidate and
+        // leaving headroom ranking unable to tell accounts apart.
+        const connection = connectionById.get(target.connectionId);
+        const connectionId = target.connectionId;
+        const provider = target.provider;
         satByConnection.set(
           key,
           (async () => {
             const [util5h, util7d] = await Promise.all([
-              getSaturation(target.connectionId as string, target.provider, {
-                unit: "percent",
-                window: "5h",
-              }),
-              getSaturation(target.connectionId as string, target.provider, {
-                unit: "percent",
-                window: "weekly",
-              }),
+              getSaturation(connectionId, provider, { unit: "percent", window: "5h" }, connection),
+              getSaturation(
+                connectionId,
+                provider,
+                { unit: "percent", window: "weekly" },
+                connection
+              ),
             ]);
             return { util5h, util7d } satisfies HeadroomSaturation;
           })()
@@ -644,4 +712,144 @@ export async function orderTargetsByHeadroom(
     );
     return targets;
   }
+}
+
+type QuotaWeightedScored = {
+  target: ResolvedComboTarget;
+  index: number;
+  score: number;
+  remainingPercent: number;
+};
+
+/**
+ * Weighted draw over positive scores. `r` is in `[0, sum(w))`. First
+ * cumulative weight strictly greater than `r` wins (half-open). Zero or
+ * negative weights are skipped so `r === 0` cannot land on a zero-weight
+ * leading slot. Returns null when every weight is non-positive.
+ */
+export function pickWeightedIndex(weights: number[], r: number): number | null {
+  const positive: Array<{ i: number; w: number }> = [];
+  let sum = 0;
+  for (let i = 0; i < weights.length; i++) {
+    const w = weights[i];
+    if (w > 0) {
+      positive.push({ i, w });
+      sum += w;
+    }
+  }
+  if (positive.length === 0 || sum === 0) return null;
+  let acc = 0;
+  for (const item of positive) {
+    acc += item.w;
+    if (acc > r) return item.i;
+  }
+  return positive[positive.length - 1].i;
+}
+
+function sortByScoreThenIndex(a: QuotaWeightedScored, b: QuotaWeightedScored): number {
+  if (b.score !== a.score) return b.score - a.score;
+  return a.index - b.index;
+}
+
+function resolveQuotaWeightedFloor(
+  configSource: Record<string, unknown> | null | undefined
+): number {
+  // Number(null) and Number("") are both 0, so an unset or blank key would
+  // switch the floor off instead of taking the default. Only a value that is
+  // actually a number, or a non-empty numeric string, gets to move it.
+  const configured = configSource?.quotaWeightedFloorPercent;
+  const raw =
+    typeof configured === "number" || (typeof configured === "string" && configured.trim() !== "")
+      ? Number(configured)
+      : Number.NaN;
+  return Number.isFinite(raw) ? Math.max(0, Math.min(100, raw)) : 1;
+}
+
+export async function orderTargetsByQuotaWeighted(
+  targets: ResolvedComboTarget[],
+  comboName: string,
+  configSource: Record<string, unknown> | null | undefined,
+  log: { warn?: (...args: unknown[]) => void },
+  apiKeyAllowedConnectionIds?: string[] | null
+): Promise<ResolvedComboTarget[]> {
+  if (targets.length === 0) return targets;
+
+  const config = resolveResetAwareConfig(configSource);
+  const { connectionById, expandedTargets } = await expandTargetsByQuotaAwareConnections(
+    targets,
+    comboName,
+    log,
+    apiKeyAllowedConnectionIds,
+    { skipExhaustionFilter: true }
+  );
+
+  const liveTargets = expandedTargets.filter((target) => {
+    const state = getCircuitBreaker(target.provider).getStatus().state;
+    return state !== "OPEN";
+  });
+
+  const scoredTargets = await scoreQuotaAwareTargets({
+    comboName,
+    config,
+    connectionById,
+    expandedTargets: liveTargets,
+    log,
+    scoreQuota: (quota) => ({
+      score: scoreResetAwareQuota(quota, config).score,
+      remainingPercent: getResetAwareRemainingPercent(quota),
+    }),
+  });
+
+  // The live snapshot outranks the freshly-scored fetch on two counts: a 402
+  // recorded against this connection zeroes it, and an observation older than
+  // the staleness bound is not confident enough to sit in the A pool.
+  const now = Date.now();
+  const withSnapshot = scoredTargets.map((entry) => {
+    const connectionId = entry.target.connectionId ?? "";
+    const marked = connectionId ? getQuotaWeightedRemainingPercent(connectionId) : null;
+    const fetchedAt = connectionId ? getQuotaSnapshotFetchedAt(connectionId) : null;
+    return {
+      ...entry,
+      remainingPercent: marked === 0 ? 0 : entry.remainingPercent,
+      stale: fetchedAt !== null && now - fetchedAt > QUOTA_WEIGHTED_MAX_SNAPSHOT_AGE_MS,
+    };
+  });
+
+  const eligible = withSnapshot.filter((entry) => entry.remainingPercent > 0);
+  const floor = resolveQuotaWeightedFloor(configSource);
+  const hasRoom = (entry: (typeof eligible)[number]) =>
+    floor === 0 ? true : entry.remainingPercent > floor;
+  // A holds only connections we both believe have room AND observed recently.
+  const poolA = eligible.filter((entry) => hasRoom(entry) && !entry.stale);
+  const poolB = eligible.filter((entry) => !hasRoom(entry) || entry.stale);
+  const selected = poolA.length > 0 ? poolA : poolB;
+  if (selected.length === 0) return [];
+
+  const weights = selected.map((entry) => {
+    const load = getInflight(entry.target.connectionId ?? "");
+    return Math.max(0, entry.score) / (1 + load);
+  });
+  const sum = weights.reduce((acc, w) => acc + w, 0);
+  let pickIndex: number | null = null;
+  if (sum > 0) {
+    pickIndex = pickWeightedIndex(weights, secureRandomFloat() * sum);
+  }
+  if (pickIndex === null) {
+    pickIndex = secureRandomInt(selected.length);
+  }
+
+  const winner = selected[pickIndex];
+  // Reserve in this same synchronous turn so a second in-process request
+  // cannot observe inflight=0 on the same account. JS is single-threaded;
+  // yielding between pick and increment is what lets two pipelines collide.
+  const winnerId = winner.target.connectionId ?? "";
+  if (winnerId) incrementInflight(winnerId);
+  const unusedSelected = selected
+    .filter((_, i) => i !== pickIndex)
+    .slice()
+    .sort(sortByScoreThenIndex);
+  const fromA = poolA.length > 0;
+  const unusedB = fromA ? poolB.slice().sort(sortByScoreThenIndex) : [];
+
+  return [winner, ...unusedSelected, ...unusedB].map((entry) => entry.target);
 }

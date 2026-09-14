@@ -31,14 +31,15 @@ Live count: `ls open-sse/services/*.ts | wc -l` (currently 134). More including 
 - **`wildcardRouter.ts`** — Wildcard route matching in combo configs.
 - **`intentClassifier.ts`** — Request intent classification for intelligent routing.
 - **`taskAwareRouter.ts`** — Task-type-based routing (reasoning → o1, code-gen → Cursor).
+- **`targetRequestSanitizer.ts`** — Final provider/model-aware parameter sanitation after routing resolution and before executor dispatch.
 - **`thinkingBudget.ts`** — Thinking token allocation for o1/o3 models.
 - **`contextManager.ts`** — Routing context injection (system prompts, memory).
 
 ### Model Lifecycle & Fallback
 
-- **`modelDeprecation.ts`** — Detects deprecated models (gpt-3.5, claude-2, etc.). Routes to successor models automatically.
-- **`modelFamilyFallback.ts`** — T5 intra-family fallback: if `gpt-4-turbo` unavailable, tries `gpt-4-1106-preview`, then `gpt-4`.
-- **`emergencyFallback.ts`** — Last-resort fallback when all combo targets fail. Routes to stable free providers.
+- **`modelDeprecation.ts`** — Deprecated model detection and successor routing.
+- **`modelFamilyFallback.ts`** — T5 intra-family fallback chains.
+- **`emergencyFallback.ts`** — Last-resort fallback to stable free providers.
 
 ### State & Detection
 

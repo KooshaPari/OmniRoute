@@ -9,14 +9,12 @@
  * admin, and catalog callers during Phase 2/3 of the lazy-decrypt rollout.
  */
 
-import { decrypt } from "../encryption";
+import { decryptQuiet } from "../encryption";
 
 type JsonRecord = Record<string, unknown>;
 
 function asRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as JsonRecord)
-    : {};
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
 function toStringOrNull(value: unknown): string | null {
@@ -41,6 +39,7 @@ function toNullableNumber(value: unknown): number | null {
 export interface ProviderConnectionView {
   id: string;
   provider: string;
+  authType: string | null;
   email: string | null;
   isActive: boolean;
   rateLimitedUntil: string | null;
@@ -79,6 +78,7 @@ export function toProviderConnection(value: unknown): ProviderConnectionView {
   return {
     id: toStringOrNull(row.id) || "",
     provider: toStringOrNull(row.provider) || "",
+    authType: toStringOrNull(row.authType),
     email: toStringOrNull(row.email),
     isActive: row.isActive === true,
     rateLimitedUntil: toStringOrNull(row.rateLimitedUntil),
@@ -98,9 +98,7 @@ export function toProviderConnection(value: unknown): ProviderConnectionView {
     lastErrorType: toStringOrNull(row.lastErrorType),
     lastErrorSource: toStringOrNull(row.lastErrorSource),
     errorCode:
-      typeof row.errorCode === "string" || typeof row.errorCode === "number"
-        ? row.errorCode
-        : null,
+      typeof row.errorCode === "string" || typeof row.errorCode === "number" ? row.errorCode : null,
     backoffLevel: toNumber(row.backoffLevel, 0),
     maxConcurrent: toNullableNumber(row.maxConcurrent),
     quotaWindowThresholds,
@@ -115,18 +113,24 @@ export function toProviderConnection(value: unknown): ProviderConnectionView {
  *
  * Non-credential reads hit the already-coerced view directly at zero cost.
  */
-export function createLazyConnectionView(
-  row: Record<string, unknown>
-): ProviderConnectionView {
+export function createLazyConnectionView(row: Record<string, unknown>): ProviderConnectionView {
   const base = toProviderConnection(row);
   let decrypted: Record<string, null | string> | undefined;
 
   const ensureDecrypted = () => {
     if (!decrypted) {
+      const connectionId = base.id;
+      const provider = base.provider;
       decrypted = {
-        apiKey: toStringOrNull(decrypt(base.apiKey)),
-        accessToken: toStringOrNull(decrypt(base.accessToken)),
-        refreshToken: toStringOrNull(decrypt(base.refreshToken)),
+        apiKey: toStringOrNull(
+          decryptQuiet(base.apiKey, { connectionId, provider, field: "apiKey" })
+        ),
+        accessToken: toStringOrNull(
+          decryptQuiet(base.accessToken, { connectionId, provider, field: "accessToken" })
+        ),
+        refreshToken: toStringOrNull(
+          decryptQuiet(base.refreshToken, { connectionId, provider, field: "refreshToken" })
+        ),
       };
     }
     return decrypted;
@@ -153,18 +157,18 @@ const CREDENTIAL_FIELDS = new Set(["apiKey", "accessToken", "refreshToken", "idT
  * without any caller changes. The typed createLazyConnectionView remains
  * available for new code that wants a structured view.
  */
-export function createLazyRowProxy(
-  row: Record<string, unknown>
-): Record<string, unknown> {
+export function createLazyRowProxy(row: Record<string, unknown>): Record<string, unknown> {
   let decrypted: Record<string, string | null | undefined> | undefined;
 
   const ensureDecrypted = () => {
     if (!decrypted) {
+      const connectionId = typeof row.id === "string" ? row.id : "";
+      const provider = typeof row.provider === "string" ? row.provider : "unknown";
       decrypted = {
-        apiKey: lazyDecrypt(row.apiKey),
-        accessToken: lazyDecrypt(row.accessToken),
-        refreshToken: lazyDecrypt(row.refreshToken),
-        idToken: lazyDecrypt(row.idToken),
+        apiKey: lazyDecrypt(row.apiKey, { connectionId, provider, field: "apiKey" }),
+        accessToken: lazyDecrypt(row.accessToken, { connectionId, provider, field: "accessToken" }),
+        refreshToken: lazyDecrypt(row.refreshToken, { connectionId, provider, field: "refreshToken" }),
+        idToken: lazyDecrypt(row.idToken, { connectionId, provider, field: "idToken" }),
       };
     }
     return decrypted;
@@ -179,8 +183,7 @@ export function createLazyRowProxy(
         return () => {
           const result: Record<string, unknown> = {};
           for (const key of Object.keys(target)) {
-            result[key] =
-              CREDENTIAL_FIELDS.has(key) ? ensureDecrypted()[key] : target[key];
+            result[key] = CREDENTIAL_FIELDS.has(key) ? ensureDecrypted()[key] : target[key];
           }
           return result;
         };
@@ -196,7 +199,10 @@ export function createLazyRowProxy(
   });
 }
 
-function lazyDecrypt(value: unknown): string | null | undefined {
+function lazyDecrypt(
+  value: unknown,
+  meta: { connectionId: string; provider: string; field: string }
+): string | null | undefined {
   if (typeof value !== "string") return undefined;
-  return decrypt(value);
+  return decryptQuiet(value, meta);
 }

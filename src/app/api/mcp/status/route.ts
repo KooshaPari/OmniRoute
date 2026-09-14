@@ -14,7 +14,7 @@ import { getCachedSettings } from "@/lib/db/settings";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function GET(request: Request) {
-  const authError = await requireManagementAuth(request);
+  const authError = await requireManagementAuth(request, { acceptMcpConnectScope: true });
   if (authError) return authError;
   try {
     const [heartbeat, stats, lastCallPage, settings] = await Promise.all([

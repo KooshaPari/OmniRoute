@@ -44,6 +44,7 @@ export interface DatabaseSettings {
     quotaSnapshots: number;
     compressionAnalytics: number;
     mcpAudit: number;
+    configAudit: number;
     a2aEvents: number;
     callLogs: number;
     usageHistory: number;
@@ -114,6 +115,7 @@ export const DEFAULT_DATABASE_SETTINGS: Omit<DatabaseSettings, "location" | "sta
     quotaSnapshots: 7,
     compressionAnalytics: 30,
     mcpAudit: 30,
+    configAudit: 30,
     a2aEvents: 30,
     callLogs: 30,
     usageHistory: 30,

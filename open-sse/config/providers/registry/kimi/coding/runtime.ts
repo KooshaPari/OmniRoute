@@ -25,7 +25,9 @@ const KIMI_CODE_STATIC_THINKING_POLICIES: Record<string, KimiCodeThinkingPolicy>
 
 export function getKimiCodeStaticThinkingPolicy(modelId: unknown): KimiCodeThinkingPolicy | null {
   if (typeof modelId !== "string") return null;
-  return KIMI_CODE_STATIC_THINKING_POLICIES[modelId] || null;
+  const normalizedModel = modelId.trim().toLowerCase().split("/").pop() || "";
+  if (/^k3(?:$|-)/.test(normalizedModel)) return KIMI_CODE_STATIC_THINKING_POLICIES.k3;
+  return KIMI_CODE_STATIC_THINKING_POLICIES[normalizedModel] || null;
 }
 
 export type KimiCodeDeviceIdentity = {

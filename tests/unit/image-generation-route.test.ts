@@ -15,6 +15,8 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const imageRoute = await import("../../src/app/api/v1/images/generations/route.ts");
 const providerImageRoute =
   await import("../../src/app/api/v1/providers/[provider]/images/generations/route.ts");
+const providerChatRoute =
+  await import("../../src/app/api/v1/providers/[provider]/chat/completions/route.ts");
 const imageEditRoute = await import("../../src/app/api/v1/images/edits/route.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 
@@ -72,7 +74,7 @@ async function resetStorage() {
   globalThis.fetch = originalFetch;
   apiKeysDb.resetApiKeyState();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   // #6303 moved this route onto the shared unified catalog (getUnifiedModelsResponse),
   // which #6408 wrapped in a 1.5s TTL response cache keyed only by (prefix, isCodex
@@ -85,15 +87,27 @@ async function resetStorage() {
 async function seedConnection(
   provider: string,
   overrides: {
+    authType?: string;
     apiKey?: string | null;
+    accessToken?: string;
+    refreshToken?: string;
+    expiresAt?: string;
+    projectId?: string;
+    priority?: number;
     providerSpecificData?: Record<string, unknown>;
   } = {}
 ) {
+  const authType = overrides.authType ?? "apikey";
   return providersDb.createProviderConnection({
     provider,
-    authType: "apikey",
+    authType,
     name: `${provider}-${Math.random().toString(16).slice(2, 8)}`,
-    apiKey: overrides.apiKey ?? "test-key",
+    ...(authType === "apikey" ? { apiKey: overrides.apiKey ?? "test-key" } : {}),
+    ...(overrides.accessToken ? { accessToken: overrides.accessToken } : {}),
+    ...(overrides.refreshToken ? { refreshToken: overrides.refreshToken } : {}),
+    ...(overrides.expiresAt ? { expiresAt: overrides.expiresAt } : {}),
+    ...(overrides.projectId ? { projectId: overrides.projectId } : {}),
+    ...(overrides.priority ? { priority: overrides.priority } : {}),
     isActive: true,
     testStatus: "active",
     providerSpecificData: overrides.providerSpecificData ?? {},
@@ -108,7 +122,82 @@ test.after(() => {
   globalThis.fetch = originalFetch;
   apiKeysDb.resetApiKeyState();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+});
+
+test("image routes expose CORS preflight handlers", async () => {
+  const responses = await Promise.all([
+    imageRoute.OPTIONS(),
+    providerImageRoute.OPTIONS(),
+    imageEditRoute.OPTIONS(),
+  ]);
+
+  for (const response of responses) {
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get("Access-Control-Allow-Methods") ?? "", /POST/);
+    assert.equal(response.headers.get("Access-Control-Allow-Headers"), "*");
+  }
+});
+
+test("v1 image routes fail closed for the retired ChatGPT Web alias without network", async () => {
+  let fetchCalls = 0;
+  globalThis.fetch = async () => {
+    fetchCalls += 1;
+    throw new Error("Retired image providers must not reach the network");
+  };
+
+  for (const provider of ["cgpt-web"]) {
+    const generationResponse = await imageRoute.POST(
+      new Request("http://localhost/api/v1/images/generations", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ model: `${provider}/gpt-5.5`, prompt: "draw a lighthouse" }),
+      })
+    );
+    const generationBody = (await generationResponse.json()) as ErrorResponseBody;
+    assert.equal(generationResponse.status, 410);
+    assert.equal(generationBody.error.code, "PROVIDER_RETIRED");
+    assert.equal(generationBody.error.message, "Provider is retired and unavailable.");
+
+    const editResponse = await imageEditRoute.POST(
+      new Request("http://localhost/api/v1/images/edits", {
+        method: "POST",
+        body: createCodexEditForm("make it brighter", { model: `${provider}/gpt-5.5` }),
+      })
+    );
+    const editBody = (await editResponse.json()) as ErrorResponseBody;
+    assert.equal(editResponse.status, 410);
+    assert.equal(editBody.error.code, "PROVIDER_RETIRED");
+    assert.equal(editBody.error.message, "Provider is retired and unavailable.");
+
+    const providerImageResponse = await providerImageRoute.POST(
+      new Request(`http://localhost/api/v1/providers/${provider}/images/generations`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ model: "gpt-5.5", prompt: "draw a lighthouse" }),
+      }),
+      { params: Promise.resolve({ provider }) }
+    );
+    const providerImageBody = (await providerImageResponse.json()) as ErrorResponseBody;
+    assert.equal(providerImageResponse.status, 410);
+    assert.equal(providerImageBody.error.code, "PROVIDER_RETIRED");
+    assert.equal(providerImageBody.error.message, "Provider is retired and unavailable.");
+
+    const providerChatResponse = await providerChatRoute.POST(
+      new Request(`http://localhost/api/v1/providers/${provider}/chat/completions`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ model: "gpt-5.5", messages: [{ role: "user", content: "hi" }] }),
+      }),
+      { params: Promise.resolve({ provider }) }
+    );
+    const providerChatBody = (await providerChatResponse.json()) as ErrorResponseBody;
+    assert.equal(providerChatResponse.status, 410);
+    assert.equal(providerChatBody.error.code, "PROVIDER_RETIRED");
+    assert.equal(providerChatBody.error.message, "Provider is retired and unavailable.");
+  }
+
+  assert.equal(fetchCalls, 0);
 });
 
 test("v1 image models GET exposes image-only modalities for credential-backed image-only models", async () => {
@@ -138,19 +227,6 @@ test("v1 image models GET exposes current Codex image models and hides inactive 
     ["codex/gpt-5.6-sol", "codex/gpt-5.6-terra", "codex/gpt-5.6-luna"]
   );
   assert.ok(!ids.includes("codex/gpt-5.5"));
-  assert.ok(!ids.includes("openai/gpt-image-2"));
-  assert.ok(!ids.some((id: string) => id.startsWith("xai/")));
-});
-
-test("v1 image models GET hides providers without active credentials", async () => {
-  await seedConnection("codex", { apiKey: "codex-key" });
-
-  const response = await imageRoute.GET();
-  const body = (await response.json()) as { data: Array<{ id: string }> };
-  const ids = body.data.map((item) => item.id);
-
-  assert.equal(response.status, 200);
-  assert.ok(ids.includes("codex/gpt-5.5"));
   assert.ok(!ids.includes("openai/gpt-image-2"));
   assert.ok(!ids.some((id: string) => id.startsWith("xai/")));
 });
@@ -214,21 +290,22 @@ test("v1 image generation POST still requires prompts for text-input models", as
   assert.match(body.error.message, /Prompt is required for image model: openai\/gpt-image-2/);
 });
 
-test("v1 image edit POST rejects a declared body above the image-edit admission limit", async () => {
+test("v1 image edit POST defers body-size validation to the provider", async () => {
   const response = await imageEditRoute.POST(
     new Request("http://localhost/api/v1/images/edits", {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "content-length": String(MAX_BODY_BYTES_IMAGE_EDIT + 1),
+        "content-length": String(Number.MAX_SAFE_INTEGER),
       },
       body: "{}",
     })
   );
   const body = (await response.json()) as ErrorResponseBody;
 
-  assert.equal(response.status, 413);
-  assert.match(body.error.message, /30 MiB limit/i);
+  assert.equal(response.status, 400);
+  assert.match(body.error.message, /Missing required field: prompt/i);
+  assert.doesNotMatch(body.error.message, /request body|payload too large/i);
 });
 
 test("v1 image edit POST enforces disabled API key policy", async () => {
@@ -237,7 +314,7 @@ test("v1 image edit POST enforces disabled API key policy", async () => {
 
   const formData = new FormData();
   formData.set("prompt", "make the background lighter");
-  formData.set("model", "cgpt-web/gpt-5.5");
+  formData.set("model", "openai/gpt-image-2");
   formData.set("image", new File([new Uint8Array([1, 2, 3])], "source.png", { type: "image/png" }));
 
   const response = await imageEditRoute.POST(
@@ -251,6 +328,33 @@ test("v1 image edit POST enforces disabled API key policy", async () => {
 
   assert.equal(response.status, 403);
   assert.match(body.error.message, /disabled/);
+});
+
+test("v1 image edit retirement takes precedence over API key policy", async () => {
+  const createdKey = await apiKeysDb.createApiKey("Disabled retired image key", "retired-edit");
+  await apiKeysDb.updateApiKeyPermissions(createdKey.id, { isActive: false });
+  let fetchCalls = 0;
+  globalThis.fetch = async () => {
+    fetchCalls += 1;
+    throw new Error("Retired image providers must not reach the network");
+  };
+
+  for (const provider of ["cgpt-web"]) {
+    const response = await imageEditRoute.POST(
+      new Request("http://localhost/api/v1/images/edits", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${createdKey.key}` },
+        body: createCodexEditForm("make it brighter", { model: `${provider}/gpt-5.5` }),
+      })
+    );
+    const body = (await response.json()) as ErrorResponseBody;
+
+    assert.equal(response.status, 410);
+    assert.equal(body.error.code, "PROVIDER_RETIRED");
+    assert.equal(body.error.message, "Provider is retired and unavailable.");
+  }
+
+  assert.equal(fetchCalls, 0);
 });
 
 test("v1 image edit POST guards multipart prompts after parsing", async () => {
@@ -362,6 +466,41 @@ test("v1 image edit POST routes built-in Codex references through native Respons
   assert.equal(captured.body.input[0].content.length, 3);
 });
 
+test("v1 image edit POST defaults Codex results to b64_json when response_format is unset (#12268)", async () => {
+  await seedConnection("codex", { apiKey: "codex-oauth-token" });
+
+  globalThis.fetch = async () => {
+    const event = {
+      type: "response.output_item.done",
+      item: {
+        type: "image_generation_call",
+        id: "ig_edit_default",
+        status: "completed",
+        result: "ZGVmYXVsdC1lZGl0",
+      },
+    };
+    return new Response(`data: ${JSON.stringify(event)}\n\ndata: [DONE]\n\n`, {
+      status: 200,
+      headers: { "content-type": "text/event-stream" },
+    });
+  };
+
+  // Codex CLI's built-in image_gen never sends response_format; it expects
+  // the OpenAI gpt-image-* shape with the bytes in b64_json.
+  const response = await imageEditRoute.POST(
+    new Request("http://localhost/api/v1/images/edits", {
+      method: "POST",
+      body: createCodexEditForm("make it cute"),
+    })
+  );
+  const body = (await response.json()) as ImageResponseBody & { created?: number };
+
+  assert.equal(response.status, 200);
+  assert.equal(typeof body.created, "number");
+  assert.equal(body.data[0].b64_json, "ZGVmYXVsdC1lZGl0");
+  assert.equal(body.data[0].url, undefined);
+});
+
 test("v1 image edit POST rejects excessive or malformed Codex reference sets", async () => {
   await seedConnection("codex", { apiKey: "codex-oauth-token" });
   globalThis.fetch = async () => {
@@ -428,7 +567,7 @@ test("v1 image edit POST rejects excessive or malformed Codex reference sets", a
 
 test("v1 image edit POST keeps non-Codex providers single-reference", async () => {
   const formData = new FormData();
-  formData.set("model", "cgpt-web/gpt-5.5");
+  formData.set("model", "openai/gpt-image-2");
   formData.set("prompt", "combine these references");
   formData.set("image", new File([VALID_PNG_BYTES], "reference-1.png", { type: "image/png" }));
   formData.append("image[]", new File([VALID_PNG_BYTES], "reference-2.png", { type: "image/png" }));
@@ -496,8 +635,14 @@ test("v1 image edit POST executes Codex through the configured connection proxy"
     host: "127.0.0.1",
     port: 1,
   });
+  // #9100: the reachability probe is NON-BLOCKING — dispatch is optimistic and the
+  // probe aborts the request only while it is still in flight (t14 pattern). The
+  // mock must stay pending: an instantly-throwing fetch would settle the race
+  // first and surface as a generic 502 upstream error instead of the proxy 503.
+  // Never resolved on purpose so the aborted continuation cannot proceed.
   globalThis.fetch = async () => {
-    throw new Error("Direct fetch must not run when the configured proxy is unreachable");
+    await new Promise(() => {});
+    throw new Error("unreachable");
   };
 
   const response = await imageEditRoute.POST(
@@ -523,8 +668,11 @@ test("v1 image generation POST resolves proxy and executes with proxy context wh
     port: 1, // intentionally unreachable — proves proxy path was taken
   });
 
+  // #9100 non-blocking probe: keep the request in flight so the fast-fail can
+  // abort it with the proxy-specific 503 (see the edit-route case above).
   globalThis.fetch = async () => {
-    throw new Error("fetch should not be called — proxy fast-fail should trigger first");
+    await new Promise(() => {});
+    throw new Error("unreachable");
   };
 
   const response = await imageRoute.POST(
@@ -604,4 +752,198 @@ test("v1 image generation POST executes directly when credentials.connectionId i
   const body = (await response.json()) as ImageResponseBody;
   assert.equal(response.status, 200);
   assert.ok(body.data, "should have image data");
+});
+
+test("v1 image generation POST rotates to the next account after an upstream 401", async () => {
+  await seedConnection("openai", { apiKey: "expired-image-key", priority: 1 });
+  await seedConnection("openai", { apiKey: "healthy-image-key", priority: 2 });
+  const authorizationHeaders: string[] = [];
+
+  globalThis.fetch = async (url, options: RequestInit = {}) => {
+    assert.equal(String(url), "https://api.openai.com/v1/images/generations");
+    const authorization = new Headers(options.headers).get("authorization") ?? "";
+    authorizationHeaders.push(authorization);
+    if (authorization === "Bearer expired-image-key") {
+      return new Response(JSON.stringify({ error: { message: "expired access token" } }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    assert.equal(authorization, "Bearer healthy-image-key");
+    return new Response(
+      JSON.stringify({ created: 123, data: [{ url: "https://cdn.example.com/rotated.png" }] }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  const response = await imageRoute.POST(
+    new Request("http://localhost/api/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "openai/gpt-image-2", prompt: "rotate image account" }),
+    })
+  );
+  const body = (await response.json()) as ImageResponseBody;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.data[0].url, "https://cdn.example.com/rotated.png");
+  assert.deepEqual(authorizationHeaders, ["Bearer expired-image-key", "Bearer healthy-image-key"]);
+});
+
+test("provider-scoped image generation POST uses the shared 401 account fallback", async () => {
+  await seedConnection("openai", { apiKey: "provider-expired-key", priority: 1 });
+  await seedConnection("openai", { apiKey: "provider-healthy-key", priority: 2 });
+  const authorizationHeaders: string[] = [];
+
+  globalThis.fetch = async (_url, options: RequestInit = {}) => {
+    const authorization = new Headers(options.headers).get("authorization") ?? "";
+    authorizationHeaders.push(authorization);
+    if (authorization === "Bearer provider-expired-key") {
+      return new Response(JSON.stringify({ error: { message: "expired access token" } }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    return new Response(
+      JSON.stringify({ created: 123, data: [{ url: "https://cdn.example.com/provider.png" }] }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  const response = await providerImageRoute.POST(
+    new Request("http://localhost/api/v1/providers/openai/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "gpt-image-2", prompt: "provider route rotation" }),
+    }),
+    { params: Promise.resolve({ provider: "openai" }) }
+  );
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(authorizationHeaders, [
+    "Bearer provider-expired-key",
+    "Bearer provider-healthy-key",
+  ]);
+});
+
+test("v1 image generation POST normalizes a terminal upstream 401 to the OpenAI-standard error shape", async () => {
+  await seedConnection("openai", { apiKey: "single-expired-image-key" });
+
+  globalThis.fetch = async (url, options: RequestInit = {}) => {
+    assert.equal(String(url), "https://api.openai.com/v1/images/generations");
+    const authorization = new Headers(options.headers).get("authorization") ?? "";
+    assert.equal(authorization, "Bearer single-expired-image-key");
+    return new Response(JSON.stringify({ error: { message: "expired access token" } }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  const response = await imageRoute.POST(
+    new Request("http://localhost/api/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "openai/gpt-image-2", prompt: "normalize terminal 401" }),
+    })
+  );
+  const body = (await response.json()) as ErrorResponseBody;
+
+  assert.equal(response.status, 401);
+  assert.deepEqual(body.error, {
+    message: "expired access token",
+    type: "authentication_error",
+    code: "invalid_api_key",
+  });
+});
+
+test("provider-scoped image generation POST normalizes a terminal upstream 401 to the OpenAI-standard error shape", async () => {
+  await seedConnection("openai", { apiKey: "provider-single-expired-key" });
+
+  globalThis.fetch = async (url, options: RequestInit = {}) => {
+    assert.equal(String(url), "https://api.openai.com/v1/images/generations");
+    const authorization = new Headers(options.headers).get("authorization") ?? "";
+    assert.equal(authorization, "Bearer provider-single-expired-key");
+    return new Response(JSON.stringify({ error: { message: "expired provider token" } }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  const response = await providerImageRoute.POST(
+    new Request("http://localhost/api/v1/providers/openai/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "gpt-image-2", prompt: "normalize provider terminal 401" }),
+    }),
+    { params: Promise.resolve({ provider: "openai" }) }
+  );
+  const body = (await response.json()) as ErrorResponseBody;
+
+  assert.equal(response.status, 401);
+  assert.deepEqual(body.error, {
+    message: "expired provider token",
+    type: "authentication_error",
+    code: "invalid_api_key",
+  });
+});
+
+test("v1 image generation POST refreshes an expired Antigravity token before dispatch", async () => {
+  await seedConnection("antigravity", {
+    authType: "oauth",
+    accessToken: "expired-antigravity-token",
+    refreshToken: "valid-antigravity-refresh-token",
+    expiresAt: new Date(Date.now() - 60_000).toISOString(),
+    projectId: "test-cloud-code-project",
+  });
+  const calls: Array<{ url: string; authorization: string }> = [];
+
+  globalThis.fetch = async (url, options: RequestInit = {}) => {
+    const stringUrl = String(url);
+    const authorization = new Headers(options.headers).get("authorization") ?? "";
+    calls.push({ url: stringUrl, authorization });
+
+    if (stringUrl.includes("oauth2.googleapis.com/token")) {
+      return new Response(
+        JSON.stringify({
+          access_token: "fresh-antigravity-token",
+          expires_in: 3600,
+          token_type: "Bearer",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+
+    assert.equal(stringUrl, "https://daily-cloudcode-pa.googleapis.com/v1internal:generateContent");
+    assert.equal(authorization, "Bearer fresh-antigravity-token");
+    return new Response(
+      JSON.stringify({
+        response: {
+          candidates: [
+            {
+              content: {
+                parts: [{ inlineData: { mimeType: "image/jpeg", data: "ZnJlc2gtaW1hZ2U=" } }],
+              },
+            },
+          ],
+        },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  const response = await imageRoute.POST(
+    new Request("http://localhost/api/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "antigravity/gemini-3.1-flash-image",
+        prompt: "refresh before image generation",
+      }),
+    })
+  );
+  const body = (await response.json()) as ImageResponseBody;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.data[0].b64_json, "ZnJlc2gtaW1hZ2U=");
+  assert.equal(calls.filter((call) => call.url.includes("oauth2.googleapis.com/token")).length, 1);
 });

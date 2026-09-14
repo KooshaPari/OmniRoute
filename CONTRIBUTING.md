@@ -2,6 +2,11 @@
 
 Thank you for your interest in contributing! This guide covers everything you need to get started.
 
+For the official per-change workflow, start with the
+[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md). It maps provider, routing,
+UI/UX, i18n, CLI, database, and build/deploy changes to their contracts, focused tests, CI
+coverage, and reconciliation steps.
+
 ---
 
 ## Development Setup
@@ -10,6 +15,12 @@ Thank you for your interest in contributing! This guide covers everything you ne
 
 - **Node.js** `>=22.22.3 <23`, or `>=24.0.0 <27` (recommended: 24 LTS)
 - **npm** 10+
+
+> **npm v11+ users (Node 24+):** After `npm install`, verify native modules were installed:
+> `node -e "require('better-sqlite3')"`. If it fails with `MODULE_NOT_FOUND`,
+> run `npm approve-scripts better-sqlite3 && npm install`. See
+> [Troubleshooting](docs/guides/TROUBLESHOOTING.md#npm-v11-better-sqlite3-not-installed-cannot-find-module).
+
 - **Git**
 
 ### Clone & Install
@@ -62,12 +73,19 @@ npm run dev
 npm run build    # next build → .build/next/ then assembleStandalone → dist/
 npm run start
 
+# Fast backend/API-only compile for contributor changes
+npm run build:contributor
+
 # Release build (clean rebuild + HEAD sentinel — required for deploy)
 npm run build:release   # rm -rf .build dist && build + writes dist/BUILD_SHA
 
 # Common port configuration
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
+
+The contributor build performs compile-only validation: it does not assemble the standalone
+distribution or build optional native packaging assets. Use the regular production build when
+you need to validate the shippable bundle.
 
 ### Build Output Layout
 
@@ -88,6 +106,11 @@ npm run build
 
 `npm run build:release` additionally cleans both directories first and writes
 `dist/BUILD_SHA` (= `git rev-parse --short HEAD`) as a deploy integrity sentinel.
+
+`npm run build:contributor` uses the backend-only build profile. It temporarily stubs
+dashboard UI files while building, keeps API route handlers, and restores the original files
+after the build. Use `npm run build` for changes that affect the dashboard UI or for full
+release validation; the contributor profile is not a replacement for the release build.
 
 > **VPS deploy note:** the remote image directory `/usr/lib/node_modules/omniroute/app/`
 > is unchanged. The deploy skills rsync the contents of `dist/` into it.
@@ -154,6 +177,13 @@ npm run test:all
 # Single test file (Node.js native test runner — most tests use this)
 node --import tsx/esm --test tests/unit/your-file.test.ts
 
+# Only the unit tests impacted by your change (same TIA selector as the CI gate, #8084)
+npm run test:scoped            # changes in the last commit (or the working tree)
+npm run test:scoped:staged     # staged changes only — pairs well with a pre-commit run
+npm run test:scoped:full       # rebuild the import-graph map first (after adding/moving files)
+# Exit 1 + "run the full suite" means a hub file (tsconfig, package.json, …) or an
+# unmapped source changed — the selector fails safe, it never silently skips.
+
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
 
@@ -198,14 +228,15 @@ Coverage notes:
 
 ### Pull Request Requirements
 
-Before opening a PR, run the focused loop for what you changed. The full unit suite
-(4 CI shards), Vitest, the **60%+** coverage gate, and the production build are CI's
-responsibility — running them locally adds no signal the PR checks will not already
-give you, and on smaller machines it can saturate the host (#8084):
+Before opening a PR, use the
+[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md) to run the focused loop for
+what you changed. The full unit suite (4 CI shards), Vitest, the **60%+** coverage gate, and
+the production build are CI's responsibility — running them locally adds no signal the PR
+checks will not already give you, and on smaller machines it can saturate the host (#8084):
 
-- Run `npm run test:unit`
-- Run `npm run test:coverage`
-- Ensure the coverage gate stays at **60%+** statements/lines/functions/branches
+- Run the test files that cover your change: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- Run `npm run lint`
+- Include or update automated tests in the same PR whenever production code changes
 - Include the changed or added test files in the PR description when production code changed
 - Check the SonarQube result on the PR when the project secrets are configured in CI
 
@@ -271,7 +302,7 @@ src/                        # TypeScript (.ts / .tsx)
 │   ├── a2a/                # Agent-to-Agent v0.3 protocol server
 │   ├── acp/                # Agent Communication Protocol registry
 │   ├── compliance/         # Compliance policy engine
-│   ├── db/                 # SQLite database layer (21 modules + 16 migrations)
+│   ├── db/                 # SQLite domain modules + 130 migrations
 │   ├── memory/             # Persistent conversational memory
 │   ├── oauth/              # OAuth providers, services, and utilities
 │   ├── skills/             # Extensible skill framework
@@ -281,16 +312,16 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
 │   ├── components/         # React components (.tsx)
-│   ├── constants/          # Provider definitions (177), MCP scopes, 14 routing strategies
+│   ├── constants/          # Provider definitions (329), MCP scopes, 19 routing strategies
 │   ├── utils/              # Circuit breaker, sanitizer, auth helpers
 │   └── validation/         # Zod v4 schemas
 └── sse/                    # SSE proxy pipeline
 
 open-sse/                   # @omniroute/open-sse workspace
-├── executors/              # 14 provider-specific request executors
+├── executors/              # 89 executor implementation modules
 ├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
-├── mcp-server/             # MCP server (25 tools, 3 transports, 10 scopes)
-├── services/               # 36+ services (combo, autoCombo, rateLimitManager, etc.)
+├── mcp-server/             # MCP server (110 unique tools, 3 transports, 33 scopes)
+├── services/               # 178 top-level services (combo, autoCombo, rateLimitManager, etc.)
 ├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)

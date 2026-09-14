@@ -196,7 +196,7 @@ function withTmpBundleBaseline(content: string | null, fn: (p: string) => void) 
   try {
     fn(p);
   } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 }
 

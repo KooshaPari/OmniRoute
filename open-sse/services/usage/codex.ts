@@ -9,6 +9,7 @@
  */
 
 import { buildCodexUsageQuotas } from "../codexUsageQuotas.ts";
+import { getCodexBackendIdentityHeaders } from "../../config/codexClient.ts";
 import { getFieldValue } from "./scalars.ts";
 
 // Codex (OpenAI) API config
@@ -36,6 +37,10 @@ export async function getCodexUsage(
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
       Accept: "application/json",
+      // Same UA/version identity chain as Codex inference (sub2api v0.1.178
+      // unified-outbound-identity): usage probes must not show up upstream as
+      // an anonymous half-identity next to the converged inference traffic.
+      ...getCodexBackendIdentityHeaders(),
     };
     if (accountId) {
       headers["chatgpt-account-id"] = accountId;
@@ -57,12 +62,17 @@ export async function getCodexUsage(
 
     const data = await response.json();
 
-    const { rateLimit, quotas } = buildCodexUsageQuotas(data);
+    const { rateLimit, quotas, bankedResetCredits, rateLimitReachedType } =
+      buildCodexUsageQuotas(data);
 
     return {
       plan: String(getFieldValue(data, "plan_type", "planType") || "unknown"),
       limitReached: Boolean(getFieldValue(rateLimit, "limit_reached", "limitReached")),
       quotas,
+      // Banked reset credits (display-only, eligibility-gated — issue #5199).
+      // Absent for most accounts; never throws when the upstream omits it.
+      ...(bankedResetCredits !== undefined ? { bankedResetCredits } : {}),
+      ...(rateLimitReachedType !== undefined ? { rateLimitReachedType } : {}),
     };
   } catch (error) {
     return { message: `Failed to fetch Codex usage: ${(error as Error).message}` };

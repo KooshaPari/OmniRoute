@@ -11,48 +11,6 @@
 import { createHash, randomBytes } from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, rowToCamel } from "./core";
-import { toRecord } from "./caseMapping";
-
-// Required field lists — used by toRecord() to detect schema drift at runtime.
-// Listed explicitly per type so future migrations that add/remove fields must
-// update both the interface AND the field list (compile-time signal).
-const REQUIRED_REGISTERED_KEY_FIELDS = [
-  "id",
-  "keyPrefix",
-  "name",
-  "provider",
-  "accountId",
-  "isActive",
-  "revokedAt",
-  "expiresAt",
-  "idempotencyKey",
-  "dailyBudget",
-  "hourlyBudget",
-  "dailyUsed",
-  "hourlyUsed",
-  "createdAt",
-  "updatedAt",
-] as const satisfies ReadonlyArray<keyof RegisteredKey>;
-
-const REQUIRED_PROVIDER_KEY_LIMIT_FIELDS = [
-  "provider",
-  "maxActiveKeys",
-  "dailyIssueLimit",
-  "hourlyIssueLimit",
-  "dailyIssued",
-  "hourlyIssued",
-  "updatedAt",
-] as const satisfies ReadonlyArray<keyof ProviderKeyLimit>;
-
-const REQUIRED_ACCOUNT_KEY_LIMIT_FIELDS = [
-  "accountId",
-  "maxActiveKeys",
-  "dailyIssueLimit",
-  "hourlyIssueLimit",
-  "dailyIssued",
-  "hourlyIssued",
-  "updatedAt",
-] as const satisfies ReadonlyArray<keyof AccountKeyLimit>;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -289,10 +247,7 @@ export function issueRegisteredKey(
     if (existing) {
       return {
         idempotencyConflict: true,
-        existing: toRecord<RegisteredKey>(
-          rowToCamel(existing),
-          REQUIRED_REGISTERED_KEY_FIELDS,
-        ),
+        existing: rowToCamel(existing) as unknown as RegisteredKey,
       };
     }
   }
@@ -354,10 +309,7 @@ export function issueRegisteredKey(
   const created = db
     .prepare("SELECT * FROM registered_keys WHERE id = ?")
     .get(id) as RegisteredKeyRow;
-  return {
-    ...toRecord<RegisteredKey>(rowToCamel(created), REQUIRED_REGISTERED_KEY_FIELDS),
-    rawKey,
-  };
+  return { ...(rowToCamel(created) as unknown as RegisteredKey), rawKey };
 }
 
 /**
@@ -366,11 +318,8 @@ export function issueRegisteredKey(
 export function getRegisteredKey(id: string): RegisteredKey | null {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM registered_keys WHERE id = ?").get(id) as
-    | RegisteredKeyRow
-    | undefined;
-  return row
-    ? toRecord<RegisteredKey>(rowToCamel(row), REQUIRED_REGISTERED_KEY_FIELDS)
-    : null;
+    RegisteredKeyRow | undefined;
+  return row ? (rowToCamel(row) as unknown as RegisteredKey) : null;
 }
 
 /**
@@ -392,9 +341,7 @@ export function listRegisteredKeys(
   }
   sql += " ORDER BY created_at DESC LIMIT 500";
   const rows = db.prepare(sql).all(...args) as RegisteredKeyRow[];
-  return rows.map((r) =>
-    toRecord<RegisteredKey>(rowToCamel(r), REQUIRED_REGISTERED_KEY_FIELDS),
-  );
+  return rows.map((r) => rowToCamel(r) as unknown as RegisteredKey);
 }
 
 /**
@@ -436,6 +383,8 @@ export function validateRegisteredKey(rawKey: string): RegisteredKey | null {
   const today = nowDay();
   const hour = nowHour();
   if (row.last_reset_day !== today || row.last_reset_hour !== hour) {
+    const dailyReset = row.last_reset_day !== today;
+    const hourlyReset = row.last_reset_hour !== hour;
     db.prepare(
       `
       UPDATE registered_keys
@@ -445,13 +394,17 @@ export function validateRegisteredKey(rawKey: string): RegisteredKey | null {
       WHERE id = ?
     `
     ).run(today, hour, today, hour, row.id);
+    if (dailyReset) row.daily_used = 0;
+    if (hourlyReset) row.hourly_used = 0;
+    row.last_reset_day = today;
+    row.last_reset_hour = hour;
   }
 
   // Budget check
   if (row.daily_budget !== null && row.daily_used >= row.daily_budget) return null;
   if (row.hourly_budget !== null && row.hourly_used >= row.hourly_budget) return null;
 
-  return toRecord<RegisteredKey>(rowToCamel(row), REQUIRED_REGISTERED_KEY_FIELDS);
+  return rowToCamel(row) as unknown as RegisteredKey;
 }
 
 /**
@@ -523,21 +476,15 @@ export function setAccountKeyLimit(
 export function getProviderKeyLimit(provider: string): ProviderKeyLimit | null {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM provider_key_limits WHERE provider = ?").get(provider) as
-    | ProviderKeyLimitRow
-    | undefined;
-  return row
-    ? toRecord<ProviderKeyLimit>(rowToCamel(row), REQUIRED_PROVIDER_KEY_LIMIT_FIELDS)
-    : null;
+    ProviderKeyLimitRow | undefined;
+  return row ? (rowToCamel(row) as unknown as ProviderKeyLimit) : null;
 }
 
 export function getAccountKeyLimit(accountId: string): AccountKeyLimit | null {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM account_key_limits WHERE account_id = ?").get(accountId) as
-    | AccountKeyLimitRow
-    | undefined;
-  return row
-    ? toRecord<AccountKeyLimit>(rowToCamel(row), REQUIRED_ACCOUNT_KEY_LIMIT_FIELDS)
-    : null;
+    AccountKeyLimitRow | undefined;
+  return row ? (rowToCamel(row) as unknown as AccountKeyLimit) : null;
 }
 
 // ─── Internal types (raw DB rows) ─────────────────────────────────────────────

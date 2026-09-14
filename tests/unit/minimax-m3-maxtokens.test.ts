@@ -10,8 +10,8 @@
  * MODEL_SPECS.__default__ ceiling because:
  *   (a) MiniMax-M3 had no MODEL_SPECS entry at all, and the registry models
  *       declare no maxOutputTokens, so resolution fell through to __default__;
- *   (b) MiniMax-M3 (the upstream, capitalized id) never matched its existing
- *       lowercase "minimax-m3" spec because getModelSpec was case-SENSITIVE.
+ *   (b) MiniMax-M2.7 (the upstream, capitalized id) never matched its existing
+ *       lowercase "minimax-m2.7" spec because getModelSpec was case-SENSITIVE.
  *
  * Both lookups must now resolve to the real family ceiling (well above 8192).
  */
@@ -31,17 +31,14 @@ const { getModelSpec } = await import("../../src/shared/constants/modelSpecs.ts"
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 const DEFAULT_CAP = 8192;
 
 test("#3141 MiniMax-M3 max_tokens is not capped to the 8192 default", () => {
   const cap = modelCapabilities.capMaxOutputTokens({ provider: "minimax", model: "MiniMax-M3" });
-  assert.ok(
-    cap > DEFAULT_CAP,
-    `expected MiniMax-M3 maxOutputTokens > ${DEFAULT_CAP}, got ${cap}`
-  );
+  assert.ok(cap > DEFAULT_CAP, `expected MiniMax-M3 maxOutputTokens > ${DEFAULT_CAP}, got ${cap}`);
 });
 
 test("#3141 MiniMaxAI/MiniMax-M3 (prefixed id) resolves above the 8192 default", () => {
@@ -55,26 +52,26 @@ test("#3141 MiniMaxAI/MiniMax-M3 (prefixed id) resolves above the 8192 default",
   );
 });
 
-test("#3141 capitalized MiniMax-M3 resolves to its lowercase spec (case-insensitive)", () => {
-  const cap = modelCapabilities.capMaxOutputTokens({ provider: "minimax", model: "MiniMax-M3" });
+test("#3141 capitalized MiniMax-M2.7 resolves to its lowercase spec (case-insensitive)", () => {
+  const cap = modelCapabilities.capMaxOutputTokens({ provider: "minimax", model: "MiniMax-M2.7" });
   assert.ok(
     cap > DEFAULT_CAP,
-    `expected MiniMax-M3 maxOutputTokens > ${DEFAULT_CAP}, got ${cap}`
+    `expected MiniMax-M2.7 maxOutputTokens > ${DEFAULT_CAP}, got ${cap}`
   );
 });
 
-test("#3141 lowercase minimax-m3 spec is unchanged", () => {
-  const cap = modelCapabilities.capMaxOutputTokens({ provider: "minimax", model: "minimax-m3" });
+test("#3141 lowercase minimax-m2.7 spec is unchanged", () => {
+  const cap = modelCapabilities.capMaxOutputTokens({ provider: "minimax", model: "minimax-m2.7" });
   assert.ok(
     cap > DEFAULT_CAP,
-    `expected minimax-m3 maxOutputTokens > ${DEFAULT_CAP}, got ${cap}`
+    `expected minimax-m2.7 maxOutputTokens > ${DEFAULT_CAP}, got ${cap}`
   );
 });
 
 test("#3141 getModelSpec resolves MiniMax-M3 and capitalized M2.7 to family specs", () => {
   assert.ok(getModelSpec("MiniMax-M3"), "MiniMax-M3 should have a spec");
   assert.ok(
-    getModelSpec("MiniMax-M3"),
-    "capitalized MiniMax-M3 should resolve to the minimax-m3 spec"
+    getModelSpec("MiniMax-M2.7"),
+    "capitalized MiniMax-M2.7 should resolve to the minimax-m2.7 spec"
   );
 });

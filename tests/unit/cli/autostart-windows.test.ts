@@ -17,7 +17,7 @@ test.after(() => {
   if (origAppData === undefined) delete process.env.APPDATA;
   else process.env.APPDATA = origAppData;
   try {
-    rmSync(tmpDir, { recursive: true, force: true });
+    rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {}
 });
 

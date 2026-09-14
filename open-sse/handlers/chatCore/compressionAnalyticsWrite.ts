@@ -10,7 +10,7 @@
  * stays under the complexity cap.
  */
 
-import { type CompressionStats } from "../../services/compression/stats.ts";
+import { type CompressionStats } from "../../services/compression/types.ts";
 
 type LoggerLike =
   | {
@@ -121,7 +121,7 @@ export function writeCompressionSkip(opts: WriteOpts, skipReason: string): Promi
         skip_reason: skipReason,
       });
     } catch (err) {
-      opts.log?.debug?.(
+      opts.log?.warn?.(
         "COMPRESSION",
         "Compression skip-analytics write skipped: " +
           (err instanceof Error ? err.message : String(err))

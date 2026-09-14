@@ -64,8 +64,8 @@ const {
 test.after(() => {
   process.env.PATH = originalPath;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  fs.rmSync(FAKE_BIN_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  fs.rmSync(FAKE_BIN_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("BIFROST_DEFAULT_PORT is 8080", () => {
@@ -127,11 +127,19 @@ test("resolveSpawnArgs shape: command is node, bin.js path, Go single-dash flags
   assert.ok(logLevelIdx !== -1, "must have -log-level flag");
   assert.equal(args.args[logLevelIdx + 1], "warn");
 
-  // BIFROST_TRANSPORT_VERSION must be set in env
+  // BIFROST_TRANSPORT_VERSION must be set in env AND match the format
+  // bifrost's own bin.js requires: /^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/ or "latest".
+  // (regression check for the "Invalid transport version format" startup crash -
+  // the fake npm helper above reports version "1.6.3", bare semver with no "v")
   assert.ok(
     typeof args.env.BIFROST_TRANSPORT_VERSION === "string" &&
       args.env.BIFROST_TRANSPORT_VERSION.length > 0,
     "BIFROST_TRANSPORT_VERSION must be set in env"
+  );
+  assert.match(
+    args.env.BIFROST_TRANSPORT_VERSION,
+    /^(latest|v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$/,
+    `BIFROST_TRANSPORT_VERSION must be "latest" or v-prefixed semver, got: ${args.env.BIFROST_TRANSPORT_VERSION}`
   );
 });
 

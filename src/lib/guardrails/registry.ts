@@ -7,6 +7,8 @@ import {
 import { PIIMaskerGuardrail } from "./piiMasker";
 import { PromptInjectionGuardrail } from "./promptInjection";
 import { VisionBridgeGuardrail } from "./visionBridge";
+import { AudioBridgeGuardrail } from "./audioBridge";
+import { VideoBridgeGuardrail } from "./videoBridge";
 import { CredentialMaskerGuardrail } from "./credentialMasker";
 
 /**
@@ -184,6 +186,9 @@ export class GuardrailRegistry {
           };
         }
       } catch (error) {
+        if (context.signal?.aborted) {
+          throw new Error("Guardrail processing aborted");
+        }
         const message = error instanceof Error ? error.message : String(error);
         results.push({
           blocked: false,
@@ -257,6 +262,9 @@ export class GuardrailRegistry {
           };
         }
       } catch (error) {
+        if (context.signal?.aborted) {
+          throw new Error("Guardrail processing aborted");
+        }
         const message = error instanceof Error ? error.message : String(error);
         results.push({
           blocked: false,
@@ -286,6 +294,8 @@ export function registerDefaultGuardrails() {
   if (defaultGuardrailsRegistered) return guardrailRegistry;
 
   guardrailRegistry.register(new VisionBridgeGuardrail());
+  guardrailRegistry.register(new AudioBridgeGuardrail());
+  guardrailRegistry.register(new VideoBridgeGuardrail());
   guardrailRegistry.register(new PIIMaskerGuardrail());
   guardrailRegistry.register(new CredentialMaskerGuardrail());
   guardrailRegistry.register(new PromptInjectionGuardrail());

@@ -5,13 +5,17 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { promisify } from "node:util";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const pExecFile = promisify(execFile);
-const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), "../../scripts/release/merge-train.sh");
+const SCRIPT = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../scripts/release/merge-train.sh"
+);
 
 async function run(args: string[]) {
   try {
@@ -68,6 +72,59 @@ test("--plan --fast swaps the full unit suite for changed-tests, keeps static ga
   assert.ok(!stdout.includes("npm run test:unit"), "fast mode must not run the full unit suite");
 });
 
+test("--plan binds the changelog gate to the requested base inside the detached worktree", async () => {
+  const { code, stdout } = await run(["--plan", "release/v3.8.50", "11326"]);
+  assert.equal(code, 0);
+  assert.match(
+    stdout,
+    /worktree add .* --detach origin\/release\/v3\.8\.50/,
+    "the train worktree must remain detached from the requested base"
+  );
+  assert.match(
+    stdout,
+    /env CHANGELOG_BASE_REF=origin\/release\/v3\.8\.50 node scripts\/check\/check-changelog-integrity\.mjs/,
+    "the gate must not fall back to a different numerically highest release branch"
+  );
+});
+
+test("--plan shell-quotes a hostile base before the gate command is evaluated", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "merge-train-plan-"));
+  const dollarMarker = join(tempDir, "dollar-marker");
+  const backtickMarker = join(tempDir, "backtick-marker");
+  const semicolonMarker = join(tempDir, "semicolon-marker");
+  const base =
+    `release/v9.9.9 $(touch ${dollarMarker}) ` +
+    `\`touch ${backtickMarker}\` whitespace gap ; touch ${semicolonMarker}`;
+
+  try {
+    const { code, stdout } = await run(["--plan", base, "11326"]);
+    assert.equal(code, 0);
+
+    const gateLine = stdout.split("\n").find((line) => line.includes("env CHANGELOG_BASE_REF="));
+    assert.ok(gateLine, "the plan must include the changelog gate command");
+    const plannedGate = gateLine.replace(/^\[merge-train\] \d+\. /, "");
+    assert.ok(
+      !plannedGate.includes(`CHANGELOG_BASE_REF=origin/${base}`),
+      "hostile shell syntax must not appear unescaped in the eval-backed gate command"
+    );
+
+    // Exercise the exact plan command through the same eval boundary as the real
+    // train, replacing only the gate executable with a side-effect-free env probe.
+    const probe = plannedGate.replace(
+      "node scripts/check/check-changelog-integrity.mjs",
+      "printenv CHANGELOG_BASE_REF"
+    );
+    const { stdout: evaluatedBase } = await pExecFile("bash", ["-c", 'eval "$1"', "bash", probe]);
+    assert.equal(evaluatedBase, `origin/${base}\n`);
+
+    for (const marker of [dollarMarker, backtickMarker, semicolonMarker]) {
+      await assert.rejects(access(marker), { code: "ENOENT" });
+    }
+  } finally {
+    await rm(tempDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
 test("fast mode's UNIT_SUBDIRS allowlist mirrors package.json test:unit exactly", async () => {
   // Regression for the 2026-07-18 train red: tests/unit/autoCombo/ (a vitest-only
   // subdir) was fed to the node:test bucket because the fast filter had no subdir
@@ -79,8 +136,15 @@ test("fast mode's UNIT_SUBDIRS allowlist mirrors package.json test:unit exactly"
   const pkg = JSON.parse(await readFile(new URL("../../package.json", import.meta.url), "utf8"));
   const pkgList = pkg.scripts["test:unit"].match(/tests\/unit\/\{([^}]+)\}/)?.[1];
   assert.ok(pkgList, "package.json test:unit must carry the {subdir} allowlist glob");
-  assert.equal(scriptList, pkgList, "merge-train.sh UNIT_SUBDIRS must equal test:unit's subdir set");
-  assert.ok(!scriptList.split(",").includes("autoCombo"), "autoCombo belongs to vitest, not node:test");
+  assert.equal(
+    scriptList,
+    pkgList,
+    "merge-train.sh UNIT_SUBDIRS must equal test:unit's subdir set"
+  );
+  assert.ok(
+    !scriptList.split(",").includes("autoCombo"),
+    "autoCombo belongs to vitest, not node:test"
+  );
 });
 
 test("rejects an unknown flag", async () => {

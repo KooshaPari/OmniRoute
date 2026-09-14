@@ -26,19 +26,23 @@ import {
   DEFAULT_CODEX_RESPONSES_CONFIG,
   type CodexResponsesConfig,
   type ContextEditingConfig,
+  DEFAULT_OMNIGLYPH_CONFIG,
+  type OmniglyphConfig,
   type EngineToggle,
   type HeadroomConfig,
   type McpAccessibilityConfig,
   type RtkConfig,
   type UltraConfig,
 } from "@omniroute/open-sse/services/compression/types.ts";
+import { normalizeCompressionExclusions } from "@omniroute/open-sse/services/compression/exclusions.ts";
+import { DEFAULT_CONTEXT_BUDGET } from "@omniroute/open-sse/services/compression/adaptiveCompression/types.ts";
+import { normalizeContextBudgetConfig } from "./compressionContextBudget";
 import {
   isPreserveSystemPromptMode,
   normalizePreserveSystemPromptMode,
 } from "@omniroute/open-sse/services/compression/preserveSystemPromptMode.ts";
 import { maybePrewarmUltraSlmOnConfig } from "@omniroute/open-sse/services/compression/ultra.ts";
 import { applyDetailConfigUpdate, buildDetailConfigDefaults } from "./compressionDetailNormalizers";
-import { normalizeContextBudgetConfig } from "./compressionContextBudget";
 
 const NAMESPACE = "compression";
 const COMPRESSION_MODES = new Set<CompressionMode>([
@@ -166,6 +170,10 @@ function normalizeRtkConfig(value: unknown): RtkConfig {
       typeof record.applyToAssistantMessages === "boolean"
         ? record.applyToAssistantMessages
         : DEFAULT_RTK_CONFIG.applyToAssistantMessages,
+    enableRenderers:
+      typeof record.enableRenderers === "boolean"
+        ? record.enableRenderers
+        : (DEFAULT_RTK_CONFIG.enableRenderers ?? false),
     enabledFilters: Array.isArray(record.enabledFilters)
       ? record.enabledFilters.filter((filter): filter is string => typeof filter === "string")
       : DEFAULT_RTK_CONFIG.enabledFilters,
@@ -295,6 +303,19 @@ function normalizeLanguageConfig(value: unknown): CompressionLanguageConfig {
         ? record.autoDetect
         : DEFAULT_COMPRESSION_LANGUAGE_CONFIG.autoDetect,
     enabledPacks: [...new Set(enabledPacks.length > 0 ? enabledPacks : ["en"])],
+  };
+}
+
+function normalizeOmniglyphConfig(value: unknown): OmniglyphConfig {
+  const record = toRecord(value);
+  const profile = record.profile;
+  // Um perfil desconhecido não pode virar "roda com a política padrão": cai para
+  // o default explícito, e o adapter ainda falha fechado se algo passar por aqui.
+  return {
+    profile:
+      profile === "coding-safe" || profile === "balanced" || profile === "passthrough"
+        ? profile
+        : DEFAULT_OMNIGLYPH_CONFIG.profile,
   };
 }
 
@@ -610,10 +631,12 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     stackedPipeline: normalizeStackedPipeline(undefined),
     aggressive: normalizeAggressiveConfig(undefined),
     ultra: normalizeUltraConfig(undefined),
+    lite: { compressToolResults: true },
     headroom: normalizeHeadroomConfig(undefined),
     ...buildDetailConfigDefaults(),
     contextBudget: normalizeContextBudgetConfig(undefined),
     contextEditing: { ...DEFAULT_CONTEXT_EDITING_CONFIG },
+    omniglyph: { ...DEFAULT_OMNIGLYPH_CONFIG },
     liveZone: { enabled: false },
     engines: {},
     activeComboId: null,
@@ -633,27 +656,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     const record = toRecord(row);
     const key = typeof record.key === "string" ? record.key : null;
     const rawValue = typeof record.value === "string" ? record.value : null;
-    if (!key || rawValue === null) {
-      // #13456: non-string values (BLOB from backup/restore/migration tooling) are
-      // silently ignored — log so operators can diagnose config drift.
-      if (key && typeof record.value !== "string" && record.value !== null) {
-        console.warn(
-          `[COMPRESSION] Settings row '${key}' has non-string value type ` +
-            `(${typeof record.value}); skipping. This may indicate a backup/restore ` +
-            `issue — re-save the setting from the Storage panel to fix.`
-        );
-      }
-      continue;
-    }
+    if (!key || rawValue === null) continue;
     const parsed = parseJsonSafe(rawValue);
-    if (parsed === undefined) {
-      // #13456: invalid JSON is also silently ignored — log it.
-      console.warn(
-        `[COMPRESSION] Settings row '${key}' has unparseable JSON value; skipping. ` +
-          `Re-save the setting from the Storage panel to fix.`
-      );
-      continue;
-    }
+    if (parsed === undefined) continue;
 
     switch (key) {
       case "enabled":
@@ -738,6 +743,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "ultraConfig":
         config.ultra = normalizeUltraConfig(parsed);
         break;
+      case "lite":
+        config.lite = { compressToolResults: toRecord(parsed).compressToolResults !== false };
+        break;
       case "headroom":
       case "headroomConfig":
         config.headroom = normalizeHeadroomConfig(parsed);
@@ -752,22 +760,14 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "contextEditing":
         config.contextEditing = normalizeContextEditingConfig(parsed);
         break;
+      case "omniglyph":
+        config.omniglyph = normalizeOmniglyphConfig(parsed);
+        break;
       case "liveZone":
         config.liveZone = { enabled: toRecord(parsed).enabled === true };
         break;
       case "engines":
         storedEngines = parseStoredEnginesMap(parsed);
-        // #13456: when the parsed engines row yields no valid toggles (e.g. the
-        // row was stored as a BLOB or an empty object), log a warning so operators
-        // can diagnose why their panel-configured engines map is being silently
-        // replaced by the legacy fallback path.
-        if (storedEngines === null) {
-          console.warn(
-            `[COMPRESSION] 'engines' settings row is present but unreadable ` +
-              `or contains no valid engine toggles; falling back to legacy ` +
-              `settings. Re-save the engines map from the Storage panel to fix.`
-          );
-        }
         break;
       case "activeComboId":
         config.activeComboId = typeof parsed === "string" && parsed.trim() ? parsed.trim() : null;
@@ -895,4 +895,50 @@ export async function setMcpAccessibilityConfig(
   );
   compressionSettingsCache = null;
   invalidateDbCache();
+}
+
+// Proactive-compression threshold knob (livewell backport branch).
+// The ratio of the (context limit - reserved tool tokens) at which proactive
+// context compression triggers used to be a hardcoded 0.7 in open-sse/handlers/
+// chatCore.ts. That left operators no way to move compression relative to a
+// client's own compaction point — e.g. Codex Desktop self-compacts at ~0.85 of
+// its window, so a 0.7 proxy threshold always preempts the client's (correct)
+// compaction with the proxy's (lossier) one. Stored in key_value (namespace
+// 'compression', key 'proactiveConfig', JSON {"thresholdRatio": 0.7}). Lives
+// here (not in the handler) per Hard Rule #5 — no raw SQL outside src/lib/db/.
+// better-sqlite3 is synchronous so the read stays in the sync hot path. 30s
+// TTL cache keeps per-request overhead at zero while still letting a plain
+// sqlite UPDATE take effect without a restart.
+const PROACTIVE_COMPRESSION_DEFAULT_RATIO = 0.7;
+const PROACTIVE_COMPRESSION_RATIO_MIN = 0.1;
+const PROACTIVE_COMPRESSION_RATIO_MAX = 0.99;
+const PROACTIVE_COMPRESSION_CACHE_TTL_MS = 30_000;
+let proactiveRatioCache: { value: number; readAt: number } | null = null;
+
+export function getProactiveCompressionRatio(): number {
+  const now = Date.now();
+  if (proactiveRatioCache && now - proactiveRatioCache.readAt < PROACTIVE_COMPRESSION_CACHE_TTL_MS) {
+    return proactiveRatioCache.value;
+  }
+  let ratio = PROACTIVE_COMPRESSION_DEFAULT_RATIO;
+  try {
+    const row = getDbInstance()
+      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+      .get(NAMESPACE, "proactiveConfig") as { value?: string } | undefined;
+    if (row?.value) {
+      const parsed = JSON.parse(row.value) as { thresholdRatio?: unknown };
+      const candidate = Number(parsed?.thresholdRatio);
+      if (
+        Number.isFinite(candidate) &&
+        candidate >= PROACTIVE_COMPRESSION_RATIO_MIN &&
+        candidate <= PROACTIVE_COMPRESSION_RATIO_MAX
+      ) {
+        ratio = candidate;
+      }
+    }
+  } catch {
+    // Missing table/row or unparsable JSON: fall back to the shipped default.
+  }
+  proactiveRatioCache = { value: ratio, readAt: now };
+  return ratio;
 }

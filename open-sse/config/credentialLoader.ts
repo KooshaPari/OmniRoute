@@ -16,10 +16,7 @@
 
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
-import { resolveDataDir } from "../../src/lib/dataPaths";
-import { createLogger } from "@/shared/utils/logger";
 
-const log = createLogger("open-sse:credential-loader");
 // Fields that can be overridden per provider
 const CREDENTIAL_FIELDS = [
   "clientId",
@@ -44,6 +41,18 @@ function credGlobals(): CredGlobals {
 }
 
 function resolveCredentialsPath(): string {
+  let resolveDataDir: (options?: { isCloud?: boolean }) => string;
+
+  try {
+    resolveDataDir = require("@/lib/dataPaths").resolveDataDir;
+  } catch (err) {
+    const fallbackDataDir = process.env.DATA_DIR || join(process.cwd(), "data");
+    console.warn(
+      `[CREDENTIALS] Could not load dataPaths module, using fallback: ${fallbackDataDir}`
+    );
+    return join(fallbackDataDir, "provider-credentials.json");
+  }
+
   return join(resolveDataDir(), "provider-credentials.json");
 }
 
@@ -56,7 +65,7 @@ export function loadProviderCredentials<T extends Record<string, unknown>>(provi
 
   if (!existsSync(credPath)) {
     if (!credGlobals().__omnirouteCredNoFileLogged) {
-      log.info("credentials: no external file found, using defaults");
+      console.log("[CREDENTIALS] No external credentials file found, using defaults.");
       credGlobals().__omnirouteCredNoFileLogged = true;
     }
     cachedProviders = providers;
@@ -74,14 +83,15 @@ export function loadProviderCredentials<T extends Record<string, unknown>>(provi
 
     for (const [providerKey, creds] of Object.entries(external)) {
       if (!mutableProviders[providerKey]) {
-        log.warn({ provider: providerKey }, "credentials: unknown provider, skipping");
+        console.log(
+          `[CREDENTIALS] Warning: unknown provider "${providerKey}" in credentials file, skipping.`
+        );
         continue;
       }
 
       if (!creds || typeof creds !== "object") {
-        log.warn(
-          { provider: providerKey, actualType: typeof creds },
-          "credentials: provider value must be an object, skipping"
+        console.log(
+          `[CREDENTIALS] Warning: provider "${providerKey}" value must be an object, got ${typeof creds}. Skipping.`
         );
         continue;
       }
@@ -96,16 +106,15 @@ export function loadProviderCredentials<T extends Record<string, unknown>>(provi
     }
 
     const isReload = cachedProviders !== null;
-    log.info(
-      { isReload, overrideCount, path: credPath },
-      "credentials: external file loaded"
+    console.log(
+      `[CREDENTIALS] ${isReload ? "Reloaded" : "Loaded"} external credentials: ${overrideCount} field(s) from ${credPath}`
     );
   } catch (err) {
     const reason =
       err instanceof SyntaxError
         ? "Invalid JSON format"
         : (err as NodeJS.ErrnoException).code || "read error";
-    log.warn({ reason }, "credentials: error reading file, using defaults");
+    console.log(`[CREDENTIALS] Error reading credentials file (${reason}). Using defaults.`);
   }
 
   cachedProviders = providers;

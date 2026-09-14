@@ -13,23 +13,33 @@ import {
   type GlmTeamQuotaFieldValues,
 } from "./glmTeamQuotaProviderData";
 
-type FormData = QuotaScrapingFieldValues & {
-  accountId: string;
-  apiRegion: string;
-  ccCompatibleContext1m: boolean;
-  ccCompatibleRedactThinking: boolean;
-  ccCompatibleSummarizeThinking: boolean;
-  consoleApiKey: string;
-  customUserAgent: string;
-  cx: string;
-  excludedModels: string;
-  importFreeModelsOnly: boolean;
-  passthroughModels: boolean;
-  region: string;
-  routingTags: string;
-  tag?: string;
-  validationModelId?: string;
-};
+type FormData = QuotaScrapingFieldValues &
+  GlmTeamQuotaFieldValues & {
+    accountId: string;
+    apiRegion: string;
+    awsAccessKeyId: string;
+    awsSessionToken: string;
+    ccCompatibleContext1m: boolean;
+    ccCompatibleRedactThinking: boolean;
+    ccCompatibleSummarizeThinking: boolean;
+    consoleApiKey: string;
+    customUserAgent: string;
+    cx: string;
+    excludedModels: string;
+    importFreeModelsOnly: boolean;
+    m365Tier?: M365TierValue;
+    newApiAggregatorBalance: boolean;
+    newApiUserId: string;
+    passthroughModels: boolean;
+    quotaPerUnit: string;
+    region: string;
+    routingTags: string;
+    tag?: string;
+    validationModelId?: string;
+    tunnelId: string;
+    connectorName: string;
+    runtimeKey?: string;
+  };
 type ProviderSpecificData = Record<string, unknown>;
 
 // bailian-coding-plan reuses consoleApiKey as its console token; agentrouter (#6850)
@@ -82,13 +92,31 @@ export function buildAddProviderSpecificData(options: {
   }
   assignQuotaScrapingProviderData(provider, formData, data);
   if (isGooglePse && formData.cx.trim()) data.cx = formData.cx.trim();
-  if (usesBaseUrl) data.baseUrl = validatedBaseUrl;
-  else if (showsRegion) data.region = formData.region.trim() || defaultRegion;
+  if (provider === "aws-polly") {
+    data.accessKeyId = formData.awsAccessKeyId.trim() || undefined;
+    data.region = formData.region.trim() || "us-east-1";
+    data.sessionToken = formData.awsSessionToken.trim() || undefined;
+  } else if (usesBaseUrl) data.baseUrl = validatedBaseUrl;
+  if (showsRegion) data.region = formData.region?.trim() || defaultRegion;
   else if (isGlm) {
     data.apiRegion = formData.apiRegion;
     assignGlmTeamQuotaProviderData(isGlm, formData, data);
   } else if (isCloudflare && formData.accountId.trim()) data.accountId = formData.accountId.trim();
   if (isCcCompatible) assignCcCompatibleRequestDefaults(data, formData);
+  // #9415 — New-API / One-API / Sub2API aggregator balance detection
+  if (formData.newApiAggregatorBalance) {
+    data.newApiAggregatorBalance = true;
+    if (formData.consoleApiKey.trim()) data.consoleApiKey = formData.consoleApiKey.trim();
+    if (formData.newApiUserId.trim()) data.newApiUserId = formData.newApiUserId.trim();
+    const parsedQuotaPerUnit = parseInt(formData.quotaPerUnit, 10);
+    if (Number.isFinite(parsedQuotaPerUnit) && parsedQuotaPerUnit > 0) {
+      data.quotaPerUnit = parsedQuotaPerUnit;
+    }
+  }
+  if (provider === "chatgpt-web-codex") {
+    if (formData.tunnelId.trim()) data.tunnelId = formData.tunnelId.trim();
+    if (formData.connectorName.trim()) data.connectorName = formData.connectorName.trim();
+  }
   return Object.keys(data).length > 0 ? data : undefined;
 }
 
@@ -128,8 +156,12 @@ export function assignEditApiKeyProviderSpecificData(options: {
   assignQuotaScrapingProviderData(o.provider, o.formData, o.target);
   if (o.formData.validationModelId) o.target.validationModelId = o.formData.validationModelId;
   if (o.isGooglePse) o.target.cx = o.formData.cx.trim() || undefined;
-  if (o.usesBaseUrl) o.target.baseUrl = o.validatedBaseUrl;
-  else if (o.showsRegion) o.target.region = o.formData.region.trim() || o.defaultRegion;
+  if (o.provider === "aws-polly") {
+    o.target.accessKeyId = o.formData.awsAccessKeyId.trim() || undefined;
+    o.target.region = o.formData.region.trim() || "us-east-1";
+    o.target.sessionToken = o.formData.awsSessionToken.trim() || undefined;
+  } else if (o.usesBaseUrl) o.target.baseUrl = o.validatedBaseUrl;
+  if (o.showsRegion) o.target.region = o.formData.region?.trim() || o.defaultRegion;
   else if (o.isGlm) {
     o.target.apiRegion = o.formData.apiRegion;
     assignGlmTeamQuotaProviderData(o.isGlm, o.formData, o.target);
@@ -137,10 +169,30 @@ export function assignEditApiKeyProviderSpecificData(options: {
     o.target.accountId = o.formData.accountId.trim();
   }
   if (o.isAntigravityFamily) o.target.projectId = o.trimmedCloudCodeProjectId || null;
+  if (isM365TierCapableProvider(o.provider)) applyM365Tier(o.target, o.formData.m365Tier ?? "");
   if (o.isCcCompatible) {
     o.target.requestDefaults = mergeCcCompatibleRequestDefaults(
       o.target.requestDefaults,
       o.formData
     );
+  }
+  // #9415 — New-API / One-API / Sub2API aggregator balance detection
+  if (o.formData.newApiAggregatorBalance) {
+    o.target.newApiAggregatorBalance = true;
+    o.target.consoleApiKey = o.formData.consoleApiKey.trim() || undefined;
+    o.target.newApiUserId = o.formData.newApiUserId.trim() || undefined;
+    const parsedQuotaPerUnit = parseInt(o.formData.quotaPerUnit, 10);
+    if (Number.isFinite(parsedQuotaPerUnit) && parsedQuotaPerUnit > 0) {
+      o.target.quotaPerUnit = parsedQuotaPerUnit;
+    } else {
+      o.target.quotaPerUnit = undefined;
+    }
+  } else {
+    o.target.newApiAggregatorBalance = undefined;
+    o.target.quotaPerUnit = undefined;
+  }
+  if (o.provider === "chatgpt-web-codex") {
+    o.target.tunnelId = o.formData.tunnelId.trim() || undefined;
+    o.target.connectorName = o.formData.connectorName.trim() || undefined;
   }
 }

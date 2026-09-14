@@ -1,12 +1,12 @@
 # 🚀 OmniRoute — The Free AI Gateway (Filipino)
 
-🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇸🇦 [ar](../ar/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇪🇸 [es](../es/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇮🇩 [id](../id/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md)
+🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇬🇷 [el](../el/README.md) · 🇪🇸 [es](../es/README.md) · 🇪🇪 [et](../et/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇪 [ga](../ga/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇷 [hr](../hr/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇮🇩 [id](../id/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇱🇹 [lt](../lt/README.md) · 🇱🇻 [lv](../lv/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇲🇹 [mt](../mt/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇮 [sl](../sl/README.md) · 🇷🇸 [sr](../sr/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
 
 ---
 
-### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
+### Keep coding through provider limits. Smart routing to free-access and low-cost AI models with automatic fallback.
 
-_Your universal API proxy — one endpoint, 100+ providers, zero downtime. Now with **MCP Server (25 tools)**, **A2A Protocol**, **Memory/Skills Systems** & **Electron Desktop App**._
+_Your universal API proxy — one endpoint, 329 provider catalog entries, resilient fallback subject to upstream availability. Includes **MCP Server (107 tools, 32 scopes)**, **A2A Protocol**, **Memory/Skills Systems** & **Electron Desktop App**._
 
 **Chat Completions • Embeddings • Image Generation • Video • Music • Audio • Reranking • **Web Search** • MCP Server • A2A Protocol • 100% TypeScript**
 
@@ -45,7 +45,7 @@ _Your universal API proxy — one endpoint, 100+ providers, zero downtime. Now w
 
 </div>
 
-🌐 **Available in:** 🇺🇸 [English](README.md) | 🇧🇷 [Português (Brasil)](docs/i18n/pt-BR/README.md) | 🇪🇸 [Español](docs/i18n/es/README.md) | 🇫🇷 [Français](docs/i18n/fr/README.md) | 🇮🇹 [Italiano](docs/i18n/it/README.md) | 🇷🇺 [Русский](docs/i18n/ru/README.md) | 🇨🇳 [中文 (简体)](docs/i18n/zh-CN/README.md) | 🇩🇪 [Deutsch](docs/i18n/de/README.md) | 🇮🇳 [हिन्दी](docs/i18n/in/README.md) | 🇹🇭 [ไทย](docs/i18n/th/README.md) | 🇺🇦 [Українська](docs/i18n/uk-UA/README.md) | 🇸🇦 [العربية](docs/i18n/ar/README.md) | 🇯🇵 [日本語](docs/i18n/ja/README.md) | 🇻🇳 [Tiếng Việt](docs/i18n/vi/README.md) | 🇧🇬 [Български](docs/i18n/bg/README.md) | 🇩🇰 [Dansk](docs/i18n/da/README.md) | 🇫🇮 [Suomi](docs/i18n/fi/README.md) | 🇮🇱 [עברית](docs/i18n/he/README.md) | 🇭🇺 [Magyar](docs/i18n/hu/README.md) | 🇮🇩 [Bahasa Indonesia](docs/i18n/id/README.md) | 🇰🇷 [한국어](docs/i18n/ko/README.md) | 🇲🇾 [Bahasa Melayu](docs/i18n/ms/README.md) | 🇳🇱 [Nederlands](docs/i18n/nl/README.md) | 🇳🇴 [Norsk](docs/i18n/no/README.md) | 🇵🇹 [Português (Portugal)](docs/i18n/pt/README.md) | 🇷🇴 [Română](docs/i18n/ro/README.md) | 🇵🇱 [Polski](docs/i18n/pl/README.md) | 🇸🇰 [Slovenčina](docs/i18n/sk/README.md) | 🇸🇪 [Svenska](docs/i18n/sv/README.md) | 🇵🇭 [Filipino](docs/i18n/phi/README.md) | 🇨🇿 [Čeština](docs/i18n/cs/README.md)
+🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇬🇷 [el](../el/README.md) · 🇪🇸 [es](../es/README.md) · 🇪🇪 [et](../et/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇪 [ga](../ga/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇷 [hr](../hr/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇮🇩 [id](../id/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇱🇹 [lt](../lt/README.md) · 🇱🇻 [lv](../lv/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇲🇹 [mt](../mt/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇮 [sl](../sl/README.md) · 🇷🇸 [sr](../sr/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
 
 ---
 
@@ -80,7 +80,7 @@ _Your universal API proxy — one endpoint, 100+ providers, zero downtime. Now w
 
 ### 🤖 Free AI Provider for your favorite coding agents
 
-_Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway for unlimited coding._
+_Connect any AI-powered IDE or CLI tool through OmniRoute — free-access AI gateway; provider limits and terms apply._
 
   <table>
     <tr>
@@ -93,28 +93,28 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
       </td>
       <td align="center" width="110">
         <a href="https://github.com/HKUDS/nanobot">
-          <img src="./public/providers/nanobot.png" alt="NanoBot" width="48"/><br/>
+          <img src="../../../public/providers/cli-generic.svg" alt="NanoBot" width="48"/><br/>
           <b>NanoBot</b>
         </a><br/>
         <sub>⭐ 20.9K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/sipeed/picoclaw">
-          <img src="./public/providers/picoclaw.jpg" alt="PicoClaw" width="48"/><br/>
+          <img src="./public/providers/picoclaw.svg" alt="PicoClaw" width="48"/><br/>
           <b>PicoClaw</b>
         </a><br/>
         <sub>⭐ 14.6K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/zeroclaw-labs/zeroclaw">
-          <img src="./public/providers/zeroclaw.png" alt="ZeroClaw" width="48"/><br/>
+          <img src="../../../public/providers/cli-generic.svg" alt="ZeroClaw" width="48"/><br/>
           <b>ZeroClaw</b>
         </a><br/>
         <sub>⭐ 9.9K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/nearai/ironclaw">
-          <img src="./public/providers/ironclaw.png" alt="IronClaw" width="48"/><br/>
+          <img src="../../../public/providers/cli-generic.svg" alt="IronClaw" width="48"/><br/>
           <b>IronClaw</b>
         </a><br/>
         <sub>⭐ 2.1K</sub>
@@ -123,7 +123,7 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
     <tr>
       <td align="center" width="110">
         <a href="https://github.com/anomalyco/opencode">
-          <img src="./public/providers/opencode.svg" alt="OpenCode" width="48"/><br/>
+          <img src="../../../public/providers/cli-generic.svg" alt="OpenCode" width="48"/><br/>
           <b>OpenCode</b>
         </a><br/>
         <sub>⭐ 106K</sub>
@@ -144,7 +144,7 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
       </td>
       <td align="center" width="110">
         <a href="https://github.com/Kilo-Org/kilocode">
-          <img src="./public/providers/kilocode.svg" alt="Kilo Code" width="48"/><br/>
+          <img src="../../../public/providers/cli-generic.svg" alt="Kilo Code" width="48"/><br/>
           <b>Kilo Code</b>
         </a><br/>
         <sub>⭐ 15.5K</sub>
@@ -152,7 +152,7 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
     </tr>
   </table>
 
-<sub>📡 All agents connect via <code>http://localhost:20128/v1</code> or <code>http://cloud.omniroute.online/v1</code> — one config, unlimited models and quota</sub>
+<sub>📡 All agents connect via <code>http://localhost:20128/v1</code> or <code>http://cloud.omniroute.online/v1</code> — one config; model access and quotas depend on providers</sub>
 
 ---
 
@@ -168,7 +168,7 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
 **OmniRoute solves this:**
 
 - ✅ **Maximize subscriptions** - Track quota, use every bit before reset
-- ✅ **Auto fallback** - Subscription → API Key → Cheap → Free, zero downtime
+- ✅ **Auto fallback** - Subscription → API Key → Cheap → Free; availability depends on eligible upstream routes
 - ✅ **Multi-account** - Round-robin between accounts per provider
 
 ---
@@ -217,9 +217,9 @@ This generates a `system-info.txt` with your Node.js version, OmniRoute version,
        │   ↓ budget limit
        ├─→ [Tier 3: CHEAP] GLM ($0.6/1M), MiniMax ($0.2/1M)
        │   ↓ budget limit
-       └─→ [Tier 4: FREE] Qoder, Qwen, Kiro (unlimited)
+       └─→ [Tier 4: FREE] Qoder, Kiro (provider limits apply)
 
-Result: Never stop coding, minimal cost
+Result: broader fallback coverage and cost control; availability is not guaranteed
 ```
 
 ---
@@ -252,7 +252,7 @@ OpenAI uses one format, Claude (Anthropic) uses another, Gemini yet another. If 
 
 **How OmniRoute solves it:**
 
-- **Unified Endpoint** — A single `http://localhost:20128/v1` serves as proxy for all 100+ providers
+- **Unified Endpoint** — A single `http://localhost:20128/v1` serves as proxy for all 329 provider catalog entries
 - **Format Translation** — Automatic and transparent: OpenAI ↔ Claude ↔ Gemini ↔ Responses API
 - **Response Sanitization** — Strips non-standard fields (`x_groq`, `usage_breakdown`, `service_tier`) that break OpenAI SDK v1.83+
 - **Role Normalization** — Converts `developer` → `system` for non-OpenAI providers; `system` → `user` for GLM/ERNIE
@@ -287,8 +287,8 @@ Not everyone can pay $20–200/month for AI subscriptions. Students, devs from e
 **How OmniRoute solves it:**
 
 - **Ollama Cloud** — Cloud-hosted Ollama models at `api.ollama.com` with free "Light usage" tier; use `ollamacloud/<model>` prefix
-- **Free-Only Combos** — Chain `if/kimi-k2-thinking → qw/qwen3-coder-plus` = $0/month with zero downtime
-- **NVIDIA NIM Free Access** — ~40 RPM dev-forever free access to 70+ models at build.nvidia.com (transitioning from credits to pure rate limits)
+- **Free-Only Combos** — Chain `if/kimi-k2-thinking → kr/qwen3-coder-next` can use currently listed $0 access; limits and availability apply
+- **NVIDIA NIM Free Access** — ~40 RPM free access as currently listed; provider terms and model availability apply at build.nvidia.com (transitioning from credits to pure rate limits)
 - **Cost Optimized Strategy** — Routing strategy that automatically chooses the cheapest available provider
 
 </details>
@@ -331,13 +331,12 @@ AI providers can become unstable, return 5xx errors, or hit temporary rate limit
 <details>
 <summary><b>🔧 7. "Configuring each AI tool is tedious and repetitive"</b></summary>
 
-
 **How OmniRoute solves it:**
 
 - **CLI Tools Dashboard** — Dedicated page with one-click setup for Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
 - **GitHub Copilot Config Generator** — Generates `chatLanguageModels.json` for VS Code with bulk model selection
 - **Onboarding Wizard** — Guided 4-step setup for first-time users
-- **One endpoint, all models** — Configure `http://localhost:20128/v1` once, access 100+ providers
+- **One endpoint, all models** — Configure `http://localhost:20128/v1` once, access 329 provider catalog entries
 
 </details>
 
@@ -349,7 +348,7 @@ Claude Code, Codex, Copilot — all use OAuth 2.0 with expiring tokens. Develope
 **How OmniRoute solves it:**
 
 - **Auto Token Refresh** — OAuth tokens refresh in background before expiration
-- **OAuth 2.0 (PKCE) Built-in** — Automatic flow for Claude Code, Codex, Copilot, Kiro, Qwen, Qoder
+- **OAuth 2.0 (PKCE) Built-in** — Automatic flow for Claude Code, Codex, Copilot, Kiro, Qoder
 - **Multi-Account OAuth** — Multiple accounts per provider via JWT/ID token extraction
 - **OAuth LAN/Remote Fix** — Private IP detection for `redirect_uri` + manual URL mode for remote servers
 - **OAuth Behind Nginx** — Uses `window.location.origin` for reverse proxy compatibility
@@ -547,7 +546,7 @@ Different clients should have least-privilege access to tool categories.
 
 **How OmniRoute solves it:**
 
-- 10 granular MCP scopes for controlled tool access
+- 32 granular MCP scopes for controlled tool access
 - Scope enforcement and visibility in MCP management UI
 - Safe default posture for operational tooling
 
@@ -700,18 +699,18 @@ Outcome: higher quality, near-zero interruption
 **Playbook B: Zero-cost coding stack**
 
 ```txt
-Combo: "free-forever"
-  1. if/kimi-k2-thinking       (unlimited free)
-  2. qw/qwen3-coder-plus       (unlimited free)
+Combo: "free-access"
+  1. if/kimi-k2-thinking       (no published token cap; limits apply)
+  2. kr/qwen3-coder-next
 
 Monthly cost: $0
-Outcome: stable free coding workflow
+Outcome: broader free-access fallback; upstream availability is not guaranteed
 ```
 
 **Playbook C: 24/7 always-on fallback chain**
 
 ```txt
-Combo: "always-on"
+Combo: "multi-layer-fallback"
   1. cc/claude-opus-4-7
   2. cx/gpt-5.2-codex
   3. glm/glm-4.7
@@ -736,16 +735,15 @@ Outcome: deep fallback depth for deadline-critical workloads
 
 > Setup AI coding in minutes at **$0/month**. Connect these free accounts and use the built-in **Free Stack** combo.
 
-| Step | Action                                             | Providers Unlocked                                                 |
-| ---- | -------------------------------------------------- | ------------------------------------------------------------------ |
-| 1    | Connect **Kiro** (AWS Builder ID OAuth)            | Claude Sonnet 4.5, Haiku 4.5 — **unlimited**                       |
-| 2    | Connect **Qoder** (Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **unlimited** |
-| 3    | Connect **Qwen** (Device Code)                     | qwen3-coder-plus, qwen3-coder-flash... — **unlimited**             |
-| 4    | `/dashboard/combos` → **Free Stack ($0)** template | Round-robin all free providers automatically                       |
+| Step | Action                                             | Providers Unlocked                                                                 |
+| ---- | -------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| 1    | Connect **Kiro** (AWS Builder ID OAuth)            | Claude Sonnet 4.5, Haiku 4.5 — provider/account limits apply                       |
+| 2    | Connect **Qoder** (Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — provider/account limits apply |
+| 3    | `/dashboard/combos` → **Free Stack ($0)** template | Round-robin all free providers automatically                                       |
 
 **Point any IDE/CLI to:** `http://localhost:20128/v1` · API Key: `any-string` · Done.
 
-> **Optional extra coverage (also free):** Groq API key (30 RPM free), NVIDIA NIM (40 RPM free, 70+ models), Cerebras (1M tok/day), LongCat API key (50M tokens/day!), Cloudflare Workers AI (10K Neurons/day, 50+ models).
+> **Optional extra coverage (current terms apply):** Groq, NVIDIA NIM, Cerebras, LongCat and Cloudflare Workers AI can provide free access or signup credits where currently listed. Quotas, models, accounts, regions and provider terms can change; see [`FREE_TIERS.md`](../../reference/FREE_TIERS.md).
 
 ## Mabilis na Simula
 
@@ -853,7 +851,6 @@ Base URL: http://localhost:20128/v1
 API Key:  [copy from Endpoint page]
 Model:    if/kimi-k2-thinking (or any provider/model prefix)
 ```
-
 
 ### 4) Enable and validate protocols (v2.0)
 
@@ -1135,53 +1132,51 @@ When minimized, OmniRoute lives in your system tray with quick actions:
 
 ## 💰 Pricing at a Glance
 
-| Tier                | Provider                    | Cost                      | Quota Reset      | Best For                          |
-| ------------------- | --------------------------- | ------------------------- | ---------------- | --------------------------------- |
-| **💳 SUBSCRIPTION** | Claude Code (Pro)           | $20/mo                    | 5h + weekly      | Already subscribed                |
-|                     | Codex (Plus/Pro)            | $20-200/mo                | 5h + weekly      | OpenAI users                      |
-|                     | GitHub Copilot              | $10-19/mo                 | Monthly          | GitHub users                      |
-| **🔑 API KEY**      | NVIDIA NIM                  | **FREE** (dev forever)    | ~40 RPM          | 70+ open models                   |
-|                     | Cerebras                    | **FREE** (1M tok/day)     | 60K TPM / 30 RPM | World's fastest                   |
-|                     | Groq                        | **FREE** (30 RPM)         | 14.4K RPD        | Ultra-fast Llama/Gemma            |
-|                     | DeepSeek V3.2               | $0.27/$1.10 per 1M        | None             | Best price/quality reasoning      |
-|                     | xAI Grok-4 Fast             | **$0.20/$0.50 per 1M** 🆕 | None             | Fastest + tool calling, ultralow  |
-|                     | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕     | None             | Reasoning flagship from xAI       |
-|                     | Mistral                     | Free trial + paid         | Rate limited     | European AI                       |
-|                     | OpenRouter                  | Pay-per-use               | None             | 100+ models aggr.                 |
-| **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                   | Daily 10AM       | 128K output, newest flagship      |
-|                     | GLM-4.7                     | $0.6/1M                   | Daily 10AM       | Budget backup                     |
-|                     | MiniMax M2.5 🆕             | $0.3/1M input             | 5-hour rolling   | Reasoning + agentic tasks         |
-|                     | MiniMax M2.1                | $0.2/1M                   | 5-hour rolling   | Cheapest option                   |
-|                     | Kimi K2.5 (Moonshot API) 🆕 | Pay-per-use               | None             | Direct Moonshot API access        |
-|                     | Kimi K2                     | $9/mo flat                | 10M tokens/mo    | Predictable cost                  |
-| **🆓 FREE**         | Qoder                       | **$0**                    | Unlimited        | 5 models unlimited                |
-|                     | Qwen                        | **$0**                    | Unlimited        | 4 models unlimited                |
-|                     | Kiro                        | **$0**                    | Unlimited        | Claude Sonnet/Haiku (AWS Builder) |
-|                     | LongCat Flash-Lite 🆕       | **$0** (50M tok/day 🔥)   | 1 RPS            | Largest free quota on Earth       |
-|                     | Pollinations AI 🆕          | **$0** (no key needed)    | 1 req/15s        | GPT-5, Claude, DeepSeek, Llama 4  |
-|                     | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)  | ~150 resp/day    | 50+ models, global edge           |
-|                     | Scaleway AI 🆕              | **$0** (1M tokens total)  | Rate limited     | EU/GDPR, Qwen3 235B, Llama 70B    |
+| Tier                | Provider                    | Cost                                  | Quota Reset           | Best For                           |
+| ------------------- | --------------------------- | ------------------------------------- | --------------------- | ---------------------------------- |
+| **💳 SUBSCRIPTION** | Claude Code (Pro)           | $20/mo                                | 5h + weekly           | Already subscribed                 |
+|                     | Codex (Plus/Pro)            | $20-200/mo                            | 5h + weekly           | OpenAI users                       |
+|                     | GitHub Copilot              | $10-19/mo                             | Monthly               | GitHub users                       |
+| **🔑 API KEY**      | NVIDIA NIM                  | **FREE ACCESS** (current terms apply) | ~40 RPM               | 70+ open models                    |
+|                     | Cerebras                    | **FREE** (1M tok/day)                 | 60K TPM / 30 RPM      | World's fastest                    |
+|                     | Groq                        | **FREE** (30 RPM)                     | 14.4K RPD             | Ultra-fast Llama/Gemma             |
+|                     | DeepSeek V3.2               | $0.27/$1.10 per 1M                    | None                  | Best price/quality reasoning       |
+|                     | xAI Grok-4 Fast             | **$0.20/$0.50 per 1M** 🆕             | None                  | Fastest + tool calling, ultralow   |
+|                     | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕                 | None                  | Reasoning flagship from xAI        |
+|                     | Mistral                     | Free trial + paid                     | Rate limited          | European AI                        |
+|                     | OpenRouter                  | Pay-per-use                           | None                  | 100+ models aggr.                  |
+| **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                               | Daily 10AM            | 128K output, newest flagship       |
+|                     | GLM-4.7                     | $0.6/1M                               | Daily 10AM            | Budget backup                      |
+|                     | MiniMax M2.5 🆕             | $0.3/1M input                         | 5-hour rolling        | Reasoning + agentic tasks          |
+|                     | MiniMax M2.1                | $0.2/1M                               | 5-hour rolling        | Cheapest option                    |
+|                     | Kimi K2.5 (Moonshot API) 🆕 | Pay-per-use                           | None                  | Direct Moonshot API access         |
+|                     | Kimi K2                     | $9/mo flat                            | 10M tokens/mo         | Predictable cost                   |
+| **🆓 FREE ACCESS**  | Qoder                       | **$0**                                | Limits apply          | Selected models; terms apply       |
+|                     | Kiro                        | **$0**                                | Credit/account limits | Claude access; current terms apply |
+|                     | LongCat signup credit       | **$0** (10M one-time; KYC)            | One-time              | Signup grant; not recurring        |
+|                     | Pollinations AI 🆕          | **$0** (no key needed)                | 1 req/15s             | GPT-5, Claude, DeepSeek, Llama 4   |
+|                     | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)              | ~150 resp/day         | 50+ models, global edge            |
+|                     | Scaleway AI 🆕              | **$0** (1M tokens total)              | Rate limited          | EU/GDPR, Qwen3 235B, Llama 70B     |
 
 > 🆕 **New models added (Mar 2026):** Grok-4 Fast family at $0.20/$0.50/M (benchmarked at 1143ms — 30% faster than Gemini 2.5 Flash), GLM-5 via Z.AI with 128K output, MiniMax M2.5 reasoning, DeepSeek V3.2 updated pricing, Kimi K2.5 via Moonshot direct API.
 
 **💡 $0 Combo Stack — The Complete Free Setup:**
 
 ```
-# 🆓 Ultimate Free Stack 2026 — 11 Providers, $0 Forever
-Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
-LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
+# 🆓 Free-access examples — provider limits and terms apply
+Kiro (kr/)             → Claude access — account/credit limits apply
+Qoder (if/)            → selected models — no published token cap; rate/account limits apply
+LongCat (lc/)          → LongCat-2.0 — 10M one-time signup credit; KYC required
 Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
-Qwen (qw/)             → qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next UNLIMITED
-Gemini (gemini/)       → Gemini 2.5 Flash — 1,500 req/day free API key
+Gemini (gemini/)       → selected free-tier models — current API quotas apply
 Cloudflare AI (cf/)    → Llama 70B, Gemma 3, Mistral — 10K Neurons/day
 Scaleway (scw/)        → Qwen3 235B, Llama 70B — 1M free tokens (EU)
-Groq (groq/)           → Llama/Gemma ultra-fast — 14.4K req/day
-NVIDIA NIM (nvidia/)   → 70+ open models — 40 RPM forever
+Groq (groq/)           → selected models — current per-model rate limits apply
+NVIDIA NIM (nvidia/)   → selected models — current rate limits apply
 Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 ```
 
-**Zero cost. Never stops coding.** Configure this as one OmniRoute combo and all fallbacks happen automatically — no manual switching ever.
+**Current $0 access where listed; availability is not guaranteed.** A combo can try the next eligible route when a quota or upstream fails.
 
 ---
 
@@ -1189,38 +1184,28 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 
 ## 🆓 Free Models — What You Actually Get
 
-> All models below are **100% free with zero credit card required**. OmniRoute auto-routes between them when one quota runs out — combine them all for an unbreakable $0 combo.
+> The entries below summarize access that was listed as free when audited. Provider quotas, card/account/KYC requirements, models, regions and terms can change. A combo broadens fallback coverage but does not guarantee uninterrupted $0 access.
 
 ### 🔵 CLAUDE MODELS (via Kiro — AWS Builder ID)
 
-| Model               | Prefix | Limit         | Rate Limit            |
-| ------------------- | ------ | ------------- | --------------------- |
-| `claude-sonnet-4.5` | `kr/`  | **Unlimited** | No reported daily cap |
-| `claude-haiku-4.5`  | `kr/`  | **Unlimited** | No reported daily cap |
-| `claude-opus-4.6`   | `kr/`  | **Unlimited** | Latest Opus via Kiro  |
+| Model               | Prefix | Limit                  | Rate Limit                                 |
+| ------------------- | ------ | ---------------------- | ------------------------------------------ |
+| `claude-sonnet-4.5` | `kr/`  | No published token cap | Provider/account limits may apply          |
+| `claude-haiku-4.5`  | `kr/`  | No published token cap | Provider/account limits may apply          |
+| `claude-opus-4.6`   | `kr/`  | No published token cap | Latest Opus; provider/account limits apply |
 
 ### 🟢 QODER MODELS (Free PAT via qodercli)
 
-| Model              | Prefix | Limit         | Rate Limit      |
-| ------------------ | ------ | ------------- | --------------- |
-| `kimi-k2-thinking` | `if/`  | **Unlimited** | No reported cap |
-| `qwen3-coder-plus` | `if/`  | **Unlimited** | No reported cap |
-| `deepseek-r1`      | `if/`  | **Unlimited** | No reported cap |
-| `minimax-m2.1`     | `if/`  | **Unlimited** | No reported cap |
-| `kimi-k2`          | `if/`  | **Unlimited** | No reported cap |
+| Model              | Prefix | Limit                  | Rate Limit                        |
+| ------------------ | ------ | ---------------------- | --------------------------------- |
+| `kimi-k2-thinking` | `if/`  | No published token cap | Provider/account limits may apply |
+| `qwen3-coder-plus` | `if/`  | No published token cap | Provider/account limits may apply |
+| `deepseek-r1`      | `if/`  | No published token cap | Provider/account limits may apply |
+| `minimax-m2.1`     | `if/`  | No published token cap | Provider/account limits may apply |
+| `kimi-k2`          | `if/`  | No published token cap | Provider/account limits may apply |
 
 > Recommended connection method: **Personal Access Token + `qodercli`**. Browser OAuth is
 > experimental and disabled by default unless `QODER_OAUTH_*` environment variables are configured.
-
-### 🟡 QWEN MODELS (Device Code Auth)
-
-| Model               | Prefix | Limit         | Rate Limit          |
-| ------------------- | ------ | ------------- | ------------------- |
-| `qwen3-coder-plus`  | `qw/`  | **Unlimited** | No reported cap     |
-| `qwen3-coder-flash` | `qw/`  | **Unlimited** | No reported cap     |
-| `qwen3-coder-next`  | `qw/`  | **Unlimited** | No reported cap     |
-| `vision-model`      | `qw/`  | **Unlimited** | Multimodal (images) |
-
 
 ### ⚫ NVIDIA NIM (Free API Key — build.nvidia.com)
 
@@ -1246,17 +1231,13 @@ Available free: `llama-3.3-70b`, `llama-3.1-8b`, `deepseek-r1-distill-llama-70b`
 
 Available free: `llama-3.3-70b-versatile`, `gemma2-9b-it`, `mixtral-8x7b`, `whisper-large-v3`
 
-### 🔴 LONGCAT AI (Free API Key — longcat.chat) 🆕
+### 🔴 LONGCAT AI (Signup credit — KYC required)
 
-| Model                         | Prefix | Daily Free Quota  | Notes                   |
-| ----------------------------- | ------ | ----------------- | ----------------------- |
-| `LongCat-Flash-Lite`          | `lc/`  | **50M tokens** 💥 | Largest free quota ever |
-| `LongCat-Flash-Chat`          | `lc/`  | 500K tokens       | Multi-turn chat         |
-| `LongCat-Flash-Thinking`      | `lc/`  | 500K tokens       | Reasoning / CoT         |
-| `LongCat-Flash-Thinking-2601` | `lc/`  | 500K tokens       | Jan 2026 version        |
-| `LongCat-Flash-Omni-2603`     | `lc/`  | 500K tokens       | Multimodal              |
+| Model         | Prefix | Current catalog grant   | Notes                                               |
+| ------------- | ------ | ----------------------- | --------------------------------------------------- |
+| `LongCat-2.0` | `lc/`  | **10M tokens one-time** | Signup grant; not a recurring monthly or daily pool |
 
-> 100% free while in public beta. Sign up at [longcat.chat](https://longcat.chat) with email or phone. Resets daily 00:00 UTC.
+> Provider terms, eligibility and model availability can change. See [`FREE_TIERS.md`](../../reference/FREE_TIERS.md) for the audited catalog entry.
 
 ### 🟢 POLLINATIONS AI (No API Key Required) 🆕
 
@@ -1291,31 +1272,30 @@ Available free: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama-3.1-70b-in
 
 > EU/GDPR compliant. Get API key at [console.scaleway.com](https://console.scaleway.com).
 
-> **💡 The Ultimate Free Stack (11 Providers, $0 Forever):**
+> **💡 Free-access examples (provider limits and terms apply):**
 >
 > ```
-> Kiro (kr/)             → Claude Sonnet/Haiku UNLIMITED
-> Qoder (if/)            → kimi-k2-thinking, qwen3-coder-plus, deepseek-r1 UNLIMITED
-> LongCat Lite (lc/)     → LongCat-Flash-Lite — 50M tokens/day 🔥
+> Kiro (kr/)             → Claude access — account/credit limits apply
+> Qoder (if/)            → selected models — no published token cap; limits apply
+> LongCat (lc/)          → LongCat-2.0 — 10M one-time signup credit; KYC required
 > Pollinations (pol/)    → GPT-5, Claude, DeepSeek, Llama 4 — no key needed
-> Qwen (qw/)             → qwen3-coder models UNLIMITED
-> Gemini (gemini/)       → Gemini 2.5 Flash — 1,500 req/day free
+> Gemini (gemini/)       → selected free-tier models — current quotas apply
 > Cloudflare AI (cf/)    → 50+ models — 10K Neurons/day
 > Scaleway (scw/)        → Qwen3 235B, Llama 70B — 1M free tokens (EU)
-> Groq (groq/)           → Llama/Gemma — 14.4K req/day ultra-fast
-> NVIDIA NIM (nvidia/)   → 70+ open models — 40 RPM forever
+> Groq (groq/)           → selected models — current per-model rate limits apply
+> NVIDIA NIM (nvidia/)   → selected models — current rate limits apply
 > Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 > ```
 
 ## 🎙️ Free Transcription Combo
 
-> Transcribe any audio/video for **$0** — Deepgram leads with $200 free, AssemblyAI $50 fallback, Groq Whisper as unlimited emergency backup.
+> Transcription access depends on each upstream allowance — Deepgram and AssemblyAI signup credits can lead, with Groq Whisper as a rate-limited fallback.
 
-| Provider          | Free Credits           | Best Model                                   | Rate Limit                   |
-| ----------------- | ---------------------- | -------------------------------------------- | ---------------------------- |
-| 🟢 **Deepgram**   | **$200 free** (signup) | `nova-3` — best accuracy, 30+ languages      | No RPM limit on free credits |
-| 🔵 **AssemblyAI** | **$50 free** (signup)  | `universal-3-pro` — chapters, sentiment, PII | No RPM limit on free credits |
-| 🔴 **Groq**       | **Free forever**       | `whisper-large-v3` — OpenAI Whisper          | 30 RPM (rate limited)        |
+| Provider          | Free Credits                | Best Model                                   | Rate Limit                               |
+| ----------------- | --------------------------- | -------------------------------------------- | ---------------------------------------- |
+| 🟢 **Deepgram**   | **$200 free** (signup)      | `nova-3` — best accuracy, 30+ languages      | No RPM limit on free credits             |
+| 🔵 **AssemblyAI** | **$50 free** (signup)       | `universal-3-pro` — chapters, sentiment, PII | No RPM limit on free credits             |
+| 🔴 **Groq**       | **Free tier; limits apply** | `whisper-large-v3` — OpenAI Whisper          | Current model-specific rate limits apply |
 
 **Suggested combo in `/dashboard/combos`:**
 
@@ -1325,7 +1305,7 @@ Strategy: Priority
 Nodes:
   [1] deepgram/nova-3          → uses $200 free first
   [2] assemblyai/universal-3-pro → fallback when Deepgram credits run out
-  [3] groq/whisper-large-v3    → free forever, emergency fallback
+  [3] groq/whisper-large-v3    → free access; rate limits apply
 ```
 
 Then in `/dashboard/media` → **Transcription** tab: upload any audio or video file → select your combo endpoint → get transcription in supported formats.
@@ -1374,30 +1354,30 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
 ### 🚀 Previous v2.0.9+ — Playground, CLI Fingerprints & ACP
 
-| Feature                                    | What It Does                                                                                                                                                                                                                            |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎮 **Model Playground**                    | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                                                                                                                  |
-| 🔏 **CLI Fingerprint Matching**            | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved**                                                                                           |
-| 🤖 **ACP Agents Dashboard**                | Debug › Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool. **OpenCode** users get a "Download opencode.json" button that auto-generates a ready-to-use config with all available models. |
-| 🔧 **Custom Model `apiFormat` Routing**    | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                                                                                                                         |
-| 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                             |
-| 🔄 **Electron Auto-Update**                | Desktop app checks for updates + auto-install on restart                                                                                                                                                                                |
+| Feature                                 | What It Does                                                                                                                                                                                                                            |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🎮 **Model Playground**                 | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                                                                                                                  |
+| 🔏 **CLI Fingerprint Matching**         | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved**                                                                                           |
+| 🤖 **ACP Agents Dashboard**             | Debug › Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool. **OpenCode** users get a "Download opencode.json" button that auto-generates a ready-to-use config with all available models. |
+| 🔧 **Custom Model `apiFormat` Routing** | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                                                                                                                         |
+| 🏢 **Codex Workspace Isolation**        | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                             |
+| 🔄 **Electron Auto-Update**             | Desktop app checks for updates + auto-install on restart                                                                                                                                                                                |
 
 ### 🤖 Agent & Protocol Operations (v2.0)
 
-| Feature                               | What It Does                                                                                                                           |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 🔧 **MCP Server (25 tools)**          | IDE/agent tools via 3 transports: stdio, SSE (`/api/mcp/sse`), Streamable HTTP (`/api/mcp/stream`). 18 core + 3 memory + 4 skill tools |
-| 🤝 **A2A Server (JSON-RPC + SSE)**    | Agent-to-agent task execution with sync and streaming flows                                                                            |
-| 🧭 **Consolidated Endpoints Page**    | Tabbed management page with Endpoint Proxy, MCP, A2A, and API Endpoints tabs                                                           |
-| 🎚️ **Service Enable/Disable Toggles** | ON/OFF switches for MCP and A2A with settings persistence (default: OFF)                                                               |
-| 🛰️ **MCP Runtime Heartbeat**          | Real process status (pid, uptime, heartbeat age, transport, scope mode)                                                                |
-| 📋 **MCP Audit Trail**                | Filterable audit logs with success/failure and key attribution                                                                         |
-| 🔐 **MCP Scope Enforcement**          | 10 granular scope permissions for controlled tool access                                                                               |
-| 📡 **A2A Task Lifecycle Management**  | List/filter tasks, inspect events/artifacts, cancel running tasks                                                                      |
-| 📋 **Agent Card Discovery**           | `/.well-known/agent.json` for client auto-discovery                                                                                    |
-| 🧪 **Protocol E2E Test Harness**      | Real MCP SDK + A2A client flows in `test:protocols:e2e`                                                                                |
-| ⚙️ **Operational Controls**           | Switch combos, tune resilience settings, and review breaker state from dedicated Health and Settings surfaces                          |
+| Feature                               | What It Does                                                                                                                                                                                              |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🔧 **MCP Server (107 tools)**         | IDE/agent tools via 3 transports: stdio, SSE (`/api/mcp/sse`), Streamable HTTP (`/api/mcp/stream`). 107 unique tools across the registered tool families; enabled skills may add dynamic tools at runtime |
+| 🤝 **A2A Server (JSON-RPC + SSE)**    | Agent-to-agent task execution with sync and streaming flows                                                                                                                                               |
+| 🧭 **Consolidated Endpoints Page**    | Tabbed management page with Endpoint Proxy, MCP, A2A, and API Endpoints tabs                                                                                                                              |
+| 🎚️ **Service Enable/Disable Toggles** | ON/OFF switches for MCP and A2A with settings persistence (default: OFF)                                                                                                                                  |
+| 🛰️ **MCP Runtime Heartbeat**          | Real process status (pid, uptime, heartbeat age, transport, scope mode)                                                                                                                                   |
+| 📋 **MCP Audit Trail**                | Filterable audit logs with success/failure and key attribution                                                                                                                                            |
+| 🔐 **MCP Scope Enforcement**          | 32 granular scope permissions for controlled tool access                                                                                                                                                  |
+| 📡 **A2A Task Lifecycle Management**  | List/filter tasks, inspect events/artifacts, cancel running tasks                                                                                                                                         |
+| 📋 **Agent Card Discovery**           | `/.well-known/agent.json` for client auto-discovery                                                                                                                                                       |
+| 🧪 **Protocol E2E Test Harness**      | Real MCP SDK + A2A client flows in `test:protocols:e2e`                                                                                                                                                   |
+| ⚙️ **Operational Controls**           | Switch combos, tune resilience settings, and review breaker state from dedicated Health and Settings surfaces                                                                                             |
 
 ### 🧠 Routing & Intelligence
 
@@ -1680,8 +1660,6 @@ Scenarios:
 - `5h ON` + `Weekly OFF`: only 5-hour usage can block the account.
 - `resetAt` passed: account re-enters rotation automatically (no manual re-enable).
 
-
-
 ### GitHub Copilot
 
 ```bash
@@ -1786,7 +1764,7 @@ Models:
 ```bash
 Dashboard → Connect Qoder
 → Qoder OAuth login
-→ Unlimited usage
+→ Access is subject to current provider limits
 
 Models:
   if/kimi-k2-thinking
@@ -1796,24 +1774,12 @@ Models:
   if/deepseek-r1
 ```
 
-### Qwen (4 FREE models via Device Code)
-
-```bash
-Dashboard → Connect Qwen
-→ Device code authorization
-→ Unlimited usage
-
-Models:
-  qw/qwen3-coder-plus
-  qw/qwen3-coder-flash
-```
-
 ### Kiro (Claude FREE)
 
 ```bash
 Dashboard → Connect Kiro
 → AWS Builder ID or Google/GitHub
-→ Unlimited usage
+→ Access is subject to current provider limits
 
 Models:
   kr/claude-sonnet-4.5
@@ -1844,10 +1810,10 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  1. if/kimi-k2-thinking (unlimited)
-  2. qw/qwen3-coder-plus (unlimited)
+  1. if/kimi-k2-thinking (no published token cap; provider limits may apply)
+  2. kr/qwen3-coder-next
 
-Cost: $0 forever!
+Cost: currently listed as $0; terms and availability may change
 ```
 
 </details>
@@ -2023,8 +1989,6 @@ opencode
 
 > **⚠️ Important for users running OmniRoute on a VPS, Docker, or any remote server**
 
-
-
 The OAuth credentials bundled in OmniRoute are registered **for `localhost` only**. When you access OmniRoute on a remote server (e.g. `https://omniroute.myserver.com`), Google rejects the authentication with:
 
 ```
@@ -2086,7 +2050,6 @@ docker restart omniroute
 
 **7. Try connecting again**
 
-
 Google will now redirect correctly to `https://your-server.com/callback`.
 
 ---
@@ -2104,95 +2067,6 @@ If you don't want to set up your own credentials right now, you can still use th
 > This works because the authorization code in the URL is valid regardless of whether the redirect page loaded.
 
 ---
-
-<details>
-<summary><b>🇧🇷 Versão em Português</b></summary>
-
-
-
-As credenciais OAuth embutidas no OmniRoute estão cadastradas **apenas para `localhost`**. Quando você acessa o OmniRoute em um servidor remoto (ex: `https://omniroute.meuservidor.com`), o Google rejeita a autenticação com:
-
-```
-Error 400: redirect_uri_mismatch
-```
-
-#### Solução: Configure suas próprias credenciais OAuth
-
-Você precisa criar um **OAuth 2.0 Client ID** no Google Cloud Console com a URI do seu servidor.
-
-#### Passo a passo
-
-**1. Acesse o Google Cloud Console**
-
-Abra: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
-
-**2. Crie um novo OAuth 2.0 Client ID**
-
-- Clique em **"+ Create Credentials"** → **"OAuth client ID"**
-- Tipo de aplicativo: **"Web application"**
-- Nome: escolha qualquer nome (ex: `OmniRoute Remote`)
-
-**3. Adicione as Authorized Redirect URIs**
-
-No campo **"Authorized redirect URIs"**, adicione:
-
-```
-https://seu-servidor.com/callback
-```
-
-> Substitua `seu-servidor.com` pelo domínio ou IP do seu servidor (inclua a porta se necessário, ex: `http://45.33.32.156:20128/callback`).
-
-**4. Salve e copie as credenciais**
-
-Após criar, o Google mostrará o **Client ID** e o **Client Secret**.
-
-**5. Configure as variáveis de ambiente**
-
-No seu `.env` (ou nas variáveis de ambiente do Docker):
-
-```bash
-# Para Antigravity:
-ANTIGRAVITY_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
-ANTIGRAVITY_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
-
-GEMINI_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
-GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
-```
-
-**6. Reinicie o OmniRoute**
-
-```bash
-# Se usando npm:
-npm run dev
-
-# Se usando Docker:
-docker restart omniroute
-```
-
-**7. Tente conectar novamente**
-
-
-Agora o Google redirecionará corretamente para `https://seu-servidor.com/callback` e a autenticação funcionará.
-
----
-
-#### Workaround temporário (sem configurar credenciais próprias)
-
-Se não quiser criar credenciais próprias agora, ainda é possível usar o fluxo **manual de URL**:
-
-1. O OmniRoute abrirá a URL de autorização do Google
-2. Após você autorizar, o Google tentará redirecionar para `localhost` (que falha no servidor remoto)
-3. **Copie a URL completa** da barra de endereço do seu browser (mesmo que a página não carregue)
-4. Cole essa URL no campo que aparece no modal de conexão do OmniRoute
-5. Clique em **"Connect"**
-
-> Este workaround funciona porque o código de autorização na URL é válido independente do redirect ter carregado ou não.
-
-</details>
-
----
-
-</details>
 
 ## 🛠️ Tech Stack
 
@@ -2224,9 +2098,9 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 | --------------------------------------------------------------------- | --------------------------------------------------- |
 | [User Guide](docs/guides/USER_GUIDE.md)                               | Providers, combos, CLI integration, deployment      |
 | [API Reference](docs/reference/API_REFERENCE.md)                      | All endpoints with examples                         |
-| [MCP Server](open-sse/mcp-server/README.md)                           | 25 MCP tools, IDE configs, Python/TS/Go clients     |
+| [MCP Server](open-sse/mcp-server/README.md)                           | 107 MCP tools, IDE configs, Python/TS/Go clients    |
 | [A2A Server](src/lib/a2a/README.md)                                   | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
-| [Auto-Combo Engine](docs/routing/AUTO-COMBO.md)                       | 6-factor scoring, mode packs, self-healing          |
+| [Auto-Combo Engine](docs/routing/AUTO-COMBO.md)                       | 13-factor scoring, mode packs, self-healing         |
 | [Context Relay](docs/features/context-relay.md)                       | Session handoff strategy for account rotation       |
 | [Troubleshooting](docs/guides/TROUBLESHOOTING.md)                     | Common problems and solutions                       |
 | [Architecture](docs/architecture/ARCHITECTURE.md)                     | System architecture and internals                   |

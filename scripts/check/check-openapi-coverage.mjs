@@ -20,7 +20,9 @@ const OPENAPI_PATH = path.join(ROOT, "docs", "openapi.yaml");
 // until the backlog (services, free-proxies, relay-tokens, key-groups,
 // middleware/hooks, etc.) is documented, the gate enforces "no regressions"
 // instead of the absolute target. Raise this back to 99 once the backlog clears.
-const THRESHOLD = 36;
+// Velocity phase (2026-08-30, until v4.0): 36 → 30, same 20% relaxation as the ratchet
+// baselines (config/quality/quality-baseline.json `_policy`). Re-tighten at 4.0.
+const THRESHOLD = 30;
 
 if (!fs.existsSync(API_ROOT)) {
   console.error(`[openapi-coverage] FAIL — API root not found: ${API_ROOT}`);
@@ -32,7 +34,7 @@ if (!fs.existsSync(OPENAPI_PATH)) {
   process.exit(1);
 }
 
-const implementedPaths = collectApiRouteUrlPaths(ROOT).sort();
+const implementedPaths = collectApiRouteUrlPaths(ROOT).sort((a, b) => a.localeCompare(b));
 const raw = yaml.load(fs.readFileSync(OPENAPI_PATH, "utf-8"));
 const documentedPaths = new Set(Object.keys(raw.paths || {}));
 

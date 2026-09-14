@@ -19,7 +19,7 @@ ACP (Agent Client Protocol) is a **"CLI-as-backend" transport** for OmniRoute. I
 | **No API keys needed** | Uses your existing CLI authentication      |
 | **Native protocol**    | Uses each CLI's native input/output format |
 | **Auto-discovery**     | Detects installed CLIs on your system      |
-| **13 built-in agents** | Pre-configured for popular CLI tools       |
+| **15 built-in agents** | Pre-configured for popular CLI tools       |
 | **Custom agents**      | Add your own CLI tools via settings        |
 | **Process management** | Handles lifecycle (spawn, send, kill)      |
 
@@ -27,7 +27,7 @@ ACP (Agent Client Protocol) is a **"CLI-as-backend" transport** for OmniRoute. I
 
 ## Supported CLI Agents
 
-ACP supports **13 built-in CLI agents** out of the box:
+ACP supports **15 built-in CLI agents** out of the box:
 
 | Agent ID      | Display Name       | Binary        | Protocol |
 | ------------- | ------------------ | ------------- | -------- |
@@ -38,12 +38,14 @@ ACP supports **13 built-in CLI agents** out of the box:
 | `aider`       | Aider              | `aider`       | stdio    |
 | `opencode`    | OpenCode           | `opencode`    | stdio    |
 | `cline`       | Cline              | `cline`       | stdio    |
-| `qwen`        | Qwen Code          | `qwen --acp` | stdio    |
+| `qwen`        | Qwen Code          | `qwen --acp`  | stdio    |
 | `forge`       | ForgeCode          | `forge`       | stdio    |
 | `amazon-q`    | Amazon Q Developer | `q`           | stdio    |
 | `interpreter` | Open Interpreter   | `interpreter` | stdio    |
 | `cursor-cli`  | Cursor CLI         | `cursor`      | stdio    |
 | `warp`        | Warp AI            | `warp`        | stdio    |
+| `gemini`      | Gemini CLI         | `gemini`      | stdio    |
+| `zcode`       | ZCode              | `zcode`       | stdio    |
 
 ### Custom Agents
 
@@ -543,7 +545,7 @@ const agents = detectInstalledAgents();
 ## What's Next?
 
 - **[API Reference](../reference/API_REFERENCE.md)** — REST API endpoints
-- **[Provider Reference](../reference/PROVIDER_REFERENCE.md)** — All 226 providers
+- **[Provider Reference](../reference/PROVIDER_REFERENCE.md)** — All 352 providers
 - **[MCP Server](./MCP-SERVER.md)** — Model Context Protocol integration
 - **[A2A Server](./A2A-SERVER.md)** — Agent-to-Agent protocol
 - **[Cloud Agent](./CLOUD_AGENT.md)** — Cloud-based agents

@@ -6,9 +6,9 @@ lastUpdated: 2026-06-28
 
 # Dokumentacja serwera MCP OmniRoute
 
-> Serwer Model Context Protocol z 104 narzędziami obejmującymi routing, cache, kompresję, pamięć, skills, proxy, pool oraz operacje na źródłach kontekstu.
+> Serwer Model Context Protocol z 105 narzędziami obejmującymi routing, cache, kompresję, pamięć, skills, proxy, pool oraz operacje na źródłach kontekstu.
 >
-> Źródło prawdy: `open-sse/mcp-server/server.ts` wylicza **104 unikalne narzędzia** przez `countUniqueMcpTools()`: 42 kanoniczne definicje (w tym sześć narzędzi cyklu życia CCR oraz trio agent-skills), plus memory (3), skills (4), GitHub skills (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22) oraz dwa narzędzia kompresji wyłącznie RTK.
+> Źródło prawdy: `open-sse/mcp-server/server.ts` wylicza **105 unikalne narzędzia** przez `countUniqueMcpTools()`: 42 kanoniczne definicje (w tym sześć narzędzi cyklu życia CCR oraz trio agent-skills), plus memory (3), skills (4), GitHub skills (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22) oraz dwa narzędzia kompresji wyłącznie RTK.
 
 ## Instalacja
 
@@ -227,7 +227,7 @@ Zobacz [AGENT-SKILLS.md](./AGENT-SKILLS.md) po pełny katalog i sposób konsumow
 
 ## Pokrewne frameworki (v3.8.0)
 
-Powyższy inwentarz narzędzi MCP (104 unikalne tools, wyliczane przez `countUniqueMcpTools()`) jest celowo
+Powyższy inwentarz narzędzi MCP (105 unikalne tools, wyliczane przez `countUniqueMcpTools()`) jest celowo
 ograniczony do operacji runtime: routing/cache/compression/memory/skills/proxy/context-source. Dwa sąsiednie
 frameworki dostarczane razem z serwerem MCP w v3.8.0 są udokumentowane osobno:
 

@@ -22,14 +22,8 @@ export function isGlobalProxyEnabled(db: ReturnType<typeof getDbInstance>): bool
 /**
  * #6246 fail-closed guard for a connection with an assigned dead proxy pool.
  * Explicitly disabling proxying globally or for the connection allows direct egress.
- *
- * #13469: Also checks combo scope — a dead combo pool must not fall through to direct.
  */
-export function hasBlockingProxyAssignment(
-  connectionId: string,
-  providerId?: string,
-  comboId?: string
-): boolean {
+export function hasBlockingProxyAssignment(connectionId: string, providerId?: string): boolean {
   try {
     const db = getDbInstance();
     if (!isGlobalProxyEnabled(db)) return false;
@@ -44,12 +38,11 @@ export function hasBlockingProxyAssignment(
         `SELECT 1 FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id
            WHERE ((a.scope = 'account' AND a.scope_id = ?)
                OR (a.scope = 'provider' AND a.scope_id = ?)
-               OR (a.scope = 'combo' AND a.scope_id = ?)
                OR (a.scope = 'global'))
              AND NOT ${PROXY_ALIVE_PREDICATE}
            LIMIT 1`
       )
-      .get(connectionId, provider, comboId ?? null);
+      .get(connectionId, provider);
     return !!dead;
   } catch {
     return false;

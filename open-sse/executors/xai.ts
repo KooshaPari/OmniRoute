@@ -1,5 +1,9 @@
-import { BaseExecutor, type ProviderCredentials } from "./base.ts";
+import { BaseExecutor, type ExecutorLog, type ProviderCredentials } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
+import { getModelTargetFormat } from "../config/providerModels.ts";
+import { isResponsesEndpointPath } from "../utils/responsesEndpoint.ts";
+import { chatRequestToXaiResponses } from "@/lib/providers/xai/translators/openai-chat.ts";
+import { capXaiRequestHistory } from "../services/xaiMessageCap.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -47,8 +51,69 @@ function asRecord(value: unknown): JsonRecord | null {
  *   3. Leaves unclassified models and bodies untouched otherwise.
  */
 export class XaiExecutor extends BaseExecutor {
-  constructor() {
-    super("xai", PROVIDERS.xai);
+  constructor(provider = "xai") {
+    super(provider, PROVIDERS[provider]);
+  }
+
+  buildUrl(
+    model: string,
+    _stream: boolean,
+    _urlIndex = 0,
+    credentials: ProviderCredentials | null = null
+  ) {
+    if (getModelTargetFormat(this.provider, model) === "openai-responses") {
+      return this.config.responsesBaseUrl || this.config.baseUrl;
+    }
+    if (isResponsesEndpointPath(credentials?.requestEndpointPath)) {
+      return this.config.responsesBaseUrl || this.config.baseUrl;
+    }
+    return this.config.baseUrl;
+  }
+
+  async refreshCredentials(
+    credentials: ProviderCredentials,
+    log?: ExecutorLog | null
+  ): Promise<Partial<ProviderCredentials> | null> {
+    if (this.provider !== "xai-oauth" || !credentials.refreshToken) return null;
+
+    try {
+      const response = await fetch(this.config.tokenUrl || "https://auth.x.ai/oauth2/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+        },
+        body: new URLSearchParams({
+          grant_type: "refresh_token",
+          client_id: this.config.clientId || "",
+          refresh_token: credentials.refreshToken,
+        }),
+      });
+
+      if (!response.ok) {
+        log?.warn?.("TOKEN_REFRESH", `xAI OAuth refresh failed with status ${response.status}`);
+        return null;
+      }
+
+      const data = await response.json();
+      if (!data.access_token) {
+        log?.warn?.("TOKEN_REFRESH", "xAI OAuth refresh response omitted access_token");
+        return null;
+      }
+
+      const expiresIn = Number(data.expires_in) || 21600;
+      return {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token || credentials.refreshToken,
+        expiresAt: new Date(Date.now() + expiresIn * 1000).toISOString(),
+      };
+    } catch (error) {
+      log?.warn?.(
+        "TOKEN_REFRESH",
+        `xAI OAuth refresh error: ${error instanceof Error ? error.message : String(error)}`
+      );
+      return null;
+    }
   }
 
   transformRequest(
@@ -61,7 +126,42 @@ export class XaiExecutor extends BaseExecutor {
     const record = asRecord(cleaned);
     if (!record) return cleaned;
 
-    const out: JsonRecord = { ...record };
+    let out: JsonRecord = { ...record };
+    const nativeXaiPassthrough = record._nativeXaiResponsesPassthrough === true;
+    delete out._nativeXaiResponsesPassthrough;
+    delete out._nativeCodexPassthrough;
+
+    const useResponses =
+      nativeXaiPassthrough ||
+      getModelTargetFormat(this.provider, model) === "openai-responses" ||
+      isResponsesEndpointPath(credentials?.requestEndpointPath);
+
+    // #10165: chat/completions clients send messages + max_tokens; xAI /v1/responses
+    // requires input + max_output_tokens. Convert at the executor edge so a missed
+    // chatCore translation cannot ship a chat-shaped body to Responses.
+    if (useResponses) {
+      if (Array.isArray(out.messages) && out.input == null) {
+        out = chatRequestToXaiResponses(out as never) as unknown as JsonRecord;
+      } else {
+        if (out.max_completion_tokens != null && out.max_output_tokens == null) {
+          out.max_output_tokens = out.max_completion_tokens;
+          delete out.max_completion_tokens;
+        }
+        if (out.max_tokens != null && out.max_output_tokens == null) {
+          out.max_output_tokens = out.max_tokens;
+          delete out.max_tokens;
+        }
+        if (out.response_format != null && out.text == null) {
+          out.text = { format: out.response_format };
+          delete out.response_format;
+        }
+      }
+      // Keep model id from the routed request when the translator left it empty.
+      if (out.model == null && model) out.model = model;
+      // After chat→Responses expansion, `input` is what xAI counts toward 800.
+      return capXaiRequestHistory(out);
+    }
+
     let modelId = typeof out.model === "string" ? out.model : model;
 
     let suffixEffort: string | null = null;
@@ -87,7 +187,7 @@ export class XaiExecutor extends BaseExecutor {
       if (effort) out.reasoning_effort = effort;
     }
 
-    return out;
+    return capXaiRequestHistory(out);
   }
 }
 

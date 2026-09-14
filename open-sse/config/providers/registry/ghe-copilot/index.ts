@@ -16,6 +16,11 @@ export const gheCopilotProvider: RegistryEntry = {
   forceStream: true,
   baseUrl: "https://api.githubcopilot.com/chat/completions",
   responsesBaseUrl: "https://api.githubcopilot.com/responses",
+  // Anthropic-native /v1/messages shim for Claude models. Static default only;
+  // the GHE executor's getMessagesBase() derives the real per-connection host
+  // from copilotApiUrl/gheUrl at request time. Its presence enables Claude ->
+  // /v1/messages routing in the buildUrl override.
+  messagesUrl: "https://api.githubcopilot.com/v1/messages",
   authType: "oauth",
   authHeader: "bearer",
   // GHE Copilot requires a custom gheUrl (set per-connection via providerSpecificData).
@@ -97,14 +102,29 @@ export const gheCopilotProvider: RegistryEntry = {
       maxOutputTokens: 64000,
     },
     {
-      id: "gemini-3.5-flash",
-      name: "Gemini 3.5 Flash",
+      id: "gemini-3.7-flash",
+      name: "Gemini 3.7 Flash",
       contextLength: 1000000,
       maxOutputTokens: 64000,
     },
-    { id: "gpt-5.6-sol", name: "GPT-5.6 Sol", targetFormat: "openai-responses", maxOutputTokens: 128000 },
-    { id: "gpt-5.6-terra", name: "GPT-5.6 Terra", targetFormat: "openai-responses", maxOutputTokens: 128000 },
-    { id: "gpt-5.6-luna", name: "GPT-5.6 Luna", targetFormat: "openai-responses", maxOutputTokens: 128000 },
+    {
+      id: "gpt-5.6-sol",
+      name: "GPT-5.6 Sol",
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
+    },
+    {
+      id: "gpt-5.6-terra",
+      name: "GPT-5.6 Terra",
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
+    },
+    {
+      id: "gpt-5.6-luna",
+      name: "GPT-5.6 Luna",
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
+    },
     { id: "gpt-5.5", name: "GPT-5.5", ...GPT_5_5_CODEX_CAPABILITIES, maxOutputTokens: 128000 },
     {
       id: "gpt-5.4",

@@ -33,7 +33,7 @@ if (!process.env.DATA_DIR) {
   // Best-effort cleanup so a long suite run does not leak hundreds of temp DBs.
   process.on("exit", () => {
     try {
-      fs.rmSync(dir, { recursive: true, force: true });
+      fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     } catch {
       // ignore — the OS reaps its temp dir eventually.
     }
@@ -46,3 +46,7 @@ if (!process.env.DATA_DIR) {
 // baked it into the bundle, breaking ALL system TLS on the VM (2026-07-05).
 // installCert/uninstallCert/installTproxyCa/uninstallTproxyCa no-op under this.
 process.env.OMNIROUTE_SKIP_SYSTEM_TRUST = "1";
+
+// DNS-write guard: the suite must NEVER mutate /etc/hosts. Tests that exercise
+// the real MITM path call addDNSEntries(); this env var makes it a no-op.
+process.env.OMNIROUTE_SKIP_DNS_WRITE = "1";

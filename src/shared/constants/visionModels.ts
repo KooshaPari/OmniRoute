@@ -38,10 +38,12 @@ export const VISION_MODEL_ID_FRAGMENTS = [
   "glm-4v",
   "glm-4.5v",
   "glm-4.6v",
+  "glm-5.3-flash",
   "gpt-4o",
   "gpt-4.1",
   "gpt-4-turbo",
   "gpt-4-vision",
+  "gpt-5",
   "gemini-1.5",
   "gemini-2",
   "gemini-3",
@@ -51,8 +53,15 @@ export const VISION_MODEL_ID_FRAGMENTS = [
   "claude-opus-4",
   "claude-sonnet-4",
   "claude-haiku-4",
+  "claude-fable",
   "mistral-medium-3",
   "minimax-m3",
+  "kimi-k2.",
+  // Naver CLOVA Studio: HCX-005 is the only v3 model with image input. Listed by
+  // exact id (not a family fragment) to stay conservative — live-verified on
+  // 2026-09-01 that it answers image prompts over both a public URL and a
+  // base64 data URI, while HCX-007 and HCX-DASH-002 reject images.
+  "hcx-005",
   "-vision",
   "multimodal",
 ] as const;

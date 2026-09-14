@@ -15,30 +15,35 @@ const rawReasoningMetadata =
 
 test("vscode raw and tokenized family-first helpers share behavior", () => {
   assert.equal(
-    familyFirstModelIds.resolveFamilyFirstPublishedModelId("gpt-5.4__provider_cx__tier_priority"),
-    "cx/gpt-5.4__tier_priority"
+    familyFirstModelIds.resolveFamilyFirstPublishedModelId(
+      "gpt-5.6-sol__provider_cx__tier_priority"
+    ),
+    "cx/gpt-5.6-sol__tier_priority"
   );
   assert.deepEqual(
-    rawFamilyFirstModelIds.getFamilyFirstModelCandidates("cx/gpt-5.4__tier_flex", "gpt-5.4"),
-    familyFirstModelIds.getFamilyFirstModelCandidates("cx/gpt-5.4__tier_flex", "gpt-5.4")
+    rawFamilyFirstModelIds.getFamilyFirstModelCandidates(
+      "cx/gpt-5.6-sol__tier_flex",
+      "gpt-5.6-sol"
+    ),
+    familyFirstModelIds.getFamilyFirstModelCandidates("cx/gpt-5.6-sol__tier_flex", "gpt-5.6-sol")
   );
 });
 
 test("vscode raw and tokenized service tier helpers share behavior", () => {
   const tokenizedPayload = serviceTierVariants.resolveVscodeServiceTierRequest({
-    model: "gpt-5.4__provider_cx__tier_flex",
+    model: "gpt-5.6-sol__provider_cx__tier_flex",
   });
   const rawPayload = rawServiceTierVariants.resolveVscodeServiceTierRequest({
-    model: "gpt-5.4__provider_cx__tier_flex",
+    model: "gpt-5.6-sol__provider_cx__tier_flex",
   });
 
   assert.deepEqual(rawPayload, tokenizedPayload);
   assert.deepEqual(
     serviceTierVariants.expandVscodeServiceTierModels([
-      { id: "cx/gpt-5.4", name: "cx/gpt-5.4", owned_by: "codex" },
+      { id: "cx/gpt-5.6-sol", name: "cx/gpt-5.6-sol", owned_by: "codex" },
     ]),
     rawServiceTierVariants.expandVscodeServiceTierModels([
-      { id: "cx/gpt-5.4", name: "cx/gpt-5.4", owned_by: "codex" },
+      { id: "cx/gpt-5.6-sol", name: "cx/gpt-5.6-sol", owned_by: "codex" },
     ])
   );
 });

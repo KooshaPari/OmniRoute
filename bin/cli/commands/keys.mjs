@@ -8,7 +8,7 @@ import {
 } from "../provider-store.mjs";
 import { openOmniRouteDb } from "../sqlite.mjs";
 import { loadAvailableProviders } from "../provider-catalog.mjs";
-import { apiFetch, isServerUp } from "../api.mjs";
+import { apiFetch, isServerUp, isRouteUnavailableStatus } from "../api.mjs";
 import { t } from "../i18n.mjs";
 
 function getValidProviderIds() {
@@ -184,7 +184,10 @@ export async function runKeysAddCommand(provider, apiKey, opts = {}) {
         console.log(t("keys.added", { provider: providerLower }));
         return 0;
       }
-      if (res.status >= 400 && res.status < 500) {
+      // A missing route means this server does not implement the endpoint —
+      // fall through to the local SQLite path below rather than stranding the
+      // user. Real client errors still abort.
+      if (res.status >= 400 && res.status < 500 && !isRouteUnavailableStatus(res.status)) {
         console.error(t("common.error", { message: `HTTP ${res.status}` }));
         return 1;
       }

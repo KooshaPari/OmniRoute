@@ -31,6 +31,18 @@ import {
 
 test("resolveRequestedModel maps cursor-agent's client-side aliases", () => {
   assert.deepEqual(resolveRequestedModel("auto"), { modelId: "default", parameters: [] });
+  assert.deepEqual(resolveRequestedModel("auto-cost"), {
+    modelId: "default",
+    parameters: [{ id: "optimization", value: "cost" }],
+  });
+  assert.deepEqual(resolveRequestedModel("auto-balance"), {
+    modelId: "default",
+    parameters: [{ id: "optimization", value: "balance" }],
+  });
+  assert.deepEqual(resolveRequestedModel("auto-intelligence"), {
+    modelId: "default",
+    parameters: [{ id: "optimization", value: "intelligence" }],
+  });
   assert.deepEqual(resolveRequestedModel("composer-2-fast"), {
     modelId: "composer-2",
     parameters: [{ id: "fast", value: "true" }],

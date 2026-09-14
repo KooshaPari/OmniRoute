@@ -6,7 +6,7 @@
 //     updateProviderConnectionSchema  (edit connection)
 //
 // That `apiKey` field is reused as the raw `Cookie:` header value for cookie-
-// based web providers (Gemini Business, Copilot M365, ChatGPT Web, Claude Web,
+// based web providers (Gemini Business, Copilot M365, ChatGPT Web (Codex), Claude Web,
 // …). Real multi-cookie session headers (many `__Secure-*` entries, large
 // session tokens) legitimately exceed 10,000 chars. The provider's own
 // `validate` schema (validateProviderApiKeySchema) has NO cap, so the cookie

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 // #5460 (Reka) + #5465 (t3.chat): the model-sync route used to 502 on ANY
 // `local_catalog` source, so providers whose local catalog is their ONLY
-// discovery source (reka, qwen-oauth, embedding/rerank + web-cookie providers)
+// discovery source (reka, embedding/rerank + web-cookie providers)
 // failed Import/Sync every time. The route now imports those (flagged
 // `intentional: true` by the models route) and only 502s a genuinely degraded
 // remote-fetch fallback.
@@ -19,6 +19,15 @@ test("isDegradedLocalCatalog: intentional local-only catalog is NOT a degraded f
   );
   // Case-insensitive on source.
   assert.equal(isDegradedLocalCatalog({ source: "LOCAL_CATALOG", intentional: true }), false);
+  assert.equal(
+    isDegradedLocalCatalog({
+      source: "local_catalog",
+      intentional: true,
+      warning: "Codex live and GitHub catalogs unavailable — using local catalog",
+    }),
+    false,
+    "Codex's intentional local fallback must import normally"
+  );
 });
 
 test("isDegradedLocalCatalog: a degraded remote-fetch fallback IS a failure (502)", () => {

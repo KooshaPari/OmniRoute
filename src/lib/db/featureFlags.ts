@@ -8,8 +8,17 @@
 
 import { FEATURE_FLAG_DEFINITIONS } from "@/shared/constants/featureFlagDefinitions";
 import { getDbInstance } from "./core";
+import { finishModelCatalogWriteWithoutBackup } from "./models/modelCatalogWriteSignals";
 
 const NAMESPACE = "feature_flags";
+
+const CATALOG_RELEVANT_FEATURE_FLAGS = new Set([
+  "MODEL_CATALOG_INCLUDE_NAMES",
+  "MODELS_CATALOG_PREFIX_MODE",
+  "EXPOSE_CC_DISCOVERY_ALIASES",
+  "NO_THINKING_ALIAS_ENABLED",
+  "OMNIROUTE_DISABLE_THINKING_LEVEL_VARIANTS",
+]);
 
 /**
  * Returns all feature flag overrides as a key→value map.
@@ -62,6 +71,9 @@ export function setFeatureFlagOverride(key: string, value: string): void {
     key,
     value
   );
+  if (CATALOG_RELEVANT_FEATURE_FLAGS.has(key)) {
+    finishModelCatalogWriteWithoutBackup();
+  }
 }
 
 /**
@@ -71,6 +83,9 @@ export function setFeatureFlagOverride(key: string, value: string): void {
 export function removeFeatureFlagOverride(key: string): void {
   const db = getDbInstance();
   db.prepare("DELETE FROM key_value WHERE namespace = ? AND key = ?").run(NAMESPACE, key);
+  if (CATALOG_RELEVANT_FEATURE_FLAGS.has(key)) {
+    finishModelCatalogWriteWithoutBackup();
+  }
 }
 
 /**
@@ -78,5 +93,17 @@ export function removeFeatureFlagOverride(key: string): void {
  */
 export function clearAllFeatureFlagOverrides(): void {
   const db = getDbInstance();
+  // Placeholders are derived from the set size — a hardcoded `IN (?, ?, ?)` breaks
+  // (parameter-count mismatch) the moment a flag is added to the set above.
+  const catalogFlags = Array.from(CATALOG_RELEVANT_FEATURE_FLAGS);
+  const placeholders = catalogFlags.map(() => "?").join(", ");
+  const hadRelevantOverride = Boolean(
+    db
+      .prepare(`SELECT 1 FROM key_value WHERE namespace = ? AND key IN (${placeholders}) LIMIT 1`)
+      .get(NAMESPACE, ...catalogFlags)
+  );
   db.prepare("DELETE FROM key_value WHERE namespace = ?").run(NAMESPACE);
+  if (hadRelevantOverride) {
+    finishModelCatalogWriteWithoutBackup();
+  }
 }

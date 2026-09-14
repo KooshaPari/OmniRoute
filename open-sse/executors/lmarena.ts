@@ -2,8 +2,8 @@
  * LMArenaExecutor — Arena (formerly LMArena) web-session provider.
  *
  * Routes requests through arena.ai create-evaluation with session cookies.
- * Upstream sits behind Cloudflare; traffic goes through tls-client-node Chrome
- * impersonation (see services/lmarenaTlsClient.ts).
+ * Upstream sits behind Cloudflare; traffic goes through wreq-js Chrome
+ * impersonation with isolated ephemeral cookies (see services/lmarenaTlsClient.ts).
  *
  * Helpers: open-sse/executors/lmarena/{cookie,models,stream,response}.ts
  */
@@ -45,6 +45,29 @@ export {
 export { clearLMArenaDeadCatalogModels } from "./lmarena/models.ts";
 export type { LMArenaModelMetadata };
 
+interface OpenAIMessage {
+  role?: string;
+  content?: unknown;
+}
+
+/** Optional browser-issued reCAPTCHA v3 token (operator-supplied). */
+function readRecaptchaToken(credentials: unknown, body: unknown): string | null {
+  const fromObj = (v: unknown): string | null => {
+    if (!v || typeof v !== "object") return null;
+    const rec = v as Record<string, unknown>;
+    const direct = rec.recaptchaV3Token ?? rec.recaptchaToken;
+    if (typeof direct === "string" && direct.trim()) return direct.trim();
+    const psd = rec.providerSpecificData;
+    if (psd && typeof psd === "object") {
+      const nested = psd as Record<string, unknown>;
+      const t = nested.recaptchaV3Token ?? nested.recaptchaToken;
+      if (typeof t === "string" && t.trim()) return t.trim();
+    }
+    return null;
+  };
+  return fromObj(credentials) ?? fromObj(body);
+}
+
 export class LMArenaExecutor extends BaseExecutor {
   constructor(providerConfig = {}) {
     super("lmarena", { format: "openai", ...providerConfig });
@@ -70,17 +93,24 @@ export class LMArenaExecutor extends BaseExecutor {
     return headers;
   }
 
-  protected transformRequest(body: unknown, model: string): unknown {
-    const openaiBody = body as Record<string, unknown>;
-    const messages = openaiBody.messages as Array<{ role: string; content: string }>;
-
+  transformRequest(body: unknown, model: string, credentials?: unknown): unknown {
+    const openaiBody = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
+    const messages = Array.isArray(openaiBody.messages)
+      ? (openaiBody.messages as OpenAIMessage[])
+      : [];
     return {
-      messages: messages.map((m) => ({
-        role: m.role,
-        content: m.content,
-      })),
-      model,
-      stream: openaiBody.stream || false,
+      id: uuidv7(),
+      mode: "direct-battle",
+      modelAId: model,
+      userMessageId: uuidv7(),
+      modelAMessageId: uuidv7(),
+      userMessage: {
+        content: formatArenaPrompt(messages),
+        experimental_attachments: [],
+        metadata: {},
+      },
+      modality: "chat",
+      recaptchaV3Token: readRecaptchaToken(credentials, body),
     };
   }
 
@@ -144,7 +174,6 @@ export class LMArenaExecutor extends BaseExecutor {
       body: JSON.stringify(transformedBody),
       signal: ctx.signal,
       stream: ctx.stream,
-      streamEofSymbol: "__OMNIROUTE_LMARENA_EOF_NEVER__",
     });
 
     const failed = mapFailedTlsResult({

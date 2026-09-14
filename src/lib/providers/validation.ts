@@ -1,5 +1,4 @@
 import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
-import { getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import {
   isClaudeCodeCompatibleProvider,
@@ -8,13 +7,10 @@ import {
   isOpenAICompatibleProvider,
   isSelfHostedChatProvider,
   providerAllowsOptionalApiKey,
+  resolveProviderId,
   WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
-import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
-import { resolveNvidiaValidationModel } from "@/lib/providers/nvidiaValidationModel";
 import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
-import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
 import { usesCcWireImage } from "@omniroute/open-sse/services/ccWireImageBuiltins.ts";
 import {
@@ -33,9 +29,7 @@ import {
 import { toValidationErrorResult } from "./validation/transport";
 import {
   validateDeepSeekWebProvider,
-  validateQwenWebProvider,
   validateGrokWebProvider,
-  validateChatGptWebProvider,
   validatePerplexityWebProvider,
   validateBlackboxWebProvider,
   validateKimiWebProvider,
@@ -43,12 +37,14 @@ import {
 import {
   validateMuseSparkWebProvider,
   validateAdaptaWebProvider,
+  validateTinyCmsWebProvider,
   validateClaudeWebProvider,
   validateGeminiWebProvider,
   validateCopilotM365WebProvider,
   validateCopilotWebProvider,
   validateT3WebProvider,
   validateJulesProvider,
+  validateDevinCloudAgentProvider,
   validateInnerAiProvider,
   validateNotionWebProvider,
 } from "./validation/webProvidersB";
@@ -68,6 +64,7 @@ import {
   validateDeepgramProvider,
   validateAssemblyAIProvider,
   validateRevAiProvider,
+  validateSonioxProvider,
   validateElevenLabsProvider,
   validateInworldProvider,
   validateKieProvider,
@@ -77,14 +74,18 @@ import {
   validateRekaProvider,
   validateMaritalkProvider,
   validateNlpCloudProvider,
+  validateOneMinAiProvider,
   validateRunwayProvider,
   validateNousResearchProvider,
   validatePoeProvider,
 } from "./validation/audioMiscProviders";
+import { validateChatGptWebCodexProvider } from "./validation/chatgptWebCodex";
+import { validateZaiWebProvider } from "./validation/zaiWeb";
 import { validateSearchProvider, SEARCH_VALIDATOR_CONFIGS } from "./validation/searchProviders";
 import {
   validateClarifaiProvider,
   validateEmbeddingApiProvider,
+  validateJinaFoundationProvider,
   validateRerankApiProvider,
 } from "./validation/embeddingProviders";
 import {
@@ -105,9 +106,13 @@ import {
   bytezValidationResultFromStatus,
   validateBytezProvider,
 } from "./validation/webCookie";
+import { validateAiHordeProvider } from "./validation/aihorde";
+import { validateDifyProvider } from "./validation/dify";
+import { validateAdobeFireflyProvider } from "./validation/adobeFirefly";
 import {
   validateV0VercelProvider,
   validateAuggieProvider,
+  validateCursorApiProvider,
   validateQoderProvider,
   validateKiroProvider,
   validateGitlabProvider,
@@ -135,7 +140,43 @@ export { validateWebCookieProvider, bytezValidationResultFromStatus };
 // validateKiroApiKeyRuntimeProbe now live in ./validation/webCookie and ./validation/kiro.
 // They are re-exported above to preserve the historical public surface.
 
+export async function validateFreebuffProvider({ apiKey }: { apiKey: string }) {
+  if (!apiKey) {
+    return { valid: false, error: "Freebuff Auth Token required", unsupported: false };
+  }
+  try {
+    const res = await fetch("https://www.codebuff.com/api/v1/freebuff/session", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "User-Agent": "codebuff/0.1.0 (darwin-arm64)",
+        "x-freebuff-model": "deepseek/deepseek-v4-flash",
+      },
+      body: JSON.stringify({}),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    if (res.ok || res.status === 409) {
+      return { valid: true, error: null };
+    }
+    if (res.status === 401 || res.status === 403) {
+      return { valid: false, error: "Invalid or expired Freebuff Auth Token", unsupported: false };
+    }
+    const errText = await res.text().catch(() => "");
+    return {
+      valid: false,
+      error: `Freebuff validation returned ${res.status}: ${errText.slice(0, 100)}`,
+      unsupported: false,
+    };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { valid: false, error: `Freebuff validation network error: ${msg}`, unsupported: false };
+  }
+}
+
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
+  provider = typeof provider === "string" ? resolveProviderId(provider) : provider;
   const requiresApiKey = !providerAllowsOptionalApiKey(provider);
   const isLocal = isLocalProvider(provider);
 
@@ -173,101 +214,37 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 
   // ── Specialty provider validation ──
   const SPECIALTY_VALIDATORS = {
-    "v0-vercel": async ({ apiKey, providerSpecificData }: any) => {
-      try {
-        const configuredBaseUrl =
-          typeof providerSpecificData?.baseUrl === "string" && providerSpecificData.baseUrl.trim()
-            ? providerSpecificData.baseUrl.trim()
-            : "https://api.v0.dev";
-
-        const root = normalizeBaseUrl(configuredBaseUrl)
-          .replace(/\/v1\/chat\/completions$/, "")
-          .replace(/\/v1$/, "");
-
-        const res = await validationRead(
-          `${root}/v1/chats?limit=1`,
-          {
-            method: "GET",
-            headers: buildBearerHeaders(apiKey, providerSpecificData),
-          },
-          isLocal
-        );
-
-        if (res.ok) {
-          return { valid: true, error: null, method: "v0_platform_chats_list" };
-        }
-
-        if (res.status === 401 || res.status === 403) {
-          return { valid: false, error: "Invalid API key" };
-        }
-
-        return { valid: false, error: `v0 validation failed: ${res.status}` };
-      } catch (error: any) {
-        return toValidationErrorResult(error);
-      }
-    },
+    "v0-vercel": ({ apiKey, providerSpecificData }: any) =>
+      validateV0VercelProvider({ apiKey, providerSpecificData, isLocal }),
     jules: validateJulesProvider,
-    // auggie is a fully local, credential-less CLI passthrough — there is no API
-    // key to check upstream. The only meaningful validation is confirming the
-    // `auggie` binary is installed and runnable on this machine.
-    auggie: async () => {
-      const { checkAuggieCliVersion } = await import(
-        "@omniroute/open-sse/executors/auggie.ts"
-      );
-      const result = await checkAuggieCliVersion();
-      if (!result.ok) {
-        return {
-          valid: false,
-          error: result.error || "Auggie CLI not found. Install it and run `auggie login`.",
-          unsupported: false,
-        };
-      }
-      return { valid: true, error: null, unsupported: false, method: result.version };
-    },
-    qoder: async ({ apiKey, providerSpecificData }: any) => {
-      // Bifurcate validation: PAT tokens use Cosy auth against api1.qoder.sh;
-      // regular API keys validate against dashscope (OpenAI-compatible endpoint).
-      const key = (apiKey || "").trim();
-      if (key.startsWith("pt-")) {
-        return validateQoderCliPat({ apiKey: key, providerSpecificData });
-      }
-      // Non-PAT token → validate against dashscope (Alibaba Cloud).
-      // The executor routes these tokens to dashscope.aliyuncs.com, so the
-      // validation must test against dashscope, NOT the Cosy PAT endpoint.
-      try {
-        const dashscopeUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/models";
-        const res = await validationRead(
-          dashscopeUrl,
-          {
-            headers: {
-              Authorization: `Bearer ${key}`,
-            },
-          },
-          false
-        );
-        if (res.ok) return { valid: true, error: null };
-        if (res.status === 401 || res.status === 403) {
-          return {
-            valid: false,
-            error:
-              "Invalid Qoder API key. Make sure you're using a valid API key from Qoder / Alibaba Cloud Dashscope.",
-          };
-        }
-        // 4xx/5xx other than auth — treat as valid bypass to prevent false
-        // negatives from transient dashscope issues (consistent with PAT path).
-        return { valid: true, error: null };
-      } catch (err: unknown) {
-        return toValidationErrorResult(err);
-      }
-    },
+    // "devin" is the Cognition cloud-agent provider (distinct from the "devin-cli"
+    // LLM/ACP provider, which is already registered in providerRegistry). Wired here
+    // for parity with the "jules" cloud-agent entry above — see #6142.
+    devin: validateDevinCloudAgentProvider,
+    auggie: validateAuggieProvider,
+    "cursor-api": validateCursorApiProvider,
+    aihorde: validateAiHordeProvider,
+    // #10522: registered under both the canonical id and the short alias — Firefly
+    // connections are commonly stored as "firefly" (same prefix as firefly/<model>
+    // routing ids), not the canonical "adobe-firefly" WEB_COOKIE_PROVIDERS key.
+    "adobe-firefly": validateAdobeFireflyProvider,
+    firefly: validateAdobeFireflyProvider,
+    qoder: validateQoderProvider,
+    kiro: validateKiroProvider,
+    freebuff: validateFreebuffProvider,
     "command-code": validateCommandCodeProvider,
     huggingface: validateHuggingFaceProvider,
+    // #11002: Dify serves no OpenAI-compatible route — only POST /v1/chat-messages.
+    // The generic OpenAI-like probe 404s on /v1/models and /v1/chat/completions,
+    // so every real app key was misreported as "endpoint not supported".
+    dify: validateDifyProvider,
     // #5422: auth-only probe — Bytez 404s on every chat model until the account adds it to
     // its catalog, so the generic chat probe can't validate a fresh key.
     bytez: validateBytezProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
     "rev-ai": validateRevAiProvider,
+    soniox: validateSonioxProvider,
     "fal-ai": ({ apiKey, providerSpecificData }: any) =>
       validateImageProviderApiKey({ provider: "fal-ai", apiKey, providerSpecificData }),
     "stability-ai": ({ apiKey, providerSpecificData }: any) =>
@@ -278,6 +255,8 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       validateImageProviderApiKey({ provider: "recraft", apiKey, providerSpecificData }),
     topaz: ({ apiKey, providerSpecificData }: any) =>
       validateImageProviderApiKey({ provider: "topaz", apiKey, providerSpecificData }),
+    magnific: ({ apiKey, providerSpecificData }: any) =>
+      validateImageProviderApiKey({ provider: "magnific", apiKey, providerSpecificData }),
     elevenlabs: validateElevenLabsProvider,
     inworld: validateInworldProvider,
     kie: validateKieProvider,
@@ -291,36 +270,54 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     oci: validateOciProvider,
     sap: validateSapProvider,
     bedrock: validateBedrockProvider,
-    modal: ({ apiKey, providerSpecificData }: any) =>
-      validateOpenAILikeProvider({
+    modal: ({ apiKey, providerSpecificData }: any) => {
+      // Modal is bring-your-own-deploy — it requires a Base URL pointing to the user's
+      // OpenAI-compatible Modal app. Without it, validateOpenAILikeProvider would build an
+      // empty probe URL and trip parseOutboundUrl with a raw guard error ("Invalid outbound
+      // URL: "). Surface an actionable message instead. See #9102.
+      const baseUrl = (providerSpecificData?.baseUrl || "").trim();
+      if (!baseUrl) {
+        return {
+          valid: false,
+          error:
+            "Modal requires a Base URL pointing to your OpenAI-compatible Modal app " +
+            "(e.g. https://<workspace>--<app>.modal.run/v1). " +
+            'Fill in the "Base URL override" field.',
+        };
+      }
+      return validateOpenAILikeProvider({
         provider: "modal",
         apiKey,
         providerSpecificData,
-        baseUrl: normalizeBaseUrl(providerSpecificData?.baseUrl || ""),
+        baseUrl: normalizeBaseUrl(baseUrl),
         modelId: MODAL_DEFAULT_VALIDATION_MODEL_ID,
         isLocal,
-      }),
+      });
+    },
     "nous-research": validateNousResearchProvider,
     poe: validatePoeProvider,
     clarifai: validateClarifaiProvider,
     reka: validateRekaProvider,
     maritalk: validateMaritalkProvider,
     nlpcloud: validateNlpCloudProvider,
+    oneminai: validateOneMinAiProvider,
     runwayml: validateRunwayProvider,
     snowflake: validateSnowflakeProvider,
     gigachat: validateGigachatProvider,
     "deepseek-web": validateDeepSeekWebProvider,
+    "zai-web": validateZaiWebProvider,
     "grok-web": validateGrokWebProvider,
-    "qwen-web": validateQwenWebProvider,
     "kimi-web": validateKimiWebProvider,
-    "chatgpt-web": validateChatGptWebProvider,
+    "chatgpt-web-codex": validateChatGptWebCodexProvider,
     "perplexity-web": validatePerplexityWebProvider,
     "blackbox-web": validateBlackboxWebProvider,
     "muse-spark-web": validateMuseSparkWebProvider,
     "inner-ai": validateInnerAiProvider,
     "adapta-web": validateAdaptaWebProvider,
+    "tinycms-web": validateTinyCmsWebProvider,
     "claude-web": validateClaudeWebProvider,
     "gemini-web": validateGeminiWebProvider,
+    "notion-web": validateNotionWebProvider,
     "copilot-m365-web": validateCopilotM365WebProvider,
     "copilot-web": validateCopilotWebProvider,
     "t3-web": validateT3WebProvider,
@@ -335,15 +332,8 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         modelId: embeddingProvider?.models?.[0]?.id || "voyage-4-lite",
       });
     },
-    "jina-ai": ({ apiKey, providerSpecificData }: any) => {
-      const rerankProvider = getRerankProvider("jina-ai");
-      return validateRerankApiProvider({
-        apiKey,
-        providerSpecificData,
-        url: rerankProvider?.baseUrl,
-        modelId: rerankProvider?.models?.[0]?.id || "jina-reranker-v3",
-      });
-    },
+    "jina-ai": ({ apiKey, providerSpecificData }: any) =>
+      validateJinaFoundationProvider({ apiKey, providerSpecificData }),
     gitlab: ({ apiKey, providerSpecificData }: any) =>
       validateGitlabProvider({ apiKey, providerSpecificData, isLocal }),
     vertex: validateVertexProvider,
@@ -386,12 +376,17 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 
   // Web-cookie providers WITHOUT a dedicated specialty validator above fall back to the generic
   // session-ping check (AUTH_007 SESSION_EXPIRED on 401/403). Providers that DO have a rich
-  // per-provider validator (grok-web, chatgpt-web, claude-web, …) are handled by
+  // per-provider validator (grok-web, perplexity-web, claude-web, etc.) are handled by
   // SPECIALTY_VALIDATORS first and must not be shadowed by this generic probe (issue: the
   // #4023 dispatch was placed too early and intercepted every web-cookie provider).
-  if (WEB_COOKIE_PROVIDERS[provider]) {
+  const canonicalProvider = resolveProviderId(provider);
+  if (WEB_COOKIE_PROVIDERS[canonicalProvider]) {
     try {
-      return await validateWebCookieProvider({ provider, apiKey, providerSpecificData });
+      return await validateWebCookieProvider({
+        provider: canonicalProvider,
+        apiKey,
+        providerSpecificData,
+      });
     } catch (error: any) {
       return toValidationErrorResult(error);
     }
@@ -438,6 +433,27 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     }
 
     if (entry.format === "claude") {
+      // Built-in CC-wire-image providers (e.g. agentrouter, #6056/#6255) gate
+      // their WAF on the dynamic Claude-Code fingerprint (User-Agent,
+      // `?beta=true` chat path, anthropic-beta/x-app/X-Stainless-* headers).
+      // The real chat-request path already routes through
+      // buildProviderUrl/buildProviderHeaders for this; the validation probe
+      // must use the SAME wire image or a genuinely valid key gets 403'd as
+      // "unauthorized client detected" (#6377).
+      if (usesCcWireImage(provider)) {
+        const requestBaseUrl = buildProviderUrl(provider, modelId, true, { baseUrl });
+        const requestHeaders = buildProviderHeaders(provider, { apiKey }, true);
+
+        return await validateAnthropicLikeProvider({
+          apiKey,
+          baseUrl: requestBaseUrl,
+          modelId,
+          headers: requestHeaders,
+          providerSpecificData,
+          isLocal,
+        });
+      }
+
       const requestBaseUrl = `${baseUrl}${entry.urlSuffix || ""}`;
       const requestHeaders = {
         ...(entry.headers || {}),

@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # OmniRoute — 控制台功能画廊
 
-🌐 **Main README translations:** 🇺🇸 [English](../../guides/FEATURES.md) | 🇧🇷 [Português (Brasil)](../../i18n/pt-BR/docs/guides/FEATURES.md) | 🇪🇸 [Español](../../i18n/es/docs/guides/FEATURES.md) | 🇫🇷 [Français](../../i18n/fr/docs/guides/FEATURES.md) | 🇮🇹 [Italiano](../../i18n/it/docs/guides/FEATURES.md) | 🇷🇺 [Русский](../../i18n/ru/docs/guides/FEATURES.md) | 🇨🇳 [中文 (简体)](../../i18n/zh-CN/docs/guides/FEATURES.md) | 🇩🇪 [Deutsch](../../i18n/de/docs/guides/FEATURES.md) | 🇮🇳 [हिन्दी](../../i18n/in/docs/guides/FEATURES.md) | 🇹🇭 [ไทย](../../i18n/th/docs/guides/FEATURES.md) | 🇺🇦 [Українська](../../i18n/uk-UA/docs/guides/FEATURES.md) | 🇸🇦 [العربية](../../i18n/ar/docs/guides/FEATURES.md) | 🇯🇵 [日本語](../../i18n/ja/docs/guides/FEATURES.md) | 🇻🇳 [Tiếng Việt](../../i18n/vi/docs/guides/FEATURES.md) | 🇧🇬 [Български](../../i18n/bg/docs/guides/FEATURES.md) | 🇩🇰 [Dansk](../../i18n/da/docs/guides/FEATURES.md) | 🇫🇮 [Suomi](../../i18n/fi/docs/guides/FEATURES.md) | 🇮🇱 [עברית](../../i18n/he/docs/guides/FEATURES.md) | 🇭🇺 [Magyar](../../i18n/hu/docs/guides/FEATURES.md) | 🇮🇩 [Bahasa Indonesia](../../i18n/id/docs/guides/FEATURES.md) | 🇰🇷 [한국어](../../i18n/ko/docs/guides/FEATURES.md) | 🇲🇾 [Bahasa Melayu](../../i18n/ms/docs/guides/FEATURES.md) | 🇳🇱 [Nederlands](../../i18n/nl/docs/guides/FEATURES.md) | 🇳🇴 [Norsk](../../i18n/no/docs/guides/FEATURES.md) | 🇵🇹 [Português (Portugal)](../../i18n/pt/docs/guides/FEATURES.md) | 🇷🇴 [Română](../../i18n/ro/docs/guides/FEATURES.md) | 🇵🇱 [Polski](../../i18n/pl/docs/guides/FEATURES.md) | 🇸🇰 [Slovenčina](../../i18n/sk/docs/guides/FEATURES.md) | 🇸🇪 [Svenska](../../i18n/sv/docs/guides/FEATURES.md) | 🇵🇭 [Filipino](../../i18n/phi/docs/guides/FEATURES.md) | 🇨🇿 [Čeština](../../i18n/cs/docs/guides/FEATURES.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
 
 OmniRoute 控制台各功能区的可视化指南。
 
@@ -18,11 +18,11 @@ OmniRoute 控制台各功能区的可视化指南。
 
 v3.7.x → v3.8.0 版本周期引入了零配置自动路由、新的服务商、OAuth 流程、更深度的容灾能力，以及大幅增强的 CLI 体验。以下是主要功能——完整细节见下文及链接的规范文档。
 
-- 🤖 **Auto Combo / 零配置自动路由** — 使用 `auto/coding`、`auto/fast`、`auto/cheap`、`auto/offline`、`auto/smart`、`auto/lkgp` 前缀。背后是 9 因子评分引擎和 4 个精选**模式包**（快速交付、成本优先、质量优先、离线友好）
+- 🤖 **Auto Combo / 零配置自动路由** — 使用 `auto/coding`、`auto/fast`、`auto/cheap`、`auto/offline`、`auto/smart`、`auto/lkgp` 前缀。背后是 13 因子评分引擎和 4 个精选**模式包**（快速交付、成本优先、质量优先、离线友好）
 - 🆕 **Command Code 服务商** (#2199) — 一线注册，含模型目录和配额追踪
 - 🆕 **Z.AI 服务商** — 新增免费层服务商，带配额标签
 - 🎬 **KIE 媒体扩展** — 扩展目录，包含视频生成模型
-- 🔐 **Windsurf + Devin CLI OAuth 流程** (#2168) — 端到端浏览器登录
+- 🔐 **Devin 认证** — Desktop 导入现有的 Devin API 密钥；CLI 使用本地 `devin auth login` 凭据
 - 🆓 **9 个新的免费服务商** — LLM7、Lepton、Kluster、UncloseAI、BazaarLink、Completions、Enally、FreeTheAi、Command Code
 - 🎯 **Manifest 感知层级路由 W1–W4** — 服务商 Manifest 驱动加权层级选择
 - 🎨 **Cursor 完全兼容 OpenAI 格式** — 工具调用、流式传输、会话管理端到端打通
@@ -51,6 +51,7 @@ v3.7.x → v3.8.0 版本周期引入了零配置自动路由、新的服务商�
 
 ## 🔌 服务商
 
+管理 AI 服务商连接：OAuth 服务商（Claude Code、Codex）、API Key 服务商（Groq、DeepSeek、OpenRouter）和免费服务商（Qoder、Qwen、Kiro）。Kiro 账户包含积分余额追踪——剩余积分、总额度和续期日期可在 控制台 → 用量 中查看。
 
 OpenRouter 连接可以在 高级设置 中存储每个连接的 `preset`。设置后，除非客户端请求已提供自己的 `preset`，否则 OmniRoute 会将其作为 OpenRouter 的顶层请求字段发送，例如 `"preset": "email-copywriter"`。
 
@@ -60,7 +61,7 @@ OpenRouter 连接可以在 高级设置 中存储每个连接的 `preset`。设�
 
 ## 🎨 Combo
 
-使用 17 种策略创建模型路由 Combo：priority、weighted、fill-first、round-robin、p2c（power-of-two-choices）、random、least-used、cost-optimized、reset-aware、reset-window、headroom、strict-random、auto、lkgp（last-known-good-provider）、context-optimized、context-relay，以及 **fusion**（并行扇出到一组模型，然后通过评判模型合成一个答案）。每个 Combo 将多个模型串联起来，具备自动容灾能力，并包含快速模板和就绪检查。
+使用 19 种公开策略创建模型路由 Combo：priority、weighted、round-robin、context-relay、fill-first、p2c（power-of-two-choices）、random、least-used、cost-optimized、reset-aware、reset-window、headroom、strict-random、auto、lkgp（last-known-good-provider）、context-optimized、cache-optimized、**fusion**（并行扇出到一组模型，然后通过评判模型合成一个答案）以及 **pipeline**。每个 Combo 将多个模型串联起来，具备自动容灾能力，并包含快速模板和就绪检查。
 
 最近的 Combo 改进：
 
@@ -127,7 +128,7 @@ OpenRouter 连接可以在 高级设置 中存储每个连接的 `preset`。设�
 
 ## 🔧 CLI 工具
 
-One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+AI 编程工具的一键配置：Claude Code、Codex CLI、OpenClaw、Kilo Code、Antigravity、Cline、Continue、Cursor 和 Factory Droid。支持自动应用/重置配置、连接配置文件和模型映射。
 
 ![CLI 工具控制台](../../screenshots/07-cli-tools.png)
 
@@ -135,13 +136,13 @@ One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, K
 
 ## 🤖 CLI 智能体 _(v2.0.11+)_
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 17 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
+CLI 智能体发现与管理控制台。以网格形式展示 17 个内置智能体（Codex、Claude、Goose、OpenClaw、Aider、OpenCode、Cline、Qwen Code、ForgeCode、Amazon Q、Open Interpreter、Cursor CLI、Warp、**Windsurf**、**Devin CLI**、**Kimi Coding**、**Command Code**），提供：
 
 - **安装状态** — 已安装 / 未找到，含版本检测
 - **协议 Badge** — stdio、HTTP 等
 - **自定义智能体** — 通过表单注册任意 CLI 工具（名称、二进制文件、版本命令、启动参数）
 - **CLI 指纹匹配** — 按服务商切换，匹配原生 CLI 请求签名，降低封禁风险同时保留代理 IP
-- **OAuth 支持的智能体** — Windsurf 与 Devin CLI 现使用浏览器 OAuth 流程进行认证（v3.8.0+）
+- **本地 Devin 认证** — Devin CLI 使用 `devin auth login`；无需浏览器 OAuth 流程
 
 ---
 
@@ -213,10 +214,10 @@ OAuth 服务商的一键"环境修复"操作，恢复缺失的环境变量并修
 
 面向所有安装方式的清理卸载脚本：
 
-| 命令                     | 操作                                                                |
-| ------------------------ | ------------------------------------------------------------------- |
-| `npm run uninstall`      | 移除系统应用，但**保留数据库和配置**在 `~/.omniroute`。              |
-| `npm run uninstall:full` | 移除应用，并永久**清除所有配置、密钥和数据库**。                    |
+| 命令                     | 操作                                                    |
+| ------------------------ | ------------------------------------------------------- |
+| `npm run uninstall`      | 移除系统应用，但**保留数据库和配置**在 `~/.omniroute`。 |
+| `npm run uninstall:full` | 移除应用，并永久**清除所有配置、密钥和数据库**。        |
 
 ---
 

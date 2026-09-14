@@ -52,6 +52,11 @@ async function captureUpstreamBody(
       body,
       stream: false,
       credentials: { accessToken: "sk-ant-oat-test-5312" },
+      // #5480: the default adaptive-thinking injection (and the native-Claude-Code wire
+      // image these #5312 cases exercise) is gated behind a real Claude Code client
+      // (`x-app: cli` / `claude-code` UA). A bare OAuth token from a generic OpenAI-compat
+      // client must opt in via x-omniroute-thinking, so identify as a Claude Code client here.
+      clientHeaders: { "x-app": "cli" },
     });
   } finally {
     globalThis.fetch = originalFetch;

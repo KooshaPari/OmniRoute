@@ -59,6 +59,29 @@ export function countExtendedTautologies(src) {
   return count;
 }
 
+/**
+ * (#6404) Narrower sibling of countExtendedTautologies(), deliberately EXCLUDING
+ * `assert.ok(true)`: that pattern is intentionally left to the lenient, diff-only,
+ * new-occurrences-only subcheck 3 above, because ~15 pre-existing, verified-legitimate
+ * uses already exist repo-wide (documented fallbacks like "expected to throw" /
+ * "DB not available, expected" in try/catch branches) — an absolute, always-on scan
+ * against all of them would be a mass false-positive, not a real signal.
+ *
+ * `expect(true).toBe(true)` / `assert.equal(1, 1)` / `assert.strictEqual(1, 1)` have
+ * no such legitimate use anywhere in this codebase (verified zero pre-existing hits
+ * after fixing #6404's playground-api-tab.test.tsx) — a genuinely bare, no-argument
+ * tautology is never a deliberate pattern here, so it is safe to fail on ANY hit,
+ * with or without a PR diff to compare against. See scanBareTautologies() below.
+ */
+export function countBareTautologies(src) {
+  let count = 0;
+  // expect(true).toBe(true)
+  count += (src.match(/\bexpect\s*\(\s*true\s*\)\s*\.\s*toBe\s*\(\s*true\s*\)/g) || []).length;
+  // assert.equal(1, 1) / assert.strictEqual(1, 1) — literal numeric identity
+  count += (src.match(/\bassert\s*\.\s*(?:strict)?[Ee]qual\s*\(\s*1\s*,\s*1\s*\)/g) || []).length;
+  return count;
+}
+
 // ─── (6348) Subcheck 4: inline-reimplemented prod conditions (REPORT-ONLY) ───
 // A test that copies a conditional expression out of production code (instead of
 // importing and exercising the symbol that owns it) is the wrong-shape-contract-test
@@ -83,9 +106,8 @@ function normalizeWhitespace(s) {
  */
 export function countSignificantTokens(cond) {
   const tokens =
-    (cond || "").match(
-      /===|!==|==|!=|>=|<=|&&|\|\||[<>+\-*/%!]|[A-Za-z_$][\w$]*|\d+(?:\.\d+)?/g
-    ) || [];
+    (cond || "").match(/===|!==|==|!=|>=|<=|&&|\|\||[<>+\-*/%!]|[A-Za-z_$][\w$]*|\d+(?:\.\d+)?/g) ||
+    [];
   let count = 0;
   for (const tk of tokens) {
     if (/^[A-Za-z_$]/.test(tk)) {
@@ -155,8 +177,7 @@ export function extractProdConditions(src) {
   }
 
   // Comparison-bearing ternaries: `<lhs> <cmp> <rhs> ? … : …` (best-effort, low-noise).
-  const ternRe =
-    /([A-Za-z_$][\w$).\]]*\s*(?:===|!==|==|!=|>=|<=|>|<)\s*[^?;{}\n]+?)\s*\?/g;
+  const ternRe = /([A-Za-z_$][\w$).\]]*\s*(?:===|!==|==|!=|>=|<=|>|<)\s*[^?;{}\n]+?)\s*\?/g;
   let t;
   while ((t = ternRe.exec(src))) {
     pushCond(t[1], ownerAt(t.index));
@@ -176,7 +197,10 @@ export function extractImports(src) {
   if (!src) return names;
   const addModule = (mod) => {
     names.add(mod);
-    const base = mod.split("/").pop().replace(/\.\w+$/, "");
+    const base = mod
+      .split("/")
+      .pop()
+      .replace(/\.\w+$/, "");
     if (base) names.add(base);
   };
   let m;
@@ -204,8 +228,7 @@ export function extractImports(src) {
 export function findReimplementedConditions(prodSources, testSource, testImports) {
   const flags = [];
   if (!testSource) return flags;
-  const imports =
-    testImports instanceof Set ? testImports : new Set(testImports || []);
+  const imports = testImports instanceof Set ? testImports : new Set(testImports || []);
   const squash = (s) => (s || "").replace(/\s+/g, "");
   const testSq = squash(testSource);
   const seen = new Set();
@@ -223,43 +246,32 @@ export function findReimplementedConditions(prodSources, testSource, testImports
 }
 
 /**
- * (#6404) Narrower sibling of countExtendedTautologies(), deliberately EXCLUDING
- * `assert.ok(true)`: that pattern is intentionally left to the lenient, diff-only,
- * new-occurrences-only subcheck 3 above, because ~15 pre-existing, verified-legitimate
- * uses already exist repo-wide (documented fallbacks like "expected to throw" /
- * "DB not available, expected" in try/catch branches) — an absolute, always-on scan
- * against all of them would be a mass false-positive, not a real signal.
- *
- * `expect(true).toBe(true)` / `assert.equal(1, 1)` / `assert.strictEqual(1, 1)` have
- * no such legitimate use anywhere in this codebase (verified zero pre-existing hits
- * after fixing #6404's playground-api-tab.test.tsx) — a genuinely bare, no-argument
- * tautology is never a deliberate pattern here, so it is safe to fail on ANY hit,
- * with or without a PR diff to compare against. See scanBareTautologies() below.
- */
-export function countBareTautologies(src) {
-  let count = 0;
-  // expect(true).toBe(true)
-  count += (src.match(/\bexpect\s*\(\s*true\s*\)\s*\.\s*toBe\s*\(\s*true\s*\)/g) || []).length;
-  // assert.equal(1, 1) / assert.strictEqual(1, 1) — literal numeric identity
-  count += (src.match(/\bassert\s*\.\s*(?:strict)?[Ee]qual\s*\(\s*1\s*,\s*1\s*\)/g) || []).length;
-  return count;
-}
-
-/**
  * (6A.10 subcheck 1) Sinaliza arquivos de teste DELETADOS ou renomeados-e-não-
  * substituídos. Recebe lista de paths de arquivos de teste que foram deletados
  * (filtro D do git diff --diff-filter=MDR).
  *
  * `deletionAllowlist` (`_deletedWithReplacement` no test-masking-allowlist.json)
- * isenta uma deleção SOMENTE quando o substituto declarado existe no HEAD e é
- * ele próprio um arquivo de teste — o caso "reescrito em outro path sem rename
- * detectável" (conteúdo novo demais para o -M do git). Qualquer entrada cujo
- * substituto não exista ou não seja teste continua flagada.
+ * isenta uma deleção de três formas, cada uma com sua própria verificação:
+ *   1. `replacement` (path string) — o substituto declarado existe no HEAD e é
+ *      ele próprio um arquivo de teste — o caso "reescrito em outro path sem
+ *      rename detectável" (conteúdo novo demais para o -M do git).
+ *   2. `sourceRemoved` (array de paths) — feature removida por completo: TODOS
+ *      os arquivos de produção listados precisam estar ausentes no HEAD (sem
+ *      substituto porque não há mais código a testar). Usar apenas quando a
+ *      remoção do código-fonte está confirmada na mesma commit/PR.
+ *   3. `strayFromCommit` (hash) + `reason` (não-vazio) — o arquivo entrou no
+ *      repositório POR ACIDENTE no commit declarado (ex.: um commit de docs
+ *      que varreu artefatos de worktree de outra sessão, caso f4e93f339d) e a
+ *      deleção devolve o arquivo ao seu fluxo dono (um PR/issue aberto). O
+ *      gate verifica via git que o commit declarado é exatamente o que ADICIONOU
+ *      o arquivo; o `reason` deve nomear o PR/issue dono para a revisão humana.
+ * Qualquer entrada cuja condição declarada não se verifique continua flagada.
  */
 export function evaluateDeletedFiles(
   deletedPaths,
   deletionAllowlist = {},
-  fileExists = fs.existsSync
+  fileExists = fs.existsSync,
+  addedByCommit = lookupAddedByCommit
 ) {
   const flags = [];
   for (const f of deletedPaths) {
@@ -272,11 +284,54 @@ export function evaluateDeletedFiles(
       );
       continue;
     }
+    if (entry && Array.isArray(entry.sourceRemoved) && entry.sourceRemoved.length > 0) {
+      const stillPresent = entry.sourceRemoved.filter((p) => fileExists(p));
+      if (stillPresent.length === 0) continue;
+      flags.push(
+        `${f}: deleção allowlistada como feature removida mas ${stillPresent.join(", ")} ainda existe(m) no HEAD`
+      );
+      continue;
+    }
+    if (entry && typeof entry.strayFromCommit === "string" && entry.strayFromCommit.trim()) {
+      if (typeof entry.reason !== "string" || !entry.reason.trim()) {
+        flags.push(
+          `${f}: deleção allowlistada como stray mas sem \`reason\` — nomeie o PR/issue dono do arquivo`
+        );
+        continue;
+      }
+      const actual = addedByCommit(f);
+      const declared = entry.strayFromCommit.trim();
+      if (actual && (actual === declared || actual.startsWith(declared))) continue;
+      flags.push(
+        `${f}: deleção allowlistada como stray de ${declared} mas o commit que adicionou o arquivo é ${actual ?? "desconhecido"}`
+      );
+      continue;
+    }
     flags.push(
       `${f}: arquivo de teste deletado — revisão humana obrigatória (mascaramento alto-sinal)`
     );
   }
   return flags;
+}
+
+/**
+ * (subcheck 1, forma 3) Hash COMPLETO do commit que adicionou `path` (o add
+ * mais recente — cobre o caso deletado-e-readicionado). `null` quando o git
+ * não conhece o path.
+ */
+function lookupAddedByCommit(path) {
+  try {
+    const out = execFileSync("git", ["log", "--diff-filter=A", "--format=%H", "--", path], {
+      encoding: "utf8",
+    });
+    const hashes = out
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    return hashes.length ? hashes[0] : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -306,59 +361,6 @@ export function partitionDeletedRenamed(nameStatusOutput) {
     }
   }
   return { deletedTests, renames };
-}
-
-/**
- * Build one fail-closed aggregate record for an explicitly declared test split.
- * Every child must be a changed test file and the detected rename destination
- * must participate, preventing unrelated existing suites from padding counts.
- */
-export function evaluateSplitLineage({
-  from,
-  to,
-  destinations,
-  baseSrc,
-  headSources,
-  changedPaths,
-}) {
-  const flags = [];
-  if (!Array.isArray(destinations) || destinations.length < 2) {
-    flags.push(`${from}: linhagem de split deve declarar ao menos 2 testes de destino`);
-    return { flags, aggregate: null };
-  }
-  if (new Set(destinations).size !== destinations.length) {
-    flags.push(`${from}: linhagem de split contém destinos duplicados`);
-  }
-  if (!destinations.includes(to)) {
-    flags.push(`${from}: linhagem de split não inclui o destino renomeado ${to}`);
-  }
-  for (const destination of destinations) {
-    if (!TEST_RE.test(destination)) {
-      flags.push(`${from}: destino de split não é arquivo de teste: ${destination}`);
-    } else if (!changedPaths.has(destination)) {
-      flags.push(`${from}: destino de split não pertence a este diff: ${destination}`);
-    }
-    if (typeof headSources[destination] !== "string") {
-      flags.push(`${from}: destino de split ausente ou ilegível: ${destination}`);
-    }
-  }
-  if (flags.length) return { flags, aggregate: null };
-
-  const headSrc = destinations.map((destination) => headSources[destination]).join("\n");
-  return {
-    flags,
-    aggregate: {
-      file: `${from} → [${destinations.join(", ")}]`,
-      baseAsserts: countAssertions(baseSrc),
-      headAsserts: countAssertions(headSrc),
-      baseTaut: countTautologies(baseSrc),
-      headTaut: countTautologies(headSrc),
-      baseSkips: countSkips(baseSrc),
-      headSkips: countSkips(headSrc),
-      baseExtTaut: countExtendedTautologies(baseSrc),
-      headExtTaut: countExtendedTautologies(headSrc),
-    },
-  };
 }
 
 /**
@@ -489,6 +491,22 @@ function resolveBase() {
   return null;
 }
 
+/**
+ * Whether the per-file diff subchecks should be skipped for being too large to be a
+ * reviewable unit. Exported so the threshold behavior is testable without a repo: the
+ * boundary is what matters, and an off-by-one here either blocks a release or silently
+ * disables the check on a big-but-legitimate PR.
+ *
+ * `max <= 0` disables the skip entirely (always analyze) — a deliberate escape hatch.
+ */
+export function shouldSkipDiffSubchecks(changedCount, max) {
+  const n = Number(changedCount);
+  const cap = Number(max);
+  if (!Number.isFinite(n) || n < 0) return false;
+  if (!Number.isFinite(cap) || cap <= 0) return false;
+  return n > cap;
+}
+
 function main() {
   // (#6404) Absolute floor scan — runs unconditionally, PR or not, so a tautology
   // that is already merged into the base (and thus invisible to the diff-only
@@ -531,56 +549,10 @@ function main() {
 
   const relocatedOutOfTest = [];
   const renamePerFile = [];
-  const splitPerFile = [];
-  const lineageFlags = [];
-  let splitLineage = {};
-  try {
-    splitLineage = JSON.parse(fs.readFileSync("config/quality/test-split-lineage.json", "utf8"));
-  } catch {
-    // No lineage manifest means every rename is evaluated as a single-file move.
-  }
-  const addedTests = git(["diff", "--name-only", "--diff-filter=A", `${base}...HEAD`])
-    .split("\n")
-    .map((s) => s.trim())
-    .filter((f) => TEST_RE.test(f));
-  const modifiedTests = git(["diff", "--name-only", "--diff-filter=M", `${base}...HEAD`])
-    .split("\n")
-    .map((s) => s.trim())
-    .filter((f) => TEST_RE.test(f) && fs.existsSync(f));
-  const changedSplitPaths = new Set([
-    ...addedTests,
-    ...modifiedTests,
-    ...renames.map(({ to }) => to),
-  ]);
-  const accountedSplitSources = new Set();
-
   for (const { from, to } of renames) {
     if (!TEST_RE.test(to)) {
       // test → non-test: the test was removed from coverage.
       relocatedOutOfTest.push(from);
-      continue;
-    }
-    const declaredDestinations = splitLineage[from];
-    if (declaredDestinations !== undefined) {
-      const headSources = Object.fromEntries(
-        (Array.isArray(declaredDestinations) ? declaredDestinations : []).map((destination) => [
-          destination,
-          typeof destination === "string" && fs.existsSync(destination)
-            ? fs.readFileSync(destination, "utf8")
-            : undefined,
-        ])
-      );
-      const evaluated = evaluateSplitLineage({
-        from,
-        to,
-        destinations: declaredDestinations,
-        baseSrc: git(["show", `${base}:${from}`]),
-        headSources,
-        changedPaths: changedSplitPaths,
-      });
-      lineageFlags.push(...evaluated.flags);
-      if (evaluated.aggregate) splitPerFile.push(evaluated.aggregate);
-      accountedSplitSources.add(from);
       continue;
     }
     // test → test: compare the original (base) against the relocated (head) file so
@@ -601,44 +573,41 @@ function main() {
   }
 
   // Arquivos de teste modificados (subcheck original + skips + extTaut)
-  const changed = modifiedTests;
+  const changed = git(["diff", "--name-only", "--diff-filter=M", `${base}...HEAD`])
+    .split("\n")
+    .map((s) => s.trim())
+    .filter((f) => TEST_RE.test(f) && fs.existsSync(f));
 
-  // Some splits retain the original path as one child and add sibling files,
-  // so Git reports M+A instead of a rename. Activate such lineage only while
-  // a declared sibling is newly added; later ordinary edits to the retained
-  // file continue through the normal per-file reduction check.
-  for (const from of changed) {
-    const destinations = splitLineage[from];
-    if (!Array.isArray(destinations) || accountedSplitSources.has(from)) continue;
-    const hasNewSibling = destinations.some(
-      (destination) => destination !== from && addedTests.includes(destination)
+  // (gap 6) A release PR is not a reviewable unit, and this is where that stops being free.
+  // Releases squash-merge into `main`, so a release PR's merge-base is the PREVIOUS cycle's
+  // fork point and the diff spans the whole cycle. In the v3.8.49 run that was ~1277 changed
+  // test files, each costing a `git show base:file` process plus a full regex pass — the check
+  // ran twice without finishing, >30 min pegged on one core, and the release waited on it.
+  //
+  // Every one of those files was already gated by this same check on its own PR during the
+  // cycle. Re-analyzing the aggregate buys nothing and blocks the release, so above the
+  // threshold the per-file diff subchecks are skipped — LOUDLY, naming the count, because a
+  // silent skip is how a gate becomes indistinguishable from a passing one (that is gap 12,
+  // and it cost two production bugs this cycle).
+  //
+  // The floor is untouched: scanBareTautologies() above already ran unconditionally over all
+  // tracked test files (3977 files, ~1 s), so nothing here lowers absolute coverage.
+  const maxChangedTests = Number(process.env.TEST_MASKING_MAX_CHANGED_TESTS || 300);
+  if (shouldSkipDiffSubchecks(changed.length + renamePerFile.length, maxChangedTests)) {
+    console.log(
+      `[test-masking] ${changed.length} teste(s) modificado(s) + ${renamePerFile.length} ` +
+        `renomeado(s) excede o teto de ${maxChangedTests} — pulando os subchecks de diff.\n` +
+        `  Um diff desse tamanho é um PR de release (base = main, merge-base = fork do ciclo ` +
+        `anterior por causa do squash), não uma unidade revisável.\n` +
+        `  Cada um desses arquivos já passou por este mesmo gate no PR de origem.\n` +
+        `  O scan absoluto de tautologias rodou sobre TODOS os testes rastreados e está OK.\n` +
+        `  Para forçar a análise completa: TEST_MASKING_MAX_CHANGED_TESTS=999999`
     );
-    if (!hasNewSibling) continue;
-
-    const headSources = Object.fromEntries(
-      destinations.map((destination) => [
-        destination,
-        typeof destination === "string" && fs.existsSync(destination)
-          ? fs.readFileSync(destination, "utf8")
-          : undefined,
-      ])
-    );
-    const evaluated = evaluateSplitLineage({
-      from,
-      to: from,
-      destinations,
-      baseSrc: git(["show", `${base}:${from}`]),
-      headSources,
-      changedPaths: changedSplitPaths,
-    });
-    lineageFlags.push(...evaluated.flags);
-    if (evaluated.aggregate) splitPerFile.push(evaluated.aggregate);
-    accountedSplitSources.add(from);
+    return;
   }
 
   const perFile = [...renamePerFile];
   for (const file of changed) {
-    if (accountedSplitSources.has(file)) continue;
     const baseSrc = git(["show", `${base}:${file}`]);
     const headSrc = fs.readFileSync(file, "utf8");
     perFile.push({
@@ -658,12 +627,57 @@ function main() {
   // Only exempts the reduction signal; tautology/skip/deletion signals still fire.
   let assertReductionAllowlist = new Set();
   let deletionAllowlist = {};
+  let reimplementedAllowlist = new Set();
   try {
     const raw = JSON.parse(fs.readFileSync("config/quality/test-masking-allowlist.json", "utf8"));
     assertReductionAllowlist = new Set(Object.keys(raw).filter((k) => !k.startsWith("_")));
     deletionAllowlist = raw._deletedWithReplacement || {};
+    reimplementedAllowlist = new Set(raw._reimplementedConditions || []);
   } catch {
     // no allowlist file — treat as empty
+  }
+
+  // (6348 subcheck 4, REPORT-ONLY) Tests that inline-reimplement a prod condition
+  // instead of importing the symbol that owns it. Prod files changed in this PR
+  // (added/copied/modified TS sources) are the reference corpus; each changed test
+  // file is scanned against them. Warns only — it never fails the gate for now.
+  const prodChanged = git(["diff", "--name-only", "--diff-filter=ACM", `${base}...HEAD`])
+    .split("\n")
+    .map((s) => s.trim())
+    .filter((f) => PROD_SRC_RE.test(f) && !TEST_RE.test(f) && fs.existsSync(f));
+  const prodSources = prodChanged.map((f) => {
+    try {
+      return fs.readFileSync(f, "utf8");
+    } catch {
+      return "";
+    }
+  });
+  const changedTests = git(["diff", "--name-only", "--diff-filter=ACM", `${base}...HEAD`])
+    .split("\n")
+    .map((s) => s.trim())
+    .filter((f) => TEST_RE.test(f) && fs.existsSync(f));
+  const reimplementedFlags = [];
+  if (prodSources.length) {
+    for (const tf of changedTests) {
+      if (reimplementedAllowlist.has(tf)) continue;
+      const src = fs.readFileSync(tf, "utf8");
+      for (const hit of findReimplementedConditions(prodSources, src, extractImports(src))) {
+        reimplementedFlags.push(
+          `${tf}: re-implementa a condição \`${hit.condition}\`` +
+            (hit.owner ? ` (dona: ${hit.owner})` : "") +
+            " — asserte através do import real em vez de copiar a condição"
+        );
+      }
+    }
+  }
+  if (reimplementedFlags.length) {
+    console.warn(
+      `[test-masking] (report-only) ${reimplementedFlags.length} teste(s) re-implementam ` +
+        `condição de produção em vez de importar o símbolo dono (classe #6216):\n` +
+        reimplementedFlags.map((f) => "  ⚠ " + f).join("\n") +
+        `\n  → importe o símbolo/função dono e asserte através dele (evita contrato duplicado ` +
+        `que diverge silenciosamente). Report-only por enquanto — não falha o gate.`
+    );
   }
 
   const deletedFlags = evaluateDeletedFiles(
@@ -671,10 +685,7 @@ function main() {
     deletionAllowlist
   );
   const maskingFlags = evaluateMasking(perFile, assertReductionAllowlist);
-  // Declared split aggregates are never allowlisted: the manifest itself is the
-  // narrow structural accounting mechanism and must preserve total assertions.
-  const splitMaskingFlags = evaluateMasking(splitPerFile);
-  const allFlags = [...deletedFlags, ...lineageFlags, ...maskingFlags, ...splitMaskingFlags];
+  const allFlags = [...deletedFlags, ...maskingFlags];
 
   if (allFlags.length) {
     console.error(

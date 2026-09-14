@@ -1,6 +1,5 @@
 import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
-import { toNumber } from "@/shared/utils/numeric";
 
 /**
  * Extract a provider error message from a buffered SSE stream that carries an
@@ -149,6 +148,15 @@ function toString(value, fallback = "") {
   return typeof value === "string" ? value : fallback;
 }
 
+function toNumber(value, fallback = 0) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+  return fallback;
+}
+
 export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
   const lines = String(rawSSE || "").split("\n");
   const chunks = [];
@@ -236,10 +244,8 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
             existing.index = tc.index;
           }
           if (tc?.function?.name && !existing.function?.name) {
-            existing.function = existing.function || {};
             existing.function.name = tc.function.name;
           }
-          existing.function = existing.function || {};
           existing.function.arguments = appendToolCallArgumentDelta(
             existing.function.arguments,
             deltaArgs
@@ -703,11 +709,18 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
         toIdString(evt.item_id)
       );
       const summary = Array.isArray(reasoningItem.summary) ? reasoningItem.summary : [];
-      const firstPart =
-        summary.length > 0 ? { ...toRecord(summary[0]) } : { type: "summary_text", text: "" };
-      firstPart.type = firstPart.type || "summary_text";
-      firstPart.text = `${toString(firstPart.text)}${toString(evt.delta)}`;
-      summary[0] = firstPart;
+      // #9500 — respect summary_index: each segment is a distinct summary_text
+      // part. Place deltas at summary[summary_index] (growing the array) so
+      // segments are preserved for later "\n\n" joining on the non-stream path,
+      // instead of overwriting summary[0] regardless of index.
+      const summaryIndex = typeof evt.summary_index === "number" ? evt.summary_index : 0;
+      const part =
+        summary[summaryIndex] && typeof summary[summaryIndex] === "object"
+          ? { ...toRecord(summary[summaryIndex]) }
+          : { type: "summary_text", text: "" };
+      part.type = part.type || "summary_text";
+      part.text = `${toString(part.text)}${toString(evt.delta)}`;
+      summary[summaryIndex] = part;
       reasoningItem.summary = summary;
     }
 
@@ -718,11 +731,15 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
         toIdString(evt.item_id)
       );
       const summary = Array.isArray(reasoningItem.summary) ? reasoningItem.summary : [];
-      const firstPart =
-        summary.length > 0 ? { ...toRecord(summary[0]) } : { type: "summary_text", text: "" };
-      firstPart.type = firstPart.type || "summary_text";
-      firstPart.text = toString(evt.text, toString(firstPart.text));
-      summary[0] = firstPart;
+      // #9500 — respect summary_index on the terminal done event too.
+      const summaryIndex = typeof evt.summary_index === "number" ? evt.summary_index : 0;
+      const part =
+        summary[summaryIndex] && typeof summary[summaryIndex] === "object"
+          ? { ...toRecord(summary[summaryIndex]) }
+          : { type: "summary_text", text: "" };
+      part.type = part.type || "summary_text";
+      part.text = toString(evt.text, toString(part.text));
+      summary[summaryIndex] = part;
       reasoningItem.summary = summary;
     }
 

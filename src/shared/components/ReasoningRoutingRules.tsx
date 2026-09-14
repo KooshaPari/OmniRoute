@@ -132,7 +132,14 @@ export default function ReasoningRoutingRules({ apiKeyId }: { apiKeyId?: string 
   }, [t]);
 
   useEffect(() => {
-    load().catch(() => setMessage(t("loadError")));
+    const run = async () => {
+      try {
+        await load();
+      } catch {
+        setMessage(t("loadError"));
+      }
+    };
+    run();
   }, [load, t]);
 
   const visibleRules = useMemo(() => {

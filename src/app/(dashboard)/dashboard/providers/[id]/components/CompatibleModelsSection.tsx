@@ -67,7 +67,7 @@ export interface CompatibleModelsSectionProps {
   bulkTogglePending?: boolean;
   togglingModelId?: string | null;
   onTestModel?: (modelId: string, fullModel: string) => Promise<void>;
-  modelTestStatus?: Record<string, "ok" | "error" | null>;
+  modelTestStatus?: Record<string, "ok" | "error" | "quota" | null>;
   testingModelId?: string | null;
   onTestAll?: (targets: Array<{ modelId: string; fullModel: string }>) => Promise<void>;
   testingAll?: boolean;
@@ -168,7 +168,7 @@ export default function CompatibleModelsSection({
           Boolean((model as any).free) ||
           model.id.endsWith(":free") ||
           /\bgr[aá]tis\b|\bfree\b/i.test(model.name || "") ||
-          isFreeModel(providerStorageAlias, { id: model.id }),
+          isFreeModel(providerStorageAlias, { id: model.id, isFree: (model as any).isFree }),
         isHidden: isModelHidden(model.id),
       });
       seenModelIds.add(model.id);
@@ -205,7 +205,7 @@ export default function CompatibleModelsSection({
           modelId.endsWith(":free") ||
           Boolean((customModel as any)?.free) ||
           /\bgr[aá]tis\b|\bfree\b/i.test(customModel?.name || alias || "") ||
-          isFreeModel(providerStorageAlias, { id: modelId }),
+          isFreeModel(providerStorageAlias, { id: modelId, isFree: (customModel as any)?.isFree }),
         isHidden: isModelHidden(modelId),
       });
       seenModelIds.add(modelId);
@@ -429,7 +429,7 @@ export default function CompatibleModelsSection({
             onAutoHideFailedChange={onAutoHideFailedChange}
           />
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-            {displayModels.map(({ modelId, alias, isHidden, source, isFree }) => {
+            {displayModels.map(({ modelId, alias, displayName, isHidden, source, isFree }) => {
               const fullModel = `${providerDisplayAlias}/${modelId}`;
               return (
                 <PassthroughModelRow
@@ -437,6 +437,7 @@ export default function CompatibleModelsSection({
                   modelId={modelId}
                   fullModel={fullModel}
                   alias={alias}
+                  displayName={displayName}
                   source={source}
                   isFree={isFree}
                   isHidden={isHidden}

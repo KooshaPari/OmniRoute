@@ -71,6 +71,9 @@ export interface ProviderModelsSectionProps {
   isAutoSyncEnabled: boolean;
   togglingAutoSync: boolean;
   handleToggleAutoSync: () => Promise<void>;
+  isAutoFetchModelsEnabled: boolean;
+  togglingAutoFetchModels: boolean;
+  handleToggleAutoFetchModels: () => Promise<void>;
   handleCompatibleImportWithProgress: (connectionId: string) => Promise<void>;
 
   // Phase 1l: visibility handlers
@@ -80,7 +83,7 @@ export interface ProviderModelsSectionProps {
   clearingModels: boolean;
   modelFilter: string;
   testingModelId: string | null;
-  modelTestStatus: Record<string, "ok" | "error">;
+  modelTestStatus: Record<string, "ok" | "error" | "quota">;
   onModelTestStatusChange: (modelId: string, status: "ok" | "error") => void;
   testingAll: boolean;
   testProgress: { done: number; total: number } | null;
@@ -141,6 +144,9 @@ export default function ProviderModelsSection({
   isAutoSyncEnabled,
   togglingAutoSync,
   handleToggleAutoSync,
+  isAutoFetchModelsEnabled,
+  togglingAutoFetchModels,
+  handleToggleAutoFetchModels,
   handleCompatibleImportWithProgress,
   compatSavingModelId,
   togglingModelId,
@@ -172,6 +178,31 @@ export default function ProviderModelsSection({
 }: ProviderModelsSectionProps) {
   const [freeFilter, setFreeFilter] = useState<"all" | "free" | "paid">("all");
   const [sortFreeFirst, setSortFreeFirst] = useState(false);
+  const canConfigureAutoFetchModels = connections.some(
+    (connection) => connection.isActive !== false && typeof connection.id === "string"
+  );
+  const autoFetchModelsToggle = canConfigureAutoFetchModels && (
+    <button
+      onClick={handleToggleAutoFetchModels}
+      disabled={togglingAutoFetchModels}
+      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border bg-transparent cursor-pointer text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
+      title={providerText(
+        t,
+        "autoFetchModelsTooltip",
+        "Fetch and cache upstream models when needed"
+      )}
+    >
+      <span
+        className="material-symbols-outlined text-[16px]"
+        style={{ color: isAutoFetchModelsEnabled ? "#22c55e" : "var(--color-text-muted)" }}
+      >
+        {isAutoFetchModelsEnabled ? "toggle_on" : "toggle_off"}
+      </span>
+      <span className="text-text-main">
+        {providerText(t, "autoFetchModels", "Auto-fetch upstream models")}
+      </span>
+    </button>
+  );
   const autoSyncToggle = allowModelImport && compatibleSupportsModelImport && canImportModels && (
     <button
       onClick={handleToggleAutoSync}
@@ -187,6 +218,12 @@ export default function ProviderModelsSection({
       </span>
       <span className="text-text-main">{t("autoSync")}</span>
     </button>
+  );
+  const modelDiscoveryControls = (
+    <>
+      {autoFetchModelsToggle}
+      {autoSyncToggle}
+    </>
   );
 
   const clearAllButton = (modelMeta.customModels.length > 0 || providerAliasEntries.length > 0) && (
@@ -223,7 +260,7 @@ export default function ProviderModelsSection({
     return (
       <div>
         <div className="flex items-center gap-2 mb-4">
-          {autoSyncToggle}
+          {modelDiscoveryControls}
           {clearAllButton}
         </div>
         <CompatibleModelsSection
@@ -252,9 +289,7 @@ export default function ProviderModelsSection({
           onModelsChanged={fetchProviderModelMeta}
           allowImport={allowModelImport && compatibleSupportsModelImport}
           isModelHidden={effectiveModelHidden}
-          onToggleHidden={(modelId, hidden) =>
-            handleToggleModelHidden(providerId, modelId, hidden)
-          }
+          onToggleHidden={(modelId, hidden) => handleToggleModelHidden(providerId, modelId, hidden)}
           onBulkToggleHidden={(modelIds, hidden) =>
             handleBulkToggleModelHidden(providerId, modelIds, hidden)
           }
@@ -303,7 +338,7 @@ export default function ProviderModelsSection({
               {importingModels ? t("importingModels") : t("importFromModels")}
             </Button>
           )}
-          {autoSyncToggle}
+          {modelDiscoveryControls}
           {clearAllButton}
           {allowModelImport && !canImportModels && (
             <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
@@ -329,9 +364,7 @@ export default function ProviderModelsSection({
           saveModelCompatFlags={saveModelCompatFlags}
           compatSavingModelId={compatSavingModelId}
           isModelHidden={effectiveModelHidden}
-          onToggleHidden={(modelId, hidden) =>
-            handleToggleModelHidden(providerId, modelId, hidden)
-          }
+          onToggleHidden={(modelId, hidden) => handleToggleModelHidden(providerId, modelId, hidden)}
           onBulkToggleHidden={(modelIds, hidden) =>
             handleBulkToggleModelHidden(providerId, modelIds, hidden)
           }
@@ -361,7 +394,7 @@ export default function ProviderModelsSection({
       >
         {importingModels ? t("importingModels") : t("importFromModels")}
       </Button>
-      {autoSyncToggle}
+      {modelDiscoveryControls}
       {!canImportModels && (
         <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
       )}
@@ -381,7 +414,9 @@ export default function ProviderModelsSection({
     (acc, [alias, fullModel]) => {
       const prefix = `${providerDisplayAlias}/`;
       if (fullModel.startsWith(prefix)) {
-        acc[fullModel.slice(prefix.length)] = alias;
+        const modelId = fullModel.slice(prefix.length);
+        const displayAlias = getDisplayModelAlias(modelId, alias);
+        if (displayAlias) acc[modelId] = displayAlias;
       }
       return acc;
     },
@@ -391,7 +426,7 @@ export default function ProviderModelsSection({
   const modelsWithVisibility = models.map((model) => ({
     ...model,
     isHidden: effectiveModelHidden(model.id),
-    isFree: isFreeModel(providerId, { id: model.id }),
+    isFree: isFreeModel(providerId, { id: model.id, isFree: (model as any).isFree }),
   }));
   const filteredModels = modelsWithVisibility.filter((model) => {
     const matchesQuery = matchesModelCatalogQuery(modelFilter, {
@@ -471,9 +506,7 @@ export default function ProviderModelsSection({
               onCopy={onCopy}
               onSetAlias={(a) => onSetAlias(model.id, a, providerDisplayAlias)}
               onDeleteAlias={
-                aliasByModelId[model.id]
-                  ? () => onDeleteAlias(aliasByModelId[model.id])
-                  : undefined
+                aliasByModelId[model.id] ? () => onDeleteAlias(aliasByModelId[model.id]) : undefined
               }
               t={t}
               showDeveloperToggle

@@ -10,11 +10,16 @@ import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1RerankSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { getCachedProviderNodes } from "@/lib/localDb";
+import { getCachedProviderNodes } from "@/lib/db/readCache";
 import {
   isAllRateLimitedCredentials,
   rateLimitedProviderResponse,
 } from "@/app/api/v1/_shared/rateLimit";
+import { saveCallLog } from "@/lib/usageDb";
+import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { generateRequestId } from "@/shared/utils/requestId";
+import { CORS_HEADERS } from "@omniroute/open-sse/utils/cors.ts";
+import { deriveRerankProviderForChatProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 
 /**
  * Handle CORS preflight
@@ -103,14 +108,36 @@ async function postHandler(request, context) {
   // Try cloud registry first
   const { provider, model: modelId } = parseRerankModel(body.model);
 
-  if (provider) {
-    // Cloud provider matched
-    const credentials = await getProviderCredentialsWithQuotaPreflight(provider);
+  // Generic fallback: a configured OpenAI-compatible chat provider with no
+  // curated rerank entry (groq, mistral, ...) still exposes a Cohere-compatible
+  // <base>/rerank endpoint. Only used when the prefix matches a chat provider
+  // that can actually derive an endpoint — otherwise fall through to local nodes.
+  let derivedProvider: ReturnType<typeof deriveRerankProviderForChatProvider> = null;
+  if (!provider) {
+    const prefix = body.model.split("/")[0];
+    if (prefix && prefix !== body.model) {
+      try {
+        const { REGISTRY } = await import("@omniroute/open-sse/config/providerRegistry.ts");
+        const chatEntry = (REGISTRY as Record<string, { baseUrl?: string } | undefined>)[prefix];
+        derivedProvider = deriveRerankProviderForChatProvider(prefix, chatEntry);
+      } catch {
+        derivedProvider = null;
+      }
+    }
+  }
+
+  if (provider || derivedProvider) {
+    // Cloud provider matched (or a generic Cohere-compatible endpoint was derived)
+    const effectiveProviderId = provider || derivedProvider!.id;
+    const credentials = await getProviderCredentialsWithQuotaPreflight(effectiveProviderId);
     if (!credentials) {
-      return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        `No credentials for provider: ${effectiveProviderId}`
+      );
     }
     if (isAllRateLimitedCredentials(credentials)) {
-      return rateLimitedProviderResponse(provider, credentials);
+      return rateLimitedProviderResponse(effectiveProviderId, credentials);
     }
 
     const response = await handleRerank({
@@ -120,7 +147,10 @@ async function postHandler(request, context) {
       top_n: body.top_n,
       return_documents: body.return_documents,
       credentials,
+      resolvedProvider: derivedProvider || null,
       connectionId: (credentials as { connectionId?: string } | null)?.connectionId || null,
+      apiKeyId: policy.apiKeyInfo?.id || null,
+      apiKeyName: policy.apiKeyInfo?.name || null,
     });
     if (response?.ok) {
       await clearRecoveredProviderState(credentials);
@@ -148,8 +178,9 @@ async function postHandler(request, context) {
       }
 
       const token = credentials?.apiKey || credentials?.accessToken;
+      const startTime = Date.now();
       try {
-        const res = await fetch(localProvider.baseUrl, {
+        let res = await fetch(localProvider.baseUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -164,19 +195,110 @@ async function postHandler(request, context) {
           }),
         });
 
+        // Some local providers (e.g. Infinity, TEI) mount at /rerank rather than /v1/rerank
+        if (res.status === 404 && localProvider.baseUrl.endsWith("/v1/rerank")) {
+          const fallbackUrl = localProvider.baseUrl.replace(/\/v1\/rerank$/, "/rerank");
+          try {
+            const fallbackRes = await fetch(fallbackUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                model: localModel,
+                query: body.query,
+                documents: body.documents,
+                top_n: body.top_n || body.documents.length,
+                return_documents: body.return_documents !== false,
+              }),
+            });
+            if (fallbackRes.ok || fallbackRes.status !== 404) {
+              res = fallbackRes;
+            }
+          } catch {
+            // retain original 404 response if fallback fetch fails
+          }
+        }
+
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
-          return errorResponse(
-            res.status,
-            errData.message || errData.detail || `Provider returned HTTP ${res.status}`
-          );
+          const errorMessage =
+            errData.message || errData.detail || `Provider returned HTTP ${res.status}`;
+          saveCallLog({
+            method: "POST",
+            path: "/v1/rerank",
+            status: res.status,
+            model: body.model,
+            provider: prefix,
+            connectionId:
+              (credentials as { connectionId?: string } | null)?.connectionId || undefined,
+            duration: Date.now() - startTime,
+            requestBody: {
+              model: body.model,
+              query: body.query,
+              documents: body.documents,
+              top_n: body.top_n,
+              return_documents: body.return_documents,
+            },
+            responseBody: errData,
+            error: errorMessage,
+            apiKeyId: policy.apiKeyInfo?.id || undefined,
+            apiKeyName: policy.apiKeyInfo?.name || undefined,
+          }).catch(() => {});
+          return errorResponse(res.status, errorMessage);
         }
 
         const data = await res.json();
-        return Response.json(data, {
-          headers: {},
+        const latencyMs = Date.now() - startTime;
+        saveCallLog({
+          method: "POST",
+          path: "/v1/rerank",
+          status: 200,
+          model: body.model,
+          provider: prefix,
+          connectionId:
+            (credentials as { connectionId?: string } | null)?.connectionId || undefined,
+          duration: latencyMs,
+          tokens: { prompt_tokens: 0, completion_tokens: 0 },
+          requestBody: {
+            model: body.model,
+            query: body.query,
+            documents: body.documents,
+            top_n: body.top_n,
+            return_documents: body.return_documents,
+          },
+          responseBody: data,
+          apiKeyId: policy.apiKeyInfo?.id || undefined,
+          apiKeyName: policy.apiKeyInfo?.name || undefined,
+        }).catch(() => {});
+
+        const headers = new Headers({ ...CORS_HEADERS, "Content-Type": "application/json" });
+        attachOmniRouteMetaHeaders(headers, {
+          provider: prefix,
+          model: localModel,
+          costUsd: 0,
+          latencyMs,
+          requestId: generateRequestId(),
+        });
+        return new Response(JSON.stringify(data), {
+          status: 200,
+          headers,
         });
       } catch (err: any) {
+        saveCallLog({
+          method: "POST",
+          path: "/v1/rerank",
+          status: 500,
+          model: body.model,
+          provider: prefix,
+          connectionId:
+            (credentials as { connectionId?: string } | null)?.connectionId || undefined,
+          duration: Date.now() - startTime,
+          error: err.message,
+          apiKeyId: policy.apiKeyInfo?.id || undefined,
+          apiKeyName: policy.apiKeyInfo?.name || undefined,
+        }).catch(() => {});
         return errorResponse(500, `Rerank request failed: ${err.message}`);
       }
     }

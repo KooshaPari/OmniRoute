@@ -1,5 +1,5 @@
 /**
- * generator.ts — idempotent SKILL.md generator for all 42 agent skills.
+ * generator.ts — idempotent SKILL.md generator for all 45 agent skills.
  *
  * Usage (library):
  *   import { generateAgentSkills, buildSkillMarkdown } from "@/lib/agentSkills/generator";
@@ -76,6 +76,7 @@ function extractCustomBlock(content: string): string | null {
 function buildApiBody(skill: AgentSkill, sources: BuildSources): string {
   const areaMap = sources.openapi.areas;
   const ops = areaMap.get(skill.area as Parameters<typeof areaMap.get>[0]) ?? [];
+  const usesDashboardSession = skill.id === "omni-auth";
 
   const lines: string[] = [];
 
@@ -84,10 +85,17 @@ function buildApiBody(skill: AgentSkill, sources: BuildSources): string {
   lines.push("");
 
   lines.push("## Authentication\n");
-  lines.push(
-    "All requests require a valid Bearer token or session cookie. " +
-      "Obtain a token via `POST /api/auth/login` or configure `REQUIRE_API_KEY=false` for local development."
-  );
+  if (usesDashboardSession) {
+    lines.push(
+      "Remote API requests use a Bearer credential. Dashboard login is different: " +
+        "`POST /api/auth/login` accepts a management password and returns an `auth_token` session cookie."
+    );
+  } else {
+    lines.push(
+      "All requests require a valid Bearer token or session cookie. " +
+        "Obtain a token via `POST /api/auth/login` or configure `REQUIRE_API_KEY=false` for local development."
+    );
+  }
   lines.push("");
 
   lines.push("## Endpoints\n");
@@ -105,14 +113,41 @@ function buildApiBody(skill: AgentSkill, sources: BuildSources): string {
         lines.push(op.description);
         lines.push("");
       }
-      // Minimal curl example
-      const curlMethod = op.method === "GET" ? "" : `-X ${op.method} `;
+      // Minimal curl example. Only omni-auth establishes and consumes a dashboard
+      // session; generic API skills use independently usable Bearer examples.
       lines.push("```bash");
-      lines.push(`curl ${curlMethod}https://localhost:20128${op.path} \\`);
-      lines.push('  -H "Authorization: Bearer $OMNIROUTE_TOKEN"');
-      if (["POST", "PUT", "PATCH"].includes(op.method)) {
+      if (usesDashboardSession && op.path === "/api/auth/login" && op.method === "POST") {
+        lines.push(`curl -X POST https://localhost:20128${op.path} \\`);
         lines.push('  -H "Content-Type: application/json" \\');
-        lines.push("  -d '{}'");
+        lines.push("  -c cookie.jar \\");
+        lines.push('  -d \'{"password":"<management-password>"}\'');
+      } else if (usesDashboardSession) {
+        const curlMethod = op.method === "GET" ? "" : `-X ${op.method} `;
+        if (op.method === "GET") {
+          lines.push(`curl ${curlMethod}https://localhost:20128${op.path} \\`);
+          lines.push("  -b cookie.jar");
+        } else {
+          lines.push(
+            "CSRF_TOKEN=$(curl -s https://localhost:20128/api/auth/csrf -b cookie.jar | jq -r .token)"
+          );
+          lines.push(`curl ${curlMethod}https://localhost:20128${op.path} \\`);
+          lines.push("  -b cookie.jar \\");
+          const hasJsonBody = ["POST", "PUT", "PATCH"].includes(op.method);
+          lines.push(`  -H "x-omniroute-csrf: $CSRF_TOKEN"${hasJsonBody ? " \\" : ""}`);
+          if (hasJsonBody) {
+            lines.push('  -H "Content-Type: application/json" \\');
+            lines.push("  -d '{}'");
+          }
+        }
+      } else {
+        const curlMethod = op.method === "GET" ? "" : `-X ${op.method} `;
+        const hasJsonBody = ["POST", "PUT", "PATCH"].includes(op.method);
+        lines.push(`curl ${curlMethod}https://localhost:20128${op.path} \\`);
+        lines.push(`  -H "Authorization: Bearer $OMNIROUTE_TOKEN"${hasJsonBody ? " \\" : ""}`);
+        if (hasJsonBody) {
+          lines.push('  -H "Content-Type: application/json" \\');
+          lines.push("  -d '{}'");
+        }
       }
       lines.push("```");
       lines.push("");
@@ -202,7 +237,11 @@ export function buildSkillMarkdown(
   };
 
   const bodyLines =
-    skill.category === "api" ? buildApiBody(skill, sources) : buildCliBody(skill, sources);
+    skill.category === "api"
+      ? buildApiBody(skill, sources)
+      : skill.category === "external"
+        ? "" // external: content lives in the custom block below
+        : buildCliBody(skill, sources); // cli + config share the CLI-shaped body
 
   // Re-inject custom block if present in existing content
   let customBlock = "";

@@ -6,21 +6,11 @@
  *   2. Env `QUOTA_STORE_DRIVER`
  *   3. Default: "sqlite"
  *
- * Driver values:
- *   - "sqlite" — fully-embedded (default; uses localDb atomic primitives)
- *   - "keyv"   — fully-embedded (uses keyv + @keyv/sqlite; single-process)
- *   - "redis"  — distributed (uses ioredis; optional sidecar)
- *
- * Keyv URL precedence:
- *   1. DB setting `quotaStore.kvUrl`
- *   2. Env `QUOTA_STORE_KV_URL`
- *
  * Redis URL precedence:
  *   1. DB setting `quotaStore.redisUrl`
  *   2. Env `QUOTA_STORE_REDIS_URL`
  *
  * If driver=redis but URL is absent/invalid → fallback to sqlite + pino.warn.
- * If driver=keyv but no URL → uses sqlite:// default URI.
  * Never throws — always returns a valid QuotaStore.
  *
  * Part of: Group B — Quota Sharing Engine (plan 22, frente F6).
@@ -49,7 +39,6 @@ export function resetQuotaStoreSingleton(): void {
 interface QuotaStoreSettings {
   driver?: string;
   redisUrl?: string;
-  kvUrl?: string;
 }
 
 async function readDbSettings(): Promise<QuotaStoreSettings> {
@@ -64,18 +53,10 @@ async function readDbSettings(): Promise<QuotaStoreSettings> {
       return {
         driver: typeof obj.driver === "string" ? obj.driver : undefined,
         redisUrl: typeof obj.redisUrl === "string" ? obj.redisUrl : undefined,
-        kvUrl: typeof obj.kvUrl === "string" ? obj.kvUrl : undefined,
       };
     }
-  } catch (err) {
-    // DB not available — fall through to env. Surface the failure loudly
-    // so a corrupted settings module can't silently disable the configured
-    // QuotaStore driver (fail-fast governance: do not hide TS compile /
-    // runtime errors at the DB boundary).
-    log.error(
-      { err },
-      "readDbSettings: getSettings() failed — falling back to env-only config",
-    );
+  } catch {
+    // DB not available — fall through to env
   }
   return {};
 }
@@ -102,26 +83,6 @@ export async function getQuotaStore(): Promise<QuotaStore> {
   const redisUrl =
     dbSettings.redisUrl ?? process.env.QUOTA_STORE_REDIS_URL ?? "";
 
-  // PR-G: keyv driver — embedded default. Backed by keyv (SQLite by default,
-  // Redis only if keyvUrl points there). Removes the Redis sidecar requirement
-  // for fresh installs while preserving the option for distributed deploys.
-  if (driver === "keyv") {
-    try {
-      const { getKeyvQuotaStore } = await import("./keyvQuotaStore");
-      const kvUrl = dbSettings.kvUrl ?? process.env.QUOTA_STORE_KEYV_URL ?? "";
-      const store = getKeyvQuotaStore(kvUrl ? { uri: kvUrl } : undefined);
-      _store = store;
-      log.info({ kvUrl: kvUrl.replace(/:[^:@]*@/, ":***@") }, "QuotaStore: using keyv driver");
-      return _store;
-    } catch (err) {
-      log.warn(
-        { err: (err as Error)?.message },
-        "Keyv QuotaStore unavailable — falling back to sqlite"
-      );
-      // Fall through to sqlite
-    }
-  }
-
   if (driver === "redis") {
     if (!redisUrl) {
       log.warn("QUOTA_STORE_DRIVER=redis but no Redis URL configured — falling back to sqlite");
@@ -135,15 +96,9 @@ export async function getQuotaStore(): Promise<QuotaStore> {
         log.info({ redisUrl: redisUrl.replace(/:[^:@]*@/, ":***@") }, "QuotaStore: using Redis driver");
         return _store;
       } catch (err) {
-        // Fail-fast: log.error (not warn) so a corrupted redisQuotaStore
-        // import / missing ioredis dep surfaces in monitoring. The URL is
-        // redacted to avoid leaking credentials in error logs.
-        log.error(
-          {
-            err,
-            redisUrl: redisUrl.replace(/:[^:@]*@/, ":***@"),
-          },
-          "Redis QuotaStore unavailable — falling back to sqlite",
+        log.warn(
+          { err: (err as Error)?.message },
+          "Redis QuotaStore unavailable — falling back to sqlite"
         );
         // Fall through to sqlite
       }

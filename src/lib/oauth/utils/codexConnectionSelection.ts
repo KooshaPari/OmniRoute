@@ -56,10 +56,7 @@ export function pickCodexConnectionForUser(
     : null;
   return (
     compatibleEmail?.connection ||
-    // Legacy rows predate chatgptUserId and may still have an email. Preserve
-    // the old account-only behavior by reusing the first workspace row when
-    // no stored user identity can disambiguate it.
-    identities[0]?.connection ||
+    identities.find(({ identity }) => identity.email === null)?.connection ||
     null
   );
 }

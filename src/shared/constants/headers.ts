@@ -1,6 +1,7 @@
 export const OMNIROUTE_RESPONSE_HEADERS = {
   cache: "X-OmniRoute-Cache",
   cacheHit: "X-OmniRoute-Cache-Hit",
+  cacheLatency: "X-OmniRoute-Cache-Latency",
   compression: "X-OmniRoute-Compression",
   costSaved: "X-OmniRoute-Cost-Saved",
   decision: "X-OmniRoute-Decision",
@@ -13,5 +14,6 @@ export const OMNIROUTE_RESPONSE_HEADERS = {
   responseCost: "X-OmniRoute-Response-Cost",
   tokensIn: "X-OmniRoute-Tokens-In",
   tokensOut: "X-OmniRoute-Tokens-Out",
+  tokensPerSecond: "X-OmniRoute-Tokens-Per-Second",
   version: "X-OmniRoute-Version",
 } as const;

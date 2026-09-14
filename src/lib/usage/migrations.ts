@@ -17,7 +17,6 @@ import { getAppLogFilePath } from "../logEnv";
 import { protectPayloadForLog } from "../logPayloads";
 import { sanitizePII } from "../piiSanitizer";
 import { writeCallArtifact, type CallLogArtifact } from "./callLogArtifacts";
-import { resolveProviderId } from "@/shared/constants/providers";
 import {
   resolveImportedUsageAccountIdentity,
   resolveOrphanedUsageAccountIdentity,
@@ -334,7 +333,7 @@ export function migrateUsageJsonToSqlite() {
               : resolveOrphanedUsageAccountIdentity(entry.provider, connectionId);
             const identity = resolveImportedUsageAccountIdentity(entry, fallbackIdentity);
             insert.run({
-              provider: resolveProviderId(entry.provider) || null,
+              provider: entry.provider || null,
               model: entry.model || null,
               connectionId,
               accountKey: identity.accountKey,

@@ -6,9 +6,9 @@
  * de protocolo troca URL, header de auth e headers extras — por isso a alternativa
  * carrega os tres, nao so a URL.
  *
- * The choice lives on the connection, in providerSpecificData.targetFormat, and
- * only applies if it matches a declared alternative: an unknown value falls back
- * to the default format, never producing an orphan URL/auth.
+ * A escolha vive na conexao, em providerSpecificData.targetFormat, e so vale se
+ * casar com uma alternativa declarada: valor desconhecido cai no formato padrao,
+ * nunca produz uma URL/auth orfas.
  */
 import type { RegistryEntry } from "./shared.ts";
 
@@ -19,6 +19,19 @@ export interface AlternateFormat {
   authHeader?: string;
   headers?: Record<string, string>;
   urlSuffix?: string;
+  /**
+   * Monta a URL final quando o protocolo alternativo embute o modelo no path, e
+   * nao apenas um sufixo fixo. O caso concreto e o protocolo Gemini, cuja rota e
+   * `{base}/{model}:generateContent` (ou `:streamGenerateContent?alt=sse`) — algo
+   * que `chatPath`/`urlSuffix` nao expressam, porque ambos sao constantes.
+   *
+   * Mesma assinatura do `urlBuilder` de RegistryEntry (base ja sem "/" final,
+   * modelo e stream), de proposito: um gateway que fala Gemini como alternativa
+   * reaproveita `buildGeminiGenerateContentUrl` de shared.ts — o mesmo builder que
+   * o provedor Gemini nativo usa — em vez de reimplementar a rota.
+   * Quando ausente, a URL continua sendo `baseUrl + chatPath + urlSuffix`.
+   */
+  urlBuilder?: (base: string, model: string, stream: boolean) => string;
   label: string;
 }
 

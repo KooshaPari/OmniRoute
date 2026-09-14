@@ -1,4 +1,17 @@
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import type { ProviderModelsConfigEntry } from "./discovery/providerModelsConfig";
+
+function parseRegistryModelsResponse(data: unknown): unknown[] {
+  const response = data as { data?: unknown; models?: unknown } | null;
+  const models = Array.isArray(data)
+    ? data
+    : Array.isArray(response?.data)
+      ? response.data
+      : Array.isArray(response?.models)
+        ? response.models
+        : [];
+  return models;
+}
 
 /**
  * Derive a models-discovery config from the provider's registry `modelsUrl`
@@ -8,18 +21,9 @@ import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts
  * OpenAI-compatible `/v1/models` endpoint, or `undefined` when the
  * registry entry has no `modelsUrl`.
  */
-export function deriveConfigFromRegistryModelsUrl(provider: string):
-  | {
-      url: string;
-      method: "GET";
-      headers: Record<string, string>;
-      authHeader?: string;
-      authPrefix?: string;
-      authQuery?: string;
-      body?: unknown;
-      parseResponse: (data: any) => any;
-    }
-  | undefined {
+export function deriveConfigFromRegistryModelsUrl(
+  provider: string
+): ProviderModelsConfigEntry | undefined {
   const entry = getRegistryEntry(provider);
   if (typeof entry?.modelsUrl === "string" && entry.modelsUrl.length > 0) {
     return {
@@ -28,7 +32,7 @@ export function deriveConfigFromRegistryModelsUrl(provider: string):
       authHeader: "Authorization",
       authPrefix: "Bearer ",
       headers: { "Content-Type": "application/json" },
-      parseResponse: (data) => data.data || data.models || [],
+      parseResponse: parseRegistryModelsResponse,
     };
   }
   return undefined;

@@ -6,6 +6,7 @@ import { describe, it } from "node:test";
 import {
   providerLacksModelListing,
   providerUsesCuratedModelsOnly,
+  providerUsesExclusiveSyncedListing,
 } from "@/lib/providers/modelListingCapability";
 
 describe("providerLacksModelListing (#5420)", () => {
@@ -29,10 +30,35 @@ describe("providerLacksModelListing (#5420)", () => {
     assert.equal(providerLacksModelListing("z", ["embedding"]), false);
   });
 
-  it("keeps Kimi Web visible while marking its model catalog as curated-only", () => {
+  it("keeps curated web providers visible while disabling remote model import", () => {
     assert.equal(providerLacksModelListing("kimi-web", ["llm"]), false);
+    assert.equal(providerLacksModelListing("zai-web", ["llm"]), false);
     assert.equal(providerUsesCuratedModelsOnly("kimi-web"), true);
+    assert.equal(providerUsesCuratedModelsOnly("zai-web"), true);
+    assert.equal(providerUsesCuratedModelsOnly("chatgpt-web"), true);
+    assert.equal(providerUsesCuratedModelsOnly("cgpt-web"), false);
     assert.equal(providerUsesCuratedModelsOnly("qwen-cloud"), false);
     assert.equal(providerUsesCuratedModelsOnly("kimi-coding"), false);
+  });
+});
+
+describe("providerUsesExclusiveSyncedListing", () => {
+  it("is true only for Cursor (id or alias)", () => {
+    assert.equal(providerUsesExclusiveSyncedListing("cursor"), true);
+    assert.equal(providerUsesExclusiveSyncedListing("cu"), true);
+    assert.equal(providerUsesExclusiveSyncedListing("Cursor"), true);
+  });
+
+  it("is false for other providers including authoritative live-catalog ones", () => {
+    assert.equal(providerUsesExclusiveSyncedListing("github"), false);
+    assert.equal(providerUsesExclusiveSyncedListing("command-code"), false);
+    assert.equal(providerUsesExclusiveSyncedListing("openai"), false);
+    assert.equal(providerUsesExclusiveSyncedListing(""), false);
+  });
+
+  it("test 10: exclusive listing stays cursor-only; claude is not cursor", () => {
+    assert.equal(providerUsesExclusiveSyncedListing("claude"), false);
+    assert.equal(providerUsesExclusiveSyncedListing("codex"), false);
+    assert.equal(providerUsesExclusiveSyncedListing("agy"), false);
   });
 });

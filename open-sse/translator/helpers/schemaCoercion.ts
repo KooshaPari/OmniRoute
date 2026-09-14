@@ -290,6 +290,31 @@ export function coerceToolSchemas(tools: unknown): unknown {
   });
 }
 
+const NULL_OMISSION_NOTE = "null = omit this parameter";
+
+function schemaTypeIncludes(type: unknown, wanted: string): boolean {
+  return type === wanted || (Array.isArray(type) && type.includes(wanted));
+}
+
+function isPlainStringType(type: unknown): boolean {
+  return type === "string" || (Array.isArray(type) && type.length === 1 && type[0] === "string");
+}
+
+function appendNullOmissionMarker(description: unknown): string {
+  if (typeof description === "string" && description.length > 0) {
+    return description.includes(NULL_OMISSION_NOTE)
+      ? description
+      : `${description} (${NULL_OMISSION_NOTE})`;
+  }
+  return NULL_OMISSION_NOTE;
+}
+
+function widenTypeWithNull(type: unknown): unknown {
+  if (typeof type === "string") return [type, "null"];
+  if (Array.isArray(type) && !type.includes("null")) return [...type, "null"];
+  return type;
+}
+
 // #7023 — Responses API strict mode forces every "optional" tool property into
 // `required`, so a model that intends to OMIT an optional enum property (no declared
 // `default`) must still emit a concrete value (e.g. Agent.isolation:"remote"). Neither
@@ -299,7 +324,11 @@ export function coerceToolSchemas(tools: unknown): unknown {
 // `null` (see pureHelpers.ts::isDroppableNullEntry). Scope: top-level
 // `properties[key].enum` only — does not recurse into `items`/`anyOf`/`oneOf` branches
 // (no real-world case beyond Agent.isolation is documented; extend with a concrete repro).
-function shouldInjectNullOmission(key: string, propSchema: unknown, required: Set<string>): boolean {
+function shouldInjectNullOmission(
+  key: string,
+  propSchema: unknown,
+  required: Set<string>
+): boolean {
   return (
     isPlainObject(propSchema) &&
     Array.isArray(propSchema.enum) &&
@@ -312,17 +341,36 @@ function widenPropertyForNullOmission(propSchema: JsonRecord): JsonRecord {
   const widened: JsonRecord = { ...propSchema };
   const enumValues = propSchema.enum as unknown[];
   widened.enum = enumValues.includes(null) ? enumValues : [...enumValues, null];
-  if (typeof propSchema.type === "string") {
-    widened.type = [propSchema.type, "null"];
-  } else if (Array.isArray(propSchema.type) && !propSchema.type.includes("null")) {
-    widened.type = [...propSchema.type, "null"];
-  }
-  const note = "null = omit this parameter";
-  widened.description =
-    typeof propSchema.description === "string" && propSchema.description.length > 0
-      ? `${propSchema.description} (${note})`
-      : note;
+  widened.type = widenTypeWithNull(propSchema.type);
+  widened.description = appendNullOmissionMarker(propSchema.description);
   return widened;
+}
+
+// OpenCode `subagent.sessionID` (and any other optional default-less plain string) has
+// the same strict-mode omission problem as #7023 enums, but no enum to widen. Inject
+// the same nullable-union sentinel on top-level `properties[key]` only — do not recurse
+// into `items`/`anyOf`/`$defs`, and do not touch enums (owned by the helper above).
+function shouldInjectStringNullOmission(
+  key: string,
+  propSchema: unknown,
+  required: Set<string>
+): boolean {
+  return (
+    isPlainObject(propSchema) &&
+    !Array.isArray(propSchema.enum) &&
+    isPlainStringType(propSchema.type) &&
+    !schemaTypeIncludes(propSchema.type, "null") &&
+    !required.has(key) &&
+    !hasOwn(propSchema, "default")
+  );
+}
+
+function widenStringPropertyForNullOmission(propSchema: JsonRecord): JsonRecord {
+  return {
+    ...propSchema,
+    type: widenTypeWithNull(propSchema.type),
+    description: appendNullOmissionMarker(propSchema.description),
+  };
 }
 
 export function injectOptionalEnumOmissionSentinel(schema: unknown): unknown {
@@ -351,6 +399,43 @@ export function injectOptionalEnumOmissionForTools(tools: unknown): unknown {
     const result: JsonRecord = { ...tool };
     if ("parameters" in result && !isPlainObject(result.function)) {
       result.parameters = injectOptionalEnumOmissionSentinel(result.parameters);
+    }
+    return result;
+  });
+}
+
+export function injectOptionalStringOmissionSentinel(schema: unknown): unknown {
+  if (!isPlainObject(schema) || !isPlainObject(schema.properties)) return schema;
+
+  const required = new Set(Array.isArray(schema.required) ? schema.required : []);
+  let changed = false;
+  const nextProperties: JsonRecord = { ...schema.properties };
+
+  for (const [key, propSchema] of Object.entries(schema.properties)) {
+    if (!shouldInjectStringNullOmission(key, propSchema, required)) continue;
+    nextProperties[key] = widenStringPropertyForNullOmission(propSchema as JsonRecord);
+    changed = true;
+  }
+
+  if (!changed) return schema;
+  return { ...schema, properties: nextProperties };
+}
+
+export function injectOptionalStringOmissionForTools(tools: unknown): unknown {
+  if (!Array.isArray(tools)) return tools;
+
+  return tools.map((tool) => {
+    if (!isPlainObject(tool)) return tool;
+
+    const result: JsonRecord = { ...tool };
+    if (isPlainObject(result.function) && "parameters" in result.function) {
+      result.function = {
+        ...result.function,
+        parameters: injectOptionalStringOmissionSentinel(result.function.parameters),
+      };
+    }
+    if ("parameters" in result && !isPlainObject(result.function)) {
+      result.parameters = injectOptionalStringOmissionSentinel(result.parameters);
     }
     return result;
   });
@@ -429,6 +514,13 @@ const SCHEMA_SLOT_KEYS = [
   "else",
   "unevaluatedProperties",
   "additionalItems",
+  // draft 2020-12 applicators whose value is a schema too. Without them a
+  // placeholder in either position falls through to the scalar branch at the
+  // bottom of the walker and is forwarded as a string, which is the shape this
+  // sanitizer exists to remove. The opencode plugin's own walker
+  // (@omniroute/opencode-plugin-v2/src/shared/gemini.ts) lists both.
+  "contentSchema",
+  "unevaluatedItems",
 ];
 
 function coerceIndexedObjectToArray(value: unknown): unknown[] | null {

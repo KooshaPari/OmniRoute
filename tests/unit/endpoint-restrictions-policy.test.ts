@@ -30,7 +30,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: any) {
@@ -79,7 +79,7 @@ test.after(async () => {
   apiKeysDb.resetApiKeyState();
   costRules.resetCostData();
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ─── Policy tests ─────────────────────────────────────────────────────────
@@ -137,10 +137,7 @@ test("chat-only key blocks /v1/embeddings", async () => {
   assert.ok(result.rejection, "Should reject the request");
   assert.equal(result.rejection.status, 403);
   const msg = await readErrorMessage(result.rejection);
-  assert.ok(
-    msg.includes("embeddings"),
-    `Error message should mention 'embeddings', got: ${msg}`
-  );
+  assert.ok(msg.includes("embeddings"), `Error message should mention 'embeddings', got: ${msg}`);
 });
 
 test("search-only key blocks /v1/images/generations", async () => {

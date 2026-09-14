@@ -1,7 +1,8 @@
 import { POST as postChatCompletion } from "@/app/api/v1/chat/completions/route";
 import type { PersistedEvalRun, EvalTargetType } from "@/lib/db/evals";
 import { saveEvalRun } from "@/lib/db/evals";
-import { getApiKeyById, getCombos } from "@/lib/localDb";
+import { getApiKeyById } from "@/lib/db/apiKeys";
+import { getCombos } from "@/lib/db/combos";
 import { getSuite, listSuites, runSuite } from "./evalRunner";
 
 export interface EvalTargetInput {

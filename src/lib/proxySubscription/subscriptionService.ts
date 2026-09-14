@@ -36,7 +36,9 @@ import {
   isSubscriptionFetchUrlAllowed,
   isIpLiteral,
   isAnyResolvedAddressBlocked,
+  type FetchGuardOptions,
 } from "./fetchGuard";
+import { areLocalProviderUrlsAllowed } from "@/shared/network/outboundUrlGuardPolicy";
 import { withRetry } from "./fetchRetry";
 import { parseSubscription, redactedNodeSummary, type ParsedSubscription } from "./parse";
 
@@ -280,13 +282,20 @@ export async function deleteSubscription(id: string): Promise<boolean> {
 // ───────────────────────────── Sync + apply ─────────────────────────────
 
 /**
- * Refuse to fetch a subscription URL unless it is http/https to a non-internal
+ * Refuse to fetch a subscription URL unless it is http/https to an allowed
  * host. IP literals are checked structurally; hostnames are resolved and the
- * resolved addresses are re-checked (fail closed on resolution errors). This
- * blocks SSRF to internal services / cloud metadata (169.254.169.254).
+ * resolved addresses are re-checked (fail closed on resolution errors).
+ *
+ * Local-first (#10158): loopback/private fetch targets are ALLOWED when
+ * `areLocalProviderUrlsAllowed()` is on (default ON — same local-first policy
+ * already used for provider validation, and consistent with
+ * `coreEndpoint.ts` already permitting a loopback routing core). Cloud
+ * metadata / link-local (169.254.0.0/16, incl. 169.254.169.254 IMDS) is
+ * blocked UNCONDITIONALLY regardless of that flag.
  */
 async function assertSafeFetchTarget(url: string): Promise<void> {
-  if (!isSubscriptionFetchUrlAllowed(url)) {
+  const guardOpts: FetchGuardOptions = { allowLocal: areLocalProviderUrlsAllowed() };
+  if (!isSubscriptionFetchUrlAllowed(url, guardOpts)) {
     throw new Error("Subscription URL is not allowed (scheme or host blocked)");
   }
   const host = new URL(url).hostname.toLowerCase();
@@ -299,7 +308,7 @@ async function assertSafeFetchTarget(url: string): Promise<void> {
     try {
       const dns = await import("node:dns");
       const addrs = await dns.promises.lookup(bare, { all: true });
-      if (isAnyResolvedAddressBlocked(addrs)) {
+      if (isAnyResolvedAddressBlocked(addrs, guardOpts)) {
         throw new Error("Subscription host resolves to a blocked (internal) address");
       }
     } catch (e) {

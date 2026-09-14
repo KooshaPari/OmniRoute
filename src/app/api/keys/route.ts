@@ -3,9 +3,9 @@ import {
   getApiKeys,
   getApiKeysCount,
   createApiKey,
-  isCloudEnabled,
   updateApiKeyPermissions,
-} from "@/lib/localDb";
+} from "@/lib/db/apiKeys";
+import { isCloudEnabled } from "@/lib/db/settings";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { createKeySchema } from "@/shared/validation/schemas";
@@ -71,8 +71,12 @@ export async function POST(request) {
     }
     const {
       name,
+      modelAccessMode,
+      allowedModels,
+      allowedCombos,
       noLog,
       scopes,
+      allowedConnections,
       allowUsageCommand,
       usageLimitEnabled,
       dailyUsageLimitUsd,
@@ -83,7 +87,12 @@ export async function POST(request) {
     // Always get machineId from server
     const machineId = await getConsistentMachineId();
     const normalizedScopes = normalizeSelfServiceScopesForCreate(scopes);
-    const apiKey = await createApiKey(name, machineId, normalizedScopes);
+    const apiKey = await createApiKey(name, machineId, normalizedScopes, {
+      modelAccessMode,
+      allowedModels,
+      allowedCombos,
+      allowedConnections,
+    });
     if (
       noLog === true ||
       allowUsageCommand === true ||
@@ -118,6 +127,10 @@ export async function POST(request) {
         name: apiKey.name,
         id: apiKey.id,
         machineId: apiKey.machineId,
+        modelAccessMode: apiKey.modelAccessMode,
+        allowedModels: apiKey.allowedModels,
+        allowedCombos: apiKey.allowedCombos,
+        allowedConnections: apiKey.allowedConnections,
         noLog: noLog === true,
         allowUsageCommand: allowUsageCommand === true,
         usageLimitEnabled: usageLimitEnabled === true,
@@ -125,6 +138,8 @@ export async function POST(request) {
         weeklyUsageLimitUsd: weeklyUsageLimitUsd ?? null,
         chaosModeEnabled: chaosModeEnabled === true,
         streamDefaultMode: "legacy",
+        compressionEnabled: true,
+        cacheDefaultMode: "legacy",
       },
       { status: 201 }
     );

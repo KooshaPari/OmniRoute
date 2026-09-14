@@ -1,4 +1,4 @@
-import { getApiKeyMetadata } from "@/lib/localDb";
+import { getApiKeyMetadata } from "@/lib/db/apiKeys";
 import { extractApiKey } from "@/sse/services/auth";
 import { isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 

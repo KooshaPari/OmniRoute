@@ -28,7 +28,7 @@ async function removeTestDataDir() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       return;
     } catch (error: unknown) {
@@ -74,7 +74,12 @@ test("retrieveMemories: hybrid strategy with no vec store does NOT throw", async
   insertMemory(db, "h1", "api-hyb", "Paris is the capital of France.");
   insertMemory(db, "h2", "api-hyb", "Berlin is the capital of Germany.");
 
-  const { retrieveMemories } = await import("../../src/lib/memory/retrieval.ts");
+  const { retrieveMemories, sanitizeFts5Query } = await import("../../src/lib/memory/retrieval.ts");
+
+  assert.equal(
+    sanitizeFts5Query("<system-reminder> CRITICAL: test query! </system-reminder>"),
+    '"system" "reminder" "CRITICAL" "test" "query" "system" "reminder"'
+  );
 
   await assert.doesNotReject(async () => {
     await retrieveMemories("api-hyb", {

@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # OmniRoute — Galeria funkcji dashboardu
 
-🌐 **Tłumaczenia głównego README:** 🇺🇸 [English](../README.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/README.md) | 🇪🇸 [Español](../i18n/es/README.md) | 🇫🇷 [Français](../i18n/fr/README.md) | 🇮🇹 [Italiano](../i18n/it/README.md) | 🇷🇺 [Русский](../i18n/ru/README.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/README.md) | 🇩🇪 [Deutsch](../i18n/de/README.md) | 🇮🇳 [हिन्दी](../i18n/in/README.md) | 🇹🇭 [ไทย](../i18n/th/README.md) | 🇺🇦 [Українська](../i18n/uk-UA/README.md) | 🇸🇦 [العربية](../i18n/ar/README.md) | 🇯🇵 [日本語](../i18n/ja/README.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/README.md) | 🇧🇬 [Български](../i18n/bg/README.md) | 🇩🇰 [Dansk](../i18n/da/README.md) | 🇫🇮 [Suomi](../i18n/fi/README.md) | 🇮🇱 [עברית](../i18n/he/README.md) | 🇭🇺 [Magyar](../i18n/hu/README.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/README.md) | 🇰🇷 [한국어](../i18n/ko/README.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/README.md) | 🇳🇱 [Nederlands](../i18n/nl/README.md) | 🇳🇴 [Norsk](../i18n/no/README.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/README.md) | 🇷🇴 [Română](../i18n/ro/README.md) | 🇵🇱 [Polski](../i18n/pl/README.md) | 🇸🇰 [Slovenčina](../i18n/sk/README.md) | 🇸🇪 [Svenska](../i18n/sv/README.md) | 🇵🇭 [Filipino](../i18n/phi/README.md) | 🇨🇿 [Čeština](../i18n/cs/README.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
 
 Wizualny przewodnik po każdej sekcji dashboardu OmniRoute.
 
@@ -18,11 +18,11 @@ Wizualny przewodnik po każdej sekcji dashboardu OmniRoute.
 
 Cykl v3.7.x → v3.8.0 dodał auto-routing bez konfiguracji, nowych providerów, przepływy OAuth, głębszą odporność oraz znacznie bogatsze doświadczenie CLI. Poniżej kluczowe funkcje — pełne szczegóły dalej w dokumencie i w powiązanych specyfikacjach.
 
-- 🤖 **Auto Combo / Zero-config auto-routing** — używaj prefiksów `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`. Oparte na 9-czynnikowym silniku scoringu i 4 kuratorowanych **mode packs** (ship-fast, cost-saver, quality-first, offline-friendly)
+- 🤖 **Auto Combo / Zero-config auto-routing** — używaj prefiksów `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`. Oparte na 13-czynnikowym silniku scoringu i 4 kuratorowanych **mode packs** (ship-fast, cost-saver, quality-first, offline-friendly)
 - 🆕 **Provider Command Code** (#2199) — rejestracja pierwszej klasy z katalogiem modeli i śledzeniem quota
 - 🆕 **Provider Z.AI** — nowy provider w darmowym tierze z etykietami quota
 - 🎬 **Rozszerzenie mediów KIE** — rozszerzony katalog, w tym modele generacji wideo
-- 🔐 **Przepływy OAuth Windsurf + Devin CLI** (#2168) — logowanie przeglądarkowe end-to-end
+- 🔐 **Uwierzytelnianie Devin** — Desktop importuje istniejący klucz API Devin; CLI używa lokalnych poświadczeń `devin auth login`
 - 🆓 **8 nowych darmowych providerów** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
 - 🎯 **Manifest-aware tier routing W1–W4** — manifesty providerów sterują ważonym wyborem tierów
 - 🎨 **Pełna zgodność Cursor z OpenAI** — tool calls, streaming, zarządzanie sesjami end-to-end
@@ -51,6 +51,7 @@ Cykl v3.7.x → v3.8.0 dodał auto-routing bez konfiguracji, nowych providerów,
 
 ## 🔌 Providers
 
+Zarządzaj połączeniami z providerami AI: providerzy OAuth (Claude Code, Codex), providerzy z kluczem API (Groq, DeepSeek, OpenRouter) oraz darmowi providerzy (Qoder, Kiro). Konta Kiro obejmują śledzenie salda kredytów — pozostałe kredyty, całkowity limit i data odnowienia widoczne w Dashboard → Usage.
 
 Połączenia OpenRouter mogą przechowywać per-connection `preset` w Advanced Settings. Gdy jest ustawiony, OmniRoute wysyła go jako pole najwyższego poziomu żądania OpenRouter, na przykład `"preset": "email-copywriter"`, chyba że żądanie klienta już dostarczyło własny `preset`.
 
@@ -60,7 +61,12 @@ Połączenia OpenRouter mogą przechowywać per-connection `preset` w Advanced S
 
 ## 🎨 Combos
 
-Twórz combo routingu modeli z 17 strategiami: priority, weighted, fill-first, round-robin, p2c (power-of-two-choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, context-relay oraz **fusion** (równoległy fan-out do panelu modeli, a następnie synteza jednej odpowiedzi przez judge). Każde combo łączy wiele modeli z automatycznym fallbackiem i zawiera szybkie szablony oraz kontrole gotowości.
+Twórz combo routingu modeli z 19 publicznymi strategiami: priority, weighted, round-robin,
+context-relay, fill-first, p2c (power-of-two-choices), random, least-used, cost-optimized,
+reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider),
+context-optimized, cache-optimized, **fusion** (równoległy fan-out do panelu modeli, a następnie
+synteza jednej odpowiedzi przez judge) oraz **pipeline**. Każde combo łączy wiele modeli z
+automatycznym fallbackiem i zawiera szybkie szablony oraz kontrole gotowości.
 
 Niedawne ulepszenia combo:
 
@@ -127,7 +133,7 @@ Kompleksowy panel ustawień z **7 kartami**:
 
 ## 🔧 CLI Tools
 
-One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
+Konfiguracja jednym kliknięciem dla narzędzi do kodowania AI: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor i Factory Droid. Funkcje: automatyczne apply/reset konfiguracji, profile połączeń i mapowanie modeli.
 
 ![CLI Tools Dashboard](../screenshots/07-cli-tools.png)
 
@@ -135,13 +141,13 @@ One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, K
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 17 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
+Dashboard do odkrywania i zarządzania agentami CLI. Pokazuje siatkę 16 wbudowanych agentów (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) z:
 
 - **Statusem instalacji** — Installed / Not Found z wykrywaniem wersji
 - **Odznakami protokołów** — stdio, HTTP itd.
 - **Własnymi agentami** — Rejestruj dowolne narzędzie CLI przez formularz (nazwa, binary, polecenie wersji, argumenty spawn)
 - **CLI Fingerprint Matching** — Przełącznik per provider dopasowujący natywne sygnatury żądań CLI, zmniejszający ryzyko bana przy zachowaniu IP proxy
-- **Agentami opartymi o OAuth** — Windsurf i Devin CLI używają teraz przeglądarkowych przepływów OAuth do uwierzytelniania (v3.8.0+)
+- **Lokalne uwierzytelnianie Devin** — Devin CLI używa `devin auth login`; przepływ OAuth w przeglądarce nie jest wymagany
 
 ---
 

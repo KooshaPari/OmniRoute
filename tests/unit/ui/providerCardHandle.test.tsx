@@ -16,6 +16,7 @@ import ProviderCard, {
 vi.mock("next-intl", () => ({ useTranslations: () => (k: string) => k }));
 vi.mock("@/shared/components/ProviderTestSlideOver", () => ({ default: () => null }));
 vi.mock("@/shared/components/ProviderIcon", () => ({ default: () => null }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: () => {} }) }));
 
 // jsdom does not implement scrollIntoView or animate
 if (typeof Element.prototype.scrollIntoView === "undefined") {

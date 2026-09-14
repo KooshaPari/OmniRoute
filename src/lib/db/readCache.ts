@@ -102,9 +102,7 @@ export async function getCachedPricing(): Promise<Record<string, unknown>> {
 export async function getCachedProviderConnections(
   filter?: Record<string, unknown>
 ): Promise<unknown[]> {
-  const cacheKey = filter && Object.keys(filter).length > 0
-    ? JSON.stringify(filter)
-    : "all";
+  const cacheKey = filter && Object.keys(filter).length > 0 ? JSON.stringify(filter) : "all";
 
   const cached = connectionsCache.get(cacheKey);
   if (cached) return cached;
@@ -136,7 +134,10 @@ export async function getCachedRawProviderConnections(
   return rows;
 }
 
-const connectionByIdCache = new TTLCache<Record<string, unknown> | null>(CONNECTIONS_TTL_MS, 10_000);
+const connectionByIdCache = new TTLCache<Record<string, unknown> | null>(
+  CONNECTIONS_TTL_MS,
+  10_000
+);
 const nodesCache = new TTLCache<(Record<string, unknown> | null)[]>(CONNECTIONS_TTL_MS);
 
 /**
@@ -209,6 +210,17 @@ export async function setCachedLKGP(
   lkgpCache.invalidate(`lkgp:${comboName}:${modelId}`);
 }
 
+/**
+ * Invalidate one persisted LKGP pin by its `${comboName}:${modelId}` storage key,
+ * or every cached LKGP pin when no key is provided. Used both when a target
+ * fails (`clearLKGP`) and when its provider connection is deleted (#8887,
+ * `deleteLKGPByConnectionIds`), so a stale pin cannot be served from memory
+ * for the rest of the TTL window.
+ */
+export function invalidateCachedLKGP(pinKey?: string): void {
+  lkgpCache.invalidate(pinKey ? `lkgp:${pinKey}` : undefined);
+}
+
 // ──────────────── Combo Cache Invalidation Signal ────────────────
 //
 // The nested-combo expansion caches live in request handlers
@@ -233,29 +245,32 @@ export function getCombosCacheVersion(): number {
 
 // ──────────────── Model Catalog Cache Invalidation Signal ────────────────
 //
-// #6408 added a request-shape-keyed (prefix/isCodex/apiKey) TTL cache around the
-// unified /v1/models builder (src/app/api/v1/models/catalog.ts) to coalesce
-// concurrent/bursty GETs. That cache key does not vary with the underlying DB
-// state the builder reads (connections, settings, combos), so a write followed by
-// a read within the ~1.5s TTL replayed the pre-write response. Same import-cycle
+// #6408 added a request-shape-keyed (prefix/isCodex/apiKey/configuredOnly) TTL
+// cache around the unified /v1/models builder (src/app/api/v1/models/catalog.ts)
+// to coalesce concurrent/bursty GETs. That cache key does not vary with the
+// underlying DB state the builder reads (connections, settings, combos), so
+// writes need an explicit invalidation signal. Same import-cycle
 // constraint as combosCacheVersion above (a db module must not import the route
-// module) — catalog.ts instead compares this version on every access and drops its
-// whole cache the moment it moves, so any write that calls invalidateDbCache() makes
-// the next read miss immediately instead of waiting out the TTL.
+// module): catalogCache.ts compares this version on every access and builder
+// completion, then hard-invalidates snapshots and old-generation work when it moves.
 let modelCatalogCacheVersion = 0;
 
 /**
- * Current model-catalog-cache version. `getUnifiedModelsResponse()` folds this
- * into its response cache key; a change means settings/connections/combos were
- * written since the cache was populated and the cached body is stale.
+ * Current model-catalog-cache version. A change means catalog-backed state was
+ * written and the next read must synchronously build the new generation.
  */
 export function getModelCatalogCacheVersion(): number {
   return modelCatalogCacheVersion;
 }
 
+/** Invalidate only the unified model catalog response cache. */
+export function invalidateModelCatalogCache(): void {
+  modelCatalogCacheVersion++;
+}
+
 /**
  * Invalidate caches (call after writes to any of: settings, pricing,
- * connections, combos, nodes).
+ * connections, combos, nodes, model capability/context metadata).
  *
  * When scope is `"connections"` and an `id` is provided, only that
  * connection's by-ID cache entry is invalidated (the filter-keyed raw
@@ -263,7 +278,7 @@ export function getModelCatalogCacheVersion(): number {
  * cannot be selectively invalidated).
  */
 export function invalidateDbCache(
-  scope?: "settings" | "pricing" | "connections" | "combos" | "nodes",
+  scope?: "settings" | "pricing" | "connections" | "combos" | "nodes" | "model-capabilities",
   id?: string
 ): void {
   if (!scope || scope === "settings") settingsCache.invalidate();
@@ -282,5 +297,5 @@ export function invalidateDbCache(
   // Settings/connections/combos all feed the unified model catalog builder
   // (blockedProviders + hidePaidModels, provider connections + excludedModels,
   // combo definitions, respectively) — pricing does too, via isFreeModel().
-  modelCatalogCacheVersion++;
+  invalidateModelCatalogCache();
 }

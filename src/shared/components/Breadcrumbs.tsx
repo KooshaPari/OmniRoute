@@ -86,6 +86,8 @@ const PATH_LABELS = {
   "quota-share": "quotaShare",
   discovery: "discovery",
   "free-provider-rankings": "freeProviderRankings",
+  radar: "radar",
+  setup: "setup",
   "free-tiers": "freeTiers",
   gamification: "gamification",
   leaderboard: "leaderboard",
@@ -113,7 +115,8 @@ const PATH_LABELS = {
  */
 function getLabel(segment, t) {
   const key = PATH_LABELS[segment];
-  return key ? t(key) : segment.charAt(0).toUpperCase() + segment.slice(1);
+  const fallback = segment.charAt(0).toUpperCase() + segment.slice(1);
+  return key && typeof t.has === "function" && t.has(key) ? t(key) : fallback;
 }
 
 export default function Breadcrumbs() {

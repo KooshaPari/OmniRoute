@@ -1,5 +1,7 @@
 import { getVersionManagerTool } from "@/lib/db/versionManager";
+import { getSettings } from "@/lib/db/settings";
 import { markAllUnavailable } from "@/lib/db/serviceModels";
+import { resolveDedicatedCliproxyapiApiKey } from "@omniroute/open-sse/handlers/chatCore/cliproxyapiCredentials";
 import { registerSupervisor, getSupervisor } from "./registry";
 import { ServiceSupervisor } from "./ServiceSupervisor";
 import { resolveSpawnArgs as nineRouterSpawnArgs } from "./installers/ninerouter";
@@ -8,13 +10,10 @@ import {
   CLIPROXY_DEFAULT_PORT,
 } from "./installers/cliproxy";
 import { resolveSpawnArgs as muxSpawnArgs, MUX_DEFAULT_PORT } from "./installers/mux";
-import {
-  resolveSpawnArgs as bifrostSpawnArgs,
-  BIFROST_DEFAULT_PORT,
-} from "./installers/bifrost";
+import { resolveSpawnArgs as bifrostSpawnArgs, BIFROST_DEFAULT_PORT } from "./installers/bifrost";
+import { resolveSpawnArgs as darioSpawnArgs, DARIO_DEFAULT_PORT } from "./installers/dario";
 import { getOrCreateApiKey } from "./apiKey";
 import { scheduleServiceModelSync, stopServiceModelSync } from "./modelSync";
-import { createLogger } from "@/shared/utils/logger";
 import type { ServiceStatus } from "./types";
 import { getServiceProviderPlugin } from "./providerPlugins/registry";
 
@@ -34,6 +33,7 @@ const NINEROUTER_PORT = parseInt(
 const CLIPROXY_PORT = parseInt(process.env.CLIPROXYAPI_PORT ?? String(CLIPROXY_DEFAULT_PORT), 10);
 const MUX_PORT = parseInt(process.env.MUX_SERVICE_PORT ?? String(MUX_DEFAULT_PORT), 10);
 const BIFROST_PORT = parseInt(process.env.BIFROST_PORT ?? String(BIFROST_DEFAULT_PORT), 10);
+const DARIO_PORT = parseInt(process.env.DARIO_PORT ?? String(DARIO_DEFAULT_PORT), 10);
 
 type ServiceEntry = {
   tool: string;
@@ -58,11 +58,11 @@ const SERVICES: ServiceEntry[] = [
   {
     tool: "cliproxy",
     port: CLIPROXY_PORT,
-    healthPath: "/v1/models",
+    healthPath: "/healthz",
     healthIntervalMs: 5_000,
     stopTimeoutMs: 15_000,
     logsBufferBytes: 5_242_880,
-    needsApiKey: false,
+    needsApiKey: true,
   },
   {
     tool: "mux",
@@ -83,22 +83,18 @@ const SERVICES: ServiceEntry[] = [
     needsApiKey: false,
   },
   {
-    tool: "mux",
-    port: MUX_PORT,
+    // Dario (@askalf/dario): Claude-subscription proxy, alternative/failover to
+    // CLIProxyAPI for Claude-Code-shaped traffic. needsApiKey=true → the
+    // generated key becomes DARIO_ADMIN_TOKEN (gates the /admin/* OAuth control
+    // plane). /health is 503 "degraded" until the first Claude account is added,
+    // which is the expected pre-OAuth state (waitForHealthy tolerates it).
+    tool: "dario",
+    port: DARIO_PORT,
     healthPath: "/health",
     healthIntervalMs: 5_000,
     stopTimeoutMs: 15_000,
     logsBufferBytes: 5_242_880,
     needsApiKey: true,
-  },
-  {
-    tool: "bifrost",
-    port: BIFROST_PORT,
-    healthPath: "/v1/models",
-    healthIntervalMs: 5_000,
-    stopTimeoutMs: 15_000,
-    logsBufferBytes: 5_242_880,
-    needsApiKey: false,
   },
 ];
 
@@ -115,7 +111,10 @@ function buildSpawnArgsFactory(
   if (cfg.tool === "bifrost") {
     return () => bifrostSpawnArgs(cfg.port);
   }
-  return () => cliproxySpawnArgs(cfg.port);
+  if (cfg.tool === "dario") {
+    return () => darioSpawnArgs(apiKey, cfg.port);
+  }
+  return () => cliproxySpawnArgs(cfg.port, apiKey);
 }
 
 export async function bootstrapEmbeddedServices(): Promise<void> {
@@ -128,6 +127,11 @@ export async function bootstrapEmbeddedServices(): Promise<void> {
     const apiKey = cfg.needsApiKey
       ? await getOrCreateApiKey(cfg.tool).catch(() => "placeholder")
       : "";
+    // CLIProxyAPI's generated key is management-only; /v1/models uses its dedicated data-plane key.
+    const modelSyncApiKey =
+      cfg.tool === "cliproxy"
+        ? (resolveDedicatedCliproxyapiApiKey(await getSettings()) ?? "")
+        : apiKey;
 
     const supervisor = new ServiceSupervisor({
       tool: cfg.tool,
@@ -148,7 +152,7 @@ export async function bootstrapEmbeddedServices(): Promise<void> {
     const baseUrl = `http://127.0.0.1:${cfg.port}`;
     supervisor.on("stateChange", (status: ServiceStatus) => {
       if (status.state === "running") {
-        scheduleServiceModelSync(cfg.tool, baseUrl, apiKey);
+        scheduleServiceModelSync(cfg.tool, baseUrl, modelSyncApiKey);
       } else if (status.state === "stopped" || status.state === "error") {
         stopServiceModelSync(cfg.tool);
         markAllUnavailable(cfg.tool);
@@ -158,7 +162,7 @@ export async function bootstrapEmbeddedServices(): Promise<void> {
     if (row.autoStart) {
       supervisor.start().catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err);
-        log.warn({ tool: cfg.tool, err: msg }, "services: auto-start failed");
+        console.warn(`[Services] Auto-start failed for ${cfg.tool}: ${msg}`);
       });
     }
   }

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // scripts/check/check-complexity.mjs
-// Code-complexity ratchet (cyclomatic + max-lines-per-function).
+// Catraca de complexidade de código (cyclomatic + max-lines-per-function).
 // Shares one ESLint walk with cognitive-complexity via complexityEslintReport.mjs
 // / eslint.complexity-ratchets.config.mjs. Counts by ruleId so cognitive
 // violations never inflate this baseline.
@@ -24,7 +24,7 @@ const UPDATE = process.argv.includes("--update");
 // Re-export for tests that lock scan scope (src+open-sse+electron+bin).
 export { ESLINT_ARGS };
 
-/** Evaluate the current violation count against the baseline. */
+/** Avalia a contagem atual de violações contra o baseline. */
 export function evaluateComplexity(current, baseline) {
   return {
     regressed: current > baseline,
@@ -52,13 +52,13 @@ function main() {
   }
   if (regressed) {
     console.error(
-      `[complexity] REGRESSION — ${current} violations > baseline ${baseline.count}\n` +
-        `  → break the function into smaller helpers (reduce branches/size) or run\n` +
-        `    'node scripts/check/check-complexity.mjs --update' if the count legitimately dropped.`
+      `[complexity] REGRESSÃO — ${current} violações > baseline ${baseline.count}\n` +
+        `  → quebre a função em helpers menores (reduza ramos/tamanho) ou rode\n` +
+        `    'node scripts/check/check-complexity.mjs --update' se a contagem caiu legitimamente.`
     );
     process.exit(1);
   }
-  console.log(`[complexity] OK — ${current} violations (baseline ${baseline.count})`);
+  console.log(`[complexity] OK — ${current} violações (baseline ${baseline.count})`);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || "").href) main();

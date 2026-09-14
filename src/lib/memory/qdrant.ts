@@ -1,20 +1,7 @@
-/**
- * @deprecated Qdrant sidecar removed. Functions delegate to sqlite-vec.
- * Config types retained for settings UI backward compatibility.
- *
- * All runtime operations (search, upsert, delete, cleanup, health) now delegate
- * to the `VectorStore` interface from `./vectorStore.ts` backed by sqlite-vec.
- * Config normalization and quantization helpers remain for the Settings UI.
- */
-
 import { getSettings } from "@/lib/db/settings";
-import { getMemorySettings } from "./settings";
-import { embed } from "./embedding";
-import { getVectorStore } from "./vectorStore";
+import { createEmbeddingResponse } from "@/lib/embeddings/service";
 
 type JsonRecord = Record<string, unknown>;
-
-// ──────────────── Config types (retained for Settings UI) ────────────────
 
 /**
  * Vector quantization mode for the memory collection (F4.4 / Q1).
@@ -85,7 +72,8 @@ export function normalizeQdrantConfig(settings: Record<string, unknown>): Qdrant
       ? process.env.QDRANT_API_KEY.trim()
       : undefined;
   const envCollection =
-    typeof process.env.QDRANT_COLLECTION === "string" && process.env.QDRANT_COLLECTION.trim().length > 0
+    typeof process.env.QDRANT_COLLECTION === "string" &&
+    process.env.QDRANT_COLLECTION.trim().length > 0
       ? process.env.QDRANT_COLLECTION.trim()
       : undefined;
 
@@ -97,15 +85,19 @@ export function normalizeQdrantConfig(settings: Record<string, unknown>): Qdrant
       ? Math.round(portRaw)
       : typeof portRaw === "string"
         ? Math.round(Number(portRaw) || 6333)
-        : envPort ?? 6333;
+        : (envPort ?? 6333);
   const apiKey =
     (typeof settings.qdrantApiKey === "string" && settings.qdrantApiKey.trim().length > 0
       ? settings.qdrantApiKey.trim()
-      : null) ?? envApiKey ?? null;
+      : null) ??
+    envApiKey ??
+    null;
   const collection =
     (typeof settings.qdrantCollection === "string" && settings.qdrantCollection.trim().length > 0
       ? settings.qdrantCollection.trim()
-      : null) ?? envCollection ?? "omniroute_memory";
+      : null) ??
+    envCollection ??
+    "omniroute_memory";
   const embeddingModel =
     (typeof settings.qdrantEmbeddingModel === "string" &&
     settings.qdrantEmbeddingModel.trim().length > 0
@@ -124,6 +116,10 @@ export function normalizeQdrantConfig(settings: Record<string, unknown>): Qdrant
       ? (quantizationRaw as QdrantQuantization)
       : "none";
 
+  // Vector size + HNSW ef_construct are deployment-time constants. They are
+  // read here so the env vars documented in .env.example (QDRANT_VECTOR_SIZE,
+  // QDRANT_HNSW_EF_CONSTRUCT) have a single source of truth and don't get
+  // flagged as DOC_ONLY by check-env-doc-sync.
   const vectorSizeRaw =
     typeof settings.qdrantVectorSize === "number"
       ? settings.qdrantVectorSize
@@ -158,33 +154,79 @@ export async function getQdrantConfig(): Promise<QdrantConfig> {
   return normalizeQdrantConfig(settings);
 }
 
-// ──────────────── Embedding helper ────────────────
-
-async function embedText(text: string): Promise<Float32Array> {
-  const settings = await getMemorySettings();
-  const result = await embed(text, settings);
-  if (!("vector" in result)) {
-    const reason = "reason" in result ? result.reason : "unknown";
-    const message = "message" in result ? result.message : "embedding failed";
-    throw new Error(`Embedding failed (${reason}): ${message}`);
+function baseUrl(cfg: QdrantConfig): string {
+  const host = cfg.host.replace(/\/+$/, "");
+  const withProto =
+    host.startsWith("http://") || host.startsWith("https://") ? host : `http://${host}`;
+  try {
+    const url = new URL(withProto);
+    if (!url.port) url.port = String(cfg.port);
+    return url.toString().replace(/\/+$/, "");
+  } catch {
+    return `${withProto}:${cfg.port}`;
   }
-  return result.vector;
 }
 
-// ──────────────── Runtime operations (delegated to sqlite-vec VectorStore) ────────────────
+async function qdrantFetch(cfg: QdrantConfig, path: string, init?: RequestInit): Promise<Response> {
+  const headers: Record<string, string> = {
+    "content-type": "application/json",
+    ...(init?.headers as Record<string, string> | undefined),
+  };
+  if (cfg.apiKey) headers["api-key"] = cfg.apiKey;
+
+  return fetch(`${baseUrl(cfg)}${path}`, {
+    ...init,
+    headers,
+  });
+}
+
+export type QdrantCollectionMetadata =
+  { exists: false } | { exists: true; vectorSize: number; vectorName: string | null };
+
+export async function getQdrantCollectionMetadata(): Promise<QdrantCollectionMetadata | null> {
+  const cfg = await getQdrantConfig();
+  if (!cfg.enabled || !cfg.host) return null;
+
+  const res = await qdrantFetch(cfg, `/collections/${encodeURIComponent(cfg.collection)}`, {
+    method: "GET",
+  });
+  if (res.status === 404) return { exists: false };
+  if (!res.ok) return null;
+
+  const data = (await res.json().catch(() => null)) as any;
+  const vectors = data?.result?.config?.params?.vectors;
+  if (!vectors || typeof vectors !== "object" || Array.isArray(vectors)) return null;
+  if (typeof vectors.size === "number") {
+    return { exists: true, vectorSize: vectors.size, vectorName: null };
+  }
+
+  const vectorName = Object.keys(vectors)[0];
+  const vectorSize = vectorName ? vectors[vectorName]?.size : null;
+  if (typeof vectorSize !== "number") return null;
+  return { exists: true, vectorSize, vectorName };
+}
 
 export async function checkQdrantHealth(): Promise<{
   ok: boolean;
   latencyMs: number;
   error?: string;
+  collection?: QdrantCollectionMetadata;
 }> {
+  const cfg = await getQdrantConfig();
   const start = Date.now();
+  if (!cfg.enabled || !cfg.host) {
+    return { ok: false, latencyMs: 0, error: "not_configured" };
+  }
+
   try {
-    const vec = getVectorStore();
-    if (!vec) {
-      return { ok: false, latencyMs: Date.now() - start, error: "sqlite-vec not available" };
+    const res = await qdrantFetch(cfg, "/readyz", { method: "GET" });
+    const latencyMs = Date.now() - start;
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return { ok: false, latencyMs, error: text.slice(0, 200) || `HTTP ${res.status}` };
     }
-    return { ok: true, latencyMs: Date.now() - start };
+    const collection = await getQdrantCollectionMetadata();
+    return { ok: true, latencyMs, ...(collection ? { collection } : {}) };
   } catch (err) {
     return {
       ok: false,
@@ -192,6 +234,73 @@ export async function checkQdrantHealth(): Promise<{
       error: err instanceof Error ? err.message : String(err),
     };
   }
+}
+
+async function ensureCollection(cfg: QdrantConfig, vectorSize: number): Promise<void> {
+  const getRes = await qdrantFetch(cfg, `/collections/${encodeURIComponent(cfg.collection)}`, {
+    method: "GET",
+  });
+  if (getRes.ok) return;
+
+  // Quantization only applies to NEW collections — an existing collection is left
+  // untouched (the GET above returns early). Switching modes on a populated
+  // collection is a destructive recreate+reindex that must be an explicit UI action.
+  const quantizationConfig = buildQuantizationConfig(cfg.quantization);
+  const createRes = await qdrantFetch(cfg, `/collections/${encodeURIComponent(cfg.collection)}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      vectors: { size: vectorSize, distance: "Cosine" },
+      ...(quantizationConfig ? { quantization_config: quantizationConfig } : {}),
+    }),
+  });
+  if (!createRes.ok) {
+    const text = await createRes.text().catch(() => "");
+    throw new Error(text.slice(0, 300) || `Failed to create collection (${createRes.status})`);
+  }
+}
+
+async function getCollectionVectorName(cfg: QdrantConfig): Promise<string | null> {
+  const res = await qdrantFetch(cfg, `/collections/${encodeURIComponent(cfg.collection)}`, {
+    method: "GET",
+  });
+  if (!res.ok) return null;
+  const data = (await res.json().catch(() => null)) as any;
+  const vectors = data?.result?.config?.params?.vectors;
+  if (!vectors || typeof vectors !== "object" || Array.isArray(vectors)) {
+    return null;
+  }
+  // Unnamed/single-vector config: { size, distance, ... } (not a named map)
+  if (
+    Object.prototype.hasOwnProperty.call(vectors, "size") &&
+    (typeof vectors.size === "number" || typeof vectors.size === "string")
+  ) {
+    return null;
+  }
+  const names = Object.keys(vectors);
+  if (names.length === 0) return null;
+  return names[0] || null;
+}
+
+async function embedText(cfg: QdrantConfig, text: string): Promise<number[]> {
+  const modelStr = cfg.embeddingModel.trim();
+  if (!modelStr.includes("/")) {
+    throw new Error(`Invalid embedding model '${modelStr}'. Use provider/model format.`);
+  }
+
+  const res = await createEmbeddingResponse({
+    model: modelStr,
+    input: text,
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(txt.slice(0, 300) || `Embeddings request failed (${res.status})`);
+  }
+  const data = (await res.json().catch(() => null)) as any;
+  const vec = data?.data?.[0]?.embedding;
+  if (!Array.isArray(vec) || vec.length === 0) {
+    throw new Error("Embedding response missing vector");
+  }
+  return vec as number[];
 }
 
 export async function upsertSemanticMemoryPoint(input: {
@@ -204,14 +313,56 @@ export async function upsertSemanticMemoryPoint(input: {
   createdAt: string;
   expiresAt: string | null;
 }): Promise<{ ok: boolean; latencyMs: number; error?: string }> {
+  const cfg = await getQdrantConfig();
+  if (!cfg.enabled || !cfg.host) return { ok: false, latencyMs: 0, error: "not_configured" };
+
   const start = Date.now();
   try {
-    const vec = getVectorStore();
-    if (!vec) return { ok: false, latencyMs: 0, error: "not_configured" };
+    const vector = await embedText(cfg, `${input.key}\n\n${input.content}`);
+    await ensureCollection(cfg, vector.length);
+    const vectorName = await getCollectionVectorName(cfg);
 
-    const vector = await embedText(`${input.key}\n\n${input.content}`);
-    await vec.upsertVector(input.id, vector);
-    return { ok: true, latencyMs: Date.now() - start };
+    const createdAtUnix = Math.floor(new Date(input.createdAt).getTime() / 1000);
+    const expiresAtUnix = input.expiresAt
+      ? Math.floor(new Date(input.expiresAt).getTime() / 1000)
+      : null;
+
+    const payload = {
+      kind: "omniroute_memory",
+      memoryId: input.id,
+      apiKeyId: input.apiKeyId || "",
+      sessionId: input.sessionId || "",
+      type: "semantic",
+      key: input.key || "",
+      content: input.content || "",
+      metadata: input.metadata || {},
+      createdAtUnix,
+      expiresAtUnix,
+    };
+
+    const res = await qdrantFetch(
+      cfg,
+      `/collections/${encodeURIComponent(cfg.collection)}/points?wait=true`,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          points: [
+            {
+              id: input.id,
+              vector: vectorName ? { [vectorName]: vector } : vector,
+              payload,
+            },
+          ],
+        }),
+      }
+    );
+
+    const latencyMs = Date.now() - start;
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return { ok: false, latencyMs, error: text.slice(0, 300) || `HTTP ${res.status}` };
+    }
+    return { ok: true, latencyMs };
   } catch (err) {
     return {
       ok: false,
@@ -231,17 +382,53 @@ export async function searchSemanticMemory(
   results?: Array<{ id: string; score: number; payload?: JsonRecord }>;
   error?: string;
 }> {
+  const cfg = await getQdrantConfig();
+  if (!cfg.enabled || !cfg.host) return { ok: false, latencyMs: 0, error: "not_configured" };
   const start = Date.now();
   try {
-    const vec = getVectorStore();
-    if (!vec) return { ok: false, latencyMs: 0, error: "not_configured" };
+    const vector = await embedText(cfg, query);
+    await ensureCollection(cfg, vector.length);
+    const vectorName = await getCollectionVectorName(cfg);
 
-    const vector = await embedText(query);
-    const hits = await vec.searchVector(vector, Math.max(1, Math.min(20, topK)), scope?.apiKeyId);
+    const searchParams = searchQuantizationParams(cfg.quantization);
+    const res = await qdrantFetch(
+      cfg,
+      `/collections/${encodeURIComponent(cfg.collection)}/points/search`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          vector: vectorName ? { name: vectorName, vector } : vector,
+          limit: Math.max(1, Math.min(20, topK)),
+          ...(searchParams ? { params: searchParams } : {}),
+          filter: {
+            must: [
+              { key: "kind", match: { value: "omniroute_memory" } },
+              ...(scope?.apiKeyId ? [{ key: "apiKeyId", match: { value: scope.apiKeyId } }] : []),
+              ...(scope?.sessionId
+                ? [{ key: "sessionId", match: { value: String(scope.sessionId) } }]
+                : []),
+            ],
+          },
+          with_payload: true,
+        }),
+      }
+    );
+
+    const latencyMs = Date.now() - start;
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return { ok: false, latencyMs, error: text.slice(0, 300) || `HTTP ${res.status}` };
+    }
+    const data = (await res.json().catch(() => null)) as any;
+    const result = Array.isArray(data?.result) ? data.result : [];
     return {
       ok: true,
-      latencyMs: Date.now() - start,
-      results: hits.map((h) => ({ id: h.memoryId, score: h.score })),
+      latencyMs,
+      results: result.map((r: any) => ({
+        id: String(r.id),
+        score: typeof r.score === "number" ? r.score : 0,
+        payload: r.payload && typeof r.payload === "object" ? (r.payload as JsonRecord) : undefined,
+      })),
     };
   } catch (err) {
     return {
@@ -255,13 +442,24 @@ export async function searchSemanticMemory(
 export async function deleteSemanticMemoryPoint(
   id: string
 ): Promise<{ ok: boolean; latencyMs: number; error?: string }> {
+  const cfg = await getQdrantConfig();
+  if (!cfg.enabled || !cfg.host) return { ok: false, latencyMs: 0, error: "not_configured" };
   const start = Date.now();
   try {
-    const vec = getVectorStore();
-    if (!vec) return { ok: false, latencyMs: 0, error: "not_configured" };
-
-    await vec.deleteVector(id);
-    return { ok: true, latencyMs: Date.now() - start };
+    const res = await qdrantFetch(
+      cfg,
+      `/collections/${encodeURIComponent(cfg.collection)}/points/delete?wait=true`,
+      {
+        method: "POST",
+        body: JSON.stringify({ points: [id] }),
+      }
+    );
+    const latencyMs = Date.now() - start;
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return { ok: false, latencyMs, error: text.slice(0, 300) || `HTTP ${res.status}` };
+    }
+    return { ok: true, latencyMs };
   } catch (err) {
     return {
       ok: false,
@@ -271,15 +469,86 @@ export async function deleteSemanticMemoryPoint(
   }
 }
 
-/**
- * Cleanup is a no-op when backed by sqlite-vec: expired memories are already
- * filtered at query time via the SQL `expires_at` predicate in the `memories`
- * table, and vec_memories rows are removed by `deleteVector` when their parent
- * memory is deleted. Returns success with `deletedCount: 0` so callers see
- * a clean response without needing to handle the difference.
- */
-export async function cleanupSemanticMemoryPoints(_input: {
+export async function cleanupSemanticMemoryPoints(input: {
   retentionDays: number;
 }): Promise<{ ok: boolean; deletedCount: number; latencyMs: number; error?: string }> {
-  return { ok: true, deletedCount: 0, latencyMs: 0 };
+  const cfg = await getQdrantConfig();
+  if (!cfg.enabled || !cfg.host)
+    return { ok: false, deletedCount: 0, latencyMs: 0, error: "not_configured" };
+
+  const retentionDays =
+    typeof input.retentionDays === "number" && Number.isFinite(input.retentionDays)
+      ? Math.max(1, Math.min(3650, Math.round(input.retentionDays)))
+      : 30;
+
+  const start = Date.now();
+  try {
+    const nowUnix = Math.floor(Date.now() / 1000);
+    const cutoffUnix = nowUnix - retentionDays * 24 * 60 * 60;
+
+    const filter: Record<string, unknown> = {
+      must: [{ key: "kind", match: { value: "omniroute_memory" } }],
+      should: [
+        { key: "expiresAtUnix", range: { lt: nowUnix } },
+        { key: "createdAtUnix", range: { lt: cutoffUnix } },
+      ],
+    };
+
+    // Count first (so we can show an actual number in the dashboard)
+    const countRes = await qdrantFetch(
+      cfg,
+      `/collections/${encodeURIComponent(cfg.collection)}/points/count`,
+      {
+        method: "POST",
+        body: JSON.stringify({ filter, exact: true }),
+      }
+    );
+    if (!countRes.ok) {
+      const text = await countRes.text().catch(() => "");
+      return {
+        ok: false,
+        deletedCount: 0,
+        latencyMs: Date.now() - start,
+        error: text.slice(0, 300) || `HTTP ${countRes.status}`,
+      };
+    }
+    const countData = (await countRes.json().catch(() => null)) as any;
+    const toDelete =
+      typeof countData?.result?.count === "number" && Number.isFinite(countData.result.count)
+        ? Math.max(0, Math.round(countData.result.count))
+        : 0;
+
+    if (toDelete === 0) {
+      return { ok: true, deletedCount: 0, latencyMs: Date.now() - start };
+    }
+
+    const delRes = await qdrantFetch(
+      cfg,
+      `/collections/${encodeURIComponent(cfg.collection)}/points/delete?wait=true`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          filter,
+        }),
+      }
+    );
+    if (!delRes.ok) {
+      const text = await delRes.text().catch(() => "");
+      return {
+        ok: false,
+        deletedCount: 0,
+        latencyMs: Date.now() - start,
+        error: text.slice(0, 300) || `HTTP ${delRes.status}`,
+      };
+    }
+
+    return { ok: true, deletedCount: toDelete, latencyMs: Date.now() - start };
+  } catch (err) {
+    return {
+      ok: false,
+      deletedCount: 0,
+      latencyMs: Date.now() - start,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
 }

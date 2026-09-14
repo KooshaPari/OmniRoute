@@ -39,6 +39,28 @@ test("auto preserves previous_response_id when Responses storage is explicitly e
   assert.equal((result.body as Record<string, unknown>).previous_response_id, "resp_prev_123");
 });
 
+test("auto preserves previous_response_id for provider-owned ChatGPT Web Codex state", () => {
+  const result = applyResponsesPreviousResponseIdPolicy(
+    {
+      model: "chatgpt-web-codex/instant",
+      previous_response_id: "resp_chatgpt_web_codex",
+      input: [],
+    },
+    {
+      mode: "auto",
+      provider: "chatgpt-web-codex",
+      sourceFormat: "openai-responses",
+      targetFormat: "openai-responses",
+    }
+  );
+
+  assert.equal(result.stripped, false);
+  assert.equal(
+    (result.body as Record<string, unknown>).previous_response_id,
+    "resp_chatgpt_web_codex"
+  );
+});
+
 test("strip and preserve modes override auto detection", () => {
   assert.equal(
     shouldStripPreviousResponseId({

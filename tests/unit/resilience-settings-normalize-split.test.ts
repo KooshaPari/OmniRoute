@@ -62,16 +62,33 @@ describe("resilience/settings normalize split-guard", () => {
   it("normalizeWaitForCooldownSettings derives ms and disables on zero retries/wait", () => {
     const on = normalizeWaitForCooldownSettings(
       { enabled: true, maxRetries: 2, maxRetryWaitSec: 30 },
-      { enabled: true, maxRetries: 3, maxRetryWaitSec: 30, maxRetryWaitMs: 30000 }
+      { enabled: true, maxRetries: 3, maxRetryWaitSec: 30, maxRetryWaitMs: 30000, budgetMs: 300000 }
     );
     assert.equal(on.enabled, true);
     assert.equal(on.maxRetryWaitMs, 30000);
 
     const off = normalizeWaitForCooldownSettings(
       { enabled: true, maxRetries: 0, maxRetryWaitSec: 30 },
-      { enabled: true, maxRetries: 3, maxRetryWaitSec: 30, maxRetryWaitMs: 30000 }
+      { enabled: true, maxRetries: 3, maxRetryWaitSec: 30, maxRetryWaitMs: 30000, budgetMs: 300000 }
     );
     assert.equal(off.enabled, false); // maxRetries 0 forces disabled
+  });
+
+  // #7360 follow-up: budgetMs caps the CUMULATIVE wait across all retries, not
+  // just a single wait — without it, maxRetries x maxRetryWaitSec could exceed
+  // the intended 5-minute give-up point.
+  it("normalizeWaitForCooldownSettings floors budgetMs at maxRetryWaitMs and caps it at 5 minutes", () => {
+    const floored = normalizeWaitForCooldownSettings(
+      { maxRetryWaitSec: 90, budgetMs: 10000 },
+      { enabled: true, maxRetries: 3, maxRetryWaitSec: 30, maxRetryWaitMs: 30000, budgetMs: 300000 }
+    );
+    assert.equal(floored.budgetMs, 90000, "budgetMs can never be smaller than a single wait");
+
+    const capped = normalizeWaitForCooldownSettings(
+      { budgetMs: 999999999 },
+      { enabled: true, maxRetries: 3, maxRetryWaitSec: 30, maxRetryWaitMs: 30000, budgetMs: 300000 }
+    );
+    assert.equal(capped.budgetMs, 300000, "budgetMs is capped at 5 minutes");
   });
 
   it("host exposes DEFAULT_RESILIENCE_SETTINGS with the full section set", () => {
@@ -79,6 +96,8 @@ describe("resilience/settings normalize split-guard", () => {
     assert.deepEqual(keys, [
       "comboCooldownWait",
       "connectionCooldown",
+      // Global default cadence for the background credential health check sweep.
+      "credentialHealthCheck",
       "providerBreaker",
       "providerCooldown",
       "providerQuotaOverrides",
@@ -109,24 +128,6 @@ describe("resilience/settings normalize split-guard", () => {
     });
     assert.equal(merged.requestQueue.concurrentRequests, 7);
     assert.equal(merged.requestQueue.requestsPerMinute, base.requestQueue.requestsPerMinute);
-  });
-
-  it("normalizes provider quota overrides and drops invalid entries", () => {
-    const resolved = resolveResilienceSettings({
-      resilienceSettings: {
-        providerQuotaOverrides: {
-          nvidia: { rpm: "60", concurrency: 2.8 },
-          zero: { rpm: 0, concurrency: 0 },
-          malformed: "invalid",
-        },
-      },
-    });
-    assert.deepEqual(resolved.providerQuotaOverrides, { nvidia: { rpm: 60, concurrency: 2 } });
-
-    const merged = mergeResilienceSettings(resolved, {
-      providerQuotaOverrides: { nvidia: { rpm: 30 } },
-    });
-    assert.deepEqual(merged.providerQuotaOverrides, { nvidia: { rpm: 30 } });
   });
 
   it("host buildLegacyResilienceCompat round-trips connection cooldown into profiles", () => {

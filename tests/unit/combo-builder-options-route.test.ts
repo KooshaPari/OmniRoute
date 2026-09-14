@@ -16,7 +16,7 @@ const route = await import("../../src/app/api/combos/builder/options/route.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -51,7 +51,7 @@ test.beforeEach(async () => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("combo builder options route aggregates providers, connections, models and combo refs", async () => {
@@ -103,6 +103,7 @@ test("combo builder options route aggregates providers, connections, models and 
   });
 
   await modelsDb.addCustomModel("openai", "custom-ops", "Custom Ops");
+  await modelsDb.addCustomModel("openai", "gpt-4.1", "Operator GPT");
   // #6975: embeddings-only models (supportedEndpoints without "chat") are no longer
   // dropped from the combo builder — they must appear like any other model.
   await modelsDb.addCustomModel(
@@ -142,9 +143,12 @@ test("combo builder options route aggregates providers, connections, models and 
   assert.equal(openai.displayName, "OpenAI");
   assert.equal(openai.connectionCount, 2);
   assert.equal(openai.activeConnectionCount, 1);
-  assert.ok(openai.models.some((model) => model.id === "gpt-4.1"));
-  assert.equal(openai.models.find((model) => model.id === "gpt-4.1").outputTokenLimit, 32768);
-  assert.equal(openai.models.find((model) => model.id === "gpt-4.1").supportsThinking, false);
+  const sharedModel = openai.models.find((model) => model.id === "gpt-4.1");
+  assert.ok(sharedModel);
+  assert.equal(sharedModel.name, "Operator GPT");
+  assert.equal(sharedModel.contextLength, 1047576);
+  assert.equal(sharedModel.outputTokenLimit, 32768);
+  assert.equal(sharedModel.supportsThinking, false);
   assert.equal(
     openai.models.some((model) => model.id === "gpt-4o-mini"),
     false

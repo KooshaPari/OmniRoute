@@ -64,6 +64,26 @@ export const CAVEMAN_INSTRUCTION_BY_LANGUAGE = {
     full: `Jawab sangat singkat ala caveman pintar. Hapus kata pengisi (hanya/sangat/sebenarnya), salam sopan santun. Kalimat pendek/tidak lengkap OK. Gunakan sinonim pendek. Pertahankan semua substansi teknis, kode, error, URL, & identifier secara persis. ${SHARED_BOUNDARIES}`,
     ultra: `Jawab ultra singkat. Kompresi maksimal. Gunakan singkatan umum (DB/auth/config/req/res/fn/impl), hilangkan kata hubung, gunakan panah untuk kausalitas (X → Y). Satu kata jika cukup. Jangan singkat simbol kode, nama API, string error, URL, atau identifier. ${SHARED_BOUNDARIES}`,
   },
+  vi: {
+    lite: `Trả lời súc tích. Bỏ từ đệm, sáo rỗng, rào đón. Giữ nguyên câu hoàn chỉnh, thuật ngữ kỹ thuật, code, lỗi, URL và định danh. ${SHARED_BOUNDARIES}`,
+    full: `Trả lời cộc lốc như người tối cổ thông minh. Bỏ mạo từ, từ đệm, sáo rỗng, rào đón. Chấp nhận câu rút gọn. Dùng từ đồng nghĩa ngắn. Giữ nguyên mọi nội dung kỹ thuật, code, lỗi, URL và định danh. ${SHARED_BOUNDARIES}`,
+    ultra: `Trả lời cực kỳ cộc lốc. Nén tối đa. Như điện tín. Viết tắt (DB/auth/config/req/res/fn/impl), bỏ liên từ, dùng mũi tên cho quan hệ nhân quả (X → Y). Một từ nếu một từ là đủ. Không bao giờ viết tắt ký hiệu code, tên API, chuỗi lỗi, URL hoặc định danh. ${SHARED_BOUNDARIES}`,
+  },
+  it: {
+    lite: `Rispondi conciso. Togli riempitivi, convenevoli e incertezze. Mantieni termini tecnici, codice, errori, URL e identificatori esatti. ${SHARED_BOUNDARIES}`,
+    full: `Rispondi secco e compatto. Frammenti OK. Mantieni tutto il contenuto tecnico, codice, errori, URL e identificatori esatti. ${SHARED_BOUNDARIES}`,
+    ultra: `Rispondi ultra compatto. Usa prosa tecnica breve e abbreviazioni comuni come DB/auth/config/req/res/fn. Mai abbreviare simboli di codice, API, errori, URL o identificatori. ${SHARED_BOUNDARIES}`,
+  },
+  ru: {
+    lite: `Отвечай кратко. Убирай воду, любезности и оговорки. Технические термины, код, ошибки, URL и идентификаторы сохраняй точно. ${SHARED_BOUNDARIES}`,
+    full: `Отвечай сухо и сжато. Фрагменты допустимы. Всё техническое содержимое, код, ошибки, URL и идентификаторы сохраняй точно. ${SHARED_BOUNDARIES}`,
+    ultra: `Отвечай ультракратко. Короткая техническая проза и общепринятые сокращения вроде DB/auth/config/req/res/fn. Никогда не сокращай символы кода, API, строки ошибок, URL или идентификаторы. ${SHARED_BOUNDARIES}`,
+  },
+  zh: {
+    lite: `回答要简洁。去掉废话、客套和含糊措辞。技术术语、代码、错误、URL 和标识符保持原样。${SHARED_BOUNDARIES}`,
+    full: `回答干脆紧凑。可用短句。所有技术内容、代码、错误、URL 和标识符保持原样。${SHARED_BOUNDARIES}`,
+    ultra: `回答极度紧凑。用简短技术表述和常见缩写如 DB/auth/config/req/res/fn。绝不缩写代码符号、API 名、错误串、URL 或标识符。${SHARED_BOUNDARIES}`,
+  },
 } as const;
 
 const CAVEMAN_OUTPUT_MARKER = "[OmniRoute Caveman Output Mode]";

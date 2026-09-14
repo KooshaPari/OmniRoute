@@ -9,6 +9,7 @@
  */
 
 import { getCustomEvalSuite, listCustomEvalSuites } from "@/lib/db/evals";
+import safeRegex from "safe-regex";
 import {
   goldenSet,
   codingSuite,
@@ -159,6 +160,16 @@ export function evaluateCase(evalCase: any, actualOutput: string) {
         if (regex.source.length > 512) {
           passed = false;
           details.error = "Regex pattern too large for safe evaluation.";
+          break;
+        }
+        // G7 (silent-stop fix): a catastrophic regex (nested quantifiers like
+        // `(a+)+$`) can hang the event loop for minutes on adversarial output —
+        // the eval loop then "stops doing anything" with no error. safe-regex
+        // statically rejects such patterns before test() runs.
+        if (!safeRegex(regex)) {
+          passed = false;
+          details.error =
+            "Regex pattern rejected as potentially unsafe (catastrophic backtracking risk). Simplify the pattern.";
           break;
         }
         passed = regex.test(actualOutput);

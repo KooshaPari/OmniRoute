@@ -30,7 +30,6 @@ function mountHook<T>(useHook: () => T): {
     captureRef.current = useHook();
     // Expose the captured value through the outer hookRef via the React ref.
     // This is safe because captureRef lives inside the component.
-    // eslint-disable-next-line react-hooks/immutability -- test harness: intentionally writes to outer capture object from inside component
     hookRef.current = captureRef.current;
     return null;
   }

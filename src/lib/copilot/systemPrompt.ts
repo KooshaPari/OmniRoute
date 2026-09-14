@@ -28,7 +28,7 @@ DeepSeek, Groq, xAI, Mistral, and many more). It supports:
 - **Single endpoint**: One API key, one URL (/v1/chat/completions) for all providers
 - **Smart routing**: Combos with 14 strategies (priority, weighted, round-robin, auto, etc.)
 - **Resilience**: Circuit breakers, retry with exponential backoff, account fallback
-- **MCP Server**: 37 tools across 3 transports (stdio, SSE, Streamable HTTP)
+- **MCP Server**: 110 tools across 3 transports (stdio, SSE, Streamable HTTP)
 - **A2A Protocol**: Agent-to-Agent communication v0.3
 - **Compression**: Prompt compression (lite, caveman, RTK, stacked)
 - **MITM Proxy**: Intercept desktop AI apps and route through OmniRoute
@@ -64,7 +64,7 @@ Client → API Route (/v1/chat/completions)
 - \`src/lib/db/\`: 45+ domain-specific modules
 - \`core.ts\`: Singleton better-sqlite3 with WAL journaling
 - \`migrationRunner.ts\`: Versioned SQL migrations (55+ files)
-- \`localDb.ts\`: Re-export layer only — no logic
+- \`src/lib/db/*\`: domain modules only — no barrel layer
 
 ### Key Modules
 - **open-sse/**: Core streaming engine (handlers, executors, translator)
@@ -80,7 +80,7 @@ Client → API Route (/v1/chat/completions)
 
 ### 3.1 Providers (212+)
 Registered in src/shared/constants/providers.ts. Categories:
-- **Free** (3): Qoder AI, Qwen Code, Kiro AI
+- **Free** (2): Qoder AI, Kiro AI
 - **OAuth** (14): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, etc.
 - **API Key** (120+): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, etc.
 - **Self-Hosted** (8+): LM Studio, vLLM, Ollama, etc.
@@ -130,7 +130,7 @@ Fail-open by default, per-request opt-out via header.
 Modes: off, lite, standard, aggressive, ultra, rtk, stacked
 Lite: collapse whitespace, dedup system, compress tool results, etc.
 
-### 3.9 MCP Server (37 tools)
+### 3.9 MCP Server (110 tools)
 Core: health, combos, routing, cost, session, models, web search
 Cache, compression, 1proxy, memory, skills tools
 

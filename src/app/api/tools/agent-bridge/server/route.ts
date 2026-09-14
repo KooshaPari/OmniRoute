@@ -6,7 +6,7 @@
  * Body: AgentBridgeServerActionSchema
  */
 import { AgentBridgeServerActionSchema } from "@/shared/schemas/agentBridge";
-import { startMitm, stopMitm, getMitmStatus, setCachedPassword, getCachedPassword } from "@/mitm/manager";
+import { getCachedPassword, setCachedPassword } from "@/mitm/manager";
 import { installCertResult, checkCertInstalled } from "@/mitm/cert/install";
 import { generateCert } from "@/mitm/cert/generate";
 import { resolveMitmDataDir } from "@/mitm/dataDir";
@@ -18,7 +18,7 @@ import {
 import path from "path";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
-import { pickApiKeyForInternalUse } from "@/lib/localDb";
+import { pickApiKeyForInternalUse } from "@/lib/db/apiKeys";
 
 /**
  * Resolve the OmniRoute API key the spawned MITM child (`server.cjs`) uses to
@@ -60,13 +60,20 @@ export async function POST(request: Request): Promise<Response> {
 
   const { action } = parsed.data;
   const raw = body as Record<string, unknown>;
-  const sudoPassword =
-    typeof raw.sudoPassword === "string" ? raw.sudoPassword : (getCachedPassword() ?? "");
-  const apiKey = typeof raw.apiKey === "string" ? raw.apiKey : (process.env.ROUTER_API_KEY ?? "");
+  const sudoPassword = resolveMitmSudoPassword(
+    typeof raw.sudoPassword === "string" ? raw.sudoPassword : undefined,
+    getCachedPassword()
+  );
+  const rawApiKey = typeof raw.apiKey === "string" ? raw.apiKey : "";
 
   try {
     if (action === "start") {
-      if (sudoPassword) setCachedPassword(sudoPassword);
+      const suppliedPassword =
+        typeof raw.sudoPassword === "string"
+          ? normalizeMitmSudoPasswordInput(raw.sudoPassword)
+          : "";
+      if (suppliedPassword) setCachedPassword(suppliedPassword);
+      const apiKey = await resolveRouterApiKey(rawApiKey);
       const { startMitm } = await import("@/mitm/manager.runtime");
       const result = await startMitm(apiKey, sudoPassword);
       return Response.json({ ok: true, ...result });
@@ -88,6 +95,7 @@ export async function POST(request: Request): Promise<Response> {
       }
       // stopMitm calls clearCachedPassword() internally, so re-cache after stop
       if (sudoPassword || pwd) setCachedPassword(sudoPassword || pwd);
+      const apiKey = await resolveRouterApiKey(rawApiKey);
       const result = await startMitm(apiKey, sudoPassword || pwd);
       return Response.json({ ok: true, ...result });
     }
@@ -97,9 +105,15 @@ export async function POST(request: Request): Promise<Response> {
         return createErrorResponse({ status: 400, message: "Missing sudoPassword" });
       }
       const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
-      const pwd = sudoPassword || getCachedPassword() || "";
-      const result = await installCertResult(pwd, certPath);
+      const result = await installCertResult(sudoPassword, certPath);
       if (result.installed) {
+        const suppliedPassword =
+          typeof raw.sudoPassword === "string"
+            ? normalizeMitmSudoPasswordInput(raw.sudoPassword)
+            : "";
+        if (process.platform !== "win32" && suppliedPassword) {
+          setCachedPassword(suppliedPassword);
+        }
         const trusted = await checkCertInstalled(certPath);
         return Response.json({ ok: true, trusted });
       }

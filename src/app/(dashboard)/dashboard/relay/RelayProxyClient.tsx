@@ -44,7 +44,9 @@ export default function RelayProxyClient() {
   }, []);
 
   useEffect(() => {
-    void fetchTokens();
+    void (async () => {
+      await fetchTokens();
+    })();
   }, [fetchTokens]);
 
   const createToken = async () => {

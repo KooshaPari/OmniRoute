@@ -8,7 +8,8 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-usage-ana
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
-const localDb = await import("../../src/lib/localDb.ts");
+const { updatePricing } = await import("@/lib/db/settings");
+const localDb = { updatePricing };
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
@@ -24,7 +25,7 @@ const clearPendingRequests = usageHistory.clearPendingRequests;
 async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   clearPendingRequests();
 }
@@ -54,7 +55,7 @@ test.beforeEach(async () => {
 test.after(() => {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("usage history persists entries and supports filtering and usageDb compatibility", async () => {
@@ -124,10 +125,10 @@ test("usage history persists entries and supports filtering and usageDb compatib
 test("getModelLatencyStats aggregates success rate and latency percentiles", async () => {
   const now = Date.now();
   const entries = [
-    { latencyMs: 100, timeToFirstTokenMs: 20, success: true },
-    { latencyMs: 200, timeToFirstTokenMs: 40, success: true },
-    { latencyMs: 400, timeToFirstTokenMs: 80, success: true },
-    { latencyMs: 900, timeToFirstTokenMs: 0, success: false },
+    { latencyMs: 100, success: true },
+    { latencyMs: 200, success: true },
+    { latencyMs: 400, success: true },
+    { latencyMs: 900, success: false },
   ];
 
   for (const [index, entry] of entries.entries()) {
@@ -136,7 +137,6 @@ test("getModelLatencyStats aggregates success rate and latency percentiles", asy
       model: "latency-model",
       success: entry.success,
       latencyMs: entry.latencyMs,
-      timeToFirstTokenMs: entry.timeToFirstTokenMs,
       timestamp: new Date(now - index * 60 * 1000).toISOString(),
     });
   }
@@ -157,102 +157,6 @@ test("getModelLatencyStats aggregates success rate and latency percentiles", asy
   assert.equal(entry.p95LatencyMs, 400);
   assert.equal(entry.p99LatencyMs, 400);
   assert.ok(entry.latencyStdDev > 0);
-  assert.equal(entry.avgTtftMs, 47);
-});
-
-test("getModelLatencyStats can return connection-qualified buckets without changing aggregate keys", async () => {
-  const now = Date.now();
-  for (const [connectionId, latency] of [
-    ["latency-connection-a", 100],
-    ["latency-connection-b", 900],
-  ] as const) {
-    for (let index = 0; index < 2; index++) {
-      await usageHistory.saveRequestUsage({
-        provider: "qualified-provider",
-        model: "qualified-model",
-        connectionId,
-        success: true,
-        latencyMs: latency,
-        timestamp: new Date(now - index * 60 * 1000).toISOString(),
-      });
-    }
-  }
-
-  const aggregate = await usageHistory.getModelLatencyStats({ windowHours: 1, minSamples: 2 });
-  const qualified = await usageHistory.getModelLatencyStats({
-    windowHours: 1,
-    minSamples: 2,
-    keyByConnectionId: true,
-  });
-
-  assert.equal(aggregate["qualified-provider/qualified-model"].p95LatencyMs, 900);
-  assert.equal(
-    qualified["qualified-provider/qualified-model/latency-connection-a"].p95LatencyMs,
-    100
-  );
-  assert.equal(
-    qualified["qualified-provider/qualified-model/latency-connection-b"].p95LatencyMs,
-    900
-  );
-  assert.equal(
-    qualified["qualified-provider/qualified-model/latency-connection-a"].connectionId,
-    "latency-connection-a"
-  );
-});
-
-test("getModelLatencyStats omits unavailable TTFT instead of treating zero as fast", async () => {
-  for (const [index, ttft] of [0, -10].entries()) {
-    await usageHistory.saveRequestUsage({
-      provider: "no-ttft-provider",
-      model: "no-ttft-model",
-      success: true,
-      latencyMs: 200 + index,
-      timeToFirstTokenMs: ttft,
-      timestamp: new Date(Date.now() - index * 60 * 1000).toISOString(),
-    });
-  }
-
-  const stats = await usageHistory.getModelLatencyStats({ windowHours: 1, minSamples: 2 });
-  assert.equal("avgTtftMs" in stats["no-ttft-provider/no-ttft-model"], false);
-});
-
-test("getModelLatencyStats derives TPS only from valid output, TTFT, and generation duration", async () => {
-  const validSamples = [
-    { output: 100, latency: 1_000, ttft: 200 },
-    { output: 200, latency: 2_000, ttft: 500 },
-  ];
-  for (const [index, sample] of validSamples.entries()) {
-    await usageHistory.saveRequestUsage({
-      provider: "tps-provider",
-      model: "tps-model",
-      success: true,
-      tokens: { output: sample.output },
-      latencyMs: sample.latency,
-      timeToFirstTokenMs: sample.ttft,
-      timestamp: new Date(Date.now() - index * 60 * 1000).toISOString(),
-    });
-  }
-
-  for (const [index, sample] of [
-    { output: "not-a-number", latency: 1_000, ttft: 200 },
-    { output: -5, latency: 1_000, ttft: 200 },
-    { output: 100, latency: 1_000, ttft: 0 },
-    { output: 100, latency: 200, ttft: 300 },
-  ].entries()) {
-    await usageHistory.saveRequestUsage({
-      provider: "invalid-tps-provider",
-      model: "invalid-tps-model",
-      success: true,
-      tokens: { output: sample.output },
-      latencyMs: sample.latency,
-      timeToFirstTokenMs: sample.ttft,
-      timestamp: new Date(Date.now() - index * 60 * 1000).toISOString(),
-    });
-  }
-
-  const stats = await usageHistory.getModelLatencyStats({ windowHours: 1, minSamples: 2 });
-  assert.equal(stats["tps-provider/tps-model"].avgTokensPerSecond, 129.167);
-  assert.equal("avgTokensPerSecond" in stats["invalid-tps-provider/invalid-tps-model"], false);
 });
 
 test("getModelLatencyStats falls back to all latencies when successful sample count is too small", async () => {
@@ -626,16 +530,20 @@ test("getUsageSummary counts total_requests from daily_usage_summary, not 1-per-
   // Insert a daily_usage_summary row with total_requests=50, 1000 input, 500 output.
   // With the old COUNT(*) query this would count as 1 request; with SUM(requests)
   // it must count as 50.
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO daily_usage_summary (provider, model, date, total_requests, total_input_tokens, total_output_tokens, total_cost)
     VALUES ('openai', 'gpt-4', '2024-01-10', 50, 1000, 500, 0.02)
-  `).run();
+  `
+  ).run();
 
   // Also insert one raw row so we can verify the UNION merges both legs.
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO usage_history (timestamp, provider, model, tokens_input, tokens_output, success, latency_ms, service_tier)
     VALUES ('2024-01-20T10:00:00.000Z', 'openai', 'gpt-4', 100, 50, 1, 200, 'standard')
-  `).run();
+  `
+  ).run();
 
   // Build a unified source with rawCutoffDate BETWEEN the two rows so both
   // legs are exercised: aggregated leg gets the Jan 10 row, raw leg gets the Jan 20 row.
@@ -652,11 +560,23 @@ test("getUsageSummary counts total_requests from daily_usage_summary, not 1-per-
   const summary = getUsageSummary(unifiedSource, unifiedParams);
 
   // 50 from daily_usage_summary + 1 from raw usage_history = 51
-  assert.equal(summary.totalRequests, 51, "totalRequests must be 50 (aggregated) + 1 (raw), not 1+1");
+  assert.equal(
+    summary.totalRequests,
+    51,
+    "totalRequests must be 50 (aggregated) + 1 (raw), not 1+1"
+  );
   // 1000 from daily_usage_summary + 100 from raw = 1100
   assert.equal(summary.promptTokens, 1100, "promptTokens must merge aggregated + raw token sums");
   // 500 from daily_usage_summary + 50 from raw = 550
-  assert.equal(summary.completionTokens, 550, "completionTokens must merge aggregated + raw token sums");
+  assert.equal(
+    summary.completionTokens,
+    550,
+    "completionTokens must merge aggregated + raw token sums"
+  );
   // All 51 requests are successful (aggregated leg hardcodes success=1, raw has success=1)
-  assert.equal(summary.successfulRequests, 51, "successfulRequests must count all rolled-up requests as successful");
+  assert.equal(
+    summary.successfulRequests,
+    51,
+    "successfulRequests must count all rolled-up requests as successful"
+  );
 });

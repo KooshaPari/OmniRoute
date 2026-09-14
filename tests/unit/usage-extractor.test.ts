@@ -2,7 +2,19 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { extractUsageFromResponse } = await import("../../open-sse/handlers/usageExtractor.ts");
-const { extractUsage } = await import("../../open-sse/utils/usageTracking.ts");
+const { extractUsage, normalizeUsage } = await import("../../open-sse/utils/usageTracking.ts");
+
+test("normalizeUsage keeps only finite numeric fields for stream cost calculation", () => {
+  assert.deepEqual(
+    normalizeUsage({
+      input_tokens: "12",
+      output_tokens: 3,
+      total_tokens: Number.POSITIVE_INFINITY,
+      input_tokens_details: { cached_tokens: 2 },
+    }),
+    { input_tokens: 12, output_tokens: 3 }
+  );
+});
 
 test("extractUsageFromResponse reads OpenAI chat completion usage", () => {
   const usage = extractUsageFromResponse(
@@ -180,6 +192,27 @@ test("extractUsageFromResponse totals Claude prompt tokens with cache read and c
   });
 });
 
+test("extractUsageFromResponse surfaces Claude thinking tokens without inflating completion", () => {
+  const usage = extractUsageFromResponse(
+    {
+      usage: {
+        input_tokens: 22,
+        output_tokens: 267,
+        output_tokens_details: { thinking_tokens: 85 },
+      },
+    },
+    "claude"
+  );
+
+  assert.deepEqual(usage, {
+    prompt_tokens: 22,
+    completion_tokens: 267,
+    cache_read_input_tokens: 0,
+    cache_creation_input_tokens: 0,
+    reasoning_tokens: 85,
+  });
+});
+
 test("extractUsageFromResponse reads Gemini usageMetadata and thinking tokens", () => {
   const usage = extractUsageFromResponse(
     {
@@ -194,8 +227,74 @@ test("extractUsageFromResponse reads Gemini usageMetadata and thinking tokens", 
 
   assert.deepEqual(usage, {
     prompt_tokens: 11,
-    completion_tokens: 5,
+    completion_tokens: 7,
+    cached_tokens: 0,
     reasoning_tokens: 2,
+  });
+});
+
+test("extractUsageFromResponse reads Gemini usageMetadata from the antigravity response envelope", () => {
+  // Antigravity / gemini-cli wrap non-streaming payloads in { response: {...} }
+  // (port of decolua/9router#59d858b — previously logged zero usage).
+  const usage = extractUsageFromResponse(
+    {
+      response: {
+        usageMetadata: {
+          promptTokenCount: 42,
+          candidatesTokenCount: 13,
+          thoughtsTokenCount: 4,
+          cachedContentTokenCount: 7,
+        },
+      },
+    },
+    "antigravity"
+  );
+
+  assert.deepEqual(usage, {
+    prompt_tokens: 42,
+    completion_tokens: 17,
+    cached_tokens: 7,
+    reasoning_tokens: 4,
+  });
+});
+
+test("extractUsageFromResponse prefers top-level usageMetadata over the envelope", () => {
+  const usage = extractUsageFromResponse(
+    {
+      usageMetadata: { promptTokenCount: 1, candidatesTokenCount: 2 },
+      response: { usageMetadata: { promptTokenCount: 99, candidatesTokenCount: 99 } },
+    },
+    "gemini"
+  );
+
+  assert.deepEqual(usage, {
+    prompt_tokens: 1,
+    completion_tokens: 2,
+    cached_tokens: 0,
+    reasoning_tokens: 0,
+  });
+});
+
+test("extractUsageFromResponse surfaces Gemini cachedContentTokenCount as cached_tokens", () => {
+  // Review follow-up on #10430: match the OpenAI/Claude/Responses branches and
+  // the streaming path (usageTracking.ts) by surfacing Gemini cache-hit tokens.
+  const usage = extractUsageFromResponse(
+    {
+      usageMetadata: {
+        promptTokenCount: 30,
+        candidatesTokenCount: 10,
+        thoughtsTokenCount: 3,
+        cachedContentTokenCount: 12,
+      },
+    },
+    "gemini"
+  );
+
+  assert.deepEqual(usage, {
+    prompt_tokens: 30,
+    completion_tokens: 13,
+    cached_tokens: 12,
+    reasoning_tokens: 3,
   });
 });
 
@@ -240,6 +339,20 @@ test("extractUsage reads response.completed with prompt_tokens_details.cached_to
   assert.equal(usage.completion_tokens, 50);
   assert.equal(usage.cached_tokens, 30);
   assert.equal(usage.reasoning_tokens, 10);
+});
+
+test("extractUsage surfaces Claude message_delta thinking tokens", () => {
+  const usage = extractUsage({
+    type: "message_delta",
+    usage: {
+      input_tokens: 22,
+      output_tokens: 267,
+      output_tokens_details: { thinking_tokens: 85 },
+    },
+  });
+
+  assert.equal(usage.reasoning_tokens, 85);
+  assert.equal(usage.completion_tokens, 267);
 });
 
 test("extractUsage reads response.done with input_tokens_details and output_tokens_details", () => {
@@ -389,7 +502,7 @@ test("extractUsage reads top-level Gemini usageMetadata from a streaming chunk",
   });
 
   assert.equal(usage.prompt_tokens, 120);
-  assert.equal(usage.completion_tokens, 60);
+  assert.equal(usage.completion_tokens, 72);
   assert.equal(usage.total_tokens, 180);
   assert.equal(usage.cached_tokens, 30);
   assert.equal(usage.reasoning_tokens, 12);
@@ -412,7 +525,7 @@ test("extractUsage reads Antigravity usageMetadata wrapped inside a response env
 
   assert.notEqual(usage, null);
   assert.equal(usage.prompt_tokens, 200);
-  assert.equal(usage.completion_tokens, 75);
+  assert.equal(usage.completion_tokens, 93);
   assert.equal(usage.total_tokens, 275);
   assert.equal(usage.cached_tokens, 40);
   assert.equal(usage.reasoning_tokens, 18);

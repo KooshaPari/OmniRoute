@@ -22,12 +22,13 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-pre
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const { getComboBuilderOptions } = await import("../../src/lib/combos/builderOptions.ts");
 const { parseModel } = await import("../../open-sse/services/model.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#2901 no-auth OpenCode combo models use the oc/ prefix (not opencode/)", async () => {
@@ -50,6 +51,29 @@ test("#2901 no-auth OpenCode combo models use the oc/ prefix (not opencode/)", a
       `qualifiedModel '${m.qualifiedModel}' must start with 'oc/' (got id-prefix instead)`
     );
   }
+});
+
+test("#2901 configured OpenCode connections also use the oc/ prefix", async () => {
+  await providersDb.createProviderConnection({
+    provider: "opencode",
+    authType: "apikey",
+    name: "OpenCode Free test connection",
+    apiKey: "test-key",
+  });
+
+  const payload = await getComboBuilderOptions();
+  const opencode = payload.providers.find(
+    (provider) => provider.providerId === "opencode" && provider.connectionCount > 0
+  );
+  assert.ok(opencode, "configured OpenCode provider must appear in the combo builder");
+
+  const bigPickle = opencode.models.find((model) => model.id === "big-pickle");
+  assert.ok(bigPickle, "big-pickle must be listed under the configured opencode provider");
+  assert.equal(
+    bigPickle.qualifiedModel,
+    "oc/big-pickle",
+    "configured opencode combo entries must use the 'oc/' routing alias"
+  );
 });
 
 test("#2901 the oc/ prefix actually resolves back to the no-auth opencode provider", () => {

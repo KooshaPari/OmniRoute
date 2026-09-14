@@ -11,6 +11,7 @@
  */
 
 import { RateLimitReason } from "../config/constants.ts";
+import { parseDayGranularityResetMs } from "./quotaResetParsing.ts";
 
 type RateLimitReasonValue = (typeof RateLimitReason)[keyof typeof RateLimitReason];
 
@@ -35,15 +36,19 @@ export function isSubscriptionQuotaText(lower: string, provider?: string | null)
     lower.includes("claude pro usage limit") ||
     lower.includes("you've reached your usage limit") ||
     lower.includes("you have reached your usage limit") ||
+    lower.includes("exceeds your plan") ||
+    lower.includes("plan limit") ||
+    lower.includes("plan's set usage limit") ||
+    lower.includes("plan limit exceeded") ||
+    lower.includes("usage limit exceeded") ||
     // Native Claude OAuth uses this otherwise-generic 429 wording for an
     // exhausted subscription window. Keep it provider-scoped: other upstreams
     // can use the same phrase for a short RPM throttle.
-    (provider === "claude" &&
-      lower.includes("this request would exceed your account's rate limit"))
+    (provider === "claude" && lower.includes("this request would exceed your account's rate limit"))
   );
 }
 
-const SUBSCRIPTION_QUOTA_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
+export const SUBSCRIPTION_QUOTA_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
 
 /**
  * Builds the QUOTA_EXHAUSTED fallback for the subscription-quota text above.
@@ -97,15 +102,66 @@ export function isWeeklyUsageLimitText(lower: string): boolean {
   return (
     lower.includes("weekly usage limit") ||
     lower.includes("weekly limit reached") ||
-    lower.includes("reached your weekly")
+    lower.includes("reached your weekly") ||
+    lower.includes("1-week quota") ||
+    lower.includes("week quota") ||
+    lower.includes("weekly/monthly limit") ||
+    (lower.includes("weekly") && lower.includes("quota") && lower.includes("exhaust"))
   );
 }
 
-export function buildWeeklyQuotaFallback(errorStr: string): QuotaTextFallback | null {
+const MAX_WEEKLY_QUOTA_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
+
+export function buildWeeklyQuotaFallback(
+  errorStr: string,
+  nowMs: number = Date.now()
+): QuotaTextFallback | null {
   if (!isWeeklyUsageLimitText(errorStr.toLowerCase())) return null;
+  const parsedResetMs = parseDayGranularityResetMs(errorStr, MAX_WEEKLY_QUOTA_COOLDOWN_MS, nowMs);
+  const cooldownMs =
+    typeof parsedResetMs === "number" && parsedResetMs > 0
+      ? parsedResetMs
+      : WEEKLY_QUOTA_COOLDOWN_MS;
   return {
     shouldFallback: true,
-    cooldownMs: WEEKLY_QUOTA_COOLDOWN_MS,
+    cooldownMs,
+    reason: RateLimitReason.QUOTA_EXHAUSTED,
+    usedUpstreamRetryHint: typeof parsedResetMs === "number" && parsedResetMs > 0,
+    quotaResetHintMs:
+      typeof parsedResetMs === "number" && parsedResetMs > 0 ? parsedResetMs : undefined,
+  };
+}
+
+// ─── Issue #7071 — Ollama Cloud 5-hour SESSION usage cap ───────────────────
+//
+// Ollama Cloud also enforces a rolling 5-hour "session" usage cap, sibling to
+// the weekly cap above (#3709/#6638). On cap the upstream returns 429 with a
+// body like "you (<account>) have reached your session usage limit". Same
+// root cause as the weekly gap: neither the generic subscription-quota-text
+// classifier nor the weekly one recognize "session" wording, so the account
+// fell through to the generic 429 backoff and got retried within the same
+// 5-hour window instead of cooling down for it — combo/LKGP routing cycled
+// back to the "exhausted" account instead of advancing to the next one.
+//
+// Patterns are scoped to "session ... usage limit" / "session limit reached"
+// / "reached your session ... usage limit" phrasing (not a bare "session"
+// match) so unrelated "session expired"/"session token invalid" auth errors
+// from other providers are not misclassified as quota-exhausted.
+const SESSION_QUOTA_COOLDOWN_MS = 5 * 60 * 60 * 1000; // 5 hours
+
+export function isSessionUsageLimitText(lower: string): boolean {
+  return (
+    lower.includes("session usage limit") ||
+    lower.includes("session limit reached") ||
+    (lower.includes("reached your session") && lower.includes("usage limit"))
+  );
+}
+
+export function buildSessionQuotaFallback(errorStr: string): QuotaTextFallback | null {
+  if (!isSessionUsageLimitText(errorStr.toLowerCase())) return null;
+  return {
+    shouldFallback: true,
+    cooldownMs: SESSION_QUOTA_COOLDOWN_MS,
     reason: RateLimitReason.QUOTA_EXHAUSTED,
   };
 }

@@ -2,13 +2,15 @@ import http from "http";
 import type { IncomingMessage, ServerResponse } from "http";
 import net from "net";
 import { getRuntimePorts } from "@/lib/runtime/ports";
+import { warnIfNonLoopbackWithoutApiKey } from "@/lib/startup/nonLoopbackApiKeyGuard";
 import { getApiBridgeTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("lib:api-bridge");
+import {
+  attachRequestStreamGuards,
+  installProcessCrashGuard,
+} from "@/shared/utils/httpClientAbortGuard.mjs";
 
 const API_BRIDGE_TIMEOUTS = getApiBridgeTimeoutConfig(process.env, (message) => {
-  log.warn({ message }, "api-bridge: runtime timeout config");
+  console.warn(`[API Bridge] ${message}`);
 });
 
 const OPENAI_COMPAT_PATHS = [
@@ -172,14 +174,24 @@ declare global {
 }
 
 export function initApiBridgeServer(): void {
+  // Safety net: a client aborting a connection can emit `Error: aborted`/
+  // ECONNRESET on the request stream; without this the single missed listener
+  // becomes an uncaughtException that kills the server. Benign aborts are
+  // swallowed; genuine errors still crash loudly (#fix-dev-server-aborted).
+  installProcessCrashGuard();
   if (globalThis.__omnirouteApiBridgeStarted) return;
 
   const { apiPort, dashboardPort } = getRuntimePorts();
   if (apiPort === dashboardPort) return;
 
   const host = process.env.API_HOST || "127.0.0.1";
+  warnIfNonLoopbackWithoutApiKey("API bridge", host);
 
   const server = http.createServer((req, res) => {
+    // Absorb client-abort errors (browser closes the socket during navigation/
+    // HMR/bfcache) on the request/response streams so they never surface as an
+    // uncaughtException that kills the server (#fix-dev-server-aborted).
+    attachRequestStreamGuards(req, res);
     const rawUrl = req.url || "/";
     const pathname = rawUrl.split("?")[0] || "/";
 
@@ -221,17 +233,16 @@ export function initApiBridgeServer(): void {
 
   server.on("error", (error: NodeJS.ErrnoException) => {
     if (error?.code === "EADDRINUSE") {
-      log.warn(
-        { apiPort, dashboardPort },
-        "api-bridge: port already in use — bridge disabled"
+      console.warn(
+        `[API Bridge] Port ${apiPort} is already in use. API bridge disabled. (dashboard: ${dashboardPort})`
       );
       return;
     }
-    log.warn({ err: error?.message || String(error) }, "api-bridge: failed to start");
+    console.warn("[API Bridge] Failed to start:", error?.message || error);
   });
 
   server.listen(apiPort, host, () => {
     globalThis.__omnirouteApiBridgeStarted = true;
-    log.info({ host, apiPort, dashboardPort }, "api-bridge: listening");
+    console.log(`[API Bridge] Listening on ${host}:${apiPort} -> dashboard:${dashboardPort}`);
   });
 }

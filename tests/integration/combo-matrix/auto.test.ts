@@ -9,7 +9,7 @@
 //   - combo.ts fetches getLKGP(combo.name, combo.id) = getLKGP("auto", "auto") → key "auto:auto".
 //   - LKGPStrategy: if a LKGP record exists for that provider AND the provider is in the
 //     candidate pool, it pins that provider deterministically (no randomness).
-//   - Without a LKGP record, falls back to "rules" 9-factor scorer.
+//   - Without a LKGP record, falls back to "rules" 16-factor scorer.
 //
 // Test 1 strategy: single-request, deterministic.
 //   We seed a LKGP record pointing to "openai" via settingsDb.setLKGP("auto","auto","openai").
@@ -32,9 +32,24 @@ function body(model: string) {
   return { model, stream: false, messages: [{ role: "user", content: "hello" }] };
 }
 
+// No-auth providers (#6557 / #7622) join the auto-combo pool without any seeded
+// connection, because their credential is synthetic — see NOAUTH_PROVIDERS in
+// src/shared/constants/providers.ts and the candidate build in
+// open-sse/services/autoCombo/virtualFactory.ts. That is intended production
+// behavior, but it makes these tests non-deterministic: the pool would contain
+// providers this file never seeded, and the dispatch could legitimately land on
+// one of them instead of the connection under test.
+//
+// Blocking them via settings.blockedProviders closes the pool to exactly the
+// connections each test seeds, which is what these assertions are actually
+// about (LKGP pinning and variant pool resolution) — rather than weakening the
+// assertions to accept whatever the open pool happens to pick.
+const NO_AUTH_PROVIDER_IDS = ["opencode", "duckduckgo-web", "chipotle", "veoaifree-web", "auggie"];
+
 test.beforeEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = 0;
   await resetStorage();
+  await settingsDb.updateSettings({ blockedProviders: NO_AUTH_PROVIDER_IDS });
 });
 test.afterEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = h.originalRetryDelayMs;

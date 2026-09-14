@@ -23,21 +23,74 @@ import {
   statSync,
   chmodSync,
 } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { assembleStandalone } from "./assembleStandalone.mjs";
+import { isNativeExecutable, resolveLocalBinEntry } from "./buildToolRunner.mjs";
+import { resolveBundledNpmEntry } from "./resolveNpmEntry.ts";
 import {
   APP_STAGING_ALLOWED_EXACT_PATHS,
   APP_STAGING_ALLOWED_PATH_PREFIXES,
   APP_STAGING_REMOVAL_PATHS,
   findUnexpectedArtifactPaths,
 } from "./pack-artifact-policy.ts";
-import { runPackageTool } from "./package-tool.ts";
+import {
+  collectWorkspaceVersions,
+  findPackageJsonFiles,
+  hasWorkspaceProtocol,
+  resolvePackageJsonWorkspaceProtocols,
+} from "./resolveWorkspaceProtocols.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..", "..");
+const NPX_BIN = process.platform === "win32" ? "npx.cmd" : "npx";
+
+// On Windows the npm/npx entry points are `.cmd` shims, and Node >= 20 refuses to
+// spawn a `.cmd` without a shell (EINVAL, from the CVE-2024-27980 hardening). On
+// Node 24 that makes every `execFileSync(NPX_BIN, ...)` in this script fail, which
+// silently skipped the MITM utilities, the MCP server bundle, the LLMLingua worker
+// and the OpenCode plugin while the build still reported success.
+//
+// `shell: true` would fix the spawn but disables argument escaping (DEP0190), so it
+// is only the last resort. Preferred order: run the tool's own JS entry point with
+// this Node binary — no shim, no shell, nothing to escape. `resolveLocalBinEntry()`
+// and `isNativeExecutable()` implement that resolution and now live in
+// buildToolRunner.mjs, shared with the plain-`node` build scripts.
+
+/**
+ * Runs a build tool without ever touching a `.cmd` shim. `packageName` is where the
+ * tool lives in the local dependency tree; when it is not installed there the call
+ * falls back to the Node-resolved `npx` entry point, and only then to the shim.
+ */
+function runBuildTool(
+  packageName: string,
+  binName: string,
+  args: readonly string[],
+  options: Parameters<typeof execFileSync>[2]
+): void {
+  const localEntry = resolveLocalBinEntry(packageName, binName);
+  if (localEntry) {
+    if (isNativeExecutable(localEntry)) {
+      execFileSync(localEntry, [...args], options);
+      return;
+    }
+    execFileSync(process.execPath, [localEntry, ...args], options);
+    return;
+  }
+  const npxEntry = resolveBundledNpmEntry("npx-cli.js");
+  if (npxEntry) {
+    execFileSync(process.execPath, [npxEntry, binName, ...args], options);
+    return;
+  }
+  // Last resort. The arguments here are static build literals, never user input,
+  // so the missing escaping under `shell` is not an injection surface.
+  execFileSync(NPX_BIN, [binName, ...args], {
+    ...options,
+    shell: process.platform === "win32",
+  });
+}
 
 const DIST_DIR = join(ROOT, "dist");
 const METHOD_GUARD_REQUIRE = 'require("./http-method-guard.cjs").installHttpMethodGuard();\n';
@@ -205,7 +258,7 @@ if (existsSync(mitmSrc)) {
   writeFileSync(tmpTsconfigPath, JSON.stringify(mitmTsconfig, null, 2));
 
   try {
-    runPackageTool("npx", ["tsc", "-p", "tsconfig.mitm.tmp.json"], {
+    runBuildTool("typescript", "tsc", ["-p", "tsconfig.mitm.tmp.json"], {
       cwd: ROOT,
       stdio: "inherit",
     });
@@ -235,10 +288,10 @@ if (existsSync(mcpSrcFile)) {
   console.log("  🔨 Bundling MCP Server (TypeScript → JavaScript)...");
   mkdirSync(mcpDestDir, { recursive: true });
   try {
-    runPackageTool(
-      "npx",
+    runBuildTool(
+      "esbuild",
+      "esbuild",
       [
-        "esbuild",
         "open-sse/mcp-server/server.ts",
         "--bundle",
         "--platform=node",
@@ -254,11 +307,69 @@ if (existsSync(mcpSrcFile)) {
   }
 }
 
-// ── Step 8.6: Bundle LLMLingua ONNX worker ────────────────────────────
+const chatGptWebCodexMcpSrcFile = join(
+  ROOT,
+  "open-sse",
+  "vendor",
+  "codex-chatgpt-web",
+  "adapters",
+  "chatgpt-web",
+  "mcp-server.ts"
+);
+const chatGptWebCodexMcpDestFile = join(
+  DIST_DIR,
+  "open-sse",
+  "vendor",
+  "codex-chatgpt-web",
+  "adapters",
+  "chatgpt-web",
+  "mcp-server.js"
+);
+if (existsSync(chatGptWebCodexMcpSrcFile)) {
+  console.log("  🔨 Bundling ChatGPT Web (Codex) MCP bridge...");
+  mkdirSync(dirname(chatGptWebCodexMcpDestFile), { recursive: true });
+  runBuildTool(
+    "esbuild",
+    "esbuild",
+    [
+      "open-sse/vendor/codex-chatgpt-web/adapters/chatgpt-web/mcp-server.ts",
+      "--bundle",
+      "--platform=node",
+      "--packages=external",
+      "--format=esm",
+      "--outfile=dist/open-sse/vendor/codex-chatgpt-web/adapters/chatgpt-web/mcp-server.js",
+    ],
+    { cwd: ROOT, stdio: "inherit" }
+  );
+}
+
+// ── Step 8.6: Bundle call-log artifact worker ────────────────────────
+const callLogWorkerSrc = join(ROOT, "src", "lib", "usage", "callLogArtifactWorker.ts");
+const callLogWorkerDest = join(DIST_DIR, "src", "lib", "usage", "callLogArtifactWorker.js");
+if (!existsSync(callLogWorkerSrc)) {
+  throw new Error("Required call-log artifact worker source is missing");
+}
+console.log("  🔨 Bundling call-log artifact worker...");
+mkdirSync(dirname(callLogWorkerDest), { recursive: true });
+runBuildTool(
+  "esbuild",
+  "esbuild",
+  [
+    "src/lib/usage/callLogArtifactWorker.ts",
+    "--bundle",
+    "--platform=node",
+    "--packages=external",
+    "--format=esm",
+    "--outfile=dist/src/lib/usage/callLogArtifactWorker.js",
+  ],
+  { cwd: ROOT, stdio: "inherit" }
+);
+
+// ── Step 8.6a: Bundle LLMLingua ONNX worker ───────────────────────────
 // The worker is spawned via worker_threads at a path the Next.js bundler cannot
 // statically trace, so it must ship as a standalone .js (mirrors the MCP-server
 // bundling above). Heavy deps (@atjsh/llmlingua-2 / @huggingface/transformers /
-// @tensorflow/tfjs / js-tiktoken) stay EXTERNAL — they are optionalDependencies,
+// js-tiktoken) stay EXTERNAL — they are optionalDependencies,
 // dynamically imported at runtime, and the worker fail-opens if any is absent.
 const llmWorkerSrc = join(
   ROOT,
@@ -281,10 +392,10 @@ if (existsSync(llmWorkerSrc)) {
   console.log("  🔨 Bundling LLMLingua ONNX worker (TypeScript → JavaScript)...");
   mkdirSync(llmWorkerDestDir, { recursive: true });
   try {
-    runPackageTool(
-      "npx",
+    runBuildTool(
+      "esbuild",
+      "esbuild",
       [
-        "esbuild",
         "open-sse/services/compression/engines/llmlingua/onnxWorker.ts",
         "--bundle",
         "--platform=node",
@@ -302,6 +413,40 @@ if (existsSync(llmWorkerSrc)) {
   }
 }
 
+// ── Step 8.6b: Bundle synchronous compression worker ──────────────────
+const compressionWorkerSrc = join(
+  ROOT,
+  "open-sse",
+  "services",
+  "compression",
+  "compressionWorker.ts"
+);
+const compressionWorkerDest = join(
+  DIST_DIR,
+  "open-sse",
+  "services",
+  "compression",
+  "compressionWorker.js"
+);
+if (!existsSync(compressionWorkerSrc)) {
+  throw new Error("Required compression worker source is missing");
+}
+console.log("  🔨 Bundling compression worker...");
+mkdirSync(dirname(compressionWorkerDest), { recursive: true });
+runBuildTool(
+  "esbuild",
+  "esbuild",
+  [
+    "open-sse/services/compression/compressionWorker.ts",
+    "--bundle",
+    "--platform=node",
+    "--packages=external",
+    "--format=esm",
+    "--outfile=dist/open-sse/services/compression/compressionWorker.js",
+  ],
+  { cwd: ROOT, stdio: "inherit" }
+);
+
 // ── Step 8.7: Bundle CLI Entrypoint ──────────────────────────
 const cliSrcFile = join(ROOT, "bin", "omniroute.ts");
 const cliDestFile = join(ROOT, "bin", "omniroute.mjs");
@@ -309,10 +454,10 @@ const cliDestFile = join(ROOT, "bin", "omniroute.mjs");
 if (existsSync(cliSrcFile)) {
   console.log("  🔨 Bundling CLI Entrypoint (TypeScript → JavaScript)...");
   try {
-    runPackageTool(
-      "npx",
+    runBuildTool(
+      "esbuild",
+      "esbuild",
       [
-        "esbuild",
         "bin/omniroute.ts",
         "--bundle",
         "--platform=node",
@@ -338,9 +483,11 @@ if (existsSync(cliSrcFile)) {
 // flow for every downstream user.
 const opencodePluginSrc = join(ROOT, "@omniroute", "opencode-plugin");
 const opencodePluginDist = join(opencodePluginSrc, "dist", "index.js");
-const opencodePluginCjs = join(opencodePluginSrc, "dist", "index.cjs");
 if (existsSync(opencodePluginSrc) && existsSync(join(opencodePluginSrc, "package.json"))) {
-  const pluginAlreadyBuilt = existsSync(opencodePluginDist) && existsSync(opencodePluginCjs);
+  // The plugin's tsup config is ESM-only (format: ["esm"]), so a successful
+  // build only ever produces dist/index.js (+ dist/index.d.ts) — never
+  // dist/index.cjs. Gate the skip solely on dist/index.js.
+  const pluginAlreadyBuilt = existsSync(opencodePluginDist);
   if (!pluginAlreadyBuilt) {
     console.log("\n  🔨 Building @omniroute/opencode-plugin (tsup)...");
     try {
@@ -349,12 +496,68 @@ if (existsSync(opencodePluginSrc) && existsSync(join(opencodePluginSrc, "package
       // needs the plugin's own devDependencies (typescript, @opencode-ai/plugin
       // types). Without this install a fresh CI publish fails at this step.
       if (!existsSync(join(opencodePluginSrc, "node_modules"))) {
-        runPackageTool("npm", ["install", "--no-audit", "--no-fund"], {
-          cwd: opencodePluginSrc,
-          stdio: "inherit",
-        });
+        // The plugin's node_modules is gitignored, so a fresh CI checkout
+        // ALWAYS installs here. The registry CDN is intermittently flaky
+        // (onnxruntime-class ETIMEDOUTs to the Microsoft CDN have repeatedly
+        // stalled CI npm steps for 20+ minutes), and npm's unbounded fetch
+        // retries turn a stalled connection into a hang that eats the whole
+        // job budget. Bound the fetch and retry the install a few times:
+        // transient network failures fail fast and recover instead of hanging.
+        const npmEntry = resolveBundledNpmEntry("npm-cli.js");
+        const installArgs = [
+          "install",
+          "--no-audit",
+          "--no-fund",
+          "--fetch-retries=2",
+          "--fetch-retry-mintimeout=2000",
+          "--fetch-retry-maxtimeout=30000",
+          "--fetch-timeout=60000",
+        ];
+        const runPluginInstall = () => {
+          if (npmEntry) {
+            execFileSync(process.execPath, [npmEntry, ...installArgs], {
+              cwd: opencodePluginSrc,
+              stdio: "inherit",
+            });
+          } else if (process.platform !== "win32") {
+            // No bundled npm entry found (non-standard Node layout). Plain `npm` is
+            // safe here — the .cmd-shim hazard #8858 guards against is Windows-only.
+            execFileSync("npm", installArgs, {
+              cwd: opencodePluginSrc,
+              stdio: "inherit",
+            });
+          } else {
+            throw new Error(
+              "npm-cli.js not found next to the running Node binary; cannot install the plugin dependencies without falling back to a .cmd shim."
+            );
+          }
+        };
+        const sleepSync = (ms: number) =>
+          Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+        let installError: any = null;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            if (attempt > 1) {
+              console.log(
+                `  🔄 @omniroute/opencode-plugin npm install retry (attempt ${attempt}/3)`
+              );
+            }
+            runPluginInstall();
+            installError = null;
+            break;
+          } catch (err: any) {
+            installError = err;
+            if (attempt < 3) {
+              console.warn(
+                `  ⚠️  plugin npm install failed (attempt ${attempt}/3): ${err?.message ?? String(err)} — retrying in 10s`
+              );
+              sleepSync(10_000);
+            }
+          }
+        }
+        if (installError) throw installError;
       }
-      runPackageTool("npx", ["tsup"], {
+      runBuildTool("tsup", "tsup", [], {
         cwd: opencodePluginSrc,
         stdio: "inherit",
         env: { ...process.env, NODE_ENV: "production" },
@@ -478,10 +681,15 @@ for (const relativePath of APP_STAGING_REMOVAL_PATHS) {
 }
 
 // ── Step 10.7: Prune any staged dist/ file outside the allowed runtime set ──
+// #9985: neverAllowedSegments is EMPTY here on purpose — unlike the publish
+// tarball gate, the staged dist/ legitimately contains node_modules (the
+// standalone server's runtime deps, including Turbopack-hashed packages whose
+// wasm files DB init requires). The allowlist prefixes above are the contract.
 const stagedFiles = walkFiles(DIST_DIR);
 const unexpectedStagedFiles = findUnexpectedArtifactPaths(stagedFiles, {
   exactPaths: APP_STAGING_ALLOWED_EXACT_PATHS,
   prefixPaths: APP_STAGING_ALLOWED_PATH_PREFIXES,
+  neverAllowedSegments: [],
 });
 
 if (unexpectedStagedFiles.length > 0) {
@@ -496,6 +704,7 @@ if (unexpectedStagedFiles.length > 0) {
 const remainingUnexpectedFiles = findUnexpectedArtifactPaths(walkFiles(DIST_DIR), {
   exactPaths: APP_STAGING_ALLOWED_EXACT_PATHS,
   prefixPaths: APP_STAGING_ALLOWED_PATH_PREFIXES,
+  neverAllowedSegments: [],
 });
 
 if (remainingUnexpectedFiles.length > 0) {
@@ -504,6 +713,33 @@ if (remainingUnexpectedFiles.length > 0) {
     console.error(`     - dist/${violation}`)
   );
   process.exit(1);
+}
+
+// -- Step 11: Resolve workspace: protocol dependencies -----------------
+// npm/pnpm workspace protocol specifiers (workspace:*, workspace:^, ...)
+// are meaningless to the npm registry and make `npm install -g omniroute`
+// fail with EUNSUPPORTEDPROTOCOL. Rewrite any that leaked into published
+// package.json files to the concrete workspace package version.
+// Only touch files inside the staged dist/ tree; workspace member source
+// package.json files must never be mutated by the publish step.
+const workspaceVersions = collectWorkspaceVersions(ROOT);
+const publishablePackageJsonDirs = [DIST_DIR];
+const publishablePackageJsonPaths = publishablePackageJsonDirs
+  .flatMap((dir) => (existsSync(dir) ? findPackageJsonFiles(dir) : []))
+  .filter((filePath) => existsSync(filePath));
+
+for (const pkgJsonPath of publishablePackageJsonPaths) {
+  let pkg: Record<string, unknown>;
+  try {
+    pkg = JSON.parse(readFileSync(pkgJsonPath, "utf8")) as Record<string, unknown>;
+  } catch {
+    continue;
+  }
+  if (!hasWorkspaceProtocol(pkg)) continue;
+
+  const resolved = resolvePackageJsonWorkspaceProtocols(pkg, workspaceVersions);
+  writeFileSync(pkgJsonPath, JSON.stringify(resolved, null, 2) + "\n");
+  console.log(`  [resolved] Resolved workspace: protocols in ${relative(ROOT, pkgJsonPath)}`);
 }
 
 // ── Done ───────────────────────────────────────────────────

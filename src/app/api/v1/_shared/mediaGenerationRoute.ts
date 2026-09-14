@@ -14,8 +14,22 @@ type MediaModelListEntry = {
 };
 
 type MediaGenerationResult =
-  | { success: true; data: unknown }
-  | { success: false; error: unknown; status: number };
+  { success: true; data: unknown } | { success: false; error: unknown; status: number };
+
+type MediaGenerationFailure = Extract<MediaGenerationResult, { success: false }>;
+
+export type MediaGenerationResultLike = {
+  success: boolean;
+  data?: unknown;
+  error?: unknown;
+  status?: number;
+};
+
+export function isMediaGenerationFailure(
+  result: MediaGenerationResultLike
+): result is MediaGenerationFailure {
+  return result.success === false && "error" in result && typeof result.status === "number";
+}
 
 type MediaGenerationBody = {
   model: string;
@@ -24,8 +38,7 @@ type MediaGenerationBody = {
 } & Record<string, unknown>;
 
 type ValidatedMediaGenerationBody =
-  | { state: "ok"; body: MediaGenerationBody }
-  | { state: "invalid"; response: Response };
+  { state: "ok"; body: MediaGenerationBody } | { state: "invalid"; response: Response };
 
 export function mediaGenerationOptionsResponse() {
   return new Response(null, {
@@ -99,6 +112,8 @@ export async function successfulMediaGenerationResponse({
   model,
   startTime,
   duration,
+  strategy,
+  fallbackAttempts,
 }: {
   result: { data: unknown };
   billingMode: "audio" | "video";
@@ -106,6 +121,11 @@ export async function successfulMediaGenerationResponse({
   model: string;
   startTime: number;
   duration: unknown;
+  // Set by combo execution so the response reports which strategy picked the
+  // target and how many earlier targets were skipped. Omitted on the direct
+  // single-model path, where neither is meaningful.
+  strategy?: string;
+  fallbackAttempts?: number;
 }) {
   const seconds = Number(duration) || 0;
   const costUsd = await calculateModalCost(billingMode, provider, model, { seconds });
@@ -116,6 +136,8 @@ export async function successfulMediaGenerationResponse({
     costUsd,
     latencyMs: Date.now() - startTime,
     requestId: generateRequestId(),
+    ...(strategy ? { strategy } : {}),
+    ...(fallbackAttempts !== undefined ? { fallbackAttempts } : {}),
   });
 
   return new Response(JSON.stringify(result.data), {
@@ -128,6 +150,12 @@ export function failedMediaGenerationResponse(
   result: MediaGenerationResult,
   fallbackMessage: string
 ) {
+  if (!isMediaGenerationFailure(result)) {
+    return new Response(JSON.stringify(toJsonErrorPayload(undefined, fallbackMessage)), {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const errorPayload = toJsonErrorPayload(result.error, fallbackMessage);
   return new Response(JSON.stringify(errorPayload), {
     status: result.status,

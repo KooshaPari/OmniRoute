@@ -8,11 +8,16 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
 import { getDbInstance } from "../db/core";
-import { collectReferencedArtifacts, selectCallLogIdsBefore } from "./callLogsBoundedQueries";
 import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
 import { shouldPersistToDisk } from "./migrations";
 import { getCallLogApiKeyContext } from "./callLogApiKeyContext";
+import {
+  seedPendingContinuationState,
+  clearPendingContinuationState,
+  type ContinuationPipeline,
+} from "../db/responsesContinuationStore";
 import {
   getLoggedInputTokens,
   getLoggedOutputTokens,
@@ -22,19 +27,19 @@ import {
   getObservedReasoning,
 } from "./tokenAccounting";
 import { isNoLog } from "../compliance/noLog";
-import { protectPayloadForLog, parseStoredPayload } from "../logPayloads";
-import { getCallLogMaxEntries, getCallLogRetentionDays, getCallLogsTableMaxRows } from "../logEnv";
+import {
+  parseStoredPayload,
+  protectErrorPayloadForLog,
+  protectPayloadForLog,
+} from "../logPayloads";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import {
   CALL_LOGS_DIR,
-  cleanupEmptyCallLogDirs,
-  deleteCallArtifact,
-  listCallLogArtifactFiles,
   readCallArtifact,
-  writeCallArtifact,
   type CallLogArtifact,
   type CallLogDetailState,
 } from "./callLogArtifacts";
+import { closeCallLogArtifactWriter, writeCallArtifactAsync } from "./callLogArtifactWriter";
 import {
   toNumber,
   toStringOrNull,
@@ -44,14 +49,34 @@ import {
   toStoredErrorSummary,
   protectPipelinePayloads,
   buildRequestSummary,
+  classifyCallLogError,
 } from "./callLogs/format";
+import {
+  clearArtifactReference,
+  cleanupOrphanCallLogFiles,
+  cleanupOverflowCallLogFiles,
+  deleteCallLogsBefore,
+  trimCallLogsToMaxRows,
+  rotateCallLogs,
+  scheduleCallLogRotation,
+} from "./callLogRotation";
+
+// Re-exported for existing importers (usageDb.ts, compliance/index.ts, purge-logs route,
+// and the call-log rotation/cap test suite) — the implementation now lives in
+// ./callLogRotation.ts (extracted to satisfy the file-size gate, #10125).
+export {
+  cleanupOrphanCallLogFiles,
+  cleanupOverflowCallLogFiles,
+  deleteCallLogsBefore,
+  trimCallLogsToMaxRows,
+  rotateCallLogs,
+  scheduleCallLogRotation,
+};
 
 type JsonRecord = Record<string, unknown>;
 
-const CALL_LOG_ROTATE_THROTTLE_MS = 60_000;
-let lastCallLogRotationScheduledAt = 0;
-let callLogRotateInFlight = false;
-let callLogRotateScheduled = false;
+const pendingCallLogSaves = new Set<Promise<void>>();
+let callLogSavesClosing = false;
 
 type CallLogSummaryRow = {
   id: string;
@@ -93,6 +118,8 @@ type CallLogSummaryRow = {
   provider_node_prefix?: string | null;
   resolved_account?: string | null;
   correlation_id?: string | null;
+  model_pinned?: number | null;
+  session_tag?: string | null;
 };
 
 const RESOLVED_ACCOUNT_SQL = "COALESCE(NULLIF(pc.name, ''), NULLIF(pc.email, ''), cl.account)";
@@ -123,7 +150,7 @@ async function resolveAccountName(connectionId: string | null | undefined) {
   }
 
   try {
-    const { getProviderConnections } = await import("@/lib/localDb");
+    const { getProviderConnections } = await import("@/lib/db/providers");
     const connections = await getProviderConnections();
     const conn = connections.find((item) => item.id === connectionId);
     if (conn) {
@@ -143,7 +170,7 @@ async function resolveAccountName(connectionId: string | null | undefined) {
 async function resolveProviderPrefix(providerId: string): Promise<string | null> {
   if (!providerId) return null;
   try {
-    const { getProviderNodeById } = await import("@/lib/localDb");
+    const { getProviderNodeById } = await import("@/lib/db/providers");
     const node = await getProviderNodeById(providerId);
     if (node && typeof node.prefix === "string" && node.prefix.trim().length > 0) {
       return node.prefix.trim();
@@ -161,7 +188,7 @@ function isCompatibleProviderId(providerId: string | null): boolean {
   );
 }
 
-function applyNodePrefix(
+export function applyNodePrefix(
   requestedModel: string | null,
   provider: string | null,
   nodePrefix: string | null
@@ -318,161 +345,16 @@ function readLegacyLogFromDisk(entry: {
       return JSON.parse(fs.readFileSync(path.join(dir, files[0]), "utf8"));
     }
   } catch (error) {
-    console.error("[callLogs] Failed to read legacy disk log:", (error as Error).message);
+    console.error(
+      "[callLogs] Failed to read legacy disk log:",
+      sanitizeErrorMessage(error) || "Legacy call log read failed"
+    );
   }
 
   return null;
 }
 
-function clearArtifactReference(relativePath: string, nextState: CallLogDetailState) {
-  const db = getDbInstance();
-  db.prepare(
-    `
-      UPDATE call_logs
-      SET detail_state = ?,
-          artifact_relpath = NULL,
-          artifact_size_bytes = NULL,
-          artifact_sha256 = NULL
-      WHERE artifact_relpath = ?
-    `
-  ).run(nextState, relativePath);
-}
-
-function listReferencedArtifacts() {
-  // #5618: paged to avoid an unbounded `.all()` OOM on large call_logs tables.
-  return collectReferencedArtifacts();
-}
-
-// #5217: SQLite caps a statement at SQLITE_MAX_VARIABLE_NUMBER bound params
-// (~999 on many builds). Callers like trimCallLogsToMaxRows() passed up to 5000
-// ids in one `IN (...)` → "too many SQL variables" aborted trimming. Chunk well
-// under the limit so each DELETE/SELECT stays valid.
-const DELETE_ID_CHUNK_SIZE = 500;
-
-function deleteCallLogRowsByIds(ids: string[]): DeleteResult {
-  if (ids.length === 0) {
-    return { deletedRows: 0, deletedArtifacts: 0 };
-  }
-
-  const db = getDbInstance();
-  let deletedRows = 0;
-  let deletedArtifacts = 0;
-
-  for (let i = 0; i < ids.length; i += DELETE_ID_CHUNK_SIZE) {
-    const chunk = ids.slice(i, i + DELETE_ID_CHUNK_SIZE);
-    const placeholders = chunk.map(() => "?").join(", ");
-    const rows = db
-      .prepare(`SELECT artifact_relpath FROM call_logs WHERE id IN (${placeholders})`)
-      .all(...chunk) as Array<{ artifact_relpath: string | null }>;
-
-    const result = db.prepare(`DELETE FROM call_logs WHERE id IN (${placeholders})`).run(...chunk);
-    deletedRows += result.changes;
-    for (const row of rows) {
-      if (deleteCallArtifact(row.artifact_relpath)) {
-        deletedArtifacts++;
-      }
-    }
-  }
-  cleanupEmptyCallLogDirs();
-
-  return {
-    deletedRows,
-    deletedArtifacts,
-  };
-}
-
-export function cleanupOrphanCallLogFiles(baseDir = CALL_LOGS_DIR) {
-  if (!baseDir || !fs.existsSync(baseDir)) return 0;
-
-  try {
-    const referenced = listReferencedArtifacts();
-    let deleted = 0;
-    for (const file of listCallLogArtifactFiles(baseDir)) {
-      if (referenced.has(file.relativePath)) continue;
-      if (deleteCallArtifact(file.relativePath)) {
-        deleted++;
-      }
-    }
-    cleanupEmptyCallLogDirs(baseDir);
-    return deleted;
-  } catch (error) {
-    console.error("[callLogs] Failed to prune orphan request artifacts:", (error as Error).message);
-    return 0;
-  }
-}
-
-export function cleanupOverflowCallLogFiles(baseDir = CALL_LOGS_DIR, maxEntries?: number) {
-  if (!baseDir || !fs.existsSync(baseDir)) return 0;
-
-  const limit = maxEntries ?? getCallLogMaxEntries();
-  if (!Number.isInteger(limit) || limit < 1) return 0;
-
-  try {
-    let deleted = 0;
-    const files = listCallLogArtifactFiles(baseDir);
-    for (const file of files.slice(limit)) {
-      if (deleteCallArtifact(file.relativePath)) {
-        clearArtifactReference(file.relativePath, "missing");
-        deleted++;
-      }
-    }
-    cleanupEmptyCallLogDirs(baseDir);
-    return deleted;
-  } catch (error) {
-    console.error(
-      "[callLogs] Failed to prune overflow request artifacts:",
-      (error as Error).message
-    );
-    return 0;
-  }
-}
-
-export function deleteCallLogsBefore(cutoff: string): DeleteResult {
-  // #5618: page the id selection so a large backlog never loads in one `.all()`.
-  let deletedRows = 0;
-  let deletedArtifacts = 0;
-  for (;;) {
-    const ids = selectCallLogIdsBefore(cutoff);
-    if (ids.length === 0) break;
-    const result = deleteCallLogRowsByIds(ids);
-    deletedRows += result.deletedRows;
-    deletedArtifacts += result.deletedArtifacts;
-    if (result.deletedRows === 0) break;
-  }
-  return { deletedRows, deletedArtifacts };
-}
-
-export function trimCallLogsToMaxRows(maxRows = getCallLogsTableMaxRows()) {
-  if (!Number.isInteger(maxRows) || maxRows < 1) {
-    return { deletedRows: 0, deletedArtifacts: 0 };
-  }
-
-  const db = getDbInstance();
-  let deletedRows = 0;
-  let deletedArtifacts = 0;
-  const batchSize = 5000;
-
-  while (true) {
-    const currentCount = db.prepare("SELECT COUNT(*) AS cnt FROM call_logs").get() as {
-      cnt: number;
-    };
-    if (currentCount.cnt <= maxRows) break;
-
-    const toDelete = Math.min(currentCount.cnt - maxRows, batchSize);
-    const ids = db
-      .prepare("SELECT id FROM call_logs ORDER BY timestamp ASC LIMIT ?")
-      .all(toDelete)
-      .map((row) => String((row as { id: string }).id));
-    const result = deleteCallLogRowsByIds(ids);
-    deletedRows += result.deletedRows;
-    deletedArtifacts += result.deletedArtifacts;
-    if (result.deletedRows === 0) break;
-  }
-
-  return { deletedRows, deletedArtifacts };
-}
-
-function resolveProviderDisplay(
+export function resolveProviderDisplay(
   provider: string | null,
   nodeName: string | null,
   nodePrefix: string | null
@@ -534,6 +416,8 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     hasResponseBody: toNumber(row.has_response_body) === 1,
     hasPipelineDetails: toNumber(row.has_pipeline_details) === 1,
     correlationId: row.correlation_id || null,
+    modelPinned: toNumber(row.model_pinned) === 1,
+    sessionTag: row.session_tag || null,
   };
 }
 
@@ -565,9 +449,7 @@ function getLegacyInlineDetail(id: string) {
   };
 }
 
-export async function saveCallLog(entry: any) {
-  if (!shouldPersistToDisk) return;
-
+async function saveCallLogOperation(entry: any): Promise<void> {
   try {
     const apiKeyContext = getCallLogApiKeyContext();
     // `||` (not `??`): an empty-string apiKeyId/apiKeyName is "unattributed",
@@ -578,11 +460,40 @@ export async function saveCallLog(entry: any) {
     const noLogEnabled = Boolean(entry.noLog) || (apiKeyId ? isNoLog(apiKeyId) : false);
 
     const protectedRequestBody = noLogEnabled ? null : protectPayloadForLog(entry.requestBody);
-    const protectedResponseBody = noLogEnabled ? null : protectPayloadForLog(entry.responseBody);
+    const responseStatus = Number(entry.status);
+    const failedResponse = Number.isFinite(responseStatus) && responseStatus >= 400;
+    const protectedResponseBody = noLogEnabled
+      ? null
+      : failedResponse
+        ? protectErrorPayloadForLog(entry.responseBody)
+        : protectPayloadForLog(entry.responseBody);
     const protectedPipelinePayloads = noLogEnabled
       ? null
-      : protectPipelinePayloads(entry.pipelinePayloads ?? entry.pipeline ?? null);
+      : protectPipelinePayloads(
+          entry.pipelinePayloads ?? entry.pipeline ?? null,
+          failedResponse ? responseStatus : undefined
+        );
     const protectedError = sanitizeErrorForLog(entry.error);
+
+    // Bridges the window before this row's own artifact write (queued below,
+    // async) lands with detail_state = 'ready': a client that fires its next
+    // turn immediately -- normal in a tight tool-calling loop -- can reach
+    // resolvePreviousResponseState before that write exists at all. Seeded
+    // synchronously, before any await, from the same protected pipeline
+    // payload the artifact will eventually hold (and the same
+    // videoContentRemoved/fail-closed rules), so it is available the instant
+    // this function is called. See responsesContinuationStore.ts.
+    if (typeof entry.responseId === "string" && entry.responseId.length > 0) {
+      seedPendingContinuationState(
+        entry.responseId,
+        apiKeyId,
+        // The store's own contract, not a looser restatement of it: the inline shape
+        // widened both fields to `unknown`, which does not assign to
+        // ContinuationPipeline's typed members (TS2345 under typecheck:core).
+        protectedPipelinePayloads as ContinuationPipeline | null,
+        Boolean(entry.videoContentRemoved)
+      );
+    }
 
     const account = await resolveAccountName(entry.connectionId || null);
     const rawProvider: string = entry.provider || "-";
@@ -596,12 +507,14 @@ export async function saveCallLog(entry: any) {
     // while reasoning source/char-count are recorded separately for observability.
     const tokensReasoning = getReasoningTokensOrNull(entry.tokens);
     const reasoningObservation = resolveReasoningObservation(tokensReasoning, entry.responseBody);
+    const errorType = classifyCallLogError(entry.status, entry.error, entry.provider);
     const logEntry = {
       id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : generateLogId(),
       timestamp: typeof entry.timestamp === "string" ? entry.timestamp : new Date().toISOString(),
       method: entry.method || "POST",
       path: entry.path || "/v1/chat/completions",
       status: entry.status || 0,
+      errorType,
       model: entry.model || "-",
       requestedModel: resolvedRequestedModel,
       provider: rawProvider,
@@ -627,6 +540,18 @@ export async function saveCallLog(entry: any) {
       comboExecutionKey:
         toStringOrNull(entry.comboExecutionKey) || toStringOrNull(entry.comboStepId),
       correlationId: entry.correlationId || null,
+      modelPinned: entry.modelPinned ? 1 : 0,
+      sessionTag: entry.sessionTag || null,
+      // OpenAI Responses API response id, when this attempt produced one --
+      // indexed so a later request's `previous_response_id` can resolve
+      // this row's artifact for OmniRoute-native continuation. See
+      // src/lib/db/responsesContinuationStore.ts.
+      responseId: typeof entry.responseId === "string" ? entry.responseId : null,
+      // #12150 P2 surface 2: 1 when this request's persisted client snapshot had
+      // its video transcript cues structurally redacted, so
+      // resolvePreviousResponseState refuses to rehydrate it as continuation
+      // history. See src/lib/db/responsesContinuationStore.ts.
+      videoContentRemoved: entry.videoContentRemoved ? 1 : 0,
     };
 
     const requestSummary = noLogEnabled
@@ -652,7 +577,7 @@ export async function saveCallLog(entry: any) {
         protectedError,
         protectedPipelinePayloads
       );
-      const artifactResult = writeCallArtifact(artifact);
+      const artifactResult = await writeCallArtifactAsync(artifact);
       if (artifactResult) {
         detailState = "ready";
         artifactRelPath = artifactResult.relPath;
@@ -675,7 +600,8 @@ export async function saveCallLog(entry: any) {
         combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
         artifact_relpath, artifact_size_bytes, artifact_sha256,
         has_request_body, has_response_body, has_pipeline_details, request_summary,
-        correlation_id
+        correlation_id, model_pinned, session_tag, response_id, error_type,
+        video_content_removed
       )
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
@@ -686,7 +612,8 @@ export async function saveCallLog(entry: any) {
         @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
         @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
-        @correlationId
+        @correlationId, @modelPinned, @sessionTag, @responseId, @errorType,
+        @videoContentRemoved
       )
     `
     ).run({
@@ -702,58 +629,65 @@ export async function saveCallLog(entry: any) {
       requestSummary,
     });
 
+    if (detailState === "ready" && typeof logEntry.responseId === "string") {
+      // The durable row is now authoritative; drop the bridge entry instead
+      // of letting it idle until its TTL.
+      clearPendingContinuationState(logEntry.responseId);
+    }
+
     scheduleCallLogRotation();
   } catch (error) {
-    console.error("[callLogs] Failed to save call log:", (error as Error).message);
+    console.error(
+      "[callLogs] Failed to save call log:",
+      sanitizeErrorMessage(error) || "Call log persistence failed"
+    );
   }
 }
 
-export function rotateCallLogs() {
-  try {
-    if (!CALL_LOGS_DIR || !fs.existsSync(CALL_LOGS_DIR)) return;
+export function saveCallLog(entry: any): Promise<void> {
+  if (!shouldPersistToDisk || callLogSavesClosing) return Promise.resolve();
 
-    const retentionMs = getCallLogRetentionDays() * 24 * 60 * 60 * 1000;
-    const cutoff = new Date(Date.now() - retentionMs).toISOString();
-
-    deleteCallLogsBefore(cutoff);
-    trimCallLogsToMaxRows(getCallLogsTableMaxRows());
-    cleanupOverflowCallLogFiles(CALL_LOGS_DIR, getCallLogMaxEntries());
-    cleanupOrphanCallLogFiles(CALL_LOGS_DIR);
-  } catch (error) {
-    console.error("[callLogs] Failed to rotate request artifacts:", (error as Error).message);
-  }
+  const operation = saveCallLogOperation(entry);
+  pendingCallLogSaves.add(operation);
+  void operation.then(
+    () => pendingCallLogSaves.delete(operation),
+    () => pendingCallLogSaves.delete(operation)
+  );
+  return operation;
 }
 
-function runScheduledCallLogRotation() {
-  if (callLogRotateInFlight) return;
-  callLogRotateInFlight = true;
-  setImmediate(() => {
-    try {
-      rotateCallLogs();
-    } catch (error) {
-      console.error("[callLogs] Failed to rotate request artifacts:", (error as Error).message);
-    } finally {
-      callLogRotateInFlight = false;
-    }
-  });
+export async function waitForCallLogSaves(timeoutMs: number): Promise<boolean> {
+  const deadline = Date.now() + Math.max(0, timeoutMs);
+  while (pendingCallLogSaves.size > 0) {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) return false;
+
+    let timeout: NodeJS.Timeout | undefined;
+    const settled = await Promise.race([
+      Promise.allSettled([...pendingCallLogSaves]).then(() => true),
+      new Promise<false>((resolve) => {
+        timeout = setTimeout(() => resolve(false), remainingMs);
+        timeout.unref?.();
+      }),
+    ]);
+    if (timeout) clearTimeout(timeout);
+    if (!settled) return false;
+  }
+  return true;
 }
 
-export function scheduleCallLogRotation() {
-  if (!CALL_LOGS_DIR) return;
-  const elapsed = Date.now() - lastCallLogRotationScheduledAt;
-  if (elapsed >= CALL_LOG_ROTATE_THROTTLE_MS) {
-    lastCallLogRotationScheduledAt = Date.now();
-    runScheduledCallLogRotation();
-    return;
+export async function closeCallLogSaves(timeoutMs = 2_000): Promise<void> {
+  callLogSavesClosing = true;
+  const drained = await waitForCallLogSaves(timeoutMs);
+  if (!drained) {
+    await closeCallLogArtifactWriter(0);
   }
-  if (callLogRotateScheduled) return;
-  callLogRotateScheduled = true;
-  lastCallLogRotationScheduledAt = Date.now();
-  const timer = setTimeout(() => {
-    callLogRotateScheduled = false;
-    runScheduledCallLogRotation();
-  }, CALL_LOG_ROTATE_THROTTLE_MS - elapsed);
-  timer.unref?.();
+
+  // The admission gate above makes this a stable snapshot. After a forced worker
+  // close, queued artifact promises have resolved fail-open and their SQLite
+  // continuations can finish before the database is closed.
+  await Promise.allSettled([...pendingCallLogSaves]);
+  await closeCallLogArtifactWriter(0);
 }
 
 if (shouldPersistToDisk && process.env.NODE_ENV !== "test") {
@@ -819,12 +753,18 @@ export async function getCallLogs(filter: any = {}) {
     conditions.push("(cl.api_key_name LIKE @apiKeyQ OR cl.api_key_id LIKE @apiKeyQ)");
     params.apiKeyQ = `%${filter.apiKey}%`;
   }
-  if (filter.correlationId) {
-    conditions.push("cl.correlation_id = @correlationId");
-    params.correlationId = filter.correlationId;
-  }
+  pushLikeFilter(conditions, params, "correlation_id", "correlationId", filter.correlationId);
+  pushLikeFilter(conditions, params, "session_tag", "sessionTag", filter.sessionTag);
   if (filter.combo) {
     conditions.push("cl.combo_name IS NOT NULL");
+  }
+  if (filter.excludeTests) {
+    // Home "Recent Requests" is an allowlist of real provider inference, not a
+    // blacklist of known backend log types. Persisted provider requests enter via
+    // the public gateway namespaces (/v1/* or /api/v1/*); internal management work
+    // (connection tests, model sync, and future /api/providers/* jobs) does not.
+    // Apply this before LIMIT so backend rows can never displace real traffic.
+    conditions.push(`(cl.path LIKE '/v1/%' OR cl.path LIKE '/api/v1/%')`);
   }
   if (filter.since) {
     conditions.push("cl.timestamp >= @since");

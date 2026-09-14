@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, Input, ModelSelectField, Toggle } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
+import { matchesSearch } from "@/shared/utils/turkishText";
 import FusionDefaultsFields from "./FusionDefaultsFields";
 import {
   ROUTING_STRATEGIES,
@@ -225,10 +226,11 @@ export default function ComboDefaultsTab() {
         comboDefaults;
       const settingsPatch = {
         ...toGlobalRoutingPatch(comboDefaults.strategy, stickyRoundRobinLimit),
-        codexSessionAffinityTtlMs,
+        sessionAffinityTtlMs,
         // #6168: global session-stickiness opt-out — persisted top-level on settings
         // (mirrors stickyRoundRobinLimit) so combo.ts resolution reads settings.disableSessionStickiness.
         disableSessionStickiness: disableSessionStickiness === true,
+        promptCacheAffinityEnabled,
       };
 
       const comboDefaultsRes = await fetch("/api/settings/combo-defaults", {
@@ -293,8 +295,7 @@ export default function ComboDefaultsTab() {
 
   // Filtered provider list — excludes already-added ones, filtered by search query
   const filteredProviders = availableProviders.filter(
-    (p) =>
-      !providerOverrides[p.provider] && matchesSearch(p.provider, searchQuery)
+    (p) => !providerOverrides[p.provider] && matchesSearch(p.provider, searchQuery)
   );
 
   const handleDropdownKeyDown = (e: React.KeyboardEvent) => {
@@ -417,7 +418,7 @@ export default function ComboDefaultsTab() {
             <Input
               type="number"
               min="1"
-              max="10"
+              max="1000"
               value={comboDefaults.stickyRoundRobinLimit || 3}
               onChange={async (e) => {
                 const nextLimit = parseInt(e.target.value) || 3;

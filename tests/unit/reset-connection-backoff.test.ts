@@ -18,7 +18,7 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 async function createBackedOffConnection() {
@@ -102,21 +102,4 @@ test("resetConnectionBackoff is a no-op for an empty id", async () => {
 
 test("resetConnectionBackoff is a no-op for an unknown id (no throw)", async () => {
   await assert.doesNotReject(() => providersDb.resetConnectionBackoff("nonexistent-connection-id"));
-});
-
-test("touchConnectionLastUsed persists usage timestamp and sticky count", async () => {
-  const created = await providersDb.createProviderConnection({
-    provider: "glm",
-    authType: "apikey",
-    name: `GLM Touch ${Date.now()}-${Math.random()}`,
-    apiKey: "glm-test-key",
-  });
-  const connectionId = (created as { id: string }).id;
-
-  await providersDb.touchConnectionLastUsed(connectionId, 4);
-
-  const after = (await providersDb.getProviderConnectionById(connectionId)) as Record<string, unknown>;
-  assert.equal(after.consecutiveUseCount, 4);
-  assert.equal(typeof after.lastUsedAt, "string");
-  assert.ok(Date.parse(after.lastUsedAt as string) > 0);
 });

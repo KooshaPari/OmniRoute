@@ -37,7 +37,7 @@ async function resetStorage() {
   readCacheDb.invalidateDbCache();
   await new Promise((resolve) => setTimeout(resolve, 20));
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -49,7 +49,7 @@ test.after(async () => {
   globalThis.fetch = originalFetch;
   core.closeDbInstance();
   try {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {
     // best-effort cleanup
   }
@@ -60,6 +60,8 @@ async function runChatCore(opts: {
   model: string;
   connectionId: string;
   headers: Headers;
+  apiKeyInfo?: { id?: string; name?: string; compressionEnabled?: boolean };
+  messageContent?: string;
 }) {
   let capturedBody: { messages?: Array<{ role?: string; content?: string }> } | null = null;
   globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
@@ -80,13 +82,14 @@ async function runChatCore(opts: {
       body: {
         model: opts.model,
         stream: false,
-        messages: [{ role: "user", content: "ping" }],
+        messages: [{ role: "user", content: opts.messageContent ?? "ping" }],
       },
       modelInfo: { provider: opts.provider, model: opts.model },
       credentials: { apiKey: "test-key" },
       log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
       clientRawRequest: { endpoint: "/v1/chat/completions", headers: opts.headers },
       connectionId: opts.connectionId,
+      apiKeyInfo: opts.apiKeyInfo,
       onCredentialsRefreshed: () => {},
       onRequestSuccess: () => {},
       onStreamFailure: () => {},
@@ -95,7 +98,7 @@ async function runChatCore(opts: {
       comboName: null,
     });
     assert.ok(result.success, "Request should succeed");
-    return capturedBody;
+    return { capturedBody, response: result.response as Response };
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -130,7 +133,7 @@ test("chatCore: x-omniroute-compression: off suppresses Output Styles injection 
     connectionId: connection.id,
     headers: new Headers(),
   });
-  const plainFirstMessage = withoutOptOut?.messages?.[0];
+  const plainFirstMessage = withoutOptOut.capturedBody?.messages?.[0];
   assert.equal(plainFirstMessage?.role, "system");
   assert.match(plainFirstMessage?.content ?? "", /OmniRoute Output Styles/);
 
@@ -141,12 +144,12 @@ test("chatCore: x-omniroute-compression: off suppresses Output Styles injection 
     connectionId: connection.id,
     headers: new Headers({ "x-omniroute-compression": "off" }),
   });
-  const testModelFirstMessage = testModelBody?.messages?.[0];
+  const testModelFirstMessage = testModelBody.capturedBody?.messages?.[0];
   assert.ok(
     !testModelFirstMessage || testModelFirstMessage.role !== "system",
     "Test-model request (compression:off) must not receive an injected Output Styles system message"
   );
-  const anyMessageHasMarker = (testModelBody?.messages ?? []).some((m) =>
+  const anyMessageHasMarker = (testModelBody.capturedBody?.messages ?? []).some((m) =>
     (m?.content ?? "").includes("OmniRoute Output Styles")
   );
   assert.equal(
@@ -154,4 +157,60 @@ test("chatCore: x-omniroute-compression: off suppresses Output Styles injection 
     false,
     "No message in the compression:off request should carry the Output Styles marker"
   );
+});
+
+test("chatCore: a per-key opt-out wins over request headers and Output Styles (#2101)", async () => {
+  const provider = "openai";
+  const model = "gpt-4";
+  const originalContent = "Keep these trailing spaces   \n\n\nand this newline run.";
+
+  await compressionDb.updateCompressionSettings({
+    enabled: true,
+    defaultMode: "lite",
+    autoTriggerTokens: 0,
+    // Force the adaptive planner to escalate any non-empty prompt. The per-key opt-out must
+    // remain a hard kill even when a context budget would otherwise select a stacked plan.
+    contextBudget: {
+      mode: "floor",
+      policy: "absolute",
+      outputReserve: 0,
+      safetyMargin: 0,
+      pct: 1,
+      absoluteBudget: 1,
+    },
+    cavemanOutputMode: {
+      enabled: true,
+      intensity: "full",
+      autoClarity: true,
+    },
+  });
+
+  const connection = await providersDb.createProviderConnection({
+    provider,
+    apiKey: "test-key",
+    isActive: true,
+  });
+
+  const enabled = await runChatCore({
+    provider,
+    model,
+    connectionId: connection.id,
+    headers: new Headers({ "x-omniroute-compression": "default" }),
+    apiKeyInfo: { compressionEnabled: true },
+    messageContent: originalContent,
+  });
+  assert.equal(enabled.capturedBody?.messages?.[0]?.role, "system");
+  assert.match(enabled.capturedBody?.messages?.[0]?.content ?? "", /OmniRoute Output Styles/);
+
+  const disabled = await runChatCore({
+    provider,
+    model,
+    connectionId: connection.id,
+    headers: new Headers({ "x-omniroute-compression": "default" }),
+    apiKeyInfo: { compressionEnabled: false },
+    messageContent: originalContent,
+  });
+
+  assert.deepEqual(disabled.capturedBody?.messages, [{ role: "user", content: originalContent }]);
+  assert.equal(disabled.response.headers.get("x-omniroute-compression"), "off; source=off");
 });

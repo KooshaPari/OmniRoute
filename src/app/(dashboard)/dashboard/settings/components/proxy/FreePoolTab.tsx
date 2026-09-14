@@ -41,6 +41,9 @@ export default function FreePoolTab() {
   const [bulkProgress, setBulkProgress] = useState<string | null>(null);
   // #5595: per-source sync errors so a "Total: 0" result is never silent.
   const [syncErrors, setSyncErrors] = useState<Record<string, string[]> | null>(null);
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
   // Load persisted disabled-sources from localStorage on mount
   useEffect(() => {
@@ -81,9 +84,10 @@ export default function FreePoolTab() {
         fetch("/api/settings/free-proxies/stats"),
       ]);
       if (proxiesRes.ok) {
-        const data = await proxiesRes.json();
-        setProxies(data.items || []);
-        setTotal(data.total ?? 0);
+        const body = await proxiesRes.json();
+        const payload = body?.data ?? body;
+        setProxies(payload.proxies ?? payload.items ?? []);
+        setTotal(payload.total ?? 0);
       }
       if (statsRes.ok) {
         const data = await statsRes.json();
@@ -109,17 +113,19 @@ export default function FreePoolTab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      // #5595: surface per-source errors the route already returns so a
-      // partial/empty sync explains itself instead of silently showing "Total: 0".
       const data = await res.json().catch(() => null);
       if (data?.results) {
-        const errs: Record<string, string[]> = {};
-        for (const [src, r] of Object.entries(
+        const errors: Record<string, string[]> = {};
+        for (const [source, result] of Object.entries(
           data.results as Record<string, { errors?: string[] }>
         )) {
-          if (Array.isArray(r?.errors) && r.errors.length > 0) errs[src] = r.errors;
+          if (Array.isArray(result?.errors) && result.errors.length > 0) {
+            errors[source] = result.errors;
+          }
         }
-        if (Object.keys(errs).length > 0) setSyncErrors(errs);
+        if (Object.keys(errors).length > 0) setSyncErrors(errors);
+      } else if (!res.ok) {
+        setSyncErrors(data?.errors ?? null);
       }
       await loadData();
     } catch {}

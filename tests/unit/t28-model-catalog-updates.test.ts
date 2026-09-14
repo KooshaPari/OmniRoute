@@ -14,22 +14,26 @@ test("T28: gemini AI Studio catalog includes current preview models", () => {
   assert.ok(geminiIds.includes("gemini-3.1-pro-preview"));
   assert.ok(geminiIds.includes("gemini-3-flash-preview"));
   assert.ok(geminiIds.includes("gemini-3.1-flash-lite"));
-  assert.ok(geminiIds.includes("gemini-3.5-flash"));
+  assert.ok(geminiIds.includes("gemini-3.7-flash"));
   assert.ok(geminiIds.includes("gemini-2.5-flash"));
   assert.ok(geminiIds.includes("gemini-2.5-pro"));
-  assert.equal(geminiIds[0], "gemini-2.0-flash", "preserve the existing Gemini default");
+  assert.equal(geminiIds[0], "gemini-3.7-flash", "use the current Gemini Flash default");
 });
 
 test("T28: antigravity static catalog exposes only callable Gemini tier IDs", () => {
   const staticIds = (getStaticModelsForProvider("antigravity") || []).map((m) => m.id);
 
   assert.ok(!staticIds.includes("gemini-3-pro-preview"));
-  assert.ok(staticIds.includes("gemini-3.6-flash-high"));
-  assert.ok(staticIds.includes("gemini-3.6-flash-medium"));
-  assert.ok(staticIds.includes("gemini-3.6-flash-low"));
-  assert.ok(staticIds.includes("gemini-3.5-flash-extra-low"));
-  assert.ok(staticIds.includes("gemini-3.5-flash-low"));
-  assert.ok(staticIds.includes("gemini-3-flash-agent"));
+  assert.ok(staticIds.includes("gemini-3.7-flash-high"));
+  assert.ok(staticIds.includes("gemini-3.7-flash-medium"));
+  assert.ok(staticIds.includes("gemini-3.7-flash-low"));
+  assert.ok(!staticIds.includes("gemini-3.6-flash-high"));
+  assert.ok(!staticIds.includes("gemini-3.6-flash-medium"));
+  assert.ok(!staticIds.includes("gemini-3.6-flash-low"));
+  assert.ok(!staticIds.includes("gemini-3.5-flash"));
+  assert.ok(!staticIds.includes("gemini-3.5-flash-extra-low"));
+  assert.ok(!staticIds.includes("gemini-3.5-flash-low"));
+  assert.ok(!staticIds.includes("gemini-3-flash-agent"));
   assert.ok(!staticIds.includes("gemini-3.5-flash-medium"));
   assert.ok(!staticIds.includes("gemini-3.5-flash-high"));
   assert.ok(staticIds.includes("gemini-3.1-pro-low"));
@@ -43,21 +47,21 @@ test("T28: antigravity static catalog exposes only callable Gemini tier IDs", ()
   assert.ok(!staticIds.includes("gemini-claude-opus-4-5-thinking"));
 });
 
-test("T28: agy free-model metadata labels upstream Gemini 3.6 tier IDs", () => {
+test("T28: agy free-model metadata labels upstream Gemini 3.7 tier IDs", () => {
   const flashNames = Object.fromEntries(
     FREE_MODEL_BUDGETS.filter(
       (entry) =>
         entry.provider === "agy" &&
-        ["gemini-3.6-flash-low", "gemini-3.6-flash-medium", "gemini-3.6-flash-high"].includes(
+        ["gemini-3.7-flash-low", "gemini-3.7-flash-medium", "gemini-3.7-flash-high"].includes(
           entry.modelId
         )
     ).map((entry) => [entry.modelId, entry.displayName])
   );
 
   assert.deepEqual(flashNames, {
-    "gemini-3.6-flash-low": "Gemini 3.6 Flash (Low)",
-    "gemini-3.6-flash-medium": "Gemini 3.6 Flash (Medium)",
-    "gemini-3.6-flash-high": "Gemini 3.6 Flash (High)",
+    "gemini-3.7-flash-low": "Gemini 3.7 Flash (Low)",
+    "gemini-3.7-flash-medium": "Gemini 3.7 Flash (Medium)",
+    "gemini-3.7-flash-high": "Gemini 3.7 Flash (High)",
   });
 });
 
@@ -75,9 +79,11 @@ test("T28: github registry exposes Gemini 3.1 Pro Preview and keeps legacy alias
   assert.equal(legacy.model, "gemini-3.1-pro-preview");
 });
 
-test("T28: qwen OAuth registry entry is retired; qwen-web keeps the native chat.qwen.ai URL", () => {
+test("T28: retired Qwen ids stay absent while official Qwen Cloud providers remain", () => {
   assert.equal(REGISTRY.qwen, undefined);
-  assert.equal(REGISTRY["qwen-web"].baseUrl, "https://chat.qwen.ai/api/v2/chat/completions");
+  assert.equal(REGISTRY["qwen-web"], undefined);
+  assert.ok(REGISTRY["qwen-cloud"]);
+  assert.ok(REGISTRY["qwen-cloud-token-plan"]);
 });
 
 test("T28: lmarena registry seeds Direct-chat Text/search; image models in IMAGE_PROVIDERS", async () => {
@@ -88,7 +94,7 @@ test("T28: lmarena registry seeds Direct-chat Text/search; image models in IMAGE
   // Chat registry: Text + Search only (not Image thrash)
   assert.ok(lmarenaIds.length >= 40 && lmarenaIds.length < 60);
   assert.ok(lmarenaIds.includes("gemini-3.1-pro-preview"));
-  assert.ok(lmarenaIds.includes("gemini-3.5-flash-high"));
+  assert.ok(lmarenaIds.includes("gemini-3.6-flash"));
   assert.ok(lmarenaIds.includes("claude-sonnet-5"));
   assert.ok(!lmarenaIds.includes("flux-2-pro"), "image models must not live in chat registry");
 

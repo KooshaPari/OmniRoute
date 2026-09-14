@@ -13,14 +13,21 @@ const proxyLogsRoute = await import("../../src/app/api/usage/proxy-logs/route.ts
 
 test.beforeEach(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   proxyLogger.clearProxyLogs();
 });
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+});
+
+test("proxy logger public surface excludes removed stats helper", () => {
+  assert.equal(Object.hasOwn(proxyLogger, "getProxyLogStats"), false);
+  assert.equal(typeof proxyLogger.getProxyLogs, "function");
+  assert.equal(typeof proxyLogger.clearProxyLogs, "function");
+  assert.equal(typeof proxyLogger.logProxyEvent, "function");
 });
 
 test("GET /api/usage/proxy-logs returns filtered proxy logs", async () => {

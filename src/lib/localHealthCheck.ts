@@ -11,7 +11,7 @@
  * Uses Promise.allSettled so one slow/down node doesn't block others.
  */
 
-import { getCachedProviderNodes } from "@/lib/localDb";
+import { getCachedProviderNodes } from "@/lib/db/readCache";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
 // ── Types ────────────────────────────────────────────────────────────────
@@ -31,12 +31,12 @@ export interface HealthStatus {
 const BACKOFF_SCHEDULE = [30_000, 60_000, 120_000, 300_000];
 const CHECK_TIMEOUT_MS = 5_000;
 const INITIAL_DELAY_MS = 15_000; // Wait for server boot before first sweep
+const LOG_PREFIX = "[LocalHealthCheck]";
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
 
 function isBuildProcess(): boolean {
   return typeof process !== "undefined" && process.env.NEXT_PHASE === "phase-production-build";
 }
-
 
 // ── State (globalThis survives HMR re-evaluation) ───────────────────────
 
@@ -157,7 +157,7 @@ export async function sweep(): Promise<void> {
           typeof n.baseUrl === "string" && isLocalhostUrl(n.baseUrl as string)
       ) as Array<{ id: string; prefix: string; baseUrl: string }>;
     } catch (err) {
-      log.error({ err }, "local-health-check: failed to load provider_nodes");
+      console.error(LOG_PREFIX, "Failed to load provider_nodes:", err);
       return;
     }
 
@@ -178,14 +178,10 @@ export async function sweep(): Promise<void> {
 
         // Log state transitions
         if (prev && prev.isHealthy !== status.isHealthy) {
-          log.info(
-            {
-              prefix: status.prefix,
-              healthy: status.isHealthy,
-              responseTimeMs: status.responseTimeMs,
-              lastError: status.lastError,
-            },
-            "local-health-check: node state transition"
+          const emoji = status.isHealthy ? "✅" : "❌";
+          console.log(
+            LOG_PREFIX,
+            `${emoji} ${status.prefix} is now ${status.isHealthy ? "healthy" : "unhealthy"}${status.lastError ? ` (${status.lastError})` : ""} [${status.responseTimeMs}ms]`
           );
         }
 
@@ -239,13 +235,13 @@ export function initLocalHealthCheck(): void {
   if (state.initialized || isLocalHealthCheckDisabled()) return;
   state.initialized = true;
 
-  log.info(
-    { initialDelaySec: INITIAL_DELAY_MS / 1000 },
-    "local-health-check: starting"
+  console.log(
+    LOG_PREFIX,
+    `Starting local provider health check (initial delay ${INITIAL_DELAY_MS / 1000}s)`
   );
 
   state.sweepTimer = setTimeout(() => {
-    sweep().catch((err) => log.error({ err }, "local-health-check: initial sweep failed"));
+    sweep().catch((err) => console.error(LOG_PREFIX, "Initial sweep failed:", err));
   }, INITIAL_DELAY_MS);
 }
 

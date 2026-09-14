@@ -181,6 +181,7 @@ function applyDrr(targets: ResolvedComboTarget[], comboName: string): ResolvedCo
 
   const deficits = getDrrDeficits(comboName);
   const totalWeight = targets.reduce((sum, t) => sum + normalizeWeight(t.weight), 0);
+  if (totalWeight <= 0) return targets.slice();
 
   // Add each target's quantum (weight share) to its deficit.
   for (const target of targets) {
@@ -206,8 +207,9 @@ function applyDrr(targets: ResolvedComboTarget[], comboName: string): ResolvedCo
   return [winner, ...rest];
 }
 
-/** Weights default to 1 and are floored at 1 to keep quantum math well-defined. */
+/** Weights default to 1. Explicit 0 stays 0 so the operator can disable a target. */
 function normalizeWeight(weight: number | undefined): number {
+  if (weight === 0) return 0;
   return Number.isFinite(weight) && (weight as number) > 0 ? (weight as number) : 1;
 }
 

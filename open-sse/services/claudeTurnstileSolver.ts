@@ -7,7 +7,7 @@
  * 3. Waits for Turnstile challenge to appear
  * 4. Waits for challenge to be solved (with retry)
  * 5. Extracts cf_clearance cookie
- * 6. Returns fresh cookie for tls-client-node
+ * 6. Returns a fresh cookie for the isolated wreq-js request
  */
 
 import type { Browser, Page } from "playwright";
@@ -89,8 +89,7 @@ export async function solveTurnstile(options?: {
     const { chromium } = await import("playwright");
     browser = await chromium.launch({ headless });
     const context = await browser.newContext({
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      userAgent: CLAUDE_WEB_FINGERPRINT.userAgent,
       viewport: { width: 1280, height: 720 },
       ignoreHTTPSErrors: process.env.OMNIROUTE_TURNSTILE_IGNORE_TLS_ERRORS === "true",
     });

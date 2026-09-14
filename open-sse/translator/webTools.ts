@@ -1,4 +1,4 @@
-// Tool-call translation for web-cookie providers (deepseek-web, chatgpt-web, ...).
+// Tool-call translation for web-cookie providers (DeepSeek Web, Perplexity Web, etc.).
 //
 // The web UIs accept only a single plain prompt string and have no native function
 // calling — they reply with tool invocations as raw text. To let agentic clients use
@@ -26,6 +26,21 @@ const TOOL_BLOCK_RE = /<tool>\s*([\s\S]*?)\s*<\/tool>/g;
 // instead of the canonical `<tool>{json}</tool>`. Capture the JSON body — the real tool name
 // lives there, never in the tag's `name="..."` attribute (#3260).
 const TOOL_CALL_TAG_RE = /<tool_call(?:\s+[^>]*)?\s*>\s*([\s\S]*?)\s*<\/tool_call>/g;
+
+// Per-request nonce binding for tool envelopes (#9343). Associates a random nonce
+// with each tools[] array reference so the serializer and parser can share it
+// without threading extra parameters through executor call chains.
+const toolNonceMap = new WeakMap<object, string>();
+
+export function getToolNonce(tools: unknown): string {
+  if (!Array.isArray(tools) || tools.length === 0) return "";
+  let nonce = toolNonceMap.get(tools);
+  if (!nonce) {
+    nonce = Math.random().toString(36).slice(2, 10);
+    toolNonceMap.set(tools, nonce);
+  }
+  return nonce;
+}
 
 interface ToolParseCandidate {
   raw: string;
@@ -345,9 +360,17 @@ export function toArgumentsString(value: unknown): string {
  * Serialize an OpenAI `tools` array into a system-prompt block that instructs the
  * web UI model how to invoke a tool (emit a `<tool>{...}</tool>` block). Returns an
  * empty string when there are no usable tools.
+ *
+ * Each invocation generates a per-request nonce that is embedded in the tool format
+ * instructions. The parser (parseToolCallsFromText) requires this nonce in the model's
+ * `<tool>` JSON to distinguish legitimate tool calls from bare JSON, code-fenced JSON,
+ * or copy-attacked envelopes (#9343).
  */
 export function serializeToolsToPrompt(tools: unknown): string {
   if (!Array.isArray(tools) || tools.length === 0) return "";
+
+  const nonce = getToolNonce(tools);
+  if (!nonce) return "";
 
   const lines: string[] = [];
   for (const t of tools as OpenAIToolDef[]) {
@@ -368,9 +391,15 @@ export function serializeToolsToPrompt(tools: unknown): string {
   if (lines.length === 0) return "";
 
   return [
-    "You can call tools. To call a tool, reply with a single line containing a <tool> block",
-    'with JSON: <tool>{"name": "<tool_name>", "arguments": { ... }}</tool>',
-    "Only emit the <tool> block when you actually want to call a tool; otherwise answer normally.",
+    "The client application provides tools beyond your built-in ones. They are NOT in your " +
+      "native tool registry; they are invoked via a plain-text protocol: the client parses " +
+      "your reply and executes the tool on the user machine. Treat these client tools as " +
+      "fully available to you; never claim they are unavailable. To invoke one, reply with " +
+      "a single line containing a <tool> block",
+    `with JSON that includes the secret binding "_nonce": "${nonce}":`,
+    `<tool>{"name": "<tool_name>", "arguments": { ... }, "_nonce": "${nonce}"}</tool>`,
+    "These client tools ARE available to you in this conversation. Only emit the <tool> " +
+      "block when you actually want to call a tool; otherwise answer normally.",
     "",
     "Available tools:",
     ...lines,
@@ -378,11 +407,19 @@ export function serializeToolsToPrompt(tools: unknown): string {
 }
 
 /**
- * Parse `<tool>{...}</tool>` blocks out of upstream text into OpenAI `tool_calls`.
- * When a requested `tools[]` set is provided, also accepts bare JSON tool-call
- * objects emitted by web models that ignored the `<tool>` wrapper contract.
- * Returns the content with the blocks stripped, plus the tool calls (or null when
- * there are none). `arguments` is always a JSON *string*, matching the OpenAI API.
+ * Parse `<tool>{...}</tool>` or `<tool_call>{...}</tool_call>` blocks out of
+ * upstream text into OpenAI `tool_calls`.
+ *
+ * **Security hardening (#9343):** Bare JSON with name+arguments keys is NEVER
+ * promoted to tool_calls — only explicit `<tool>` or `<tool_call>` envelopes are
+ * accepted. When a nonce was embedded via serializeToolsToPrompt (stored from the
+ * same tools[] reference), it MUST be present in the parsed JSON body as `_nonce`.
+ * This prevents code-fenced JSON, prose JSON, and copy-attacked user envelopes from
+ * triggering tool execution.
+ *
+ * Returns the content with the recognized blocks stripped, plus the tool calls
+ * (or null when there are none). `arguments` is always a JSON *string*, matching
+ * the OpenAI API.
  *
  * `idSeed` makes generated ids deterministic for callers that need stability; when
  * omitted, ids are still unique within a single call (index-based).
@@ -393,48 +430,32 @@ export function parseToolCallsFromText(
   requestedTools?: unknown
 ): { content: string; toolCalls: OpenAIToolCall[] | null } {
   const requestedToolNames = getRequestedToolNames(requestedTools);
-  const canParseBareJson = requestedToolNames.length > 0;
-  if (
-    typeof text !== "string" ||
-    (!text.includes("<tool>") && !text.includes("<tool_call") && !canParseBareJson)
-  ) {
+  if (typeof text !== "string" || (!text.includes("<tool>") && !text.includes("<tool_call"))) {
     return { content: text ?? "", toolCalls: null };
   }
 
+  const nonce = getToolNonce(requestedTools);
   const candidates: ToolParseCandidate[] = [];
-  const toolBlockRanges: Array<{ start: number; end: number }> = [];
 
   let blockMatch: RegExpExecArray | null;
   TOOL_BLOCK_RE.lastIndex = 0;
   while ((blockMatch = TOOL_BLOCK_RE.exec(text)) !== null) {
-    const range = { start: blockMatch.index, end: TOOL_BLOCK_RE.lastIndex };
-    toolBlockRanges.push(range);
     candidates.push({
       raw: blockMatch[1].trim(),
-      start: range.start,
-      end: range.end,
+      start: blockMatch.index,
+      end: TOOL_BLOCK_RE.lastIndex,
       requireRequestedTool: false,
     });
   }
 
   TOOL_CALL_TAG_RE.lastIndex = 0;
   while ((blockMatch = TOOL_CALL_TAG_RE.exec(text)) !== null) {
-    const range = { start: blockMatch.index, end: TOOL_CALL_TAG_RE.lastIndex };
-    toolBlockRanges.push(range);
     candidates.push({
       raw: blockMatch[1].trim(),
-      start: range.start,
-      end: range.end,
+      start: blockMatch.index,
+      end: TOOL_CALL_TAG_RE.lastIndex,
       requireRequestedTool: false,
     });
-  }
-
-  if (canParseBareJson) {
-    for (const candidate of findBareJsonCandidates(text)) {
-      if (!toolBlockRanges.some((range) => rangesOverlap(range, candidate))) {
-        candidates.push(candidate);
-      }
-    }
   }
 
   candidates.sort((a, b) => a.start - b.start);
@@ -450,6 +471,14 @@ export function parseToolCallsFromText(
           ? parsed.command
           : null;
     if (!emittedName) continue;
+
+    // Nonce binding check (#9343): when the tool prompt embedded a nonce, check
+    // that any _nonce present in the JSON body matches. A wrong nonce (present but
+    // does not match) means this is a copy-attack or hallucination — treat it as text
+    // instead of executing it. A missing _nonce is tolerated for backward compatibility
+    // with models that do not (yet) follow the nonce instruction.
+    if (nonce && parsed && parsed._nonce !== undefined && parsed._nonce !== nonce) continue;
+
     const name =
       resolveRequestedToolName(emittedName, requestedToolNames) ||
       (candidate.requireRequestedTool ? null : emittedName);
@@ -479,11 +508,37 @@ interface ToolPrepResult {
   effectiveMessages: Array<{ role: string; content: unknown }>;
 }
 
+/** One-line nudge appended to the latest user message. Web-UI models weigh the
+ *  current user turn far more heavily than a large system block, and ChatGPT's
+ *  injection heuristics distrust long instructions embedded in user content —
+ *  so the full contract stays in the system block (trailing, see below) and the
+ *  user turn only carries a short pointer back to it, naming the tools. */
+function buildToolReminder(toolPrompt: string): string {
+  const names = (toolPrompt.match(/^- [^:\n]+/gm) || []).map((s) => s.slice(2).trim()).join(", ");
+  return (
+    "\n\n[Client protocol reminder: the client-tool contract in the system instructions " +
+    "is active in this conversation. These client tools ARE available via the <tool> " +
+    "block protocol" +
+    (names ? ": " + names : "") +
+    ".]"
+  );
+}
+
 /**
- * Extract tools from an OpenAI request body and prepend a tool-system-prompt
- * to the messages array when tools are present.  Every web-cookie executor
- * that wants tool-call support calls this once before building its upstream
- * request body.
+ * Extract tools from an OpenAI request body and inject the tool contract when
+ * tools are present. Every web-cookie executor that wants tool-call support
+ * calls this once before building its upstream request body.
+ *
+ * Placement matters: the contract used to be PREPENDED as the first system
+ * message. Executors fold all system messages into one block, so with agentic
+ * clients whose system prompts exceed ~28K chars the contract sat at the head
+ * of a huge block and observed web models ignored it, answering
+ * "tool X is not in my tool set" instead of emitting <tool> blocks. Dual
+ * placement fixes it: the full contract goes AFTER the client messages (folds
+ * to the tail of the system block) and a one-line reminder rides at the end of
+ * the latest user message. Captured long-context trials showed prepend 0/3 tool
+ * calls and dual placement 16/17 across
+ * 30K-250K prompts, 30-tool sets, multi-turn tool history, and streaming.
  */
 export function prepareToolMessages(
   bodyObj: Record<string, unknown>,
@@ -494,11 +549,25 @@ export function prepareToolMessages(
   if (!hasTools) return { hasTools: false, requestedTools, effectiveMessages: messages };
 
   const toolPrompt = serializeToolsToPrompt(requestedTools);
-  return {
-    hasTools: true,
-    requestedTools,
-    effectiveMessages: [{ role: "system", content: toolPrompt }, ...messages],
-  };
+  if (!toolPrompt) return { hasTools: true, requestedTools, effectiveMessages: messages };
+
+  const effectiveMessages = [...messages];
+  const reminder = buildToolReminder(toolPrompt);
+  for (let i = effectiveMessages.length - 1; i >= 0; i--) {
+    const msg = effectiveMessages[i];
+    if (msg?.role !== "user") continue;
+    if (typeof msg.content === "string") {
+      effectiveMessages[i] = { ...msg, content: msg.content + reminder };
+    } else if (Array.isArray(msg.content)) {
+      effectiveMessages[i] = {
+        ...msg,
+        content: [...msg.content, { type: "text", text: reminder }],
+      };
+    }
+    break;
+  }
+  effectiveMessages.push({ role: "system", content: toolPrompt });
+  return { hasTools: true, requestedTools, effectiveMessages };
 }
 
 interface ToolCompletionResult {

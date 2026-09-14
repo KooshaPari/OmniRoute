@@ -94,9 +94,7 @@ export default function AgentBridgePageClient({
       const res = await fetch("/api/tools/agent-bridge/server", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          sudoPassword ? { action, sudoPassword } : { action }
-        ),
+        body: JSON.stringify(sudoPassword ? { action, sudoPassword } : { action }),
       });
       const payload = (await res.json().catch(() => ({}))) as {
         error?: { message?: string };
@@ -138,37 +136,43 @@ export default function AgentBridgePageClient({
 
   // ── Upstream CA ───────────────────────────────────────────────────────────
 
-  const handleUpstreamCaSave = useCallback(async (path: string) => {
-    setActionError(null);
-    try {
-      const res = await fetch("/api/tools/agent-bridge/upstream-ca", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      await refresh();
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : t("unknownError"));
-    }
-  }, [refresh, t]);
+  const handleUpstreamCaSave = useCallback(
+    async (path: string) => {
+      setActionError(null);
+      try {
+        const res = await fetch("/api/tools/agent-bridge/upstream-ca", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await refresh();
+      } catch (err) {
+        setActionError(err instanceof Error ? err.message : t("unknownError"));
+      }
+    },
+    [refresh, t]
+  );
 
   // ── Bypass list ───────────────────────────────────────────────────────────
 
-  const handleBypassSave = useCallback(async (patterns: string[]) => {
-    setActionError(null);
-    try {
-      const res = await fetch("/api/tools/agent-bridge/bypass", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ patterns }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      await refresh();
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : t("unknownError"));
-    }
-  }, [refresh, t]);
+  const handleBypassSave = useCallback(
+    async (patterns: string[]) => {
+      setActionError(null);
+      try {
+        const res = await fetch("/api/tools/agent-bridge/bypass", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ patterns }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await refresh();
+      } catch (err) {
+        setActionError(err instanceof Error ? err.message : t("unknownError"));
+      }
+    },
+    [refresh, t]
+  );
 
   // ── DNS toggle ────────────────────────────────────────────────────────────
 
@@ -180,9 +184,7 @@ export default function AgentBridgePageClient({
           const res = await fetch(`/api/tools/agent-bridge/agents/${agentId}/dns`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(
-              password ? { enabled, sudoPassword: password } : { enabled }
-            ),
+            body: JSON.stringify(password ? { enabled, sudoPassword: password } : { enabled }),
           });
           if (!res.ok) {
             const payload = (await res.json().catch(() => ({}))) as {
@@ -253,13 +255,12 @@ export default function AgentBridgePageClient({
         >
           <div className="flex items-center gap-2 font-medium">
             <span className="material-symbols-outlined text-[16px]">info</span>
-            {t("certManualTitle") ||
-              "Certificate couldn't be installed automatically (e.g. inside a container). The bridge can still run — trust the CA manually:"}
+            {t("certManualTitle")}
             <button
               type="button"
               onClick={() => setCertGuide(null)}
               className="ml-auto text-amber-600 hover:text-amber-500"
-              aria-label="Dismiss"
+              aria-label={tc("dismissNotification")}
             >
               <span className="material-symbols-outlined text-[16px]">close</span>
             </button>
@@ -277,7 +278,7 @@ export default function AgentBridgePageClient({
             className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium underline hover:no-underline"
           >
             <span className="material-symbols-outlined text-[14px]">download</span>
-            {t("downloadCert") || "Download Cert"}
+            {t("downloadCert")}
           </a>
         </div>
       )}
@@ -312,6 +313,7 @@ export default function AgentBridgePageClient({
             targets={targets}
             agentStates={data.agentStates}
             serverRunning={data.serverState.running}
+            serverState={data.serverState}
             mappingsMap={data.mappings}
             onDnsToggle={handleDnsToggle}
             onMappingsSave={handleMappingsSave}

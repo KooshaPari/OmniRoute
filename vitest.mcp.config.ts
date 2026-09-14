@@ -1,32 +1,31 @@
 import { defineConfig } from "vitest/config";
 import path from "path";
-import { discoverTopLevelUnitTests } from "./scripts/test/unit-test-manifest.mjs";
-
-const topLevelVitestTests = discoverTopLevelUnitTests().vitest;
 
 export default defineConfig({
   test: {
     environment: "node",
     globals: true,
-    pool: "forks",
-    maxWorkers: 4,
-    fileParallelism: false,
-    maxConcurrency: 1,
-    testTimeout: 120000,
-    hookTimeout: 30000,
+    pool: "threads",
+    maxWorkers: 20,
+    fileParallelism: true,
+    maxConcurrency: 20,
     include: [
       "open-sse/mcp-server/__tests__/**/*.test.ts",
       "open-sse/services/autoCombo/__tests__/**/*.test.ts",
+      "open-sse/services/combo/__tests__/**/*.test.ts",
       "open-sse/services/__tests__/antigravity-quota-family.test.ts",
+      // #8890 shipped this suite into a directory no runner collects, so it had
+      // never executed once (check:test-discovery flags it as a NEW orphan).
+      "open-sse/services/__tests__/fail-fast-concurrency-gate.test.ts",
+      "src/lib/memory/__tests__/generic-backend.test.ts",
       "tests/unit/autoCombo/**/*.test.ts",
+      "tests/unit/api/**/*.spec.ts",
       "tests/unit/encryption.spec.ts",
-      ...topLevelVitestTests,
+      "src/shared/components/**/*.test.tsx",
+      "src/shared/hooks/__tests__/**/*.test.tsx",
+      "src/app/(dashboard)/**/__tests__/**/*.test.tsx",
     ],
-    exclude: [
-      "**/node_modules/**",
-      "**/.git/**",
-      "tests/unit/autoCombo/arenaEloFreeAlias-migration.test.ts",
-    ],
+    exclude: ["**/node_modules/**", "**/.git/**"],
     coverage: {
       reportsDirectory: "coverage",
     },

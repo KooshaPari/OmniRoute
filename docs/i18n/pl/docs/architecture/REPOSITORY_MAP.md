@@ -202,7 +202,6 @@ src/
 | `playground/`                            | Współdzielone helpery Playground Studio: `codeExport.ts` (generator curl/Python/TS), `promptImprover.ts` (builder meta-promptów), `streamMetrics.ts` (czyste TTFT/TPS), `types.ts` (tabela cen) — zob. `docs/frameworks/PLAYGROUND_STUDIO.md`                                                                           |
 | `webhookDispatcher.ts`                   | Dostarczanie webhooków HMAC — zob. `docs/frameworks/WEBHOOKS.md`                                                                                                                                                                                                                                                        |
 | `cloudflaredTunnel.ts`, `ngrokTunnel.ts` | Managery tuneli — zob. `docs/ops/TUNNELS_GUIDE.md`                                                                                                                                                                                                                                                                      |
-| `oneproxySync.ts`, `oneproxyRotator.ts`  | Marketplace darmowych proxy 1proxy — zob. `docs/ops/PROXY_GUIDE.md`                                                                                                                                                                                                                                                     |
 | `cloudSync.ts`, `initCloudSync.ts`       | Opcjonalna synchronizacja stanu w chmurze                                                                                                                                                                                                                                                                               |
 | `localDb.ts`                             | Barrel re-exportów modułów db (bez logiki — tylko re-eksporty)                                                                                                                                                                                                                                                          |
 | `cacheLayer.ts`, `idempotencyLayer.ts`   | Cache żądań + idempotencja                                                                                                                                                                                                                                                                                              |
@@ -243,9 +242,9 @@ src/
 
 | Moduł                            | Cel                                                                       |
 | -------------------------------- | ------------------------------------------------------------------------- |
-| `constants/providers.ts`         | **236 providerów** z walidacją Zod (źródło prawdy)                        |
+| `constants/providers.ts`         | **329 wpisów providerów** z walidacją Zod (źródło prawdy)                 |
 | `constants/cliTools.ts`          | Rejestr zewnętrznych narzędzi CLI                                         |
-| `constants/routingStrategies.ts` | **17 strategii routingu** z priorytetami                                  |
+| `constants/routingStrategies.ts` | **19 publicznych strategii routingu** z priorytetami                      |
 | `constants/publicApiRoutes.ts`   | Trasy wymagające auth Bearer (vs management)                              |
 | `constants/upstreamHeaders.ts`   | Denylist nagłówków dla żądań upstream                                     |
 | `validation/schemas.ts`          | ~80 schematów Zod (jedno źródło prawdy dla kontraktów API)                |
@@ -269,7 +268,7 @@ open-sse/
 ├── translator/          # Konwertery formatów (9 request, 9 response, 9 helperów)
 ├── transformer/         # Responses API ↔ Chat Completions (TransformStream)
 ├── services/            # ~80+ modułów serwisowych (combo, accountFallback, autoCombo, reasoningCache, claude code/chatgpt stealth, modelDeprecation, taskAwareRouter, workflowFSM itd.)
-├── mcp-server/          # Serwer MCP (99 narzędzi, 3 transporty, 32 scope'y)
+├── mcp-server/          # Serwer MCP (107 narzędzi, 3 transporty, 32 scope'y)
 ├── config/              # Rejestry provider/model, konfiguracja nagłówków, aliasy modeli
 ├── utils/               # Klient TLS, proxy fetch/dispatcher, helpery sieciowe
 ├── index.ts             # Wejście workspace
@@ -399,13 +398,13 @@ open-sse/
 | `CLI-TOOLS.md`              | Integracje zewnętrznych CLI + wewnętrzne CLI OmniRoute                               |
 | `I18N.md`                   | Architektura i18n, dodawanie języka, 30 locale                                       |
 | `UNINSTALL.md`              | Kroki czystej deinstalacji                                                           |
-| `PROVIDER_REFERENCE.md`     | **Auto-generowany** katalog 236 providerów (regen: `npm run gen:provider-reference`) |
+| `PROVIDER_REFERENCE.md`     | **Auto-generowany** katalog 329 providerów (regen: `npm run gen:provider-reference`) |
 
 ### Głębokie analizy podsystemów
 
 | Dok                        | Cel                                                                    |
 | -------------------------- | ---------------------------------------------------------------------- |
-| `MCP-SERVER.md`            | Serwer MCP: 99 narzędzi, 3 transporty, 32 scope'y, endpointy REST      |
+| `MCP-SERVER.md`            | Serwer MCP: 107 narzędzi, 3 transporty, 32 scope'y, endpointy REST     |
 | `A2A-SERVER.md`            | A2A v0.3: JSON-RPC, 5 skilli, helpery REST, karta agenta               |
 | `AGENT_PROTOCOLS_GUIDE.md` | Ujednolicony przewodnik: A2A vs ACP vs Cloud Agents                    |
 | `CLOUD_AGENT.md`           | Orkiestracja Codex Cloud / Devin / Jules                               |
@@ -449,7 +448,7 @@ open-sse/
 | Podkatalog            | Cel                                                                                                                                                                                                  |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `docs/archive/`       | Zarchiwizowane/historyczne docs (np. `RFC-AUTO-ASSESSMENT-DRAFT.md` — zastąpione przez EVALS)                                                                                                        |
-| `docs/i18n/`          | Zlokalizowane tłumaczenia docs (~42 locale)                                                                                                                                                          |
+| `docs/i18n/`          | Zlokalizowane tłumaczenia docs (41 locale)                                                                                                                                                           |
 | `docs/screenshots/`   | Zasoby graficzne do przewodników                                                                                                                                                                     |
 | `_tasks/superpowers/` | Plany/specyfikacje z superpowers (`writing-plans`/`brainstorming`) + research — izolowane, osobno wersjonowane repo, w .gitignore głównego drzewa. Zob. CLAUDE.md → "Planning & Research Artifacts". |
 

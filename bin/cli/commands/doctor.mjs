@@ -4,7 +4,9 @@ import os from "node:os";
 import path from "node:path";
 import { createDecipheriv, scryptSync } from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { isLoopbackUrl } from "../api.mjs";
 import { resolveDataDir, resolveStoragePath } from "../data-dir.mjs";
+import { getCliToken, CLI_TOKEN_HEADER } from "../utils/cliToken.mjs";
 import { printHeading } from "../io.mjs";
 import { t } from "../i18n.mjs";
 import { readDatabaseHealth, readEncryptedCredentialSamples } from "../sqlite.mjs";
@@ -288,18 +290,44 @@ async function checkNodeRuntime(rootDir) {
   }
 }
 
+/**
+ * Name of the prebuilt binary better-sqlite3 ships for this platform, e.g.
+ * `linux-x64.node`. Musl-based Linux uses a distinct `linuxmusl-` prefix.
+ * Mirrors the lookup `prebuild-install`/`node-gyp-build` perform at require time.
+ */
+export function prebuiltBinaryName(
+  platform = process.platform,
+  arch = process.arch,
+  report = process.report
+) {
+  let prefix = platform;
+  if (platform === "linux") {
+    let isMusl = false;
+    try {
+      // glibc builds expose `glibcVersionRuntime`; musl builds do not.
+      isMusl = !report?.getReport?.()?.header?.glibcVersionRuntime;
+    } catch {
+      isMusl = false;
+    }
+    prefix = isMusl ? "linuxmusl" : "linux";
+  }
+  return `${prefix}-${arch}.node`;
+}
+
 async function checkNativeBinary(rootDir) {
+  // node-gyp layout — present only when better-sqlite3 was compiled locally.
+  const buildRoots = [
+    path.join(rootDir, "app", "node_modules", "better-sqlite3"),
+    path.join(rootDir, "dist", "node_modules", "better-sqlite3"),
+    path.join(rootDir, "node_modules", "better-sqlite3"),
+  ];
+  const prebuildName = prebuiltBinaryName();
   const candidates = [
-    path.join(
-      rootDir,
-      "app",
-      "node_modules",
-      "better-sqlite3",
-      "build",
-      "Release",
-      "better_sqlite3.node"
-    ),
-    path.join(rootDir, "node_modules", "better-sqlite3", "build", "Release", "better_sqlite3.node"),
+    ...buildRoots.map((root) => path.join(root, "build", "Release", "better_sqlite3.node")),
+    // Prebuilt layout — what `npm i -g omniroute` actually installs. Without
+    // these, doctor warns on every prebuilt install even though the binary is
+    // present and loading fine.
+    ...buildRoots.map((root) => path.join(root, "prebuilds", prebuildName)),
   ];
   const binaryPath = candidates.find((candidate) => fs.existsSync(candidate));
   if (!binaryPath) {
@@ -352,11 +380,11 @@ function checkMemory() {
   });
 }
 
-async function fetchWithTimeout(url) {
+async function fetchWithTimeout(url, options = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), CHECK_TIMEOUT_MS);
   try {
-    return await fetch(url, { signal: controller.signal });
+    return await fetch(url, { ...options, signal: controller.signal });
   } finally {
     clearTimeout(timeout);
   }
@@ -395,7 +423,10 @@ async function checkServerLiveness(options = {}) {
   // First attempt: configured health endpoint (may require auth token).
   const primary = await probeUrl(url);
   if (primary.ok) {
-    return ok("Server liveness", "Server health endpoint is reachable", { url, status: primary.status });
+    return ok("Server liveness", "Server health endpoint is reachable", {
+      url,
+      status: primary.status,
+    });
   }
 
   // #6162: /api/health and /api/health/degradation require a management token.
@@ -426,7 +457,12 @@ async function checkServerLiveness(options = {}) {
     return ok(
       "Server liveness",
       `Server reachable (health endpoint returned ${primary.status}, likely requires MANAGEMENT_TOKEN)`,
-      { primaryUrl: url, primaryStatus: primary.status, fallbackUrl, fallbackStatus: fallback.status }
+      {
+        primaryUrl: url,
+        primaryStatus: primary.status,
+        fallbackUrl,
+        fallbackStatus: fallback.status,
+      }
     );
   }
 
@@ -437,10 +473,101 @@ async function checkServerLiveness(options = {}) {
   );
 }
 
+export async function checkMachineTokenAuth(options = {}) {
+  if (process.env.OMNIROUTE_DISABLE_CLI_TOKEN === "true") {
+    return warn("CLI machine token", "CLI machine-token authentication is disabled", {
+      derived: false,
+      accepted: false,
+      disabled: true,
+      tokenExposed: false,
+    });
+  }
+
+  let url;
+  try {
+    const parsed = new URL(resolveLivenessUrl(options));
+    if (
+      !["http:", "https:"].includes(parsed.protocol) ||
+      parsed.username ||
+      parsed.password ||
+      !isLoopbackUrl(parsed.toString())
+    ) {
+      return warn(
+        "CLI machine token",
+        "Machine-token probes are limited to HTTP(S) loopback endpoints",
+        { derived: false, accepted: false, tokenExposed: false }
+      );
+    }
+    parsed.pathname = "/api/cli/whoami";
+    parsed.search = "";
+    parsed.hash = "";
+    url = parsed.toString();
+  } catch {
+    return warn("CLI machine token", "Could not resolve the management endpoint", {
+      derived: false,
+      accepted: false,
+      tokenExposed: false,
+    });
+  }
+
+  const token = await getCliToken();
+  if (!token) {
+    return fail(
+      "CLI machine token",
+      "Could not derive a machine token; verify the node-machine-id runtime is installed",
+      { derived: false, accepted: false, tokenExposed: false }
+    );
+  }
+
+  try {
+    const response = await fetchWithTimeout(url, {
+      headers: { [CLI_TOKEN_HEADER]: token },
+      redirect: "error",
+    });
+    if (response.ok) {
+      return ok("CLI machine token", "Server accepted the local machine token", {
+        url,
+        status: response.status,
+        derived: true,
+        accepted: true,
+        tokenExposed: false,
+      });
+    }
+    if (response.status === 401 || response.status === 403) {
+      return warn(
+        "CLI machine token",
+        "Server rejected the local machine token; if the CLI and server are on different hosts or container boundaries, run `omniroute connect <host> --key <oma_live_...>`",
+        {
+          url,
+          status: response.status,
+          derived: true,
+          accepted: false,
+          containerBoundaryLikely: true,
+          tokenExposed: false,
+        }
+      );
+    }
+    return warn("CLI machine token", `Machine-token probe returned HTTP ${response.status}`, {
+      url,
+      status: response.status,
+      derived: true,
+      accepted: false,
+      tokenExposed: false,
+    });
+  } catch {
+    return warn("CLI machine token", "Machine-token endpoint could not be reached", {
+      url,
+      status: 0,
+      derived: true,
+      accepted: false,
+      tokenExposed: false,
+    });
+  }
+}
+
 export async function collectDoctorChecks(context = {}, options = {}) {
   const rootDir =
-    context.rootDir ||
-    path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+    context.rootDir || path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
   const dataDir = resolveDataDir();
   const dbPath = resolveStoragePath(dataDir);
 
@@ -455,6 +582,7 @@ export async function collectDoctorChecks(context = {}, options = {}) {
 
   if (!options.skipLiveness) {
     checks.push(await checkServerLiveness(options));
+    checks.push(await checkMachineTokenAuth(options));
   }
 
   // CLI tool health checks

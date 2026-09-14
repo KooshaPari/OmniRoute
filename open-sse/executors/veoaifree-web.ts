@@ -102,7 +102,7 @@ async function fetchWithTimeout(
 function waitForDuration(ms: number, signal?: AbortSignal): Promise<void> {
   throwIfAborted(signal);
   let abort: (() => void) | undefined;
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     const timeout = setTimeout(resolve, ms);
     abort = () => {
       clearTimeout(timeout);
@@ -745,7 +745,7 @@ export class VeoAIFreeWebExecutor extends BaseExecutor {
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to get nonce";
       return {
-        response: errResp(sanitizeErrorMessage(msg)),
+        response: errResp(sanitizeErrorMessage(msg), 502, "upstream_error"),
         url: BASE_URL,
         headers: {},
         transformedBody: null,

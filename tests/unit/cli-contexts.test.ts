@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -17,7 +17,7 @@ test.after(() => {
   if (origDataDir === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = origDataDir;
   try {
-    rmSync(tmpDir, { recursive: true, force: true });
+    rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   } catch {}
 });
 
@@ -70,9 +70,57 @@ test("resolveActiveContext aceita override pontual", async () => {
   assert.equal(ctx.baseUrl, "http://staging:20128");
 });
 
+test("saveContextsSecure guarda tokens no keychain e resolve pela referência", async () => {
+  const {
+    loadContexts,
+    saveContextsSecure,
+    resolveActiveContext,
+    setContextKeychainBackendForTests,
+  } = await import("../../bin/cli/contexts.mjs");
+  const entries = new Map<string, string>();
+  const fakeKeychain = {
+    async getPassword(_service: string, account: string) {
+      return entries.get(account) || null;
+    },
+    async setPassword(_service: string, account: string, value: string) {
+      entries.set(account, value);
+    },
+    async deletePassword(_service: string, account: string) {
+      entries.delete(account);
+      return true;
+    },
+  };
+  await setContextKeychainBackendForTests(fakeKeychain);
+  const cfg = loadContexts();
+  cfg.contexts.secure = {
+    baseUrl: "https://secure.example.com",
+    accessToken: "oma_test_secret",
+    scope: "write",
+  };
+  await saveContextsSecure(cfg);
+
+  const persisted = JSON.parse(readFileSync(join(tmpDir, "config.json"), "utf8"));
+  assert.equal(persisted.contexts.secure.accessToken, undefined);
+  assert.match(persisted.contexts.secure.credentialRef, /^omniroute-cli:context:/);
+  assert.equal(resolveActiveContext("secure").accessToken, "oma_test_secret");
+  assert.ok(entries.size >= 1);
+
+  await setContextKeychainBackendForTests(null);
+});
+
 test("contexts.mjs (commands) pode ser importado sem erro", async () => {
   const mod = await import("../../bin/cli/commands/contexts.mjs");
   assert.equal(typeof mod.registerContexts, "function");
+});
+
+test("context export redaction covers canonical and legacy profile schemas", async () => {
+  const { redactContextSecrets } = await import("../../bin/cli/commands/contexts.mjs");
+  const redacted = redactContextSecrets({
+    contexts: { remote: { accessToken: "oma-secret", apiKey: "sk-secret" } },
+    profiles: { legacy: { accessToken: "legacy-secret", apiKey: "legacy-key" } },
+  });
+  assert.deepEqual(redacted.contexts.remote, { apiKey: null });
+  assert.deepEqual(redacted.profiles.legacy, { apiKey: null });
 });
 
 test("confirm() declines cleanly on non-interactive stdin (no hung await)", async () => {

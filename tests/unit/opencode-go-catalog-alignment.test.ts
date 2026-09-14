@@ -13,6 +13,7 @@ import assert from "node:assert/strict";
 
 const { opencode_goProvider } =
   await import("../../open-sse/config/providers/registry/opencode/go/index.ts");
+const { getResolvedModelCapabilities } = await import("../../src/lib/modelCapabilities.ts");
 
 function modelIds(): string[] {
   return (opencode_goProvider.models ?? []).map((m) => m.id);
@@ -58,6 +59,28 @@ test("opencode-go hy3 variants expose their context window to combo compatibilit
       getResolvedModelCapabilities(`opencode-go/${modelId}`).contextWindow,
       256000,
       `${modelId} should resolve a 256K context window`
+    );
+  }
+});
+
+test("opencode-go exposes Muse Spark Contributor effort aliases with a 1M context", () => {
+  const museModelIds = [
+    "muse-spark-1.2-contributor",
+    "muse-spark-1.2-contributor-minimal",
+    "muse-spark-1.2-contributor-low",
+    "muse-spark-1.2-contributor-medium",
+    "muse-spark-1.2-contributor-high",
+    "muse-spark-1.2-contributor-xhigh",
+  ];
+  for (const modelId of museModelIds) {
+    assert.ok(
+      modelIds().includes(modelId),
+      `expected ${modelId} in opencode-go catalog, got: ${modelIds().join(", ")}`
+    );
+    assert.equal(
+      getResolvedModelCapabilities(`opencode-go/${modelId}`).contextWindow,
+      1048576,
+      `${modelId} should resolve a 1M context window`
     );
   }
 });

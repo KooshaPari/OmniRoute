@@ -42,7 +42,7 @@ function okResponse(content: string) {
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -57,26 +57,13 @@ async function seedConn(name: string, tags?: string[]) {
   });
 }
 
-async function seedLatencyHistory(connectionId: string, latencyMs: number, count: number) {
-  for (let index = 0; index < count; index++) {
-    await usageHistory.saveRequestUsage({
-      provider: "openai",
-      model: "gpt-4o-mini",
-      connectionId,
-      success: true,
-      latencyMs,
-      timestamp: new Date(Date.now() - index * 60 * 1000).toISOString(),
-    });
-  }
-}
-
 test.beforeEach(async () => {
   await resetStorage();
 });
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ── 1. Schema parse ─────────────────────────────────────────────────────────

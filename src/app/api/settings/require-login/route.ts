@@ -1,13 +1,29 @@
 import { NextResponse } from "next/server";
-import { getSettings, updateSettings } from "@/lib/localDb";
+import { cookies } from "next/headers";
+import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { getSettings, updateSettings } from "@/lib/db/settings";
 import {
   hasManagementPasswordConfigured,
   hashManagementPassword,
 } from "@/lib/auth/managementPassword";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import {
+  getDashboardJwtSecret,
+  verifyDashboardSessionToken,
+} from "@/shared/utils/dashboardSessionToken";
 import { getNodeRuntimeSupport } from "@/shared/utils/nodeRuntimeSupport.ts";
 import { updateRequireLoginSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+
+async function checkSessionAuthenticated(): Promise<boolean> {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("auth_token")?.value;
+    return (await verifyDashboardSessionToken(token, getDashboardJwtSecret())) !== null;
+  } catch {
+    return false;
+  }
+}
 
 // Node.js compatibility check — reflect the supported secure runtime floors used by CLI/CI.
 function getNodeCompatibility() {
@@ -28,24 +44,35 @@ export async function GET() {
   try {
     const settings = await getSettings();
     const requireLogin = settings.requireLogin !== false;
+    const authenticated = await checkSessionAuthenticated();
     const hasPassword = hasManagementPasswordConfigured(settings);
     const setupComplete = !!settings.setupComplete;
     const oidcEnabled = !!settings.oidcEnabled;
+    const oidcDisablePasswordLogin =
+      oidcEnabled &&
+      (settings.oidcDisablePasswordLogin === true ||
+        isFeatureFlagEnabled("OMNIROUTE_OIDC_DISABLE_PASSWORD_LOGIN") ||
+        process.env.OMNIROUTE_OIDC_DISABLE_PASSWORD_LOGIN === "true" ||
+        process.env.OIDC_DISABLE_PASSWORD_LOGIN === "true");
     return NextResponse.json({
+      authenticated,
       requireLogin,
       hasPassword,
       setupComplete,
       oidcEnabled,
+      oidcDisablePasswordLogin,
       ...nodeInfo,
     });
   } catch (error) {
     console.error("[API] Error fetching require-login settings:", error);
     return NextResponse.json(
       {
+        authenticated: false,
         requireLogin: true,
         hasPassword: true,
         setupComplete: true,
         oidcEnabled: false,
+        oidcDisablePasswordLogin: false,
         ...nodeInfo,
       },
       { status: 200 }

@@ -4,12 +4,10 @@ import {
   getProviderAuditTarget,
   summarizeProviderConnectionForAudit,
 } from "@/lib/compliance/providerAudit";
-import {
-  getCachedProviderConnectionById,
-  updateProviderConnection,
-  deleteProviderConnection,
-  isCloudEnabled,
-} from "@/lib/localDb";
+import { getCachedProviderConnectionById } from "@/lib/db/readCache";
+import { updateProviderConnection } from "@/lib/db/providers";
+import { deleteProviderConnection } from "@/lib/db/providers/deletion";
+import { isCloudEnabled } from "@/lib/db/settings";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { updateProviderConnectionSchema } from "@/shared/validation/schemas";
@@ -25,11 +23,18 @@ import {
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
 import { cleanupProviderModelsAfterConnectionDelete } from "@/lib/db/models";
-import { cleanupComboConnectionRefs } from "@/lib/db/combos";
+import { canUpdateProviderApiKey } from "@/shared/providers/webSessionCredentials";
 import {
   refreshConnectionRateLimits,
   enableRateLimitProtection,
+  disableRateLimitProtection,
 } from "@/../open-sse/services/rateLimitManager";
+import {
+  finalizeValidatedChatGptWebCodexSecrets,
+  decodeChatGptWebCodexSecrets,
+  encodeChatGptWebCodexSecrets,
+} from "@omniroute/open-sse/services/chatgptWebCodexAdmin.ts";
+import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
 
 function normalizeCodexLimitPolicy(
   incoming: unknown,
@@ -116,7 +121,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const validation = validateBody(updateProviderConnectionSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      // never drop an operator's intent silently. Surface the rejected
+      // keys (field paths and unrecognized-key names) alongside the existing
+      // error envelope so clients and the UI can tell exactly what was refused.
+      const rejected = [
+        ...validation.error.details.map((d) => d.field).filter(Boolean),
+        ...validation.error.details.flatMap((d) => d.keys ?? []),
+      ];
+      return NextResponse.json({ error: { ...validation.error, rejected } }, { status: 400 });
     }
     const body = validation.data;
     const {
@@ -150,6 +162,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (!existing) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
+    const retirementResponse = rejectRetiredCommonChatGptWebProvider(existing.provider);
+    if (retirementResponse) return retirementResponse;
 
     const updateData: Record<string, any> = {};
     if (name !== undefined) updateData.name = name;
@@ -157,7 +171,38 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (globalPriority !== undefined) updateData.globalPriority = globalPriority;
     if (defaultModel !== undefined) updateData.defaultModel = defaultModel;
     if (isActive !== undefined) updateData.isActive = isActive;
-    if (apiKey && existing.authType === "apikey") updateData.apiKey = apiKey;
+    if (apiKey && canUpdateProviderApiKey(existing.authType, existing.provider)) {
+      if (existing.provider === "chatgpt-web-codex") {
+        const validationId =
+          incomingPsd && typeof incomingPsd.validationId === "string"
+            ? incomingPsd.validationId
+            : "";
+        try {
+          const incomingSecrets = decodeChatGptWebCodexSecrets(apiKey);
+          const existingSecrets = decodeChatGptWebCodexSecrets(existing.apiKey || "");
+          const encoded = encodeChatGptWebCodexSecrets({
+            cookie: incomingSecrets.cookie,
+            runtimeKey: incomingSecrets.runtimeKey || existingSecrets.runtimeKey,
+          });
+          updateData.apiKey = finalizeValidatedChatGptWebCodexSecrets(
+            encoded,
+            validationId
+          ).encodedCredential;
+        } catch (error) {
+          return NextResponse.json(
+            {
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Die ChatGPT-Browserprüfung konnte nicht abgeschlossen werden.",
+            },
+            { status: 400 }
+          );
+        }
+      } else {
+        updateData.apiKey = apiKey;
+      }
+    }
     if (testStatus !== undefined) updateData.testStatus = testStatus;
     if (lastError !== undefined) updateData.lastError = lastError;
     if (lastErrorAt !== undefined) updateData.lastErrorAt = lastErrorAt;
@@ -166,7 +211,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (errorCode !== undefined) updateData.errorCode = errorCode;
     if (rateLimitedUntil !== undefined) updateData.rateLimitedUntil = rateLimitedUntil;
     if (lastTested !== undefined) updateData.lastTested = lastTested;
-    if (healthCheckInterval !== undefined) updateData.healthCheckInterval = healthCheckInterval;
+    // healthCheckInterval PATCH semantics: undefined = leave as-is; null = clear
+    // the override (connection follows the global default); 0-1440 = explicit
+    // per-connection minutes (0 opts this connection out of the sweep).
+    if (healthCheckInterval === null) updateData.healthCheckInterval = null;
+    else if (healthCheckInterval !== undefined) updateData.healthCheckInterval = healthCheckInterval;
     if (group !== undefined) updateData.group = group;
     if (maxConcurrent !== undefined) updateData.maxConcurrent = maxConcurrent;
     if (incomingWindowThresholds !== undefined) {
@@ -206,6 +255,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           ? existing.providerSpecificData
           : {};
       const mergedPsd = { ...existingPsd, ...incomingPsd };
+      delete mergedPsd.validationId;
+      delete mergedPsd.runtimeKey;
 
       // Deep-merge and normalize Codex limit policy defaults.
       if (existing.provider === "codex") {
@@ -294,10 +345,18 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     // If rateLimitOverrides was included in the request, refresh the in-memory
     // rate limiter state so the change takes effect without a server restart.
-    // Also ensure rate limit protection is active so the limiter is enforced.
+    // Only (re)enable enforcement when rate limit protection is actually
+    // persisted for this connection — this route never lets a caller flip
+    // `rateLimitProtection` itself, so any drift here would silently start
+    // queuing requests through Bottleneck for a connection whose DB row (and
+    // the dashboard toggle reading it) both still say "off" (#11278).
     if (rateLimitOverrides !== undefined) {
       refreshConnectionRateLimits(id, updated?.rateLimitOverrides ?? null);
-      enableRateLimitProtection(id);
+      if (updated?.rateLimitProtection === true) {
+        enableRateLimitProtection(id);
+      } else {
+        disableRateLimitProtection(id);
+      }
     }
 
     // Hide sensitive fields
@@ -338,6 +397,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 }
 
+// PATCH /api/providers/[id] - Update connection (partial)
+// The OpenAPI spec and the CLI (`omniroute providers rotate`, generated
+// api-commands) both use PATCH, but only PUT was implemented — PATCH requests
+// 405'd. PATCH and PUT share the same update semantics here (the schema only
+// applies provided fields), so delegate to the PUT handler.
+export async function PATCH(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  return PUT(request, ctx);
+}
+
 // DELETE /api/providers/[id] - Delete connection
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const authError = await requireManagementAuth(request);
@@ -365,13 +433,6 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       await cleanupProviderModelsAfterConnectionDelete(connection.provider, id);
     } catch (e) {
       console.error(`Failed to clean up models for deleted ${connection.provider} connection:`, e);
-    }
-
-    // Remove stale connectionId references from combo route steps.
-    try {
-      await cleanupComboConnectionRefs(id);
-    } catch (e) {
-      console.error("Failed to clean up combo route refs for deleted connection:", e);
     }
 
     // Auto sync to Cloud if enabled

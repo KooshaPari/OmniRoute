@@ -12,8 +12,7 @@
 import { isClaudeCodeCompatible } from "../services/provider.ts";
 import {
   getAntigravityUserAgent,
-  GITHUB_COPILOT_CHAT_USER_AGENT,
-  getQwenOauthHeaders,
+  getGitHubCopilotChatUserAgent,
 } from "./providerHeaderProfiles.ts";
 import { normalizeCliCompatProviderId } from "@/shared/utils/cliCompat";
 
@@ -170,7 +169,7 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
       "intent_threshold",
       "intent_content",
     ],
-    userAgent: GITHUB_COPILOT_CHAT_USER_AGENT,
+    userAgent: getGitHubCopilotChatUserAgent,
   },
   antigravity: {
     headerOrder: [
@@ -197,44 +196,6 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
       "enabledCreditTypes",
     ],
     userAgent: getAntigravityUserAgent,
-  },
-  qwen: {
-    headerOrder: [
-      "Host",
-      "Content-Type",
-      "Authorization",
-      "User-Agent",
-      "X-Dashscope-AuthType",
-      "X-Dashscope-CacheControl",
-      "X-Dashscope-UserAgent",
-      "X-Stainless-Arch",
-      "X-Stainless-Lang",
-      "X-Stainless-Os",
-      "X-Stainless-Package-Version",
-      "X-Stainless-Retry-Count",
-      "X-Stainless-Runtime",
-      "X-Stainless-Runtime-Version",
-      "Connection",
-      "Accept",
-      "Accept-Language",
-      "Sec-Fetch-Mode",
-      "Accept-Encoding",
-    ],
-    bodyFieldOrder: [
-      "model",
-      "messages",
-      "temperature",
-      "top_p",
-      "max_tokens",
-      "stream",
-      "tools",
-      "tool_choice",
-      "response_format",
-      "n",
-      "stop",
-    ],
-    userAgent: getQwenOauthHeaders()["User-Agent"],
-    extraHeaders: getQwenOauthHeaders(),
   },
 };
 
@@ -304,12 +265,14 @@ export function orderHeaders(
  * Apply a CLI fingerprint to headers and body.
  * Returns { headers, bodyString } with the correct ordering.
  */
-function stripInternalBodyFields(body: unknown): unknown {
+export function stripInternalBodyFields(body: unknown): unknown {
   if (!body || typeof body !== "object" || Array.isArray(body)) return body;
 
   const record = body as Record<string, unknown>;
   delete record._claudeCodeRequiresLowercaseToolNames;
   delete record._nativeCodexPassthrough;
+  delete record._nativeXaiResponsesPassthrough;
+  delete record._nativeOpenAICompatibleResponsesPassthrough;
   delete record._omnirouteResponsesStore;
   return body;
 }

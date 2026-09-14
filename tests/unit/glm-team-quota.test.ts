@@ -317,3 +317,96 @@ describe("getGlmUsage team quota parsing", () => {
     }
   });
 });
+
+describe("getGlmUsage CREDIT_LIMIT (coding-plan subscription keys)", () => {
+  // Real-world response from https://api.z.ai/api/monitor/usage/quota/limit
+  // for a GLM Coding Max subscription key (2026-08): limits use CREDIT_LIMIT
+  // instead of TOKENS_LIMIT, with identical unit/number semantics plus
+  // absolute credit fields (usage/currentValue/remaining).
+  const CREDIT_LIMIT_RESPONSE = {
+    code: 200,
+    msg: "Operation successful",
+    data: {
+      limits: [
+        {
+          type: "CREDIT_LIMIT",
+          unit: 3,
+          number: 5,
+          usage: 28000,
+          currentValue: 3341,
+          remaining: 24658,
+          percentage: 11,
+          nextResetTime: 1787563232239,
+        },
+        {
+          type: "CREDIT_LIMIT",
+          unit: 6,
+          number: 1,
+          usage: 140000,
+          currentValue: 25224,
+          remaining: 114775,
+          percentage: 18,
+          nextResetTime: 1788077327998,
+        },
+      ],
+      level: "max",
+    },
+    success: true,
+  };
+
+  it("maps CREDIT_LIMIT rows to session/weekly quotas with absolute credits", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () =>
+      new Response(JSON.stringify(CREDIT_LIMIT_RESPONSE), { status: 200 });
+
+    try {
+      const usage = await getGlmUsage("zai-subscription-key");
+
+      assert.equal(usage.plan, "Max");
+      assert.ok(usage.quotas.session, "5-hour window quota should render");
+      assert.ok(usage.quotas.weekly, "weekly quota should render");
+      // Absolute credits — matches z.ai's own dashboard ("4.1K / 140K" style).
+      assert.equal(usage.quotas.session.used, 3341);
+      assert.equal(usage.quotas.session.total, 28000);
+      assert.equal(usage.quotas.session.remaining, 24658);
+      assert.equal(usage.quotas.weekly.used, 25224);
+      assert.equal(usage.quotas.weekly.total, 140000);
+      assert.equal(usage.quotas.weekly.remaining, 114775);
+      // Percentages stay derived from the upstream percentage field.
+      assert.equal(usage.quotas.session.remainingPercentage, 89);
+      assert.equal(usage.quotas.weekly.remainingPercentage, 82);
+      assert.equal(usage.quotas.session.displayName, "5 Hours Quota");
+      assert.equal(usage.quotas.weekly.displayName, "Weekly Quota");
+      assert.equal(usage.quotas.session.resetAt, new Date(1787563232239).toISOString());
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("falls back to the percent scale when a CREDIT_LIMIT row has no absolute fields", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () =>
+      new Response(
+        JSON.stringify({
+          code: 200,
+          success: true,
+          data: {
+            limits: [{ type: "CREDIT_LIMIT", unit: 3, number: 5, percentage: 40 }],
+            level: "lite",
+          },
+        }),
+        { status: 200 }
+      );
+
+    try {
+      const usage = await getGlmUsage("zai-key");
+
+      assert.equal(usage.quotas.session.used, 40);
+      assert.equal(usage.quotas.session.total, 100);
+      assert.equal(usage.quotas.session.remaining, 60);
+      assert.equal(usage.quotas.session.remainingPercentage, 60);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+});

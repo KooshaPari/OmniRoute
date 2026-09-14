@@ -1,11 +1,18 @@
-name: Nightly Release-Green
+name: Release-Green (continuous)
 
 # Solution D — continuous, NON-BLOCKING drift signal for the active release branch.
 #
 # WHY: the full gate (ci.yml) only runs on the release PR (PR → main), so reds
 # accrue silently on release/** and explode — in layers — at release time. This
-# nightly reproduces the release-equivalent validation on the active release branch
-# HEAD and, when there are HARD failures, opens/updates a single tracking issue.
+# workflow reproduces the release-equivalent validation on the release branch and,
+# when there are HARD failures, opens/updates a single tracking issue.
+#
+# WS5.1 (v3.8.49 quality plan) — two modes:
+#   push to release/v* (code paths) → --quick (fast HARD gates, ~5-8min). Catches the
+#     captain's direct pushes (sync-back — the one ungated write path) AND the merged
+#     COMBINATION right after every PR merge, attributing the offending push range in
+#     the issue. Base-red MTTD drops from ≤24h to ≤~15min after the offending push.
+#   schedule (3×/day) → full --with-build --full-ci (the deep sweep incl. build+suites).
 #
 # It is NOT a required status check and never touches a contributor PR — it only
 # reports. Ratchet drift (eslint warnings / cognitive-complexity / file-size) is
@@ -14,8 +21,23 @@ name: Nightly Release-Green
 # package-artifact) flip the issue open.
 
 on:
+  push:
+    branches: ["release/v*", "main"]
+    paths:
+      - "src/**"
+      - "open-sse/**"
+      - "bin/**"
+      - "electron/**"
+      - "scripts/**"
+      - "tests/**"
+      - "config/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig*.json"
   schedule:
-    - cron: "23 5 * * *" # 05:23 UTC daily — off-peak, distinct from other nightlies
+    - cron: "23 5 * * *" # full sweep — off-peak, distinct from other nightlies
+    - cron: "23 12 * * *" # full sweep — midday (WS5.1: 3×/day instead of 1×)
+    - cron: "23 18 * * *" # full sweep — evening
   workflow_dispatch:
     inputs:
       branch:
@@ -28,16 +50,10 @@ permissions:
   issues: write
 
 concurrency:
-  group: nightly-release-green
-  # FIX (W9.05, fork patch 2026-09-02): `cancel-in-progress: true` was killing
-  # the in-flight run when a 24h cron race re-triggered, which silently dropped
-  # the upload-artifact step (the report JSON/log never made it to the GH UI).
-  # `queue` lets the next run wait until the current one finishes — the report
-  # artifact is now always available, and the schedule never returns
-  # "cancelled" instead of the actual validation verdict. Tracked under the
-  # upstream-PR campaign W10.03 (queue concurrency is an uncontroversial,
-  # issue-independent hygiene improvement).
-  cancel-in-progress: false
+  # push storms during merge campaigns collapse to the newest commit per branch;
+  # scheduled full sweeps keep their own single lane.
+  group: release-green-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   OMNIROUTE_SKIP_SYSTEM_TRUST: "1"
@@ -45,17 +61,20 @@ env:
 jobs:
   release-green:
     name: Validate active release branch
+    # On a push, only run for release/* pushes — a push to main is handled by the
+    # main-green job below. Schedule/dispatch always run (they validate the highest release).
+    if: ${{ github.event_name != 'push' || startsWith(github.ref_name, 'release/') }}
     # Dynamic runner: with USE_VPS_RUNNER=true (release window / on-demand pre-flight)
     # this runs on the dedicated VPS runner — clean env (no operator OMNIROUTE_API_KEY,
     # no local noauth CLIs => zero machine-specific false positives) and no contention.
     # Nightly cron normally finds the var false (VM off) and falls back to hosted.
-    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-release"]')) || 'ubuntu-latest' }}
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-build"]')) || 'ubuntu-latest' }}
     env:
       JWT_SECRET: ci-nightly-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-nightly-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -64,10 +83,15 @@ jobs:
         id: branch
         env:
           INPUT_BRANCH: ${{ github.event.inputs.branch }}
+          EVENT_NAME: ${{ github.event_name }}
+          PUSHED_REF: ${{ github.ref_name }}
         run: |
           set -euo pipefail
           if [ -n "${INPUT_BRANCH:-}" ]; then
             TARGET="$INPUT_BRANCH"
+          elif [ "$EVENT_NAME" = "push" ]; then
+            # validate exactly what was pushed, not the highest branch
+            TARGET="$PUSHED_REF"
           else
             # highest release/vX.Y.Z by semver among remote branches
             TARGET=$(git for-each-ref --format='%(refname:short)' 'refs/remotes/origin/release/v*' \
@@ -92,7 +116,7 @@ jobs:
           git checkout "$TARGET"
           git log -1 --oneline
 
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: npm
@@ -101,11 +125,27 @@ jobs:
 
       - name: Release-green validation (full)
         id: validate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set +e
           # --hermetic: scrub live-test trigger vars (self-hosted runner may carry
           # operator env; hosted ignores the unknown flag before #6300 lands).
-          node scripts/quality/validate-release-green.mjs --json --with-build --hermetic \
+          # push → --quick: fast HARD gates only (~5-8min), per-merge signal.
+          # schedule/dispatch → --with-build --full-ci: ALSO run every static gate from
+          # ci.yml's gate jobs (lint, quality-gate, quality-extended, docs-sync-strict,
+          # pr-test-policy) + build + full suites. PRs into release/** only get the
+          # fast-gates, so these accrue silently and explode in layers on the release PR
+          # (v3.8.46: 11 static base-reds leaked).
+          if [ "$EVENT_NAME" = "push" ]; then
+            MODE="--quick"
+          else
+            MODE="--with-build --full-ci"
+          fi
+          echo "[release-green] mode: $MODE (event: $EVENT_NAME)"
+          # MODE is an intentional flag list, so word-splitting is wanted here
+          # shellcheck disable=SC2086
+          node scripts/quality/validate-release-green.mjs --json --hermetic $MODE \
             1> release-green.json 2> release-green.log
           echo "exit=$?" >> "$GITHUB_OUTPUT"
           echo "------- report -------"
@@ -117,15 +157,28 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TARGET: ${{ steps.branch.outputs.target }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.event.after }}
         run: |
           set -euo pipefail
           TITLE="🔴 Release branch not green: ${TARGET}"
           {
-            echo "The nightly **release-green** validation found HARD failures on \`${TARGET}\`."
+            echo "The **release-green** validation found HARD failures on \`${TARGET}\`."
             echo "These are real defects that would block the release PR — fix them in the"
             echo "originating PR branch (via co-authorship), not by demanding it from contributors."
             echo ""
-            echo "**Run:** ${RUN_URL}"
+            echo "**Run:** ${RUN_URL} (mode: ${EVENT_NAME})"
+            # WS5.1 attribution: on push events the offending change IS this push's range
+            # (one merge per push in the normal queue), so name it — no bisect needed.
+            if [ "$EVENT_NAME" = "push" ] && [ -n "${BEFORE_SHA:-}" ] && \
+               git cat-file -e "$BEFORE_SHA" 2>/dev/null; then
+              echo ""
+              echo "**Offending push range** (\`${BEFORE_SHA:0:9}..${AFTER_SHA:0:9}\`):"
+              echo '```'
+              git log --no-decorate --oneline "${BEFORE_SHA}..${AFTER_SHA}" | head -20
+              echo '```'
+            fi
             echo ""
             echo '```'
             sed -n '/──────── verdict ────────/,$p' release-green.log || tail -40 release-green.log
@@ -140,12 +193,32 @@ jobs:
             gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file issue-body.md
             echo "Updated existing issue #$EXISTING"
           else
-            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body-file issue-body.md
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --label base-red --body-file issue-body.md
+          fi
+
+      - name: Close tracking issue when the branch is green again
+        if: steps.validate.outputs.exit == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ steps.branch.outputs.target }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          # The open/update step above is the UPWARD half of the loop; without this
+          # step a stale "not green" issue outlives the fix and every base-green check
+          # (`AGENTS.md` → "Base-green check") keeps stamping new PRs as base-red inherited.
+          TITLE="🔴 Release branch not green: ${TARGET}"
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title $TITLE" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -n "$EXISTING" ]; then
+            gh issue close "$EXISTING" --repo "$GITHUB_REPOSITORY" --reason completed \
+              --comment "✅ \`${TARGET}\` is release-green again at \`${GITHUB_SHA:0:9}\` — ${RUN_URL}. Auto-closed by Release-Green (continuous)."
+            echo "Closed issue #$EXISTING"
           fi
 
       - name: Upload report artifact
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@v7
         with:
           name: release-green-report
           path: |
@@ -164,19 +237,19 @@ jobs:
     # On a push, only run for a push to main — a push to release/* is handled by
     # release-green above. Schedule/dispatch always run (they also sweep main).
     if: ${{ github.event_name != 'push' || github.ref_name == 'main' }}
-    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-release"]')) || 'ubuntu-latest' }}
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-build"]')) || 'ubuntu-latest' }}
     env:
       JWT_SECRET: ci-nightly-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-nightly-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@v7
         with:
           ref: main # literal — no injection surface; scheduled runs default to the repo default branch (a release/v*), so pin main explicitly
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: npm
@@ -238,12 +311,31 @@ jobs:
             gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file issue-body.md
             echo "Updated existing issue #$EXISTING"
           else
-            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body-file issue-body.md
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --label base-red --body-file issue-body.md
+          fi
+
+      - name: Close tracking issue when the branch is green again
+        if: steps.validate.outputs.exit == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          # The open/update step above is the UPWARD half of the loop; without this
+          # step a stale "not green" issue outlives the fix and every base-green check
+          # (`AGENTS.md` → "Base-green check") keeps stamping new PRs as base-red inherited.
+          TITLE="🔴 main branch not green"
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title $TITLE" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -n "$EXISTING" ]; then
+            gh issue close "$EXISTING" --repo "$GITHUB_REPOSITORY" --reason completed \
+              --comment "✅ \`main\` is main-green again at \`${GITHUB_SHA:0:9}\` — ${RUN_URL}. Auto-closed by Release-Green (continuous)."
+            echo "Closed issue #$EXISTING"
           fi
 
       - name: Upload report artifact
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@v7
         with:
           name: main-green-report
           path: |
@@ -283,7 +375,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -318,7 +410,7 @@ jobs:
           git checkout "$TARGET"
           git log -1 --oneline
 
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: npm
@@ -331,6 +423,13 @@ jobs:
           # on `improvements`, complexity-ratchets only when `.improved`), and both exit
           # non-zero while the branch is over baseline — which is exactly when there is
           # nothing to bank. Their exit code is not the signal; the verifier below is.
+          # Velocity phase (quality-baseline.json `_policy`, relax-baselines.mjs): the caps
+          # were raised on purpose, so banking the measured shrink would silently undo the
+          # 20% headroom every night. Pause the downward ratchet until the phase closes.
+          if node -e 'process.exit(require("./config/quality/quality-baseline.json")._policy?.phase === "velocity" ? 0 : 1)'; then
+            echo "Velocity phase active — ratchet banking paused (see docs/architecture/QUALITY_GATES.md → Velocity phase)."
+            exit 0
+          fi
           set +e
           node scripts/check/check-file-size.mjs --update
           node scripts/check/check-complexity-ratchets.mjs --update
@@ -391,4 +490,73 @@ jobs:
           else
             gh pr create --repo "$GITHUB_REPOSITORY" --base "$TARGET" --head "$BANK_BRANCH" \
               --title "chore(quality): bank ratchet shrinks (${TARGET})" --body-file pr-body.md
+          fi
+
+  # ── Baseline headroom (velocity phase, 2026-08-30 → v4.0) ──────────────────────
+  # The ratchets only speak when a baseline is crossed. With every baseline loosened by
+  # 20% (scripts/quality/relax-baselines.mjs) the question is how fast the budget is
+  # being consumed — this job measures each gate the way CI does and posts the headroom
+  # table to one living issue, so a budget that fills in a week is visible before the
+  # first red PR. Advisory: never fails the workflow.
+  baseline-headroom:
+    name: Baseline headroom
+    if: ${{ github.event_name != 'push' }}
+    timeout-minutes: 60
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-light"]')) || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - uses: ./.github/actions/npm-ci-retry
+
+      - name: Measure headroom on ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          node scripts/quality/baseline-headroom.mjs \
+            --json reports/quality/headroom.json --md reports/quality/headroom.md
+          cat reports/quality/headroom.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload headroom report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: baseline-headroom-${{ github.run_id }}
+          path: reports/quality/headroom.*
+          retention-days: 90
+
+      - name: Post to the living issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          TITLE="📈 Baseline headroom (velocity phase)"
+          BAD=$(node -e 'const r=require("./reports/quality/headroom.json").rows;console.log(r.filter(x=>x.status==="critical"||x.status==="warn").length)')
+          {
+            echo "Branch: \`${GITHUB_REF_NAME}\` · run: ${RUN_URL}"
+            echo ""
+            cat reports/quality/headroom.md
+          } > headroom-comment.md
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title $TITLE" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -z "$EXISTING" ]; then
+            EXISTING=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --label quality-gate-finding \
+              --body "Living tracker for the velocity-phase baseline budget (docs/architecture/QUALITY_GATES.md → Velocity phase). One comment per nightly run; the newest comment is the current state." \
+              | grep -oE '[0-9]+$')
+          fi
+          gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file headroom-comment.md
+          if [ "$BAD" != "0" ]; then
+            gh issue edit "$EXISTING" --repo "$GITHUB_REPOSITORY" --add-label "headroom-alert" 2>/dev/null || true
+          else
+            gh issue edit "$EXISTING" --repo "$GITHUB_REPOSITORY" --remove-label "headroom-alert" 2>/dev/null || true
           fi

@@ -7,10 +7,16 @@
  */
 
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
+import { stripSensitiveResponseHeaders } from "@omniroute/open-sse/utils/upstreamResponseHeaders";
 import { handleChat } from "@/sse/handlers/chat";
+import { withChatAdmission } from "@/shared/middleware/withChatAdmission";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { getRelayTokenByHash, checkRateLimit, recordRelayUsage } from "@/lib/db/relayProxies";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import {
+  buildErrorBody,
+  parseUpstreamError,
+  sanitizeErrorMessage,
+} from "@omniroute/open-sse/utils/error";
 import {
   checkIpRateLimit,
   extractToken,
@@ -29,6 +35,7 @@ import {
 import { getProviderPluginManifestEntryForModel } from "@omniroute/open-sse/config/providerPluginManifestRegistry.ts";
 import { getProviderPluginManifestHeader } from "@omniroute/open-sse/config/providerPluginManifestUrl.ts";
 import { finalizeReadableStream } from "./streamFinalizer";
+import { stripStaleEncodingHeaders } from "@omniroute/open-sse/utils/upstreamResponseHeaders.ts";
 import {
   clearBifrostFailure,
   getActiveBifrostCooldown,
@@ -38,7 +45,10 @@ import type { RelayToken } from "@/lib/db/relayProxies";
 
 const JSON_CORS_HEADERS = { ...CORS_HEADERS, "Content-Type": "application/json" } as const;
 
-const injectionGuard = createInjectionGuard();
+// `logger: null` — this relay forwards to handleChat, where the guardrail registry
+// re-evaluates the request with the pino logger (#11936 dedupe). The bifrost sibling
+// route keeps the default logger: it skips handleChat entirely.
+const injectionGuard = createInjectionGuard({ logger: null });
 
 type RelayUsageStatus = "success" | "error";
 
@@ -61,12 +71,12 @@ function recordUsage(
   });
 }
 
-
 async function forwardToBifrost(
   request: Request,
   body: unknown,
   token: RelayToken,
   config: BifrostRoutingConfig,
+  backend: ReturnType<typeof resolveRelayRoutingBackend>,
   startTime: number,
   clientIp: string,
   userAgent: string | null
@@ -79,6 +89,8 @@ async function forwardToBifrost(
     "x-relay-client-ip": clientIp,
     ...getProviderPluginManifestHeader(new URL(request.url).origin),
   };
+  const requestId = request.headers.get("x-request-id");
+  if (requestId) upstreamHeaders["x-request-id"] = requestId;
   if (config.apiKey) {
     upstreamHeaders.Authorization = `Bearer ${config.apiKey}`;
   }
@@ -97,9 +109,10 @@ async function forwardToBifrost(
       body: JSON.stringify(body),
       signal: ac.signal,
     });
-    clearTimeout(tid);
 
-    const headers = new Headers(upstream.headers);
+    // Same strip as the bifrost sibling: an echoed upstream credential or
+    // set-cookie must not reach the relay-token holder (GHSA-9m72-44hg-w32g).
+    const headers = stripSensitiveResponseHeaders(upstream.headers);
     headers.set("X-Routed-By", "bifrost");
     headers.set("X-Routing-Backend", "bifrost");
     headers.set("X-Relay-Token", token.tokenPrefix + "...");
@@ -107,16 +120,52 @@ async function forwardToBifrost(
       headers.set("Content-Type", upstream.headers.get("Content-Type") ?? "application/json");
     }
 
+    // Issue #1: Bifrost (or the upstream behind it) may return plain text or HTML
+    // on a non-OK status (e.g. 502 from a sidecar, "invalid character 'd'" style
+    // proxy errors). Forwarding `upstream.body` raw leaks non-JSON into a client
+    // that expects OpenAI-shaped JSON, producing client-side parse failures.
+    // Normalize any non-OK response through parseUpstreamError + buildErrorBody so
+    // the client always receives a valid JSON error. (Hard rule #12.)
+    if (!upstream.ok) {
+      const parsed = await parseUpstreamError(upstream, null);
+      const errorBody = buildErrorBody(
+        parsed.statusCode,
+        sanitizeErrorMessage(parsed.message),
+        parsed.responseBody
+      );
+      const errorHeaders = stripStaleEncodingHeaders(headers);
+      errorHeaders.set("Content-Type", "application/json");
+      if (parsed.retryAfterMs && parsed.retryAfterMs > 0) {
+        errorHeaders.set("Retry-After", String(Math.ceil(parsed.retryAfterMs / 1000)));
+      }
+      clearTimeout(tid);
+      recordUsage(token.id, request, startTime, clientIp, userAgent, "error", parsed.statusCode);
+      return new Response(JSON.stringify(errorBody), {
+        status: parsed.statusCode,
+        headers: errorHeaders,
+      });
+    }
+
     if (wantsStream && upstream.body) {
       const stream = finalizeReadableStream(upstream.body, (error) => {
+        clearTimeout(tid);
+        const statusCode = timedOut ? 504 : upstream.status;
+        if (error && backend === "auto") {
+          recordBifrostFailure(
+            config.baseUrl,
+            timedOut
+              ? `Bifrost sidecar stream timed out after ${config.timeoutMs}ms`
+              : "bifrost-stream-error"
+          );
+        }
         recordUsage(
           token.id,
           request,
           startTime,
           clientIp,
           userAgent,
-          error || upstream.status >= 500 ? "error" : "success",
-          upstream.status
+          error || statusCode >= 500 ? "error" : "success",
+          statusCode
         );
       });
 
@@ -126,13 +175,15 @@ async function forwardToBifrost(
       });
     }
 
+    clearTimeout(tid);
     recordUsage(
       token.id,
       request,
       startTime,
       clientIp,
       userAgent,
-      upstream.status < 500 ? "success" : "error",
+      // upstream.ok is guaranteed true here (the !upstream.ok branch above returns early).
+      "success",
       upstream.status
     );
 
@@ -155,7 +206,7 @@ export async function OPTIONS() {
   return handleCorsOptions();
 }
 
-export async function POST(request: Request) {
+async function postHandler(request: Request) {
   const startTime = Date.now();
   const clientIp = getClientIp(request);
   const userAgent = sanitizeForensicHeader(request.headers.get("user-agent"));
@@ -217,7 +268,7 @@ export async function POST(request: Request) {
     }
 
     // 2b. Per-token rate limit check
-    const rateCheck = checkRateLimit(token.id);
+    const rateCheck = checkRateLimit(token.id, token);
     if (!rateCheck.allowed) {
       recordRelayUsage(token.id, {
         requestId: request.headers.get("x-request-id") || undefined,
@@ -315,6 +366,7 @@ export async function POST(request: Request) {
             parsedBody,
             token,
             bifrostConfig,
+            backend,
             startTime,
             clientIp,
             userAgent
@@ -333,6 +385,8 @@ export async function POST(request: Request) {
               },
             });
           }
+          recordBifrostFailure(bifrostConfig.baseUrl, message);
+          bifrostFallbackReason = "bifrost-error";
         }
       }
     }
@@ -386,3 +440,5 @@ export async function POST(request: Request) {
     });
   }
 }
+
+export const POST = withChatAdmission(postHandler);

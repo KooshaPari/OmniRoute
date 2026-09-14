@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { JsonView } from "@/shared/components/jsonView";
 import {
   PROVIDER_COLORS,
   getHttpStatusStyle as getStatusStyle,
@@ -8,63 +10,109 @@ import {
 } from "@/shared/constants/colors";
 import { formatDuration, formatApiKeyLabel, maskAccount } from "@/shared/utils/formatting";
 import { formatErrorForDisplay } from "@/shared/utils/formatting";
+import { useTheme } from "@/shared/hooks/useTheme";
+import {
+  useTimestampTitles,
+  timestampMarkerCustomizeNode,
+} from "@/shared/hooks/useTimestampTitles";
+import { JsonTreeExpandControls } from "@/shared/components/JsonTreeExpandControls";
+import { useJsonTreeExpandLevel } from "@/store/jsonTreeExpandStore";
+import {
+  PayloadSection,
+  ConversationContextSection,
+} from "@/shared/components/RequestLoggerDetail.sections";
 
-// ─── Payload Code Block ─────────────────────────────────────────────────────
+// ─── Copy-all composition ────────────────────────────────────────────────────
+// Compose every visible payload section + stream chunk into a single block so
+// users can copy the whole request/response transcript with one click instead
+// of copying each section individually. Pure function, exported for tests.
+type CopyAllSection = { title: string; json: string };
+type CopyAllInput = {
+  sections: CopyAllSection[];
+  streamChunks?: Record<string, string | string[]>;
+  legacyResponse?: string | null;
+  legacyRequest?: string | null;
+  legacyResponseTitle?: string;
+  legacyRequestTitle?: string;
+};
 
-function PayloadSection({ title, json, onCopy, collapsible = true, defaultOpen = true }) {
-  const [copied, setCopied] = useState(false);
-  const [open, setOpen] = useState(defaultOpen);
+export function buildCopyAllText({
+  sections,
+  streamChunks,
+  legacyResponse,
+  legacyRequest,
+  legacyResponseTitle = "Response",
+  legacyRequestTitle = "Request",
+}: CopyAllInput): string {
+  const parts: string[] = [];
+  const streamNames: Array<[string, string | string[] | undefined]> = [
+    ["provider", streamChunks?.provider],
+    ["client", streamChunks?.client],
+    ["openai", streamChunks?.openai],
+  ];
 
-  const handleCopy = async () => {
-    const success = await onCopy();
-    if (success !== false) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
+  for (const [name, value] of streamNames) {
+    if (value == null) continue;
+    const body = Array.isArray(value) ? value.join("") : String(value);
+    if (!body) continue;
+    parts.push(`### ${name.toUpperCase()} STREAM\n${body}`);
+  }
 
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-3">
-          <h3 className="text-[11px] text-text-muted uppercase tracking-wider font-bold">
-            {title}
-          </h3>
-          {collapsible && (
-            <button
-              onClick={() => setOpen((v) => !v)}
-              className="p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
-              aria-label={open ? `Collapse ${title}` : `Expand ${title}`}
-            >
-              <span className="material-symbols-outlined text-[16px]">
-                {open ? "expand_less" : "expand_more"}
-              </span>
-            </button>
-          )}
-        </div>
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-1 px-2 py-1 text-xs text-text-muted hover:text-text-primary transition-colors"
-          aria-label={`Copy ${title}`}
-        >
-          <span className="material-symbols-outlined text-[14px]">
-            {copied ? "check" : "content_copy"}
-          </span>
-          {copied ? "Copied!" : "Copy"}
-        </button>
-      </div>
-      {open && (
-        <pre className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed whitespace-pre-wrap break-words">
-          {json}
-        </pre>
-      )}
-    </div>
-  );
+  for (const section of sections) {
+    parts.push(`### ${section.title}\n${section.json}`);
+  }
+
+  if (sections.length === 0 && legacyResponse) {
+    parts.push(`### ${legacyResponseTitle}\n${legacyResponse}`);
+  }
+  if (sections.length === 0 && legacyRequest) {
+    parts.push(`### ${legacyRequestTitle}\n${legacyRequest}`);
+  }
+
+  return parts.join("\n\n---\n\n");
 }
 
 // ─── Stream section + Detail Modal ───────────────────────────────────────────────────────────
 
-function StreamSection({ title, json, onCopy }) {
+// Raw stream chunks are captured at the network level (see streamChunks
+// capture) with a `[HH:MM:SS.mmm] ` prefix inserted per chunk boundary, which
+// can land mid-token inside an SSE event's JSON payload once chunks are
+// joined. Strip those markers first so a `data:` line isn't interrupted.
+const STREAM_TIMESTAMP_PREFIX = /\[\d{2}:\d{2}:\d{2}\.\d{3}\] /g;
+
+type StreamSegment =
+  { type: "text"; value: string } | { type: "json"; value: unknown; raw: string };
+
+// Splits a raw joined SSE capture into renderable segments: each `data:`
+// line that parses as JSON becomes its own segment (rendered as a
+// collapsible tree), everything else (comments, keep-alives, [DONE],
+// non-JSON payloads) stays as plain text, byte-identical to the raw capture.
+function parseStreamIntoSegments(joined: string): StreamSegment[] {
+  const text = joined.replace(STREAM_TIMESTAMP_PREFIX, "");
+  const events = text.split(/(?<=\n\n)/); // keep event boundaries, preserve exact text
+  const segments: StreamSegment[] = [];
+  for (const event of events) {
+    if (!event) continue;
+    const dataLines = event
+      .split("\n")
+      .filter((line) => line.startsWith("data:"))
+      .map((line) => line.slice(5).trim());
+    const payload = dataLines.join("");
+    if (dataLines.length === 0 || !payload || payload === "[DONE]") {
+      segments.push({ type: "text", value: event });
+      continue;
+    }
+    try {
+      segments.push({ type: "json", value: JSON.parse(payload), raw: event });
+    } catch {
+      segments.push({ type: "text", value: event });
+    }
+  }
+  return segments;
+}
+
+function StreamSection({ title, sectionId, json, onCopy }) {
+  const t = useTranslations("requestLogger.detail");
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(true);
   const [autoscroll, setAutoscroll] = useState(() => {
@@ -76,6 +124,10 @@ function StreamSection({ title, json, onCopy }) {
     }
   });
   const ref = useRef(null);
+  const { isDark } = useTheme();
+  const resolvedSectionId = sectionId || title;
+  const expandLevel = useJsonTreeExpandLevel(resolvedSectionId);
+  const segments = useMemo(() => parseStreamIntoSegments(json), [json]);
 
   const handleCopy = async () => {
     const success = await onCopy();
@@ -105,6 +157,8 @@ function StreamSection({ title, json, onCopy }) {
     } catch {}
   };
 
+  useTimestampTitles(ref, open);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
@@ -115,7 +169,7 @@ function StreamSection({ title, json, onCopy }) {
           <button
             onClick={() => setOpen((v) => !v)}
             className="p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
-            aria-label={open ? `Collapse ${title}` : `Expand ${title}`}
+            aria-label={open ? t("collapse", { title }) : t("expand", { title })}
           >
             <span className="material-symbols-outlined text-[16px]">
               {open ? "expand_less" : "expand_more"}
@@ -125,7 +179,7 @@ function StreamSection({ title, json, onCopy }) {
         <div className="flex items-center gap-2">
           <button
             onClick={toggleAutoscroll}
-            title={autoscroll ? "Autoscroll: on" : "Autoscroll: off"}
+            title={autoscroll ? t("autoscrollOn") : t("autoscrollOff")}
             className={`p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors ${autoscroll ? "text-primary" : ""}`}
             aria-pressed={autoscroll}
           >
@@ -134,21 +188,40 @@ function StreamSection({ title, json, onCopy }) {
           <button
             onClick={handleCopy}
             className="flex items-center gap-1 px-2 py-1 text-xs text-text-muted hover:text-text-primary transition-colors"
-            aria-label={`Copy ${title}`}
+            aria-label={t("copyTitle", { title })}
           >
             <span className="material-symbols-outlined text-[14px]">
               {copied ? "check" : "content_copy"}
             </span>
-            {copied ? "Copied!" : "Copy"}
+            {copied ? t("copied") : t("copy")}
           </button>
+          {segments.some((s) => s.type === "json") && (
+            <JsonTreeExpandControls sectionId={resolvedSectionId} />
+          )}
         </div>
       </div>
       {open && (
         <div
           ref={ref}
-          className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed whitespace-pre-wrap break-words"
+          className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed"
         >
-          {json}
+          {segments.map((segment, i) =>
+            segment.type === "json" ? (
+              <div key={i} className="my-1">
+                <JsonView
+                  src={segment.value}
+                  dark={isDark}
+                  collapsed={expandLevel}
+                  customizeNode={timestampMarkerCustomizeNode}
+                  displaySize
+                />
+              </div>
+            ) : (
+              <span key={i} className="whitespace-pre-wrap break-words">
+                {segment.value}
+              </span>
+            )
+          )}
         </div>
       )}
     </div>
@@ -196,6 +269,9 @@ export default function RequestLoggerDetail({
   relatedLogs = [],
   onSelectRelated,
 }) {
+  const t = useTranslations("requestLogger.detail");
+  const locale = useLocale();
+  const modalScrollRef = useRef(null);
   // Close on Escape key
   useEffect(() => {
     const handler = (e) => {
@@ -204,6 +280,21 @@ export default function RequestLoggerDetail({
     globalThis.addEventListener("keydown", handler);
     return () => globalThis.removeEventListener("keydown", handler);
   }, [onClose]);
+
+  // The overlay is full-viewport, but the modal panel itself is centered and
+  // narrower than the viewport (max-w-225), leaving backdrop margin on every
+  // side. A wheel event there has no scrollable target under the cursor, so
+  // scrolling only worked once the pointer happened to be over the panel's
+  // own content. Forward wheel scrolling from anywhere in the overlay to the
+  // panel instead, so the backdrop margin scrolls it too.
+  const handleOverlayWheel = (e) => {
+    const panel = modalScrollRef.current;
+    // Let native scrolling handle wheel events that already land inside the
+    // panel -- only forward the ones from the backdrop margin around it.
+    if (!panel || panel.contains(e.target)) return;
+    panel.scrollTop += e.deltaY;
+    e.preventDefault();
+  };
 
   const statusStyle = getStatusStyle(log.status);
   const protocolKey = log.sourceFormat || log.provider;
@@ -217,6 +308,7 @@ export default function RequestLoggerDetail({
 
   const [unblocking, setUnblocking] = useState(false);
   const [cleared, setCleared] = useState(false);
+  const [copiedAll, setCopiedAll] = useState(false);
 
   // #7920 gave this component formatErrorForDisplay for structured error objects, but the
   // #8213 combo/cooldown checks below went straight to the raw field and call
@@ -270,9 +362,11 @@ export default function RequestLoggerDetail({
     try {
       const d = new Date(iso);
       if (!Number.isFinite(d.getTime())) return "\u2014";
-      return (
-        d.toLocaleDateString("pt-BR") + ", " + d.toLocaleTimeString("en-US", { hour12: false })
-      );
+      return d.toLocaleString(locale, {
+        dateStyle: "short",
+        timeStyle: "medium",
+        hour12: false,
+      });
     } catch {
       return "\u2014";
     }
@@ -290,13 +384,13 @@ export default function RequestLoggerDetail({
   const pipelinePayloads = detail?.pipelinePayloads || null;
   const payloadSections = pipelinePayloads
     ? [
-        ["clientRawRequest", "Client Raw Request"],
-        ["clientRequest", "Client Request"],
-        ["openaiRequest", "OpenAI Request"],
-        ["providerRequest", "Provider Request"],
-        ["providerResponse", "Provider Response"],
-        ["clientResponse", "Client Response"],
-        ["error", "Pipeline Error"],
+        ["clientRawRequest", t("payload.clientRawRequest")],
+        ["clientRequest", t("payload.clientRequest")],
+        ["openaiRequest", t("payload.openaiRequest")],
+        ["providerRequest", t("payload.providerRequest")],
+        ["providerResponse", t("payload.providerResponse")],
+        ["clientResponse", t("payload.clientResponse")],
+        ["error", t("payload.pipelineError")],
       ]
         .map(([key, title]) => ({
           key,
@@ -320,11 +414,31 @@ export default function RequestLoggerDetail({
     if (chunks && typeof chunks === "object") return chunks;
     return null;
   })();
+
+  // Compose every visible payload section + stream chunk into a single block so
+  // users can copy the whole request/response transcript with one click instead
+  // of copying each section individually.
+  const handleCopyAll = async () => {
+    const text = buildCopyAllText({
+      sections: payloadSections,
+      streamChunks: streamChunks || undefined,
+      legacyResponse: payloadSections.length === 0 ? responseJson : null,
+      legacyRequest: payloadSections.length === 0 ? requestJson : null,
+      legacyResponseTitle: t("responsePayloadLegacy"),
+      legacyRequestTitle: t("requestPayloadLegacy"),
+    });
+    if (!text) return;
+    const success = await onCopy(text);
+    if (success !== false) {
+      setCopiedAll(true);
+      setTimeout(() => setCopiedAll(false), 2000);
+    }
+  };
   const detailIssue =
     detail?.detailState === "missing"
-      ? "Detailed payload artifact is no longer available for this log entry."
+      ? t("payloadMissing")
       : detail?.detailState === "corrupt"
-        ? "Detailed payload artifact could not be parsed."
+        ? t("payloadCorrupt")
         : null;
   const tokenStats = {
     totalIn: detail?.tokens?.in ?? log.tokens?.in ?? null,
@@ -335,11 +449,10 @@ export default function RequestLoggerDetail({
     compressed: detail?.tokens?.compressed ?? log.tokens?.compressed,
   };
 
-  const formatTokenValue = (value) => (value != null ? value.toLocaleString() : "N/A");
+  const formatTokenValue = (value) => (value != null ? value.toLocaleString() : t("notAvailable"));
 
   const cacheSource = detail?.cacheSource || log.cacheSource || "upstream";
-  const cacheSourceLabel =
-    cacheSource === "semantic" ? "Semantic (OmniRoute)" : "Upstream (Provider)";
+  const cacheSourceLabel = cacheSource === "semantic" ? t("semanticCache") : t("upstreamCache");
   const cacheSourceClassName =
     cacheSource === "semantic"
       ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
@@ -348,20 +461,22 @@ export default function RequestLoggerDetail({
   const codexAccountRotation = getCodexAccountRotation(detail);
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[5vh]"
+      className="fixed inset-0 z-50 flex items-start justify-center px-2 pt-[5vh] sm:px-4"
       onClick={onClose}
+      onWheel={handleOverlayWheel}
       role="dialog"
       aria-modal="true"
-      aria-label="Request log detail"
+      aria-label={t("ariaLabel")}
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative bg-bg-primary border border-border rounded-xl w-full max-w-225 max-h-[90vh] overflow-y-auto shadow-2xl"
+        ref={modalScrollRef}
+        className="relative w-full max-w-225 max-h-[90vh] overflow-x-hidden overflow-y-auto rounded-xl border border-border bg-bg-primary shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-border bg-bg-primary/95 backdrop-blur-sm rounded-t-xl">
-          <div className="flex items-center gap-3">
+        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3 border-b border-border bg-bg-primary/95 backdrop-blur-sm rounded-t-xl sm:px-6 sm:py-4">
+          <div className="flex flex-wrap items-center gap-2 min-w-0 sm:gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 {log.active ? (
@@ -370,7 +485,7 @@ export default function RequestLoggerDetail({
                   </span>
                 ) : log.status === 0 ? (
                   <span className="inline-block px-2.5 py-1 rounded text-xs font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                    Completed
+                    {t("completed")}
                   </span>
                 ) : (
                   <span
@@ -382,14 +497,14 @@ export default function RequestLoggerDetail({
                 )}
                 {hasStatusDiscrepancy && (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-bg-subtle border border-border text-text-muted">
-                    Upstream: {providerStatus}
+                    {t("upstreamStatus", { status: providerStatus })}
                   </span>
                 )}
                 {log.method && <span className="font-bold text-lg">{log.method}</span>}
               </div>
               {hasStatusDiscrepancy && (
                 <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">
-                  OmniRoute returned {log.status} even though provider returned {providerStatus}
+                  {t("statusDiscrepancy", { status: log.status, provider: providerStatus })}
                 </span>
               )}
             </div>
@@ -402,64 +517,85 @@ export default function RequestLoggerDetail({
             {log.correlationId && (
               <span
                 className="text-[10px] text-text-muted/50 font-mono self-center ml-2 px-1.5 py-0.5 rounded bg-bg-subtle border border-border/40 select-all"
-                title="Correlation ID"
+                title={t("correlationId")}
               >
-                cid: {log.correlationId}
+                {t("correlationIdValue", { id: log.correlationId })}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <button
-              onClick={onPrevious}
-              disabled={!onPrevious}
-              className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
-              aria-label="Previous request"
+              onClick={handleCopyAll}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
+              aria-label={t("copyAll")}
+              title={t("copyAll")}
             >
-              <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+              <span className="material-symbols-outlined text-[16px]">
+                {copiedAll ? "check" : "content_copy"}
+              </span>
+              <span className="text-xs font-medium">
+                {copiedAll ? t("copiedAll") : t("copyAll")}
+              </span>
             </button>
-            <button
-              onClick={onNext}
-              disabled={!onNext}
-              className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
-              aria-label="Next request"
-            >
-              <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-            </button>
+            {/* Only rendered when a caller actually wires up navigation (RequestLoggerV2's
+                list view) — a caller with no ordered-list context to navigate through
+                (conversations page, RequestTimeline) passes neither, so there's nothing
+                to show instead of a permanently-disabled dead button. */}
+            {(onPrevious || onNext) && (
+              <>
+                <button
+                  onClick={onPrevious}
+                  disabled={!onPrevious}
+                  className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                  aria-label={t("previousRequest")}
+                >
+                  <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                </button>
+                <button
+                  onClick={onNext}
+                  disabled={!onNext}
+                  className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                  aria-label={t("nextRequest")}
+                >
+                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                </button>
+              </>
+            )}
             <button
               onClick={onClose}
               className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
-              aria-label="Close detail modal"
+              aria-label={t("close")}
             >
               <span className="material-symbols-outlined">close</span>
             </button>
           </div>
         </div>
 
-        <div className="p-6 flex flex-col gap-6">
+        <div className="p-4 flex flex-col gap-6 sm:p-6">
           {/* Metadata Grid */}
           {log.active ? (
             <div className="flex flex-wrap gap-4 p-4 bg-bg-subtle rounded-xl border border-border">
               <div className="min-w-[140px] flex-1">
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Started At
+                  {t("startedAt")}
                 </div>
                 <div className="text-sm font-medium">{formatDate(log.timestamp)}</div>
               </div>
               <div className="min-w-[100px] flex-1">
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Duration
+                  {t("duration")}
                 </div>
                 <div className="text-sm font-medium">{formatDuration(log.duration)}</div>
               </div>
               <div className="min-w-[140px] flex-1">
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Model
+                  {t("model")}
                 </div>
                 <div className="text-sm font-medium text-primary font-mono">{log.model}</div>
               </div>
               <div className="min-w-[120px] flex-1">
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Provider
+                  {t("provider")}
                 </div>
                 <span
                   className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
@@ -470,7 +606,7 @@ export default function RequestLoggerDetail({
               </div>
               <div className="min-w-[120px] flex-1">
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Account
+                  {t("account")}
                 </div>
                 <div className="text-sm font-medium">{accountLabel}</div>
               </div>
@@ -482,7 +618,7 @@ export default function RequestLoggerDetail({
             >
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Started At
+                  {t("startedAt")}
                 </div>
                 <div className="text-sm font-medium">
                   {(() => {
@@ -498,42 +634,49 @@ export default function RequestLoggerDetail({
               </div>
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Ended At
+                  {t("endedAt")}
                 </div>
                 <div className="text-sm font-medium">{formatDate(log.timestamp)}</div>
               </div>
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Duration
+                  {t("duration")}
                 </div>
                 <div className="text-sm font-medium">{formatDuration(log.duration)}</div>
               </div>
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Input
+                  {t("input")}
                 </div>
                 <div
                   className="flex flex-wrap items-center gap-1.5"
                   data-testid="token-group-input"
                 >
                   <span className="px-2 py-0.5 rounded bg-primary/20 text-primary text-xs font-bold">
-                    Total In: {formatTokenValue(tokenStats.totalIn)}
+                    {t("totalIn", { value: formatTokenValue(tokenStats.totalIn) })}
                   </span>
                   <span className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-700 dark:text-sky-400 text-xs font-bold">
-                    Cache Read: {formatTokenValue(tokenStats.cacheRead)}
+                    {t("cacheRead", { value: formatTokenValue(tokenStats.cacheRead) })}
                   </span>
                   <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold">
-                    Cache Write: {formatTokenValue(tokenStats.cacheWrite)}
+                    {t("cacheWrite", { value: formatTokenValue(tokenStats.cacheWrite) })}
                   </span>
                   {tokenStats.compressed != null &&
                     tokenStats.compressed > 0 &&
                     (() => {
-                      const fromTokens = tokenStats.totalIn + tokenStats.compressed;
-                      const pct = Math.round((tokenStats.compressed / fromTokens) * 100);
+                      const fromTokens = tokenStats.compressed + Math.max(0, tokenStats.totalIn);
+                      const saved = Math.min(tokenStats.compressed, fromTokens);
+                      const pct =
+                        fromTokens > 0
+                          ? Math.max(0, Math.min(100, Math.round((saved / fromTokens) * 100)))
+                          : 100;
                       return (
                         <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-bold">
-                          Compressed: {fromTokens.toLocaleString()} \u2192{" "}
-                          {tokenStats.totalIn.toLocaleString()} (-{pct}%)
+                          {t("compressed", {
+                            from: fromTokens.toLocaleString(),
+                            to: Math.max(0, tokenStats.totalIn).toLocaleString(),
+                            percent: pct,
+                          })}
                         </span>
                       );
                     })()}
@@ -541,29 +684,29 @@ export default function RequestLoggerDetail({
               </div>
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Output
+                  {t("output")}
                 </div>
                 <div
                   className="flex flex-wrap items-center gap-1.5"
                   data-testid="token-group-output"
                 >
                   <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold">
-                    Total Out: {formatTokenValue(tokenStats.totalOut)}
+                    {t("totalOut", { value: formatTokenValue(tokenStats.totalOut) })}
                   </span>
                   <span className="px-2 py-0.5 rounded bg-violet-500/20 text-violet-700 dark:text-violet-400 text-xs font-bold">
-                    Reasoning: {formatTokenValue(tokenStats.reasoning)}
+                    {t("reasoning", { value: formatTokenValue(tokenStats.reasoning) })}
                   </span>
                 </div>
               </div>
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Model
+                  {t("model")}
                 </div>
                 <div className="text-sm font-medium text-primary font-mono">{log.model}</div>
               </div>
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Requested Model
+                  {t("requestedModel")}
                 </div>
                 <div
                   className={`text-sm font-medium font-mono ${
@@ -578,7 +721,7 @@ export default function RequestLoggerDetail({
               </div>
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Provider
+                  {t("provider")}
                 </div>
                 <span
                   className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
@@ -589,7 +732,7 @@ export default function RequestLoggerDetail({
               </div>
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Req Protocol
+                  {t("requestProtocol")}
                 </div>
                 <span
                   className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
@@ -600,7 +743,7 @@ export default function RequestLoggerDetail({
               </div>
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Cache Source
+                  {t("cacheSource")}
                 </div>
                 <span
                   className={`inline-block px-2.5 py-1 rounded text-[10px] font-bold border ${cacheSourceClassName}`}
@@ -611,19 +754,19 @@ export default function RequestLoggerDetail({
               {(detail?.modelPinned || log.modelPinned) && (
                 <div>
                   <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                    Model Pinning
+                    {t("modelPinning")}
                   </div>
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold bg-violet-500/15 text-violet-600 dark:text-violet-400 border border-violet-500/25">
                     <svg className="w-3 h-3" viewBox="0 0 16 16" fill="currentColor">
                       <path d="M4.5 2A1.5 1.5 0 003 3.5v1.9l-1.4 2.8A.5.5 0 002 9h4v4.5a.5.5 0 00.5.5h3a.5.5 0 00.5-.5V9h4a.5.5 0 00.44-.73L13 5.4V3.5A1.5 1.5 0 0011.5 2h-7z" />
                     </svg>
-                    Active — model selected via session pinning
+                    {t("activeModelPinning")}
                   </span>
                 </div>
               )}
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Account
+                  {t("account")}
                 </div>
                 <div className="text-sm font-medium">{accountLabel}</div>
                 {codexAccountRotation && (
@@ -631,14 +774,16 @@ export default function RequestLoggerDetail({
                     className="mt-1 text-[10px] text-amber-600 dark:text-amber-400 font-mono"
                     title={`${codexAccountRotation.initialConnectionId} -> ${codexAccountRotation.finalConnectionId}`}
                   >
-                    Rotated: {formatConnectionId(codexAccountRotation.initialConnectionId)} -&gt;{" "}
-                    {formatConnectionId(codexAccountRotation.finalConnectionId)}
+                    {t("rotated", {
+                      initial: formatConnectionId(codexAccountRotation.initialConnectionId),
+                      final: formatConnectionId(codexAccountRotation.finalConnectionId),
+                    })}
                   </div>
                 )}
               </div>
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  API Key
+                  {t("apiKey")}
                 </div>
                 <div
                   className="text-sm font-medium"
@@ -647,7 +792,7 @@ export default function RequestLoggerDetail({
                     detail?.apiKeyId ||
                     log.apiKeyName ||
                     log.apiKeyId ||
-                    "No API key"
+                    t("noApiKey")
                   }
                 >
                   {formatApiKeyLabel(
@@ -658,14 +803,30 @@ export default function RequestLoggerDetail({
               </div>
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Combo
+                  {t("combo")}
                 </div>
                 {detail?.comboName || log.comboName ? (
                   <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-violet-500/20 text-violet-700 dark:text-violet-300 border border-violet-500/30">
                     {detail?.comboName || log.comboName}
                   </span>
                 ) : (
-                  <div className="text-sm text-text-muted">\u2014</div>
+                  <div className="text-sm text-text-muted">{"\u2014"}</div>
+                )}
+              </div>
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Conversation
+                </div>
+                {detail?.sessionTag || log.sessionTag ? (
+                  <div
+                    className="text-sm font-mono select-all"
+                    title={detail?.sessionTag || log.sessionTag}
+                  >
+                    {(detail?.sessionTag || log.sessionTag).slice(0, 20)}
+                    {"\u2026"}
+                  </div>
+                ) : (
+                  <div className="text-sm text-text-muted">{"\u2014"}</div>
                 )}
               </div>
             </div>
@@ -676,7 +837,7 @@ export default function RequestLoggerDetail({
             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30">
               <div className="flex items-center justify-between mb-1">
                 <div className="text-[10px] text-red-600 dark:text-red-400 uppercase tracking-wider font-bold">
-                  Error
+                  {t("error")}
                 </div>
                 {isCombo503 && !cleared && (
                   <button
@@ -700,7 +861,7 @@ export default function RequestLoggerDetail({
                       <path d="M5 6V4a3 3 0 0 1 3-3h0a3 3 0 0 1 3 3v1" />
                       <circle cx="8" cy="10" r="1" fill="currentColor" stroke="none" />
                     </svg>
-                    {unblockAllBusy ? "..." : "Unblock all"}
+                    {unblockAllBusy ? "..." : t("unblockAll")}
                   </button>
                 )}
                 {isCombo503 && cleared && (
@@ -715,7 +876,7 @@ export default function RequestLoggerDetail({
                     >
                       <polyline points="4 8 7 11 12 4" />
                     </svg>
-                    Cleared
+                    {t("cleared")}
                   </span>
                 )}
                 {isModelCooldown && !cleared && (
@@ -740,7 +901,7 @@ export default function RequestLoggerDetail({
                       <path d="M5 6V4a3 3 0 0 1 3-3h0a3 3 0 0 1 3 3v1" />
                       <circle cx="8" cy="10" r="1" fill="currentColor" stroke="none" />
                     </svg>
-                    {unblocking ? "..." : "Unblock"}
+                    {unblocking ? "..." : t("unblock")}
                   </button>
                 )}
                 {isModelCooldown && cleared && (
@@ -755,7 +916,7 @@ export default function RequestLoggerDetail({
                     >
                       <polyline points="4 8 7 11 12 4" />
                     </svg>
-                    Cleared
+                    {t("cleared")}
                   </span>
                 )}
               </div>
@@ -769,7 +930,7 @@ export default function RequestLoggerDetail({
           {relatedLogs.length > 1 && (
             <div className="p-4 rounded-xl bg-bg-subtle border border-border">
               <div className="text-[10px] text-text-muted uppercase tracking-wider mb-2 font-bold">
-                Related Requests ({relatedLogs.length})
+                {t("relatedRequests", { count: relatedLogs.length })}
               </div>
               <div className="flex flex-col gap-1">
                 {[...relatedLogs]
@@ -806,69 +967,15 @@ export default function RequestLoggerDetail({
                         <span className="font-mono text-text-muted">{r.id}</span>
                         <span className="text-text-muted">{r.model}</span>
                         <span className="text-text-muted text-[10px]">
-                          {startTime.toLocaleTimeString("en-US", { hour12: false })}
+                          {startTime.toLocaleTimeString(locale, { hour12: false })}
                         </span>
                         <span className="text-text-muted ml-auto">
                           {formatDuration(r.duration)}
                         </span>
                         {isCurrent && (
-                          <span className="text-[9px] text-primary font-bold ml-1">current</span>
-                        )}
-                      </button>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
-
-          {/* Related Requests (same correlation ID) */}
-          {relatedLogs.length > 1 && (
-            <div className="p-4 rounded-xl bg-bg-subtle border border-border">
-              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-2 font-bold">
-                Related Requests ({relatedLogs.length})
-              </div>
-              <div className="flex flex-col gap-1">
-                {[...relatedLogs]
-                  .sort((a, b) => {
-                    const aStart = new Date(a.timestamp).getTime() - (a.duration || 0);
-                    const bStart = new Date(b.timestamp).getTime() - (b.duration || 0);
-                    return aStart - bStart;
-                  })
-                  .map((r) => {
-                    const rStatusStyle = r.active ? null : getStatusStyle(r.status);
-                    const isCurrent = r.id === log.id;
-                    const startTime = new Date(new Date(r.timestamp).getTime() - (r.duration || 0));
-                    return (
-                      <button
-                        key={r.id}
-                        onClick={() => !isCurrent && onSelectRelated?.(r)}
-                        disabled={isCurrent}
-                        className={`flex items-center gap-2 px-2 py-1.5 rounded text-left text-xs transition-colors ${
-                          isCurrent
-                            ? "bg-primary/10 border border-primary/30 cursor-default"
-                            : "hover:bg-bg-hover cursor-pointer"
-                        }`}
-                      >
-                        <span
-                          className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold min-w-[28px] text-center"
-                          style={
-                            rStatusStyle
-                              ? { backgroundColor: rStatusStyle.bg, color: rStatusStyle.text }
-                              : { backgroundColor: "#374151", color: "#fff" }
-                          }
-                        >
-                          {r.status || "..."}
-                        </span>
-                        <span className="font-mono text-text-muted">{r.id}</span>
-                        <span className="text-text-muted">{r.model}</span>
-                        <span className="text-text-muted text-[10px]">
-                          {startTime.toLocaleTimeString("en-US", { hour12: false })}
-                        </span>
-                        <span className="text-text-muted ml-auto">
-                          {formatDuration(r.duration)}
-                        </span>
-                        {isCurrent && (
-                          <span className="text-[9px] text-primary font-bold ml-1">current</span>
+                          <span className="text-[9px] text-primary font-bold ml-1">
+                            {t("current")}
+                          </span>
                         )}
                       </button>
                     );
@@ -880,7 +987,7 @@ export default function RequestLoggerDetail({
           {detailIssue && (
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
               <div className="text-[10px] text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-1 font-bold">
-                Detail Status
+                {t("detailStatus")}
               </div>
               <div className="text-sm text-amber-700 dark:text-amber-200">{detailIssue}</div>
             </div>
@@ -888,13 +995,16 @@ export default function RequestLoggerDetail({
 
           {loading ? (
             <div className="p-8 text-center text-text-muted animate-pulse">
-              Loading request details...
+              {t("loadingDetails")}
             </div>
           ) : (
             <>
+              <ConversationContextSection key={log.id} log={log} detail={detail} />
+
               {streamChunks && streamChunks.provider && (
                 <StreamSection
-                  title="Provider Event Stream"
+                  title={t("providerEventStream")}
+                  sectionId="providerEventStream"
                   json={
                     Array.isArray(streamChunks.provider)
                       ? streamChunks.provider.join("")
@@ -912,7 +1022,8 @@ export default function RequestLoggerDetail({
 
               {streamChunks && streamChunks.client && (
                 <StreamSection
-                  title="Client Event Stream"
+                  title={t("clientEventStream")}
+                  sectionId="clientEventStream"
                   json={
                     Array.isArray(streamChunks.client)
                       ? streamChunks.client.join("")
@@ -933,7 +1044,8 @@ export default function RequestLoggerDetail({
                 !streamChunks.provider &&
                 !streamChunks.client && (
                   <StreamSection
-                    title="Event Stream"
+                    title={t("eventStream")}
+                    sectionId="eventStream"
                     json={
                       Array.isArray(streamChunks.openai)
                         ? streamChunks.openai.join("")
@@ -954,6 +1066,7 @@ export default function RequestLoggerDetail({
                   <PayloadSection
                     key={section.key}
                     title={section.title}
+                    sectionId={section.key}
                     json={section.json}
                     onCopy={() => onCopy(section.json)}
                   />
@@ -961,7 +1074,8 @@ export default function RequestLoggerDetail({
 
               {payloadSections.length === 0 && responseJson && (
                 <PayloadSection
-                  title="Response Payload (Legacy)"
+                  title={t("responsePayloadLegacy")}
+                  sectionId="responsePayloadLegacy"
                   json={responseJson}
                   onCopy={() => onCopy(responseJson)}
                 />
@@ -969,7 +1083,8 @@ export default function RequestLoggerDetail({
 
               {payloadSections.length === 0 && requestJson && (
                 <PayloadSection
-                  title="Request Payload (Legacy)"
+                  title={t("requestPayloadLegacy")}
+                  sectionId="requestPayloadLegacy"
                   json={requestJson}
                   onCopy={() => onCopy(requestJson)}
                 />
@@ -980,11 +1095,8 @@ export default function RequestLoggerDetail({
                   <span className="material-symbols-outlined text-[32px] mb-2 block opacity-40">
                     info
                   </span>
-                  <p className="text-sm">No payload data available for this log entry.</p>
-                  <p className="text-xs mt-1">
-                    Enable detailed logging first if you want the four-stage client/provider payload
-                    view for new requests.
-                  </p>
+                  <p className="text-sm">{t("noPayload")}</p>
+                  <p className="text-xs mt-1">{t("detailedPayloadInfo")}</p>
                 </div>
               )}
             </>

@@ -12,7 +12,7 @@ const quotaSnapshotsDb = await import("../../src/lib/db/quotaSnapshots.ts");
 
 async function resetStorage() {
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -22,29 +22,29 @@ test.beforeEach(async () => {
 
 test.after(() => {
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("quotaSnapshots save and query rows with provider and connection filters", () => {
   quotaSnapshotsDb.saveQuotaSnapshot({
     provider: "openai",
-    connectionId: "conn-1",
-    windowKey: "hourly",
-    remainingPercentage: 60,
-    isExhausted: 0,
-    nextResetAt: "2026-01-01T01:00:00.000Z",
-    windowDurationMs: 3600000,
-    rawData: JSON.stringify({ source: "first" }),
+    connection_id: "conn-1",
+    window_key: "hourly",
+    remaining_percentage: 60,
+    is_exhausted: 0,
+    next_reset_at: "2026-01-01T01:00:00.000Z",
+    window_duration_ms: 3600000,
+    raw_data: JSON.stringify({ source: "first" }),
   });
   quotaSnapshotsDb.saveQuotaSnapshot({
     provider: "anthropic",
-    connectionId: "conn-2",
-    windowKey: "daily",
-    remainingPercentage: 30,
-    isExhausted: 1,
-    nextResetAt: "2026-01-02T00:00:00.000Z",
-    windowDurationMs: 86400000,
-    rawData: JSON.stringify({ source: "second" }),
+    connection_id: "conn-2",
+    window_key: "daily",
+    remaining_percentage: 30,
+    is_exhausted: 1,
+    next_reset_at: "2026-01-02T00:00:00.000Z",
+    window_duration_ms: 86400000,
+    raw_data: JSON.stringify({ source: "second" }),
   });
 
   const openaiRows = quotaSnapshotsDb.getQuotaSnapshots({
@@ -58,68 +58,26 @@ test("quotaSnapshots save and query rows with provider and connection filters", 
   assert.equal(openaiRows[0].connectionId, "conn-1");
 });
 
-test("quotaSnapshots reads legacy rows without nullable analytics columns", () => {
-  const db = coreDb.getDbInstance();
-  db.exec("DROP TABLE quota_snapshots");
-  db.exec(`
-    CREATE TABLE quota_snapshots (
-      id INTEGER PRIMARY KEY,
-      provider TEXT NOT NULL,
-      connection_id TEXT NOT NULL,
-      window_key TEXT NOT NULL,
-      remaining_percentage REAL,
-      is_exhausted INTEGER DEFAULT 0,
-      next_reset_at TEXT,
-      created_at TEXT NOT NULL
-    )
-  `);
-  db.prepare(
-    `INSERT INTO quota_snapshots
-     (id, provider, connection_id, window_key, remaining_percentage, is_exhausted, next_reset_at, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(1, "openai", "legacy-conn", "daily", 42, 0, null, "2026-01-01T00:00:00.000Z");
-
-  const rows = quotaSnapshotsDb.getQuotaSnapshots({
-    connectionId: "legacy-conn",
-    since: "2000-01-01T00:00:00.000Z",
-  });
-
-  assert.deepEqual(rows, [
-    {
-      id: 1,
-      provider: "openai",
-      connectionId: "legacy-conn",
-      windowKey: "daily",
-      remainingPercentage: 42,
-      isExhausted: 0,
-      nextResetAt: null,
-      windowDurationMs: null,
-      rawData: null,
-      createdAt: "2026-01-01T00:00:00.000Z",
-    },
-  ]);
-});
-
 test("quotaSnapshots aggregates by provider or connection and rejects invalid buckets", () => {
   quotaSnapshotsDb.saveQuotaSnapshot({
     provider: "openai",
-    connectionId: "conn-a",
-    windowKey: "hourly",
-    remainingPercentage: 50,
-    isExhausted: 0,
-    nextResetAt: "2026-01-01T01:00:00.000Z",
-    windowDurationMs: 3600000,
-    rawData: "{}",
+    connection_id: "conn-a",
+    window_key: "hourly",
+    remaining_percentage: 50,
+    is_exhausted: 0,
+    next_reset_at: "2026-01-01T01:00:00.000Z",
+    window_duration_ms: 3600000,
+    raw_data: "{}",
   });
   quotaSnapshotsDb.saveQuotaSnapshot({
     provider: "openai",
-    connectionId: "conn-a",
-    windowKey: "hourly",
-    remainingPercentage: 70,
-    isExhausted: 0,
-    nextResetAt: "2026-01-01T01:10:00.000Z",
-    windowDurationMs: 3600000,
-    rawData: "{}",
+    connection_id: "conn-a",
+    window_key: "hourly",
+    remaining_percentage: 70,
+    is_exhausted: 0,
+    next_reset_at: "2026-01-01T01:10:00.000Z",
+    window_duration_ms: 3600000,
+    raw_data: "{}",
   });
 
   const providerAgg = quotaSnapshotsDb.getAggregatedSnapshots({

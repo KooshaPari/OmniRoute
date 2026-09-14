@@ -21,7 +21,7 @@
  *
  * Ported from decolua/9router PR #2328 (open-sse/executors/zed.js),
  * adapted to TypeScript + OmniRoute's BaseExecutor/translator conventions.
- * Like WindsurfExecutor, this overrides execute() entirely rather than
+ * Like DevinDesktopExecutor, this overrides execute() entirely rather than
  * using BaseExecutor's default Claude-Code-oriented pipeline, because the
  * Zed wire request/response shape (thread envelope, LLM-token exchange,
  * NDJSON status frames) doesn't fit the generic transformRequest/buildUrl
@@ -48,11 +48,21 @@ import { buildErrorBody } from "../utils/error.ts";
 import { hasUsefulStreamContent } from "../utils/streamReadiness.ts";
 import { resolveSuppressThinkClose, THINKING_MARKER_HEADER } from "../utils/thinkCloseMarker.ts";
 
+// Wire values for the `provider` field of POST /completions. These are NOT
+// display names: cloud.zed.dev matches them exactly, and an unrecognized value
+// fails the whole request with `500 {"message":"An internal server error
+// occurred."}` before the model is ever looked at — which is why every model id,
+// including invalid ones, produced an identical 500.
+//
+// The spellings come from Zed's own GET /models catalog, which reports
+// `anthropic`, `open_ai` and `google` (note the underscore); `x_ai` follows the
+// same convention. Feeding a catalog value back through normalizeZedProvider is
+// therefore identity, as it must be.
 const ZED_PROVIDER = {
-  anthropic: "Anthropic",
-  openai: "OpenAi",
-  google: "Google",
-  xai: "XAi",
+  anthropic: "anthropic",
+  openai: "open_ai",
+  google: "google",
+  xai: "x_ai",
 } as const;
 
 type ZedProviderName = (typeof ZED_PROVIDER)[keyof typeof ZED_PROVIDER];
@@ -173,7 +183,7 @@ function serializeSseObject(chunk: unknown): string {
 }
 
 function enqueueSseObject(
-  controller: ReadableStreamDefaultController<Uint8Array>,
+  controller: SseEnqueueTarget,
   encoder: TextEncoder,
   chunk: unknown
 ): void {
@@ -215,6 +225,25 @@ function normalizeStatus(status: unknown): Record<string, unknown> | null {
   return null;
 }
 
+/**
+ * Resolves `</think>` close-marker suppression from the incoming client
+ * headers / response format, extracted from `ZedHostedExecutor.execute` to
+ * keep that method's cyclomatic complexity under the project cap.
+ */
+function resolveZedSuppressThinkClose(
+  clientHeaders: ExecuteInput["clientHeaders"],
+  clientResponseFormat: ExecuteInput["clientResponseFormat"]
+): boolean {
+  return resolveSuppressThinkClose({
+    userAgent: clientHeaders?.["user-agent"] ?? clientHeaders?.["User-Agent"] ?? null,
+    thinkingMarkerHeader:
+      clientHeaders?.[THINKING_MARKER_HEADER] ??
+      clientHeaders?.["x-omniroute-thinking-marker"] ??
+      null,
+    clientResponseFormat: clientResponseFormat ?? null,
+  });
+}
+
 function wrapZedCompletionStream(
   response: Response,
   provider: ZedProviderName,
@@ -226,7 +255,12 @@ function wrapZedCompletionStream(
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
   const state = initProviderState(provider, model);
-  if (options?.suppressThinkClose) state.suppressThinkClose = true;
+  if (options?.suppressThinkClose) {
+    // Responses API clients (and UA/header-opted-out clients) must not see the
+    // textual `</think>` close marker — same policy chatCore applies (#4633 /
+    // #5245 / kimi-coding stray marker on /v1/responses).
+    state.suppressThinkClose = true;
+  }
   let buffer = "";
   let done = false;
   let providerOutputForwarded = false;
@@ -260,7 +294,7 @@ function wrapZedCompletionStream(
     providerOutputForwarded = true;
   };
 
-  const finish = (controller: ReadableStreamDefaultController<Uint8Array>) => {
+  const finish = (controller: SseEnqueueTarget) => {
     if (done) return;
     const finalChunk = convertProviderEvent(provider, null, state);
     const finalOutput = `${pendingProviderOutput}${serializeSseObject(finalChunk)}data: [DONE]\n\n`;
@@ -410,7 +444,16 @@ export class ZedHostedExecutor extends BaseExecutor {
     }
   }
 
-  async execute({ model, body, stream, credentials, signal, log, clientHeaders, clientResponseFormat }: ExecuteInput): Promise<{
+  async execute({
+    model,
+    body,
+    stream,
+    credentials,
+    signal,
+    log,
+    clientHeaders,
+    clientResponseFormat,
+  }: ExecuteInput): Promise<{
     response: Response;
     url: string;
     headers: Record<string, string>;
@@ -437,7 +480,8 @@ export class ZedHostedExecutor extends BaseExecutor {
           "Content-Type": "application/json",
           Accept: "application/x-ndjson, text/event-stream, */*",
           "User-Agent": `OmniRoute/zed-hosted`,
-          "x-zed-version": (this.config as Record<string, unknown>)?.appVersion?.toString() || "0.200.0",
+          "x-zed-version":
+            (this.config as Record<string, unknown>)?.appVersion?.toString() || "0.200.0",
           [ZED_HEADERS.clientSupportsStatus]: "true",
           [ZED_HEADERS.clientSupportsStreamEnded]: "true",
         },
@@ -445,12 +489,11 @@ export class ZedHostedExecutor extends BaseExecutor {
       },
     });
 
-    // Resolve marker suppression from client headers so live streams
-    // (not just test harnesses) honour the x-omniroute-thinking-marker flag.
-    const suppressThinkClose = resolveSuppressThinkClose({
-      thinkingMarkerHeader: clientHeaders?.[THINKING_MARKER_HEADER] ?? null,
-      clientResponseFormat: clientResponseFormat ?? null,
-    });
+    // The Anthropic backend converts Claude events to OpenAI chunks inside
+    // wrapZedCompletionStream, bypassing chatCore's marker policy — resolve
+    // `</think>` close-marker suppression here from the client format /
+    // headers (same policy as chatCore / GLM, #5245 / kimi-coding leak).
+    const suppressThinkClose = resolveZedSuppressThinkClose(clientHeaders, clientResponseFormat);
 
     const wrapped = response.ok
       ? wrapZedCompletionStream(response, provider, model, { suppressThinkClose })
@@ -474,7 +517,10 @@ export class ZedHostedExecutor extends BaseExecutor {
     const errorObj = (parsed?.error as Record<string, unknown>) || undefined;
     const code = (parsed?.code as string) || (errorObj?.code as string) || "";
     const rawMessage =
-      (parsed?.message as string) || (errorObj?.message as string) || bodyText || response.statusText;
+      (parsed?.message as string) ||
+      (errorObj?.message as string) ||
+      bodyText ||
+      response.statusText;
     if (code === "trial_blocked") {
       return {
         status: response.status,

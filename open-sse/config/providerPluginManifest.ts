@@ -1,12 +1,18 @@
 import type { RegistryEntry, RegistryModel } from "./providers/shared.ts";
+import { USAGE_FETCHER_PROVIDERS } from "../services/usage/fetcherProviders.ts";
+import { USAGE_SUPPORTED_PROVIDERS } from "../services/usage/supportedProviders.ts";
+import { hasFreeTierProvider } from "./freeTierProviders.ts";
 
 export type ProviderPluginCapability =
   | "apikey"
   | "custom-executor"
+  | "free-tier"
   | "oauth"
   | "passthrough-models"
   | "responses"
-  | "sidecar-candidate";
+  | "sidecar-candidate"
+  | "usage-fetch"
+  | "usage-supported";
 
 export interface ProviderPluginModel {
   id: string;
@@ -16,6 +22,7 @@ export interface ProviderPluginModel {
   toolCalling?: boolean;
   supportsReasoning?: boolean;
   supportsVision?: boolean;
+  supportsVideo?: boolean;
   unsupportedParams?: readonly string[];
   targetFormat?: string;
 }
@@ -56,9 +63,25 @@ export interface ProviderPluginManifest {
 
 const SIDECAR_COMPATIBLE_EXECUTORS = new Set(["default"]);
 
+/**
+ * Providers with a wired `getUsageForProvider` implementation (#11722). The list mixes
+ * canonical ids ("hyperagent") with aliases ("ha") because it is keyed by the strings the
+ * usage dispatcher accepts, so `capabilitiesFor` resolves an entry on both.
+ */
+const USAGE_FETCHER_PROVIDER_SET = new Set<string>(USAGE_FETCHER_PROVIDERS);
+
+/**
+ * Providers whose usage API is accepted by dashboard/server routes (#10078).
+ * Unlike USAGE_FETCHER_PROVIDERS this gate is checked with a plain
+ * `USAGE_SUPPORTED_PROVIDERS.includes(providerId)` — no alias resolution —
+ * so the manifest must emit on the identifier alone to stay faithful to the
+ * runtime guard.
+ */
+const USAGE_SUPPORTED_PROVIDER_SET = new Set<string>(USAGE_SUPPORTED_PROVIDERS);
+
 function compactObject<T extends Record<string, unknown>>(value: T): Partial<T> {
   return Object.fromEntries(
-    Object.entries(value).filter(([, entryValue]) => entryValue !== undefined),
+    Object.entries(value).filter(([, entryValue]) => entryValue !== undefined)
   ) as Partial<T>;
 }
 
@@ -71,6 +94,7 @@ function mapModel(model: RegistryModel): ProviderPluginModel {
     toolCalling: model.toolCalling,
     supportsReasoning: model.supportsReasoning,
     supportsVision: model.supportsVision,
+    supportsVideo: model.supportsVideo,
     unsupportedParams: model.unsupportedParams,
     targetFormat: model.targetFormat,
   }) as ProviderPluginModel;
@@ -125,12 +149,24 @@ function capabilitiesFor(entry: RegistryEntry, eligible: boolean): ProviderPlugi
   if (eligible) {
     capabilities.add("sidecar-candidate");
   }
+  if (
+    USAGE_FETCHER_PROVIDER_SET.has(entry.id) ||
+    (entry.alias !== undefined && USAGE_FETCHER_PROVIDER_SET.has(entry.alias))
+  ) {
+    capabilities.add("usage-fetch");
+  }
+  if (USAGE_SUPPORTED_PROVIDER_SET.has(entry.id)) {
+    capabilities.add("usage-supported");
+  }
+  if ([entry.id, entry.alias].some(hasFreeTierProvider)) {
+    capabilities.add("free-tier");
+  }
 
   return [...capabilities].sort();
 }
 
 export function createProviderPluginManifestEntry(
-  entry: RegistryEntry,
+  entry: RegistryEntry
 ): ProviderPluginManifestEntry {
   const sidecar = sidecarEligibility(entry);
 
@@ -163,7 +199,7 @@ export function createProviderPluginManifestEntry(
 }
 
 export function generateProviderPluginManifestFromRegistry(
-  registry: Record<string, RegistryEntry>,
+  registry: Record<string, RegistryEntry>
 ): ProviderPluginManifest {
   return {
     schemaVersion: 1,
@@ -174,13 +210,38 @@ export function generateProviderPluginManifestFromRegistry(
   };
 }
 
+/**
+ * Builds a `ProviderPluginManifestEntry` for an embedded-service backend (9router,
+ * cliproxyapi) from its `SERVICE_BACKEND_MANIFEST_TEMPLATE` entry (#7333 Phase 1).
+ *
+ * Additive only — NOT called by `generateProviderPluginManifestFromRegistry()`, so the
+ * static-registry manifest path (260+ providers) is byte-identical before/after this
+ * function's introduction. Not wired into any live request path in this PR; that is
+ * explicitly deferred to the cliproxyapi-migration follow-up.
+ *
+ * Service backends have no static model list of their own — their models come from
+ * `getServiceModels()` at runtime, so `models` is always `[]` here.
+ */
+export function createServiceBackendManifestEntry(
+  pluginId: string,
+  template: Pick<
+    ProviderPluginManifestEntry,
+    "format" | "executor" | "auth" | "endpoints" | "capabilities" | "passthroughModels" | "sidecar"
+  >
+): ProviderPluginManifestEntry {
+  return {
+    id: pluginId,
+    ...template,
+    models: [],
+  };
+}
+
 export function getProviderPluginManifestEntryFromRegistry(
   registry: Record<string, RegistryEntry>,
-  provider: string,
+  provider: string
 ): ProviderPluginManifestEntry | null {
   const entry =
-    registry[provider] ||
-    Object.values(registry).find((candidate) => candidate.alias === provider);
+    registry[provider] || Object.values(registry).find((candidate) => candidate.alias === provider);
 
   return entry ? createProviderPluginManifestEntry(entry) : null;
 }

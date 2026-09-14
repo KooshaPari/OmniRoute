@@ -32,6 +32,12 @@ export function buildRecoveryHint(
         next_step:
           "No active accounts are connected for this combo. Open /dashboard/providers, reconnect at least one, then retry.",
       };
+    case "quota_exhausted":
+      return {
+        action: "switch-combo",
+        next_step:
+          "Every target in this combo failed with a quota or account-balance exhaustion error. Top up the account/wallet or switch to a combo/provider with available quota — this will not recover on retry.",
+      };
     case "all_models_failed":
       return {
         action: "try-auto",
@@ -52,6 +58,12 @@ export function buildRecoveryHint(
         action: "switch-combo",
         next_step:
           "Strict context requirements removed every target (known context windows are below minContextWindow). Lower minContextWindow, switch contextFilterMode to lenient, or add larger-context models.",
+      };
+    case "all_targets_skipped":
+      return {
+        action: "switch-combo",
+        next_step:
+          "Every target was skipped before dispatch (capability pre-filter narrowed the pool and the remaining targets were all quota-exhausted/unavailable). Check the provider's quota in /dashboard/providers, reconnect or top up the account, or switch to a combo/model that has a healthy capability-matching target.",
       };
     default:
       return {

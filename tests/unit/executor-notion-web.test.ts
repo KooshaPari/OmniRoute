@@ -9,13 +9,15 @@ import assert from "node:assert/strict";
 const mod = await import("../../open-sse/executors/notion-web.ts");
 const { getModelsByProviderId } = await import("../../open-sse/config/providerModels.ts");
 const { WEB_COOKIE_PROVIDERS } = await import("../../src/shared/constants/providers/web-cookie.ts");
-const { __setTlsFetchOverrideForTesting } = await import(
-  "../../open-sse/services/notionTlsClient.ts"
-);
+const { __setTlsFetchOverrideForTesting, TlsClientUnavailableError } =
+  await import("../../open-sse/services/notionTlsClient.ts");
 
 /** Mock the Chrome-JA3 path used by sendNotionInferenceRequest (not global fetch). */
 function installNotionTlsMock(
-  handler: (url: string, opts: { headers?: Record<string, string>; body?: string }) => Promise<{
+  handler: (
+    url: string,
+    opts: { headers?: Record<string, string>; body?: string }
+  ) => Promise<{
     status: number;
     text: string;
   }>
@@ -48,11 +50,27 @@ describe("NotionWebExecutor — registry consistency", () => {
 
   it("registers a model catalog reachable via getModelsByProviderId", () => {
     const models = getModelsByProviderId("notion-web");
-    assert.ok(models.length >= 1);
-    assert.ok(models.some((m) => m.id === "notion-ai"));
-    // Seed catalog uses real web-picker labels (fable-5 / gpt-5.6-sol), not food codenames.
-    assert.ok(
-      models.some((m) => m.id === "fable-5" || m.id === "gpt-5.6-sol" || m.id === "opus-4.8")
+    assert.deepEqual(
+      models.map((m) => m.id),
+      [
+        "notion-ai",
+        "gpt-5.6-sol",
+        "gpt-5.6-terra",
+        "gpt-5.6-luna",
+        "gpt-5.4-mini",
+        "gpt-5.4-nano",
+        "gemini-3.7-flash",
+        "gemini-3.1-pro",
+        "fable-5",
+        "opus-5",
+        "sonnet-5",
+        "haiku-4.5",
+        "grok-4.6",
+        "kimi-k3",
+        "kimi-k2.7-code",
+        "deepseek-v4-pro",
+        "glm-5.2",
+      ]
     );
     assert.equal(
       models.some(
@@ -103,6 +121,7 @@ const COOKIE_WITH_SPACE = "token_v2=xyz; space_id=space-1; notion_user_id=user-1
 
 describe("NotionWebExecutor — upstream translation (mocked TLS fetch)", () => {
   it("posts createThread + config/context/user and returns a chat.completion", async () => {
+    mod.__resetNotionThreadSessionsForTests();
     const executor = new mod.NotionWebExecutor();
     let capturedUrl = "";
     let capturedHeaders: Record<string, string> = {};
@@ -372,6 +391,42 @@ describe("NotionWebExecutor — upstream translation (mocked TLS fetch)", () => 
     }
   });
 
+  it("fails closed without plain fetch when the binding is unavailable behind a proxy", async () => {
+    const executor = new mod.NotionWebExecutor();
+    const previousHttpsProxy = process.env.HTTPS_PROXY;
+    const previousFetch = globalThis.fetch;
+    let resolvedProxyUrl: string | undefined;
+    let plainFetchCalls = 0;
+    process.env.HTTPS_PROXY = "http://account-proxy.test:8080";
+    __setTlsFetchOverrideForTesting(async (_url, options) => {
+      resolvedProxyUrl = options.proxyUrl;
+      throw new TlsClientUnavailableError("native binding unavailable");
+    });
+    globalThis.fetch = (async () => {
+      plainFetchCalls += 1;
+      return new Response("plain fallback must not run", { status: 200 });
+    }) as typeof fetch;
+
+    try {
+      const result = await executor.execute({
+        model: "notion-ai",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: COOKIE_WITH_SPACE },
+        signal: null,
+      } as never);
+
+      assert.equal(result.response.status, 502);
+      assert.equal(resolvedProxyUrl, "http://account-proxy.test:8080");
+      assert.equal(plainFetchCalls, 0, "plain fetch would bypass the resolved proxy");
+    } finally {
+      __setTlsFetchOverrideForTesting(null);
+      globalThis.fetch = previousFetch;
+      if (previousHttpsProxy === undefined) delete process.env.HTTPS_PROXY;
+      else process.env.HTTPS_PROXY = previousHttpsProxy;
+    }
+  });
+
   it("surfaces nested patch-start temporarily-unavailable as a typed error (not empty-body 502)", async () => {
     const executor = new mod.NotionWebExecutor();
     const restore = installNotionTlsMock(async () => ({
@@ -512,9 +567,7 @@ describe("buildNotionTranscript", () => {
         },
         {
           role: "user",
-          content: [
-            { type: "text", text: "find icon skill" },
-          ] as unknown as string,
+          content: [{ type: "text", text: "find icon skill" }] as unknown as string,
         },
       ],
       { spaceId: "s1" }

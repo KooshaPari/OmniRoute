@@ -23,7 +23,7 @@ test("goldenSnapshot writes on first run then matches", (t) => {
   assert.throws(() => goldenSnapshot("selftest/sample", { a: 1, b: 3 }, tmpDir));
 
   // Cleanup
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("goldenSnapshot first-run (no UPDATE_GOLDEN) writes and passes", () => {
@@ -36,6 +36,6 @@ test("goldenSnapshot first-run (no UPDATE_GOLDEN) writes and passes", () => {
     // File exists: different value should throw
     assert.throws(() => goldenSnapshot("test/value", { x: 99 }, td));
   } finally {
-    fs.rmSync(td, { recursive: true, force: true });
+    fs.rmSync(td, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

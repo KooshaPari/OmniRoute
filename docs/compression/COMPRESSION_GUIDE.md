@@ -146,6 +146,26 @@ That `78-95%` number applies when both RTK and Caveman can reduce the same input
 Caveman response output mode is separate: when enabled, use Caveman's own output savings (`65%`
 average, `~75%` headline, `22-87%` range). Total billing savings depend on your prompt/output mix.
 
+### What "eligible" actually means
+
+The 15-95% headline range is real, but it only applies to **redundant or verbose** content — repeated
+error lines, a build log that spams the same warning, an oversized `grep`/file-read dump. It does
+**not** mean every request saves that much.
+
+Verified empirically (`tests/unit/compression/stacked-compression-tool-result-savings.test.ts`): a
+`stacked` (RTK + Caveman) run against an Anthropic-shape `tool_result` block containing 300 identical
+error lines produced **95.93% token savings / 96.26% character savings** — squarely in the advertised
+range. But the same pipeline run against normal, non-redundant tool output (a clean `grep` match list,
+a short file read, ordinary conversational text) correctly produces **near-zero savings**, because
+there is nothing repetitive to remove and `validateCompression()` (`validation.ts`) refuses to ship a
+rewrite that would drop or alter code blocks, URLs, headings, versions, or ALL-CAPS constant identifiers.
+
+This is expected, safe behavior, not a bug: a coding session that mostly reads/greps clean files will
+see modest total savings even with compression fully enabled, while a session that hits a failing
+loop or a chatty linter will see the full 78-95% range on that traffic. Don't use a single session's
+low aggregate savings percentage as evidence compression is misconfigured — check whether the
+underlying tool output was actually redundant first.
+
 ---
 
 ## Token Savings Visualization
@@ -179,12 +199,12 @@ In `Dashboard → Context & Cache → Compression Combos`, assign a compression 
 combo:
 
 ```txt
-Combo: "free-forever"
+Combo: "free-tier-fallback"
   Compression Combo: "coding-agent-stack"
   Pipeline: RTK -> Caveman
   Targets:
-    1. if/kimi-k2-thinking
-    2. qw/qwen3-coder-plus
+    1. if/kimi-k2.7-code
+    2. if/qwen3.8-max-preview
 ```
 
 This lets you use stacked compression on free/coding providers while keeping lite mode on paid
@@ -283,12 +303,13 @@ Every compressed request includes stats in the server logs:
 
 ## Phase Roadmap
 
-| Phase   | Modes                                                                | Status     |
-| ------- | -------------------------------------------------------------------- | ---------- |
-| Phase 1 | Off, Lite                                                            | ✅ Shipped |
-| Phase 2 | Standard, Aggressive, Ultra                                          | ✅ Shipped |
-| Phase 3 | RTK, Stacked, Compression Combos                                     | ✅ Shipped |
-| Phase 4 | Output Styles, SLM-tier Ultra, adaptive context-budget, eval harness | ✅ Shipped |
+| Phase    | Modes                                                                                                        | Status                                                                 |
+| -------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| Phase 1  | Off, Lite                                                                                                    | ✅ Shipped                                                             |
+| Phase 2  | Standard, Aggressive, Ultra                                                                                  | ✅ Shipped                                                             |
+| Phase 3  | RTK, Stacked, Compression Combos                                                                             | ✅ Shipped                                                             |
+| Phase 4  | Output Styles, SLM-tier Ultra, eval harness                                                                  | ✅ Shipped                                                             |
+| Phase 4C | Adaptive context-budget ("dial") — compute engine + API (`contextBudget` on `PUT /api/settings/compression`) + dashboard mode/policy controls | ✅ Shipped |
 
 ---
 
@@ -424,6 +445,64 @@ Caveman output mode is **opt-in** — set it via the combo config:
   }
 }
 ```
+
+### Output Styles (catalog)
+
+Caveman output mode above is the **legacy single-style path**. Phase 4 generalized it
+into a catalog of composable output styles: `OUTPUT_STYLE_CATALOG` in
+`open-sse/services/compression/outputStyles/catalog.ts`. Each style is a system-prompt
+instruction that makes the model itself produce cheaper output; styles can be enabled
+together and are injected in catalog order.
+
+| Style | `id` | What it does | Instruction languages |
+| --- | --- | --- | --- |
+| Terse prose | `terse-prose` | Drop filler/articles/hedging; keep technical substance exact. Same text as the legacy caveman output mode (referenced, not re-typed). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Less code | `less-code` | YAGNI ladder: smallest working change, no unrequested abstractions. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Ponytail (lazy senior dev) | `ponytail` | "The best code is the code never written": reuse > rewrite, root cause > symptom, shortest working diff. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| I have ADHD (action-first) | `i-have-adhd` | Action first (command/path/snippet before prose), numbered bounded steps, ONE concrete next step, no preamble/recap/closers. Adapted from [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
+| Terse CJK (文言) | `terse-cjk` | Classical-Chinese ultra-terse style. | zh (locale-gated: only offered when the resolved language is `zh`) |
+
+Every style ships three intensity levels — `lite`, `full`, `ultra` — and every level
+ends with the shared boundaries clause, which keeps code blocks, file paths, commands,
+error strings, URLs and identifiers verbatim.
+
+#### How injection works
+
+`applyOutputStyles()` (`open-sse/services/compression/outputStyles/apply.ts`) resolves
+the selection against the catalog (unknown ids and locale-mismatched styles are
+dropped, never an error), concatenates the selected instructions in catalog order,
+appends the boundaries clause **once**, and front-loads the result into the system
+prompt behind a single idempotency marker (`[OmniRoute Output Styles]`) — re-applying
+is a no-op. When the detected request language has a translation, the localized
+instruction is injected instead of English.
+
+#### How to enable
+
+In the dashboard: **Context → Settings → Compression** — one row per style with an
+on/off toggle and a level selector. Programmatically, the compression config persists
+the selection as:
+
+```json
+{
+  "outputStyles": [
+    { "id": "i-have-adhd", "level": "full" },
+    { "id": "less-code", "level": "lite" }
+  ]
+}
+```
+
+Back-compat: the legacy `outputMode: "caveman"` combo setting still works and maps to
+`terse-prose`, byte-identical to the old injection in every legacy language.
+
+Language selection: with `languageConfig.enabled` on, `autoDetect` picks the
+language of the latest user message (same detector as the input engines);
+turning `autoDetect` off pins `defaultLanguage`. Off → English.
+
+The style × language matrix is pinned by
+`tests/unit/compression/output-styles-i18n-matrix.test.ts`: a new style cannot ship
+without at least a pt-BR translation (or an explicit tracked exception), and an
+existing style cannot silently lose a locale. To add a style, see
+[EXTENDING_COMPRESSION.md](./EXTENDING_COMPRESSION.md#adding-an-output-style).
 
 ### Tool Result Compression
 

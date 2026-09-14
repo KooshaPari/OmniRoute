@@ -37,10 +37,12 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const { getResolvedModelCapabilities } = await import("../../src/lib/modelCapabilities.ts");
 const { filterTargetsByRequestCompatibility } = await import("../../open-sse/services/combo.ts");
+const { deriveRequestCompatibilityRequirements, hasHardCapabilityFailure } =
+  await import("../../open-sse/services/combo/comboStructure.ts");
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // --- Part A: capability resolution -----------------------------------------
@@ -98,6 +100,28 @@ test("image request: combo drops the non-vision target, keeps the vision target"
   const ids = out.map((t) => t.modelStr);
   assert.ok(ids.includes("mistral/pixtral-12b-latest"), "vision target must be kept");
   assert.ok(!ids.includes("mistral/ministral-14b-latest"), "non-vision target must be dropped");
+});
+
+test("nested case-insensitive image indicators still enforce hard vision compatibility", () => {
+  const requirements = deriveRequestCompatibilityRequirements({
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            payload: {
+              type: "IMAGE_URL",
+              image_url: { url: "data:image/png;base64,iVBOR" },
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  assert.equal(requirements.requiresVision, true);
+  assert.equal(hasHardCapabilityFailure(["vision"]), true);
+  assert.equal(hasHardCapabilityFailure(["context_window"]), false);
 });
 
 test(

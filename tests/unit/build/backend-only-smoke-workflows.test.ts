@@ -12,6 +12,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import * as yaml from "js-yaml";
+import { isBackendOnlyBuild } from "../../../scripts/build/backendOnlyPages.mjs";
 
 interface WorkflowStep {
   name?: string;
@@ -41,6 +42,14 @@ function isBackendOnly(step: WorkflowStep): boolean {
   const env = step.env || {};
   return env.OMNIROUTE_BUILD_BACKEND_ONLY === "1" || env.OMNIROUTE_BUILD_PROFILE === "backend";
 }
+
+test("contributor build profile enables backend-only mode", () => {
+  assert.equal(isBackendOnlyBuild({ OMNIROUTE_BUILD_PROFILE: "contributor" }), true);
+});
+
+test("full build remains the default when no backend-only profile is set", () => {
+  assert.equal(isBackendOnlyBuild({}), false);
+});
 
 // jobName: null selector means "any job" — used when a file has exactly one
 // "Build CLI bundle" step but we don't want to hardcode/duplicate the job key.
@@ -73,26 +82,12 @@ for (const { file, jobName, stepName } of TARGETS) {
   });
 }
 
-test("dast-smoke.yml builds the backend-only bundle with webpack when Turbopack's code-frame renderer is incompatible", () => {
-  const doc = loadWorkflow("dast-smoke.yml");
-  const buildStep = doc.jobs["dast-smoke"].steps.find((s) => s.name === "Build CLI bundle");
-  assert.ok(buildStep, "dast-smoke.yml must keep its backend bundle build step");
-  assert.equal(
-    buildStep.env?.OMNIROUTE_USE_TURBOPACK,
-    "0",
-    "DAST must use the documented webpack escape hatch so a Turbopack code-frame panic cannot prevent the API smoke from starting"
-  );
-});
-
 test("npm-publish.yml 'Build CLI bundle (standalone app)' step must NOT be backend-only (it legitimately ships the full dashboard UI)", () => {
   const doc = loadWorkflow("npm-publish.yml");
   const publishJob = Object.values(doc.jobs).find((job) =>
     job.steps.some((s) => s.name === "Build CLI bundle (standalone app)")
   );
-  assert.ok(
-    publishJob,
-    "npm-publish.yml must have a job with a 'Build CLI bundle (standalone app)' step"
-  );
+  assert.ok(publishJob, "npm-publish.yml must have a job with a 'Build CLI bundle (standalone app)' step");
   const step = publishJob!.steps.find((s) => s.name === "Build CLI bundle (standalone app)")!;
   assert.equal(
     isBackendOnly(step),

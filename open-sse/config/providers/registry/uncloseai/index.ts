@@ -6,6 +6,7 @@ export const uncloseaiProvider: RegistryEntry = {
   format: "openai",
   executor: "default",
   baseUrl: "https://hermes.ai.unturf.com/v1/chat/completions",
+  modelsUrl: "https://hermes.ai.unturf.com/v1/models",
   authType: "optional",
   authHeader: "bearer",
   models: [

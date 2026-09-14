@@ -18,6 +18,8 @@ test("classifies each credential model from the real registries", () => {
   assert.equal(getCredentialRequirement("kilocode"), "optional");
   // Verified live 2026-07-20: answers with no Authorization header, 403s on a bad key.
   assert.equal(getCredentialRequirement("ovhcloud"), "optional");
+  // Verified live 2026-08-11: HTTP 200 with no Authorization header (#10068).
+  assert.equal(getCredentialRequirement("kilo-gateway"), "optional");
   // OAuth: nothing to paste, but the user still signs in.
   assert.equal(getCredentialRequirement("agy"), "oauth");
   // Ordinary key-gated provider.
@@ -67,7 +69,7 @@ test("providers that reject anonymous calls are never advertised as key-free", (
   // freeType: "keyless" in the catalog (meaning "not token-quantifiable"), so a
   // UI section built on that field would invite users to call providers that
   // reject them. This is the regression guard for that bug.
-  for (const id of ["blackbox", "friendliai", "iflytek", "sparkdesk", "puter", "muse-spark-web"]) {
+  for (const id of ["blackbox", "friendliai", "iflytek", "sparkdesk", "muse-spark-web"]) {
     assert.equal(
       worksWithoutCredential(getCredentialRequirement(id)),
       false,

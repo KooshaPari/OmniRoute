@@ -1,5 +1,5 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
-import { getFile, getFileContent } from "@/lib/localDb";
+import { getFile, getFileContent } from "@/lib/db/files";
 import { NextResponse } from "next/server";
 import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
 

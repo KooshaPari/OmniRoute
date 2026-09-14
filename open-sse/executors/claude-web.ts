@@ -6,29 +6,26 @@
  * provenance, prepares one turn, selects a transport, and commits state only
  * after the strict stream parser observes message_stop.
  */
+import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
+
 import { CLAUDE_WEB_FINGERPRINT } from "../config/claudeWebFingerprint.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { tlsFetchClaude } from "../services/claudeTlsClient.ts";
-import { getCfClearanceToken } from "../services/claudeTurnstileSolver.ts";
-import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
-import { randomUUID } from "crypto";
 import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
-import { tryBackedChat } from "../services/browserBackedChat.ts";
-import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "./base.ts";
 import {
-  type ClaudeWebRequestPayload,
-  validateClaudeWebRequest,
-  transformToClaude,
-  transformFromClaude,
-} from "./claude-web/payload.ts";
+  BaseExecutor,
+  mergeAbortSignals,
+  type ExecuteInput,
+  type ExecutorLog,
+  type ProviderCredentials,
+} from "./base.ts";
 import {
   applyClaudeWebBrowserTemplate,
   sendClaudeWebBrowser,
   type ClaudeWebTransportRequest,
   type ClaudeWebTransportResult,
 } from "./claude-web/browserTransport.ts";
-import { isClaudeWebChallenge, sendClaudeWebDirect } from "./claude-web/transport.ts";
-import type { ProviderCredentials } from "./base.ts";
+import type { ClaudeWebRequestPayload } from "./claude-web/payload.ts";
 import {
   commitClaudeWebTurn,
   invalidateClaudeWebTurn,
@@ -36,11 +33,10 @@ import {
   type PreparedClaudeWebTurn,
 } from "./claude-web/session.ts";
 import { createClaudeWebResponse } from "./claude-web/stream.ts";
+import { isClaudeWebChallenge, sendClaudeWebDirect } from "./claude-web/transport.ts";
 
 const CLAUDE_WEB_API_BASE = "https://claude.ai/api";
 const CLAUDE_WEB_ORGS_URL = `${CLAUDE_WEB_API_BASE}/organizations`;
-
-// Session cookie constants
 const CLAUDE_SESSION_COOKIE_NAME = "sessionKey";
 const MAX_ERROR_BODY_BYTES = 64 * 1024;
 const CLAUDE_USER_AGENT = CLAUDE_WEB_FINGERPRINT.userAgent;
@@ -72,12 +68,10 @@ function readCredentialString(credentials: unknown, key: string): string | undef
   return undefined;
 }
 
-// ─── Helper Functions ───────────────────────────────────────────────────────
-
 function readClaudeWebCookie(credentials: unknown): string {
-  return (
-    readCredentialString(credentials, "cookie") ?? readCredentialString(credentials, "apiKey") ?? ""
-  );
+  const direct = readCredentialString(credentials, "cookie");
+  if (direct) return direct;
+  return readCredentialString(credentials, "apiKey") ?? "";
 }
 
 function readClaudeWebDeviceId(credentials: unknown): string | undefined {
@@ -106,8 +100,8 @@ function getBrowserHeaders(
     Origin: "https://claude.ai",
     Pragma: "no-cache",
     Priority: "u=1, i",
-    Referer: "https://claude.ai/new",
-    "Sec-Ch-Ua": '"Chromium";v="149", "Not-A.Brand";v="24", "Google Chrome";v="149"',
+    Referer: referer,
+    "Sec-Ch-Ua": CLAUDE_WEB_FINGERPRINT.secChUa,
     "Sec-Ch-Ua-Mobile": "?0",
     "Sec-Ch-Ua-Platform": CLAUDE_WEB_FINGERPRINT.secChUaPlatform,
     "Sec-Fetch-Dest": "empty",
@@ -125,12 +119,6 @@ function combineWithTimeout(signal?: AbortSignal | null): AbortSignal {
   return signal ? mergeAbortSignals(signal, timeoutSignal) : timeoutSignal;
 }
 
-/**
- * Verify session is still valid by checking if the organizations endpoint
- * returns a successful response. Claude's API does not have a /api/auth/session
- * endpoint (unlike ChatGPT), so we use /api/organizations which requires a
- * valid session cookie and returns 200 only with valid credentials.
- */
 async function verifyCookieValidity(
   cookieHeader: string,
   deviceId: string | undefined,
@@ -225,14 +213,22 @@ function makeErrorResponse(
     details?: unknown;
     type?: string;
     code?: string;
+    extraHeaders?: Record<string, string>;
   }
 ): Response {
-  const body = buildErrorBody(status, message, options?.details);
-  if (options?.type) body.error.type = options.type;
-  if (options?.code) body.error.code = options.code;
+  const body = buildErrorBody(status, message, options?.details, {
+    type: options?.type,
+    code: options?.code,
+  });
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (options?.extraHeaders) {
+    for (const [key, value] of Object.entries(options.extraHeaders)) {
+      headers[key] = value;
+    }
+  }
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers,
   });
 }
 
@@ -314,7 +310,12 @@ async function errorResponseForTransport(
     return makeErrorResponse(401, "Session expired or invalid");
   }
   if (result.status === 429) {
-    return makeErrorResponse(429, "Rate limited by Claude Web API");
+    const extraHeaders: Record<string, string> = {};
+    const upstreamRetryAfter = result.headers.get("retry-after");
+    if (upstreamRetryAfter) {
+      extraHeaders["Retry-After"] = upstreamRetryAfter;
+    }
+    return makeErrorResponse(429, "Rate limited by Claude Web API", { extraHeaders });
   }
   if (isClaudeWebChallenge({ ...result, bodyText })) {
     return makeErrorResponse(403, "Claude Web returned a Cloudflare browser challenge", {

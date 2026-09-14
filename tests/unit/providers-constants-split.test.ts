@@ -1,7 +1,7 @@
 // Characterization of the providers.ts catalog split (god-file decomposition): the host became a
 // barrel that re-exports 10 data catalogs now living under constants/providers/*, and APIKEY is
 // merged from 6 semantic family files (apikey/<family>.ts). Locks: the public surface (every catalog
-// + helpers still exported), the spread-merge integrity (159 APIKEY entries, no loss/dup), and that
+// + helpers still exported), the spread-merge integrity (198 APIKEY entries, no loss/dup), and that
 // load-time Zod validation still runs. Pure-data move → behavior must be identical.
 // Count was 171 before obsolete provider removals (PR #6675: glhf/kluster/cablyai/inclusionai etc.,
 // 171->167) plus #6126 (ClinePass dual-auth): the API-key-only APIKEY_PROVIDERS_GATEWAYS entry was
@@ -16,7 +16,24 @@
 // internlm/ant-ling, all regional) to 190, then #8161 (sarvam/writer/plamo — writer in frontier-labs,
 // sarvam+plamo in regional) to 193, then #8170 (inception/typhoon — inception in frontier-labs,
 // typhoon in regional) to 195, then Firecrawl dual search+fetch under SEARCH_PROVIDERS.firecrawl
-// (removed specialty-media duplicate) to 194, and #8861 (Xiaomi MiMo Token Plan, regional) to 195.
+// (removed specialty-media duplicate) to 194, #8861 (Xiaomi MiMo Token Plan, regional) to 195, and
+// the Cheaper Inference gateway (OSS-sponsor reseller, gateways family) to 198 (UnoRouter #9009),
+// then later additions to 199; retiring GitHub Models brings it to 198.
+// The v3.8.50 free-tier gateway waves (#9631 registry cycle, waves 2-5, #9210 phase 3) grew the
+// gateways family to 228 measured on the tip; Puter retired (#10210) and chatanywhere restored
+// (base-reds round 3, #9985) are both included in that measurement; Cursor API (specialty-media,
+// #10729) brings it to 229; Token Kiosk (gateways, #10722) — merged in the same
+// merge-train batch — independently bumped the gateways family too, landing at 231; Freebuff
+// (gateways, #10531) brings it to 232. #8864 moves uncloseai (gateways family) into
+// NOAUTH_PROVIDERS, dropping the APIKEY_PROVIDERS count to 231. Logfare (gateways, #10987) brings it back to 232.
+// #11176 removes hackclub (gateways family), landing at 231.
+// The v3.8.50 back-merge (f95b03d) adds Synthetic (specialty-media) and
+// Kilo Gateway (gateways); #11434 adds volcengine-agent-plan and
+// volcengine-coding-plan (regional family) — both land at 233.
+// release/v3.8.51 adds Opper (gateways, #11629) and 1min.ai (gateways, #11631) — lands at 235;
+// Perplexity Agent API (#12103) makes it 236;
+// UC Direct (#11513, uncensored.com metered Developer API) adds one frontier-labs entry — 237;
+// SeekAi (#11786, QuantumNous New-API gateway) adds one gateways entry — 238.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
@@ -45,12 +62,12 @@ test("barrel still exports every catalog + key helpers", () => {
   }
 });
 
-test("APIKEY_PROVIDERS merges the 6 family files into 160 entries (no loss / no dup)", async () => {
+test("APIKEY_PROVIDERS merges the 6 family files into 238 entries (no loss / no dup)", async () => {
   const keys = Object.keys((P as Record<string, object>).APIKEY_PROVIDERS);
-  assert.equal(keys.length, 160);
-  assert.equal(new Set(keys).size, 160, "duplicate keys after spread-merge");
+  assert.equal(keys.length, 238);
+  assert.equal(new Set(keys).size, 238, "duplicate keys after spread-merge");
   // the merged object's entry-count equals the sum of the 6 semantic family files; families are a
-  // strict partition (every provider in exactly one), so the sum must be exactly 160.
+  // strict partition (every provider in exactly one), so the sum must be exactly 238.
   const families: [string, string][] = [
     ["gateways", "APIKEY_PROVIDERS_GATEWAYS"],
     ["frontier-labs", "APIKEY_PROVIDERS_FRONTIER"],
@@ -70,7 +87,7 @@ test("APIKEY_PROVIDERS merges the 6 family files into 160 entries (no loss / no 
       seen.add(k);
     }
   }
-  assert.equal(famTotal, 160, "families must partition all 160 providers");
+  assert.equal(famTotal, 238, "families must partition all 238 providers");
 });
 
 test("AI_PROVIDERS Proxy aggregates all sections; lookups resolve", () => {

@@ -11,6 +11,7 @@ import {
   isForbiddenCustomHeaderName,
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
+import { AUTO_DISABLE_BANNED_SCOPES } from "@/shared/utils/autoDisableBanned";
 
 // Single source of truth: ../settingsSchemas (the schema the runtime settings route validates
 // against). Re-exported here so this modular barrel stays in exact lockstep — a divergent local
@@ -31,6 +32,7 @@ export const legacyResilienceDefaultsSchema = z
     requestsPerMinute: z.number().int().min(1).optional(),
     minTimeBetweenRequests: z.number().int().min(0).optional(),
     concurrentRequests: z.number().int().min(1).optional(),
+    globalConcurrentRequests: z.number().int().min(0).max(100_000).optional(),
   })
   .strict();
 
@@ -41,6 +43,7 @@ export const requestQueueSettingsSchema = z
     minTimeBetweenRequestsMs: z.number().int().min(0).optional(),
     concurrentRequests: z.number().int().min(1).optional(),
     maxWaitMs: z.number().int().min(1).optional(),
+    executionMaxWaitMs: z.number().int().min(1).optional(),
     maxQueueDepth: z.number().int().min(0).max(100_000).optional(),
   })
   .strict();
@@ -108,6 +111,25 @@ export const quotaShareConcurrencyLimitSettingsSchema = z
   })
   .strict();
 
+// Quota preflight cutoff (auth-level account skipping). Thresholds use
+// "minimum remaining %" semantics to match the dashboard's quota bars, and the
+// per-(provider, window) defaults override the global default per window.
+// Values clamp/coerce in normalizeQuotaPreflightSettings — this schema only
+// bounds the wire shape.
+export const quotaPreflightSettingsSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    defaultThresholdPercent: z.number().int().min(0).max(99).optional(),
+    warnThresholdPercent: z.number().int().min(0).max(100).optional(),
+    providerWindowDefaults: z
+      .record(
+        z.string().min(1),
+        z.record(z.string().min(1), z.number().int().min(0).max(100))
+      )
+      .optional(),
+  })
+  .strict();
+
 export const providerCooldownSettingsSchema = z
   .object({
     enabled: z.boolean().optional(),
@@ -128,6 +150,14 @@ export const providerCooldownSettingsSchema = z
       });
     }
   });
+
+// Global default cadence (minutes) for the background credential health check
+// sweep. 0 = disabled; 1440 = 24 hours. Per-connection overrides win.
+export const credentialHealthCheckSettingsSchema = z
+  .object({
+    intervalMinutes: z.number().int().min(0).max(1440).optional(),
+  })
+  .strict();
 
 export const updateResilienceSchema = z
   .object({
@@ -150,6 +180,10 @@ export const updateResilienceSchema = z
     comboCooldownWait: comboCooldownWaitSettingsSchema.optional(),
     quotaShareConcurrencyLimit: quotaShareConcurrencyLimitSettingsSchema.optional(),
     providerCooldown: providerCooldownSettingsSchema.optional(),
+    // Quota preflight cutoff (auth-level account skipping) — surfaced in the
+    // Settings → Routing UI. Mirrors QuotaPreflightSettings in
+    // src/lib/resilience/settings/types.ts.
+    quotaPreflight: quotaPreflightSettingsSchema.optional(),
     profiles: z
       .object({
         oauth: legacyResilienceProfileSchema.optional(),
@@ -158,6 +192,23 @@ export const updateResilienceSchema = z
       .strict()
       .optional(),
     defaults: legacyResilienceDefaultsSchema.optional(),
+    // #6846 Phase 2: per-provider operator overrides for the header-less
+    // "provider default" static budget (open-sse/services/providerDefaultRateLimit.ts)
+    // and its companion per-connection concurrency cap. Mirrors
+    // ProviderQuotaOverrideSettings in src/lib/resilience/settings/types.ts.
+    providerQuotaOverrides: z
+      .record(
+        z.string().min(1),
+        z
+          .object({
+            rpm: z.number().int().min(1).optional(),
+            concurrency: z.number().int().min(1).optional(),
+            providerConcurrency: z.number().int().min(0).max(100_000).optional(),
+          })
+          .strict()
+      )
+      .optional(),
+    credentialHealthCheck: credentialHealthCheckSettingsSchema.optional(),
   })
   .strict()
   .superRefine((value, ctx) => {
@@ -169,8 +220,11 @@ export const updateResilienceSchema = z
       !value.comboCooldownWait &&
       !value.quotaShareConcurrencyLimit &&
       !value.providerCooldown &&
+      !value.quotaPreflight &&
       !value.profiles &&
-      !value.defaults
+      !value.defaults &&
+      !value.providerQuotaOverrides &&
+      !value.credentialHealthCheck
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -264,5 +318,6 @@ export const updateAutoDisableAccountsSchema = z
   .object({
     enabled: z.boolean(),
     threshold: z.number().int().min(1).max(10).optional(),
+    scope: z.enum(AUTO_DISABLE_BANNED_SCOPES).optional(),
   })
   .strict();

@@ -137,7 +137,6 @@ export const MODELS_DEV_PROVIDER_MAP: Record<string, string[]> = {
   // OAuth / special providers
   bedrock: ["kiro", "kr"], // kr = Kiro (AWS Bedrock)
   "github-copilot": ["github", "gh"],
-  "github-models": ["github", "gh"],
   kilo: ["kilocode", "kc", "kilo-gateway"],
   kilocode: ["kilocode", "kc", "kilo-gateway"],
   "kimi-for-coding": ["kimi-coding", "kmc", "kimi-coding-apikey", "kmca"],
@@ -166,7 +165,6 @@ export const MODELS_DEV_PROVIDER_MAP: Record<string, string[]> = {
   "minimax-cn": ["minimax-cn"],
   longcat: ["lc", "longcat"],
   pollinations: ["pol", "pollinations"],
-  puter: ["pu", "puter"],
   cloudflare: ["cf"],
   scaleway: ["scw"],
   ollama: ["ollamacloud", "ollama-cloud"],
@@ -243,14 +241,30 @@ export function transformModelsDevToCapabilities(raw: ModelsDevData): Capabiliti
     const omniRouteProviders = mapProviderId(providerId);
 
     for (const [modelId, model] of Object.entries(providerData.models || {})) {
+      const modalitiesInput = model.modalities?.input ?? [];
+      const modalitiesOutput = model.modalities?.output ?? [];
+      // #8250: models.dev can ship attachment=false while modalities.input still
+      // lists image/video (Kimi K3). Normalize at sync so persisted rows stay
+      // internally consistent before resolve-time reconciliation.
+      let attachment = model.attachment ?? null;
+      if (
+        attachment === false &&
+        [...modalitiesInput, ...modalitiesOutput].some((entry) => {
+          const lower = String(entry).toLowerCase();
+          return lower.includes("image") || lower.includes("video");
+        })
+      ) {
+        attachment = true;
+      }
+
       const cap: ModelCapabilityEntry = {
         tool_call: model.tool_call ?? null,
         reasoning: model.reasoning ?? null,
-        attachment: model.attachment ?? null,
+        attachment,
         structured_output: model.structured_output ?? null,
         temperature: model.temperature ?? null,
-        modalities_input: JSON.stringify(model.modalities?.input ?? []),
-        modalities_output: JSON.stringify(model.modalities?.output ?? []),
+        modalities_input: JSON.stringify(modalitiesInput),
+        modalities_output: JSON.stringify(modalitiesOutput),
         knowledge_cutoff: model.knowledge ?? null,
         release_date: model.release_date ?? null,
         last_updated: model.last_updated ?? null,

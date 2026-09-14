@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 // Split-guard for the claude-web executor payload extraction.
-// The pure payload types + transforms + default tools/style live in the leaf
+// The pure payload types + transforms + caller-tool/style helpers live in the leaf
 // claude-web/payload.ts (no host state, no fetch/auth). Host imports back the
 // symbols it uses (ClaudeWebRequestPayload, transformToClaude, transformFromClaude).
 const HERE = dirname(fileURLToPath(import.meta.url));

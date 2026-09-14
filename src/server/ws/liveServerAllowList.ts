@@ -20,6 +20,11 @@ export const DEFAULT_ALLOWED_ORIGINS: readonly string[] = Object.freeze([
   "http://127.0.0.1:20128",
   "http://localhost:20128",
   "http://[::1]:20128",
+  // 0.0.0.0 is the "unspecified" address but browsers treat it as loopback
+  // when the user pastes it into the address bar; the dashboard is reachable
+  // at http://0.0.0.0:20128 and its WS Origin is exactly that string. Same
+  // local-only posture as the entries above — it never refers to a LAN host.
+  "http://0.0.0.0:20128",
 ]);
 
 /**

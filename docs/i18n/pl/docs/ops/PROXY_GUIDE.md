@@ -79,8 +79,6 @@ Nawet poza zablokowanymi regionami proxy są przydatne do:
 | **Settings Route**   | `src/app/api/settings/proxy/route.ts`        | Legacy API konfiguracji proxy (GET/PUT/DELETE)         |
 | **Management Route** | `src/app/api/v1/management/proxies/route.ts` | Registry CRUD API (GET/POST/PATCH/DELETE)              |
 | **1proxy DB**        | `src/lib/db/oneproxy.ts`                     | Trwałość darmowego marketplace proxy                   |
-| **1proxy Sync**      | `src/lib/oneproxySync.ts`                    | Pobiera proxy z API 1proxy                             |
-| **1proxy Rotator**   | `src/lib/oneproxyRotator.ts`                 | Strategie rotacji (quality/random/sequential)          |
 
 ---
 
@@ -505,13 +503,9 @@ Aby wystawić instancję OmniRoute do publicznego internetu (Cloudflare/ngrok/Ta
 
 ## Zmienne środowiskowe
 
-| Zmienna                          | Domyślna                              | Opis                                                      |
-| -------------------------------- | ------------------------------------- | --------------------------------------------------------- |
-| `ENABLE_SOCKS5_PROXY`            | `true`                                | Włącza obsługę SOCKS5 (domyślnie `true` w `.env.example`) |
-| `ONEPROXY_ENABLED`               | `true`                                | Włącza integrację 1proxy                                  |
-| `ONEPROXY_API_URL`               | `https://1proxy-api.aitradepulse.com` | Endpoint API 1proxy                                       |
-| `ONEPROXY_MAX_PROXIES`           | `500`                                 | Maks. liczba proxy do synchronizacji                      |
-| `ONEPROXY_MIN_QUALITY_THRESHOLD` | `50`                                  | Minimalny quality score do importu                        |
+| Zmienna               | Domyślna | Opis                                                      |
+| --------------------- | -------- | --------------------------------------------------------- |
+| `ENABLE_SOCKS5_PROXY` | `true`   | Włącza obsługę SOCKS5 (domyślnie `true` w `.env.example`) |
 
 ---
 
@@ -645,7 +639,7 @@ for (const s of statuses) {
 }
 
 // Force re-check a specific proxy
-invalidateProxyHealth("http://user:pass@1.2.3.4:8080");
+invalidateProxyHealth("http://user:pass@203.0.113.7:8080");
 ```
 
 Flaga `stale` jest `true`, gdy wpis cache przekroczył `HEALTH_CACHE_TTL_MS` i następne żądanie wywoła świeży check.
@@ -771,49 +765,6 @@ Use `random`
 (spread load
 evenly)
 ```
-
-### Konfiguracja strategii rotacji
-
-```ts
-import { rotateOneproxyProxy } from "omniroute/oneproxyRotator";
-
-// In a one-off script
-const proxy = await rotateOneproxyProxy({ strategy: "quality" });
-if (proxy) {
-  console.log(`Selected: ${proxy.host}:${proxy.port}, quality=${proxy.qualityScore}`);
-}
-```
-
-### Reset indeksu sequential
-
-Przy strategii `sequential` wewnętrzny indeks narasta. Aby zresetować:
-
-```ts
-import { resetSequentialIndex } from "omniroute/oneproxyRotator";
-
-resetSequentialIndex();
-```
-
-Przydatne gdy:
-
-- Restartujesz load test
-- Odzyskujesz się po awarii proxy (żeby nie cyklonować najpierw martwych)
-- Ręcznie rebalansujesz po dodaniu nowych proxy
-
-### Oznaczanie proxy jako failed
-
-Gdy proxy systematycznie pada, oznacz je ręcznie, by rotator je pomijał:
-
-```ts
-import { failOneproxyProxy } from "omniroute/oneproxyRotator";
-
-const removed = await failOneproxyProxy("1.2.3.4", 8080);
-if (removed) {
-  console.log("Proxy marked as failed; rotator will skip it");
-}
-```
-
-Proxy **nie jest usuwane** — jest oznaczane jako unhealthy i nie będzie wybierane do następnego udanego health check (przez `proxyHealth.ts`) lub ręcznego resetu.
 
 ---
 

@@ -2,7 +2,13 @@ import { randomUUID } from "node:crypto";
 import { parseModel } from "@omniroute/open-sse/services/model.ts";
 import { getModelInfo } from "@/sse/services/model";
 import { getModelAliases } from "@/lib/db/models";
-import { getResolvedModelCapabilities, isNonChatCatalogSurface } from "@/lib/modelCapabilities";
+import {
+  getResolvedModelCapabilities,
+  getResolvedModelContextOverride,
+  isNonChatCatalogSurface,
+} from "@/lib/modelCapabilities";
+import { getModelCapabilityOverride } from "@/lib/db/modelCapabilityOverrides";
+import type { ModelCapabilityResolutionSnapshot } from "@/lib/modelCapabilityResolutionSnapshot";
 import {
   getAuthoritativeContextWindow,
   getAuthoritativeProviderContextWindow,
@@ -11,8 +17,18 @@ import {
 } from "@/shared/constants/modelSpecs";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "@/shared/constants/models";
-import { getSyncStatus, getSyncedCapability } from "@/lib/modelsDevSync";
-import { CANONICAL_EFFORT_VALUES } from "@/shared/reasoning/effortStandardization";
+import {
+  getSyncStatus,
+  getSyncedCapability,
+  getModelsDevPricing,
+  type PricingByProvider,
+} from "@/lib/modelsDevSync";
+import { getSyncedPricing } from "@/lib/pricingSync";
+import { getPricingForModel as getDefaultPricingForModel } from "@/shared/constants/pricing";
+import {
+  CANONICAL_EFFORT_VALUES,
+  extendCodexGpt56EffortValues,
+} from "@/shared/reasoning/effortStandardization";
 
 const MODEL_METADATA_SCHEMA_VERSION = "model-metadata-v1";
 
@@ -21,6 +37,14 @@ export const MODEL_NOT_MAPPED = "MODEL_NOT_MAPPED";
 export const INTERNAL_PROXY_ERROR = "INTERNAL_PROXY_ERROR";
 
 type JsonRecord = Record<string, unknown>;
+
+export interface CatalogEnrichmentSnapshot {
+  modelsDevPricing: PricingByProvider | null;
+  providerNodeIdsByPrefix?: Readonly<Record<string, string>>;
+  /** #9147: build-local bulk load of synced capabilities + token/context overrides
+   * so per-entry enrichment never hits SQLite again (see catalogResponse.ts). */
+  capabilityResolutionSnapshot?: ModelCapabilityResolutionSnapshot | null;
+}
 
 interface CatalogDiagnosticsOptions {
   request?: Request | null;
@@ -40,6 +64,7 @@ export interface CanonicalModelMetadata {
     toolCalling: boolean;
     reasoning: boolean;
     supportsThinking: boolean | null;
+    supportedThinkingEfforts: readonly string[] | null;
     supportsTools: boolean | null;
     vision: boolean | null;
     attachment: boolean | null;
@@ -66,6 +91,7 @@ export interface CanonicalModelMetadata {
       providerRegistry: boolean;
       staticSpec: boolean;
       syncedCapability: boolean;
+      reasoningEffortsOverride: boolean;
     };
   };
   modalities: {
@@ -101,6 +127,11 @@ function uniqueStrings(values: Array<string | null | undefined>) {
   return [
     ...new Set(values.filter((value): value is string => Boolean(value && value.length > 0))),
   ];
+}
+
+export function isGlmFamilyModel(modelId: string, displayName = ""): boolean {
+  const glmFamilyPattern = /(?:^|[/@:_. -])glm(?=$|[-._ /@:](?:z)?\d|\d)/i;
+  return glmFamilyPattern.test(modelId) || glmFamilyPattern.test(displayName);
 }
 
 function toQualifiedId(
@@ -180,20 +211,27 @@ export function getCatalogDiagnosticsHeaders(
 export function getCanonicalModelMetadata(input: {
   provider?: string | null;
   model?: string | null;
+  snapshot?: ModelCapabilityResolutionSnapshot | null;
 }): CanonicalModelMetadata | null {
   const modelId = asNonEmptyString(input.model);
   if (!modelId) return null;
 
-  const resolved = getResolvedModelCapabilities({
-    provider: input.provider || null,
-    model: modelId,
-  });
+  const resolved = getResolvedModelCapabilities(
+    {
+      provider: input.provider || null,
+      model: modelId,
+    },
+    undefined,
+    input.snapshot || null
+  );
   const provider = resolved.provider;
   const providerAlias = provider ? PROVIDER_ID_TO_ALIAS[provider] || provider : null;
   const registryModel = getRegistryModel(providerAlias || provider, resolved.model || modelId);
   const staticSpec = getModelSpec(resolved.model || modelId);
   const syncedCapability =
-    provider && resolved.model ? getSyncedCapability(provider, resolved.model) : null;
+    provider && resolved.model
+      ? getSyncedCapability(provider, resolved.model, input.snapshot?.synced ?? null)
+      : null;
   const canonicalStaticAlias = resolveStaticModelAlias(resolved.model || modelId);
   const modalities = buildModalities(
     resolved.modalitiesInput,
@@ -218,6 +256,7 @@ export function getCanonicalModelMetadata(input: {
       toolCalling: resolved.toolCalling,
       reasoning: resolved.reasoning,
       supportsThinking: resolved.supportsThinking,
+      supportedThinkingEfforts: resolved.supportedThinkingEfforts,
       supportsTools: resolved.supportsTools,
       vision: resolved.supportsVision,
       attachment: resolved.attachment,
@@ -244,6 +283,7 @@ export function getCanonicalModelMetadata(input: {
         providerRegistry: Boolean(registryModel),
         staticSpec: Boolean(staticSpec),
         syncedCapability: Boolean(syncedCapability),
+        reasoningEffortsOverride: resolved.reasoningEffortsOverride,
       },
     },
     modalities: {
@@ -254,34 +294,94 @@ export function getCanonicalModelMetadata(input: {
   };
 }
 
+// #8697 second bottleneck (after getModelsDevPricing memoization above): findInsensitive
+// rebuilt a full Object.entries() scan on every miss, twice per model (provider lookup +
+// model lookup) — ~6091 models × ~180-210 entries ≈ 1.2-1.3M allocations per catalog
+// rebuild. Replaced with a lowercase-key index built once per distinct object and cached
+// by identity (WeakMap) — getModelsDevPricing() returns the same object reference while
+// its cache is warm, so the index is reused across every resolveCatalogPricing() call in
+// a rebuild instead of rebuilt per lookup.
+const lowercaseIndexCache = new WeakMap<object, Map<string, unknown>>();
+
+function findInsensitive<T>(obj: Record<string, T> | null | undefined, key: string): T | undefined {
+  if (!obj || !key) return undefined;
+  if (key in obj) return obj[key];
+  let index = lowercaseIndexCache.get(obj);
+  if (!index) {
+    index = new Map();
+    for (const [k, v] of Object.entries(obj)) {
+      const lowerKey = k.toLowerCase();
+      // Warn once at index-build time (not per-lookup) if two keys collide
+      // case-insensitively — a real data-quality signal from an upstream sync (e.g.
+      // models.dev returning both "OpenAI" and "openai" as distinct provider keys).
+      // Matches the pre-fix scan's silent first-match-wins behavior, just surfaced
+      // instead of swallowed.
+      if (index.has(lowerKey)) {
+        console.warn(
+          `[modelMetadataRegistry] findInsensitive: case-insensitive key collision on "${lowerKey}" — keeping first-seen value, later one discarded`
+        );
+        continue;
+      }
+      index.set(lowerKey, v);
+    }
+    lowercaseIndexCache.set(obj, index);
+  }
+  return index.get(key.toLowerCase()) as T | undefined;
+}
+
 function resolveCatalogPricing(
   provider: string | null,
-  model: string | null
+  model: string | null,
+  snapshot?: CatalogEnrichmentSnapshot
 ): Record<string, number> | null {
   if (!provider || !model) return null;
 
-  const findInsensitive = <T>(
-    obj: Record<string, T> | null | undefined,
-    key: string
-  ): T | undefined => {
-    if (!obj || !key) return undefined;
-    if (key in obj) return obj[key];
-    const lower = key.toLowerCase();
-    for (const [k, v] of Object.entries(obj)) {
-      if (k.toLowerCase() === lower) return v;
-    }
-    return undefined;
-  };
-
   // Prefer models.dev synced pricing when present; fall back to hardcoded defaults.
   try {
-    const modelsDev = getModelsDevPricing() as Record<
+    const modelsDev = (
+      snapshot ? snapshot.modelsDevPricing || {} : getModelsDevPricing()
+    ) as Record<string, Record<string, Record<string, number>>>;
+    const providerPricing =
+      findInsensitive(modelsDev, provider) ||
+      findInsensitive(modelsDev, provider.replace(/-cn$/, ""));
+    if (providerPricing) {
+      const modelPricing =
+        findInsensitive(providerPricing, model) ||
+        findInsensitive(providerPricing, model.replace(/\./g, "-")) ||
+        findInsensitive(
+          providerPricing,
+          model.includes("/") ? model.split("/").pop() || model : model
+        );
+      if (modelPricing && typeof modelPricing === "object") {
+        const input = modelPricing.input;
+        const output = modelPricing.output;
+        if (typeof input === "number" || typeof output === "number") {
+          const pricing: Record<string, number> = {};
+          if (typeof input === "number") pricing.input = input;
+          if (typeof output === "number") pricing.output = output;
+          if (typeof modelPricing.cached === "number") pricing.cached = modelPricing.cached;
+          if (typeof modelPricing.cache_creation === "number") {
+            pricing.cache_creation = modelPricing.cache_creation;
+          }
+          return pricing;
+        }
+      }
+    }
+  } catch {
+    // pricing lookup must never break catalog assembly
+  }
+
+  // LiteLLM-synced pricing (`pricing_synced` namespace) — Layer 3 in the
+  // documented resolution order (user > models.dev > LiteLLM > defaults).
+  // Consulted only when models.dev returned nothing, matching the order
+  // already implemented in db/settings/pricing.ts::getPricing().
+  try {
+    const litellm = getSyncedPricing() as unknown as Record<
       string,
       Record<string, Record<string, number>>
     >;
     const providerPricing =
-      findInsensitive(modelsDev, provider) ||
-      findInsensitive(modelsDev, provider.replace(/-cn$/, ""));
+      findInsensitive(litellm, provider) || findInsensitive(litellm, provider.replace(/-cn$/, ""));
     if (providerPricing) {
       const modelPricing =
         findInsensitive(providerPricing, model) ||
@@ -322,11 +422,14 @@ function resolveCatalogPricing(
 
 export function enrichCatalogModelEntry<T extends JsonRecord>(
   entry: T,
-  input?: { provider?: string | null; model?: string | null }
+  input?: { provider?: string | null; model?: string | null },
+  snapshot?: CatalogEnrichmentSnapshot
 ): T {
-  const provider =
+  const publicProvider =
     input?.provider ||
     (typeof entry.owned_by === "string" && entry.owned_by !== "combo" ? entry.owned_by : null);
+  const provider =
+    (publicProvider && snapshot?.providerNodeIdsByPrefix?.[publicProvider]) || publicProvider;
   const model =
     input?.model ||
     asNonEmptyString(entry.root) ||
@@ -337,7 +440,11 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
       return id;
     })();
 
-  const metadata = getCanonicalModelMetadata({ provider, model });
+  const metadata = getCanonicalModelMetadata({
+    provider,
+    model,
+    snapshot: snapshot?.capabilityResolutionSnapshot ?? null,
+  });
   if (!metadata) return entry;
 
   const nextEntry: JsonRecord = { ...entry };
@@ -345,25 +452,74 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
   const authoritativeContextWindow =
     getAuthoritativeProviderContextWindow(metadata.provider, metadata.model) ??
     getAuthoritativeProviderContextWindow(provider, model) ??
+    getAuthoritativeProviderContextWindow(publicProvider, model) ??
     getAuthoritativeContextWindow(metadata.model) ??
     getAuthoritativeContextWindow(model);
   const specialtySurface = isNonChatCatalogSurface(entry.type);
+  const capabilitySnapshot = snapshot?.capabilityResolutionSnapshot ?? null;
+  const persistedContextWindow = getResolvedModelContextOverride(
+    { provider, model },
+    capabilitySnapshot
+  );
+  const existingCapabilities =
+    entry.capabilities && typeof entry.capabilities === "object"
+      ? (entry.capabilities as JsonRecord)
+      : {};
+  const declaredEffortTiers = Array.isArray(existingCapabilities.effort_tiers)
+    ? existingCapabilities.effort_tiers.filter(
+        (effort): effort is string => typeof effort === "string" && effort.length > 0
+      )
+    : [];
+  const sourceDeclaresThinking =
+    typeof existingCapabilities.thinking === "boolean" ||
+    typeof existingCapabilities.supportsThinking === "boolean";
+  const effortTiers =
+    metadata.capabilities.supportedThinkingEfforts &&
+    metadata.capabilities.supportedThinkingEfforts.length > 0
+      ? [...metadata.capabilities.supportedThinkingEfforts]
+      : declaredEffortTiers.length > 0
+        ? declaredEffortTiers
+        : sourceDeclaresThinking
+          ? undefined
+          : // #10963: GLM-family models never inherit generic OpenAI tiers — an
+            // explicit empty list is authoritative unless a provider-declared
+            // contract exists (handled by declaredEffortTiers above).
+            isGlmFamilyModel(metadata.model, metadata.displayName)
+            ? []
+            : extendCodexGpt56EffortValues(
+                metadata.provider,
+                metadata.model,
+                CANONICAL_EFFORT_VALUES
+              );
   const capabilityFields = {
     ...(typeof metadata.capabilities.vision === "boolean"
       ? { vision: metadata.capabilities.vision }
       : {}),
-    tool_calling: metadata.capabilities.toolCalling,
-    reasoning: metadata.capabilities.reasoning,
+    // #8016: never invent chat tool/reasoning defaults onto specialty surfaces.
+    // Only copy boolean true when authoritative metadata says so; specialty rows
+    // default to false instead of optimistic chat heuristics.
+    tool_calling: specialtySurface
+      ? metadata.capabilities.supportsTools === true || metadata.capabilities.toolCalling === true
+        ? true
+        : false
+      : metadata.capabilities.toolCalling,
+    reasoning: specialtySurface
+      ? metadata.capabilities.supportsThinking === true || metadata.capabilities.reasoning === true
+        ? true
+        : false
+      : metadata.capabilities.reasoning,
     // #6241: surface thinking support + the canonical effort tiers so the frontend can
     // render the effort/thinking toggles. `thinking` is kept for back-compat; `supportsThinking`
     // is the explicit flag and `effort_tiers` lists the selectable reasoning levels
-    // (only when the model actually supports thinking).
+    // (only when the model actually supports thinking). An explicit empty registry list
+    // is authoritative; GLM models also require a provider-declared contract instead of
+    // inheriting generic OpenAI effort tiers.
     ...(typeof metadata.capabilities.supportsThinking === "boolean"
       ? {
           thinking: metadata.capabilities.supportsThinking,
           supportsThinking: metadata.capabilities.supportsThinking,
-          ...(metadata.capabilities.supportsThinking
-            ? { effort_tiers: [...CANONICAL_EFFORT_VALUES] }
+          ...(metadata.capabilities.supportsThinking && effortTiers
+            ? { effort_tiers: effortTiers }
             : {}),
         }
       : {}),
@@ -379,9 +535,7 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
   };
 
   nextEntry.capabilities = {
-    ...(entry.capabilities && typeof entry.capabilities === "object"
-      ? (entry.capabilities as JsonRecord)
-      : {}),
+    ...existingCapabilities,
     ...capabilityFields,
   };
 
@@ -394,16 +548,22 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
   }
 
   if (
-    (typeof nextEntry.context_length !== "number" || authoritativeContextWindow !== null) &&
+    !specialtySurface &&
+    (typeof nextEntry.context_length !== "number" ||
+      authoritativeContextWindow !== null ||
+      persistedContextWindow !== null) &&
     typeof metadata.limits.contextWindow === "number"
   ) {
     nextEntry.context_length = metadata.limits.contextWindow;
+  } else if (specialtySurface && persistedContextWindow !== null) {
+    // Exact persisted overrides are authoritative for every surface of the model.
+    nextEntry.context_length = persistedContextWindow;
   } else if (
     specialtySurface &&
     authoritativeContextWindow !== null &&
     typeof authoritativeContextWindow === "number"
   ) {
-    // Only authoritative static windows may decorate specialty rows.
+    // Only authoritative static windows may otherwise decorate specialty rows.
     nextEntry.context_length = authoritativeContextWindow;
   } else if (specialtySurface && typeof nextEntry.context_length === "number") {
     // Keep an explicit source-provided context if the emitter already set one.
@@ -411,7 +571,38 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
     delete nextEntry.context_length;
   }
 
-  if (typeof metadata.limits.maxOutputTokens === "number" && metadata.limits.maxOutputTokens > 0) {
+  const persistedOutputLimit =
+    getModelCapabilityOverride(
+      provider,
+      model,
+      "max_output_tokens",
+      capabilitySnapshot?.maxTokenOverrides
+    ) ??
+    getModelCapabilityOverride(
+      provider,
+      model,
+      "max_token",
+      capabilitySnapshot?.maxTokenOverrides
+    ) ??
+    getModelCapabilityOverride(
+      publicProvider,
+      model,
+      "max_output_tokens",
+      capabilitySnapshot?.maxTokenOverrides
+    ) ??
+    getModelCapabilityOverride(
+      publicProvider,
+      model,
+      "max_token",
+      capabilitySnapshot?.maxTokenOverrides
+    );
+  if (persistedOutputLimit !== null) {
+    nextEntry.max_output_tokens = persistedOutputLimit;
+  } else if (
+    typeof nextEntry.max_output_tokens !== "number" &&
+    typeof metadata.limits.maxOutputTokens === "number" &&
+    metadata.limits.maxOutputTokens > 0
+  ) {
     nextEntry.max_output_tokens = metadata.limits.maxOutputTokens;
   }
 
@@ -436,7 +627,7 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
   }
 
   if (nextEntry.pricing == null) {
-    const pricing = resolveCatalogPricing(provider, model);
+    const pricing = resolveCatalogPricing(provider, model, snapshot);
     if (pricing) nextEntry.pricing = pricing;
   }
 

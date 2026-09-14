@@ -15,7 +15,6 @@ export const FALLBACK_ALIAS_TO_PROVIDER = {
   kc: "kilocode",
   kmc: "kimi-coding",
   kr: "kiro",
-  qw: "qwen",
 };
 
 export function buildAliasMaps() {
@@ -134,6 +133,11 @@ export function getProviderPrefixes(
  * canonical providerId, so downstream registry/spec/synced-capability lookups
  * are keyed by the BARE model id (e.g. "glm-5.2") rather than a qualified
  * "provider/model" string that only curated MODEL_SPECS aliases happen to match.
+ *
+ * Extracted verbatim from the catalog host's local `getComboTargetModelId`
+ * closure (./catalog.ts) so every combo-context consumer — the catalog's own
+ * per-target metadata AND src/lib/combos/comboContext.ts's context-length
+ * aggregation — stays in lockstep instead of re-implementing this resolution.
  */
 export function getComboTargetModelId(
   maps: AliasMaps,

@@ -13,6 +13,9 @@ import { cloneBoundedForLog } from "@omniroute/open-sse/utils/requestLogger.ts";
 
 export function buildClientRawRequest(request: Request, body: unknown) {
   const url = new URL(request.url);
+  const headers = Object.fromEntries(request.headers.entries());
+  delete headers["x-omniroute-lease-owner"];
+  delete headers["x-omniroute-lease-generation"];
   return {
     endpoint: url.pathname,
     // #7847: bounded, not a full deep clone. Every consumer of clientRawRequest.body is
@@ -24,7 +27,7 @@ export function buildClientRawRequest(request: Request, body: unknown) {
     // Still a clone, not an alias — `body` is rewritten downstream (plugin onRequest hook,
     // compression), and this has to stay a snapshot of what the client actually sent.
     body: cloneBoundedForLog(body),
-    headers: Object.fromEntries(request.headers.entries()),
+    headers,
     signal: request.signal ?? null,
   };
 }

@@ -4,9 +4,11 @@ import {
   KIMI_CODING_ANTHROPIC_URL,
   KIMI_CODING_OPENAI_URL,
 } from "../config/providers/registry/kimi/coding/runtime.ts";
+import { flattenOpenAIToolRootAnyOf } from "../services/toolSchemaSanitizer.ts";
 import { FORMATS } from "../translator/formats.ts";
 import { DefaultExecutor } from "./default.ts";
 import type { ProviderCredentials } from "./base.ts";
+import { ensureToolMessageNames } from "./kimiToolNames.ts";
 
 type JsonRecord = Record<string, unknown>;
 type KimiProtocol = "openai" | "claude";
@@ -181,6 +183,7 @@ function normalizeOpenAIRequest(
   delete next.max_tokens;
 
   applyOpenAIThinking(next, policy);
+  if (Array.isArray(next.tools)) next.tools = flattenOpenAIToolRootAnyOf(next.tools);
 
   if (stream) {
     next.stream_options = {
@@ -410,11 +413,17 @@ export class KimiExecutor extends DefaultExecutor {
     const cleanedBody = super.transformRequest(model, body, stream, credentials);
     const record = asRecord(cleanedBody);
     if (!record) return cleanedBody;
+
+    // ponytail: backfill missing tool message names before protocol normalization.
+    // Kimi K3 rejects tool messages whose `name` field was stripped during
+    // combo routing or format translation.
+    const withNames = ensureToolMessageNames(record);
+
     const policy = getThinkingPolicy(credentials);
     const normalized =
-      resolveKimiProtocol(credentials, record) === "claude"
-        ? normalizeAnthropicRequest(record, policy)
-        : normalizeOpenAIRequest(record, stream, policy);
+      resolveKimiProtocol(credentials, withNames) === "claude"
+        ? normalizeAnthropicRequest(withNames, policy)
+        : normalizeOpenAIRequest(withNames, stream, policy);
     return stream ? { ...normalized, stream: true } : normalized;
   }
 }

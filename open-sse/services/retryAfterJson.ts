@@ -1,7 +1,11 @@
 type JsonRecord = Record<string, unknown>;
 
-const MAX_DELAY_TEXT_LENGTH = 64;
-const MAX_DELAY_MS = 30 * 24 * 60 * 60 * 1000;
+export type JsonRetryHintProvenance = "google_rpc_retry_info" | "body";
+
+export type DetailedJsonRetryHint = {
+  retryAfterMs: number;
+  provenance: JsonRetryHintProvenance;
+};
 
 function objectRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -21,44 +25,55 @@ function futureTimestampMs(value: unknown, maxMs: number): number | null {
   return waitMs > 0 ? Math.min(waitMs, maxMs) : null;
 }
 
+// RetryInfo.retryDelay / "please retry in Ns" are short per-request throttling
+// hints (Gemini free-tier RPM/TPM), not long-lived quota resets like Antigravity's
+// "Resets in 160h" — cap them independently of the caller's maxMs so a malformed or
+// adversarial upstream value cannot masquerade as a multi-day reset (#7940).
+export const MAX_SHORT_RETRY_HINT_MS = 24 * 60 * 60 * 1000; // 24h
+
 /**
  * Parse delay strings like "33s", "26.660853464s", "2m", "1h", "1500ms", or a bare
- * number of seconds. Shared by account-fallback retry parsing and rate-limit handling.
+ * number of seconds. Shared by `parseRetryAfterFromBody` (rateLimitManager wiring)
+ * and `parseRetryHintFromJsonBody` (model-lockout wiring) so both honor the same
+ * upstream `RetryInfo.retryDelay` grammar (#7940).
  */
 export function parseDelayString(value: unknown): number | null {
-  if (typeof value === "number") {
-    return Number.isFinite(value) && value >= 0 && value * 1000 <= MAX_DELAY_MS
-      ? Math.round(value * 1000)
-      : null;
-  }
-  if (typeof value !== "string" || value.length > MAX_DELAY_TEXT_LENGTH) return null;
-  const str = value.trim();
-  if (!str || str.length > MAX_DELAY_TEXT_LENGTH) return null;
-
-  function toDelayMs(amount: string, multiplier: number): number | null {
-    const delayMs = Number(amount) * multiplier;
-    return Number.isFinite(delayMs) && delayMs >= 0 && delayMs <= MAX_DELAY_MS
-      ? Math.round(delayMs)
-      : null;
-  }
-
+  if (!value) return null;
+  const str = String(value).trim();
   const msMatch = /^(\d+(?:\.\d+)?)\s*ms$/i.exec(str);
-  if (msMatch) return toDelayMs(msMatch[1], 1);
+  if (msMatch) return Math.round(Number.parseFloat(msMatch[1]));
   const secMatch = /^(\d+(?:\.\d+)?)\s*s$/i.exec(str);
-  if (secMatch) return toDelayMs(secMatch[1], 1000);
+  if (secMatch) return Math.round(Number.parseFloat(secMatch[1]) * 1000);
   const minMatch = /^(\d+(?:\.\d+)?)\s*m$/i.exec(str);
-  if (minMatch) return toDelayMs(minMatch[1], 60 * 1000);
+  if (minMatch) return Math.round(Number.parseFloat(minMatch[1]) * 60 * 1000);
   const hrMatch = /^(\d+(?:\.\d+)?)\s*h$/i.exec(str);
-  if (hrMatch) return toDelayMs(hrMatch[1], 3600 * 1000);
-  // Bare number means seconds.
-  return /^\d+(?:\.\d+)?$/.test(str) ? toDelayMs(str, 1000) : null;
+  if (hrMatch) return Math.round(Number.parseFloat(hrMatch[1]) * 3600 * 1000);
+  // Bare number → seconds
+  const num = Number.parseFloat(str);
+  return Number.isFinite(num) ? Math.round(num * 1000) : null;
+}
+
+// Gemini/Google RPC 429 bodies embed the short throttle hint as
+// `error.details[].{"@type": ".../google.rpc.RetryInfo", "retryDelay": "26s"}`.
+function retryInfoDetailsMs(details: unknown): number | null {
+  for (const detail of Array.isArray(details) ? details : []) {
+    const detailRecord = objectRecord(detail);
+    const type = String(detailRecord["@type"] ?? "");
+    if (!type.includes("RetryInfo")) continue;
+    const ms = parseDelayString(detailRecord.retryDelay);
+    if (ms !== null && ms > 0) return Math.min(ms, MAX_SHORT_RETRY_HINT_MS);
+  }
+  return null;
 }
 
 /**
  * Parse Retry-After hints from a 429 JSON response body. Providers use both
  * top-level and nested `error` fields for ISO timestamps and millisecond values.
  */
-export function parseRetryHintFromJsonBody(body: string, maxMs: number): number | null {
+export function parseDetailedRetryHintFromJsonBody(
+  body: string,
+  maxMs: number
+): DetailedJsonRetryHint | null {
   let parsed: unknown;
   try {
     parsed = JSON.parse(body);
@@ -70,11 +85,21 @@ export function parseRetryHintFromJsonBody(body: string, maxMs: number): number 
   if (!Object.keys(root).length) return null;
   const errorObj = objectRecord(root.error);
 
-  const isoHint = futureTimestampMs(errorObj.retryAfter ?? root.retryAfter, maxMs);
-  if (isoHint !== null) return isoHint;
+  const retryInfoMs = retryInfoDetailsMs(errorObj.details ?? root.details);
+  if (retryInfoMs !== null) {
+    return { retryAfterMs: retryInfoMs, provenance: "google_rpc_retry_info" };
+  }
 
-  return positiveCappedMs(
+  const isoHint = futureTimestampMs(errorObj.retryAfter ?? root.retryAfter, maxMs);
+  if (isoHint !== null) return { retryAfterMs: isoHint, provenance: "body" };
+
+  const numericHint = positiveCappedMs(
     errorObj.retry_after_ms ?? root.retry_after_ms ?? errorObj.retryAfterMs ?? root.retryAfterMs,
     maxMs
   );
+  return numericHint === null ? null : { retryAfterMs: numericHint, provenance: "body" };
+}
+
+export function parseRetryHintFromJsonBody(body: string, maxMs: number): number | null {
+  return parseDetailedRetryHintFromJsonBody(body, maxMs)?.retryAfterMs ?? null;
 }

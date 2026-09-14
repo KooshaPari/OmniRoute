@@ -4,6 +4,8 @@ import {
   resolveUniversalHandoffConfig,
   buildUniversalHandoffSystemMessage,
   injectUniversalHandoffBody,
+  maybeGenerateUniversalHandoff,
+  DEFAULT_UNIVERSAL_HANDOFF_CONFIG,
   type HandoffPayload,
 } from "../../open-sse/services/contextHandoff.ts";
 
@@ -16,6 +18,18 @@ test("resolveUniversalHandoffConfig returns disabled defaults when no config", (
   assert.strictEqual(r.ttlMinutes, 300);
   assert.strictEqual(r.maxMessagesForSummary, 30);
   assert.strictEqual(r.preserveSystemPrompt, true);
+});
+
+test("global feature flag can disable handoff for every combo", () => {
+  const previous = process.env.UNIVERSAL_CONTEXT_HANDOFF_ENABLED;
+  process.env.UNIVERSAL_CONTEXT_HANDOFF_ENABLED = "false";
+  try {
+    const r = resolveUniversalHandoffConfig({ enabled: true }, { enabled: true });
+    assert.strictEqual(r.enabled, false);
+  } finally {
+    if (previous === undefined) delete process.env.UNIVERSAL_CONTEXT_HANDOFF_ENABLED;
+    else process.env.UNIVERSAL_CONTEXT_HANDOFF_ENABLED = previous;
+  }
 });
 
 test("applies combo-level config over defaults", () => {
@@ -74,6 +88,119 @@ test("providerAllowlist is resolved from combo config", () => {
   assert.deepStrictEqual(r.providerAllowlist, ["anthropic", "openai"]);
 });
 
+// ── providerAllowlist filtering in maybeGenerateUniversalHandoff ───────────
+
+function waitImmediate(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 50));
+}
+
+test("providerAllowlist: excluded provider skips handoff generation", async () => {
+  const calls: unknown[] = [];
+  await maybeGenerateUniversalHandoff({
+    sessionId: "ses_test_1",
+    comboName: "test-combo",
+    messages: [{ role: "user", content: "hello" }],
+    prevModel: "openai/gpt-4o",
+    currModel: "anthropic/claude-3-5-sonnet",
+    universalConfig: {
+      ...DEFAULT_UNIVERSAL_HANDOFF_CONFIG,
+      enabled: true,
+      providerAllowlist: ["openai"],
+      handoffModel: "anthropic/claude-3-5-sonnet",
+    },
+    handleSingleModel: async (body, modelStr) => {
+      calls.push({ body, modelStr });
+      return new Response(JSON.stringify({ choices: [{ message: { content: "{}" } }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    },
+  });
+  await waitImmediate();
+  assert.strictEqual(calls.length, 0, "handleSingleModel must NOT be called for excluded provider");
+});
+
+test("providerAllowlist: allowed provider executes handoff generation", async () => {
+  const calls: unknown[] = [];
+  await maybeGenerateUniversalHandoff({
+    sessionId: "ses_test_2",
+    comboName: "test-combo",
+    messages: [{ role: "user", content: "hello" }],
+    prevModel: "anthropic/claude-3-5-sonnet",
+    currModel: "openai/gpt-4o",
+    universalConfig: {
+      ...DEFAULT_UNIVERSAL_HANDOFF_CONFIG,
+      enabled: true,
+      providerAllowlist: ["openai"],
+      handoffModel: "openai/gpt-4o-mini",
+    },
+    handleSingleModel: async (body, modelStr) => {
+      calls.push({ body, modelStr });
+      return new Response(JSON.stringify({ choices: [{ message: { content: "{}" } }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    },
+  });
+  await waitImmediate();
+  assert.ok(calls.length > 0, "handleSingleModel MUST be called for allowed provider");
+});
+
+test("providerAllowlist: empty allowlist allows all providers", async () => {
+  const calls: unknown[] = [];
+  await maybeGenerateUniversalHandoff({
+    sessionId: "ses_test_3",
+    comboName: "test-combo",
+    messages: [{ role: "user", content: "hello" }],
+    prevModel: "openai/gpt-4o",
+    currModel: "anthropic/claude-3-5-sonnet",
+    universalConfig: {
+      ...DEFAULT_UNIVERSAL_HANDOFF_CONFIG,
+      enabled: true,
+      providerAllowlist: [],
+      handoffModel: "anthropic/claude-3-5-sonnet",
+    },
+    handleSingleModel: async (body, modelStr) => {
+      calls.push({ body, modelStr });
+      return new Response(JSON.stringify({ choices: [{ message: { content: "{}" } }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    },
+  });
+  await waitImmediate();
+  assert.ok(calls.length > 0, "handleSingleModel MUST be called when allowlist is empty");
+});
+
+test("providerAllowlist: handoffModel takes precedence over currModel for allowlist check", async () => {
+  const calls: unknown[] = [];
+  await maybeGenerateUniversalHandoff({
+    sessionId: "ses_test_4",
+    comboName: "test-combo",
+    messages: [{ role: "user", content: "hello" }],
+    prevModel: "openai/gpt-4o",
+    currModel: "anthropic/claude-3-5-sonnet",
+    universalConfig: {
+      ...DEFAULT_UNIVERSAL_HANDOFF_CONFIG,
+      enabled: true,
+      providerAllowlist: ["anthropic"],
+      handoffModel: "anthropic/claude-3-5-sonnet",
+    },
+    handleSingleModel: async (body, modelStr) => {
+      calls.push({ body, modelStr });
+      return new Response(JSON.stringify({ choices: [{ message: { content: "{}" } }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    },
+  });
+  await waitImmediate();
+  assert.ok(
+    calls.length > 0,
+    "handleSingleModel MUST be called — handoffModel=anthropic is in allowlist even though currModel=openai is not"
+  );
+});
+
 // ── buildUniversalHandoffSystemMessage ──────────────────────────────────────
 
 const PREV = "claude-sonnet-4-20250514";
@@ -110,7 +237,13 @@ test("buildUniversalHandoffSystemMessage basic when payload null", () => {
 
 test("buildUniversalHandoffSystemMessage basic when payload summary empty", () => {
   const msg = buildUniversalHandoffSystemMessage(PREV, CURR, REASON, makePayload({ summary: "" }));
-  assert.ok(msg.includes("continuar sin perder el hilo"));
+  // The bare-fallback note must not claim continuity it can't provide: a
+  // model landing here with only trimmed input (e.g. a bare tool result)
+  // and no real history has been observed fabricating plausible-sounding
+  // but entirely invented content when told "the conversation continues
+  // without losing context" -- the note now tells it the opposite.
+  assert.ok(msg.includes("No prior-session summary is available"));
+  assert.ok(msg.includes("do not assume or invent"));
 });
 
 test("buildUniversalHandoffSystemMessage full XML with valid payload", () => {

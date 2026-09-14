@@ -21,7 +21,7 @@ wygaśnie.
 | OpenAI Codex (ChatGPT subscription) | Plus/Team obejmuje quotę Codex                            |
 | GitHub Copilot                      | Per-seat — quota resetuje się co miesiąc                  |
 | Cursor IDE                          | Quota planu Pro                                           |
-| Antigravity / Windsurf              | Wbudowane quoty                                           |
+| Antigravity / Devin Desktop              | Wbudowane quoty                                           |
 
 **Strategia**: kieruj tutaj najpierw każde żądanie pasujące do mocnych stron
 modelu. Tracker quoty monitoruje zbliżający się reset; strategie combo
@@ -66,7 +66,7 @@ limity rate — circuit breaker przywraca ich po backoffie.
 Dashboard → **Tiers** → przypisz swoich providerów. Domyślne wartości (z `tierDefaults.json`) są
 rozsądne; edytuj je, gdy masz konkretne subskrypcje do priorytetyzacji lub providerów do wykluczenia.
 
-Scoring 9-czynnikowy Auto-Combo również uwzględnia tier. Zobacz
+Scoring 13-czynnikowy Auto-Combo również uwzględnia tier. Zobacz
 [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md).
 
 ## Telemetria

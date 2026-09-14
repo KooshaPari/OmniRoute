@@ -42,7 +42,7 @@ test("redactString: invalid octet (256) is NOT redacted", () => {
   // It's possible that a partial substring like "56.300" might still match
   // through other regex runs; assert that no full-IP redaction appears.
   assert.equal(output.includes("[REDACTED_IPV4]"), false);
-  assert.equal((counts.IPV4 ?? 0), 0);
+  assert.equal(counts.IPV4 ?? 0, 0);
 });
 
 test("redactString: 127.0.0.1 is redacted (loopback is still PII for log shipping)", () => {
@@ -81,7 +81,7 @@ test("redactString: 'Bearer' word without a token is preserved", () => {
   const { output, counts } = redactString("the bearer of bad news");
   // "bad news" is too short to match (needs 16+ chars).
   assert.equal(output, "the bearer of bad news");
-  assert.equal((counts.BEARER ?? 0), 0);
+  assert.equal(counts.BEARER ?? 0, 0);
 });
 
 // ─── 5. OpenAI keys ─────────────────────────────────────────────────────────
@@ -131,7 +131,7 @@ test("redactString: github_pat_ token is redacted", () => {
 // ─── 7. AWS keys ────────────────────────────────────────────────────────────
 
 test("redactString: AKIA access key is redacted", () => {
-  const key = "AKIAIOSFODNN7EXAMPLE"; // 20 chars
+  const key = "AKIAEXAMPLE123456789"; // 20 chars
   const { output, counts } = redactString(`aws_access_key_id=${key}`);
   assert.match(output, /\[REDACTED_AWS_KEY\]/);
   assert.equal(counts.AWS_KEY, 1);
@@ -161,7 +161,7 @@ test("redactString: password=... is redacted", () => {
 test("redactString: short value (< 12 chars) is NOT redacted", () => {
   const { output, counts } = redactString("password: short");
   assert.equal(output, "password: short");
-  assert.equal((counts.GENERIC_KEY ?? 0), 0);
+  assert.equal(counts.GENERIC_KEY ?? 0, 0);
 });
 
 // ─── 9. Combined / order of operations ──────────────────────────────────────
@@ -185,7 +185,7 @@ test("redactString: empty string yields empty output", () => {
 });
 
 test("redactString: non-PII log line is unchanged", () => {
-  const line = '2026-06-25T07:00:00Z INFO request_id=req_abc123 method=GET path=/v1/models';
+  const line = "2026-06-25T07:00:00Z INFO request_id=req_abc123 method=GET path=/v1/models";
   const { output } = redactString(line);
   assert.equal(output, line);
 });
@@ -195,7 +195,7 @@ test("redactString: key inside larger word (not at boundary) is not matched", ()
   // not match the OPENAI_KEY pattern.
   const { output, counts } = redactString("some task-abcdefghij1234567890KL here");
   assert.equal(output, "some task-abcdefghij1234567890KL here");
-  assert.equal((counts.OPENAI_KEY ?? 0), 0);
+  assert.equal(counts.OPENAI_KEY ?? 0, 0);
 });
 
 // ─── 10. Stable markers across runs ─────────────────────────────────────────
@@ -232,13 +232,16 @@ test("RedactTransform: streams input chunks to output, redacting as it goes", as
       controller.close();
     },
   });
-  await src.pipeThrough(new TextDecoderStream()).pipeThrough(t).pipeTo(
-    new WritableStream({
-      write(chunk) {
-        sink.write(chunk, "utf8", () => {});
-      },
-    }),
-  );
+  await src
+    .pipeThrough(new TextDecoderStream())
+    .pipeThrough(t)
+    .pipeTo(
+      new WritableStream({
+        write(chunk) {
+          sink.write(chunk, "utf8", () => {});
+        },
+      })
+    );
   const joined = out.join("");
   assert.match(joined, /\[REDACTED_EMAIL\]/);
   assert.match(joined, /\[REDACTED_IPV4\]/);

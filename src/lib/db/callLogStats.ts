@@ -18,17 +18,26 @@ export interface ProviderMetricRow {
   provider: string;
   totalRequests: number;
   totalSuccesses: number;
-  avgLatencyMs: number;
+  avgLatencyMs: number | null;
   lastRequestAt: string | null;
   lastErrorAt: string | null;
   lastStatus: number | null;
   lastErrorStatus: number | null;
 }
 
+/** One provider's traffic over a bounded window. See `getProviderUsageSince`. */
+export interface ProviderUsageRow {
+  provider: string;
+  requests: number;
+  successes: number;
+  avgLatencyMs: number | null;
+  lastRequestAt: string | null;
+}
+
 export interface SearchProviderStatRow {
   provider: string;
   requests: number;
-  avg_latency_ms: number;
+  avg_latency_ms: number | null;
 }
 
 export interface SearchRecentRow {
@@ -56,7 +65,10 @@ export interface SearchProviderCountRow {
 
 /**
  * Returns one row per provider with call-level aggregates plus last-status
- * subselects. Excludes rows where provider is NULL or '-'.
+ * subselects. Excludes rows where provider is NULL or '-', and excludes
+ * providers with no live row in `provider_connections` — a deleted provider
+ * connection must not keep surfacing as a ghost topology node forever from
+ * its retained historical call_logs rows. See #10714.
  */
 export function getProviderMetrics(): ProviderMetricRow[] {
   const db = getDbInstance();
@@ -96,9 +108,48 @@ export function getProviderMetrics(): ProviderMetricRow[] {
           ) as lastErrorStatus
         FROM call_logs c
         WHERE c.provider IS NOT NULL AND c.provider != '-'
+          AND EXISTS (
+            SELECT 1 FROM provider_connections pc WHERE pc.provider = c.provider
+          )
         GROUP BY c.provider`
     )
     .all() as ProviderMetricRow[];
+}
+
+// ---------------------------------------------------------------------------
+// /api/free-provider-rankings — windowed usage aggregate
+// ---------------------------------------------------------------------------
+
+/**
+ * Per-provider usage over a time window: how much traffic a provider actually
+ * served, and how much of it succeeded.
+ *
+ * Deliberately NOT `getProviderMetrics()` with a `since` parameter: that query
+ * carries two correlated subqueries (`lastStatus`, `lastErrorStatus`) which a
+ * ranking never displays, and they dominate its cost. Here a single bounded
+ * `GROUP BY` leans on `idx_cl_timestamp` plus `idx_cl_provider_timestamp` /
+ * `idx_cl_request_provider` (migration 174) and stops there. The rules are shared with its neighbour, not the query: same success
+ * definition, same `#10714` guard against providers whose connections are gone.
+ */
+export function getProviderUsageSince(since: string): ProviderUsageRow[] {
+  const db = getDbInstance();
+  return db
+    .prepare(
+      `SELECT
+          c.provider,
+          COUNT(*) as requests,
+          SUM(CASE WHEN c.status >= 200 AND c.status < 400 THEN 1 ELSE 0 END) as successes,
+          ROUND(AVG(c.duration)) as avgLatencyMs,
+          MAX(c.timestamp) as lastRequestAt
+        FROM call_logs c
+        WHERE c.provider IS NOT NULL AND c.provider != '-'
+          AND c.timestamp >= @since
+          AND EXISTS (
+            SELECT 1 FROM provider_connections pc WHERE pc.provider = c.provider
+          )
+        GROUP BY c.provider`
+    )
+    .all({ since }) as ProviderUsageRow[];
 }
 
 // ---------------------------------------------------------------------------
@@ -207,17 +258,17 @@ export function getFallbackStats(
     .prepare(
       `
       SELECT
-        SUM(CASE WHEN (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as total,
-        SUM(CASE WHEN requested_model IS NOT NULL AND requested_model != '' AND (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END) as with_requested,
-        SUM(CASE
+        COALESCE(SUM(CASE WHEN (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END), 0) as total,
+        COALESCE(SUM(CASE WHEN requested_model IS NOT NULL AND requested_model != '' AND (combo_name IS NULL OR combo_name = '') THEN 1 ELSE 0 END), 0) as with_requested,
+        COALESCE(SUM(CASE
           WHEN (combo_name IS NULL OR combo_name = '')
            AND requested_model IS NOT NULL
            AND requested_model != ''
            AND model IS NOT NULL
            AND model != ''
           THEN 1 ELSE 0 END
-        ) as fallback_eligible,
-        SUM(CASE
+        ), 0) as fallback_eligible,
+        COALESCE(SUM(CASE
           WHEN (combo_name IS NULL OR combo_name = '')
            AND requested_model IS NOT NULL
            AND requested_model != ''
@@ -225,11 +276,45 @@ export function getFallbackStats(
            AND model != ''
            AND LOWER(CASE WHEN instr(requested_model, '/') > 0 THEN substr(requested_model, instr(requested_model, '/') + 1) ELSE requested_model END) != LOWER(model)
           THEN 1 ELSE 0 END
-        ) as fallbacks
+        ), 0) as fallbacks
       FROM call_logs
       ${whereClause}
     `
     )
     .get(params) as FallbackStatsRow | undefined;
   return row ?? { total: 0, with_requested: 0, fallback_eligible: 0, fallbacks: 0 };
+}
+
+/**
+ * Failure-family breakdown over `call_logs` for the usage analytics endpoint.
+ * Failures are rows with status >= 400 or a non-empty error summary; successes
+ * are excluded in SQL. Rows predating migration 158 (`error_type` NULL,
+ * `timestamp` before 2026-08-20) land in `pre_migration`; other NULL families
+ * land in `unclassified`.
+ *
+ * @param whereClause - SQL WHERE clause (may be empty string) using the same
+ *                      named params as the usage_history queries.
+ * @param params      - Named params object (string values).
+ */
+export function getErrorTypeBreakdown(
+  whereClause: string,
+  params: Record<string, string>
+): Array<{ errorType: string; count: number }> {
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      `
+      SELECT
+        -- '2026-08-20' = commit 4c15c05f9 that added error_type (migration 158).
+        -- Lower bound, not exact: late upgraders have post-cutoff rows with NULL values.
+        CASE WHEN error_type IS NULL AND timestamp < '2026-08-20' THEN 'pre_migration' WHEN error_type IS NULL THEN 'unclassified' ELSE error_type END AS errorType,
+        COUNT(*) AS count
+      FROM call_logs
+      ${whereClause} ${whereClause ? "AND" : "WHERE"} (status >= 400 OR error_summary IS NOT NULL)
+      GROUP BY 1
+      ORDER BY count DESC, errorType ASC
+      `
+    )
+    .all(params) as Array<{ errorType: string; count: number }>;
+  return rows.map((row) => ({ errorType: String(row.errorType), count: Number(row.count) }));
 }

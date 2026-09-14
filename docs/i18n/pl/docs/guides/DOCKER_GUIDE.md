@@ -224,8 +224,10 @@ prefiksu). Traefik powinien routować `PathPrefix(`/omniroute`)` do kontenera be
 `StripPrefix`, żeby Next.js otrzymywał `/omniroute/...` i serwował assety z
 `/omniroute/_next/...`.
 
-Healthcheck Dockera sonduje `/api/monitoring/health` z prefiksem aktywnego
-`OMNIROUTE_BASE_PATH`.
+Healthcheck Dockera sonduje lekki endpoint cyklu życia `/healthz` z prefiksem aktywnego
+`OMNIROUTE_BASE_PATH`. `/api/monitoring/health` pozostaje dostępny do diagnostyki
+człowieka/pulpit; aby ustawić HEALTHCHECK kontenera z powrotem na niego (np. dla
+głębokiej kontroli stanu), ustaw `OMNIROUTE_HEALTHCHECK_PATH=/api/monitoring/health`.
 
 ## Docker Compose z Caddy (HTTPS Auto-TLS)
 

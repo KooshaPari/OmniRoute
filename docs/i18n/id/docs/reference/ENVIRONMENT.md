@@ -1,6 +1,6 @@
 # Referensi Variabel Lingkungan (Bahasa Indonesia)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/ENVIRONMENT.md) · 🇸🇦 [ar](../../ar/docs/ENVIRONMENT.md) · 🇧🇬 [bg](../../bg/docs/ENVIRONMENT.md) · 🇧🇩 [bn](../../bn/docs/ENVIRONMENT.md) · 🇨🇿 [cs](../../cs/docs/ENVIRONMENT.md) · 🇩🇰 [da](../../da/docs/ENVIRONMENT.md) · 🇩🇪 [de](../../de/docs/ENVIRONMENT.md) · 🇪🇸 [es](../../es/docs/ENVIRONMENT.md) · 🇮🇷 [fa](../../fa/docs/ENVIRONMENT.md) · 🇫🇮 [fi](../../fi/docs/ENVIRONMENT.md) · 🇫🇷 [fr](../../fr/docs/ENVIRONMENT.md) · 🇮🇳 [gu](../../gu/docs/ENVIRONMENT.md) · 🇮🇱 [he](../../he/docs/ENVIRONMENT.md) · 🇮🇳 [hi](../../hi/docs/ENVIRONMENT.md) · 🇭🇺 [hu](../../hu/docs/ENVIRONMENT.md) · 🇮🇩 [id](../../id/docs/ENVIRONMENT.md) · 🇮🇹 [it](../../it/docs/ENVIRONMENT.md) · 🇯🇵 [ja](../../ja/docs/ENVIRONMENT.md) · 🇰🇷 [ko](../../ko/docs/ENVIRONMENT.md) · 🇮🇳 [mr](../../mr/docs/ENVIRONMENT.md) · 🇲🇾 [ms](../../ms/docs/ENVIRONMENT.md) · 🇳🇱 [nl](../../nl/docs/ENVIRONMENT.md) · 🇳🇴 [no](../../no/docs/ENVIRONMENT.md) · 🇵🇭 [phi](../../phi/docs/ENVIRONMENT.md) · 🇵🇱 [pl](../../pl/docs/ENVIRONMENT.md) · 🇵🇹 [pt](../../pt/docs/ENVIRONMENT.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/ENVIRONMENT.md) · 🇷🇴 [ro](../../ro/docs/ENVIRONMENT.md) · 🇷🇺 [ru](../../ru/docs/ENVIRONMENT.md) · 🇸🇰 [sk](../../sk/docs/ENVIRONMENT.md) · 🇸🇪 [sv](../../sv/docs/ENVIRONMENT.md) · 🇰🇪 [sw](../../sw/docs/ENVIRONMENT.md) · 🇮🇳 [ta](../../ta/docs/ENVIRONMENT.md) · 🇮🇳 [te](../../te/docs/ENVIRONMENT.md) · 🇹🇭 [th](../../th/docs/ENVIRONMENT.md) · 🇹🇷 [tr](../../tr/docs/ENVIRONMENT.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/ENVIRONMENT.md) · 🇵🇰 [ur](../../ur/docs/ENVIRONMENT.md) · 🇻🇳 [vi](../../vi/docs/ENVIRONMENT.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/ENVIRONMENT.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../reference/ENVIRONMENT.md) · 🇸🇦 [ar](../../../ar/docs/reference/ENVIRONMENT.md) · 🇦🇿 [az](../../../az/docs/reference/ENVIRONMENT.md) · 🇧🇬 [bg](../../../bg/docs/reference/ENVIRONMENT.md) · 🇧🇩 [bn](../../../bn/docs/reference/ENVIRONMENT.md) · 🇨🇿 [cs](../../../cs/docs/reference/ENVIRONMENT.md) · 🇩🇰 [da](../../../da/docs/reference/ENVIRONMENT.md) · 🇩🇪 [de](../../../de/docs/reference/ENVIRONMENT.md) · 🇪🇸 [es](../../../es/docs/reference/ENVIRONMENT.md) · 🇮🇷 [fa](../../../fa/docs/reference/ENVIRONMENT.md) · 🇫🇮 [fi](../../../fi/docs/reference/ENVIRONMENT.md) · 🇫🇷 [fr](../../../fr/docs/reference/ENVIRONMENT.md) · 🇮🇳 [gu](../../../gu/docs/reference/ENVIRONMENT.md) · 🇮🇱 [he](../../../he/docs/reference/ENVIRONMENT.md) · 🇮🇳 [hi](../../../hi/docs/reference/ENVIRONMENT.md) · 🇭🇺 [hu](../../../hu/docs/reference/ENVIRONMENT.md) · 🇮🇹 [it](../../../it/docs/reference/ENVIRONMENT.md) · 🇯🇵 [ja](../../../ja/docs/reference/ENVIRONMENT.md) · 🇰🇷 [ko](../../../ko/docs/reference/ENVIRONMENT.md) · 🇮🇳 [mr](../../../mr/docs/reference/ENVIRONMENT.md) · 🇲🇾 [ms](../../../ms/docs/reference/ENVIRONMENT.md) · 🇳🇱 [nl](../../../nl/docs/reference/ENVIRONMENT.md) · 🇳🇴 [no](../../../no/docs/reference/ENVIRONMENT.md) · 🇵🇭 [phi](../../../phi/docs/reference/ENVIRONMENT.md) · 🇵🇹 [pt](../../../pt/docs/reference/ENVIRONMENT.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/reference/ENVIRONMENT.md) · 🇷🇴 [ro](../../../ro/docs/reference/ENVIRONMENT.md) · 🇷🇺 [ru](../../../ru/docs/reference/ENVIRONMENT.md) · 🇸🇰 [sk](../../../sk/docs/reference/ENVIRONMENT.md) · 🇸🇪 [sv](../../../sv/docs/reference/ENVIRONMENT.md) · 🇰🇪 [sw](../../../sw/docs/reference/ENVIRONMENT.md) · 🇮🇳 [ta](../../../ta/docs/reference/ENVIRONMENT.md) · 🇮🇳 [te](../../../te/docs/reference/ENVIRONMENT.md) · 🇹🇭 [th](../../../th/docs/reference/ENVIRONMENT.md) · 🇹🇷 [tr](../../../tr/docs/reference/ENVIRONMENT.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/reference/ENVIRONMENT.md) · 🇵🇰 [ur](../../../ur/docs/reference/ENVIRONMENT.md) · 🇻🇳 [vi](../../../vi/docs/reference/ENVIRONMENT.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/reference/ENVIRONMENT.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/reference/ENVIRONMENT.md)
 
 ---
 
@@ -294,26 +294,26 @@ CLI_CLAUDE_BIN=/host-cli/bin/claude
 
 Kredensial bawaan untuk **pengembangan localhost**. Untuk deployment jarak jauh, daftarkan milik Anda sendiri di konsol pengembang masing-masing provider.
 
-| Variable                          | Provider                | Catatan                                                                                   |
-| --------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------- |
-| `CLAUDE_OAUTH_CLIENT_ID`          | Claude Code (Anthropic) | Klien publik — tidak perlu secret.                                                        |
-| `CLAUDE_CODE_REDIRECT_URI`        | Claude Code             | Timpa redirect URI. Default: `https://platform.claude.com/oauth/code/callback`             |
-| `CODEX_OAUTH_CLIENT_ID`           | Codex / OpenAI          | Klien publik.                                                                             |
-| `GEMINI_OAUTH_CLIENT_ID`          | Gemini (Google)         | Memerlukan `_SECRET` yang sesuai.                                                         |
-| `GEMINI_OAUTH_CLIENT_SECRET`      | Gemini (Google)         | —                                                                                         |
-| `QWEN_OAUTH_CLIENT_ID`            | Qwen (Alibaba)          | Klien publik.                                                                             |
-| `KIMI_CODING_OAUTH_CLIENT_ID`     | Kimi Coding (Moonshot)  | Klien publik.                                                                             |
-| `ANTIGRAVITY_OAUTH_CLIENT_ID`     | Antigravity (Google)    | Memerlukan `_SECRET` yang sesuai.                                                         |
-| `ANTIGRAVITY_OAUTH_CLIENT_SECRET` | Antigravity (Google)    | —                                                                                         |
-| `GITHUB_OAUTH_CLIENT_ID`          | GitHub Copilot          | Klien publik.                                                                             |
-| `QODER_OAUTH_CLIENT_SECRET`       | Qoder                   | —                                                                                         |
-| `QODER_OAUTH_AUTHORIZE_URL`       | Qoder                   | Atur untuk mengaktifkan OAuth Qoder.                                                      |
-| `QODER_OAUTH_TOKEN_URL`           | Qoder                   | —                                                                                         |
-| `QODER_OAUTH_USERINFO_URL`        | Qoder                   | —                                                                                         |
-| `QODER_OAUTH_CLIENT_ID`           | Qoder                   | —                                                                                         |
-| `QODER_PERSONAL_ACCESS_TOKEN`     | Qoder                   | Fallback kunci API langsung (melewati OAuth).                                             |
-| `QODER_CLI_WORKSPACE`             | Qoder                   | ID workspace untuk CLI Qoder.                                                             |
-| `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias untuk `QODER_CLI_WORKSPACE`.                                                        |
+| Variable                          | Provider                | Catatan                                                                        |
+| --------------------------------- | ----------------------- | ------------------------------------------------------------------------------ |
+| `CLAUDE_OAUTH_CLIENT_ID`          | Claude Code (Anthropic) | Klien publik — tidak perlu secret.                                             |
+| `CLAUDE_CODE_REDIRECT_URI`        | Claude Code             | Timpa redirect URI. Default: `https://platform.claude.com/oauth/code/callback` |
+| `CODEX_OAUTH_CLIENT_ID`           | Codex / OpenAI          | Klien publik.                                                                  |
+| `GEMINI_OAUTH_CLIENT_ID`          | Gemini (Google)         | Memerlukan `_SECRET` yang sesuai.                                              |
+| `GEMINI_OAUTH_CLIENT_SECRET`      | Gemini (Google)         | —                                                                              |
+| `QWEN_OAUTH_CLIENT_ID`            | Qwen (Alibaba)          | Klien publik.                                                                  |
+| `KIMI_CODING_OAUTH_CLIENT_ID`     | Kimi Coding (Moonshot)  | Klien publik.                                                                  |
+| `ANTIGRAVITY_OAUTH_CLIENT_ID`     | Antigravity (Google)    | Memerlukan `_SECRET` yang sesuai.                                              |
+| `ANTIGRAVITY_OAUTH_CLIENT_SECRET` | Antigravity (Google)    | —                                                                              |
+| `GITHUB_OAUTH_CLIENT_ID`          | GitHub Copilot          | Klien publik.                                                                  |
+| `QODER_OAUTH_CLIENT_SECRET`       | Qoder                   | —                                                                              |
+| `QODER_OAUTH_AUTHORIZE_URL`       | Qoder                   | Atur untuk mengaktifkan OAuth Qoder.                                           |
+| `QODER_OAUTH_TOKEN_URL`           | Qoder                   | —                                                                              |
+| `QODER_OAUTH_USERINFO_URL`        | Qoder                   | —                                                                              |
+| `QODER_OAUTH_CLIENT_ID`           | Qoder                   | —                                                                              |
+| `QODER_PERSONAL_ACCESS_TOKEN`     | Qoder                   | Fallback kunci API langsung (melewati OAuth).                                  |
+| `QODER_CLI_WORKSPACE`             | Qoder                   | ID workspace untuk CLI Qoder.                                                  |
+| `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias untuk `QODER_CLI_WORKSPACE`.                                             |
 
 > [!WARNING]
 >
@@ -334,17 +334,17 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 > **Sumber:** `open-sse/executors/base.ts` → `buildHeaders()`
 
-| Variable                 | Nilai Default                                 | Kapan Diperbarui                                                       |
-| ------------------------ | --------------------------------------------- | ---------------------------------------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.145 (external, cli)`          | Saat Anthropic merilis versi CLI baru                                  |
-| `CODEX_USER_AGENT`       | `codex-cli/0.132.0 (Windows 10.0.26200; x64)` | Saat OpenAI memperbarui CLI Codex                                      |
-| `CODEX_CLIENT_VERSION`   | `0.131.0`                                     | Override versi klien Codex secara independen dari string UA penuh      |
-| `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    | Saat GitHub Copilot Chat diperbarui                                    |
-| `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 darwin/arm64`              | Saat Antigravity IDE diperbarui                                        |
-| `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             | Saat Kiro IDE diperbarui                                               |
-| `QODER_USER_AGENT`       | `Qoder-Cli`                                   | Saat CLI Qoder diperbarui                                              |
-| `QWEN_USER_AGENT`        | `QwenCode/0.15.11 (linux; x64)`               | Saat Qwen Code diperbarui                                              |
-| `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                            | Saat Cursor diperbarui                                                 |
+| Variable                 | Nilai Default                                 | Kapan Diperbarui                                                  |
+| ------------------------ | --------------------------------------------- | ----------------------------------------------------------------- |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.219 (external, cli)`          | Saat Anthropic merilis versi CLI baru                             |
+| `CODEX_USER_AGENT`       | `codex-cli/0.132.0 (Windows 10.0.26200; x64)` | Saat OpenAI memperbarui CLI Codex                                 |
+| `CODEX_CLIENT_VERSION`   | `0.131.0`                                     | Override versi klien Codex secara independen dari string UA penuh |
+| `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    | Saat GitHub Copilot Chat diperbarui                               |
+| `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 darwin/arm64`              | Saat Antigravity IDE diperbarui                                   |
+| `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             | Saat Kiro IDE diperbarui                                          |
+| `QODER_USER_AGENT`       | `Qoder-Cli`                                   | Saat CLI Qoder diperbarui                                         |
+| `QWEN_USER_AGENT`        | `QwenCode/0.15.11 (linux; x64)`               | Saat Qwen Code diperbarui                                         |
+| `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                            | Saat Cursor diperbarui                                            |
 
 > [!TIP]
 > Anda dapat menambahkan override User-Agent untuk provider **mana pun** menggunakan pola `{PROVIDER_ID}_USER_AGENT`. Executor secara dinamis membangun nama variabel lingkungan.

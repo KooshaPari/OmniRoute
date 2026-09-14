@@ -85,13 +85,27 @@ describe("isLocalOnlyPath — GET exemption for /api/system/version (#5083)", ()
     assert.equal(isLocalOnlyPath("/api/db-backups/exportAll", "GET"), true);
   });
 
-  // ── EXEMPTION SET IS EXPORTED AND CONTAINS EXACTLY /api/system/version ───
+  // ── EXEMPTION SET IS EXPORTED AND HOLDS EXACTLY THE REVIEWED PATHS ───────
 
   test("LOCAL_ONLY_API_GET_EXEMPTIONS contains /api/system/version", () => {
     assert.ok(LOCAL_ONLY_API_GET_EXEMPTIONS.has("/api/system/version"));
   });
 
-  test("LOCAL_ONLY_API_GET_EXEMPTIONS has exactly 1 entry", () => {
-    assert.equal(LOCAL_ONLY_API_GET_EXEMPTIONS.size, 1);
+  // Every entry here opens a local-only path to LAN/remote GET, so the set must
+  // never grow by accident. Pinned by membership rather than by `size`: a count
+  // cannot say WHICH path appeared, and it cannot see a substitution at all —
+  // swapping /api/system/version for some other route keeps size at 1 and passes.
+  // Adding a path is still meant to fail here; the fix is to add it to this list
+  // in the same change, with the reason it is safe for a read-only method.
+  //
+  //   /api/system/version    — GET only reads package.json + the npm registry (#5083)
+  //   /api/tunnels/cloudflared — GET is tunnel status; POST still spawns cloudflared
+  //                              and stays local-only (#11531, and see
+  //                              route-guard-tunnel-processes-local-only.test.ts)
+  test("LOCAL_ONLY_API_GET_EXEMPTIONS holds exactly the reviewed paths", () => {
+    assert.deepEqual([...LOCAL_ONLY_API_GET_EXEMPTIONS].sort(), [
+      "/api/system/version",
+      "/api/tunnels/cloudflared",
+    ]);
   });
 });

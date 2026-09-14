@@ -46,36 +46,12 @@ function listProjectFiles(relPath: string): string[] {
 }
 
 // ─── Pipeline Wiring ─────────────────────────────────
-
-describe("Pipeline Wiring — server-init.ts", () => {
-  const src = readProjectFile("src/server-init.ts");
-
-  it("should initialize compliance audit log", () => {
-    assert.ok(src, "src/server-init.ts should exist");
-    assert.match(src, /initAuditLog/);
-  });
-
-  it("should cleanup expired logs", () => {
-    assert.match(src, /cleanupExpiredLogs/);
-  });
-
-  it("should enforce secrets before startup", () => {
-    assert.match(src, /enforceSecrets/);
-  });
-
-  it("should enforce web runtime env before startup", () => {
-    assert.match(src, /enforceWebRuntimeEnv/);
-  });
-
-  it("should log server.start audit event", () => {
-    assert.match(src, /server\.start/);
-  });
-
-  it("should use the structured startup logger instead of direct console calls", () => {
-    assert.match(src, /createLogger\("server-init"\)/);
-    assert.doesNotMatch(src, /console\.(log|warn|error|info|debug)\(/);
-  });
-});
+//
+// src/server-init.ts was removed: it was never imported anywhere and duplicated
+// the wiring below, which is the boot path that actually runs (Next.js
+// instrumentation hook). See tests/unit/credential-health-boot-wiring.test.ts and
+// tests/unit/thinking-budget-boot-wiring-5312.test.ts for the incidents that
+// wiring into the dead module caused.
 
 describe("Pipeline Wiring — instrumentation-node.ts", () => {
   const src = readProjectFile("src/instrumentation-node.ts");
@@ -292,27 +268,15 @@ describe("API Routes — dashboard and tool consumers", () => {
     assert.doesNotMatch(requestLogger, /\/api\/logs\/active/);
   });
 
-  it("keeps tenant quota A2A and provider quota HTTP/MCP wiring distinct", () => {
+  it("keeps usage quota wired through A2A and MCP tools", () => {
     const quotaSkill = readProjectFile("src/lib/a2a/skills/quotaManagement.ts");
-    const taskExecution = readProjectFile("src/lib/a2a/taskExecution.ts");
     const mcpAdvancedTools = readProjectFile("open-sse/mcp-server/tools/advancedTools.ts");
     const mcpServer = readProjectFile("open-sse/mcp-server/server.ts");
 
     assert.ok(quotaSkill, "quotaManagement skill should exist");
-    assert.ok(taskExecution, "A2A task execution registry should exist");
     assert.ok(mcpAdvancedTools, "advanced MCP tools should exist");
     assert.ok(mcpServer, "MCP server should exist");
-
-    // A2A quota-management owns the tenant ledger directly. It must stay wired
-    // through the handler registry rather than self-fetching the provider quota API.
-    assert.match(taskExecution, /"quota-management"\s*:\s*async/);
-    assert.match(taskExecution, /executeQuotaManagement\(task\)/);
-    assert.match(quotaSkill, /getDbInstance/);
-    assert.match(quotaSkill, /tenant_quotas/);
-    assert.match(quotaSkill, /export async function executeQuotaManagement/);
-    assert.doesNotMatch(quotaSkill, /\/api\/usage\/quota/);
-
-    // MCP quota tools expose provider/account quota through the HTTP route.
+    assert.match(quotaSkill, /\/api\/usage\/quota/);
     assert.match(mcpAdvancedTools, /\/api\/usage\/quota/);
     assert.match(mcpServer, /\/api\/usage\/quota/);
     assertRouteMethods("src/app/api/usage/quota/route.ts", ["GET"]);
@@ -496,6 +460,7 @@ describe("Page Integration — cache page wiring", () => {
 
 describe("Page Integration — cost explorer wiring", () => {
   const costsPage = readProjectFile("src/app/(dashboard)/dashboard/costs/CostOverviewTab.tsx");
+  const usageAnalytics = readProjectFile("src/shared/components/UsageAnalytics.tsx");
   const costExplorerUtils = readProjectFile(
     "src/app/(dashboard)/dashboard/costs/costExplorerUtils.ts"
   );
@@ -508,6 +473,11 @@ describe("Page Integration — cost explorer wiring", () => {
     assert.match(costsPage, /byServiceTier/);
     assert.match(costExplorerUtils, /buildCostExplorerRows/);
     assert.match(costExplorerUtils, /serviceTier/);
+  });
+
+  it("should request token-price estimates for flat-rate providers", () => {
+    assert.match(costsPage, /includeFlatRateEstimates:\s*"true"/);
+    assert.match(usageAnalytics, /params\.set\("includeFlatRateEstimates",\s*"true"\)/);
   });
 });
 

@@ -6,15 +6,74 @@ export function stripCookieInputPrefix(rawValue: string): string {
   return withoutBearer.replace(/^cookie:/i, "").trim();
 }
 
-export function normalizeSessionCookieHeader(rawValue: string, defaultCookieName: string): string {
-  const normalized = stripCookieInputPrefix(rawValue);
-  if (!normalized) return "";
+/**
+ * Parse a JSON array of cookie objects and produce a Cookie header string.
+ *
+ * Accepts the format exported by browser cookie-editor extensions / DevTools:
+ * ```json
+ * [
+ *   {"name":"sso","value":"eyJ0eXAi...","domain":".example.com","path":"/"},
+ *   {"name":"sso-rw","value":"eyJOTHER..."}
+ * ]
+ * ```
+ *
+ * Only `name` and `value` are required. Extra fields (domain, path, expires,
+ * httpOnly, secure, sameSite) are silently ignored — they describe the cookie
+ * but are not part of the `Cookie` request header.
+ *
+ * @param rawValue - The user-provided cookie string (possibly JSON).
+ * @returns A Cookie header string, null if the input is not JSON (pass-through).
+ * @throws {Error} If a JSON entry is missing the required `name` or `value` field.
+ */
+export function parseJsonCookiesToHeader(rawValue: string): string | null {
+  const trimmed = (rawValue || "").trim();
+  if (!trimmed || !trimmed.startsWith("[")) return null;
 
-  if (normalized.includes("=")) {
-    return normalized;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch {
+    return null;
   }
 
-  return `${defaultCookieName}=${normalized}`;
+  if (!Array.isArray(parsed)) return null;
+  if (parsed.length === 0) return "";
+
+  const parts: string[] = [];
+  for (let i = 0; i < parsed.length; i++) {
+    const entry = parsed[i];
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      throw new Error(`Invalid cookie JSON at index ${i}: expected an object`);
+    }
+    const record = entry as Record<string, unknown>;
+
+    if (typeof record.name !== "string" || !record.name) {
+      throw new Error(`Invalid cookie JSON at index ${i}: missing required field 'name'`);
+    }
+    if (typeof record.value !== "string") {
+      throw new Error(`Invalid cookie JSON at index ${i}: missing required field 'value'`);
+    }
+
+    parts.push(`${record.name}=${record.value}`);
+  }
+
+  return parts.join("; ");
+}
+
+export function normalizeSessionCookieHeader(rawValue: string, defaultCookieName: string): string {
+  const stripped = stripCookieInputPrefix(rawValue);
+  if (!stripped) return "";
+
+  const jsonResult = parseJsonCookiesToHeader(stripped);
+  if (jsonResult !== null) {
+    return jsonResult;
+  }
+
+  if (stripped.includes("=")) {
+    return stripped;
+  }
+
+  return `${defaultCookieName}=${stripped}`;
 }
 
 /**
@@ -71,71 +130,72 @@ export function buildGrokCookieHeader(rawValue: string): string {
   return parts.join("; ");
 }
 
-/**
- * Build the `Cookie` header value for chat.qwen.ai (Qwen Web / Tongyi).
- *
- * The Qwen v2 API sits behind Alibaba's "baxia" WAF, which requires the full
- * browser cookie jar from a real logged-in session (`cna`, `ssxmod_itna`,
- * `ssxmod_itna2`, `token`, `_bl_uid`, `x-ap`, ...). Unlike grok we cannot
- * reconstruct a canonical subset, so we forward the whole pasted/captured blob
- * verbatim (minus a leading `Cookie:`/`bearer ` prefix).
- *
- * A bare token (no cookie pairs, i.e. no `=`) yields "" — there is no jar to
- * replay, only a bearer credential (handled by {@link extractQwenToken}).
- */
-export function buildQwenCookieHeader(rawValue: string): string {
-  const trimmed = stripCookieInputPrefix(rawValue);
-  if (!trimmed || !trimmed.includes("=")) return "";
-  return trimmed;
-}
+/** Extract Kimi Web's current localStorage access token, with legacy cookie compatibility. */
+export function extractKimiAccessToken(rawValue: string): string {
+  const raw = String(rawValue ?? "").trim();
+  if (!raw) return "";
 
-/**
- * Extract the Qwen bearer token from whatever the user pasted/captured.
- *
- * Qwen stores its auth JWT in localStorage as `token`, and chat.qwen.ai also
- * mirrors it into a `token` cookie. So:
- *   - full cookie blob with `token=...`  → that value
- *   - bare token (no cookie pairs)       → the value itself
- *   - cookie blob without a `token` pair → "" (token must come from elsewhere)
- */
-export function extractQwenToken(rawValue: string): string {
-  const trimmed = stripCookieInputPrefix(rawValue);
-  if (!trimmed) return "";
-  if (!trimmed.includes("=")) return trimmed;
-  const match = trimmed.match(/(?:^|;\s*)token=([^;\s]+)/);
-  return match ? match[1] : "";
-}
-
-/**
- * Pull the `kimi-auth` JWT out of whatever the user pasted for the
- * international Kimi consumer chat (www.kimi.com).
- *
- * Accepts (all return the same JWT string):
- *   - bare JWT                       `eyJhbGci...sig`
- *   - full Cookie header             `_ga=...; kimi-auth=eyJ...; theme=dark`
- *   - `Cookie:` / `Authorization: Bearer` prefixed forms
- *   - stray `Bearer eyJ...` without a header label
- *
- * Returns "" if no JWT can be located.
- */
-export function extractKimiJwt(rawValue: string): string {
-  const trimmed = stripCookieInputPrefix(rawValue);
-  if (!trimmed) return "";
-
-  // Bare JWT — three base64url segments separated by dots.
-  if (/^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(trimmed)) {
-    return trimmed;
+  // 1. JSON dump extraction
+  if (raw.startsWith("{") && raw.endsWith("}")) {
+    try {
+      const parsed = JSON.parse(raw);
+      const access = parsed?.access_token || parsed?.token || "";
+      if (access && typeof access === "string") return access.trim();
+    } catch {}
   }
 
-  // Cookie-style pair: pull `kimi-auth=<value>` out of the blob.
-  const match = trimmed.match(/(?:^|[\s;])kimi-auth=([^;\s]+)/);
-  if (match) return match[1];
-
-  // Last resort: a `Bearer <jwt>` pasted without the header label.
-  const bearer = trimmed.match(/bearer\s+(eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/i);
+  const bearer = raw.match(/^(?:authorization:\s*)?bearer\s+([^;\s]+)/i);
   if (bearer) return bearer[1];
 
+  const trimmed = stripCookieInputPrefix(raw);
+  for (const key of ["access_token", "kimi-auth"]) {
+    const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const match = trimmed.match(new RegExp(`(?:^|[\\s;])${escaped}=([^;\\s]+)`));
+    if (match) return match[1];
+  }
+
+  return !trimmed.includes("=") && !trimmed.includes(";") ? trimmed : "";
+}
+
+/** Extract Kimi Web refresh_token from key-value, raw string, or localStorage JSON dump. */
+export function extractKimiRefreshToken(rawValue: string): string {
+  const raw = String(rawValue ?? "").trim();
+  if (!raw) return "";
+
+  // 1. JSON dump extraction
+  if (raw.startsWith("{") && raw.endsWith("}")) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed?.refresh_token && typeof parsed.refresh_token === "string") {
+        return parsed.refresh_token.trim();
+      }
+    } catch {}
+  }
+
+  // 2. Key-value extraction
+  const match = raw.match(/(?:^|[\s;])refresh_token=([^;\s]+)/);
+  if (match) return match[1];
+
   return "";
+}
+
+/** Extract both access_token and refresh_token from user input. */
+export function extractKimiCredentials(rawValue: string): {
+  accessToken: string;
+  refreshToken: string;
+} {
+  const raw = String(rawValue ?? "").trim();
+  if (!raw) return { accessToken: "", refreshToken: "" };
+
+  return {
+    accessToken: extractKimiAccessToken(raw),
+    refreshToken: extractKimiRefreshToken(raw),
+  };
+}
+
+/** @deprecated Use extractKimiAccessToken; retained for existing imports. */
+export function extractKimiJwt(rawValue: string): string {
+  return extractKimiAccessToken(rawValue);
 }
 
 export function normalizeSessionCookieHeaders(

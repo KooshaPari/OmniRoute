@@ -5,10 +5,15 @@
  * capable model with a large output cap (e.g. glm-5.2) the #3587 headroom heuristic
  * (`max(current + 1000, ceil(current * 1.5))`) rewrote it to 1001 and forwarded that
  * upstream. A tiny explicit budget below REASONING_BUFFER_MIN_TRIGGER (256) is a
- * probe and must pass through verbatim; genuine budgets keep the #3587 headroom.
+ * probe and must pass through verbatim; genuine budgets keep the #3587 headroom
+ * only when the full headroom fits inside an explicit output cap.
  *
  * Kept standalone against the pure `resolveReasoningBufferedMaxTokens` rather than
  * extending the frozen `combo-routing-engine.test.ts` god-file.
+ *
+ * #9507 update: the #3587 headroom heuristic was removed — the buffer never
+ * enlarges an explicit client max_tokens. The assertions at/above the trigger
+ * threshold now expect pass-through (256 -> 256, 32000 -> 32000).
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -20,12 +25,10 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-reasoning
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
-const { saveModelsDevCapabilities, clearModelsDevCapabilities } = await import(
-  "../../src/lib/modelsDevSync.ts"
-);
-const { resolveReasoningBufferedMaxTokens, REASONING_BUFFER_MIN_TRIGGER } = await import(
-  "../../open-sse/services/reasoningTokenBuffer.ts"
-);
+const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
+  await import("../../src/lib/modelsDevSync.ts");
+const { resolveReasoningBufferedMaxTokens, REASONING_BUFFER_MIN_TRIGGER } =
+  await import("../../open-sse/services/reasoningTokenBuffer.ts");
 
 function capabilityEntry(limitContext: unknown, overrides: Record<string, unknown> = {}) {
   return {
@@ -55,6 +58,19 @@ test.before(() => {
   saveModelsDevCapabilities({
     zhipu: {
       "glm-5.2": capabilityEntry(200000, { reasoning: true, limit_output: 65536 }),
+      // Deliberately NOT prefixed with a real MODEL_SPECS key (e.g. "glm-5.2") —
+      // getStaticSpec()/getCanonicalModelSpecId() does prefix matching (#6714),
+      // so a fixture id like "glm-5.2-no-output-cap" would silently fall through
+      // to the real glm-5.2 static spec's 131072 cap and defeat this fixture's
+      // "no cap anywhere" premise.
+      "totally-fictitious-model-6714-no-output-cap": capabilityEntry(200000, {
+        reasoning: true,
+        limit_output: null,
+      }),
+      "glm-5.2-output-cap-40000": capabilityEntry(200000, {
+        reasoning: true,
+        limit_output: 40000,
+      }),
     },
   });
 });
@@ -62,7 +78,7 @@ test.before(() => {
 test.after(() => {
   clearModelsDevCapabilities();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#6274 reasoning buffer does not inflate probe-sized max_tokens", () => {
@@ -78,16 +94,42 @@ test("#6274 reasoning buffer does not inflate probe-sized max_tokens", () => {
     REASONING_BUFFER_MIN_TRIGGER - 1,
     "budgets below REASONING_BUFFER_MIN_TRIGGER are respected verbatim"
   );
-  // At the threshold, headroom resumes: max(256 + 1000, ceil(256 * 1.5)) = 1256.
+  // Issue #9507: the buffer must NEVER enlarge a client's explicit max_tokens.
+  // Previously the #3587 headroom heuristic rewrote these upward
+  // (256 -> 1256, 32000 -> 48000); that violated the #1761 contract that
+  // upward adjustment must be opt-in. The over-cap clamp still narrows.
   assert.equal(
     resolveReasoningBufferedMaxTokens("zhipu/glm-5.2", REASONING_BUFFER_MIN_TRIGGER),
-    1256,
-    "budgets at the threshold receive reasoning headroom"
+    REASONING_BUFFER_MIN_TRIGGER,
+    "budgets at the threshold are forwarded verbatim (#9507)"
   );
-  // A realistic reasoning budget still gets buffered: max(32000 + 1000, 48000) = 48000.
+  // A realistic reasoning budget is forwarded verbatim, not enlarged.
   assert.equal(
     resolveReasoningBufferedMaxTokens("zhipu/glm-5.2", 32000),
-    48000,
-    "genuine reasoning budgets keep the #3587 headroom"
+    32000,
+    "genuine reasoning budgets are forwarded verbatim (#9507)"
+  );
+});
+
+test("reasoning buffer requires an explicit cap and preserves near-cap budgets", () => {
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("zhipu/totally-fictitious-model-6714-no-output-cap", 32000),
+    null,
+    "missing model output cap should disable heuristic token inflation"
+  );
+
+  // Known cap below the heuristic result: preserve the caller's in-range budget
+  // rather than inflating to a value that may reduce response room unexpectedly.
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("zhipu/glm-5.2-output-cap-40000", 32000),
+    32000,
+    "known model output cap should preserve in-range near-cap budgets"
+  );
+
+  // Known cap below the caller value still clamps the requested value itself.
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("zhipu/glm-5.2-output-cap-40000", 41000),
+    40000,
+    "requested max_tokens above the model output cap should be capped"
   );
 });

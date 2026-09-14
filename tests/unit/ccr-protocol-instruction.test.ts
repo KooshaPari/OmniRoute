@@ -88,7 +88,15 @@ describe("ccr protocol instruction (#8033)", () => {
     const body = makeBody([{ role: "user", content: LARGE_TEXT }]);
     const result = ccrEngine.apply(body);
 
-    assert.equal(result.compressed, true, "large block should still compress");
+    // #7746 follow-up: a caller whose tools[] does not advertise
+    // omniroute_ccr_retrieve can never resolve a content-addressed marker, so
+    // replacing its text would strand it behind an unresolvable hash. The engine
+    // therefore now SKIPS entirely for such callers (callerSupportsCcrRetrieve →
+    // false ⇒ compressed:false), which is a strictly safer outcome than the old
+    // "compress the block but withhold the instruction" behavior. Either way the
+    // guarantee this test pins holds: no CCR marker/instruction reaches a caller
+    // that cannot use it.
+    assert.equal(result.compressed, false, "no-retrieve-tool caller must not be compressed");
     const messages = result.body["messages"] as Array<{ role: string; content: unknown }>;
 
     assert.equal(messages.length, 1, "no system message should be injected");

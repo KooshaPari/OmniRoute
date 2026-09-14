@@ -13,6 +13,8 @@ import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { enforceClientApiRouteAuth } from "@/shared/utils/clientApiRouteAuth";
 import { runWithCallLogApiKeyContext } from "@/lib/usage/callLogApiKeyContext";
+import { executeImageWithCredentialFallback } from "@/sse/services/imageCredentialRetry";
+import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
 
 /**
  * Handle CORS preflight
@@ -31,6 +33,8 @@ export async function OPTIONS() {
  */
 export async function POST(request, { params }) {
   const { provider: rawProvider } = await params;
+  const retirementResponse = rejectRetiredCommonChatGptWebProvider(rawProvider);
+  if (retirementResponse) return retirementResponse;
 
   // Verify this is a valid image provider
   const imageProvider = getImageProvider(rawProvider);
@@ -71,7 +75,13 @@ export async function POST(request, { params }) {
     );
   }
 
-  const credentials = await getProviderCredentialsWithQuotaPreflight(rawProvider);
+  const requestedModel = body.model.slice(rawProvider.length + 1);
+  let credentials = await getProviderCredentialsWithQuotaPreflight(
+    rawProvider,
+    null,
+    null,
+    requestedModel
+  );
   if (!credentials) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
@@ -87,13 +97,21 @@ export async function POST(request, { params }) {
     );
   }
 
-  const result = await runWithCallLogApiKeyContext(
-    {
-      apiKeyId: policy.apiKeyInfo?.id ?? null,
-      apiKeyName: policy.apiKeyInfo?.name ?? null,
-    },
-    () => handleImageGeneration({ body, credentials, log })
-  );
+  const execution = await executeImageWithCredentialFallback({
+    provider: rawProvider,
+    requestedModel,
+    credentials,
+    execute: (attemptCredentials) =>
+      runWithCallLogApiKeyContext(
+        {
+          apiKeyId: policy.apiKeyInfo?.id ?? null,
+          apiKeyName: policy.apiKeyInfo?.name ?? null,
+        },
+        () => handleImageGeneration({ body, credentials: attemptCredentials, log })
+      ),
+  });
+  credentials = execution.credentials;
+  const result = execution.result;
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);
@@ -104,8 +122,9 @@ export async function POST(request, { params }) {
   }
 
   const errorPayload = toJsonErrorPayload((result as any).error, "Image generation provider error");
-  return new Response(JSON.stringify(errorPayload), {
-    status: (result as any).status,
-    headers: { "Content-Type": "application/json" },
-  });
+  const message =
+    typeof errorPayload?.error?.message === "string"
+      ? errorPayload.error.message
+      : "Image generation provider error";
+  return errorResponse((result as any).status, message);
 }

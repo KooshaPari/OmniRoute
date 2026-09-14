@@ -39,8 +39,19 @@ function decodeChunk(value) {
   return typeof value === "string" ? value : new TextDecoder().decode(value);
 }
 
+async function withSseCommentsOn(fn) {
+  const prev = process.env.OMNIROUTE_SSE_COMMENTS;
+  process.env.OMNIROUTE_SSE_COMMENTS = "on";
+  try {
+    return await fn();
+  } finally {
+    if (prev === undefined) delete process.env.OMNIROUTE_SSE_COMMENTS;
+    else process.env.OMNIROUTE_SSE_COMMENTS = prev;
+  }
+}
+
 test("createSseHeartbeatTransform emits SSE comments while preserving stream output", async () => {
-  await withFakeIntervals(async (intervals) => {
+  await withSseCommentsOn(() => withFakeIntervals(async (intervals) => {
     const transform = createSseHeartbeatTransform({ intervalMs: 250 });
     const writer = transform.writable.getWriter();
     const reader = transform.readable.getReader();
@@ -65,11 +76,11 @@ test("createSseHeartbeatTransform emits SSE comments while preserving stream out
     assert.equal(emitted[0], 'data: {"chunk":"one"}\n\n');
     assert.match(emitted[1], /^: keepalive /);
     assert.equal(intervals[0].cleared, true);
-  });
+  }));
 });
 
 test("createSseHeartbeatTransform clears the interval when aborted", async () => {
-  await withFakeIntervals(async (intervals) => {
+  await withSseCommentsOn(() => withFakeIntervals(async (intervals) => {
     const controller = new AbortController();
     const transform = createSseHeartbeatTransform({ signal: controller.signal });
     const reader = transform.readable.getReader();
@@ -83,7 +94,7 @@ test("createSseHeartbeatTransform clears the interval when aborted", async () =>
 
     await writer.close();
     await reader.cancel();
-  });
+  }));
 });
 
 const { shapeForClientFormat } = await import("../../open-sse/utils/sseHeartbeat.ts");
@@ -166,7 +177,7 @@ test("shape: openai-responses-in-progress emits response.in_progress data event"
 });
 
 test("shape default is comment (back-compat)", async () => {
-  await withFakeIntervals(async (intervals) => {
+  await withSseCommentsOn(() => withFakeIntervals(async (intervals) => {
     const transform = createSseHeartbeatTransform({ intervalMs: 100 });
     const writer = transform.writable.getWriter();
     const reader = transform.readable.getReader();
@@ -184,7 +195,7 @@ test("shape default is comment (back-compat)", async () => {
     await pump;
 
     assert.match(emitted[0], /^: keepalive /);
-  });
+  }));
 });
 
 test("intervalMs <= 0 returns passthrough (no setInterval, no heartbeat)", async () => {
@@ -224,8 +235,11 @@ test("shapeForClientFormat maps formats correctly", () => {
 test("no shape collides with stream.ts event: keepalive strip regex", async () => {
   const shapes = ["comment", "anthropic-ping", "openai-chunk", "openai-responses-in-progress"];
   for (const shape of shapes) {
-    await withFakeIntervals(async (intervals) => {
-      const transform = createSseHeartbeatTransform({ intervalMs: 100, shape });
+    await withSseCommentsOn(() => withFakeIntervals(async (intervals) => {
+      const transform = createSseHeartbeatTransform({
+        intervalMs: 100,
+        shape,
+      });
       const writer = transform.writable.getWriter();
       const reader = transform.readable.getReader();
       const emitted = [];
@@ -249,6 +263,6 @@ test("no shape collides with stream.ts event: keepalive strip regex", async () =
           `shape ${shape} produced forbidden line: ${line}`
         );
       }
-    });
+    }));
   }
 });

@@ -31,6 +31,20 @@ function toNumber(value: unknown, fallback = 0): number {
   return fallback;
 }
 
+/**
+ * Current time in the same format `expires_at` and `created_at` are written in.
+ *
+ * `expires_at` is a TEXT column holding an ISO-8601 string ("2026-08-26T14:00:00.000Z"),
+ * so it has to be compared against another ISO-8601 string. Comparing it to SQLite's
+ * `datetime('now')` ("2026-08-26 14:00:00") is a lexicographic comparison that diverges
+ * at index 10, where the stored value has 'T' (0x54) and `datetime('now')` has ' ' (0x20).
+ * 'T' sorts after ' ', so every row whose UTC calendar date was today compared as
+ * unexpired regardless of its real time-of-day TTL.
+ */
+function isoNow(): string {
+  return new Date().toISOString();
+}
+
 function ensureCacheMetricsTable() {
   try {
     const db = getDbInstance();
@@ -105,7 +119,60 @@ function getMemoryCache() {
   return memoryCache;
 }
 
+/**
+ * In-memory LRU stats for the semantic cache.
+ *
+ * Exposed for `/api/cache/stats`, which used to report `getPromptCache()` — an
+ * LRU that nothing writes to, so it always answered 0 hit / 0 miss. Same shape
+ * as `LRUCache.getStats()`, so callers do not have to change.
+ */
+export function getMemoryCacheStats(): ReturnType<LRUCache["getStats"]> {
+  return getMemoryCache().getStats();
+}
+
+/** Drop the in-memory LRU without touching the `semantic_cache` table. */
+export function clearMemoryCache(): void {
+  getMemoryCache().clear();
+}
+
 // ─── Signature Generation ─────────────────
+
+/**
+ * Behavior-changing generation constraints that MUST be folded into the cache signature
+ * (#12734). Without these, a cached response produced under one `tool_choice`/`tools`/
+ * `response_format` could be replayed for a later request that forbids or changes that
+ * behavior (e.g. a cached `tool_calls` response served to a `tool_choice: "none"` request).
+ */
+export interface SignatureConstraints {
+  toolChoice?: unknown;
+  tools?: unknown;
+  responseFormat?: unknown;
+}
+
+/** Normalize a single tool definition, keeping only the fields that define its policy. */
+function normalizeTool(tool: unknown): unknown {
+  const record = asRecord(tool);
+  const fn = asRecord(record.function);
+  if (Object.keys(fn).length === 0 && Object.keys(record).length === 0) return tool;
+  return {
+    type: typeof record.type === "string" ? record.type : "function",
+    function: {
+      name: fn.name,
+      description: fn.description,
+      parameters: fn.parameters,
+    },
+  };
+}
+
+/**
+ * Normalize `tools` for consistent hashing (mirrors `normalizeConversation` for messages):
+ * strips volatile/irrelevant fields while keeping name/description/parameters, which are
+ * what actually define the tool policy a cached response was generated under.
+ */
+function normalizeTools(tools: unknown): unknown {
+  if (!Array.isArray(tools) || tools.length === 0) return undefined;
+  return tools.map(normalizeTool);
+}
 
 /**
  * Generate deterministic cache signature from request params.
@@ -114,6 +181,8 @@ function getMemoryCache() {
  * @param {number} temperature
  * @param {number} topP
  * @param {string} [apiKeyId] - API key ID for per-key isolation (prevents cross-user cache hits)
+ * @param {SignatureConstraints} [constraints] - tool_choice/tools/response_format (#12734):
+ *   these change model behavior and must not collide with a signature computed without them.
  * @returns {string} hex signature
  */
 export function generateSignature(
@@ -121,13 +190,17 @@ export function generateSignature(
   conversation,
   temperature = 0,
   topP = 1,
-  apiKeyId?: string
+  apiKeyId?: string,
+  constraints?: SignatureConstraints
 ) {
   const payload = JSON.stringify({
     model,
     messages: normalizeConversation(conversation),
     temperature,
     top_p: topP,
+    tool_choice: constraints?.toolChoice,
+    tools: normalizeTools(constraints?.tools),
+    response_format: constraints?.responseFormat,
   });
   const digest = crypto.createHash("sha256").update(payload).digest("hex");
   // Per-key cache isolation (#3740) namespaces the signature with the apiKeyId as a
@@ -187,9 +260,9 @@ export function getCachedResponse(signature) {
     const db = getDbInstance();
     const row = db
       .prepare(
-        "SELECT response, tokens_saved FROM semantic_cache WHERE signature = ? AND expires_at > datetime('now')"
+        "SELECT response, tokens_saved FROM semantic_cache WHERE signature = ? AND expires_at > ?"
       )
-      .get(signature);
+      .get(signature, isoNow());
 
     if (row) {
       const record = asRecord(row);
@@ -326,8 +399,8 @@ export function getCacheStats() {
   try {
     const db = getDbInstance();
     const row = db
-      .prepare("SELECT COUNT(*) as count FROM semantic_cache WHERE expires_at > datetime('now')")
-      .get();
+      .prepare("SELECT COUNT(*) as count FROM semantic_cache WHERE expires_at > ?")
+      .get(isoNow());
     dbSize = toNumber(asRecord(row).count, 0);
   } catch {
     // DB not available

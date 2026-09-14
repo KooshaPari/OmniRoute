@@ -51,7 +51,9 @@ export function getBifrostRoutingConfig(
   };
 }
 
-export function resolveRelayRoutingBackend(env: NodeJS.ProcessEnv = process.env): RelayRoutingBackend {
+export function resolveRelayRoutingBackend(
+  env: NodeJS.ProcessEnv = process.env
+): RelayRoutingBackend {
   const configured = env.OMNIROUTE_RELAY_BACKEND || env.RELAY_ROUTING_BACKEND;
   if (configured && VALID_BACKENDS.has(configured as RelayRoutingBackend)) {
     return configured as RelayRoutingBackend;

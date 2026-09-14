@@ -28,6 +28,11 @@ export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
+  // Origin validation for browser mutations is centralized in the authz pipeline
+  // (src/server/authz/pipeline.ts) for MANAGEMENT routes — see PR #5278. Do NOT
+  // re-check origin here: the pipeline strips PEER_IP_HEADER before forwarding,
+  // so a duplicate per-route check cannot resolve the LAN "direct-local-host"
+  // candidate and spuriously rejects same-origin LAN/Docker requests (#6277).
   try {
     let rawBody: unknown;
     try {

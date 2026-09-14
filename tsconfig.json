@@ -19,7 +19,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@omniroute/open-sse": ["./open-sse"],
-      "@omniroute/open-sse/*": ["./open-sse/*"]
+      "@omniroute/open-sse/*": ["./open-sse/*"],
+      "@omniroute/browser-pool": ["./packages/browser-pool/src"]
     },
     "plugins": [
       {
@@ -58,6 +59,11 @@
     "_tasks",
     "_ideia",
     "_mono_repo",
-    "_references"
+    "_references",
+    ".opencode",
+    ".scratch",
+    ".agents",
+    ".slim",
+    "packages"
   ]
 }

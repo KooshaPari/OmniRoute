@@ -31,13 +31,34 @@ export function getPromptCacheReadTokens(tokens: unknown): number {
   );
 }
 
+/**
+ * Every key a provider may use to report prompt cache-CREATION (write) tokens,
+ * in precedence order. Anthropic uses `cache_creation_input_tokens`; the OpenAI
+ * -shaped containers nest it under prompt/input token details, and several
+ * gateways (OpenRouter, Devin Desktop, the codex-chatgpt-web bridge) spell it
+ * `cache_write_tokens`. Consumers that only read the Anthropic key silently
+ * dropped the value whenever usage travelled in OpenAI shape (#Cache Write N/A).
+ */
+export const CACHE_CREATION_TOKEN_KEYS = [
+  "cacheCreation",
+  "cache_creation_input_tokens",
+  "cache_write_tokens",
+] as const;
+
+export const CACHE_CREATION_TOKEN_DETAIL_KEYS = [
+  "cache_creation_tokens",
+  "cache_write_tokens",
+] as const;
+
 export function getPromptCacheCreationTokens(tokens: unknown): number {
   const tokenRecord = asRecord(tokens);
   const promptDetails = getPromptTokenDetails(tokenRecord);
   return toFiniteNumber(
     tokenRecord.cacheCreation ??
       tokenRecord.cache_creation_input_tokens ??
-      promptDetails.cache_creation_tokens
+      tokenRecord.cache_write_tokens ??
+      promptDetails.cache_creation_tokens ??
+      promptDetails.cache_write_tokens
   );
 }
 
@@ -167,8 +188,8 @@ export function getPromptCacheCreationTokensOrNull(tokens: unknown): number | nu
   const tokenRecord = asRecord(tokens);
   const promptDetails = getPromptTokenDetails(tokenRecord);
   if (
-    hasAnyKey(tokenRecord, ["cacheCreation", "cache_creation_input_tokens"]) ||
-    hasAnyKey(promptDetails, ["cache_creation_tokens"])
+    hasAnyKey(tokenRecord, [...CACHE_CREATION_TOKEN_KEYS]) ||
+    hasAnyKey(promptDetails, [...CACHE_CREATION_TOKEN_DETAIL_KEYS])
   ) {
     return getPromptCacheCreationTokens(tokens);
   }
@@ -187,6 +208,23 @@ export function getReasoningTokensOrNull(tokens: unknown): number | null {
     hasAnyKey(completionDetails, ["reasoning_tokens"])
   ) {
     return getReasoningTokens(tokens);
+  }
+  return null;
+}
+
+/**
+ * Return non-cached (fresh) input tokens, or `null` if the provider didn't
+ * report any. Command Code reports this as `inputTokenDetails.noCacheTokens`.
+ * Informational only — the value is already included in prompt_tokens, so it
+ * must never be added to metering totals (see commandCode.ts usageFromCommandCode).
+ */
+export function getNoCacheTokens(tokens: unknown): number | null {
+  const tokenRecord = asRecord(tokens);
+  const promptDetails = getPromptTokenDetails(tokenRecord);
+  if (hasAnyKey(tokenRecord, ["no_cache_tokens"]) || hasAnyKey(promptDetails, ["noCacheTokens"])) {
+    return toFiniteNumber(
+      tokenRecord.no_cache_tokens ?? promptDetails.noCacheTokens ?? tokenRecord.noCacheTokens
+    );
   }
   return null;
 }

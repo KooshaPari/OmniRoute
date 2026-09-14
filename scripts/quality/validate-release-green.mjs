@@ -33,11 +33,16 @@
 // orchestration lives in the /green-prs + review-prs flows that call it.
 //
 // Usage:
-//   node scripts/quality/validate-release-green.mjs [--json] [--with-build] [--quick] [--hermetic]
+//   node scripts/quality/validate-release-green.mjs [--json] [--with-build] [--quick] [--full-ci] [--hermetic]
 //     --json        emit machine-readable JSON to stdout (report goes to stderr)
 //     --with-build  also run check:pack-artifact (needs a dist/ build — slow)
 //     --quick       skip the slow unit + vitest + integration suites (drift + fast
 //                   gates only)
+//     --full-ci     ALSO run every static gate declared in ci.yml's gate jobs (lint,
+//                   quality-gate, quality-extended, docs-sync-strict, pr-test-policy) —
+//                   read straight from ci.yml so the set never drifts. Catches the whole
+//                   "static base-red" category the curated list missed (v3.8.46: 11 of 16
+//                   leaked reds). Pair with --quick for the fast "1 command, 0 CI layers" pass.
 //     --hermetic    scrub OMNIROUTE_API_KEY/OMNIROUTE_URL from gate env so live
 //                   tests self-skip exactly like CI (dev machines otherwise run
 //                   them against localhost and produce false-positive reds)
@@ -45,7 +50,8 @@
 // Per-gate output is saved to _artifacts/release-green/<gate>.log (gitignored) —
 // diagnose a red from the file instead of re-running the gate.
 
-import { execFileSync } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
+import { promisify } from "node:util";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -54,6 +60,7 @@ import { parse as parseYaml } from "yaml";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
+export const ESLINT_TIMEOUT_MS = 60 * 60 * 1000;
 
 // Per-gate captured output. execFileSync buffers everything and the report only
 // shows a one-line summary, so without these files every red requires RE-RUNNING
@@ -84,14 +91,29 @@ export function baselineValue(metric, root = ROOT) {
   }
 }
 
+// A line that is unambiguously a PASS. Test reporters print the file name on BOTH the
+// pass and the fail line, so a green line for a file whose NAME contains "fail"
+// (fail-fast-*.test.ts, failover-*.test.ts) must never be offered as a failure cause.
+const GREEN_LINE_RE = /^[✓✔√]/;
+
+// Markers that are only meaningful at the START of a line: "FAIL" also occurs inside test
+// FILE NAMES and inside summary prose ("Test Files 1 failed"), so matching it anywhere —
+// and case-insensitively — reports a PASSING file as the cause of the red.
+const LINE_START_FAILURE_RE = /^(?:[✖✗×]|FAIL\b|not ok\b|REGRESS)/;
+
+// Markers that are unambiguous ANYWHERE in the line: tsc and Node emit them mid-line
+// ("src/x.ts(10,5): error TS2322: ..."), so these stay unanchored. They are matched
+// case-SENSITIVELY because that is how the emitting tools actually spell them.
+const INLINE_FAILURE_RE = /\berror TS\d+\b|\bAssertionError\b|\bError:|\bREGRESS/;
+
 /** Best-effort "first meaningful failure line" from captured command output. */
 export function firstFailureLine(out) {
   const lines = String(out || "")
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean);
-  const hit = lines.find((l) =>
-    /✖|✗|not ok|AssertionError|error TS|FAIL|Error:|REGRESS/i.test(l)
+  const hit = lines.find(
+    (l) => !GREEN_LINE_RE.test(l) && (LINE_START_FAILURE_RE.test(l) || INLINE_FAILURE_RE.test(l))
   );
   return (hit || lines[lines.length - 1] || "failed").slice(0, 200);
 }
@@ -158,6 +180,56 @@ export function parseEslintJson(out) {
   return null;
 }
 
+/**
+ * Turn one ESLint process result into release-green records.
+ *
+ * Keep process failures distinct from report parsing failures. In particular, a timed-out
+ * ESLint process has no JSON report by definition; collapsing its code-124 diagnostic into
+ * "could not parse eslint json" hides the actionable cause and sends maintainers debugging
+ * the parser instead of the gate ceiling.
+ */
+export function evaluateEslintRun({ code, out }, warningBaseline) {
+  const parsed = parseEslintJson(out);
+  if (!parsed) {
+    return [
+      {
+        id: "lint",
+        label: "ESLint",
+        kind: "hard",
+        ok: false,
+        detail:
+          code === 0
+            ? "ESLint exited successfully but produced no valid JSON report"
+            : firstFailureLine(out),
+      },
+    ];
+  }
+
+  const { errors, warnings } = eslintCounts(parsed);
+  const warningDrift = isDrift(warnings, warningBaseline);
+  return [
+    {
+      id: "lint-errors",
+      label: "ESLint errors",
+      kind: "hard",
+      ok: errors === 0,
+      detail: `${errors} error(s)`,
+    },
+    {
+      id: "eslint-warnings",
+      label: "ESLint warnings (ratchet)",
+      kind: "drift",
+      ok: !warningDrift,
+      detail:
+        warningBaseline == null
+          ? `${warnings} (no baseline)`
+          : `${warnings} vs baseline ${warningBaseline}${
+              warningDrift ? ` (+${warnings - warningBaseline} drift → rebaseline at release)` : ""
+            }`,
+    },
+  ];
+}
+
 /** Pull the cognitive-complexity violation count from the gate's output. */
 export function parseCognitiveCount(out) {
   const s = String(out || "");
@@ -217,6 +289,47 @@ export const FULL_CI_SKIP = new Set(["check:pr-evidence", "check:codeql-ratchet"
 // Gates that need a specific env to behave like CI (else they compare against the wrong base).
 export const FULL_CI_ENV = { "check:test-masking": { GITHUB_BASE_REF: "main" } };
 
+const FULL_CI_DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
+const FULL_CI_TIMEOUT_OVERRIDES_MS = {
+  // Measured at 19m38s on the loaded release-v3.8.50 devbox. The former generic
+  // 10m ceiling killed a green scan before it could report its result.
+  "check:test-masking": 30 * 60 * 1000,
+};
+
+export function fullCiTimeoutFor(gateId) {
+  return FULL_CI_TIMEOUT_OVERRIDES_MS[gateId] ?? FULL_CI_DEFAULT_TIMEOUT_MS;
+}
+
+// ci.yml gate scripts whose result the CURATED pass already records under a DIFFERENT id.
+// Without this map the --full-ci pass re-records them unconditionally as kind:"hard" while
+// the curated pass recorded them as kind:"drift", and the SAME gate is printed in BOTH
+// verdict buckets of one report (file-size / compression-budget appeared as a hard failure
+// and as drift simultaneously in the #9985 verdict).
+export const FULL_CI_CURATED_ALIASES = {
+  lint: "lint-errors",
+  "check:workflows": "workflow-lint",
+  "check:complexity-ratchets": "complexity",
+};
+
+/** Curated-pass id equivalent to a ci.yml gate script id ("check:file-size" -> "file-size"). */
+export function curatedEquivalentId(scriptId) {
+  const id = String(scriptId || "");
+  if (Object.hasOwn(FULL_CI_CURATED_ALIASES, id)) return FULL_CI_CURATED_ALIASES[id];
+  return id.startsWith("check:") ? id.slice("check:".length) : id;
+}
+
+/**
+ * Bucket a --full-ci gate must be reported under: the classification the curated pass already
+ * gave the equivalent gate, else "hard" (the --full-ci default for gates the curated list does
+ * not cover). This only changes WHICH BUCKET a result is printed in — it never changes whether
+ * a gate runs, nor whether it passed.
+ */
+export function fullCiKindFor(scriptId, results) {
+  const equivalent = curatedEquivalentId(scriptId);
+  const curated = (results || []).find((r) => r.id === scriptId || r.id === equivalent);
+  return curated?.kind ?? "hard";
+}
+
 /**
  * Parse a ci.yml text and return the ordered, de-duplicated list of gate commands to run.
  * Each entry: { id, job, args:["run", <script>, ...("--" + args)], env }.
@@ -268,7 +381,8 @@ export function extractCiGates(
  * never an infinite block that the release captain mistakes for a hang and kills the pre-flight.
  */
 export function classifyRunError(err, timeoutMs) {
-  if (err && err.killed && timeoutMs) {
+  const timedOut = err?.killed === true || err?.code === "ETIMEDOUT";
+  if (timedOut && timeoutMs) {
     return {
       code: 124,
       out: `gate exceeded its ${Math.round(timeoutMs / 1000)}s ceiling and was killed — treat as a hung/failed gate (e.g. an unreleased DB handle in the unit suite); does NOT pass`,
@@ -280,6 +394,17 @@ export function classifyRunError(err, timeoutMs) {
   };
 }
 
+// --hermetic: scrub the live-test trigger vars so the pre-flight behaves like CI
+// (a dev machine with OMNIROUTE_API_KEY set runs 17+ live tests that CI skips —
+// every one a false-positive red against the release branch).
+const HERMETIC_SCRUB = ["OMNIROUTE_API_KEY", "OMNIROUTE_URL"];
+let hermetic = false;
+function buildGateEnv(extra) {
+  const env = { ...process.env, FORCE_COLOR: "0", ...(extra || {}) };
+  if (hermetic) for (const k of HERMETIC_SCRUB) delete env[k];
+  return env;
+}
+
 function run(cmd, cmdArgs, opts = {}) {
   try {
     const out = execFileSync(cmd, cmdArgs, {
@@ -287,7 +412,7 @@ function run(cmd, cmdArgs, opts = {}) {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
       maxBuffer: 256 * 1024 * 1024,
-      env: { ...process.env, FORCE_COLOR: "0" },
+      env: buildGateEnv(opts.env),
       // A hard ceiling for the long, silent test suites (execFileSync buffers all output until
       // exit, so they show no progress while running). undefined = no timeout for fast gates.
       ...(opts.timeout ? { timeout: opts.timeout } : {}),
@@ -325,6 +450,7 @@ async function main() {
   const JSON_OUT = args.has("--json");
   const WITH_BUILD = args.has("--with-build");
   const QUICK = args.has("--quick");
+  const FULL_CI = args.has("--full-ci");
   hermetic = args.has("--hermetic");
 
   const results = [];
@@ -342,7 +468,14 @@ async function main() {
   const hardCmd = (id, label, cmd, cmdArgs, opts) => {
     announce(label);
     const { code, out } = run(cmd, cmdArgs, opts);
-    record({ id, label, kind: "hard", ok: code === 0, detail: code === 0 ? "pass" : firstFailureLine(out) });
+    saveGateLog(id, out);
+    record({
+      id,
+      label,
+      kind: "hard",
+      ok: code === 0,
+      detail: code === 0 ? "pass" : firstFailureLine(out),
+    });
   };
 
   // A ratchet command (check:complexity, check:dead-code, …) exits 1 ONLY on a
@@ -353,7 +486,14 @@ async function main() {
   const driftCmd = (id, label, cmd, cmdArgs, okDetail = "within baseline", opts) => {
     announce(label);
     const { code, out } = run(cmd, cmdArgs, opts);
-    record({ id, label, kind: "drift", ok: code === 0, detail: code === 0 ? okDetail : firstFailureLine(out) });
+    saveGateLog(id, out);
+    record({
+      id,
+      label,
+      kind: "drift",
+      ok: code === 0,
+      detail: code === 0 ? okDetail : firstFailureLine(out),
+    });
   };
 
   process.stderr.write("🔎 Release-green validation (current working tree)\n\n");
@@ -362,38 +502,39 @@ async function main() {
 
   // ESLint: ONE pass → errors (hard) + warnings (drift)
   {
-    announce("ESLint (errors + warnings — ~3-6min)");
-    const { out } = run("npx", ["eslint", ".", "--format", "json"], { timeout: 15 * 60 * 1000 });
-    const parsed = parseEslintJson(out);
-    if (!parsed) {
-      record({
-        id: "lint",
-        label: "ESLint",
-        kind: "hard",
-        ok: false,
-        detail: "could not parse eslint json",
-      });
-    } else {
-      const { errors, warnings } = eslintCounts(parsed);
-      record({
-        id: "lint-errors",
-        label: "ESLint errors",
-        kind: "hard",
-        ok: errors === 0,
-        detail: `${errors} error(s)`,
-      });
-      const base = baselineValue("eslintWarnings");
-      const over = isDrift(warnings, base);
-      record({
-        id: "eslint-warnings",
-        label: "ESLint warnings (ratchet)",
-        kind: "drift",
-        ok: !over,
-        detail:
-          base == null
-            ? `${warnings} (no baseline)`
-            : `${warnings} vs baseline ${base}${over ? ` (+${warnings - base} drift → rebaseline at release)` : ""}`,
-      });
+    announce("ESLint (errors + warnings — ~15-45min)");
+    // Suppressions-aware, matching `npm run lint` (Pacote 4 no-new-warnings): the frozen
+    // pre-existing debt in config/quality/eslint-suppressions.json must not count as
+    // errors here — only NET-NEW violations are release reds. The cold release runner can
+    // exceed 30 minutes as the repository grows, and this pre-flight often runs under load.
+    const lintRun = run(
+      "npx",
+      [
+        "eslint",
+        ".",
+        "--cache",
+        "--cache-location",
+        ".eslintcache",
+        "--format",
+        "json",
+        "--suppressions-location",
+        "config/quality/eslint-suppressions.json",
+        // An "unpruned" suppression means a previously-frozen violation was legitimately
+        // fixed — release-time housekeeping (same bucket as ratchet drift), never a
+        // contributor-blocking defect. Without this flag ESLint 9.x exits 2 for that
+        // reason alone, which used to mask the real `--format json` report (#7837).
+        "--pass-on-unpruned-suppressions",
+      ],
+      // The cold release runner crossed the old 30-minute ceiling as the repository grew,
+      // then the timeout text was misreported as invalid JSON. Keep a real upper bound, but
+      // leave enough headroom for the same full-tree walk that completes immediately after it
+      // under the complexity config on that runner.
+      { timeout: ESLINT_TIMEOUT_MS }
+    );
+    const { out } = lintRun;
+    saveGateLog("lint", out);
+    for (const result of evaluateEslintRun(lintRun, baselineValue("eslintWarnings"))) {
+      record(result);
     }
   }
 
@@ -402,12 +543,23 @@ async function main() {
 
   // Complexity + cognitive (one ESLint walk; both still recorded as drift)
   {
-    announce("Cognitive complexity (ratchet)");
-    const { out } = run(npmCmd, ["run", "check:cognitive-complexity"]);
-    saveGateLog("cognitive", out);
-    const current = parseCognitiveCount(out);
-    const base = baselineValue("cognitiveComplexity");
-    const over = isDrift(current, base);
+    announce("Complexity + cognitive ratchets (shared ESLint walk)");
+    const { out } = run(npmCmd, ["run", "check:complexity-ratchets"]);
+    saveGateLog("complexity-ratchets", out);
+    const cogCurrent = parseCognitiveCount(out);
+    const cogBase = baselineValue("cognitiveComplexity");
+    const cogOver = isDrift(cogCurrent, cogBase);
+    const cycMatch = /(?:^|\n)complexity=(\d+)/.exec(out);
+    const cycOkMatch = /\[complexity\] OK — (\d+)/.exec(out);
+    const cycRegMatch = /\[complexity\] REGRESSÃO — (\d+)/.exec(out);
+    const cycCurrent = cycMatch
+      ? Number(cycMatch[1])
+      : cycOkMatch
+        ? Number(cycOkMatch[1])
+        : cycRegMatch
+          ? Number(cycRegMatch[1])
+          : null;
+    const cycRegressed = /\[complexity\] REGRESSÃO/.test(out);
     record({
       id: "cognitive-complexity",
       label: "Cognitive complexity (ratchet)",
@@ -454,6 +606,7 @@ async function main() {
     const { code, out } = run(npmCmd, ["run", "check:test-masking"], {
       env: { GITHUB_BASE_REF: "main" },
     });
+    saveGateLog("test-masking", out);
     record({
       id: "test-masking",
       label: "Test-masking (weakened-assert guard)",
@@ -496,15 +649,160 @@ async function main() {
     // with 15 such reds). They run SILENTLY for many minutes; the announce line above + these
     // hard ceilings keep a long-but-healthy run from being mistaken for a hang (the ceiling also
     // converts a genuine DB-handle hang into a visible failure instead of an infinite block).
-    hardCmd("unit", "Unit tests (full suite, CI concurrency — runs ~20-35min silently)", npmCmd, ["run", "test:unit:ci"], { timeout: 45 * 60 * 1000 });
-    hardCmd("vitest", "Vitest (MCP / autoCombo / cache — ~3-8min)", npmCmd, ["run", "test:vitest"], { timeout: 15 * 60 * 1000 });
-    // Integration tests run ONLY on the release PR full CI (PR→main), so an assertion
-    // regression here (e.g. a contributor flipping a Codex fingerprint key order) is
-    // invisible until release — run them in the pre-flight as a HARD gate.
-    hardCmd("integration", "Integration tests (~3-10min)", npmCmd, ["run", "test:integration"], { timeout: 20 * 60 * 1000 });
+    // The slow suites are INDEPENDENT processes (each self-isolates DATA_DIR) with
+    // no shared state, so they run CONCURRENTLY — the pre-flight wall time becomes
+    // ~the slowest single suite instead of their sum (unit ~25-35min + vitest
+    // ~3-8min + integration ~3-10min + pack-artifact ~15min was ~1h serial in the
+    // v3.8.45 run). pack-artifact (--with-build) joins the same wave. Integration
+    // runs ONLY on the release PR full CI, so a regression here is invisible until
+    // release — that is why it is a HARD pre-flight gate.
+    const slow = [
+      {
+        // Raised 45→100min 2026-08-05: a hermetic-env run on the loaded devbox
+        // (load 7-26) was still inside invocation 1 of 3 at 76min when killed;
+        // contention factor 2-3× was measured against idle windows, and no idle
+        // measurement exists yet. The pre-flight's REAL condition is exactly
+        // this contended one (unit runs in Promise.all with integration+vitest
+        // plus whatever else the devbox carries), and there 45min provably
+        // killed a healthy suite and fabricated a false base-red. The ceiling's
+        // purpose — turning a genuine hang (stuck SQLite handle = zero progress
+        // forever) into a visible failure — survives at 100min.
+        // Measured on idle .113: unavailable (checkout not found). Tightened to 80min from 100min as a conservative step. TODO: re-measure on idle .113 and tighten to ~1.8× measured.
+        id: "unit",
+        label:
+          "Unit tests (full suite, CI concurrency — ~30-50min idle, up to ~80min under load (awaiting idle .113 measurement, #9532))",
+        args: ["run", "test:unit:ci"],
+        timeout: 80 * 60 * 1000,
+      },
+      {
+        id: "vitest",
+        label: "Vitest (MCP / autoCombo / cache — ~3-8min)",
+        args: ["run", "test:vitest"],
+        timeout: 15 * 60 * 1000,
+      },
+      {
+        // Measured 2026-08-05 on an idle 16-core box: 22m08s hermetic (935 tests,
+        // 112 files at --test-concurrency=1, i.e. strictly serial because ~16 of
+        // them bind a port or share a DB). The old "~3-10min" estimate was stale by
+        // ~3x and the 20min ceiling killed a healthy run. 40min keeps the ceiling's
+        // real purpose — turning a genuine hang (unreleased DB handle) into a
+        // visible failure — without punishing a long-but-healthy suite.
+        id: "integration",
+        label: "Integration tests (~20-25min)",
+        args: ["run", "test:integration"],
+        timeout: 40 * 60 * 1000,
+      },
+    ];
+    if (WITH_BUILD) {
+      slow.push({
+        id: "pack-artifact",
+        label: "Package artifact (npm pack policy)",
+        args: ["run", "check:pack-artifact"],
+        timeout: 20 * 60 * 1000,
+      });
+    }
+    slow.forEach((g) => announce(`${g.label} [parallel]`));
+    const slowResults = await Promise.all(
+      slow.map((g) => runAsync(npmCmd, g.args, { timeout: g.timeout }))
+    );
+    slow.forEach((g, i) => {
+      const { code, out } = slowResults[i];
+      saveGateLog(g.id, out);
+      record({
+        id: g.id,
+        label: g.label,
+        kind: "hard",
+        ok: code === 0,
+        detail: code === 0 ? "pass" : firstFailureLine(out),
+      });
+    });
+
+    if (WITH_BUILD) {
+      // WS1.2 (#7065 class): boot the REAL packed tarball from a clean install.
+      // check:pack-artifact is the builder for dist/ when staging is absent, so the
+      // boot smoke MUST run after it completes. Running both in the parallel wave
+      // races check:pack-boot against dist/server.js creation on clean worktrees.
+      const packArtifactIndex = slow.findIndex((g) => g.id === "pack-artifact");
+      const packArtifactResult = slowResults[packArtifactIndex];
+      const bootLabel = "Tarball boot-smoke (installed CLI serves /health)";
+
+      if (!packArtifactResult || packArtifactResult.code !== 0) {
+        const out = "skipped because package-artifact did not produce a valid dist/ build";
+        saveGateLog("pack-boot", out);
+        record({
+          id: "pack-boot",
+          label: bootLabel,
+          kind: "hard",
+          ok: false,
+          detail: out,
+        });
+      } else {
+        announce(bootLabel);
+        const { code, out } = await runAsync(npmCmd, ["run", "check:pack-boot"], {
+          timeout: 15 * 60 * 1000,
+        });
+        saveGateLog("pack-boot", out);
+        record({
+          id: "pack-boot",
+          label: bootLabel,
+          kind: "hard",
+          ok: code === 0,
+          detail: code === 0 ? "pass" : firstFailureLine(out),
+        });
+      }
+    }
+  } else if (WITH_BUILD) {
+    // --with-build without the suites (--quick): still verify the package artifact.
+    const { code, out } = await runAsync(npmCmd, ["run", "check:pack-artifact"], {
+      timeout: 20 * 60 * 1000,
+    });
+    saveGateLog("pack-artifact", out);
+    record({
+      id: "pack-artifact",
+      label: "Package artifact (npm pack policy)",
+      kind: "hard",
+      ok: code === 0,
+      detail: code === 0 ? "pass" : firstFailureLine(out),
+    });
   }
-  if (WITH_BUILD) {
-    hardCmd("pack-artifact", "Package artifact (npm pack policy)", npmCmd, ["run", "check:pack-artifact"], { timeout: 20 * 60 * 1000 });
+
+  // --full-ci: run every static gate declared in ci.yml's gate jobs (superset of the
+  // curated HARD list above). Combine with --quick to run ONLY these + drift ratchets
+  // (skip the slow suites) — the "1 command, 0 CI layers" pre-flight for the static category.
+  if (FULL_CI) {
+    let gates = [];
+    try {
+      gates = extractCiGates(readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8"));
+    } catch (err) {
+      record({
+        id: "full-ci-extract",
+        label: "full-ci: parse .github/workflows/ci.yml",
+        kind: "hard",
+        ok: false,
+        detail: `could not read/parse ci.yml: ${err?.message || err}`,
+      });
+    }
+    const already = new Set(results.map((r) => r.id));
+    process.stderr.write(`\n──── full-ci gates from ci.yml (${gates.length}) ────\n`);
+    for (const g of gates) {
+      // Skip a gate the curated pass already ran with the same id (avoid double-running lint).
+      if (already.has(g.id)) continue;
+      const { code, out } = run(npmCmd, g.args, {
+        env: g.env,
+        timeout: fullCiTimeoutFor(g.id),
+      });
+      saveGateLog(`fullci-${g.id.replace(/[^a-z0-9]+/gi, "-")}`, out);
+      record({
+        id: g.id,
+        label: `ci.yml:${g.job} → npm ${g.args.join(" ")}`,
+        // Respect the curated classification when the curated pass already ran an equivalent
+        // gate under a different id — otherwise the same ratchet is reported as a HARD failure
+        // here AND as drift above, in one self-contradicting verdict.
+        kind: fullCiKindFor(g.id, results),
+        ok: code === 0,
+        detail: code === 0 ? "pass" : firstFailureLine(out),
+      });
+    }
   }
 
   const { releaseGreen, hardFailures, drift } = computeVerdict(results);

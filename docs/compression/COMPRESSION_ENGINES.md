@@ -19,7 +19,35 @@ OmniRoute compression is built around engine contracts. A mode can run one engin
 | `aggressive` | Caveman + history/tool summarizers | Long chat sessions                           |
 | `ultra`      | Caveman + pruning helpers          | Context-limit recovery                       |
 | `rtk`        | RTK                                | Terminal, shell, build, test, and git output |
+| `omniglyph`  | OmniGlyph                          | Context-as-image on the native provider wire |
 | `stacked`    | Pipeline, default `rtk -> caveman` | Mixed tool logs and prose, max savings       |
+
+### OmniGlyph compression profiles
+
+The `omniglyph` engine (package `omniglyph`, 1.4.0+) accepts a named semantic profile, set
+globally through `omniglyph.profile` in the compression settings or per step through the
+stacked pipeline's step config:
+
+| Profile       | Boundary                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| `aggressive`  | Default. The policy the published receipts measured — images system, tool docs and dense history |
+| `balanced`    | Keeps live state native, protects the last 8 turns, collapses older closed history               |
+| `coding-safe` | Keeps authority, tool schemas and live tool output native, protects the last 12 turns            |
+| `passthrough` | Routes without transforming; the engine is skipped                                               |
+
+The profile is a **ceiling, not a floor**: `mergeCompressionProfileOptions` in the package
+refuses to let a caller override reopen a lossy lane the profile closed, so a per-step
+`preserveSystemPrompt: false` cannot re-enable system compression under `coding-safe`.
+
+Measured on this codebase: `coding-safe` and `balanced` raise `minCompressChars` to its
+maximum and keep system, tool schemas and tool results native, so a session that has not
+accumulated history yet stops at `below_min_chars` and the engine transforms nothing. That
+is why the default is `aggressive` rather than the safest profile.
+
+The package resolves its own model scope and profile from its environment configuration.
+OmniRoute never delegates the decision: the adapter pins the model gate to the package's
+most restrictive scope, so host environment settings can only narrow the allowlist, never
+widen it past OmniRoute's measured receipts.
 
 ## Engine Registry
 
@@ -56,6 +84,20 @@ structural engines (used by stacked pipelines, the playground, and tests):
 | headroom      | `headroom`      | SmartCrusher (H3 + N5): lossless tabular compaction of homogeneous JSON-array payloads into a columnar `[N rows]` form.                                                    |
 | ionizer       | `ionizer`       | Head/middle/tail row sampling for very large homogeneous blocks, storing the elided middle as a CCR content-addressed reference.                                           |
 | session-dedup | `session-dedup` | Content-addressed cross-turn deduplication (TokenMizer-inspired): elides text already seen in earlier turns of the same session.                                           |
+
+**CCR retrieve-protocol instruction (#8033):** the first time CCR replaces ≥1 block in a
+request, the engine prepends a single, idempotent `system` message (leading with the
+`[CCR protocol]` sentinel) teaching the caller the marker → tool contract: what a
+`[CCR retrieve hash=<24hex> chars=N]` marker means, that the hash must be copied verbatim
+(all 24 hex characters — mis-copied hashes are the likely cause of "block not found"
+misses), and that a `[dedup:ref sha=...]` marker means "look back in history", not "call the
+tool". The note is injected **only when the caller's advertised `tools[]` proves it can
+actually reach `omniroute_ccr_retrieve`** (`callerSupportsCcrRetrieve()` in
+`open-sse/services/compression/engines/ccr/protocolInstruction.ts`) — a plain
+OpenAI-compatible caller without that tool never receives an instruction to call something
+it cannot reach. Idempotency is enforced by scanning the message history for the sentinel
+before injecting, so multi-turn requests (which replay prior messages) do not stack the
+note once per turn.
 
 ## Caveman
 
@@ -128,22 +170,22 @@ override points it at a local copy instead (offline / air-gapped installs).
 
 ### Optional dependencies & on-demand install
 
-The prunable LLMLingua runtime peer stack is **optional**. Three packages are declared as
+The prunable LLMLingua runtime peer stack is **optional**. Two packages are declared as
 `optionalDependencies` in `package.json` and kept **external** by the production build
 (`scripts/build/prepublish.ts` does not bundle them):
 
-| Package              | Version (pin) | Notes                                          |
-| -------------------- | ------------- | ---------------------------------------------- |
-| `@atjsh/llmlingua-2` | `2.0.3`       | Entry package; declares the others as peers    |
-| `@tensorflow/tfjs`   | `4.22.0`      | Heaviest dep — dominates the ~800 MB footprint |
-| `js-tiktoken`        | `^1.0.20`     | Tokenizer                                      |
+| Package              | Version (pin) | Notes                                       |
+| -------------------- | ------------- | ------------------------------------------- |
+| `@atjsh/llmlingua-2` | `2.0.5`       | Entry package; declares the others as peers |
+| `js-tiktoken`        | `^1.0.20`     | Tokenizer                                   |
 
-`@huggingface/transformers` is pinned at `3.5.2` as an **optional** dependency (shared with
-the local embeddings path and also traced into the standalone bundle). Keeping it optional prevents
-`onnxruntime-node` CUDA provider postinstall failures on CUDA 11 hosts from aborting the whole
-OmniRoute install; when the optional stack is absent, LLMLingua still fail-opens. Only the three
-packages above are prunable SLM peers. A standard `npm install` (dev) installs the optional stack
-automatically unless optional dependencies are omitted.
+`@huggingface/transformers` is pinned at `^4.2.0` (shared with the local embeddings path and
+also traced into the standalone bundle); `@atjsh/llmlingua-2@2.0.5` peers on it with
+`"^3.5.2 || ^4.0.0"`, so both Transformers.js v3 and v4 are supported. Since 2.0.4,
+`@atjsh/llmlingua-2` no longer requires `@tensorflow/tfjs`, which removed the largest single
+contributor (TensorFlow.js) from the SLM stack. Only the two packages above are prunable SLM
+peers. A standard `npm install` (dev) installs the optional stack automatically unless optional
+dependencies are omitted.
 
 **Why on-demand:** the npm-published package, the standalone bundle, and the Docker image
 ship **without** these deps to stay slim. When they are absent, the worker's dependency
@@ -153,11 +195,12 @@ error logged). To activate it in a pruned environment, install the optional stac
 
 ```bash
 # pin to the versions declared in package.json optionalDependencies
-npm install @atjsh/llmlingua-2@2.0.3 @tensorflow/tfjs@4.22.0 js-tiktoken
+npm install @atjsh/llmlingua-2@2.0.5 js-tiktoken
 ```
 
-Roughly **~800 MB** total: the TensorFlow.js + transformers runtimes dominate; the
-TinyBERT model adds ~57 MB downloaded at first use (not via npm).
+The `@tensorflow/tfjs` removal (2.0.4+) eliminates the previously dominant ~800 MB
+contributor — the remaining footprint is the transformers.js + onnxruntime-node runtimes,
+plus the TinyBERT model (~57 MB) downloaded at first use (not via npm).
 
 Per environment:
 
@@ -169,6 +212,11 @@ Per environment:
   ships slim by design.
 - **VPS (PM2)** — install into the app's `node_modules`, then restart the process so the
   worker re-probes the gate.
+- **Raw Next standalone (`npm run build` → `.build/next/standalone/server.js`)** — the
+  standalone trace ships NEITHER the worker nor the optional deps, so the engine silently
+  fail-opens. `scripts/build/colocate-standalone.mjs` re-applies both (worker esbuild +
+  optional-dep closure into the standalone tree); it runs automatically via the
+  `postbuild` npm hook after every build. Idempotent, fail-soft when deps are absent.
 
 **Verify it is active:** with LLMLingua selected, real prose actually shrinks (the engine
 stops fail-opening), and the first request triggers the model download into

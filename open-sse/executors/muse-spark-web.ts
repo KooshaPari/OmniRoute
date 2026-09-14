@@ -10,11 +10,7 @@ import {
   normalizeSessionCookieHeader,
   normalizeSessionCookieHeaders,
 } from "@/lib/providers/webCookieAuth";
-import {
-  type ParsedMetaAiResponse,
-  isRecord,
-  parseMetaAiResponseText,
-} from "./muse-spark-web/response-parser.ts";
+import { type ParsedMetaAiResponse, isRecord } from "./muse-spark-web/response-parser.ts";
 
 const META_AI_GRAPHQL_API = "https://www.meta.ai/api/graphql";
 // Meta rebranded "Abra" to "Ecto"; `abra_sess` became `ecto_1_sess`.
@@ -338,7 +334,11 @@ function buildMetaAiRequestBody(prompt: string, model: string, conversation: Con
     doc_id: META_AI_WARMUP_DOC_ID,
     variables: {
       assistantMessageId: crypto.randomUUID(),
-      attachments: null,
+      // `attachments` was removed from Meta's GraphQL schema (the
+      // AttachmentInput type is gone), so sending it — even as null —
+      // makes the server reject the persisted query with
+      // `Unknown type "AttachmentInput"`. Omit it entirely; GraphQL
+      // input fields are nullable-by-omission by default.
       clientLatitude: null,
       clientLongitude: null,
       clientTimezone:
@@ -1070,7 +1070,7 @@ async function wsChat(
 
     const fail = (error: string) => finish({ content: "", deltas: [], error });
 
-    timeout = setTimeout(() => fail("Meta AI WebSocket timed out"), 30000);
+    timeout = setTimeout(() => fail(`Meta AI WS timed out (readyState=${ws.readyState})`), 30000);
     abortHandler = () => fail("Request aborted");
     signal?.addEventListener("abort", abortHandler, { once: true });
 
@@ -1287,7 +1287,7 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     if (!authorization) {
       return errorResult(
         400,
-        "Missing Authorization for Meta AI WebSocket — your cookie must include an ecto1:... auth token.",
+        "Missing Authorization for Meta AI WebSocket — paste the ecto1:... WS auth token from meta.ai DevTools (Network → WS → clippy request Authorization param), alongside your ecto_1_sess cookie.",
         "missing_authorization",
         {},
         body
@@ -1399,16 +1399,6 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     if (content) {
       rememberAssistantTurn(parsed, credentials, model, parsedHistory, conversationContext);
     }
-
-    rememberAssistantTurn(parsed, credentials, model, parsedHistory, conversationContext);
-    return buildSuccessResult(
-      parsed,
-      stream,
-      model,
-      headers,
-      transformedBody,
-      hasTools,
-      requestedTools
-    );
+    return buildSuccessResult(parsed, stream, model, headers, body, hasTools, requestedTools);
   }
 }

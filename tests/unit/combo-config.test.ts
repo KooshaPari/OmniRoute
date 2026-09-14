@@ -44,6 +44,7 @@ test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   assert.equal(first.predictiveTtftMs, 0);
   assert.equal(first.evalRouting.enabled, false);
   assert.equal(first.evalRouting.maxAgeHours, 720);
+  assert.equal(first.quotaWeightedFloorPercent, 1);
 
   first.strategy = "weighted";
   assert.equal(second.strategy, "priority");
@@ -326,7 +327,7 @@ test("resolveComboTargetTimeoutMs falls back to the saner combo default when uns
 
 // #7360 / #7301: any strategy with comboCooldownWait enabled waits out cooldowns for up
 // to comboCooldownWait.budgetMs, so the per-target timeout floor must cover that budget
-// (DEFAULT_COMBO_TARGET_TIMEOUT_MS alone would cut a long wait short into a 524).
+// (DEFAULT_COMBO_TARGET_TIMEOUT_MS alone would cut a long wait short into a 504 combo_target_timeout).
 test("isComboCooldownWaitEligible engages for every strategy when the feature is enabled", () => {
   for (const strategy of ALL_COMBO_STRATEGIES) {
     assert.equal(isComboCooldownWaitEligible(strategy, { enabled: true }), true);
@@ -359,7 +360,12 @@ test("resolveComboTargetTimeoutMsForCombo raises the floor to cover the cooldown
 
   // Explicit per-combo targetTimeoutMs still wins over the derived floor.
   assert.equal(
-    resolveComboTargetTimeoutMsForCombo({ targetTimeoutMs: 45000 }, 600000, "auto", comboCooldownWait),
+    resolveComboTargetTimeoutMsForCombo(
+      { targetTimeoutMs: 45000 },
+      600000,
+      "auto",
+      comboCooldownWait
+    ),
     45000
   );
 
@@ -638,6 +644,24 @@ test("createComboSchema accepts nestedComboMode and rejects invalid values", () 
     name: "nested-invalid",
     models: ["openai/gpt-4o-mini"],
     config: { nestedComboMode: "redirect" },
+  });
+  assert.equal(invalid.success, false);
+});
+
+test("createComboSchema validates reasoning transport fallback modes", () => {
+  for (const mode of ["skip", "drop"] as const) {
+    const parsed = createComboSchema.parse({
+      name: `reasoning-transport-${mode}`,
+      models: ["openai/gpt-5.4"],
+      config: { reasoningTransportFallback: mode },
+    });
+    assert.equal(parsed.config.reasoningTransportFallback, mode);
+  }
+
+  const invalid = createComboSchema.safeParse({
+    name: "reasoning-transport-invalid",
+    models: ["openai/gpt-5.4"],
+    config: { reasoningTransportFallback: "retry" },
   });
   assert.equal(invalid.success, false);
 });

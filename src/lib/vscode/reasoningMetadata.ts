@@ -1,13 +1,14 @@
 import { supportsXHighEffort } from "@omniroute/open-sse/config/providerModels";
 import { parseModel } from "@omniroute/open-sse/services/model";
 import { stripVscodeServiceTierVariantModelId } from "@/lib/vscode/serviceTierVariants";
+import { extendCodexGpt56EffortValues } from "@/shared/reasoning/effortStandardization";
 
 export type VscodeCatalogModel = {
   id?: string;
   name?: string;
   root?: string;
   owned_by?: string;
-  capabilities?: Record<string, boolean>;
+  capabilities?: Record<string, boolean | string[]>;
   supportsReasoningEffort?: string[];
   supportedReasoningEfforts?: string[];
   supports_reasoning_effort?: string[];
@@ -15,9 +16,10 @@ export type VscodeCatalogModel = {
   default_reasoning_effort?: string;
 };
 
-const EFFORT_SUFFIX_PATTERN = /-(xhigh|high|medium|low|none)$/i;
+const STANDARD_EFFORT_SUFFIX_PATTERN = /-(xhigh|high|medium|low|none)$/i;
+const GPT_5_6_EXTENDED_EFFORT_SUFFIX_PATTERN = /^(.*gpt-5\.6-(?:sol|terra|luna))-(max|ultra)$/i;
 const DEFAULT_REASONING_EFFORT = "none";
-const KNOWN_REASONING_EFFORTS = new Set(["none", "low", "medium", "high", "xhigh"]);
+const KNOWN_REASONING_EFFORTS = new Set(["none", "low", "medium", "high", "xhigh", "max", "ultra"]);
 
 export type VscodeModelConfigSchema = {
   type: "object";
@@ -38,6 +40,20 @@ export function getCatalogModelName(model: VscodeCatalogModel) {
   return stripVscodeServiceTierVariantModelId(model.id || model.name || model.root || "");
 }
 
+function matchReasoningEffortSuffix(modelId: string) {
+  const extendedMatch = modelId.match(GPT_5_6_EXTENDED_EFFORT_SUFFIX_PATTERN);
+  if (extendedMatch?.[1] && extendedMatch[2]) {
+    return { baseModelId: extendedMatch[1], effort: extendedMatch[2].toLowerCase() };
+  }
+
+  const standardMatch = modelId.match(STANDARD_EFFORT_SUFFIX_PATTERN);
+  if (!standardMatch?.[1]) return undefined;
+  return {
+    baseModelId: modelId.slice(0, -standardMatch[0].length),
+    effort: standardMatch[1].toLowerCase(),
+  };
+}
+
 function normalizeReasoningEffortValue(value: string) {
   const normalized = value
     .trim()
@@ -50,6 +66,9 @@ function normalizeReasoningEffortValue(value: string) {
 
 function getNativeReasoningEffortValues(model: VscodeCatalogModel) {
   const candidates = [
+    model.owned_by !== "combo" && Array.isArray(model.capabilities?.effort_tiers)
+      ? model.capabilities.effort_tiers
+      : undefined,
     model.supportsReasoningEffort,
     model.supportedReasoningEfforts,
     model.supports_reasoning_effort,
@@ -95,7 +114,7 @@ export function getReasoningEffortValues(model: VscodeCatalogModel) {
   if (!isReasoningCapableModel(model)) return undefined;
 
   const modelId = getCatalogModelName(model);
-  const parsed = parseModel(modelId, "");
+  const parsed = parseModel(modelId);
   const providerId = parsed.provider || model.owned_by || "";
   const providerModelId = parsed.model || model.root || modelId.split("/").pop() || modelId;
   const values = ["none", "low", "medium", "high"];
@@ -104,7 +123,7 @@ export function getReasoningEffortValues(model: VscodeCatalogModel) {
     values.push("xhigh");
   }
 
-  return values;
+  return extendCodexGpt56EffortValues(providerId, providerModelId, values);
 }
 
 export function formatReasoningEffortLabel(level: string) {
@@ -123,7 +142,11 @@ function describeReasoningEffort(level: string) {
     case "high":
       return "Uses an extended amount of reasoning.";
     case "xhigh":
+      return "Uses extra-high reasoning effort.";
+    case "max":
       return "Uses the maximum available reasoning effort.";
+    case "ultra":
+      return "Uses the Ultra reasoning preset.";
     default:
       return `Uses ${formatReasoningEffortLabel(level)} reasoning effort.`;
   }
@@ -138,11 +161,10 @@ export function inferSelectedReasoningEffort(
   supportedValues?: string[]
 ) {
   const modelId = getCatalogModelName(model);
-  const match = modelId.match(EFFORT_SUFFIX_PATTERN);
+  const match = matchReasoningEffortSuffix(modelId);
   if (!match) return undefined;
 
-  const selected = match[1]?.toLowerCase();
-  if (!selected) return undefined;
+  const selected = match.effort;
   if (
     Array.isArray(supportedValues) &&
     supportedValues.length > 0 &&
@@ -155,12 +177,12 @@ export function inferSelectedReasoningEffort(
 }
 
 export function getReasoningVariantBaseModelId(modelId: string) {
-  return modelId.replace(EFFORT_SUFFIX_PATTERN, "");
+  return matchReasoningEffortSuffix(modelId)?.baseModelId || modelId;
 }
 
 function getCodexGpt56DefaultReasoningEffort(model: VscodeCatalogModel) {
   const modelId = getCatalogModelName(model);
-  const parsed = parseModel(modelId, "");
+  const parsed = parseModel(modelId);
   const providerId = (parsed.provider || model.owned_by || "").trim().toLowerCase();
   if (providerId !== "codex" && providerId !== "cx") return undefined;
 
@@ -175,9 +197,18 @@ function getCodexGpt56DefaultReasoningEffort(model: VscodeCatalogModel) {
 }
 
 export function getDefaultReasoningEffort(model: VscodeCatalogModel, supportedValues?: string[]) {
+  const nativeDefault = normalizeReasoningEffortValue(
+    model.defaultReasoningEffort || model.default_reasoning_effort || ""
+  );
   return (
     inferSelectedReasoningEffort(model, supportedValues) ||
+    (nativeDefault && (!supportedValues?.length || supportedValues.includes(nativeDefault))
+      ? nativeDefault
+      : undefined) ||
     getCodexGpt56DefaultReasoningEffort(model) ||
+    (supportedValues?.includes(DEFAULT_REASONING_EFFORT)
+      ? DEFAULT_REASONING_EFFORT
+      : supportedValues?.[0]) ||
     DEFAULT_REASONING_EFFORT
   );
 }

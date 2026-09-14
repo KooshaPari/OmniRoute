@@ -101,6 +101,8 @@ export function getCodexFastCostMultiplier(
 
   const modelKey = stripCodexEffortSuffix(normalizeModelName(String(model || "")).toLowerCase());
   const compactModelKey = modelKey.replace(/-/g, "");
+  // Codex Astra Fast is 2.5x Standard (https://developers.openai.com/codex/pricing).
+  if (modelKey === "gpt-6-astra" || compactModelKey === "gpt6astra") return 2.5;
   if (
     /^gpt-5\.6-(?:sol|terra|luna)$/.test(modelKey) ||
     /^gpt5\.6(?:sol|terra|luna)$/.test(compactModelKey)
@@ -129,7 +131,12 @@ export function computeCostFromPricing(
   tokens: Record<string, number | undefined> | null | undefined,
   options: CostCalculationOptions = {}
 ): number {
-  if (!pricing || !tokens) return 0;
+  if (!tokens) return 0;
+  // Trust an exact, provider-reported cost over the token × pricing estimate
+  // when one is present — works even when no local pricing row exists yet.
+  const exactCostUsd = extractExactCostUsd(tokens);
+  if (exactCostUsd !== null) return exactCostUsd;
+  if (!pricing) return 0;
   // Flat-rate (subscription / cookie-web) providers don't bill per token — their
   // per-token pricing rows exist only for estimation, so display surfaces opt in
   // to show $0 instead of an inflated estimate (#5552).
@@ -156,29 +163,46 @@ export function computeCostFromPricing(
   const outputTokens = tokens.output ?? tokens.completion_tokens ?? tokens.output_tokens ?? 0;
   cost += outputTokens * (outputPrice / 1_000_000);
 
+  // completion_tokens is reasoning-inclusive. Reasoning is already billed at
+  // the output rate above, so a dedicated price contributes only its premium.
   const reasoningTokens = tokens.reasoning ?? tokens.reasoning_tokens ?? 0;
-  if (reasoningTokens > 0) cost += reasoningTokens * (reasoningPrice / 1_000_000);
+  if (reasoningTokens > 0 && pricing.reasoning !== undefined && pricing.reasoning !== null) {
+    cost += reasoningTokens * ((reasoningPrice - outputPrice) / 1_000_000);
+  }
 
   if (cacheCreationTokens > 0) cost += cacheCreationTokens * (cacheCreationPrice / 1_000_000);
 
   return cost * getCodexFastCostMultiplier(options.provider, options.model, options.serviceTier);
 }
 
-export async function calculateCost(
+/**
+ * Result of a cost calculation that also reports whether the number is backed by
+ * a real pricing row. Budget-enforcement callers (#12341) must be able to tell
+ * "$0, priced" (a genuinely free/flat-rate model) apart from "$0, unpriced" (no
+ * pricing row was ever found — e.g. a routing alias like `auto`) so they can fail
+ * closed on the latter instead of letting it silently pass a hard budget cap.
+ */
+export interface CostCalculationResult {
+  costUsd: number;
+  /** false when no pricing row (direct, normalized, or codex-effortless) was found. */
+  priced: boolean;
+}
+
+export async function calculateCostDetailed(
   provider: string,
   model: string,
   tokens: Record<string, number | undefined> | null | undefined,
   options: CostCalculationOptions = {}
-): Promise<number> {
-  if (!tokens || !provider || !model) return 0;
+): Promise<CostCalculationResult> {
+  if (!tokens || !provider || !model) return { costUsd: 0, priced: true };
 
   // Short-circuit before any pricing DB lookup when an exact, provider-reported
   // cost is present (currently xAI's `cost_in_usd_ticks` — see extractExactCostUsd).
   const exactCostUsd = extractExactCostUsd(tokens);
-  if (exactCostUsd !== null) return exactCostUsd;
+  if (exactCostUsd !== null) return { costUsd: exactCostUsd, priced: true };
 
   try {
-    const { getPricingForModel } = await import("@/lib/localDb");
+    const { getPricingForModel } = await import("@/lib/db/settings");
 
     // Try exact match first, then normalized model name
     let pricing = await getPricingForModel(provider, model);
@@ -195,21 +219,35 @@ export async function calculateCost(
         }
       }
     }
-    if (!pricing) return 0;
+    // No pricing row anywhere — this is the #12341 case (e.g. a provider's own
+    // routing alias such as "auto" that has no catalog price). Report it as
+    // unpriced rather than a bare $0 so budget enforcement can fail closed.
+    if (!pricing) return { costUsd: 0, priced: false };
 
     const pricingRecord =
       pricing && typeof pricing === "object" && !Array.isArray(pricing)
         ? (pricing as Record<string, unknown>)
         : {};
-    return computeCostFromPricing(pricingRecord, tokens, {
+    const costUsd = computeCostFromPricing(pricingRecord, tokens, {
       provider,
       model,
       ...options,
     });
+    return { costUsd, priced: true };
   } catch (error) {
     console.error("Error calculating cost:", error);
-    return 0;
+    return { costUsd: 0, priced: false };
   }
+}
+
+export async function calculateCost(
+  provider: string,
+  model: string,
+  tokens: Record<string, number | undefined> | null | undefined,
+  options: CostCalculationOptions = {}
+): Promise<number> {
+  const result = await calculateCostDetailed(provider, model, tokens, options);
+  return result.costUsd;
 }
 
 type ModalPricing = Record<string, unknown>;
@@ -294,7 +332,7 @@ export async function calculateModalCost(
 ): Promise<number> {
   if (!provider || !model) return 0;
   try {
-    const { getPricingForModel } = await import("@/lib/localDb");
+    const { getPricingForModel } = await import("@/lib/db/settings");
     let pricing = await getPricingForModel(provider, model);
     if (!pricing) {
       const normalized = normalizeModelName(model);

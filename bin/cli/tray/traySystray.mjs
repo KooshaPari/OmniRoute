@@ -97,9 +97,7 @@ export async function initSystrayUnix(
     }
   });
 
-  tray.ready().catch((err) => {
-    process.stderr.write(`[omniroute][tray] systray2 failed: ${err?.message ?? String(err)}\n`);
-  });
+  await tray.ready();
 
   return tray;
 }

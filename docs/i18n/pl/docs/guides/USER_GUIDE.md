@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # Przewodnik użytkownika
 
-🌐 **Languages:** 🇺🇸 [English](./USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 Kompletny przewodnik po konfiguracji providerów, tworzeniu combo, integracji narzędzi CLI i wdrażaniu OmniRoute.
 
@@ -35,63 +35,35 @@ Kompletny przewodnik po konfiguracji providerów, tworzeniu combo, integracji na
 
 ## 💰 Cennik w skrócie
 
-| Poziom             | Provider          | Koszt              | Reset limitu       | Najlepsze do             |
-| ------------------ | ----------------- | ------------------ | ------------------ | ------------------------ |
-| **💳 SUBSKRYPCJA** | Claude Code (Pro) | $20/mies.          | 5h + tygodniowo    | Już masz subskrypcję     |
-|                    | Codex (Plus/Pro)  | $20-200/mies.      | 5h + tygodniowo    | Użytkownicy OpenAI       |
-|                    | GitHub Copilot    | $10-19/mies.       | Miesięcznie        | Użytkownicy GitHub       |
-| **🔑 KLUCZ API**   | DeepSeek          | Płatność za użycie | Brak               | Tanie rozumowanie        |
-|                    | Groq              | Płatność za użycie | Brak               | Ultra-szybka inferencja  |
-|                    | xAI (Grok)        | Płatność za użycie | Brak               | Rozumowanie Grok 4       |
-|                    | Mistral           | Płatność za użycie | Brak               | Modele hostowane w UE    |
-|                    | Perplexity        | Płatność za użycie | Brak               | Wzbogacone wyszukiwaniem |
-|                    | Together AI       | Płatność za użycie | Brak               | Modele open-source       |
-|                    | Fireworks AI      | Płatność za użycie | Brak               | Szybkie obrazy FLUX      |
-|                    | Cerebras          | Płatność za użycie | Brak               | Prędkość wafer-scale     |
-|                    | Cohere            | Płatność za użycie | Brak               | Command R+ RAG           |
-|                    | NVIDIA NIM        | Płatność za użycie | Brak               | Modele enterprise        |
-|                    | Baidu Qianfan     | Płatność za użycie | Brak               | Modele ERNIE             |
-| **💰 TANIO**       | GLM-4.7           | $0.6/1M            | Codziennie 10:00   | Zapas budżetowy          |
-|                    | MiniMax M2.1      | $0.2/1M            | Okno 5-godzinne    | Najtańsza opcja          |
-|                    | Kimi K2           | $9/mies. ryczałt   | 10M tokenów/mies.  | Przewidywalny koszt      |
-| **🆓 ZA DARMO**    | Qoder             | $0                 | Bez limitu         | 8 modeli za darmo        |
-|                    | Qwen              | $0                 | Bez limitu         | 3 modele za darmo        |
-|                    | Kiro              | $0                 | ~50 kredytów/mies. | Claude za darmo          |
+| Poziom             | Provider          | Koszt              | Reset limitu                                | Najlepsze do             |
+| ------------------ | ----------------- | ------------------ | ------------------------------------------- | ------------------------ |
+| **💳 SUBSKRYPCJA** | Claude Code (Pro) | $20/mies.          | 5h + tygodniowo                             | Już masz subskrypcję     |
+|                    | Codex (Plus/Pro)  | $20-200/mies.      | 5h + tygodniowo                             | Użytkownicy OpenAI       |
+|                    | GitHub Copilot    | $10-19/mies.       | Miesięcznie                                 | Użytkownicy GitHub       |
+| **🔑 KLUCZ API**   | DeepSeek          | Płatność za użycie | Brak                                        | Tanie rozumowanie        |
+|                    | Groq              | Płatność za użycie | Brak                                        | Ultra-szybka inferencja  |
+|                    | xAI (Grok)        | Płatność za użycie | Brak                                        | Rozumowanie Grok 4       |
+|                    | Mistral           | Płatność za użycie | Brak                                        | Modele hostowane w UE    |
+|                    | Perplexity        | Płatność za użycie | Brak                                        | Wzbogacone wyszukiwaniem |
+|                    | Together AI       | Płatność za użycie | Brak                                        | Modele open-source       |
+|                    | Fireworks AI      | Płatność za użycie | Brak                                        | Szybkie obrazy FLUX      |
+|                    | Cerebras          | Płatność za użycie | Brak                                        | Prędkość wafer-scale     |
+|                    | Cohere            | Płatność za użycie | Brak                                        | Command R+ RAG           |
+|                    | NVIDIA NIM        | Płatność za użycie | Brak                                        | Modele enterprise        |
+|                    | Baidu Qianfan     | Płatność za użycie | Brak                                        | Modele ERNIE             |
+| **💰 TANIO**       | GLM-4.7           | $0.6/1M            | Codziennie 10:00                            | Zapas budżetowy          |
+|                    | MiniMax M2.1      | $0.2/1M            | Okno 5-godzinne                             | Najtańsza opcja          |
+|                    | Kimi K2           | $9/mies. ryczałt   | 10M tokenów/mies.                           | Przewidywalny koszt      |
+| **🆓 ZA DARMO**    | Qoder             | $0                 | Brak opublikowanego capu; limity obowiązują | 8 modeli za darmo        |
+|                    | Kiro              | $0                 | ~50 kredytów/mies.                          | Claude za darmo          |
 
 ---
 
 ## 🎯 Przypadki użycia
 
-| Tier                | Provider          | Cost        | Quota Reset      | Best For             |
-| ------------------- | ----------------- | ----------- | ---------------- | -------------------- |
-| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly      | Already subscribed   |
-|                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly      | OpenAI users         |
-|                     | GitHub Copilot    | $10-19/mo   | Monthly          | GitHub users         |
-| **🔑 API KEY**      | DeepSeek          | Pay per use | None             | Cheap reasoning      |
-|                     | Groq              | Pay per use | None             | Ultra-fast inference |
-|                     | xAI (Grok)        | Pay per use | None             | Grok 4 reasoning     |
-|                     | Mistral           | Pay per use | None             | EU-hosted models     |
-|                     | Perplexity        | Pay per use | None             | Search-augmented     |
-|                     | Together AI       | Pay per use | None             | Open-source models   |
-|                     | Fireworks AI      | Pay per use | None             | Fast FLUX images     |
-|                     | Cerebras          | Pay per use | None             | Wafer-scale speed    |
-|                     | Cohere            | Pay per use | None             | Command R+ RAG       |
-|                     | NVIDIA NIM        | Pay per use | None             | Enterprise models    |
-| **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM       | Budget backup        |
-|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling   | Cheapest option      |
-|                     | Kimi K2           | $9/mo flat  | 10M tokens/mo    | Predictable cost     |
-| **🆓 FREE**         | Qoder             | $0          | Unlimited        | 8 models free        |
-|                     | Qwen              | $0          | Unlimited        | 3 models free        |
-|                     | Kiro              | $0          | Unlimited        | Claude free          |
+### Przypadek 1: „Mam subskrypcję Claude Pro”
 
-
----
-
-## 🎯 Use Cases
-
-### Case 1: "I have Claude Pro subscription"
-
-**Problem:** Quota expires unused, rate limits during heavy coding
+**Problem:** Limit wygasa niewykorzystany, limity żądań przy intensywnym kodowaniu
 
 ```
 Combo: "maximize-claude"
@@ -108,12 +80,12 @@ vs. $20 + hitting limits = frustration
 **Problem:** Nie stać mnie na subskrypcje, potrzebuję niezawodnego AI do kodowania
 
 ```
-Combo: "free-forever"
-  1. if/kimi-k2-thinking       (unlimited free)
-  2. qw/qwen3-coder-plus       (unlimited free)
+Combo: "free-tier-fallback"
+  1. if/kimi-k2.7-code          (no published token cap; limits apply)
+  2. kr/qwen3-coder-next        (Kiro free fallback)
 
 Monthly cost: $0
-Quality: Production-ready models
+Quality: verify the model, limits, privacy, and SLA for your workload
 ```
 
 ### Przypadek 3: „Potrzebuję kodowania 24/7 bez przerw”
@@ -128,7 +100,7 @@ Combo: "always-on"
   4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
   5. if/deepseek-v4-flash       (free unlimited)
 
-Result: 5 layers of fallback = zero downtime
+Result: 5 fallback layers broaden resilience; upstream availability is not guaranteed
 Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
 ```
 
@@ -138,9 +110,9 @@ Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
 
 ```
 Combo: "openclaw-free"
-  1. if/qwen3.8-max-preview     (unlimited free)
-  2. if/deepseek-v4-flash       (unlimited free)
-  3. if/kimi-k2.7-code          (unlimited free)
+  1. if/qwen3.8-max-preview     (no published token cap; limits apply)
+  2. if/deepseek-v4-flash       (no published token cap; limits apply)
+  3. if/kimi-k2.7-code          (no published token cap; limits apply)
 
 Monthly cost: $0
 Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
@@ -184,8 +156,6 @@ Models:
   cx/gpt-5.3-codex
   cx/gpt-5.3-codex-spark
 ```
-
-
 
 #### GitHub Copilot
 
@@ -242,7 +212,7 @@ usuwa jego modele z `/v1/models`.
 #### Qoder (9 modeli ZA DARMO)
 
 ```bash
-Dashboard → Connect Qoder → OAuth login → Unlimited usage
+Dashboard → Connect Qoder → OAuth login → Access is subject to current provider limits
 
 Models: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
@@ -280,10 +250,10 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  1. if/kimi-k2-thinking (unlimited)
-  2. qw/qwen3-coder-plus (unlimited)
+  1. if/kimi-k2.7-code (no published token cap; provider limits may apply)
+  2. kr/qwen3-coder-next (Kiro free fallback)
 
-Cost: $0 forever!
+Cost: currently listed as $0; terms and availability may change
 ```
 
 ---
@@ -597,6 +567,7 @@ Pełną listę zmiennych środowiskowych znajdziesz w [README](../README.md).
 
 **Claude Code (`cc/`)** — OAuth Pro/Max: `cc/claude-opus-4-8`, `cc/claude-opus-4-7`, `cc/claude-opus-4-6`, `cc/claude-opus-4-5-20251101`, `cc/claude-sonnet-4-6`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
 
+**Codex (`cx/`)** — OAuth Plus/Pro: `cx/gpt-5.5` (+ poziomy effort: `gpt-5.5-xhigh`, `gpt-5.5-high`, `gpt-5.5-medium`, `gpt-5.5-low`), `cx/gpt-5.4`, `cx/gpt-5.4-mini`, `cx/gpt-5.3-codex`, `cx/gpt-5.3-codex-spark`
 
 **GitHub Copilot (`gh/`)** — OAuth: `gh/gpt-5.5`, `gh/gpt-5.4`, `gh/gpt-5.4-mini`, `gh/gpt-5-mini`, `gh/gpt-5.3-codex`, `gh/claude-opus-4.7`, `gh/claude-opus-4.6`, `gh/claude-opus-4-5-20251101`, `gh/claude-sonnet-4.6`, `gh/claude-sonnet-4.5`, `gh/claude-haiku-4.5`, `gh/gemini-3.1-pro-preview`, `gh/gemini-3-flash-preview`, `gh/oswe-vscode-prime`
 
@@ -1001,7 +972,6 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 - `kie/`
 - `aws-polly/`
 - `xiaomi-mimo/`
-- `edgetts/` (Microsoft Edge „Read Aloud” — darmowe, bez klucza API; nieoficjalny/reverse-engineered endpoint)
 - `coqui/`, `tortoise/`
 - `qwen/`
 
@@ -1120,7 +1090,7 @@ Użyj URL SSE `http://localhost:20128/api/mcp/sse` oraz klucza API Bearer wygene
 
 ### Zakresy (scopes)
 
-Narzędzia MCP są pogrupowane w 10 zakresów: `analytics`, `auth`, `billing`, `combos`, `health`, `keys`, `memory`, `models`, `providers`, `system`. Każdy klucz Bearer można ograniczyć do wybranych zakresów — pełny katalog narzędzi: [MCP-SERVER.md](../frameworks/MCP-SERVER.md), schemat JSON-RPC: [A2A-SERVER.md](../frameworks/A2A-SERVER.md).
+MCP definiuje obecnie 32 nazwane scope'y. Każdy klucz Bearer można ograniczyć do wybranych scope'ów; autorytatywny katalog znajduje się w [MCP-SERVER.md](../frameworks/MCP-SERVER.md), a schemat JSON-RPC w [A2A-SERVER.md](../frameworks/A2A-SERVER.md).
 
 ---
 

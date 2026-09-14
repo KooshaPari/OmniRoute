@@ -185,6 +185,18 @@ function getForwardHeaders(requestUrl, requestHeaders) {
     headers.origin = origin;
   }
 
+  for (const key of [
+    "session-id",
+    "session_id",
+    "x-codex-installation-id",
+    "x-codex-window-id",
+    "x-codex-turn-metadata",
+    "originator",
+    "user-agent",
+  ]) {
+    if (isText(requestHeaders[key])) headers[key] = requestHeaders[key];
+  }
+
   return headers;
 }
 

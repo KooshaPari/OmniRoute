@@ -11,7 +11,7 @@ import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { kiroImportSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { findKiroConnectionByIdentity } from "@/lib/oauth/kiroConnectionIdentity";
@@ -38,9 +38,9 @@ export function buildKiroImportError(error: unknown): string {
 }
 
 async function requireOAuthImportAuth(request: Request) {
-  if (!(await isAuthRequired(request))) return null;
-  if (await isAuthenticated(request)) return null;
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // GHSA-mg76: importing a provider connection is a state-mutating admin action;
+  // require management scope (or a dashboard session), not any valid client key.
+  return requireManagementAuth(request, { invalidApiKeyStatus: 401 });
 }
 
 async function upsertImportedKiroConnection(
@@ -92,11 +92,61 @@ export async function POST(request: Request) {
     }
     const { refreshToken, region, clientId, clientSecret, authMethod, profileArn } =
       validation.data;
+    const { tokenEndpoint, scopes } = validation.data;
 
     const kiroService = new KiroService();
 
     // Resolve proxy for this provider (provider-level → global → direct)
     const proxy = await resolveProxyForProvider(targetProvider);
+
+    // Enterprise / Microsoft Entra "Your organization" (external_idp) import. These tokens are
+    // NOT AWS SSO tokens (their refresh token does not start with `aorAAAAAG`), so the Builder
+    // ID / IDC path (validateImportToken) rejects them. Refresh via the org IdP's tokenEndpoint,
+    // persist the org profileArn (read from the Kiro IDE profile.json by the caller), and mark
+    // the connection so the runtime executor sends `TokenType: EXTERNAL_IDP`.
+    if (isExternalIdpAuthMethod(authMethod)) {
+      const scope = normalizeScope(scopes);
+      const externalIdpPsd = {
+        authMethod: "external_idp",
+        clientId,
+        tokenEndpoint,
+        scope,
+        region: region || "us-east-1",
+      };
+      const refreshed = await runWithProxyContext(proxy, () =>
+        kiroService.refreshToken(refreshToken.trim(), externalIdpPsd)
+      );
+      const email =
+        emailFromExternalIdpToken(refreshed.accessToken) ||
+        kiroService.extractEmailFromJWT(refreshed.accessToken);
+      const record = {
+        accessToken: refreshed.accessToken,
+        refreshToken: refreshed.refreshToken || refreshToken.trim(),
+        expiresAt: new Date(Date.now() + (refreshed.expiresIn || 3600) * 1000).toISOString(),
+        email: email || null,
+        providerSpecificData: {
+          profileArn: profileArn || null,
+          authMethod: "external_idp",
+          provider: "ExternalIdp",
+          clientId,
+          tokenEndpoint,
+          scope,
+          region: region || "us-east-1",
+        },
+        testStatus: "active",
+        isActive: true,
+      };
+      const connection: any = await upsertImportedKiroConnection(targetProvider, record, {
+        profileArn,
+        clientId,
+        email,
+      });
+      await syncToCloudIfEnabled();
+      return NextResponse.json({
+        success: true,
+        connection: { id: connection.id, provider: connection.provider, email: connection.email },
+      });
+    }
 
     // For IDC tokens the client already has OIDC client credentials extracted from the
     // SSO cache registration file by auto-import (#2059). Refresh directly via the
@@ -128,8 +178,11 @@ export async function POST(request: Request) {
       // Validate and refresh token (through proxy if configured).
       // validateImportToken also calls registerClient() to obtain a per-connection OIDC
       // client pair so multiple Kiro accounts do not share a single backend session (#2328).
+      // When only `clientId` is known (no matching secret was found by auto-import),
+      // forward it as a hint so the AWS SSO cache lookup matches the token's own
+      // registration instead of guessing via region/latest-expiry (#1253).
       tokenData = await runWithProxyContext(proxy, () =>
-        kiroService.validateImportToken(refreshToken.trim(), region)
+        kiroService.validateImportToken(refreshToken.trim(), region, clientId)
       );
     }
 
@@ -160,29 +213,19 @@ export async function POST(request: Request) {
       refreshToken: tokenData.refreshToken || refreshToken.trim(),
       expiresAt: new Date(Date.now() + (tokenData.expiresIn || 3600) * 1000).toISOString(),
       email: email || null,
-      providerSpecificData: {
-        profileArn: resolvedProfileArn,
-        authMethod: resolvedAuthMethod,
-        provider: isIdc ? "Enterprise" : "Imported",
-        ...(tokenData.clientId
-          ? {
-              clientId: tokenData.clientId,
-              clientSecret: tokenData.clientSecret,
-              region: region || "us-east-1",
-              ...(tokenData.clientSecretExpiresAt
-                ? { clientSecretExpiresAt: tokenData.clientSecretExpiresAt }
-                : {}),
-            }
-          : {}),
-      },
+      providerSpecificData,
       testStatus: "active",
       isActive: true,
     };
-    const connection: any = await upsertImportedKiroConnection(targetProvider, record, {
-      profileArn: resolvedProfileArn,
-      clientId: providerSpecificData.clientId,
-      email,
-    });
+    // Only include clientId in the identity for IDC imports where it is genuinely
+    // unique per account (#2059). For Builder ID / social imports the OIDC clientId
+    // comes from a machine-wide cached OIDC registration (shared across all accounts
+    // on the same machine), so using it for identity matching would cause different
+    // accounts to overwrite each other (#9435). Without clientId, the identity
+    // matching falls through to the email field, which correctly distinguishes imports.
+    const identity: Record<string, unknown> = { profileArn: resolvedProfileArn, email };
+    if (isIdc) identity.clientId = providerSpecificData.clientId;
+    const connection: any = await upsertImportedKiroConnection(targetProvider, record, identity);
 
     // Auto sync to Cloud if enabled
     await syncToCloudIfEnabled();

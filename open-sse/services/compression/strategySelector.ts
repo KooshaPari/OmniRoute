@@ -4,15 +4,21 @@ import type {
   CompressionPipelineStep,
   CompressionResult,
 } from "./types.ts";
+import { applyHardBudget } from "./hardBudget.ts";
 import { type FidelityGateConfig } from "./fidelityGate.ts";
 import { gateAdvance } from "./fidelityGateStep.ts";
-import type { CompressionEngineApplyOptions } from "./engines/types.ts";
+import type {
+  CompressionEngineApplyOptions,
+  CompressionStage,
+  CompressionWireFormat,
+  ImageTransportFidelity,
+} from "./engines/types.ts";
 import { applyLiteCompression } from "./lite.ts";
 import { cavemanCompress } from "./caveman.ts";
 import { compressAggressive } from "./aggressive.ts";
 import { ultraCompress, ultraCompressHeuristic } from "./ultra.ts";
 import { createCompressionStats } from "./stats.ts";
-import { guardPipelineInflation } from "./pipelineGuards.ts";
+import { applyStackedInflationGuard } from "./pipelineGuards.ts";
 import {
   resolvePipelineBreakerConfig,
   canRunEngine,
@@ -22,13 +28,11 @@ import {
 } from "./pipelineEngineBreaker.ts";
 import {
   type BailoutConfig,
+  type StackAccumulator,
   createStackAccumulator,
   decideStep,
   mergeStackStep,
 } from "./stackedStepCore.ts";
-import type { StackAccumulator } from "./stackedStepCore.ts";
-// Compatibility bridge for fidelityGateStep; canonical callers import this type from stackedStepCore.
-export type { StackAccumulator } from "./stackedStepCore.ts";
 import { resolveStepDetailConfig } from "./stepDetailConfig.ts";
 import { registerBuiltinCompressionEngines } from "./engines/index.ts";
 import { getCompressionEngine, getEngineEntry } from "./engines/registry.ts";
@@ -216,6 +220,10 @@ export function selectCompressionPlan(
 ): DerivedPlan {
   let plan = resolveBasePlan(config, comboId, estimatedTokens, combos, header);
 
+  // The master switch is a hard kill. In particular, adaptive context-budget planning must
+  // never turn compression back on after resolveBasePlan() has selected the disabled plan.
+  if (!config.enabled) return plan;
+
   // Adaptive context-budget floor/escalation (D-C4): after the base plan, replacing the
   // (now-bypassed) auto-trigger branch. Pure resolver; chatCore supplies the model limit.
   if (adaptiveEnabled(config) && config.contextBudget) {
@@ -259,6 +267,10 @@ export function applyCompression(
   options?: {
     model?: string;
     supportsVision?: boolean | null;
+    imageTransportFidelity?: ImageTransportFidelity;
+    sourceFormat?: CompressionWireFormat;
+    targetFormat?: CompressionWireFormat;
+    compressionStage?: CompressionStage;
     config?: CompressionConfig;
     principalId?: string;
     /**
@@ -282,6 +294,10 @@ function runCompression(
   options?: {
     model?: string;
     supportsVision?: boolean | null;
+    imageTransportFidelity?: ImageTransportFidelity;
+    sourceFormat?: CompressionWireFormat;
+    targetFormat?: CompressionWireFormat;
+    compressionStage?: CompressionStage;
     config?: CompressionConfig;
     principalId?: string;
     bailout?: BailoutConfig;
@@ -315,8 +331,12 @@ function runCompression(
       ...options,
       config: { ...options.config, memoizeCompressionResults: false },
     });
+    // memoStore clones internally, so the cache entry stays isolated from the caller's
+    // live object. Return the caller's own `result` (upstream #11727 semantics): handing
+    // back the stored clone would let the caller's later mutations corrupt the cache —
+    // the exact bug the result-memo mutation-isolation test guards.
     memoStore(key, result);
-    return memoLookup(key)!;
+    return result;
   }
   if (mode === "rtk") {
     return applyRtkCompression(body, {
@@ -350,6 +370,7 @@ function runCompression(
     const result = applyLiteCompression(compressionBody, {
       ...options,
       preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
+      ...options?.config?.lite,
     });
     return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
   }
@@ -463,6 +484,14 @@ export async function applyCompressionAsync(
   options?: {
     model?: string;
     supportsVision?: boolean | null;
+    /** Direct-to-provider vs. aggregator transport (gates transport-sensitive engines like omniglyph). */
+    providerTransport?: "direct" | "aggregator";
+    /** Provider resolvido — a contabilidade do omniglyph depende dele. */
+    provider?: string;
+    imageTransportFidelity?: ImageTransportFidelity;
+    sourceFormat?: CompressionWireFormat;
+    targetFormat?: CompressionWireFormat;
+    compressionStage?: CompressionStage;
     config?: CompressionConfig;
     principalId?: string;
     onEngineStep?: (step: StackedCompressionStep) => void;
@@ -480,12 +509,42 @@ async function runCompressionAsync(
   options?: {
     model?: string;
     supportsVision?: boolean | null;
+    /** Direct-to-provider vs. aggregator transport (gates transport-sensitive engines like omniglyph). */
+    providerTransport?: "direct" | "aggregator";
+    /** Provider resolvido — a contabilidade do omniglyph depende dele. */
+    provider?: string;
+    imageTransportFidelity?: ImageTransportFidelity;
+    sourceFormat?: CompressionWireFormat;
+    targetFormat?: CompressionWireFormat;
+    compressionStage?: CompressionStage;
     config?: CompressionConfig;
     principalId?: string;
     onEngineStep?: (step: StackedCompressionStep) => void;
     cachingContext?: CachingDetectionContext;
   }
 ): Promise<CompressionResult> {
+  const workerOptions = options
+    ? {
+        model: options.model,
+        supportsVision: options.supportsVision,
+        providerTransport: options.providerTransport,
+        provider: options.provider,
+        imageTransportFidelity: options.imageTransportFidelity,
+        sourceFormat: options.sourceFormat,
+        targetFormat: options.targetFormat,
+        compressionStage: options.compressionStage,
+        config: options.config,
+      }
+    : undefined;
+  const { isCompressionWorkerEligible } = await import("./compressionWorkerProtocol.ts");
+  if (isCompressionWorkerEligible(body, mode, workerOptions)) {
+    try {
+      const { runCompressionInWorker } = await import("./compressionWorkerPool.ts");
+      return await runCompressionInWorker(body, mode, workerOptions, options?.onEngineStep);
+    } catch {
+      return { body, compressed: false, stats: null };
+    }
+  }
   if (
     options?.config?.memoizeCompressionResults === true &&
     // Only memoize for an explicit principal — a missing principalId would collapse
@@ -509,14 +568,23 @@ async function runCompressionAsync(
       ...options,
       config: { ...options.config, memoizeCompressionResults: false },
     });
+    // Same contract as the sync path: store the internal clone; return the caller's own
+    // object so later caller mutations cannot corrupt the cache (#11727 semantics).
     memoStore(key, result);
-    return memoLookup(key)!;
+    return result;
   }
+  // Single-mode omniglyph (async-only) — resolution lives in engines/omniglyphSingleMode.ts.
+  if (mode === "omniglyph") return applyOmniglyphSingleMode(body, options);
   if (mode === "stacked") {
-    const adapter = adaptBodyForCompression(
-      body,
-      options?.config?.codexResponsesConfig?.preserveToolNames
-    );
+    // Post-translation format-sensitive engines (currently OmniGlyph) must see
+    // the native provider wire shape. The generic adapter would turn Responses
+    // `input[]` into Chat `messages[]` before the engine gets a chance to use its
+    // native Responses transformer. Pre-translation callers retain the legacy
+    // adapter path for the text engines.
+    const adapter =
+      options?.compressionStage === "post-translation"
+        ? { body, adapted: false, restore: (next: Record<string, unknown>) => next }
+        : adaptBodyForCompression(body, options?.config?.codexResponsesConfig?.preserveToolNames);
     const result = await applyStackedCompressionAsync(
       adapter.body,
       options?.config?.stackedPipeline,
@@ -660,6 +728,14 @@ export interface StackedCompressionStep {
 interface StackOptions {
   model?: string;
   supportsVision?: boolean | null;
+  /** Direct-to-provider vs. aggregator transport (gates transport-sensitive engines like omniglyph). */
+  providerTransport?: "direct" | "aggregator";
+  /** Provider resolvido — a contabilidade do omniglyph depende dele. */
+  provider?: string;
+  imageTransportFidelity?: ImageTransportFidelity;
+  sourceFormat?: CompressionWireFormat;
+  targetFormat?: CompressionWireFormat;
+  compressionStage?: CompressionStage;
   config?: CompressionConfig;
   compressionComboId?: string | null;
   /** TV1 bail-out discipline (opt-in, default disabled). */
@@ -668,6 +744,8 @@ interface StackOptions {
   circuitBreaker?: Partial<PipelineCircuitBreakerConfig>;
   /** Opt-in per-step fidelity gate (default disabled). */
   fidelityGate?: FidelityGateConfig;
+  /** Risk-gate mask/restore wrapper (opt-in, default off). Read via resolveRiskGate. */
+  riskGate?: RiskGateConfig;
   /** Authenticated principal id — threaded through to CCR engine for store scoping. */
   principalId?: string;
   /** F3.3: called once per engine as it completes (live per-engine streaming). */
@@ -696,15 +774,32 @@ function reportEngineStep(
   });
 }
 
+/**
+ * #6463: When callers dispatch mode="stacked" WITHOUT pre-deriving the pipeline from the
+ * per-engine toggle map (e.g. /api/compression/preview, external routes that only forward
+ * the persisted config), the stacked loop must not silently fall back to the built-in
+ * [rtk, caveman] default while ignoring the operator's toggled engines. This resolver
+ * honors the explicit pipeline first, then the engines-derived pipeline, and only
+ * falls back to the historical default when neither source produced steps.
+ */
 function resolveStackSteps(
-  pipeline?: Array<CompressionPipelineStep | string>
+  pipeline?: Array<CompressionPipelineStep | string>,
+  config?: CompressionConfig
 ): CompressionPipelineStep[] {
-  return pipeline && pipeline.length > 0
-    ? pipeline.map(normalizePipelineStep)
-    : [
-        { engine: "rtk", intensity: "standard" },
-        { engine: "caveman", intensity: "full" },
-      ];
+  if (pipeline && pipeline.length > 0) return pipeline.map(normalizePipelineStep);
+
+  const engines = config?.engines;
+  if (engines && Object.values(engines).some((e) => e?.enabled === true)) {
+    const derived = deriveDefaultPlan(engines, true);
+    if (derived.mode === "stacked" && derived.stackedPipeline.length > 0) {
+      return derived.stackedPipeline as CompressionPipelineStep[];
+    }
+  }
+
+  return [
+    { engine: "rtk", intensity: "standard" },
+    { engine: "caveman", intensity: "full" },
+  ];
 }
 
 function buildStepOptions(
@@ -733,6 +828,24 @@ function buildStepOptions(
     principalId: options?.principalId,
     stepConfig,
   };
+}
+
+/**
+ * Engines that were not authored for the provider-shaped post-translation body
+ * stay in the legacy pre-translation lane. Format-sensitive engines opt into
+ * both lanes explicitly and perform their own wire-format gate.
+ */
+function canRunAtCompressionStage(
+  engine: NonNullable<ReturnType<typeof getCompressionEngine>>,
+  stage: CompressionStage | undefined
+): boolean {
+  const effectiveStage = stage ?? "pre-translation";
+  // `assertValidEngine` não exige `metadata`, então uma engine registrada sem
+  // esse campo é legal — e sem a guarda derrubava o pipeline inteiro com
+  // TypeError em vez de falhar aberto. Metadata ausente é o mesmo caso de "não
+  // declarou estágio" e cai no mesmo fallback: só pre-translation.
+  const stages = engine.metadata?.executionStages;
+  return stages ? stages.includes(effectiveStage) : effectiveStage === "pre-translation";
 }
 
 function finalizeStackedResult(
@@ -772,30 +885,10 @@ function finalizeStackedResult(
     });
   }
 
-  // T02 / H1: honest aggregate inflation guard. If the fully-stacked body did not actually shrink
-  // (its token count is >= the original), discard it and return the verbatim original — safe by
-  // construction, since the original request body is always a valid payload.
-  const inflation = guardPipelineInflation({
-    originalBody,
-    compressedBody: currentBody,
-    originalTokens: stats.originalTokens,
-    compressedTokens: stats.compressedTokens,
-  });
-  if (inflation.inflated) {
-    const inflatedTokens = stats.compressedTokens;
-    const warnings = new Set(stats.validationWarnings ?? []);
-    warnings.add(
-      `pipeline-inflation-guard: stacked output (${inflatedTokens} tok) did not shrink input ` +
-        `(${stats.originalTokens} tok); reverted to original`
-    );
-    stats.validationWarnings = Array.from(warnings);
-    stats.fallbackApplied = true;
-    stats.compressedTokens = stats.originalTokens;
-    stats.savingsPercent = 0;
-    return { body: inflation.body, compressed: false, stats };
-  }
-
-  return { body: currentBody, compressed, stats };
+  // T02 / H1 / #6480: honest aggregate inflation guard, gated on the loop-level `compressed`
+  // flag so a pipeline where nothing ever advanced isn't mislabeled as a reverted fallback.
+  // See `applyStackedInflationGuard` in `pipelineGuards.ts` for the full rationale.
+  return applyStackedInflationGuard(originalBody, currentBody, compressed, stats);
 }
 
 // ── Shared per-step helpers (used by the sync + async stacked loops; keep them in lockstep) ──
@@ -859,7 +952,7 @@ function runStackedCompression(
   pipeline?: Array<CompressionPipelineStep | string>,
   options?: StackOptions
 ): CompressionResult {
-  const steps = resolveStackSteps(pipeline);
+  const steps = resolveStackSteps(pipeline, options?.config);
   registerBuiltinCompressionEngines();
 
   let currentBody = body;
@@ -883,9 +976,18 @@ function runStackedCompression(
       acc.validationErrors.add(`Unknown compression engine: "${step.engine}"`);
       continue;
     }
+    if (!canRunAtCompressionStage(engine, options?.compressionStage)) {
+      acc.validationWarnings.add(
+        `${step.engine}: skipped (stage ${options?.compressionStage ?? "pre-translation"})`
+      );
+      continue;
+    }
     // Respect the registry enabled flag: a step naming a disabled engine is skipped, so an
     // operator can turn an engine off (setEngineEnabled) without editing every pipeline.
-    if (getEngineEntry(step.engine)?.enabled === false) continue;
+    if (getEngineEntry(step.engine)?.enabled === false) {
+      acc.validationWarnings.add(`${step.engine}: skipped (engine disabled in registry)`);
+      continue;
+    }
     // T02: when the per-engine breaker is OPEN, skip this step (verbatim body kept — fail-open).
     if (breakerOn && !canRunEngine(step.engine, breaker)) {
       acc.validationWarnings.add(`${step.engine}: skipped (pipeline circuit-breaker open)`);
@@ -903,17 +1005,31 @@ function runStackedCompression(
         recordStepFailure(acc, step.engine, err, ctx);
         continue;
       }
-      const committed = commitStepResult(acc, step, result, currentBody, ctx);
-      currentBody = committed.body;
-      if (committed.advanced) compressed = true;
     } else {
-      const result = engine.apply(currentBody, buildStepOptions(step, options));
-      mergeStackStep(acc, step.engine, result);
-      if (result.compressed && gateAdvance(result, currentBody, fidelityGate, acc, step.engine)) {
-        currentBody = result.body;
-        compressed = true;
-      }
-      reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
+      result = engine.apply(currentBody, buildStepOptions(step, options));
+    }
+    const committed = commitStepResult(acc, step, result, currentBody, ctx);
+    currentBody = committed.body;
+    if (committed.advanced) compressed = true;
+    // The pre-existing bail-out path did not stream per-step; everything else does.
+    if (!bailout?.enabled) reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
+  }
+
+  // Hard-budget post-pass (#17): runs after all engines, before finalize.
+  if (options?.config?.targetTokens != null || options?.config?.targetRatio != null) {
+    const hbResult = applyHardBudget(currentBody, {
+      targetTokens: options.config.targetTokens,
+      targetRatio: options.config.targetRatio,
+    });
+    if (hbResult.compressed) {
+      mergeStackStep(acc, "hard-budget", hbResult);
+      currentBody = hbResult.body;
+      compressed = true;
+    } else {
+      // No unit could be dropped (e.g. every unit is preserve-guarded): surface the
+      // unreachable-budget validationWarnings instead of dropping them silently (#17 fix #3).
+      // mergeStackStep is gated on `compressed`, so propagate the warnings here directly.
+      hbResult.stats?.validationWarnings?.forEach((w) => acc.validationWarnings.add(w));
     }
   }
 
@@ -948,7 +1064,7 @@ async function runStackedCompressionAsync(
   pipeline?: Array<CompressionPipelineStep | string>,
   options?: StackOptions
 ): Promise<CompressionResult> {
-  const steps = resolveStackSteps(pipeline);
+  const steps = resolveStackSteps(pipeline, options?.config);
   registerBuiltinCompressionEngines();
 
   let currentBody = body;
@@ -972,8 +1088,17 @@ async function runStackedCompressionAsync(
       acc.validationErrors.add(`Unknown compression engine: "${step.engine}"`);
       continue;
     }
+    if (!canRunAtCompressionStage(engine, options?.compressionStage)) {
+      acc.validationWarnings.add(
+        `${step.engine}: skipped (stage ${options?.compressionStage ?? "pre-translation"})`
+      );
+      continue;
+    }
     // Respect the registry enabled flag (same as the sync loop) — keep both in lockstep.
-    if (getEngineEntry(step.engine)?.enabled === false) continue;
+    if (getEngineEntry(step.engine)?.enabled === false) {
+      acc.validationWarnings.add(`${step.engine}: skipped (engine disabled in registry)`);
+      continue;
+    }
     // T02: skip an engine whose breaker is OPEN (verbatim body kept — fail-open). Lockstep w/ sync.
     if (breakerOn && !canRunEngine(step.engine, breaker)) {
       acc.validationWarnings.add(`${step.engine}: skipped (pipeline circuit-breaker open)`);
@@ -993,19 +1118,32 @@ async function runStackedCompressionAsync(
         recordStepFailure(acc, step.engine, err, ctx);
         continue;
       }
-      const committed = commitStepResult(acc, step, result, currentBody, ctx);
-      currentBody = committed.body;
-      if (committed.advanced) compressed = true;
     } else {
       result = engine.applyAsync
         ? await engine.applyAsync(currentBody, stepOptions)
         : engine.apply(currentBody, stepOptions);
-      mergeStackStep(acc, step.engine, result);
-      if (result.compressed && gateAdvance(result, currentBody, fidelityGate, acc, step.engine)) {
-        currentBody = result.body;
-        compressed = true;
-      }
-      reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
+    }
+    const committed = commitStepResult(acc, step, result, currentBody, ctx);
+    currentBody = committed.body;
+    if (committed.advanced) compressed = true;
+    if (!bailout?.enabled) reportEngineStep(onStep, stepIdx++, totalSteps, step.engine, result);
+  }
+
+  // Hard-budget post-pass (#17): runs after all engines, before finalize.
+  if (options?.config?.targetTokens != null || options?.config?.targetRatio != null) {
+    const hbResult = applyHardBudget(currentBody, {
+      targetTokens: options.config.targetTokens,
+      targetRatio: options.config.targetRatio,
+    });
+    if (hbResult.compressed) {
+      mergeStackStep(acc, "hard-budget", hbResult);
+      currentBody = hbResult.body;
+      compressed = true;
+    } else {
+      // No unit could be dropped (e.g. every unit is preserve-guarded): surface the
+      // unreachable-budget validationWarnings instead of dropping them silently (#17 fix #3).
+      // mergeStackStep is gated on `compressed`, so propagate the warnings here directly.
+      hbResult.stats?.validationWarnings?.forEach((w) => acc.validationWarnings.add(w));
     }
   }
 

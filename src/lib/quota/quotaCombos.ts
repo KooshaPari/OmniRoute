@@ -12,7 +12,7 @@
 
 import { getPool } from "@/lib/db/quotaPools";
 import { getGroupName } from "@/lib/db/quotaGroups";
-import { getCachedProviderConnectionById } from "@/lib/localDb";
+import { getCachedProviderConnectionById } from "@/lib/db/readCache";
 import {
   getCombos,
   createCombo,
@@ -152,7 +152,10 @@ export async function syncQuotaCombos(poolId: string): Promise<void> {
   for (const connId of pool.connectionIds) {
     let connection: Record<string, unknown> | null = null;
     try {
-      connection = (await getCachedProviderConnectionById(connId)) as Record<string, unknown> | null;
+      connection = (await getCachedProviderConnectionById(connId)) as Record<
+        string,
+        unknown
+      > | null;
     } catch {
       // Connection lookup failure — skip this connection.
       continue;
@@ -202,6 +205,10 @@ export async function syncQuotaCombos(poolId: string): Promise<void> {
     }));
     try {
       const existing = await getComboByName(comboName);
+      // A pool may be deleted while this fire-and-forget sync is awaiting combo
+      // lookups. Re-check immediately before the synchronous DB upsert so stale
+      // create/update work cannot recreate managed combos after delete cleanup.
+      if (!getPool(poolId)) return;
       const payload = {
         name: comboName,
         models: steps,

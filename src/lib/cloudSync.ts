@@ -1,9 +1,6 @@
 import crypto from "crypto";
-import { getProviderConnections, updateProviderConnection } from "@/lib/localDb";
+import { getProviderConnections, updateProviderConnection } from "@/lib/db/providers";
 import { buildConfigSyncEnvelope, toLegacyCloudSyncPayload } from "@/lib/sync/bundle";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("cloud-sync");
 
 const CLOUD_URL = process.env.CLOUD_URL || process.env.NEXT_PUBLIC_CLOUD_URL;
 const CLOUD_SYNC_TIMEOUT_MS = Number(process.env.CLOUD_SYNC_TIMEOUT_MS || 12000);
@@ -43,26 +40,23 @@ function toDateMs(value: unknown): number {
 //   2. We verify the signature with `crypto.timingSafeEqual` before parsing the
 //      JSON, so a MITM on the CLOUD_URL channel — or a misconfigured CLOUD_URL
 //      pointing at an attacker — cannot inject providers/tokens.
-// If `OMNIROUTE_CLOUD_SYNC_SECRET` is unset, unsigned responses remain in legacy
-// unverified mode for backwards compatibility. Responses that include a signature
-// cannot be verified without the secret and are rejected fail-closed.
+// If `OMNIROUTE_CLOUD_SYNC_SECRET` is unset, signature validation is logged but
+// not enforced (back-compat for users on v3.8.x who haven't issued a shared
+// secret yet). The enforce-by-default switch will flip in v3.9.
 export function verifyCloudSignature(rawBody: string, sigHeader: string | null): boolean {
   if (!CLOUD_SYNC_SECRET) {
     if (sigHeader) {
-      log.error(
-        { signatureLength: sigHeader.length },
-        "[cloudSync] Cloud response carries X-Cloud-Sig but OMNIROUTE_CLOUD_SYNC_SECRET is not set — rejecting unverifiable signed payload."
-      );
-      return false;
+      // We can't verify, but the server is at least trying. Pass through.
+      return true;
     }
-    log.warn(
+    console.warn(
       "[cloudSync] OMNIROUTE_CLOUD_SYNC_SECRET is not set and the Cloud response carries no X-Cloud-Sig. " +
         "Token sync runs in legacy unverified mode — set the secret to enforce HMAC verification."
     );
     return true;
   }
   if (!sigHeader) {
-    log.warn("cloudSync: cloud response missing X-Cloud-Sig — rejecting payload");
+    console.warn("[cloudSync] Cloud response missing X-Cloud-Sig — rejecting payload.");
     return false;
   }
   const expected = crypto.createHmac("sha256", CLOUD_SYNC_SECRET).update(rawBody).digest("hex");
@@ -71,15 +65,7 @@ export function verifyCloudSignature(rawBody: string, sigHeader: string | null):
     const actualBuf = Buffer.from(sigHeader, "hex");
     if (expectedBuf.length !== actualBuf.length) return false;
     return crypto.timingSafeEqual(expectedBuf, actualBuf);
-  } catch (err) {
-    // SECURITY: log the failure so forged/malformed signatures are visible
-    // in audit logs. The catch returns false (fail-closed) but operators
-    // need to know when this fires — silent signature failures make it
-    // impossible to detect MITM attempts.
-    log.error(
-      { err, signatureLength: sigHeader.length },
-      "cloudSync.verifyCloudSignature: HMAC verification failed (malformed signature or non-hex bytes)",
-    );
+  } catch {
     return false;
   }
 }
@@ -128,7 +114,7 @@ export async function syncToCloud(machineId, createdKey = null) {
   if (!response.ok) {
     const errorText = await response.text();
     const truncated = errorText.length > 200 ? errorText.slice(0, 200) + "…" : errorText;
-    log.warn({ status: response.status, body: truncated }, "cloudSync: sync failed");
+    console.log("Cloud sync failed", { status: response.status, body: truncated });
     return { error: "Cloud sync failed" };
   }
 

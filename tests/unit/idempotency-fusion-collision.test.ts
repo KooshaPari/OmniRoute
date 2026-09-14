@@ -97,3 +97,51 @@ test("genuine client retry (same key + model + body) -> SAME key (replay semanti
   });
   assert.equal(a, b);
 });
+
+test("Responses requests with different input get different keys", () => {
+  const base = { rawKey: "responses-1", provider: "openai", model: "gpt-5", messages: undefined };
+  const first = composeIdempotencyKey({ ...base, body: { input: "first prompt" } });
+  const second = composeIdempotencyKey({ ...base, body: { input: "second prompt" } });
+  assert.notEqual(first, second);
+});
+
+test("semantic body serialization is stable and ignores credentials and request noise", () => {
+  const base = { rawKey: "responses-2", provider: "openai", model: "gpt-5", messages: undefined };
+  const first = composeIdempotencyKey({
+    ...base,
+    body: {
+      input: [{ role: "user", content: "hello" }],
+      tools: [{ type: "function", name: "lookup", parameters: { type: "object" } }],
+      metadata: { trace: "one" },
+      api_key: "secret-one",
+    },
+  });
+  const second = composeIdempotencyKey({
+    ...base,
+    body: {
+      tools: [{ parameters: { type: "object" }, name: "lookup", type: "function" }],
+      input: [{ content: "hello", role: "user" }],
+      metadata: { trace: "two" },
+      api_key: "secret-two",
+    },
+  });
+  assert.equal(first, second);
+});
+
+test("Chat and Responses generation limits participate in the fingerprint", () => {
+  const base = {
+    rawKey: "responses-3",
+    provider: "openai",
+    model: "gpt-5",
+    messages: undefined,
+    body: { input: "hello", temperature: 0 },
+  };
+  assert.notEqual(
+    composeIdempotencyKey(base),
+    composeIdempotencyKey({ ...base, body: { ...base.body, temperature: 1 } })
+  );
+  assert.notEqual(
+    composeIdempotencyKey({ ...base, body: { input: "hello", max_output_tokens: 100 } }),
+    composeIdempotencyKey({ ...base, body: { input: "hello", max_output_tokens: 200 } })
+  );
+});

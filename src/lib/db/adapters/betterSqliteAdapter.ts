@@ -1,7 +1,4 @@
 import type { SqliteAdapter, PreparedStatement, RunResult } from "./types";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("db:adapter:better-sqlite3");
 
 export function createBetterSqliteAdapter(db: import("better-sqlite3").Database): SqliteAdapter {
   return {
@@ -13,6 +10,10 @@ export function createBetterSqliteAdapter(db: import("better-sqlite3").Database)
 
     get name() {
       return db.name;
+    },
+
+    get inTransaction() {
+      return db.inTransaction;
     },
 
     prepare(sql: string): PreparedStatement {
@@ -47,12 +48,7 @@ export function createBetterSqliteAdapter(db: import("better-sqlite3").Database)
     checkpoint(mode = "TRUNCATE"): void {
       try {
         db.pragma(`wal_checkpoint(${mode})`);
-      } catch (err) {
-        log.error(
-          { err, mode, dbName: db.name },
-          "betterSqliteAdapter: wal_checkpoint failed during explicit checkpoint"
-        );
-      }
+      } catch {}
     },
 
     close(): void {

@@ -36,6 +36,7 @@ const ONES: ScoringFactors = {
   contextAffinity: 1,
   resetWindowAffinity: 1,
   connectionDensity: 1,
+  quality: 1,
 };
 
 function candidate(partial: Partial<ProviderCandidate> = {}): ProviderCandidate {

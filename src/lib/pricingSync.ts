@@ -11,11 +11,8 @@
  */
 
 import { getDbInstance } from "./db/core";
-import { invalidateDbCache } from "./db/readCache";
+import { invalidateDbCache, getModelCatalogCacheVersion } from "./db/readCache";
 import { backupDbFile } from "./db/backup";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("lib:pricing-sync");
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -108,10 +105,22 @@ const LITELLM_PROVIDER_MAP: Record<string, string[]> = {
   vertex_ai: ["gemini"],
   "vertex_ai-anthropic_models": ["anthropic"],
   google: ["gemini"],
-  deepseek: ["if"],
+  // Registry ALIAS, not registry id — pricingSync writes/reads are keyed by
+  // alias everywhere else (see getPricingForModel(provider, model) callers).
+  // Four of these previously used the provider's `id` string, which is not a
+  // valid pricing-lookup key for that provider and, worse, for `deepseek` a
+  // real (but wrong) alias existed under that string — silently routing
+  // DeepSeek's synced pricing onto Qoder (open-sse/config/providers/registry/
+  // qoder/index.ts, alias "if", an unrelated third-party API) instead of
+  // DeepSeek (alias "ds"). `bedrock`/`bedrock_converse` and `cloudflare`
+  // pointed at their provider's `id` ("kiro", "cloudflare-ai") rather than
+  // its `alias` ("kr", "cf") — not wrong-provider, just a dead key nothing
+  // downstream ever looks up, so those two providers silently never received
+  // synced pricing at all.
+  deepseek: ["ds"],
   groq: ["groq"],
   together_ai: ["openrouter"],
-  bedrock: ["kiro"],
+  bedrock: ["kr"],
   fireworks_ai: ["fireworks"],
   cerebras: ["cerebras"],
   nvidia_nim: ["nvidia"],
@@ -119,8 +128,11 @@ const LITELLM_PROVIDER_MAP: Record<string, string[]> = {
   "vertex_ai-language_models": ["gemini"],
   "vertex_ai-mistral_models": ["mistral"],
   gemini: ["gemini"],
-  bedrock_converse: ["kiro"],
-  cloudflare: ["cloudflare-ai"],
+  bedrock_converse: ["kr"],
+  cloudflare: ["cf"],
+  // stability-ai has no chat-completions registry entry (image-only:
+  // open-sse/config/providers/registry/stability-ai/imageModels.ts) — left
+  // as-is rather than guessed at; not the same bug shape as the three above.
   stability: ["stability-ai"],
 };
 
@@ -235,10 +247,27 @@ function toRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 }
 
+// getSyncedPricing() re-ran the SELECT + JSON.parse of the pricing_synced
+// blobs on every call — resolveCatalogPricing() calls it per model lookup, so
+// each call rebuilt a fresh object and findInsensitive() (WeakMap keyed by
+// object identity) rebuilt its lowercase index per lookup, emitting hundreds
+// of 'case-insensitive key collision' warnings per second and pinning CPU.
+// Memoized here, invalidated via the same modelCatalogCacheVersion signal
+// saveSyncedPricing/clearSyncedPricing already bump through
+// invalidateDbCache("pricing") — mirrors getModelsDevPricing() in
+// modelsDevSync.ts.
+let pricingMemo: PricingByProvider | null = null;
+let pricingMemoVersion = -1; // -1: never equals a real cacheVersion (starts at 0), guarantees a miss on the first call
+
 /**
  * Read synced pricing from `pricing_synced` namespace.
  */
 export function getSyncedPricing(): PricingByProvider {
+  const currentVersion = getModelCatalogCacheVersion();
+  if (pricingMemo !== null && pricingMemoVersion === currentVersion) {
+    return pricingMemo;
+  }
+
   const db = getDbInstance();
   const rows = db
     .prepare("SELECT key, value FROM key_value WHERE namespace = 'pricing_synced'")
@@ -252,9 +281,11 @@ export function getSyncedPricing(): PricingByProvider {
     try {
       synced[key] = JSON.parse(rawValue) as PricingModels;
     } catch {
-      log.warn({ provider: key }, "pricing-sync: corrupted data, skipping");
+      console.warn(`[PRICING_SYNC] Corrupted data for provider "${key}", skipping`);
     }
   }
+  pricingMemo = synced;
+  pricingMemoVersion = currentVersion;
   return synced;
 }
 
@@ -405,7 +436,7 @@ export async function syncPricingFromSources(opts?: {
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    log.warn({ err: message }, "pricing-sync: sync failed");
+    console.warn("[PRICING_SYNC] Sync failed:", message);
     return {
       success: false,
       modelCount: 0,
@@ -427,39 +458,32 @@ export function startPeriodicSync(intervalMs?: number): void {
 
   const interval = intervalMs ?? SYNC_INTERVAL_MS;
   activeSyncIntervalMs = interval;
-  log.info({ intervalSec: interval / 1000 }, "pricing-sync: starting periodic sync");
+  console.log(`[PRICING_SYNC] Starting periodic sync every ${interval / 1000}s`);
 
   // Initial sync (non-blocking)
   syncPricingFromSources()
     .then((result) => {
       if (result.success) {
-        log.info(
-          { models: result.modelCount, providers: result.providerCount },
-          "pricing-sync: initial sync complete"
+        console.log(
+          `[PRICING_SYNC] Initial sync complete: ${result.modelCount} models from ${result.providerCount} providers`
         );
       }
     })
     .catch((err) => {
-      log.warn(
-        { err: err instanceof Error ? err.message : err },
-        "pricing-sync: initial sync error"
-      );
+      console.warn("[PRICING_SYNC] Initial sync error:", err instanceof Error ? err.message : err);
     });
 
   syncTimer = setInterval(() => {
     syncPricingFromSources()
       .then((result) => {
         if (result.success) {
-          log.info(
-            { models: result.modelCount },
-            "pricing-sync: periodic sync complete"
-          );
+          console.log(`[PRICING_SYNC] Periodic sync complete: ${result.modelCount} models`);
         }
       })
       .catch((err) => {
-        log.warn(
-          { err: err instanceof Error ? err.message : err },
-          "pricing-sync: periodic sync error"
+        console.warn(
+          "[PRICING_SYNC] Periodic sync error:",
+          err instanceof Error ? err.message : err
         );
       });
   }, interval);
@@ -476,7 +500,7 @@ export function stopPeriodicSync(): void {
   if (syncTimer) {
     clearInterval(syncTimer);
     syncTimer = null;
-    log.info("pricing-sync: periodic sync stopped");
+    console.log("[PRICING_SYNC] Periodic sync stopped");
   }
 }
 
@@ -506,14 +530,14 @@ export function getSyncStatus(): SyncStatus {
   };
 }
 
-// ─── Init (called from server-init.ts) ───────────────────
+// ─── Init (called from instrumentation-node.ts) ───────────────────
 
 /**
  * Initialize pricing sync if enabled.
  */
 export async function initPricingSync(): Promise<void> {
   if (process.env.PRICING_SYNC_ENABLED !== "true") {
-    log.info("pricing-sync: disabled (set PRICING_SYNC_ENABLED=true to enable)");
+    console.log("[PRICING_SYNC] Disabled (set PRICING_SYNC_ENABLED=true to enable)");
     return;
   }
   startPeriodicSync();

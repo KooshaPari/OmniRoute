@@ -1,7 +1,7 @@
 ---
 title: "Remote Mode — Drive a remote OmniRoute from your laptop"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.50
+lastUpdated: 2026-08-18
 ---
 
 # Remote Mode
@@ -102,8 +102,7 @@ A token with insufficient scope gets `403` with a clear message.
 
 ## Connecting Antigravity on a remote install
 
-Antigravity (and other Google "native/desktop" OAuth providers such as
-`gemini-cli`) use Google's `firstparty/nativeapp` consent screen. Google only
+Antigravity uses Google's firstparty/nativeapp consent screen. Google only
 releases the authorization code when the **loopback redirect**
 (`http://127.0.0.1:<port>/callback`) is **reachable from the browser that
 approves the sign-in**. On a remote VPS install that loopback lives on the
@@ -112,33 +111,61 @@ emits a code** — the normal "paste the callback URL" fallback has nothing to
 paste. (This is a Google-side constraint: the same hang happens in any proxy
 that uses the bundled Antigravity desktop client, not just OmniRoute.)
 
+The dashboard detects this before you get stuck: opening **Providers → Antigravity →
+Connect** from a non-localhost address replaces the generic "copy the callback URL"
+notice with the two remedies below, each with your host and port already filled in.
+(A LAN address counts — `192.168.x.x` is not localhost as far as this callback is
+concerned.)
+
 There are two supported ways to connect Antigravity to a remote OmniRoute.
 
 ### Option A — local login helper (recommended)
 
-Run the OAuth on **your own computer**, where `127.0.0.1` is reachable, and paste
-the result into the remote dashboard. The helper talks only to Google — it does
-**not** need network access to your VPS, so it works even behind firewalls.
+Run the OAuth on **your own computer**, where `127.0.0.1` is reachable. The helper
+talks to Google directly, so the consent completes where the dashboard's version
+cannot.
+
+**If you are already connected** (`omniroute connect <host>`), there is nothing to
+copy — the helper delivers the credential to that install for you:
 
 ```bash
 # On your LOCAL machine (needs Node.js + a browser):
+omniroute connect 192.168.0.15        # once — mints an admin-scoped context token
 npx omniroute login antigravity
-#   ↳ opens the Google consent in your browser, captures the callback on a local
-#     loopback port, exchanges it, and prints a one-line credential blob:
+#   ↳ opens the Google consent, captures the callback on a local loopback port,
+#     exchanges it, and POSTs the credential to the active context:
 #
+#   Antigravity connected on http://192.168.0.15:20128 (connection abc123).
+#   Nothing to paste — you can close this terminal.
+```
+
+The push happens automatically whenever the active context points at another
+machine. Force it either way with `--push` / `--no-push`, or aim at a specific
+context with `--context <name>`.
+
+**If your machine cannot reach the VPS** (firewalled, no SSH, air-gapped desk), the
+helper still works — it only ever _needs_ Google. Use `--no-push`, or just let the
+push fail: it falls back to printing the blob rather than discarding an
+authorization you already completed.
+
+```bash
+npx omniroute login antigravity --no-push
 #   omniroute-cred-v1.eyJ2IjoxLCJ...
 ```
 
-Then, in the **remote** dashboard: **Providers → Antigravity → Connect**, and
-paste the `omniroute-cred-v1.…` blob into the **Step 2** field (it accepts either
-a callback URL or a credential blob). OmniRoute decodes it, runs the Cloud Code
+Then, in the **remote** dashboard: **Providers → Antigravity → Connect**, and paste
+the `omniroute-cred-v1.…` blob into the **Step 2** field (it accepts either a
+callback URL or a credential blob). OmniRoute decodes it, runs the Cloud Code
 onboarding server-side, and persists the connection.
 
-> The blob contains a refresh token — treat it like a password. It is sent once
-> over your dashboard connection and stored encrypted at rest.
+> The blob contains a refresh token — treat it like a password. On the push path it
+> is sent once over your context's authenticated connection; on the paste path, over
+> your dashboard connection. Either way it is stored encrypted at rest, and a
+> successful push never prints it to your terminal.
 
 Flags: `--no-browser` (print the URL instead of auto-opening), `--port <n>`
-(pin the loopback port), `--timeout <ms>`.
+(pin the loopback port), `--timeout <ms>`, `--push` / `--no-push` (override the
+automatic delivery), `--context <name>` (target a specific context).
 
 ### Option B — SSH local-forward tunnel
 
@@ -147,7 +174,7 @@ loopback callback resolves back to the server through the tunnel:
 
 ```bash
 # On your LOCAL machine:
-ssh -L 20128:localhost:20128 user@your-vps
+ssh -L 20128:127.0.0.1:20128 user@your-vps
 # then open http://localhost:20128 in your LOCAL browser and connect Antigravity
 # normally — the 127.0.0.1:20128/callback redirect now reaches the VPS via SSH.
 ```
@@ -156,9 +183,61 @@ Because you reach the dashboard as `localhost:20128`, the Google consent
 completes and the callback is delivered to the server through the same tunnel —
 no blob needed. Keep the tunnel open until the connection shows as active.
 
+Unlike the fixed-loopback providers below, **one forward is enough** here: the
+Antigravity callback rides the dashboard port itself, so there is no second
+provider-specific port to tunnel.
+
 > A fully headless alternative (no helper, no tunnel) is to configure your **own**
 > Google OAuth web credentials + a public base URL; see the provider's OAuth
 > environment variables. The two options above need no extra Google setup.
+
+---
+
+## Connecting Codex / Grok on a remote install (fixed-loopback providers)
+
+Codex, xAI (`xai-oauth`) and Grok CLI (`grok-cli`) register a **fixed** loopback
+`redirect_uri` with their upstream OAuth app. OmniRoute cannot change it — the
+provider always sends the browser back to the same hardcoded address:
+
+| Provider    | Fixed callback the provider redirects to |
+| ----------- | ---------------------------------------- |
+| `codex`     | `http://localhost:1455/auth/callback`    |
+| `xai-oauth` | `http://127.0.0.1:56121/callback`        |
+| `grok-cli`  | `http://127.0.0.1:56122/callback`        |
+
+`localhost` there means **the machine running the browser**, while OmniRoute's PKCE
+callback server listens on the **server's** loopback. Open the dashboard at a LAN
+address like `http://192.168.0.15:20128` and the two never meet: the authorization
+code is delivered to your own laptop's `localhost:1455`, where nothing is listening,
+and the provider fails the sign-in without surfacing an error.
+
+The dashboard detects this before opening the popup and shows the tunnel command
+instead of letting the login fail silently (#8046).
+
+### Fix — forward **both** ports
+
+```bash
+# On the machine running the BROWSER:
+ssh -L 20128:127.0.0.1:20128 -L 1455:127.0.0.1:1455 <user>@192.168.0.15
+# then browse to http://localhost:20128 and connect Codex from there
+```
+
+Two forwards are required, and forwarding only one still fails:
+
+- **`20128`** (the dashboard port) makes the origin true-localhost, which is what
+  makes OmniRoute start the PKCE callback server at all — a LAN origin never
+  reaches that branch.
+- **`1455`** (the provider's fixed callback port) is where the browser is sent back
+  to; it has to tunnel through to the server's loopback.
+
+Swap `1455` for `56121`/`56122` when connecting xAI or Grok CLI, and `20128` for
+your actual dashboard port. Keep the tunnel open until the connection shows as
+active.
+
+> **No SSH access?** Codex and Grok CLI also accept a pasted token — the **Paste API
+> Key** / **Import auth.json** tab on the connect dialog. That path has no loopback
+> callback, so it works from any origin. Codex additionally accepts a bare access
+> token or a `~/.codex/auth.json` session blob.
 
 ---
 
@@ -192,32 +271,60 @@ omniroute configure codex
 
 # non-interactive
 omniroute configure codex --provider glm --model glm/glm-5.2 --name glm52
+
+# keep a frequently used model at the top of the interactive picker
+omniroute configure codex --provider glm --model glm/glm-5.2 --favorite --yes
 ```
+
+The picker keeps only model IDs (never URLs or credentials) in the local
+`model-preferences.json` file, scoped by context and CLI target. Favorites are
+shown before recent selections; use `--unfavorite` to remove a selected model
+from that context/target list.
 
 The written profile references the inference key by env var
 (`OMNIROUTE_API_KEY`) — the secret is never written to disk. For the one-time
 base Codex setup (the `[model_providers.omniroute]` block), see
 [CODEX-CLI-CONFIGURATION.md](./CODEX-CLI-CONFIGURATION.md).
 
+### Launching a CLI against the remote (no config written)
+
+`omniroute run <target>` also honours the active context: the remote base URL
+and the context credential are injected into the spawned process only.
+
+```bash
+omniroute connect 192.168.0.15
+omniroute run claude   --model openai/gpt-5.4          # Claude Code → remote
+omniroute run gemini   --model glm/glm-5.2 -- --skip-trust -p "hello"
+omniroute run opencode --model glm/glm-5.2 -- run "reply OK"
+
+# Preview exactly what would be spawned (env KEY NAMES only, never values):
+omniroute run codex --dry-run --json
+```
+
+Targets: `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen`, `gemini`
+(single source: `bin/cli/cli-manifest.mjs`). Qwen and Gemini run with a
+temporary isolated home that is removed on exit, so the launch never touches —
+or leaks into — your personal tool configuration.
+
 ### Per-CLI setup commands
 
 Each supported CLI has a remote-aware setup command (all honour the active
 context, or `--remote <url> --api-key <key>`):
 
-| CLI | Command | What it writes |
-|-----|---------|----------------|
-| Codex | `omniroute setup-codex` | `~/.codex/<name>.config.toml` profiles (per model) |
-| Claude Code | `omniroute setup-claude` | `~/.claude/profiles/<name>/settings.json` (per model) |
-| OpenCode | `omniroute setup-opencode` | `~/.config/opencode/opencode.json` — the `omniroute` openai-compatible provider with every catalog model (run `opencode -m omniroute/<model>`) |
-| Cline | `omniroute setup-cline` | `~/.cline/data/{globalState,secrets}.json` (CLI mode) + prints the VS Code extension settings to paste (OpenAI-compatible, Base URL **without** `/v1`) |
-| Kilo Code | `omniroute setup-kilo` | `~/.local/share/kilo/auth.json` (CLI) + VS Code `kilocode.*` settings — OpenAI-compatible, Base URL **with** `/v1` |
-| Continue | `omniroute setup-continue` | `~/.continue/config.yaml` (VS Code/JetBrains + `cn` CLI) — `provider: openai`, `apiBase` **with** `/v1`, key via `${{ secrets.OMNIROUTE_API_KEY }}` |
-| Cursor | `omniroute setup-cursor` | prints the in-app steps (Settings → Models → Override OpenAI Base URL **with** `/v1` + key + model). Cursor config is opaque SQLite — chat panel only |
-| Roo Code | `omniroute setup-roo` | writes a Roo import JSON (`~/.omniroute/roo-settings.json`) + sets `roo-cline.autoImportSettingsPath` + prints UI steps (OpenAI-compatible, Base URL **with** `/v1`) |
-| Crush | `omniroute setup-crush` | `~/.config/crush/crush.json` — `openai-compat` provider, `base_url` **with** `/v1`, key via `$OMNIROUTE_API_KEY` |
-| Goose | `omniroute setup-goose` | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER=openai` + `OPENAI_HOST` **without** `/v1` + `GOOSE_MODEL`) + env recipe |
-| Qwen Code | `omniroute setup-qwen` | `~/.qwen/settings.json` — openai `modelProvider`, `baseUrl` **with** `/v1`, key via `envKey` (OMNIROUTE_API_KEY) |
-| Aider | `omniroute setup-aider` | `~/.aider.conf.yml` (`openai-api-base` **without** `/v1` + `model: openai/<id>`) + env recipe (`aider --message --yes`) |
+| CLI         | Command                    | What it writes                                                                                                                                                       |
+| ----------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Codex       | `omniroute setup-codex`    | `~/.codex/<name>.config.toml` profiles (per model)                                                                                                                   |
+| Claude Code | `omniroute setup-claude`   | `~/.claude/profiles/<name>/settings.json` (per model)                                                                                                                |
+| OpenCode    | `omniroute setup-opencode` | `~/.config/opencode/opencode.json` — the `omniroute` openai-compatible provider with every catalog model (run `opencode -m omniroute/<model>`)                       |
+| Cline       | `omniroute setup-cline`    | `~/.cline/data/{globalState,secrets}.json` (CLI mode) + prints the VS Code extension settings to paste (OpenAI-compatible, Base URL **without** `/v1`)               |
+| Kilo Code   | `omniroute setup-kilo`     | `~/.local/share/kilo/auth.json` (CLI) + VS Code `kilocode.*` settings — OpenAI-compatible, Base URL **with** `/v1`                                                   |
+| Continue    | `omniroute setup-continue` | `~/.continue/config.yaml` (VS Code/JetBrains + `cn` CLI) — `provider: openai`, `apiBase` **with** `/v1`, key via `${{ secrets.OMNIROUTE_API_KEY }}`                  |
+| Cursor      | `omniroute setup-cursor`   | prints the in-app steps (Settings → Models → Override OpenAI Base URL **with** `/v1` + key + model). Cursor config is opaque SQLite — chat panel only                |
+| Roo Code    | `omniroute setup-roo`      | writes a Roo import JSON (`~/.omniroute/roo-settings.json`) + sets `roo-cline.autoImportSettingsPath` + prints UI steps (OpenAI-compatible, Base URL **with** `/v1`) |
+| Crush       | `omniroute setup-crush`    | `~/.config/crush/crush.json` — `openai-compat` provider, `base_url` **with** `/v1`, key via `$OMNIROUTE_API_KEY`                                                     |
+| Goose       | `omniroute setup-goose`    | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER=openai` + `OPENAI_HOST` **without** `/v1` + `GOOSE_MODEL`) + env recipe                                               |
+| Aider       | `omniroute setup-aider`    | `~/.aider.conf.yml` (`openai-api-base` **without** `/v1` + `model: openai/<id>`) + env recipe (`aider --message --yes`)                                              |
+| Qwen Code   | `omniroute setup-qwen`     | `~/.qwen/settings.json` V4 `modelProviders.openai` entry + `OMNIROUTE_API_KEY` in `~/.qwen/.env`                                                                     |
 
 ```bash
 # OpenCode (openai-compatible provider, all catalog models, remote VPS)
@@ -230,6 +337,11 @@ opencode -m omniroute/glm/glm-5.2 "..."          # export OMNIROUTE_API_KEY firs
 > (now remote-aware via `--remote`) installs `@omniroute/opencode-plugin`.
 > `setup-opencode` is the lightweight openai-compatible alternative. The API key
 > is referenced via `{env:OMNIROUTE_API_KEY}` — never written to disk.
+>
+> On OpenCode v2, use `@omniroute/opencode-plugin-v2` instead: same catalog,
+> different loader contract. It reads the key from OpenCode's own credential
+> store when the integration is connected, so a remote gateway needs no key in
+> `opencode.json` at all.
 
 ---
 
@@ -281,13 +393,19 @@ omniroute contexts remove stg --yes
 > revoke the token on the server with `omniroute tokens revoke <id>` to actually
 > kill access.
 
-**Export / import** contexts (e.g. to move them between machines — secrets included,
-so handle the file carefully):
+**Export / import** contexts (e.g. to move them between machines). New contexts persist
+only a keychain reference; credentials are not copied into the export when the OS
+keychain is available:
 
 ```bash
 omniroute contexts export --out contexts.json     # default: stdout
 omniroute contexts import contexts.json            # overwrite; --merge to keep existing
+omniroute contexts migrate --yes                  # move legacy plaintext tokens to keychain
 ```
+
+On headless systems without a usable OS keychain, the CLI falls back to
+`config.json` with mode `0600` and prints a one-time warning. Treat exports from
+that fallback (and any legacy config before migration) as secret material.
 
 ---
 
@@ -330,8 +448,12 @@ omniroute contexts remove 192-168-0-15 --yes   # drop the local context (even if
 - `omniroute connect` reuses the login brute-force lockout + audit logging.
 - Prefer HTTPS or a Tailnet for the transport; a bare host defaults to `http://`
   for LAN/Tailscale convenience — pass a full `https://…` URL for TLS.
-- The local context file is `~/.omniroute/config.json` (`chmod 600`); tokens are
-  never printed in logs (masked to a prefix).
+- The preferred local context file is `~/.omniroute/config.json` (`chmod 600`)
+  containing only a `credentialRef`; the token itself is stored in the OS
+  keychain (`keytar`) and is never printed in logs. Headless installs without a
+  working native keychain use the same `0600` file as an explicit fallback and
+  emit a warning once. Use `omniroute contexts migrate --yes` after installing a
+  keychain backend.
 
 ---
 

@@ -1,28 +1,14 @@
-/**
- * QuotaSnapshotRow — the camelCase shape returned by `rowToCamel()`. All
- * `quotaSnapshots.ts` reads normalize via `rowToCamel()` so the public API
- * surfaces camelCase fields. Inserts accept this shape too (caller passes
- * the camelCase object; `objToSnake()` handles the column-name conversion
- * at the SQLite boundary).
- *
- * Pre-migration note: the interface previously used snake_case fields,
- * which contradicted the runtime data (post-rowToCamel). Consumers used
- * `as unknown as` casts to bridge the mismatch. The migration to
- * `toRecord<T>()` required the interface to match reality; this change
- * unifies the type and removes the workaround casts in comboForecast.ts,
- * comboHealth.ts, and the test file.
- */
 export interface QuotaSnapshotRow {
   id: number;
   provider: string;
-  connectionId: string;
-  windowKey: string;
-  remainingPercentage: number | null;
-  isExhausted: number;
-  nextResetAt: string | null;
-  windowDurationMs: number | null;
-  rawData: string | null;
-  createdAt: string;
+  connection_id: string;
+  window_key: string;
+  remaining_percentage: number | null;
+  is_exhausted: number;
+  next_reset_at: string | null;
+  window_duration_ms: number | null;
+  raw_data: string | null;
+  created_at: string;
 }
 
 export interface ProviderUtilizationPoint {
@@ -33,11 +19,18 @@ export interface ProviderUtilizationPoint {
   windowKey: string;
 }
 
+export interface ConnectionMetaEntry {
+  email: string | null;
+  name: string | null;
+  displayName: string | null;
+}
+
 export interface ProviderUtilizationResponse {
   timeRange: "1h" | "24h" | "7d" | "30d";
   bucketSizeMinutes: number;
   providers: string[];
   data: ProviderUtilizationPoint[];
+  connectionMeta?: Record<string, ConnectionMetaEntry>;
 }
 
 export interface ComboHealthMetrics {
@@ -65,11 +58,17 @@ export interface ComboHealthMetrics {
   quotaHealth: {
     providers: Array<{
       provider: string;
-      remainingPct: number;
+      remainingPct: number | null;
       isExhausted: boolean;
       trend: "improving" | "stable" | "declining";
+      dropReason?:
+        | import("../../../open-sse/services/autoCombo/strictZeroCostFilter").StrictZeroCostExclusionReason
+        | "hidePaidModels"
+        | "modelLockout"
+        | "no-snapshot"
+        | null;
     }>;
-    worstRemainingPct: number;
+    worstRemainingPct: number | null;
   };
   usageSkew: {
     modelDistribution: Array<{
@@ -267,7 +266,9 @@ export interface ComboAutopilotReport {
     degradedCount: number;
     downCount: number;
     issueCount: number;
-    actionableCount: number;
+    suggestionCount: number;
+    /** @deprecated Use suggestionCount instead. Kept as an alias for backward compatibility; remove after 2 releases. */
+    actionableCount?: number;
   };
   combos: ComboAutopilotCombo[];
 }
@@ -283,7 +284,12 @@ export type ComboScoringInspectorFactorKey =
   | "tierAffinity"
   | "specificityMatch"
   | "contextAffinity"
-  | "resetWindowAffinity";
+  | "cacheAffinity"
+  | "sessionAvailability"
+  | "resetWindowAffinity"
+  | "connectionDensity"
+  | "quality"
+  | "reliability";
 
 export type ComboScoringInspectorSource =
   "combo_health" | "combo_forecast" | "combo_autopilot" | "runtime" | "default";

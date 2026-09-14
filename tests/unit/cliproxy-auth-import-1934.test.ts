@@ -55,10 +55,10 @@ test("parseCliProxyAuthRecord returns null for unknown type or missing access to
 });
 
 test("every CLIPROXY_TYPE_TO_PROVIDER target is a real OAuth provider id", () => {
-  // codex/antigravity/claude/qwen/kimi are all OmniRoute providers
+  // codex/antigravity/claude/kimi are all OmniRoute providers
   for (const provider of Object.values(CLIPROXY_TYPE_TO_PROVIDER)) {
     assert.ok(
-      ["claude", "codex", "antigravity", "qwen", "kimi"].includes(provider),
+      ["claude", "codex", "antigravity", "kimi"].includes(provider),
       `unexpected provider mapping: ${provider}`
     );
   }
@@ -117,7 +117,7 @@ test("scanCliProxyAuthDir reads importable files and counts skips", async () => 
     assert.equal(candidates[0].provider, "antigravity");
     assert.equal(skipped, 2); // unknown type + broken json
   } finally {
-    await fs.rm(dir, { recursive: true, force: true });
+    await fs.rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 

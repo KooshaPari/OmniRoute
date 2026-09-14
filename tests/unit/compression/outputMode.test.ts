@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   applyCavemanOutputMode,
   buildCavemanOutputInstruction,
+  CAVEMAN_INSTRUCTION_BY_LANGUAGE,
   shouldBypassCavemanOutputMode,
 } from "../../../open-sse/services/compression/outputMode.ts";
 
@@ -107,5 +108,18 @@ describe("Caveman output mode", () => {
       buildCavemanOutputInstruction({ enabled: true, intensity: "ultra", autoClarity: true }),
       /ultra terse/i
     );
+  });
+});
+
+describe("caveman instruction language map", () => {
+  it("covers it/ru/zh with three bounded levels", () => {
+    for (const lang of ["it", "ru", "zh"] as const) {
+      const entry = CAVEMAN_INSTRUCTION_BY_LANGUAGE[lang];
+      assert.ok(entry, `missing ${lang}`);
+      for (const level of ["lite", "full", "ultra"] as const) {
+        assert.ok(entry[level].length > 0, `${lang}.${level} empty`);
+        assert.ok(entry[level].includes("Code blocks"), `${lang}.${level} missing boundaries`);
+      }
+    }
   });
 });

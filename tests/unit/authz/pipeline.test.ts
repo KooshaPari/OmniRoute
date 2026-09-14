@@ -14,6 +14,8 @@ const core = await import("../../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../../src/lib/db/apiKeys.ts");
 const settingsDb = await import("../../../src/lib/db/settings.ts");
 const pipeline = await import("../../../src/server/authz/pipeline.ts");
+const csrf = await import("../../../src/server/authz/csrf.ts");
+const dashboardCsrfConstants = await import("../../../src/shared/constants/dashboardCsrf.ts");
 
 const ORIGINAL_JWT = process.env.JWT_SECRET;
 const ORIGINAL_INITIAL = process.env.INITIAL_PASSWORD;
@@ -28,7 +30,7 @@ const ORIGINAL_OMNIROUTE_PEER_STAMP_TOKEN = process.env.OMNIROUTE_PEER_STAMP_TOK
 function resetEnvironment() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   process.env.JWT_SECRET = "pipeline-jwt-secret";
   process.env.INITIAL_PASSWORD = "pipeline-initial-password";
@@ -64,7 +66,8 @@ test.beforeEach(() => {
 });
 
 test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_JWT === undefined) delete process.env.JWT_SECRET;
   else process.env.JWT_SECRET = ORIGINAL_JWT;
   if (ORIGINAL_INITIAL === undefined) delete process.env.INITIAL_PASSWORD;
@@ -303,6 +306,7 @@ test("runAuthzPipeline rejects new API requests during shutdown drain", async ()
 
   assert.equal(response.status, 503);
   assert.equal(body.error.code, "SERVICE_UNAVAILABLE");
+  assert.equal(response.headers.get("retry-after"), "5");
 });
 
 test("runAuthzPipeline rejects rewritten API aliases during shutdown drain", async () => {
@@ -316,6 +320,7 @@ test("runAuthzPipeline rejects rewritten API aliases during shutdown drain", asy
   assert.equal(response.status, 503);
   assert.equal(response.headers.get("x-omniroute-route-class"), "CLIENT_API");
   assert.equal(body.error.code, "SERVICE_UNAVAILABLE");
+  assert.equal(response.headers.get("retry-after"), "5");
 });
 
 test("runAuthzPipeline allows dashboard sessions to read model catalog aliases", async () => {
@@ -481,7 +486,67 @@ test("runAuthzPipeline rejects dashboard mutations from invalid browser origin",
 
   assert.equal(response.status, 403);
   assert.equal(body.error.code, "INVALID_ORIGIN");
-  assert.equal(body.error.message, "Invalid request origin");
+  assert.match(body.error.message, /^Invalid request origin\./);
+  assert.match(body.error.message, /OMNIROUTE_PUBLIC_BASE_URL/);
+});
+
+test("runAuthzPipeline answers OPTIONS /v1/models preflight with Allow-Origin (#5242)", async () => {
+  // Literal Wayland AI / Electron repro: browser preflight with an Origin and
+  // no CORS_ALLOW_ALL must still receive Access-Control-Allow-Origin so the
+  // renderer is allowed to read the catalog response.
+  delete process.env.CORS_ALLOW_ALL;
+  delete process.env.CORS_ALLOWED_ORIGINS;
+
+  const response = await pipeline.runAuthzPipeline(
+    request("http://localhost/v1/models", {
+      method: "OPTIONS",
+      headers: { origin: "http://localhost" },
+    }),
+    { enforce: true }
+  );
+
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get("x-omniroute-route-class"), "CLIENT_API");
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), "http://localhost");
+  assert.match(response.headers.get("Vary") || "", /Origin/);
+  // Token-auth surface — must NOT advertise credentials with the echoed origin.
+  assert.equal(response.headers.get("Access-Control-Allow-Credentials"), null);
+});
+
+test("runAuthzPipeline serves GET /v1/models with Allow-Origin to dashboard session (#5242)", async () => {
+  await forceAuthRequired();
+  delete process.env.CORS_ALLOW_ALL;
+  delete process.env.CORS_ALLOWED_ORIGINS;
+
+  const response = await pipeline.runAuthzPipeline(
+    request("http://localhost/v1/models", {
+      headers: { cookie: await dashboardCookie(), origin: "http://localhost" },
+    }),
+    { enforce: true }
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("x-omniroute-route-class"), "CLIENT_API");
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), "http://localhost");
+  assert.equal(response.headers.get("Access-Control-Allow-Credentials"), null);
+});
+
+test("runAuthzPipeline keeps MANAGEMENT OPTIONS fail-closed for arbitrary origin (#5242)", async () => {
+  delete process.env.CORS_ALLOW_ALL;
+  delete process.env.CORS_ALLOWED_ORIGINS;
+
+  const response = await pipeline.runAuthzPipeline(
+    request("http://localhost/api/keys", {
+      method: "OPTIONS",
+      headers: { origin: "http://localhost" },
+    }),
+    { enforce: true }
+  );
+
+  assert.equal(response.status, 204);
+  assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
+  // Management surface is cookie-authed → no permissive origin echo.
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), null);
 });
 
 test("runAuthzPipeline refreshes dashboard JWTs near expiry", async () => {
@@ -501,4 +566,39 @@ test("runAuthzPipeline refreshes dashboard JWTs near expiry", async () => {
 
   assert.equal(response.status, 200);
   assert.match(response.headers.get("set-cookie") || "", /auth_token=/);
+});
+
+test("runAuthzPipeline clears stale dashboard JWTs without error-stack noise", async () => {
+  await forceAuthRequired();
+  const oldSecret = new TextEncoder().encode("old-dashboard-jwt-secret");
+  const staleToken = await new SignJWT({ authenticated: true })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("1h")
+    .sign(oldSecret);
+
+  const errorCalls: unknown[][] = [];
+  const originalError = console.error;
+  const originalWarn = console.warn;
+  console.error = (...args: unknown[]) => {
+    errorCalls.push(args);
+  };
+  console.warn = () => {};
+
+  try {
+    const response = await pipeline.runAuthzPipeline(
+      request("http://localhost/dashboard", {
+        headers: { cookie: `auth_token=${staleToken}` },
+      }),
+      { enforce: true }
+    );
+
+    assert.equal(response.status, 307);
+    const setCookie = response.headers.get("set-cookie") || "";
+    assert.match(setCookie, /auth_token=/);
+    assert.match(setCookie, /Max-Age=0|Expires=/i);
+    assert.equal(errorCalls.length, 0);
+  } finally {
+    console.error = originalError;
+    console.warn = originalWarn;
+  }
 });

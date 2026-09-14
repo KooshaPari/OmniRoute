@@ -1,7 +1,4 @@
 import { cleanupReasoningCache } from "../../../open-sse/services/reasoningCache.ts";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("jobs:reasoning-cache-cleanup");
 
 const DEFAULT_INTERVAL_MS = 30 * 60 * 1000;
 
@@ -22,10 +19,10 @@ export function startReasoningCacheCleanupJob() {
     try {
       const deleted = cleanupReasoningCache();
       if (deleted > 0) {
-        log.info({ deleted }, "reasoning-cache: expired entries removed");
+        console.log(`[ReasoningCache] expired entries removed=${deleted}`);
       }
     } catch (error) {
-      log.error({ err: error }, "reasoning-cache: cleanup job failed");
+      console.error("[ReasoningCache] Cleanup job failed:", error);
     }
   };
 

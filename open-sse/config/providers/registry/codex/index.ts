@@ -11,7 +11,11 @@ export const codexProvider: RegistryEntry = {
   alias: "cx",
   format: "openai-responses",
   executor: "codex",
+  // Codex /responses is upstream-streaming even when the client requested stream:false.
+  // Mark it forceStream so chatCore drains terminal SSE into JSON instead of waiting for EOF.
+  forceStream: true,
   baseUrl: "https://chatgpt.com/backend-api/codex/responses",
+  reasoningTransport: "opaque",
   authType: "oauth",
   authHeader: "bearer",
   defaultContextLength: 400000,
@@ -24,6 +28,25 @@ export const codexProvider: RegistryEntry = {
     tokenUrl: "https://auth.openai.com/oauth/token",
   },
   models: [
+    // Astra shares GPT-5.6's Codex limits: the live OAuth catalog reports
+    // max_context_window=872000 (context_window=272000 is the pricing tier).
+    { id: "gpt-6-astra", name: "GPT 6 Astra", ...GPT_5_6_CODEX_CAPABILITIES },
+    { id: "gpt-6-astra-ultra", name: "GPT 6 Astra (Ultra)", ...GPT_5_6_CODEX_CAPABILITIES },
+    { id: "gpt-6-astra-max", name: "GPT 6 Astra (Max)", ...GPT_5_6_CODEX_CAPABILITIES },
+    {
+      id: "gpt-6-astra-xhigh",
+      name: "GPT 6 Astra (xHigh)",
+      ...GPT_5_6_CODEX_CAPABILITIES,
+      timeoutMs: 1200000,
+    },
+    {
+      id: "gpt-6-astra-high",
+      name: "GPT 6 Astra (High)",
+      ...GPT_5_6_CODEX_CAPABILITIES,
+      timeoutMs: 1200000,
+    },
+    { id: "gpt-6-astra-medium", name: "GPT 6 Astra (Medium)", ...GPT_5_6_CODEX_CAPABILITIES },
+    { id: "gpt-6-astra-low", name: "GPT 6 Astra (Low)", ...GPT_5_6_CODEX_CAPABILITIES },
     {
       id: "gpt-5.6-sol",
       name: "GPT 5.6 Sol",
@@ -194,12 +217,5 @@ export const codexProvider: RegistryEntry = {
       maxOutputTokens: 128000,
     },
     { id: "gpt-5.3-codex-spark", name: "GPT 5.3 Codex Spark" },
-    {
-      id: "gpt-5.3-codex",
-      name: "GPT 5.3 Codex",
-      targetFormat: "openai-responses",
-      supportsReasoning: true,
-      supportsXHighEffort: true,
-    },
   ],
 };

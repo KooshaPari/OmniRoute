@@ -93,3 +93,26 @@ test("completion scripts incluem combos/providers/models no cache dinamicamente"
     "should reference cache"
   );
 });
+
+test("completion scripts expõem os alvos de execução e configuração", async () => {
+  const { runCompletionCommand } = await import("../../bin/cli/commands/completion.mjs");
+  const expected = ["connect", "contexts", "configure", "launch", "launch-codex", "run", "repair"];
+
+  for (const shell of ["bash", "zsh", "fish"] as const) {
+    const chunks: string[] = [];
+    const originalWrite = process.stdout.write.bind(process.stdout);
+    process.stdout.write = ((chunk: unknown) => {
+      if (typeof chunk === "string") chunks.push(chunk);
+      return true;
+    }) as typeof process.stdout.write;
+    try {
+      assert.equal(await runCompletionCommand(shell), 0);
+    } finally {
+      process.stdout.write = originalWrite;
+    }
+    const output = chunks.join("");
+    for (const command of expected) {
+      assert.ok(output.includes(command), `${shell} completion should include ${command}`);
+    }
+  }
+});

@@ -10,6 +10,7 @@ import {
 } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
+import { isProbeContext } from "@/shared/utils/probeOrigin";
 import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
 import {
   buildStreamingResponse,
@@ -161,26 +162,74 @@ function renderConversationTurn(message: OpenAIMessage, role: string, text: stri
   return null;
 }
 
-/** Serialize the full turn history so the model sees the tool result (#6220). */
+/**
+ * Keep only what the `small_file` generation contract can carry: every system message,
+ * the latest user message, and the most-recent tool round (the last assistant `tool_calls`
+ * turn onward). Older turns are dropped so `content_above_cursor` stays bounded (#6220).
+ */
+function selectBoundedMessages(messages: OpenAIMessage[]): OpenAIMessage[] {
+  let lastUserIdx = -1;
+  let lastToolRoundIdx = -1;
+  messages.forEach((message, idx) => {
+    const role = String(message?.role || "user").toLowerCase();
+    if (role === "user") lastUserIdx = idx;
+    if (role === "assistant" && Array.isArray(message?.tool_calls) && message.tool_calls.length) {
+      lastToolRoundIdx = idx;
+    }
+  });
+  const tailStart = lastToolRoundIdx >= 0 ? lastToolRoundIdx : lastUserIdx;
+  const kept: OpenAIMessage[] = [];
+  messages.forEach((message, idx) => {
+    const role = String(message?.role || "user").toLowerCase();
+    if (role === "system" || role === "developer") {
+      kept.push(message);
+    } else if (idx === lastUserIdx || idx >= tailStart) {
+      kept.push(message);
+    }
+  });
+  return kept;
+}
+
+/**
+ * Serialize the most-recent turn history so the model sees the tool result (#6220), but
+ * BOUNDED: only the last tool round is kept, each tool result is capped, and the whole
+ * prompt is capped — otherwise the folded history trips GitLab's `small_file` 422 guard.
+ */
 function buildToolExchangePrompt(messages: OpenAIMessage[]): string {
   const systemParts: string[] = [];
   const convo: string[] = [];
-  for (const message of messages) {
+  for (const message of selectBoundedMessages(messages)) {
     const role = String(message?.role || "user").toLowerCase();
-    const text = extractTextContent(message?.content);
+    let text = extractTextContent(message?.content);
     if (role === "system" || role === "developer") {
       if (text) systemParts.push(text);
       continue;
     }
+    if (role === "tool") text = capText(text, MAX_TOOL_RESULT_CHARS);
     const line = renderConversationTurn(message, role, text);
     if (line) convo.push(line);
   }
-  const header = systemParts.length
-    ? `System instructions:\n${systemParts.join("\n\n")}\n\n`
-    : "";
-  return `${header}${convo.join(
+  const header = systemParts.length ? `System instructions:\n${systemParts.join("\n\n")}\n\n` : "";
+  const body = `${header}${convo.join(
     "\n\n"
   )}\n\nContinue the response using the tool result above; do not repeat the tool call.`.trim();
+  return capText(body, MAX_TOOL_EXCHANGE_CHARS);
+}
+
+/**
+ * The user's actual instruction — the latest user message, capped. Kept separate from the
+ * folded history so it is NOT duplicated into an oversized `user_instruction`, the likely
+ * offending 422 field on tool-calling follow-up turns (#6220).
+ */
+function buildLatestUserInstruction(messages: OpenAIMessage[]): string {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const role = String(messages[i]?.role || "user").toLowerCase();
+    if (role === "user") {
+      const text = extractTextContent(messages[i]?.content);
+      if (text) return capText(text, MAX_USER_INSTRUCTION_CHARS);
+    }
+  }
+  return "";
 }
 
 /**
@@ -533,10 +582,20 @@ export class GitlabExecutor extends BaseExecutor {
       }
 
       if (response.status === 401) {
+        if (input.log) {
+          input.log.warn(
+            "GITLAB-DUO",
+            "direct_access exchange rejected (401); falling back to public completions endpoint"
+          );
+        }
         return {
-          target: null,
+          target: {
+            mode: "monolith",
+            url: endpoints.publicCompletionsUrl,
+            headers: buildMonolithHeaders(credentials.accessToken || null),
+          },
           credentials,
-          errorResponse: toOpenAIError(401, "GitLab Duo direct access token request was rejected"),
+          errorResponse: null,
         };
       }
 
@@ -597,8 +656,8 @@ export class GitlabExecutor extends BaseExecutor {
     // Emulate OpenAI tool calling for GitLab Duo (which has no native function
     // calling). When `tools` are present we serialize the tool contract into the
     // prompt and parse `<tool>{...}</tool>` blocks back out of the completion text
-    // into OpenAI `tool_calls` — the same web-tool-emulation idiom used by the
-    // qwen-web / duckduckgo-web executors (#6051).
+    // into OpenAI `tool_calls` — the same web-tool-emulation idiom used by other
+    // pure-API web executors such as duckduckgo-web (#6051).
     const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(
       bodyObj,
       rawMessages as Array<{ role: string; content: unknown }>
@@ -612,7 +671,9 @@ export class GitlabExecutor extends BaseExecutor {
     }
 
     let activeCredentials = input.credentials;
-    if (this.needsRefresh(activeCredentials)) {
+    // Probe-origin dispatches must not consume a refresh-token rotation —
+    // routing state untouched; mirrors the base.ts guard (#9817).
+    if (!isProbeContext() && this.needsRefresh(activeCredentials)) {
       const refreshed = await this.refreshCredentials(activeCredentials, input.log || null);
       if (refreshed) {
         activeCredentials = mergeCredentials(activeCredentials, refreshed);

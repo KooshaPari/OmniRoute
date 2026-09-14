@@ -3,6 +3,9 @@ import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { NextIntlClientProvider } from "next-intl";
+
+import messages from "../../i18n/messages/en.json";
 
 const cleanupCallbacks: Array<() => void> = [];
 
@@ -42,10 +45,15 @@ describe("DistributeProxiesButton", () => {
     const root = createRoot(container);
     await act(async () => {
       root.render(
-        <DistributeProxiesButton
-          onDistribute={props.onDistribute ?? vi.fn().mockResolvedValue(undefined)}
-          {...props}
-        />
+        <NextIntlClientProvider
+          locale="en"
+          messages={{ sharedComponents: messages.sharedComponents }}
+        >
+          <DistributeProxiesButton
+            onDistribute={props.onDistribute ?? vi.fn().mockResolvedValue(undefined)}
+            {...props}
+          />
+        </NextIntlClientProvider>
       );
     });
     return { container, root };

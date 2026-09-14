@@ -7,18 +7,16 @@ import { createReadStream } from "fs";
 import { pipeline } from "stream/promises";
 import { execFile } from "child_process";
 import { promisify } from "util";
-import { createLogger } from "@/shared/utils/logger";
 import { getChecksums, getReleaseByVersion } from "./releaseChecker.ts";
 
 const execFileAsync = promisify(execFile);
-const log = createLogger("version-manager:binary-manager");
 const DEFAULT_DATA_DIR = process.env.DATA_DIR || path.join(os.homedir(), ".omniroute");
 
 type Platform = "linux" | "darwin" | "windows" | "freebsd";
 type Arch = "amd64" | "arm64";
 
 function detectPlatform(): Platform {
-  const p = process.platform;
+  const p = os.platform();
   if (p === "linux") return "linux";
   if (p === "darwin") return "darwin";
   if (p === "win32") return "windows";
@@ -26,7 +24,7 @@ function detectPlatform(): Platform {
 }
 
 function detectArch(): Arch {
-  const a = process.arch;
+  const a = os.arch();
   if (a === "x64") return "amd64";
   if (a === "arm64") return "arm64";
   return "amd64";
@@ -83,8 +81,21 @@ export function buildExtractZipCommand(
   return { command: "unzip", args: ["-o", archivePath, "-d", destDir] };
 }
 
-async function extractZip(archivePath: string, destDir: string): Promise<void> {
-  const { command, args } = buildExtractZipCommand(process.platform, archivePath, destDir);
+/**
+ * #10244/#10293: `platform` MUST be an explicit parameter threaded down from the
+ * caller's single runtime detection (see `installVersion`/`downloadRelease`), not
+ * an independent `os.platform()` read inside this function. Multiple, independently
+ * evaluated `os.platform()` call sites scattered across the module are each an
+ * opportunity for a bundler to constant-fold that particular occurrence away — a
+ * single detected value threaded as data through the call chain has no per-call-site
+ * literal for the bundler to fold.
+ */
+async function extractZip(
+  archivePath: string,
+  destDir: string,
+  platform: NodeJS.Platform
+): Promise<void> {
+  const { command, args } = buildExtractZipCommand(platform, archivePath, destDir);
   await execFileAsync(command, args);
 }
 
@@ -96,7 +107,19 @@ async function verifyChecksum(filePath: string, expectedSha256: string): Promise
     stream.on("end", resolve);
     stream.on("error", reject);
   });
-  return safeHexEqual(hash.digest("hex"), expectedSha256);
+  return hash.digest("hex").toLowerCase() === expectedSha256.toLowerCase();
+}
+
+/**
+ * #11236: read os.platform() at call time, never the build-foldable
+ * process.platform literal — the published-artifact build runs on Linux and
+ * constant-folds it, pruning the win32 branch so the managed binary lost its
+ * `.exe` suffix on Windows installs (same fold class as b43a212680 /
+ * #10244/#10293, which converted detectPlatform/detectArch; #10371 fixed the
+ * name in source but left this literal read behind).
+ */
+function managedBinaryName(): string {
+  return os.platform() === "win32" ? "cliproxyapi.exe" : "cliproxyapi";
 }
 
 function findBinaryInDir(dir: string): string | null {
@@ -112,12 +135,16 @@ function findBinaryInDir(dir: string): string | null {
 export async function downloadRelease(
   version: string,
   targetDir: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  // Optional pre-detected target: lets a top-level orchestrator (installVersion)
+  // read the runtime platform/arch exactly once and pass the value down instead of
+  // this function independently re-reading os.platform()/os.arch() (#10244/#10293).
+  target?: { platform: Platform; arch: Arch }
 ): Promise<string> {
   const release = await getReleaseByVersion(version);
   if (!release) throw new Error(`Version ${version} not found`);
 
-  const { platform, arch } = getTargetPlatform();
+  const { platform, arch } = target || getTargetPlatform();
   const ext = platform === "windows" ? ".zip" : ".tar.gz";
   const assetName = `CLIProxyAPI_${release.version}_${platform}_${arch}${ext}`;
   const asset = release.assets.find((a) => a.name === assetName);
@@ -142,14 +169,15 @@ export async function downloadRelease(
   }
 
   if (platform === "windows") {
-    await extractZip(archivePath, versionDir);
+    // Already inside the `platform === "windows"` branch of the single value
+    // detected above (or threaded in via `target`) — pass the corresponding
+    // NodeJS.Platform literal directly rather than calling os.platform() again.
+    await extractZip(archivePath, versionDir, "win32");
   } else {
     await extractTarGz(archivePath, versionDir);
   }
 
-  await fs.unlink(archivePath).catch((err) => {
-    log.error({ err, archivePath }, "binaryManager.downloadRelease: failed to remove archive after extraction");
-  });
+  await fs.unlink(archivePath).catch(() => {});
 
   const binary = findBinaryInDir(versionDir);
   if (!binary) throw new Error(`Binary not found in extracted archive`);
@@ -163,17 +191,18 @@ export async function installVersion(version: string, dataDir?: string): Promise
   const binDir = path.join(dir, "bin");
   await fs.mkdir(binDir, { recursive: true });
 
-  const binary = await downloadRelease(version, binDir);
+  // Single runtime detection for this whole orchestration: read once here and
+  // thread the value into downloadRelease() and the symlink/copy decision below,
+  // instead of each step re-reading os.platform()/os.arch() independently
+  // (#10244/#10293 — redundant reads are each an independent build-folding risk).
+  const target = getTargetPlatform();
+  const binary = await downloadRelease(version, binDir, undefined, target);
 
-  const symlinkPath = path.join(binDir, "cliproxyapi");
+  const symlinkPath = path.join(binDir, managedBinaryName());
   try {
     await fs.unlink(symlinkPath);
-  } catch (err) {
-    // Surface stale symlink removal failures (often permission issues) so the
-    // operator can see why the install path is wedged instead of failing silently.
-    log.error({ err, symlinkPath }, "binaryManager.installVersion: failed to unlink existing symlink");
-  }
-  if (process.platform === "win32") {
+  } catch {}
+  if (target.platform === "windows") {
     await fs.copyFile(binary, symlinkPath);
   } else {
     await fs.symlink(binary, symlinkPath);
@@ -184,15 +213,11 @@ export async function installVersion(version: string, dataDir?: string): Promise
 
 export async function getCurrentBinaryPath(dataDir?: string): Promise<string | null> {
   const dir = dataDir || DEFAULT_DATA_DIR;
-  const symlinkPath = path.join(dir, "bin", "cliproxyapi");
+  const symlinkPath = path.join(dir, "bin", managedBinaryName());
   try {
     const real = await fs.realpath(symlinkPath);
     return fsSync.existsSync(/* turbopackIgnore: true */ real) ? real : null;
-  } catch (err) {
-    log.error(
-      { err, symlinkPath },
-      "binaryManager.getCurrentBinaryPath: realpath lookup failed — returning null"
-    );
+  } catch {
     return null;
   }
 }
@@ -210,11 +235,7 @@ export async function getInstalledVersions(dataDir?: string): Promise<string[]> 
           fsSync.statSync(path.join(/* turbopackIgnore: true */ binDir, e)).isDirectory()
       )
       .map((e) => e.replace("cliproxyapi-", ""));
-  } catch (err) {
-    log.error(
-      { err, binDir },
-      "binaryManager.getInstalledVersions: readdir failed — returning empty list"
-    );
+  } catch {
     return [];
   }
 }
@@ -231,16 +252,15 @@ export async function rollbackVersion(dataDir?: string): Promise<string | null> 
   const oldBinary = findBinaryInDir(path.join(binDir, `cliproxyapi-${previous}`));
   if (!oldBinary) return null;
 
-  const symlinkPath = path.join(binDir, "cliproxyapi");
+  const symlinkPath = path.join(binDir, managedBinaryName());
   try {
     await fs.unlink(symlinkPath);
-  } catch (err) {
-    log.error(
-      { err, symlinkPath, previous },
-      "binaryManager.rollbackVersion: failed to unlink existing symlink before rollback"
-    );
-  }
-  if (process.platform === "win32") {
+  } catch {}
+  // Single runtime detection for this orchestration, via the module's one
+  // canonical read point (getTargetPlatform -> detectPlatform -> os.platform()),
+  // rather than a separate ad hoc os.platform() call (#10244/#10293).
+  const { platform } = getTargetPlatform();
+  if (platform === "windows") {
     await fs.copyFile(oldBinary, symlinkPath);
   } else {
     await fs.symlink(oldBinary, symlinkPath);
@@ -255,11 +275,7 @@ export async function removeVersion(version: string, dataDir?: string): Promise<
   try {
     await fs.rm(versionDir, { recursive: true, force: true });
     return true;
-  } catch (err) {
-    log.error(
-      { err, versionDir, version },
-      "binaryManager.removeVersion: fs.rm failed — returning false"
-    );
+  } catch {
     return false;
   }
 }

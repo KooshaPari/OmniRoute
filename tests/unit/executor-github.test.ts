@@ -65,10 +65,12 @@ test("GithubExecutor.buildUrl routes response-format models to /responses", () =
   }
 });
 
-test("GithubExecutor.buildUrl keeps GitHub Claude Opus 4.6 on /chat/completions", () => {
+test("GithubExecutor.buildUrl routes GitHub Claude Opus 4.6 to the native /v1/messages shim", () => {
   const executor = new GithubExecutor();
   const url = executor.buildUrl("claude-opus-4.6", true);
-  assert.equal(url, "https://api.githubcopilot.com/chat/completions");
+  // Claude ALWAYS uses the Anthropic-native shim (prompt-cache token counts +
+  // lossless tool blocks), never /chat/completions.
+  assert.equal(url, "https://api.githubcopilot.com/v1/messages");
 });
 
 test("GithubExecutor.buildUrl routes unlisted Codex models to /responses (9router#102)", () => {
@@ -96,6 +98,21 @@ test("GithubExecutor.buildUrl routes unlisted Codex models to /responses (9route
     executor.buildUrl("some-random-chat-model", true),
     "https://api.githubcopilot.com/chat/completions"
   );
+});
+
+test("GithubExecutor.buildUrl routes gpt-5.6-sol/terra/luna to /responses (regression)", () => {
+  // These models were registered in the `gh` registry without targetFormat, so
+  // getModelTargetFormat returned null and requests fell through to
+  // /chat/completions -> upstream 400 "model is not accessible via the
+  // /chat/completions endpoint". They only support /responses upstream.
+  const executor = new GithubExecutor();
+  for (const model of ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"]) {
+    assert.equal(
+      executor.buildUrl(model, true),
+      "https://api.githubcopilot.com/responses",
+      `${model} must route to /responses`
+    );
+  }
 });
 
 test("GithubExecutor.transformRequest injects JSON response instructions for Claude and strips reasoning fields", () => {
@@ -236,6 +253,11 @@ test("GithubExecutor.transformRequest leaves string content and missing content 
         role: "assistant",
         tool_calls: [{ id: "c1", type: "function", function: { name: "f", arguments: "{}" } }],
       },
+      // Trailing tool response: dropTrailingAssistantPrefill (9router#2143) strips a
+      // conversation that ends in "assistant", which would otherwise remove the very
+      // tool_calls message this test inspects below. A real tool round-trip ends in
+      // "tool", not "assistant" — model that shape instead.
+      { role: "tool", tool_call_id: "c1", content: "result" },
     ],
   };
   const result = executor.transformRequest("claude-sonnet-4.6", body, true, {});
@@ -256,13 +278,49 @@ test("GithubExecutor.buildHeaders prefers Copilot token and sets GitHub-specific
 
   assert.equal(headers.Authorization, "Bearer copilot-token");
   assert.equal(headers.Accept, "text/event-stream");
-  assert.equal(headers["editor-version"], "vscode/1.126.0");
-  assert.equal(headers["editor-plugin-version"], "copilot-chat/0.54.0");
-  assert.equal(headers["user-agent"], "GitHubCopilotChat/0.54.0");
-  assert.equal(headers["x-github-api-version"], "2026-06-01");
-  assert.equal(headers["openai-intent"], "conversation-panel");
+  // Copilot CLI wire identity (matches the `copilot` npm package, not VS Code).
+  assert.equal(headers["editor-version"], "copilot/1.0.81-6");
+  assert.equal(headers["user-agent"], "copilot/1.0.81-6");
+  assert.equal(headers["x-github-api-version"], "2026-08-01");
+  assert.equal(headers["openai-intent"], "conversation-agent");
+  assert.equal(headers["copilot-integration-id"], "copilot-developer-cli");
+  assert.equal(headers["x-interaction-type"], "conversation-user");
+  assert.equal(headers["copilot-harness-id"], "copilot-sdk");
   assert.equal(headers["X-Initiator"], "user");
   assert.ok(headers["x-request-id"]);
+  // CLI 1.0.81-6 correlation headers.
+  assert.ok(headers["x-client-machine-id"], "stable per-install machine id present");
+  assert.ok(headers["x-interaction-id"], "per-call interaction id present");
+  assert.ok(headers["x-client-session-id"], "per-conversation session id present");
+  assert.ok(headers["x-agent-task-id"], "per-turn task id present");
+  assert.equal(headers["x-github-repository-nwo"], "__no_repository__");
+  assert.equal(headers["x-github-repository-host"], "__no_repository__");
+  assert.equal(headers["x-stainless-helper-method"], "stream");
+  // The CLI does NOT send editor-plugin-version / the vscode library header on
+  // the inference path — those are VS Code Copilot Chat extension only.
+  assert.equal(headers["editor-plugin-version"], undefined);
+  assert.equal(headers["x-vscode-user-agent-library-version"], undefined);
+});
+
+test("GithubExecutor.buildHeaders omits x-stainless-helper-method for non-stream and honors client-pinned ids", () => {
+  const executor = new GithubExecutor();
+  const nonStream = executor.buildHeaders({ accessToken: "gh" }, false);
+  assert.equal(
+    nonStream["x-stainless-helper-method"],
+    undefined,
+    "stainless stream signature only on streamed turns"
+  );
+
+  const pinned = executor.buildHeaders({ accessToken: "gh" }, true, {
+    "x-client-session-id": "sess-123",
+    "x-agent-task-id": "task-456",
+    "x-github-repository-nwo": "octo/repo",
+    "x-github-repository-host": "github.com",
+  });
+  assert.equal(pinned["x-client-session-id"], "sess-123", "client-pinned session id honored");
+  assert.equal(pinned["x-agent-task-id"], "task-456", "client-pinned task id honored");
+  assert.equal(pinned["x-github-repository-nwo"], "octo/repo", "client repo nwo forwarded");
+  assert.equal(pinned["x-github-repository-host"], "github.com", "client repo host forwarded");
 });
 
 test("GithubExecutor.buildHeaders forwards valid client x-initiator and falls back for invalid values", () => {

@@ -17,7 +17,7 @@ const managementPassword = await import("../../src/lib/auth/managementPassword.t
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   delete process.env.INITIAL_PASSWORD;
 }
@@ -28,7 +28,7 @@ test.beforeEach(async () => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_INITIAL_PASSWORD === undefined) {
     delete process.env.INITIAL_PASSWORD;
   } else {
@@ -51,8 +51,7 @@ test("settings route password update requires the current INITIAL_PASSWORD after
   const settings = await settingsDb.getSettings();
 
   assert.equal(response.status, 200);
-  assert.equal(managementPassword.isArgon2idHash(settings.password), true);
-  assert.equal(managementPassword.isBcryptHash(settings.password), false);
+  assert.equal(managementPassword.isBcryptHash(settings.password), true);
   assert.equal(
     await managementPassword.verifyManagementPassword("rotated-secret", (settings as any).password),
     true

@@ -70,6 +70,15 @@ const AGENT_DEFINITIONS: Omit<CliAgentInfo, "version" | "installed">[] = [
     protocol: "stdio",
   },
   {
+    id: "gemini",
+    name: "Google Gemini CLI",
+    binary: "gemini",
+    versionCommand: "gemini --version",
+    providerAlias: "gemini",
+    spawnArgs: [],
+    protocol: "stdio",
+  },
+  {
     id: "goose",
     name: "Goose CLI",
     binary: "goose",
@@ -94,6 +103,15 @@ const AGENT_DEFINITIONS: Omit<CliAgentInfo, "version" | "installed">[] = [
     versionCommand: "aider --version",
     providerAlias: "aider",
     spawnArgs: ["--no-auto-commits"],
+    protocol: "stdio",
+  },
+  {
+    id: "zcode",
+    name: "ZCode (GLM Coding Plan)",
+    binary: "zcode",
+    versionCommand: "zcode --version",
+    providerAlias: "zcode",
+    spawnArgs: ["app-server"],
     protocol: "stdio",
   },
   {
@@ -181,6 +199,14 @@ const CACHE_TTL_MS = 60_000;
 let _customAgentDefs: CustomAgentDef[] = [];
 
 const DISALLOWED_VERSION_COMMAND_CHARS = /[;&|<>`$\r\n]/;
+
+// A version probe only ever needs a version flag. For untrusted (client-registered)
+// custom agents the binary-match check alone is not enough: the caller controls both
+// `binary` and `versionCommand`, so a matching interpreter with an eval-style argument
+// (`node -e …`, `python -c …`, `ruby -e …`) reaches execFileSync as arbitrary code
+// execution without any shell metacharacter. Restricting the args to a recognized
+// version flag closes that path — see GHSA-jphr-2gw7-xrwp / GHSA-hf57-cqmx-p4gr.
+const SAFE_VERSION_PROBE_ARG = /^(-v|-V|--version|-version|version|--ver)$/;
 
 /**
  * Set custom agent definitions from settings.
@@ -282,6 +308,12 @@ export function resolveVersionProbe(
     if (!allowed.has(normalizedCommand)) {
       return null;
     }
+
+    // Untrusted probe: allow only a bare binary or a single recognized version
+    // flag, so a matching interpreter cannot smuggle an eval/exec argument.
+    if (args.length > 1 || (args.length === 1 && !SAFE_VERSION_PROBE_ARG.test(args[0]))) {
+      return null;
+    }
   }
 
   return { command, args };
@@ -374,6 +406,24 @@ export function refreshAgentCache(): CliAgentInfo[] {
 export function getAgentById(id: string): CliAgentInfo | undefined {
   const agents = detectInstalledAgents();
   return agents.find((a) => a.id === id);
+}
+
+/**
+ * Check registration without probing every executable on PATH.
+ *
+ * Process lifecycle callers need an allowlist decision, not a fresh health
+ * scan. Keeping this lookup pure avoids making `spawn()` wait on one timeout
+ * per uninstalled agent while preserving detectInstalledAgents() for UI/status
+ * consumers.
+ */
+export function hasRegisteredAgent(id: string): boolean {
+  const normalized = String(id || "")
+    .trim()
+    .toLowerCase();
+  return (
+    AGENT_DEFINITIONS.some((agent) => agent.id === normalized) ||
+    _customAgentDefs.some((agent) => agent.id === normalized)
+  );
 }
 
 /**

@@ -10,8 +10,9 @@
  * On by default; opt out via Dashboard Feature Flags or ARENA_ELO_SYNC_ENABLED=false.
  */
 
+import { resolveScoresAs } from "@omniroute/open-sse/services/autoCombo/scoresAs.ts";
+
 import { isArenaEloSyncEnabled } from "@/shared/utils/featureFlags";
-import { createLogger } from "@/shared/utils/logger";
 
 import { backupDbFile } from "./db/backup";
 import {
@@ -20,8 +21,6 @@ import {
   deleteModelIntelligenceBySource,
   type ModelIntelligenceEntry,
 } from "./db/modelIntelligence";
-
-const log = createLogger("lib:arena-elo-sync");
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -142,22 +141,6 @@ const VENDOR_PREFIXES = [
   "ai21/",
 ] as const;
 
-/**
- * OmniRoute model aliases: canonical name → known aliases.
- * Creates additional DB entries for each alias so that models
- * are findable under any name OmniRoute uses internally.
- */
-const MODEL_ALIAS_MAP: Record<string, string[]> = {
-  "claude-opus-4-6-thinking": ["claude-opus-4", "anthropic/claude-opus-4"],
-  "claude-sonnet-4-5": ["claude-sonnet-4.5", "anthropic/claude-sonnet-4.5"],
-  "gpt-5.5": ["openai/gpt-5.5", "gpt-5"],
-  "gemini-3-flash": ["google/gemini-3-flash", "gemini-flash"],
-  "deepseek-r1": ["deepseek/deepseek-r1", "if/deepseek-r1"],
-  "kimi-k2-thinking": ["moonshot/kimi-k2"],
-  "qwen3-coder-plus": ["alibaba/qwen3-coder"],
-  "llama-4": ["meta/llama-4", "llama4"],
-};
-
 /** Votes threshold for "high" confidence. */
 const HIGH_CONFIDENCE_VOTES = 5000;
 
@@ -188,9 +171,10 @@ function getEffectiveArenaEloSyncEnabled(): boolean {
   try {
     return isArenaEloSyncEnabled();
   } catch (error) {
-    log.warn(
-      { err: getErrorMessage(error) },
-      "arena-elo-sync: failed to resolve ARENA_ELO_SYNC_ENABLED feature flag"
+    console.warn(
+      `[ARENA_ELO_SYNC] Failed to resolve ARENA_ELO_SYNC_ENABLED feature flag: ${getErrorMessage(
+        error
+      )}`
     );
     return process.env.ARENA_ELO_SYNC_ENABLED !== "false";
   }
@@ -199,16 +183,24 @@ function getEffectiveArenaEloSyncEnabled(): boolean {
 // ─── Model name normalization ────────────────────────────
 
 /**
+ * Trailing harness annotation the Arena leaderboard appends to some entries,
+ * e.g. "gpt-5.6-sol-xhigh (codex-harness)". It describes the scaffold the model
+ * was measured under, not the model id, so it never belongs in a stored key.
+ */
+const HARNESS_ANNOTATION_RE = /\s*\([^)]*\)\s*$/;
+
+/**
  * Normalize a model name from the Arena leaderboard.
  *
- * Lowercases the name and strips known vendor prefixes
- * (e.g. "anthropic/claude-opus-4" → "claude-opus-4").
+ * Lowercases the name, drops a trailing harness annotation
+ * ("gpt-5.6-sol-xhigh (codex-harness)" → "gpt-5.6-sol-xhigh") and strips known
+ * vendor prefixes ("anthropic/claude-opus-4" → "claude-opus-4").
  *
  * @param rawName - The raw model name from the API response.
  * @returns The cleaned, lowercase model name.
  */
 export function normalizeModelName(rawName: string): string {
-  let name = rawName.toLowerCase();
+  let name = rawName.toLowerCase().replace(HARNESS_ANNOTATION_RE, "");
   for (const prefix of VENDOR_PREFIXES) {
     if (name.startsWith(prefix)) {
       name = name.slice(prefix.length);
@@ -219,6 +211,25 @@ export function normalizeModelName(rawName: string): string {
 }
 
 // ─── Core: Fetch ─────────────────────────────────────────
+
+/**
+ * How many consecutive per-category fetch failures to let through to
+ * `console.warn` before going quiet again. Timeouts against the Arena API
+ * repeat every sync cycle (see `startPeriodicSync()`), so logging every
+ * single one turns into log spam within a few hours (#11500). Mirrors the
+ * once-per-label dedup pattern used by `warnEmptyAutoPoolOnce()`
+ * (`open-sse/services/autoCombo/virtualFactory.ts`), except here the streak
+ * resets on the next successful fetch so a genuinely new outage warns again.
+ */
+const ARENA_ELO_FETCH_WARN_STREAK_INTERVAL = 10;
+
+/** Consecutive fetch-failure count per leaderboard category, since the last success. */
+const categoryFetchFailureStreak = new Map<string, number>();
+
+/** Test-only: reset the per-category fetch-failure streak dedup state. */
+export function resetArenaEloFetchFailureStreaksForTests(): void {
+  categoryFetchFailureStreak.clear();
+}
 
 /**
  * Fetch leaderboards from the Arena AI API for all configured categories.
@@ -252,9 +263,18 @@ export async function fetchArenaLeaderboards(): Promise<ArenaLeaderboardMap> {
           `Arena API returned invalid JSON for "${category}" (${text.slice(0, 100)}...)`
         );
       }
+      // Recovered: let the next failure streak warn from scratch again.
+      categoryFetchFailureStreak.delete(category);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      log.warn({ category, err: message }, "arena-elo-sync: failed to fetch leaderboard");
+      const streak = (categoryFetchFailureStreak.get(category) ?? 0) + 1;
+      categoryFetchFailureStreak.set(category, streak);
+      if (streak === 1 || streak % ARENA_ELO_FETCH_WARN_STREAK_INTERVAL === 0) {
+        console.warn(
+          `[ARENA_ELO_SYNC] Failed to fetch "${category}" leaderboard: ${message}` +
+            (streak > 1 ? ` (${streak} consecutive failures; further warnings rate-limited)` : "")
+        );
+      }
       errors.push(message);
     }
   });
@@ -297,7 +317,14 @@ function computeConfidence(votes: number): "high" | "medium" | "low" {
  * - "text" → default, review, documentation, debugging
  * - "code" → coding
  *
- * Known OmniRoute model aliases are also expanded into additional entries.
+ * The leaderboard scores harness × effort combinations as separate entries
+ * ("claude-opus-5-high", "claude-opus-5-max"), so a request for the bare id
+ * would miss every row. Each variant that `resolveScoresAs()` resolves to a
+ * routable base id therefore also contributes a synthesized base row carrying
+ * the BEST task fit among that base's variants (the per-effort entries measure
+ * the same weights at different budgets — the model's ceiling is the max, and
+ * cost/latency are separate factors in the 12-factor score). An explicitly
+ * measured base row is never lowered by synthesis.
  *
  * @param data - Map of leaderboard category → Arena leaderboard data.
  * @returns Array of model intelligence entries ready for DB upsert.
@@ -327,7 +354,7 @@ export function transformToModelIntelligence(
       const taskFit = 0.4 + 0.58 * ((model.score - minElo) / eloRange);
 
       for (const taskCategory of taskCategories) {
-        const entry: Omit<ModelIntelligenceEntry, "syncedAt"> = {
+        entries.push({
           model: normalizedModel,
           category: taskCategory,
           source: "arena_elo",
@@ -335,24 +362,63 @@ export function transformToModelIntelligence(
           eloRaw: model.score,
           confidence,
           expiresAt,
-        };
-        entries.push(entry);
-
-        // Expand known aliases
-        const aliases = MODEL_ALIAS_MAP[normalizedModel];
-        if (aliases) {
-          for (const alias of aliases) {
-            entries.push({
-              ...entry,
-              model: alias,
-            });
-          }
-        }
+        });
       }
     }
   }
 
-  return entries;
+  return withSynthesizedBaseRows(entries);
+}
+
+/**
+ * Add one synthesized base row per (base, category) for every leaderboard entry
+ * that is an effort/alias variant of a routable catalog id.
+ *
+ * Runs as a pass over the finished variant rows so that all variants of a base
+ * are visible at once: the winner is the highest task fit, and it contributes
+ * its own `eloRaw` and `confidence` (no invented confidence label — the column's
+ * vocabulary stays high/medium/low). A base that the leaderboard measured
+ * directly keeps its own row unless a variant scored strictly higher.
+ *
+ * Resolution never guesses: `resolveScoresAs` returning `via: null` means the
+ * stripped base is not a catalog id, so nothing is synthesized for it.
+ *
+ * @param entries - Variant rows, one per (leaderboard entry, task category).
+ * @returns The same rows plus the synthesized base rows.
+ */
+function withSynthesizedBaseRows(
+  entries: Array<Omit<ModelIntelligenceEntry, "syncedAt">>
+): Array<Omit<ModelIntelligenceEntry, "syncedAt">> {
+  const keyOf = (model: string, category: string) => `${model}|${category}`;
+  const indexByKey = new Map<string, number>();
+  entries.forEach((entry, index) => indexByKey.set(keyOf(entry.model, entry.category), index));
+
+  const best = new Map<string, Omit<ModelIntelligenceEntry, "syncedAt">>();
+  for (const entry of entries) {
+    const { base, via } = resolveScoresAs(entry.model);
+    if (via === null || base === entry.model) continue;
+
+    const key = keyOf(base, entry.category);
+    const current = best.get(key);
+    if (!current || entry.score > current.score) {
+      best.set(key, { ...entry, model: base });
+    }
+  }
+
+  const result = [...entries];
+  for (const [key, candidate] of best) {
+    const existingIndex = indexByKey.get(key);
+    if (existingIndex === undefined) {
+      result.push(candidate);
+      continue;
+    }
+    // The leaderboard measured the base itself — only a strictly better variant wins.
+    if (candidate.score > result[existingIndex].score) {
+      result[existingIndex] = candidate;
+    }
+  }
+
+  return result;
 }
 
 // ─── Main sync function ──────────────────────────────────
@@ -389,7 +455,7 @@ export async function syncArenaElo(dryRun = false): Promise<SyncResult> {
         deleteExpiredIntelligence();
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        log.warn({ err: message }, "arena-elo-sync: failed to delete expired intelligence");
+        console.warn(`[ARENA_ELO_SYNC] Failed to delete expired intelligence: ${message}`);
       }
     }
 
@@ -401,7 +467,7 @@ export async function syncArenaElo(dryRun = false): Promise<SyncResult> {
         bulkUpsertModelIntelligence(entries);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        log.warn({ err: message }, "arena-elo-sync: failed to bulk upsert intelligence");
+        console.warn(`[ARENA_ELO_SYNC] Failed to bulk upsert intelligence: ${message}`);
         return {
           success: false,
           modelCount: 0,
@@ -417,9 +483,8 @@ export async function syncArenaElo(dryRun = false): Promise<SyncResult> {
     }
 
     const countLabel = dryRun ? "would sync" : "synced";
-    log.info(
-      { countLabel, count: entries.length },
-      "arena-elo-sync: model intelligence entries processed"
+    console.log(
+      `[ARENA_ELO_SYNC] ${countLabel} ${entries.length} model intelligence entries from Arena leaderboards`
     );
 
     return {
@@ -429,7 +494,7 @@ export async function syncArenaElo(dryRun = false): Promise<SyncResult> {
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    log.warn({ err: message }, "arena-elo-sync: sync failed");
+    console.warn("[ARENA_ELO_SYNC] Sync failed:", message);
     return {
       success: false,
       modelCount: 0,
@@ -452,7 +517,7 @@ export async function syncArenaElo(dryRun = false): Promise<SyncResult> {
  */
 export function clearSyncedIntelligence(): void {
   const deleted = deleteModelIntelligenceBySource("arena_elo");
-  log.info({ deleted }, "arena-elo-sync: cleared arena_elo intelligence entries");
+  console.log(`[ARENA_ELO_SYNC] Cleared ${deleted} arena_elo intelligence entries`);
 }
 
 // ─── Periodic sync ───────────────────────────────────────
@@ -471,22 +536,21 @@ function startPeriodicSync(intervalMs?: number): void {
 
   const interval = intervalMs ?? SYNC_INTERVAL_MS;
   activeSyncIntervalMs = interval;
-  log.info({ intervalSec: interval / 1000 }, "arena-elo-sync: starting periodic sync");
+  console.log(`[ARENA_ELO_SYNC] Starting periodic sync every ${interval / 1000}s`);
 
   // Initial sync (non-blocking)
   syncArenaElo()
     .then((result) => {
       if (result.success) {
-        log.info(
-          { count: result.modelCount },
-          "arena-elo-sync: initial sync complete"
+        console.log(
+          `[ARENA_ELO_SYNC] Initial sync complete: ${result.modelCount} model intelligence entries`
         );
       }
     })
     .catch((err) => {
-      log.warn(
-        { err: err instanceof Error ? err.message : err },
-        "arena-elo-sync: initial sync error"
+      console.warn(
+        "[ARENA_ELO_SYNC] Initial sync error:",
+        err instanceof Error ? err.message : err
       );
     });
 
@@ -494,16 +558,13 @@ function startPeriodicSync(intervalMs?: number): void {
     syncArenaElo()
       .then((result) => {
         if (result.success) {
-          log.info(
-            { count: result.modelCount },
-            "arena-elo-sync: periodic sync complete"
-          );
+          console.log(`[ARENA_ELO_SYNC] Periodic sync complete: ${result.modelCount} entries`);
         }
       })
       .catch((err) => {
-        log.warn(
-          { err: err instanceof Error ? err.message : err },
-          "arena-elo-sync: periodic sync error"
+        console.warn(
+          "[ARENA_ELO_SYNC] Periodic sync error:",
+          err instanceof Error ? err.message : err
         );
       });
   }, interval);
@@ -521,7 +582,7 @@ export function stopArenaEloSync(): void {
   if (syncTimer) {
     clearInterval(syncTimer);
     syncTimer = null;
-    log.info("arena-elo-sync: periodic sync stopped");
+    console.log("[ARENA_ELO_SYNC] Periodic sync stopped");
   }
 }
 
@@ -546,7 +607,7 @@ export function getArenaEloSyncStatus(): SyncStatus {
   };
 }
 
-// ─── Init (called from server-init.ts) ───────────────────
+// ─── Init (called from instrumentation-node.ts) ───────────────────
 
 /**
  * Initialize Arena ELO sync if enabled via feature flag configuration.
@@ -561,8 +622,8 @@ export function getArenaEloSyncStatus(): SyncStatus {
  */
 export async function initArenaEloSync(): Promise<boolean> {
   if (!getEffectiveArenaEloSyncEnabled()) {
-    log.info(
-      "arena-elo-sync: disabled by effective ARENA_ELO_SYNC_ENABLED feature flag"
+    console.log(
+      "[ARENA_ELO_SYNC] Disabled by the effective ARENA_ELO_SYNC_ENABLED feature flag. Enable it from Dashboard Feature Flags, unset the env var, or set it to true to enable."
     );
     return false;
   }

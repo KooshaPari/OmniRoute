@@ -14,6 +14,10 @@ import {
   appendSearchCitations,
   type DeepSeekSearchResult,
 } from "./deepseek-web/stream-format.ts";
+import {
+  createFinishOnceGuard,
+  createFinishedDrainScheduler,
+} from "./deepseek-web-done-terminator.ts";
 
 export const DEEPSEEK_WEB_BASE = "https://chat.deepseek.com";
 const DEEPSEEK_API_BASE = `${DEEPSEEK_WEB_BASE}/api`;
@@ -36,7 +40,7 @@ const FAKE_HEADERS: Record<string, string> = {
   Referer: `${DEEPSEEK_WEB_BASE}/`,
   "User-Agent":
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
-  "X-App-Version": "20241129.1",
+  "X-Client-Bundle-Id": "com.deepseek.chat",
   "X-Client-Locale": "en-US",
   "X-Client-Platform": "web",
   "X-Client-Version": "2.0.0",
@@ -137,13 +141,14 @@ function generateFakeCookie(): string {
 
 // ── PoW Solver (DeepSeekHashV1) ─────────────────────────────────────────
 
-async function solvePow(challenge: PowChallenge): Promise<string> {
+async function solvePow(challenge: PowChallenge, signal?: AbortSignal | null): Promise<string> {
   const answer = await solveDeepSeekPowAsync(
     challenge.algorithm,
     challenge.challenge,
     challenge.salt,
     challenge.difficulty,
-    challenge.expire_at
+    challenge.expire_at,
+    { signal }
   );
   if (answer < 0) throw new Error("PoW solver failed");
   return Buffer.from(
@@ -494,24 +499,37 @@ function extractMessageText(content: unknown): string {
   return String(content || "");
 }
 
+// #10527 — with no explicit `historyWindow`, genuinely multi-turn conversations (any
+// assistant turn present, or more than one user turn) now auto-replay a bounded
+// trajectory instead of only the last user message, so agentic clients that never send
+// OpenAI-native `tools[]` (e.g. Cline, which embeds its own XML tool convention) don't
+// silently lose the original task after a couple of tool-result turns. This cap keeps
+// the auto-replay bounded for very long agent sessions; set `historyWindow` explicitly
+// on the connection to raise or lower it.
+const DEFAULT_AUTO_HISTORY_WINDOW = 20;
+
 /**
  * Build the single prompt string the DeepSeek web API accepts.
  *
  * The web endpoint (`/api/v0/chat/completion`) takes only a `prompt` string, not a
- * `messages` array. With `historyWindow <= 0` (default) we keep the legacy behavior —
- * system prompt(s) + the last user message only — which is fine for plain chat.
+ * `messages` array. For a genuinely single-turn request (one user message, no prior
+ * assistant turns) we keep the minimal behavior — system prompt(s) + the last user
+ * message only — which is fine for plain chat and avoids inflating token usage.
  *
- * With `historyWindow > 0` we stitch the last N non-system messages into a role-tagged
- * transcript so agentic multi-turn clients keep context across turns (rolling-window
- * memory, #2942). The system prompt(s) still lead the prompt and the newest user turn
- * is the last line of the transcript.
+ * For a multi-turn conversation, `historyWindow > 0` stitches the last N non-system
+ * messages into a role-tagged transcript so agentic multi-turn clients keep context
+ * across turns (rolling-window memory, #2942). With `historyWindow` unset/`<= 0` we now
+ * auto-apply a bounded window (`DEFAULT_AUTO_HISTORY_WINDOW`) instead of dropping every
+ * earlier turn (#10527) — the previous default silently discarded the original task
+ * after a couple of turns for clients (Cline) that never send `tools[]`. The system
+ * prompt(s) still lead the prompt and the newest user turn is the last line of the
+ * transcript.
  */
 export function messagesToPrompt(
   messages: Array<{ role: string; content: string; tool_call_id?: string; name?: string }>,
   historyWindow = 0
 ): string {
   if (messages.length === 0) return "";
-
   const systemParts: string[] = [];
   const conversation: Array<{ role: string; text: string }> = [];
   const callNameById = new Map<string, string>();
@@ -523,8 +541,9 @@ export function messagesToPrompt(
     } else if (m.role === "user" || m.role === "assistant") {
       if (text) conversation.push({ role: m.role, text });
       if (m.role === "user") lastUserContent = text;
-      const calls = Array.isArray((m as { tool_calls?: unknown }).tool_calls)
-        ? (m as { tool_calls: Array<{ id?: string; function?: { name?: string } }> }).tool_calls
+      const toolCalls = (m as { tool_calls?: unknown }).tool_calls;
+      const calls = Array.isArray(toolCalls)
+        ? (toolCalls as Array<{ id?: string; function?: { name?: string } }>)
         : [];
       for (const c of calls) {
         if (c?.id && typeof c.function?.name === "string") callNameById.set(c.id, c.function.name);
@@ -547,9 +566,14 @@ export function messagesToPrompt(
     parts.push(systemParts.join("\n\n"));
   }
 
-  if (historyWindow > 0 && conversation.length > 1) {
-    // Rolling-window transcript of the most recent turns (#2942).
-    const recent = conversation.slice(-historyWindow);
+  const effectiveWindow =
+    historyWindow > 0 ? historyWindow : conversation.length > 1 ? DEFAULT_AUTO_HISTORY_WINDOW : 0;
+
+  if (effectiveWindow > 0 && conversation.length > 1) {
+    // Rolling-window transcript of the most recent turns (#2942, auto-applied per
+    // #10527 when no explicit historyWindow is configured and the conversation is
+    // genuinely multi-turn).
+    const recent = conversation.slice(-effectiveWindow);
     const transcript = recent
       .map((turn) =>
         turn.role === "assistant"
@@ -905,7 +929,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       // One completion attempt against a given session id (fresh PoW per attempt).
       const performCompletion = async (sid: string) => {
         const powChallenge = await getPowChallenge(accessToken, signal);
-        const powAnswer = await solvePow(powChallenge);
+        const powAnswer = await solvePow(powChallenge, signal);
         const reqHeaders: Record<string, string> = {
           ...FAKE_HEADERS,
           "Content-Type": "application/json",
@@ -1118,7 +1142,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       const msg = err instanceof Error ? err.message : String(err);
       log?.error?.("DEEPSEEK-WEB", `Execute failed: ${msg}`);
 
-      if (err instanceof DOMException && err.name === "AbortError") {
+      if (err instanceof Error && err.name === "AbortError") {
         return {
           response: errorResponse(499, "Request cancelled"),
           url: COMPLETION_URL,

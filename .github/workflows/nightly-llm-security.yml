@@ -10,12 +10,15 @@ permissions:
 jobs:
   promptfoo-guard:
     name: promptfoo — injection guard (block mode, no secret)
-    runs-on: ubuntu-latest
+    # #11965: this job runs a backend-only `next build`; the hosted 7 GB runner cannot build
+    # release/v3.8.51 (VM shutdown ~7 min in), so it targets the box's light pool (`omni-light`:
+    # two listeners, jobs ≤ ~6 GB). Falls back to hosted when USE_VPS_RUNNER is off.
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-light"]')) || 'ubuntu-latest' }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+      - uses: actions/setup-node@v7
         with: { node-version: "24", cache: npm }
       - run: npm ci
       - name: Build CLI bundle
@@ -46,7 +49,10 @@ jobs:
 
   garak:
     name: garak probes (skip without provider secret)
-    runs-on: ubuntu-latest
+    # #11965: this job runs a backend-only `next build`; the hosted 7 GB runner cannot build
+    # release/v3.8.51 (VM shutdown ~7 min in), so it targets the box's light pool (`omni-light`:
+    # two listeners, jobs ≤ ~6 GB). Falls back to hosted when USE_VPS_RUNNER is off.
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-light"]')) || 'ubuntu-latest' }}
     # NOTE: the `secrets` context is NOT available in a job-level `if:` — referencing
     # it there makes GitHub reject the file on push (startup_failure on every push).
     # Map the secret into a job-level env and gate each step on a presence check, so
@@ -63,11 +69,11 @@ jobs:
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "::notice::PROMPTFOO_PROVIDER_KEY not set — skipping garak probes (advisory)."
           fi
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
         if: steps.gate.outputs.run == 'true'
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+      - uses: actions/setup-node@v7
         if: steps.gate.outputs.run == 'true'
         with: { node-version: "24", cache: npm }
       - run: npm ci
@@ -90,7 +96,7 @@ jobs:
             if curl -sf http://localhost:20128/api/monitoring/health >/dev/null; then echo up; break; fi
             sleep 2
           done
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      - uses: actions/setup-python@v7
         if: steps.gate.outputs.run == 'true'
         with: { python-version: "3.12" }
       - run: pip install garak

@@ -3,7 +3,21 @@
 import { useState, useMemo, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import Modal from "./Modal";
-import { buildPassthroughAliasModels, buildNodeAliasModels } from "./modelSelectModalHelpers";
+import {
+  buildPassthroughAliasModels,
+  buildNodeAliasModels,
+  shouldConfirmSelectAll,
+  parseHiddenModelsByProvider,
+  isProviderModelHidden,
+  buildProviderTestTargets,
+  toggleProviderSelection,
+  chunkItems,
+  isProviderTestEntryWorking,
+  formatProviderTestResults,
+  collectWorkingModelsToSelect,
+  hasWorkingTestResults,
+  listVisibleProviderIds,
+} from "./modelSelectModalHelpers";
 import { getModelsByProviderId, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import {
@@ -19,6 +33,7 @@ import {
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
+import { useNotificationStore } from "@/store/notificationStore";
 
 // Provider order: OAuth first, then no-auth, then API Key (matches dashboard/providers)
 const PROVIDER_ORDER = [
@@ -96,6 +111,7 @@ export default function ModelSelectModal({
   keepOpenOnSelect = false,
 }: ModelSelectModalProps) {
   const t = useTranslations("common");
+  const notify = useNotificationStore();
   const resolvedTitle = title ?? t("selectModel");
   const labelOrFallback = (key: string, fallback: string, values?: Record<string, unknown>) =>
     typeof (t as { has?: (k: string) => boolean }).has === "function" &&
@@ -106,6 +122,13 @@ export default function ModelSelectModal({
   const [combos, setCombos] = useState<any[]>([]);
   const [providerNodes, setProviderNodes] = useState<any[]>([]);
   const [customModels, setCustomModels] = useState<Record<string, any>>({});
+  // #9203: unified hidden-model map (customModels.isHidden +
+  // modelCompatOverrides.isHidden) from `/api/provider-models`, normalized so
+  // the picker hides every model source the operator flagged — not just custom
+  // rows that carry their own `isHidden` flag.
+  const [hiddenModelsByProvider, setHiddenModelsByProvider] = useState<Map<string, Set<string>>>(
+    new Map()
+  );
   // Models discovered live from a custom provider's upstream `/models` endpoint,
   // keyed by provider id. Merged into the alias/custom/fallback list below and
   // tagged with the `auto` source badge. Ported from upstream PR
@@ -119,53 +142,74 @@ export default function ModelSelectModal({
     localStorage.setItem("modelSelectShowConfiguredOnly", String(showConfiguredOnly));
   }, [showConfiguredOnly]);
   const [fetchedModels, setFetchedModels] = useState<Record<string, any[]>>({});
-
-  const fetchCombos = async () => {
-    try {
-      const res = await fetch("/api/combos");
-      if (!res.ok) throw new Error(`Failed to fetch combos: ${res.status}`);
-      const data = await res.json();
-      setCombos(data.combos || []);
-    } catch (error) {
-      console.error("Error fetching combos:", error);
-      setCombos([]);
-    }
-  };
+  // Provider-level selection for "Test Selected Providers" (combo builder only).
+  const [selectedProviderIds, setSelectedProviderIds] = useState<Set<string>>(() => new Set());
+  const [testingProviders, setTestingProviders] = useState(false);
+  const [testProgress, setTestProgress] = useState<{ done: number; total: number } | null>(null);
+  const [modelTestStatus, setModelTestStatus] = useState<Record<string, "ok" | "error">>({});
 
   useEffect(() => {
-    if (isOpen) fetchCombos();
+    if (!isOpen) return;
+    const fetchCombos = async () => {
+      try {
+        const res = await fetch("/api/combos");
+        if (!res.ok) throw new Error(`Failed to fetch combos: ${res.status}`);
+        const data = await res.json();
+        setCombos(data.combos || []);
+      } catch (error) {
+        console.error("Error fetching combos:", error);
+        setCombos([]);
+      }
+    };
+    fetchCombos();
   }, [isOpen]);
 
-  const fetchProviderNodes = async () => {
-    try {
-      const res = await fetch("/api/provider-nodes");
-      if (!res.ok) throw new Error(`Failed to fetch provider nodes: ${res.status}`);
-      const data = await res.json();
-      setProviderNodes(data.nodes || []);
-    } catch (error) {
-      console.error("Error fetching provider nodes:", error);
-      setProviderNodes([]);
+  // Reset provider-test bookkeeping whenever the modal closes so the next
+  // open starts from a clean selection / progress state (render-time
+  // adjustment per react.dev "You Might Not Need an Effect").
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (!isOpen) {
+      setSelectedProviderIds(new Set());
+      setTestingProviders(false);
+      setTestProgress(null);
+      setModelTestStatus({});
     }
-  };
+  }
 
   useEffect(() => {
-    if (isOpen) fetchProviderNodes();
+    if (!isOpen) return;
+    const fetchProviderNodes = async () => {
+      try {
+        const res = await fetch("/api/provider-nodes");
+        if (!res.ok) throw new Error(`Failed to fetch provider nodes: ${res.status}`);
+        const data = await res.json();
+        setProviderNodes(data.nodes || []);
+      } catch (error) {
+        console.error("Error fetching provider nodes:", error);
+        setProviderNodes([]);
+      }
+    };
+    fetchProviderNodes();
   }, [isOpen]);
 
-  const fetchCustomModels = async () => {
-    try {
-      const res = await fetch("/api/provider-models");
-      if (!res.ok) throw new Error(`Failed to fetch custom models: ${res.status}`);
-      const data = await res.json();
-      setCustomModels(data.models || {});
-    } catch (error) {
-      console.error("Error fetching custom models:", error);
-      setCustomModels({});
-    }
-  };
-
   useEffect(() => {
-    if (isOpen) fetchCustomModels();
+    if (!isOpen) return;
+    const fetchCustomModels = async () => {
+      try {
+        const res = await fetch("/api/provider-models");
+        if (!res.ok) throw new Error(`Failed to fetch custom models: ${res.status}`);
+        const data = await res.json();
+        setCustomModels(data.models || {});
+        // #9203: keep the unified hidden-model map in sync with the model list.
+        setHiddenModelsByProvider(parseHiddenModelsByProvider(data.hiddenModelsByProvider));
+      } catch (error) {
+        console.error("Error fetching custom models:", error);
+        setCustomModels({});
+      }
+    };
+    fetchCustomModels();
   }, [isOpen]);
 
   // Fetch the live model catalog for one custom provider from its connection's
@@ -176,7 +220,12 @@ export default function ModelSelectModal({
       const connection = activeProviders.find((p) => p.provider === providerId);
       if (!connection?.id) return null;
 
-      const res = await fetch(`/api/providers/${connection.id}/models`);
+      // #9203: ask the live route to drop hidden models server-side too, so the
+      // operator's visibility settings apply before the rows reach the picker,
+      // while chatOnly excludes media and retired models from this chat surface.
+      const res = await fetch(
+        `/api/providers/${connection.id}/models?excludeHidden=true&chatOnly=true`
+      );
       if (!res.ok) {
         console.warn(`Failed to fetch models for ${providerId}: ${res.status}`);
         return null;
@@ -268,8 +317,13 @@ export default function ModelSelectModal({
       // Get user-added custom models for this provider (if any), excluding
       // any explicitly hidden by the operator (#7156 — the legacy picker
       // must respect the same isHidden flag the Precision Builder and
-      // /v1/models catalog already honor).
+      // /v1/models catalog already honor). #9203: the unified hidden map
+      // additionally covers catalog-override hidden rows and is applied to
+      // every source below, so a hidden passthrough alias / fallback /
+      // auto-fetched model is filtered exactly like a hidden custom row.
       const providerCustomModels = (customModels[providerId] || []).filter((cm) => !cm.isHidden);
+      const isHiddenForProvider = (modelId: string) =>
+        isProviderModelHidden(hiddenModelsByProvider, providerId, modelId);
 
       if (providerInfo.passthroughModels) {
         // Passthrough aliases are stored prefixed by the canonical providerId
@@ -279,11 +333,12 @@ export default function ModelSelectModal({
         const aliasModels = buildPassthroughAliasModels(
           modelAliases as Record<string, string>,
           providerId
-        );
+        ).filter((am) => !isHiddenForProvider(am.id));
 
         // Merge custom models for passthrough providers
         const customEntries = providerCustomModels
           .filter((cm) => !aliasModels.some((am) => am.id === cm.id))
+          .filter((cm) => !isHiddenForProvider(cm.id))
           .map((cm) => ({
             id: cm.id,
             name: cm.name || cm.id,
@@ -314,12 +369,13 @@ export default function ModelSelectModal({
           modelAliases as Record<string, string>,
           providerId,
           nodePrefix
-        );
+        ).filter((nm) => !isHiddenForProvider(nm.id));
 
         const fallbackEntries = (
           getCompatibleFallbackModels(providerId, providerCustomModels) || []
         )
           .filter((fm) => !nodeModels.some((nm) => nm.id === fm.id))
+          .filter((fm) => !isHiddenForProvider(fm.id))
           .map((fm) => ({
             id: fm.id,
             name: fm.name || fm.id,
@@ -335,6 +391,7 @@ export default function ModelSelectModal({
               !nodeModels.some((nm) => nm.id === cm.id) &&
               !fallbackEntries.some((fm) => fm.id === cm.id)
           )
+          .filter((cm) => !isHiddenForProvider(cm.id))
           .map((cm) => ({
             id: cm.id,
             name: cm.name || cm.id,
@@ -345,7 +402,10 @@ export default function ModelSelectModal({
 
         // Models discovered live from the provider's upstream `/models` endpoint.
         // Deduped against alias, fallback, and user-added custom models; tagged
-        // with the `auto` source so the badge reads "auto".
+        // with the `auto` source so the badge reads "auto". #9203: the server
+        // already filtered hidden rows via `excludeHidden=true`, but re-check the
+        // unified map here so a hidden model is dropped even on the local-catalog
+        // fallback path where the query param is not passed through.
         const fetchedEntries = (fetchedModels[providerId] || [])
           .map((m) => {
             const id = m.id || m.slug || m.model || m.name;
@@ -363,7 +423,8 @@ export default function ModelSelectModal({
               !nodeModels.some((nm) => nm.id === fm.id) &&
               !fallbackEntries.some((fbm) => fbm.id === fm.id) &&
               !customEntries.some((cm) => cm.id === fm.id)
-          );
+          )
+          .filter((fm) => !isHiddenForProvider(fm.id));
 
         const allModels = [...nodeModels, ...fallbackEntries, ...customEntries, ...fetchedEntries];
 
@@ -381,15 +442,18 @@ export default function ModelSelectModal({
         const systemModels = getModelsByProviderId(providerId);
 
         // Merge system models with user-added custom models
-        const systemEntries = systemModels.map((m) => ({
-          id: m.id,
-          name: m.name,
-          value: `${alias}/${m.id}`,
-          source: "system",
-        }));
+        const systemEntries = systemModels
+          .map((m) => ({
+            id: m.id,
+            name: m.name,
+            value: `${alias}/${m.id}`,
+            source: "system",
+          }))
+          .filter((sm) => !isHiddenForProvider(sm.id));
 
         const customEntries = providerCustomModels
           .filter((cm) => !systemModels.some((sm) => sm.id === cm.id))
+          .filter((cm) => !isHiddenForProvider(cm.id))
           .map((cm) => ({
             id: cm.id,
             name: cm.name || cm.id,
@@ -420,6 +484,7 @@ export default function ModelSelectModal({
     providerNodes,
     customModels,
     fetchedModels,
+    hiddenModelsByProvider,
   ]);
 
   // Filter combos by search query
@@ -504,6 +569,50 @@ export default function ModelSelectModal({
     typeof onDeselectMany === "function" &&
     visibleModels.length > 0;
 
+  // Same combo-builder gate as Select All — CLI tool cards and other single-pick
+  // callers should not grow provider checkboxes / a test toolbar.
+  const showProviderTestControls = keepOpenOnSelect && !multiSelect;
+
+  const workingModelsToSelect = useMemo(
+    () =>
+      collectWorkingModelsToSelect({
+        models: visibleModels,
+        modelTestStatus,
+        addedModelValues,
+        alreadyAdded: false,
+      }),
+    [visibleModels, modelTestStatus, addedModelValues]
+  );
+
+  const workingModelsToUnselect = useMemo(
+    () =>
+      collectWorkingModelsToSelect({
+        models: visibleModels,
+        modelTestStatus,
+        addedModelValues,
+        alreadyAdded: true,
+      }),
+    [visibleModels, modelTestStatus, addedModelValues]
+  );
+
+  const visibleProviderIds = useMemo(
+    () => listVisibleProviderIds(connectionFilteredGroups),
+    [connectionFilteredGroups]
+  );
+
+  const allProvidersChecked =
+    visibleProviderIds.length > 0 && visibleProviderIds.every((id) => selectedProviderIds.has(id));
+
+  const showSelectWorkingModels =
+    showProviderTestControls &&
+    typeof onSelectMany === "function" &&
+    typeof onDeselectMany === "function" &&
+    !testingProviders &&
+    hasWorkingTestResults(modelTestStatus);
+
+  const canAddWorking = workingModelsToSelect.length > 0;
+  const canRemoveWorking = workingModelsToUnselect.length > 0;
+
   const handleToggleSelectAllVisible = () => {
     if (!showSelectAllToggle) return;
     if (allVisibleSelected) {
@@ -522,16 +631,144 @@ export default function ModelSelectModal({
     if (
       shouldConfirmSelectAll(toAdd.length) &&
       !confirm(
-        labelOrFallback(
-          "selectAllConfirm",
-          `Add ${toAdd.length} models to this combo?`,
-          { count: toAdd.length }
-        )
+        labelOrFallback("selectAllConfirm", `Add ${toAdd.length} models to this combo?`, {
+          count: toAdd.length,
+        })
       )
     ) {
       return;
     }
     onSelectMany!(toAdd);
+  };
+
+  const handleToggleProviderForTest = (providerId: string) => {
+    setSelectedProviderIds((prev) => toggleProviderSelection(prev, providerId));
+  };
+
+  const handleSelectAllProviders = () => {
+    setSelectedProviderIds(new Set(visibleProviderIds));
+  };
+
+  const handleClearProviderSelection = () => {
+    setSelectedProviderIds(new Set());
+  };
+
+  /** Add or remove models that passed the last Test providers run. */
+  const handleToggleWorkingModels = () => {
+    if (!showSelectWorkingModels) return;
+    if (canAddWorking) {
+      if (
+        shouldConfirmSelectAll(workingModelsToSelect.length) &&
+        !confirm(
+          labelOrFallback(
+            "selectAllConfirm",
+            `Add ${workingModelsToSelect.length} models to this combo?`,
+            { count: workingModelsToSelect.length }
+          )
+        )
+      ) {
+        return;
+      }
+      onSelectMany!(workingModelsToSelect);
+      return;
+    }
+    if (canRemoveWorking && typeof onDeselectMany === "function") {
+      onDeselectMany(workingModelsToUnselect);
+    }
+  };
+
+  /**
+   * Smoke-test every currently-visible model under the providers the user
+   * checked — same /api/models/test-all + chunk-of-3 concurrency as the
+   * provider detail page "Test all models" button.
+   */
+  const handleTestSelectedProviders = async () => {
+    if (testingProviders) return;
+    if (selectedProviderIds.size === 0) {
+      notify.error(
+        labelOrFallback("noProvidersSelectedToTest", "Select at least one provider to test")
+      );
+      return;
+    }
+
+    const groups: Array<[string, Array<{ value?: string | null; id?: string | null }>]> =
+      Object.entries(connectionFilteredGroups).map(([providerId, group]: [string, any]) => [
+        providerId,
+        Array.isArray(group?.models) ? group.models : [],
+      ]);
+
+    const targets = buildProviderTestTargets({
+      selectedProviderIds,
+      groups,
+      activeProviders,
+    });
+
+    const flat = targets.flatMap((target) =>
+      target.modelIds.map((modelId) => ({
+        providerId: target.providerId,
+        connectionId: target.connectionId,
+        modelId,
+      }))
+    );
+
+    if (flat.length === 0) {
+      notify.error(
+        labelOrFallback(
+          "noModelsToTestForProviders",
+          "No models to test for the selected providers"
+        )
+      );
+      return;
+    }
+
+    setTestingProviders(true);
+    setTestProgress({ done: 0, total: flat.length });
+
+    let ok = 0;
+    let error = 0;
+
+    for (const chunk of chunkItems(flat)) {
+      await Promise.all(
+        chunk.map(async ({ providerId, connectionId, modelId }) => {
+          try {
+            const result: {
+              results?: Record<string, { status?: string | null }>;
+            } = await fetch("/api/models/test-all", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                providerId,
+                connectionId,
+                modelIds: [modelId],
+              }),
+            }).then((r) => r.json());
+
+            const entry = result.results?.[modelId];
+            const working = isProviderTestEntryWorking(entry);
+            if (working) ok++;
+            else error++;
+            setModelTestStatus((prev) => ({
+              ...prev,
+              [modelId]: working ? "ok" : "error",
+            }));
+          } catch {
+            error++;
+            setModelTestStatus((prev) => ({ ...prev, [modelId]: "error" }));
+          }
+          setTestProgress((prev) => (prev ? { done: prev.done + 1, total: prev.total } : null));
+        })
+      );
+    }
+
+    const total = ok + error;
+    notify.info(
+      labelOrFallback("testSelectedProvidersResults", formatProviderTestResults(ok, total), {
+        ok,
+        total,
+      })
+    );
+    setTestingProviders(false);
+    setTestProgress(null);
   };
 
   const resolvedSelectedModels = multiSelect
@@ -595,8 +832,8 @@ export default function ModelSelectModal({
         setSearchQuery("");
       }}
       title={resolvedTitle}
-      size="md"
-      className="p-4!"
+      size="xl"
+      className="p-4! max-w-2xl"
       footer={doneFooter}
     >
       {/* Search - compact */}
@@ -615,36 +852,134 @@ export default function ModelSelectModal({
         </div>
       </div>
 
-      <div className="mt-1.5 mb-2 flex items-center justify-between gap-2">
-        <label className="flex items-center gap-1.5 text-xs text-text-muted cursor-pointer min-w-0">
-          <input
-            type="checkbox"
-            checked={showConfiguredOnly}
-            onChange={(e) => setShowConfiguredOnly(e.target.checked)}
-            className="rounded border-border"
-          />
-          <span className="truncate">{t("showConfiguredOnly")}</span>
-        </label>
+      <div className="mt-1.5 mb-2 space-y-2">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <label className="flex items-center gap-1.5 text-xs text-text-muted cursor-pointer min-w-0">
+            <input
+              type="checkbox"
+              checked={showConfiguredOnly}
+              onChange={(e) => setShowConfiguredOnly(e.target.checked)}
+              className="rounded border-border"
+            />
+            <span className="truncate">{t("showConfiguredOnly")}</span>
+          </label>
 
-        {showSelectAllToggle && (
-          <button
-            type="button"
-            onClick={handleToggleSelectAllVisible}
-            data-testid="model-select-toggle-all-visible"
-            className="shrink-0 px-2 py-1 text-xs font-medium rounded border border-border bg-surface text-text-main hover:border-primary/50 hover:bg-primary/5 transition-colors"
+          {showSelectAllToggle && (
+            <button
+              type="button"
+              onClick={handleToggleSelectAllVisible}
+              data-testid="model-select-toggle-all-visible"
+              className="shrink-0 px-2 py-1 text-xs font-medium rounded border border-border bg-surface text-text-main hover:border-primary/50 hover:bg-primary/5 transition-colors"
+            >
+              {allVisibleSelected
+                ? labelOrFallback("unselectAll", "Unselect all")
+                : labelOrFallback("selectAll", "Select all")}
+              <span className="ml-1 text-[10px] text-text-muted font-normal">
+                ({visibleModels.length})
+              </span>
+            </button>
+          )}
+        </div>
+
+        {showProviderTestControls && (
+          <div
+            className="rounded-lg border border-border bg-black/[0.02] dark:bg-white/[0.02] px-2.5 py-2 space-y-2"
+            data-testid="model-select-provider-test-panel"
           >
-            {allVisibleSelected
-              ? labelOrFallback("unselectAll", "Unselect all")
-              : labelOrFallback("selectAll", "Select all")}
-            <span className="ml-1 text-[10px] text-text-muted font-normal">
-              ({visibleModels.length})
-            </span>
-          </button>
+            <p className="text-[11px] text-text-muted leading-snug">
+              {labelOrFallback(
+                "providerTestHint",
+                "Tip: check a provider → Test → Add working (or Remove working to undo)."
+              )}
+            </p>
+
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[11px] text-text-muted">
+                  {labelOrFallback(
+                    "providersSelectedCount",
+                    `${selectedProviderIds.size} providers checked`,
+                    { count: selectedProviderIds.size }
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={
+                    allProvidersChecked ? handleClearProviderSelection : handleSelectAllProviders
+                  }
+                  disabled={visibleProviderIds.length === 0 || testingProviders}
+                  data-testid="model-select-toggle-all-providers"
+                  className="px-2 py-0.5 text-[11px] font-medium rounded border border-border bg-surface text-text-main hover:border-primary/50 hover:bg-primary/5 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {allProvidersChecked
+                    ? labelOrFallback("clearProviderSelection", "Uncheck providers")
+                    : labelOrFallback("selectAllProviders", "Check all providers")}
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                <button
+                  type="button"
+                  onClick={handleTestSelectedProviders}
+                  disabled={testingProviders || selectedProviderIds.size === 0}
+                  data-testid="model-select-test-selected-providers"
+                  title={labelOrFallback("testSelectedProviders", "Test providers")}
+                  className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded border border-border bg-surface text-text-main hover:border-primary/50 hover:bg-primary/5 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <span
+                    className={`material-symbols-outlined text-[14px] ${
+                      testingProviders ? "animate-spin" : ""
+                    }`}
+                  >
+                    {testingProviders ? "progress_activity" : "science"}
+                  </span>
+                  <span>
+                    {testingProviders && testProgress
+                      ? labelOrFallback(
+                          "testingSelectedProviders",
+                          `Testing ${testProgress.done}/${testProgress.total}...`,
+                          testProgress
+                        )
+                      : labelOrFallback("testSelectedProviders", "Test providers")}
+                  </span>
+                </button>
+
+                {showSelectWorkingModels && (
+                  <button
+                    type="button"
+                    onClick={handleToggleWorkingModels}
+                    disabled={!canAddWorking && !canRemoveWorking}
+                    data-testid="model-select-working-models"
+                    className={`shrink-0 px-2 py-1 text-xs font-medium rounded border transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                      canRemoveWorking
+                        ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                        : "border-border bg-surface text-text-main hover:border-primary/50 hover:bg-primary/5"
+                    }`}
+                  >
+                    {canRemoveWorking
+                      ? labelOrFallback("unselectWorkingModels", "Unselect working")
+                      : labelOrFallback("selectWorkingModels", "Add working")}
+                    <span
+                      className={`ml-1 text-[10px] font-normal ${
+                        canRemoveWorking ? "opacity-80" : "text-text-muted"
+                      }`}
+                    >
+                      (
+                      {canRemoveWorking
+                        ? workingModelsToUnselect.length
+                        : workingModelsToSelect.length}
+                      )
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
       {/* Models grouped by provider - compact */}
-      <div className="max-h-[300px] overflow-y-auto space-y-3 isolate">
+      <div className="max-h-[min(50vh,420px)] overflow-y-auto space-y-3 isolate">
         {/* Combos section - always first */}
         {showCombos && filteredCombos.length > 0 && (
           <div>
@@ -680,50 +1015,95 @@ export default function ModelSelectModal({
         )}
 
         {/* Provider models */}
-        {Object.entries(connectionFilteredGroups).map(([providerId, group]: [string, any]) => (
-          <div key={providerId}>
-            {/* Provider header — z-10 + opaque bg so scrolling chips don't bleed through */}
-            <div className="flex items-center gap-1.5 mb-1.5 sticky top-0 z-10 bg-surface py-1">
+        {Object.entries(connectionFilteredGroups).map(([providerId, group]: [string, any]) => {
+          const providerSelected = selectedProviderIds.has(providerId);
+          return (
+            <div key={providerId}>
+              {/* Provider header — opaque sticky bg so model chips never bleed through */}
               <div
-                className="w-2 h-2 rounded-full shrink-0"
-                style={{ backgroundColor: group.color }}
-              />
-              <span className="text-xs font-medium text-primary">{group.name}</span>
-              <span className="text-[10px] text-text-muted">({group.models.length})</span>
-            </div>
+                className={`flex items-center gap-1.5 mb-2 sticky top-0 z-10 py-1.5 px-1 rounded bg-surface ${
+                  providerSelected ? "ring-1 ring-inset ring-primary/35" : ""
+                }`}
+              >
+                {showProviderTestControls ? (
+                  <label className="flex items-center gap-1.5 min-w-0 cursor-pointer flex-1">
+                    <input
+                      type="checkbox"
+                      checked={providerSelected}
+                      onChange={() => handleToggleProviderForTest(providerId)}
+                      data-testid={`model-select-provider-checkbox-${providerId}`}
+                      aria-label={`Check ${group.name} for testing`}
+                      className="rounded border-border shrink-0"
+                    />
+                    <div
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: group.color }}
+                    />
+                    <span className="text-xs font-medium text-primary truncate">{group.name}</span>
+                    <span className="text-[10px] text-text-muted shrink-0">
+                      ({group.models.length})
+                    </span>
+                  </label>
+                ) : (
+                  <>
+                    <div
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: group.color }}
+                    />
+                    <span className="text-xs font-medium text-primary">{group.name}</span>
+                    <span className="text-[10px] text-text-muted">({group.models.length})</span>
+                  </>
+                )}
+              </div>
 
-            <div className="flex flex-wrap gap-1.5">
-              {group.models.map((model) => {
-                const isSelected = isValueSelected(model.value);
-                const isAdded = addedModelValues.includes(model.value);
-                return (
-                  <button
-                    key={model.id}
-                    onClick={() => handleSelect(model)}
-                    className={`
+              <div className="flex flex-wrap gap-1.5">
+                {group.models.map((model) => {
+                  const isSelected = isValueSelected(model.value);
+                  const isAdded = addedModelValues.includes(model.value);
+                  const testStatus = modelTestStatus[model.value];
+                  return (
+                    <button
+                      key={model.id}
+                      onClick={() => handleSelect(model)}
+                      className={`
                       px-2 py-1 rounded-xl text-xs font-medium transition-all border hover:cursor-pointer
                       ${
                         isSelected
                           ? "bg-primary text-white border-primary"
                           : isAdded
                             ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400"
-                            : "bg-surface border-border text-text-main hover:border-primary/50 hover:bg-primary/5"
+                            : testStatus === "ok"
+                              ? "bg-surface border-emerald-500/40 text-text-main"
+                              : testStatus === "error"
+                                ? "bg-surface border-red-500/40 text-text-main"
+                                : "bg-surface border-border text-text-main hover:border-primary/50 hover:bg-primary/5"
                       }
                     `}
-                  >
-                    {isAdded && <span className="mr-0.5 opacity-70">✓</span>}
-                    {model.name}
-                    {model.source && (
-                      <span className="ml-1 text-[10px] uppercase opacity-70">
-                        {getModelCatalogSourceLabel(model.source)}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+                    >
+                      {isAdded && <span className="mr-0.5 opacity-70">✓</span>}
+                      {model.name}
+                      {model.source && (
+                        <span className="ml-1 text-[10px] uppercase opacity-70">
+                          {getModelCatalogSourceLabel(model.source)}
+                        </span>
+                      )}
+                      {testStatus === "ok" && (
+                        <span className="ml-1 rounded px-1 py-px text-[9px] font-semibold uppercase tracking-wide bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">
+                          ok
+                        </span>
+                      )}
+                      {testStatus === "error" && (
+                        <span className="ml-1 rounded px-1 py-px text-[9px] font-semibold uppercase tracking-wide bg-red-500/20 text-red-600 dark:text-red-400">
+                          fail
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {Object.keys(connectionFilteredGroups).length === 0 && filteredCombos.length === 0 && (
           <div className="text-center py-4 text-text-muted">

@@ -8,7 +8,7 @@ lastUpdated: 2026-07-15
 
 > **Dla użytkowników**: Szukasz szybkich poprawek? Zobacz [Szybki przewodnik](#quick-reference) poniżej.
 
-🌐 **Languages:** 🇺🇸 [English](./TROUBLESHOOTING.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/TROUBLESHOOTING.md) | 🇪🇸 [Español](../i18n/es/docs/guides/TROUBLESHOOTING.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/TROUBLESHOOTING.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/TROUBLESHOOTING.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/TROUBLESHOOTING.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/TROUBLESHOOTING.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/guides/TROUBLESHOOTING.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/TROUBLESHOOTING.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/TROUBLESHOOTING.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/TROUBLESHOOTING.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/TROUBLESHOOTING.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/TROUBLESHOOTING.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/TROUBLESHOOTING.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/TROUBLESHOOTING.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/TROUBLESHOOTING.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/TROUBLESHOOTING.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/TROUBLESHOOTING.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/TROUBLESHOOTING.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/TROUBLESHOOTING.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/TROUBLESHOOTING.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/TROUBLESHOOTING.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/TROUBLESHOOTING.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/TROUBLESHOOTING.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/TROUBLESHOOTING.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/TROUBLESHOOTING.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/TROUBLESHOOTING.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/TROUBLESHOOTING.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/TROUBLESHOOTING.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/TROUBLESHOOTING.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../../ar/docs/guides/TROUBLESHOOTING.md) · 🇦🇿 [az](../../../az/docs/guides/TROUBLESHOOTING.md) · 🇧🇬 [bg](../../../bg/docs/guides/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../../bn/docs/guides/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../../cs/docs/guides/TROUBLESHOOTING.md) · 🇩🇰 [da](../../../da/docs/guides/TROUBLESHOOTING.md) · 🇩🇪 [de](../../../de/docs/guides/TROUBLESHOOTING.md) · 🇬🇷 [el](../../../el/docs/guides/TROUBLESHOOTING.md) · 🇪🇸 [es](../../../es/docs/guides/TROUBLESHOOTING.md) · 🇪🇪 [et](../../../et/docs/guides/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../../fa/docs/guides/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../../fi/docs/guides/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../../fr/docs/guides/TROUBLESHOOTING.md) · 🇮🇪 [ga](../../../ga/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../../gu/docs/guides/TROUBLESHOOTING.md) · 🇮🇱 [he](../../../he/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../../hi/docs/guides/TROUBLESHOOTING.md) · 🇭🇷 [hr](../../../hr/docs/guides/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../../hu/docs/guides/TROUBLESHOOTING.md) · 🇮🇩 [id](../../../id/docs/guides/TROUBLESHOOTING.md) · 🇮🇹 [it](../../../it/docs/guides/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../../ja/docs/guides/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../../ko/docs/guides/TROUBLESHOOTING.md) · 🇱🇹 [lt](../../../lt/docs/guides/TROUBLESHOOTING.md) · 🇱🇻 [lv](../../../lv/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../../mr/docs/guides/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../../ms/docs/guides/TROUBLESHOOTING.md) · 🇲🇹 [mt](../../../mt/docs/guides/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../../nl/docs/guides/TROUBLESHOOTING.md) · 🇳🇴 [no](../../../no/docs/guides/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../../phi/docs/guides/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../../pt/docs/guides/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../../ro/docs/guides/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../../ru/docs/guides/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../../sk/docs/guides/TROUBLESHOOTING.md) · 🇸🇮 [sl](../../../sl/docs/guides/TROUBLESHOOTING.md) · 🇷🇸 [sr](../../../sr/docs/guides/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../../sv/docs/guides/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../../sw/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../../ta/docs/guides/TROUBLESHOOTING.md) · 🇮🇳 [te](../../../te/docs/guides/TROUBLESHOOTING.md) · 🇹🇭 [th](../../../th/docs/guides/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../../tr/docs/guides/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../../ur/docs/guides/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../../vi/docs/guides/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/TROUBLESHOOTING.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/TROUBLESHOOTING.md)
 
 Typowe problemy i rozwiązania dla OmniRoute.
 
@@ -338,9 +338,10 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ### Wysokie koszty
 
-1. Check usage stats in Dashboard → Usage
-2. Switch primary model to GLM/MiniMax
-3. Set cost budgets per API key: Dashboard → API Keys → Budget
+1. Sprawdź statystyki użycia w Dashboard → Usage
+2. Przełącz model primary na GLM/MiniMax
+3. Używaj darmowego tieru (Qoder, Kiro) do zadań niekrytycznych
+4. Ustaw budżety kosztów per klucz API: Dashboard → API Keys → Budget
 
 ---
 
@@ -498,25 +499,6 @@ Możesz pominąć tę sekcję, jeśli nie uruchamiasz pipeline’ów RAG ani age
 ## Znane problemy v3.8.0
 
 Problemy specyficzne dla wydania v3.8.0 i aktualne obejścia. Gdy poprawka wyląduje w późniejszym patchu, wpis zostanie zaktualizowany lub usunięty.
-
-### Flow OAuth Windsurf pada z 401
-
-**Objawy:**
-
-- "401 unauthorized" podczas kończenia flow OAuth Windsurf z dashboardu
-- Karta providera Windsurf zostaje w stanie "needs reconnection" po callbacku
-
-**Przyczyny:**
-
-- Brakująca lub pusta zmienna env `WINDSURF_FIREBASE_API_KEY`
-- `WINDSURF_API_KEY` źle skonfigurowany albo wskazuje na stary token
-- Lokalny firewall/proxy blokuje callback OAuth
-
-**Naprawa:**
-
-1. Sprawdź, czy `WINDSURF_FIREBASE_API_KEY` i `WINDSURF_API_KEY` są ustawione w `.env`
-2. Zrestartuj OmniRoute, by nowe wartości env weszły w życie
-3. Ponów flow OAuth z **Dashboard → Providers → Windsurf → Reconnect**
 
 ### Awaria auth Devin CLI
 

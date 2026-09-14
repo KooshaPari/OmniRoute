@@ -12,6 +12,7 @@ import {
   AUDIO_ONLY_PROVIDERS,
   CLOUD_AGENT_PROVIDERS,
   IDE_PROVIDER_IDS,
+  getProviderConnectionFamilyIds,
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
@@ -104,7 +105,8 @@ export async function POST(request) {
       const idSet = new Set(connectionIds || []);
       connectionsToTest = allConnections.filter((c) => idSet.has(c.id));
     } else if (mode === "provider" && providerId) {
-      connectionsToTest = allConnections.filter((c) => c.provider === providerId);
+      const familyProviderIds = new Set(getProviderConnectionFamilyIds(providerId));
+      connectionsToTest = allConnections.filter((c) => familyProviderIds.has(c.provider));
     } else if (mode === "oauth") {
       connectionsToTest = allConnections.filter((c) => {
         const authGroup = getAuthGroup(c.provider);

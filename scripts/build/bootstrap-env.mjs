@@ -82,6 +82,32 @@ function hasEncryptedCredentials(dataDir) {
   const dbPath = join(dataDir, "storage.sqlite");
   if (!existsSync(dbPath)) return false;
 
+  if (process.versions.bun) {
+    try {
+      const { Database } = require("bun:sqlite");
+      const db = new Database(dbPath, { readonly: true, create: false });
+      try {
+        const row = db
+          .query(
+            `SELECT 1
+               FROM provider_connections
+              WHERE access_token LIKE 'enc:v1:%'
+                 OR refresh_token LIKE 'enc:v1:%'
+                 OR api_key LIKE 'enc:v1:%'
+                 OR id_token LIKE 'enc:v1:%'
+              LIMIT 1`
+          )
+          .get();
+        return !!row;
+      } finally {
+        db.close();
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Unable to inspect existing database at ${dbPath}: ${message}`);
+    }
+  }
+
   try {
     const Database = require("better-sqlite3");
     const db = new Database(dbPath, { readonly: true, fileMustExist: true });

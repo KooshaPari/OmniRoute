@@ -3,14 +3,16 @@ import {
   deleteApiKey,
   getApiKeyById,
   updateApiKeyPermissions,
-  isCloudEnabled,
-} from "@/lib/localDb";
+  ApiKeyPolicyInvariantError,
+} from "@/lib/db/apiKeys";
+import { isCloudEnabled } from "@/lib/db/settings";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { updateKeyPermissionsSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import * as log from "@/sse/utils/logger";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
 
 // GET /api/keys/[id] - Get single API key
 export async function GET(request, { params }) {
@@ -65,6 +67,8 @@ export async function PATCH(request, { params }) {
     }
     const {
       name,
+      modelAccessMode,
+      connectionAccessMode,
       allowedModels,
       blockedModels,
       allowedCombos,
@@ -81,6 +85,8 @@ export async function PATCH(request, { params }) {
       scopes,
       allowedEndpoints,
       streamDefaultMode,
+      compressionEnabled,
+      cacheDefaultMode,
       disableNonPublicModels,
       allowUsageCommand,
       usageLimitEnabled,
@@ -91,10 +97,15 @@ export async function PATCH(request, { params }) {
 
     const payload: Parameters<typeof updateApiKeyPermissions>[1] = {};
     if (name !== undefined) payload.name = name;
+    if (modelAccessMode !== undefined) payload.modelAccessMode = modelAccessMode;
     if (allowedModels !== undefined) payload.allowedModels = allowedModels;
     if (blockedModels !== undefined) payload.blockedModels = blockedModels;
     if (allowedCombos !== undefined) payload.allowedCombos = allowedCombos;
-    if (allowedConnections !== undefined) payload.allowedConnections = allowedConnections;
+    if (connectionAccessMode === "all") {
+      payload.allowedConnections = [];
+    } else if (allowedConnections !== undefined) {
+      payload.allowedConnections = allowedConnections;
+    }
     if (noLog !== undefined) payload.noLog = noLog;
     if (autoResolve !== undefined) payload.autoResolve = autoResolve;
     if (isActive !== undefined) payload.isActive = isActive;
@@ -107,6 +118,8 @@ export async function PATCH(request, { params }) {
     if (scopes !== undefined) payload.scopes = scopes;
     if (allowedEndpoints !== undefined) payload.allowedEndpoints = allowedEndpoints;
     if (streamDefaultMode !== undefined) payload.streamDefaultMode = streamDefaultMode;
+    if (compressionEnabled !== undefined) payload.compressionEnabled = compressionEnabled;
+    if (cacheDefaultMode !== undefined) payload.cacheDefaultMode = cacheDefaultMode;
     if (disableNonPublicModels !== undefined)
       payload.disableNonPublicModels = disableNonPublicModels;
     if (allowUsageCommand !== undefined) payload.allowUsageCommand = allowUsageCommand;
@@ -126,6 +139,7 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({
       message: "API key settings updated successfully",
       ...(name !== undefined && { name }),
+      ...(modelAccessMode !== undefined && { modelAccessMode }),
       ...(allowedModels !== undefined && { allowedModels }),
       ...(blockedModels !== undefined && { blockedModels }),
       ...(allowedCombos !== undefined && { allowedCombos }),
@@ -142,6 +156,8 @@ export async function PATCH(request, { params }) {
       ...(scopes !== undefined && { scopes }),
       ...(allowedEndpoints !== undefined && { allowedEndpoints }),
       ...(streamDefaultMode !== undefined && { streamDefaultMode }),
+      ...(compressionEnabled !== undefined && { compressionEnabled }),
+      ...(cacheDefaultMode !== undefined && { cacheDefaultMode }),
       ...(disableNonPublicModels !== undefined && { disableNonPublicModels }),
       ...(allowUsageCommand !== undefined && { allowUsageCommand }),
       ...(usageLimitEnabled !== undefined && { usageLimitEnabled }),
@@ -150,6 +166,19 @@ export async function PATCH(request, { params }) {
       ...(chaosModeEnabled !== undefined && { chaosModeEnabled }),
     });
   } catch (error) {
+    if (
+      error instanceof ApiKeyPolicyInvariantError ||
+      (error instanceof Error && (error as { code?: string }).code === "LEASE_KEY_POLICY_INVALID")
+    ) {
+      const err = error as Error & { code?: string };
+      return NextResponse.json(
+        buildErrorBody(400, err.message, null, {
+          type: "lease_error",
+          code: err.code || "LEASE_KEY_POLICY_INVALID",
+        }),
+        { status: 400 }
+      );
+    }
     log.error("keys", "Error updating key permissions", error);
     return NextResponse.json({ error: "Failed to update permissions" }, { status: 500 });
   }

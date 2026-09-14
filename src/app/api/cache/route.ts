@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
 import {
   getCacheStats,
   clearCache,
@@ -8,7 +9,7 @@ import {
 } from "@/lib/semanticCache";
 import { getIdempotencyStats } from "@/lib/idempotencyLayer";
 import { getCacheMetrics, getCacheTrend } from "@/lib/db/settings";
-import { getCachedSettings } from "@/lib/localDb";
+import { getCachedSettings } from "@/lib/db/readCache";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
@@ -27,10 +28,14 @@ export async function GET(req: NextRequest) {
     const trendHours = Math.min(720, Math.max(1, Number.isNaN(rawHours) ? 24 : rawHours));
 
     const cacheStats = getCacheStats();
-    const idempotencyStats = await getIdempotencyStats();
-    const promptCacheMetrics = await getCacheMetrics();
-    const trend = await getCacheTrend(trendHours);
-    const settings = await getCachedSettings().catch(() => ({}));
+    // Promise.all allows concurrent execution; if one rejects, others still resolve,
+    // which is safe for this read-only stats endpoint.
+    const [idempotencyStats, promptCacheMetrics, trend, settings] = await Promise.all([
+      getIdempotencyStats(),
+      getCacheMetrics(),
+      getCacheTrend(trendHours),
+      getCachedSettings().catch(() => ({})),
+    ]);
 
     return NextResponse.json({
       semanticCache: cacheStats,

@@ -1,11 +1,11 @@
-export type WebhookEvent =
-  | "request.completed"
-  | "request.failed"
-  | "provider.error"
-  | "provider.recovered"
-  | "quota.exceeded"
-  | "combo.switched"
-  | "test.ping";
+export type WebhookEvent = "request.completed" | "request.failed" | "quota.exceeded" | "test.ping";
+
+export const WEBHOOK_EVENT_VALUES = [
+  "request.completed",
+  "request.failed",
+  "quota.exceeded",
+  "test.ping",
+] as const;
 
 export interface EventDescription {
   label: string;
@@ -38,34 +38,11 @@ export const EVENT_DESCRIPTIONS: Record<WebhookEvent, EventDescription> = {
       attempts: 3,
     },
   },
-  "provider.error": {
-    label: "Provider Error",
-    emoji: "⚠️",
-    description: "A provider tripped the circuit breaker due to repeated failures.",
-    exampleData: { provider: "openai", model: "gpt-4o", errorCode: 503, consecutiveFailures: 3 },
-  },
-  "provider.recovered": {
-    label: "Provider Recovered",
-    emoji: "✅",
-    description: "A provider recovered from a circuit-breaker OPEN state.",
-    exampleData: { provider: "openai", recoveredAfterMs: 60000 },
-  },
   "quota.exceeded": {
     label: "Quota Exceeded",
     emoji: "📊",
     description: "A usage threshold (e.g. 95% of quota) was reached.",
     exampleData: { quota: "daily_tokens", used: 950000, limit: 1000000, pct: 95 },
-  },
-  "combo.switched": {
-    label: "Combo Switched",
-    emoji: "🔄",
-    description: "Combo routing switched to a different target.",
-    exampleData: {
-      combo: "auto-fallback",
-      fromModel: "gpt-4o",
-      toModel: "claude-opus-4-7",
-      reason: "provider.error",
-    },
   },
   "test.ping": {
     label: "Test Ping",

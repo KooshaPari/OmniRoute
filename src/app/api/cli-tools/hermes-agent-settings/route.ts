@@ -10,6 +10,7 @@ import {
   getCurrentHermesAgentRoles,
 } from "@/lib/cli-helper/config-generator/hermes-agent";
 import { getHermesConfigPath } from "@/lib/cli-helper/config-generator/hermesHome";
+import { getApiKeyById } from "@/lib/db/apiKeys";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 const hermesAgentSettingsSchema = z.object({
@@ -99,10 +100,29 @@ export async function POST(request: Request) {
 
   await fs.mkdir(configDir, { recursive: true });
 
+  // #10711: HermesAgentToolCard's "Apply" flow only ever sends `keyId` (never
+  // a raw `apiKey`) — the same precedented pattern as claude-settings/route.ts
+  // and codex-settings/route.ts. Resolve the real key by ID here so
+  // generateHermesAgentConfig() does not fall through to its
+  // "YOUR_OMNIROUTE_API_KEY_HERE" placeholder. Never trust a client-supplied
+  // key string directly: the /api/keys list endpoint returns masked values,
+  // so the only safe source of a usable key is resolving by ID from the DB.
+  let resolvedApiKey = apiKey ?? null;
+  if (keyId) {
+    try {
+      const keyRecord = await getApiKeyById(keyId);
+      if (keyRecord?.key) {
+        resolvedApiKey = keyRecord.key as string;
+      }
+    } catch {
+      // Non-critical: fall back to whatever apiKey (if any) was already provided.
+    }
+  }
+
   const payload = {
     baseUrl,
     keyId,
-    apiKey,
+    apiKey: resolvedApiKey,
     selections,
   };
 

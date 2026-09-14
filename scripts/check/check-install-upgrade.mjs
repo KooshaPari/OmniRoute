@@ -302,7 +302,7 @@ export function assertNoDiskExhaustion(output, label) {
   throw new Error(
     `${label}: the install ran out of disk space (${count} ENOSPC error(s) from npm). ` +
       `The package tree is truncated, so anything measured from it — boot, schema, ` +
-      `migrations — is meaningless. Free space in ${os.tmpdir()} (each install tree is ` +
+      `migrations — is meaningless. Free space in ${workDirForMessages} (each install tree is ` +
       `~3 GB) and re-run. This is an environment failure, NOT a schema divergence.`
   );
 }
@@ -317,6 +317,11 @@ function freeBytes(dir) {
 }
 
 const GB = 1024 ** 3;
+
+// Set once the work directory exists, so the ENOSPC message names the filesystem that
+// actually ran out — pointing at /tmp when the gate works elsewhere sends the reader to
+// free space on the wrong volume (which is what happened during the v3.8.50 publish).
+let workDirForMessages = os.tmpdir();
 
 function resolvePreviousVersion(current, explicit) {
   if (explicit) return explicit;
@@ -348,7 +353,16 @@ async function main() {
   }
   const version = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8")).version;
   const allowlist = loadAllowlist(ROOT);
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-install-upgrade-"));
+  // NOT os.tmpdir(): on the self-hosted runner /tmp is a 12 GB tmpfs backed by RAM, while
+  // the root filesystem has ~66 GB free. This gate needs ~12 GB, so it exhausted the tmpfs
+  // and npm truncated the package — 58269 ENOSPC errors on the v3.8.50 publish, which the
+  // previous code could only report as a crash. Freeing disk did not help because the disk
+  // was never the constraint. Work on real disk beside the repo instead.
+  const workRoot =
+    process.env.OMNIROUTE_INSTALL_UPGRADE_WORKDIR || path.join(ROOT, ".install-upgrade");
+  fs.mkdirSync(workRoot, { recursive: true });
+  const tmp = fs.mkdtempSync(path.join(workRoot, "omniroute-install-upgrade-"));
+  workDirForMessages = tmp;
   const failures = [];
   const warnings = [];
 
@@ -374,7 +388,7 @@ async function main() {
     // exited 0, and every later measurement was taken from a broken tree.
     const availableBytes = freeBytes(tmp);
     if (availableBytes !== null) {
-      log(`free space in ${os.tmpdir()}: ${(availableBytes / GB).toFixed(1)} GB`);
+      log(`free space in ${tmp}: ${(availableBytes / GB).toFixed(1)} GB`);
       if (availableBytes < 12 * GB) {
         warn(
           `only ${(availableBytes / GB).toFixed(1)} GB free — this gate needs roughly 12 GB ` +

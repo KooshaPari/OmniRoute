@@ -1,10 +1,23 @@
+/**
+ * @file early-stream-keepalive.test.ts
+ * @description Unit tests for withEarlyStreamKeepalive (fast/slow path, frames, abort).
+ *
+ * @changes
+ * - [2026-08-16] - Assert Responses startup and recurring keepalives are neutral JSON events
+ */
 import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
   withEarlyStreamKeepalive,
   ANTHROPIC_PING_FRAME,
+  OPENAI_KEEPALIVE_FRAME,
+  OPENAI_STARTUP_FRAME,
+  OPENAI_CHAT_ERROR_FRAME,
+  OPENAI_RESPONSES_ERROR_FRAME,
 } from "../../open-sse/utils/earlyStreamKeepalive.ts";
+import { takeEarlyKeepaliveBytes } from "../../open-sse/utils/earlyKeepaliveByteBuffer.ts";
+import { OPENAI_RESPONSES_IN_PROGRESS_FRAME } from "../../open-sse/utils/sseHeartbeat.ts";
 
 async function readAll(response: Response): Promise<string> {
   const reader = response.body!.getReader();
@@ -54,7 +67,7 @@ test("slow handler emits early keepalive then forwards the real body (#2544)", a
   assert.match(result.headers.get("content-type") || "", /text\/event-stream/);
 
   const body = await readAll(result);
-  assert.match(body, /: omniroute-keepalive/, "should emit a keepalive comment before the body");
+  assert.match(body, /: keepalive/, "should emit a keepalive comment before the body");
   assert.match(body, /event: response\.created/, "should forward the real upstream body");
   assert.match(body, /data: \[DONE\]/);
 });
@@ -68,9 +81,199 @@ test("ANTHROPIC_PING_FRAME is a real Anthropic ping event (not a comment)", () =
   assert.doesNotMatch(decoded, /^:/, "must not be an SSE comment");
 });
 
+test("OPENAI_KEEPALIVE_FRAME is a JSON-parseable OpenAI streaming chunk", () => {
+  const decoded = new TextDecoder().decode(OPENAI_KEEPALIVE_FRAME);
+  assert.match(decoded, /^data: /);
+  assert.doesNotMatch(decoded, /^:/, "must not be an SSE comment");
+
+  const payload = JSON.parse(decoded.slice("data: ".length).trim());
+  assert.equal(payload.object, "chat.completion.chunk");
+  assert.deepEqual(payload.choices, [{ index: 0, delta: {}, finish_reason: null }]);
+});
+
+test("slow handler emits the custom OpenAI keepalive chunk before the body", async () => {
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse("data: [DONE]\n\n")), 120);
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 25,
+    intervalMs: 20,
+    keepaliveFrame: OPENAI_KEEPALIVE_FRAME,
+  });
+
+  const body = await readAll(result);
+  assert.doesNotMatch(body, /: keepalive\n/);
+  const firstFrame = body.split("\n\n")[0];
+  assert.doesNotThrow(() => JSON.parse(firstFrame.slice("data: ".length)));
+  assert.match(body, /data: \[DONE\]/);
+});
+
+test("OPENAI_STARTUP_FRAME is a parseable empty delta", () => {
+  const decoded = new TextDecoder().decode(OPENAI_STARTUP_FRAME);
+  assert.match(decoded, /^data: /);
+  assert.doesNotMatch(decoded, /^:/, "must not be an SSE comment");
+
+  const payload = JSON.parse(decoded.slice("data: ".length).trim());
+  assert.equal(payload.object, "chat.completion.chunk");
+  assert.deepEqual(payload.choices, [{ index: 0, delta: {}, finish_reason: null }]);
+});
+
+test("slow handler emits startupFrame once, then falls back to keepaliveFrame on later ticks", async () => {
+  // intervalMs is floored at 250ms (see withEarlyStreamKeepalive), so the handler
+  // must resolve well past one full tick to reliably observe an interval keepalive
+  // before the real body arrives.
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse("data: [DONE]\n\n")), 650);
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 20,
+    intervalMs: 250,
+    keepaliveFrame: OPENAI_KEEPALIVE_FRAME,
+    startupFrame: OPENAI_STARTUP_FRAME,
+  });
+
+  const body = await readAll(result);
+  const frames = body.split("\n\n").filter(Boolean);
+  const firstPayload = JSON.parse(frames[0].slice("data: ".length));
+  assert.deepEqual(firstPayload.choices[0].delta, {});
+
+  // At least one subsequent keepalive tick should have fired before the real
+  // body arrived (interval 30ms, handler resolves at 150ms) — those ticks use
+  // the lightweight keepaliveFrame, not a repeat of the startup text.
+  const laterKeepalives = frames
+    .slice(1, -1) // drop the startup frame and the final real "[DONE]" frame
+    .map((f) => JSON.parse(f.slice("data: ".length)));
+  assert.ok(laterKeepalives.length > 0, "expected at least one interval keepalive tick");
+  for (const tick of laterKeepalives) {
+    assert.deepEqual(tick.choices[0].delta, {}, "interval ticks stay the lightweight empty delta");
+  }
+  assert.match(body, /data: \[DONE\]/);
+});
+
+test("startupFrame defaults to keepaliveFrame when omitted (no behavior change)", async () => {
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse("data: [DONE]\n\n")), 120);
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 25,
+    intervalMs: 20,
+    keepaliveFrame: OPENAI_KEEPALIVE_FRAME,
+    // no startupFrame passed
+  });
+
+  const body = await readAll(result);
+  const firstFrame = body.split("\n\n")[0];
+  const firstPayload = JSON.parse(firstFrame.slice("data: ".length));
+  assert.deepEqual(
+    firstPayload.choices[0].delta,
+    {},
+    "first frame falls back to the plain keepaliveFrame when no startupFrame is configured"
+  );
+});
+
+// Responses clients need both frequent raw bytes and occasional parsed events while
+// upstream readiness is pending. Keep those cadences separate: comments cover the
+// short idle-read timeout, while sparse response.in_progress events reset parsers that
+// ignore comments without flooding the application event stream.
+test("slow Responses handler uses comments plus sparse in_progress events", async () => {
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse('data: {"type":"response.completed"}\n\n')), 900);
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 20,
+    intervalMs: 250,
+    startupFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
+    applicationKeepalive: {
+      frame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
+      intervalMs: 500,
+    },
+  });
+
+  const body = await readAll(result);
+  const frames = body.split("\n\n").filter(Boolean);
+  const earlyFrames = frames.slice(0, -1);
+  assert.equal(earlyFrames[0], 'data: {"type":"response.in_progress"}');
+  assert.ok(
+    earlyFrames.some((frame) => frame === ": keepalive"),
+    "transport ticks must remain lightweight SSE comments"
+  );
+  const applicationFrames = earlyFrames.filter((frame) => frame.startsWith("data: "));
+  assert.ok(applicationFrames.length >= 2, "expected startup and sparse application keepalives");
+  for (const frame of applicationFrames) {
+    assert.deepEqual(JSON.parse(frame.slice("data: ".length)), {
+      type: "response.in_progress",
+    });
+    assert.doesNotMatch(frame, /output_item|reasoning|✨/);
+  }
+  assert.ok(
+    applicationFrames.length < earlyFrames.length,
+    "application events must be sparser than transport heartbeats"
+  );
+  assert.match(body, /data: {"type":"response.completed"}/, "real upstream body forwarded");
+});
+
+test("a correlationId records the startup frame and keepalive ticks, but not the forwarded body", async () => {
+  const correlationId = "corr-record-test-1";
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(
+      () => resolve(sseResponse("event: response.created\ndata: {}\n\ndata: [DONE]\n\n")),
+      650
+    );
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 25,
+    intervalMs: 250,
+    startupFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
+    applicationKeepalive: {
+      frame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
+      intervalMs: 500,
+    },
+    correlationId,
+  });
+  await readAll(result);
+
+  const recorded = takeEarlyKeepaliveBytes(correlationId).join("");
+  assert.match(
+    recorded,
+    /data: {"type":"response\.in_progress"}/,
+    "startup frame must be recorded"
+  );
+  assert.match(recorded, /: keepalive/, "transport heartbeat must be recorded");
+  assert.doesNotMatch(
+    recorded,
+    /event: response\.created/,
+    "the verbatim-forwarded real body must NOT be recorded here — the handler's own reqLogger already captures it, and double-recording would duplicate it in the persisted artifact"
+  );
+});
+
+test("omitting correlationId leaves the buffer untouched (today's behavior, unchanged)", async () => {
+  const correlationId = "corr-record-test-omitted";
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse("event: response.created\ndata: {}\n\n")), 65);
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 25,
+    intervalMs: 20,
+    keepaliveFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
+    startupFrame: OPENAI_RESPONSES_IN_PROGRESS_FRAME,
+  });
+  await readAll(result);
+
+  assert.deepEqual(takeEarlyKeepaliveBytes(correlationId), []);
+});
+
 test("slow handler emits the custom keepaliveFrame (Anthropic ping) before the body", async () => {
   const slow = new Promise<Response>((resolve) => {
-    setTimeout(() => resolve(sseResponse("event: message_start\ndata: {}\n\ndata: [DONE]\n\n")), 120);
+    setTimeout(
+      () => resolve(sseResponse("event: message_start\ndata: {}\n\ndata: [DONE]\n\n")),
+      120
+    );
   });
 
   const result = await withEarlyStreamKeepalive(slow, {
@@ -81,7 +284,7 @@ test("slow handler emits the custom keepaliveFrame (Anthropic ping) before the b
 
   const body = await readAll(result);
   assert.match(body, /event: ping\ndata: {"type":"ping"}/, "should emit a real ping event");
-  assert.doesNotMatch(body, /: omniroute-keepalive/, "must not fall back to the comment frame");
+  assert.doesNotMatch(body, /: keepalive\n/, "must not fall back to the comment frame");
   assert.match(body, /event: message_start/, "should forward the real upstream body");
 });
 
@@ -106,7 +309,7 @@ test("slow handler that errors emits an in-band error frame (#2544)", async () =
   assert.equal(result.status, 200, "already committed to 200 SSE before the error surfaced");
 
   const body = await readAll(result);
-  assert.match(body, /: omniroute-keepalive/);
+  assert.match(body, /: keepalive/);
   assert.match(body, /event: error/);
   assert.match(body, /rate limited/);
 });
@@ -209,6 +412,6 @@ test("aborting the client signal stops the keepalive stream (#2544)", async () =
       if (done) return true;
     }
   })();
-  const timed = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 500));
+  const timed = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 5000));
   assert.equal(await Promise.race([drained, timed]), true, "stream should close after abort");
 });

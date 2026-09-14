@@ -3,11 +3,13 @@ import { parseSSEDataPayload } from "./streamHelpers.ts";
 import {
   backfillResponsesCompletedOutput,
   normalizeResponsesSseIds,
+  normalizeResponsesCompletedUsage,
   pushUniqueResponsesOutputItems,
   stringifyIdValue,
   stripResponsesLifecycleEcho,
 } from "./responsesStreamHelpers.ts";
 import { getAnyReasoningValue } from "./reasoningFields.ts";
+import { projectStreamFailureEvent, type StreamFailurePayload } from "./streamErrorFormat.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -30,6 +32,7 @@ export type PassthroughTailProcessorContext = {
   emitConvertedOutput: (output: string) => void;
   pushProviderPayload: (payload: unknown) => void;
   pushClientPayload: (payload: unknown) => void;
+  sanitizeUsagePayload: (payload: unknown) => boolean;
   setPassthroughResponsesId: (value: string) => void;
   setUsage: (value: unknown) => void;
   addTotalContentLength: (value: number) => void;
@@ -44,6 +47,8 @@ export type PassthroughTailProcessorContext = {
   setPassthroughResponsesCurrentFunctionCallKey: (value: string | null) => void;
   hasPassthroughToolCalls: () => boolean;
   toResponsesCompletedWithToolCalls: (parsed: JsonRecord) => JsonRecord;
+  restoreOpenAIToolNames: (parsed: JsonRecord) => boolean;
+  abortFailure: (failure: StreamFailurePayload, publicMessage: string) => void;
 };
 
 function asRecord(value: unknown): JsonRecord {
@@ -174,13 +179,20 @@ function handleResponsesTailPayload(
   const outputPayload = textualToolCallBackfilled
     ? context.toResponsesCompletedWithToolCalls(parsed)
     : parsed;
+  const usageNormalized = normalizeResponsesCompletedUsage(outputPayload);
   const stripped = stripResponsesLifecycleEcho(outputPayload);
   const backfilled = backfillResponsesCompletedOutput(
     outputPayload,
     context.passthroughResponsesOutputItems
   );
 
-  if (stripped || backfilled || textualToolCallBackfilled || responsesIdsNormalized) {
+  if (
+    stripped ||
+    backfilled ||
+    textualToolCallBackfilled ||
+    responsesIdsNormalized ||
+    usageNormalized
+  ) {
     output = `data: ${JSON.stringify(outputPayload)}\n\n`;
   }
 
@@ -274,7 +286,16 @@ export function processBufferedPassthroughLine(
       context.updateClaudeEmptyResponseLifecycle(parsedPassthroughData);
     }
 
-    const parsed = parsedPassthroughData as JsonRecord;
+    const projectedFailure = projectStreamFailureEvent(parsedPassthroughData);
+    const parsed = projectedFailure
+      ? projectedFailure.publicPayload
+      : (parsedPassthroughData as JsonRecord);
+    if (projectedFailure) {
+      output = `data: ${JSON.stringify(parsed)}\n\n`;
+    }
+    if (context.sanitizeUsagePayload(parsed)) {
+      output = `data: ${JSON.stringify(parsed)}\n\n`;
+    }
     const parsedType = typeof parsed.type === "string" ? parsed.type : "";
     const isResponses = parsedType.startsWith("response.");
     const isClaude = context.isClaudeEventPayload(parsed);
@@ -282,10 +303,20 @@ export function processBufferedPassthroughLine(
     if (isResponses) {
       output = handleResponsesTailPayload(parsed, output, context);
     } else if (!isClaude) {
+      const restoredToolName = context.restoreOpenAIToolNames(parsed);
       handleOpenAiTailPayload(parsed, context);
+      if (restoredToolName) output = `data: ${JSON.stringify(parsed)}\n\n`;
     }
 
     context.pushClientPayload(parsed);
+
+    output = context.passthroughEventPrefix.prefixData(output, line);
+    context.emitConvertedOutput(output);
+    if (projectedFailure) {
+      context.abortFailure(projectedFailure.internalFailure, projectedFailure.publicMessage);
+      return true;
+    }
+    return false;
   }
 
   output = context.passthroughEventPrefix.prefixData(output, line);

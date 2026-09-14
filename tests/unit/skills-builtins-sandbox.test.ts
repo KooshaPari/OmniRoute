@@ -17,7 +17,7 @@ function makeTempDir(prefix) {
 }
 
 function removePath(targetPath) {
-  fs.rmSync(targetPath, { recursive: true, force: true });
+  fs.rmSync(targetPath, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 }
 
 async function importFresh(modulePath) {
@@ -408,7 +408,7 @@ test("containerProvider: all five providers registered", () => {
     assert.ok(mod.ALL_PROVIDERS.length === 5);
     assert.deepStrictEqual(
       mod.ALL_PROVIDERS.map((p) => p.id),
-      ["docker", "apple", "wsl", "orbstack", "podman"],
+      ["docker", "apple", "wsl", "orbstack", "podman"]
     );
     assert.ok(mod.PROVIDER_BY_ID.has("docker"));
     assert.ok(mod.PROVIDER_BY_ID.has("apple"));
@@ -420,27 +420,15 @@ test("containerProvider: all five providers registered", () => {
 
 test("containerProvider: platformPriority returns correct order per OS", () => {
   return importFresh("src/lib/skills/containerProvider.ts").then((mod) => {
-    const originalPlatform = Object.getOwnPropertyDescriptor(
-      process,
-      "platform",
-    );
+    const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform");
 
     // darwin
     Object.defineProperty(process, "platform", { value: "darwin" });
-    assert.deepStrictEqual(mod.platformPriority(), [
-      "apple",
-      "orbstack",
-      "podman",
-      "docker",
-    ]);
+    assert.deepStrictEqual(mod.platformPriority(), ["apple", "orbstack", "podman", "docker"]);
 
     // win32
     Object.defineProperty(process, "platform", { value: "win32" });
-    assert.deepStrictEqual(mod.platformPriority(), [
-      "wsl",
-      "docker",
-      "podman",
-    ]);
+    assert.deepStrictEqual(mod.platformPriority(), ["wsl", "docker", "podman"]);
 
     // linux
     Object.defineProperty(process, "platform", { value: "linux" });
@@ -448,11 +436,7 @@ test("containerProvider: platformPriority returns correct order per OS", () => {
 
     // Restore
     if (originalPlatform) {
-      Object.defineProperty(
-        process,
-        "platform",
-        originalPlatform,
-      );
+      Object.defineProperty(process, "platform", originalPlatform);
     }
   });
 });
@@ -467,25 +451,10 @@ test("containerProvider: buildRun produces run as args[0] for all providers", ()
       readOnly: true,
     };
     for (const provider of mod.ALL_PROVIDERS) {
-      const resolved = provider.buildRun(
-        "alpine",
-        ["echo", "hi"],
-        "test-id",
-        config,
-      );
-      assert.equal(
-        resolved.args[0],
-        "run",
-        `${provider.id}: args[0] must be "run"`,
-      );
-      assert.ok(
-        resolved.args.includes("--rm"),
-        `${provider.id}: should include --rm`,
-      );
-      assert.ok(
-        resolved.args.includes("alpine"),
-        `${provider.id}: should include image`,
-      );
+      const resolved = provider.buildRun("alpine", ["echo", "hi"], "test-id", config);
+      assert.equal(resolved.args[0], "run", `${provider.id}: args[0] must be "run"`);
+      assert.ok(resolved.args.includes("--rm"), `${provider.id}: should include --rm`);
+      assert.ok(resolved.args.includes("alpine"), `${provider.id}: should include image`);
       // killArgs must return something callable
       const kill = resolved.killArgs("test-cont");
       assert.ok(Array.isArray(kill), `${provider.id}: killArgs returns array`);
@@ -555,9 +524,7 @@ test("containerProvider: resolveProvider falls back to docker when no runtime in
   // Auto-detect walks platform priority â€” if nothing is installed we
   // always land on docker as the fallback.
   const provider = await mod.resolveProvider();
-  assert.ok(
-    ["docker", "apple", "wsl", "podman", "orbstack"].includes(provider.id),
-  );
+  assert.ok(["docker", "apple", "wsl", "podman", "orbstack"].includes(provider.id));
   // Ensure the fallback is always docker when probes fail
   // (this test is best-effort â€” on a host with docker installed,
   //  the auto-detect will legitimately pick docker)

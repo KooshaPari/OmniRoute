@@ -1,17 +1,7 @@
 {
   "name": "@omniroute/open-sse",
-  "version": "3.8.38",
-  "description": "Express SSE sidecar for OmniRoute — handles streaming, protocol translation, and provider orchestration",
+  "version": "3.8.51",
+  "description": "OmniRoute streaming engine — handles provider dispatch, protocol translation, and SSE streaming",
   "type": "module",
-  "main": "index.js",
-  "types": "types.d.ts",
-  "private": true,
-  "exports": {
-    ".": "./index.js",
-    "./*": "./*"
-  },
-  "dependencies": {
-    "@toon-format/toon": "^2.3.0",
-    "safe-regex": "^2.1.1"
-  }
+  "private": true
 }

@@ -9,12 +9,8 @@
  */
 
 import { extractApiKey } from "@/sse/services/auth";
-import {
-  getApiKeyMetadata,
-  getComboByName,
-  isModelAllowedForKey,
-  getApiKeyById,
-} from "@/lib/localDb";
+import { getApiKeyMetadata, isModelAllowedForKey, getApiKeyById } from "@/lib/db/apiKeys";
+import { getComboByName } from "@/lib/db/combos";
 import { isDashboardSessionAuthenticated } from "./apiAuth";
 import { resolveComboForModel } from "@/lib/db/modelComboMappings";
 import { checkBudget } from "@/domain/costRules";
@@ -31,6 +27,7 @@ import { resolveEndpointCategory } from "@/shared/constants/endpointCategories";
 import { resolveQuotaKeyScope } from "@/lib/quota/quotaKey";
 import { isQuotaModelName, parseQuotaModelName } from "@/lib/quota/quotaModelNaming";
 import { buildApiKeyUsageLimitPolicyRejection } from "@/lib/usage/apiKeyUsageLimits";
+import { ALL_COMBOS_ACCESS_RULE } from "@/shared/constants/comboAccess";
 
 // Default to no per-key request cap. API keys can still opt into explicit
 // limits via Settings/API Keys, while provider/account quota controls remain
@@ -73,6 +70,7 @@ interface AccessSchedule {
 export interface ApiKeyMetadata {
   id: string;
   name?: string;
+  modelAccessMode?: "all" | "restricted";
   allowedModels?: string[];
   allowedCombos?: string[];
   allowedConnections?: string[];
@@ -97,6 +95,7 @@ export interface ApiKeyMetadata {
   usageLimitEnabled?: boolean;
   dailyUsageLimitUsd?: number | null;
   weeklyUsageLimitUsd?: number | null;
+  compressionEnabled?: boolean;
 }
 
 /**
@@ -179,6 +178,7 @@ function normalizeComboAccessName(value: unknown): string | null {
 }
 
 function matchesComboAccessRule(comboName: string, requestedModel: string, rule: string): boolean {
+  if (rule === ALL_COMBOS_ACCESS_RULE) return true;
   const normalizedRule = normalizeComboAccessName(rule);
   if (!normalizedRule) return false;
   return (
@@ -254,8 +254,7 @@ async function isComboAllowedForKey(
 }
 
 function quotaPolicyResponse(message: string, code: string): Response {
-  const body = buildErrorBody(HTTP_STATUS.FORBIDDEN, message);
-  body.error.code = code;
+  const body = buildErrorBody(HTTP_STATUS.FORBIDDEN, message, undefined, { code });
   return new Response(JSON.stringify(body), {
     status: HTTP_STATUS.FORBIDDEN,
     headers: { "Content-Type": "application/json" },
@@ -301,7 +300,7 @@ async function validateStandardRoutingTarget(
   modelStr: string
 ): Promise<Response | null> {
   let requestedComboName: string | null = null;
-  if (apiKeyInfo.allowedCombos && apiKeyInfo.allowedCombos.length > 0) {
+  if (Array.isArray(apiKeyInfo.allowedCombos)) {
     try {
       const comboAccess = await isComboAllowedForKey(apiKeyInfo.allowedCombos, modelStr);
       requestedComboName = comboAccess.comboName;
@@ -318,7 +317,8 @@ async function validateStandardRoutingTarget(
   }
 
   const hasModelRestrictions =
-    (apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0) ||
+    apiKeyInfo.modelAccessMode === "restricted" ||
+    Boolean(apiKeyInfo.allowedModels?.length) ||
     apiKeyInfo.disableNonPublicModels === true;
   if (!requestedComboName && hasModelRestrictions && modelStr.startsWith("auto/")) {
     requestedComboName = modelStr;
@@ -524,7 +524,9 @@ async function validateModelAccess(context: PolicyContext): Promise<Response | n
   let requestedComboName = comboAccess.comboName;
 
   const hasModelRestrictions =
-    Boolean(apiKeyInfo.allowedModels?.length) || apiKeyInfo.disableNonPublicModels === true;
+    apiKeyInfo.modelAccessMode === "restricted" ||
+    Boolean(apiKeyInfo.allowedModels?.length) ||
+    apiKeyInfo.disableNonPublicModels === true;
   if (!requestedComboName && hasModelRestrictions) {
     if (modelStr.startsWith("auto/") || modelStr.startsWith("qtSd/")) {
       requestedComboName = modelStr;
@@ -552,7 +554,7 @@ async function validateComboAccess(
   allowedCombos: string[] | undefined,
   modelStr: string
 ): Promise<{ comboName: string | null; rejection: Response | null }> {
-  if (!allowedCombos?.length) return { comboName: null, rejection: null };
+  if (!Array.isArray(allowedCombos)) return { comboName: null, rejection: null };
   try {
     const comboAccess = await isComboAllowedForKey(allowedCombos, modelStr);
     if (comboAccess.allowed) return { comboName: comboAccess.comboName, rejection: null };
@@ -638,13 +640,37 @@ async function validateRateLimitAndThrottle(context: PolicyContext): Promise<Res
   return null;
 }
 
+/**
+ * A bare `x-api-key` / `x-goog-api-key` (no anthropic-version, no claude
+ * user-agent) is accepted by the CLIENT_API auth layer (clientApi.ts
+ * `extractBearer`) but ignored by the Issue-#2225-gated `extractApiKey()` used
+ * for policy resolution — so a genuine key sent that way passed auth while
+ * skipping its own allowedModels / budget / rate-limit policy
+ * (GHSA-2phc-xp22-9f56). Resolve those headers here so the policy layer sees the
+ * same key auth accepted. Bearer, URL-token and anthropic-gated paths are already
+ * covered by `extractApiKey()`; unknown keys still fail open downstream, so this
+ * only tightens enforcement for real keys.
+ */
+function extractUngatedClientApiKey(request: Request): string | null {
+  const xApiKey = request.headers.get("x-api-key") ?? request.headers.get("X-Api-Key");
+  if (xApiKey && xApiKey.trim()) return xApiKey.trim();
+  const xGoog = request.headers.get("x-goog-api-key") ?? request.headers.get("X-Goog-Api-Key");
+  if (xGoog && xGoog.trim()) return xGoog.trim();
+  return null;
+}
+
 export async function enforceApiKeyPolicy(
   request: Request,
   modelStr: string | null
 ): Promise<ApiKeyPolicyResult> {
-  // A real bearer key wins; otherwise an authenticated dashboard playground may
-  // test a specific key's policy by id (resolved server-side, secret never sent).
-  const apiKey = extractApiKey(request) || (await resolvePlaygroundTestKey(request));
+  // A real bearer key wins; then a bare x-api-key/x-goog-api-key that auth
+  // accepted but extractApiKey() gates out; otherwise an authenticated dashboard
+  // playground may test a specific key's policy by id (resolved server-side,
+  // secret never sent).
+  const apiKey =
+    extractApiKey(request) ||
+    extractUngatedClientApiKey(request) ||
+    (await resolvePlaygroundTestKey(request));
 
   // No API key = local/session mode, skip policy checks
   if (!apiKey) {

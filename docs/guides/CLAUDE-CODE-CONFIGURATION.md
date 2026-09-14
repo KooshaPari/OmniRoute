@@ -1,7 +1,7 @@
 ---
 title: "Claude Code CLI — Configuration with OmniRoute"
 version: 3.8.40
-lastUpdated: 2026-06-28
+lastUpdated: 2026-07-24
 ---
 
 # Claude Code CLI — Configuration with OmniRoute

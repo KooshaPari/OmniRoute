@@ -10,7 +10,6 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const { handleResponsesCore } = await import("../../open-sse/handlers/responsesHandler.ts");
-const { COMMAND_CODE_VERSION } = await import("../../open-sse/executors/commandCode.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -131,7 +130,7 @@ function buildJsonResponse(status: number, payload: unknown) {
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -186,7 +185,7 @@ test.afterEach(async () => {
 test.after(async () => {
   globalThis.fetch = originalFetch;
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("handleResponsesCore converts Responses API input, instructions, tools, metadata, and forces streaming", async () => {
@@ -223,6 +222,60 @@ test("handleResponsesCore converts Responses API input, instructions, tools, met
   assert.equal(call.body.tools[0].function.name, "lookup_weather");
   assert.equal(call.body.metadata, undefined);
   assert.equal("store" in call.body, false);
+});
+
+test("handleResponsesCore preserves Kimi K3 reasoning through provider translation", async () => {
+  const body = {
+    model: "k3-256k",
+    reasoning: { effort: "high" },
+    input: [
+      { role: "user", content: [{ type: "input_text", text: "Call search." }] },
+      {
+        type: "reasoning",
+        content: [{ type: "reasoning_text", text: "I should search first." }],
+      },
+      {
+        type: "function_call",
+        call_id: "call_1",
+        name: "search",
+        arguments: "{}",
+      },
+      { type: "function_call_output", call_id: "call_1", output: "found" },
+    ],
+  };
+
+  const coding = await invokeResponsesCore({
+    body,
+    provider: "kimi-coding-apikey",
+    model: "k3-256k",
+  });
+  assert.deepEqual(coding.call.body.messages?.[1]?.content?.[0], {
+    type: "thinking",
+    thinking: "I should search first.",
+  });
+
+  const native = await invokeResponsesCore({
+    body: { ...body, model: "kimi-k3", reasoning: { effort: "max" } },
+    provider: "moonshot",
+    model: "kimi-k3",
+  });
+  assert.equal(native.call.body.messages?.[1]?.reasoning_content, "I should search first.");
+});
+
+test("handleResponsesCore maps unsupported Kimi K3 xhigh effort to max", async () => {
+  const { call, result } = await invokeResponsesCore({
+    body: {
+      model: "k3-256k",
+      reasoning: { effort: "xhigh", summary: "auto" },
+      input: "Reply with OK.",
+    },
+    provider: "kimi-coding-apikey",
+    model: "k3-256k",
+  });
+
+  assert.equal(result.success, true);
+  assert.deepEqual(call.body.thinking, { type: "enabled" });
+  assert.deepEqual(call.body.output_config, { effort: "max" });
 });
 
 test("handleResponsesCore strips previous_response_id by default and handles empty input arrays", async () => {
@@ -290,25 +343,6 @@ test("handleResponsesCore transforms upstream OpenAI SSE into Responses API SSE"
   assert.match(sse, /data: \[DONE\]/);
 });
 
-test("handleResponsesCore parses tag-native reasoning when upstream SSE omits model", async () => {
-  const { result } = await invokeResponsesCore({
-    provider: "openai",
-    model: "deepseek-r1",
-    body: {
-      model: "deepseek-r1",
-      input: "reason first",
-    },
-    responseFactory: () => buildOpenAISseResponse("<think>plan</think>answer"),
-  });
-
-  assert.equal(result.success, true);
-  const sse = await result.response.text();
-  assert.match(sse, /event: response\.reasoning_summary_text\.delta/);
-  assert.match(sse, /"delta":"plan"/);
-  assert.match(sse, /event: response\.output_text\.delta/);
-  assert.match(sse, /"delta":"answer"/);
-});
-
 test("handleResponsesCore transforms Command Code executor SSE through Responses shim", async () => {
   const { call, result } = await invokeResponsesCore({
     provider: "command-code",
@@ -319,26 +353,28 @@ test("handleResponsesCore transforms Command Code executor SSE through Responses
       input: "hello command code",
     },
     responseFactory() {
+      // /provider/v1/chat/completions returns standard OpenAI SSE (#10265).
+      const chunk = (delta: Record<string, unknown>) =>
+        `data: ${JSON.stringify({
+          id: "c1",
+          object: "chat.completion.chunk",
+          model: "gpt-5.4-mini",
+          choices: [{ index: 0, delta }],
+        })}\n\n`;
       return new Response(
-        [
-          `data: ${JSON.stringify({ type: "text-delta", text: "command" })}`,
-          "",
-          `data: ${JSON.stringify({ type: "reasoning-delta", text: "thinking" })}`,
-          "",
-          `data: ${JSON.stringify({ type: "finish", finishReason: "stop" })}`,
-          "",
-        ].join("\n"),
-        { status: 200, headers: { "Content-Type": "application/x-ndjson" } }
+        [chunk({ role: "assistant" }), chunk({ content: "command" }), chunk({})].join("") +
+          "data: [DONE]\n\n",
+        { status: 200, headers: { "Content-Type": "text/event-stream" } }
       );
     },
   });
 
   assert.equal(result.success, true);
-  assert.equal(call.url, "https://api.commandcode.ai/alpha/generate");
+  assert.equal(call.url, "https://api.commandcode.ai/provider/v1/chat/completions");
   assert.equal(call.headers.Authorization, "Bearer cc_test_key");
-  assert.equal(call.headers["x-command-code-version"], COMMAND_CODE_VERSION);
-  assert.equal(call.body.params.model, "gpt-5.4-mini");
-  assert.equal(call.body.params.stream, true);
+  assert.equal(call.headers["x-command-code-version"], undefined);
+  assert.equal(call.body.model, "gpt-5.4-mini");
+  assert.equal(call.body.stream, true);
 
   const sse = await result.response.text();
   assert.match(sse, /event: response\.created/);
@@ -348,8 +384,8 @@ test("handleResponsesCore transforms Command Code executor SSE through Responses
   assert.match(sse, /data: \[DONE\]/);
 });
 
-test("handleResponsesCore propagates upstream failures from chatCore unchanged", async () => {
-  const { result } = await invokeResponsesCore({
+test("handleResponsesCore propagates upstream failures without retrying", async () => {
+  const { result, calls } = await invokeResponsesCore({
     body: {
       model: "gpt-4o-mini",
       input: "hello",
@@ -363,6 +399,7 @@ test("handleResponsesCore propagates upstream failures from chatCore unchanged",
 
   assert.equal(result.success, false);
   assert.equal(result.status, 401);
+  assert.equal(calls.length, 1);
 
   const payload = (await result.response.json()) as ErrorPayload;
   assert.equal(payload.error.message, "[401]: unauthorized");

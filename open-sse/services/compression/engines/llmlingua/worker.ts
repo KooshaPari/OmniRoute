@@ -8,7 +8,7 @@
  *
  * ## Fail-open paths
  *  1. Optional-deps gate: if any of `@atjsh/llmlingua-2`, `@huggingface/transformers`,
- *     `@tensorflow/tfjs`, `js-tiktoken` does not resolve, return `text` immediately —
+ *     `js-tiktoken` does not resolve, return `text` immediately —
  *     NO worker spawn. This is the default in CI / most installs (deps are OPTIONAL).
  *  2. Per-call timeout: first call for a model gets `FIRST_CALL_TIMEOUT_MS` (one-time
  *     model load); warm calls get `LLMLINGUA_WORKER_TIMEOUT_MS`. On timeout → original
@@ -16,7 +16,7 @@
  *  3. Worker error/exit → resolve all pending with their original text + respawn next.
  *
  * ## Serialization
- *  ONNX/tfjs are not reentrant — calls are queued FIFO and only one message is
+ *  ONNX inference is not reentrant — calls are queued FIFO and only one message is
  *  in-flight at a time (the next is posted after the previous reply or its timeout).
  *
  * ## Idle eviction
@@ -37,6 +37,7 @@ import { pathToFileURL } from "node:url";
 
 import { LLMLINGUA_WORKER_TIMEOUT_MS, LLMLINGUA_WORKER_IDLE_MS } from "./constants.ts";
 import { resolveLlmlinguaModel } from "./modelStore.ts";
+import { packMemberInstalled } from "../../../../utils/optionalPacks.ts";
 import type { LlmlinguaBackend } from "./index.ts";
 
 /** One-time model-load budget on the first call for a given model (tinybert ~2s, bert-base ~27s). */
@@ -44,7 +45,7 @@ const FIRST_CALL_TIMEOUT_MS = 60000;
 
 /**
  * Gate probe: `@atjsh/llmlingua-2` is the entry package that declares the others
- * (`@huggingface/transformers`, `@tensorflow/tfjs`, `js-tiktoken`) as peers. We probe
+ * (`@huggingface/transformers`, `js-tiktoken`) as peers. We probe
  * ONLY it (by manifest existence) because the peers are ESM-only and `require.resolve`
  * throws for them even when installed; the worker still fail-opens if a peer is
  * genuinely missing at `import()` time.
@@ -121,7 +122,12 @@ let _depsAvailable: boolean | null = null;
  */
 export function depsAvailable(): boolean {
   if (_depsAvailable !== null) return _depsAvailable;
-  _depsAvailable = firstAncestorWith(runtimeAnchors(), GATE_DEP_REL) !== null;
+  // Stage 7 (issue #10321): the desktop bundle ships the LLMLingua closure as an
+  // optional pack installed under `${DATA_DIR}/packs/ml-runtime/node_modules`
+  // (prepended to NODE_PATH by electron/main.js), so also probe the pack dirs —
+  // the ancestor walk only covers bundle-resident installs (npm/Docker).
+  _depsAvailable =
+    firstAncestorWith(runtimeAnchors(), GATE_DEP_REL) !== null || packMemberInstalled(GATE_DEP_REL);
   return _depsAvailable;
 }
 
@@ -228,7 +234,12 @@ function ensureWorker(): Worker {
 
   const { workerFile, execArgv } = resolveWorkerFile();
   const absoluteWorkerFile = path.resolve(workerFile);
-  const w = new Worker(pathToFileURL(absoluteWorkerFile).href, { execArgv });
+  // Pass the URL OBJECT, not `.href`. `new Worker()` treats a plain string as a
+  // filesystem path, so a "file://..." string is looked up literally and throws
+  // ERR_WORKER_PATH (a string arg must start with ./ or ../). Only a URL instance
+  // is interpreted as a file: URL. Spawn failures are swallowed by pump()'s catch,
+  // so getting this wrong silently disables compression instead of erroring.
+  const w = new Worker(pathToFileURL(absoluteWorkerFile), { execArgv });
 
   w.on("message", (reply: WorkerReply) => {
     const entry = pending.get(reply.id);

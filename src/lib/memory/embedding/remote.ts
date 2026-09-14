@@ -1,16 +1,26 @@
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { createEmbeddingResponse } from "@/lib/embeddings/service";
 import type { EmbeddingResult, EmbeddingError } from "./types";
+import type { ResolvedMemoryCustomEmbeddingProvider } from "./customProvider";
 
 export async function embedRemote(
   text: string,
-  model: string
+  model: string,
+  customProvider: ResolvedMemoryCustomEmbeddingProvider | null = null
 ): Promise<EmbeddingResult | EmbeddingError> {
   const t0 = Date.now();
 
   let resp: Response;
   try {
-    resp = await createEmbeddingResponse({ model, input: text });
+    resp = await createEmbeddingResponse(
+      { model, input: text },
+      customProvider
+        ? {
+            resolvedProvider: customProvider.provider,
+            resolvedModel: customProvider.model,
+          }
+        : undefined
+    );
   } catch (err: unknown) {
     // Network-level errors (ECONNREFUSED, AbortError, etc.)
     const isTimeout =
@@ -71,7 +81,9 @@ export async function embedRemote(
         source: "remote",
         model,
         reason: "request_failed",
-        message: sanitizeErrorMessage("Unexpected embedding response shape: missing data[0].embedding"),
+        message: sanitizeErrorMessage(
+          "Unexpected embedding response shape: missing data[0].embedding"
+        ),
       };
     }
     const rawVec = data[0].embedding as number[];

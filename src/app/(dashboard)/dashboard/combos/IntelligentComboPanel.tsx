@@ -12,8 +12,13 @@ import {
 } from "@/lib/combos/intelligentRouting";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 
-function getI18nOrFallback(t: any, key: string, fallback: string) {
-  if (typeof t?.has === "function" && t.has(key)) return t(key);
+function getI18nOrFallback(
+  t: any,
+  key: string,
+  fallback: string,
+  values?: Record<string, unknown>
+) {
+  if (typeof t?.has === "function" && t.has(key)) return t(key, values);
   return fallback;
 }
 
@@ -94,10 +99,9 @@ export default function IntelligentComboPanel({
       const updatedCombo = await response.json();
       onComboUpdated?.(updatedCombo);
       notify.success(
-        getI18nOrFallback(t, "modePackUpdated", "Mode pack updated to {pack}.").replace(
-          "{pack}",
-          modePackId
-        )
+        getI18nOrFallback(t, "modePackUpdated", "Mode pack updated to {pack}.", {
+          pack: modePackId,
+        }).replace("{pack}", modePackId)
       );
     } catch (error: any) {
       notify.error(error?.message || "Failed to update mode pack.");
@@ -133,8 +137,8 @@ export default function IntelligentComboPanel({
               <code className="rounded bg-black/5 dark:bg-white/5 px-2 py-1 text-text-main">
                 {combo?.name}
               </code>
-              <span>{allCombos.length} intelligent combo(s)</span>
-              <span>{providerScopeCount} providers in scope</span>
+              <span>{t("intelligentComboCount", { count: allCombos.length })}</span>
+              <span>{t("providersInScope", { count: providerScopeCount })}</span>
             </div>
           </div>
 
@@ -161,7 +165,7 @@ export default function IntelligentComboPanel({
               </div>
               <div className="rounded-lg bg-black/5 dark:bg-white/5 px-3 py-2 text-right">
                 <p className="text-[10px] uppercase tracking-wide text-text-muted">
-                  Candidate Pool
+                  {getI18nOrFallback(t, "candidatePoolLabel", "Candidate Pool")}
                 </p>
                 <p className="text-lg font-semibold text-text-main">{providerScopeCount}</p>
               </div>
@@ -183,7 +187,11 @@ export default function IntelligentComboPanel({
                 </p>
               </div>
               {savingModePack && (
-                <span className="text-[11px] text-text-muted">Saving {savingModePack}…</span>
+                <span className="text-[11px] text-text-muted">
+                  {getI18nOrFallback(t, "savingModePack", "Saving {pack}…", {
+                    pack: savingModePack,
+                  }).replace("{pack}", savingModePack)}
+                </span>
               )}
             </div>
 
@@ -308,7 +316,7 @@ export default function IntelligentComboPanel({
               </div>
               <div className="rounded-lg border border-black/8 bg-white/60 p-3 dark:border-white/8 dark:bg-white/[0.03]">
                 <p className="text-[11px] uppercase tracking-wide text-text-muted">
-                  Exploration Rate
+                  {getI18nOrFallback(t, "explorationRateLabel", "Exploration Rate")}
                 </p>
                 <p className="mt-1 text-sm font-semibold text-text-main">
                   {Math.round(normalizedConfig.explorationRate * 100)}%

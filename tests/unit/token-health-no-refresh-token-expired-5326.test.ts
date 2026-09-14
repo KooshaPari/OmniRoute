@@ -18,7 +18,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: unknown) {
@@ -43,7 +43,7 @@ function getCreatedConnectionId(connection: { id?: unknown }): string {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // Regression for #5326: a refresh-CAPABLE provider (antigravity) with NO refresh
@@ -124,36 +124,141 @@ test("checkConnection leaves a non-refresh provider with no refresh token untouc
 
 test("checkConnection keeps GitHub Copilot access-token-only connections active", async () => {
   await resetStorage();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        token: "verified-copilot-token",
+        expires_at: Math.floor((Date.now() + 60 * 60 * 1000) / 1000),
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    )) as typeof fetch;
 
-  const connection = await providersDb.createProviderConnection({
-    provider: "github",
-    authType: "oauth",
-    name: "GitHub Access Token Account",
-    accessToken: "github-access-token",
-    refreshToken: null,
-    providerSpecificData: {
-      copilotToken: "copilot-token",
-      copilotTokenExpiresAt: Math.floor((Date.now() + 60 * 60 * 1000) / 1000),
-    },
-    testStatus: "active",
-    isActive: true,
-  });
+  try {
+    const connection = await providersDb.createProviderConnection({
+      provider: "github",
+      authType: "oauth",
+      name: "GitHub Access Token Account",
+      accessToken: "github-access-token",
+      refreshToken: null,
+      providerSpecificData: {
+        copilotToken: "copilot-token",
+        copilotTokenExpiresAt: Math.floor((Date.now() + 60 * 60 * 1000) / 1000),
+      },
+      testStatus: "active",
+      isActive: true,
+    });
 
-  await tokenHealthCheck.checkConnection(connection);
+    await tokenHealthCheck.checkConnection(connection);
 
-  const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
-  assert.equal(updated?.testStatus, "active");
-  assert.notEqual(updated?.errorCode, "no_refresh_token");
-  assert.ok(updated?.lastHealthCheckAt);
+    const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
+    assert.equal(updated?.testStatus, "active");
+    assert.notEqual(updated?.errorCode, "no_refresh_token");
+    assert.ok(updated?.lastHealthCheckAt);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("checkConnection clears stale no_refresh_token state for usable GitHub Copilot connections", async () => {
+  await resetStorage();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        token: "verified-copilot-token",
+        expires_at: Math.floor((Date.now() + 60 * 60 * 1000) / 1000),
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    )) as typeof fetch;
+
+  try {
+    const connection = await providersDb.createProviderConnection({
+      provider: "github",
+      authType: "oauth",
+      name: "GitHub False Expired Account",
+      accessToken: "github-access-token",
+      refreshToken: null,
+      providerSpecificData: {
+        copilotToken: "copilot-token",
+        copilotTokenExpiresAt: Math.floor((Date.now() + 60 * 60 * 1000) / 1000),
+      },
+      testStatus: "expired",
+      errorCode: "no_refresh_token",
+      lastError: "No refresh token available — re-authenticate this account.",
+      isActive: true,
+    });
+
+    await tokenHealthCheck.checkConnection(connection);
+
+    const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
+    assert.equal(updated?.testStatus, "active");
+    assert.equal(updated?.errorCode ?? null, null);
+    assert.equal(updated?.lastError ?? null, null);
+    assert.ok(updated?.lastHealthCheckAt);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+// Boundary between #8182's terminal-skip and the retry-budget exemption that later
+// widened it (`isRecoverableExpiredWithRetryBudget` in tokenHealthCheck.ts).
+//
+// #8182 skipped every "expired" connection to stop wasting a probe per sweep on rows
+// that can never self-heal. That was too wide: a transient OAuth failure parks a healthy
+// connection at "expired" and it could then never come back. The current guard therefore
+// exempts an expired connection while it still has retry budget AND is not
+// `account_deactivated`, so only genuinely dead accounts stay unprobed.
+//
+// This case used to assert the pre-exemption behaviour — that ANY non-`no_refresh_token`
+// expired GitHub connection is skipped — which is no longer the policy. Both halves of
+// the real boundary are pinned below instead, so the wasted-probe protection is still
+// covered where it actually applies.
+test("checkConnection probes an expired GitHub connection that still has retry budget", async () => {
+  await resetStorage();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify({ message: "Bad credentials" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    })) as typeof fetch;
+
+  try {
+    const connection = await providersDb.createProviderConnection({
+      provider: "github",
+      authType: "oauth",
+      name: "GitHub Transiently Expired Account",
+      accessToken: "github-access-token",
+      refreshToken: null,
+      providerSpecificData: {
+        copilotToken: "copilot-token",
+        copilotTokenExpiresAt: Math.floor((Date.now() + 60 * 60 * 1000) / 1000),
+      },
+      testStatus: "expired",
+      errorCode: "invalid_grant",
+      lastError: "Manually invalidated by operator.",
+      isActive: true,
+    });
+
+    await tokenHealthCheck.checkConnection(connection);
+
+    const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
+    assert.ok(
+      updated?.lastHealthCheckAt,
+      "retry budget remaining — the sweep must probe so a transient failure can self-heal"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("checkConnection still skips an expired GitHub connection whose account is deactivated (#8182)", async () => {
   await resetStorage();
 
   const connection = await providersDb.createProviderConnection({
     provider: "github",
     authType: "oauth",
-    name: "GitHub False Expired Account",
+    name: "GitHub Deactivated Account",
     accessToken: "github-access-token",
     refreshToken: null,
     providerSpecificData: {
@@ -161,16 +266,20 @@ test("checkConnection clears stale no_refresh_token state for usable GitHub Copi
       copilotTokenExpiresAt: Math.floor((Date.now() + 60 * 60 * 1000) / 1000),
     },
     testStatus: "expired",
-    errorCode: "no_refresh_token",
-    lastError: "No refresh token available — re-authenticate this account.",
+    errorCode: "invalid_grant",
+    lastErrorType: "account_deactivated",
+    lastError: "Account deactivated upstream.",
     isActive: true,
   });
 
   await tokenHealthCheck.checkConnection(connection);
 
   const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
-  assert.equal(updated?.testStatus, "active");
-  assert.equal(updated?.errorCode ?? null, null);
-  assert.equal(updated?.lastError ?? null, null);
-  assert.ok(updated?.lastHealthCheckAt);
+  assert.equal(updated?.testStatus, "expired", "a dead account must stay terminal");
+  assert.equal(updated?.errorCode, "invalid_grant");
+  assert.equal(
+    updated?.lastHealthCheckAt ?? null,
+    null,
+    "checkConnection must return early without touching the row at all"
+  );
 });

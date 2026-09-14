@@ -10,6 +10,7 @@ type ConnectionsHeaderToolbarProps = {
   isCompatible: boolean;
   isCommandCode: boolean;
   isOAuth: boolean;
+  supportsDualAuth: boolean;
   providerSupportsPat: boolean;
   connections: any[]; // ConnectionRowConnection[]
   batchTesting: boolean;
@@ -39,6 +40,8 @@ type ConnectionsHeaderToolbarProps = {
   gateConnectionFlow: (callback: () => void) => void;
   openApiKeyAddFlow: () => void;
   openPrimaryAddFlow: () => void;
+  connectVolcengineAccount?: () => void;
+  connectingVolcengineAccount?: boolean;
   openExternalLinkFlow: () => void;
   handleOpenCommandCodeConnect: () => void;
   commandCodeAuthState: { phase: string };
@@ -57,6 +60,7 @@ export default function ConnectionsHeaderToolbar({
   isCompatible,
   isCommandCode,
   isOAuth,
+  supportsDualAuth,
   providerSupportsPat,
   connections,
   batchTesting,
@@ -84,6 +88,8 @@ export default function ConnectionsHeaderToolbar({
   gateConnectionFlow,
   openApiKeyAddFlow,
   openPrimaryAddFlow,
+  connectVolcengineAccount,
+  connectingVolcengineAccount,
   openExternalLinkFlow,
   handleOpenCommandCodeConnect,
   commandCodeAuthState,
@@ -268,7 +274,7 @@ export default function ConnectionsHeaderToolbar({
         )}
         {!isCompatible ? (
           <>
-            {isCommandCode || providerId === "clinepass" ? (
+            {isCommandCode || supportsDualAuth ? (
               <>
                 <Button
                   size="sm"
@@ -301,6 +307,19 @@ export default function ConnectionsHeaderToolbar({
                 <Button size="sm" icon="add" onClick={() => gateConnectionFlow(openPrimaryAddFlow)}>
                   {providerSupportsPat ? providerText(t, "addPat", "Add PAT") : t("add")}
                 </Button>
+                {(providerId === "volcengine-agent-plan" ||
+                  providerId === "volcengine-coding-plan") &&
+                  connectVolcengineAccount && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      icon="login"
+                      loading={connectingVolcengineAccount}
+                      onClick={() => gateConnectionFlow(connectVolcengineAccount)}
+                    >
+                      {providerText(t, "connectVolcengineAccount", "Connect Volcano Account")}
+                    </Button>
+                  )}
                 {providerId === "qoder" && (
                   <Button
                     size="sm"
@@ -347,9 +366,7 @@ export default function ConnectionsHeaderToolbar({
                     icon="upload_file"
                     onClick={() => gateConnectionFlow(onOpenImportClaude)}
                   >
-                    {typeof (t as any).has === "function" && (t as any).has("importClaudeAuth")
-                      ? t("importClaudeAuth")
-                      : "Import auth"}
+                    {providerText(t, "importClaudeAuth", "Import auth")}
                   </Button>
                 )}
                 {providerId === "grok-cli" && (
@@ -360,16 +377,6 @@ export default function ConnectionsHeaderToolbar({
                     onClick={() => gateConnectionFlow(onOpenImportGrokCli)}
                   >
                     {providerText(t, "importGrokAuth", "Import auth")}
-                  </Button>
-                )}
-                {providerId === "grok-cli" && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    icon="upload_file"
-                    onClick={() => gateConnectionFlow(onOpenImportGrokCli)}
-                  >
-                    Import auth
                   </Button>
                 )}
               </>

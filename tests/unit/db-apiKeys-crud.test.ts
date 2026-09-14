@@ -2,7 +2,7 @@
  * Tests for src/lib/db/apiKeys.ts — API key lifecycle, validation, caching, wildcard matching.
  *
  * Coverage targets:
- *   - createApiKey, getApiKeys, getApiKeysCount, getApiKeyById
+ *   - createApiKey, getApiKeys, getApiKeyById
  *   - validateApiKey (env key, DB-backed, cache, banned/revoked/expired/inactive)
  *   - getApiKeyMetadata (env key, DB-backed, cache)
  *   - isModelAllowedForKey (no restrictions, exact, prefix, wildcard, group deny)
@@ -31,7 +31,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch {
@@ -65,10 +65,9 @@ test("createApiKey with scopes stores them", async () => {
 
 test("createApiKey rejects empty machineId", async () => {
   await resetStorage();
-  await assert.rejects(
-    () => apiKeys.createApiKey("Bad Key", ""),
-    { message: /machineId is required/i }
-  );
+  await assert.rejects(() => apiKeys.createApiKey("Bad Key", ""), {
+    message: /machineId is required/i,
+  });
 });
 
 // ──────────────── getApiKeys ────────────────
@@ -87,15 +86,6 @@ test("getApiKeys returns all created keys", async () => {
   assert.equal(all.length, 2);
   const names = all.map((k) => k.name).sort();
   assert.deepEqual(names, ["Key A", "Key B"]);
-});
-
-test("getApiKeysCount returns the full table total", async () => {
-  await resetStorage();
-  assert.equal(apiKeys.getApiKeysCount(), 0);
-
-  await apiKeys.createApiKey("Count A", "ma-count-a");
-  await apiKeys.createApiKey("Count B", "ma-count-b");
-  assert.equal(apiKeys.getApiKeysCount(), 2);
 });
 
 // ──────────────── getApiKeyById ────────────────
@@ -384,7 +374,10 @@ test("updateApiKeyPermissions clears accessSchedule with null", async () => {
 test("updateApiKeyPermissions sets rateLimits", async () => {
   await resetStorage();
   const created = await apiKeys.createApiKey("Rate Limited", "ma-026");
-  const limits = [{ limit: 100, window: 60 }, { limit: 1000, window: 3600 }];
+  const limits = [
+    { limit: 100, window: 60 },
+    { limit: 1000, window: 3600 },
+  ];
   await apiKeys.updateApiKeyPermissions(created.id, { rateLimits: limits });
   const loaded = await apiKeys.getApiKeyById(created.id);
   assert.deepEqual(loaded!.rateLimits, limits);

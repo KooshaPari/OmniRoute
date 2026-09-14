@@ -1,14 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
-import {
-  createFile,
-  createBatch,
-  getBatch,
-  deleteBatch,
-  deleteCompletedBatches,
-  getFile,
-  deleteFile,
-} from "@/lib/localDb";
+import { createFile, getFile, deleteFile } from "@/lib/db/files";
+import { createBatch, getBatch, deleteBatch, deleteCompletedBatches } from "@/lib/db/batches";
 
 describe("deleteBatch", () => {
   it("should delete a single batch and its associated files", () => {

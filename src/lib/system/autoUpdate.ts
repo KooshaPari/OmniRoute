@@ -1,5 +1,5 @@
 import { execFile, spawn } from "node:child_process";
-import { closeSync, mkdirSync, openSync, existsSync } from "node:fs";
+import { closeSync, mkdirSync, openSync, existsSync, readFileSync } from "node:fs";
 import { access } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -7,15 +7,36 @@ import { homedir } from "node:os";
 
 const execFileAsync = promisify(execFile);
 
+/**
+ * Check whether a directory's package.json is a valid project-root marker by
+ * requiring a non-empty `name` field.  The Next.js standalone build writes a
+ * synthetic `.build/next/package.json` = `{"type":"commonjs"}` that should not
+ * be mistaken for the real project root.
+ *
+ * Swallows read / parse errors (missing file, invalid JSON) and returns false
+ * so the walk-up continues.
+ *
+ * @internal — exported for testability.
+ */
+export function isValidPackageMarker(dir: string): boolean {
+  try {
+    const content = readFileSync(path.join(dir, "package.json"), "utf-8");
+    const pkg = JSON.parse(content);
+    return typeof pkg.name === "string" && pkg.name.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 /** @internal — exported for testability. */
 export function resolveProjectRoot(
   fallback: string,
   startDir: string = typeof __dirname !== "undefined" ? __dirname : process.cwd()
 ): string {
-  const markers = ["package.json", ".git"] as const;
   let dir = path.resolve(startDir);
   while (true) {
-    if (markers.some((m) => existsSync(path.join(dir, m)))) return dir;
+    if (existsSync(path.join(dir, ".git"))) return dir;
+    if (existsSync(path.join(dir, "package.json")) && isValidPackageMarker(dir)) return dir;
     const parent = path.dirname(dir);
     if (parent === dir) break;
     dir = parent;
@@ -264,10 +285,7 @@ export function buildNpmUpdateScript(latest: string): string {
     // --include=optional keeps the optionalDependencies (better-sqlite3, keytar,
     // tls-client, and the llmlingua SLM stack) installed on every update so an
     // `omit=optional` config / .npmrc cannot silently drop them.
-    // Remove the unscoped upstream package first so npm cannot leave a stale
-    // executable earlier on PATH after the fork migration.
-    "npm uninstall -g omniroute --ignore-scripts || true",
-    `npm install -g @kooshapari/omniroute@${latest} --include=optional --ignore-scripts --legacy-peer-deps`,
+    `npm install -g omniroute@${latest} --include=optional --ignore-scripts --legacy-peer-deps`,
     "if command -v pm2 >/dev/null 2>&1; then",
     "  pm2 restart omniroute || true",
     "fi",

@@ -1,0 +1,64 @@
+# Publica o export estável do catálogo consumido pelo OmniRoute Radar numa URL
+# fixa (asset de release `radar-export-latest`), para o servidor privado do Radar
+# (1 GB RAM, nunca clona/builda o OmniRoute) baixá-lo via `RADAR_EXPORT_URL` em
+# vez de depender do snapshot gravado no deploy. Fonte: scripts/release/radar-export.mjs.
+#
+# A URL estável resultante (definir em RADAR_EXPORT_URL no .env do radar-server):
+#   https://github.com/diegosouzapw/OmniRoute/releases/download/radar-export-latest/export-omniroute.json
+name: Radar Export
+
+on:
+  workflow_dispatch: # o operador pode publicar sob demanda (de qualquer ref)
+  push:
+    branches: [main] # produção: só o catálogo do main clobra o asset estável
+    paths:
+      - open-sse/config/freeModelCatalog.data.ts
+      - open-sse/config/freeModelCatalog.ts
+      - open-sse/config/providerRegistry.ts
+      - open-sse/config/providers/**
+      - scripts/release/radar-export.mjs
+      - .github/workflows/radar-export.yml
+  schedule:
+    - cron: "17 6 * * 1" # semanal (segunda 06:17 UTC): mantém geradoEm/proveniência frescos
+
+permissions:
+  contents: read
+
+concurrency:
+  group: radar-export-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI_NODE_VERSION: "24"
+
+jobs:
+  publish-export:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # gh release upload — clobra o asset estável do export
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # publish usa GH_TOKEN via gh release, não a credencial do checkout
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Generate catalog export with provenance
+        run: node --import tsx/esm scripts/release/radar-export.mjs "$RUNNER_TEMP/export-omniroute.json"
+      - name: Publish to the stable release asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="radar-export-latest"
+          # Cria o release estável na primeira vez; nas seguintes só re-anexa o asset.
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Radar catalog export (rolling)" \
+              --notes "Export estável do catálogo OmniRoute para o Radar. Atualizado automaticamente; NÃO é um release de versão do produto." \
+              --latest=false
+          fi
+          gh release upload "$TAG" "$RUNNER_TEMP/export-omniroute.json" --repo "$GITHUB_REPOSITORY" --clobber

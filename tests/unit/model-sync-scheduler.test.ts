@@ -18,7 +18,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: any) {
@@ -107,7 +107,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("modelSyncScheduler: internal auth headers validate only for scheduler requests", async () => {
@@ -440,4 +440,25 @@ test("modelSyncScheduler skips empty cycles and tolerates failing sync requests"
     globalThis.fetch = originalFetch;
     timers.restore();
   }
+});
+
+test("test 12: default interval is 6h; env hours override; no-arg uses default", async () => {
+  const source = fs.readFileSync(
+    path.join(process.cwd(), "src/shared/services/modelSyncScheduler.ts"),
+    "utf8",
+  );
+  assert.match(source, /DEFAULT_INTERVAL_MS\s*=\s*6\s*\*\s*60\s*\*\s*60\s*\*\s*1000/);
+  assert.doesNotMatch(source, /DEFAULT_INTERVAL_MS\s*=\s*24\s*\*\s*60\s*\*\s*60\s*\*\s*1000/);
+  assert.match(source, /intervalMs\s*=\s*DEFAULT_INTERVAL_MS/);
+  const { DEFAULT_INTERVAL_MS } = await import("../../src/shared/services/modelSyncScheduler.ts");
+  assert.equal(DEFAULT_INTERVAL_MS, 6 * 60 * 60 * 1000);
+});
+
+test("test 12: MODEL_SYNC_INTERVAL_HOURS still wins over default", () => {
+  const source = fs.readFileSync(
+    path.join(process.cwd(), "src/shared/services/modelSyncScheduler.ts"),
+    "utf8",
+  );
+  assert.match(source, /MODEL_SYNC_INTERVAL_HOURS/);
+  assert.match(source, /envHours \* 60 \* 60 \* 1000/);
 });

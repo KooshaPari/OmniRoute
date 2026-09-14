@@ -2,6 +2,7 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { fixToolPairs } from "../../services/contextManager.ts";
+import { normalizeEffort } from "@/shared/reasoning/effortStandardization";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -219,12 +220,15 @@ function preserveRequired(obj: unknown): void {
     return;
   }
   const record = obj as JsonRecord;
-  if (Array.isArray(record.required) && record.properties && typeof record.properties === "object") {
+  if (
+    Array.isArray(record.required) &&
+    record.properties &&
+    typeof record.properties === "object"
+  ) {
     const properties = record.properties as JsonRecord;
     const valid = (record.required as unknown[]).filter(
       (field) =>
-        typeof field === "string" &&
-        Object.prototype.hasOwnProperty.call(properties, field)
+        typeof field === "string" && Object.prototype.hasOwnProperty.call(properties, field)
     );
     if (valid.length === 0) {
       delete record.required;
@@ -297,12 +301,13 @@ function convertContent(content) {
 
     // Function response → collect all, each becomes a separate tool message
     if (part.functionResponse) {
+      const resp = part.functionResponse.response;
+      const resultPayload =
+        resp && typeof resp === "object" && "result" in resp ? resp.result : (resp ?? {});
       toolResults.push({
         role: "tool",
         tool_call_id: part.functionResponse.id || part.functionResponse.name,
-        content: JSON.stringify(
-          part.functionResponse.response?.result || part.functionResponse.response || {}
-        ),
+        content: JSON.stringify(resultPayload),
       });
     }
   }
@@ -315,9 +320,7 @@ function convertContent(content) {
       const assistantMsg: JsonRecord = { role: "assistant" };
       if (textParts.length > 0) {
         assistantMsg.content =
-          textParts.length === 1 && textParts[0].type === "text"
-            ? textParts[0].text
-            : textParts;
+          textParts.length === 1 && textParts[0].type === "text" ? textParts[0].text : textParts;
       }
       if (reasoningContent) {
         assistantMsg.reasoning_content = reasoningContent;

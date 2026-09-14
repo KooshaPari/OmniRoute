@@ -16,9 +16,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const serviceModelsDb = await import("../../src/lib/db/serviceModels.ts");
-const routeModule = await import(
-  "../../src/app/api/v1/providers/[provider]/models/route.ts"
-);
+const routeModule = await import("../../src/app/api/v1/providers/[provider]/models/route.ts");
 
 function makeRequest(provider: string) {
   return new Request(`http://localhost/api/v1/providers/${encodeURIComponent(provider)}/models`);
@@ -36,7 +34,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("GET /v1/providers/:provider/models returns 400 for completely unknown provider", async () => {

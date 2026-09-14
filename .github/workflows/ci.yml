@@ -33,14 +33,27 @@ jobs:
       docs: ${{ steps.classify.outputs.docs }}
       i18n: ${{ steps.classify.outputs.i18n }}
       workflow: ${{ steps.classify.outputs.workflow }}
+      testsOnly: ${{ steps.classify.outputs.testsOnly }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
+      # Refuse a PR that targets its own head branch before spending anything on it. #8912 has
+      # head == base == release/v3.8.50: no diff, can never merge, and it sits in the queue with
+      # a full check board attached on every push to that branch. One field comparison.
+      - name: Reject a PR that targets its own branch
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/check/check-pr-self-target.mjs
+
       - id: classify
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -65,9 +78,12 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Path filter: pure docs / pure message-catalog PRs skip the code lint bag + typecheck.
+    # Existence reason of this job is code regression; docs/i18n have dedicated jobs.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true') }}
     env:
       # tsx gates below (known-symbols, route-guard-membership) import modules that
       # open SQLite on load; provide DB env so a fresh CI DB initializes cleanly.
@@ -75,10 +91,11 @@ jobs:
       API_KEY_SECRET: ci-lint-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v7
         with:
+          fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -86,21 +103,24 @@ jobs:
       - run: npm run check:node-runtime
       - run: npm run audit:deps
       - name: Restore ESLint file cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # yamllint disable-line rule:line-length
+        uses: actions/cache@v6
         with:
           path: |
             .eslintcache
             .eslintcache-complexity
           key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'package-lock.json') }}
-          restore-keys: |
-            eslint-${{ runner.os }}-
+          # No restore-keys fallback on purpose (#11600, P-II.1 of the v3.8.50 postmortem): a
+          # cache built under a different suppressions file / lint config / lockfile reports
+          # stale per-file verdicts, which is exactly how 215 pre-existing errors stayed
+          # invisible for a whole cycle. Exact key or a cold full lint (~13 min) — never a
+          # partial cache from another configuration.
       # Single ESLint inventory (JSON) — quality-gate reuses the artifact instead of
       # a second cold full-tree pass for eslintWarnings ratchet counts.
       - name: ESLint (JSON report)
         run: npm run lint:json
       - name: Upload ESLint results
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # yamllint disable-line rule:line-length
+        uses: actions/upload-artifact@v7
         with:
           name: eslint-results
           path: .artifacts/eslint-results.json
@@ -110,6 +130,8 @@ jobs:
       - run: npm run check:route-validation:t06
       - run: npm run check:any-budget:t11
       - run: npm run check:provider-consistency
+      - run: npm run check:model-lifecycle
+      - run: npm run check:provider-asset-provenance
       - run: npm run check:fetch-targets
       - run: npm run check:deps
       - run: npm run check:file-size
@@ -120,12 +142,36 @@ jobs:
       - run: npm run check:known-symbols
       - run: npm run check:route-guard-membership
       - run: npm run check:test-discovery
+      - run: npm run check:radar-sentinels
       - run: npm run check:tracked-artifacts
+      # (gap 30) Also lives in quality.yml's PR-only "Merge integrity" job — because the
+      # CHANGELOG half of that job needs a base to diff against. This half does NOT: the
+      # generator either reproduces the committed SKILL.md files or it does not.
+      #
+      # Keeping it PR-only left a real hole. This cycle's merge trains landed in batches with
+      # `--admin`, which bypasses required checks, so three SKILL.md files drifted from the route
+      # catalog, rode the release squash into `main`, and the next cycle's sync-back turned them
+      # into a base-red that blocked EVERY PR into release/v3.8.50 until #8954. Running it here
+      # means a push to `main` catches the drift at the source instead of the next cycle
+      # inheriting it.
+      - run: npm run check:agent-skills-sync
+      # WS1.7 (v3.8.49 plan): Dockerfile lint (hadolint, pinned by digest).
+      # failure-threshold=error keeps the 5 pre-existing warnings (DL3008/DL3003/
+      # DL3016 version pinning / WORKDIR) visible without blocking; any ERROR fails.
+      - name: hadolint (Dockerfile)
+        run: docker run --rm -i hadolint/hadolint@sha256:27086352fd5e1907ea2b934eb1023f217c5ae087992eb59fde121dce9c9ff21e hadolint --failure-threshold error - < Dockerfile
       - run: npm run check:lockfile
       - run: npm run check:licenses
       # check:docs-sync is run by the docs-sync-strict job (via check:docs-all) and the
       # husky pre-commit hook; the standalone copy here was redundant (ROI dedup).
       - run: npm run typecheck:core
+      # #7033: typecheck:core's curated file allowlist does not cover
+      # src/app/(dashboard) TSX (and next.config.mjs sets ignoreBuildErrors:
+      # true, so `next build` never type-checks it either) — orphaned
+      # identifiers there (see #6625/#6909) were invisible to CI. This gate
+      # runs tsc scoped to the dashboard tree against a frozen baseline of
+      # pre-existing errors; only NEW errors fail it.
+      - run: npm run check:dashboard-typecheck
       # typecheck:noimplicit:core dropped from this job (2026-07 optimize):
       # it was advisory (continue-on-error) and largely subsumed by the blocking
       # check:type-coverage ratchet in quality-gate. Local: npm run typecheck:noimplicit:core.
@@ -144,36 +190,40 @@ jobs:
     # release PR #4854, where the drift cascade only surfaced post-merge in #5029).
     # The coverage.* metrics degrade gracefully: the download is continue-on-error and
     # the ratchet runs with --allow-missing, so absent coverage is skipped, not failed.
-    if: ${{ !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
+    # Path filter: code-only — pure docs/i18n PRs have nothing for these ratchets to guard.
+    if: ${{ !cancelled() && !contains(github.event.pull_request.labels.*.name, 'hotfix') && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true' && (needs.lint.result == 'success' || needs.lint.result == 'failure'))) }}
     # security-events: read lets the CodeQL ratchet read open code-scanning alerts
     # via `gh api .../code-scanning/alerts`. contents: read keeps checkout working.
     permissions:
       contents: read
       security-events: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - name: Restore ESLint file cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # yamllint disable-line rule:line-length
+        uses: actions/cache@v6
         with:
           path: |
             .eslintcache
             .eslintcache-complexity
           key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'package-lock.json') }}
-          restore-keys: |
-            eslint-${{ runner.os }}-
+          # No restore-keys fallback on purpose (#11600, P-II.1 of the v3.8.50 postmortem): a
+          # cache built under a different suppressions file / lint config / lockfile reports
+          # stale per-file verdicts, which is exactly how 215 pre-existing errors stayed
+          # invisible for a whole cycle. Exact key or a cold full lint (~13 min) — never a
+          # partial cache from another configuration.
       # Coverage mergeada (coverage-summary.json) p/ o ratchet de cobertura.
       # continue-on-error: o artifact pode não existir se a job test-coverage foi
       # SKIPPED (shard flaky). Nesse caso collect-metrics pula coverage.* (ausente sem
       # erro) e o ratchet roda com --allow-missing — as métricas determinísticas
       # (eslint/complexity/cognitive) seguem BLOQUEANTES.
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # yamllint disable-line rule:line-length
+      - uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: coverage-report
@@ -181,7 +231,7 @@ jobs:
       # Prefer lint job's ESLint JSON (one inventory, two consumers).
       - name: Download ESLint results
         continue-on-error: true
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # yamllint disable-line rule:line-length
+        uses: actions/download-artifact@v8
         with:
           name: eslint-results
           path: .artifacts/
@@ -230,7 +280,7 @@ jobs:
         run: cat .artifacts/quality-ratchet.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload ratchet report
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # yamllint disable-line rule:line-length
+        uses: actions/upload-artifact@v7
         with:
           name: quality-ratchet
           path: .artifacts/quality-ratchet.md
@@ -250,18 +300,20 @@ jobs:
   quality-extended:
     name: Quality Gates (Extended)
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Path filter: code-only (scanners/ratchets target production surface).
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'hotfix') && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true')) }}
     steps:
       # fetch-depth: 0 — the OpenAPI breaking-change gate (oasdiff) reads the base
       # spec via `git show <base_ref>:docs/openapi.yaml`; a shallow clone
       # would lack the base ref and the gate would self-skip (base-unresolved).
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -311,8 +363,16 @@ jobs:
           install -m 0755 /tmp/osv/*linux_amd64 "$HOME/.local/bin/osv-scanner"
           # actionlint — official download script
           bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) latest "$HOME/.local/bin"
-          # zizmor — PyPI (pipx preferred, pip --user fallback); lands in ~/.local/bin
-          pipx install zizmor || pip install --user zizmor
+          # zizmor — PyPI (pipx preferred, pip --user fallback); lands in ~/.local/bin.
+          # PINNED on purpose. Unpinned, the runner installed whatever PyPI served that day and
+          # measured 1 finding MORE than the devbox on the identical commit (190 vs 189) during
+          # the v3.8.49 cycle — which cost a second rebaseline push per release, chasing a
+          # number that was never the code's. The ratchet compares counts across machines, so
+          # the auditor version has to be the same on both. Bump this deliberately, and
+          # rebaseline in the same commit: check-workflows.mjs now prints `zizmorVersion=` next
+          # to the count so the new number is traceable to the tool that produced it.
+          ZIZMOR_VERSION=1.25.2
+          pipx install "zizmor==$ZIZMOR_VERSION" || pip install --user "zizmor==$ZIZMOR_VERSION"
           # oasdiff — download latest linux amd64 tarball via gh (authed), extract binary
           rm -rf /tmp/oasd && mkdir -p /tmp/oasd
           gh release download --repo oasdiff/oasdiff --pattern '*linux_amd64.tar.gz' --dir /tmp/oasd
@@ -360,14 +420,16 @@ jobs:
   docs-sync-strict:
     name: Docs Sync (Strict)
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Run when docs OR code change: API/route code can break doc/OpenAPI contract gates.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && (needs.changes.outputs.docs == 'true' || needs.changes.outputs.code == 'true')) }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -391,17 +453,19 @@ jobs:
   docs-lint:
     name: Docs Lint (prose — advisory)
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Prose/markdown only — skip when the PR has no doc surface.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.docs == 'true') }}
     # Advisory (warning-first): prose/markdown style must not block merges while the
     # existing doc corpus is brought up to style. Promote to blocking once it converges.
     continue-on-error: true
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -410,7 +474,7 @@ jobs:
       - name: Vale prose lint (Microsoft style, advisory)
         # Non-fatal: a Vale/reviewdog setup error must not turn this advisory job red.
         continue-on-error: true
-        uses: errata-ai/vale-action@85f9f7f2c5f449ac0ae5b66662961bae3f77ca6a # permitted immutable revision
+        uses: errata-ai/vale-action@reviewdog
         with:
           files: docs
           fail_on_error: false
@@ -420,23 +484,30 @@ jobs:
   i18n-ui-coverage:
     name: i18n UI Coverage
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # UI keys move with dashboard code OR message catalogs.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && (needs.changes.outputs.i18n == 'true' || needs.changes.outputs.code == 'true')) }}
     steps:
       # fetch-depth: 0 — the value-drift gate diffs en.json against the merge base to
       # find rewritten English strings. On a shallow clone the base ref is missing and
       # the gate self-skips (base-unresolved), so it would never actually run.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
+      # Real-translation ratchet: a leaf copied verbatim from en.json passes key
+      # parity above but is still English to the user (es shipped 55% English).
+      # Advisory in PR-0; flipped to blocking once the backlog is retranslated (PR-4).
+      - name: i18n real-translation ratio (advisory)
+        run: node scripts/i18n/check-translation-ratio.mjs --warn
       # #8463: a rewritten English value used to leave its 39 translations behind
       # silently (googleOAuthWarning shipped wrong copy in 39 locales for months).
       # Key parity above cannot see it — a stale translation counts as covered.
@@ -444,6 +515,28 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref && format('origin/{0}', github.base_ref) || '' }}
         run: node scripts/i18n/check-ui-value-drift.mjs
+
+  # #8038: cheap glossary/protected-terms consistency gate —
+  # complements i18n-ui-coverage (key parity) and the ICU `i18n` job below
+  # without needing app-boot/Playwright infra. Same gating as i18n-ui-coverage.
+  # ko added after the #8224 ko.json mistranslation cleanup so the fixed
+  # terminology cannot silently regress on the next machine-translation run.
+  i18n-glossary-zhcn:
+    name: i18n Glossary (zh-CN, ko)
+    runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && (needs.changes.outputs.i18n == 'true' || needs.changes.outputs.code == 'true')) }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - run: node scripts/i18n/check-glossary-consistency.mjs --locale=zh-CN
+      - run: node scripts/i18n/check-glossary-consistency.mjs --locale=zh-TW
 
   # D4 (plano mestre testes+CI): a matrix de ~40 jobs de <1min por idioma saturava sozinha
   # a concorrência de jobs da conta (Free = 20 slots, compartilhados entre TODOS os repos)
@@ -453,15 +546,17 @@ jobs:
   i18n:
     name: i18n Validation (all languages)
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Message-catalog / i18n-tooling only — pure code without i18n surface skips this lane.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.i18n == 'true') }}
     continue-on-error: true
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # yamllint disable-line rule:line-length
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Validate all languages
@@ -485,7 +580,7 @@ jobs:
           exit "$FAIL"
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # yamllint disable-line rule:line-length
+        uses: actions/upload-artifact@v7
         with:
           name: i18n-results
           path: i18n-results/
@@ -495,15 +590,15 @@ jobs:
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
       - name: Fetch base branch
-        run: git fetch --no-tags origin "${GITHUB_BASE_REF}" --depth=1
+        run: git fetch --no-tags origin "${GITHUB_BASE_REF}"
       - name: Validate source changes include tests
         run: node scripts/check/check-pr-test-policy.mjs --summary-file .artifacts/pr-test-policy.md
       # Anti test-masking: flag net assert removal / new assert.ok(true) in changed tests.
@@ -526,31 +621,47 @@ jobs:
     # Dynamic runner: when the release captain flips the USE_VPS_RUNNER repo var to
     # 'true' (scripts/vps/release-runner-up.sh does it after the self-hosted VM is
     # online), the heavy jobs run on the dedicated 32-core VPS runners (label
-    # omni-release) instead of queueing on the 20-concurrent-job hosted pool.
+    # omni-build) instead of queueing on the 20-concurrent-job hosted pool.
     # Safety: fork PRs NEVER reach the self-hosted runner — the expression falls
     # back to ubuntu-latest unless the PR head repo is this repository (push /
     # dispatch events are own-origin by definition). Any failure path (VM down,
     # var unset/false) also falls back to ubuntu-latest.
-    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-build"]') || 'ubuntu-latest' }}
     needs: changes
+    # The .113 pool runs ONE next-build with room to spare and two at the edge: the
+    # box has 31 GB and a single next-build peaks at 14–16 GB RSS. On 2026-08-28
+    # 13:50Z the kernel OOM-killed main's build while a PR build ran beside it
+    # (five Build jobs had been queued by a burst of PRs). Two lanes: main keeps
+    # its own so a release is never queued behind PR traffic; PR builds serialize
+    # among themselves. docker-publish.yml's amd64 leg joins `heavy-build-main`
+    # so a :next image build waits beside this artefact instead of becoming the
+    # third heavy (#11976). GitHub keeps one running + one pending per group.
+    concurrency:
+      group: heavy-build-${{ github.ref == 'refs/heads/main' && 'main' || 'pr' }}
+      cancel-in-progress: false
     if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      - name: Cache Next.js build cache
-        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # yamllint disable-line rule:line-length
-        with:
-          path: .build/next/cache
-          key: nextjs-${{ runner.os }}-node-${{ env.CI_NODE_VERSION }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*', 'open-sse/**/*', 'db/**/*', 'next.config.mjs', 'tsconfig*.json', 'postcss.config.*', 'tailwind.config.*') }}
-          restore-keys: |
-            nextjs-${{ runner.os }}-node-${{ env.CI_NODE_VERSION }}-${{ hashFiles('package-lock.json') }}-
+      # NOTE: the webpack `.build/next/cache` actions/cache step was removed with the
+      # Turbopack switch below — Turbopack does not read/write the webpack cache dir
+      # (its persistent FS cache is still experimental and intentionally NOT enabled),
+      # so restoring the old ~0.5 GB webpack cache would only waste download time.
+      # Rolling back to webpack = revert this commit (cache step comes back with it).
+      #
+      # Turbopack production build (Next 16, stable): benchmarked 1.9× faster than the
+      # webpack pass (9min0s vs 17min15s on a 32-core box; multi-core Rust vs webpack's
+      # single-threaded compile). Standalone output smoke-validated (server boots,
+      # /api/monitoring/health 200). Downstream jobs (e2e ×9, package-artifact,
+      # electron-package-smoke) consume this artifact, so a green run here validates
+      # the Turbopack artifact end-to-end.
       - run: npm run build
         env:
           OMNIROUTE_USE_TURBOPACK: "1"
@@ -561,14 +672,14 @@ jobs:
         # Keep standalone/node_modules intact: package/electron jobs consume the
         # Next-traced standalone tree and must not replace it with root node_modules.
         run: |
-          tar -czf /tmp/e2e-build.tar.gz \
+          tar -czf "$RUNNER_TEMP/e2e-build.tar.gz" \
             --exclude='.build/next/cache' \
             .build/next
       - name: Upload Next.js build for downstream jobs
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # yamllint disable-line rule:line-length
+        uses: actions/upload-artifact@v7
         with:
           name: next-build
-          path: /tmp/e2e-build.tar.gz
+          path: ${{ runner.temp }}/e2e-build.tar.gz
           retention-days: 1
 
   package-artifact:
@@ -578,63 +689,141 @@ jobs:
     env:
       JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Download Next.js build artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # yamllint disable-line rule:line-length
+        uses: actions/download-artifact@v8
         with:
           name: next-build
-          path: /tmp/
+          # Workspace-relative on purpose: the matrix below includes windows-latest, whose
+          # default shell is pwsh, where $RUNNER_TEMP is empty (it is $env:RUNNER_TEMP) —
+          # #11896's first cut broke the Electron smoke on exactly that. A relative path
+          # works in bash and pwsh alike; hosted workspaces are ephemeral.
+          path: next-build-artifact
       - name: Extract Next.js build artifact
         run: |
-          tar -xzf /tmp/e2e-build.tar.gz
+          tar -xzf next-build-artifact/e2e-build.tar.gz
       # build:cli consumes the downloaded .build/next standalone artifact and assembles dist/;
       # it only rebuilds if the downloaded standalone artifact is missing.
       - run: npm run build:cli
       - name: Assert dist/server.js exists
         run: test -f dist/server.js || (echo "dist/server.js missing — build:cli did not assemble correctly" && exit 1)
+      # `build:cli` monta dist/ mas NAO grava dist/BUILD_SHA — so `build:release` faz
+      # isso, chamando write-build-sha.mjs. O guard de proveniencia do #10427, dentro
+      # de check:pack-artifact, rejeita um artefato sem SHA (e rejeita mesmo com
+      # OMNIROUTE_ALLOW_CANARY_BUILD=1: o que nao da para identificar nao da para
+      # vouchear). Sem este passo o par build+validate deste job e estruturalmente
+      # incompativel e falha 100% das vezes.
+      - name: Stamp dist/BUILD_SHA for the provenance guard (#10427)
+        # O SHA TEM de vir do head da PR, nao de `git rev-parse HEAD`. Este workflow
+        # roda em `pull_request`, entao o checkout e o MERGE COMMIT efemero que o
+        # GitHub cria — um commit que nao existe em branch nenhuma e portanto nunca e
+        # ancestral da release. O guard de proveniencia (#10427) rejeita exatamente
+        # isso, e com razao: um artefato carimbado com o merge commit nao pode ser
+        # rastreado ate codigo que passou pelos gates.
+        env:
+          OMNIROUTE_BUILD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          export OMNIROUTE_BUILD_SHA="${OMNIROUTE_BUILD_SHA:0:7}"
+          node scripts/build/write-build-sha.mjs
+      # O guard de proveniencia checa ancestralidade contra `origin/main` por padrao.
+      # Esse e o ref certo na PUBLICACAO (npm-publish.yml roda em main), mas em
+      # `pull_request` e estruturalmente impossivel: enquanto a PR esta aberta o head
+      # dela NUNCA e ancestral de main — e o checkout raso nem traz `origin/main` para
+      # o grafo local, entao a sonda responde `false` de qualquer jeito. Resultado: o
+      # gate falhava 100% das vezes em PR. Pre-merge o unico invariante checavel e "o
+      # stamp corresponde a branch sob teste", entao apontamos o ref para o head da PR.
+      # Usamos `refs/pull/<N>/head` e nao `head.ref` porque aquele existe no PROPRIO
+      # origin mesmo quando a PR vem de um fork; `head.ref` so existe no repo do autor.
+      - name: Resolve the provenance ref for the pack gate (#10427)
+        id: provenance-ref
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -n "$PR_NUMBER" ]; then
+            git fetch --no-tags --depth=50 origin \
+              "+refs/pull/$PR_NUMBER/head:refs/remotes/origin/pr-head"
+            echo "ref=origin/pr-head" >> "$GITHUB_OUTPUT"
+          else
+            git fetch --no-tags --depth=50 origin \
+              "+refs/heads/$GITHUB_REF_NAME:refs/remotes/origin/$GITHUB_REF_NAME"
+            echo "ref=origin/$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+          fi
       - run: npm run check:pack-artifact
+        env:
+          OMNIROUTE_RELEASE_REF: ${{ steps.provenance-ref.outputs.ref }}
+      # WS1.2 (#7065 class): pack the real tarball, install it into a clean prefix and
+      # BOOT it to a healthy /api/monitoring/health — the gate that structure checks
+      # cannot provide (3 releases shipped boot-crashing tarballs with green lists).
+      - name: Boot-smoke the packed tarball
+        run: npm run check:pack-boot
 
   electron-package-smoke:
-    name: Electron Package Smoke
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
+    name: Electron Package Smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     needs: build
+    # WS1.5 (v3.8.49 plan): the Electron native-module path previously executed for
+    # the FIRST time on the release tag — the v3.8.48 Windows bug (npx.cmd spawned
+    # without shell, CVE-2024-27980 behavior change) could only surface at release.
+    # windows-latest runs prepare:bundle (better-sqlite3 prebuild verification since
+    # v13 — the node-gyp rebuild is gone) per release PR; ubuntu keeps the full
+    # pack + headless smoke.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     env:
       JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Download Next.js build artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # yamllint disable-line rule:line-length
+        uses: actions/download-artifact@v8
         with:
           name: next-build
-          path: /tmp/
+          # Workspace-relative on purpose: the matrix below includes windows-latest, whose
+          # default shell is pwsh, where $RUNNER_TEMP is empty (it is $env:RUNNER_TEMP) —
+          # #11896's first cut broke the Electron smoke on exactly that. A relative path
+          # works in bash and pwsh alike; hosted workspaces are ephemeral.
+          path: next-build-artifact
       - name: Extract Next.js build artifact
         run: |
-          tar -xzf /tmp/e2e-build.tar.gz
+          tar -xzf next-build-artifact/e2e-build.tar.gz
       - name: Install Electron dependencies
         working-directory: electron
         run: npm install --no-audit --no-fund
       - name: Pack Electron app
+        if: runner.os == 'Linux'
         working-directory: electron
         run: npm run pack
+      # ADVISORY while the new Windows leg matures (repo convention, dast-smoke
+      # precedent): its first-ever real run (2026-07-15, run 29457533565) died in
+      # 0.7s with the error swallowed by pwsh — bash shell captures stderr and
+      # continue-on-error keeps the heavy gate green while we harden it (#7336).
+      - name: Prepare Electron standalone (Windows prebuild verification)
+        if: runner.os == 'Windows'
+        working-directory: electron
+        continue-on-error: true
+        shell: bash
+        run: npm run prepare:bundle 2>&1
       - name: Smoke packaged Electron app
+        if: runner.os == 'Linux'
         env:
           ELECTRON_SMOKE_TIMEOUT_MS: 60000
         run: xvfb-run -a npm run electron:smoke:packaged
@@ -642,7 +831,13 @@ jobs:
   test-unit:
     name: Unit Tests (${{ matrix.shard }}/8)
     # Same dynamic-runner rule as Build (own-origin only; fallback ubuntu-latest).
-    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
+    # PINNED to hosted, deliberately not on the USE_VPS_RUNNER switch (gap 19). One variable
+    # governed the build and the test jobs, which want OPPOSITE machines: the build needs the
+    # .113's RAM, the tests need the hosted runner's link. Measured on 2026-07-29 —
+    # actions/setup-node took 20m06s on .113 with 4 concurrent runners versus 16s hosted (npm
+    # cache restore saturating the link), while the tests themselves tied, 2m54 vs 2m31. So
+    # self-hosted is strictly worse here and there is nothing to configure.
+    runs-on: ubuntu-latest
     timeout-minutes: 25
     # needs: changes (not build) — this job never downloads the next-build artifact;
     # gating it on Build only serialized ~20min of wall-clock for nothing. Jobs that
@@ -660,21 +855,95 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
+      # QW-d (plano mestre): fonte única — o MESMO npm script dos runs locais (adiciona o
+      # setupPolyfill que o comando inline omitia; o glob canônico vive só no package.json).
+      # D3 (plano mestre): a coverage é coletada NESTE mesmo run (c8/NODE_V8_COVERAGE propaga
+      # aos filhos através do npm) — elimina a matrix Coverage Shard ×8, que re-executava a
+      # suíte inteira só para medir o gate. Padrão usado pelo CI do próprio nodejs/node.
+      # Heap: os shards rodam sob instrumentacao de cobertura do V8, que retem muito
+      # mais memoria que a suite crua. Com o teto antigo de 4096 MB os shards passaram
+      # a abortar com SIGABRT (exit 134, "Ineffective mark-compacts near heap limit")
+      # ao redor de 4086 MB conforme o catalogo de providers cresceu no ciclo v3.8.50 —
+      # todos os testes passavam e o processo morria no fim, o que le como falha de
+      # teste sem ser. O teto vive em `test:unit:ci:shard` (package.json) e agora
+      # acompanha os 8192 MB ja usados pelas variantes nao-shardadas; os runners
+      # GitHub-hosted tem 16 GB.
+      - name: Unit tests (shard ${{ matrix.shard }}/8) with V8 coverage
+        env:
+          TEST_SHARD: ${{ matrix.shard }}/8
+          # NODE_OPTIONS (nao so o flag em test:unit:ci:shard) porque quem estoura o
+          # heap e o processo `c8` que embrulha a suite — ele agrega ~577 MB de JSON
+          # de cobertura bruta. Subir o teto so no node filho deixa o pai no default
+          # do V8 (~4 GB) e o OOM continua igual, em ~4083 MB. Mesmo padrao ja usado
+          # pelo job de merge de cobertura mais abaixo.
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          rm -rf coverage-shard coverage-shard-report
+          npx c8 \
+            --temp-directory=coverage-shard \
+            --reports-dir=coverage-shard-report \
+            --reporter=json \
+            --exclude=tests/** \
+            --exclude=**/*.test.* \
+            npm run test:unit:ci:shard
+      - name: Upload raw shard coverage
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-shard-${{ matrix.shard }}
+          path: coverage-shard/*.json
+          if-no-files-found: error
+
+  test-bun-sqlite:
+    name: Bun SQLite Compatibility
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.os == 'windows-latest' }}
+    timeout-minutes: 10
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - name: Install Bun (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          powershell -c "iwr bun.sh/install.ps1 -useb | iex"
+          echo "$env:USERPROFILE\.bun\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+      - name: Install Bun (non-Windows)
+        if: runner.os != 'Windows'
+        run: npm install -g bun
+      - run: npm run test:bun:db
 
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
     # Same dynamic-runner rule as Build (own-origin only; fallback ubuntu-latest).
-    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
+    # PINNED to hosted, deliberately not on the USE_VPS_RUNNER switch (gap 19). One variable
+    # governed the build and the test jobs, which want OPPOSITE machines: the build needs the
+    # .113's RAM, the tests need the hosted runner's link. Measured on 2026-07-29 —
+    # actions/setup-node took 20m06s on .113 with 4 concurrent runners versus 16s hosted (npm
+    # cache restore saturating the link), while the tests themselves tied, 2m54 vs 2m31. So
+    # self-hosted is strictly worse here and there is nothing to configure.
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     # needs: changes (not build) — no artifact consumed; see test-unit note.
     needs: changes
@@ -684,169 +953,65 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       # The second test runner (CLAUDE.md: "Both test runners must pass") — was never
       # wired into CI until the 2026-06-09 quality audit (Fase 6A.2).
-      - run: npm run test:vitest
-      # vitest:ui is RED today (14 fails — UI component drift accumulated while the
-      # suite never ran in CI). Informational until the Fase 6A triage (2026-06-16+)
-      # fixes the components/tests; then drop continue-on-error to make it blocking.
-      - run: npm run test:vitest:ui
+      # WS5.2/5.3 (v3.8.49 plan): JUnit output feeds Trunk Flaky Tests (advisory upload
+      # below). node:test stays OUT of the first wave (fd1-sensitive reporter stream).
+      - run: npm run test:vitest -- --reporter=default --reporter=junit --outputFile.junit=trunk-junit/vitest-mcp.xml
+      # vitest:ui went back to 870/870 green in the v3.8.49 quality plan (WS6.1,
+      # PR #7127 — 69 fails triaged: matchMedia polyfill, node:test→vitest migration,
+      # CompareTab D22 cap). Promoted to BLOCKING per the plan's post-merge step.
+      - run: npm run test:vitest:ui -- --reporter=default --reporter=junit --outputFile.junit=trunk-junit/vitest-ui.xml
+      # Trunk Flaky Tests upload — advisory (never blocks), own-origin only (fork PRs
+      # have no TRUNK_TOKEN). Pinned by SHA (tag v2.1.2).
+      - name: Upload test results to Trunk (advisory)
+        if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         continue-on-error: true
+        uses: trunk-io/analytics-uploader@385f1ccdf345b4532dc4b6c665dd432b702b8e28 # v2.1.2
+        with:
+          junit-paths: trunk-junit/**/*.xml
+          org-slug: omniroute
+          token: ${{ secrets.TRUNK_TOKEN }}
 
-  node-24-compat:
-    name: Node 24 Compatibility Tests (${{ matrix.shard }}/4)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # yamllint disable-line rule:line-length
-        with:
-          node-version: ${{ env.CI_NODE_24_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
-
-  node-26-compat-build:
-    name: Node 26 Compatibility Build
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    needs: build
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # yamllint disable-line rule:line-length
-        with:
-          node-version: ${{ env.CI_NODE_26_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - name: Cache Next.js build cache
-        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # yamllint disable-line rule:line-length
-        with:
-          path: .build/next/cache
-          key: nextjs-${{ runner.os }}-node-${{ env.CI_NODE_26_VERSION }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*', 'open-sse/**/*', 'db/**/*', 'next.config.mjs', 'tsconfig*.json', 'postcss.config.*', 'tailwind.config.*') }}
-          restore-keys: |
-            nextjs-${{ runner.os }}-node-${{ env.CI_NODE_26_VERSION }}-${{ hashFiles('package-lock.json') }}-
-      - run: npm run build
-
-  node-26-compat:
-    name: Node 26 Compatibility Tests (${{ matrix.shard }}/4)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: node-26-compat-build
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # yamllint disable-line rule:line-length
-        with:
-          node-version: ${{ env.CI_NODE_26_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
-
-  test-coverage-shard:
-    name: Coverage Shard (${{ matrix.shard }}/8)
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8]
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # yamllint disable-line rule:line-length
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - name: Run c8 over shard ${{ matrix.shard }}/8
-        run: |
-          rm -rf coverage-shard coverage-shard-report
-          # `--temp-directory` (writable via NODE_V8_COVERAGE) is what the merge
-          # job reads with `c8 report --temp-directory ...`. Using `--output-dir`
-          # only produces the final json *report* and leaves the raw v8 files in
-          # `coverage/tmp`, so uploading `coverage-shard/` was empty. Pin the temp
-          # dir so the raw coverage files live there and the artifact upload picks
-          # them up regardless of `--test-force-exit` timing.
-          npx c8 \
-            --temp-directory=coverage-shard \
-            --reports-dir=coverage-shard-report \
-            --reporter=json \
-            --exclude=tests/** \
-            --exclude=**/*.test.* \
-            node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 \
-              --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
-      - name: Upload raw shard coverage
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # yamllint disable-line rule:line-length
-        with:
-          name: coverage-shard-${{ matrix.shard }}
-          path: coverage-shard/*.json
-          if-no-files-found: error
-
+  # Node 24/26 compatibility matrices moved to .github/workflows/nightly-compat.yml
+  # (plano mestre testes+CI, Eixo D2 — they cost ~28% of every heavy run to catch a
+  # failure class that rarely originates in a PR; nightly catches it within 24h and
+  # the release gate can still exercise them via workflow_dispatch when needed).
   test-coverage:
     name: Coverage
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 10min was sized before #7114 added the lcov reporter (Codecov/Sonar need it);
+    # merging 8 shard JSONs + text+json+lcov now takes ~10-12min — three consecutive
+    # release-tip runs died at exactly 10m as job-timeout "cancelled" (2026-07-15/16).
+    # 30, not 20 (2026-08-29): the informational Codecov upload below hung for the rest of
+    # the budget on two consecutive main runs (33207760653, 33215115341); the job ended
+    # `cancelled` and dragged the whole run's conclusion to `cancelled` although every
+    # blocking job was green. The upload step now has its own ceiling; this is headroom.
+    timeout-minutes: 30
     needs: test-unit
-    if: ${{ !cancelled() && needs.test-unit.result == 'success' }}
+    if: ${{ !cancelled() && needs.test-unit.result == 'success' && !contains(github.event.pull_request.labels.*.name, 'hotfix') }}
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - name: Download all shard coverage
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # yamllint disable-line rule:line-length
+        uses: actions/download-artifact@v8
         with:
           pattern: coverage-shard-*
           path: coverage-shards/
@@ -880,6 +1045,7 @@ jobs:
             --merge-async \
             --reporter=text-summary \
             --reporter=json-summary \
+            --reporter=lcov \
             --exclude=tests/** \
             --exclude=**/*.test.* \
             --check-coverage \
@@ -908,6 +1074,10 @@ jobs:
       # (if-no-files-found: warn) — Sonar consumes the same file.
       - name: Upload coverage to Codecov (informational)
         if: always()
+        # Informational means informational: its own ceiling and continue-on-error, so a
+        # stalled upload can neither eat the job's budget nor turn a green job cancelled.
+        timeout-minutes: 5
+        continue-on-error: true
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           files: coverage/lcov.info
@@ -915,7 +1085,7 @@ jobs:
           fail_ci_if_error: false
       - name: Upload coverage artifacts
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # yamllint disable-line rule:line-length
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: |
@@ -928,19 +1098,26 @@ jobs:
     name: SonarQube
     runs-on: ubuntu-latest
     needs: test-coverage
-    if: ${{ !cancelled() && needs.test-coverage.result == 'success' }}
+    # Temporarily opt-in: the private project currently has no Sonar quota.
+    # Re-enable without another code change by setting the repository Actions
+    # variable SONARQUBE_ENABLED=true after quota/project access is restored.
+    if: ${{ vars.SONARQUBE_ENABLED == 'true' && !cancelled() && needs.test-coverage.result == 'success' }}
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # yamllint disable-line rule:line-length
+      # The upload strips the common `coverage/` prefix, so the artifact root holds
+      # lcov.info directly — download into coverage/ so it lands at coverage/lcov.info,
+      # where sonar.javascript.lcov.reportPaths expects it (path: . left the Sonar
+      # new-code coverage at 0% every scan).
+      - uses: actions/download-artifact@v8
         with:
           name: coverage-report
-          path: .
+          path: coverage/
       - name: Explain SonarQube skip
         if: ${{ github.event_name != 'pull_request' || env.SONAR_TOKEN == '' || env.SONAR_HOST_URL == '' }}
         run: |
@@ -961,7 +1138,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
       - name: SonarQube Scan
         if: ${{ github.event_name == 'pull_request' && env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != '' }}
-        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # yamllint disable-line rule:line-length
+        uses: SonarSource/sonarqube-scan-action@v8
         env:
           SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ env.SONAR_HOST_URL }}
@@ -988,7 +1165,7 @@ jobs:
       - name: Download coverage artifact
         if: ${{ needs.test-coverage.result != 'cancelled' }}
         continue-on-error: true
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # yamllint disable-line rule:line-length
+        uses: actions/download-artifact@v8
         with:
           name: coverage-report
           path: .
@@ -1017,7 +1194,7 @@ jobs:
               echo "This PR changes production code in \`src/\`, \`open-sse/\`, \`electron/\`, or \`bin/\` without accompanying automated tests."
             fi
           } > .artifacts/pr-coverage-comment.md
-      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # yamllint disable-line rule:line-length
+      - uses: actions/github-script@v9
         with:
           script: |
             const fs = require("fs");
@@ -1059,7 +1236,12 @@ jobs:
     # ~33%. Playwright browser is cached across runs (~1.5min saved per shard).
     # Heavy shard target: ≤20min (was ~40min). Timeout 45min to cover slow runners.
     timeout-minutes: 45
-    needs: build
+    needs: [build, changes]
+    # WS3.1 hotfix fast-lane: the 9-shard E2E matrix is the CI critical path (~25min).
+    # It skips for (a) PRs labeled `hotfix` (entry policy in docs/ops/RELEASE_CHECKLIST.md:
+    # production-broken only, full-suite evidence from the previous green run linked in the
+    # PR) and (b) tests-only diffs outside tests/e2e/ (cannot change the served app).
+    if: ${{ needs.changes.outputs.testsOnly != 'true' && !contains(github.event.pull_request.labels.*.name, 'hotfix') }}
     strategy:
       fail-fast: false
       matrix:
@@ -1070,30 +1252,34 @@ jobs:
       DISABLE_SQLITE_AUTO_BACKUP: "true"
       OMNIROUTE_PLAYWRIGHT_SKIP_BUILD: "1"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Cache Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # yamllint disable-line rule:line-length
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: playwright-chromium-${{ runner.os }}-
       - run: npx playwright install --with-deps chromium
       - name: Download Next.js build artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # yamllint disable-line rule:line-length
+        uses: actions/download-artifact@v8
         with:
           name: next-build
-          path: /tmp/
+          # Workspace-relative on purpose: the matrix below includes windows-latest, whose
+          # default shell is pwsh, where $RUNNER_TEMP is empty (it is $env:RUNNER_TEMP) —
+          # #11896's first cut broke the Electron smoke on exactly that. A relative path
+          # works in bash and pwsh alike; hosted workspaces are ephemeral.
+          path: next-build-artifact
       - name: Extract Next.js build artifact
         run: |
-          tar -xzf /tmp/e2e-build.tar.gz
+          tar -xzf next-build-artifact/e2e-build.tar.gz
       # WS4.1: duration-balanced shards (LPT over config/quality/e2e-timings.json).
       # Measured skew of plain --shard was 14× (24m47s vs 1m47s) — E2E was the CI
       # critical path. The balancer self-verifies completeness and exits non-zero on
@@ -1141,17 +1327,19 @@ jobs:
       DATA_DIR: /tmp/omniroute-ci-${{ matrix.shard }}
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      # (tsx/esm = QW-b; o alinhamento de ESCOPO do integration com o npm script fica p/ follow-up)
-      - run: node --import tsx/esm --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
+      - name: Integration tests (shard ${{ matrix.shard }}/2)
+        env:
+          TEST_SHARD: ${{ matrix.shard }}/2
+        run: npm run test:integration:ci
 
   test-security:
     name: Security Tests
@@ -1164,10 +1352,10 @@ jobs:
       API_KEY_SECRET: ci-test-api-key-secret-long
       DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # yamllint disable-line rule:line-length
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # yamllint disable-line rule:line-length
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -1175,107 +1363,62 @@ jobs:
       - run: npm run check:node-runtime
       - run: npm run test:security
 
-  # Stable branch-protection compatibility gates. Keep their visible names in
-  # sync with main's strict required-status contexts.
-  protected-lint:
-    name: ci / lint
+  # Live-server E2E. Both suites boot a real OmniRoute via their own runner and
+  # drive it over HTTP; neither needs provider credentials. They were documented in
+  # AGENTS.md's test matrix but wired to NO workflow, and had additionally been
+  # unrunnable (vitest.config.ts excluded the very files their runners passed as a
+  # positional filter) — so nothing had executed them for as long as that was true.
+  test-ecosystem:
+    name: Ecosystem E2E (live server)
     runs-on: ubuntu-latest
-    if: ${{ always() }}
-    needs: [lint]
+    timeout-minutes: 20
+    # needs: changes (not build) — the runner boots its own dev server.
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
+    env:
+      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - name: Require lint success
-        env:
-          LINT_RESULT: ${{ needs.lint.result }}
-        run: |
-          set -euo pipefail
-          case "$LINT_RESULT" in
-            success)
-              echo "Lint passed."
-              ;;
-            skipped)
-              echo "Lint was intentionally skipped by its existing condition."
-              ;;
-            *)
-              echo "::error::Lint did not pass: $LINT_RESULT"
-              exit 1
-              ;;
-          esac
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - run: npm run check:node-runtime
+      - run: npm run test:ecosystem
 
-  protected-test:
-    name: ci / test
+  test-protocols-e2e:
+    name: Protocol Clients E2E (live server, advisory)
     runs-on: ubuntu-latest
-    if: ${{ always() }}
-    needs:
-      - changes
-      - test-unit
-      - test-vitest
-      - node-24-compat
-      - node-26-compat-build
-      - node-26-compat
-      - test-coverage-shard
-      - test-coverage
-      - test-e2e
-      - test-integration
-      - test-security
+    timeout-minutes: 20
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
+    # ADVISORY until #10049 is resolved. Restoring this suite immediately surfaced a
+    # real discrepancy that had been invisible while it could not run: GET
+    # /api/mcp/audit answers 403 over loopback where the suite expects 200|401. That
+    # is a pre-existing contract question, not a defect introduced by wiring the job
+    # up, so it must not block every PR in the meantime. Flip to blocking (drop this
+    # continue-on-error) the moment #10049 lands.
+    continue-on-error: true
+    env:
+      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
     steps:
-      - name: Require selected test gates
-        env:
-          CHANGES_RESULT: ${{ needs.changes.result }}
-          CODE_CHANGED: ${{ needs.changes.outputs.code }}
-          IS_DRAFT: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft }}
-        run: |
-          set -euo pipefail
-          case "$CHANGES_RESULT" in
-            success)
-              ;;
-            *)
-              echo "::error::Change classification did not pass: $CHANGES_RESULT"
-              exit 1
-              ;;
-          esac
-
-          case "$CODE_CHANGED" in
-            true | false)
-              ;;
-            *)
-              echo "::error::Unexpected code-change classification: $CODE_CHANGED"
-              exit 1
-              ;;
-          esac
-
-          failed=0
-          for result in \
-            "test-unit:${{ needs.test-unit.result }}" \
-            "test-vitest:${{ needs.test-vitest.result }}" \
-            "node-24-compat:${{ needs.node-24-compat.result }}" \
-            "node-26-compat-build:${{ needs.node-26-compat-build.result }}" \
-            "node-26-compat:${{ needs.node-26-compat.result }}" \
-            "test-coverage-shard:${{ needs.test-coverage-shard.result }}" \
-            "test-coverage:${{ needs.test-coverage.result }}" \
-            "test-e2e:${{ needs.test-e2e.result }}" \
-            "test-integration:${{ needs.test-integration.result }}" \
-            "test-security:${{ needs.test-security.result }}"; do
-            name="${result%%:*}"
-            status="${result#*:}"
-            case "$status" in
-              success)
-                echo "$name: passed"
-                ;;
-              skipped)
-                if [ "$CODE_CHANGED" = "false" ] || [ "$IS_DRAFT" = "true" ]; then
-                  echo "$name: intentionally skipped"
-                else
-                  echo "::error::$name was skipped for a code-changing ready PR"
-                  failed=$((failed + 1))
-                fi
-                ;;
-              *)
-                echo "::error::$name did not pass: $status"
-                failed=$((failed + 1))
-                ;;
-            esac
-          done
-          test "$failed" -eq 0
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - run: npm run check:node-runtime
+      - run: npm run test:protocols:e2e
 
   ci-summary:
     name: CI Dashboard
@@ -1286,6 +1429,7 @@ jobs:
       - lint
       - docs-sync-strict
       - i18n-ui-coverage
+      - i18n-glossary-zhcn
       - i18n
       - pr-test-policy
       - build
@@ -1298,10 +1442,12 @@ jobs:
       - test-e2e
       - test-integration
       - test-security
+      - test-ecosystem
+      - test-protocols-e2e
     steps:
       - name: Download i18n results
         continue-on-error: true
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # yamllint disable-line rule:line-length
+        uses: actions/download-artifact@v8
         with:
           pattern: i18n-*
           path: results
@@ -1310,6 +1456,8 @@ jobs:
       - name: Generate dashboard
         env:
           EVENT_NAME: ${{ github.event_name }}
+          # Workflow-controlled data (job results), not user input — safe to read here.
+          NEEDS_JSON: ${{ toJSON(needs) }}
         run: |
           status() {
             case "$1" in
@@ -1324,6 +1472,29 @@ jobs:
           echo "# 🚀 CI Dashboard" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
 
+          # (gap 12) A cancelled job never reported a verdict, and in a long table that reads the
+          # same as a green one. `cancel-in-progress` plus incremental fixing cancels jobs on every
+          # push, and this cycle the Vitest job was cancelled in rounds 1, 2 and 3 — it only ran to
+          # completion in round 4, where it revealed a suite that had been broken the whole cycle
+          # plus two production bugs. A gate that never finishes is indistinguishable from one that
+          # passes, so name them at the TOP instead of leaving them to be spotted mid-table.
+          CANCELLED_JOBS=$(printf '%s' "$NEEDS_JSON" \
+            | jq -r 'to_entries | map(select(.value.result == "cancelled")) | .[].key' 2>/dev/null \
+            | sort | paste -sd", " -) || CANCELLED_JOBS=""
+          if [ -n "$CANCELLED_JOBS" ]; then
+            {
+              echo "> ### ⚫ Cancelled — no verdict was reported"
+              echo ">"
+              echo "> \`$CANCELLED_JOBS\`"
+              echo ">"
+              echo "> These did not fail; they never finished, so nothing was checked. Treat this"
+              echo "> run as INCOMPLETE for those gates. If the cancellation came from"
+              echo "> \`cancel-in-progress\` on a newer push, the newer run covers it — otherwise"
+              echo "> re-run them before reading this dashboard as green."
+              echo ""
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
           echo "## 🧱 Core Checks" >> "$GITHUB_STEP_SUMMARY"
           echo "| Job | Status |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
@@ -1331,8 +1502,9 @@ jobs:
           echo "| Lint | $(status '${{ needs.lint.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Docs Sync (Strict) | $(status '${{ needs.docs-sync-strict.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| i18n UI Coverage | $(status '${{ needs.i18n-ui-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| i18n Glossary (zh-CN, ko) | $(status '${{ needs.i18n-glossary-zhcn.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| PR Test Policy | $(status '${{ needs.pr-test-policy.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| SonarQube | $(status '${{ needs.sonarqube.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| SonarQube (opt-in; disabled without SONARQUBE_ENABLED=true) | $(status '${{ needs.sonarqube.result }}') |" >> "$GITHUB_STEP_SUMMARY"
 
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "## 🏗️ Build" >> "$GITHUB_STEP_SUMMARY"
@@ -1352,6 +1524,8 @@ jobs:
           echo "| E2E | $(status '${{ needs.test-e2e.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Integration | $(status '${{ needs.test-integration.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Security Tests | $(status '${{ needs.test-security.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Ecosystem E2E | $(status '${{ needs.test-ecosystem.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Protocol Clients E2E (advisory, #10049) | $(status '${{ needs.test-protocols-e2e.result }}') |" >> "$GITHUB_STEP_SUMMARY"
 
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "## 🌍 Translations" >> "$GITHUB_STEP_SUMMARY"

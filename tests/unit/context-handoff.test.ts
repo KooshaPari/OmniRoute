@@ -13,7 +13,7 @@ const contextHandoff = await import("../../open-sse/services/contextHandoff.ts")
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -33,7 +33,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("buildHandoffSystemMessage and injectHandoffIntoBody preserve existing history", () => {
@@ -307,6 +307,63 @@ test("maybeGenerateHandoff allows a new attempt after a failed in-flight generat
   assert.equal(calls, 2);
 });
 
+test("selectMessagesForSummary handles schema-locked vs standard relayMode", () => {
+  const messages = [
+    { role: "system", content: "System instruction" },
+    { role: "user", content: "Msg 1" },
+    { role: "assistant", content: "Msg 2" },
+    { role: "user", content: "Msg 3" },
+  ];
+
+  // Standard mode includes system message
+  const standard = contextHandoff.selectMessagesForSummary(messages, 2, "standard");
+  assert.equal(standard[0].role, "system");
+  assert.equal(standard.length, 3); // system + last 2
+
+  // Schema-locked mode excludes system message
+  const locked = contextHandoff.selectMessagesForSummary(messages, 2, "schema-locked");
+  assert.equal(locked[0].role, "assistant");
+  assert.equal(locked[0].content, "Msg 2");
+  assert.equal(locked.length, 2); // only non-system slice
+});
+
+test("selectMessagesForSummary trims non-system messages and excludes system in schema-locked token overflow", () => {
+  // Input with system messages and huge non-system messages exceeding token limit
+  const hugeText = "x".repeat(35000);
+  const messages = [
+    { role: "system", content: "System prompt" },
+    { role: "developer", content: "Developer prompt" },
+    { role: "user", content: `User msg 1: ${hugeText}` },
+    { role: "assistant", content: `Assistant msg 2: ${hugeText}` },
+    { role: "user", content: "User msg 3 short" },
+  ];
+
+  const trimmedLocked = contextHandoff.selectMessagesForSummary(messages, 10, "schema-locked");
+  // Should exclude system and developer messages
+  assert.ok(trimmedLocked.every((m) => m.role !== "system" && m.role !== "developer"));
+  // Should have trimmed down to non-overflowing messages (or last non-system)
+  assert.ok(trimmedLocked.length < 3);
+  assert.equal(trimmedLocked[trimmedLocked.length - 1].content, "User msg 3 short");
+});
+
+test("resolveUniversalHandoffConfig correctly parses relayMode", async () => {
+  const comboSchema = await import("../../src/shared/validation/schemas/combo.ts");
+  const parsedLocked = comboSchema.comboRuntimeConfigSchema.parse({
+    relayMode: "schema-locked",
+  });
+  assert.equal(parsedLocked.relayMode, "schema-locked");
+
+  const parsedStandard = comboSchema.comboRuntimeConfigSchema.parse({
+    relayMode: "standard",
+  });
+  assert.equal(parsedStandard.relayMode, "standard");
+
+  const resolvedConfig = contextHandoff.resolveUniversalHandoffConfig({
+    relayMode: "schema-locked",
+  });
+  assert.equal(resolvedConfig.relayMode, "schema-locked");
+});
+
 test("maybeGenerateHandoff respects explicit empty handoffProviders and skips generation", async () => {
   let called = false;
 
@@ -419,4 +476,107 @@ test("selectMessagesForSummary with no system messages and oversized single rema
     .filter(Boolean)
     .join("\n\n");
   assert.ok(historyText.length > 0, "historyText must be non-empty so the handoff is generated");
+});
+
+// ── #11552: universal-handoff regeneration backoff ───────────────────────────
+// A switch-heavy combo strategy (weighted / random / round-robin) alternates
+// models on almost every turn, so `maybeGenerateUniversalHandoff` is consulted
+// constantly. When the summarizer answers with something that is not a usable
+// handoff, nothing is persisted — and before the fix the very next switch
+// re-issued the same full-history summarization call and discarded the answer
+// again, on and on. That is the extra upstream call issue #11552 measured.
+
+function universalHandoffOptions(sessionId, handleSingleModel) {
+  return {
+    sessionId,
+    comboName: "weighted-combo",
+    messages: [{ role: "user", content: "Ship the weighted combo fix" }],
+    prevModel: "openai/gpt-4o-mini",
+    currModel: "claude/claude-3-5-sonnet-20241022",
+    universalConfig: contextHandoff.resolveUniversalHandoffConfig(null, null),
+    handleSingleModel,
+  };
+}
+
+function handoffJSONResponse(summary) {
+  return new Response(
+    JSON.stringify({
+      choices: [
+        {
+          message: {
+            content: JSON.stringify({
+              summary,
+              keyDecisions: ["backoff on unparseable handoffs"],
+              taskProgress: "done",
+              activeEntities: ["contextHandoff.ts"],
+            }),
+          },
+        },
+      ],
+    }),
+    { status: 200, headers: { "content-type": "application/json" } }
+  );
+}
+
+test("maybeGenerateUniversalHandoff stops re-summarizing after an unparseable answer", async () => {
+  contextHandoff.resetUniversalHandoffCooldowns();
+  let calls = 0;
+  // 200 upstream OK responses that carry no handoff JSON — exactly what the
+  // weighted combo matrix sees.
+  const options = universalHandoffOptions("sess-unparseable", async () => {
+    calls += 1;
+    return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  });
+
+  for (let i = 0; i < 200; i++) {
+    contextHandoff.maybeGenerateUniversalHandoff(options);
+    await new Promise((resolve) => setTimeout(resolve, 1));
+  }
+
+  // Positive anchor: the feature still runs — the first switch DID generate.
+  assert.equal(calls, 1, `expected exactly one summarization call, got ${calls}`);
+  assert.equal(handoffDb.getHandoff("sess-unparseable", "weighted-combo"), null);
+});
+
+test("maybeGenerateUniversalHandoff still generates and persists a usable handoff", async () => {
+  contextHandoff.resetUniversalHandoffCooldowns();
+  let calls = 0;
+  const options = universalHandoffOptions("sess-usable", async () => {
+    calls += 1;
+    return handoffJSONResponse("Weighted combo handoff");
+  });
+
+  contextHandoff.maybeGenerateUniversalHandoff(options);
+  const saved = await waitFor(() => handoffDb.getHandoff("sess-usable", "weighted-combo"));
+  assert.ok(saved, "a parseable summary must still be persisted");
+  assert.equal(saved.summary, "Weighted combo handoff");
+  assert.equal(calls, 1);
+
+  // A persisted handoff makes the next switch "inject", not "generate".
+  contextHandoff.maybeGenerateUniversalHandoff(options);
+  await new Promise((resolve) => setTimeout(resolve, 40));
+  assert.equal(calls, 1);
+});
+
+test("a transient upstream failure does not arm the unparseable backoff", async () => {
+  contextHandoff.resetUniversalHandoffCooldowns();
+  let calls = 0;
+  const options = universalHandoffOptions("sess-transient", async () => {
+    calls += 1;
+    if (calls === 1) return new Response("upstream down", { status: 503 });
+    return handoffJSONResponse("Recovered handoff");
+  });
+
+  contextHandoff.maybeGenerateUniversalHandoff(options);
+  await new Promise((resolve) => setTimeout(resolve, 40));
+  assert.equal(handoffDb.getHandoff("sess-transient", "weighted-combo"), null);
+
+  contextHandoff.maybeGenerateUniversalHandoff(options);
+  const saved = await waitFor(() => handoffDb.getHandoff("sess-transient", "weighted-combo"));
+  assert.ok(saved, "a 503 must stay retryable on the next model switch");
+  assert.equal(saved.summary, "Recovered handoff");
+  assert.equal(calls, 2);
 });

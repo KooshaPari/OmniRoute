@@ -65,7 +65,7 @@ test.after(() => {
   } catch {
     /* ignore */
   }
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
 });
@@ -235,9 +235,7 @@ test("#3504 — empty 'Bearer ' Authorization falls through to the URL path toke
   process.env.REQUIRE_API_KEY = "true";
   const policy = await loadPolicy();
   const headers = new Headers({ authorization: "Bearer " });
-  const out = await policy.evaluate(
-    ctx(headers, "/api/v1/vscode/sk-url-token/chat/completions")
-  );
+  const out = await policy.evaluate(ctx(headers, "/api/v1/vscode/sk-url-token/chat/completions"));
   assert.equal(out.allow, false);
   if (!out.allow) {
     assert.equal(out.status, 401);
@@ -253,9 +251,7 @@ test("#3504 — a non-Bearer scheme (Basic) also falls through to the URL token"
   process.env.REQUIRE_API_KEY = "true";
   const policy = await loadPolicy();
   const headers = new Headers({ authorization: "Basic Zm9vOmJhcg==" });
-  const out = await policy.evaluate(
-    ctx(headers, "/api/v1/vscode/sk-url-token/chat/completions")
-  );
+  const out = await policy.evaluate(ctx(headers, "/api/v1/vscode/sk-url-token/chat/completions"));
   assert.equal(out.allow, false);
   if (!out.allow) assert.equal(out.message, "Invalid API key");
 });

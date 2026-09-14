@@ -21,10 +21,11 @@ import { getSpeechProvider, parseSpeechModel } from "../config/audioRegistry.ts"
 import { buildAuthHeaders } from "../config/registryUtils.ts";
 import { kieExecutor } from "../executors/kie.ts";
 import { vertexGenerateSpeech } from "../executors/vertexMedia.ts";
+import { handleGeminiTtsSpeech } from "../executors/geminiTts.ts";
 import { handleAwsPollySpeech } from "../executors/awsPollyTts.ts";
-import { handleEdgeTtsSpeech } from "../executors/edgeTts.ts";
 import { GttsUpstreamError, normalizeGttsLang, synthesizeGtts } from "../executors/gtts.ts";
 import { errorResponse } from "../utils/error.ts";
+import { resolveElevenLabsVoiceId } from "./elevenLabsVoiceMap.ts";
 import { audioStreamResponse, upstreamErrorResponse } from "../utils/audioResponse.ts";
 import {
   getKieCallbackUrl,
@@ -33,7 +34,6 @@ import {
   isJsonObject,
   parseKieResultJson,
 } from "../utils/kieTask.ts";
-import { signAwsRequest } from "../utils/awsSigV4.ts";
 
 function normalizeKieElevenLabsVoice(voice: unknown): string {
   const value = typeof voice === "string" ? voice.trim() : "";
@@ -230,13 +230,64 @@ async function handleDeepgramSpeech(providerConfig, body, modelId, token) {
 }
 
 /**
+ * Voice-note clients send response_format=ogg. OpenAI TTS documents opus, not ogg.
+ * OmniRoute already returns Ogg/Opus bytes for opus — alias ogg → opus (#10587).
+ */
+export function normalizeSpeechResponseFormat(fmt) {
+  if (typeof fmt !== "string" || !fmt) return "mp3";
+  const lower = fmt.toLowerCase();
+  return lower === "ogg" ? "opus" : lower;
+}
+
+/**
+ * Handle Soniox TTS (OpenAI speech shape → Soniox /tts, returns raw audio bytes)
+ */
+async function handleSonioxSpeech(providerConfig, body, modelId, token) {
+  const fmt = typeof body.response_format === "string" ? body.response_format : "mp3";
+  const audioFormat = fmt === "pcm" ? "pcm_s16le" : fmt;
+
+  const res = await fetch(providerConfig.baseUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...buildAuthHeaders(providerConfig, token),
+    },
+    body: JSON.stringify({
+      text: body.input,
+      model: modelId,
+      ...(body.voice ? { voice: body.voice } : {}),
+      audio_format: audioFormat,
+    }),
+  });
+
+  if (!res.ok) {
+    return upstreamErrorResponse(res, await res.text());
+  }
+
+  const contentType = fmt === "wav" ? "audio/wav" : fmt === "opus" ? "audio/opus" : "audio/mpeg";
+  return audioStreamResponse(res, contentType);
+}
+
+/**
  * Handle ElevenLabs TTS
  * POST {baseUrl}/{voice_id} with { text, model_id }
  * voice_id is mapped from the OpenAI `voice` parameter
  */
 async function handleElevenLabsSpeech(providerConfig, body, modelId, token) {
-  // ElevenLabs uses voice_id in URL path; default to "21m00Tcm4TlvDq8ikWAM" (Rachel)
-  const voiceId = body.voice || "21m00Tcm4TlvDq8ikWAM";
+  // ElevenLabs uses voice_id in URL path. body.voice may be an OpenAI stock voice name
+  // (alloy, echo, ...), a known ElevenLabs display name (Rachel, ...), or a raw voice_id;
+  // resolve it to a real voice_id before it ever reaches the URL. Defaults to Rachel
+  // ("21m00Tcm4TlvDq8ikWAM") when omitted.
+  if (typeof body.voice === "string" && !isValidPathSegment(body.voice)) {
+    return errorResponse(400, "Invalid voice ID");
+  }
+  const voiceId = resolveElevenLabsVoiceId(body.voice);
+  if (!voiceId) {
+    return errorResponse(
+      400,
+      "Unknown ElevenLabs voice. Provide a real ElevenLabs voice_id, a supported OpenAI voice name (alloy, echo, fable, onyx, nova, shimmer), or a known ElevenLabs display name."
+    );
+  }
   if (!isValidPathSegment(voiceId)) {
     return errorResponse(400, "Invalid voice ID");
   }
@@ -792,7 +843,6 @@ export async function handleAudioSpeech({
   credentials,
   resolvedProvider = null,
   resolvedModel = null,
-  clientIp = null,
 }) {
   if (!body.model) {
     return errorResponse(400, "model is required");
@@ -814,19 +864,37 @@ export async function handleAudioSpeech({
   if (!providerConfig) {
     return errorResponse(
       400,
-      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, fishaudio, playht, kie, aws-polly, xiaomi-mimo, edgetts, gtts, coqui, tortoise, qwen`
+      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, fishaudio, playht, kie, aws-polly, xiaomi-mimo, gtts, coqui, tortoise, qwen`
     );
   }
 
-  // Skip credential check for local providers (authType: "none")
+  // Skip credential check for local providers (authType: "none") and for UC TTS,
+  // whose durable Clerk credential lives in providerSpecificData (no apiKey token).
   const token =
     providerConfig.authType === "none" ? null : credentials?.apiKey || credentials?.accessToken;
-  if (providerConfig.authType !== "none" && !token) {
+  if (providerConfig.authType !== "none" && providerConfig.format !== "uc-tts" && !token) {
     return errorResponse(401, `No credentials for speech provider: ${providerConfig.id}`);
   }
 
   try {
     // Route to provider-specific handler
+    if (providerConfig.format === "uc-tts") {
+      const { handleUcTextToSpeech } = await import("./uc/ucTts.ts");
+      const result = await handleUcTextToSpeech({
+        text: typeof body.input === "string" ? body.input : "",
+        voice: typeof body.voice === "string" ? body.voice : undefined,
+        model: modelId,
+        credentials,
+      });
+      if (!result.ok || !result.audio) {
+        return errorResponse(result.status ?? 502, result.error || "UC TTS failed");
+      }
+      return new Response(result.audio, {
+        status: 200,
+        headers: { ...CORS_HEADERS, "Content-Type": result.contentType || "audio/mpeg" },
+      });
+    }
+
     if (providerConfig.format === "vertex-gemini-tts") {
       const { audio, contentType } = await vertexGenerateSpeech(credentials, {
         model: modelId,
@@ -838,6 +906,13 @@ export async function handleAudioSpeech({
         headers: { ...CORS_HEADERS, "Content-Type": contentType },
       });
     }
+    if (providerConfig.format === "gemini-tts") {
+      return handleGeminiTtsSpeech(credentials, {
+        model: modelId,
+        text: body.input,
+        voice: body.voice,
+      });
+    }
 
     if (providerConfig.format === "hyperbolic") {
       return handleHyperbolicSpeech(providerConfig, body, token);
@@ -845,6 +920,10 @@ export async function handleAudioSpeech({
 
     if (providerConfig.format === "deepgram") {
       return handleDeepgramSpeech(providerConfig, body, modelId, token);
+    }
+
+    if (providerConfig.format === "soniox-tts") {
+      return handleSonioxSpeech(providerConfig, body, modelId, token);
     }
 
     if (providerConfig.format === "elevenlabs") {
@@ -883,10 +962,6 @@ export async function handleAudioSpeech({
       return handleAwsPollySpeech(providerConfig, body, modelId, token, credentials);
     }
 
-    if (providerConfig.format === "edgetts") {
-      return handleEdgeTtsSpeech(body, clientIp);
-    }
-
     if (providerConfig.format === "gtts") {
       return handleGttsSpeech(body);
     }
@@ -918,7 +993,7 @@ export async function handleAudioSpeech({
         model: modelId,
         input: body.input,
         voice: body.voice || "alloy",
-        response_format: body.response_format || "mp3",
+        response_format: normalizeSpeechResponseFormat(body.response_format),
         speed: body.speed || 1.0,
       }),
     });

@@ -9,7 +9,17 @@ import {
   GITHUB_COPILOT_CHAT_USER_AGENT,
   GITHUB_COPILOT_EDITOR_VERSION,
 } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
+// userAgent / editorVersion on GITHUB_CONFIG are captured-pin snapshots for
+// lockstep tests. Request construction must call getGitHubCopilotChatUserAgent()
+// (#12417) — see providers/github.ts and providers/ghe-copilot.ts.
+import {
+  GROK_BUILD_DEVICE_CODE_URL,
+  GROK_BUILD_OAUTH_ISSUER,
+  GROK_BUILD_OAUTH_SCOPES,
+  GROK_BUILD_TOKEN_URL,
+} from "@omniroute/open-sse/config/grokBuild.ts";
 import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds.ts";
+import { CURSOR_AGENT_CLI_VERSION } from "@omniroute/open-sse/utils/cursorAgentCliVersion.ts";
 import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "../gitlab";
 
 /**
@@ -67,15 +77,6 @@ export const CODEX_CONFIG = {
   },
 };
 
-// Qwen OAuth Configuration (Device Code Flow with PKCE)
-export const QWEN_CONFIG = {
-  clientId: resolvePublicCred("qwen_id", "QWEN_OAUTH_CLIENT_ID"),
-  deviceCodeUrl: "https://qwen.ai/api/v1/oauth2/device/code",
-  tokenUrl: "https://qwen.ai/api/v1/oauth2/token",
-  scope: "openid profile email model.completion",
-  codeChallengeMethod: "S256",
-};
-
 // Qoder OAuth Configuration (Authorization Code)
 const QODER_OAUTH_AUTHORIZE_URL = process.env.QODER_OAUTH_AUTHORIZE_URL || "";
 const QODER_OAUTH_TOKEN_URL = process.env.QODER_OAUTH_TOKEN_URL || "";
@@ -105,21 +106,76 @@ export const QODER_CONFIG = {
 // CodeBuddy CN (Tencent — copilot.tencent.com) OAuth Configuration
 // (Custom Device-Auth Flow: POST stateUrl → open authUrl → GET pollUrl?state=).
 // No client_id/secret — the upstream CLI ships none.
+//
+// CODEBUDDY_CN_USER_AGENT is the single source of truth for the CLI/CodeBuddy version
+// string. It MUST stay identical across OAuth (this file), chat completions
+// (open-sse/config/providers/registry/codebuddy-cn/index.ts) and usage/quota
+// (open-sse/services/usage/codebuddy-cn.ts) — a mismatched version string across a
+// single account's auth vs. chat calls is exactly the kind of internally-inconsistent
+// client fingerprint Tencent's WAF flags as anomalous (#12702).
+export const CODEBUDDY_CN_USER_AGENT = "CLI/2.108.1 CodeBuddy/2.108.1";
+
 export const CODEBUDDY_CN_CONFIG = {
   baseUrl: "https://copilot.tencent.com",
   stateUrl: "https://copilot.tencent.com/v2/plugin/auth/state",
   tokenUrl: "https://copilot.tencent.com/v2/plugin/auth/token",
   refreshUrl: "https://copilot.tencent.com/v2/plugin/auth/token/refresh",
-  userAgent: "CLI/2.63.2 CodeBuddy/2.63.2",
+  userAgent: CODEBUDDY_CN_USER_AGENT,
   platform: "CLI",
   pollInterval: 5000,
 };
 
-// Grok Build (xAI) OAuth Configuration (Import-Token Flow with refresh)
+// Grok Build (xAI) OAuth Configuration (Device Code + import-token fallback)
 // Public client_id resolved through resolvePublicCred so it is never a literal.
 export const GROK_CLI_CONFIG = {
   clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
+  issuer: GROK_BUILD_OAUTH_ISSUER,
+  deviceCodeUrl: GROK_BUILD_DEVICE_CODE_URL,
+  tokenUrl: GROK_BUILD_TOKEN_URL,
+  scope: GROK_BUILD_OAUTH_SCOPES.join(" "),
+};
+
+// Grok Build (xAI) OAuth Configuration (Browser PKCE Flow — added #7013)
+// Same auth.x.ai authorize/token endpoints and public client_id as XAI_OAUTH_CONFIG,
+// but scoped to the Grok Build (cli-chat-proxy.grok.com) entitlement and kept as a
+// separate config so grok-cli's own baseUrl/model registry stay untouched.
+export const GROK_BUILD_OAUTH_CONFIG = {
+  clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
+  authorizeUrl: "https://auth.x.ai/oauth2/authorize",
   tokenUrl: "https://auth.x.ai/oauth2/token",
+  scope: "openid profile email offline_access grok-cli:access",
+  codeChallengeMethod: "S256",
+  loopbackPort: 56122, // distinct from xai-oauth's 56121 — both can run concurrently
+  callbackPath: "/callback",
+  callbackHost: "127.0.0.1",
+};
+
+// xAI API OAuth Configuration (Authorization Code Flow with PKCE)
+// This intentionally uses a separate provider from Grok Build: both use the
+// public Grok CLI OAuth client, but their inference endpoints and model
+// entitlements differ (`api.x.ai` vs `cli-chat-proxy.grok.com`).
+export const XAI_OAUTH_CONFIG = {
+  clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
+  authorizeUrl: "https://auth.x.ai/oauth2/authorize",
+  tokenUrl: "https://auth.x.ai/oauth2/token",
+  scope: "openid profile email offline_access grok-cli:access api:access",
+  codeChallengeMethod: "S256",
+  loopbackPort: 56121,
+  callbackPath: "/callback",
+  callbackHost: "127.0.0.1",
+};
+
+// Openference OAuth Configuration (Authorization Code Flow with PKCE)
+export const OPENFERENCE_CONFIG = {
+  clientId: resolvePublicCred("openference_id"),
+  authorizeUrl: "https://openference.com/app/oauth/authorize",
+  tokenUrl: "https://openference.com/oauth/token",
+  userinfoUrl: "https://openference.com/oauth/userinfo",
+  scope: "openid profile email model:invoke offline_access",
+  codeChallengeMethod: "S256",
+  loopbackPort: 56123,
+  callbackPath: "/callback",
+  callbackHost: "127.0.0.1",
 };
 
 // Kimi Coding OAuth Configuration (Device Code Flow)
@@ -321,20 +377,26 @@ export const KIRO_CONFIG = {
   authMethods: ["builder-id", "idc", "google", "github", "import"],
 };
 
-// Cursor OAuth Configuration (Import Token from Cursor IDE)
+// Cursor OAuth Configuration (deep-control PKCE + optional IDE import)
 // Cursor stores credentials in SQLite database: state.vscdb
-// Keys: cursorAuth/accessToken, storage.serviceMachineId
+// Keys: cursorAuth/accessToken, cursorAuth/refreshToken, storage.serviceMachineId
+// Deep-control PKCE + refresh aligned with OpenCodex (lidge-jun/opencodex src/oauth/cursor.ts).
+// clientVersion pin lives in open-sse/utils/cursorAgentCliVersion.ts — single source of truth.
 export const CURSOR_CONFIG = {
   // API endpoints
   apiEndpoint: "https://api2.cursor.sh",
   chatEndpoint: "/aiserver.v1.ChatService/StreamUnifiedChatWithTools",
-  modelsEndpoint: "/aiserver.v1.AiService/GetDefaultModelNudgeData",
+  modelsEndpoint: "/aiserver.v1.AiService/AvailableModels",
+  // Standalone deep-control login (no IDE/CLI required)
+  loginUrl: "https://cursor.com/loginDeepControl",
+  pollUrl: "https://api2.cursor.sh/auth/poll",
+  refreshUrl: "https://api2.cursor.sh/auth/exchange_user_api_key",
   // Additional endpoints
   api3Endpoint: "https://api3.cursor.sh", // Telemetry
   agentEndpoint: "https://agent.api5.cursor.sh", // Privacy mode
   agentNonPrivacyEndpoint: "https://agentn.api5.cursor.sh", // Non-privacy mode
-  // Client metadata
-  clientVersion: "3.2.14",
+  // Client metadata — pin from cursorAgentCliVersion (not a second hardcoded string)
+  clientVersion: CURSOR_AGENT_CLI_VERSION,
   clientType: "ide",
   // Token storage locations (for user reference)
   tokenStoragePaths: {
@@ -345,6 +407,7 @@ export const CURSOR_CONFIG = {
   // Database keys
   dbKeys: {
     accessToken: "cursorAuth/accessToken",
+    refreshToken: "cursorAuth/refreshToken",
     machineId: "storage.serviceMachineId",
   },
 };
@@ -384,57 +447,14 @@ export const TRAE_CONFIG = {
     "Authorize via trae.ai in the popup, or sign in to solo.trae.ai and paste the Cloud-IDE-JWT from the Authorization header (~14-day lifetime).",
 };
 
-// Windsurf / Devin CLI Configuration
-//
-// 2026-05-29 (Phase 1 hotfix):
-//   The browser PKCE flow targeting https://app.devin.ai/editor/signin returned
-//   404 post-rebrand. PKCE-only fields (`authorizeUrl`, `codeChallengeMethod`,
-//   `callbackPort`, `callbackPath`, `apiServerUrl`, `exchangePath`) are kept
-//   below for archival reference but are NO LONGER consumed by any code path —
-//   the provider exports flowType="import_token" only.
-//
-//   Phase 2 will reintroduce browser login via Firebase OAuth + RegisterUser
-//   (ported from fendoushaonian/WindSurf-gRPC-API).
-//   Spec: _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
-//
-// Active fields:
-//   - inferenceUrl       → used by WindsurfExecutor (open-sse/executors/windsurf.ts)
-//   - showAuthTokenUrl   → reference URL; the real token only renders when the
-//                          IDE "Windsurf: Provide Auth Token" command opens it
-//                          with an IDE-supplied ?state= param (see field below)
-//   - firebaseApiKey     → reserved for Phase 2
-//   - ideName            → sent in extension headers
-export const WINDSURF_CONFIG = {
-  // RETIRED 2026-05-29 — endpoint returns 404 post-rebrand. Phase 2 will replace.
-  authorizeUrl: "https://app.devin.ai/editor/signin",
-  // RETIRED 2026-05-29 — PKCE flow disabled, see header comment.
-  codeChallengeMethod: "S256" as const,
-  // RETIRED 2026-05-29 — no callback server is started for windsurf/devin-cli.
-  callbackPort: 0,
-  // RETIRED 2026-05-29 — no callback path is registered for windsurf/devin-cli.
-  callbackPath: "/auth/callback",
-  // RETIRED 2026-05-29 — exchange endpoint no longer reached because PKCE is disabled.
+// Devin Desktop / Devin CLI import-token configuration.
+// Public product identity is Devin. The upstream transport still identifies
+// the IDE as `windsurf`; authentication itself is import-only.
+export const DEVIN_DESKTOP_CONFIG = {
   apiServerUrl: "https://server.codeium.com",
-  // RETIRED 2026-05-29 — see apiServerUrl.
-  exchangePath: "/exa.seat_management_pb.SeatManagementService/ExchangePKCEAuthorizationCode",
-  // ── Active fields (still consumed by runtime) ─────────────────────────────
-  // Inference server URL (gRPC-web requests go here)
-  inferenceUrl: "https://server.self-serve.windsurf.com",
-  // Primary login path: the user runs the "Windsurf: Provide Auth Token" command
-  // inside the Windsurf/VS Code IDE (or clicks the Jupyter "Get Windsurf
-  // Authentication Token" button), which opens this URL WITH an IDE-supplied
-  // `?state=<xyz>` param and renders the token. Opening this bare URL directly
-  // only shows a "Redirecting" page with no token (#3324).
-  showAuthTokenUrl: "https://windsurf.com/show-auth-token",
-  // Token refresh via Firebase Secure Token Service (reserved for Phase 2).
-  // Default is the public Firebase Web client identifier embedded in the
-  // Windsurf/Devin CLI binary; users may override via WINDSURF_FIREBASE_API_KEY.
-  firebaseApiKey: resolvePublicCred("windsurf_fb", "WINDSURF_FIREBASE_API_KEY"),
-  firebaseTokenUrl: "https://securetoken.googleapis.com/v1/token",
-  // IDE identity sent with every gRPC request
+  inferenceUrl: "https://inference.codeium.com",
   ideName: "windsurf",
-  ideVersion: "3.14.0",
-  extensionVersion: "3.14.0",
+  defaultVersion: "3.6.27",
 };
 
 // Zed IDE credential import — no standard OAuth flow.
@@ -448,6 +468,29 @@ export const ZED_CONFIG = {
   manualImportUrl: "/api/providers/zed/manual-import",
 };
 
+// Zed Hosted Models Configuration (native-app RSA-keypair sign-in)
+//
+// Zed's cloud aggregator (cloud.zed.dev) does not use a registered OAuth
+// client_id/secret. The client generates a fresh RSA keypair per login
+// attempt and sends the public key to zed.dev/native_app_signin; Zed
+// encrypts the resulting access token against that public key and redirects
+// the browser to a local "native app" callback
+// (http://127.0.0.1:<port>/?user_id=...&access_token=...). OmniRoute decrypts
+// the token with the matching private key — see open-sse/shared/zedAuth.ts.
+// No client_id/secret/Firebase key is embedded here (Hard Rule #11 does not
+// apply — there is no upstream secret to embed).
+export const ZED_HOSTED_CONFIG = {
+  webBaseUrl: "https://zed.dev",
+  cloudBaseUrl: "https://cloud.zed.dev",
+  llmBaseUrl: "https://cloud.zed.dev",
+  nativeSignInPath: "/native_app_signin",
+  userInfoUrl: "https://cloud.zed.dev/client/users/me",
+  llmTokenUrl: "https://cloud.zed.dev/client/llm_tokens",
+  modelsUrl: "https://cloud.zed.dev/models",
+  completionsUrl: "https://cloud.zed.dev/completions",
+  defaultNativeAppPort: 58443,
+};
+
 // OAuth timeout (5 minutes)
 export const OAUTH_TIMEOUT = 300000;
 
@@ -456,7 +499,6 @@ export const PROVIDERS = {
   CLAUDE: "claude",
   CODEX: "codex",
   GEMINI: "gemini",
-  QWEN: "qwen",
   QODER: "qoder",
   ANTIGRAVITY: "antigravity",
   AGY: "agy",
@@ -471,9 +513,13 @@ export const PROVIDERS = {
   KILOCODE: "kilocode",
   CLINE: "cline",
   CLINEPASS: "clinepass",
-  WINDSURF: "windsurf",
+  DEVIN_DESKTOP: "devin-desktop",
   DEVIN_CLI: "devin-cli",
   TRAE: "trae",
   CODEBUDDY_CN: "codebuddy-cn",
   GROK_CLI: "grok-cli",
+  XAI_OAUTH: "xai-oauth",
+  OPENFERENCE: "openference",
+  ZED: "zed",
+  ZED_HOSTED: "zed-hosted",
 };

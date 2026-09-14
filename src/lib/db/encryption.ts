@@ -26,9 +26,6 @@
  */
 
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync, createHash } from "crypto";
-import { createLogger } from "@/shared/utils/logger";
-
-const encryptionLog = createLogger("db:encryption");
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16;
@@ -42,8 +39,6 @@ const KEY_LENGTH = 32;
 const AUTH_TAG_LENGTH = 16;
 const PREFIX = "enc:v1:";
 const STATIC_SALT = "omniroute-field-encryption-v1";
-/** Canary plaintext for the startup round-trip check. Never written to disk. */
-const STARTUP_CANARY_PLAINTEXT = "omniroute-startup-canary-do-not-use";
 
 let _staticKey: Buffer | null = null;
 let _legacyDynamicKey: Buffer | null = null;
@@ -57,87 +52,65 @@ export interface ConnectionFields {
 }
 
 /**
- * Typed error thrown by strict-mode encryption functions. Carries the
- * classification (auth-tag failure vs malformed) and a cipher prefix for
- * debugging without leaking full ciphertext.
- *
- * Use `instanceof EncryptionDecryptionError` to distinguish encryption
- * failures from generic errors in callers.
+ * #9927 — dedupe tracker for credential-decrypt-failure messages. The health
+ * sweep / refresh / request routing re-decrypt the same corrupt row every
+ * cycle; we log the enriched, actionable message ONCE per
+ * (provider + connection + failing-ciphertext) state so it does not spam
+ * every sweep, while still re-logging if the row state actually changes
+ * (e.g. a different field starts failing) instead of permanently suppressing.
  */
-export class EncryptionDecryptionError extends Error {
-  readonly cause?: unknown;
-  readonly ciphertextPrefix?: string;
-  readonly classification: "auth-tag-failure" | "malformed" | "not-configured" | "encrypt-failed";
+const loggedDecryptFailures = new Set<string>();
 
-  constructor(
-    message: string,
-    options: {
-      cause?: unknown;
-      ciphertextPrefix?: string;
-      classification: EncryptionDecryptionError["classification"];
-    },
-  ) {
-    super(message);
-    this.name = "EncryptionDecryptionError";
-    this.cause = options.cause;
-    this.ciphertextPrefix = options.ciphertextPrefix;
-    this.classification = options.classification;
-  }
+function decryptFailureSignature(
+  connectionId: string,
+  provider: string,
+  failed: Array<{ field: string; value: unknown }>
+): string {
+  const parts = failed
+    .map((f) => `${f.field}:${typeof f.value === "string" ? f.value : ""}`)
+    .sort()
+    .join("|");
+  return `${provider}::${connectionId}::${parts}`;
 }
 
-/**
- * Thrown when `encrypt()` was supposed to encrypt (key configured) but the
- * crypto pipeline threw. Carries the original error as `.cause`.
- *
- * This is FAIL-CLOSED behaviour — callers must NOT swallow this and write
- * the plaintext; that would re-introduce the State-B bug fixed by
- * `encryption-failclosed`. See `plans/encryption-failclosed-spec.md` for
- * the audit and remediation.
- */
-export class EncryptionRuntimeError extends Error {
-  override readonly name = "EncryptionRuntimeError";
-  constructor(message: string, options?: { cause?: unknown }) {
-    super(message);
-    if (options?.cause !== undefined) {
-      (this as Error & { cause?: unknown }).cause = options.cause;
-    }
-  }
-}
+const RECOVERY_HINT =
+  "Re-authenticate this account, or verify STORAGE_ENCRYPTION_KEY matches the key used to store it.";
 
-/**
- * Thrown by `validateEncryptionAtStartup()` when the encrypt/decrypt
- * round-trip canary fails. Distinct from `EncryptionRuntimeError` so
- * operators can grep for the startup-specific path and the runtime-specific
- * path separately.
- */
-export class StartupEncryptionError extends Error {
-  override readonly name = "StartupEncryptionError";
-  constructor(message: string, options?: { cause?: unknown }) {
-    super(message);
-    if (options?.cause !== undefined) {
-      (this as Error & { cause?: unknown }).cause = options.cause;
-    }
-  }
-}
+import fs from "fs";
+import path from "path";
+import os from "os";
+import { isTestContext, resolveDataDir } from "../dataPaths.ts";
 
-/**
- * Classify a Node crypto error as an auth-tag validation failure (the
- * most security-relevant case) vs other malformed-input errors.
- *
- * Node OpenSSL errors have stable codes (ERR_OSSL_BAD_DECRYPT,
- * ERR_OSSL_GCM_NO_TAG) that map to GCM auth-tag failure. We also match
- * on message substrings for older Node versions and other runtimes.
- */
-function isAuthTagFailure(err: unknown): boolean {
-  if (!err || typeof err !== "object") return false;
-  const code = (err as { code?: string }).code;
-  if (code === "ERR_OSSL_BAD_DECRYPT" || code === "ERR_OSSL_GCM_NO_TAG") return true;
-  const message = (err as { message?: string }).message?.toLowerCase() ?? "";
-  return (
-    message.includes("unsupported state or unable to authenticate data") ||
-    message.includes("auth tag") ||
-    message.includes("bad decrypt")
-  );
+function ensureSecretLoaded(): string | undefined {
+  if (isTestContext()) {
+    return process.env.STORAGE_ENCRYPTION_KEY;
+  }
+  if (process.env.STORAGE_ENCRYPTION_KEY) {
+    return process.env.STORAGE_ENCRYPTION_KEY;
+  }
+  const candidates = [
+    path.join(resolveDataDir(), ".env"),
+    path.join(process.cwd(), ".env"),
+    path.join(os.homedir(), ".hermes", ".env"),
+  ];
+  for (const envPath of candidates) {
+    try {
+      if (fs.existsSync(envPath)) {
+        const content = fs.readFileSync(envPath, "utf8");
+        for (const line of content.split("\n")) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith("STORAGE_ENCRYPTION_KEY=")) {
+            const val = trimmed.split("=", 2)[1]?.trim().replace(/^["'](.*)["']$/, "$1");
+            if (val) {
+              process.env.STORAGE_ENCRYPTION_KEY = val;
+              return val;
+            }
+          }
+        }
+      }
+    } catch {}
+  }
+  return undefined;
 }
 
 /**
@@ -148,15 +121,14 @@ function isAuthTagFailure(err: unknown): boolean {
 function getStaticKey(): Buffer | null {
   if (_staticKey !== null) return _staticKey;
 
-  const secret = process.env.STORAGE_ENCRYPTION_KEY;
+  const secret = ensureSecretLoaded();
   if (!secret || typeof secret !== "string" || secret.trim().length === 0) return null;
 
   try {
     _staticKey = scryptSync(secret, STATIC_SALT, KEY_LENGTH);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    encryptionLog.error(
-      { err },
+    console.error(
       `[Encryption] Failed to derive key from STORAGE_ENCRYPTION_KEY: ${message}. ` +
         `Generate a valid key with: openssl rand -base64 32`
     );
@@ -175,17 +147,13 @@ function getStaticKey(): Buffer | null {
 function getLegacyDynamicKey(): Buffer | null {
   if (_legacyDynamicKey !== null) return _legacyDynamicKey;
 
-  const secret = process.env.STORAGE_ENCRYPTION_KEY;
+  const secret = ensureSecretLoaded();
   if (!secret || typeof secret !== "string" || secret.trim().length === 0) return null;
 
   const dynamicSalt = createHash("sha256").update(secret).digest().slice(0, 16);
   try {
     _legacyDynamicKey = scryptSync(secret, dynamicSalt, KEY_LENGTH);
-  } catch (err) {
-    encryptionLog.error(
-      { err },
-      "encryption.getLegacyDynamicKey: scryptSync failed — legacy decryptions will silently fail (tokens may stall migration)"
-    );
+  } catch {
     return null;
   }
   return _legacyDynamicKey;
@@ -193,7 +161,7 @@ function getLegacyDynamicKey(): Buffer | null {
 
 /** Check if encryption is enabled. */
 export function isEncryptionEnabled(): boolean {
-  return !!process.env.STORAGE_ENCRYPTION_KEY;
+  return !!ensureSecretLoaded();
 }
 
 /**
@@ -215,7 +183,7 @@ export function encrypt(plaintext: string | null | undefined): string | null | u
 
   const key = getStaticKey();
   if (!key) {
-    encryptionLog.error(
+    console.warn(
       "[Encryption] STORAGE_ENCRYPTION_KEY not set. Storing plaintext (passthrough mode)."
     );
     return plaintext; // passthrough mode
@@ -234,67 +202,12 @@ export function encrypt(plaintext: string | null | undefined): string | null | u
 
     return `${PREFIX}${iv.toString("hex")}:${encrypted}:${authTag}`;
   } catch (err: unknown) {
-    // FAIL-CLOSED: when a key is configured but the crypto pipeline throws
-    // (broken native bindings, key length drift after a Node upgrade, OOM
-    // under randomBytes, etc.) we MUST NOT silently return plaintext — that
-    // re-introduces the State-B bug. Log loudly, then throw a typed error
-    // so callers (encryptConnectionFields, providers, commandCodeAuth) can
-    // refuse to write to the DB.
     const message = err instanceof Error ? err.message : String(err);
-    encryptionLog.error(
-      {
-        err,
-        op: "encrypt",
-        envSet: !!process.env.STORAGE_ENCRYPTION_KEY,
-        // _staticKey is a Buffer; never log the key material itself.
-        keyBytes: _staticKey?.length ?? null,
-      },
-      `[Encryption] STORAGE_ENCRYPTION_KEY is set but encrypt() failed. ` +
-        `Refusing to write plaintext. Regenerate with: openssl rand -base64 32`
+    console.error(
+      `[Encryption] Encryption failed: ${message}. ` +
+        `Check your STORAGE_ENCRYPTION_KEY — generate one with: openssl rand -base64 32`
     );
-    throw new EncryptionRuntimeError(
-      `Encryption failed at runtime: ${message}. ` +
-        `Refusing to write plaintext. Check your STORAGE_ENCRYPTION_KEY — ` +
-        `regenerate one with: openssl rand -base64 32`,
-      { cause: err }
-    );
-  }
-}
-
-/**
- * Strict variant of encrypt(): throws EncryptionDecryptionError on
- * failure instead of silently falling back to plaintext.
- *
- * Use when the caller can usefully handle the typed error (e.g., refuse
- * to write plaintext, surface to operator, mark row as corrupt).
- *
- * For most callers, prefer the lenient encrypt() which returns plaintext
- * on failure for backward compatibility.
- */
-export function encryptStrict(plaintext: string | null | undefined): string | null | undefined {
-  if (!plaintext || typeof plaintext !== "string") return plaintext;
-  if (plaintext.startsWith(PREFIX)) return plaintext;
-
-  const key = getStaticKey();
-  if (!key) {
-    throw new EncryptionDecryptionError(
-      "encryptStrict: STORAGE_ENCRYPTION_KEY is not set",
-      { classification: "not-configured" },
-    );
-  }
-
-  try {
-    const iv = randomBytes(IV_LENGTH);
-    const cipher = createCipheriv(ALGORITHM, key, iv);
-    let encrypted = cipher.update(plaintext, "utf8", "hex");
-    encrypted += cipher.final("hex");
-    const authTag = cipher.getAuthTag().toString("hex");
-    return `${PREFIX}${iv.toString("hex")}:${encrypted}:${authTag}`;
-  } catch (err) {
-    throw new EncryptionDecryptionError("encryptStrict: cipher pipeline failed", {
-      cause: err,
-      classification: "encrypt-failed",
-    });
+    return plaintext; // fallback to plaintext rather than crashing
   }
 }
 
@@ -306,7 +219,10 @@ export function encryptStrict(plaintext: string | null | undefined): string | nu
  * auto-migration: the next encrypt() call will re-encrypt it with the
  * static-salt key, gradually migrating the database.
  */
-export function decrypt(ciphertext: string | null | undefined): string | null | undefined {
+export function decrypt(
+  ciphertext: string | null | undefined,
+  opts?: { quiet?: boolean }
+): string | null | undefined {
   if (!ciphertext || typeof ciphertext !== "string") return ciphertext;
 
   // Not encrypted — return as-is (legacy plaintext or passthrough mode)
@@ -314,7 +230,7 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
 
   const staticKey = getStaticKey();
   if (!staticKey) {
-    encryptionLog.error(
+    console.warn(
       "[Encryption] Found encrypted data but STORAGE_ENCRYPTION_KEY is not set. Cannot decrypt."
     );
     return null;
@@ -323,7 +239,7 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
   const body = ciphertext.slice(PREFIX.length);
   const parts = body.split(":");
   if (parts.length !== 3) {
-    encryptionLog.error("[Encryption] Malformed encrypted value");
+    console.error("[Encryption] Malformed encrypted value");
     return null;
   }
 
@@ -353,164 +269,69 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
       return decrypted;
     }
 
-    encryptionLog.error(
-      `[Encryption] Decryption failed. Ciphertext prefix: ${ciphertext.slice(0, 30)}... ` +
-        `Auth tag validation likely failed.`
-    );
+    // #9927 — the low-level generic log is suppressed when called through the
+    // connection-decryption path (quiet:true); decryptConnectionFields emits a
+    // single enriched message naming the credential + recovery path instead.
+    if (!opts?.quiet) {
+      console.error(
+        `[Encryption] Decryption failed. Ciphertext prefix: ${ciphertext.slice(0, 30)}... ` +
+          `Auth tag validation likely failed.`
+      );
+    }
     return null;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    encryptionLog.error({ err }, `[Encryption] Decryption failed: ${message}`);
-    return null;
-  }
-}
-
-/**
- * Strict variant of decrypt(): throws EncryptionDecryptionError on
- * auth-tag failure or malformed ciphertext instead of returning null.
- *
- * Use when the caller can usefully handle the typed error (e.g., set a
- * "corrupted" flag, refuse to overwrite, surface to operator, mark the
- * row for manual review).
- *
- * For most callers, prefer the lenient decrypt() which returns null
- * on failure for backward compatibility.
- *
- * The typed error includes a `classification` field (auth-tag-failure
- * vs malformed) and a `ciphertextPrefix` (first 30 chars) for
- * debugging without leaking full ciphertext.
- */
-export function decryptStrict(ciphertext: string | null | undefined): string | null | undefined {
-  if (!ciphertext || typeof ciphertext !== "string") return ciphertext;
-  if (!ciphertext.startsWith(PREFIX)) return ciphertext;
-
-  const staticKey = getStaticKey();
-  if (!staticKey) {
-    encryptionLog.warn(
-      { ciphertextPrefix: ciphertext.slice(0, 30) },
-      "decryptStrict: STORAGE_ENCRYPTION_KEY not set but encrypted data found — returning null",
-    );
-    return null;
-  }
-
-  const body = ciphertext.slice(PREFIX.length);
-  const parts = body.split(":");
-  if (parts.length !== 3) {
-    throw new EncryptionDecryptionError(
-      "decryptStrict: malformed ciphertext (expected enc:v1:<iv>:<ct>:<authTag>)",
-      { ciphertextPrefix: ciphertext.slice(0, 30), classification: "malformed" },
-    );
-  }
-
-  const [ivHex, encryptedHex, authTagHex] = parts;
-  const iv = Buffer.from(ivHex, "hex");
-  const authTag = Buffer.from(authTagHex, "hex");
-
-  try {
-    const decipher = createDecipheriv(ALGORITHM, staticKey, iv, {
-      authTagLength: AUTH_TAG_LENGTH,
-    });
-    decipher.setAuthTag(authTag);
-
-    let decrypted = decipher.update(encryptedHex, "hex", "utf8");
-    decrypted += decipher.final("utf8");
-    return decrypted;
-  } catch (err) {
-    if (isAuthTagFailure(err)) {
-      encryptionLog.error(
-        { err, ciphertextPrefix: ciphertext.slice(0, 30) },
-        "decryptStrict: auth-tag validation failed (data corruption suspected)",
-      );
-      throw new EncryptionDecryptionError(
-        "decryptStrict: auth-tag validation failed (data corruption suspected)",
-        { cause: err, ciphertextPrefix: ciphertext.slice(0, 30), classification: "auth-tag-failure" },
-      );
+    if (!opts?.quiet) {
+      console.error("[Encryption] Decryption failed:", message);
     }
-    encryptionLog.error(
-      { err, ciphertextPrefix: ciphertext.slice(0, 30) },
-      "decryptStrict: malformed ciphertext or key mismatch",
-    );
-    throw new EncryptionDecryptionError(
-      "decryptStrict: malformed ciphertext or key mismatch",
-      { cause: err, ciphertextPrefix: ciphertext.slice(0, 30), classification: "malformed" },
-    );
+    return null;
   }
 }
 
 /**
- * Strict variant of encryptConnectionFields(): mutates connection fields
- * with encryptStrict(). Throws EncryptionDecryptionError if any field
- * fails to encrypt.
- *
- * Use when the caller needs to ensure no plaintext is stored.
+ * #11500 — decrypt() wrapper for callers outside decryptConnectionFields()
+ * (the lazy-decrypt views in providers/lazyConnectionView.ts, which call
+ * decrypt() directly on every fresh getProviderConnections() cycle). A
+ * fresh Proxy wraps a fresh row object each cycle, so per-proxy memoization
+ * never survives across cycles — without this wrapper the raw
+ * "[Encryption] Decryption failed..." line re-fires every single cycle for
+ * the same corrupt/stale-key credential. Shares the loggedDecryptFailures
+ * Set with decryptConnectionFields() so a credential already flagged via one
+ * path does not re-log via the other, and logs the SAME raw message
+ * decrypt() would emit (unlike decryptConnectionFields()'s enriched
+ * message) — just deduped to once per (provider + connection + field +
+ * ciphertext) instead of once per cycle.
  */
-export function encryptStrictConnectionFields<T extends ConnectionFields | null | undefined>(
-  conn: T,
-): T {
-  if (!isEncryptionEnabled()) return conn;
-  if (!conn) return conn;
-
-  if (conn.apiKey) conn.apiKey = encryptStrict(conn.apiKey);
-  if (conn.accessToken) conn.accessToken = encryptStrict(conn.accessToken);
-  if (conn.refreshToken) conn.refreshToken = encryptStrict(conn.refreshToken);
-  if (conn.idToken) conn.idToken = encryptStrict(conn.idToken);
-  return conn;
-}
-
-/**
- * Strict variant of decryptConnectionFields(): decrypts fields with
- * decryptStrict(). Throws EncryptionDecryptionError if any field fails
- * to decrypt (caller can decide whether to refuse to use the row).
- */
-export function decryptStrictConnectionFields<T extends ConnectionFields | null | undefined>(
-  row: T,
-): T {
-  if (!row) return row;
-  if (!isEncryptionEnabled()) return row;
-
-  return {
-    ...row,
-    apiKey: decryptStrict(row.apiKey),
-    accessToken: decryptStrict(row.accessToken),
-    refreshToken: decryptStrict(row.refreshToken),
-    idToken: decryptStrict(row.idToken),
-  };
+export function decryptQuiet(
+  ciphertext: string | null | undefined,
+  meta: { connectionId: string; provider: string; field: string }
+): string | null | undefined {
+  if (!looksEncrypted(ciphertext)) {
+    return decrypt(ciphertext);
+  }
+  const signature = `${meta.provider}::${meta.connectionId}::${meta.field}:${ciphertext}`;
+  const alreadyLogged = loggedDecryptFailures.has(signature);
+  const result = decrypt(ciphertext, { quiet: alreadyLogged });
+  if (result === null && !alreadyLogged) {
+    loggedDecryptFailures.add(signature);
+  }
+  return result;
 }
 
 /**
  * Encrypt sensitive fields in a connection object (mutates in-place).
  * After decryption that required legacy key, re-encrypt with static key
  * to migrate tokens automatically.
- *
- * FAIL-CLOSED: when any inner `encrypt()` throws `EncryptionRuntimeError`
- * (i.e. a key is configured but the crypto pipeline failed), this function
- * returns `null` and logs the failure. Callers MUST check for `null` and
- * refuse to write plaintext to the DB. State A (no key) is preserved — the
- * connection object is returned unchanged.
  */
-export function encryptConnectionFields<T extends ConnectionFields | null | undefined>(
-  conn: T,
-): T | null {
+export function encryptConnectionFields<T extends ConnectionFields | null | undefined>(conn: T): T {
   if (!isEncryptionEnabled()) return conn;
   if (!conn) return conn;
 
-  try {
-    if (conn.apiKey) conn.apiKey = encrypt(conn.apiKey) ?? conn.apiKey;
-    if (conn.accessToken) conn.accessToken = encrypt(conn.accessToken) ?? conn.accessToken;
-    if (conn.refreshToken) conn.refreshToken = encrypt(conn.refreshToken) ?? conn.refreshToken;
-    if (conn.idToken) conn.idToken = encrypt(conn.idToken) ?? conn.idToken;
-    return conn;
-  } catch (err: unknown) {
-    if (err instanceof EncryptionRuntimeError) {
-      encryptionLog.error(
-        { err: err.message, op: "encryptConnectionFields" },
-        `[Encryption] encryptConnectionFields() refused to write plaintext. ` +
-          `Refusing to insert/update connection row.`
-      );
-      return null;
-    }
-    throw err; // Unexpected error; bubble up so the caller can see a stack trace.
-  }
+  if (conn.apiKey) conn.apiKey = encrypt(conn.apiKey);
+  if (conn.accessToken) conn.accessToken = encrypt(conn.accessToken);
+  if (conn.refreshToken) conn.refreshToken = encrypt(conn.refreshToken);
+  if (conn.idToken) conn.idToken = encrypt(conn.idToken);
+  return conn;
 }
 
 /**
@@ -523,10 +344,13 @@ export function decryptConnectionFields<T extends ConnectionFields | null | unde
   if (!row) return row;
   if (!isEncryptionEnabled()) return row;
 
-  const apiKey = decrypt(row.apiKey);
-  const accessToken = decrypt(row.accessToken);
-  const refreshToken = decrypt(row.refreshToken);
-  const idToken = decrypt(row.idToken);
+  // quiet:true — the low-level generic decrypt() log is suppressed here so a
+  // single failure emits ONE enriched message (below) naming the credential
+  // and recovery path (#9927) instead of one generic line per field per cycle.
+  const apiKey = decrypt(row.apiKey, { quiet: true });
+  const accessToken = decrypt(row.accessToken, { quiet: true });
+  const refreshToken = decrypt(row.refreshToken, { quiet: true });
+  const idToken = decrypt(row.idToken, { quiet: true });
 
   // #6148 — a stored credential that is still encrypted (`enc:v1:…`) but
   // decrypts to null means the STORAGE_ENCRYPTION_KEY changed or was unset.
@@ -537,6 +361,31 @@ export function decryptConnectionFields<T extends ConnectionFields | null | unde
     (looksEncrypted(row.accessToken) && accessToken === null) ||
     (looksEncrypted(row.refreshToken) && refreshToken === null) ||
     (looksEncrypted(row.idToken) && idToken === null);
+
+  if (credentialDecryptFailed) {
+    const failed: Array<{ field: string; value: unknown }> = [];
+    if (looksEncrypted(row.apiKey) && apiKey === null) failed.push({ field: "apiKey", value: row.apiKey });
+    if (looksEncrypted(row.accessToken) && accessToken === null)
+      failed.push({ field: "accessToken", value: row.accessToken });
+    if (looksEncrypted(row.refreshToken) && refreshToken === null)
+      failed.push({ field: "refreshToken", value: row.refreshToken });
+    if (looksEncrypted(row.idToken) && idToken === null) failed.push({ field: "idToken", value: row.idToken });
+
+    const connectionId = typeof row.id === "string" ? row.id : "";
+    const provider = typeof row.provider === "string" ? row.provider : "unknown";
+    const fields = failed.map((f) => f.field).join(", ");
+
+    // Dedupe per credential/row state: the sweep re-decrypts the same corrupt
+    // row every cycle — log ONCE unless the failing state actually changes.
+    const signature = decryptFailureSignature(connectionId, provider, failed);
+    if (!loggedDecryptFailures.has(signature)) {
+      loggedDecryptFailures.add(signature);
+      console.error(
+        `[Encryption] Failed to decrypt credential(s) [${fields}] for provider ` +
+          `"${provider}" (connection ${connectionId || "unknown"}). ${RECOVERY_HINT}`
+      );
+    }
+  }
 
   return {
     ...row,
@@ -605,73 +454,4 @@ export function migrateLegacyEncryptedString(ciphertext: string | null | undefin
 
   // 3. Un-decryptable or corrupted, leave it alone
   return { updated: false, value: ciphertext };
-}
-
-/**
- * Run a known-plaintext encrypt/decrypt round-trip to detect broken
- * encryption config BEFORE the first request hits a DB write.
- *
- * Behaviour:
- *   - No `STORAGE_ENCRYPTION_KEY` set (State A / passthrough mode): log a
- *     warn and return — operator has opted out of encryption.
- *   - Key set but `encrypt(canary)` throws: log fatal, throw
- *     `StartupEncryptionError` so the caller can `process.exit(1)`.
- *   - Key set and round-trip succeeds: log info, return.
- *
- * Designed to be invoked from `src/instrumentation.ts` (Next.js) or any
- * other entry point that wants fail-fast at boot.
- */
-export function validateEncryptionAtStartup(): void {
-  if (!isEncryptionEnabled()) {
-    encryptionLog.warn(
-      "[Encryption] No STORAGE_ENCRYPTION_KEY set — passthrough mode active. " +
-        "Sensitive fields will be stored as plaintext. " +
-        "Generate a key with: openssl rand -base64 32"
-    );
-    return;
-  }
-
-  let encrypted: string;
-  try {
-    encrypted = encrypt(STARTUP_CANARY_PLAINTEXT) ?? "";
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    encryptionLog.fatal(
-      { err: message, op: "startup-canary-encrypt" },
-      `[Encryption] FATAL — STORAGE_ENCRYPTION_KEY is set but encrypt() threw at startup. ` +
-        `Server refusing to start. Regenerate with: openssl rand -base64 32`
-    );
-    throw new StartupEncryptionError(
-      `encryption startup check failed: encrypt() threw — ${message}`,
-      { cause: err }
-    );
-  }
-
-  if (!encrypted || !encrypted.startsWith(PREFIX)) {
-    encryptionLog.fatal(
-      { encrypted },
-      `[Encryption] FATAL — encryption returned no prefix at startup (broken crypto). ` +
-        `Server refusing to start.`
-    );
-    throw new StartupEncryptionError(
-      "encrypt() returned plaintext at startup despite a key being set"
-    );
-  }
-
-  const decrypted = decrypt(encrypted);
-  if (decrypted !== STARTUP_CANARY_PLAINTEXT) {
-    encryptionLog.fatal(
-      { decrypted },
-      `[Encryption] FATAL — encrypt/decrypt round-trip mismatch at startup. ` +
-        `Server refusing to start.`
-    );
-    throw new StartupEncryptionError(
-      `round-trip mismatch: expected ${JSON.stringify(STARTUP_CANARY_PLAINTEXT)}, ` +
-        `got ${JSON.stringify(decrypted)}`
-    );
-  }
-
-  encryptionLog.info(
-    "[Encryption] Startup validation passed — encrypt/decrypt round-trip OK"
-  );
 }

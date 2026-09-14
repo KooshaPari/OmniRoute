@@ -1,3 +1,13 @@
+// ENVIRONMENT NOTE (sandbox better-sqlite3 / glibc limitation, not a code defect):
+// This test constructs or exercises a real better-sqlite3-backed SQLite database.
+// better-sqlite3 is a native addon; production and CI load it normally, but some
+// sandboxes/dev boxes ship a system glibc older than the prebuilt binary requires
+// ("GLIBC_2.29 not found"), so the native module fails to dlopen and any test that
+// reaches better-sqlite3 directly (or asserts stdout that the load-failure warning
+// would pollute) fails HERE while passing in CI. This is a known environment
+// limitation, not a defect in the code under test: the OmniRoute runtime itself
+// cascades to node:sqlite/sql.js when better-sqlite3 is unavailable. See
+// tests/unit/_helpers/betterSqlite3Availability.ts for a guard helper.
 /**
  * tests/unit/migration-107-quota-share-strategy.test.ts
  *
@@ -127,14 +137,14 @@ test("107 never touches user-authored (non-qtSd/) combos", () => {
 
 test("107 is idempotent (second run is a no-op)", () => {
   const db = makeDb();
-  insertCombo(db, "c1", "qtSd/grp/minimax/MiniMax-M3", "fill-first");
+  insertCombo(db, "c1", "qtSd/grp/minimax/MiniMax-M2.7", "fill-first");
 
   db.exec(MIGRATION_107);
-  const afterFirst = dataOf(db, "qtSd/grp/minimax/MiniMax-M3");
+  const afterFirst = dataOf(db, "qtSd/grp/minimax/MiniMax-M2.7");
   db.exec(MIGRATION_107);
-  const afterSecond = dataOf(db, "qtSd/grp/minimax/MiniMax-M3");
+  const afterSecond = dataOf(db, "qtSd/grp/minimax/MiniMax-M2.7");
 
-  assert.equal(strategyOf(db, "qtSd/grp/minimax/MiniMax-M3"), "quota-share");
+  assert.equal(strategyOf(db, "qtSd/grp/minimax/MiniMax-M2.7"), "quota-share");
   assert.deepEqual(afterFirst, afterSecond, "second run must not change the row");
   db.close();
 });

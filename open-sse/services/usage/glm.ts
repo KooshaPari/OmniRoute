@@ -155,15 +155,30 @@ export async function getGlmUsage(apiKey: string, providerSpecificData?: Record<
     const resetMs = toNumber(src.nextResetTime, 0);
     const resetAt = resetMs > 0 ? new Date(resetMs).toISOString() : null;
 
-    if (type === "TOKENS_LIMIT") {
+    // Z.ai coding-plan keys (CREDIT-based, e.g. GLM Coding Max/Lite) report
+    // CREDIT_LIMIT rows with the same unit/number semantics as TOKENS_LIMIT
+    // (unit=3/number=5 → 5-hour window, unit=6/number=1 → weekly). Without
+    // this branch every CREDIT_LIMIT row is dropped and the quota card
+    // renders empty for subscription keys.
+    if (type === "TOKENS_LIMIT" || type === "CREDIT_LIMIT") {
       const quotaName = getGlmTokenQuotaName(src, quotas);
       const usedPercent = toPercentage(src.percentage);
       const remaining = Math.max(0, 100 - usedPercent);
 
+      // CREDIT_LIMIT rows (z.ai coding-plan keys) carry absolute credits on
+      // top of the percentage: usage = window total, currentValue = consumed,
+      // remaining = credits left. Prefer them so the quota card renders
+      // "3341 / 28000" like z.ai's own dashboard instead of a percent-only
+      // scale. TOKENS_LIMIT rows without absolute fields keep the percent path.
+      const totalCredits = toNumber(src.usage, 0);
+      const usedCredits = totalCredits > 0 ? toNumber(src.currentValue, usedPercent) : usedPercent;
+      const remainingCredits = totalCredits > 0 ? toNumber(src.remaining, remaining) : remaining;
+      const total = totalCredits > 0 ? totalCredits : 100;
+
       quotas[quotaName] = {
-        used: usedPercent,
-        total: 100,
-        remaining,
+        used: usedCredits,
+        total,
+        remaining: remainingCredits,
         remainingPercentage: remaining,
         resetAt,
         displayName: getGlmQuotaDisplayName(quotaName),

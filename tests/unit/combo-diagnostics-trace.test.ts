@@ -9,9 +9,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { errorResponseWithComboDiagnostics, sanitizeComboDiagnostics } = await import(
-  "../../open-sse/utils/error.ts"
-);
+const { errorResponseWithComboDiagnostics, sanitizeComboDiagnostics } =
+  await import("../../open-sse/utils/error.ts");
+const { buildRecoveryHint } = await import("../../open-sse/services/combo/pinRecovery.ts");
 
 test("combo diagnostics: headers + body carry the sanitized trace (code override preserved)", async () => {
   const res = errorResponseWithComboDiagnostics(
@@ -78,4 +78,79 @@ test("combo diagnostics: secret containment — non-whitelisted fields never sur
   assert.ok(!serialized.includes("apiKey"), "no apiKey KEY survives");
   assert.ok(!serialized.includes("accessToken"), "no accessToken KEY survives");
   assert.ok(!serialized.includes("token"), "no token KEY survives");
+});
+
+test("combo diagnostics: terminalReason with a non-Latin1 char (em dash) must not crash Response construction (#6612)", () => {
+  const terminalReason = "reasoning consumed 5/5 tokens — no content output";
+  assert.doesNotThrow(() => {
+    const res = errorResponseWithComboDiagnostics(
+      502,
+      `Upstream response failed quality validation: ${terminalReason}`,
+      {
+        poolSize: 4,
+        attempted: 1,
+        excluded: [
+          { provider: "deepseek", model: "deepseek-v4-flash-free", reason: "quality — bad" },
+        ],
+        attemptOrder: [{ provider: "deepseek", model: "deepseek-v4-flash-free" }],
+        terminalReason,
+      }
+    );
+    assert.equal(res.status, 502);
+  });
+});
+
+test("combo diagnostics: JSON body keeps the original non-Latin1 text even though headers are ASCII-sanitized (#6612)", async () => {
+  const terminalReason = "reasoning consumed 5/5 tokens — no content output";
+  const res = errorResponseWithComboDiagnostics(
+    502,
+    `Upstream response failed quality validation: ${terminalReason}`,
+    {
+      poolSize: 1,
+      attempted: 1,
+      excluded: [],
+      attemptOrder: [{ provider: "deepseek", model: "deepseek-v4-flash-free" }],
+      terminalReason,
+    }
+  );
+  // Header value must be a valid Latin1 ByteString — em dash (U+2014) replaced.
+  assert.equal(
+    res.headers.get("x-omniroute-combo-terminal-reason"),
+    terminalReason.replace("—", "?")
+  );
+  const body = await res.json();
+  // JSON body keeps the original, readable (unsanitized) em dash.
+  assert.equal(body.diagnostics.terminalReason, terminalReason);
+});
+
+test("combo diagnostics preserve every canonical recovery hint up to the existing cap", async () => {
+  const reasons = [
+    "reasoning_budget_exhausted",
+    "max_attempts_exceeded",
+    "all_accounts_inactive",
+    "quota_exhausted",
+    "all_models_failed",
+    "no_executable_targets",
+    "context_requirements_exhausted",
+    "all_targets_skipped",
+    "unknown_reason",
+  ];
+
+  for (const reason of reasons) {
+    const recovery = buildRecoveryHint(reason, 30);
+    const response = errorResponseWithComboDiagnostics(503, "combo failed", {
+      poolSize: 1,
+      attempted: 1,
+      excluded: [],
+      attemptOrder: [],
+      terminalReason: reason,
+      recovery,
+    });
+    const body = (await response.json()) as {
+      recovery_hint?: { action: string; next_step: string };
+    };
+
+    assert.equal(body.recovery_hint?.action, recovery.action, reason);
+    assert.equal(body.recovery_hint?.next_step, recovery.next_step.slice(0, 200), reason);
+  }
 });

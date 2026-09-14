@@ -28,6 +28,7 @@ export const ERROR_TYPES: Record<number, ErrorInfo> = {
   403: { type: "permission_error", code: "insufficient_quota" },
   404: { type: "invalid_request_error", code: "model_not_found" },
   406: { type: "invalid_request_error", code: "model_not_supported" },
+  410: { type: "invalid_request_error", code: "model_shutdown" },
   429: { type: "rate_limit_error", code: "rate_limit_exceeded" },
   499: { type: "client_disconnected", code: "client_disconnected" },
   500: { type: "server_error", code: "internal_server_error" },
@@ -44,6 +45,7 @@ export const DEFAULT_ERROR_MESSAGES: Record<number, string> = {
   403: "You exceeded your current quota",
   404: "Model not found",
   406: "Model not supported",
+  410: "Model has been shut down",
   429: "Rate limit exceeded",
   499: "Client disconnected",
   500: "Internal server error",
@@ -75,6 +77,14 @@ export const COOLDOWN_MS = {
   rateLimit: 2 * 60 * 1000,
   serviceUnavailable: 2 * 1000,
   authExpired: 2 * 60 * 1000,
+  // Google regional-availability refusal: nothing changes region-wise on the
+  // account, so re-probe only after a long window (or when the operator routes
+  // egress through a supported-region proxy).
+  geoBlocked: 24 * 60 * 60 * 1000,
+  // Antigravity BYOP (GCP_PROJECT_REQUIRED): nothing changes on the account
+  // until the operator enters a Project ID, so keep the connection excluded
+  // from selection for a long window (mirrors the geo-blocked treatment).
+  gcpProjectRequired: 24 * 60 * 60 * 1000,
 };
 
 /**
@@ -146,6 +156,18 @@ export const ERROR_RULES: ErrorRule[] = [
   {
     id: "free_tier_exhausted",
     text: "free tier of the model has been exhausted",
+    backoff: true,
+    reason: "quota_exhausted",
+  },
+  {
+    id: "out_of_extra_usage",
+    text: "out of extra usage",
+    backoff: true,
+    reason: "quota_exhausted",
+  },
+  {
+    id: "extra_usage_required",
+    text: "extra usage required",
     backoff: true,
     reason: "quota_exhausted",
   },

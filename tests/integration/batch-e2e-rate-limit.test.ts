@@ -268,7 +268,7 @@ async function stopProcess(child: ReturnType<typeof spawn>) {
 async function removeDirWithRetry(dir: string) {
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
-      fs.rmSync(dir, { recursive: true, force: true });
+      fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       return;
     } catch (error) {
       if (attempt === 4) throw error;

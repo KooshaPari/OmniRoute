@@ -30,16 +30,40 @@
  * A step failure fails the whole pipeline EXPLICITLY (never silently swallowed):
  * a non-OK intermediate response, an unparseable body, or an intermediate step that
  * yields no text short-circuits with a sanitized error response.
+ *
+ * ── Transient retry ──────────────────────────────────────────────────────────
+ * Intermediate steps that fail with a transient HTTP status (429, 502, 503, 504)
+ * are retried up to `maxRetries` times with `retryDelayMs` delay between attempts.
+ * This mirrors the retry behaviour already used by the priority/weighted strategies
+ * and respects the same `combo.config.maxRetries` / `combo.config.retryDelayMs`
+ * fields. Non-transient errors (400, 401, 403, 404, …) fail immediately — retrying
+ * a bad-request or auth error wastes quota and will never succeed.
  */
 import { errorResponse } from "../utils/error.ts";
-import type { ComboLogger, HandleSingleModel } from "./combo/types.ts";
+import type { ComboLogger, HandleSingleModel, ResolvedComboTarget } from "./combo/types.ts";
 // extractPanelText is a generic assistant-text extractor (OpenAI chat / Claude /
 // Gemini / Responses) — reused here to read each step's output, not fusion-specific.
 import { extractPanelText } from "./fusion.ts";
 
 type Body = Record<string, unknown>;
 
-export type PipelineStep = { model: string; prompt?: string | null };
+export type PipelineStep =
+  | {
+      target: ResolvedComboTarget;
+      prompt?: string | null;
+    }
+  | {
+      model: string;
+      prompt?: string | null;
+    };
+
+function getStepModel(step: PipelineStep): string {
+  return "target" in step ? step.target.modelStr : step.model;
+}
+
+function getStepTarget(step: PipelineStep): ResolvedComboTarget | undefined {
+  return "target" in step ? step.target : undefined;
+}
 
 /**
  * Prepend a system instruction to the client's original conversation (format-aware),
@@ -112,7 +136,18 @@ export type HandlePipelineChatOptions = {
   handleSingleModel: HandleSingleModel;
   log: ComboLogger;
   comboName?: string;
+  /** Max retry attempts on transient errors (429/502/503/504). Default: 0 (no retry). */
+  maxRetries?: number;
+  /** Delay between retries in milliseconds. Default: 1000. */
+  retryDelayMs?: number;
 };
+
+/** HTTP statuses that are worth retrying (transient / capacity / rate-limit). */
+const TRANSIENT_STATUS = new Set([429, 502, 503, 504]);
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 /**
  * Handle a pipeline combo: run the steps in order, threading each step's output
@@ -124,24 +159,35 @@ export async function handlePipelineChat({
   handleSingleModel,
   log,
   comboName,
+  maxRetries = 0,
+  retryDelayMs = 1000,
 }: HandlePipelineChatOptions): Promise<Response> {
-  const chain = (Array.isArray(steps) ? steps : []).filter((s) => s && s.model);
+  const chain = (Array.isArray(steps) ? steps : []).filter((step): step is PipelineStep =>
+    Boolean(step && getStepModel(step))
+  );
   if (chain.length === 0) {
     return errorResponse(400, "Pipeline combo has no models");
   }
   log.info(
     "PIPELINE",
-    `Combo "${comboName ?? ""}" | steps=${chain.length} [${chain.map((s) => s.model).join(" -> ")}]`
+    `Combo "${comboName ?? ""}" | steps=${chain.length} [${chain.map(getStepModel).join(" -> ")}]`
   );
 
   // Single-step pipeline: nothing to chain — run it directly (streams to client).
   if (chain.length === 1) {
-    return handleSingleModel(prependSystemInstruction(body, chain[0].prompt), chain[0].model);
+    const step = chain[0];
+    return handleSingleModel(
+      prependSystemInstruction(body, step.prompt),
+      getStepModel(step),
+      getStepTarget(step)
+    );
   }
 
   let prevOutput = "";
   for (let i = 0; i < chain.length; i++) {
     const step = chain[i];
+    const stepModel = getStepModel(step);
+    const stepTarget = getStepTarget(step);
     const isFinal = i === chain.length - 1;
     const isFirst = i === 0;
 
@@ -153,34 +199,55 @@ export async function handlePipelineChat({
     if (!isFinal) stepBody = stripStreaming(stepBody);
 
     const t0 = Date.now();
-    const res = await handleSingleModel(stepBody, step.model);
+    let res = await handleSingleModel(stepBody, stepModel, stepTarget);
 
     if (isFinal) {
-      log.info("PIPELINE", `Final step ${step.model} responded (${Date.now() - t0}ms)`);
+      log.info("PIPELINE", `Final step ${stepModel} responded (${Date.now() - t0}ms)`);
       return res;
+    }
+
+    // Transient retry: if the intermediate step failed with a retryable status
+    // (429/502/503/504), retry the same step up to maxRetries times before
+    // giving up. Non-transient errors (400/401/403/404) fail immediately.
+    for (
+      let attempt = 0;
+      attempt < maxRetries && !res.ok && TRANSIENT_STATUS.has(res.status);
+      attempt++
+    ) {
+      log.warn(
+        "PIPELINE",
+        `Step ${i + 1} (${stepModel}) transient ${res.status}, retrying ${attempt + 1}/${maxRetries} in ${retryDelayMs}ms`
+      );
+      await sleep(retryDelayMs);
+      res = await handleSingleModel(stepBody, stepModel, stepTarget);
     }
 
     // An intermediate step must succeed with usable text — otherwise fail the whole
     // pipeline (never silently swallow; the client gets a clear, sanitized error).
     if (!res.ok) {
-      log.warn("PIPELINE", `Step ${i + 1} (${step.model}) failed`, { status: res.status });
+      log.warn("PIPELINE", `Step ${i + 1} (${stepModel}) failed`, {
+        status: res.status,
+      });
       const status = res.status >= 400 && res.status <= 599 ? res.status : 502;
-      return errorResponse(status, `Pipeline step ${i + 1} (${step.model}) failed`);
+      return errorResponse(status, `Pipeline step ${i + 1} (${stepModel}) failed`);
     }
     try {
       const json = await res.clone().json();
       prevOutput = extractPanelText(json);
     } catch {
-      log.warn("PIPELINE", `Step ${i + 1} (${step.model}) returned an unparseable body`);
-      return errorResponse(502, `Pipeline step ${i + 1} (${step.model}) returned an unparseable body`);
+      log.warn("PIPELINE", `Step ${i + 1} (${stepModel}) returned an unparseable body`);
+      return errorResponse(
+        502,
+        `Pipeline step ${i + 1} (${stepModel}) returned an unparseable body`
+      );
     }
     if (!prevOutput.trim()) {
-      log.warn("PIPELINE", `Step ${i + 1} (${step.model}) returned empty output`);
-      return errorResponse(502, `Pipeline step ${i + 1} (${step.model}) returned empty output`);
+      log.warn("PIPELINE", `Step ${i + 1} (${stepModel}) returned empty output`);
+      return errorResponse(502, `Pipeline step ${i + 1} (${stepModel}) returned empty output`);
     }
     log.info(
       "PIPELINE",
-      `Step ${i + 1} ${step.model} ok (${prevOutput.length} chars, ${Date.now() - t0}ms)`
+      `Step ${i + 1} ${stepModel} ok (${prevOutput.length} chars, ${Date.now() - t0}ms)`
     );
   }
 

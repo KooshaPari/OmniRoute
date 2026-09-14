@@ -3,9 +3,10 @@ import crypto from "crypto";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { getLookupEnv } from "@/shared/services/cliRuntime";
 import { qoderProvider } from "../config/providers/registry/qoder/index.ts";
-import { getQoderCliCommand } from "./qoderCliResolve";
-export { getQoderCliCommand }; // #6263 public entry point
+import { buildQoderCliNotFoundHint, resolveQoderCliInvocation } from "./qoderCliResolve";
+export { getQoderCliCommand } from "./qoderCliResolve"; // #6263 public entry point
 
 const DEFAULT_TIMEOUT_MS = 45_000;
 const DEFAULT_MODELS_TIMEOUT_MS = 20_000;
@@ -116,10 +117,13 @@ type SpawnQoderCliOptions = {
  * honors for headless PAT auth — and the prompt is piped through stdin so no
  * untrusted value is ever interpolated into a shell command (Hard Rule #13).
  */
-function spawnQoderCli(options: SpawnQoderCliOptions): Promise<QoderCliRunResult> {
-  const command = String(options.command || "").trim() || getQoderCliCommand();
+async function spawnQoderCli(options: SpawnQoderCliOptions): Promise<QoderCliRunResult> {
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  const env: NodeJS.ProcessEnv = { ...process.env };
+  // #6263: resolve the real qodercli command (absolute .cmd/.exe on Windows) and
+  // whether it needs a shell, then spawn with the cliRuntime-enriched env (PATH +
+  // PATHEXT + APPDATA) so the npm `.cmd` wrapper under %APPDATA%\npm is found.
+  const { command, useShell } = await resolveQoderCliInvocation(options.command);
+  const env: NodeJS.ProcessEnv = { ...getLookupEnv() };
   const token = String(options.token || "").trim();
   if (token) env.QODER_PERSONAL_ACCESS_TOKEN = token;
 
@@ -135,6 +139,8 @@ function spawnQoderCli(options: SpawnQoderCliOptions): Promise<QoderCliRunResult
         env,
         cwd: options.cwd || undefined,
         stdio: ["pipe", "pipe", "pipe"],
+        windowsHide: true,
+        ...(useShell ? { shell: true } : {}),
       });
     } catch (err) {
       resolve({
@@ -933,10 +939,7 @@ export async function validateQoderCliPat({
   if (run.error && /enoent|not found|no such file|spawn/i.test(run.error)) {
     return {
       valid: false,
-      error:
-        `Qoder CLI (qodercli) was not found on the OmniRoute host (${run.error}). ` +
-        "Install it from https://qoder.com or point CLI_QODER_BIN at the binary. " +
-        "PAT auth is driven through the local qodercli binary.",
+      error: buildQoderCliNotFoundHint(run.error),
       unsupported: false,
     };
   }

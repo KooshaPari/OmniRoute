@@ -9,6 +9,7 @@
 
 import { getDbInstance } from "@/lib/db/core";
 import { randomUUID } from "crypto";
+import { invalidateModelCatalogCache } from "./readCache";
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -102,17 +103,27 @@ export function updateKeyGroup(
   }
 
   if (sets.length === 0) return existing;
+  const catalogInvalidationNeeded =
+    updates.isActive !== undefined && updates.isActive !== existing.isActive;
+
   sets.push("updated_at = datetime('now')");
 
-  db.prepare(`UPDATE key_groups SET ${sets.join(", ")} WHERE id = @id`).run(params);
-  return getKeyGroup(id);
+  const result = db.prepare(`UPDATE key_groups SET ${sets.join(", ")} WHERE id = @id`).run(params);
+  if (catalogInvalidationNeeded && result.changes > 0) {
+    invalidateModelCatalogCache();
+  }
+  return result.changes > 0 ? getKeyGroup(id) : existing;
 }
 
 export function deleteKeyGroup(id: string): boolean {
   const db = getDbInstance() as any;
   // CASCADE deletes permissions and members
   const result = db.prepare("DELETE FROM key_groups WHERE id = ?").run(id);
-  return result.changes > 0;
+  if (result.changes > 0) {
+    invalidateModelCatalogCache();
+    return true;
+  }
+  return false;
 }
 
 // ── Group Permissions ────────────────────────────────────────────────────
@@ -137,9 +148,15 @@ export function addGroupPermission(
   const id = randomUUID();
   const now = new Date().toISOString();
 
-  db.prepare(
-    "INSERT INTO group_model_permissions (id, group_id, model_pattern, provider, access_type, created_at) VALUES (?, ?, ?, ?, ?, ?)"
-  ).run(id, groupId, modelPattern, provider || null, accessType, now);
+  const result = db
+    .prepare(
+      "INSERT INTO group_model_permissions (id, group_id, model_pattern, provider, access_type, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+    )
+    .run(id, groupId, modelPattern, provider || null, accessType, now);
+
+  if (result.changes > 0) {
+    invalidateModelCatalogCache();
+  }
 
   return getGroupPermissions(groupId).find((p) => p.id === id)!;
 }
@@ -147,16 +164,11 @@ export function addGroupPermission(
 export function removeGroupPermission(permissionId: string): boolean {
   const db = getDbInstance() as any;
   const result = db.prepare("DELETE FROM group_model_permissions WHERE id = ?").run(permissionId);
+  if (result.changes > 0) {
+    invalidateModelCatalogCache();
+  }
   return result.changes > 0;
 }
-
-export function clearGroupPermissions(groupId: string): void {
-  const db = getDbInstance() as any;
-  db.prepare("DELETE FROM group_model_permissions WHERE group_id = ?").run(groupId);
-}
-
-// ── Key Group Members ────────────────────────────────────────────────────
-
 export function getGroupMembers(groupId: string): KeyGroupMember[] {
   const db = getDbInstance() as any;
   const rows = db
@@ -183,10 +195,12 @@ export function getKeyGroupsForApiKey(keyId: string): KeyGroup[] {
 export function addKeyToGroup(keyId: string, groupId: string): boolean {
   const db = getDbInstance() as any;
   try {
-    db.prepare("INSERT OR IGNORE INTO key_group_members (key_id, group_id) VALUES (?, ?)").run(
-      keyId,
-      groupId
-    );
+    const result = db
+      .prepare("INSERT OR IGNORE INTO key_group_members (key_id, group_id) VALUES (?, ?)")
+      .run(keyId, groupId);
+    if (result.changes > 0) {
+      invalidateModelCatalogCache();
+    }
     return true;
   } catch {
     return false;
@@ -198,6 +212,9 @@ export function removeKeyFromGroup(keyId: string, groupId: string): boolean {
   const result = db
     .prepare("DELETE FROM key_group_members WHERE key_id = ? AND group_id = ?")
     .run(keyId, groupId);
+  if (result.changes > 0) {
+    invalidateModelCatalogCache();
+  }
   return result.changes > 0;
 }
 
@@ -276,11 +293,35 @@ export function checkKeyModelAccess(
   return { allowed: false, matchedRules: permissions, deniedBy: null };
 }
 
+/**
+ * Compile a group model pattern.
+ *
+ * `*` is the only wildcard this syntax has, so every other regex
+ * metacharacter must be escaped before the pattern is compiled. Interpolating
+ * it raw made an operator's pattern behave as a regex in two ways:
+ *
+ *   - `gpt-4.1*` matched `gpt-4o1-preview`, because `.` is "any character".
+ *     On a deny rule that blocks unrelated models; on an allow rule it grants
+ *     models the pattern was never meant to cover.
+ *   - `gpt-4(*`, `claude-3[*` and `*+*` threw `SyntaxError` (unterminated
+ *     group / unterminated character class / nothing to repeat) out of
+ *     `checkKeyModelAccess()`, which runs on the completion and /v1/models
+ *     paths — one malformed pattern broke every request for keys in that
+ *     group.
+ *
+ * Escaping keeps the semantics this function already had (case-sensitive,
+ * `*`-only) and matches how the rest of the repo compiles operator patterns
+ * (`globToRegex`, `matchesWildcardPattern`).
+ */
+function modelPatternToRegex(pattern: string): RegExp {
+  const escaped = pattern.replace(/[.+^${}()|[\]\\?]/g, "\\$&").replace(/\*/g, ".*");
+  return new RegExp(`^${escaped}$`);
+}
+
 function matchesModelPattern(pattern: string, model: string): boolean {
   if (pattern === "*") return true;
   if (pattern.includes("*")) {
-    const regex = new RegExp("^" + pattern.replace(/\*/g, ".*") + "$");
-    return regex.test(model);
+    return modelPatternToRegex(pattern).test(model);
   }
   return pattern === model;
 }

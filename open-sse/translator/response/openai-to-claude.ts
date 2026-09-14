@@ -8,7 +8,9 @@ import {
   isInternalReasoningPlaceholder,
   stripInternalReasoningPlaceholder,
 } from "../../utils/reasoningPlaceholder.ts";
-import { REVERSE_MAP } from "../../services/claudeCodeToolRemapper.ts";
+import { REVERSE_MAP, restoreClaudeToolName } from "../../services/claudeCodeToolRemapper.ts";
+import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
+import { splitMarkdownBoundary } from "../helpers/markdownBoundary.ts";
 
 function normalizeToolName(name: string): string {
   return REVERSE_MAP[name] ?? name;
@@ -33,54 +35,108 @@ function extractXmlInvokeBlocks(
   state
 ): { cleaned: string; toolCalls: XmlToolCall[] } {
   const toolCalls: XmlToolCall[] = [];
-
-  // Prepend any incomplete content from previous chunk
   const combined = (state._xmlInvokeBuffer || "") + text;
   state._xmlInvokeBuffer = "";
-
   let remaining = combined;
   let cleaned = "";
 
-  while (true) {
-    const startMatch = remaining.match(/<invoke\s+name="([^"]*)"\s*>/);
-    if (!startMatch) {
+  while (remaining.length > 0) {
+    // Find all possible tool call patterns and pick the earliest
+    const invokeMatch = remaining.match(/<invoke\s+name="([^"]*)"\s*>/);
+    const toolCallTagMatch = remaining.match(/<tool_call>/);
+    const toolCallTextMatch = remaining.match(/TOOL_CALL\s+([A-Za-z0-9_]+):\s*/);
+
+    const matches = [
+      invokeMatch ? { type: "invoke" as const, index: invokeMatch.index!, data: invokeMatch } : null,
+      toolCallTagMatch ? { type: "tool_call_tag" as const, index: toolCallTagMatch.index!, data: toolCallTagMatch } : null,
+      toolCallTextMatch ? { type: "tool_call_text" as const, index: toolCallTextMatch.index!, data: toolCallTextMatch } : null,
+    ].filter(Boolean).sort((a, b) => a!.index - b!.index);
+
+    if (matches.length === 0) {
       cleaned += remaining;
       break;
     }
 
-    // Text before the <invoke> block
-    cleaned += remaining.slice(0, startMatch.index);
+    const first = matches[0]!;
+    cleaned += remaining.slice(0, first.index);
+    const rest = remaining.slice(first.index);
 
-    const blockStart = startMatch.index;
-    const restAfterStart = remaining.slice(blockStart);
-    const endMatch = restAfterStart.match(/<\/invoke>/);
-
-    if (!endMatch) {
-      // Incomplete block — buffer for next chunk
-      state._xmlInvokeBuffer = restAfterStart;
-      break;
+    if (first.type === "invoke") {
+      const startMatch = first.data;
+      const endMatch = rest.match(/<\/invoke>/);
+      if (!endMatch) {
+        state._xmlInvokeBuffer = rest;
+        break;
+      }
+      const innerXml = rest.slice(startMatch[0].length, endMatch.index!);
+      const fullLength = endMatch.index! + endMatch[0].length;
+      const args: Record<string, string> = {};
+      const paramRegex = /<parameter\s+name="([^"]*)"[^>]*>([\s\S]*?)<\/parameter>/g;
+      let pm;
+      while ((pm = paramRegex.exec(innerXml)) !== null) {
+        args[pm[1]] = pm[2].trim();
+      }
+      toolCalls.push({
+        id: `toolu_xml_${Date.now()}_${toolCalls.length}`,
+        name: startMatch[1],
+        args,
+      });
+      remaining = rest.slice(fullLength);
+    } else if (first.type === "tool_call_tag") {
+      const endMatch = rest.match(/<\/tool_call>/);
+      if (!endMatch) {
+        state._xmlInvokeBuffer = rest;
+        break;
+      }
+      const innerJson = rest.slice("<tool_call>".length, endMatch.index!).trim();
+      const fullLength = endMatch.index! + "</tool_call>".length;
+      try {
+        const parsed = JSON.parse(innerJson) as Record<string, unknown>;
+        const name = (parsed.name || parsed.tool_name || "") as string;
+        const rawArgs = parsed.arguments || parsed.args || parsed.parameters || {};
+        const args: Record<string, string> =
+          typeof rawArgs === "string"
+            ? JSON.parse(rawArgs)
+            : (rawArgs as Record<string, string>);
+        if (name) {
+          toolCalls.push({ id: `toolu_txt_${Date.now()}_${toolCalls.length}`, name, args });
+        }
+      } catch {
+        cleaned += rest.slice(0, fullLength);
+      }
+      remaining = rest.slice(fullLength);
+    } else {
+      const startMatch = first.data;
+      const toolName = startMatch[1];
+      const afterPrefix = rest.slice(startMatch[0].length);
+      let depth = 0;
+      let inString = false;
+      let escape = false;
+      let jsonEndIndex = -1;
+      for (let i = 0; i < afterPrefix.length; i++) {
+        const c = afterPrefix[i];
+        if (escape) { escape = false; continue; }
+        if (c === "\\" && inString) { escape = true; continue; }
+        if (c === '"') { inString = !inString; continue; }
+        if (!inString) {
+          if (c === "{") depth++;
+          else if (c === "}") { depth--; if (depth === 0) { jsonEndIndex = i + 1; break; } }
+        }
+      }
+      if (jsonEndIndex === -1) {
+        state._xmlInvokeBuffer = rest;
+        break;
+      }
+      const jsonStr = afterPrefix.slice(0, jsonEndIndex);
+      const fullLength = startMatch[0].length + jsonEndIndex;
+      try {
+        const args = JSON.parse(jsonStr) as Record<string, string>;
+        toolCalls.push({ id: `toolu_txt_${Date.now()}_${toolCalls.length}`, name: toolName, args });
+      } catch {
+        cleaned += rest.slice(0, fullLength);
+      }
+      remaining = rest.slice(fullLength);
     }
-
-    // Complete block found
-    const innerXml = restAfterStart.slice(startMatch[0].length, endMatch.index);
-    const fullBlock = restAfterStart.slice(0, endMatch.index + endMatch[0].length);
-
-    // Parse <parameter name="..." ...>value</parameter>
-    const args: Record<string, string> = {};
-    const paramRegex = /<parameter\s+name="([^"]*)"[^>]*>([\s\S]*?)<\/parameter>/g;
-    let pm;
-    while ((pm = paramRegex.exec(innerXml)) !== null) {
-      args[pm[1]] = pm[2].trim();
-    }
-
-    toolCalls.push({
-      id: `toolu_xml_${Date.now()}_${toolCalls.length}`,
-      name: startMatch[1],
-      args,
-    });
-
-    // Continue scanning after the block
-    remaining = remaining.slice(blockStart + fullBlock.length);
   }
 
   return { cleaned, toolCalls };
@@ -96,8 +152,39 @@ function stopThinkingBlock(state, results) {
   state.thinkingBlockStarted = false;
 }
 
+// Helper: flush any buffered Markdown boundary text before closing a text block
+function flushMarkdownBuffer(state, results) {
+  const buffered = state._markdownBuffer;
+  state._markdownCodeSpanRun = 0;
+  state._markdownTrailingBackslash = false;
+  state._markdownFenceRun = 0;
+  state._markdownFenceOpening = false;
+  state._markdownFenceClosingRun = 0;
+  state._markdownLineIndent = 0;
+  if (!buffered) return;
+  state._markdownBuffer = "";
+  if (!state.textBlockStarted) {
+    state.textBlockIndex = state.nextBlockIndex++;
+    state.textBlockStarted = true;
+    state.textBlockClosed = false;
+    results.push({
+      type: "content_block_start",
+      index: state.textBlockIndex,
+      content_block: { type: "text", text: "" },
+    });
+  }
+  if (!state.textBlockClosed) {
+    results.push({
+      type: "content_block_delta",
+      index: state.textBlockIndex,
+      delta: { type: "text_delta", text: buffered },
+    });
+  }
+}
+
 // Helper: stop text block if started
 function stopTextBlock(state, results) {
+  flushMarkdownBuffer(state, results);
   if (!state.textBlockStarted || state.textBlockClosed) return;
   state.textBlockClosed = true;
   results.push({
@@ -107,50 +194,75 @@ function stopTextBlock(state, results) {
   state.textBlockStarted = false;
 }
 
-// Convert OpenAI stream chunk to Claude format
-export function openaiToClaudeResponse(chunk, state) {
-  if (!chunk || !chunk.choices?.[0]) return null;
+// Harvest the upstream usage block from any chunk, including trailing
+// usage-only chunks that carry `choices: []` (#11817).
+function trackUsageFromChunk(chunk, state) {
+  if (!chunk.usage || typeof chunk.usage !== "object") return;
+  const promptTokens =
+    typeof chunk.usage.prompt_tokens === "number" ? chunk.usage.prompt_tokens : 0;
+  const outputTokens =
+    typeof chunk.usage.completion_tokens === "number" ? chunk.usage.completion_tokens : 0;
 
-  const results = [];
-  const choice = chunk.choices[0];
-  const delta = choice.delta;
+  // Extract cache tokens from prompt_tokens_details
+  const cachedTokens = chunk.usage.prompt_tokens_details?.cached_tokens;
+  const cacheCreationTokens = chunk.usage.prompt_tokens_details?.cache_creation_tokens;
+  const cacheReadTokens = typeof cachedTokens === "number" ? cachedTokens : 0;
+  const cacheCreateTokens = typeof cacheCreationTokens === "number" ? cacheCreationTokens : 0;
 
-  // Track usage from OpenAI chunk if available
-  if (chunk.usage && typeof chunk.usage === "object") {
-    const promptTokens =
-      typeof chunk.usage.prompt_tokens === "number" ? chunk.usage.prompt_tokens : 0;
-    const outputTokens =
-      typeof chunk.usage.completion_tokens === "number" ? chunk.usage.completion_tokens : 0;
+  // input_tokens = prompt_tokens - cached_tokens - cache_creation_tokens
+  // Because OpenAI's prompt_tokens includes all prompt-side tokens
+  const inputTokens = promptTokens - cacheReadTokens - cacheCreateTokens;
 
-    // Extract cache tokens from prompt_tokens_details
-    const cachedTokens = chunk.usage.prompt_tokens_details?.cached_tokens;
-    const cacheCreationTokens = chunk.usage.prompt_tokens_details?.cache_creation_tokens;
-    const cacheReadTokens = typeof cachedTokens === "number" ? cachedTokens : 0;
-    const cacheCreateTokens = typeof cacheCreationTokens === "number" ? cacheCreationTokens : 0;
+  state.usage = {
+    input_tokens: inputTokens,
+    output_tokens: outputTokens,
+  };
 
-    // input_tokens = prompt_tokens - cached_tokens - cache_creation_tokens
-    // Because OpenAI's prompt_tokens includes all prompt-side tokens
-    const inputTokens = promptTokens - cacheReadTokens - cacheCreateTokens;
-
-    state.usage = {
-      input_tokens: inputTokens,
-      output_tokens: outputTokens,
-    };
-
-    // Add cache_read_input_tokens if present
-    if (cacheReadTokens > 0) {
-      state.usage.cache_read_input_tokens = cacheReadTokens;
-    }
-
-    // Add cache_creation_input_tokens if present
-    if (cacheCreateTokens > 0) {
-      state.usage.cache_creation_input_tokens = cacheCreateTokens;
-    }
-
-    // Note: completion_tokens_details.reasoning_tokens is already included in output_tokens
-    // No need to add separately as Claude expects total output_tokens
+  // Add cache_read_input_tokens if present
+  if (cacheReadTokens > 0) {
+    state.usage.cache_read_input_tokens = cacheReadTokens;
   }
 
+  // Add cache_creation_input_tokens if present
+  if (cacheCreateTokens > 0) {
+    state.usage.cache_creation_input_tokens = cacheCreateTokens;
+  }
+
+  // Note: completion_tokens_details.reasoning_tokens is already included in output_tokens
+  // No need to add separately as Claude expects total output_tokens
+}
+
+// Convert OpenAI stream chunk to Claude format
+export function openaiToClaudeResponse(chunk, state) {
+  if (!chunk && !state.pendingClaudeFinishChoice) return null;
+
+  const results = [];
+  const chunkUsage = chunk?.usage;
+  const hasChunkUsage = chunkUsage && typeof chunkUsage === "object";
+
+  // Usage must be harvested BEFORE the choices guard: many OpenAI-compatible
+  // upstreams (Fireworks, vLLM, Together, …) deliver the authoritative usage
+  // block — including prompt_tokens_details.cached_tokens — on a trailing
+  // usage-only chunk shaped `{"choices":[],"usage":{...}}`. Returning early on
+  // that chunk discarded the real numbers and left downstream accounting on
+  // OmniRoute's own tokenizer estimate (#11817).
+  //
+  // Harvesting alone is not enough: if the finish_reason chunk arrives BEFORE
+  // this trailing usage chunk (the normal order for these upstreams), the
+  // finish block below fires immediately and emits message_delta with
+  // whatever state.usage held at that moment — zero/stale, since the real
+  // trailing chunk hasn't been seen yet. The finish deferral below
+  // (pendingClaudeFinishChoice) holds the terminal emission open until either
+  // real usage has arrived or a genuine flush forces it, so the message_delta
+  // actually sent to the client carries the correct numbers (#11817 follow-up).
+  if (chunk) trackUsageFromChunk(chunk, state);
+
+  const chunkChoice = chunk?.choices?.[0];
+  const flushingPendingFinish = !chunkChoice && Boolean(state.pendingClaudeFinishChoice);
+  const choice = chunkChoice || state.pendingClaudeFinishChoice;
+  if (!choice) return null;
+  if (flushingPendingFinish) state.pendingClaudeFinishChoice = null;
+  const delta = choice.delta;
   // First chunk - ALWAYS send message_start first
   if (!state.messageStartSent) {
     state.messageStartSent = true;
@@ -163,6 +275,13 @@ export function openaiToClaudeResponse(chunk, state) {
     state.nextBlockIndex = 0;
     state._pendingXmlToolCalls = [];
     state._xmlInvokeBuffer = "";
+    state._markdownBuffer = "";
+    state._markdownCodeSpanRun = 0;
+    state._markdownTrailingBackslash = false;
+    state._markdownFenceRun = 0;
+    state._markdownFenceOpening = false;
+    state._markdownFenceClosingRun = 0;
+    state._markdownLineIndent = 0;
     results.push({
       type: "message_start",
       message: {
@@ -224,8 +343,16 @@ export function openaiToClaudeResponse(chunk, state) {
     if (strippedContent) {
       stopThinkingBlock(state, results);
 
+      // Rehydrate any Markdown boundary suffix buffered from the previous chunk
+      // before searching for XML tool calls, so the prefix is not lost.
+      const bufferedPrefix = state._markdownBuffer || "";
+      state._markdownBuffer = "";
+
       // Check for XML <invoke> blocks that some models emit instead of JSON tool_calls
-      const { cleaned, toolCalls: xmlToolCalls } = extractXmlInvokeBlocks(strippedContent, state);
+      const { cleaned, toolCalls: xmlToolCalls } = extractXmlInvokeBlocks(
+        bufferedPrefix + strippedContent,
+        state
+      );
 
       // Accumulate extracted tool calls for emission at finish
       if (xmlToolCalls.length > 0) {
@@ -234,12 +361,35 @@ export function openaiToClaudeResponse(chunk, state) {
         state._pendingXmlToolCalls.push(...xmlToolCalls);
       }
 
+      // Defer any trailing incomplete Markdown boundary token to the next chunk.
+      const {
+        emit: textToEmit,
+        hold: textToHold,
+        backtickRun,
+        trailingBackslash,
+        fenceRun,
+        fenceOpening,
+        fenceClosingRun,
+        lineIndent,
+      } = splitMarkdownBoundary(
+        cleaned,
+        state._markdownCodeSpanRun || 0,
+        state._markdownTrailingBackslash === true,
+        state._markdownFenceRun || 0,
+        state._markdownFenceOpening === true,
+        state._markdownFenceClosingRun || 0,
+        state._markdownLineIndent || 0,
+      );
+      state._markdownBuffer = textToHold;
+      state._markdownCodeSpanRun = backtickRun || 0;
+      state._markdownTrailingBackslash = trailingBackslash === true;
+      state._markdownFenceRun = fenceRun || 0;
+      state._markdownFenceOpening = fenceOpening === true;
+      state._markdownFenceClosingRun = fenceClosingRun || 0;
+      state._markdownLineIndent = lineIndent || 0;
+
       // Emit remaining non-XML text content
-      if (!cleaned) {
-        // All content was XML invoke blocks — skip text block entirely
-        // (tool calls will be emitted at finish)
-      } else if (xmlToolCalls.length > 0) {
-        // Text before/between/after XML blocks — (re)start a text block
+      if (textToEmit) {
         if (!state.textBlockStarted) {
           state.textBlockIndex = state.nextBlockIndex++;
           state.textBlockStarted = true;
@@ -253,24 +403,7 @@ export function openaiToClaudeResponse(chunk, state) {
         results.push({
           type: "content_block_delta",
           index: state.textBlockIndex,
-          delta: { type: "text_delta", text: cleaned },
-        });
-      } else {
-        // No XML — emit as regular text (original behaviour)
-        if (!state.textBlockStarted) {
-          state.textBlockIndex = state.nextBlockIndex++;
-          state.textBlockStarted = true;
-          state.textBlockClosed = false;
-          results.push({
-            type: "content_block_start",
-            index: state.textBlockIndex,
-            content_block: { type: "text", text: "" },
-          });
-        }
-        results.push({
-          type: "content_block_delta",
-          index: state.textBlockIndex,
-          delta: { type: "text_delta", text: cleaned },
+          delta: { type: "text_delta", text: textToEmit },
         });
       }
     }
@@ -285,7 +418,7 @@ export function openaiToClaudeResponse(chunk, state) {
       const incomingName = (() => {
         let n = tc.function?.name || "";
         if (n.startsWith(CLAUDE_OAUTH_TOOL_PREFIX)) n = n.slice(CLAUDE_OAUTH_TOOL_PREFIX.length);
-        return n;
+        return restoreClaudeToolName(n, state.toolNameMap);
       })();
 
       // A tool call is identified by its id. Some OpenAI-compatible upstreams
@@ -297,8 +430,9 @@ export function openaiToClaudeResponse(chunk, state) {
         stopThinkingBlock(state, results);
         stopTextBlock(state, results);
 
+        const sanitizedId = sanitizeToolId(tc.id);
         state.toolCalls.set(idx, {
-          id: tc.id,
+          id: sanitizedId,
           name: incomingName,
           blockIndex: state.nextBlockIndex++,
           // Shimmed tools buffer their raw args and emit a single corrected
@@ -312,7 +446,7 @@ export function openaiToClaudeResponse(chunk, state) {
       const toolInfo = state.toolCalls.get(idx);
       if (toolInfo) {
         // Capture a late-arriving id or name (streamed after the initial chunk).
-        if (tc.id && !toolInfo.id) toolInfo.id = tc.id;
+        if (tc.id && !toolInfo.id) toolInfo.id = sanitizeToolId(tc.id);
         if (incomingName && !toolInfo.startEmitted && !toolInfo.name) {
           toolInfo.name = incomingName;
           toolInfo.shimmed = hasToolCallShim(incomingName);
@@ -380,6 +514,11 @@ export function openaiToClaudeResponse(chunk, state) {
   // guard therefore misfired and silently dropped the terminal message_delta/message_stop
   // for Responses→Claude streams (#5828 regression).
   if (choice.finish_reason && !state.claudeFinishEmitted) {
+    if (!hasChunkUsage && !flushingPendingFinish) {
+      state.pendingClaudeFinishChoice = choice;
+      return results.length > 0 ? results : null;
+    }
+
     state.claudeFinishEmitted = true;
     stopThinkingBlock(state, results);
     stopTextBlock(state, results);
@@ -430,7 +569,10 @@ export function openaiToClaudeResponse(chunk, state) {
         content_block: {
           type: "tool_use",
           id: tc.id,
-          name: normalizeToolName(tc.name),
+          name: restoreClaudeToolName(
+            tc.name,
+            state.toolNameMap instanceof Map ? state.toolNameMap : null
+          ),
           input: tc.args,
         },
       });

@@ -14,7 +14,9 @@ export async function getModelCatalogAuthRejection(
   settings: Record<string, any>,
   headers: Record<string, string>
 ): Promise<Response | null> {
-  if (settings.requireAuthForModels !== true || !(await isAuthRequired(request))) return null;
+  const authRequired = await isAuthRequired(request);
+  if (!authRequired) return null;
+  if (settings.requireAuthForModels === false) return null;
 
   const apiKey = extractApiKey(request);
   if (apiKey) {
@@ -65,4 +67,15 @@ export function isCodexModelCatalogClient(request: Request): boolean {
   if (originator.startsWith("codex")) return true;
   const userAgent = headers.get("user-agent")?.toLowerCase() ?? "";
   return userAgent.startsWith("codex");
+}
+
+/**
+ * Detect a `GET /v1/models` catalog request coming from the Claude Code CLI,
+ * for the cc-discovery usage metric only (never changes the response shape).
+ * Reuses the same `claude-cli` User-Agent substring check as
+ * open-sse/utils/bypassHandler.ts's `handleBypassRequest`.
+ */
+export function isCcDiscoveryModelCatalogClient(request: Request): boolean {
+  const userAgent = request.headers.get("user-agent")?.toLowerCase() ?? "";
+  return userAgent.includes("claude-cli");
 }

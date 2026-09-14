@@ -37,10 +37,22 @@ type OpenAIToolCallLike = {
 export function buildChangedToolNameMap(
   toolNameMap: Map<string, string>
 ): Map<string, string> | null {
-  const changedEntries = [...toolNameMap.entries()].filter(
-    ([sanitizedName, originalName]) => sanitizedName !== originalName
-  );
-  return changedEntries.length > 0 ? new Map(changedEntries) : null;
+  if (toolNameMap.size === 0) return null;
+
+  const result = new Map<string, string>();
+  for (const [sanitizedName, originalName] of toolNameMap.entries()) {
+    result.set(sanitizedName, originalName);
+    // Add lowercase-keyed alias so Gemini's lowercased tool names find the original.
+    // Gemini always lowercases tool names in functionCall responses, so even identity
+    // entries (Bash → Bash) need a lowercase key ("bash" → "Bash") for the response
+    // translator to look them up (#9568).
+    const lower = sanitizedName.toLowerCase();
+    if (lower !== sanitizedName && !result.has(lower)) {
+      result.set(lower, originalName);
+    }
+  }
+
+  return result;
 }
 
 export function extractClientThoughtSignature(toolCall: unknown): string | null {
@@ -139,4 +151,30 @@ export function buildHistoricalToolResultContext(name: string, response: unknown
     result,
     "</previous_tool_result_context>",
   ].join("\n");
+}
+
+export type GeminiPart = Record<string, unknown>;
+export type GeminiContent = { role: string; parts: GeminiPart[] };
+
+// Gemini-family APIs (incl. Antigravity / Vertex) reject a `contents[]` array that
+// has two adjacent entries with the same role:
+//   400 INVALID_ARGUMENT "Request contains consecutive messages with the same role".
+// Client history that carries consecutive user turns — or a tool-result turn (mapped
+// to role:"user") immediately followed by a plain user turn — would otherwise leak
+// that invalid alternation through. Merge adjacent same-role entries by concatenating
+// their parts, the same normalization the Kiro and Claude request paths already apply
+// (9router#2191).
+export function mergeConsecutiveSameRoleContents(contents: GeminiContent[]): GeminiContent[] {
+  const merged: GeminiContent[] = [];
+  for (const entry of contents) {
+    const last = merged[merged.length - 1];
+    if (last && last.role === entry.role) {
+      last.parts.push(...entry.parts);
+    } else {
+      // Shallow-copy the entry and its `parts` array so a later same-role merge
+      // (`last.parts.push(...)`) never mutates the caller's input objects.
+      merged.push({ ...entry, parts: [...entry.parts] });
+    }
+  }
+  return merged;
 }

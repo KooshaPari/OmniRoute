@@ -1,4 +1,11 @@
-import { BaseExecutor, ExecuteInput, type ProviderCredentials } from "./base.ts";
+import { randomBytes } from "node:crypto";
+
+import {
+  BaseExecutor,
+  ExecuteInput,
+  type ProviderConfig,
+  type ProviderCredentials,
+} from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
@@ -7,6 +14,11 @@ import {
 } from "../config/providerHeaderProfiles.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { stripUnsupportedParams } from "../translator/paramSupport.ts";
+
+/** Correlation-id fallback for runtimes without crypto.randomUUID — still CSPRNG-backed. */
+function randomIdFallback(): string {
+  return `${Date.now()}-${randomBytes(9).toString("hex")}`;
+}
 
 /**
  * What a Copilot credential refresh resolves to.
@@ -28,9 +40,11 @@ export interface RefreshedCopilotCredentials {
   providerSpecificData?: Record<string, unknown>;
 }
 
+type GithubExecutorConfig = ProviderConfig & Record<string, unknown>;
+
 export class GithubExecutor extends BaseExecutor {
-  constructor() {
-    super("github", PROVIDERS.github);
+  constructor(provider = "github", config?: GithubExecutorConfig) {
+    super(provider, config ?? PROVIDERS.github);
   }
 
   getCopilotToken(credentials: Record<string, any> | null | undefined) {
@@ -59,16 +73,35 @@ export class GithubExecutor extends BaseExecutor {
     return !(m.includes("gemini") || m.includes("claude"));
   }
 
-  buildUrl(model: string, _stream: boolean, _urlIndex = 0) {
-    const targetFormat = getModelTargetFormat("gh", model);
-    // Claude models: route to Copilot's Anthropic-native /v1/messages shim — the
-    // only Copilot endpoint that surfaces prompt-cache token counts for Claude and
-    // avoids a lossy round-trip of tool_use/tool_result/thinking content blocks
-    // through the OpenAI shape. Driven by the registry's per-model targetFormat
-    // (see registry/github/index.ts), which chatCore.ts also uses to translate the
-    // request to Claude shape before the executor ever sees it.
+  buildUrl(
+    model: string,
+    _stream: boolean,
+    _urlIndex = 0,
+    credentials?: ProviderCredentials | null
+  ) {
+    // #2905/#7364-pattern: a custom Copilot model's per-model targetFormat
+    // override isn't in the static PROVIDER_MODELS registry, so
+    // getModelTargetFormat() can't see it. chatCore/executionCredentials.ts
+    // threads the resolved override onto providerSpecificData.targetFormat
+    // for exactly this case — prefer it when present.
+    const overrideTargetFormat = (
+      credentials as { providerSpecificData?: { targetFormat?: unknown } }
+    )?.providerSpecificData?.targetFormat;
+    const targetFormat =
+      typeof overrideTargetFormat === "string"
+        ? overrideTargetFormat
+        : getModelTargetFormat("gh", model);
+    // Claude models: ALWAYS route to Copilot's Anthropic-native /v1/messages
+    // shim — the only Copilot endpoint that surfaces prompt-cache token counts
+    // for Claude and avoids a lossy round-trip of tool_use/tool_result/thinking
+    // content blocks through the OpenAI shape. Matched on the model NAME (not
+    // only the registry's per-model targetFormat) so a Claude model that is
+    // missing its targetFormat tag, or a custom Claude id, still gets the native
+    // shim rather than silently falling through to /chat/completions. Mirrors
+    // the Hermes copilot routing (`if "claude" in model: return CAPI_MESSAGES_URL`).
     // Port of decolua/9router#2608 (author: yidecode).
-    if (targetFormat === "claude" && this.config.messagesUrl) {
+    const isClaudeModel = /claude/i.test(model || "");
+    if ((targetFormat === "claude" || isClaudeModel) && this.config.messagesUrl) {
       return this.config.messagesUrl;
     }
     // 9router#102: Copilot Codex models advertise supported_endpoints: ["/responses"]
@@ -174,18 +207,6 @@ export class GithubExecutor extends BaseExecutor {
     // decolua/9router#2608 (author: yidecode) — see class doc comment above.
     if (!isClaudeNative) {
       this.applyChatCompletionsOnlyQuirks(model, modifiedBody);
-    }
-
-    // GitHub Copilot's /chat/completions endpoint rejects a conversation that ends
-    // with an assistant message: "This model does not support assistant message
-    // prefill. The conversation must end with a user message." (HTTP 400). Anthropic
-    // clients such as newest Claude Desktop send a trailing assistant turn as a
-    // prefill seed — the Anthropic API honors it, but Copilot does not. Drop it here,
-    // scoped to the GitHub executor only (the shared translator/contextManager and
-    // other providers that DO honor prefill are untouched).
-    // Port of 9router#2143 (author: Manuel <baslr@users.noreply.github.com>).
-    if (Array.isArray(modifiedBody.messages)) {
-      modifiedBody.messages = this.dropTrailingAssistantPrefill(modifiedBody.messages);
     }
 
     // Config-driven strip of params unsupported by the target provider/model.
@@ -315,17 +336,71 @@ export class GithubExecutor extends BaseExecutor {
       ...getGitHubCopilotChatHeaders(stream ? "text/event-stream" : "application/json", initiator),
       Authorization: `Bearer ${token}`,
       "x-request-id":
-        crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        crypto.randomUUID?.() || randomIdFallback(),
     };
+
+    // Per-call / per-conversation / per-turn correlation ids the @github/copilot
+    // CLI 1.0.81-6 puts on every inference request (MITM-captured). The machine
+    // id (getGitHubCopilotMachineId) is stable per-install; these three are
+    // fresh uuids. A Copilot-aware client may pin the session/task ids across a
+    // conversation via its own headers — honor those when present, else mint.
+    const genId = () =>
+      crypto.randomUUID?.() || randomIdFallback();
+    headers["x-interaction-id"] = this.readClientHeader(clientHeaders, "x-interaction-id") || genId();
+    headers["x-client-session-id"] =
+      this.readClientHeader(clientHeaders, "x-client-session-id") || genId();
+    headers["x-agent-task-id"] =
+      this.readClientHeader(clientHeaders, "x-agent-task-id") || genId();
+    // Repository correlation sentinels. The CLI sends the working repo's nwo/host
+    // or these literals when there is no repository context. OmniRoute is not
+    // repo-scoped, so forward a client-supplied value when present, else sentinel.
+    headers["x-github-repository-nwo"] =
+      this.readClientHeader(clientHeaders, "x-github-repository-nwo") || "__no_repository__";
+    headers["x-github-repository-host"] =
+      this.readClientHeader(clientHeaders, "x-github-repository-host") || "__no_repository__";
+    // OpenAI-SDK (stainless) signature the CLI carries on streamed turns only.
+    if (stream) {
+      headers["x-stainless-helper-method"] = "stream";
+    }
 
     // Claude models routed to the Anthropic-native /v1/messages shim require the
     // anthropic-version header (harmless no-op on /chat/completions and /responses,
-    // but /v1/messages rejects the request without it). Port of decolua/9router#2608.
-    if (model && getModelTargetFormat("gh", model) === "claude") {
+    // but /v1/messages rejects the request without it). Match on the model NAME so
+    // it fires for every claude-* id (tagged or not), consistent with buildUrl.
+    // Port of decolua/9router#2608.
+    if (model && /claude/i.test(model)) {
       headers["anthropic-version"] = "2023-06-01";
     }
 
+    // Forward a vision signal when the client already set it. Copilot's
+    // /v1/messages proxy returns an empty content block for image turns unless
+    // copilot-vision-request:true is present; a Copilot-aware harness that sends
+    // it should have it honored rather than stripped.
+    if ((this.readClientHeader(clientHeaders, "copilot-vision-request") || "").toLowerCase() === "true") {
+      headers["copilot-vision-request"] = "true";
+    }
+
     return headers;
+  }
+
+  // Case-insensitive read of a single client header value. Client header maps
+  // arrive with inconsistent casing depending on the transport, so match on the
+  // lowercased key rather than assuming a canonical form.
+  private readClientHeader(
+    clientHeaders: Record<string, string> | null | undefined,
+    name: string
+  ): string | null {
+    if (!clientHeaders) return null;
+    const target = name.toLowerCase();
+    const direct = clientHeaders[name] ?? clientHeaders[target];
+    if (typeof direct === "string") return direct;
+    for (const key in clientHeaders) {
+      if (key.toLowerCase() === target) {
+        const val = clientHeaders[key];
+        return typeof val === "string" ? val : null;
+      }
+    }
+    return null;
   }
 
   // Forward the client's x-initiator header when present. OpenCode and other

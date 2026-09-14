@@ -16,6 +16,7 @@ import {
   CLAUDE_CLI_STAINLESS_PACKAGE_VERSION,
   CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
   CLAUDE_CLI_USER_AGENT,
+  getClaudeCodeUserAgent,
 } from "../anthropicHeaders.ts";
 import { getCodexDefaultHeaders } from "../codexClient.ts";
 import {
@@ -25,6 +26,7 @@ import {
   GLMT_TIMEOUT_MS,
   GLM_SHARED_MODELS,
 } from "../glmProvider.ts";
+import { OPENCODE_ZEN_GO_SHARED_MODELS } from "../opencodeZenGoSharedModels.ts";
 import { MARITALK_DEFAULT_BASE_URL } from "../maritalk.ts";
 import {
   CURSOR_REGISTRY_VERSION,
@@ -46,9 +48,18 @@ export interface RegistryModel {
   id: string;
   name: string;
   aliases?: readonly string[];
+  /**
+   * Upstream model IDs that prove this static model is live when the provider
+   * has an authoritative synchronized catalog. Needed for curated IDs whose
+   * public name differs from the ID sent to the upstream service.
+   */
+  liveCatalogIds?: readonly string[];
   toolCalling?: boolean;
   supportsReasoning?: boolean;
+  supportedThinkingEfforts?: readonly string[];
   supportsVision?: boolean;
+  supportsAudio?: boolean;
+  supportsVideo?: boolean;
   supportsXHighEffort?: boolean;
   maxOutputTokens?: number;
   targetFormat?: string;
@@ -73,6 +84,17 @@ export interface RegistryModel {
   /** Per-model upstream header-response timeout override — precedes
    *  `RegistryEntry.timeoutMs` and the global `FETCH_TIMEOUT_MS` (#6354). */
   timeoutMs?: number;
+  /**
+   * Id whose QUALITY scores (task fitness / arena / user overrides) this id
+   * inherits (#11489). Operational fields (timeoutMs, cost, context) stay on
+   * this entry. One hop only; the target must itself be a catalog id.
+   *
+   * Only for relations suffix-stripping cannot express: forward vendor aliases
+   * (`gpt-5.6` → `gpt-5.6-sol`) and cross-provider spellings of the same model
+   * (cursor's `claude-4.6-opus-high` → `claude-opus-4-6`). Plain effort/`-free`
+   * variants are derived by `resolveScoresAs` and need no entry here.
+   */
+  scoresAs?: string;
 }
 
 // Reasoning models reject temperature, top_p, penalties, logprobs, n.
@@ -99,6 +121,8 @@ export interface RegistryOAuth {
   pollUrlBase?: string;
 }
 
+export type ReasoningTransport = "plaintext" | "opaque" | "none";
+
 export interface RegistryEntry {
   id: string;
   alias?: string;
@@ -111,6 +135,8 @@ export interface RegistryEntry {
   /** Override models URL used only for API key validation, not catalog discovery. */
   testKeyModelsUrl?: string;
   responsesBaseUrl?: string;
+  /** Provider-bound replay format; omitted providers accept portable plaintext reasoning. */
+  reasoningTransport?: ReasoningTransport;
   /** Anthropic-native /v1/messages endpoint (e.g. GitHub Copilot's shim) used
    *  for models tagged `targetFormat: "claude"` on an otherwise openai-format
    *  provider — see registry/github/index.ts. */
@@ -125,6 +151,9 @@ export interface RegistryEntry {
   requestDefaults?: ProviderRequestDefaults;
   oauth?: RegistryOAuth;
   models: RegistryModel[];
+  /** Provider-native reasoning vocabulary for reasoning-capable passthrough models
+   * that do not have an explicit per-model declaration. */
+  defaultSupportedThinkingEfforts?: readonly string[];
   modelsUrl?: string;
   /** Prefix to prepend to model IDs before upstream API calls (e.g. "accounts/fireworks/models/") */
   modelIdPrefix?: string;
@@ -138,8 +167,19 @@ export interface RegistryEntry {
   clientVersion?: string;
   timeoutMs?: number;
   passthroughModels?: boolean;
+  /**
+   * Whether a non-empty synchronized live model list is exhaustive enough
+   * to reject static registry IDs that it omits.
+   *
+   * Defaults to true. Set this explicitly to false for providers whose
+   * discovery endpoint is known to return only a partial subset of the models
+   * that the provider can route.
+   */
+  liveCatalogAuthoritative?: boolean;
   /** Default context window for all models in this provider (can be overridden per-model) */
   defaultContextLength?: number;
+  /** Maximum OpenAI-compatible function name length accepted by this provider. */
+  toolNameMaxLength?: number;
   /** Optional session pool config for rate limit management */
   poolConfig?: Record<string, unknown>;
   /**
@@ -177,9 +217,15 @@ export interface RegistryEntry {
    */
   requiresPlainStringContent?: boolean;
   /**
-   * Alternative protocols this provider accepts (e.g. an Anthropic-compatible
-   * endpoint in addition to the default OpenAI-compatible one). The connection
-   * chooses via providerSpecificData.targetFormat; see config/providers/alternateFormats.ts.
+   * Anthropic-compatible providers that omit the required `signature` field
+   * from streamed thinking block starts. The passthrough stream adds only an
+   * empty placeholder; later provider `signature_delta` events remain intact.
+   */
+  ensureThinkingSignature?: boolean;
+  /**
+   * Protocolos alternativos que este provedor aceita (ex.: um endpoint
+   * Anthropic-compatible alem do OpenAI-compatible padrao). A conexao escolhe
+   * via providerSpecificData.targetFormat; ver config/providers/alternateFormats.ts.
    */
   alternateFormats?: import("./alternateFormats.ts").AlternateFormat[];
 }
@@ -187,7 +233,7 @@ export interface RegistryEntry {
 /**
  * Build a standard OpenAI-compatible provider registry entry.
  * Eliminates the 4-field boilerplate (format, executor, authType, authHeader)
- * repeated across provider files.
+ * repeated across 40+ provider files.
  */
 export function buildOpenAiCompatibleRegistryEntry(
   overrides: Pick<RegistryEntry, "id"> &
@@ -199,7 +245,6 @@ export function buildOpenAiCompatibleRegistryEntry(
     authType: "apikey",
     authHeader: "bearer",
     ...overrides,
-    models: overrides.models ?? [],
   } as RegistryEntry;
 }
 
@@ -222,12 +267,7 @@ export interface LegacyProvider {
 }
 
 export const buildModels = (ids: readonly string[]): RegistryModel[] =>
-  ids.map((id) => {
-    const model: RegistryModel = { id, name: id };
-    // #3328: MiniMax M3 is multimodal — flag so vision requests aren't gated/stripped.
-    if (/minimax-m3/i.test(id)) model.supportsVision = true;
-    return model;
-  });
+  ids.map((id) => ({ id, name: id }));
 
 export const GPT_5_5_CONTEXT_LENGTH = 1050000;
 export const GPT_5_5_CODEX_CAPABILITIES = {
@@ -259,16 +299,21 @@ export const GPT_5_6_API_CAPABILITIES = {
   maxOutputTokens: 128000,
 } as const;
 
-// Codex's live catalog reports a 272K input context window for GPT-5.6.
-// Keep the input and output limits explicit for catalog consumers that expose them separately.
+// Codex OAuth catalog limits. The live OAuth `/codex/models` endpoint reports
+// `context_window` (~272K, the first pricing tier) alongside
+// `max_context_window` (~872K, the real usable window); requests past the
+// pricing tier succeed upstream (verified: gpt-5.6-luna-xhigh served 380-390K
+// input tokens with HTTP 200). The static catalog must advertise the usable
+// window so the conservative discovery merge (`Math.min`) does not cap the
+// live value at the pricing tier.
 export const GPT_5_6_CODEX_CAPABILITIES = {
   targetFormat: "openai-responses",
   toolCalling: true,
   supportsReasoning: true,
   supportsVision: true,
   supportsXHighEffort: true,
-  contextLength: 272000,
-  maxInputTokens: 272000,
+  contextLength: 872000,
+  maxInputTokens: 872000,
   maxOutputTokens: 128000,
 } as const;
 
@@ -290,7 +335,7 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "deepseek-ai/DeepSeek-V4-Flash",
     "zai-org/GLM-5.1",
     "moonshotai/Kimi-K2.6",
-    "MiniMaxAI/MiniMax-M3",
+    "MiniMaxAI/MiniMax-M2.5",
     "Qwen/Qwen3.6-35B-A3B",
     "Qwen/Qwen3.5-397B-A17B",
     "Qwen/Qwen3.5-122B-A10B",
@@ -310,7 +355,7 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "qwen25-coder-32b-instruct",
   ]),
   sambanova: buildModels([
-    "MiniMax-M3",
+    "MiniMax-M2.7",
     "DeepSeek-V3.2",
     "Llama-4-Maverick-17B-128E-Instruct",
     "Meta-Llama-3.3-70B-Instruct",
@@ -333,7 +378,7 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "moonshotai/Kimi-K2.6",
     "deepseek-ai/DeepSeek-V4-Pro",
     "zai-org/GLM-5",
-    "MiniMaxAI/MiniMax-M3",
+    "MiniMaxAI/MiniMax-M2.5",
     "nvidia/Nemotron-120B-A12B",
     "openai/gpt-oss-120b",
   ]),
@@ -597,18 +642,16 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
       maxOutputTokens: 131072,
     },
     {
-      id: "MiniMaxAI/MiniMax-M3",
-      name: "MiniMax M3",
+      id: "MiniMaxAI/MiniMax-M2.7",
+      name: "MiniMax M2.7",
       contextLength: 196608,
       maxOutputTokens: 131072,
-      supportsVision: true,
     },
     {
-      id: "MiniMaxAI/MiniMax-M3",
-      name: "MiniMax M3",
+      id: "MiniMaxAI/MiniMax-M2.5",
+      name: "MiniMax M2.5",
       contextLength: 196608,
       maxOutputTokens: 131072,
-      supportsVision: true,
     },
     {
       id: "Qwen/Qwen3.6-Max-Preview",
@@ -653,12 +696,6 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "mistralai/Mistral-7B-Instruct-v0.3",
     "Qwen/Qwen2.5-72B-Instruct",
   ]),
-  // Restored after the registry modularization (#3993) dropped the mimocode key
-  // referenced by the mimocode provider plugin. Source of truth: pre-#3993
-  // providerRegistry.ts (commit 1ed01dd90^).
-  mimocode: [
-    { id: "mimo-auto", name: "MiMo Auto", contextLength: 1000000, maxOutputTokens: 128000 },
-  ],
 };
 
 export function mapStainlessOs() {
@@ -705,6 +742,7 @@ export {
   GLM_TIMEOUT_MS,
   GLMT_TIMEOUT_MS,
   GLM_SHARED_MODELS,
+  OPENCODE_ZEN_GO_SHARED_MODELS,
   MARITALK_DEFAULT_BASE_URL,
   CURSOR_REGISTRY_VERSION,
   getAntigravityProviderHeaders,
@@ -724,7 +762,7 @@ export function getClaudeCliHeaders(): Record<string, string> {
     "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
     "Anthropic-Beta": ANTHROPIC_BETA_CLAUDE_OAUTH,
     "Anthropic-Dangerous-Direct-Browser-Access": "true",
-    "User-Agent": CLAUDE_CLI_USER_AGENT,
+    "User-Agent": getClaudeCodeUserAgent("cli"),
     "X-App": "cli",
     "X-Stainless-Helper-Method": "stream",
     "X-Stainless-Retry-Count": "0",
@@ -747,4 +785,21 @@ export function getAnthropicCompatHeaders(): Record<string, string> {
 export function buildAntigravityUrl(base: string, model: string, stream: boolean): string {
   const path = stream ? "/v1internal:streamGenerateContent?alt=sse" : "/v1internal:generateContent";
   return `${base}${path}`;
+}
+
+/**
+ * Gemini protocol `generateContent` route: the model goes in the path, not the body.
+ *
+ * Shared because the format has two consumers: the native `gemini` provider
+ * (RegistryEntry.urlBuilder) and gateways that expose Gemini as an alternate
+ * protocol (AlternateFormat.urlBuilder, see alternateFormats.ts). One copy per
+ * consumer would leave the streaming `?alt=sse` suffix free to diverge.
+ */
+export function buildGeminiGenerateContentUrl(
+  base: string,
+  model: string,
+  stream: boolean
+): string {
+  const action = stream ? "streamGenerateContent?alt=sse" : "generateContent";
+  return `${base}/${model}:${action}`;
 }

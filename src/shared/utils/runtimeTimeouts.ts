@@ -27,6 +27,22 @@ export const DEFAULT_API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS = 0;
 // idle-pool window, mirroring the API bridge server's pattern.
 export const DEFAULT_MAIN_SERVER_KEEPALIVE_TIMEOUT_MS = 65_000;
 export const DEFAULT_MAIN_SERVER_HEADERS_TIMEOUT_MS = 66_000;
+// A client that closes its connection right after reading a fully-completed
+// SSE stream can race OmniRoute's own completion bookkeeping (#9653): the
+// bytes already reached the client, but the disconnect handler can fire
+// before the stream's own completion callback finishes recording it,
+// persisting a false 499 with zero token usage. Before committing to that
+// failure, wait this long for the real completion to land. Set to 0 to
+// disable and restore the old immediate-fail behavior.
+export const DEFAULT_STREAM_DISCONNECT_GRACE_PERIOD_MS = 10_000;
+// #12656 — the wreq-js TLS-fingerprint transport resolves the Response as
+// soon as upstream headers arrive; the only timing guard on the body itself
+// was TlsClient's flat `timeout` (defaults to DEFAULT_FETCH_TIMEOUT_MS =
+// 600_000ms), matching the reporter's observed 90-600s stall range exactly.
+// This bounds time-to-first-byte specifically for that transport so a wedged
+// wreq body falls back fast instead of riding the 10-minute ceiling. Set to
+// 0 to disable the watchdog entirely.
+export const DEFAULT_TLS_FIRST_BYTE_WATCHDOG_MS = 10_000;
 
 function hasEnvValue(env: EnvSource, name: string): boolean {
   const raw = env[name];
@@ -43,6 +59,7 @@ export type UpstreamTimeoutConfig = {
   fetchBodyTimeoutMs: number;
   fetchConnectTimeoutMs: number;
   fetchKeepAliveTimeoutMs: number;
+  streamDisconnectGracePeriodMs: number;
 };
 
 export type TlsClientTimeoutConfig = {
@@ -136,6 +153,15 @@ export function getUpstreamTimeoutConfig(
       logger,
     }
   );
+  const streamDisconnectGracePeriodMs = readTimeoutMs(
+    env,
+    "STREAM_DISCONNECT_GRACE_PERIOD_MS",
+    DEFAULT_STREAM_DISCONNECT_GRACE_PERIOD_MS,
+    {
+      allowZero: true,
+      logger,
+    }
+  );
 
   return {
     fetchTimeoutMs,
@@ -143,6 +169,7 @@ export function getUpstreamTimeoutConfig(
     streamReadinessTimeoutMs,
     streamReadinessMaxTimeoutMs,
     sseHeartbeatIntervalMs,
+    streamDisconnectGracePeriodMs,
     fetchHeadersTimeoutMs: readTimeoutMs(env, "FETCH_HEADERS_TIMEOUT_MS", fetchTimeoutMs, {
       allowZero: true,
       logger,
@@ -191,6 +218,16 @@ export function getTlsClientTimeoutConfig(
       logger,
     }),
   };
+}
+
+export function getTlsFirstByteWatchdogMs(
+  env: EnvSource = process.env,
+  logger?: TimeoutLogger
+): number {
+  return readTimeoutMs(env, "TLS_FIRST_BYTE_WATCHDOG_MS", DEFAULT_TLS_FIRST_BYTE_WATCHDOG_MS, {
+    allowZero: true,
+    logger,
+  });
 }
 
 export function getApiBridgeTimeoutConfig(

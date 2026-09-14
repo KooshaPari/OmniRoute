@@ -16,7 +16,45 @@ export interface RequestQueueSettings {
   requestsPerMinute: number;
   minTimeBetweenRequestsMs: number;
   concurrentRequests: number;
+  /** Whole-process upstream concurrency cap. Zero disables the global gate. */
+  globalConcurrentRequests: number;
+  /**
+   * Queue-wait budget: how long a request may wait for a rate-limit slot
+   * (gates + limiter queue) before being dropped. Does NOT bound execution.
+   */
   maxWaitMs: number;
+  /**
+   * Limiter-managed execution backstop (Bottleneck `expiration`, which starts
+   * only after a job leaves QUEUED). Kept separate from `maxWaitMs` because
+   * non-incremental gateways legitimately take minutes before first bytes;
+   * the backstop must never undercut the upstream fetch-start timeout.
+   * Per-connection `rateLimitOverrides.executionMaxWaitMs` can override this
+   * global default (bounded 0..600000 via provider schema; 0 falls through).
+   */
+  executionMaxWaitMs: number;
+  /**
+   * Issue #6593: opt-in admission cap on the local rate-limit queue. When the
+   * queue already holds `maxQueueDepth` requests, a new request is
+   * fast-rejected (429 `queue_full`) instead of joining the queue. Default 0
+   * = disabled, preserving the unbounded-queue behavior. Bounded 0-100000.
+   */
+  maxQueueDepth: number;
+}
+
+/**
+ * Global default cadence (minutes) for the background credential health check
+ * sweep (src/lib/credentialHealth/scheduler.ts). Applies to every active
+ * connection that does NOT carry its own per-connection override. Bounded
+ * 0-1440: 0 disables the sweep entirely, 1440 = 24 hours.
+ *
+ * The per-connection `provider_connections.healthCheckInterval` (minutes)
+ * ALWAYS wins when set — including its 0 = "never test this connection"
+ * opt-out — so an operator can globally slow the sweep and still fast-probe
+ * (or fully exclude) a single connection.
+ */
+export interface CredentialHealthCheckSettings {
+  /** Sweep interval in minutes. 0 = disabled. Max 1440 (24h). */
+  intervalMinutes: number;
 }
 
 export interface ConnectionCooldownProfileSettings {
@@ -47,15 +85,23 @@ export interface WaitForCooldownSettings {
   maxRetries: number;
   maxRetryWaitSec: number;
   maxRetryWaitMs: number;
+  /**
+   * Cumulative cap (ms) across all retry waits for one request — mirrors
+   * ComboCooldownWaitSettings.budgetMs (#7360 follow-up). Without this a
+   * request could re-wait maxRetries times at up to maxRetryWaitMs each,
+   * with no overall ceiling; budgetMs bounds the total regardless of how
+   * many individual waits fire.
+   */
+  budgetMs: number;
 }
 
 /**
- * Quota-share combo cooldown-aware retry (Variante A). A quota-share (`qtSd/…`)
- * combo that would crystallize a 429 `model_cooldown` for a SHORT transient
- * cooldown waits it out and re-dispatches instead. Guards (gating + the
- * `quota_exhausted`/auth/not-found exclusions) live in
- * open-sse/services/combo/comboCooldownRetry.ts; `maxWaitMs`/`maxAttempts`/
- * `budgetMs` bound a single wait, the retry cycles, and the total wait time.
+ * Combo cooldown-aware retry. When enabled, any combo strategy that would
+ * crystallize a 429 `model_cooldown` for a SHORT transient cooldown waits it
+ * out and re-dispatches instead. Guards (gating + the `quota_exhausted`/auth/
+ * not-found exclusions) live in open-sse/services/combo/comboCooldownRetry.ts;
+ * `maxWaitMs`/`maxAttempts`/`budgetMs` bound a single wait, the retry cycles,
+ * and the total wait time.
  */
 export interface ComboCooldownWaitSettings {
   enabled: boolean;
@@ -150,6 +196,8 @@ export interface ProviderQuotaOverrideSettings {
   rpm?: number;
   /** Overrides the static per-connection concurrency cap. */
   concurrency?: number;
+  /** Shared concurrency cap across every connection for this provider. */
+  providerConcurrency?: number;
 }
 
 export interface StreamRecoverySettings {
@@ -171,6 +219,20 @@ export interface StreamRecoverySettings {
    * STREAM_RECOVERY_MIDSTREAM_ENABLED feature flag / env var.
    */
   continueMidStream: boolean;
+  throughputWatchdog: StreamThroughputWatchdogSettings;
+}
+
+export interface StreamThroughputWatchdogSettings {
+  /** Opt-in; false preserves the existing stream byte path. */
+  enabled: boolean;
+  /** Grace period before the rolling window starts participating in decisions. */
+  warmupMs: number;
+  /** Full rolling window required before a slow-stream abort is possible. */
+  windowMs: number;
+  /** Minimum useful assistant-output byte rate. */
+  minUsefulBytesPerSecond: number;
+  /** Minimum amount required before a non-zero sample is considered measurable. */
+  minUsefulBytes: number;
 }
 
 export interface ResilienceSettings {
@@ -184,6 +246,7 @@ export interface ResilienceSettings {
   quotaPreflight: QuotaPreflightSettings;
   streamRecovery: StreamRecoverySettings;
   providerQuotaOverrides: Record<string, ProviderQuotaOverrideSettings>;
+  credentialHealthCheck: CredentialHealthCheckSettings;
 }
 
 export interface ResilienceSettingsPatch {
@@ -197,4 +260,5 @@ export interface ResilienceSettingsPatch {
   quotaPreflight?: Partial<QuotaPreflightSettings>;
   streamRecovery?: Partial<StreamRecoverySettings>;
   providerQuotaOverrides?: Record<string, Partial<ProviderQuotaOverrideSettings>>;
+  credentialHealthCheck?: Partial<CredentialHealthCheckSettings>;
 }

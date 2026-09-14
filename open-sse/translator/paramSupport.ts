@@ -40,14 +40,59 @@ const STRIP_RULES: StripRule[] = [
     match: (m: string) => /claude/i.test(m) && !/claude.*(opus|sonnet).*4\.6/i.test(m),
     drop: ["thinking", "reasoning_effort"],
   },
+  // NVIDIA NIM z-ai/glm-5.2: OpenAI-compatible wrapper rejects BOTH the `reasoning`
+  // body field (#6102) and the Claude-style `thinking` field. A Claude-format
+  // client (e.g. Claude Code) routed here leaves a `thinking:{type:"adaptive"}`
+  // that the wrapper 400s on — same class already handled for minimax-m2.7 below.
+  // 9router#2023.
+  { provider: "nvidia", match: /z-ai\/glm-5\.2\b/i, drop: ["reasoning", "thinking"] },
   // NVIDIA NIM minimaxai/minimax-m2.7: NVIDIA's OpenAI-compatible wrapper
   // (format:"openai") does not accept the Claude-style `thinking` body field
   // and returns 400 "Unsupported parameter(s): thinking". Upstream #2268.
   { provider: "nvidia", match: /minimax-m2\.7/i, drop: ["thinking"] },
-  // Z.AI GLM-4.6V accepts at most 32768 output tokens on both its OpenAI and
-  // Anthropic-compatible provider paths. #7364
+  // NVIDIA NIM: OpenAI-compatible wrapper 400s on `prompt_cache_key` (Codex CLI
+  // injects it natively for its own prompt caching). NIM has no documented
+  // support for this field (providerSupportsCaching already treats nvidia as
+  // non-cache-capable) — safe to drop provider-wide, not model-specific. #7617.
+  { provider: "nvidia", match: /.*/, drop: ["prompt_cache_key"] },
+  // VolcEngine Ark caps the Kimi coding-plan endpoint at max_tokens <= 32768
+  // server-side ("integer above maximum value, expected a value <= 32768"),
+  // independent of the model's own catalog ceiling. Confirmed against two
+  // independent live-endpoint reports hitting the same Ark endpoint for both
+  // kimi-k2.5 and kimi-k2.7-code (NousResearch/hermes-agent#51773,
+  // MoonshotAI/kimi-cli#1124), and by upstream decolua/9router#2460. Scoped to
+  // OmniRoute's actual volcengine Kimi id (not a broad /kimi/i regex) so it
+  // never clamps an unrelated future Kimi listing whose Ark cap may differ.
+  {
+    provider: "volcengine",
+    match: /^kimi-k2-5-260127$/,
+    maxOutputCap: 32768,
+    clampToModelMaxOutput: true,
+  },
+  // #7364: Z.AI's glm-4.6v vision endpoint enforces a 32768 max_tokens ceiling
+  // server-side and 400s when a client sends a larger explicit max_tokens (e.g. a
+  // client defaulting to 65536). Scoped to both wire paths that can reach this
+  // model: "zai" (DefaultExecutor, Claude format by default — glm-4.6v is only
+  // reachable there as a custom model attached to the connection, so it is NOT in
+  // PROVIDER_MODELS["zai"] and clampToModelMaxOutput would find no catalog ceiling
+  // to clamp against, hence the fixed maxOutputCap) and "glm" (GlmExecutor, OpenAI
+  // format — glm-4.6v IS in the registry catalog there, `GLM_SHARED_MODELS` in
+  // glmProvider.ts, maxOutputTokens: 32768, so clampToModelMaxOutput suffices).
   { provider: "zai", match: /^glm-4\.6v$/i, maxOutputCap: 32768 },
-  { provider: "glm", match: /^glm-4\.6v$/i, maxOutputCap: 32768 },
+  { provider: "glm", match: /^glm-4\.6v$/i, clampToModelMaxOutput: true },
+  // Azure gpt-4o-mini deployments cap completion tokens at 16384 and 400 on
+  // anything larger: "max_tokens is too large: 32000. This model supports at
+  // most 16384 completion tokens". OmniRoute's own tool-calling floor
+  // (DEFAULT_MIN_TOKENS = 32000, applied by adjustMaxTokens) raises even a tiny
+  // explicit max_tokens to 32000 whenever tools are present, so every agentic
+  // client trips this on its first turn. PROVIDER_MAX_TOKENS is not the right
+  // lever here: it is provider-wide, and the same Azure resource also serves
+  // GPT-5 deployments whose ceiling is far higher. Azure deployment names are
+  // operator-chosen, hence a prefix match rather than an exact id, and the
+  // models are passthrough (no catalog maxOutputTokens for clampToModelMaxOutput
+  // to read), hence the fixed cap.
+  { provider: "azure-openai", match: /^gpt-4o-mini/i, maxOutputCap: 16384 },
+  { provider: "azure-ai", match: /^gpt-4o-mini/i, maxOutputCap: 16384 },
 ];
 
 function matches(rule: StripRule, model: string): boolean {

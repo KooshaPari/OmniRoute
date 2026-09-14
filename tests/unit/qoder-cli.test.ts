@@ -38,43 +38,7 @@ function withStubQoderCli(fn: () => void | Promise<void>) {
   const restore = () => {
     if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
     else process.env.CLI_QODER_BIN = prevBin;
-    fs.rmSync(dir, { recursive: true, force: true });
-  };
-  return Promise.resolve().then(fn).finally(restore);
-}
-
-/**
- * Write a fake `qodercli` binary and point CLI_QODER_BIN at it (see the twin
- * helper in qoder-executor.test.ts). The stub authenticates unless the PAT
- * contains "bad", covering both `--list-models` (validation) and `--print`.
- */
-function withStubQoderCli(fn: () => void | Promise<void>) {
-  const prevBin = process.env.CLI_QODER_BIN;
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "qodercli-stub-"));
-  const stub = path.join(dir, "qodercli");
-  fs.writeFileSync(
-    stub,
-    [
-      "#!/bin/sh",
-      'is_bad() { case "$QODER_PERSONAL_ACCESS_TOKEN" in *bad*) return 0;; *) return 1;; esac; }',
-      'case "$*" in',
-      "  *--list-models*)",
-      '    if is_bad; then echo "Not logged in · Please run /login"; exit 0; fi',
-      '    printf "MODEL\\nAuto\\nQwen3-Coder\\n"; exit 0;;',
-      "  *--print*)",
-      "    cat >/dev/null;",
-      '    if is_bad; then printf \'{"type":"result","subtype":"success","is_error":true,"result":"Not logged in · Please run /login"}\\n\'; exit 0; fi',
-      '    printf \'{"type":"result","subtype":"success","is_error":false,"result":"OK from stub"}\\n\'; exit 0;;',
-      "esac",
-      "exit 0",
-    ].join("\n"),
-    { mode: 0o755 }
-  );
-  process.env.CLI_QODER_BIN = stub;
-  const restore = () => {
-    if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
-    else process.env.CLI_QODER_BIN = prevBin;
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   };
   return Promise.resolve().then(fn).finally(restore);
 }
@@ -248,6 +212,9 @@ test("qoder cli static models are copied and model-to-level mapping covers major
   assert.equal(qoderCli.mapQoderModelToLevel("qoder-rome-30ba3b"), "qmodel");
   assert.equal(qoderCli.mapQoderModelToLevel("glm-5.2"), "gm51model");
   assert.equal(qoderCli.mapQoderModelToLevel("minimax-m3"), "mmodel");
+  assert.equal(qoderCli.mapQoderModelToLevel("q35model_preview"), "qmodel_preview");
+  assert.equal(qoderCli.mapQoderModelToLevel("qmodel_preview"), "qmodel_preview");
+  assert.equal(qoderCli.mapQoderModelToLevel("kmodel_latest"), "kmodel_latest");
   assert.equal(qoderCli.mapQoderModelToLevel("gm51model"), "gm51model");
   assert.equal(qoderCli.mapQoderModelToLevel("totally-unknown"), "auto");
   assert.equal(qoderCli.mapQoderModelToLevel(""), null);
@@ -522,7 +489,7 @@ test("runQoderCli survives qodercli exiting before it reads a large stdin (async
   } finally {
     if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
     else process.env.CLI_QODER_BIN = prevBin;
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -549,7 +516,7 @@ test("runQoderCli preserves multi-byte UTF-8 output (Chinese) via stream setEnco
   } finally {
     if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
     else process.env.CLI_QODER_BIN = prevBin;
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });
 
@@ -563,8 +530,9 @@ test("parseQoderCliModelNames extracts display names, dropping header/noise", ()
 });
 
 test("resolveQoderModelName prefers a live display name, then static, then Auto", () => {
-  const live = ["Auto", "GLM-5.2", "Kimi-K2.7-Code"];
+  const live = ["Auto", "Qwen3.8-Max-Preview", "GLM-5.2", "Kimi-K2.7-Code"];
   // punctuation/case-insensitive match against the live list
+  assert.equal(qoderCli.resolveQoderModelName("qwen3.8-max-preview", live), "Qwen3.8-Max-Preview");
   assert.equal(qoderCli.resolveQoderModelName("glm-5.2", live), "GLM-5.2");
   assert.equal(qoderCli.resolveQoderModelName("GLM-5.2", live), "GLM-5.2");
   assert.equal(qoderCli.resolveQoderModelName("kimi-k2.7-code", live), "Kimi-K2.7-Code");
@@ -613,6 +581,6 @@ test("runQoderCli resolves the request against live --list-models and passes the
     qoderCli.__clearQoderModelNamesCache();
     if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
     else process.env.CLI_QODER_BIN = prevBin;
-    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 });

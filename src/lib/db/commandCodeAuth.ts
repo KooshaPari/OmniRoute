@@ -1,10 +1,7 @@
 import { createHash, randomUUID } from "crypto";
 
 import { getDbInstance, rowToCamel } from "./core";
-import { decrypt, encrypt, EncryptionRuntimeError } from "./encryption";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("db:commandCodeAuth");
+import { decrypt, encrypt } from "./encryption";
 
 export type CommandCodeAuthStatus = "pending" | "received" | "applied" | "expired";
 
@@ -142,25 +139,7 @@ export function markCommandCodeAuthSessionReceived(input: {
     ...(input.metadata || {}),
     receivedAt: now,
   };
-  let encryptedApiKey: string | null;
-  try {
-    encryptedApiKey = encrypt(input.apiKey) ?? null;
-  } catch (err: unknown) {
-    if (err instanceof EncryptionRuntimeError) {
-      // FAIL-CLOSED: encryption layer is broken (key configured but crypto
-      // pipeline threw). Refuse to write apiKey plaintext; surface the
-      // failure to the caller as "session not found".
-      log.error(
-        { err: err.message, op: "markCommandCodeAuthSessionReceived", stateHash: input.stateHash },
-        `[commandCodeAuth] Refusing to store apiKey — encryption layer failed.`
-      );
-      return null;
-    }
-    throw err;
-  }
-  if (encryptedApiKey === null) {
-    return null;
-  }
+  const encryptedApiKey = encrypt(input.apiKey);
   db()
     .prepare(
       `UPDATE command_code_auth_sessions

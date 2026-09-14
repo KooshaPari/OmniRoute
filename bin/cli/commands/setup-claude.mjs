@@ -20,6 +20,7 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import os from "node:os";
 import { printHeading, printInfo, printSuccess, printError } from "../io.mjs";
+import { guardHostConfigTarget } from "../utils/config-home-guard.mjs";
 import {
   categoriseModel,
   isCodexCompatibleTextModel,
@@ -71,7 +72,7 @@ export function buildProfileSettings(modelId, baseUrl, cfg) {
  * behaviorally identical. Writes `<claudeHome>/profiles/<name>/settings.json`
  * (directory-per-profile); never touches the active/default Claude config.
  * @param {Array} models
- * @param {{claudeHome?:string, baseUrl:string, dryRun?:boolean, only?:string}} opts
+ * @param {{claudeHome?:string, baseUrl:string, dryRun?:boolean, only?:string, log?:(line:string)=>void}} opts
  * @returns {Promise<{written:number, skipped:number, profiles:Array<{name:string, model:string, filePath:string}>}>}
  */
 export async function syncClaudeProfilesFromModels(models, opts = {}) {
@@ -79,6 +80,12 @@ export async function syncClaudeProfilesFromModels(models, opts = {}) {
   const profilesRoot = join(claudeHome, "profiles");
   const baseUrl = opts.baseUrl;
   const dryRun = Boolean(opts.dryRun);
+  // Injectable dry-run printer (#5959): under the node:test runner, a child
+  // process writing multi-byte UTF-8 (the "──" box-drawing heading) to stdout
+  // corrupts the runner's V8-serialized event stream ~50% of the time
+  // ("Unable to deserialize cloned data due to invalid or unsupported
+  // version"). Tests inject a collector; the CLI default stays console.log.
+  const log = opts.log ?? console.log;
   const onlyFilter = opts.only ? opts.only.split(",").map((s) => s.trim()) : null;
 
   if (!dryRun && !existsSync(profilesRoot)) {
@@ -100,7 +107,7 @@ export async function syncClaudeProfilesFromModels(models, opts = {}) {
       continue;
     }
 
-    const cfg = categoriseModel(id);
+    const cfg = categoriseModel(id) ?? fallbackClaudeProfile(id, m);
     if (!cfg) {
       skipped++;
       continue;
@@ -111,8 +118,8 @@ export async function syncClaudeProfilesFromModels(models, opts = {}) {
     const content = buildProfileSettings(id, baseUrl, cfg);
 
     if (dryRun) {
-      console.log(`\n── [dry-run] ${filePath} ──`);
-      console.log(content);
+      log(`\n── [dry-run] ${filePath} ──`);
+      log(content);
     } else {
       mkdirSync(dir, { recursive: true });
       writeFileSync(filePath, content, "utf8");
@@ -141,6 +148,14 @@ export async function runSetupClaudeCommand(opts = {}) {
   printHeading("OmniRoute → Claude Code profile generator");
   printInfo(`Connecting to ${baseUrl} …`);
 
+  const guard = await guardHostConfigTarget(profilesRoot, {
+    toolLabel: "Claude Code",
+    hostCommand: "omniroute setup-claude",
+    allowContainerWrite: Boolean(opts.allowContainerWrite ?? opts["allow-container-write"]),
+    dryRun,
+  });
+  if (guard !== 0) return guard;
+
   // ── Fetch model catalog ───────────────────────────────────────────────────
   let models;
   try {
@@ -150,7 +165,16 @@ export async function runSetupClaudeCommand(opts = {}) {
       headers,
       signal: AbortSignal.timeout(10000),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    if (!res.ok) {
+      let detail = `HTTP ${res.status}`;
+      try {
+        const errorBody = await res.json();
+        const serverMsg =
+          errorBody?.error?.message || errorBody?.error || errorBody?.message || "";
+        if (serverMsg) detail += ` — ${serverMsg}`;
+      } catch {}
+      throw new Error(detail);
+    }
     const body = await res.json();
     models = body.data ?? body.models ?? [];
   } catch (err) {
@@ -206,6 +230,10 @@ export function registerSetupClaude(program) {
       "Comma-separated substrings — only matching model IDs (e.g. glm,kimi)"
     )
     .option("--dry-run", "Print what would be written without touching the filesystem")
+    .option(
+      "--allow-container-write",
+      "Write even when the target is inside a container and not mounted from the host"
+    )
     .action(async (opts) => {
       const exitCode = await runSetupClaudeCommand(opts);
       if (exitCode !== 0) process.exit(exitCode);

@@ -96,9 +96,10 @@ export const DEFAULT_OBFUSCATE_WORDS = [
   // Open WebUI additions
   "openwebui",
   "open-webui",
-  // Hermes additions (#8350)
-  "hermes-agent",
-  "hermes",
+  // Do not add "hermes" / "hermes-agent" here. #8350 is handled by
+  // HERMES_PARAGRAPH_ANCHORS + HERMES_IDENTITY_PREFIXES (system-prompt
+  // drops only). ZWJ on the short substring "hermes" rewrites user
+  // messages and hostnames (#10484).
 ];
 
 /**
@@ -341,9 +342,17 @@ function applyObfuscateWords(body: RequestBody, op: ObfuscateWordsOp): void {
       if (typeof content === "string") {
         msg.content = obfuscateWithList(content, words);
       } else if (Array.isArray(content)) {
-        for (const block of content as Array<Record<string, unknown>>) {
-          if (typeof block.text === "string") {
-            block.text = obfuscateWithList(block.text, words);
+        // A signed Anthropic thinking turn covers its text siblings too. Leave
+        // the entire turn byte-for-byte intact so its signature remains valid.
+        const blocks = content as Array<Record<string, unknown>>;
+        const hasSignedThinking = blocks.some(
+          (block) => block?.type === "thinking" || block?.type === "redacted_thinking"
+        );
+        if (!hasSignedThinking) {
+          for (const block of blocks) {
+            if (typeof block.text === "string") {
+              block.text = obfuscateWithList(block.text, words);
+            }
           }
         }
       }

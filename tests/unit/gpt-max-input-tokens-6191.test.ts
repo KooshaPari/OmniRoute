@@ -18,7 +18,7 @@ const modelCapabilities = await import("../../src/lib/modelCapabilities.ts");
 
 function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -28,7 +28,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("codex gpt-5.5 reports max_input_tokens smaller than its context window (#6191)", () => {
@@ -55,10 +55,10 @@ test("all codex gpt-5.5 effort variants carry the distinct input cap (#6191)", (
 });
 
 test("regression: a model without maxInputTokens still falls back to its context window", () => {
-  // codex gpt-5.4 declares no maxInputTokens, so max_input_tokens must equal
-  // the context window (the historical fallback) — no under-reporting.
-  const caps = modelCapabilities.getResolvedModelCapabilities("codex/gpt-5.4");
-  assert.ok((caps.contextWindow ?? 0) > 0, "gpt-5.4 should have a context window");
+  // OpenAI GPT-5.4 declares a context window without maxInputTokens, so the
+  // historical fallback must still avoid under-reporting.
+  const caps = modelCapabilities.getResolvedModelCapabilities("openai/gpt-5.4");
+  assert.ok((caps.contextWindow ?? 0) > 0, "OpenAI GPT-5.4 should have a context window");
   assert.equal(
     caps.maxInputTokens,
     caps.contextWindow,

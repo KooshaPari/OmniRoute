@@ -1,7 +1,3 @@
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("lib:sse-text-transform");
-
 export type FieldCategory = "content" | "reasoning" | "toolArgs" | "partialJson";
 
 const CATEGORY_MAP: Record<string, FieldCategory> = {
@@ -151,13 +147,6 @@ export function createSseTextTransform(
             "refusal",
             "name",
             "event",
-            // #13488: OpenRouter chunks carry provider metadata and
-            // reasoning_details that must not be fed through the PII
-            // content buffer — they scramble the assistant text.
-            "provider",
-            "reasoning_details",
-            "format",
-            "native_finish_reason",
           ];
 
           // Recursively sanitize all string properties (except system metadata)
@@ -202,9 +191,9 @@ export function createSseTextTransform(
           sanitizeObject(json, 0, 0);
 
           if (!matched) {
-            log.warn(
-              { keys: Object.keys(json).slice(0, 5) },
-              "sse-text-transform: no string fields sanitized in JSON chunk"
+            console.warn(
+              "[SSE-TRANSFORM] No string fields sanitized in SSE JSON chunk. Keys:",
+              Object.keys(json).slice(0, 5).join(", ")
             );
           } else {
             lastContentJson = json;
@@ -246,9 +235,9 @@ export function createSseTextTransform(
           if (err instanceof SyntaxError) {
             // JSON parsing failed. Check if it looks like JSON that failed to parse.
             if (trimmedSegment.startsWith("{") || trimmedSegment.startsWith("[")) {
-              log.warn(
-                { preview: trimmedSegment.slice(0, 100) },
-                "sse-text-transform: dropping malformed JSON chunk to prevent syntax injection"
+              console.warn(
+                "[SSE-TRANSFORM] Dropping malformed JSON chunk to prevent syntax injection:",
+                trimmedSegment.slice(0, 100)
               );
               pendingEventLine = "";
             } else {
@@ -314,7 +303,7 @@ export function createSseTextTransform(
             context = String(chunk).slice(0, 200);
           }
         }
-        log.error({ err, context }, "sse-text-transform: error in transform");
+        console.error("[SSE-TRANSFORM] Error in transform:", err, "chunk:", context);
         lineBuffer = "";
         errored = true;
         controller.error(err);
@@ -344,7 +333,7 @@ export function createSseTextTransform(
           }
         }
       } catch (err) {
-        log.error({ err }, "sse-text-transform: error in flush");
+        console.error("[SSE-TRANSFORM] Error in flush:", err);
         controller.error(err);
       }
     },

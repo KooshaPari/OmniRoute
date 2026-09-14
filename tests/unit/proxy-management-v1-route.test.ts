@@ -39,7 +39,7 @@ async function withEnv(name, value, fn) {
 async function resetStorage() {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -65,7 +65,7 @@ async function withPrepareFailure(match, message, fn) {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("v1 management proxies supports create/list/pagination", async () => {
@@ -554,6 +554,10 @@ test("v1 management health endpoint aggregates proxy log metrics", async () => {
     levelId: "openai",
     provider: "openai",
   });
+  // logProxyEvent only enqueues for the 1s/100-entry background batch; the health
+  // route below aggregates persisted proxy_logs synchronously, so flush first or
+  // the seeded rows are not yet on disk (timing-flaky otherwise).
+  proxyLogger.flushProxyLogsSync();
 
   const healthRes = await proxyHealthV1Route.GET(
     new Request("http://localhost/api/v1/management/proxies/health?hours=24")

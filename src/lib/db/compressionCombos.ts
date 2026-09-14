@@ -41,10 +41,6 @@ function defaultCompressionComboPipeline(): CompressionPipelineStep[] {
   ];
 }
 
-function toRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
 function parseJsonArray<T>(value: unknown, fallback: T[]): T[] {
   if (Array.isArray(value)) return value as T[];
   if (typeof value !== "string") return fallback;
@@ -389,18 +385,6 @@ export function assignRoutingCombo(compressionComboId: string, routingComboId: s
   backupDbFile("pre-write");
   return true;
 }
-
-export function unassignRoutingCombo(compressionComboId: string, routingComboId: string): boolean {
-  ensureCompressionComboTables();
-  const result = getDbInstance()
-    .prepare(
-      "DELETE FROM compression_combo_assignments WHERE compression_combo_id = ? AND routing_combo_id = ?"
-    )
-    .run(compressionComboId, routingComboId);
-  if (result.changes > 0) backupDbFile("pre-write");
-  return result.changes > 0;
-}
-
 // Static stackPriority map — mirrors the values defined in each engine file.
 // Using a static map avoids cross-workspace imports (open-sse → src/lib/db) that
 // would introduce a circular dependency detected by check:cycles.

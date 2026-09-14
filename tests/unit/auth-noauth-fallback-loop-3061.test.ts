@@ -31,13 +31,13 @@ const { getProviderCredentials } = await import("../../src/sse/services/auth.ts"
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ── Happy path preserved: first selection (nothing excluded) still works ──
 
 test("#3061 opencode no-auth: first selection returns synthetic noauth (happy path preserved)", async () => {
-  const creds = await getProviderCredentials("opencode", null, null, "minimax-m3-free");
+  const creds = await getProviderCredentials("opencode", null, null, "minimax-m2.5-free");
   assert.ok(creds, "opencode must resolve to synthetic no-auth credentials on first selection");
   assert.equal((creds as { connectionId?: string }).connectionId, "noauth");
   assert.equal((creds as { apiKey?: unknown }).apiKey, null);
@@ -49,17 +49,10 @@ test("#3061 opencode-zen no-auth: first selection returns synthetic noauth (happ
   assert.equal((creds as { connectionId?: string }).connectionId, "noauth");
 });
 
-test("#3061 mimocode no-auth: first selection returns synthetic noauth (happy path preserved)", async () => {
-  const creds = await getProviderCredentials("mimocode", null, null, "mimo-auto");
-  assert.ok(creds, "mimocode must resolve to synthetic no-auth credentials on first selection");
-  assert.equal((creds as { connectionId?: string }).connectionId, "noauth");
-  assert.equal((creds as { apiKey?: unknown }).apiKey, null);
-});
-
 // ── The fix: once "noauth" is excluded, selection MUST stop (return null) ──
 
 test("#3061 opencode no-auth: excluding 'noauth' returns null (breaks the fallback loop)", async () => {
-  const creds = await getProviderCredentials("opencode", null, null, "minimax-m3-free", {
+  const creds = await getProviderCredentials("opencode", null, null, "minimax-m2.5-free", {
     excludeConnectionIds: ["noauth"],
   });
   assert.equal(
@@ -78,16 +71,5 @@ test("#3061 opencode-zen no-auth: excluding 'noauth' returns null (breaks the fa
     creds,
     null,
     "excluded synthetic noauth must not be re-selected for the opencode-zen keyless path"
-  );
-});
-
-test("#3061 mimocode no-auth: excluding 'noauth' returns null (breaks the fallback loop)", async () => {
-  const creds = await getProviderCredentials("mimocode", null, null, "mimo-auto", {
-    excludeConnectionIds: ["noauth"],
-  });
-  assert.equal(
-    creds,
-    null,
-    "excluded synthetic noauth must not be re-selected for the mimocode keyless path"
   );
 });

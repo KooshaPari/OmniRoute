@@ -8,15 +8,16 @@ import {
   formatQuotaLabel,
   formatCountdown,
   normalizePlanTier,
-  resolvePlanValue,
+  buildProviderLimitsResolvedPlans,
   calculatePercentage,
   matchesProviderFilter,
   buildProviderOptions,
+  compareQuotaConnections,
 } from "./utils";
 import Card from "@/shared/components/Card";
 import { CardSkeleton } from "@/shared/components/Loading";
-import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
+import { supportsProviderQuota, isProviderQuotaVisible } from "@/shared/utils/providerQuotaVisibility";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
 
@@ -43,6 +44,7 @@ const LS_PURCHASE_FILTER = "omniroute:limits:purchaseFilter";
 const LS_STATUS_FILTER = "omniroute:limits:statusFilter";
 const LS_ENV_FILTER = "omniroute:limits:envFilter";
 const LS_PROVIDER_FILTER = "omniroute:limits:providerFilter";
+const LS_LAYOUT_MODE = "omniroute:limits:layoutMode";
 
 const MIN_FETCH_INTERVAL_MS = 30000;
 const QUOTA_BAR_GREEN_THRESHOLD = 50;
@@ -50,6 +52,7 @@ const QUOTA_BAR_YELLOW_THRESHOLD = 20;
 
 type PurchaseTypeKey = "all" | "oauth-free" | "oauth-sub" | "apikey";
 type StatusKey = "all" | "critical" | "alert" | "ok" | "empty";
+type LayoutMode = "full" | "compact";
 
 const PURCHASE_TYPES: Array<{ key: PurchaseTypeKey; labelKey: string; fallback: string }> = [
   { key: "all", labelKey: "purchaseAll", fallback: "All" },
@@ -202,6 +205,7 @@ export default function ProviderLimits({
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState("all");
+  const { quotaVisibility, handleHideQuota, handleShowQuota } = useQuotaVisibility(tr, notify);
   const resetCreditRedemption = useCodexResetCreditRedemption(
     tr,
     setErrors,
@@ -228,6 +232,10 @@ export default function ProviderLimits({
   const [providerFilter, setProviderFilter] = useState<string>(() => {
     if (typeof window === "undefined") return "all";
     return localStorage.getItem(LS_PROVIDER_FILTER) || "all";
+  });
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => {
+    if (typeof window === "undefined") return "full";
+    return localStorage.getItem(LS_LAYOUT_MODE) === "compact" ? "compact" : "full";
   });
 
   const lastFetchTimeRef = useRef<Record<string, number>>({});
@@ -520,26 +528,27 @@ export default function ProviderLimits({
       connections.filter(
         (conn) =>
           isProviderQuotaVisible(conn) &&
-          USAGE_SUPPORTED_PROVIDERS.includes(conn.provider) &&
+          supportsProviderQuota(conn.provider, conn) &&
           (conn.authType === "oauth" || conn.authType === "apikey")
       ),
     [connections]
   );
 
   const sortedConnections = useMemo(() => {
-    return [...filteredConnections].sort(
-      (a, b) => (PROVIDER_ORDER[a.provider] || 99) - (PROVIDER_ORDER[b.provider] || 99)
+    return [...filteredConnections].sort((a, b) =>
+      compareQuotaConnections(a, b, {
+        providerOrder: PROVIDER_ORDER,
+        providerLabels: PROVIDER_LABEL,
+        compare: compareTr,
+      })
     );
   }, [filteredConnections]);
   const visibleQuotaData = useVisibleQuotaData(sortedConnections, quotaData);
 
-  const resolvedPlanByConnection = useMemo(() => {
-    const out: Record<string, string | null> = {};
-    for (const conn of sortedConnections) {
-      out[conn.id] = resolvePlanValue(quotaData[conn.id]?.plan, conn.providerSpecificData);
-    }
-    return out;
-  }, [sortedConnections, quotaData]);
+  const resolvedPlanByConnection = useMemo(
+    () => buildProviderLimitsResolvedPlans(sortedConnections, quotaData),
+    [sortedConnections, quotaData]
+  );
 
   const tierByConnection = useMemo(() => {
     const out: Record<string, ReturnType<typeof normalizePlanTier>> = {};
@@ -651,9 +660,10 @@ export default function ProviderLimits({
       return true;
     });
 
-    // Inside each group we still want "critical first, then alert, then ok,
-    // then empty; tiebreak by soonest reset". Provider order between groups
-    // is enforced separately via PROVIDER_ORDER.
+    // Provider rank stays the outer sort key so each group keeps its fixed
+    // slot (mirrors dashboard/providers determinism); "critical first, then
+    // alert, then ok, then empty; tiebreak by soonest reset" only orders
+    // accounts inside their own provider group.
     const statusRank: Record<StatusKey, number> = {
       critical: 0,
       alert: 1,
@@ -661,14 +671,21 @@ export default function ProviderLimits({
       empty: 3,
       all: 4,
     };
-    return [...filtered].sort((a, b) => {
-      const sa = statusRank[statusByConnection[a.id] || "empty"];
-      const sb = statusRank[statusByConnection[b.id] || "empty"];
-      if (sa !== sb) return sa - sb;
-      const ra = getSoonestResetMs(visibleQuotaData[a.id]?.quotas);
-      const rb = getSoonestResetMs(visibleQuotaData[b.id]?.quotas);
-      return ra - rb;
-    });
+    return [...filtered].sort((a, b) =>
+      compareQuotaConnections(a, b, {
+        providerOrder: PROVIDER_ORDER,
+        providerLabels: PROVIDER_LABEL,
+        compare: compareTr,
+        accountCompare: (x, y) => {
+          const sx = statusRank[statusByConnection[x.id] || "empty"];
+          const sy = statusRank[statusByConnection[y.id] || "empty"];
+          if (sx !== sy) return sx - sy;
+          const rx = getSoonestResetMs(visibleQuotaData[x.id]?.quotas);
+          const ry = getSoonestResetMs(visibleQuotaData[y.id]?.quotas);
+          return rx - ry;
+        },
+      })
+    );
   }, [
     sortedConnections,
     tierByConnection,
@@ -744,6 +761,18 @@ export default function ProviderLimits({
     }
   }, []);
 
+  const toggleLayoutMode = useCallback(() => {
+    setLayoutMode((current) => {
+      const next = current === "full" ? "compact" : "full";
+      try {
+        localStorage.setItem(LS_LAYOUT_MODE, next);
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
+
   const renderInlineQuotaSummary = (quotas: any[]) => {
     if (!quotas || quotas.length === 0) return null;
     return (
@@ -814,30 +843,55 @@ export default function ProviderLimits({
           </span>
         </div>
 
-        <button
-          onClick={refreshAll}
-          disabled={refreshingAll}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          title={
-            autoRefreshIntervalMs > 0 ? tr("autoRefreshing", "Auto-refreshing") : t("refreshAll")
-          }
-        >
-          <span
-            className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleLayoutMode}
+            aria-pressed={layoutMode === "compact"}
+            aria-label={
+              layoutMode === "compact"
+                ? "Switch to full quota layout"
+                : "Switch to compact quota layout"
+            }
+            title={
+              layoutMode === "compact"
+                ? "Switch to full quota layout"
+                : "Switch to compact quota layout"
+            }
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] cursor-pointer"
           >
-            {autoRefreshIntervalMs > 0 ? "schedule" : "refresh"}
-          </span>
-          {refreshingAll
-            ? tr("refreshing", "Refreshing")
-            : autoRefreshIntervalMs > 0
-              ? `${tr("autoRefreshing", "Auto-refreshing")} ${formatAutoRefreshCountdown(
-                  Math.max(
-                    0,
-                    autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current)
-                  )
-                )}`
-              : t("refreshAll")}
-        </button>
+            <span className="material-symbols-outlined text-[16px]" aria-hidden>
+              {layoutMode === "compact" ? "view_agenda" : "grid_view"}
+            </span>
+            <span className="hidden sm:inline">
+              {layoutMode === "compact" ? "Compact" : "Full"}
+            </span>
+          </button>
+          <button
+            onClick={refreshAll}
+            disabled={refreshingAll}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            title={
+              autoRefreshIntervalMs > 0 ? tr("autoRefreshing", "Auto-refreshing") : t("refreshAll")
+            }
+          >
+            <span
+              className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
+            >
+              {autoRefreshIntervalMs > 0 ? "schedule" : "refresh"}
+            </span>
+            {refreshingAll
+              ? tr("refreshing", "Refreshing")
+              : autoRefreshIntervalMs > 0
+                ? `${tr("autoRefreshing", "Auto-refreshing")} ${formatAutoRefreshCountdown(
+                    Math.max(
+                      0,
+                      autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current)
+                    )
+                  )}`
+                : t("refreshAll")}
+          </button>
+        </div>
       </div>
 
       {showFilters && (
@@ -1038,10 +1092,15 @@ export default function ProviderLimits({
             setCutoffModalWindows(windows);
             setCutoffModalConn(conn);
           }}
-          onRedeemResetCredit={resetCreditRedemption.redeemCodexResetCredit}
+          onOpenResetCredits={resetCreditRedemption.openCodexResetCredits}
           onToggleActive={handleToggleActive}
           togglingActiveId={togglingActiveId}
+          quotaVisibility={quotaVisibility}
+          onHideQuota={handleHideQuota}
+          onShowQuota={handleShowQuota}
           redeemingResetCreditId={resetCreditRedemption.redeemingResetCreditId}
+          loadingResetCreditsId={resetCreditRedemption.loadingResetCreditsId}
+          compact={layoutMode === "compact"}
         />
       </div>
 

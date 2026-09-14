@@ -14,21 +14,21 @@
  *   3. LiteLLM sync (`pricing_synced` namespace)
  *   4. Hardcoded defaults (`pricing.ts`)
  *
- * Opt-in via MODELS_DEV_SYNC_ENABLED=true (default: false).
+ * Settings UI (`modelsDevSyncEnabled`) controls the periodic sync by default.
+ * `MODELS_DEV_SYNC_ENABLED=0|false|off|no` is a hard kill switch: it wins over
+ * the DB setting so an operator can recover a wedged process (dashboard /
+ * /healthz frozen on the same event loop — #10052) without the UI. Unset =
+ * honor settings. `1|true|on|yes` forces sync on even if the setting is off.
  */
 
 import { getDbInstance } from "./db/core";
-import { invalidateDbCache } from "./db/readCache";
+import { invalidateDbCache, getModelCatalogCacheVersion } from "./db/readCache";
 import { backupDbFile } from "./db/backup";
-import { registerDbStateResetter } from "./db/stateReset";
-import { createLogger } from "@/shared/utils/logger";
 
 import {
   transformModelsDevToPricing,
   transformModelsDevToCapabilities,
 } from "./modelsDevSync/transform";
-
-const log = createLogger("lib:models-dev-sync");
 import type {
   PricingModels,
   PricingByProvider,
@@ -78,6 +78,30 @@ const MODELS_DEV_API_URL = "https://models.dev/api.json";
 const parsedInterval = parseInt(process.env.MODELS_DEV_SYNC_INTERVAL || "86400", 10);
 const SYNC_INTERVAL_MS =
   Number.isFinite(parsedInterval) && parsedInterval > 0 ? parsedInterval * 1000 : 86400 * 1000;
+
+/** Parse MODELS_DEV_SYNC_ENABLED. Invalid / empty → unset (honor DB settings). */
+export function readModelsDevSyncEnvFlag(
+  value: string | undefined = process.env.MODELS_DEV_SYNC_ENABLED
+): "true" | "false" | "unset" {
+  if (value == null) return "unset";
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "") return "unset";
+  if (normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on") {
+    return "true";
+  }
+  if (normalized === "0" || normalized === "false" || normalized === "no" || normalized === "off") {
+    return "false";
+  }
+  return "unset";
+}
+
+export function isModelsDevSyncEnvDisabled(): boolean {
+  return readModelsDevSyncEnvFlag() === "false";
+}
+
+export function isModelsDevSyncEnvForcedOn(): boolean {
+  return readModelsDevSyncEnvFlag() === "true";
+}
 
 // ─── Periodic sync state ─────────────────────────────────
 
@@ -197,30 +221,30 @@ function mapCapabilityRecord(record: Record<string, unknown>): ModelCapabilityEn
   };
 }
 
-/**
- * Process-local memo for models.dev pricing.
- *
- * `resolveCatalogPricing` used to call `getModelsDevPricing()` once per model
- * while building `/v1/models` (~10k+ times). Each call re-ran the full SQL scan
- * and `JSON.parse`d every pricing row, pegging the event loop for minutes
- * (see #9685 / #10052). Memoize until the next save/clear write.
- */
-let modelsDevPricingCache: PricingByProvider | null = null;
-
-function invalidateModelsDevPricingCache(): void {
-  modelsDevPricingCache = null;
-}
-
-// Register cache invalidation with DB state reset system so resetDbInstance() clears the memo.
-registerDbStateResetter(invalidateModelsDevPricingCache);
+// #8697: getModelsDevPricing() re-ran the SELECT + JSON.parse of ~180 blobs on
+// every call — called once per catalog model (up to ~6091x) instead of once per
+// request, freezing the whole server 41-54s on a cold /v1/models rebuild.
+// Memoized here, invalidated via the same modelCatalogCacheVersion signal
+// save/clearModelsDevPricing already bump through invalidateDbCache("pricing") —
+// reusing the existing pattern (getCachedRawProviderConnections et al. in
+// db/readCache.ts) instead of introducing a new invalidation mechanism.
+let pricingMemo: PricingByProvider | null = null;
+let pricingMemoVersion = -1; // -1: never equals a real cacheVersion (starts at 0), guarantees a miss on the first call
 
 /**
  * Read synced pricing from `models_dev_pricing` namespace.
  * Results are memoized until `saveModelsDevPricing` / `clearModelsDevPricing`.
  */
 export function getModelsDevPricing(): PricingByProvider {
-  if (modelsDevPricingCache) {
-    return modelsDevPricingCache;
+  // Kill switch: skip the SQL + JSON.parse scan entirely so a leftover
+  // models_dev_pricing namespace cannot pin the event loop (#9685 / #10052).
+  if (isModelsDevSyncEnvDisabled()) {
+    return {};
+  }
+
+  const currentVersion = getModelCatalogCacheVersion();
+  if (pricingMemo !== null && pricingMemoVersion === currentVersion) {
+    return pricingMemo;
   }
 
   const db = getDbInstance();
@@ -236,10 +260,11 @@ export function getModelsDevPricing(): PricingByProvider {
     try {
       synced[key] = JSON.parse(rawValue) as PricingModels;
     } catch {
-      log.warn({ provider: key }, "models-dev-sync: corrupted pricing data, skipping");
+      console.warn(`[MODELS_DEV] Corrupted pricing data for provider "${key}", skipping`);
     }
   }
-  modelsDevPricingCache = synced;
+  pricingMemo = synced;
+  pricingMemoVersion = currentVersion;
   return synced;
 }
 
@@ -260,7 +285,6 @@ export function saveModelsDevPricing(data: PricingByProvider): void {
   });
   tx();
   backupDbFile("pre-write");
-  invalidateModelsDevPricingCache();
   invalidateDbCache("pricing");
 }
 
@@ -271,7 +295,6 @@ export function clearModelsDevPricing(): void {
   const db = getDbInstance();
   db.prepare("DELETE FROM key_value WHERE namespace = 'models_dev_pricing'").run();
   backupDbFile("pre-write");
-  invalidateModelsDevPricingCache();
   invalidateDbCache("pricing");
 }
 
@@ -310,6 +333,49 @@ export function ensureCapabilitiesTable(): void {
   `);
 }
 
+function defineEnumerableDataProperty<T extends object>(
+  target: T,
+  key: string,
+  value: unknown
+): void {
+  Object.defineProperty(target, key, {
+    value,
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  });
+}
+
+function capabilitiesFromRows(rows: unknown[]): CapabilitiesByProvider {
+  const result: CapabilitiesByProvider = {};
+
+  for (const row of rows) {
+    const record = toRecord(row);
+    const prov = typeof record.provider === "string" ? record.provider : null;
+    const mid = typeof record.model_id === "string" ? record.model_id : null;
+    if (!prov || !mid) continue;
+
+    if (!Object.hasOwn(result, prov)) {
+      defineEnumerableDataProperty(result, prov, {});
+    }
+    defineEnumerableDataProperty(result[prov], mid, mapCapabilityRecord(record));
+  }
+
+  return result;
+}
+
+/**
+ * Uncached full-table models.dev capability read for build-local snapshots.
+ * Shares mapping with the ordinary all-row API but never mutates the module-global
+ * `cachedCapabilities` / `cachedCapabilitiesLoadedAll` runtime cache.
+ */
+export function loadAllSyncedCapabilitiesUncached(): CapabilitiesByProvider {
+  const db = getDbInstance();
+  ensureCapabilitiesTable();
+  const rows = db.prepare("SELECT * FROM model_capabilities").all();
+  return capabilitiesFromRows(rows);
+}
+
 /**
  * Read synced capabilities from `model_capabilities` table.
  */
@@ -342,18 +408,7 @@ export function getSyncedCapabilities(provider?: string, modelId?: string): Capa
     }
   }
 
-  const rows = db.prepare(query).all(...params);
-  const result: CapabilitiesByProvider = {};
-
-  for (const row of rows) {
-    const record = toRecord(row);
-    const prov = typeof record.provider === "string" ? record.provider : null;
-    const mid = typeof record.model_id === "string" ? record.model_id : null;
-    if (!prov || !mid) continue;
-
-    if (!result[prov]) result[prov] = {};
-    result[prov][mid] = mapCapabilityRecord(record);
-  }
+  const result = capabilitiesFromRows(db.prepare(query).all(...params));
 
   if (!provider && !modelId) {
     cachedCapabilities = result;
@@ -377,25 +432,47 @@ const SYNCED_CAPABILITY_FALLBACK_ALIASES: Record<string, string[]> = {
   "opencode-go": ["opencode-zen"],
 };
 
+function lookupSyncedCapabilityWithFallbacks(
+  provider: string,
+  modelId: string,
+  lookup: (provider: string) => ModelCapabilityEntry | null
+): ModelCapabilityEntry | null {
+  const direct = lookup(provider);
+  if (direct) return direct;
+
+  const fallbacks = SYNCED_CAPABILITY_FALLBACK_ALIASES[provider];
+  if (fallbacks) {
+    for (const alt of fallbacks) {
+      const found = lookup(alt);
+      if (found) return found;
+    }
+  }
+
+  return null;
+}
+
 export function getSyncedCapability(
   provider: string,
-  modelId: string
+  modelId: string,
+  bulk?: CapabilitiesByProvider | null
 ): ModelCapabilityEntry | null {
   if (!provider || !modelId) return null;
 
+  if (bulk) {
+    return lookupSyncedCapabilityWithFallbacks(
+      provider,
+      modelId,
+      (p) => bulk[p]?.[modelId] ?? null
+    );
+  }
+
   // Fast path: every provider is in the in-memory cache, skip SQLite entirely.
   if (cachedCapabilitiesLoadedAll) {
-    const lookupCached = (p: string) => cachedCapabilities?.[p]?.[modelId] ?? null;
-    const directCached = lookupCached(provider);
-    if (directCached) return directCached;
-    const fallbacks = SYNCED_CAPABILITY_FALLBACK_ALIASES[provider];
-    if (fallbacks) {
-      for (const alt of fallbacks) {
-        const found = lookupCached(alt);
-        if (found) return found;
-      }
-    }
-    return null;
+    return lookupSyncedCapabilityWithFallbacks(
+      provider,
+      modelId,
+      (p) => cachedCapabilities?.[p]?.[modelId] ?? null
+    );
   }
 
   // Cold path: hit SQLite. Prepare the statement once, reuse for every alias.
@@ -404,24 +481,11 @@ export function getSyncedCapability(
   const stmt = db.prepare(
     "SELECT * FROM model_capabilities WHERE provider = ? AND model_id = ? LIMIT 1"
   );
-  const lookupDb = (p: string): ModelCapabilityEntry | null => {
+  return lookupSyncedCapabilityWithFallbacks(provider, modelId, (p) => {
     const row = stmt.get(p, modelId);
     if (!row) return null;
     return mapCapabilityRecord(toRecord(row));
-  };
-
-  const direct = lookupDb(provider);
-  if (direct) return direct;
-
-  const fallbacks = SYNCED_CAPABILITY_FALLBACK_ALIASES[provider];
-  if (fallbacks) {
-    for (const alt of fallbacks) {
-      const found = lookupDb(alt);
-      if (found) return found;
-    }
-  }
-
-  return null;
+  });
 }
 
 /**
@@ -442,11 +506,12 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
   `);
 
   const now = new Date().toISOString();
+  let changed = false;
   const tx = db.transaction(() => {
-    del.run();
+    if (del.run().changes > 0) changed = true;
     for (const [provider, models] of Object.entries(data)) {
       for (const [modelId, cap] of Object.entries(models)) {
-        insert.run(
+        const info = insert.run(
           provider,
           modelId,
           cap.tool_call === null ? null : cap.tool_call ? 1 : 0,
@@ -468,6 +533,7 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
           cap.interleaved_field,
           now
         );
+        if (info.changes > 0) changed = true;
       }
     }
   });
@@ -475,6 +541,85 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
   backupDbFile("pre-write");
   cachedCapabilities = data;
   cachedCapabilitiesLoadedAll = true;
+  if (changed) invalidateDbCache("model-capabilities");
+}
+
+/**
+ * Insert-or-replace one provider's capability rows without wiping the table.
+ * Used by the OpenRouter live catalog walk so architecture.input_modalities
+ * survive into the next combo LCD (#12613).
+ */
+export function upsertSyncedCapabilities(
+  provider: string,
+  models: Record<string, ModelCapabilityEntry>
+): void {
+  if (!provider || Object.keys(models).length === 0) return;
+  const db = getDbInstance();
+  ensureCapabilitiesTable();
+  const insert = db.prepare(`
+    INSERT INTO model_capabilities (
+      provider, model_id, tool_call, reasoning, attachment, structured_output,
+      temperature, modalities_input, modalities_output, knowledge_cutoff,
+      release_date, last_updated, status, family, open_weights,
+      limit_context, limit_input, limit_output, interleaved_field, last_synced
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(provider, model_id) DO UPDATE SET
+      tool_call=excluded.tool_call,
+      reasoning=excluded.reasoning,
+      attachment=excluded.attachment,
+      structured_output=excluded.structured_output,
+      temperature=excluded.temperature,
+      modalities_input=excluded.modalities_input,
+      modalities_output=excluded.modalities_output,
+      knowledge_cutoff=excluded.knowledge_cutoff,
+      release_date=excluded.release_date,
+      last_updated=excluded.last_updated,
+      status=excluded.status,
+      family=excluded.family,
+      open_weights=excluded.open_weights,
+      limit_context=excluded.limit_context,
+      limit_input=excluded.limit_input,
+      limit_output=excluded.limit_output,
+      interleaved_field=excluded.interleaved_field,
+      last_synced=excluded.last_synced
+  `);
+  const now = new Date().toISOString();
+  let changed = false;
+  const tx = db.transaction(() => {
+    for (const [modelId, cap] of Object.entries(models)) {
+      const info = insert.run(
+        provider,
+        modelId,
+        cap.tool_call === null ? null : cap.tool_call ? 1 : 0,
+        cap.reasoning === null ? null : cap.reasoning ? 1 : 0,
+        cap.attachment === null ? null : cap.attachment ? 1 : 0,
+        cap.structured_output === null ? null : cap.structured_output ? 1 : 0,
+        cap.temperature === null ? null : cap.temperature ? 1 : 0,
+        cap.modalities_input,
+        cap.modalities_output,
+        cap.knowledge_cutoff,
+        cap.release_date,
+        cap.last_updated,
+        cap.status,
+        cap.family,
+        cap.open_weights === null ? null : cap.open_weights ? 1 : 0,
+        cap.limit_context,
+        cap.limit_input,
+        cap.limit_output,
+        cap.interleaved_field,
+        now
+      );
+      if (info.changes > 0) changed = true;
+    }
+  });
+  tx();
+  if (cachedCapabilities) {
+    cachedCapabilities[provider] = {
+      ...(cachedCapabilities[provider] || {}),
+      ...models,
+    };
+  }
+  if (changed) invalidateDbCache("model-capabilities");
 }
 
 /**
@@ -483,10 +628,11 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
 export function clearModelsDevCapabilities(): void {
   const db = getDbInstance();
   ensureCapabilitiesTable();
-  db.prepare("DELETE FROM model_capabilities").run();
+  const info = db.prepare("DELETE FROM model_capabilities").run();
   backupDbFile("pre-write");
   cachedCapabilities = {};
   cachedCapabilitiesLoadedAll = true;
+  if (info.changes > 0) invalidateDbCache("model-capabilities");
 }
 
 // ─── Main sync function ──────────────────────────────────
@@ -558,9 +704,9 @@ export async function syncModelsDev(opts?: {
 
       if (attempt < maxRetries) {
         const delayMs = Math.pow(2, attempt) * 1000; // Exponential backoff: 1s, 2s, 4s
-        log.warn(
-          { attempt: attempt + 1, delayMs, err: lastError.message },
-          "models-dev-sync: retrying after failure"
+        console.warn(
+          `[MODELS_DEV] Sync attempt ${attempt + 1} failed, retrying in ${delayMs}ms:`,
+          lastError.message
         );
         try {
           await sleepWithAbort(delayMs, signal);
@@ -575,7 +721,7 @@ export async function syncModelsDev(opts?: {
   }
 
   const message = lastError?.message || "Unknown error";
-  log.warn({ attempts: maxRetries + 1, err: message }, "models-dev-sync: failed after retries");
+  console.warn(`[MODELS_DEV] Sync failed after ${maxRetries + 1} attempts:`, message);
   return {
     success: false,
     modelCount: 0,
@@ -598,7 +744,7 @@ export function startPeriodicSync(intervalMs?: number): void {
   activeSyncIntervalMs = interval;
   const syncToken = { stopped: false };
   activePeriodicSyncToken = syncToken;
-  log.info({ intervalSec: interval / 1000 }, "models-dev-sync: starting periodic sync");
+  console.log(`[MODELS_DEV] Starting periodic sync every ${interval / 1000}s`);
 
   const launchSync = () => {
     if (syncToken.stopped) {
@@ -625,34 +771,24 @@ export function startPeriodicSync(intervalMs?: number): void {
   launchSync()
     .then((result) => {
       if (result.success) {
-        log.info(
-          { models: result.modelCount, capabilities: result.capabilityCount, providers: result.providerCount },
-          "models-dev-sync: initial sync complete"
+        console.log(
+          `[MODELS_DEV] Initial sync complete: ${result.modelCount} pricing entries, ${result.capabilityCount} capabilities from ${result.providerCount} providers`
         );
       }
     })
     .catch((err) => {
-      log.warn(
-        { err: err instanceof Error ? err.message : err },
-        "models-dev-sync: initial sync error"
-      );
+      console.warn("[MODELS_DEV] Initial sync error:", err instanceof Error ? err.message : err);
     });
 
   syncTimer = setInterval(() => {
     launchSync()
       .then((result) => {
         if (result.success) {
-          log.info(
-            { models: result.modelCount },
-            "models-dev-sync: periodic sync complete"
-          );
+          console.log(`[MODELS_DEV] Periodic sync complete: ${result.modelCount} pricing entries`);
         }
       })
       .catch((err) => {
-        log.warn(
-          { err: err instanceof Error ? err.message : err },
-          "models-dev-sync: periodic sync error"
-        );
+        console.warn("[MODELS_DEV] Periodic sync error:", err instanceof Error ? err.message : err);
       });
   }, interval);
 
@@ -678,7 +814,7 @@ export function stopPeriodicSync(): void {
   if (syncTimer) {
     clearInterval(syncTimer);
     syncTimer = null;
-    log.info("models-dev-sync: periodic sync stopped");
+    console.log("[MODELS_DEV] Periodic sync stopped");
   }
 }
 
@@ -701,17 +837,22 @@ export function getSyncStatus(): SyncStatus {
   };
 }
 
-// ─── Init (called from server-init.ts) ───────────────────
+// ─── Init (called from instrumentation-node.ts) ───────────────────
 
 /**
  * Initialize models.dev sync if enabled.
  */
 export async function initModelsDevSync(): Promise<void> {
-  const { getSettings } = await import("./localDb");
+  if (isModelsDevSyncEnvDisabled()) {
+    console.log("[MODELS_DEV] Disabled (MODELS_DEV_SYNC_ENABLED=0)");
+    return;
+  }
+
+  const { getSettings } = await import("@/lib/db/settings");
   const settings = await getSettings();
 
-  if (settings.modelsDevSyncEnabled !== true) {
-    log.info("models-dev-sync: disabled (enable via Settings > AI)");
+  if (!isModelsDevSyncEnvForcedOn() && settings.modelsDevSyncEnabled !== true) {
+    console.log("[MODELS_DEV] Disabled (enable via Settings > AI or MODELS_DEV_SYNC_ENABLED=1)");
     return;
   }
 

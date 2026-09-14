@@ -1,26 +1,26 @@
-# .gitleaks.toml — gitleaks configuration for OmniRoute
+# .gitleaks.toml — Configuração do gitleaks para OmniRoute
 # Task 7.18 — PLANO-QUALITY-GATES-FASE7.md
 #
-# Extends the default gitleaks rules with project-specific allowlists.
+# Estende as regras padrão do gitleaks com allowlists específicas do projeto.
 #
-# INSTRUCTIONS for allowlists:
-#   Legitimate findings (test fixtures, public OAuth creds already covered by
-#   check-public-creds.mjs, example values in docs) must be registered below
-#   in [[allowlist]] with a required explanatory comment.
+# INSTRUÇÕES para allowlists:
+#   Findings legítimos (fixtures de teste, creds OAuth públicas já cobertas pelo
+#   check-public-creds.mjs, valores de exemplo em docs) devem ser registrados abaixo
+#   em [[allowlist]] com um comentário explicativo obrigatório.
 #
-#   DO NOT add an allowlist entry without justification. Each entry is reviewed
-#   every release (stale-enforcement). Rule: if the finding is a real value the
-#   system uses in production, it's a true positive — do not allowlist, fix it.
+#   NÃO adicione uma entrada de allowlist sem justificativa. Cada entrada é revisada
+#   a cada release (stale-enforcement). Regra: se o finding é um valor real que o
+#   sistema usa em produção, é um verdadeiro positivo — não allowliste, corrija.
 #
-# Reference: docs/security/PUBLIC_CREDS.md (known public OAuth credentials)
-#            CLAUDE.md Hard Rule #11 (resolvePublicCred required)
+# Referência: docs/security/PUBLIC_CREDS.md (credenciais OAuth públicas conhecidas)
+#             CLAUDE.md Hard Rule #11 (resolvePublicCred obrigatório)
 
-# Inherit ALL default gitleaks rules. WARNING: a custom config WITHOUT
-# [extend].useDefault = true (and without its own [[rules]]) results in ZERO
-# rules — gitleaks REPLACES the default ruleset with the file, it does not
-# extend it. Without this section, `gitleaks --config .gitleaks.toml` never
-# detects anything (every finding becomes 0), making the gate inert. With
-# useDefault, the allowlist below is applied ON TOP of the ~170 default rules.
+# Herdar TODAS as regras padrão do gitleaks. ATENÇÃO: um config customizado
+# SEM [extend].useDefault = true (e sem [[rules]] próprias) resulta em ZERO
+# regras — o gitleaks SUBSTITUI o ruleset padrão pelo arquivo, não o estende
+# automaticamente. Sem esta seção, `gitleaks --config .gitleaks.toml` nunca
+# detecta nada (todo finding vira 0), tornando o gate inerte. Com useDefault,
+# a allowlist abaixo é aplicada POR CIMA das ~170 regras padrão.
 [extend]
   useDefault = true
 
@@ -31,13 +31,13 @@
 #     description = "..."
 
 # ---------------------------------------------------------------------------
-# Project-level global allowlist
-# Entries here are ignored in ALL scans.
+# Allowlist global do projeto
+# Entradas aqui são ignoradas em TODAS as varreduras.
 # ---------------------------------------------------------------------------
 [allowlist]
   description = "OmniRoute project-level allowlist — fixtures, test vectors, public OAuth creds"
 
-  # Paths to ignore completely (node_modules, builds, etc.)
+  # Paths a ignorar completamente (node_modules, builds, etc.)
   paths = [
     '''node_modules''',
     '''\.next''',
@@ -47,53 +47,54 @@
     '''\.nyc_output''',
   ]
 
-  # Specific commits to ignore (e.g. commit that introduced test fixtures)
+  # Commits específicos a ignorar (ex: commit que introduziu fixtures de teste)
   # commits = []
 
-  # Stopword regexes — lines that contain these patterns are ignored.
-  # Use only for proven false positives with justification below.
+  # Regexes de stopwords — linhas que contêm estes padrões são ignoradas.
+  # Usar apenas para falsos positivos comprovados com justificativa abaixo.
   # stopwords = []
 
-  # Target regexes (file paths) that may be allowlisted per rule.
-  # See per-rule [[allowlist]] below for granularity.
+  # Regexes de targets (paths de arquivos) que podem ser allowlistados por regra.
+  # Ver [[allowlist]] por-regra abaixo para granularidade.
 
 # ---------------------------------------------------------------------------
-# Per-rule allowlist (add as needed during stale review)
+# Allowlist por-regra (adicionar conforme necessário durante o stale review)
 # ---------------------------------------------------------------------------
 #
-# Example (REMOVE / REPLACE with real entries when needed):
+# Exemplo (REMOVER / SUBSTITUIR por entradas reais quando necessário):
 #
 # [[rules]]
-#   # Allowlist test fixtures that contain example/invalid OAuth tokens
-#   # Added: 2026-06-13 | Review in: v3.9.0 | Justification: non-real test values
+#   # Allowlistar fixtures de teste que contêm tokens OAuth de exemplo/inválidos
+#   # Adicionado: 2026-06-13 | Revisar em: v3.9.0 | Justificativa: valores não-reais de teste
 #   id = "github-fine-grained-pat"
 #   [rules.allowlist]
-#     description = "Test fixture PATs — synthetic, non-functional values"
+#     description = "Test fixture PATs — valores sintéticos, não funcionais"
 #     paths = [
 #       '''tests/fixtures/''',
 #       '''tests/unit/''',
 #     ]
+#
 
 [[rules]]
-  # Proven generic-api-key false positives — cleared on 2026-07-13 (WS6/D3,
-  # v3.8.49 plan). Review in v3.9.0. None are credentials: two are FIELD NAMES
-  # for latency metrics; the third is the PUBLIC value of an Anthropic API beta
-  # header (publicly documented, not a secret).
+  # Falsos-positivos comprovados do generic-api-key — zerados em 2026-07-13 (WS6/D3,
+  # plano v3.8.49). Revisar em v3.9.0. Nenhum é credencial: dois são NOMES DE CAMPO
+  # de métricas de latência; o terceiro é o valor PÚBLICO de um beta header da API
+  # da Anthropic (documentado publicamente, não é segredo).
   id = "generic-api-key"
   [rules.allowlist]
-    description = "Historical false positives for field names and public values (not secrets)"
-    commits = ["67da48642e0df089de1d5f9834ec34fe015ae020"]
-    paths = [
-      '''tests/unit/model-latency-stats-route.test.ts''',
-      '''bin/cli/commands/usage.mjs''',
-    ]
+    description = "Field names + public Anthropic beta-header value (não são segredos)"
     regexes = [
       '''latencyP\d{2}Ms''',
       '''interleaved-thinking-2025-05-14''',
-      # v3.8.49 pre-flight (2026-07-28). Neither is a credential:
-      # - localStorage key for the sponsorship banner (#8723), just a UI identifier;
-      # - PUBLIC x-api-key for Firefly web (documented in open-sse/utils/publicCreds.ts:207);
-      #   both flagged occurrences are in JSDoc comments; the runtime reads from resolvePublicCred().
-      '''omniroute-kimi-sponsor-banner-dismissed-v1''',
+      # v3.8.49 pre-flight (2026-07-28). Nenhum dos dois e credencial:
+      # - chave de localStorage do banner de patrocinio (#8723; #10200 bumpou v1->v2,
+      #   generalizado para -v\d+ no round 3 de base-reds #9985), so um identificador de UI;
+      # - x-api-key PUBLICO do Firefly web (documentado em open-sse/utils/publicCreds.ts:207);
+      #   as duas ocorrencias sinalizadas estao em COMENTARIOS JSDoc, o runtime le de resolvePublicCred().
+      '''omniroute-kimi-sponsor-banner-dismissed-v\d+''',
+      # CheaperInference sponsor banner localStorage key (upstream #11196 /
+      # eb5797370). Same UI-identifier pattern as the kimi banner above, not a
+      # credential; the generic-api-key rule flags the long hyphenated string.
+      '''omniroute-cheaperinference-sponsor-banner-dismissed-v\d+''',
       '''SunbreakWebUI1''',
     ]

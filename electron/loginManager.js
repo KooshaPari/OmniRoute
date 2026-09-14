@@ -12,6 +12,7 @@
 const { BrowserWindow, session } = require("electron");
 const { EventEmitter } = require("events");
 const path = require("path");
+const { captureConfiguredHeaders } = require("./lib/loginHeaderCapture");
 
 // In production, the tokenExtractionConfig is bundled under open-sse/services/.
 // We resolve relative to the Electron resources path.
@@ -42,11 +43,12 @@ class LoginManager extends EventEmitter {
     this.isCompleted = false;
     this.pollIntervalId = null;
     this.loginSession = null;
+    this.headerCredentials = {};
   }
 
   /**
    * Start a login flow for a web-cookie provider.
-   * @param {string} providerId - e.g. "claude-web", "chatgpt-web"
+   * @param {string} providerId - e.g. "claude-web", "perplexity-web"
    * @param {object} [options]
    * @param {number} [options.timeout] - Total timeout in ms (default: config or 300s)
    * @returns {Promise<{success: boolean, credentials?: Record<string, string>, error?: string}>}
@@ -124,6 +126,13 @@ class LoginManager extends EventEmitter {
     });
 
     const winSession = this.window.webContents.session;
+    const headerSources = config.tokenSources.filter((source) => source.type === "header");
+    if (headerSources.length > 0) {
+      winSession.webRequest.onBeforeSendHeaders((details, callback) => {
+        captureConfiguredHeaders(headerSources, details.requestHeaders, this.headerCredentials);
+        callback({ requestHeaders: details.requestHeaders });
+      });
+    }
 
     // Track navigation for success URL detection
     let navigatedToLogin = false;
@@ -235,14 +244,15 @@ class LoginManager extends EventEmitter {
           if (this.isCompleted) return;
 
           const tokenSources = config.tokenSources;
-          const credentials = {};
+          const credentials = { ...this.headerCredentials };
 
           // Collect all cookie-based sources
           const cookieSources = tokenSources.filter((s) => s.type === "cookie");
           for (const source of cookieSources) {
             const domain = source.domain || undefined;
             const matched = cookies.find(
-              (c) => c.name === source.name && (!domain || c.domain.includes(domain.replace(/^\./, "")))
+              (c) =>
+                c.name === source.name && (!domain || c.domain.includes(domain.replace(/^\./, "")))
             );
             if (matched) {
               credentials[source.name] = matched.value;
@@ -253,10 +263,12 @@ class LoginManager extends EventEmitter {
           const storageSources = tokenSources.filter(
             (s) => s.type === "localStorage" || s.type === "sessionStorage"
           );
+          const headerSources = tokenSources.filter((s) => s.type === "header");
 
           if (storageSources.length > 0 && this.window && !this.window.isDestroyed()) {
             // Execute JS to extract all localStorage/sessionStorage tokens
-            const storageType = storageSources[0].type === "localStorage" ? "localStorage" : "sessionStorage";
+            const storageType =
+              storageSources[0].type === "localStorage" ? "localStorage" : "sessionStorage";
             const keys = storageSources.map((s) => s.key);
             const js = `(() => {
               const res = {};
@@ -272,13 +284,37 @@ class LoginManager extends EventEmitter {
                 if (values && typeof values === "object") {
                   Object.assign(credentials, values);
                 }
-                this._checkCredentials(providerId, credentials, cookieSources, storageSources, poll, pollInterval);
+                this._checkCredentials(
+                  providerId,
+                  credentials,
+                  cookieSources,
+                  storageSources,
+                  headerSources,
+                  poll,
+                  pollInterval
+                );
               })
               .catch(() => {
-                this._checkCredentials(providerId, credentials, cookieSources, storageSources, poll, pollInterval);
+                this._checkCredentials(
+                  providerId,
+                  credentials,
+                  cookieSources,
+                  storageSources,
+                  headerSources,
+                  poll,
+                  pollInterval
+                );
               });
           } else {
-            this._checkCredentials(providerId, credentials, cookieSources, storageSources, poll, pollInterval);
+            this._checkCredentials(
+              providerId,
+              credentials,
+              cookieSources,
+              storageSources,
+              headerSources,
+              poll,
+              pollInterval
+            );
           }
         })
         .catch(() => {
@@ -295,23 +331,35 @@ class LoginManager extends EventEmitter {
   /**
    * Check if we have all required credentials, otherwise continue polling
    */
-  _checkCredentials(providerId, credentials, cookieSources, storageSources, poll, pollInterval) {
+  _checkCredentials(
+    providerId,
+    credentials,
+    cookieSources,
+    storageSources,
+    headerSources,
+    poll,
+    pollInterval
+  ) {
     if (this.isCompleted) return;
 
     // Collect the required source names/keys
     const requiredKeys = [
       ...cookieSources.map((s) => s.name),
       ...storageSources.map((s) => s.key),
+      ...headerSources.map((s) => s.name),
     ];
     const foundKeys = Object.keys(credentials);
     const allFound = requiredKeys.every((k) => foundKeys.includes(k));
 
     if (allFound && foundKeys.length > 0) {
       // Success — all credentials extracted
-      this._completeLogin(providerId, foundKeys.reduce((acc, k) => {
-        acc[k] = credentials[k];
-        return acc;
-      }, {}));
+      this._completeLogin(
+        providerId,
+        foundKeys.reduce((acc, k) => {
+          acc[k] = credentials[k];
+          return acc;
+        }, {})
+      );
     } else if (!this.isCompleted) {
       // Continue polling using the configured interval
       this.pollIntervalId = setTimeout(poll, pollInterval);
@@ -373,6 +421,7 @@ class LoginManager extends EventEmitter {
     }
     this.window = null;
     this.loginSession = null;
+    this.headerCredentials = {};
   }
 
   /**

@@ -37,6 +37,7 @@ describe("Chat Pipeline — handleSingleModelChat decomposition", () => {
   const src = readSrc("sse/handlers/chat.ts");
   const helpersSrc = readSrc("sse/handlers/chatHelpers.ts");
   const coreSrc = readOpenSse("handlers/chatCore.ts");
+  const dispatchSrc = readSrc("sse/handlers/chatDispatch.ts");
 
   it("should define resolveModelOrError helper", () => {
     assert.ok(helpersSrc, "chatHelpers.ts should exist");
@@ -66,8 +67,15 @@ describe("Chat Pipeline — handleSingleModelChat decomposition", () => {
     assert.match(src, /checkPipelineGates\(provider/);
   });
 
-  it("handleSingleModelChat should use executeChatWithBreaker", () => {
-    assert.match(src, /executeChatWithBreaker\(/);
+  // O breaker deixou de ser chamado direto por handleSingleModelChat: a chamada foi
+  // extraida para o seam chatDispatch.ts (dispatchChatWithAffinityEviction). O
+  // invariante que este teste protege continua o mesmo — todo dispatch de chat passa
+  // pelo circuit breaker — mas agora precisa ser verificado nos DOIS saltos, senao a
+  // extracao poderia remover o breaker do caminho sem nenhum teste reclamar.
+  it("handleSingleModelChat should dispatch through the breaker seam", () => {
+    assert.match(src, /dispatchChatWithAffinityEviction\(/);
+    assert.ok(dispatchSrc, "src/sse/handlers/chatDispatch.ts should exist");
+    assert.match(dispatchSrc, /executeChatWithBreaker\(/);
   });
 
   it("chatCore should record cost for both non-streaming and streaming responses", () => {

@@ -105,6 +105,22 @@ test("failed Responses API body gets a request-scoped machine-readable classific
   });
 });
 
+test("failed Responses API body surfaces the upstream error message when present", () => {
+  const failed = {
+    object: "response",
+    status: "failed",
+    output: [],
+    error: { code: "server_error", message: "  Gemini 503: overloaded  " },
+  };
+  const reason = detectMalformedNonStream(failed);
+  assert.equal(reason, "empty_choices");
+  assert.deepEqual(describeMalformedNonStream(failed, reason), {
+    message: "upstream reported a failed response: Gemini 503: overloaded",
+    code: "upstream_response_failed",
+    type: "upstream_response_error",
+  });
+});
+
 test("detectMalformedNonStream returns 'empty_choices' when choice message has no content", () => {
   const body = {
     choices: [{ message: { content: "", tool_calls: null }, finish_reason: "stop" }],
@@ -117,6 +133,36 @@ test("detectMalformedNonStream returns null for valid chat completion", () => {
     choices: [{ message: { content: "Hello!", tool_calls: null }, finish_reason: "stop" }],
   };
   assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream returns null for OpenAI choices whose content is a text-block array (#5559)", () => {
+  // Cline (OAuth) returns choices[].message.content as an array of Anthropic-style
+  // blocks inside an OpenAI envelope; this must count as real output, not empty_choices.
+  const body = {
+    id: "chatcmpl-kimi",
+    object: "chat.completion",
+    model: "moonshotai/kimi-k2.6",
+    choices: [
+      {
+        index: 0,
+        message: { role: "assistant", content: [{ type: "text", text: "Here is my analysis." }] },
+        finish_reason: "stop",
+      },
+    ],
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream returns 'empty_choices' for an OpenAI choice with an empty text-block array (#5559 guard)", () => {
+  const body = {
+    choices: [
+      {
+        message: { role: "assistant", content: [{ type: "text", text: "" }] },
+        finish_reason: "stop",
+      },
+    ],
+  };
+  assert.equal(detectMalformedNonStream(body), "empty_choices");
 });
 
 test("detectMalformedNonStream returns null for a valid Claude-native message (#4942 regression)", () => {
@@ -261,6 +307,30 @@ test("detectMalformedNonStream returns null for Claude message with thinking blo
 test("detectMalformedNonStream returns 'empty_choices' for Claude message with empty content", () => {
   const body = { type: "message", role: "assistant", content: [], stop_reason: "end_turn" };
   assert.equal(detectMalformedNonStream(body), "empty_choices");
+});
+
+test("detectMalformedNonStream returns null for Claude content:[] with stop_reason max_tokens (Claude Code /model probe)", () => {
+  // Claude Code probes model switches with Hi + max_tokens:1. Opus can burn the
+  // token on thinking and return an empty content array with max_tokens — valid
+  // upstream 200, must not become empty_choices / 502.
+  const body = {
+    type: "message",
+    role: "assistant",
+    content: [],
+    stop_reason: "max_tokens",
+    usage: { input_tokens: 33, output_tokens: 1 },
+  };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream returns null for Claude content:[] with no stop_reason (#9971 non-terminal)", () => {
+  const body = { type: "message", role: "assistant", content: [] };
+  assert.equal(detectMalformedNonStream(body), null);
+});
+
+test("detectMalformedNonStream returns null for Claude content:[] with stop_reason tool_use (parity with errorClassifier)", () => {
+  const body = { type: "message", role: "assistant", content: [], stop_reason: "tool_use" };
+  assert.equal(detectMalformedNonStream(body), null);
 });
 
 test("detectMalformedNonStream returns 'empty_choices' for Claude message with empty-text block", () => {

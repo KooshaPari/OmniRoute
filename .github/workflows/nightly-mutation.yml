@@ -104,16 +104,16 @@ jobs:
     # scripts/quality/mutation-radiography.mjs both merge per file).
     timeout-minutes: ${{ matrix.batch.timeout || 180 }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: npm
       - run: npm ci
       - name: Restore Stryker incremental cache
-        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: reports/mutation/stryker-incremental.json
           key: stryker-incremental-${{ matrix.batch.name }}-${{ github.run_id }}
@@ -126,7 +126,7 @@ jobs:
         run: npx stryker run --mutate "$BATCH_MUTATE"
       - name: Upload mutation report
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@v7
         with:
           name: mutation-report-${{ matrix.batch.name }}
           path: reports/mutation/
@@ -148,14 +148,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
       - name: Download all mutation reports
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+        uses: actions/download-artifact@v8
         with:
           pattern: mutation-report-*
           path: reports/all

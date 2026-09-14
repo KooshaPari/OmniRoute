@@ -11,9 +11,14 @@ export const ALIBABA_PROVIDER_ENDPOINTS: Readonly<
     "global-sg": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
     "china-beijing": "https://dashscope.aliyuncs.com/compatible-mode/v1",
   },
+  // The catalog entry is the personal TOKEN Plan (see providers/apikey/regional.ts:
+  // name "Alibaba Token Plan"). The legacy coding-intl/coding hosts serve the separate
+  // Coding Plan product and reject Token Plan keys with 401 invalid_api_key — verified
+  // live 2026-08-18 against the same key that returns 429 (quota) on the host below.
+  // Keeps /apps/anthropic/v1 because the registry entry is format "claude".
   "bailian-coding-plan": {
-    "global-sg": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
-    "china-beijing": "https://coding.dashscope.aliyuncs.com/apps/anthropic/v1",
+    "global-sg": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1",
+    "china-beijing": "https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic/v1",
   },
   "qwen-cloud": {
     "global-sg": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
@@ -74,11 +79,48 @@ function normalizeEndpoint(value: string): string {
     .toLowerCase();
 }
 
+/**
+ * Preset hosts this family used to ship. They must keep counting as presets: a connection
+ * saved while a preset was current carries that URL in providerSpecificData.baseUrl, and if
+ * a retired preset were mistaken for a deliberate custom URL the connection would stay
+ * pinned to a host that no longer accepts its key, deaf to the region selector.
+ */
+const LEGACY_FAMILY_PRESETS: Readonly<Record<AlibabaProviderFamily, readonly string[]>> = {
+  alibaba: [],
+  // Retired 2026-08-18 — Coding Plan hosts, wrong product for this Token Plan entry.
+  "bailian-coding-plan": [
+    "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
+    "https://coding.dashscope.aliyuncs.com/apps/anthropic/v1",
+  ],
+  "qwen-cloud": [],
+  "qwen-cloud-token-plan": [],
+};
+
+/**
+ * Media (AIGC) roots, when they differ from the chat root.
+ *
+ * Only bailian-coding-plan diverges: its CHAT traffic moved to the Token Plan host
+ * (2026-08), but image/video generation keeps running on the DashScope AIGC service
+ * (`/api/v1/services/aigc/…`) — see imageRegistry.ts / videoRegistry.ts, which pin those
+ * hosts literally. Deriving media from the chat root would have silently repointed every
+ * Bailian image/video call at a host that does not serve AIGC.
+ */
+const ALIBABA_PROVIDER_MEDIA_OVERRIDES: Partial<
+  Record<AlibabaProviderFamily, Readonly<Record<AlibabaProviderRegion, string>>>
+> = {
+  "bailian-coding-plan": {
+    "global-sg": "https://coding-intl.dashscope.aliyuncs.com/api/v1",
+    "china-beijing": "https://coding.dashscope.aliyuncs.com/api/v1",
+  },
+};
+
 function isFamilyPresetUrl(family: AlibabaProviderFamily, value: string): boolean {
   const normalized = normalizeEndpoint(value);
-  return ALIBABA_PROVIDER_REGION_VALUES.some(
+  const isCurrentPreset = ALIBABA_PROVIDER_REGION_VALUES.some(
     (region) => normalizeEndpoint(ALIBABA_PROVIDER_ENDPOINTS[family][region]) === normalized
   );
+  if (isCurrentPreset) return true;
+  return LEGACY_FAMILY_PRESETS[family].some((preset) => normalizeEndpoint(preset) === normalized);
 }
 
 export function isAlibabaRegionalProvider(providerId: string | null | undefined): boolean {
@@ -167,6 +209,22 @@ export function resolveAlibabaProviderMediaBaseUrl(
   providerSpecificData?: unknown,
   fallback = ""
 ): string {
+  const family = canonicalProviderFamily(providerId);
+  const data = asRecord(providerSpecificData);
+  const configuredBaseUrl =
+    typeof data.baseUrl === "string" && data.baseUrl.trim() ? data.baseUrl.trim() : "";
+  const mediaOverride = family ? ALIBABA_PROVIDER_MEDIA_OVERRIDES[family] : undefined;
+
+  // A custom base URL still drives media, as before — the override only replaces the
+  // preset-derived host.
+  if (
+    family &&
+    mediaOverride &&
+    (!configuredBaseUrl || isFamilyPresetUrl(family, configuredBaseUrl))
+  ) {
+    return mediaOverride[resolveAlibabaProviderRegion(providerId, data)];
+  }
+
   return stripTrailingSlashes(
     resolveAlibabaProviderBaseUrl(providerId, providerSpecificData, fallback).trim()
   )

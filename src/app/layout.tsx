@@ -1,19 +1,14 @@
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/shared/components/ThemeProvider";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getLocale, getTranslations } from "next-intl/server";
 import { RTL_LOCALES } from "@/i18n/config";
 import { normalizeComplianceEventTypes } from "@/i18n/request";
-import { getSettings } from "@/lib/db/settings";
+import { getRootLayoutSettings } from "@/lib/db/rootLayoutSettings";
 import type { Viewport } from "next";
 import { PwaRegister } from "@/shared/components/PwaRegister";
 import { LocaleAutoDetect } from "@/shared/components/LocaleAutoDetect";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+import { BasePathNetworkProvider } from "@/shared/components/BasePathNetworkProvider";
 
 export const viewport: Viewport = {
   themeColor: "#0b0f1a",
@@ -21,9 +16,9 @@ export const viewport: Viewport = {
 };
 
 export async function generateMetadata() {
-  const settings = await getSettings();
-  const instanceName = settings?.instanceName || "OmniRoute";
-  const customFaviconUrl = settings?.customFaviconUrl || settings?.customFaviconBase64;
+  const settings = await getRootLayoutSettings();
+  const instanceName = settings.instanceName;
+  const customFaviconUrl = settings.customFaviconUrl || settings.customFaviconBase64;
 
   return {
     title: `${instanceName} — AI Gateway for Multi-Provider LLMs`,
@@ -134,7 +129,7 @@ export default async function RootLayout({ children }) {
           }}
         />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
+      <body className="font-sans antialiased" suppressHydrationWarning>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#6366f1] focus:text-white focus:rounded-lg focus:text-sm focus:font-semibold focus:shadow-lg"
@@ -142,9 +137,11 @@ export default async function RootLayout({ children }) {
           {t("skipToContent")}
         </a>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <PwaRegister />
-          <LocaleAutoDetect />
-          <ThemeProvider>{children}</ThemeProvider>
+          <BasePathNetworkProvider>
+            <PwaRegister />
+            <LocaleAutoDetect />
+            <ThemeProvider>{children}</ThemeProvider>
+          </BasePathNetworkProvider>
         </NextIntlClientProvider>
       </body>
     </html>

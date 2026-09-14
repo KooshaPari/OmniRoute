@@ -19,6 +19,10 @@ test("findOffendingField matches known field names in a 400 body", () => {
     findOffendingField("context_management: Extra inputs are not permitted"),
     "context_management"
   );
+  assert.equal(
+    findOffendingField("Extra inputs are not permitted, field: 'verbosity', value: 'low'"),
+    "verbosity"
+  );
   assert.equal(findOffendingField("all good"), null);
   assert.equal(findOffendingField(""), null);
 });
@@ -49,3 +53,27 @@ test("stripGroqUnsupportedFields is immutable (does not mutate input)", () => {
   assert.equal(input.messages[0].name, "bob");
   assert.equal(input.logprobs, true);
 });
+
+test("stripGroqUnsupportedFields drops unsupported messages[].model and other metadata while keeping role and content", () => {
+  const out = stripGroqUnsupportedFields({
+    messages: [
+      { role: "user", content: "hello" },
+      {
+        role: "assistant",
+        content: "hello!",
+        model: "groq/openai/gpt-oss-20b",
+        messageId: "msg_123",
+        sender: "assistant",
+      },
+    ],
+  });
+  assert.equal(out.messages.length, 2);
+  assert.equal(out.messages[0].role, "user");
+  assert.equal(out.messages[0].content, "hello");
+  assert.equal(out.messages[1].role, "assistant");
+  assert.equal(out.messages[1].content, "hello!");
+  assert.equal("model" in out.messages[1], false);
+  assert.equal("messageId" in out.messages[1], false);
+  assert.equal("sender" in out.messages[1], false);
+});
+

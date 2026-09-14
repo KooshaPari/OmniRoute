@@ -7,10 +7,10 @@ import { upsertSemanticMemoryPoint, deleteSemanticMemoryPoint } from "./qdrant";
 import { Memory, MemoryType } from "./types";
 import { logger } from "../../../open-sse/utils/logger.ts";
 import { sanitizeErrorMessage } from "../../../open-sse/utils/error.ts";
-import { resolveEmbeddingSource, embed } from "./embedding";
+import { resolveEmbeddingSource, embed, withMeasuredDimensions } from "./embedding";
 import { getVectorStore } from "./vectorStore";
 import { getMemorySettings } from "./settings";
-import { markMemoryNeedsReindex } from "@/lib/localDb";
+import { markMemoryNeedsReindex } from "@/lib/db/memoryVec";
 
 const log = logger("MEMORY_STORE");
 
@@ -122,6 +122,17 @@ function safeMarkNeedsReindex(id: string, needs: boolean): void {
 function scheduleVectorUpsert(id: string, content: string): void {
   setImmediate(async () => {
     try {
+      // The upsert is fire-and-forget and embeddings are slow (potion loads
+      // lazily). Health-check verification (and user deletes) can remove the
+      // memory before this callback runs — skip quietly instead of spamming
+      // "memory not found" warnings every sweep interval.
+      const db = getDbInstance();
+      const exists = db.prepare("SELECT rowid FROM memories WHERE id = ?").get(id);
+      if (!exists) {
+        log.debug("memory.vec.upsert.skipped_deleted", { id });
+        return;
+      }
+
       const settings = await getMemorySettings();
       const resolution = resolveEmbeddingSource(settings);
       if (!resolution.source) return;
@@ -143,7 +154,18 @@ function scheduleVectorUpsert(id: string, content: string): void {
         return;
       }
 
-      await vec.ensureReady(resolution);
+      // The vector in hand is the lazy probe the resolution is waiting for: the
+      // registry has no width for a self-hosted endpoint, so without this
+      // ensureReady() never creates vec_memories and every upsert below fails
+      // into the catch, leaving the memory stored but never vectorized (#12154).
+      const ready = await vec.ensureReady(
+        withMeasuredDimensions(resolution, embeddingResult.vector.length)
+      );
+      if (!ready.ready) {
+        log.warn("memory.vec.ensure_ready.skipped", { id, reason: ready.reason });
+        safeMarkNeedsReindex(id, true);
+        return;
+      }
       await vec.upsertVector(id, embeddingResult.vector);
       safeMarkNeedsReindex(id, false);
     } catch (err: unknown) {
@@ -181,6 +203,13 @@ export async function createMemory(
       memory.sessionId,
       memory.type,
       memory.expiresAt ?? null,
+      existing.id
+    );
+
+    // Self-heal rows created before the insert-time memory_id sync (see the
+    // INSERT branch below): set memory_id from the rowid when still NULL so the
+    // FTS JOIN keeps working for legacy rows. No-op for rows already synced.
+    db.prepare("UPDATE memories SET memory_id = rowid WHERE id = ? AND memory_id IS NULL").run(
       existing.id
     );
 
@@ -257,6 +286,14 @@ export async function createMemory(
     now,
     memory.expiresAt?.toISOString() ?? null
   );
+
+  // Keep memory_id in sync with the SQLite rowid. Migration 023 made the FTS5
+  // external-content trigger key off `memory_id` (JOIN memories.memory_id =
+  // memory_fts.rowid in retrieval.ts), but a plain INSERT leaves it NULL — the
+  // trigger then stores an auto-assigned FTS5 rowid and every keyword/hybrid
+  // search silently returns 0 results. The AFTER UPDATE trigger re-syncs FTS
+  // when memory_id is set here.
+  db.prepare("UPDATE memories SET memory_id = rowid WHERE id = ?").run(id);
 
   const createdMemory: Memory = {
     id,
@@ -350,8 +387,7 @@ export async function updateMemory(
 
   // Fetch current state to detect content/key change (needed for vector re-gen)
   const currentRow = db.prepare("SELECT content, key FROM memories WHERE id = ?").get(id) as
-    | { content: string; key: string | null }
-    | undefined;
+    { content: string; key: string | null } | undefined;
 
   // Build dynamic update query
   const fields: string[] = [];
@@ -396,8 +432,7 @@ export async function updateMemory(
   invalidateMemoryCache(id);
 
   // Regenerate vector if content or key changed (fire-and-forget)
-  const contentChanged =
-    updates.content !== undefined && updates.content !== currentRow?.content;
+  const contentChanged = updates.content !== undefined && updates.content !== currentRow?.content;
   const keyChanged = updates.key !== undefined && updates.key !== currentRow?.key;
 
   if (contentChanged || keyChanged) {
@@ -459,6 +494,7 @@ export async function listMemories(filters: {
   apiKeyId?: string;
   type?: MemoryType;
   sessionId?: string;
+  category?: string;
   query?: string;
   limit?: number;
   offset?: number;
@@ -483,6 +519,13 @@ export async function listMemories(filters: {
   if (filters.sessionId) {
     whereClauses.push("session_id = ?");
     whereParams.push(filters.sessionId);
+  }
+
+  if (typeof filters.category === "string" && filters.category.trim().length > 0) {
+    whereClauses.push(
+      "json_extract(CASE WHEN json_valid(metadata) THEN metadata ELSE '{}' END, '$.category') = ?"
+    );
+    whereParams.push(filters.category.trim());
   }
 
   if (typeof filters.query === "string" && filters.query.trim().length > 0) {
@@ -586,10 +629,7 @@ export function recordMemoryAccess(ids: string[]): void {
  * predicates read (no content/metadata), ordered oldest-first and bounded by `limit`, so a
  * sweep never materializes whole memories or scans unboundedly.
  */
-export function listMemoriesForDecay(filters: {
-  apiKeyId?: string;
-  limit: number;
-}): {
+export function listMemoriesForDecay(filters: { apiKeyId?: string; limit: number }): {
   id: string;
   type: MemoryType;
   accessCount: number;

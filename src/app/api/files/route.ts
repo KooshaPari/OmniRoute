@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { listFiles } from "@/lib/localDb";
+import { listFiles } from "@/lib/db/files";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function GET(request: Request) {

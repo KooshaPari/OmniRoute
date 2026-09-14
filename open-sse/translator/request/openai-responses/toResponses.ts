@@ -4,6 +4,8 @@
  * Extracted verbatim from openai-responses.ts. Registration stays in the host.
  */
 import { isOpenAIResponsesStoreEnabled } from "@/lib/providers/requestDefaults";
+import { isInternalReasoningPlaceholder } from "../../../utils/reasoningPlaceholder.ts";
+import { getReadableReasoningValue } from "../../../utils/reasoningFields.ts";
 import { generateToolCallId } from "../../helpers/toolCallHelper.ts";
 import {
   JsonRecord,
@@ -17,11 +19,25 @@ import {
   normalizeResponsesReasoningEffort,
 } from "./helpers.ts";
 
-// Chat Completions `response_format: { type: "json_schema" }` → Responses API `text.format`.
+// A Chat-Completions client can only express reasoning via the top-level
+// `reasoning_effort` hint; it has no way to request a reasoning summary. When we
+// promote that hint to the Responses API's `reasoning.effort`, default the
+// summary (plus the encrypted-content include that actually streams it) so a
+// downstream chat client still sees a thinking stream instead of an empty
+// summary. Mirrors the Codex executor's `ensureCodexReasoningSummary`. An
+// explicit `reasoning` object from a Responses-shaped client is preserved as-is.
+const DEFAULT_RESPONSES_REASONING_SUMMARY = "auto";
+const RESPONSES_REASONING_ENCRYPTED_CONTENT_INCLUDE = "reasoning.encrypted_content";
+
+// Chat Completions JSON `response_format` → Responses API `text.format`.
 // Merges into any existing `result.text` (e.g. verbosity) so structured-output schemas from
 // Chat clients survive the translation to the Responses/Codex upstream (#5933).
 function mapChatResponseFormatToResponsesText(body: JsonRecord, result: JsonRecord): void {
   const responseFormat = toRecord(body.response_format);
+  if (responseFormat.type === "json_object") {
+    result.text = { ...toRecord(result.text), format: { type: "json_object" } };
+    return;
+  }
   if (responseFormat.type !== "json_schema") return;
 
   const jsonSchema = toRecord(responseFormat.json_schema);
@@ -37,6 +53,46 @@ function mapChatResponseFormatToResponsesText(body: JsonRecord, result: JsonReco
   if (jsonSchema.strict !== undefined) format.strict = jsonSchema.strict;
 
   result.text = { ...existingText, format };
+}
+
+// Flatten a Chat-Completions content block into the single string the Responses
+// API `instructions` field takes. `instructions` is a string, not a part array,
+// so the text parts are joined; anything non-textual has no representation there
+// and is dropped, exactly as a string-only client would have sent it.
+function buildInstructionsText(content: unknown): string {
+  if (typeof content === "string") {
+    return content;
+  }
+  return buildResponsesTextParts(content)
+    .map((partValue) => toString(toRecord(partValue).text))
+    .filter((text) => text.length > 0)
+    .join("\n\n");
+}
+
+// Convert a Chat-Completions content block (string or text-part array) into the
+// Responses API `input_text` part array used by message input items.
+function buildResponsesTextParts(content: unknown): unknown[] {
+  if (typeof content === "string") {
+    return [{ type: "input_text", text: content }];
+  }
+  if (Array.isArray(content)) {
+    const parts: unknown[] = [];
+    for (const partValue of content) {
+      // A bare string inside the content array is a real text instruction
+      // (e.g. a harness-injected system reminder), not a structured part.
+      // Silently dropping it lost the instruction (#6954 follow-up).
+      if (typeof partValue === "string") {
+        parts.push({ type: "input_text", text: partValue });
+        continue;
+      }
+      const part = toRecord(partValue);
+      if (part.type === "text" || typeof part.text === "string") {
+        parts.push({ type: "input_text", text: toString(part.text) });
+      }
+    }
+    return parts.length > 0 ? parts : [{ type: "input_text", text: "" }];
+  }
+  return [{ type: "input_text", text: "" }];
 }
 
 export function openaiToOpenAIResponsesRequest(
@@ -71,9 +127,26 @@ export function openaiToOpenAIResponsesRequest(
 
     if (role === "system" || role === "developer") {
       if (!hasSystemMessage) {
-        result.instructions = typeof msg.content === "string" ? msg.content : "";
+        // A content-part array is valid Chat Completions for `system` too, and
+        // clients that cache their prompt (Anthropic `cache_control`) always
+        // send that shape. Reading only the string case turned the entire
+        // system prompt into "" — accepted upstream, so the model answered
+        // with no instructions at all and nothing in the response said so.
+        result.instructions = buildInstructionsText(msg.content);
         hasSystemMessage = true;
+        continue;
       }
+      // Mid-conversation system/developer turns (e.g. harness-injected reminders
+      // from Claude Code) must survive as developer-role input items. The
+      // Responses API supports the `developer` role for exactly this; mapping
+      // them to `assistant` misattributes harness instructions as model output,
+      // and silently dropping them loses them entirely (#6954).
+      input.push({
+        type: "message",
+        role: "developer",
+        content: buildResponsesTextParts(msg.content),
+        status: "completed",
+      });
       continue;
     }
 
@@ -138,17 +211,32 @@ export function openaiToOpenAIResponsesRequest(
         type: "message",
         role: "user",
         content,
+        status: "completed",
       });
     }
 
     // Convert assistant messages
     if (role === "assistant") {
-      // Skip reasoning_content — OpenAI Responses API requires server-generated
-      // rs_* IDs for reasoning items. Synthesizing client-side IDs (e.g. reasoning_N)
-      // causes 400 errors from Responses-compatible upstreams. (#224)
+      const reasoning = getReadableReasoningValue(msg).trim();
+      if (reasoning && !isInternalReasoningPlaceholder(reasoning)) {
+        // Compatibility is decided before protocol translation; this adapter
+        // only encodes the surviving portable plaintext state.
+        input.push({
+          type: "reasoning",
+          content: [{ type: "reasoning_text", text: reasoning }],
+          // Strict Responses-API upstreams (e.g. opencode/zen) require `summary`
+          // on every `input[]` item of type "reasoning", plaintext or opaque —
+          // omitting it rejects the request with `input[N] missing required
+          // field summary`. This item is always freshly built from a chat
+          // client's plaintext reasoning, so there is no source summary to
+          // preserve; default to an empty array like the replay sanitizer does
+          // for opaque items in reasoningInputPolicy.ts (#11108).
+          summary: [],
+        });
+      }
 
-      // Skip thinking blocks in array content — same rs_* ID constraint applies
-
+      // Thinking blocks remain display-only here. They do not prove that the
+      // selected target accepts their provider-specific replay representation.
       // Build assistant output content
       const outputContent: unknown[] = [];
       if (typeof msg.content === "string" && msg.content) {
@@ -176,6 +264,7 @@ export function openaiToOpenAIResponsesRequest(
           type: "message",
           role: "assistant",
           content: outputContent,
+          status: "completed",
         });
       }
 
@@ -194,6 +283,7 @@ export function openaiToOpenAIResponsesRequest(
             call_id: clampCallId(toString(toolCall.id).trim() || generateToolCallId()),
             name: fnName,
             arguments: toString(fn.arguments, "{}"),
+            status: "completed",
           });
         }
       }
@@ -208,6 +298,7 @@ export function openaiToOpenAIResponsesRequest(
             call_id: clampCallId(`call_${fnName}`),
             name: fnName,
             arguments: toString(fc.arguments, "{}"),
+            status: "completed",
           });
         }
       }
@@ -229,6 +320,7 @@ export function openaiToOpenAIResponsesRequest(
                   return c;
                 })
               : String(msg.content ?? ""),
+        status: "completed",
       });
     }
 
@@ -238,6 +330,7 @@ export function openaiToOpenAIResponsesRequest(
         type: "function_call_output",
         call_id: clampCallId(`call_${toString(msg.name)}`),
         output: typeof msg.content === "string" ? msg.content : String(msg.content ?? ""),
+        status: "completed",
       });
     }
   }
@@ -317,7 +410,9 @@ export function openaiToOpenAIResponsesRequest(
   // Translate max_tokens / max_completion_tokens → max_output_tokens for Responses API.
   // The Responses API does not accept max_tokens or max_completion_tokens; it requires
   // max_output_tokens. max_completion_tokens takes priority as the newer Chat Completions field.
-  if (root.max_completion_tokens !== undefined) {
+  if (root.max_output_tokens !== undefined) {
+    result.max_output_tokens = root.max_output_tokens;
+  } else if (root.max_completion_tokens !== undefined) {
     result.max_output_tokens = root.max_completion_tokens;
   } else if (root.max_tokens !== undefined) {
     result.max_output_tokens = root.max_tokens;
@@ -329,11 +424,17 @@ export function openaiToOpenAIResponsesRequest(
   if (chatVerbosity) {
     result.text = { ...toRecord(result.text), verbosity: chatVerbosity };
   }
+  let defaultedReasoningSummary = false;
   if (root.reasoning !== undefined) {
     result.reasoning = root.reasoning;
   } else if (root.reasoning_effort !== undefined) {
-    const effort = normalizeResponsesReasoningEffort(root.reasoning_effort);
-    if (effort) {
+    const effort = normalizeResponsesReasoningEffort(root.reasoning_effort, model ?? root.model);
+    if (effort && effort !== "none") {
+      // Effort-only chat request: default a reasoning summary so the upstream
+      // streams thinking back (see the constant's note above).
+      result.reasoning = { effort, summary: DEFAULT_RESPONSES_REASONING_SUMMARY };
+      defaultedReasoningSummary = true;
+    } else if (effort) {
       result.reasoning = { effort };
     }
   }
@@ -344,6 +445,14 @@ export function openaiToOpenAIResponsesRequest(
   // (OpenCode, Cursor, etc.) see no thinking stream.
   if (Array.isArray(root.include) && root.include.length > 0) {
     result.include = root.include;
+  }
+  // When we defaulted a reasoning summary above, also request the encrypted
+  // reasoning content so the summary actually streams back to the chat client.
+  if (defaultedReasoningSummary) {
+    const include = Array.isArray(result.include) ? (result.include as unknown[]) : [];
+    if (!include.includes(RESPONSES_REASONING_ENCRYPTED_CONTENT_INCLUDE)) {
+      result.include = [...include, RESPONSES_REASONING_ENCRYPTED_CONTENT_INCLUDE];
+    }
   }
   if (storeEnabled) {
     if (root[RESPONSES_STORE_MARKER] !== undefined) {

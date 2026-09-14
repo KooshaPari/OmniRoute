@@ -1,22 +1,20 @@
 import { v4 as uuidv4 } from "uuid";
-import type { BatchItemCheckpoint, BatchRecord } from "@/lib/localDb";
 import {
+  type BatchItemCheckpoint,
+  type BatchRecord,
   countBatchItemCheckpoints,
-  createFile,
-  deleteFile,
   ensureBatchItemCheckpoints,
-  getApiKeyById,
   getBatch,
-  getFileContent,
   getPendingBatches,
   getTerminalBatches,
   listBatchItemCheckpoints,
-  listFiles,
   markBatchItemError,
   markBatchItemProcessing,
   markBatchItemResult,
   updateBatch,
-} from "@/lib/localDb";
+} from "@/lib/db/batches";
+import { createFile, deleteFile, getFileContent, listFiles } from "@/lib/db/files";
+import { getApiKeyById } from "@/lib/db/apiKeys";
 import { dispatch } from "@/lib/batches/dispatch";
 import type { SupportedBatchEndpoint } from "@/shared/constants/batchEndpoints";
 import { DEFAULT_BATCH_EXPIRATION_SECONDS } from "@/shared/constants/batch";
@@ -506,14 +504,46 @@ async function processSingleItemWithRetry(item: BatchRequestItem, apiKey: string
   }
 }
 
+// G10 (silent-stop fix): individual batch-item dispatches can hang indefinitely
+// if the upstream route stalls (no signal/timeout plumbed through). Bound each
+// item with a wall-clock timeout so a stuck item fails fast (recorded as an item
+// error) instead of freezing the whole batch loop. The orphaned dispatch keeps
+// running in the background but can no longer block the batch.
+export const BATCH_ITEM_DISPATCH_TIMEOUT_MS = 120_000;
+
+/**
+ * G10: race a promise against a wall-clock deadline. Exported for unit testing
+ * (batch dispatch is a module-internal import, so the timeout mechanism itself
+ * is verified directly here).
+ */
+export function withItemDispatchTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  label: string
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error(`${label} timed out after ${timeoutMs}ms`)),
+      timeoutMs
+    );
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
+
 async function processSingleItem(item: BatchRequestItem, apiKey: string) {
   const body = buildRequestBody(item);
-
-  return await dispatch.dispatchBatchApiRequest({
-    endpoint: item.url,
-    body,
-    apiKey,
-  });
+  return withItemDispatchTimeout(
+    dispatch.dispatchBatchApiRequest({
+      endpoint: item.url,
+      body,
+      apiKey,
+    }),
+    BATCH_ITEM_DISPATCH_TIMEOUT_MS,
+    `Batch item dispatch (${item.url})`
+  );
 }
 
 export function buildRequestBody(item: BatchRequestItem) {

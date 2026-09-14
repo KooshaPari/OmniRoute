@@ -1,4 +1,5 @@
 import { CORS_HEADERS } from "./cors.ts";
+import { getReadableReasoningValue } from "./reasoningFields.ts";
 
 type PendingToolCall = {
   id?: string;
@@ -10,14 +11,22 @@ type PendingToolCall = {
 
 // Transform OpenAI SSE stream to Ollama JSON lines format
 export function transformToOllama(response, model) {
+  // Only successful SSE responses belong to the NDJSON transformer. Preserve errors,
+  // bodyless responses, and successful JSON responses without losing status/body/headers.
+  const contentType = String(response.headers?.get?.("content-type") || "").toLowerCase();
+  if (!response.ok || !response.body || !contentType.includes("text/event-stream")) return response;
+
   let buffer = "";
   let pendingToolCalls: Record<number, PendingToolCall> = {};
   const completedToolCalls: PendingToolCall[] = [];
+  // Persistent decoder with { stream: true } carries pending bytes between chunks, so a
+  // multi-byte UTF-8 sequence split across network chunks is not corrupted into U+FFFD.
+  const decoder = new TextDecoder();
 
   const transform = new TransformStream(
     {
       transform(chunk, controller) {
-        const text = new TextDecoder().decode(chunk);
+        const text = decoder.decode(chunk, { stream: true });
         buffer += text;
         const lines = buffer.split("\n");
         buffer = lines.pop() || "";
@@ -38,6 +47,7 @@ export function transformToOllama(response, model) {
             const parsed = JSON.parse(data);
             const delta = parsed.choices?.[0]?.delta || {};
             const content = delta.content || "";
+            const thinking = getReadableReasoningValue(delta);
             const toolCalls = delta.tool_calls;
 
             if (toolCalls) {
@@ -47,7 +57,11 @@ export function transformToOllama(response, model) {
                 const toolCallId = tc.id != null ? String(tc.id) : tc.id;
 
                 // T37: Prevent merging tool_calls on same index if ID changes
-                if (pendingToolCalls[idx] && toolCallId && pendingToolCalls[idx].id !== toolCallId) {
+                if (
+                  pendingToolCalls[idx] &&
+                  toolCallId &&
+                  pendingToolCalls[idx].id !== toolCallId
+                ) {
                   completedToolCalls.push(pendingToolCalls[idx]);
                   delete pendingToolCalls[idx];
                 }
@@ -62,6 +76,16 @@ export function transformToOllama(response, model) {
                 if (tc.function?.arguments)
                   pendingToolCalls[idx].function.arguments += tc.function.arguments;
               }
+            }
+
+            if (thinking) {
+              const ollama =
+                JSON.stringify({
+                  model,
+                  message: { role: "assistant", content: "", thinking },
+                  done: false,
+                }) + "\n";
+              controller.enqueue(new TextEncoder().encode(ollama));
             }
 
             if (content) {

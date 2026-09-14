@@ -49,3 +49,11 @@ test("normalizeExecutorResult wraps bare Response and passes through rich result
   assert.equal(rich.url, "u");
   assert.equal(rich.headers.a, "b");
 });
+
+test("normalizeExecutorResult rejects malformed executor output", () => {
+  assert.throws(() => normalizeExecutorResult({}), /must contain a Response/);
+  assert.throws(
+    () => normalizeExecutorResult({ response: "not-a-response" }),
+    /must contain a Response/
+  );
+});

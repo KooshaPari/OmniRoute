@@ -1,4 +1,4 @@
-import { getProxyHealthStats } from "@/lib/localDb";
+import { getProxyHealthStats } from "@/lib/db/proxies";
 import { createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 

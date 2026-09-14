@@ -47,6 +47,5 @@ test("GLM translateSseResponse does not pass a 16th positional to the stream hel
   assert.ok(callAt >= 0);
   const call = extractParens(body, callAt + "createSSETransformStreamWithLogger".length);
   assert.equal(/65536/.test(call), false, `dead 16th arg still present:\n${call}`);
-  // #13319: #12925 added trailing buffer-size arguments after suppressThinkClose
-  assert.match(call, /suppressThinkClose/);
+  assert.match(call, /suppressThinkClose\s*\)\s*$/);
 });

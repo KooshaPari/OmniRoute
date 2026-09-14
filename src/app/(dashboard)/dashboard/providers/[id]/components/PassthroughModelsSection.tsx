@@ -70,9 +70,9 @@ export interface PassthroughModelsSectionProps {
   bulkTogglePending?: boolean;
   togglingModelId?: string | null;
   onTestModel?: (modelId: string, fullModel: string) => Promise<void>;
-  modelTestStatus?: Record<string, "ok" | "error" | null>;
+  modelTestStatus?: Record<string, "ok" | "error" | "quota" | null>;
   /** Report a model's test-all result so the parent updates the green/red icon. */
-  onModelTestStatusChange?: (modelId: string, status: "ok" | "error") => void;
+  onModelTestStatusChange?: (modelId: string, status: "ok" | "error" | "quota") => void;
   testingModelId?: string | null;
   providerId: string;
   connectionId: string;
@@ -181,8 +181,9 @@ export default function PassthroughModelsSection({
 
         const entry = result.results?.[model.modelId];
         const outcome = evaluateTestAllEntry(entry, autoHideFailed);
-        // Paint the per-model icon green/red, same as the single-model ▶ test.
-        onModelTestStatusChange?.(model.modelId, outcome.status);
+        // #9511: paint "quota" status for quota-exhausted models (amber badge),
+        // "ok" for healthy, "error" for genuine failures.
+        onModelTestStatusChange?.(model.modelId, outcome.isQuota ? "quota" : outcome.status);
         if (outcome.status === "ok") {
           ok++;
         } else {
@@ -257,7 +258,7 @@ export default function PassthroughModelsSection({
           Boolean((model as any).free) ||
           model.id.endsWith(":free") ||
           /\bgr[aá]tis\b|\bfree\b/i.test(model.name || "") ||
-          isFreeModel(providerId, { id: model.id }),
+          isFreeModel(providerId, { id: model.id, isFree: (model as any).isFree }),
         isHidden: isModelHidden(model.id),
       });
       seenModelIds.add(model.id);
@@ -295,7 +296,7 @@ export default function PassthroughModelsSection({
           modelId.endsWith(":free") ||
           Boolean((customModel as any)?.free) ||
           /\bgr[aá]tis\b|\bfree\b/i.test(customModel?.name || alias || "") ||
-          isFreeModel(providerId, { id: modelId }),
+          isFreeModel(providerId, { id: modelId, isFree: (customModel as any)?.isFree }),
         isHidden: isModelHidden(modelId),
       });
       seenModelIds.add(modelId);
@@ -427,6 +428,7 @@ export default function PassthroughModelsSection({
                 key={fullModel as string}
                 modelId={modelId}
                 fullModel={fullModel}
+                provider={providerId}
                 alias={alias}
                 source={source}
                 isFree={isFree}

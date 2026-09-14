@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # Przewodnik po stealth
 
-> **Source of truth:** `open-sse/utils/tlsClient.ts`, `open-sse/services/{chatgptTlsClient,claudeCodeCCH,claudeCodeFingerprint,claudeCodeObfuscation,claudeCodeCompatible}.ts`, `open-sse/config/cliFingerprints.ts`, `src/mitm/`
+> **Source of truth:** `open-sse/utils/tlsClient.ts`, `open-sse/services/{claudeCodeCCH,claudeCodeFingerprint,claudeCodeObfuscation,claudeCodeCompatible}.ts`, `open-sse/config/cliFingerprints.ts`, `src/mitm/`
 > **Last updated:** 2026-06-28 — v3.8.40
 > **Audience:** Engineers maintaining provider-specific stealth integrations.
 
@@ -14,7 +14,7 @@ OmniRoute integruje się z providerami, których edge aktywnie fingerprintuje ni
 
 ## Uwaga prawna i etyczna
 
-Funkcje stealth istnieją po to, by OmniRoute mógł działać jako warstwa kompatybilności między oficjalnymi kontami użytkownika (Claude Code CLI, ChatGPT Desktop/Web, Antigravity, Cursor itd.) a ujednoliconym API OmniRoute. **Nie** służą do omijania fraud detection, współdzielenia poświadczeń ani naruszania Terms of Service providera. Maintainerzy oczekują, że operatorzy będą przestrzegać upstream ToS, które zaakceptowali przy tworzeniu kont.
+Funkcje stealth istnieją po to, by OmniRoute mógł działać jako warstwa kompatybilności między oficjalnymi kontami użytkownika (Claude Code CLI, Codex, Antigravity, Cursor itd.) a ujednoliconym API OmniRoute. **Nie** służą do omijania fraud detection, współdzielenia poświadczeń ani naruszania Terms of Service providera. Maintainerzy oczekują, że operatorzy będą przestrzegać upstream ToS, które zaakceptowali przy tworzeniu kont.
 
 ---
 
@@ -28,20 +28,6 @@ Lazy-loaded sesja `wreq-js`, która impersonuje **Chrome 124 na macOS**. Używan
 - Proxy resolution (priority): `HTTPS_PROXY` → `HTTP_PROXY` → `ALL_PROXY` (także lower-case)
 - Timeout: `TLS_CLIENT_TIMEOUT_MS` (dziedziczy z `FETCH_TIMEOUT_MS`, domyślnie 600000)
 - Response z `wreq-js` jest zgodny z fetch (`headers`, `text()`, `json()`, `clone()`, `body`).
-
-### `open-sse/services/chatgptTlsClient.ts` — tls-client-node (Firefox 148)
-
-Dedykowany impersonator TLS dla `chatgpt.com`. Konfiguracja Cloudflare ChatGPT pinuje `cf_clearance` do JA3/JA4 + kolejności ramek HTTP/2 SETTINGS — handshake undici dostaje `cf-mitigated: challenge` nawet przy poprawnych cookies.
-
-- Profile: `firefox_148` (musi pasować do wysyłanego `User-Agent` Firefox 148)
-- Mode: `runtimeMode: "native"` (shared library ładowana przez koffi; unika managed sidecar HTTP)
-- `withRandomTLSExtensionOrder: true`
-- `tlsFetchChatGpt(url, options)` obsługuje streaming (zapisuje body do pliku tymczasowego, tailed jako `ReadableStream`)
-- Hang detection: `raceWithTimeout` + `TlsClientHangError` wywołuje `resetClientCache()`, więc kolejne wywołanie respawnuje binding
-- Proxy resolution (priority): per-call `proxyUrl` → `OMNIROUTE_TLS_PROXY_URL` → `HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY` (natywny binding **nie** czyta tych env sam; trzeba je przekazać)
-- Errors: `TlsClientUnavailableError` (brak binary), `TlsClientHangError` (binding w deadlocku)
-
----
 
 ## Pakiet stealth Claude Code
 
@@ -253,17 +239,17 @@ OmniRoute czyści inbound nagłówki klienta przed forwardem, by żądanie przyc
 2. Wyodrębnij JA3/JA4 i literową kolejność nagłówków
 3. Zaktualizuj odpowiedni wpis `CLI_FINGERPRINTS[...]`
 4. Podbij pasujący domyślny `*_USER_AGENT` w `.env.example`
-5. Jeśli zmienił się sam TLS handshake: zaktualizuj `chatgptTlsClient.ts::CHATGPT_PROFILE` lub opcję wreq-js `browser:`
-6. Odpal `chatgptTlsClient.test.ts` i ręcznego canary przeciwko żywemu providerowi
+5. Jeśli zmienił się sam TLS handshake, zaktualizuj odpowiedni wrapper providera lub opcję wreq-js `browser:`
+6. Odpal testy TLS danego providera i ręcznego canary przeciwko żywemu providerowi
 7. Wypuść w patch release; udokumentuj w `CHANGELOG.md`
 
 ---
 
 ## Testy
 
-- `open-sse/services/__tests__/chatgptTlsClient.test.ts` — priorytet resolution proxy, obsługa abort, hang recovery
+- `open-sse/services/__tests__/claudeTlsClient.test.ts` — zachowanie współdzielonego wrappera TLS
 - `tests/unit/anthropic-cache-fingerprint.test.ts` — determinizm fingerprintu
-- `tests/unit/chatgpt-web.test.ts` — end-to-end ścieżka stealth dla ChatGPT
+- `tests/unit/chatgpt-web-source-retirement.test.ts` — wspólne źródło ChatGPT Web pozostaje nieobecne, a Codex Web pozostaje zachowany
 
 ---
 

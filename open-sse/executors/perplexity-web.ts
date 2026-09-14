@@ -16,15 +16,19 @@ import {
 import { prepareToolMessages } from "../translator/webTools.ts";
 import { buildToolModeResponse } from "./chatgptWebTools.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import { buildSessionCookieHeader, mergeRefreshedCookie } from "../utils/nextAuthCookie.ts";
+import { formatTranslatedStreamError } from "../utils/streamErrorFormat.ts";
 import {
   PPLX_SSE_ENDPOINT,
   PPLX_USER_AGENT,
+  PPLX_STREAM_EOF_SYMBOL,
   MODEL_MAP,
   THINKING_MAP,
   cleanResponse,
   parseOpenAIMessages,
   buildPplxRequestBody,
   buildQuery,
+  extractContent,
   sseChunk,
 } from "./perplexity-web/protocol.ts";
 
@@ -32,6 +36,8 @@ import {
 
 const SESSION_MAX_AGE_MS = 3600_000;
 const SESSION_MAX_ENTRIES = 200;
+const PPLX_STREAM_ERROR_MESSAGE = "Perplexity upstream stream failed";
+const PPLX_STREAM_ERROR_CODE = "PPLX_STREAM_ERROR";
 
 interface SessionEntry {
   backendUuid: string;
@@ -89,289 +95,6 @@ function sessionStore(
   }
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-// ─── SSE types ──────────────────────────────────────────────────────────────
-
-interface PplxDiffPatch {
-  op?: string;
-  path?: string;
-  value?: unknown;
-}
-
-interface PplxBlock {
-  intended_usage?: string;
-  markdown_block?: {
-    answer?: string;
-    chunks?: string[];
-    progress?: string;
-    chunk_starting_offset?: number;
-  };
-  // Schematized API (use_schematized_api) streams block updates as RFC-6902
-  // JSON-patch diffs against a target field (e.g. markdown_block) instead of
-  // sending the whole block each frame. `field` names the block being patched.
-  diff_block?: {
-    field?: string;
-    patches?: PplxDiffPatch[];
-  };
-  web_result_block?: {
-    web_results?: Array<{ url?: string; name?: string; snippet?: string }>;
-  };
-  plan_block?: {
-    steps?: Array<{
-      step_type?: string;
-      search_web_content?: { queries?: Array<{ query?: string }> };
-      read_results_content?: { urls?: string[] };
-    }>;
-    goals?: Array<{ description?: string }>;
-  };
-}
-
-interface PplxStreamEvent {
-  status?: string;
-  final?: boolean;
-  text?: string;
-  blocks?: PplxBlock[];
-  backend_uuid?: string;
-  web_results?: Array<{ url?: string; name?: string }>;
-  error_code?: string;
-  error_message?: string;
-  display_model?: string;
-}
-
-// ─── SSE parsing ────────────────────────────────────────────────────────────
-
-async function* readPplxSseEvents(
-  body: ReadableStream<Uint8Array>,
-  signal?: AbortSignal | null
-): AsyncGenerator<PplxStreamEvent> {
-  const reader = body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  let dataLines: string[] = [];
-
-  function flush(): PplxStreamEvent | null | "done" {
-    if (dataLines.length === 0) return null;
-    const payload = dataLines.join("\n");
-    dataLines = [];
-    const trimmed = payload.trim();
-    if (!trimmed || trimmed === "[DONE]") return "done";
-    try {
-      return JSON.parse(trimmed) as PplxStreamEvent;
-    } catch {
-      return null;
-    }
-  }
-
-  try {
-    while (true) {
-      if (signal?.aborted) return;
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-
-      while (true) {
-        const idx = buffer.indexOf("\n");
-        if (idx < 0) break;
-        const rawLine = buffer.slice(0, idx);
-        buffer = buffer.slice(idx + 1);
-        const line = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
-
-        if (line === "") {
-          const parsed = flush();
-          if (parsed === "done") return;
-          if (parsed) yield parsed;
-          continue;
-        }
-        if (line.startsWith("data:")) {
-          dataLines.push(line.slice(5).trimStart());
-        }
-        if (line === "event: end_of_stream") {
-          return;
-        }
-      }
-    }
-
-    buffer += decoder.decode();
-    if (buffer.trim().startsWith("data:")) {
-      dataLines.push(buffer.trim().slice(5).trimStart());
-    }
-    const tail = flush();
-    if (tail && tail !== "done") yield tail;
-  } finally {
-    reader.releaseLock();
-  }
-}
-
-// ─── Content extraction ─────────────────────────────────────────────────────
-
-interface ContentChunk {
-  delta?: string;
-  answer?: string;
-  backendUuid?: string;
-  thinking?: string;
-  error?: string;
-  done?: boolean;
-}
-
-// The schematized API delivers the answer text in blocks whose `intended_usage`
-// is either the aggregate `ask_text` or per-segment `ask_text_<n>_markdown`
-// (older builds used names merely containing "markdown"). All converge on the
-// same answer, so we lock onto a single primary usage to avoid double-counting.
-function isAnswerTextUsage(usage: string): boolean {
-  return (
-    usage === "ask_text" || /^ask_text_\d+_markdown$/.test(usage) || usage.includes("markdown")
-  );
-}
-
-// Reconstructed state for one answer-text block, built up from diff patches
-// (streaming) or a materialized markdown_block (final COMPLETED frame).
-interface MarkdownAccumulator {
-  chunks: string[];
-}
-
-// Apply a markdown_block diff_block patch set. Perplexity sends an initial
-// `{op:"replace", path:"", value:{chunks:[...]}}` then incremental
-// `{op:"add", path:"/chunks/<n>", value:"..."}` frames. We only need the
-// chunks array; joining it yields the cumulative answer text.
-function applyMarkdownDiff(acc: MarkdownAccumulator, patches: PplxDiffPatch[]): void {
-  for (const patch of patches) {
-    const path = patch.path ?? "";
-    if (path === "") {
-      const value = (patch.value ?? {}) as { chunks?: unknown };
-      acc.chunks = Array.isArray(value.chunks) ? value.chunks.map((c) => String(c)) : [];
-      continue;
-    }
-    const chunkMatch = /^\/chunks\/(\d+)$/.exec(path);
-    if (chunkMatch && typeof patch.value === "string") {
-      const idx = Number.parseInt(chunkMatch[1], 10);
-      acc.chunks[idx] = patch.value;
-    }
-  }
-}
-
-async function* extractContent(
-  eventStream: ReadableStream<Uint8Array>,
-  signal?: AbortSignal | null
-): AsyncGenerator<ContentChunk> {
-  let fullAnswer = "";
-  let backendUuid: string | null = null;
-  let seenLen = 0;
-  const seenThinking = new Set<string>();
-  // Per-usage reconstructed answer-text blocks + the locked primary usage.
-  const mdState = new Map<string, MarkdownAccumulator>();
-  let primaryUsage: string | null = null;
-
-  for await (const event of readPplxSseEvents(eventStream, signal)) {
-    if (event.error_code || event.error_message) {
-      yield {
-        error: event.error_message || `Perplexity error: ${event.error_code}`,
-        done: true,
-      };
-      return;
-    }
-
-    if (event.backend_uuid) backendUuid = event.backend_uuid;
-
-    const blocks = event.blocks ?? [];
-    for (const block of blocks) {
-      const usage = block.intended_usage ?? "";
-
-      // Thinking: search steps
-      if (usage === "pro_search_steps" && block.plan_block?.steps) {
-        for (const step of block.plan_block.steps) {
-          if (step.step_type === "SEARCH_WEB") {
-            for (const q of step.search_web_content?.queries ?? []) {
-              const qr = q.query ?? "";
-              if (qr && !seenThinking.has(qr)) {
-                seenThinking.add(qr);
-                yield { thinking: `Searching: ${qr}`, backendUuid: backendUuid ?? undefined };
-              }
-            }
-          } else if (step.step_type === "READ_RESULTS") {
-            for (const u of (step.read_results_content?.urls ?? []).slice(0, 3)) {
-              if (u && !seenThinking.has(u)) {
-                seenThinking.add(u);
-                yield { thinking: `Reading: ${u}`, backendUuid: backendUuid ?? undefined };
-              }
-            }
-          }
-        }
-      }
-
-      // Thinking: plan goals
-      if (usage === "plan" && block.plan_block?.goals) {
-        for (const goal of block.plan_block.goals) {
-          const desc = goal.description ?? "";
-          if (desc && !seenThinking.has(desc)) {
-            seenThinking.add(desc);
-            yield { thinking: desc, backendUuid: backendUuid ?? undefined };
-          }
-        }
-      }
-
-      // Content: answer-text blocks (schematized diff frames OR materialized
-      // markdown_block on the final COMPLETED frame).
-      if (!isAnswerTextUsage(usage)) continue;
-      let acc = mdState.get(usage);
-      if (!acc) {
-        acc = { chunks: [] };
-        mdState.set(usage, acc);
-      }
-
-      if (block.diff_block && Array.isArray(block.diff_block.patches)) {
-        applyMarkdownDiff(acc, block.diff_block.patches);
-      } else if (block.markdown_block) {
-        const mb = block.markdown_block;
-        if (Array.isArray(mb.chunks) && mb.chunks.length > 0) {
-          acc.chunks = mb.chunks.map((c) => String(c));
-        } else if (typeof mb.answer === "string" && mb.answer.length > 0) {
-          acc.chunks = [mb.answer];
-        }
-      }
-
-      // Prefer the aggregate `ask_text` block; otherwise lock the first seen.
-      if (usage === "ask_text") {
-        primaryUsage = "ask_text";
-      } else if (!primaryUsage) {
-        primaryUsage = usage;
-      }
-    }
-
-    // Emit at most one content delta per event, from the locked primary usage.
-    if (primaryUsage) {
-      const currentAnswer = (mdState.get(primaryUsage)?.chunks ?? []).join("");
-      if (currentAnswer.length > seenLen) {
-        const delta = currentAnswer.slice(seenLen);
-        fullAnswer = currentAnswer;
-        seenLen = currentAnswer.length;
-        yield { delta, answer: fullAnswer, backendUuid: backendUuid ?? undefined };
-      }
-    }
-
-    // Legacy fallback: a plain non-JSON `text` field with no structured blocks.
-    // The schematized API's `text` field is a JSON step-blob (not user-facing),
-    // so only use it when there are no answer-text blocks at all.
-    if (!primaryUsage && blocks.length === 0 && event.text) {
-      const t = event.text.trim();
-      const looksLikeJson = t.startsWith("{") || t.startsWith("[");
-      if (!looksLikeJson && t.length > seenLen) {
-        const delta = t.slice(seenLen);
-        fullAnswer = t;
-        seenLen = t.length;
-        yield { delta, answer: fullAnswer, backendUuid: backendUuid ?? undefined };
-      }
-    }
-
-    // Only stop on the terminal COMPLETED frame. A `final:true` flag can appear
-    // on a still-PENDING frame BEFORE the COMPLETED frame that materializes the
-    // full markdown_block — breaking on `final` there drops the answer.
-    if (event.status === "COMPLETED") break;
-  }
-
-  yield { delta: "", answer: fullAnswer, backendUuid: backendUuid ?? undefined, done: true };
-}
-
-// ─── OpenAI SSE format ──────────────────────────────────────────────────────
 function buildStreamingResponse(
   eventStream: ReadableStream<Uint8Array>,
   model: string,
@@ -382,155 +105,223 @@ function buildStreamingResponse(
   signal?: AbortSignal | null
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
+  const streamAbortController = new AbortController();
+  const forwardInputAbort = () =>
+    streamAbortController.abort(signal?.reason ?? "perplexity_request_aborted");
+  if (signal?.aborted) forwardInputAbort();
+  else signal?.addEventListener("abort", forwardInputAbort, { once: true });
+  let inputAbortListenerAttached = Boolean(signal && !signal.aborted);
+  const removeInputAbortListener = () => {
+    if (!inputAbortListenerAttached) return;
+    inputAbortListenerAttached = false;
+    signal?.removeEventListener("abort", forwardInputAbort);
+  };
+  const abortEventStream = (reason: unknown) => {
+    removeInputAbortListener();
+    if (!streamAbortController.signal.aborted) streamAbortController.abort(reason);
+  };
+  const contentIterator = extractContent(eventStream, streamAbortController.signal)[
+    Symbol.asyncIterator
+  ]();
+  let fullAnswer = "";
+  let respBackendUuid: string | null = null;
+  let roleEmitted = false;
+  let finished = false;
+  let pendingFailure: (Error & { statusCode: number }) | null = null;
 
-  return new ReadableStream(
-    {
-      async start(controller) {
-        try {
-          // Initial role chunk
-          controller.enqueue(
-            encoder.encode(
-              sseChunk({
-                id: cid,
-                object: "chat.completion.chunk",
-                created,
-                model,
-                system_fingerprint: null,
-                choices: [
-                  { index: 0, delta: { role: "assistant" }, finish_reason: null, logprobs: null },
-                ],
-              })
-            )
-          );
+  const enqueuePreContentFailure = (controller: ReadableStreamDefaultController<Uint8Array>) => {
+    controller.enqueue(
+      encoder.encode(
+        formatTranslatedStreamError({
+          status: 502,
+          message: PPLX_STREAM_ERROR_MESSAGE,
+          type: "upstream_error",
+          code: PPLX_STREAM_ERROR_CODE,
+        })
+      )
+    );
+  };
 
-          let fullAnswer = "";
-          let respBackendUuid: string | null = null;
+  const takeAssistantRoleChunk = (): string => {
+    if (roleEmitted) return "";
+    roleEmitted = true;
+    return sseChunk({
+      id: cid,
+      object: "chat.completion.chunk",
+      created,
+      model,
+      system_fingerprint: null,
+      choices: [
+        {
+          index: 0,
+          delta: { role: "assistant" },
+          finish_reason: null,
+          logprobs: null,
+        },
+      ],
+    });
+  };
 
-          for await (const chunk of extractContent(eventStream, signal)) {
-            if (chunk.backendUuid) respBackendUuid = chunk.backendUuid;
+  const completeStream = (controller: ReadableStreamDefaultController<Uint8Array>) => {
+    if (finished) return;
+    finished = true;
+    controller.enqueue(
+      encoder.encode(
+        sseChunk({
+          id: cid,
+          object: "chat.completion.chunk",
+          created,
+          model,
+          system_fingerprint: null,
+          choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
+        })
+      )
+    );
+    controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+    sessionStore(history, currentMsg, cleanResponse(fullAnswer), respBackendUuid);
+    removeInputAbortListener();
+    controller.close();
+  };
 
-            if (chunk.error) {
-              controller.enqueue(
-                encoder.encode(
-                  sseChunk({
-                    id: cid,
-                    object: "chat.completion.chunk",
-                    created,
-                    model,
-                    system_fingerprint: null,
-                    choices: [
-                      {
-                        index: 0,
-                        delta: { content: `[Error: ${chunk.error}]` },
-                        finish_reason: null,
-                        logprobs: null,
-                      },
-                    ],
-                  })
-                )
-              );
-              break;
-            }
+  const failStream = (controller: ReadableStreamDefaultController<Uint8Array>) => {
+    if (roleEmitted) {
+      pendingFailure = Object.assign(new Error(PPLX_STREAM_ERROR_MESSAGE), {
+        statusCode: 502,
+      });
+      finished = true;
+      controller.close();
+      return;
+    }
+    finished = true;
+    enqueuePreContentFailure(controller);
+    controller.close();
+  };
 
-            if (chunk.thinking) {
-              controller.enqueue(
-                encoder.encode(
-                  sseChunk({
-                    id: cid,
-                    object: "chat.completion.chunk",
-                    created,
-                    model,
-                    system_fingerprint: null,
-                    choices: [
-                      {
-                        index: 0,
-                        delta: { reasoning_content: chunk.thinking + "\n" },
-                        finish_reason: null,
-                        logprobs: null,
-                      },
-                    ],
-                  })
-                )
-              );
-              continue;
-            }
+  const providerStream = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      if (finished) return;
 
-            if (chunk.done) {
-              fullAnswer = chunk.answer || fullAnswer;
-              break;
-            }
-
-            let dt = chunk.delta || "";
-            if (dt) {
-              dt = cleanResponse(dt, false);
-              if (dt) {
-                controller.enqueue(
-                  encoder.encode(
-                    sseChunk({
-                      id: cid,
-                      object: "chat.completion.chunk",
-                      created,
-                      model,
-                      system_fingerprint: null,
-                      choices: [
-                        { index: 0, delta: { content: dt }, finish_reason: null, logprobs: null },
-                      ],
-                    })
-                  )
-                );
-              }
-            }
-            if (chunk.answer) fullAnswer = chunk.answer;
-          }
-
-          // Stop chunk
-          controller.enqueue(
-            encoder.encode(
-              sseChunk({
-                id: cid,
-                object: "chat.completion.chunk",
-                created,
-                model,
-                system_fingerprint: null,
-                choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
-              })
-            )
-          );
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-
-          sessionStore(history, currentMsg, cleanResponse(fullAnswer), respBackendUuid);
-        } catch (err) {
-          controller.enqueue(
-            encoder.encode(
-              sseChunk({
-                id: cid,
-                object: "chat.completion.chunk",
-                created,
-                model,
-                system_fingerprint: null,
-                choices: [
-                  {
-                    index: 0,
-                    delta: {
-                      content: `[Stream error: ${err instanceof Error ? err.message : String(err)}]`,
-                    },
-                    finish_reason: "stop",
-                    logprobs: null,
-                  },
-                ],
-              })
-            )
-          );
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        } finally {
-          try {
-            controller.close();
-          } catch {}
+      try {
+        const next = await contentIterator.next();
+        if (streamAbortController.signal.aborted) {
+          finished = true;
+          controller.close();
+          return;
         }
-      },
+        if (next.done === true) {
+          completeStream(controller);
+          return;
+        }
+
+        const chunk = next.value;
+        if (chunk.backendUuid) respBackendUuid = chunk.backendUuid;
+
+        if (chunk.error) {
+          failStream(controller);
+          removeInputAbortListener();
+          void contentIterator.return?.(undefined).catch(() => undefined);
+          return;
+        }
+
+        if (chunk.thinking) {
+          controller.enqueue(
+            encoder.encode(
+              takeAssistantRoleChunk() +
+                sseChunk({
+                  id: cid,
+                  object: "chat.completion.chunk",
+                  created,
+                  model,
+                  system_fingerprint: null,
+                  choices: [
+                    {
+                      index: 0,
+                      delta: { reasoning_content: chunk.thinking + "\n" },
+                      finish_reason: null,
+                      logprobs: null,
+                    },
+                  ],
+                })
+            )
+          );
+          return;
+        }
+
+        if (chunk.done) {
+          fullAnswer = chunk.answer || fullAnswer;
+          completeStream(controller);
+          await contentIterator.return?.(undefined);
+          return;
+        }
+
+        let dt = chunk.delta || "";
+        if (dt) {
+          dt = cleanResponse(dt, false);
+          if (dt) {
+            controller.enqueue(
+              encoder.encode(
+                takeAssistantRoleChunk() +
+                  sseChunk({
+                    id: cid,
+                    object: "chat.completion.chunk",
+                    created,
+                    model,
+                    system_fingerprint: null,
+                    choices: [
+                      { index: 0, delta: { content: dt }, finish_reason: null, logprobs: null },
+                    ],
+                  })
+              )
+            );
+          }
+        }
+        if (chunk.answer) fullAnswer = chunk.answer;
+      } catch {
+        failStream(controller);
+        removeInputAbortListener();
+        void contentIterator.return?.(undefined).catch(() => undefined);
+      }
     },
-    { highWaterMark: 16384 }
-  );
+
+    cancel(reason) {
+      finished = true;
+      abortEventStream(reason);
+      void contentIterator.return?.(undefined).catch(() => undefined);
+    },
+  });
+
+  // Erroring the provider stream immediately would discard output buffered by the readiness
+  // handoff. Drain each provider chunk through a backpressure-aware reader, then reject only the
+  // read after the last legitimate chunk. The outer pipeline converts that fixed public error to
+  // the client's canonical terminal frame and records the stream failure.
+  const providerReader = providerStream.getReader();
+  let cancelled = false;
+  return new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const next = await providerReader.read();
+        if (cancelled) return;
+        if (next.done === false) {
+          controller.enqueue(next.value);
+          return;
+        }
+        if (pendingFailure) {
+          controller.error(pendingFailure);
+          return;
+        }
+        controller.close();
+      } catch (error) {
+        if (!cancelled) controller.error(error);
+      }
+    },
+
+    cancel(reason) {
+      if (cancelled) return;
+      cancelled = true;
+      abortEventStream(reason);
+      void providerReader.cancel(reason).catch(() => undefined);
+    },
+  });
 }
 
 async function buildNonStreamingResponse(
@@ -673,7 +464,10 @@ export class PerplexityWebExecutor extends BaseExecutor {
     let pplxMode: string;
     let modelPref: string;
     if (thinking && THINKING_MAP[model]) {
-      pplxMode = "search";
+      // "copilot", not "search": the backend downgrades "search" to CONCISE and drops
+      // model_preference, so the thinking variant would fail the same way the catalog
+      // models do (see the note above MODEL_MAP).
+      pplxMode = "copilot";
       modelPref = THINKING_MAP[model];
       log?.info?.("PPLX-WEB", `Thinking mode → ${model} using ${modelPref}`);
     } else if (MODEL_MAP[model]) {
@@ -778,7 +572,7 @@ export class PerplexityWebExecutor extends BaseExecutor {
         if (isCloudflareChallenge(response.text)) {
           errMsg =
             "Cloudflare blocked the request — Perplexity's edge rejected this server's TLS fingerprint " +
-            "(common on VPS/datacenter IPs). Ensure tls-client-node is installed with its native binary, " +
+            "(common on VPS/datacenter IPs). Verify the wreq-js 3.2 native binding, " +
             "or route perplexity-web through a residential proxy.";
           log?.error?.("PPLX-WEB", "Cloudflare challenge detected — TLS bypass failed");
         } else {
@@ -840,7 +634,7 @@ export class PerplexityWebExecutor extends BaseExecutor {
     }
 
     // Surface any rotated session-token back to the caller so the DB credential
-    // is refreshed — mirrors chatgpt-web.ts exchangeSession + onCredentialsRefreshed.
+    // is refreshed — mirrors the shared web-session refresh contract.
     if (cookieBlob) {
       await persistRotatedSessionCookie(
         cookieBlob,
@@ -857,7 +651,7 @@ export class PerplexityWebExecutor extends BaseExecutor {
 
     // Tool mode buffers the full completion (no live token streaming) and
     // converts <tool> text into real tool_calls — even when the caller asked
-    // for a streaming response — mirroring chatgpt-web's toolMode (#5240,
+    // for a streaming response — mirroring the shared tool-mode contract (#5240,
     // #5927). Without this, streaming requests (the default for agentic
     // coding clients) never emitted a tool_calls SSE delta.
     let finalResponse: Response;
@@ -905,31 +699,6 @@ export class PerplexityWebExecutor extends BaseExecutor {
         parsed.currentMsg,
         signal
       );
-    }
-
-    if (hasTools && !stream) {
-      const bodyText = await (finalResponse as Response).text();
-      try {
-        const json = JSON.parse(bodyText);
-        const rawContent = json?.choices?.[0]?.message?.content || "";
-        const { content, toolCalls, finishReason } = buildToolAwareResult(
-          rawContent,
-          requestedTools,
-          "pplx"
-        );
-        if (toolCalls) {
-          json.choices[0].message = { role: "assistant", content: null, tool_calls: toolCalls };
-          json.choices[0].finish_reason = finishReason;
-        } else {
-          json.choices[0].message.content = content;
-        }
-        finalResponse = new Response(JSON.stringify(json), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      } catch {
-        /* keep original response */
-      }
     }
 
     return {

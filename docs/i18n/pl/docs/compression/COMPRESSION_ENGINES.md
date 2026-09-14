@@ -142,22 +142,22 @@ wskazuje zamiast tego lokalną kopię (instalacje offline / air-gapped).
 
 ### Opcjonalne zależności i instalacja on-demand
 
-Przycinany stos peerów runtime LLMLingua jest **opcjonalny**. Trzy pakiety są zadeklarowane jako
+Przycinany stos peerów runtime LLMLingua jest **opcjonalny**. Dwa pakiety są zadeklarowane jako
 `optionalDependencies` w `package.json` i utrzymywane jako **external** przez build produkcyjny
 (`scripts/build/prepublish.ts` ich nie bundluje):
 
-| Package              | Version (pin) | Notes                                             |
-| -------------------- | ------------- | ------------------------------------------------- |
-| `@atjsh/llmlingua-2` | `2.0.3`       | Pakiet wejściowy; deklaruje pozostałe jako peery  |
-| `@tensorflow/tfjs`   | `4.22.0`      | Najcięższa zależność — dominuje footprint ~800 MB |
-| `js-tiktoken`        | `^1.0.20`     | Tokenizer                                         |
+| Package              | Version (pin) | Notes                                       |
+| -------------------- | ------------- | ------------------------------------------- |
+| `@atjsh/llmlingua-2` | `2.0.5`       | Pakiet wejściowy; deklaruje pozostałe jako peery |
+| `js-tiktoken`        | `^1.0.20`     | Tokenizer                                   |
 
-`@huggingface/transformers` jest pinowany na `3.5.2` jako **opcjonalna** zależność (współdzielona ze
-ścieżką lokalnych embeddings i również śledzona do standalone bundle). Utrzymanie jej jako optional
-zapobiega awariom postinstall providera CUDA `onnxruntime-node` na hostach CUDA 11, które przerywałyby
-całą instalację OmniRoute; gdy opcjonalny stos jest nieobecny, LLMLingua nadal fail-openuje. Tylko trzy
-powyższe pakiety to przycinane peery SLM. Standardowe `npm install` (dev) instaluje opcjonalny stos
-automatycznie, o ile opcjonalne zależności nie zostaną pominięte.
+`@huggingface/transformers` jest pinowany na `^4.2.0` (współdzielony ze ścieżką lokalnych embeddings
+i również śledzony do standalone bundle); `@atjsh/llmlingua-2@2.0.5` peeruje na nim przez
+`"^3.5.2 || ^4.0.0"`, więc obsługiwane są zarówno Transformers.js v3, jak i v4. Od 2.0.4
+`@atjsh/llmlingua-2` nie wymaga już `@tensorflow/tfjs`, co usunęło największy pojedynczy wkład
+(TensorFlow.js) ze stosu SLM. Tylko dwa powyższe pakiety to przycinane peery SLM. Standardowe
+`npm install` (dev) instaluje opcjonalny stos automatycznie, o ile opcjonalne zależności nie zostaną
+pominięte.
 
 **Dlaczego on-demand:** pakiet publikowany w npm, standalone bundle i obraz Docker
 dostarczane są **bez** tych zależności, aby pozostać lekkie. Gdy ich brakuje, bramka zależności
@@ -167,11 +167,12 @@ logowanego błędu). Aby aktywować go w przyciętym środowisku, zainstaluj opc
 
 ```bash
 # pin to the versions declared in package.json optionalDependencies
-npm install @atjsh/llmlingua-2@2.0.3 @tensorflow/tfjs@4.22.0 js-tiktoken
+npm install @atjsh/llmlingua-2@2.0.5 js-tiktoken
 ```
 
-Łącznie mniej więcej **~800 MB**: dominują runtime’y TensorFlow.js + transformers; model
-TinyBERT dodaje ~57 MB pobierane przy pierwszym użyciu (nie przez npm).
+Usunięcie `@tensorflow/tfjs` (2.0.4+) eliminuje wcześniej dominujący wkład ~800 MB — pozostały
+footprint to runtime’y transformers.js + onnxruntime-node oraz model TinyBERT (~57 MB) pobierany
+przy pierwszym użyciu (nie przez npm).
 
 Per środowisko:
 

@@ -21,7 +21,27 @@ import {
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { logger } from "@omniroute/open-sse/utils/logger.ts";
 import { resolveProxy } from "@omniroute/open-sse/utils/networkProxy.ts";
+import { withCodexFingerprintCredentials } from "@omniroute/open-sse/config/codexIdentity.ts";
 import { proxyConfigToUrl } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
+import {
+  attachReasoningRuleDirective,
+  applyReasoningRuleDirective,
+  extractReasoningIntent,
+  resolveReasoningSourceModels,
+  resolveReasoningRoutingRule,
+  validateCodexWsDecision,
+} from "@/lib/reasoningRouting/policy";
+import { resolveRequestRoutingTags } from "@/domain/tagRouter";
+import { validateApiKeyRoutingTarget } from "@/shared/utils/apiKeyPolicy";
+import { persistResponsesWsCallHistory } from "./history";
+import { applyResponsesWsCompression } from "./compression";
+import { getComboByName } from "@/lib/db/combos";
+import { getComboModelString } from "@/lib/combos/steps";
+import {
+  buildManagedLeaseErrorResponse,
+  isExclusiveLeaseManagedKey,
+  LeaseContextError,
+} from "@/sse/services/leaseContext";
 
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 const executor = new CodexExecutor();
@@ -403,6 +423,17 @@ async function resolveCodexRequestContext(body: JsonRecord) {
   if (policyResult.rejection) return { error: policyResult.rejection };
   const metadata =
     policyResult.apiKeyInfo ?? (apiKey ? await getApiKeyMetadata(apiKey).catch(() => null) : null);
+  if (isExclusiveLeaseManagedKey(metadata)) {
+    return {
+      error: buildManagedLeaseErrorResponse(
+        new LeaseContextError(
+          409,
+          "LEASE_UNSUPPORTED_TRANSPORT",
+          "Managed leases require the fenced HTTP Responses transport"
+        )
+      ),
+    };
+  }
   const allowedConnections =
     metadata && Array.isArray(metadata.allowedConnections) && metadata.allowedConnections.length > 0
       ? metadata.allowedConnections
@@ -420,6 +451,7 @@ async function resolveCodexRequestContext(body: JsonRecord) {
     apiKey,
     responseBody,
     requestedModel,
+    clientHeaders: Object.fromEntries(authRequest.headers.entries()),
     metadata,
     allowedConnections,
     ...reasoningRoute,
@@ -494,6 +526,17 @@ async function resolveCodexProxy(provider: string): Promise<string | undefined> 
 async function prepare(body: JsonRecord) {
   const context = await resolveCodexRequestContext(body);
   if ("error" in context) return context.error;
+  const combo = await getComboByName(context.requestedModel).catch(() => null);
+  if (combo) {
+    const models = Array.isArray(combo.models) ? combo.models : [];
+    if (models.some((model) => getComboModelString(model)?.startsWith("chatgpt-web-codex/"))) {
+      return jsonError(
+        426,
+        "responses_websocket_http_fallback",
+        "This Combo contains ChatGPT Web (Codex) and must use the HTTP/SSE Responses transport"
+      );
+    }
+  }
   const upstream = await resolveCodexUpstreamContext(context);
   if ("error" in upstream) return upstream.error;
   const { responseBody, metadata, provider, model, credentials: refreshedCredentials } = upstream;
@@ -517,33 +560,37 @@ async function prepare(body: JsonRecord) {
     model,
     requestId: randomUUID(),
   });
+  const credentialsWithFingerprint = withCodexFingerprintCredentials(
+    refreshedCredentials,
+    context.clientHeaders,
+    responseBodyWithMemory
+  );
   const transformed = (await executor.transformRequest(
     model,
     responseBodyWithMemory,
     true,
-    refreshedCredentials
+    credentialsWithFingerprint
   )) as JsonRecord;
   transformed.model = model;
   delete transformed.stream;
   delete transformed.stream_options;
 
-  const headers = normalizeUpstreamHeaders(executor.buildHeaders(refreshedCredentials, true));
+  const headers = normalizeUpstreamHeaders(executor.buildHeaders(credentialsWithFingerprint, true));
 
   // #5611: apply the configured Global/provider proxy to the upstream Codex
   // Responses WebSocket too. The downstream client→OmniRoute hop works, but the
   // upstream wreq-js.websocket() connect previously ignored the Proxy Registry,
   // so a no-direct-egress container failed with a DNS lookup error.
-  let proxy: string | undefined;
-  try {
-    proxy = proxyConfigToUrl(await resolveProxy(provider)) || undefined;
-  } catch (err) {
-    logger.warn(`[codex-responses-ws] proxy resolution failed: ${sanitizeErrorMessage(err)}`);
-  }
+  const proxy = await resolveCodexProxy(provider);
 
   return NextResponse.json({
     ok: true,
     upstreamUrl: CODEX_RESPONSES_WS_URL,
-    browser: "chrome_149",
+    // #5591: chrome_149 does not exist in wreq-js 2.3.1 (max chrome_147) → the
+    // native layer yields a degenerate TLS fingerprint and ChatGPT rejects the
+    // upgrade ("Invalid JSON body"). chrome_142 is the profile that shipped in
+    // v3.8.39 and is confirmed working against this upstream.
+    browser: "chrome_142",
     os: "windows",
     connectionId: refreshedCredentials.connectionId,
     provider,
@@ -551,6 +598,7 @@ async function prepare(body: JsonRecord) {
     model,
     headers,
     proxy,
+    reasoningRouting,
     response: transformed,
   });
 }

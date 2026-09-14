@@ -106,10 +106,7 @@ describe("Tiered Rotation in selectProvider", () => {
     resetDiversity();
   });
 
-  // Stress test: pays the one-time DB init on first getTaskFitness() call in
-  // this file plus many selectProvider() iterations, which exceeds vitest's
-  // default 5000ms limit. Raise the budget rather than thin the sample.
-  it("smart combo rotates within top tier across many requests", { timeout: 30000 }, () => {
+  it("smart combo rotates within top tier across many requests", () => {
     const topA = makeCandidate({ provider: "openai", model: "gpt-4o", quotaRemaining: 95 });
     const topB = makeCandidate({ provider: "anthropic", model: "claude-opus", quotaRemaining: 90 });
     const topC = makeCandidate({ provider: "google", model: "gemini-ultra", quotaRemaining: 88 });
@@ -126,7 +123,7 @@ describe("Tiered Rotation in selectProvider", () => {
     expect(seen.has("openai/gpt-4o") || seen.has("anthropic/claude-opus")).toBe(true);
   });
 
-  it("cheap combo pulls from rest tier (lower scores) more often than smart", { timeout: 30000 }, () => {
+  it("cheap combo pulls from rest tier (lower scores) more often than smart", () => {
     const top = makeCandidate({ provider: "openai", model: "gpt-4o", quotaRemaining: 100 });
     const rest = makeCandidate({
       provider: "cheap-provider",
@@ -178,23 +175,31 @@ describe("scorePool with connectionDensity", () => {
 });
 
 describe("Per-Connection Rotation", () => {
-  it("rotates across all 43 Cerebras connection IDs, not just one", { timeout: 30000 }, () => {
-    const cerebrasCandidates: ProviderCandidate[] = Array.from({ length: 43 }, (_, i) =>
-      makeCandidate({
-        provider: "cerebras",
-        model: "llama-3.1-70b",
-        connectionId: `cerebras-conn-${i + 1}`,
-      })
-    );
-    const config = makeConfig("smart");
+  it(
+    "rotates across all 43 Cerebras connection IDs, not just one",
+    () => {
+      const cerebrasCandidates: ProviderCandidate[] = Array.from({ length: 43 }, (_, i) =>
+        makeCandidate({
+          provider: "cerebras",
+          model: "llama-3.1-70b",
+          connectionId: `cerebras-conn-${i + 1}`,
+        })
+      );
+      const config = makeConfig("smart");
 
-    const seenConnections = new Set<string>();
-    for (let i = 0; i < 200; i++) {
-      const result = selectProvider(config, cerebrasCandidates, "coding");
-      if (result.connectionId) seenConnections.add(result.connectionId);
-    }
-    expect(seenConnections.size).toBeGreaterThanOrEqual(10);
-  });
+      const seenConnections = new Set<string>();
+      for (let i = 0; i < 200; i++) {
+        const result = selectProvider(config, cerebrasCandidates, "coding");
+        if (result.connectionId) seenConnections.add(result.connectionId);
+      }
+      expect(seenConnections.size).toBeGreaterThanOrEqual(10);
+    },
+    // 200 synchronous selectProvider() calls over a 43-connection pool are CPU-bound and can
+    // exceed 20s under the full Vitest worker load on the validation VPS, while the isolated
+    // file remains green. The assertion is unchanged; only the execution budget is widened.
+    // Refs #9985.
+    60000
+  );
 
   it("different combos maintain independent round-robin state", () => {
     const candidates: ProviderCandidate[] = Array.from({ length: 5 }, (_, i) =>

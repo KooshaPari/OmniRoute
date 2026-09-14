@@ -2,9 +2,9 @@ import {
   deleteModelAlias,
   getModelAliases,
   getModelIsHidden,
-  getProviderNodeById,
   setModelAlias,
-} from "@/lib/localDb";
+} from "@/lib/db/models";
+import { getProviderNodeById } from "@/lib/db/providers";
 import {
   getProviderAlias,
   isAnthropicCompatibleProvider,

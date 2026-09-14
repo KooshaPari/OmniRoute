@@ -75,30 +75,47 @@ test("OpencodeExecutor.buildHeaders: Content-Type always application/json", () =
   assert.equal(headers["Content-Type"], "application/json");
 });
 
-test("OpencodeExecutor.buildHeaders: omits User-Agent when no client UA (forward-only, not fabricated)", () => {
-  // Forward-only contract (see opencode-executor.test.ts): opencode client identity headers
-  // are opencode-internal — inventing them risks upstream rejection, so we never fabricate a
-  // default. A pure dedup refactor (#5720) briefly regressed this by defaulting to
-  // "opencode/local"; the executor forwards a client-sent User-Agent but adds none of its own.
-  const executor = new OpencodeExecutor("opencode");
-  const headers = executor.buildHeaders({ apiKey: "key-1" }, true);
-  assert.equal(headers["User-Agent"], undefined);
+test("OpencodeExecutor.buildHeaders: omits User-Agent when no client UA and synthesis is explicitly off", () => {
+  // Forward-only contract (see opencode-executor.test.ts) when the operator opts OUT via
+  // OPENCODE_SYNTHESIZE_CLI_HEADERS=false. PR #10571 flipped the default to ON (see
+  // tests/unit/opencode-cli-headers-synthesis-5997.test.ts) — the forward-only path is now
+  // opt-out rather than the default.
+  const saved = process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS;
+  process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS = "false";
+  try {
+    const executor = new OpencodeExecutor("opencode");
+    const headers = executor.buildHeaders({ apiKey: "key-1" }, true);
+    assert.equal(headers["User-Agent"], undefined);
+  } finally {
+    if (saved === undefined) delete process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS;
+    else process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS = saved;
+  }
 });
 
-test("OpencodeExecutor.buildHeaders: preserves client User-Agent when provided", () => {
+test("OpencodeExecutor.buildHeaders: preserves an opencode-cli-like client User-Agent when provided", () => {
+  // Since #10571 flips CLI-header synthesis to on-by-default, a non-CLI-looking client UA
+  // (e.g. "opencode/1.17.12") is now REPLACED by the synthesized default (see the
+  // #5997/#10571 non-CLI-UA-replaced test in opencode-cli-headers-synthesis-5997.test.ts).
+  // Only a UA that already looks like the real OpenCode CLI ("opencode-cli/…") is preserved.
   const executor = new OpencodeExecutor("opencode");
   const headers = executor.buildHeaders({ apiKey: "key-1" }, true, {
-    "User-Agent": "opencode/1.17.12",
+    "User-Agent": "opencode-cli/1.17.12",
   });
-  assert.equal(headers["User-Agent"], "opencode/1.17.12");
+  assert.equal(headers["User-Agent"], "opencode-cli/1.17.12");
 });
 
-test("OpencodeExecutor.buildHeaders: omits x-opencode-client when absent (forward-only, not fabricated)", () => {
-  // x-opencode-client / x-opencode-project valid values are opencode-internal; fabricating a
-  // default ("cli") risks upstream rejection, so they stay forward-only (see opencode-executor.test.ts).
-  const executor = new OpencodeExecutor("opencode");
-  const headers = executor.buildHeaders({ apiKey: "key-1" }, true);
-  assert.equal(headers["x-opencode-client"], undefined);
+test("OpencodeExecutor.buildHeaders: omits x-opencode-client when absent and synthesis is explicitly off", () => {
+  // x-opencode-client / x-opencode-project fabrication is opt-out (see above) since #10571.
+  const saved = process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS;
+  process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS = "false";
+  try {
+    const executor = new OpencodeExecutor("opencode");
+    const headers = executor.buildHeaders({ apiKey: "key-1" }, true);
+    assert.equal(headers["x-opencode-client"], undefined);
+  } finally {
+    if (saved === undefined) delete process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS;
+    else process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS = saved;
+  }
 });
 
 test("OpencodeExecutor.buildHeaders: preserves x-opencode-client from client headers", () => {
@@ -107,4 +124,89 @@ test("OpencodeExecutor.buildHeaders: preserves x-opencode-client from client hea
     "x-opencode-client": "desktop",
   });
   assert.equal(headers["x-opencode-client"], "desktop");
+});
+
+// ---------------------------------------------------------------------------
+// #8467 — Extra API Keys rotation (resolveEffectiveKey)
+// ---------------------------------------------------------------------------
+
+test("OpencodeExecutor.buildHeaders: rotates extra API keys (Bearer)", () => {
+  const executor = new OpencodeExecutor("opencode-zen");
+  const credentials = {
+    apiKey: "primary-key",
+    connectionId: "opencode-rotation-bearer",
+    providerSpecificData: { extraApiKeys: ["extra-key"] } as Record<string, unknown>,
+  };
+
+  // Clear sticky selectedKeyId between calls so getValidApiKey round-robin is exercised.
+  const seen = new Set<string>();
+  for (let i = 0; i < 4; i++) {
+    delete credentials.providerSpecificData.selectedKeyId;
+    const headers = executor.buildHeaders(credentials, true);
+    const token = headers["Authorization"]?.replace(/^Bearer /, "");
+    assert.ok(token === "primary-key" || token === "extra-key", `unexpected token: ${token}`);
+    seen.add(token ?? "");
+  }
+  assert.ok(seen.has("primary-key"));
+  assert.ok(seen.has("extra-key"));
+  assert.ok(
+    typeof credentials.providerSpecificData.selectedKeyId === "string" &&
+      credentials.providerSpecificData.selectedKeyId.length > 0,
+    "selectedKeyId should be persisted after rotation"
+  );
+});
+
+test("OpencodeExecutor.buildHeaders: rotates extra API keys (claude x-api-key)", () => {
+  const executor = new OpencodeExecutor("opencode-zen");
+  executor._requestFormat = "claude";
+  const credentials = {
+    apiKey: "primary-key",
+    connectionId: "opencode-rotation-claude",
+    providerSpecificData: { extraApiKeys: ["extra-key"] } as Record<string, unknown>,
+  };
+
+  const seen = new Set<string>();
+  for (let i = 0; i < 4; i++) {
+    delete credentials.providerSpecificData.selectedKeyId;
+    const headers = executor.buildHeaders(credentials, true);
+    const key = headers["x-api-key"];
+    assert.ok(key === "primary-key" || key === "extra-key", `unexpected x-api-key: ${key}`);
+    seen.add(key ?? "");
+  }
+  assert.ok(seen.has("primary-key"));
+  assert.ok(seen.has("extra-key"));
+});
+
+test("OpencodeExecutor.buildHeaders: empty primary + extras still sends Authorization", () => {
+  const executor = new OpencodeExecutor("opencode-go");
+  const headers = executor.buildHeaders(
+    {
+      apiKey: "",
+      connectionId: "opencode-empty-primary",
+      providerSpecificData: { extraApiKeys: ["only-extra-key"] },
+    },
+    true
+  );
+  assert.equal(headers["Authorization"], "Bearer only-extra-key");
+});
+
+test("OpencodeExecutor.buildHeaders: #8467 guard — override uses resolveEffectiveKey path", async () => {
+  // Source-level guard: OpencodeExecutor overrides buildHeaders and must not
+  // reintroduce a direct credentials.apiKey read that bypasses extra-keys rotation.
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const source = fs.readFileSync(
+    path.resolve(here, "../../open-sse/executors/opencode.ts"),
+    "utf8"
+  );
+  const buildHeadersStart = source.indexOf("buildHeaders(");
+  assert.ok(buildHeadersStart >= 0);
+  const buildHeadersBody = source.slice(buildHeadersStart, buildHeadersStart + 1200);
+  assert.match(buildHeadersBody, /resolveEffectiveKey\s*\(/);
+  assert.doesNotMatch(
+    buildHeadersBody,
+    /credentials\?\.apiKey\s*\|\|\s*credentials\?\.accessToken/
+  );
 });

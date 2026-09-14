@@ -1,3 +1,4 @@
+import { translateRequest } from "../../open-sse/translator/index.ts";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -35,6 +36,81 @@ test("convertResponsesApiFormat skips function_call items with empty names", () 
   const result = convertResponsesApiFormat(body);
   const assistantMsgs = (result as any).messages.filter((m) => m.role === "assistant");
   assert.equal(assistantMsgs.length, 0);
+});
+
+test("production Responses conversion preserves Kimi K3 reasoning history", () => {
+  const body = {
+    model: "kimi-k3",
+    input: [
+      { role: "user", content: [{ type: "input_text", text: "Call search." }] },
+      {
+        type: "reasoning",
+        content: [{ type: "reasoning_text", text: "I should search first." }],
+      },
+      {
+        type: "function_call",
+        call_id: "call_1",
+        name: "search",
+        arguments: "{}",
+      },
+      { type: "function_call_output", call_id: "call_1", output: "found" },
+    ],
+  };
+
+  for (const { provider, model } of [
+    { provider: "kimi-coding", model: "k3" },
+    { provider: "kimi-coding-apikey", model: "k3-256k" },
+    { provider: "moonshot", model: "kimi-k3" },
+    { provider: "kimi", model: "kimi-k3" },
+    { provider: "some-other", model: "k3" },
+    { provider: "some-other", model: "k3-256k" },
+    { provider: "some-other", model: "kimi-k3" },
+  ]) {
+    const converted = convertResponsesApiFormat(body, {}, provider, model) as {
+      messages: Array<Record<string, unknown>>;
+    };
+    assert.equal(converted.messages[1].reasoning_content, "I should search first.");
+  }
+
+  for (const provider of ["kimi-coding", "kimi-coding-apikey"]) {
+    const generic = convertResponsesApiFormat(body, {}, provider, "kimi-k2.6") as {
+      messages: Array<Record<string, unknown>>;
+    };
+    assert.equal(Object.hasOwn(generic.messages[1], "reasoning_content"), false, provider);
+  }
+});
+
+test("Responses translation keeps authentic K3 reasoning through OpenAI cleanup", () => {
+  const body = {
+    model: "k3",
+    input: [
+      { role: "user", content: [{ type: "input_text", text: "Call search." }] },
+      {
+        type: "reasoning",
+        content: [{ type: "reasoning_text", text: "I should search first." }],
+      },
+      {
+        type: "function_call",
+        call_id: "call_1",
+        name: "search",
+        arguments: "{}",
+      },
+    ],
+  };
+
+  for (const provider of ["kimi-web", "some-other"]) {
+    const translated = translateRequest(
+      "openai-responses",
+      "openai",
+      "k3",
+      body,
+      false,
+      {},
+      provider
+    ) as { messages: Array<Record<string, unknown>> };
+
+    assert.equal(translated.messages[1].reasoning_content, "I should search first.", provider);
+  }
 });
 
 test("Responses→Chat: input_image converted to image_url with detail", () => {
@@ -124,6 +200,83 @@ test("Codex Responses input: null input normalizes to an empty list (not [null])
   normalizeCodexResponsesInput(body);
 
   assert.deepEqual(body.input, []);
+});
+
+test("Codex Responses input: additional_tools drops unsupported content", () => {
+  const body: Record<string, unknown> = {
+    input: [
+      {
+        type: "additional_tools",
+        role: "developer",
+        content: [{ type: "input_text", text: "unsupported wrapper content" }],
+        tools: [{ type: "function", name: "terminal", parameters: { type: "object" } }],
+      },
+    ],
+  };
+
+  normalizeCodexResponsesInput(body);
+
+  assert.deepEqual(body.input, [
+    {
+      type: "additional_tools",
+      role: "developer",
+      tools: [{ type: "function", name: "terminal", parameters: { type: "object" } }],
+    },
+  ]);
+});
+
+test("Codex Responses input: assistant history normalized to output_text (OpenAI/Codex rejects input_text on assistant turns)", () => {
+  const body: Record<string, unknown> = {
+    input: [
+      {
+        type: "message",
+        role: "assistant",
+        content: [
+          {
+            type: "input_text",
+            text: "Previous assistant answer",
+            annotations: [{ type: "url_citation", url: "https://example.com" }],
+            logprobs: [{ token: "Previous" }],
+            obfuscation: "opaque",
+          },
+          { type: "scoped_content", scope: "internal", content: "Preserve me" },
+        ],
+      },
+      {
+        type: "message",
+        role: "user",
+        content: [
+          { type: "input_image", image_url: "https://example.com/image.png", detail: "high" },
+          { type: "input_file", file_id: "file_123" },
+        ],
+      },
+      { type: "function_call", call_id: "call_123", name: "lookup", arguments: "{}" },
+      { type: "function_call_output", call_id: "call_123", output: "done" },
+    ],
+  };
+
+  normalizeCodexResponsesInput(body);
+
+  assert.deepEqual(body.input, [
+    {
+      type: "message",
+      role: "assistant",
+      content: [
+        { type: "output_text", text: "Previous assistant answer" },
+        { type: "scoped_content", scope: "internal", content: "Preserve me" },
+      ],
+    },
+    {
+      type: "message",
+      role: "user",
+      content: [
+        { type: "input_image", image_url: "https://example.com/image.png", detail: "high" },
+        { type: "input_file", file_id: "file_123" },
+      ],
+    },
+    { type: "function_call", call_id: "call_123", name: "lookup", arguments: "{}" },
+    { type: "function_call_output", call_id: "call_123", output: "done" },
+  ]);
 });
 
 test("Responses→Chat: null input normalizes to an empty list (not [null])", () => {
@@ -252,10 +405,19 @@ test("Chat→Responses: tool_choice {type:'function', function:{name}} unwrapped
   });
 });
 
-test("Responses→Chat: string tool_choice passes through unchanged", () => {
-  const body = { model: "gpt-4", input: "hello", tool_choice: "auto" };
-  const result = openaiResponsesToOpenAIRequest(null, body, null, null);
-  assert.equal((result as any).tool_choice, "auto");
+test("Responses->Chat: string tool_choice passes through when tools present, stripped when absent (#12141)", () => {
+  const withTools = {
+    model: "gpt-4",
+    input: "hello",
+    tools: [{ type: "function", name: "f", parameters: {} }],
+    tool_choice: "auto",
+  };
+  const resWith = openaiResponsesToOpenAIRequest(null, withTools, null, null) as Record<string, unknown>;
+  assert.equal(resWith.tool_choice, "auto");
+
+  const noTools = { model: "gpt-4", input: "hello", tool_choice: "auto" };
+  const resWithout = openaiResponsesToOpenAIRequest(null, noTools, null, null) as Record<string, unknown>;
+  assert.equal(resWithout.tool_choice, undefined);
 });
 
 test("Chat→Responses: string tool_choice passes through unchanged", () => {

@@ -33,6 +33,10 @@ export interface FreeBudgetData {
   boostMonthlyTokens?: number;
   /** Providers that are permanently free but publish no token cap (rate/concurrency-limited). */
   uncappedProviders?: string[];
+  /** Pool-deduped tokens/mo behind a regional identity check — real quota, never in the headline. */
+  gatedRecurringTokens?: number;
+  /** Providers behind that check. */
+  gatedProviders?: string[];
   headline?: string;
   /** ISO timestamp of the last catalog update. Absent/null → freshness is not shown. */
   catalogUpdatedAt?: string | null;
@@ -88,6 +92,7 @@ interface FreeBudgetLabels {
   segmentHint: string;
   boost: (tokens: string) => string;
   uncapped: string;
+  gated: (tokens: string) => string;
   tosRestricted: (count: number) => string;
   provider: string;
   model: string;
@@ -96,6 +101,7 @@ interface FreeBudgetLabels {
   credit: (tokens: string) => string;
   freeTypes: Record<string, string>;
   tosTitles: Record<string, string>;
+  noApiKey: string;
 }
 
 const DEFAULT_LABELS: FreeBudgetLabels = {
@@ -110,6 +116,8 @@ const DEFAULT_LABELS: FreeBudgetLabels = {
     `Unlock ~${tokens} more/mo with a one-time $10 OpenRouter top-up (50 → 1000 req/day)`,
   uncapped:
     "Permanently free, no published cap (rate-limited) — real access, not counted in the headline:",
+  gated: (tokens) =>
+    `~${tokens}/mo more behind a regional identity check — real quota, not counted in the headline:`,
   tosRestricted: (count) =>
     `${count} model${count === 1 ? "" : "s"} flagged as ToS-restricted — you decide`,
   provider: "Provider",
@@ -117,6 +125,7 @@ const DEFAULT_LABELS: FreeBudgetLabels = {
   type: "Type",
   tokensMonth: "Tokens/mo",
   credit: (tokens) => `${tokens} credit`,
+  noApiKey: "No API key required",
   freeTypes: {
     "recurring-daily": "daily",
     "recurring-monthly": "monthly",
@@ -247,7 +256,10 @@ function filterRows(
   if (providerFilter !== "all") out = out.filter((m) => m.provider === providerFilter);
   if (search.trim()) {
     out = out.filter(
-      (m) => matchesSearch(m.displayName, search) || matchesSearch(m.modelId, search) || matchesSearch(m.provider, search)
+      (m) =>
+        matchesSearch(m.displayName, search) ||
+        matchesSearch(m.modelId, search) ||
+        matchesSearch(m.provider, search)
     );
   }
   return out;
@@ -334,6 +346,8 @@ export function FreeBudgetView({
     perModel,
     boostMonthlyTokens = 0,
     uncappedProviders = [],
+    gatedRecurringTokens = 0,
+    gatedProviders = [],
     catalogUpdatedAt,
     noCredentialProviders = [],
   } = data;
@@ -348,7 +362,7 @@ export function FreeBudgetView({
   // "No API key required" — derived from routing behaviour, NOT from
   // freeType: "keyless". That field means "free access not quantifiable in
   // tokens"; probing the endpoints showed several of those rows (blackbox,
-  // puter, iflytek, sparkdesk, friendliai, muse-spark-web) answering 401/403
+  // iflytek, sparkdesk, friendliai, muse-spark-web) answering 401/403
   // with no credential. Listing them here would invite users to call providers
   // that reject them.
   const keylessModels = perModel.filter((m) => noCredentialProviders.includes(m.provider));
@@ -421,11 +435,12 @@ export function FreeBudgetView({
           className="mx-3 mt-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2"
         >
           <div className="flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[14px] text-emerald-500">lock_open</span>
-            <span className="text-[11px] font-semibold text-emerald-500">No API key required</span>
+            <span className="material-symbols-outlined text-[14px] text-emerald-500">
+              lock_open
+            </span>
+            <span className="text-[11px] font-semibold text-emerald-500">{labels.noApiKey}</span>
             <span className="text-[10.5px] text-text-muted">
-              ({keylessModels.length} model{keylessModels.length !== 1 ? "s" : ""} · {keylessProviders.length}{" "}
-              provider{keylessProviders.length !== 1 ? "s" : ""})
+              ({keylessModels.length}个模型 · {keylessProviders.length}个提供者)
             </span>
           </div>
           <div className="mt-1 flex flex-wrap gap-1">
@@ -460,6 +475,23 @@ export function FreeBudgetView({
                 key={p}
                 className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[10.5px] text-text-muted tabular-nums"
                 style={{ borderColor: providerColor.get(p) ?? "var(--border)" }}
+              >
+                {p}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      {gatedRecurringTokens > 0 && (
+        <div className="mx-3 mt-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+          <span className="text-[11px] text-amber-600 dark:text-amber-400">
+            {labels.gated(fmt(gatedRecurringTokens))}
+          </span>
+          <div className="mt-1 flex flex-wrap gap-1">
+            {gatedProviders.map((p) => (
+              <span
+                key={p}
+                className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[10.5px] text-text-muted tabular-nums"
               >
                 {p}
               </span>
@@ -606,7 +638,7 @@ export default function FreeBudgetCard() {
           data-testid="budget-provider-select"
           className="rounded border border-border bg-surface px-1.5 py-1 text-[11px] text-text-main"
         >
-          <option value="all">All providers</option>
+          <option value="all">{t("allProviders")}</option>
           {providers.map((p) => (
             <option key={p} value={p}>
               {p}
@@ -661,12 +693,14 @@ export default function FreeBudgetCard() {
           segmentHint: t("segmentHint"),
           boost: (tokens) => t("boost", { tokens }),
           uncapped: t("uncapped"),
+          gated: (tokens) => t("gated", { tokens }),
           tosRestricted: (count) => t("tosRestricted", { count }),
           provider: t("provider"),
           model: t("model"),
           type: t("type"),
           tokensMonth: t("tokensMonth"),
           credit: (tokens) => t("credit", { tokens }),
+          noApiKey: t("noApiKeyRequired"),
           freeTypes: {
             "recurring-daily": t("freeType.daily"),
             "recurring-monthly": t("freeType.monthly"),

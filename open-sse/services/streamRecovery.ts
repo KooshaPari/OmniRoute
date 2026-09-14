@@ -11,6 +11,13 @@
  * without real sockets. The ReadableStream wiring lives in `createRecoverableStream`.
  */
 import { STREAM_RECOVERY } from "../config/constants.ts";
+import {
+  createThroughputWatchdog,
+  ThroughputWatchdogError,
+  type ThroughputWatchdogOptions,
+} from "./throughputWatchdog.ts";
+
+export { ThroughputWatchdogError } from "./throughputWatchdog.ts";
 
 /** Raised internally when an upstream stream ends without a terminal SSE marker. */
 export class TruncatedStreamError extends Error {
@@ -123,7 +130,9 @@ const RETRYABLE_ERROR_NAMES = new Set(["TimeoutError", "BodyTimeoutError"]);
  * the executor retry/failover loop, not here.
  */
 export function isRetryableStreamError(error: unknown): boolean {
-  if (error instanceof TruncatedStreamError) return true;
+  if (error instanceof TruncatedStreamError || error instanceof ThroughputWatchdogError) {
+    return true;
+  }
   if (!error || typeof error !== "object") return false;
 
   const name = (error as { name?: unknown }).name;
@@ -174,10 +183,33 @@ export function hasTerminalMarker(bytes: Uint8Array): boolean {
 export interface OpenAiSseScan {
   /** Concatenated assistant text seen across `choices[].delta.content`. */
   text: string;
+  /** Concatenated reasoning trace seen across `choices[].delta.reasoning_content`. Some
+   *  providers stream the entire answer here and leave `content` empty/null — tracked
+   *  separately so a clean stop with reasoning-only output can still be recognized as
+   *  "nothing usable was delivered" instead of "a normal empty turn". */
+  reasoningText: string;
   /** True if any `choices[].delta.tool_calls` appeared — NEVER continue those. */
   sawToolCall: boolean;
-  /** True if a terminal marker (`[DONE]` or a non-null `finish_reason`) appeared. */
+  /**
+   * True only when `tool_calls` appeared in this scan AND its own
+   * `finish_reason: "tool_calls"` has NOT also appeared in the same scan — i.e. the
+   * call is still being streamed (arguments may be mid-flight). Once
+   * `finish_reason: "tool_calls"` closes it, the call is complete, not in flight: the
+   * client has the full arguments and a truncation past this point only drops
+   * trailing prose, which continuation can safely recover.
+   */
+  sawToolCallInFlight: boolean;
+  /**
+   * True if a terminal marker for the OVERALL stream appeared: `[DONE]`, or a
+   * `finish_reason` other than `"tool_calls"`. A `finish_reason: "tool_calls"` ends
+   * that one choice but is not terminal for continuation purposes — the model turn
+   * (and the client-visible SSE) is still eligible to be resumed past it.
+   */
   terminal: boolean;
+  /** The literal `finish_reason` string when present (e.g. "stop", "tool_calls", "length",
+   *  "content_filter"), or `null` if none was seen. `terminal` alone is not precise enough
+   *  to gate the reasoning-only-stop continuation — it must fire on `"stop"` only. */
+  finishReason: string | null;
   /** True if at least one OpenAI-shaped `choices[].delta` was parsed (format gate). */
   parsedOpenAi: boolean;
 }
@@ -189,11 +221,22 @@ export interface OpenAiSseScan {
  */
 export function scanOpenAiSseText(sse: string): OpenAiSseScan {
   let text = "";
+  let reasoningText = "";
   let sawToolCall = false;
+  let toolCallFinished = false;
   let terminal = false;
+  let finishReason: string | null = null;
   let parsedOpenAi = false;
   if (typeof sse !== "string" || sse.length === 0) {
-    return { text, sawToolCall, terminal, parsedOpenAi };
+    return {
+      text,
+      reasoningText,
+      sawToolCall,
+      sawToolCallInFlight: false,
+      terminal,
+      finishReason,
+      parsedOpenAi,
+    };
   }
   for (const line of sse.split("\n")) {
     const trimmed = line.trimStart();
@@ -218,14 +261,33 @@ export function scanOpenAiSseText(sse: string): OpenAiSseScan {
         parsedOpenAi = true;
         const content = (delta as { content?: unknown }).content;
         if (typeof content === "string") text += content;
+        const reasoning = (delta as { reasoning_content?: unknown }).reasoning_content;
+        if (typeof reasoning === "string") reasoningText += reasoning;
         const toolCalls = (delta as { tool_calls?: unknown }).tool_calls;
         if (Array.isArray(toolCalls) && toolCalls.length > 0) sawToolCall = true;
       }
-      const finishReason = (choice as { finish_reason?: unknown })?.finish_reason;
-      if (finishReason != null) terminal = true;
+      const rawFinishReason = (choice as { finish_reason?: unknown })?.finish_reason;
+      if (rawFinishReason === "tool_calls") {
+        // Ends this one choice, but the overall stream/turn stays continuable —
+        // never counts as the general terminal marker (see OpenAiSseScan.terminal).
+        toolCallFinished = true;
+        finishReason = "tool_calls";
+      } else if (rawFinishReason != null) {
+        terminal = true;
+        if (typeof rawFinishReason === "string") finishReason = rawFinishReason;
+      }
     }
   }
-  return { text, sawToolCall, terminal, parsedOpenAi };
+  const sawToolCallInFlight = sawToolCall && !toolCallFinished;
+  return {
+    text,
+    reasoningText,
+    sawToolCall,
+    sawToolCallInFlight,
+    terminal,
+    finishReason,
+    parsedOpenAi,
+  };
 }
 
 export interface ContinuableBody {
@@ -236,8 +298,10 @@ export interface ContinuableBody {
 
 /**
  * Build a re-request body that continues from `assistantSoFar` by appending it as an
- * assistant turn. Returns null when the body has no `messages` array or the partial text
- * is empty (nothing to continue from). Does not mutate the original.
+ * assistant turn. When `assistantSoFar` is empty (nothing usable was emitted yet — e.g. a
+ * clean stop that only produced reasoning), the messages are re-sent unchanged instead of
+ * appending an empty assistant turn: this simply re-asks for a real answer. Returns null
+ * only when the body has no `messages` array at all (nothing to continue from).
  */
 export function makeContinuationBody(
   body: ContinuableBody,
@@ -245,10 +309,13 @@ export function makeContinuationBody(
 ): (ContinuableBody & { messages: unknown[] }) | null {
   if (!body || typeof body !== "object") return null;
   if (!Array.isArray(body.messages) || body.messages.length === 0) return null;
-  if (typeof assistantSoFar !== "string" || assistantSoFar.length === 0) return null;
+  if (typeof assistantSoFar !== "string") return null;
   return {
     ...body,
-    messages: [...body.messages, { role: "assistant", content: assistantSoFar }],
+    messages:
+      assistantSoFar.length > 0
+        ? [...body.messages, { role: "assistant", content: assistantSoFar }]
+        : [...body.messages],
     stream: true,
   };
 }
@@ -289,6 +356,10 @@ export interface RecoverableStreamOptions {
   maxContinuations?: number;
   /** Observability hook fired on each continuation attempt. */
   onContinue?: (attempt: number, assistantSoFar: string) => void;
+  /** Opt-in active-stream output-quality watchdog. Disabled when omitted. */
+  throughputWatchdog?: ThroughputWatchdogOptions;
+  /** Sanitized observability hook fired before the active attempt is aborted. */
+  onWatchdogAbort?: (error: ThroughputWatchdogError) => void;
 }
 
 /**
@@ -312,6 +383,7 @@ export function createRecoverableStream(
   let retries = 0;
   let finalized = false;
   let cancelled = false;
+  let throughputWatchdog = createThroughputWatchdog(options.throughputWatchdog);
 
   const runFinalize = () => {
     if (finalized) return;
@@ -342,6 +414,7 @@ export function createRecoverableStream(
     if (!next) return false;
     reader = next.getReader();
     holdback.discard(); // reuse the (still-uncommitted) buffer for the new attempt
+    throughputWatchdog = createThroughputWatchdog(options.throughputWatchdog);
     return true;
   };
 
@@ -353,8 +426,13 @@ export function createRecoverableStream(
   let continuations = 0;
   let emittedTail = ""; // raw SSE not yet scanned (awaiting an event boundary)
   let emittedText = ""; // assistant text already delivered to the client
+  let emittedReasoningText = ""; // reasoning trace already delivered (never shown to the client,
+  // tracked only to distinguish "a real empty turn" from "the whole
+  // answer stayed in the reasoning channel")
+  let emittedFinishReason: string | null = null; // literal finish_reason last seen, if any
   let emittedTerminal = false;
-  let emittedToolCall = false;
+  let emittedToolCallInFlight = false;
+  let emittedSawToolCall = false; // any tool_call delta seen, complete or not
   let emittedParsedOpenAi = false;
 
   // Enqueue to the client and, when continuation is enabled, fold the chunk into the
@@ -372,8 +450,11 @@ export function createRecoverableStream(
     emittedTail = emittedTail.slice(boundary + 2);
     const scan = scanOpenAiSseText(complete);
     emittedText += scan.text;
+    emittedReasoningText += scan.reasoningText;
+    if (scan.finishReason !== null) emittedFinishReason = scan.finishReason;
     if (scan.terminal) emittedTerminal = true;
-    if (scan.sawToolCall) emittedToolCall = true;
+    if (scan.sawToolCallInFlight) emittedToolCallInFlight = true;
+    if (scan.sawToolCall) emittedSawToolCall = true;
     if (scan.parsedOpenAi) emittedParsedOpenAi = true;
   };
 
@@ -381,15 +462,42 @@ export function createRecoverableStream(
     for (const chunk of holdback.flush()) emit(controller, chunk);
   };
 
-  // A post-commit truncation is continuable only for a plain-text OpenAI-compatible
-  // stream that has not finished and has no tool call in flight.
+  // A post-commit truncation is continuable for a plain-text OpenAI-compatible stream that
+  // has no tool call in flight, AND either:
+  //  - has not finished yet (the original #4131 truncation case), or
+  //  - finished with a literal finish_reason of "stop" but delivered nothing usable while a
+  //    non-empty reasoning trace shows the provider spent its whole turn "thinking" and never
+  //    turned that into an answer (some providers put the entire response in
+  //    reasoning_content and leave content empty). Gated on the LITERAL "stop" value, not the
+  //    generic `terminal` flag — `terminal` also covers "length"/"content_filter"/a bare
+  //    [DONE], which are out of scope for this specific recovery.
+  //
+  // Known consequence of the hallucinatedEmptyStop path (flagged in cross-review, accepted as
+  // inherent to tryContinue's existing design, not new to this fix): the original upstream's
+  // `finish_reason:"stop"` chunk was already forwarded to the client via `emit()`'s unconditional
+  // `controller.enqueue(chunk)` (streamRecovery.ts:381) BEFORE this scan ever runs — that is how
+  // `emittedFinishReason`/`emittedTerminal` get set in the first place. So the client sees an
+  // empty "stop" marker from the original turn, then — once the continuation succeeds — the real
+  // answer plus a SECOND `emitCleanTerminal` from `tryContinue`. This mirrors what already
+  // happens for the pre-existing truncation-continuation case (a truncated stream can likewise
+  // have partially delivered SSE framing before `tryContinue` appends more); it is not a new
+  // double-close of the underlying `ReadableStream` (`controller.close()` runs exactly once,
+  // after `tryContinue` returns). An SSE client that treats a bare `finish_reason:"stop"` as an
+  // unconditional end-of-turn (rather than waiting for `[DONE]`) may need updating separately —
+  // out of scope for this fix, which targets the observed opencode/OmniRoute pairing where the
+  // client kept the connection open.
+  const hallucinatedEmptyStop = () =>
+    emittedFinishReason === "stop" &&
+    !emittedSawToolCall &&
+    emittedText.length === 0 &&
+    emittedReasoningText.length > 0;
+
   const canContinue = () =>
     continueEnabled &&
     continuations < maxContinuations &&
     emittedParsedOpenAi &&
-    !emittedToolCall &&
-    !emittedTerminal &&
-    emittedText.length > 0;
+    !emittedToolCallInFlight &&
+    (emittedText.length > 0 ? !emittedTerminal : hallucinatedEmptyStop());
 
   const emitCleanTerminal = (controller: ReadableStreamDefaultController<Uint8Array>) => {
     controller.enqueue(
@@ -433,7 +541,24 @@ export function createRecoverableStream(
     }
 
     const scan = scanOpenAiSseText(raw);
-    const suffix = trimContinuationOverlap(emittedText, scan.text);
+    // A continuation whose overlap with what was already emitted falls below the documented
+    // threshold is treated as a suspected restart rather than a real resume — see
+    // STREAM_RECOVERY.MIN_CONTINUATION_OVERLAP_CHARS for the full trade-off rationale. This
+    // is a heuristic, not a proof: it deliberately trades some false-positive rejections of
+    // legitimate low-overlap continuations against never silently gluing two unrelated
+    // fragments into one corrupted message.
+    const overlapResult = trimContinuationOverlap(emittedText, scan.text);
+    const overlapChars = scan.text.length - overlapResult.length;
+    const isSuspectedRestart =
+      emittedText.length > 0 &&
+      scan.text.length > 0 &&
+      overlapChars < STREAM_RECOVERY.MIN_CONTINUATION_OVERLAP_CHARS;
+    if (isSuspectedRestart) {
+      if (await tryContinue(controller)) return true;
+      emitCleanTerminal(controller);
+      return true;
+    }
+    const suffix = overlapResult;
     if (suffix) {
       emit(
         controller,
@@ -490,9 +615,11 @@ export function createRecoverableStream(
         const { done, value } = result;
         if (done) {
           if (holdback.committed) {
-            // Graceful end after commit: if it lacks a terminal marker it is a silent
-            // truncation — try to continue; otherwise (clean finish) just close.
-            if (!emittedTerminal && (await tryContinue(controller))) {
+            // Graceful end after commit: try a mid-stream continuation whenever canContinue()
+            // says the stream is worth continuing (silent truncation, or a clean-but-empty
+            // reasoning-only stop) — canContinue() is the single source of truth here, same as
+            // the read-error branch above.
+            if (await tryContinue(controller)) {
               runFinalize();
               controller.close();
               return;
@@ -518,6 +645,32 @@ export function createRecoverableStream(
         }
 
         if (value === undefined) continue;
+
+        const watchdogDecision = throughputWatchdog.observe(value);
+        if (watchdogDecision.abort) {
+          const error = new ThroughputWatchdogError();
+          options.onWatchdogAbort?.(error);
+          if (!holdback.committed && (await tryReopen(error))) continue;
+          if (holdback.committed) {
+            try {
+              await reader.cancel(error);
+            } catch {
+              // The active attempt may have closed while the watchdog was deciding.
+            }
+            if (await tryContinue(controller)) {
+              runFinalize();
+              controller.close();
+              return;
+            }
+            runFinalize();
+            controller.error(error);
+            return;
+          }
+          flushHeld(controller);
+          runFinalize();
+          controller.close();
+          return;
+        }
 
         if (holdback.committed) {
           emit(controller, value);

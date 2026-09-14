@@ -34,14 +34,7 @@ function getKimiDeviceId() {
     fs.writeFileSync(devicePath, deviceId, { encoding: "utf8", mode: 0o600 });
     try {
       fs.chmodSync(devicePath, 0o600);
-    } catch (err) {
-      // chmod best-effort: writeFileSync already set mode 0o600 on POSIX, so this
-      // is only needed for filesystems where mode is ignored. Don't fail init.
-      log.debug(
-        { err, devicePath },
-        "oauth:kimi-coding: chmodSync of device-id file failed — proceeding (writeFileSync mode flag may already apply)"
-      );
-    }
+    } catch {}
     return deviceId;
   } catch {
     return generateDeviceId();

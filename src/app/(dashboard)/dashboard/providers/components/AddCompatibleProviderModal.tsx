@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { Badge, Button, Input, Modal, Select } from "@/shared/components";
+import { Badge, Button, Input, Modal, Select, Toggle } from "@/shared/components";
+import { readFetchErrorMessage } from "@/shared/utils/fetchError";
+import { isValidProviderIconUrl } from "@/shared/validation/iconUrl";
 import {
   CLIENT_IDENTITY_PROFILE_OPTIONS,
   getClientIdentityProfileHeaders,
 } from "@/shared/constants/clientIdentityProfiles";
+import NewApiAggregatorFields from "../[id]/components/modals/NewApiAggregatorFields";
+import { providerText } from "../[id]/providerPageHelpers";
 
 type CompatibleMode = "openai" | "anthropic" | "cc";
 type CompatibleProviderNode = { id: string } & Record<string, unknown>;
@@ -29,6 +33,10 @@ interface CompatibleFormState {
   modelsPath: string;
   iconUrl: string;
   clientIdentityProfile: string;
+  newApiAggregatorBalance: boolean;
+  consoleApiKey: string;
+  newApiUserId: string;
+  quotaPerUnit: string;
 }
 
 const CC_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
@@ -83,6 +91,10 @@ function createInitialForm(mode: CompatibleMode): CompatibleFormState {
     modelsPath: "",
     iconUrl: "",
     clientIdentityProfile: "default",
+    newApiAggregatorBalance: false,
+    consoleApiKey: "",
+    newApiUserId: "",
+    quotaPerUnit: "",
   };
 }
 
@@ -100,10 +112,14 @@ export default function AddCompatibleProviderModal({
   const [checkKey, setCheckKey] = useState("");
   const [checkModelId, setCheckModelId] = useState("");
   const [validating, setValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<
-    null | { valid: boolean; error?: string | null; method?: string | null }
-  >(null);
+  const [validationResult, setValidationResult] = useState<null | {
+    valid: boolean;
+    error?: string | null;
+    method?: string | null;
+  }>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [iconUrlError, setIconUrlError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const apiTypeOptions = useMemo(
     () => [
@@ -117,13 +133,25 @@ export default function AddCompatibleProviderModal({
     [t]
   );
 
-  useEffect(() => {
-    if (!isOpen) return;
-    setFormData(createInitialForm(mode));
-    setValidationResult(null);
-    setCheckKey("");
-    setShowAdvanced(false);
-  }, [isOpen, mode]);
+  // Fresh form on every open (and on a mode switch while open) — applied as a
+  // render-phase adjustment guarded by the previously initialized mode
+  // (react.dev "adjusting state when a prop changes") instead of a
+  // synchronous-setState effect. Closing clears the marker so the next open
+  // re-initializes again.
+  const [initializedFor, setInitializedFor] = useState<{ mode: CompatibleMode } | null>(null);
+  if (isOpen) {
+    if (initializedFor?.mode !== mode) {
+      setInitializedFor({ mode });
+      setFormData(createInitialForm(mode));
+      setValidationResult(null);
+      setCheckKey("");
+      setShowAdvanced(false);
+      setSaveError(null);
+      setIconUrlError(null);
+    }
+  } else if (initializedFor !== null) {
+    setInitializedFor(null);
+  }
 
   const modalTitle =
     title ||
@@ -173,10 +201,19 @@ export default function AddCompatibleProviderModal({
     setCheckKey("");
     setValidationResult(null);
     setShowAdvanced(false);
+    setSaveError(null);
+    setIconUrlError(null);
   };
 
   const handleSubmit = async () => {
     if (!hasRequiredFields) return;
+    const iconUrl = formData.iconUrl.trim();
+    if (!isValidProviderIconUrl(iconUrl)) {
+      setIconUrlError(t("iconUrlInvalid"));
+      return;
+    }
+    setIconUrlError(null);
+    setSaveError(null);
     setSubmitting(true);
     try {
       const body: Record<string, unknown> = {
@@ -197,18 +234,46 @@ export default function AddCompatibleProviderModal({
       const identityHeaders = getClientIdentityProfileHeaders(formData.clientIdentityProfile);
       if (Object.keys(identityHeaders).length > 0) body.customHeaders = identityHeaders;
 
+      // Aggregator gateway fields (#9415)
+      if (formData.newApiAggregatorBalance) {
+        body.providerSpecificData = {
+          ...(body.providerSpecificData as Record<string, unknown> | undefined),
+          newApiAggregatorBalance: true,
+        };
+        if (formData.consoleApiKey.trim()) {
+          (body.providerSpecificData as Record<string, unknown>).consoleApiKey =
+            formData.consoleApiKey.trim();
+        }
+        if (formData.newApiUserId.trim()) {
+          (body.providerSpecificData as Record<string, unknown>).newApiUserId =
+            formData.newApiUserId.trim();
+        }
+        const parsedQuotaPerUnit = parseInt(formData.quotaPerUnit, 10);
+        if (Number.isFinite(parsedQuotaPerUnit) && parsedQuotaPerUnit > 0) {
+          (body.providerSpecificData as Record<string, unknown>).quotaPerUnit = parsedQuotaPerUnit;
+        }
+      }
+
       const res = await fetch("/api/provider-nodes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = (await res.json()) as { node: CompatibleProviderNode };
-      if (res.ok) {
+      const failedCreate = providerText(t, "failedCreate", "Failed to create provider");
+      if (!res.ok) {
+        setSaveError(await readFetchErrorMessage(res, failedCreate));
+        return;
+      }
+
+      const data = await res.json().catch(() => ({}));
+      if (data.node) {
         onCreated(data.node);
         resetAfterCreate();
+        return;
       }
-    } catch (error) {
-      console.log(`Error creating ${mode} compatible node:`, error);
+      setSaveError(failedCreate);
+    } catch {
+      setSaveError(providerText(t, "networkError", "Network error"));
     } finally {
       setSubmitting(false);
     }
@@ -222,6 +287,7 @@ export default function AddCompatibleProviderModal({
         apiKey: checkKey,
         type: defaults.type,
       };
+      if (defaults.hasApiType) body.apiType = formData.apiType;
       if (defaults.hasModelsPath) body.modelsPath = formData.modelsPath || "";
       if (defaults.compatMode) {
         body.compatMode = defaults.compatMode;
@@ -242,7 +308,10 @@ export default function AddCompatibleProviderModal({
         method: data.method ?? null,
       });
     } catch {
-      setValidationResult({ valid: false, error: "Network error" });
+      setValidationResult({
+        valid: false,
+        error: providerText(t, "networkError", "Network error"),
+      });
     } finally {
       setValidating(false);
     }
@@ -296,7 +365,26 @@ export default function AddCompatibleProviderModal({
           value={formData.iconUrl}
           onChange={(e) => setFormData({ ...formData, iconUrl: e.target.value })}
           placeholder="https://example.com/logo.png"
-          hint={t("iconUrlHint")}
+          hint={iconUrlError ?? t("iconUrlHint")}
+        />
+
+        <Toggle
+          label={t("newApiAggregatorToggleLabel")}
+          description={t("newApiAggregatorToggleHint")}
+          checked={formData.newApiAggregatorBalance}
+          onChange={(checked: boolean) =>
+            setFormData({ ...formData, newApiAggregatorBalance: checked })
+          }
+        />
+        <NewApiAggregatorFields
+          enabled={formData.newApiAggregatorBalance}
+          values={{
+            consoleApiKey: formData.consoleApiKey,
+            newApiUserId: formData.newApiUserId,
+            quotaPerUnit: formData.quotaPerUnit,
+          }}
+          onChange={(patch) => setFormData({ ...formData, ...patch })}
+          t={t}
         />
 
         <button
@@ -382,6 +470,15 @@ export default function AddCompatibleProviderModal({
           </div>
         )}
 
+        {saveError && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2"
+          >
+            {saveError}
+          </div>
+        )}
         <div className="flex gap-2">
           <Button onClick={handleSubmit} fullWidth disabled={!hasRequiredFields || submitting}>
             {submitting ? t("creating") : t("add")}

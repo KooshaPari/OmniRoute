@@ -3,6 +3,10 @@ import type Redis from "ioredis";
 // Redis is optional. When REDIS_URL is unset, use a process-local fallback
 // instead of probing localhost on every API request.
 const REDIS_URL = process.env.REDIS_URL?.trim() || "";
+
+// Namespace prefix for all OmniRoute Redis keys. Prevents key collisions when
+// OmniRoute shares a Redis instance with other apps (e.g. on 127.0.0.1:6379).
+const REDIS_KEY_PREFIX = process.env.REDIS_KEY_PREFIX?.trim() || "omniroute:";
 if (process.env.NODE_ENV === "production" && !REDIS_URL) {
   console.warn("[REDIS] REDIS_URL is not set in production. Using in-memory rate limiting.");
 }
@@ -72,6 +76,7 @@ export function getRedisClient(): Promise<Redis> {
       const client = new RedisCtor(REDIS_URL, {
         maxRetriesPerRequest: 3,
         enableReadyCheck: false,
+        keyPrefix: REDIS_KEY_PREFIX,
         retryStrategy(times) {
           return Math.min(times * 50, 2000); // Exponential backoff
         },

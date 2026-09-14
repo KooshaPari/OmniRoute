@@ -24,8 +24,8 @@ test("Alibaba-family endpoint matrix keeps product and region boundaries distinc
       "china-beijing": "https://dashscope.aliyuncs.com/compatible-mode/v1",
     },
     "bailian-coding-plan": {
-      "global-sg": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
-      "china-beijing": "https://coding.dashscope.aliyuncs.com/apps/anthropic/v1",
+      "global-sg": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/apps/anthropic/v1",
+      "china-beijing": "https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic/v1",
     },
     "qwen-cloud": {
       "global-sg": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
@@ -92,7 +92,7 @@ test("DefaultExecutor applies the regional endpoint to normal requests", () => {
     codingPlan.buildUrl("qwen3.7-plus", true, 0, {
       providerSpecificData: { region: "china-beijing" },
     }),
-    "https://coding.dashscope.aliyuncs.com/apps/anthropic/v1/messages"
+    "https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic/v1/messages"
   );
 
   const qwenCloud = new DefaultExecutor("qwen-cloud");
@@ -133,7 +133,11 @@ test("provider validation probes the selected Coding Plan region", async () => {
       },
     });
     assert.equal(result.valid, true);
-    assert.deepEqual(urls, ["https://coding.dashscope.aliyuncs.com/apps/anthropic/v1/messages"]);
+    // The stored URL is a RETIRED preset, so it must not pin the connection: the
+    // china-beijing selector still wins and routes to the Token Plan CN host.
+    assert.deepEqual(urls, [
+      "https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic/v1/messages",
+    ]);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -204,6 +208,7 @@ test("Qwen Cloud is a first-class metered API-key provider", () => {
   assert.deepEqual(
     REGISTRY["qwen-cloud"].models.map((model) => model.id),
     [
+      "qwen3.8-max",
       "qwen3.7-max-2026-06-08",
       "qwen3.7-plus",
       "qwen3.6-plus",
@@ -223,6 +228,7 @@ test("Qwen Cloud is a first-class metered API-key provider", () => {
 
 test("Alibaba Model Studio exposes the curated modern text catalog", () => {
   const expectedModels = [
+    "qwen3.8-max",
     "qwen3.7-max",
     "qwen3.7-plus",
     "qwen3.6-plus",
@@ -272,19 +278,20 @@ test("Qwen Cloud Token Plan remains a flat-rate provider with chat models only",
 
   const modelIds = REGISTRY["qwen-cloud-token-plan"].models.map((model) => model.id);
   assert.deepEqual(modelIds, [
-    "qwen3.8-max-preview",
+    "qwen3.8-max",
     "qwen3.7-max",
     "qwen3.7-plus",
     "qwen3.6-flash",
     "glm-5.2",
     "deepseek-v4-pro",
+    "deepseek-v4-flash-0731",
   ]);
 
-  const preview = REGISTRY["qwen-cloud-token-plan"].models[0];
-  assert.equal(preview.supportsReasoning, true);
-  assert.equal(preview.supportsVision, true);
-  assert.equal(preview.contextLength, 1_000_000);
-  assert.equal(preview.maxOutputTokens, 65_536);
+  const qwen38 = REGISTRY["qwen-cloud-token-plan"].models[0];
+  assert.equal(qwen38.supportsReasoning, true);
+  assert.equal(qwen38.supportsVision, true);
+  assert.equal(qwen38.contextLength, 1_000_000);
+  assert.equal(qwen38.maxOutputTokens, 131_072);
 });
 
 test("dashboard folds legacy China connections into the unified Alibaba card", () => {

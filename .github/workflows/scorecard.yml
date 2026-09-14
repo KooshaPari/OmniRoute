@@ -1,46 +1,42 @@
-# =============================================================================
-# OpenSSF Scorecard — Automated security best practices check
-# =============================================================================
-# Runs weekly + on main to track supply chain security posture
-# Free for public repos, adds security badge
-# =============================================================================
-
 name: OpenSSF Scorecard
-
 on:
   branch_protection_rule:
   schedule:
-    - cron: "25 4 * * 1" # Weekly Monday 4:25 UTC
+    - cron: "27 7 * * 1"
   push:
-    branches: [main]
+    # Scorecard only accepts the DEFAULT branch — here the active release/vX.Y.Z,
+    # not `main`. The job below guards on it so a push to any other branch skips.
+    branches: ["main", "release/**"]
 
 permissions: read-all
 
 jobs:
   analysis:
+    if: ${{ github.event_name != 'push' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
     name: Scorecard analysis
     runs-on: ubuntu-latest
-
+    permissions:
+      # security-events: write removed — Scorecard findings are advisory and no longer
+      # uploaded to the code-scanning Security tab (they are supply-chain/posture scores,
+      # not code vulnerabilities, and drowned out real CodeQL alerts). The run still
+      # produces the OpenSSF badge (publish_results) and a downloadable SARIF artifact.
+      id-token: write
+      contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Run analysis
-        uses: ossf/scorecard-action@05b42c624433fc40578a4040d5cf5e36ddca8cde # permitted immutable revision
+        uses: ossf/scorecard-action@v2.4.4
         with:
           results_file: results.sarif
           results_format: sarif
           publish_results: true
 
-      - name: Upload SARIF
-        uses: github/codeql-action/upload-sarif@fca7ace96b7d713c7035881819e25a804e825323 # v3.28.18
-        with:
-          sarif_file: results.sarif
-
       - name: Upload artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@v7
         with:
           name: SARIF file
           path: results.sarif

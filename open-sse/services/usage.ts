@@ -10,31 +10,12 @@
  * implementation detail.
  */
 
-import { getGitHubCopilotInternalUserHeaders } from "../config/providerHeaderProfiles.ts";
-import { getDbInstance } from "@/lib/db/core";
-import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
-import { fetchDeepseekQuota, type DeepseekQuota } from "./deepseekQuotaFetcher.ts";
-import { fetchOpencodeQuota, type OpencodeTripleWindowQuota } from "./opencodeQuotaFetcher.ts";
-import { getOllamaCloudUsage, getOpenCodeGoUsage } from "./opencodeOllamaUsage.ts";
-import { getCodeBuddyCnUsage } from "./usage/codebuddy-cn.ts";
 import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
 } from "./codeAssistSubscription.ts";
-import { sanitizeErrorMessage } from "../utils/error.ts";
-import { resolveQoderJobToken } from "./qoderCli.ts";
-import {
-  toRecord,
-  toNumber,
-  toPercentage,
-  toTitleCase,
-  getFieldValue,
-  clampPercentage,
-  roundCurrency,
-  toDisplayLabel,
-  pickFirstNonEmptyString,
-} from "./usage/scalars.ts";
-import { type UsageQuota, parseResetTime, createQuotaFromUsage } from "./usage/quota.ts";
+import { toDisplayLabel } from "./usage/scalars.ts";
+import { parseResetTime, createQuotaFromUsage } from "./usage/quota.ts";
 import {
   getMiniMaxUsage,
   getMiniMaxPlanLabel,
@@ -61,50 +42,41 @@ import {
 } from "./usage/antigravity.ts";
 import { getCursorUsage } from "./usage/cursor.ts";
 import { getKimiUsage } from "./usage/kimi.ts";
-import { getClaudePlanLabel } from "./usage/claude.ts";
-import { getKiroUsage } from "./usage/kiro.ts";
-import { getXaiOauthUsage } from "./usage/xaiOauth.ts";
+import { getCodexUsage } from "./usage/codex.ts";
+import { getClaudeUsage, getClaudePlanLabel } from "./usage/claude.ts";
+import { getKiroUsage, buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
 // Re-exported para os testes kiro-* (importam de services/usage).
 export { buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
-
-// Quota / usage upstream URLs (overridable for testing or relays).
-const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
-
-// Codex (OpenAI) API config
-const CODEX_CONFIG = {
-  usageUrl: "https://chatgpt.com/backend-api/wham/usage",
-};
-
-// Claude API config
-const CLAUDE_CONFIG = {
-  oauthUsageUrl: "https://api.anthropic.com/api/oauth/usage",
-  usageUrl: "https://api.anthropic.com/v1/organizations/{org_id}/usage",
-  settingsUrl: "https://api.anthropic.com/v1/settings",
-  apiVersion: "2023-06-01",
-};
-
-// Kimi Coding API config
-const KIMI_CONFIG = {
-  baseUrl: "https://api.kimi.com/coding/v1",
-  usageUrl: "https://api.kimi.com/coding/v1/usages",
-  apiVersion: "2023-06-01",
-};
-
-const NANOGPT_CONFIG = {
-  usageUrl: "https://nano-gpt.com/api/subscription/v1/usage",
-};
-
-// Cursor dashboard usage API config
-// The endpoint that powers https://cursor.com/dashboard/spending. Validates the WorkOS
-// session via the WorkosCursorSessionToken cookie (format: `${userId}::${jwt}`) and
-// rejects requests without a matching Origin/Referer (Invalid origin for state-changing request).
-const CURSOR_USAGE_CONFIG = {
-  usageUrl: "https://cursor.com/api/dashboard/get-current-period-usage",
-  origin: "https://cursor.com",
-  referer: "https://cursor.com/dashboard/spending",
-  userAgent:
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
-};
+import { getAdobeFireflyUsage } from "./usage/adobeFirefly.ts";
+import { getOpenrouterUsage } from "./usage/openrouter.ts";
+import { getOllamaCloudUsage } from "./opencodeOllamaUsage.ts";
+import { getCodeBuddyCnUsage } from "./usage/codebuddy-cn.ts";
+import { getPromptQlUsage } from "./usage/promptql.ts";
+import { getHyperAgentUsage } from "./usage/hyperagent.ts";
+import { getGitHubUsage, formatGitHubQuotaSnapshot, inferGitHubPlanName } from "./usage/github.ts";
+import { getCrofUsage } from "./usage/crof.ts";
+import { getNanoGptUsage } from "./usage/nanogpt.ts";
+import { getQoderUsage, parseQoderUserStatusUsage } from "./usage/qoder.ts";
+// Re-exported para o teste qoder-usage-quota (importa parseQoderUserStatusUsage de services/usage).
+export { parseQoderUserStatusUsage } from "./usage/qoder.ts";
+import { getOpencodeUsage } from "./usage/opencode.ts";
+import { getDeepseekUsage } from "./usage/deepseek.ts";
+import { getMoonshotOpenPlatformUsage } from "./moonshotQuotaFetcher.ts";
+import { isMoonshotOpenPlatformConnection } from "./usage/moonshotOpenPlatform.ts";
+import { getDevinCliUsage } from "./usage/devinCli.ts";
+import { getBailianCodingPlanUsage } from "./usage/bailian.ts";
+import { getVertexUsage } from "./usage/vertex.ts";
+import { getXiaomiMimoUsage } from "./usage/xiaomi-mimo.ts";
+import { getXaiUsage } from "./usage/xai.ts";
+import { getXaiOauthUsage } from "./usage/xaiOauth.ts";
+import { getGrokCliUsage } from "./usage/grokCli.ts";
+import { getFirecrawlUsage } from "./usage/firecrawl.ts";
+import { getVolcenginePlanUsage } from "./usage/volcenginePlan.ts";
+import { getCommandCodeUsage } from "./usage/command-code.ts";
+import { getQwenTokenPlanUsage } from "./usage/qwen-token-plan.ts";
+import { getConolUsage } from "./conolUsage.ts";
+import { getAgentrouterUsage } from "./usage/agentrouter.ts";
+import { getKilocodeUsage } from "./usage/kilocode.ts";
 
 type JsonRecord = Record<string, unknown>;
 type UsageProviderConnection = JsonRecord & {
@@ -117,481 +89,18 @@ type UsageProviderConnection = JsonRecord & {
   email?: string;
 };
 
-function shouldDisplayGitHubQuota(quota: UsageQuota | null): quota is UsageQuota {
-  if (!quota) return false;
-  if (quota.unlimited && quota.total <= 0) return false;
-  return quota.total > 0 || quota.remainingPercentage !== undefined;
-}
-
-// CrofAI surfaces a tiny endpoint with two signals:
-//   GET https://crof.ai/usage_api/  →  { usable_requests: number|null, credits: number }
-// `usable_requests` is the daily request bucket on a subscription plan; `null`
-// for pay-as-you-go. `credits` is the USD credit balance. We surface both as
-// quotas so the Limits & Quotas page can render whichever the account uses.
-async function getCrofUsage(apiKey: string) {
-  if (!apiKey) {
-    return { message: "CrofAI API key not available. Add a key to view usage." };
-  }
-
-  let response: Response;
-  try {
-    response = await fetch(CROF_USAGE_URL, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        Accept: "application/json",
-      },
-    });
-  } catch (error) {
-    return { message: `CrofAI connected. Unable to fetch usage: ${(error as Error).message}` };
-  }
-
-  const rawText = await response.text();
-
-  if (response.status === 401 || response.status === 403) {
-    return { message: "CrofAI connected. The API key was rejected by /usage_api/." };
-  }
-
-  if (!response.ok) {
-    return { message: `CrofAI connected. /usage_api/ returned HTTP ${response.status}.` };
-  }
-
-  let payload: JsonRecord = {};
-  if (rawText) {
-    try {
-      payload = toRecord(JSON.parse(rawText));
-    } catch {
-      return { message: "CrofAI connected. Unable to parse /usage_api/ response." };
-    }
-  }
-
-  const usableRequestsRaw = payload["usable_requests"];
-  const usableRequests =
-    usableRequestsRaw === null || usableRequestsRaw === undefined
-      ? null
-      : toNumber(usableRequestsRaw, 0);
-  const credits = toNumber(payload["credits"], 0);
-
-  const quotas: Record<string, UsageQuota> = {};
-
-  if (usableRequests !== null) {
-    // CrofAI's /usage_api/ returns only the remaining count; the daily
-    // allotment is not exposed. CrofAI Pro plan = 1,000 requests/day per
-    // their pricing page, so use that as the baseline total. If the user
-    // is on a plan with a higher cap we widen the total to whatever they
-    // currently report so we never compute a negative `used`.
-    // Without this, total=0 makes the dashboard's percentage formula read
-    // 0% (interpreted as "depleted" → red) even on a fresh bucket.
-    const CROF_DAILY_BASELINE = 1000;
-    const remaining = Math.max(0, usableRequests);
-    const total = Math.max(CROF_DAILY_BASELINE, remaining);
-    const used = Math.max(0, total - remaining);
-
-    // CrofAI also does not return a reset timestamp and the docs only say
-    // "requests left today". The Crof.ai dashboard shows the daily bucket
-    // resetting at ~05:00 UTC (verified against the live countdown on
-    // 2026-04-25), so synthesize the next 05:00 UTC instant to match.
-    // Swap for a real field if Crof ever exposes one.
-    const now = new Date();
-    const RESET_HOUR_UTC = 5;
-    const todayResetMs = Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate(),
-      RESET_HOUR_UTC
-    );
-    const nextResetMs =
-      todayResetMs > now.getTime() ? todayResetMs : todayResetMs + 24 * 60 * 60 * 1000;
-    const nextResetIso = new Date(nextResetMs).toISOString();
-
-    quotas["Requests Today"] = {
-      used,
-      total,
-      remaining,
-      resetAt: nextResetIso,
-      unlimited: false,
-      displayName: `Requests Today: ${remaining} left`,
-    };
-  }
-
-  // Credits are an open balance — render as unlimited so the UI shows the
-  // dollar value rather than a misleading 0/0 bar.
-  quotas["Credits"] = {
-    used: 0,
-    total: 0,
-    remaining: 0,
-    resetAt: null,
-    unlimited: true,
-    displayName: `Credits: $${credits.toFixed(4)}`,
-  };
-
-  return { quotas };
-}
-
-/**
- * Bailian (Alibaba Coding Plan) Usage
- * Fetches triple-window quota (5h, weekly, monthly) and returns worst-case.
- */
-async function getBailianCodingPlanUsage(
-  connectionId: string,
-  apiKey: string,
-  providerSpecificData?: Record<string, unknown>
-) {
-  try {
-    const connection = { apiKey, providerSpecificData };
-    const quota = await fetchBailianQuota(connectionId, connection);
-
-    if (!quota) {
-      return { message: "Bailian Coding Plan connected. Unable to fetch quota." };
-    }
-
-    const bailianQuota = quota as BailianTripleWindowQuota;
-    const used = bailianQuota.used;
-    const total = bailianQuota.total;
-    const remaining = Math.max(0, total - used);
-    const remainingPercentage = Math.round(remaining);
-
-    return {
-      plan: "Alibaba Coding Plan",
-      used,
-      total,
-      remaining,
-      remainingPercentage,
-      resetAt: bailianQuota.resetAt,
-      unlimited: false,
-      displayName: "Alibaba Coding Plan",
-    };
-  } catch (error) {
-    return { message: `Bailian Coding Plan error: ${(error as Error).message}` };
-  }
-}
-
-/**
- * DeepSeek Usage
- * Fetches balance from the DeepSeek balance API.
- * Returns all balances (USD and CNY) as "credits" for credits-style UI display.
- */
-async function getDeepseekUsage(connectionId: string, apiKey: string) {
-  try {
-    const connection = { apiKey };
-    const quota = await fetchDeepseekQuota(connectionId, connection);
-
-    if (!quota) {
-      return { message: "DeepSeek API key not available. Add a key to view usage." };
-    }
-
-    const deepseekQuota = quota as DeepseekQuota;
-    const { balances, isAvailable, limitReached } = deepseekQuota;
-
-    const quotas: Record<string, UsageQuota> = {};
-
-    // Show all balances as credits-style entries (e.g., credits_usd, credits_cny)
-    // The UI will display them as "🪙 Balance (USD) $50.00"
-    for (const balanceInfo of balances) {
-      const key = `credits_${balanceInfo.currency.toLowerCase()}`;
-      quotas[key] = {
-        used: 0,
-        total: 0,
-        remaining: balanceInfo.balance,
-        remainingPercentage: 100,
-        resetAt: null,
-        unlimited: true,
-        currency: balanceInfo.currency,
-        grantedBalance: balanceInfo.grantedBalance,
-        toppedUpBalance: balanceInfo.toppedUpBalance,
-      };
-    }
-
-    const plan = isAvailable ? "DeepSeek" : "DeepSeek (Insufficient Balance)";
-
-    return {
-      plan,
-      quotas,
-      isAvailable,
-      limitReached,
-    };
-  } catch (error) {
-    return { message: `DeepSeek error: ${(error as Error).message}` };
-  }
-}
-
-// Xiaomi MiMo Token Plan monthly limit (tokens). Keep in sync with the
-// "xiaomi-mimo" preset in src/lib/quota/planRegistry.ts.
-const XIAOMI_MIMO_MONTHLY_TOKEN_LIMIT = 4_100_000_000;
-
-/**
- * Xiaomi MiMo — SELF-TRACKED monthly quota.
- *
- * Xiaomi exposes plan usage only behind the console session cookie (the API key
- * cannot reach the `tokenPlan/usage` endpoint), so there is no upstream usage
- * API to call. Instead we count the tokens OmniRoute itself routed to this
- * connection in the current UTC month (from `usage_history`) and compare them
- * to the known Token Plan monthly limit. This reflects only traffic that went
- * through OmniRoute, not the provider's own dashboard figure.
- */
-async function getXiaomiMimoUsage(connectionId: string) {
-  if (!connectionId) {
-    return { message: "Xiaomi MiMo: connection id unavailable for self-tracked quota." };
-  }
-  try {
-    const { getMonthlyProviderTokensForConnection } = await import("@/lib/usage/usageStats");
-    const used = getMonthlyProviderTokensForConnection("xiaomi-mimo", connectionId);
-    const total = XIAOMI_MIMO_MONTHLY_TOKEN_LIMIT;
-    const now = new Date();
-    const resetAt = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)
-    ).toISOString();
-    return {
-      plan: "Xiaomi MiMo Token Plan (OmniRoute-tracked)",
-      quotas: {
-        monthly: createQuotaFromUsage(used, total, resetAt),
-      },
-    };
-  } catch (error) {
-    return { message: `Xiaomi MiMo self-tracked usage error: ${(error as Error).message}` };
-  }
-}
-
-/**
- * xAI (Grok) — SELF-TRACKED cumulative usage.
- *
- * xAI has no public per-account quota API (the billing console at console.x.ai
- * requires a session cookie, not an API key), so — exactly like the Xiaomi
- * MiMo self-track pattern above — OmniRoute sums the tokens it itself routed
- * to this connection (from `usage_history`) instead of calling an upstream
- * endpoint. Unlike Xiaomi MiMo, xAI has no fixed monthly cap, so the
- * aggregate is reported as `unlimited: true` with `remaining: 100` — this
- * renders the dashboard's green "100%" badge instead of a meaningless
- * progress bar against a `total: 0`.
- */
-async function getXaiUsage(connectionId: string) {
-  if (!connectionId) {
-    return { message: "xAI: connection id unavailable for self-tracked usage." };
-  }
-  try {
-    const { getMonthlyProviderTokensForConnection } = await import("@/lib/usage/usageStats");
-    const used = getMonthlyProviderTokensForConnection("xai", connectionId);
-    return {
-      plan: "xAI / Grok (OmniRoute-tracked)",
-      quotas: {
-        monthly: {
-          used,
-          total: 0,
-          remaining: 100,
-          remainingPercentage: 100,
-          resetAt: null,
-          unlimited: true,
-        } as UsageQuota,
-      },
-    };
-  } catch (error) {
-    return { message: `xAI self-tracked usage error: ${(error as Error).message}` };
-  }
-}
-
-/**
- * OpenCode Go / OpenCode / OpenCode Zen Usage
- * Delegates to the dedicated opencodeQuotaFetcher and shapes the result into
- * the standard `{ plan, quotas }` usage response expected by the limits page.
- *
- * Three rolling windows are surfaced: $12/5h, $30/wk, $60/mo.
- */
-async function getOpencodeUsage(connectionId: string, apiKey: string) {
-  if (!apiKey) {
-    return { message: "OpenCode API key not available. Add a key to view usage." };
-  }
-
-  try {
-    const quota = (await fetchOpencodeQuota(connectionId, {
-      apiKey,
-    })) as OpencodeTripleWindowQuota | null;
-
-    if (!quota) {
-      return { message: "OpenCode connected. Unable to fetch quota data." };
-    }
-
-    const { window5h, windowWeekly, windowMonthly, limitReached } = quota;
-
-    const quotas: Record<string, UsageQuota> = {};
-
-    // $12 / 5-hour rolling window
-    quotas["window_5h"] = {
-      used: window5h.percentUsed * 12,
-      total: 12,
-      remaining: (1 - window5h.percentUsed) * 12,
-      remainingPercentage: (1 - window5h.percentUsed) * 100,
-      resetAt: window5h.resetAt,
-      unlimited: false,
-      displayName: "$12 / 5-hour",
-      currency: "USD",
-    };
-
-    // $30 / weekly window
-    quotas["window_weekly"] = {
-      used: windowWeekly.percentUsed * 30,
-      total: 30,
-      remaining: (1 - windowWeekly.percentUsed) * 30,
-      remainingPercentage: (1 - windowWeekly.percentUsed) * 100,
-      resetAt: windowWeekly.resetAt,
-      unlimited: false,
-      displayName: "$30 / week",
-      currency: "USD",
-    };
-
-    // $60 / monthly window
-    quotas["window_monthly"] = {
-      used: windowMonthly.percentUsed * 60,
-      total: 60,
-      remaining: (1 - windowMonthly.percentUsed) * 60,
-      remainingPercentage: (1 - windowMonthly.percentUsed) * 100,
-      resetAt: windowMonthly.resetAt,
-      unlimited: false,
-      displayName: "$60 / month",
-      currency: "USD",
-    };
-
-    return {
-      plan: "OpenCode Go",
-      quotas,
-      limitReached,
-    };
-  } catch (error) {
-    return { message: `OpenCode error: ${sanitizeErrorMessage(error)}` };
-  }
-}
-
-/**
- * NanoGPT Usage
- * Fetches subscription-level quota from the NanoGPT API.
- * Returns daily/weekly token limits and daily image limits for PRO accounts.
- */
-async function getNanoGptUsage(apiKey: string) {
-  if (!apiKey) {
-    return { message: "NanoGPT API key not available. Add a key to view usage." };
-  }
-
-  try {
-    const res = await fetch(NANOGPT_CONFIG.usageUrl, {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    });
-
-    if (!res.ok) {
-      if (res.status === 401) return { message: "Invalid NanoGPT API key." };
-      return { message: `NanoGPT quota API error (${res.status})` };
-    }
-
-    const data = toRecord(await res.json());
-    const quotas: Record<string, UsageQuota> = {};
-
-    // active -> PRO, otherwise FREE
-    const plan = data.active ? "PRO" : "FREE";
-
-    if (data.active) {
-      // 1. Tokens limit
-      // dailyInputTokens if exists, else weeklyInputTokens
-      let tokenQuota = toRecord(data.dailyInputTokens);
-      let tokenLabel = "Daily Tokens";
-      if (!tokenQuota.resetAt) {
-        const weeklyQuota = toRecord(data.weeklyInputTokens);
-        if (weeklyQuota.remaining !== undefined) {
-          tokenQuota = weeklyQuota;
-          tokenLabel = "Weekly Tokens";
-        }
-      }
-
-      if (tokenQuota.remaining !== undefined) {
-        const used = toNumber(tokenQuota.used, 0);
-        const remaining = toNumber(tokenQuota.remaining, 0);
-        const total = used + remaining;
-        quotas[tokenLabel] = {
-          used,
-          total,
-          remaining,
-          remainingPercentage: clampPercentage(100 - toNumber(tokenQuota.percentUsed, 0) * 100),
-          resetAt: parseResetTime(tokenQuota.resetAt),
-          unlimited: false,
-        };
-      }
-
-      // 2. Images limit
-      const imageQuota = toRecord(data.dailyImages);
-      if (imageQuota.remaining !== undefined) {
-        const used = toNumber(imageQuota.used, 0);
-        const remaining = toNumber(imageQuota.remaining, 0);
-        const total = used + remaining;
-        quotas["Daily Images"] = {
-          used,
-          total,
-          remaining,
-          remainingPercentage: clampPercentage(100 - toNumber(imageQuota.percentUsed, 0) * 100),
-          resetAt: parseResetTime(imageQuota.resetAt),
-          unlimited: false,
-        };
-      }
-
-      if (Object.keys(quotas).length === 0) {
-        return { plan, message: "NanoGPT connected, but no active limits found." };
-      }
-    }
-
-    return { plan, quotas };
-  } catch (error) {
-    return { message: `NanoGPT connected. Unable to fetch usage: ${(error as Error).message}` };
-  }
-}
-
 /**
  * Single source of truth for which providers have a `getUsageForProvider`
- * implementation. Consumers like `genericQuotaFetcher.ts` reference this so
- * the registration list can't drift from the switch statement below.
+ * implementation — consumers like `genericQuotaFetcher.ts` reference it so the
+ * registration list can't drift from the switch statement below.
  *
- * If you add a new provider to the switch, add it here too.
+ * If you add a new provider to the switch, add it to the list too. The list now lives in
+ * `./usage/fetcherProviders.ts` (a zero-dependency leaf) so that consumers which only need
+ * to know *whether* a fetcher exists — the provider-plugin manifest — can read it without
+ * importing this dispatcher. Re-exported here so this stays the public import path.
  */
-export const USAGE_FETCHER_PROVIDERS = [
-  "github",
-  "antigravity",
-  "agy",
-  "claude",
-  "codex",
-  "cursor",
-  "kiro",
-  "amazon-q",
-  "kimi-coding",
-  "kimi-coding-apikey",
-  "qoder",
-  "glm",
-  "glm-cn",
-  "zai",
-  "glmt",
-  "opencode-go",
-  "ollama-cloud",
-  "minimax",
-  "minimax-cn",
-  "crof",
-  "bailian-coding-plan",
-  "nanogpt",
-  "deepseek",
-  "opencode",
-  "opencode-zen",
-  "xiaomi-mimo",
-  "xai",
-  "xai-oauth",
-  "xao",
-  "vertex",
-  "vertex-partner",
-  "codebuddy-cn",
-  "openrouter",
-  // PromptQL playground credits (data.pro.ql.app getCreditSummary)
-  "promptql",
-  "pql",
-  // HyperAgent billing usage (creditBlocks USD)
-  "hyperagent",
-  "ha",
-  // Firecrawl team credits (GET /v2/team/credit-usage)
-  "firecrawl",
-] as const;
-
-export type UsageFetcherProvider = (typeof USAGE_FETCHER_PROVIDERS)[number];
+export { USAGE_FETCHER_PROVIDERS } from "./usage/fetcherProviders.ts";
+export type { UsageFetcherProvider } from "./usage/fetcherProviders.ts";
 
 /**
  * Get usage data for a provider connection
@@ -603,6 +112,10 @@ export async function getUsageForProvider(
   options: { forceRefresh?: boolean } = {}
 ) {
   const { id, provider, accessToken, apiKey, providerSpecificData, projectId, email } = connection;
+
+  if (isMoonshotOpenPlatformConnection(connection)) {
+    return await getMoonshotOpenPlatformUsage(connection);
+  }
 
   switch (provider) {
     case "github":
@@ -630,9 +143,8 @@ export async function getUsageForProvider(
     case "vertex-partner":
       return await getVertexUsage(id || "", provider);
     case "kimi-coding":
-      return await getKimiUsage(accessToken, apiKey);
     case "kimi-coding-apikey":
-      return await getKimiUsage(undefined, apiKey);
+      return await getKimiUsage(accessToken, apiKey, providerSpecificData);
     case "qoder":
       // Qoder PATs live in `apiKey` (decrypted) or `providerSpecificData.qoderPat`,
       // never in `accessToken`.
@@ -646,7 +158,7 @@ export async function getUsageForProvider(
         ...(provider === "glm-cn" ? { apiRegion: "china" } : {}),
       });
     case "opencode-go":
-      return await getOpenCodeGoUsage(apiKey || "", providerSpecificData);
+      return await getOpencodeUsage(id || "", apiKey || "");
     case "ollama-cloud":
       return await getOllamaCloudUsage(providerSpecificData);
     case "minimax":
@@ -656,10 +168,15 @@ export async function getUsageForProvider(
       return await getCrofUsage(apiKey || "");
     case "bailian-coding-plan":
       return await getBailianCodingPlanUsage(id || "", apiKey || "", providerSpecificData);
+    case "qwen-cloud-token-plan":
+      return await getQwenTokenPlanUsage(id || "", apiKey || "", providerSpecificData);
     case "nanogpt":
       return await getNanoGptUsage(apiKey || "");
     case "deepseek":
       return await getDeepseekUsage(id || "", apiKey || "");
+    case "moonshot":
+    case "kimi":
+      return await getMoonshotOpenPlatformUsage(connection);
     case "openrouter":
       return await getOpenrouterUsage(id || "", apiKey || "", providerSpecificData);
     case "opencode":
@@ -672,6 +189,8 @@ export async function getUsageForProvider(
     case "xai-oauth":
     case "xao":
       return await getXaiOauthUsage(id || "", accessToken, connection);
+    case "grok-cli":
+      return await getGrokCliUsage(accessToken);
     case "codebuddy-cn":
       return await getCodeBuddyCnUsage(accessToken, apiKey, providerSpecificData);
     case "promptql":
@@ -686,636 +205,25 @@ export async function getUsageForProvider(
     case "ha":
       return await getHyperAgentUsage(apiKey || accessToken, providerSpecificData);
     case "firecrawl":
-      return await getFirecrawlUsage(id || "", apiKey);
+      return await getFirecrawlUsage(id || "", apiKey, connection);
+    case "volcengine-agent-plan":
+    case "volcengine-coding-plan":
+      return await getVolcenginePlanUsage(apiKey || "", provider, providerSpecificData);
+    case "command-code":
+      return await getCommandCodeUsage(apiKey || accessToken || "");
+    case "conol-web":
+    case "cnl":
+      return await getConolUsage(apiKey || accessToken, providerSpecificData);
+    case "agentrouter":
+      return await getAgentrouterUsage(id, connection);
+    case "kilocode":
+      return await getKilocodeUsage(id, connection);
+    case "devin-cli":
+      // Devin CLI tokens live in `accessToken` (oauth import) or `apiKey`.
+      return await getDevinCliUsage(apiKey || accessToken);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
-}
-
-/**
- * Parse reset date/time to ISO string
- * Handles multiple formats: Unix timestamp (ms), ISO date string, etc.
- */
-/**
- * GitHub Copilot Usage
- * Uses GitHub accessToken (not copilotToken) to call copilot_internal/user API
- */
-async function getGitHubUsage(accessToken?: string, providerSpecificData?: JsonRecord) {
-  try {
-    if (!accessToken) {
-      throw new Error("No GitHub access token available. Please re-authorize the connection.");
-    }
-
-    // copilot_internal/user API requires GitHub OAuth token, not copilotToken
-    const response = await fetch("https://api.github.com/copilot_internal/user", {
-      headers: getGitHubCopilotInternalUserHeaders(`token ${accessToken}`),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      if (response.status === 401 || response.status === 403) {
-        return {
-          message: `GitHub token expired or permission denied. Please re-authenticate the connection.`,
-        };
-      }
-      throw new Error(`GitHub API error: ${error}`);
-    }
-
-    const data = await response.json();
-    const dataRecord = toRecord(data);
-
-    // Handle different response formats (paid vs free)
-    if (dataRecord.quota_snapshots) {
-      // Paid plan format
-      const snapshots = toRecord(dataRecord.quota_snapshots);
-      const resetAt = parseResetTime(
-        getFieldValue(dataRecord, "quota_reset_date", "quotaResetDate")
-      );
-      const premiumQuota = formatGitHubQuotaSnapshot(snapshots.premium_interactions, resetAt);
-      const chatQuota = formatGitHubQuotaSnapshot(snapshots.chat, resetAt);
-      const completionsQuota = formatGitHubQuotaSnapshot(snapshots.completions, resetAt);
-      const quotas: Record<string, UsageQuota> = {};
-
-      if (shouldDisplayGitHubQuota(premiumQuota)) {
-        quotas.premium_interactions = premiumQuota;
-      }
-      if (shouldDisplayGitHubQuota(chatQuota)) {
-        quotas.chat = chatQuota;
-      }
-      if (shouldDisplayGitHubQuota(completionsQuota)) {
-        quotas.completions = completionsQuota;
-      }
-
-      return {
-        plan: inferGitHubPlanName(dataRecord, premiumQuota),
-        resetDate: getFieldValue(dataRecord, "quota_reset_date", "quotaResetDate"),
-        quotas,
-      };
-    } else if (dataRecord.monthly_quotas || dataRecord.limited_user_quotas) {
-      // Free/limited plan format. NOTE (#2876): the upstream field
-      // `limited_user_quotas[name]` is the *remaining* count for the month
-      // (it counts down toward 0 and resets on `limited_user_reset_date`),
-      // NOT the used count. The pre-3.8.6 implementation inverted this and
-      // showed "0% when not used / 100% when fully used" on the dashboard.
-      // Confirmed against three independent upstream parsers:
-      //   - robinebers/openusage  docs/providers/copilot.md (Free Tier table)
-      //   - raycast/extensions    agent-usage/src/copilot/fetcher.ts (inline comment)
-      //   - looplj/axonhub        frontend/src/components/quota-badges.tsx
-      const monthlyQuotas = toRecord(dataRecord.monthly_quotas);
-      const remainingQuotas = toRecord(dataRecord.limited_user_quotas);
-      const resetDate = getFieldValue(
-        dataRecord,
-        "limited_user_reset_date",
-        "limitedUserResetDate"
-      );
-      const resetAt = parseResetTime(resetDate);
-      const quotas: Record<string, UsageQuota> = {};
-
-      const addLimitedQuota = (name: string) => {
-        const total = toNumber(getFieldValue(monthlyQuotas, name, name), 0);
-        if (total <= 0) return null;
-        const remainingRaw = Math.max(0, toNumber(getFieldValue(remainingQuotas, name, name), 0));
-        const remaining = Math.min(remainingRaw, total);
-        const used = Math.max(total - remaining, 0);
-        quotas[name] = {
-          used,
-          total,
-          remaining,
-          remainingPercentage: clampPercentage((remaining / total) * 100),
-          unlimited: false,
-          resetAt,
-        };
-        return quotas[name];
-      };
-
-      const premiumQuota = addLimitedQuota("premium_interactions");
-      addLimitedQuota("chat");
-      addLimitedQuota("completions");
-
-      return {
-        plan: inferGitHubPlanName(dataRecord, premiumQuota),
-        resetDate,
-        quotas,
-      };
-    }
-
-    return { message: "GitHub Copilot connected. Unable to parse quota data." };
-  } catch (error) {
-    throw new Error(`Failed to fetch GitHub usage: ${error.message}`);
-  }
-}
-
-function formatGitHubQuotaSnapshot(
-  quota: unknown,
-  resetAt: string | null = null
-): UsageQuota | null {
-  const source = toRecord(quota);
-  if (Object.keys(source).length === 0) return null;
-
-  const unlimited = source.unlimited === true;
-  const entitlement = toNumber(source.entitlement, Number.NaN);
-  const totalValue = toNumber(source.total, Number.NaN);
-  const remainingValue = toNumber(source.remaining, Number.NaN);
-  const usedValue = toNumber(source.used, Number.NaN);
-  const percentRemainingValue = toNumber(
-    getFieldValue(source, "percent_remaining", "percentRemaining"),
-    Number.NaN
-  );
-
-  let total = Number.isFinite(totalValue)
-    ? Math.max(0, totalValue)
-    : Number.isFinite(entitlement)
-      ? Math.max(0, entitlement)
-      : 0;
-  let remaining = Number.isFinite(remainingValue) ? Math.max(0, remainingValue) : undefined;
-  let used = Number.isFinite(usedValue) ? Math.max(0, usedValue) : undefined;
-  let remainingPercentage = Number.isFinite(percentRemainingValue)
-    ? clampPercentage(percentRemainingValue)
-    : undefined;
-
-  if (used === undefined && total > 0 && remaining !== undefined) {
-    used = Math.max(total - remaining, 0);
-  }
-
-  if (remaining === undefined && total > 0 && used !== undefined) {
-    remaining = Math.max(total - used, 0);
-  }
-
-  if (remainingPercentage === undefined && total > 0 && remaining !== undefined) {
-    remainingPercentage = clampPercentage((remaining / total) * 100);
-  }
-
-  if (total <= 0 && remainingPercentage !== undefined) {
-    total = 100;
-    used = 100 - remainingPercentage;
-    remaining = remainingPercentage;
-  }
-
-  return {
-    used: Math.max(0, used ?? 0),
-    total,
-    remaining,
-    remainingPercentage,
-    resetAt,
-    unlimited,
-  };
-}
-
-function inferGitHubPlanName(data: JsonRecord, premiumQuota: UsageQuota | null): string {
-  const rawPlan = getFieldValue(data, "copilot_plan", "copilotPlan");
-  const rawSku = getFieldValue(data, "access_type_sku", "accessTypeSku");
-  const planText = typeof rawPlan === "string" ? rawPlan.trim() : "";
-  const skuText = typeof rawSku === "string" ? rawSku.trim() : "";
-  const combined = `${skuText} ${planText}`.trim().toUpperCase();
-  const monthlyQuotas = toRecord(getFieldValue(data, "monthly_quotas", "monthlyQuotas"));
-  const premiumTotal =
-    premiumQuota?.total ||
-    toNumber(getFieldValue(monthlyQuotas, "premium_interactions", "premiumInteractions"), 0);
-  const chatTotal = toNumber(getFieldValue(monthlyQuotas, "chat", "chat"), 0);
-
-  if (combined.includes("PRO+") || combined.includes("PRO_PLUS") || combined.includes("PROPLUS")) {
-    return "Copilot Pro+";
-  }
-  if (combined.includes("ENTERPRISE")) return "Copilot Enterprise";
-  if (combined.includes("BUSINESS")) return "Copilot Business";
-  if (combined.includes("STUDENT")) return "Copilot Student";
-  if (combined.includes("FREE")) return "Copilot Free";
-  if (combined.includes("PRO")) return "Copilot Pro";
-
-  if (premiumTotal >= 1400) return "Copilot Pro+";
-  if (premiumTotal >= 900) return "Copilot Enterprise";
-  if (premiumTotal >= 250) {
-    if (combined.includes("INDIVIDUAL")) return "Copilot Pro";
-    return "Copilot Business";
-  }
-  if (premiumTotal > 0 || chatTotal === 50) return "Copilot Free";
-
-  if (skuText) {
-    const label = toDisplayLabel(skuText);
-    return label ? `Copilot ${label}` : "GitHub Copilot";
-  }
-  if (planText) {
-    const label = toDisplayLabel(planText);
-    return label ? `Copilot ${label}` : "GitHub Copilot";
-  }
-  return "GitHub Copilot";
-}
-
-/**
- * Claude Usage - Try to fetch from Anthropic API
- */
-async function getClaudeUsage(accessToken?: string) {
-  if (!accessToken) {
-    return { message: "Claude connected. Access token not available.", bootstrap: null };
-  }
-
-  // Refresh bootstrap in parallel; best-effort, failure non-fatal.
-  const bootstrapPromise = fetchClaudeBootstrap(accessToken).catch(() => null);
-  // Skip OAuth usage call while this token is cooling down from a recent 429
-  // (chat with the same token still works — only the quota endpoint is throttled).
-  if (isClaudeOauthUsageCoolingDown(accessToken)) {
-    const legacy = await getClaudeUsageLegacy(accessToken);
-    return { ...legacy, bootstrap: await bootstrapPromise };
-  }
-  try {
-    // Real CLI uses axios here, not Stainless — UA is `claude-code/<version>`
-    // (not `claude-cli/...`) and the shape is simpler than /v1/messages.
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 10_000);
-    let oauthResponse;
-    try {
-      oauthResponse = await fetch(CLAUDE_CONFIG.oauthUsageUrl, {
-        method: "GET",
-        headers: {
-          Accept: "application/json, text/plain, */*",
-          "Accept-Encoding": "gzip, compress, deflate, br",
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-          "User-Agent": `claude-code/${CLAUDE_CODE_VERSION}`,
-          "anthropic-beta": "oauth-2025-04-20",
-        },
-        signal: ctrl.signal,
-      });
-    } finally {
-      clearTimeout(timer);
-    }
-
-    if (oauthResponse.ok) {
-      const data = toRecord(await oauthResponse.json());
-      const quotas: Record<string, UsageQuota> = {};
-
-      // utilization = percentage USED (e.g., 90 means 90% used, 10% remaining)
-      // Confirmed via user report #299: Claude.ai shows 87% used = OmniRoute must show 13% remaining.
-      const hasUtilization = (window: JsonRecord) =>
-        window && typeof window === "object" && safePercentage(window.utilization) !== undefined;
-
-      const createQuotaObject = (window: JsonRecord) => {
-        const used = safePercentage(window.utilization) as number; // utilization = % used
-        const remaining = Math.max(0, 100 - used);
-        return {
-          used,
-          total: 100,
-          remaining,
-          resetAt: parseResetTime(window.resets_at),
-          remainingPercentage: remaining,
-          unlimited: false,
-        };
-      };
-
-      const fiveHour = toRecord(data.five_hour);
-      if (hasUtilization(fiveHour)) {
-        quotas["session (5h)"] = createQuotaObject(fiveHour);
-      }
-
-      const sevenDay = toRecord(data.seven_day);
-      if (hasUtilization(sevenDay)) {
-        quotas["weekly (7d)"] = createQuotaObject(sevenDay);
-      }
-
-      // Map Anthropic's internal codenames (e.g., omelette → Designer) for display.
-      const MODEL_DISPLAY_NAMES: Record<string, string> = {
-        omelette: "designer",
-      };
-      for (const [key, value] of Object.entries(data)) {
-        const valueRecord = toRecord(value);
-        if (key.startsWith("seven_day_") && key !== "seven_day" && hasUtilization(valueRecord)) {
-          const codename = key.replace("seven_day_", "");
-          const modelName = MODEL_DISPLAY_NAMES[codename] || codename;
-          quotas[`weekly ${modelName} (7d)`] = createQuotaObject(valueRecord);
-        }
-      }
-
-      const bootstrap = await bootstrapPromise;
-      const plan =
-        getClaudePlanLabel(
-          typeof data.tier === "string" ? data.tier : null,
-          typeof data.plan === "string" ? data.plan : null,
-          typeof data.subscription_type === "string" ? data.subscription_type : null,
-          bootstrap?.organization_rate_limit_tier
-        ) ?? undefined;
-
-      return {
-        ...(plan ? { plan } : {}),
-        quotas,
-        extraUsage: data.extra_usage ?? null,
-        bootstrap,
-      };
-    }
-
-    // Cool down OAuth usage polling after a 429 (quota endpoint only — chat is unaffected).
-    if (oauthResponse.status === 429) {
-      markClaudeOauthUsage429(accessToken);
-    }
-
-    // Fallback: OAuth endpoint returned non-OK, try legacy settings/org endpoint
-    console.warn(
-      `[Claude Usage] OAuth endpoint returned ${oauthResponse.status}, falling back to legacy`
-    );
-    const legacy = await getClaudeUsageLegacy(accessToken);
-    return { ...legacy, bootstrap: await bootstrapPromise };
-  } catch (error) {
-    return {
-      message: `Claude connected. Unable to fetch usage: ${(error as Error).message}`,
-      bootstrap: await bootstrapPromise,
-    };
-  }
-}
-
-/**
- * Legacy Claude usage fetcher for API key / org admin users.
- * Uses /v1/settings + /v1/organizations/{org_id}/usage endpoints.
- */
-async function getClaudeUsageLegacy(accessToken?: string) {
-  try {
-    const settingsResponse = await fetch(CLAUDE_CONFIG.settingsUrl, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "anthropic-version": CLAUDE_CONFIG.apiVersion,
-      },
-    });
-
-    if (settingsResponse.ok) {
-      const settings = toRecord(await settingsResponse.json());
-
-      const organizationId =
-        typeof settings.organization_id === "string" ? settings.organization_id : "";
-      if (organizationId) {
-        const usageResponse = await fetch(
-          CLAUDE_CONFIG.usageUrl.replace("{org_id}", organizationId),
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "anthropic-version": CLAUDE_CONFIG.apiVersion,
-            },
-          }
-        );
-
-        if (usageResponse.ok) {
-          const usage = await usageResponse.json();
-          return {
-            plan: settings.plan || "Unknown",
-            organization: settings.organization_name,
-            quotas: usage,
-          };
-        }
-      }
-
-      return {
-        plan: settings.plan || "Unknown",
-        organization: settings.organization_name,
-        message: "Claude connected. Usage details require admin access.",
-      };
-    }
-
-    return { message: "Claude connected. Usage API requires admin permissions." };
-  } catch (error) {
-    return { message: `Claude connected. Unable to fetch usage: ${(error as Error).message}` };
-  }
-}
-
-/**
- * Codex (OpenAI) Usage - Fetch from ChatGPT backend API
- * IMPORTANT: Uses persisted workspaceId from OAuth to ensure correct workspace binding.
- * No fallback to other workspaces - strict binding to user's selected workspace.
- */
-async function getCodexUsage(
-  accessToken?: string,
-  providerSpecificData: Record<string, unknown> = {}
-) {
-  try {
-    // Use persisted workspace ID from OAuth - NO FALLBACK
-    const accountId =
-      typeof providerSpecificData.workspaceId === "string"
-        ? providerSpecificData.workspaceId
-        : null;
-
-    const headers: Record<string, string> = {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
-    if (accountId) {
-      headers["chatgpt-account-id"] = accountId;
-    }
-
-    const response = await fetch(CODEX_CONFIG.usageUrl, {
-      method: "GET",
-      headers,
-    });
-
-    if (!response.ok) {
-      if (response.status === 401 || response.status === 403) {
-        return {
-          message: `Codex token expired or access denied. Please re-authenticate the connection.`,
-        };
-      }
-      throw new Error(`Codex API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    const { rateLimit, quotas } = buildCodexUsageQuotas(data);
-
-    return {
-      plan: String(getFieldValue(data, "plan_type", "planType") || "unknown"),
-      limitReached: Boolean(getFieldValue(rateLimit, "limit_reached", "limitReached")),
-      quotas,
-    };
-  } catch (error) {
-    return { message: `Failed to fetch Codex usage: ${(error as Error).message}` };
-  }
-}
-
-/**
- * Vertex AI — SELF-TRACKED spend.
- *
- * Vertex AI exposes no usage/quota API for an API key or Service Account (billing/credit balance
- * lives behind the Cloud Billing API, which the proxy credential can't reach). Instead we report
- * the USD that OmniRoute has spent through this connection since the account was added — summed
- * from `usage_history` and priced via the backend pricing table. Returns a `message` (with the $
- * figure) plus a `spend` quota entry so the limits cache persists it (a message-only result is
- * treated as a transient error and not cached).
- */
-async function getVertexUsage(connectionId: string, provider: string) {
-  if (!connectionId) {
-    return { message: "Vertex connected. Connection id unavailable for usage tracking." };
-  }
-  try {
-    const { getConnectionSpendUsdSinceAdded } = await import("@/lib/usage/usageStats");
-    const { costUsd, requests } = await getConnectionSpendUsdSinceAdded(provider, connectionId);
-
-    const spend: JsonRecord = {
-      used: Number(costUsd.toFixed(6)),
-      displayName: "Spend (USD)",
-      quotaSource: "localUsageHistory",
-      resetAt: null,
-      unlimited: false,
-    };
-
-    if (requests === 0) {
-      return {
-        plan: "Vertex AI",
-        message: "Vertex connected. No usage recorded through OmniRoute yet for this account.",
-        quotas: { spend },
-      };
-    }
-
-    const costStr = costUsd >= 1 ? costUsd.toFixed(2) : costUsd.toFixed(4);
-    return {
-      plan: "Vertex AI",
-      message: `$${costStr} used since this account was added \u00b7 ${requests} request${
-        requests === 1 ? "" : "s"
-      }`,
-      quotas: { spend },
-    };
-  } catch (error) {
-    return { message: `Vertex usage tracking error: ${(error as Error).message}` };
-  }
-}
-
-/**
- * Qwen Usage
- */
-async function getQwenUsage(accessToken?: string, providerSpecificData?: JsonRecord) {
-  void accessToken;
-  try {
-    const resourceUrl = providerSpecificData?.resourceUrl;
-    if (!resourceUrl) {
-      return { message: "Qwen connected. No resource URL available." };
-    }
-
-    // Qwen may have usage endpoint at resource URL
-    return { message: "Qwen connected. Usage tracked per request." };
-  } catch (error) {
-    return { message: "Unable to fetch Qwen usage." };
-  }
-}
-
-/**
- * Qoder Usage
- *
- * Qoder exposes account plan + quota at `openapi.qoder.sh/api/v3/user/status`,
- * the same endpoint the official qodercli reads for its usage badge. The status
- * call needs a short-lived `jt-*` job token, so we exchange the PAT the same way
- * the chat/validation paths do (see qoderCli.ts::resolveQoderJobToken).
- */
-const QODER_USER_STATUS_URL = "https://openapi.qoder.sh/api/v3/user/status";
-
-/** Human-readable plan label from Qoder's `PLAN_TIER_*` enum / `userTag`. */
-function prettifyQoderPlan(planRaw: string, userTag: string): string {
-  const tag = String(userTag || "").trim();
-  if (tag) return tag;
-  const stripped = String(planRaw || "")
-    .trim()
-    .replace(/^PLAN_TIER_/i, "");
-  return stripped ? toTitleCase(stripped) : "Qoder";
-}
-
-/**
- * Map a Qoder `/user/status` payload into the shared `{ plan, quotas }` shape.
- * Pure (no I/O) so it can be unit-tested against captured payloads.
- */
-export function parseQoderUserStatusUsage(status: JsonRecord): {
-  plan: string;
-  quotas: Record<string, UsageQuota>;
-} {
-  const userType = String(status.userType || "")
-    .trim()
-    .toLowerCase();
-  const planLabel = prettifyQoderPlan(String(status.plan || ""), String(status.userTag || ""));
-  const isExceeded = status.isQuotaExceeded === true;
-  const quotaNum = toNumber(status.quota, 0);
-  const resetAt = parseResetTime(status.nextResetAt);
-  // Team/enterprise seats draw from a pooled org quota rather than a per-user
-  // counter, so `quota: 0` there means "pooled", not "exhausted".
-  const isPooled = userType === "teams" || userType === "enterprise";
-
-  const quotas: Record<string, UsageQuota> = {};
-  if (isExceeded) {
-    // Genuinely out of quota — remainingPercentage 0 lets routing skip it until reset.
-    quotas["Quota"] = {
-      used: quotaNum,
-      total: quotaNum,
-      remaining: 0,
-      remainingPercentage: 0,
-      resetAt,
-      unlimited: false,
-      displayName: "Quota exceeded",
-    };
-  } else if (isPooled || quotaNum <= 0) {
-    // Pooled/unlimited seat — MUST report 100% remaining. The quota→routing
-    // conversion (src/domain/quotaCache.ts) ignores `unlimited` and would treat a
-    // `total: 0` window as 0% (i.e. exhausted), wrongly 429-ing every request.
-    quotas["Plan"] = {
-      used: 0,
-      total: 0,
-      remaining: 0,
-      remainingPercentage: 100,
-      resetAt,
-      unlimited: true,
-      displayName: `${planLabel} plan · pooled quota`,
-    };
-  } else {
-    quotas["Requests"] = {
-      used: 0,
-      total: quotaNum,
-      remaining: quotaNum,
-      remainingPercentage: 100,
-      resetAt,
-      unlimited: false,
-      displayName: `${quotaNum} requests left`,
-    };
-  }
-
-  return { plan: planLabel, quotas };
-}
-
-async function getQoderUsage(apiKey?: string, providerSpecificData?: JsonRecord) {
-  const token = (apiKey || "").trim() || String(providerSpecificData?.qoderPat || "").trim();
-  if (!token) {
-    return { message: "Qoder connected. Add a Personal Access Token to view quota." };
-  }
-
-  let jobToken: string;
-  try {
-    jobToken = await resolveQoderJobToken(token);
-  } catch {
-    return { message: "Qoder connected. Unable to resolve a usage token." };
-  }
-
-  let response: Response;
-  try {
-    response = await fetch(QODER_USER_STATUS_URL, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${jobToken}`, Accept: "application/json" },
-      // @ts-ignore — AbortSignal.timeout is available on the Node runtime
-      signal: AbortSignal.timeout(15000),
-    });
-  } catch (error) {
-    return {
-      message: `Qoder connected. Unable to fetch usage: ${sanitizeErrorMessage((error as Error).message)}`,
-    };
-  }
-
-  if (response.status === 401 || response.status === 403) {
-    return {
-      message: "Qoder connected. The token was rejected by the usage API — re-test the connection.",
-    };
-  }
-  if (!response.ok) {
-    return { message: `Qoder connected. Usage API returned HTTP ${response.status}.` };
-  }
-
-  let status: JsonRecord;
-  try {
-    status = toRecord(await response.json());
-  } catch {
-    return { message: "Qoder connected. Unable to parse the usage response." };
-  }
-
-  return parseQoderUserStatusUsage(status);
 }
 
 export const __testing = {
@@ -1342,6 +250,8 @@ export const __testing = {
   getXiaomiMimoUsage,
   getXaiUsage,
   getXaiOauthUsage,
+  getFirecrawlUsage,
+  getCommandCodeUsage,
   getVertexUsage,
   getMiniMaxAuthErrorMessage,
   getMiniMaxErrorSummary,
@@ -1350,4 +260,5 @@ export const __testing = {
   mapSubscriptionTierStringToPlanLabel,
   toDisplayLabel,
   getKiroUsage,
+  getKilocodeUsage,
 };

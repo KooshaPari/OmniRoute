@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
-import { getCachedSettings } from "@/lib/localDb";
+import { getCachedSettings } from "@/lib/db/readCache";
 import {
   ensurePersistentManagementPasswordHash,
   getStoredManagementPassword,

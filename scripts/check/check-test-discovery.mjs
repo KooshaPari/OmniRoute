@@ -57,43 +57,100 @@ export const COLLECTORS = [
   // abaixo). Subdir novo: adicione aqui E nos scripts (o drift-check + o gate de
   // órfãos forçam a manutenção em sincronia).
   {
-    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts",
-    sources: ["package.json", ".github/workflows/ci.yml"],
+    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts",
+    sources: ["package.json"],
   },
+  // Node native runner — tests/unit/dashboard/** roda numa invocação separada com o hook
+  // COMPLETO do tsx (--import tsx): o grafo dos componentes de dashboard puxa
+  // @lobehub/icons, cujo build es/ faz require() interno de arquivos com sintaxe ESM —
+  // sem o patch CJS do tsx isso estoura "Unexpected token 'export'" (visto no Node
+  // 24.18 do CI; no 24.16 local vira um crawl de ~60s/arquivo). O resto da suíte roda
+  // sob tsx/esm (~-50% de bootstrap por processo). Plano mestre testes+CI, QW-b.
+  { glob: "tests/unit/dashboard/**/*.test.ts", sources: ["package.json"] },
+  // Quarentena de flakes de concorrência (plano melhorias v3.8.46, P0.3): arquivos
+  // sensíveis a contenção de CPU/timing (classe glm-3580 / quota-division /
+  // provider-health-autopilot) rodam num passo dedicado --test-concurrency=1 ao FIM
+  // de cada runner. Fora dos globs paralelos acima por diretório próprio.
   { glob: "tests/unit/serial/**/*.test.ts", sources: ["package.json"] },
+  // Órfãos religados (plano mestre QW-c): arquivos .test.mjs (top-level + db/ + feature-triage/) — fora do glob
+  // *.test.ts histórico, nunca rodava em job nenhum (53 casos recuperados).
   { glob: "tests/unit/**/*.test.mjs", sources: ["package.json"] },
+  // Wiring CI→npm script (fonte única): os jobs de unit do ci.yml e o fast-unit do
+  // quality.yml DEVEM invocar o script canônico — se renomearem/inlinarem, este gate
+  // exige o sync (substitui as âncoras textuais de glob que existiam nos workflows).
+  {
+    glob: "tests/unit/*.test.ts",
+    sources: ["package.json", ".github/workflows/ci.yml", ".github/workflows/quality.yml"],
+    anchors: {
+      ".github/workflows/ci.yml": "test:unit:ci:shard",
+      ".github/workflows/quality.yml": "test:unit:ci:shard",
+    },
+  },
   // Node native runner — test:integration (top-level only; tests/integration/services/ NÃO roda)
   { glob: "tests/integration/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:combo:matrix / test:integration (combo strategy decision matrix, 17 strategies)
   { glob: "tests/integration/combo-matrix/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:combo:live (gated real-upstream smoke; RUN_COMBO_LIVE=1 + VPS creds)
   { glob: "tests/integration/combo-live/*.live.test.ts", sources: ["package.json"] },
+  // Node native runner — test:boundary:live (gated real-upstream smoke; RUN_BOUNDARY_LIVE=1,
+  // hits omniroute.vhost2.harre.dynv6.net — never runs unopted in CI)
+  { glob: "tests/boundary/*.live.test.ts", sources: ["package.json"] },
   // Node native runner — test:system
   { glob: "tests/e2e/system-failover.test.ts", sources: ["package.json"] },
   // vitest.mcp.config.ts — test:vitest
   { glob: "open-sse/mcp-server/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "open-sse/services/autoCombo/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "open-sse/services/combo/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   // Single-file include: the rest of open-sse/services/__tests__/ are frozen orphans
   // (empty/dormant stubs); only this one is wired to run under test:vitest.
   {
     glob: "open-sse/services/__tests__/antigravity-quota-family.test.ts",
     sources: ["vitest.mcp.config.ts"],
   },
-  { glob: "tests/unit/autoCombo/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
-  { glob: "tests/unit/encryption.spec.ts", sources: ["vitest.mcp.config.ts"] },
-  { glob: "src/shared/components/**/*.test.tsx", sources: ["vitest.config.ts"] },
-  { glob: "src/shared/hooks/__tests__/**/*.test.tsx", sources: ["vitest.config.ts"] },
-  // vitest.config.ts via test:vitest:ui; the command supplies explicit source/UI filters.
-  { glob: "src/app/**/dashboard/cache/__tests__/**/*.test.tsx", sources: ["vitest.config.ts"] },
-  { glob: "src/app/**/dashboard/endpoint/__tests__/**/*.test.tsx", sources: ["vitest.config.ts"] },
-  { glob: "src/app/**/dashboard/providers/**/__tests__/**/*.test.tsx", sources: ["vitest.config.ts"] },
-  { glob: "src/app/**/dashboard/webhooks/__tests__/**/*.test.tsx", sources: ["vitest.config.ts"] },
-  { glob: "src/app/**/dashboard/discovery/__tests__/**/*.test.tsx", sources: ["vitest.config.ts"] },
-  // tests/unit/ui remains an explicit path filter in the same runner.
+  // #8890 landed this suite here without wiring a runner, so it had never run once.
   {
-    glob: "tests/unit/ui/**/*.test.tsx",
+    glob: "open-sse/services/__tests__/fail-fast-concurrency-gate.test.ts",
+    sources: ["vitest.mcp.config.ts"],
+  },
+  { glob: "tests/unit/autoCombo/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "tests/unit/api/**/*.spec.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/lib/memory/__tests__/generic-backend.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "tests/unit/encryption.spec.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/shared/components/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/shared/hooks/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/app/(dashboard)/**/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
+  // vitest.config.ts via test:vitest:ui. The script uses the config-wide include list.
+  {
+    glob: "tests/unit/**/*.test.tsx",
     sources: ["package.json", "vitest.config.ts"],
-    anchors: { "package.json": "tests/unit/ui", "vitest.config.ts": "tests/unit/**/*.test.tsx" },
+    anchors: { "package.json": "test:vitest:ui", "vitest.config.ts": "tests/unit/**/*.test.tsx" },
+  },
+  // vitest.config.ts include — open-sse/__tests__ files collected by vitest.config.ts.
+  // These were previously listed as orphans because the COLLECTORS only modelled the
+  // tests/unit/**/*.test.tsx include; the open-sse globs were missing. Both the top-level
+  // glob and the more-specific services sub-path glob from vitest.config.ts are listed so
+  // the drift-check anchors remain exact matches to the config file text.
+  {
+    glob: "open-sse/**/__tests__/**/*.test.ts",
+    sources: ["vitest.config.ts"],
+    anchors: { "vitest.config.ts": "open-sse/**/__tests__/**/*.test.ts" },
+  },
+  // vitest.config.ts include — src/lib/memory and src/lib/skills __tests__ collected by vitest.config.ts.
+  {
+    glob: "src/lib/memory/__tests__/**/*.test.ts",
+    sources: ["vitest.config.ts"],
+    anchors: { "vitest.config.ts": "src/lib/memory/__tests__/**/*.test.ts" },
+  },
+  {
+    glob: "src/lib/skills/__tests__/**/*.test.ts",
+    sources: ["vitest.config.ts"],
+    anchors: { "vitest.config.ts": "src/lib/skills/__tests__/**/*.test.ts" },
+  },
+  // vitest.config.ts include — single-file entry for the .test.ts encryption file.
+  {
+    glob: "tests/unit/encryption.test.ts",
+    sources: ["vitest.config.ts"],
+    anchors: { "vitest.config.ts": "tests/unit/encryption.test.ts" },
   },
   // Playwright — test:e2e (o script passa tests/e2e/*.spec.ts; testMatch **/*.spec.ts)
   { glob: "tests/e2e/*.spec.ts", sources: ["package.json"] },

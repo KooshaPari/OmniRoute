@@ -85,7 +85,7 @@ test.before(() => {
 
 test.after(() => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 // ---------------------------------------------------------------------------
@@ -93,6 +93,21 @@ test.after(() => {
 // ---------------------------------------------------------------------------
 
 test("#3500 getProviderMetrics — aggregates totals and latency per provider", () => {
+  // #10714: getProviderMetrics() only surfaces providers with a live
+  // provider_connections row — seed openai/anthropic connections so their
+  // call_logs rows are not filtered out as ghost/deleted providers.
+  const db0 = core.getDbInstance();
+  db0
+    .prepare(
+      `INSERT INTO provider_connections (id, provider, created_at, updated_at) VALUES (?, ?, ?, ?)`
+    )
+    .run("conn-3500-openai", "openai", new Date().toISOString(), new Date().toISOString());
+  db0
+    .prepare(
+      `INSERT INTO provider_connections (id, provider, created_at, updated_at) VALUES (?, ?, ?, ?)`
+    )
+    .run("conn-3500-anthropic", "anthropic", new Date().toISOString(), new Date().toISOString());
+
   // Two openai rows: one success, one error with error_summary
   const ts1 = "2025-06-01T10:00:00.000Z";
   const ts2 = "2025-06-01T11:00:00.000Z";
@@ -110,11 +125,14 @@ test("#3500 getProviderMetrics — aggregates totals and latency per provider", 
   // Provider '-' should be excluded
   insertCallLog({ provider: "-", status: 200 });
   // Provider null should be excluded (insert directly to avoid type issue)
-  core.getDbInstance().prepare(
-    `INSERT INTO call_logs (id, timestamp, method, path, status, model, provider, duration,
+  core
+    .getDbInstance()
+    .prepare(
+      `INSERT INTO call_logs (id, timestamp, method, path, status, model, provider, duration,
       tokens_in, tokens_out, cache_source, detail_state, has_request_body, has_response_body, has_pipeline_details)
      VALUES (?, ?, 'POST', '/v1/test', 200, 'x', NULL, 100, 0, 0, 'upstream', 'none', 0, 0, 0)`
-  ).run(`log-3500-null-${++_idSeq}`, new Date().toISOString());
+    )
+    .run(`log-3500-null-${++_idSeq}`, new Date().toISOString());
 
   const rows = mod.getProviderMetrics();
 
@@ -202,12 +220,36 @@ test("#3500 getSearchAggregateStats — correct totals, today, errors, avg, cach
   // Rows inserted after todayStart qualify as "today"
   const nowIso = new Date().toISOString();
   // duration=0 → excluded from avg_duration; duration=3 → cached (>0 && <5)
-  insertCallLog({ provider: "brave", status: 200, duration: 100, request_type: "search", timestamp: nowIso });
-  insertCallLog({ provider: "brave", status: 200, duration: 3, request_type: "search", timestamp: nowIso });
-  insertCallLog({ provider: "brave", status: 500, duration: 80, request_type: "search", timestamp: nowIso });
+  insertCallLog({
+    provider: "brave",
+    status: 200,
+    duration: 100,
+    request_type: "search",
+    timestamp: nowIso,
+  });
+  insertCallLog({
+    provider: "brave",
+    status: 200,
+    duration: 3,
+    request_type: "search",
+    timestamp: nowIso,
+  });
+  insertCallLog({
+    provider: "brave",
+    status: 500,
+    duration: 80,
+    request_type: "search",
+    timestamp: nowIso,
+  });
   // Old row (yesterday) — not in today count
   const yesterday = new Date(Date.now() - 86_400_000).toISOString();
-  insertCallLog({ provider: "brave", status: 200, duration: 200, request_type: "search", timestamp: yesterday });
+  insertCallLog({
+    provider: "brave",
+    status: 200,
+    duration: 200,
+    request_type: "search",
+    timestamp: yesterday,
+  });
 
   const result = mod.getSearchAggregateStats(todayIso);
 
@@ -259,4 +301,98 @@ test("#3500 getSearchProviderCounts — ordered by cnt desc", () => {
   if (bing && rare) {
     assert.ok(bing.cnt > rare.cnt, "bing cnt > rare_provider cnt");
   }
+});
+
+// ---------------------------------------------------------------------------
+// getProviderUsageSince — windowed usage aggregate for the rankings API
+// ---------------------------------------------------------------------------
+
+const USAGE_CUTOFF = "2025-07-01T00:00:00.000Z";
+const IN_WINDOW = "2025-07-02T12:00:00.000Z";
+const OUT_OF_WINDOW = "2025-06-01T12:00:00.000Z";
+
+function seedConnection(provider: string) {
+  const now = new Date().toISOString();
+  core
+    .getDbInstance()
+    .prepare(
+      `INSERT INTO provider_connections (id, provider, created_at, updated_at) VALUES (?, ?, ?, ?)`
+    )
+    .run(`conn-usage-${provider}`, provider, now, now);
+}
+
+test("getProviderUsageSince — only counts rows inside the window", () => {
+  seedConnection("usage-window");
+  insertCallLog({ provider: "usage-window", status: 200, timestamp: IN_WINDOW });
+  insertCallLog({ provider: "usage-window", status: 200, timestamp: IN_WINDOW });
+  insertCallLog({ provider: "usage-window", status: 200, timestamp: OUT_OF_WINDOW });
+  insertCallLog({ provider: "usage-window", status: 500, timestamp: OUT_OF_WINDOW });
+
+  const row = mod.getProviderUsageSince(USAGE_CUTOFF).find((r) => r.provider === "usage-window");
+  assert.ok(row, "provider must be present");
+  assert.equal(row.requests, 2, "rows before the cutoff must not be counted");
+  assert.equal(row.successes, 2);
+});
+
+test("getProviderUsageSince — 2xx/3xx count as success, 4xx/5xx do not", () => {
+  seedConnection("usage-status");
+  for (const status of [200, 204, 301, 399]) {
+    insertCallLog({ provider: "usage-status", status, timestamp: IN_WINDOW });
+  }
+  for (const status of [400, 429, 500, 503]) {
+    insertCallLog({ provider: "usage-status", status, timestamp: IN_WINDOW });
+  }
+
+  const row = mod.getProviderUsageSince(USAGE_CUTOFF).find((r) => r.provider === "usage-status");
+  assert.ok(row);
+  assert.equal(row.requests, 8);
+  assert.equal(row.successes, 4, "same success rule as getProviderMetrics");
+});
+
+test("getProviderUsageSince — a provider with no live connection is excluded (#10714)", () => {
+  // No seedConnection() on purpose: rows exist in call_logs but the provider was deleted.
+  insertCallLog({ provider: "usage-ghost", status: 200, timestamp: IN_WINDOW });
+
+  const rows = mod.getProviderUsageSince(USAGE_CUTOFF);
+  assert.equal(
+    rows.find((r) => r.provider === "usage-ghost"),
+    undefined,
+    "a deleted provider must not resurface from retained logs"
+  );
+});
+
+test("getProviderUsageSince — latency and lastRequestAt are bounded by the window too", () => {
+  seedConnection("usage-latency");
+  insertCallLog({
+    provider: "usage-latency",
+    status: 200,
+    duration: 100,
+    timestamp: IN_WINDOW,
+  });
+  insertCallLog({
+    provider: "usage-latency",
+    status: 200,
+    duration: 900,
+    timestamp: OUT_OF_WINDOW,
+  });
+
+  const row = mod.getProviderUsageSince(USAGE_CUTOFF).find((r) => r.provider === "usage-latency");
+  assert.ok(row);
+  assert.equal(row.avgLatencyMs, 100, "the out-of-window 900ms row must not weigh in");
+  assert.equal(row.lastRequestAt, IN_WINDOW);
+});
+
+test("getProviderUsageSince — providers '-' and NULL are excluded", () => {
+  seedConnection("-");
+  insertCallLog({ provider: "-", status: 200, timestamp: IN_WINDOW });
+
+  const rows = mod.getProviderUsageSince(USAGE_CUTOFF);
+  assert.equal(
+    rows.find((r) => r.provider === "-"),
+    undefined
+  );
+  assert.equal(
+    rows.find((r) => r.provider === null),
+    undefined
+  );
 });

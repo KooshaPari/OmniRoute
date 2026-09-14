@@ -25,6 +25,7 @@
  */
 
 import { errorResponse } from "../../utils/error.ts";
+import type { PerTargetAdmissionHook } from "../admission/types.ts";
 import type { ComboLogger, HandleSingleModel } from "../combo/types.ts";
 
 export const CHAOS_DEFAULTS = {
@@ -53,16 +54,28 @@ export type ChaosPart = {
 };
 
 /**
- * Build the SSE comment/event wrapper for one chaos panel part.
- * We emit a custom event name `omni-chaos-part` so a protocol-aware IDE can
- * split it out; non-aware clients reading OpenAI-style SSE will simply ignore
- * the unknown event and use the final `data:` chunk below.
+ * Build the SSE wrapper for one chaos panel part.
+ *
+ * By DEFAULT only an SSE comment (`: chaos ...`) is emitted — comments are
+ * ignored by every SSE parser per spec, so OpenAI-compatible clients
+ * (openai-node, @ai-sdk/openai-compatible, …) never see a non-`choices`
+ * `data:` payload and their schema validation cannot fail with an
+ * `invalid_union` error.
+ *
+ * When `emitCustomEvent` is true (opt-in via
+ * `stream_options.include_chaos_parts`), the custom event name
+ * `omni-chaos-part` + metadata `data:` block is also emitted so a
+ * protocol-aware IDE can split panels out.
  *
  * The part's text is NOT included in the metadata event — it arrives in the
  * final `data:` chunk for the primary model. This keeps each broadcast event
  * small (metadata-only) so SSE buffering stays predictable.
  */
-export function serializeChaosPart(part: ChaosPart, isFinal: boolean): string {
+export function serializeChaosPart(
+  part: ChaosPart,
+  isFinal: boolean,
+  emitCustomEvent = false
+): string {
   const meta = {
     type: "omni-chaos-part",
     model: part.model,
@@ -71,11 +84,11 @@ export function serializeChaosPart(part: ChaosPart, isFinal: boolean): string {
     final: isFinal,
     ...(part.error ? { error: part.error } : {}),
   };
-  return (
-    `: chaos ${part.index} ${part.ok ? "ok" : "fail"} ${part.model}\n` +
-    `event: omni-chaos-part\n` +
-    `data: ${JSON.stringify(meta)}\n\n`
-  );
+  const comment = `: chaos ${part.index} ${part.ok ? "ok" : "fail"} ${part.model}\n`;
+  if (!emitCustomEvent) {
+    return comment + "\n";
+  }
+  return comment + `event: omni-chaos-part\n` + `data: ${JSON.stringify(meta)}\n\n`;
 }
 
 /**
@@ -167,7 +180,22 @@ function dispatchOnePanelModel(opts: {
         log?.info?.(
           `CHAOS panel ${index} (${model}) ok=${res.ok} status=${res.status} textLen=${text.length}`
         );
-        const part: ChaosPart = { model, index, ok: true, text };
+        // G5b: honor the upstream response status — a 4xx/5xx is a panel FAILURE,
+        // not a success (previously ok:true was hardcoded, so an all-error panel
+        // never reached the all-failed branch and the error text was streamed as
+        // if it were a successful answer).
+        if (res.ok) {
+          const part: ChaosPart = { model, index, ok: true, text };
+          await onResult?.(part);
+          return part;
+        }
+        const part: ChaosPart = {
+          model,
+          index,
+          ok: false,
+          text: "",
+          error: `upstream ${res.status}: ${text.slice(0, 200) || res.statusText || "error"}`,
+        };
         await onResult?.(part);
         return part;
       } catch (err) {
@@ -330,9 +358,11 @@ function concatSseText(sse: string): string {
  * `config.chaos.enabled` flag is set (the `auto/chaos` virtual combo).
  *
  * Returns a single Response whose body is an SSE stream:
- *   - one `omni-chaos-part` event per panel model, enqueued PROGRESSIVELY as
- *     each model lands (so the client starts receiving answers immediately,
- *     without waiting for the whole panel to finish)
+ *   - one SSE comment (`: chaos N ...`) per panel model, enqueued
+ *     PROGRESSIVELY as each model lands (comments are ignored by every SSE
+ *     parser, so OpenAI-compatible clients see only the final chunk)
+ *   - when `stream_options.include_chaos_parts: true` is set, the per-panel
+ *     `omni-chaos-part` custom event is emitted instead of the bare comment
  *   - a final `data:` OpenAI-style chunk carrying the primary model's answer
  *     (so non-aware clients / IDEs still get a usable completion)
  *   - a terminating `data: [DONE]`
@@ -349,11 +379,30 @@ export async function handleChaosChat(opts: {
   comboName?: string;
   primaryModel?: string | null;
   tuning?: ChaosTuning | null;
+  /** #9654 Wave 2: per-target lane-aware admission probe (see HandleComboChatOptions). */
+  perTargetAdmission?: PerTargetAdmissionHook | null;
 }): Promise<Response> {
-  const { body, models, handleSingleModel, log, comboName, primaryModel, tuning } = opts;
+  const {
+    body,
+    models,
+    handleSingleModel,
+    log,
+    comboName,
+    primaryModel,
+    tuning,
+    perTargetAdmission,
+  } = opts;
   const panel = Array.isArray(models) ? models.filter(Boolean) : [];
   const hardTimeout = tuning?.panelHardTimeoutMs ?? CHAOS_DEFAULTS.panelHardTimeoutMs;
   const minPanel = tuning?.minPanel ?? CHAOS_DEFAULTS.minPanel;
+  // Opt-in gate: only protocol-aware clients request the custom event. OpenAI
+  // SDK validators choke on any `data:` payload without `choices`/`error`, so
+  // the default MUST be comment-only output.
+  const streamOptions = (body as Record<string, unknown> | null | undefined)?.stream_options;
+  const emitCustomEvent =
+    typeof streamOptions === "object" &&
+    streamOptions !== null &&
+    (streamOptions as Record<string, unknown>).include_chaos_parts === true;
   if (panel.length === 0) {
     return errorResponse(400, "Chaos combo has no models");
   }
@@ -384,7 +433,29 @@ export async function handleChaosChat(opts: {
 
       const abortControllers: AbortController[] = [];
 
-      const modelPromises = panel.map((model, index) => {
+      // #9654 Wave 2: per-target lane-aware admission probe — drop lane-full
+      // panel members before fan-out (strictly non-blocking; no-op when off).
+      let panelToDispatch = panel;
+      if (perTargetAdmission) {
+        const gates = await Promise.all(
+          panel.map(async (model) => ({
+            model,
+            ok: await perTargetAdmission({ modelStr: model, executionKey: model, body }),
+          }))
+        );
+        const dropped = gates.filter((g) => !g.ok);
+        if (dropped.length > 0) {
+          log?.info?.(
+            "CHAOS",
+            `Skipping ${dropped.length} panel member(s) — admission lane full: ${dropped
+              .map((g) => g.model)
+              .join(", ")}`
+          );
+        }
+        panelToDispatch = gates.filter((g) => g.ok).map((g) => g.model);
+      }
+
+      const modelPromises = panelToDispatch.map((model, index) => {
         const ctrl = new AbortController();
         abortControllers.push(ctrl);
         return dispatchOnePanelModel({
@@ -396,7 +467,7 @@ export async function handleChaosChat(opts: {
           hardTimeout,
           log,
           onResult: async (part) => {
-            await safeEnqueue(serializeChaosPart(part, false));
+            await safeEnqueue(serializeChaosPart(part, false, emitCustomEvent));
           },
         });
       });
@@ -410,8 +481,17 @@ export async function handleChaosChat(opts: {
       }
 
       if (successes.length === 0) {
-        const errText = "All chaos panel models failed";
-        await safeEnqueue(chatChunk(chunkId, panel[0], errText));
+        // G5 (silent-stop fix): make an all-panel failure visible server-side.
+        // The status stays 200 (SSE envelope must stay well-formed), but the
+        // failure is now logged with the per-model errors so operators can see
+        // why the chaos panel produced nothing.
+        const modelErrors = allParts.map((p) => `${p.model}: ${p.error ?? "unknown"}`).join(" | ");
+        log?.warn?.(
+          "CHAOS",
+          `All chaos panel models failed for ${comboName ?? "panel"}: ${modelErrors}`
+        );
+        const errText = `All chaos panel models failed — ${modelErrors}`;
+        await safeEnqueue(chatChunk(chunkId, panelToDispatch[0] ?? panel[0] ?? "", errText));
         await safeEnqueue(SSE_DONE);
         await enqueueChain;
         closed = true;
@@ -468,8 +548,10 @@ export function dispatchChaosFromCombo(args: {
   body: Body;
   handleSingleModel: HandleSingleModel;
   log: ComboLogger;
+  /** #9654 Wave 2: per-target lane-aware admission probe (see HandleComboChatOptions). */
+  perTargetAdmission?: PerTargetAdmissionHook | null;
 }): Promise<Response> | null {
-  const { cfg, comboModels, comboName, body, handleSingleModel, log } = args;
+  const { cfg, comboModels, comboName, body, handleSingleModel, log, perTargetAdmission } = args;
   if (
     !cfg.chaos ||
     typeof cfg.chaos !== "object" ||
@@ -500,5 +582,6 @@ export function dispatchChaosFromCombo(args: {
     comboName,
     primaryModel: chaosCfg.judgeModel,
     tuning: chaosCfg.tuning,
+    perTargetAdmission,
   });
 }

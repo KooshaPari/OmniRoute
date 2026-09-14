@@ -19,6 +19,7 @@ import { join } from "node:path";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
+const { waitForServer } = require("../../electron/lib/serverReadiness");
 
 function raceDelays(firstMs, secondMs) {
   return new Promise((resolve) => {
@@ -272,23 +273,12 @@ describe("Server Port Management", () => {
 
 describe("Server Readiness Logic", () => {
   it("waitForServer should timeout and return false", async () => {
-    // Simulate the polling logic with an always-failing fetch
-    async function waitForServer(url, timeoutMs = 100) {
-      const start = Date.now();
-      while (Date.now() - start < timeoutMs) {
-        try {
-          const res = await fetch(url);
-          if (res.ok || res.status < 500) return true;
-        } catch {
-          /* not ready */
-        }
-        await new Promise((r) => setTimeout(r, 30));
-      }
-      return false;
-    }
-
-    // Should timeout immediately since nothing is running on that port
-    const result = await waitForServer("http://localhost:59999", 100);
+    const result = await waitForServer("http://localhost:59999/api/health/ping", 20, {
+      fetchFn: async () => ({ ok: false }),
+      pollIntervalMs: 1,
+      requestTimeoutMs: 5,
+      warnFn: () => {},
+    });
     assert.equal(result, false);
   });
 
@@ -302,18 +292,20 @@ describe("Server Readiness Logic", () => {
       serverUp = true;
     }, 60);
 
-    async function waitForServer(_url, timeoutMs) {
-      const start = Date.now();
-      while (Date.now() - start < timeoutMs) {
-        if (serverUp) return true;
-        await new Promise((r) => setTimeout(r, 15));
-      }
-      return false;
-    }
+    const readinessOptions = {
+      fetchFn: async () => ({ ok: serverUp }),
+      pollIntervalMs: 5,
+      requestTimeoutMs: 5,
+      warnFn: () => {},
+    };
 
     try {
       // Initial probe with a short budget times out (server not up yet).
-      const initialReady = await waitForServer("http://localhost/api/monitoring/health", 20);
+      const initialReady = await waitForServer(
+        "http://localhost/api/health/ping",
+        20,
+        readinessOptions
+      );
       assert.equal(initialReady, false);
 
       let reloaded = false;
@@ -325,7 +317,11 @@ describe("Server Readiness Logic", () => {
       };
 
       // Background retry with a generous budget should succeed and reload the window.
-      const retryReady = await waitForServer("http://localhost/api/monitoring/health", 5000);
+      const retryReady = await waitForServer(
+        "http://localhost/api/health/ping",
+        5000,
+        readinessOptions
+      );
       if (retryReady && mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.loadURL("http://localhost");
       }
@@ -496,7 +492,7 @@ describe("Electron SQLite credential inspection", () => {
       fn(dbPath, db);
     } finally {
       db.close();
-      rmSync(dir, { recursive: true, force: true });
+      rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
   }
 

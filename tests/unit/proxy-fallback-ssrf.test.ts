@@ -13,7 +13,7 @@ const { isRetryableProxyTarget } = await import("../../src/lib/providers/validat
 const { isPrivateHost } = await import("../../src/shared/network/outboundUrlGuard.ts");
 
 test.after(() => {
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 /**
@@ -62,7 +62,11 @@ test("isRetryableProxyTarget rejects every private / link-local / metadata host"
 
 test("isRetryableProxyTarget allows public provider targets", () => {
   for (const url of PUBLIC_TARGETS) {
-    assert.equal(isRetryableProxyTarget(url), true, `${url} should be a valid proxy-fallback target`);
+    assert.equal(
+      isRetryableProxyTarget(url),
+      true,
+      `${url} should be a valid proxy-fallback target`
+    );
   }
 });
 

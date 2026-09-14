@@ -19,7 +19,7 @@ const schemas = await import("../../src/shared/validation/schemas/reasoningRouti
 async function resetStorage() {
   apiKeysDb.resetApiKeyState();
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   rulesDb.invalidateReasoningRoutingRuleCache();
 }
@@ -55,7 +55,7 @@ test.beforeEach(resetStorage);
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("reasoning intent distinguishes missing, discrete effort, toggle, and budget-only signals", () => {

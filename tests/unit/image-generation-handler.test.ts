@@ -752,7 +752,8 @@ test("handleImageGeneration sends Antigravity image requests with native image_g
         model: "antigravity/gemini-3.1-flash-image-preview",
         prompt: "painted beach",
         size: "1024x1024",
-        aspect_ratio: "not-a-ratio",
+        aspect_ratio: "3:4",
+        image_size: "2K",
       },
       credentials: { accessToken: "ag-token", projectId: "project-123" },
       log: null,
@@ -777,7 +778,7 @@ test("handleImageGeneration sends Antigravity image requests with native image_g
       contents: [{ role: "user", parts: [{ text: "painted beach" }] }],
       generationConfig: {
         candidateCount: 1,
-        imageConfig: { aspectRatio: "1:1" },
+        imageConfig: { aspectRatio: "3:4", imageSize: "2K" },
       },
     });
     assert.deepEqual(result.data.data, [
@@ -1842,7 +1843,7 @@ test("handleImageGeneration routes codex image requests through /responses with 
   }
 });
 
-test("handleImageGeneration (codex) returns a data URL when response_format is not b64_json", async () => {
+test("handleImageGeneration (codex) defaults to b64_json when response_format is unset (#12268)", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => {
     const sse = buildCodexSSE([
@@ -1854,6 +1855,29 @@ test("handleImageGeneration (codex) returns a data URL when response_format is n
   try {
     const result = await handleImageGeneration({
       body: { model: "cx/gpt-5.6-sol", prompt: "kitten" },
+      credentials: { accessToken: "codex-token" },
+      log: null,
+    });
+    assert.equal(result.success, true);
+    assert.equal(result.data.data[0].b64_json, "YWJjZA==");
+    assert.equal(result.data.data[0].url, undefined);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleImageGeneration (codex) returns a data URL only when response_format is url", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    const sse = buildCodexSSE([
+      { type: "image_generation_call", id: "ig_3", status: "completed", result: "YWJjZA==" },
+    ]);
+    return new Response(sse, { status: 200 });
+  };
+
+  try {
+    const result = await handleImageGeneration({
+      body: { model: "cx/gpt-5.6-sol", prompt: "kitten", response_format: "url" },
       credentials: { accessToken: "codex-token" },
       log: null,
     });
@@ -2022,6 +2046,86 @@ test("handleImageGeneration (codex) forwards size and maps GPT-Image quality to 
       log: null,
     });
     assert.deepEqual(captured.tools, [{ type: "image_generation", output_format: "png" }]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleImageGeneration (codex) skips imported free-plan accounts and marks them retryable", async () => {
+  const originalFetch = globalThis.fetch;
+  let fetchCalls = 0;
+  globalThis.fetch = async () => {
+    fetchCalls += 1;
+    throw new Error("free-plan image request should not reach upstream");
+  };
+
+  try {
+    const result = await handleImageGeneration({
+      body: { model: "codex/gpt-5.6-terra", prompt: "kitten" },
+      credentials: {
+        accessToken: "codex-token",
+        providerSpecificData: { chatgptPlanType: "free" },
+      },
+      log: null,
+    });
+    assert.equal(result.success, false);
+    assert.equal(result.status, 403);
+    assert.equal(result.retryable, true);
+    assert.equal(fetchCalls, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+// #8307 — some ChatGPT accounts can run Codex but lack entitlement for the specific
+// requested image model, and the upstream 400 for that exact case is retryable on a
+// sibling account: executeImageWithCredentialFallback (route.ts) already retries on
+// this signal when the handler marks the failure `retryable: true` — mirroring the
+// existing 401 auto-rotate path, no new retry loop needed in the handler itself.
+test("handleImageGeneration (codex) marks the ChatGPT-account model-access 400 as retryable", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        error: {
+          message:
+            "The 'gpt-5.6-sol' model is not supported when using Codex with a ChatGPT account.",
+        },
+      }),
+      { status: 400, headers: { "content-type": "application/json" } }
+    );
+
+  try {
+    const result = await handleImageGeneration({
+      body: { model: "codex/gpt-5.6-sol", prompt: "kitten" },
+      credentials: { accessToken: "codex-token" },
+      log: null,
+    });
+    assert.equal(result.success, false);
+    assert.equal(result.status, 400);
+    assert.equal(result.retryable, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleImageGeneration (codex) does not mark an ordinary 400 as retryable", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ error: { message: "Invalid prompt" } }), {
+      status: 400,
+      headers: { "content-type": "application/json" },
+    });
+
+  try {
+    const result = await handleImageGeneration({
+      body: { model: "codex/gpt-5.6-sol", prompt: "kitten" },
+      credentials: { accessToken: "codex-token" },
+      log: null,
+    });
+    assert.equal(result.success, false);
+    assert.equal(result.status, 400);
+    assert.equal(result.retryable, undefined);
   } finally {
     globalThis.fetch = originalFetch;
   }

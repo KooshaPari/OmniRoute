@@ -81,3 +81,15 @@ test("bun:sqlite adapter backs up on-disk databases without serializing them", a
   assert.deepEqual(execCalls, ["PRAGMA wal_checkpoint(TRUNCATE)"]);
   assert.equal(fs.readFileSync(destinationPath, "utf8"), sourceContents);
 });
+
+test("loadSqliteRuntime prioritizes bun:sqlite under Bun without loading better-sqlite3", async (t) => {
+  if (!process.versions.bun) {
+    t.skip("bun:sqlite is only available under Bun");
+    return;
+  }
+
+  const { loadSqliteRuntime } = await import("../../../bin/cli/runtime/sqliteRuntime.mjs");
+  const runtime = await loadSqliteRuntime();
+  assert.equal(runtime.driver.kind, "bun-sqlite");
+  assert.equal(runtime.source, "bun-sqlite");
+});

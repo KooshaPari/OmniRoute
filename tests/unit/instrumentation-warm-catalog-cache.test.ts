@@ -47,7 +47,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error) {
@@ -64,16 +64,21 @@ async function resetStorage() {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 const REAL_FETCH = globalThis.fetch;
 let fetchCallCount = 0;
 
+function isOpenRouterCatalogUrl(input: RequestInfo | URL): boolean {
+  const url = String(input instanceof Request ? input.url : input);
+  return url.includes("openrouter.ai");
+}
+
 function installFakeOpenRouterFetch(): void {
   fetchCallCount = 0;
-  globalThis.fetch = (async () => {
-    fetchCallCount++;
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    if (isOpenRouterCatalogUrl(input)) fetchCallCount++;
     return new Response(JSON.stringify({ data: [{ id: "test/fake-model", architecture: {} }] }), {
       status: 200,
       headers: { "content-type": "application/json" },
@@ -83,8 +88,8 @@ function installFakeOpenRouterFetch(): void {
 
 function installFailingOpenRouterFetch(): void {
   fetchCallCount = 0;
-  globalThis.fetch = (async () => {
-    fetchCallCount++;
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    if (isOpenRouterCatalogUrl(input)) fetchCallCount++;
     throw new Error("simulated OpenRouter network failure");
   }) as typeof fetch;
 }

@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import * as os from "node:os";
 
-// Antigravity and Windsurf public defaults come from
+// OAuth provider public defaults come from
 // open-sse/utils/publicCreds.ts — no env override needed in this suite.
 const originalEnv = { ...process.env };
 Object.assign(process.env, {
@@ -28,11 +28,13 @@ const {
   CLINE_CONFIG,
   CODEX_CONFIG,
   CODEBUDDY_CN_CONFIG,
+  DEVIN_DESKTOP_CONFIG,
   ZED_CONFIG,
   CURSOR_CONFIG,
+  GHE_COPILOT_CONFIG,
   GITHUB_CONFIG,
   GITLAB_DUO_CONFIG,
-  GROK_CLI_CONFIG,
+  GROK_BUILD_OAUTH_CONFIG,
   KILOCODE_CONFIG,
   KIMI_CODING_CONFIG,
   KIRO_CONFIG,
@@ -40,7 +42,8 @@ const {
   PROVIDERS: OAUTH_PROVIDER_IDS,
   QODER_CONFIG,
   TRAE_CONFIG,
-  WINDSURF_CONFIG,
+  XAI_OAUTH_CONFIG,
+  OPENFERENCE_CONFIG,
   ZED_HOSTED_CONFIG,
 } = oauthModule;
 const { getAntigravityLoadCodeAssistMetadata } = antigravityHeadersModule;
@@ -64,11 +67,14 @@ const EXPECTED_PROVIDER_KEYS = [
   "kilocode",
   "cline",
   "clinepass",
-  "windsurf",
+  "devin-desktop",
   "devin-cli",
   "grok-cli",
+  "xai-oauth",
+  "openference",
   "codebuddy-cn",
   "zed",
+  "zed-hosted",
 ];
 
 const browserUrl = "http://localhost:20128/callback";
@@ -94,12 +100,15 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   kilocode: KILOCODE_CONFIG,
   cline: CLINE_CONFIG,
   clinepass: CLINE_CONFIG, // reuses the Cline WorkOS flow (clinepass: cline in providers/index.ts)
-  windsurf: WINDSURF_CONFIG,
-  "devin-cli": WINDSURF_CONFIG,
+  "devin-desktop": DEVIN_DESKTOP_CONFIG,
+  "devin-cli": DEVIN_DESKTOP_CONFIG,
   trae: TRAE_CONFIG,
-  "grok-cli": GROK_CLI_CONFIG,
+  "grok-cli": GROK_BUILD_OAUTH_CONFIG,
+  "xai-oauth": XAI_OAUTH_CONFIG,
+  openference: OPENFERENCE_CONFIG,
   "codebuddy-cn": CODEBUDDY_CN_CONFIG,
   zed: ZED_CONFIG,
+  "zed-hosted": ZED_HOSTED_CONFIG,
 };
 
 const KIRO_REQUIRED_FIELDS = [
@@ -112,7 +121,6 @@ const KIRO_REQUIRED_FIELDS = [
   "socialRefreshUrl",
   "authMethods",
 ];
-
 const REQUIRED_FIELDS_BY_PROVIDER = {
   claude: ["authorizeUrl", "tokenUrl", "redirectUri", "scopes", "clientId"],
   codex: ["authorizeUrl", "tokenUrl", "scope", "clientId"],
@@ -139,9 +147,16 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   kilocode: ["apiBaseUrl", "initiateUrl", "pollUrlBase"],
   cline: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
   clinepass: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
-  windsurf: ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
-  "devin-cli": ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
+  "devin-desktop": ["apiServerUrl", "inferenceUrl", "ideName", "defaultVersion"],
+  "devin-cli": ["apiServerUrl", "inferenceUrl", "ideName", "defaultVersion"],
   trae: ["apiEndpoint", "chatEndpoint", "webUrl"],
+  // prettier-ignore
+  "xai-oauth": ["authorizeUrl", "tokenUrl", "scope", "codeChallengeMethod", "clientId", "loopbackPort", "callbackPath", "callbackHost"],
+  // prettier-ignore
+  openference: ["authorizeUrl", "tokenUrl", "userinfoUrl", "scope", "codeChallengeMethod", "clientId", "loopbackPort", "callbackPath", "callbackHost"],
+  // prettier-ignore
+  "grok-cli": ["authorizeUrl", "tokenUrl", "scope", "codeChallengeMethod", "clientId", "loopbackPort", "callbackPath", "callbackHost"],
+  // prettier-ignore
   "zed-hosted": ["webBaseUrl", "cloudBaseUrl", "llmBaseUrl", "userInfoUrl", "llmTokenUrl", "modelsUrl"],
 };
 
@@ -325,10 +340,6 @@ test("browser-based providers expose buildAuthUrl and return provider-specific a
   assert.equal(clineUrl.origin, "https://api.cline.bot");
 });
 
-// zed-hosted's buildAuthUrl deliberately returns an object (authUrl + codeVerifier +
-// redirectUri) instead of a bare string — generateAuthData() in providers.ts special-
-// cases this shape to thread an RSA private-key verifier through the existing PKCE
-// codeVerifier slot (see src/lib/oauth/providers/zed-hosted.ts header comment).
 test("zed-hosted buildAuthUrl returns {authUrl, codeVerifier, redirectUri} carrying a fresh RSA keypair", () => {
   const built = PROVIDERS["zed-hosted"].buildAuthUrl(ZED_HOSTED_CONFIG);
   assert.equal(typeof built, "object");
@@ -341,14 +352,15 @@ test("zed-hosted buildAuthUrl returns {authUrl, codeVerifier, redirectUri} carry
 
 test("generateAuthData honors an object-returning buildAuthUrl (zed-hosted) without breaking string-returning providers", async () => {
   const oauthHelpers = await import("../../src/lib/oauth/providers.ts");
-  const zedAuthData = oauthHelpers.generateAuthData("zed-hosted", "http://localhost:20128/callback");
+  const zedAuthData = oauthHelpers.generateAuthData(
+    "zed-hosted",
+    "http://localhost:20128/callback"
+  );
   assert.equal(zedAuthData.flowType, "authorization_code");
   assert.ok(zedAuthData.authUrl.startsWith("https://zed.dev/native_app_signin?"));
   assert.ok(zedAuthData.codeVerifier.startsWith("zed-rsa-pkcs1:"));
   assert.ok(zedAuthData.redirectUri.startsWith("http://127.0.0.1:"));
 
-  // A string-returning provider (cline) must still get the plain PKCE codeVerifier,
-  // not be affected by the object-return branch added for zed-hosted.
   const clineAuthData = oauthHelpers.generateAuthData("cline", "http://localhost:20128/callback");
   assert.equal(typeof clineAuthData.authUrl, "string");
   assert.equal(clineAuthData.redirectUri, "http://localhost:20128/callback");
@@ -356,10 +368,6 @@ test("generateAuthData honors an object-returning buildAuthUrl (zed-hosted) with
   assert.ok(!clineAuthData.codeVerifier.startsWith("zed-rsa-pkcs1:"));
 });
 
-// Regression for #3861: GitLab Duo needs an operator-registered OAuth client_id.
-// When it's missing, buildAuthUrl must return null (like Qoder) so the authorize route
-// can surface a clear "configure it" message — it previously THREW, which the route
-// swallowed into an opaque "Internal server error" 500 at the Add Connection step.
 test("gitlab-duo buildAuthUrl returns null (not throw) when client_id is unconfigured (#3861)", () => {
   const unconfigured = PROVIDERS["gitlab-duo"].buildAuthUrl(
     { ...GITLAB_DUO_CONFIG, clientId: "" },
@@ -378,15 +386,7 @@ test("gitlab-duo buildAuthUrl returns null (not throw) when client_id is unconfi
 });
 
 test("custom Google OAuth credentials switch Antigravity remote callbacks to NEXT_PUBLIC_BASE_URL", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri(
-    "antigravity",
-    "http://localhost:20128/callback",
-    {
-      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com/",
-      ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
-      ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
-    }
-  );
+  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", browserUrl, publicBaseEnv);
 
   assert.equal(redirectUri, "https://omniroute.example.com/callback");
 });
@@ -402,21 +402,21 @@ test("custom Google OAuth callbacks preserve the requested callback path and que
 });
 
 test("custom Google OAuth credentials switch IPv6 loopback callbacks to public base URL", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://[::1]:20128/callback", {
-    NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
-    ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
-    ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
-  });
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://[::1]:20128/callback",
+    publicBaseEnv
+  );
 
   assert.equal(redirectUri, "https://omniroute.example.com/callback");
 });
 
 test("custom Google OAuth callbacks default root loopback paths to callback path", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://127.0.0.1:20128", {
-    NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
-    ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
-    ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
-  });
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://127.0.0.1:20128",
+    publicBaseEnv
+  );
 
   assert.equal(redirectUri, "https://omniroute.example.com/callback");
 });
@@ -461,6 +461,13 @@ test("device and import-token providers expose the flow-specific fields expected
   assert.equal(CURSOR_CONFIG.dbKeys.machineId, "storage.serviceMachineId");
   assert.equal(PROVIDERS.trae.flowType, "import_token");
   assert.equal(typeof TRAE_CONFIG.apiEndpoint, "string");
+  assert.equal(PROVIDERS["devin-desktop"].flowType, "import_token");
+  assert.equal(PROVIDERS["devin-cli"].flowType, "import_token");
+  assert.equal(DEVIN_DESKTOP_CONFIG.apiServerUrl, "https://server.codeium.com");
+  assert.equal(DEVIN_DESKTOP_CONFIG.inferenceUrl, "https://inference.codeium.com");
+  assert.notEqual(DEVIN_DESKTOP_CONFIG.apiServerUrl, DEVIN_DESKTOP_CONFIG.inferenceUrl);
+  assert.equal("firebaseApiKey" in DEVIN_DESKTOP_CONFIG, false);
+  assert.equal("firebaseTokenUrl" in DEVIN_DESKTOP_CONFIG, false);
   assert.ok(Array.isArray(KIRO_CONFIG.authMethods));
   assert.ok(KIRO_CONFIG.authMethods.includes("builder-id"));
 });
@@ -609,6 +616,7 @@ test("Antigravity runs mocked browser OAuth exchanges and post-exchange enrichme
   // no longer updates the returned projectId synchronously — matching the 9router web
   // flow, which also returns the loadCodeAssist project id.
   assert.equal(antigravityMapped.projectId, "anti-project");
+  assert.equal(antigravityMapped.providerSpecificData.clientProfile, "ide");
 });
 
 test("Qoder enabled mode exchanges tokens and loads profile metadata through mocked endpoints", async () => {

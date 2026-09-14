@@ -1,25 +1,8 @@
 import bcrypt from "bcryptjs";
-import argon2 from "@node-rs/argon2";
 import { getSettings, updateSettings } from "@/lib/db/settings";
 
-// OWASP Argon2id parameters (RFC 9106 high-memory profile).
-const ARGON2_PARAMS = {
-  algorithm: argon2.Algorithm.Argon2id,
-  memoryCost: 19456, // 19 MiB — above OWASP minimum, friendlier on small VPS hosts.
-  timeCost: 2,
-  parallelism: 1,
-} as const;
-
-// Matches any bcrypt variant: $2a$, $2b$, $2y$, $2x$. The trailing base64 salt+hash is intentionally
-// not length-pinned here — `bcrypt.compare()` validates the full structure at verify time, and we
-// only need a prefix match to route the verify path.
-const BCRYPT_HASH_PATTERN = /^\$2[abxy]\$\d{2}\$/;
-
-// Matches any argon2 hash (id, i, or d variant).
-const ARGON2_HASH_PATTERN = /^\$argon2(id|i|d)\$v=\d+\$/;
-
-// Matches argon2id + argon2i (modern recommendations). Excludes argon2d (legacy data-independent).
-const ARGON2ID_HASH_PATTERN = /^\$argon2(id|i)\$v=\d+\$/;
+const BCRYPT_HASH_PATTERN = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
+const MANAGEMENT_PASSWORD_SALT_ROUNDS = 12;
 
 // Well-known placeholder shipped in `.env.example` (INITIAL_PASSWORD=CHANGEME). Bootstrapping
 // with it leaves the dashboard open to anyone, so we warn loudly on boot (Seg2 hardening).
@@ -58,62 +41,17 @@ export function hasManagementPasswordConfigured(settings: JsonRecord | null | un
   );
 }
 
-export function isArgon2Hash(value: unknown): value is string {
-  return typeof value === "string" && ARGON2_HASH_PATTERN.test(value);
-}
-
 export function isBcryptHash(value: unknown): value is string {
   return typeof value === "string" && BCRYPT_HASH_PATTERN.test(value);
 }
 
-export function isArgon2idHash(value: unknown): value is string {
-  return typeof value === "string" && ARGON2ID_HASH_PATTERN.test(value);
+export async function hashManagementPassword(password: string) {
+  return bcrypt.hash(password, MANAGEMENT_PASSWORD_SALT_ROUNDS);
 }
 
-function validatePassword(password: unknown): asserts password is string {
-  if (typeof password !== "string" || password.length === 0) {
-    throw new TypeError("hashManagementPassword requires a non-empty string");
-  }
-}
-
-export async function hashManagementPassword(password: string): Promise<string> {
-  validatePassword(password);
-  return argon2.hash(password, ARGON2_PARAMS);
-}
-
-export async function verifyManagementPassword(
-  password: string,
-  storedHash: string,
-  upgrader: (nextHash: string) => Promise<void> = async (nextHash) => {
-    await updateSettings({ managementPasswordHash: nextHash });
-  }
-): Promise<boolean> {
-  if (!storedHash) return false;
-  if (isArgon2idHash(storedHash)) {
-    try {
-      return await argon2.verify(storedHash, password);
-    } catch {
-      return false;
-    }
-  }
-  if (isBcryptHash(storedHash)) {
-    let ok = false;
-    try {
-      ok = await bcrypt.compare(password, storedHash);
-    } catch {
-      return false;
-    }
-    if (!ok) return false;
-    // Transparent upgrade: re-hash with argon2 on next successful login.
-    const upgraded = await argon2.hash(password, ARGON2_PARAMS);
-    try {
-      await upgrader(upgraded);
-    } catch {
-      // Upgrade write failed; auth still succeeded — caller decides whether to surface.
-    }
-    return true;
-  }
-  return false;
+export async function verifyManagementPassword(password: string, hash: string) {
+  if (!isBcryptHash(hash)) return false;
+  return bcrypt.compare(password, hash);
 }
 
 export async function ensurePersistentManagementPasswordHash(
@@ -122,7 +60,7 @@ export async function ensurePersistentManagementPasswordHash(
   const settings = options.settings ?? ((await getSettings()) as JsonRecord);
   const storedPassword = getStoredManagementPassword(settings);
 
-  if (isArgon2idHash(storedPassword) || isBcryptHash(storedPassword)) {
+  if (isBcryptHash(storedPassword)) {
     return {
       hash: storedPassword,
       migrated: false,
@@ -167,7 +105,7 @@ export async function ensurePersistentManagementPasswordHash(
   if (options.logger) {
     const context = options.source ? ` during ${options.source}` : "";
     const migrationSource = storedPassword ? "stored plaintext password" : "INITIAL_PASSWORD";
-    options.logger.log(`[AUTH] Migrated ${migrationSource} to argon2id hash${context}`);
+    options.logger.log(`[AUTH] Migrated ${migrationSource} to bcrypt hash${context}`);
   }
 
   return {

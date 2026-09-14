@@ -16,7 +16,7 @@ const CHAT_URL = `${BASE_URL}/chat/completion`;
 const DEFAULT_MODEL = "dola-speed";
 const DOLA_BOT_ID = "7339470689562525703";
 const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -519,11 +519,8 @@ export class DoubaoWebExecutor extends BaseExecutor {
                 );
               }
               if (event.event === "SSE_REPLY_END") {
-                // Defer [DONE] to the finally block so deferred reasoning text
-                // (buffered by createDolaTextExtractionState) is flushed first.
-                // Sending [DONE] before content causes OpenAI clients to discard
-                // the trailing reasoning deltas.
                 sentDone = true;
+                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
               }
             }
           }

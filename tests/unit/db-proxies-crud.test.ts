@@ -17,7 +17,7 @@ async function resetStorage() {
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       if (fs.existsSync(TEST_DATA_DIR)) {
-        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+        fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       }
       break;
     } catch (error: any) {
@@ -38,7 +38,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("proxy CRUD redacts secrets by default and preserves stored credentials when omitted", async () => {
@@ -223,6 +223,7 @@ test("proxy health stats aggregate proxy_logs and force delete removes assignmen
     type: "http",
     host: "stats.local",
     port: 8080,
+    status: "active",
     totalRequests: 3,
     successCount: 1,
     errorCount: 1,

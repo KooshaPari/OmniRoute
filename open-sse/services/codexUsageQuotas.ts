@@ -4,6 +4,7 @@ import {
   CODEX_SPARK_QUOTA_WEEKLY,
   isCodexSparkLimitDescriptor,
 } from "../config/codexQuotaScopes.ts";
+import { inferWindowFamilyLabel } from "./quotaWindowLabel.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -13,6 +14,7 @@ export type CodexUsageQuota = {
   remaining?: number;
   resetAt: string | null;
   unlimited: boolean;
+  windowSeconds: number | null;
   displayName?: string;
 };
 
@@ -36,6 +38,15 @@ function toNumber(value: unknown, fallback = 0): number {
     return Number.isFinite(parsed) ? parsed : fallback;
   }
   return fallback;
+}
+
+function toNullableNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
 }
 
 function parseResetTime(resetValue: unknown): string | null {
@@ -81,6 +92,15 @@ function buildPercentageQuota(window: JsonRecord, displayName?: string): CodexUs
     remaining: 100 - usedPercent,
     resetAt: parseWindowReset(window),
     unlimited: false,
+    windowSeconds: toNullableNumber(
+      getFieldValue(
+        window,
+        "limit_window_seconds",
+        "limitWindowSeconds",
+        "window_seconds",
+        "windowSeconds"
+      )
+    ),
     ...(displayName ? { displayName } : {}),
   };
 }
@@ -91,6 +111,7 @@ function buildPercentageQuota(window: JsonRecord, displayName?: string): CodexUs
 // duration instead of assuming primary=session / secondary=weekly by position.
 const WEEKLY_MIN_WINDOW_SECONDS = 6 * 24 * 3600; // >= ~6d
 const SESSION_MAX_WINDOW_SECONDS = 6 * 3600; // <= ~6h
+const MONTHLY_MIN_WINDOW_SECONDS = 20 * 24 * 3600; // >= ~20d (ChatGPT 30d plans)
 
 /**
  * A never-started window: `used_percent === 0` and the reset still spans the
@@ -105,10 +126,7 @@ function isLatentWindow(window: JsonRecord): boolean {
     getFieldValue(window, "limit_window_seconds", "limitWindowSeconds"),
     0
   );
-  const resetAfter = toNumber(
-    getFieldValue(window, "reset_after_seconds", "resetAfterSeconds"),
-    0
-  );
+  const resetAfter = toNumber(getFieldValue(window, "reset_after_seconds", "resetAfterSeconds"), 0);
   return usedPercent === 0 && limitWindow > 0 && resetAfter >= limitWindow;
 }
 
@@ -117,12 +135,15 @@ function isLatentWindow(window: JsonRecord): boolean {
  * e.g. a 7-day `primary_window` is labeled "Weekly" rather than "Session".
  * Returns undefined for durations that don't clearly map to either bucket.
  */
-function windowDurationLabel(window: JsonRecord): "Session" | "Weekly" | undefined {
+function windowDurationLabel(window: JsonRecord): "Session" | "Weekly" | "Monthly" | undefined {
   const limitWindow = toNumber(
     getFieldValue(window, "limit_window_seconds", "limitWindowSeconds"),
     0
   );
   if (limitWindow <= 0) return undefined;
+  const inferred = inferWindowFamilyLabel(limitWindow);
+  if (inferred === "Monthly" || inferred === "Weekly" || inferred === "Session") return inferred;
+  if (limitWindow >= MONTHLY_MIN_WINDOW_SECONDS) return "Monthly";
   if (limitWindow >= WEEKLY_MIN_WINDOW_SECONDS) return "Weekly";
   if (limitWindow <= SESSION_MAX_WINDOW_SECONDS) return "Session";
   return undefined;
@@ -225,7 +246,9 @@ function findCodexReviewRateLimit(data: JsonRecord): JsonRecord {
  * (issue #5199).
  */
 function parseBankedResetCredits(data: JsonRecord): number | undefined {
-  const resetCredits = toRecord(getFieldValue(data, "rate_limit_reset_credits", "rateLimitResetCredits"));
+  const resetCredits = toRecord(
+    getFieldValue(data, "rate_limit_reset_credits", "rateLimitResetCredits")
+  );
   const availableCount = getFieldValue(resetCredits, "available_count", "availableCount");
   const count = toNumber(availableCount, NaN);
   return Number.isFinite(count) ? count : undefined;
@@ -262,7 +285,7 @@ export function buildCodexUsageQuotas(dataValue: unknown): {
     const primaryLabel = windowDurationLabel(primaryWindow);
     quotas.session = buildPercentageQuota(
       primaryWindow,
-      primaryLabel === "Weekly" ? primaryLabel : undefined
+      primaryLabel === "Weekly" || primaryLabel === "Monthly" ? primaryLabel : undefined
     );
   }
 

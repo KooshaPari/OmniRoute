@@ -57,12 +57,16 @@ for N in "${PRS[@]}"; do
 done
 
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+# The train worktree is detached, so the changelog gate cannot infer which release
+# branch seeded it. Shell-quote the requested base before it enters the eval-backed
+# gate list, then bind that exact ref only for the changelog check.
+printf -v CHANGELOG_BASE_REF_Q '%q' "origin/${BASE}"
 STATIC_GATES=(
   "npm run typecheck:core"
   "node scripts/check/check-file-size.mjs"
   "node scripts/check/check-complexity.mjs"
   "node scripts/check/check-cognitive-complexity.mjs"
-  "node scripts/check/check-changelog-integrity.mjs"
+  "env CHANGELOG_BASE_REF=${CHANGELOG_BASE_REF_Q} node scripts/check/check-changelog-integrity.mjs"
 )
 # Full mode: the box-speed runner (same coverage as the two CI shards combined —
 # main + dashboard + serial groups — at local concurrency instead of runner-sized).
@@ -167,7 +171,7 @@ if [ "$FAST" = "1" ]; then
     | grep -E '\.test\.(ts|mjs)$' || true)
   # Subdirs test:unit actually runs (package.json allowlist) — anything else under
   # tests/unit/<sub>/ belongs to another runner (e.g. autoCombo -> vitest).
-  UNIT_SUBDIRS=",api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage,"
+  UNIT_SUBDIRS=",api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage,"
   MAIN=()
   DASH=()
   SERIAL=()

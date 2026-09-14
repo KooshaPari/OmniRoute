@@ -4,11 +4,8 @@ import {
   getScopeProxyPool,
   getScopeRotationStrategy,
   setScopeRotationStrategy,
-} from "@/lib/localDb";
-import {
-  proxyPoolMemberSchema,
-  proxyRotationStrategySchema,
-} from "@/shared/validation/schemas";
+} from "@/lib/db/proxies";
+import { proxyPoolMemberSchema, proxyRotationStrategySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";

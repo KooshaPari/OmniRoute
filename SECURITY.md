@@ -42,13 +42,13 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | **Dashboard Login**   | Password-based auth with JWT tokens (HttpOnly cookies)                                                                                    |
 | **API Key Auth**      | HMAC-signed keys with CRC validation                                                                                                      |
-| **OAuth 2.0 + PKCE**  | 13 providers (Claude, Codex, GitHub, Cursor, Antigravity, Gemini, Kimi Coding, Kilo Code, Cline, Kiro, Qoder, Windsurf, GitLab Duo)       |
+| **OAuth 2.0 + PKCE**  | Provider-specific browser/device OAuth uses PKCE where supported; import-only Devin credentials are handled separately.                    |
 | **Token Refresh**     | Automatic OAuth token refresh before expiry                                                                                               |
 | **Secure Cookies**    | `AUTH_COOKIE_SECURE=true` for HTTPS environments                                                                                          |
 | **Authz Pipeline**    | Route classification (PUBLIC / CLIENT_API / MANAGEMENT) — see `docs/architecture/AUTHZ_GUIDE.md`                                          |
 | **Route Guard Tiers** | 3-tier model for management routes (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — see `docs/security/ROUTE_GUARD_TIERS.md`                |
 | **Manage-Scope MCP**  | Remote `/api/mcp/*` access gated by API keys with `manage` scope; `/api/cli-tools/runtime/*` stays strict-loopback. See ROUTE_GUARD_TIERS |
-| **MCP Scopes**        | ~13 granular scopes (read:health, write:combos, execute:completions, etc.) — see `docs/frameworks/MCP-SERVER.md`                          |
+| **MCP Scopes**        | 32 granular scopes (read:health, write:combos, execute:completions, etc.) — see `docs/frameworks/MCP-SERVER.md`                           |
 
 ### 🛡️ Encryption at Rest
 
@@ -223,6 +223,14 @@ build, which means every route handler — including documented privileged
 features (MITM, Zed import, Cloud Sync, embedded service supervisor) — ends
 up in `.next/server/*.js` minified chunks. Heuristic supply-chain scanners
 frequently pattern-match those chunks against malware signatures.
+
+The scanner configuration we use lives at [`socket.yml`](socket.yml) in the
+repo root (Socket.dev GitHub App format v2 — see
+<https://docs.socket.dev/docs/socket-yml>). It explicitly excludes
+non-shipped directories (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, etc.) so the scanner only reports on code paths that
+actually reach published users — the scan itself is driven by the Socket
+GitHub App reading that file, not by a workflow in this repository.
 
 For each finding category we maintain a per-finding maintainer attestation:
 

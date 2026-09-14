@@ -24,11 +24,18 @@ export async function checkSemanticCache({
   log,
   persistAttemptLogs,
   apiKeyId,
+  cacheDefaultMode,
 }: {
   semanticCacheEnabled: boolean;
   // Only the fields this read path actually touches are named; everything else
   // on the request body stays `unknown` via the index signature.
-  body: Record<string, unknown> & { temperature?: number; top_p?: number };
+  body: Record<string, unknown> & {
+    temperature?: number;
+    top_p?: number;
+    tool_choice?: unknown;
+    tools?: unknown;
+    response_format?: unknown;
+  };
   clientRawRequest: { headers?: unknown } | null;
   model: string;
   provider: string;
@@ -40,14 +47,18 @@ export async function checkSemanticCache({
   log: { debug?: (...args: unknown[]) => void } | null;
   persistAttemptLogs: (args: unknown) => void;
   apiKeyId?: string | null;
+  cacheDefaultMode?: "legacy" | "bypass" | null;
 }) {
+  // Per-key bypass: skip cache lookup entirely when the API key opts out.
+  if (cacheDefaultMode === "bypass") return null;
   if (semanticCacheEnabled && isCacheableForRead(body, clientRawRequest?.headers)) {
     const signature = generateSignature(
       model,
       body.messages ?? body.input,
       body.temperature,
       body.top_p,
-      apiKeyId ?? undefined
+      apiKeyId ?? undefined,
+      { toolChoice: body.tool_choice, tools: body.tools, responseFormat: body.response_format }
     );
     const cached = getCachedResponse(signature);
     if (cached) {
@@ -75,6 +86,9 @@ export async function checkSemanticCache({
       const headers: Record<string, string> = {
         "Content-Type": cachedSse ? "text/event-stream" : "application/json",
         [OMNIROUTE_RESPONSE_HEADERS.cache]: "HIT",
+        // Marker for latency measurement tools: this response served from cache
+        // has synthetic (near-zero) latency, not real upstream latency.
+        [OMNIROUTE_RESPONSE_HEADERS.cacheLatency]: "synthetic",
       };
       // A cache HIT serves WITHOUT an upstream call, so the incremental cost billed to
       // the client is 0 (consumers that sum X-OmniRoute-Response-Cost must not charge for

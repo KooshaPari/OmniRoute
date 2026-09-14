@@ -11,9 +11,6 @@
  */
 
 import { TOKEN_EXTRACTION_CONFIGS } from "./tokenExtractionConfig";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("open-sse:auto-refresh-daemon");
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -77,21 +74,16 @@ class AutoRefreshDaemon {
     this.running = true;
 
     // Run an initial check immediately
-    this.check().catch((err) => {
-      log.error({ err, phase: "initial" }, "AutoRefreshDaemon credential check failed");
-    });
+    this.check().catch(() => {});
 
     this.timerId = setInterval(() => {
-      this.check().catch((err) => {
-        log.error({ err, phase: "periodic" }, "AutoRefreshDaemon credential check failed");
-      });
+      this.check().catch(() => {});
     }, this.checkIntervalMs);
     // Don't keep the process alive solely for this periodic daemon.
     (this.timerId as { unref?: () => void })?.unref?.();
 
-    log.info(
-      { credentials: this.credentialStore.size, intervalSec: this.checkIntervalMs / 1000 },
-      "auto-refresh-daemon: started"
+    console.log(
+      `[AutoRefreshDaemon] Started — checking ${this.credentialStore.size} credentials every ${this.checkIntervalMs / 1000}s`
     );
   }
 
@@ -105,7 +97,7 @@ class AutoRefreshDaemon {
       clearInterval(this.timerId);
       this.timerId = null;
     }
-    log.info("auto-refresh-daemon: stopped");
+    console.log("[AutoRefreshDaemon] Stopped");
   }
 
   /**
@@ -129,13 +121,17 @@ class AutoRefreshDaemon {
         const isValid = await this.validateCredential(providerId, config.homeUrl);
         if (!isValid) {
           newlyExpired.push(providerId);
-          log.warn(
-            { providerId, displayName: config.displayName },
-            "auto-refresh-daemon: credential expired"
+          console.warn(
+            `[AutoRefreshDaemon] Credential expired for "${providerId}" (${config.displayName})`
           );
         }
-      } catch {
-        // Network errors are non-fatal — retry next cycle
+      } catch (err) {
+        // Network errors are non-fatal — retry next cycle. G8: log which
+        // provider failed so credential problems are not silently masked.
+        console.warn(
+          `[AutoRefreshDaemon] Network error validating credential for "${providerId}" — retry next cycle`,
+          err instanceof Error ? err.message : err
+        );
       }
     }
 
@@ -174,8 +170,16 @@ class AutoRefreshDaemon {
       }
 
       return true;
-    } catch {
-      // Network errors (timeout, DNS failure) don't mean the credential is bad
+    } catch (err) {
+      // Network errors (timeout, DNS failure) don't mean the credential is bad.
+      // G8 (silent-stop fix): the previous bare `catch { return true; }` swallowed
+      // the error entirely — operators could never tell a credential was failing
+      // to validate due to network trouble. Log it (provider + reason) before
+      // returning the fail-open result.
+      console.warn(
+        `[AutoRefreshDaemon] Network error validating credential for "${providerId}" — treated as valid (fail-open), will retry next cycle`,
+        err instanceof Error ? err.message : err
+      );
       return true;
     } finally {
       clearTimeout(timeout);

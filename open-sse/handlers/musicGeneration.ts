@@ -32,6 +32,8 @@ import {
   parseKieResultJson,
 } from "../utils/kieTask.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import { handleFalMusicGeneration } from "./mediaGeneration/fal.ts";
+import { handleMinimaxMusicGeneration } from "./mediaGeneration/minimaxMusic.ts";
 
 function normalizeKieSunoModel(model: string): string {
   const map: Record<string, string> = {
@@ -124,6 +126,10 @@ export async function handleMusicGeneration({ body, credentials, log }) {
     }
   }
 
+  if (providerConfig.format === "fal-ai-music") {
+    return handleFalMusicGeneration({ model, provider, providerConfig, body, credentials, log });
+  }
+
   if (providerConfig.format === "comfyui") {
     return handleComfyUIMusicGeneration({
       model,
@@ -146,6 +152,17 @@ export async function handleMusicGeneration({ body, credentials, log }) {
   }
   if (providerConfig.format === "udio-music") {
     return handleUdioMusicGeneration({ model, provider, providerConfig, body, credentials, log });
+  }
+
+  if (providerConfig.format === "minimax-music") {
+    return handleMinimaxMusicGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
   }
 
   return {

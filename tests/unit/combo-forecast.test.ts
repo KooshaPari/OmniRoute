@@ -23,7 +23,7 @@ const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
@@ -85,7 +85,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   await resetStorage();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 
   if (ORIGINAL_DATA_DIR === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
@@ -131,23 +131,23 @@ test("combo forecast projects cost and quota risk from combo history", async () 
 
   quotaSnapshotsDb.saveQuotaSnapshot({
     provider: "openai",
-    connectionId: "forecast-conn-a",
-    windowKey: "daily",
-    remainingPercentage: 90,
-    isExhausted: 0,
-    nextResetAt: null,
-    windowDurationMs: 86_400_000,
-    rawData: null,
+    connection_id: "forecast-conn-a",
+    window_key: "daily",
+    remaining_percentage: 90,
+    is_exhausted: 0,
+    next_reset_at: null,
+    window_duration_ms: 86_400_000,
+    raw_data: null,
   });
   quotaSnapshotsDb.saveQuotaSnapshot({
     provider: "openai",
-    connectionId: "forecast-conn-a",
-    windowKey: "daily",
-    remainingPercentage: 20,
-    isExhausted: 0,
-    nextResetAt: null,
-    windowDurationMs: 86_400_000,
-    rawData: null,
+    connection_id: "forecast-conn-a",
+    window_key: "daily",
+    remaining_percentage: 20,
+    is_exhausted: 0,
+    next_reset_at: null,
+    window_duration_ms: 86_400_000,
+    raw_data: null,
   });
 
   const forecast = await comboForecast.buildComboForecastResponse({

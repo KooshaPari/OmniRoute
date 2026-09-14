@@ -60,7 +60,16 @@ const IGNORE_FROM_CODE = new Set([
   // OS / Node internals frequently surfaced by indirect dependencies.
   "APPDATA",
   "LOCALAPPDATA",
+  "PROGRAMFILES",
   "XDG_CONFIG_HOME",
+  // Codex-owned task/runtime locations and child-process markers. OmniRoute reads
+  // them as external execution context, not as product configuration.
+  "CODEX_HOME",
+  "CODEX_CHATGPT_WEB_BROWSER_HELPER_PROCESS",
+  // systemd-injected notify socket path (sd_notify protocol, see
+  // scripts/dev/systemd-notify.mjs) — set by systemd only when running under
+  // a unit, never user config.
+  "NOTIFY_SOCKET",
   // XDG Base Directory cache root — read (never defined by OmniRoute) so the
   // Android/Termux serve path can honor an operator-set cache location (#8519).
   "XDG_CACHE_HOME",
@@ -91,9 +100,27 @@ const IGNORE_FROM_CODE = new Set([
   // CI providers (set by the runner).
   "GITHUB_BASE_REF",
   "GITHUB_BASE_SHA",
+  // Set by the Actions runner; the ts7 ratchet appends its job summary there
+  // (scripts/check/check-ts7-diagnostics-ratchet.mjs) — never OmniRoute runtime config (#9985).
+  "GITHUB_STEP_SUMMARY",
+  // Same class as BASE_REF: CI passes the PR base ref to the ts7 diagnostics ratchet
+  // (scripts/check/check-ts7-diagnostics-ratchet.mjs) — a check signal, not runtime config (#9985).
+  "TS7_BASE_REF",
   // CI passes BASE_REF=${{ github.base_ref }} to the OpenAPI breaking-change gate
   // (scripts/check/check-openapi-breaking.mjs) — a build/check signal, not OmniRoute runtime config.
   "BASE_REF",
+  // Same class as BASE_REF above: the `changes` job passes these four to the
+  // self-targeting-PR guard (scripts/check/check-pr-self-target.mjs) so it can compare a PR's
+  // head against its base. CI-only signals from github.head_ref / github.base_ref /
+  // pull_request.{head,base}.sha — never OmniRoute runtime config, and meaningless in a .env.
+  "HEAD_REF",
+  "HEAD_SHA",
+  "BASE_SHA",
+  // Escape hatch for the test-masking gate's release-scale skip
+  // (scripts/check/check-test-masking.mjs): above ~300 changed test files the per-file diff
+  // subchecks are skipped, and this raises that cap for anyone who wants the full pass anyway.
+  // A gate tuning knob, not application configuration.
+  "TEST_MASKING_MAX_CHANGED_TESTS",
   // PR body injected by GitHub Actions into the pr-evidence gate (github.event.pull_request.body);
   // a CI-only signal, never an OmniRoute runtime config (Phase 7.10).
   "PR_BODY",
@@ -104,6 +131,19 @@ const IGNORE_FROM_CODE = new Set([
   // ("http://192.168.0.15:20128" / null), never OmniRoute runtime config (#5151).
   "COMBO_LIVE_BASE_URL",
   "COMBO_LIVE_API_KEY",
+  // Ad-hoc mesh/coverage scripts under scripts/ad-hoc/*.mjs (mesh-send, mesh-run,
+  // verify-coverage). Operator-supplied script secrets, not OmniRoute runtime config.
+  "BOT_TOKEN",
+  "BOT_URL",
+  // Homologation E2E suite (npm run homolog) vars — configured via the dedicated
+  // .env.homolog file (template: .env.homolog.example), never in the runtime .env.
+  // Test/ops-only signals against the homologation VPS, same class as COMBO_LIVE_*.
+  // See docs/ops/HOMOLOGATION.md.
+  "HOMOLOG_BASE_URL",
+  "HOMOLOG_ADMIN_PASSWORD",
+  "HOMOLOG_API_KEY",
+  "HOMOLOG_CRITICAL_PROVIDERS",
+  "HOMOLOG_EXPECT_VERSION",
   // update-notifier opt-out for the CLI binary.
   "OMNIROUTE_NO_UPDATE_NOTIFIER",
   // Headless CLI execution flag for Electron.
@@ -121,8 +161,11 @@ const IGNORE_FROM_CODE = new Set([
   // X11/Wayland display server vars used by tray heuristic (isTraySupported).
   "DISPLAY",
   "WAYLAND_DISPLAY",
-  // Build-time override for OpenAPI spec path used by generate-api-commands.mjs.
+  // Build-time overrides for generate-api-commands.mjs (spec input / commands output dir).
+  // OPENAPI_OUT_DIR exists so tests/unit/cli-api-generator-ref-params.test.ts can regenerate
+  // into a scratch dir instead of the real bin/cli/api-commands/ tree.
   "OPENAPI_SPEC",
+  "OPENAPI_OUT_DIR",
   // Aliases for documented vars handled via fallback ordering.
   "API_KEY",
   "APP_URL",
@@ -170,20 +213,16 @@ const IGNORE_FROM_CODE = new Set([
   // NVIDIA diagnostic/test helpers used only by ad-hoc scripts.
   "NVIDIA_BASE_URL",
   "NVIDIA_MODEL",
+  // Discord integration ad-hoc script (scripts/ad-hoc/mesh-send.mjs) —
+  // operator-supplied bot credentials, not user-facing OmniRoute config.
+  "BOT_TOKEN",
+  "BOT_URL",
   // XDG standard data directory — set by OS/desktop session, not OmniRoute config.
   // Read by setup-open-code.mjs to locate platform-specific OpenCode data dir.
   "XDG_DATA_HOME",
   // Test-only override: points setup-open-code.mjs at a fixture plugin dir without
   // requiring the real bundled plugin to be built.
   "OMNIROUTE_OPENCODE_PLUGIN_DIR",
-  // Homolog is an opt-in verification harness under scripts/homolog/, not an
-  // OmniRoute runtime configuration surface. Its endpoint and credentials must
-  // never be copied into the public environment contract.
-  "HOMOLOG_ADMIN_PASSWORD",
-  "HOMOLOG_API_KEY",
-  "HOMOLOG_BASE_URL",
-  "HOMOLOG_CRITICAL_PROVIDERS",
-  "HOMOLOG_EXPECT_VERSION",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.
@@ -244,10 +283,9 @@ const ENV_ONLY_ALLOWLIST = new Set([
   "PII_WINDOW_SIZE",
   "TRAE_STREAM_TIMEOUT_MS",
   "TRAE_TOKEN",
-  // Changelog-integrity gate inputs are supplied by CI/release tooling, not
-  // consumed by the runtime.
-  "ALLOW_CHANGELOG_REMOVALS",
-  "CHANGELOG_BASE_REF",
+  // #12190: Trae host/Origin override. ENVIRONMENT.md documents no Trae variable at
+  // all; this joins its two siblings above under the same .env.example-only tier.
+  "TRAE_WEB_ORIGIN",
 ]);
 
 // ─── Parsing helpers ───────────────────────────────────────────────────────
@@ -283,12 +321,8 @@ export function parseEnvDocVars(text) {
 function scanCodeVars({ cwd } = {}) {
   const repoRoot = cwd ?? REPO_ROOT;
   const stdout = execSync(
-    // The runtime contract deliberately excludes test fixtures and scripts/check:
-    // those variables are inputs to tests/CI jobs, not operator configuration.
-    "{ grep -rhoE --exclude-dir=__tests__ --exclude='*.test.*' " +
-      "'process\\.env\\.[A-Z][A-Z0-9_]+' src/ open-sse/ bin/ electron/main.js electron/preload.js; " +
-      "grep -rhoE --exclude-dir=__tests__ --exclude-dir=check --exclude='*.test.*' " +
-      "'process\\.env\\.[A-Z][A-Z0-9_]+' scripts/; } 2>/dev/null || true",
+    "grep -rhoE 'process\\.env\\.[A-Z][A-Z0-9_]+' " +
+      "src/ open-sse/ bin/ scripts/ electron/main.js electron/preload.js 2>/dev/null || true",
     { cwd: repoRoot, encoding: "utf8", maxBuffer: 20 * 1024 * 1024 }
   );
   const vars = new Set();

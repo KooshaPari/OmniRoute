@@ -27,28 +27,54 @@ export async function GET(request: Request) {
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const exportFilename = `omniroute-backup-${timestamp}.sqlite`;
-    const tmpDir = os.tmpdir();
-    const tmpPath = path.join(tmpDir, exportFilename);
+    // Use mkdtempSync (exclusive creation, random suffix) instead of a
+    // deterministic timestamp path — a predictable path lets a local
+    // attacker pre-place a symlink and redirect the write (TOCTOU).
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-backup-"));
+    const tmpPath = path.join(tmpDir, "backup.sqlite");
 
     // Use native SQLite backup API for a consistent snapshot
     const db = getDbInstance();
-    await db.backup(tmpPath);
-
-    const fileBuffer = fs.readFileSync(tmpPath);
-
-    // Cleanup temp file
     try {
-      fs.unlinkSync(tmpPath);
-    } catch {
-      /* best effort */
+      await db.backup(tmpPath);
+    } catch (backupError) {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+      throw backupError;
     }
 
-    return new Response(fileBuffer, {
+    const { size: fileSize } = fs.statSync(tmpPath);
+    const readStream = fs.createReadStream(tmpPath);
+
+    // Cleanup temp dir (and everything in it) on completion, error, or client abort
+    const cleanup = () => {
+      readStream.destroy();
+      fs.rm(tmpDir, { recursive: true, force: true }, () => {});
+    };
+    request.signal.addEventListener("abort", cleanup, { once: true });
+
+    const webStream = new ReadableStream({
+      start(controller) {
+        readStream.on("data", (chunk) => controller.enqueue(chunk));
+        readStream.on("end", () => {
+          controller.close();
+          cleanup();
+        });
+        readStream.on("error", (err) => {
+          controller.error(err);
+          cleanup();
+        });
+      },
+      cancel() {
+        cleanup();
+      },
+    });
+
+    return new Response(webStream, {
       status: 200,
       headers: {
         "Content-Type": "application/octet-stream",
         "Content-Disposition": `attachment; filename="${exportFilename}"`,
-        "Content-Length": String(fileBuffer.length),
+        "Content-Length": String(fileSize),
         "Cache-Control": "no-cache, no-store",
       },
     });

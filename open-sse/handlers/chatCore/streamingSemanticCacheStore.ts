@@ -21,8 +21,11 @@ type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
 type CacheBody = {
   messages?: unknown;
   input?: unknown;
-  temperature?: unknown;
-  top_p?: unknown;
+  temperature?: number;
+  top_p?: number;
+  tool_choice?: unknown;
+  tools?: unknown;
+  response_format?: unknown;
 };
 
 export interface StreamingSemanticCacheStoreDeps {
@@ -46,7 +49,7 @@ interface StreamingCacheArgs {
   body: CacheBody;
   headers: unknown;
   model: string;
-  apiKeyId?: string | number;
+  apiKeyId?: string;
   streamUsage?: Record<string, unknown> | null;
   log?: LoggerLike;
 }
@@ -69,11 +72,19 @@ function writeStreamingCacheEntry(
       args.body.messages ?? args.body.input,
       args.body.temperature,
       args.body.top_p,
-      args.apiKeyId ?? undefined
+      args.apiKeyId ?? undefined,
+      {
+        toolChoice: args.body.tool_choice,
+        tools: args.body.tools,
+        responseFormat: args.body.response_format,
+      }
     );
     const tokensSaved = streamTokensSaved(args.streamUsage);
     deps.setCachedResponse(sig, args.model, cleanBody, tokensSaved);
-    args.log?.debug?.("CACHE", `Stored streaming response for ${args.model} (${tokensSaved} tokens)`);
+    args.log?.debug?.(
+      "CACHE",
+      `Stored streaming response for ${args.model} (${tokensSaved} tokens)`
+    );
   } catch {
     // Cache write failed — non-critical
   }

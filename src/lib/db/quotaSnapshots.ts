@@ -1,22 +1,10 @@
 import { getDbInstance, rowToCamel } from "./core";
-import { toRecord } from "./caseMapping";
 import type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
-import { createLogger } from "@/shared/utils/logger";
-
-// Required field list for runtime drift detection. Must match QuotaSnapshotRow
-// exactly; if either changes, the other must too (compile-time signal).
-const REQUIRED_QUOTA_SNAPSHOT_FIELDS = [
-  "id",
-  "provider",
-  "connectionId",
-  "windowKey",
-  "remainingPercentage",
-  "isExhausted",
-  "nextResetAt",
-  "windowDurationMs",
-  "rawData",
-  "createdAt",
-] as const satisfies ReadonlyArray<keyof QuotaSnapshotRow>;
+import {
+  hasCodexScopeCooldown,
+  liftCodexScopeCooldownOnHeadroom,
+} from "./providers/codexAccountState";
+import { isCodexSparkQuotaKey } from "@omniroute/open-sse/config/codexQuotaScopes";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -30,25 +18,9 @@ interface DbLike {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
 }
 
-const log = createLogger("db:quota-snapshots");
-
 let lastCleanupAt = 0;
 
-function normalizeQuotaSnapshot(row: unknown): QuotaSnapshotRow {
-  const normalized = rowToCamel(row);
-  if (!normalized) {
-    throw new Error("db.quotaSnapshots: expected a quota snapshot row");
-  }
-
-  // Older databases may have the core quota table but predate these nullable
-  // analytics fields. Preserve the strict check for every non-additive field.
-  return toRecord<QuotaSnapshotRow>(
-    { windowDurationMs: null, rawData: null, ...normalized },
-    REQUIRED_QUOTA_SNAPSHOT_FIELDS
-  )!;
-}
-
-export function saveQuotaSnapshot(snapshot: Omit<QuotaSnapshotRow, "id" | "createdAt">): void {
+export function saveQuotaSnapshot(snapshot: Omit<QuotaSnapshotRow, "id" | "created_at">): void {
   const db = getDbInstance() as unknown as DbLike;
   const now = new Date().toISOString();
 
@@ -60,21 +32,78 @@ export function saveQuotaSnapshot(snapshot: Omit<QuotaSnapshotRow, "id" | "creat
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       snapshot.provider,
-      snapshot.connectionId,
-      snapshot.windowKey,
-      snapshot.remainingPercentage,
-      snapshot.isExhausted,
-      snapshot.nextResetAt,
-      snapshot.windowDurationMs,
-      snapshot.rawData,
+      snapshot.connection_id,
+      snapshot.window_key,
+      snapshot.remaining_percentage,
+      snapshot.is_exhausted,
+      snapshot.next_reset_at,
+      snapshot.window_duration_ms,
+      snapshot.raw_data,
       now
     );
   } catch (err: any) {
     if (err?.message?.includes("no such table")) {
-      log.warn("Skipping save: quota_snapshots table not found. Awaiting migration.");
+      console.warn(
+        "[QuotaSnapshots] Skipping save: quota_snapshots table not found. Awaiting migration."
+      );
       return;
     }
     throw err;
+  }
+
+  // #12860: When a new snapshot demonstrates headroom on a Codex connection,
+  // lift any fallback-sourced scope cooldown parked by quota preflight.
+  maybeLiftCodexCooldownOnHeadroom(snapshot);
+}
+
+/**
+ * `rowToCamel` leaves snake_case keys intact on some driver paths, so accept
+ * either casing rather than trusting one shape.
+ */
+type SnapshotShape = Partial<QuotaSnapshotRow> & {
+  windowKey?: string;
+  remainingPercentage?: number;
+  isExhausted?: number;
+};
+
+function snapshotHasHeadroom(s: SnapshotShape): boolean {
+  const pct = s.remainingPercentage ?? s.remaining_percentage ?? 0;
+  const exhausted = s.isExhausted ?? s.is_exhausted ?? 0;
+  return pct > 0 && exhausted !== 1;
+}
+
+function maybeLiftCodexCooldownOnHeadroom(
+  snapshot: Omit<QuotaSnapshotRow, "id" | "created_at">
+): void {
+  if (
+    snapshot.provider?.toLowerCase() !== "codex" ||
+    typeof snapshot.connection_id !== "string" ||
+    snapshot.connection_id.length === 0 ||
+    (snapshot.remaining_percentage ?? 0) <= 0 ||
+    snapshot.is_exhausted === 1
+  ) {
+    return;
+  }
+
+  try {
+    const scope = isCodexSparkQuotaKey(snapshot.window_key) ? "spark" : "codex";
+    // The scope-wide read is only worth paying for when a cooldown is
+    // actually parked on this connection+scope; the common case is clean.
+    if (!hasCodexScopeCooldown(snapshot.connection_id, scope)) return;
+
+    const scopeWindows = getLatestQuotaSnapshotsForConnection(snapshot.connection_id).filter(
+      (s: SnapshotShape) => {
+        const key = s.windowKey ?? s.window_key;
+        return scope === "spark" ? isCodexSparkQuotaKey(key) : !isCodexSparkQuotaKey(key);
+      }
+    );
+    // Every window in the scope must be healthy: one exhausted window still
+    // justifies the cooldown even when a sibling reports full headroom.
+    if (scopeWindows.length > 0 && scopeWindows.every(snapshotHasHeadroom)) {
+      liftCodexScopeCooldownOnHeadroom(snapshot.connection_id, scope);
+    }
+  } catch (err) {
+    console.debug("[QuotaSnapshots] Headroom evaluation skipped:", err);
   }
 }
 
@@ -106,7 +135,7 @@ export function getQuotaSnapshots(opts: {
   try {
     const sql = `SELECT * FROM quota_snapshots WHERE ${conditions.join(" AND ")} ORDER BY created_at ASC`;
     const rows = db.prepare(sql).all(...params);
-    return rows.map(normalizeQuotaSnapshot);
+    return rows.map((r) => rowToCamel(r) as unknown as QuotaSnapshotRow);
   } catch (err: any) {
     if (err?.message?.includes("no such table")) {
       return [];
@@ -145,7 +174,7 @@ export function getLatestQuotaSnapshotsForConnection(connectionId: string): Quot
       )
       .all(connectionId);
 
-    return rows.map(normalizeQuotaSnapshot);
+    return rows.map((row) => rowToCamel(row) as unknown as QuotaSnapshotRow);
   } catch (err: any) {
     if (err?.message?.includes("no such table")) {
       return [];

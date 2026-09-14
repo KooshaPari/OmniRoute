@@ -5,6 +5,7 @@
 export const APIKEY_PROVIDERS_REGIONAL = {
   qianfan: {
     id: "qianfan",
+    serviceKinds: ["llm"],
     alias: "qianfan",
     name: "Baidu Qianfan",
     icon: "cloud",
@@ -16,6 +17,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   glm: {
     id: "glm",
+    serviceKinds: ["llm"],
     alias: "glm",
     name: "GLM Coding",
     icon: "code",
@@ -25,6 +27,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   "glm-cn": {
     id: "glm-cn",
+    serviceKinds: ["llm"],
     alias: "glmcn",
     name: "GLM Coding (China)",
     icon: "code",
@@ -34,6 +37,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   glmt: {
     id: "glmt",
+    serviceKinds: ["llm"],
     alias: "glmt",
     name: "GLM Thinking",
     icon: "psychology",
@@ -44,6 +48,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   "bailian-coding-plan": {
     id: "bailian-coding-plan",
+    serviceKinds: ["llm"],
     alias: "bcp",
     name: "Alibaba Token Plan",
     icon: "code",
@@ -54,6 +59,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   "qwen-cloud": {
     id: "qwen-cloud",
+    serviceKinds: ["llm"],
     alias: "qwc",
     name: "Qwen Cloud",
     icon: "cloud",
@@ -64,6 +70,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   "qwen-cloud-token-plan": {
     id: "qwen-cloud-token-plan",
+    serviceKinds: ["llm"],
     alias: "qct",
     name: "Qwen Cloud Token Plan",
     icon: "cloud",
@@ -74,6 +81,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   kimi: {
     id: "kimi",
+    serviceKinds: ["llm"],
     alias: "kimi",
     name: "Kimi (Legacy Moonshot API)",
     icon: "psychology",
@@ -87,6 +95,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   "kimi-coding-apikey": {
     id: "kimi-coding-apikey",
+    serviceKinds: ["llm"],
     alias: "kmca",
     name: "Kimi Code API Key",
     icon: "psychology",
@@ -100,6 +109,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   minimax: {
     id: "minimax",
+    serviceKinds: ["llm"],
     alias: "minimax",
     name: "Minimax Coding",
     icon: "memory",
@@ -109,6 +119,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   "minimax-cn": {
     id: "minimax-cn",
+    serviceKinds: ["llm"],
     alias: "minimax-cn",
     name: "Minimax (China)",
     icon: "memory",
@@ -118,6 +129,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   deepseek: {
     id: "deepseek",
+    serviceKinds: ["llm"],
     alias: "ds",
     name: "DeepSeek",
     icon: "bolt",
@@ -129,6 +141,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   zai: {
     id: "zai",
+    serviceKinds: ["llm"],
     alias: "zai",
     name: "Z.AI",
     icon: "psychology",
@@ -139,6 +152,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   alibaba: {
     id: "alibaba",
+    serviceKinds: ["llm"],
     alias: "ali",
     name: "Alibaba Cloud Model Studio",
     icon: "cloud_queue",
@@ -150,6 +164,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   "alibaba-cn": {
     id: "alibaba-cn",
+    serviceKinds: ["llm"],
     alias: "ali-cn",
     name: "Alibaba (China)",
     icon: "cloud_queue",
@@ -161,6 +176,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   longcat: {
     id: "longcat",
+    serviceKinds: ["llm"],
     alias: "lc",
     name: "LongCat AI",
     icon: "auto_awesome",
@@ -173,6 +189,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   moonshot: {
     id: "moonshot",
+    serviceKinds: ["llm"],
     alias: "moonshot",
     // Display name only — Kimi official-partnership rebrand (2026-07). The
     // catalog id/alias/routing stay "moonshot" (DB connections, combos, and
@@ -192,6 +209,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   volcengine: {
     id: "volcengine",
+    serviceKinds: ["llm"],
     alias: "volcengine",
     name: "Volcengine",
     icon: "local_fire_department",
@@ -199,8 +217,31 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     textIcon: "VE",
     website: "https://www.volcengine.com",
   },
+  "volcengine-agent-plan": {
+    id: "volcengine-agent-plan",
+    serviceKinds: ["llm"],
+    alias: "veap",
+    name: "Volcengine Ark Agent Plan",
+    icon: "local_fire_department",
+    color: "#DC2626",
+    textIcon: "VA",
+    website: "https://console.volcengine.com/ark/region:cn-beijing/subscription/agent-plan",
+    authHint: "Connect your Volcano Engine account or use an Ark Agent Plan subscription API key.",
+  },
+  "volcengine-coding-plan": {
+    id: "volcengine-coding-plan",
+    serviceKinds: ["llm"],
+    alias: "vecp",
+    name: "Volcengine Ark Coding Plan",
+    icon: "code",
+    color: "#FF6A00",
+    textIcon: "VC",
+    website: "https://console.volcengine.com/ark/region:cn-beijing/subscription/coding-plan",
+    authHint: "Connect your Volcano Engine account or use an Ark Coding Plan subscription API key.",
+  },
   gigachat: {
     id: "gigachat",
+    serviceKinds: ["llm"],
     alias: "gigachat",
     name: "GigaChat (Sber)",
     icon: "lock_person",
@@ -210,6 +251,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   "xiaomi-mimo": {
     id: "xiaomi-mimo",
+    serviceKinds: ["llm"],
     alias: "mimo",
     name: "Xiaomi MiMo",
     icon: "devices",
@@ -219,6 +261,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   "xiaomi-mimo-token-plan": {
     id: "xiaomi-mimo-token-plan",
+    serviceKinds: ["llm"],
     alias: "mimotp",
     name: "Xiaomi MiMo Token Plan",
     icon: "devices",
@@ -228,6 +271,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   baidu: {
     id: "baidu",
+    serviceKinds: ["llm"],
     alias: "baidu",
     name: "Baidu (ERNIE)",
     icon: "auto_awesome",
@@ -241,6 +285,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   tencent: {
     id: "tencent",
+    serviceKinds: ["llm"],
     alias: "tencent",
     name: "Tencent Hunyuan",
     icon: "auto_awesome",
@@ -254,6 +299,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   iflytek: {
     id: "iflytek",
+    serviceKinds: ["llm"],
     alias: "iflytek",
     name: "iFlytek Spark",
     icon: "auto_awesome",
@@ -268,12 +314,13 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   baichuan: {
     id: "baichuan",
+    serviceKinds: ["llm"],
     alias: "baichuan",
     name: "Baichuan",
     icon: "auto_awesome",
     color: "#6366F1",
     textIcon: "BC",
-    website: "https://baichuan.com",
+    website: "https://www.baichuan-ai.com/",
     hasFree: true,
     freeNote: "Free Baichuan models. Popular Chinese LLM startup.",
     passthroughModels: true,
@@ -281,6 +328,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   yi: {
     id: "yi",
+    serviceKinds: ["llm"],
     alias: "yi",
     name: "Yi (01.AI)",
     icon: "auto_awesome",
@@ -295,6 +343,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   stepfun: {
     id: "stepfun",
+    serviceKinds: ["llm"],
     alias: "stepfun",
     name: "StepFun",
     icon: "auto_awesome",
@@ -316,6 +365,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   coze: {
     id: "coze",
+    serviceKinds: ["llm"],
     alias: "coze",
     name: "Coze",
     icon: "smart_toy",
@@ -329,6 +379,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   "360ai": {
     id: "360ai",
+    serviceKinds: ["llm"],
     alias: "360ai",
     name: "360 AI",
     icon: "auto_awesome",
@@ -342,6 +393,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   doubao: {
     id: "doubao",
+    serviceKinds: ["llm"],
     alias: "doubao",
     name: "Doubao",
     icon: "auto_awesome",
@@ -355,6 +407,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   sensenova: {
     id: "sensenova",
+    serviceKinds: ["llm"],
     alias: "sensenova",
     name: "SenseNova",
     icon: "auto_awesome",
@@ -375,6 +428,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   sparkdesk: {
     id: "sparkdesk",
+    serviceKinds: ["llm"],
     alias: "sparkdesk",
     name: "SparkDesk",
     icon: "auto_awesome",
@@ -389,6 +443,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   hcnsec: {
     id: "hcnsec",
+    serviceKinds: ["llm"],
     alias: "hcnsec",
     name: "Huancheng Public API",
     icon: "security",
@@ -403,6 +458,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   agnes: {
     id: "agnes",
+    serviceKinds: ["llm"],
     alias: "agnes",
     name: "Agnes AI",
     icon: "auto_awesome",
@@ -415,6 +471,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   sealion: {
     id: "sealion",
+    serviceKinds: ["llm"],
     alias: "sealion",
     name: "SEA-LION",
     icon: "public",
@@ -429,6 +486,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   "clova-studio": {
     id: "clova-studio",
+    serviceKinds: ["llm"],
     alias: "clova",
     name: "Naver CLOVA Studio",
     icon: "auto_awesome",
@@ -436,10 +494,11 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     textIcon: "CS",
     website: "https://api.ncloud-docs.com/docs/en/ai-naver-clovastudio-summary",
     apiHint:
-      "CLOVA Studio (HyperCLOVA X) is OpenAI-compatible on /v1/openai. OmniRoute probes /v1/openai/models and routes chat traffic to /v1/openai/chat/completions. Uses the current clovastudio.stream.ntruss.com host — the legacy clovastudio.apigw.ntruss.com endpoint is being deprecated.",
+      "OmniRoute routes chat traffic to the native Chat Completions v3 API (/v3/chat-completions/{model}), not the OpenAI-compatibility shim. All three v3 models are served: HCX-007 (reasoning, text only), HCX-005 (vision — accepts both public image URLs and inline base64 images), and HCX-DASH-002 (lightweight, text only). Requests stream upstream and are accumulated into a JSON body when the client asks for a non-streaming response.",
   },
   internlm: {
     id: "internlm",
+    serviceKinds: ["llm"],
     alias: "internlm",
     name: "InternLM (Intern-S1)",
     icon: "auto_awesome",
@@ -451,6 +510,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   "ant-ling": {
     id: "ant-ling",
+    serviceKinds: ["llm"],
     alias: "ling",
     name: "Ant Ling / Ring (inclusionAI)",
     icon: "auto_awesome",
@@ -464,6 +524,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   sarvam: {
     id: "sarvam",
+    serviceKinds: ["llm"],
     alias: "sarvam",
     name: "Sarvam AI",
     icon: "public",
@@ -477,6 +538,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   plamo: {
     id: "plamo",
+    serviceKinds: ["llm"],
     alias: "plamo",
     name: "PLaMo",
     icon: "public",
@@ -489,6 +551,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   },
   typhoon: {
     id: "typhoon",
+    serviceKinds: ["llm"],
     alias: "typhoon",
     name: "Typhoon",
     icon: "public",
@@ -499,19 +562,5 @@ export const APIKEY_PROVIDERS_REGIONAL = {
       "Typhoon is OpenAI-compatible on /v1. Built by SCB 10X (Thailand); typhoon-v2.5-30b-a3b-instruct is a thai-first, multilingual model.",
     hasFree: true,
     freeNote: "Free API key with a 5 req/s and 200 req/m rate limit.",
-  },
-  hcnsec: {
-    id: "hcnsec",
-    alias: "hcnsec",
-    name: "Huancheng Public API",
-    icon: "security",
-    color: "#0EA5E9",
-    textIcon: "HC",
-    website: "https://api.hcnsec.cn",
-    hasFree: true,
-    freeNote:
-      "Xinjiang Huancheng Cybersecurity public LLM API platform: free credits with daily check-ins.",
-    passthroughModels: true,
-    authHint: "Get API key at api.hcnsec.cn",
   },
 };

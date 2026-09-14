@@ -13,16 +13,21 @@
  */
 
 import { markServerStopping } from "@/lib/serverLifecycle";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("graceful-shutdown");
 
 /** Grace period before forced exit (default 30s, configurable) */
 const SHUTDOWN_TIMEOUT_MS = parseInt(process.env.SHUTDOWN_TIMEOUT_MS || "30000", 10);
 
 declare global {
   var __omnirouteShutdown:
-    { init: boolean; shuttingDown: boolean; activeRequests: number } | undefined;
+    | {
+        init: boolean;
+        shuttingDown: boolean;
+        activeRequests: number;
+        shutdownPromise?: Promise<void>;
+      }
+    | undefined;
+  var __omnirouteRequestShutdown: ((signal: string) => Promise<void>) | undefined;
+  var __omnirouteCustomServerOwnsShutdown: boolean | undefined;
 }
 
 function getShutdownState() {
@@ -74,24 +79,20 @@ async function waitForDrain(): Promise<void> {
   return new Promise((resolve) => {
     const check = () => {
       if (state.activeRequests <= 0) {
-        log.info("shutdown: all in-flight requests drained");
+        console.log("[Shutdown] All in-flight requests drained.");
         resolve();
         return;
       }
 
       if (Date.now() - start > SHUTDOWN_TIMEOUT_MS) {
-        log.warn(
-          { timeoutMs: SHUTDOWN_TIMEOUT_MS, activeRequests: state.activeRequests },
-          "shutdown: timeout reached — forcing exit"
+        console.warn(
+          `[Shutdown] Timeout after ${SHUTDOWN_TIMEOUT_MS}ms with ${state.activeRequests} active requests. Forcing exit.`
         );
         resolve();
         return;
       }
 
-      log.info(
-        { activeRequests: state.activeRequests },
-        "shutdown: waiting for in-flight requests"
-      );
+      console.log(`[Shutdown] Waiting for ${state.activeRequests} in-flight request(s)...`);
       setTimeout(check, CHECK_INTERVAL_MS);
     };
 
@@ -104,29 +105,34 @@ async function waitForDrain(): Promise<void> {
  */
 async function cleanup(): Promise<void> {
   try {
-    const [{ closeAuditDb }, { closeDbInstance }, { flushSpendBatchWriter }, { closeLogRotation }] =
-      await Promise.all([
-        import("@omniroute/open-sse/mcp-server/audit.ts"),
-        import("@/lib/db/core"),
-        import("@/lib/spend/batchWriter"),
-        import("@/lib/logRotation"),
-      ]);
+    const [
+      { closeAuditDb },
+      { closeDbInstance },
+      { flushSpendBatchWriter },
+      { closeLogRotation },
+      { closeSharedLoggerResource },
+      { closeCallLogSaves },
+    ] = await Promise.all([
+      import("@omniroute/open-sse/mcp-server/audit.ts"),
+      import("@/lib/db/core"),
+      import("@/lib/spend/batchWriter"),
+      import("@/lib/logRotation"),
+      import("@/shared/utils/loggerResource"),
+      import("@/lib/usage/callLogs"),
+    ]);
     const flushResult = await flushSpendBatchWriter();
     if (flushResult.flushedEntries > 0) {
-      log.info(
-        { flushedEntries: flushResult.flushedEntries },
-        "shutdown: spend batch writer flushed"
+      console.log(
+        `[Shutdown] Spend batch writer flushed ${flushResult.flushedEntries} pending entry(ies).`
       );
     }
+    await closeCallLogSaves();
     if (closeAuditDb()) {
-      log.info("shutdown: MCP audit database checkpointed and closed");
+      console.log("[Shutdown] MCP audit database checkpointed and closed.");
     }
     if (closeDbInstance()) {
-      log.info("shutdown: SQLite database checkpointed and closed");
+      console.log("[Shutdown] SQLite database checkpointed and closed.");
     }
-    closeLogRotation();
-    console.log("[Shutdown] Log rotation timer stopped.");
-
     // Tear down any persistent VNC login browser containers so they don't leak
     // past the server process. Best-effort; no-op if the feature was never used
     // or the docker CLI is unavailable.
@@ -139,9 +145,43 @@ async function cleanup(): Promise<void> {
     } catch {
       /* feature unused / docker missing */
     }
+
+    try {
+      const { stopChatGptWebCodexRuntime } =
+        await import("@omniroute/open-sse/executors/chatgpt-web-codex/runtime.ts");
+      await stopChatGptWebCodexRuntime();
+      console.log("[Shutdown] ChatGPT Web (Codex) runtime stopped.");
+    } catch {
+      /* feature unused */
+    }
+
+    await closeSharedLoggerResource();
+    closeLogRotation();
+    console.log("[Shutdown] Logger transport and log rotation stopped.");
   } catch (err) {
-    log.error({ err: (err as Error).message }, "shutdown: cleanup error");
+    console.error("[Shutdown] Error during cleanup:", (err as Error).message);
   }
+}
+
+/**
+ * Start the process-wide shutdown sequence, or join the sequence already in progress.
+ */
+export function requestGracefulShutdown(signal: string): Promise<void> {
+  const state = getShutdownState();
+  if (state.shutdownPromise) return state.shutdownPromise;
+
+  state.shuttingDown = true;
+  markServerStopping();
+  state.shutdownPromise = (async () => {
+    console.log(`\n[Shutdown] Received ${signal}. Draining ${state.activeRequests} request(s)...`);
+
+    await waitForDrain();
+    await cleanup();
+
+    console.log("[Shutdown] Bye.");
+  })();
+
+  return state.shutdownPromise;
 }
 
 /**
@@ -150,33 +190,26 @@ async function cleanup(): Promise<void> {
  */
 export function initGracefulShutdown(): void {
   const state = getShutdownState();
+  globalThis.__omnirouteRequestShutdown ??= requestGracefulShutdown;
   if (state.init) return;
   state.init = true;
 
-  const shutdown = async (signal: string) => {
-    if (state.shuttingDown) return;
-    state.shuttingDown = true;
-    markServerStopping();
+  if (globalThis.__omnirouteCustomServerOwnsShutdown) {
+    console.log("[Shutdown] Cleanup registered with the custom server shutdown owner.");
+    return;
+  }
 
-    log.info(
-      { signal, activeRequests: state.activeRequests },
-      "shutdown: received signal, draining"
-    );
-
-    await waitForDrain();
-    await cleanup();
-
-    log.info("shutdown: complete");
-    process.exit(0);
+  const shutdown = (signal: string) => {
+    void globalThis.__omnirouteRequestShutdown?.(signal).then(() => process.exit(0));
   };
 
-  process.on("SIGTERM", () => shutdown("SIGTERM"));
-  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("SIGTERM", () => void shutdown("SIGTERM"));
+  process.on("SIGINT", () => void shutdown("SIGINT"));
   // #8045: on Windows, closing the console window delivers CTRL_CLOSE_EVENT, which
   // Node/libuv maps to a JS-visible "SIGHUP" event — without this listener, closing
   // the window never runs cleanup() (WAL checkpoint + closeDbInstance()), leaving
   // storage.sqlite's WAL un-checkpointed for the next launch.
-  process.on("SIGHUP", () => shutdown("SIGHUP"));
+  process.on("SIGHUP", () => void shutdown("SIGHUP"));
 
-  log.info("shutdown: graceful shutdown handlers registered");
+  console.log("[Shutdown] Graceful shutdown handlers registered.");
 }

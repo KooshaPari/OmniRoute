@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Badge, Input, Modal, Toggle } from "@/shared/components";
+import { Button, Badge, Input, Modal, Toggle, TALL_MODAL_PROPS } from "@/shared/components";
+import { CHATGPT_WEB_CODEX_CONNECTOR_NAME } from "@/shared/constants/chatgptWebCodex";
 import {
   providerAllowsOptionalApiKey,
   supportsBulkApiKey,
@@ -31,13 +32,15 @@ import {
 import { getWebSessionCredentialRequirement } from "../../webSessionCredentials";
 import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
-import AgentrouterConsoleFields from "./AgentrouterConsoleFields";
-import * as ProviderRegion from "./AlibabaProviderRegionField";
+import HarImportButton from "../HarImportButton";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
-import GlmTeamQuotaFields from "./GlmTeamQuotaFields";
 import { buildAddProviderSpecificData } from "./connectionProviderSpecificData";
+import { getCommandCodeAuthPhaseLabel } from "./commandCodeAuthPhase";
 import { computeConnectionDefaultName } from "./computeConnectionDefaultName";
+import AgentrouterConsoleFields from "./AgentrouterConsoleFields";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
+import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
+import * as ProviderRegion from "./AlibabaProviderRegionField";
 export interface AddApiKeyModalProps {
   isOpen: boolean;
   provider?: string;
@@ -83,17 +86,18 @@ export default function AddApiKeyModal({
   const usesBaseUrl = isBaseUrlConfigurableProvider(provider);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
-  const isBedrock = provider === "bedrock";
-  const showsRegion = isVertex || isBedrock;
-  const defaultRegion = isBedrock ? "eu-west-2" : "us-central1";
+  const { defaultRegion, showsRegion } = ProviderRegion.getProviderRegionConfig(provider);
   const isModal = provider === "modal";
   const isGlm = isGlmProvider(provider);
   const isQoder = provider === "qoder";
+  const isFreebuff = provider === "freebuff";
   const openRouterPreset = useOpenRouterPresetControl(provider, t);
   const isCloudflare = provider === "cloudflare-ai";
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
+  const isChatGptWebCodex = provider === "chatgpt-web-codex";
+  const isAwsPolly = provider === "aws-polly";
   const webSessionCredential = getWebSessionCredentialRequirement(provider);
   const isNoAuthWebSessionCredential = webSessionCredential?.kind === "none";
   const isWebSessionCredential = !!webSessionCredential && webSessionCredential.kind !== "none";
@@ -116,6 +120,8 @@ export default function AddApiKeyModal({
     baseUrl: initialBaseUrl || defaultBaseUrl,
     cx: "",
     region: showsRegion ? defaultRegion : "",
+    awsAccessKeyId: "",
+    awsSessionToken: "",
     apiRegion: "international",
     validationModelId: defaultValidationModelIdForProvider(provider), // #5446 item 4 — Modal probe model pre-fill
     routingTags: "",
@@ -123,6 +129,9 @@ export default function AddApiKeyModal({
     customUserAgent: "",
     accountId: "",
     consoleApiKey: "",
+    newApiUserId: "",
+    newApiAggregatorBalance: false,
+    quotaPerUnit: "",
     ...EMPTY_GLM_TEAM_QUOTA_FIELDS,
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
@@ -130,9 +139,16 @@ export default function AddApiKeyModal({
     ccCompatibleSummarizeThinking: false,
     passthroughModels: false,
     importFreeModelsOnly: false,
+    tunnelId: "",
+    runtimeKey: "",
+    connectorName: CHATGPT_WEB_CODEX_CONNECTOR_NAME,
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
+  const [validationCapabilities, setValidationCapabilities] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -144,12 +160,14 @@ export default function AddApiKeyModal({
     if (!isOpen || wasOpen) return;
     // On open, reset baseUrl and assign a unique default name so a second API key
     // for the same provider doesn't reuse "main" and trigger the backend
-    // name-based upsert that would silently overwrite the first connection (#6499).
+    // name-based upsert that would silently overwrite the first connection (#6499, #11033).
     setFormData((current) => ({
       ...current,
       name: computeConnectionDefaultName(existingConnectionCount),
       baseUrl: initialBaseUrl || defaultBaseUrl,
     }));
+    setValidationResult(null);
+    setSaveError(null);
   }, [defaultBaseUrl, initialBaseUrl, isOpen, existingConnectionCount]);
   const bulkSupported = supportsBulkApiKey(provider);
   const [mode, setMode] = useState<"single" | "bulk">("single");
@@ -164,13 +182,15 @@ export default function AddApiKeyModal({
   const [bulkWarnings, setBulkWarnings] = useState<string[]>([]);
   const apiCredentialLabel = isModal
     ? providerText(t, "modalTokenIdLabel", "Token ID")
-    : isQoder
-      ? t("personalAccessTokenLabel")
-      : webSessionCredential
-        ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
-        : apiKeyOptional
-          ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
-          : t("apiKeyLabel");
+    : isAwsPolly
+      ? providerText(t, "awsPollySecretAccessKeyLabel", "AWS Secret Access Key")
+      : isQoder
+        ? t("personalAccessTokenLabel")
+        : webSessionCredential
+          ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
+          : apiKeyOptional
+            ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
+            : t("apiKeyLabel");
   const apiCredentialPlaceholder = isModal
     ? "ak-xxxxxxxxxxxxxxxx"
     : isVertex
@@ -179,9 +199,11 @@ export default function AddApiKeyModal({
         ? webSessionCredential.placeholder
         : isQoder
           ? t("qoderPatPlaceholder")
-          : apiKeyOptional
-            ? t("optional")
-            : undefined;
+          : isFreebuff
+            ? "Enter Freebuff / Codebuff Auth Token (e.g. 038fcdf9-...)"
+            : apiKeyOptional
+              ? t("optional")
+              : undefined;
   const apiCredentialHint = isModal
     ? providerText(
         t,
@@ -190,15 +212,17 @@ export default function AddApiKeyModal({
       )
     : isQoder
       ? t("qoderPatHint")
-      : isWebSessionCredential
-        ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, false)
-        : isLocalSelfHostedProvider
-          ? t("localProviderApiKeyOptionalHint", {
-              provider: localProviderMetadata?.name || providerName || provider || "",
-            })
-          : apiKeyOptional
-            ? t("apiKeyOptionalHint")
-            : undefined;
+      : isFreebuff
+        ? "Freebuff uses an authentic CLI auth token obtained via codebuff CLI login or automated harvester."
+        : isWebSessionCredential
+          ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, false)
+          : isLocalSelfHostedProvider
+            ? t("localProviderApiKeyOptionalHint", {
+                provider: localProviderMetadata?.name || providerName || provider || "",
+              })
+            : apiKeyOptional
+              ? t("apiKeyOptionalHint")
+              : undefined;
   const credentialValidationFailedMessage = isWebSessionCredential
     ? providerText(
         t,
@@ -206,41 +230,51 @@ export default function AddApiKeyModal({
         "Session credential validation failed. Sign in again, copy a fresh credential, and try again."
       )
     : t("apiKeyValidationFailed");
-
-  // Normalize the raw credential field(s) into the single value stored as `apiKey`.
-  // command-code providers extract a key from a pasted blob (#5088); Modal joins its
-  // Token ID + Token Secret into `id:secret` (#5446); everyone else uses the field verbatim.
-  const resolveCredentialInput = () => {
-    if (isCommandCode) return extractCommandCodeCredentialInput(formData.apiKey);
-    if (isModal) return combineModalCredential(formData.apiKey, formData.tokenSecret);
-    return formData.apiKey;
-  };
+  const validationBadge = validationResult ? validationBadgeProps(validationResult) : null;
+  // Normalize raw credential field(s) into the single value stored as `apiKey`
+  // (#5088 command-code extract; #5446 Modal id:secret join; else verbatim).
+  const resolveCredentialInput = () =>
+    isCommandCode
+      ? extractCommandCodeCredentialInput(formData.apiKey)
+      : isModal
+        ? combineModalCredential(formData.apiKey, formData.tokenSecret)
+        : formData.apiKey;
 
   const handleValidate = async () => {
     setValidating(true);
     setSaveError(null);
     try {
-      const credentialInput = resolveCredentialInput();
       const res = await fetch("/api/providers/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider,
-          apiKey: credentialInput,
+          apiKey: resolveCredentialInput(),
           validationModelId: formData.validationModelId || undefined,
           customUserAgent: formData.customUserAgent.trim() || undefined,
           baseUrl: formData.baseUrl.trim() || undefined,
-          region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
+          region: isAwsPolly
+            ? formData.region.trim() || "us-east-1"
+            : showsRegion
+              ? formData.region.trim() || defaultRegion
+              : undefined,
+          accessKeyId: isAwsPolly ? formData.awsAccessKeyId.trim() || undefined : undefined,
+          sessionToken: isAwsPolly ? formData.awsSessionToken.trim() || undefined : undefined,
           cx: formData.cx.trim() || undefined,
+          runtimeKey: isChatGptWebCodex ? formData.runtimeKey.trim() || undefined : undefined,
+          tunnelId: isChatGptWebCodex ? formData.tunnelId.trim() || undefined : undefined,
+          connectorName: isChatGptWebCodex ? formData.connectorName.trim() || undefined : undefined,
         }),
       });
       const data = await res.json();
       const ok = !!data.valid;
-      setValidationResult(ok ? "success" : "failed");
-      // #5088: surface the detailed reason the backend returns (e.g. a TLS/EACCES
-      // environment error for claude-web/chatgpt-web) instead of only a bare
-      // "invalid" badge — otherwise the real cause is hidden and users are stuck.
-      if (!ok && typeof data.error === "string" && data.error) {
+      const unsupported = !!data.unsupported;
+      setValidationResult(ok ? "success" : unsupported ? "unsupported" : "failed");
+      setValidationCapabilities(
+        ok && data.capabilities && typeof data.capabilities === "object" ? data.capabilities : null
+      );
+      // #5088: surface backend reason (e.g. TLS/EACCES) instead of bare "invalid".
+      if (!ok && !unsupported && typeof data.error === "string" && data.error) {
         setSaveError(data.error);
       }
     } catch {
@@ -262,7 +296,12 @@ export default function AddApiKeyModal({
 
   const handleSubmit = async () => {
     const credentialInput = resolveCredentialInput();
-    if (!provider || (!isCompatible && !apiKeyOptional && !credentialInput)) return;
+    if (
+      !provider ||
+      (!isCompatible && !apiKeyOptional && !credentialInput) ||
+      (isAwsPolly && !formData.awsAccessKeyId.trim())
+    )
+      return;
 
     setSaving(true);
     setSaveError(null);
@@ -285,6 +324,7 @@ export default function AddApiKeyModal({
       let isValid = Boolean(isNoAuthWebSessionCredential && !credentialInput);
       let validationError: string | null = null;
       let isUnsupported = false; // #5565/#5567: no live validator → save anyway
+      let validatedProviderSpecificData: Record<string, unknown> | undefined;
       if (!isValid) {
         try {
           setValidating(true);
@@ -298,8 +338,19 @@ export default function AddApiKeyModal({
               validationModelId: formData.validationModelId || undefined,
               customUserAgent: formData.customUserAgent.trim() || undefined,
               baseUrl: formData.baseUrl.trim() || undefined,
-              region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
+              region: isAwsPolly
+                ? formData.region.trim() || "us-east-1"
+                : showsRegion
+                  ? formData.region.trim() || defaultRegion
+                  : undefined,
+              accessKeyId: isAwsPolly ? formData.awsAccessKeyId.trim() || undefined : undefined,
+              sessionToken: isAwsPolly ? formData.awsSessionToken.trim() || undefined : undefined,
               cx: formData.cx.trim() || undefined,
+              runtimeKey: isChatGptWebCodex ? formData.runtimeKey.trim() || undefined : undefined,
+              tunnelId: isChatGptWebCodex ? formData.tunnelId.trim() || undefined : undefined,
+              connectorName: isChatGptWebCodex
+                ? formData.connectorName.trim() || undefined
+                : undefined,
             }),
           });
           const data = await res.json();
@@ -307,6 +358,13 @@ export default function AddApiKeyModal({
           isUnsupported = !!data.unsupported;
           if (!isValid && data.error) {
             validationError = data.error;
+          }
+          if (
+            isValid &&
+            data.providerSpecificData &&
+            typeof data.providerSpecificData === "object"
+          ) {
+            validatedProviderSpecificData = data.providerSpecificData;
           }
           setValidationResult(isValid ? "success" : isUnsupported ? "unsupported" : "failed");
         } catch {
@@ -339,14 +397,28 @@ export default function AddApiKeyModal({
         isCloudflare,
         isCcCompatible,
       });
+      const mergedProviderSpecificData = {
+        ...(providerSpecificData || {}),
+        ...(validatedProviderSpecificData || {}),
+      };
 
+      const encodedCredential = isChatGptWebCodex
+        ? JSON.stringify({
+            version: 1,
+            cookie: credentialInput.trim().replace(/^cookie\s*:\s*/i, ""),
+            runtimeKey: formData.runtimeKey.trim(),
+          })
+        : credentialInput.trim();
       const payload = {
         name: formData.name,
-        apiKey: credentialInput.trim() || undefined,
+        apiKey: encodedCredential || undefined,
         priority: formData.priority,
         testStatus: "active",
         defaultModel: isCompatible ? formData.defaultModel.trim() || undefined : undefined,
-        providerSpecificData,
+        providerSpecificData:
+          Object.keys(mergedProviderSpecificData).length > 0
+            ? mergedProviderSpecificData
+            : undefined,
       };
 
       const error = await onSave(payload);
@@ -392,7 +464,7 @@ export default function AddApiKeyModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          provider,
+          provider: provider === "kimi-coding" ? "kimi-coding-apikey" : provider,
           entries: parsed.entries.map((e) => ({
             name: e.name,
             apiKey: e.apiKey,
@@ -447,6 +519,8 @@ export default function AddApiKeyModal({
       isOpen={isOpen}
       title={getAddCredentialModalTitle(t, providerDisplayName, webSessionCredential)}
       onClose={onClose}
+      size="lg"
+      {...TALL_MODAL_PROPS}
     >
       <div className="flex flex-col gap-4">
         {webProviderHostLink && (
@@ -700,25 +774,112 @@ export default function AddApiKeyModal({
                 t={t}
               />
             )}
-            {!isNoAuthWebSessionCredential && (
-              <div className="flex gap-2">
+            {provider && (
+              <HarImportButton
+                provider={provider}
+                onImport={(apiKey) => setFormData({ ...formData, apiKey })}
+              />
+            )}
+            {!isNoAuthWebSessionCredential &&
+              (() => {
+                const isCheckDisabled =
+                  (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
+                  (isGooglePse && !formData.cx.trim()) ||
+                  validating ||
+                  saving;
+                return (
+                  <div className="flex gap-2">
+                    <Input
+                      label={apiCredentialLabel}
+                      type="password"
+                      value={formData.apiKey}
+                      onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !isCheckDisabled) {
+                          e.preventDefault();
+                          handleValidate();
+                        }
+                      }}
+                      className="flex-1"
+                      placeholder={apiCredentialPlaceholder}
+                      hint={apiCredentialHint}
+                      autoComplete="off"
+                      spellCheck={false}
+                      autoCapitalize="off"
+                    />
+                    <div className="pt-6">
+                      <Button
+                        onClick={handleValidate}
+                        disabled={isCheckDisabled}
+                        variant="secondary"
+                      >
+                        {validating
+                          ? t("checking")
+                          : webSessionCredential
+                            ? getWebSessionCredentialCheckLabel(t, webSessionCredential)
+                            : t("check")}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
+            {isChatGptWebCodex && (
+              <div className="space-y-3 rounded-lg border border-border bg-surface/40 p-3">
+                <div>
+                  <p className="text-sm font-medium text-text-main">Codex-Toolverbindung</p>
+                  <p className="mt-1 text-xs text-text-muted">
+                    Der Tunnel bleibt ausschließlich ausgehend. Lokale Tools werden weiterhin nur
+                    von Codex gemäß dessen Sandbox- und Freigaberichtlinie ausgeführt.
+                  </p>
+                </div>
                 <Input
-                  label={apiCredentialLabel}
-                  type="password"
-                  value={formData.apiKey}
-                  onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                  className="flex-1"
-                  placeholder={apiCredentialPlaceholder}
-                  hint={apiCredentialHint}
+                  label="Tunnel-ID"
+                  value={formData.tunnelId}
+                  onChange={(e) => setFormData({ ...formData, tunnelId: e.target.value })}
+                  placeholder="tunnel_0123456789abcdef0123456789abcdef"
                   autoComplete="off"
                   spellCheck={false}
-                  autoCapitalize="off"
                 />
+                <Input
+                  label="Tunnel Runtime-Key"
+                  type="password"
+                  value={formData.runtimeKey}
+                  onChange={(e) => setFormData({ ...formData, runtimeKey: e.target.value })}
+                  placeholder="Runtime-Key"
+                  hint="Wird zusammen mit dem Cookie verschlüsselt gespeichert und nie in Logs ausgegeben."
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                <Input
+                  label="ChatGPT-Custom-Connector"
+                  value={formData.connectorName}
+                  onChange={(e) => setFormData({ ...formData, connectorName: e.target.value })}
+                  placeholder={CHATGPT_WEB_CODEX_CONNECTOR_NAME}
+                />
+                {validationCapabilities && (
+                  <div className="grid grid-cols-2 gap-2 text-xs text-text-muted">
+                    <div>Browser: bereit</div>
+                    <div>Storage-State: geprüft</div>
+                    <div>ChatGPT-Anmeldung: bestätigt</div>
+                    <div>Temporary Chat: bereit</div>
+                    <div>
+                      Pro:{" "}
+                      {validationCapabilities.proAvailable === true ? "verfügbar" : "nicht erkannt"}
+                    </div>
+                    <div>
+                      Toolmodus:{" "}
+                      {formData.tunnelId.trim() && formData.runtimeKey.trim()
+                        ? "konfiguriert"
+                        : "global oder read-only"}
+                    </div>
+                  </div>
+                )}
                 <div className="pt-6">
                   <Button
                     onClick={handleValidate}
                     disabled={
                       (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
+                      (isAwsPolly && !formData.awsAccessKeyId.trim()) ||
                       (isGooglePse && !formData.cx.trim()) ||
                       validating ||
                       saving
@@ -751,6 +912,56 @@ export default function AddApiKeyModal({
                 autoCapitalize="off"
               />
             )}
+            {isAwsPolly && (
+              <>
+                <Input
+                  label={providerText(t, "awsPollyAccessKeyIdLabel", "AWS Access Key ID")}
+                  value={formData.awsAccessKeyId}
+                  onChange={(e) => setFormData({ ...formData, awsAccessKeyId: e.target.value })}
+                  placeholder="AKIA..."
+                  hint={providerText(
+                    t,
+                    "awsPollyAccessKeyIdHint",
+                    "Used with the secret access key to sign Amazon Polly requests."
+                  )}
+                  autoComplete="off"
+                  spellCheck={false}
+                  autoCapitalize="off"
+                />
+                <Input
+                  label={providerText(t, "awsPollyRegionLabel", "AWS Region")}
+                  value={formData.region}
+                  onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+                  placeholder="us-east-1"
+                  hint={providerText(
+                    t,
+                    "awsPollyRegionHint",
+                    "Defaults to us-east-1 when left blank."
+                  )}
+                  autoComplete="off"
+                  spellCheck={false}
+                  autoCapitalize="off"
+                />
+                <Input
+                  label={providerText(
+                    t,
+                    "awsPollySessionTokenLabel",
+                    "AWS Session Token (optional)"
+                  )}
+                  type="password"
+                  value={formData.awsSessionToken}
+                  onChange={(e) => setFormData({ ...formData, awsSessionToken: e.target.value })}
+                  hint={providerText(
+                    t,
+                    "awsPollySessionTokenHint",
+                    "Required only for temporary AWS credentials."
+                  )}
+                  autoComplete="off"
+                  spellCheck={false}
+                  autoCapitalize="off"
+                />
+              </>
+            )}
             {isGooglePse && (
               <Input
                 label={t("searchEngineIdLabel")}
@@ -760,9 +971,9 @@ export default function AddApiKeyModal({
                 hint={t("searchEngineIdHint")}
               />
             )}
-            {validationResult && (
-              <Badge variant={validationBadgeProps(validationResult).variant}>
-                {t(validationBadgeProps(validationResult).labelKey)}
+            {validationBadge && (
+              <Badge variant={validationBadge.variant}>
+                {providerText(t, validationBadge.labelKey, validationBadge.fallback)}
               </Badge>
             )}
             {saveError && (
@@ -944,7 +1155,6 @@ export default function AddApiKeyModal({
                 disabled={
                   !formData.name ||
                   (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
-                  (isCompatible && !formData.defaultModel.trim()) ||
                   (isGooglePse && !formData.cx.trim()) ||
                   saving ||
                   (usesBaseUrl && !formData.baseUrl.trim() && !defaultBaseUrl)

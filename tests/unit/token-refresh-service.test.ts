@@ -739,6 +739,35 @@ test("refreshCopilotToken returns the short-lived copilot token", async () => {
   assert.equal(calls[0].options.headers.Authorization, "token github-access-token");
 });
 
+test("refreshCopilotToken reports HTTP outcomes without logging response bodies", async () => {
+  const secret = "ghp_never-log-this";
+  const responseBody = `credential ${secret} rejected`;
+
+  for (const status of [401, 403, 429, 500]) {
+    const log = createLog();
+    const result = await withMockedFetch(
+      async () => textResponse(responseBody, status),
+      () => refreshCopilotToken(secret, log)
+    );
+
+    assert.deepEqual(result, { status });
+    assert.equal(JSON.stringify(log.entries).includes(secret), false);
+    assert.equal(JSON.stringify(log.entries).includes(responseBody), false);
+  }
+});
+
+test("refreshCopilotToken distinguishes network failures from HTTP failures", async () => {
+  const log = createLog();
+  const result = await withMockedFetch(
+    async () => {
+      throw new Error("socket closed");
+    },
+    () => refreshCopilotToken("ghp_network-test", log)
+  );
+
+  assert.deepEqual(result, { status: null });
+});
+
 test("supportsTokenRefresh, isUnrecoverableRefreshError and formatProviderCredentials cover provider helpers", async () => {
   const log = createLog();
 

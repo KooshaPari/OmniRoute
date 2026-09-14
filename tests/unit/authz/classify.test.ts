@@ -136,6 +136,12 @@ const cases: Case[] = [
     expectedClass: "PUBLIC",
   },
   {
+    name: "/api/health/ping is PUBLIC",
+    path: "/api/health/ping",
+    method: "GET",
+    expectedClass: "PUBLIC",
+  },
+  {
     name: "/api/cloud/auth POST is PUBLIC",
     path: "/api/cloud/auth",
     method: "POST",
@@ -246,4 +252,11 @@ test("classifyRoute treats /api/v1 prefix exactly", () => {
   assert.equal(classifyRoute("/api/v1/x").routeClass, "CLIENT_API");
   assert.equal(classifyRoute("/api/v1betamax").routeClass, "MANAGEMENT");
   assert.equal(classifyRoute("/api/v1beta/models").routeClass, "CLIENT_API");
+});
+
+test("classify module public surface only exposes route classification", () => {
+  assert.equal("classifyRoute" in classifyPublicApi, true);
+  assert.equal("isClientApi" in classifyPublicApi, false);
+  assert.equal("isManagement" in classifyPublicApi, false);
+  assert.equal("isPublic" in classifyPublicApi, false);
 });

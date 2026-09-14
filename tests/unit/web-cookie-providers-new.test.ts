@@ -8,7 +8,6 @@ const { V0VercelWebExecutor } = await import("../../open-sse/executors/v0-vercel
 const { KimiWebExecutor } = await import("../../open-sse/executors/kimi-web.ts");
 const { MoonshotExecutor } = await import("../../open-sse/executors/moonshot.ts");
 const { DoubaoWebExecutor } = await import("../../open-sse/executors/doubao-web.ts");
-const { QwenWebExecutor } = await import("../../open-sse/executors/qwen-web.ts");
 const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -110,48 +109,58 @@ const noopExecuteInput = {
 
 // ── Registration Tests ───────────────────────────────────────────────────────
 
-test("HuggingChat executor is registered", () => {
+test("HuggingChat executor is registered", async () => {
   assert.ok(hasSpecializedExecutor("huggingchat"));
   assert.ok(hasSpecializedExecutor("hc"));
-  const executor = getExecutor("huggingchat");
+  const executor = await getExecutor("huggingchat");
   assert.ok(executor instanceof HuggingChatExecutor);
 });
 
-test("Poe Web executor is registered", () => {
+test("Poe Web executor is registered", async () => {
   assert.ok(hasSpecializedExecutor("poe-web"));
-  assert.ok(hasSpecializedExecutor("poe"));
-  const executor = getExecutor("poe-web");
+  const executor = await getExecutor("poe-web");
   assert.ok(executor instanceof PoeWebExecutor);
+  // #8969: canonical API-key `poe` must not route through PoeWebExecutor.
+  assert.equal(hasSpecializedExecutor("poe"), false);
+  const poeApiExecutor = await getExecutor("poe");
+  assert.ok(!(poeApiExecutor instanceof PoeWebExecutor));
 });
 
-test("Venice Web executor is registered", () => {
+test("Venice Web executor is registered", async () => {
   assert.ok(hasSpecializedExecutor("venice-web"));
   assert.ok(hasSpecializedExecutor("ven"));
-  const executor = getExecutor("venice-web");
+  const executor = await getExecutor("venice-web");
   assert.ok(executor instanceof VeniceWebExecutor);
 });
 
-test("v0 Vercel Web executor is registered", () => {
+test("v0 Vercel Web executor is registered", async () => {
   assert.ok(hasSpecializedExecutor("v0-vercel-web"));
   assert.ok(hasSpecializedExecutor("v0"));
-  const executor = getExecutor("v0-vercel-web");
+  const executor = await getExecutor("v0-vercel-web");
   assert.ok(executor instanceof V0VercelWebExecutor);
 });
 
-test("Kimi Web executor is registered", () => {
-  assert.ok(getExecutor("kimi-web") instanceof KimiWebExecutor);
+test("Kimi Web executor is registered", async () => {
+  const kimiWebExecutor = await getExecutor("kimi-web");
+  assert.ok(kimiWebExecutor instanceof KimiWebExecutor);
   // #4699: the legacy `kimi` API-key id must never route through Kimi Web.
   assert.ok(hasSpecializedExecutor("kimi"));
-  const legacyExecutor = getExecutor("kimi");
+  const legacyExecutor = await getExecutor("kimi");
   assert.ok(legacyExecutor instanceof MoonshotExecutor);
   assert.ok(!(legacyExecutor instanceof KimiWebExecutor));
 });
 
-test("Doubao Web executor is registered", () => {
+test("Doubao Web executor is registered", async () => {
   assert.ok(hasSpecializedExecutor("doubao-web"));
   assert.ok(hasSpecializedExecutor("db"));
-  const executor = getExecutor("doubao-web");
+  const executor = await getExecutor("doubao-web");
   assert.ok(executor instanceof DoubaoWebExecutor);
+});
+
+test("Qwen Web aliases stay removed while Qwen Cloud remains routable", async () => {
+  assert.equal(hasSpecializedExecutor("qwen-web"), false);
+  assert.equal(hasSpecializedExecutor("qw"), false);
+  assert.equal((await getExecutor("qwen-cloud")).getProvider(), "qwen-cloud");
 });
 
 // ── Constructor Tests ────────────────────────────────────────────────────────
@@ -184,21 +193,6 @@ test("Kimi Web sets correct provider", () => {
 test("Doubao Web sets correct provider", () => {
   const executor = new DoubaoWebExecutor();
   assert.equal(executor.getProvider(), "doubao-web");
-});
-
-// ── Registration Tests (Qwen Web) ────────────────────────────────────────────
-
-test("Qwen Web executor is registered", () => {
-  assert.ok(hasSpecializedExecutor("qwen-web"));
-  const executor = getExecutor("qwen-web");
-  assert.ok(executor instanceof QwenWebExecutor);
-});
-
-// ── Constructor Tests (Qwen Web) ─────────────────────────────────────────────
-
-test("Qwen Web sets correct provider", () => {
-  const executor = new QwenWebExecutor();
-  assert.equal(executor.getProvider(), "qwen-web");
 });
 
 // ── HuggingChat Execution Tests ──────────────────────────────────────────────
@@ -252,7 +246,7 @@ test("HuggingChat: sends current web data payload with the root parent id", asyn
   const original = globalThis.fetch;
   let sentData: Record<string, unknown> | null = null;
   let callCount = 0;
-  globalThis.fetch = async (_url: any, opts: any) => {
+  globalThis.fetch = async (_url: MockFetchInput, opts?: MockFetchInit) => {
     callCount++;
     if (callCount === 1) {
       return new Response(JSON.stringify({ conversationId: "test-conv-123" }), {
@@ -300,7 +294,7 @@ test("HuggingChat: carries create response Set-Cookie into message send", async 
   const original = globalThis.fetch;
   let sendCookie = "";
   let callCount = 0;
-  globalThis.fetch = async (_url: any, opts: any) => {
+  globalThis.fetch = async (_url: MockFetchInput, opts?: MockFetchInit) => {
     callCount++;
     if (callCount === 1) {
       return new Response(JSON.stringify({ conversationId: "test-conv-123" }), {
@@ -349,7 +343,7 @@ test("HuggingChat: default model is a current concrete catalog model", async () 
   const original = globalThis.fetch;
   let createModel: unknown = null;
   let callCount = 0;
-  globalThis.fetch = async (_url: any, opts: any) => {
+  globalThis.fetch = async (_url: MockFetchInput, opts?: MockFetchInit) => {
     callCount++;
     if (callCount === 1) {
       createModel = JSON.parse(String(opts.body)).model;
@@ -668,7 +662,7 @@ test("v0 Vercel Web: error response returns error result", async () => {
 
 // ── Kimi Web Execution Tests ─────────────────────────────────────────────────
 
-test("Kimi Web: targets www.kimi.com (international)", async () => {
+test("Kimi Web: targets www.kimi.ai (international)", async () => {
   // The new executor talks to the Connect-RPC streaming endpoint on the
   // international domain. A bare empty credential is rejected before the
   // fetch fires, so we feed a fake JWT and let the mock absorb the request.
@@ -677,12 +671,17 @@ test("Kimi Web: targets www.kimi.com (international)", async () => {
     const executor = new KimiWebExecutor();
     const result = await executor.execute({
       ...noopExecuteInput,
-      model: "kimi-default",
+      model: "k2d6",
       credentials: { apiKey: "kimi-auth=eyJ.eyJzdWI.signature" },
     });
     assert.ok(result.response instanceof Response);
-    assert.ok(result.url.includes("www.kimi.com"), `got ${result.url}`);
-    assert.ok(!result.url.includes("moonshot.cn"));
+    // Parse the URL and assert on the exact hostname rather than a substring
+    // match — `includes("www.kimi.ai")` would also accept a hostile host like
+    // `www.kimi.ai.evil.net` or `evil.net/?x=www.kimi.ai` (CodeQL
+    // js/incomplete-url-substring-sanitization).
+    const host = new URL(result.url).hostname;
+    assert.equal(host, "www.kimi.ai", `got ${result.url}`);
+    assert.notEqual(host, "www.moonshot.cn", `got ${result.url}`);
   } finally {
     restore.restore();
   }
@@ -692,7 +691,7 @@ test("Kimi Web: missing JWT returns a 400 before fetching", async () => {
   const executor = new KimiWebExecutor();
   const result = await executor.execute({
     ...noopExecuteInput,
-    model: "kimi-default",
+    model: "k2d6",
     credentials: { apiKey: "" },
   });
   assert.equal(result.response.status, 400);
@@ -704,7 +703,7 @@ test("Kimi Web: error response returns error result", async () => {
     const executor = new KimiWebExecutor();
     const result = await executor.execute({
       ...noopExecuteInput,
-      model: "kimi-default",
+      model: "k2d6",
       credentials: { apiKey: "kimi-auth=eyJ.eyJzdWI.signature" },
     });
     assert.ok(result.response instanceof Response);

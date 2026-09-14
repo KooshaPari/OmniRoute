@@ -70,94 +70,146 @@ export const RENAMED_MIGRATION_COMPATIBILITY = [
     toName: "manifest_routing",
   },
   {
-    fromVersion: "113",
-    fromName: "provider_node_icon_url",
-    toVersion: "134",
-    toName: "provider_node_icon_url",
-  },
-  {
-    fromVersion: "114",
-    fromName: "mux_service_seed",
-    toVersion: "135",
-    toName: "mux_service_seed",
-  },
-  {
-    fromVersion: "115",
-    fromName: "bifrost_service",
-    toVersion: "136",
-    toName: "bifrost_service",
-  },
-  {
-    fromVersion: "116",
-    fromName: "call_logs_reasoning_source",
-    toVersion: "137",
-    toName: "call_logs_reasoning_source",
-  },
-  {
-    fromVersion: "117",
-    fromName: "proxy_pool_rotation",
-    toVersion: "138",
-    toName: "proxy_pool_rotation",
-  },
-  {
-    fromVersion: "118",
-    fromName: "provider_param_filters",
-    toVersion: "139",
-    toName: "provider_param_filters",
-  },
-  {
-    fromVersion: "119",
-    fromName: "model_capability_overrides",
-    toVersion: "140",
-    toName: "model_capability_overrides",
-  },
-  {
-    fromVersion: "120",
-    fromName: "interception_rules",
-    toVersion: "141",
-    toName: "interception_rules",
-  },
-  {
-    fromVersion: "122",
-    fromName: "free_proxy_sync_errors",
-    toVersion: "142",
-    toName: "free_proxy_sync_errors",
-  },
-  {
     fromVersion: "123",
-    fromName: "quota_auto_ping",
-    toVersion: "143",
-    toName: "quota_auto_ping",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "151",
+    toName: "windsurf_to_devin_desktop",
   },
   {
     fromVersion: "124",
-    fromName: "generic_session_affinity_ttl",
-    toVersion: "144",
-    toName: "generic_session_affinity_ttl",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "151",
+    toName: "windsurf_to_devin_desktop",
   },
   {
     fromVersion: "125",
-    fromName: "provider_connection_quota_visibility",
-    toVersion: "145",
-    toName: "provider_connection_quota_visibility",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "151",
+    toName: "windsurf_to_devin_desktop",
   },
   {
     fromVersion: "126",
-    fromName: "reasoning_routing_rules",
-    toVersion: "146",
-    toName: "reasoning_routing_rules",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "151",
+    toName: "windsurf_to_devin_desktop",
   },
   {
     fromVersion: "127",
-    fromName: "usage_history_account_identity",
-    toVersion: "147",
-    toName: "usage_history_account_identity",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "151",
+    toName: "windsurf_to_devin_desktop",
   },
   {
     fromVersion: "128",
-    fromName: "auto_candidate_overrides",
-    toVersion: "148",
-    toName: "auto_candidate_overrides",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "151",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    fromVersion: "131",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "151",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    // 133 collided with 133_call_logs_session_tag once that landed on release.
+    fromVersion: "133",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "151",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    // 135 and 136 are canonical release migrations now.
+    fromVersion: "135",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "151",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    fromVersion: "136",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "151",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    // 139 and 140 are occupied by CCR and connection runtime state.
+    fromVersion: "139",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "151",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    fromVersion: "140",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "151",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    // 143 is the API-key cache mode; 144–145 are the stacked Radar caches.
+    fromVersion: "143",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "151",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    // 144 was published by this PR before the Radar reservation landed.
+    fromVersion: "144",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "151",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    // inspector_custom_hosts was once published in slot 074, now occupied by
+    // discovery_results. Its canonical idempotent migration lives at 081.
+    fromVersion: "074",
+    fromName: "inspector_custom_hosts",
+    toVersion: "081",
+    toName: "inspector_custom_hosts",
+  },
+  {
+    fromVersion: "134",
+    fromName: "ccr_blocks",
+    toVersion: "139",
+    toName: "ccr_blocks",
+  },
+  {
+    fromVersion: "139",
+    fromName: "job_registry",
+    toVersion: "146",
+    toName: "job_registry",
+  },
+  {
+    // The cumulative Radar branch used 143 before 143_api_key_cache_default_mode
+    // landed on release/v3.8.50. Rehome already-applied Radar rows to the next
+    // free slot so the canonical API-key migration can still run.
+    fromVersion: "143",
+    fromName: "radar_local_model_state",
+    toVersion: "153",
+    toName: "radar_local_model_state",
+  },
+  {
+    fromVersion: "056",
+    fromName: "provider_default",
+    toVersion: "056",
+    toName: "mcp_accessibility_compression",
+  },
+  {
+    fromVersion: "073",
+    fromName: "discovery_results",
+    toVersion: "073",
+    toName: "per_model_token_limits",
+  },
+  {
+    fromVersion: "077",
+    fromName: "plugin_metrics",
+    toVersion: "077",
+    toName: "api_key_stream_default_mode",
+  },
+  {
+    fromVersion: "101",
+    fromName: "proxy_pool_rotation",
+    toVersion: "101",
+    toName: "api_key_usage_limits",
   },
 ] as const;
 

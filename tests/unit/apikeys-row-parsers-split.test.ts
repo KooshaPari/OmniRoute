@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 
 const P = await import("../../src/lib/db/apiKeys/rowParsers.ts");
 
-test("module exposes all fifteen parsers", () => {
+test("module exposes all sixteen parsers", () => {
   for (const name of [
     "parseAllowedModels",
     "parseAllowedCombos",
@@ -18,6 +18,7 @@ test("module exposes all fifteen parsers", () => {
     "parseDisableNonPublicModels",
     "parseAllowUsageCommand",
     "parseIsActive",
+    "parseCompressionEnabled",
     "parseAccessSchedule",
     "parseRateLimits",
     "parseAllowedConnections",
@@ -38,6 +39,13 @@ test("parseAllowedModels keeps only string entries, tolerates junk", () => {
   assert.deepEqual(P.parseAllowedModels(null), []);
 });
 
+test("parseAllowedCombos preserves legacy NULL as allow-all without widening explicit []", () => {
+  assert.deepEqual(P.parseAllowedCombos(null), ["combo/*"]);
+  assert.deepEqual(P.parseAllowedCombos(undefined), ["combo/*"]);
+  assert.deepEqual(P.parseAllowedCombos("[]"), []);
+  assert.deepEqual(P.parseAllowedCombos('["fast-chat"]'), ["fast-chat"]);
+});
+
 test("flag parsers honor the 0/1/true/false matrix", () => {
   assert.equal(P.parseNoLog(1), true);
   assert.equal(P.parseNoLog("1"), true);
@@ -46,6 +54,14 @@ test("flag parsers honor the 0/1/true/false matrix", () => {
   assert.equal(P.parseIsActive(undefined), true);
   assert.equal(P.parseIsActive(0), false);
   assert.equal(P.parseIsActive("0"), false);
+  // compressionEnabled also defaults on for legacy/missing rows.
+  assert.equal(P.parseCompressionEnabled(undefined), true);
+  assert.equal(P.parseCompressionEnabled(null), true);
+  assert.equal(P.parseCompressionEnabled(1), true);
+  assert.equal(P.parseCompressionEnabled("1"), true);
+  assert.equal(P.parseCompressionEnabled(0), false);
+  assert.equal(P.parseCompressionEnabled("0"), false);
+  assert.equal(P.parseCompressionEnabled(false), false);
   assert.equal(P.parseIsBanned(1), true);
   assert.equal(P.parseIsBanned(0), false);
 });

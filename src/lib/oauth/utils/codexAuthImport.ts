@@ -2,7 +2,7 @@ import {
   getProviderConnections,
   createProviderConnection,
   updateProviderConnection,
-} from "@/lib/localDb";
+} from "@/lib/db/providers";
 import { CodexAuthFileError } from "@/lib/oauth/utils/codexAuthFile";
 import { pickCodexConnectionForUser } from "@/lib/oauth/utils/codexConnectionSelection";
 
@@ -180,7 +180,11 @@ export async function createConnectionFromAuthFile(
   parsed: ParsedCodexAuth,
   options: CreateConnectionOptions
 ): Promise<{ connection: JsonRecord; created: boolean }> {
-  const existing = await findExistingCodexConnection(parsed.accountId, parsed.userId, parsed.email);
+  const existing = await findExistingCodexConnection(
+    parsed.accountId,
+    parsed.userId,
+    options.email || parsed.email || null
+  );
 
   if (existing) {
     if (!options.overwriteExisting) {
@@ -257,12 +261,23 @@ export async function createConnectionFromAuthFile(
   return { connection, created: true };
 }
 
+// Dedup key is the workspace/account id AND the per-user id. Two distinct users in the
+// same workspace share an accountId but have different userIds, so they must NOT collide
+// (#6301). Backward-compat: connections imported before the chatgptUserId field existed
+// carry no stored userId — when NONE of the workspace matches has a stored userId we
+// promote the legacy row with a compatible email, or an email-less legacy row. From the
+// connections already matched on workspace/account id, pick the one that belongs to the
+// incoming user. A different user in the same workspace is NOT a duplicate — refuse to
+// dedup when some stored connection actually records a different userId.
 async function findExistingCodexConnection(
   accountId: string,
   userId: string | null,
   email: string | null
 ): Promise<JsonRecord | null> {
-  const connections = await getProviderConnections({ provider: "codex" });
+  const connections = await getProviderConnections({
+    provider: "codex",
+    authType: "oauth",
+  });
   const workspaceMatches = (connections as JsonRecord[]).filter(
     (c) => toNonEmptyString(toRecord(c.providerSpecificData).workspaceId) === accountId
   );

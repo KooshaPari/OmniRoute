@@ -74,7 +74,15 @@ async function main() {
 
   const vitestProcess = spawn(
     process.execPath,
-    ["./node_modules/vitest/vitest.mjs", "run", "tests/e2e/ecosystem.test.ts"],
+    [
+      "./node_modules/vitest/vitest.mjs",
+      "run",
+      // Without --config, Vitest loads vitest.config.ts, whose exclude list drops
+      // this file — the run then dies with "No test files found".
+      "--config",
+      "vitest.e2e-live.config.ts",
+      "tests/e2e/ecosystem.test.ts",
+    ],
     {
       stdio: "inherit",
       env: testEnv,

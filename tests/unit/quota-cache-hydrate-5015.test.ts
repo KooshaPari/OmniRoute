@@ -26,7 +26,7 @@ const quotaCache = await import("../../src/domain/quotaCache.ts");
 
 test.after(() => {
   coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
 test("#5015 isAccountQuotaExhausted hydrates exhausted state from a persisted snapshot", () => {
@@ -58,5 +58,36 @@ test("#5015 a connection with no snapshot is not reported exhausted", () => {
     quotaCache.isAccountQuotaExhausted("conn-unknown-5015"),
     false,
     "no snapshot → no hydration → not exhausted"
+  );
+});
+
+test("mixed persisted Z.AI quota windows keep chat requests eligible", () => {
+  const connectionId = "conn-zai-mixed-windows";
+
+  quotaSnapshotsDb.saveQuotaSnapshot({
+    provider: "zai",
+    connection_id: connectionId,
+    window_key: "session",
+    remaining_percentage: 93,
+    is_exhausted: 0,
+    next_reset_at: "2099-01-01T00:00:00.000Z",
+    window_duration_ms: null,
+    raw_data: null,
+  });
+  quotaSnapshotsDb.saveQuotaSnapshot({
+    provider: "zai",
+    connection_id: connectionId,
+    window_key: "mcp_monthly",
+    remaining_percentage: 0,
+    is_exhausted: 1,
+    next_reset_at: "2099-02-01T00:00:00.000Z",
+    window_duration_ms: null,
+    raw_data: null,
+  });
+
+  assert.equal(
+    quotaCache.isQuotaExhaustedForRequest(connectionId, "zai", "glm-5.2"),
+    false,
+    "an exhausted tools window must not block chat while the session window has quota"
   );
 });

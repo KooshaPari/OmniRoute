@@ -9,24 +9,37 @@
  */
 
 import { getDbInstance } from "./core";
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("db:quota-pools");
-
+import { clearApiKeyCaches } from "./apiKeys";
+import { invalidateModelCatalogCache } from "./readCache";
 // Phase B2: auto-mint/prune quotaShared-* combos when pool allocations change.
 // Imported lazily (dynamic import in the hook) to avoid circular-dependency
-// risk between db/ and quota/ modules. The import is fire-and-forget; combo
-// failures never break pool CRUD.
+// risk between db/ and quota/ modules. Sync hooks are fire-and-forget; deletion
+// awaits its guarded cleanup while metadata is available. Combo failures never
+// break pool CRUD.
+const quotaComboMaintenance = new Map<string, Promise<unknown>>();
+const deletingPools = new Set<string>();
+
+function serializeQuotaComboMaintenance<T>(
+  poolId: string,
+  operation: () => Promise<T>
+): Promise<T> {
+  const previous = quotaComboMaintenance.get(poolId);
+  const current = previous ? previous.catch(() => undefined).then(operation) : operation();
+  quotaComboMaintenance.set(poolId, current);
+  const cleanup = () => {
+    if (quotaComboMaintenance.get(poolId) === current) quotaComboMaintenance.delete(poolId);
+  };
+  void current.then(cleanup, cleanup);
+  return current;
+}
+
 async function syncQuotaCombosGuarded(poolId: string): Promise<void> {
   try {
     const { syncQuotaCombos } = await import("@/lib/quota/quotaCombos");
     await syncQuotaCombos(poolId);
   } catch (err) {
     // Guard: combo-sync failure must never break pool CRUD callers.
-    log.warn(
-      { err, poolId },
-      "syncQuotaCombos failed (non-fatal)"
-    );
+    console.warn("[quota-pools] syncQuotaCombos failed (non-fatal):", (err as Error)?.message);
   }
 }
 
@@ -35,9 +48,9 @@ async function removeQuotaCombosGuarded(poolId: string): Promise<void> {
     const { removeQuotaCombosForPool } = await import("@/lib/quota/quotaCombos");
     await removeQuotaCombosForPool(poolId);
   } catch (err) {
-    log.warn(
-      { err, poolId },
-      "removeQuotaCombosForPool failed (non-fatal)"
+    console.warn(
+      "[quota-pools] removeQuotaCombosForPool failed (non-fatal):",
+      (err as Error)?.message,
     );
   }
 }
@@ -96,6 +109,12 @@ export interface PoolUpdate {
   connectionIds?: string[];
 }
 
+export interface EnsurePoolResult {
+  pool: QuotaPool;
+  created: boolean;
+  updated: boolean;
+}
+
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
@@ -132,7 +151,7 @@ function assertSingleProvider(connectionIds: string[]): void {
   const providers = rows.map((r) => r.provider).filter(Boolean);
   if (new Set(providers).size > 1) {
     throw new Error(
-      `A quota pool must use a single provider (got: ${[...new Set(providers)].join(", ")})`
+      `A quota pool must use a single provider (got: ${[...new Set(providers)].join(", ")})`,
     );
   }
 }
@@ -186,7 +205,7 @@ interface PoolConnectionRow {
 function getConnectionIds(poolId: string, fallbackConnectionId: string): string[] {
   const rows = getDb()
     .prepare<PoolConnectionRow>(
-      "SELECT connection_id FROM quota_pool_connections WHERE pool_id = ? ORDER BY created_at ASC"
+      "SELECT connection_id FROM quota_pool_connections WHERE pool_id = ? ORDER BY created_at ASC",
     )
     .all(poolId);
   if (rows.length > 0) {
@@ -217,7 +236,7 @@ function batchBuildPools(rows: PoolRow[]): QuotaPool[] {
   // Batch allocations: 1 query for all pools
   const allocRows = db
     .prepare<AllocationRow>(
-      `SELECT pool_id, api_key_id, weight, cap_value, cap_unit, policy FROM quota_allocations WHERE pool_id IN (${ph})`
+      `SELECT pool_id, api_key_id, weight, cap_value, cap_unit, policy FROM quota_allocations WHERE pool_id IN (${ph})`,
     )
     .all(...poolIds);
   const allocsByPool = new Map<string, AllocationRow[]>();
@@ -233,7 +252,7 @@ function batchBuildPools(rows: PoolRow[]): QuotaPool[] {
   // Batch connections: 1 query for all pools
   const connRows = db
     .prepare<{ pool_id: string; connection_id: string }>(
-      `SELECT pool_id, connection_id FROM quota_pool_connections WHERE pool_id IN (${ph}) ORDER BY created_at ASC`
+      `SELECT pool_id, connection_id FROM quota_pool_connections WHERE pool_id IN (${ph}) ORDER BY created_at ASC`,
     )
     .all(...poolIds);
   const connsByPool = new Map<string, string[]>();
@@ -260,7 +279,7 @@ function batchBuildPools(rows: PoolRow[]): QuotaPool[] {
 function getAllocations(poolId: string): PoolAllocation[] {
   const rows = getDb()
     .prepare<AllocationRow>(
-      "SELECT pool_id, api_key_id, weight, cap_value, cap_unit, policy FROM quota_allocations WHERE pool_id = ?"
+      "SELECT pool_id, api_key_id, weight, cap_value, cap_unit, policy FROM quota_allocations WHERE pool_id = ?",
     )
     .all(poolId);
   return rows.map(rowToAllocation);
@@ -331,7 +350,7 @@ export function listPools(options?: { limit?: number; offset?: number }): {
 export function getPool(id: string): QuotaPool | null {
   const row = getDb()
     .prepare<PoolRow>(
-      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?"
+      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?",
     )
     .get(id);
   if (!row) return null;
@@ -365,12 +384,12 @@ export function createPool(input: PoolCreate): QuotaPool {
   const doCreate = database.transaction(() => {
     database
       .prepare(
-        "INSERT INTO quota_pools (id, connection_id, name, group_id, created_at) VALUES (?, ?, ?, ?, ?)"
+        "INSERT INTO quota_pools (id, connection_id, name, group_id, created_at) VALUES (?, ?, ?, ?, ?)",
       )
       .run(id, primaryConnectionId, input.name, groupId, now);
 
     const insertConn = database.prepare(
-      "INSERT OR IGNORE INTO quota_pool_connections (pool_id, connection_id) VALUES (?, ?)"
+      "INSERT OR IGNORE INTO quota_pool_connections (pool_id, connection_id) VALUES (?, ?)",
     );
     for (const connId of members) {
       insertConn.run(id, connId);
@@ -379,7 +398,7 @@ export function createPool(input: PoolCreate): QuotaPool {
     if (input.allocations && input.allocations.length > 0) {
       const insertAlloc = database.prepare(
         `INSERT INTO quota_allocations (pool_id, api_key_id, weight, cap_value, cap_unit, policy)
-         VALUES (?, ?, ?, ?, ?, ?)`
+         VALUES (?, ?, ?, ?, ?, ?)`,
       );
       for (const alloc of input.allocations) {
         insertAlloc.run(
@@ -388,7 +407,7 @@ export function createPool(input: PoolCreate): QuotaPool {
           alloc.weight,
           alloc.capValue ?? null,
           alloc.capUnit ?? null,
-          alloc.policy
+          alloc.policy,
         );
       }
     }
@@ -403,13 +422,59 @@ export function createPool(input: PoolCreate): QuotaPool {
       group_id: groupId,
       created_at: now,
     },
-    getAllocations(id)
+    getAllocations(id),
   );
 
   // Phase B2: fire-and-forget combo sync; failures are logged but never thrown.
-  void syncQuotaCombosGuarded(id);
+  void serializeQuotaComboMaintenance(id, () => syncQuotaCombosGuarded(id));
+
+  invalidateModelCatalogCache();
 
   return result;
+}
+
+function allocationFingerprint(allocations: PoolAllocation[] = []): string {
+  return JSON.stringify(
+    allocations
+      .map((allocation) => ({
+        apiKeyId: allocation.apiKeyId,
+        weight: allocation.weight,
+        capValue: allocation.capValue ?? null,
+        capUnit: allocation.capUnit ?? null,
+        policy: allocation.policy,
+      }))
+      .sort((left, right) => left.apiKeyId.localeCompare(right.apiKeyId))
+  );
+}
+
+/** Idempotent pool management for automation and bounded CLI callers. */
+export function ensurePool(input: PoolCreate): EnsurePoolResult {
+  const members = input.connectionIds && input.connectionIds.length > 0
+    ? input.connectionIds
+    : [input.connectionId];
+  const groupId = input.groupId || "group-demo";
+  const existing = listPools().items.find((pool) => {
+    return pool.name === input.name && pool.groupId === groupId;
+  });
+
+  if (!existing) return { pool: createPool(input), created: true, updated: false };
+
+  const allocationsChanged =
+    input.allocations !== undefined &&
+    allocationFingerprint(existing.allocations) !== allocationFingerprint(input.allocations);
+  const membersChanged =
+    existing.connectionIds.length !== members.length ||
+    existing.connectionIds.some((id) => !members.includes(id));
+  if (!allocationsChanged && !membersChanged) {
+    return { pool: existing, created: false, updated: false };
+  }
+
+  const update: PoolUpdate = { connectionIds: members };
+  if (input.allocations !== undefined) update.allocations = input.allocations;
+  if (input.groupId !== undefined) update.groupId = input.groupId;
+  const updated = updatePool(existing.id, update);
+  if (!updated) throw new Error(`Quota pool disappeared during ensure: ${existing.id}`);
+  return { pool: updated, created: false, updated: true };
 }
 
 /**
@@ -419,10 +484,12 @@ export function createPool(input: PoolCreate): QuotaPool {
  * connection_id (primary) is synced to connectionIds[0].
  */
 export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
+  if (deletingPools.has(id)) return null;
+
   const database = getDb();
   const existing = database
     .prepare<PoolRow>(
-      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?"
+      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?",
     )
     .get(id);
   if (!existing) return null;
@@ -448,7 +515,7 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
       // Replace join rows.
       database.prepare("DELETE FROM quota_pool_connections WHERE pool_id = ?").run(id);
       const insertConn = database.prepare(
-        "INSERT OR IGNORE INTO quota_pool_connections (pool_id, connection_id) VALUES (?, ?)"
+        "INSERT OR IGNORE INTO quota_pool_connections (pool_id, connection_id) VALUES (?, ?)",
       );
       for (const connId of input.connectionIds) {
         insertConn.run(id, connId);
@@ -463,7 +530,7 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
       database.prepare("DELETE FROM quota_allocations WHERE pool_id = ?").run(id);
       const insertAlloc = database.prepare(
         `INSERT INTO quota_allocations (pool_id, api_key_id, weight, cap_value, cap_unit, policy)
-         VALUES (?, ?, ?, ?, ?, ?)`
+         VALUES (?, ?, ?, ?, ?, ?)`,
       );
       for (const alloc of input.allocations) {
         insertAlloc.run(
@@ -472,7 +539,7 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
           alloc.weight,
           alloc.capValue ?? null,
           alloc.capUnit ?? null,
-          alloc.policy
+          alloc.policy,
         );
       }
     }
@@ -482,7 +549,9 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
   const result = rowToPool(existing, getAllocations(id));
 
   // Phase B2: fire-and-forget combo sync; failures are logged but never thrown.
-  void syncQuotaCombosGuarded(id);
+  void serializeQuotaComboMaintenance(id, () => syncQuotaCombosGuarded(id));
+
+  invalidateModelCatalogCache();
 
   return result;
 }
@@ -492,28 +561,45 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
  * Also removes join rows in quota_pool_connections.
  * Returns true if a row was deleted, false if not found.
  */
-export function deletePool(id: string): boolean {
-  // Phase B2: remove quota combos BEFORE deleting the pool row so that
-  // removeQuotaCombosForPool can still resolve the pool name → slug.
-  void removeQuotaCombosGuarded(id);
+export async function deletePool(id: string): Promise<boolean> {
+  if (deletingPools.has(id)) return false;
+  const exists = getDb().prepare<{ id: string }>("SELECT id FROM quota_pools WHERE id = ?").get(id);
+  if (!exists) return false;
+  deletingPools.add(id);
 
-  const database = getDb();
-  const doDelete = database.transaction(() => {
-    database.prepare("DELETE FROM quota_pool_connections WHERE pool_id = ?").run(id);
-    // Prune this pool id from every key's allowed_quotas JSON array.
-    database
-      .prepare(
-        `UPDATE api_keys SET allowed_quotas = COALESCE(
+  const deletion = serializeQuotaComboMaintenance(id, async () => {
+    // Phase B2: remove quota combos BEFORE deleting the pool row so that
+    // removeQuotaCombosForPool can still resolve the pool name → slug.
+    await removeQuotaCombosGuarded(id);
+
+    const database = getDb();
+    const doDelete = database.transaction(() => {
+      database.prepare("DELETE FROM quota_pool_connections WHERE pool_id = ?").run(id);
+      // Prune this pool id from every key's allowed_quotas JSON array.
+      database
+        .prepare(
+          `UPDATE api_keys SET allowed_quotas = COALESCE(
          (SELECT json_group_array(value) FROM json_each(api_keys.allowed_quotas) WHERE value != ?),
          '[]')
        WHERE allowed_quotas IS NOT NULL AND allowed_quotas != '[]'
          AND EXISTS (SELECT 1 FROM json_each(api_keys.allowed_quotas) WHERE value = ?)`
-      )
-      .run(id, id);
-    return database.prepare("DELETE FROM quota_pools WHERE id = ?").run(id);
+        )
+        .run(id, id);
+      return database.prepare("DELETE FROM quota_pools WHERE id = ?").run(id);
+    });
+    const result = doDelete();
+    if (result.changes <= 0) return false;
+
+    // Direct rewrite of key permission metadata happens above; clear API-key
+    // caches so any primed permission entries pick up the new allowed_quotas set.
+    clearApiKeyCaches();
+    invalidateModelCatalogCache();
+
+    return true;
   });
-  const result = doDelete();
-  return result.changes > 0;
+  const clearDeleting = () => deletingPools.delete(id);
+  void deletion.then(clearDeleting, clearDeleting);
+  return deletion;
 }
 
 /**
@@ -553,13 +639,15 @@ export function deletePool(id: string): boolean {
  * Runs atomically: all pool writes are inside a single SQLite transaction.
  */
 export function upsertAllocations(poolId: string, allocations: PoolAllocation[]): void {
+  if (deletingPools.has(poolId)) return;
+
   const database = getDb();
 
   // Normalize: when all weights are 0, distribute equally so the pool is usable
   // without requiring a manual re-save. Persists the normalized weights.
   const totalWeight = allocations.reduce(
     (s, a) => s + (Number.isFinite(a.weight) ? a.weight : 0),
-    0
+    0,
   );
   const normalizedAllocations =
     totalWeight === 0 && allocations.length > 0
@@ -570,7 +658,7 @@ export function upsertAllocations(poolId: string, allocations: PoolAllocation[])
   // Defensive: fall back to [poolId] (single-pool semantics) if pool not found.
   const targetPool = database
     .prepare<PoolRow>(
-      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?"
+      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?",
     )
     .get(poolId);
 
@@ -589,7 +677,7 @@ export function upsertAllocations(poolId: string, allocations: PoolAllocation[])
   const doUpsert = database.transaction(() => {
     const insert = database.prepare(
       `INSERT INTO quota_allocations (pool_id, api_key_id, weight, cap_value, cap_unit, policy)
-       VALUES (?, ?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?)`,
     );
     for (const pid of poolIdsInGroup) {
       database.prepare("DELETE FROM quota_allocations WHERE pool_id = ?").run(pid);
@@ -600,7 +688,7 @@ export function upsertAllocations(poolId: string, allocations: PoolAllocation[])
           alloc.weight,
           alloc.capValue ?? null,
           alloc.capUnit ?? null,
-          alloc.policy
+          alloc.policy,
         );
       }
     }
@@ -609,7 +697,7 @@ export function upsertAllocations(poolId: string, allocations: PoolAllocation[])
 
   // Phase B2: fire-and-forget combo sync for the target pool only; failures are
   // logged but never thrown. Sibling pools' combos are synced on their own lifecycle.
-  void syncQuotaCombosGuarded(poolId);
+  void serializeQuotaComboMaintenance(poolId, () => syncQuotaCombosGuarded(poolId));
 }
 
 /**
@@ -617,13 +705,13 @@ export function upsertAllocations(poolId: string, allocations: PoolAllocation[])
  * Returns pairs of { poolId, allocation }.
  */
 export function listAllocationsForApiKey(
-  apiKeyId: string
+  apiKeyId: string,
 ): Array<{ poolId: string; allocation: PoolAllocation }> {
   const rows = getDb()
     .prepare<AllocationRow>(
       `SELECT pool_id, api_key_id, weight, cap_value, cap_unit, policy
        FROM quota_allocations
-       WHERE api_key_id = ?`
+       WHERE api_key_id = ?`,
     )
     .all(apiKeyId);
   return rows.map((row) => ({ poolId: row.pool_id, allocation: rowToAllocation(row) }));

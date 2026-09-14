@@ -4,6 +4,8 @@ const CLAUDE_CODE_COMPATIBLE_PROVIDER_PREFIX = "anthropic-compatible-cc-";
 import { normalizeExcludedModelPatterns } from "@/domain/connectionModelRules";
 import { normalizeRoutingTags } from "@/domain/tagRouter";
 import { normalizeOpenRouterPreset } from "@/shared/constants/openRouterPreset";
+import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
+import { normalizePeakHourProtection } from "@/lib/providers/peakHourProtection";
 
 export const CODEX_REASONING_EFFORT_VALUES = [
   "none",
@@ -192,6 +194,18 @@ export function normalizeProviderSpecificData(
     delete normalized.openaiStoreEnabled;
   }
 
+  if (provider === "codex") {
+    if (normalized.codexFingerprintMode === null) delete normalized.codexFingerprintMode;
+    if (normalized.codex_fingerprint_mode === null) delete normalized.codex_fingerprint_mode;
+  }
+
+  if (
+    "preserveEncryptedReasoning" in normalized &&
+    typeof normalized.preserveEncryptedReasoning !== "boolean"
+  ) {
+    delete normalized.preserveEncryptedReasoning;
+  }
+
   if ("blockExtraUsage" in normalized && typeof normalized.blockExtraUsage !== "boolean") {
     delete normalized.blockExtraUsage;
   }
@@ -201,8 +215,25 @@ export function normalizeProviderSpecificData(
     delete normalized.disableCooling;
   }
 
+  if ("peakHourProtection" in normalized) {
+    const peakHourProtection = normalizePeakHourProtection(normalized.peakHourProtection);
+    if (peakHourProtection) {
+      normalized.peakHourProtection = peakHourProtection;
+    } else {
+      delete normalized.peakHourProtection;
+    }
+  }
+
   if ("autoFetchModels" in normalized && typeof normalized.autoFetchModels !== "boolean") {
     delete normalized.autoFetchModels;
+  }
+
+  // Per-connection operator timeout — only persist a real integer.
+  if (
+    "timeoutMs" in normalized &&
+    (typeof normalized.timeoutMs !== "number" || !Number.isInteger(normalized.timeoutMs))
+  ) {
+    delete normalized.timeoutMs;
   }
 
   if ("preset" in normalized) {
@@ -257,6 +288,30 @@ export function normalizeProviderSpecificData(
     delete normalized.excluded_models;
   }
 
+  // #8369: connection-level custom upstream headers — sanitize each key against the
+  // forbidden-header denylist and drop entries with non-string or empty values.
+  if ("customHeaders" in normalized) {
+    const raw = normalized.customHeaders;
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+      const cleaned: Record<string, string> = {};
+      for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+        const trimmedKey = key.trim();
+        if (!trimmedKey) continue;
+        if (isForbiddenCustomHeaderName(trimmedKey)) continue;
+        if (typeof value === "string" && value.trim().length > 0) {
+          cleaned[trimmedKey] = value.trim();
+        }
+      }
+      if (Object.keys(cleaned).length > 0) {
+        normalized.customHeaders = cleaned;
+      } else {
+        delete normalized.customHeaders;
+      }
+    } else {
+      delete normalized.customHeaders;
+    }
+  }
+
   return Object.keys(normalized).length > 0 ? normalized : undefined;
 }
 
@@ -265,6 +320,10 @@ export function sanitizeProviderSpecificDataForResponse(value: unknown): JsonRec
   if (Object.keys(record).length === 0) return undefined;
 
   const sanitized: JsonRecord = { ...record };
+  delete sanitized.accessToken;
+  delete sanitized.refreshToken;
+  delete sanitized.idToken;
+  delete sanitized.apiKey;
   delete sanitized.consoleApiKey;
   delete sanitized.secretAccessKey;
   delete sanitized.awsSecretAccessKey;
@@ -277,6 +336,28 @@ export function sanitizeProviderSpecificDataForResponse(value: unknown): JsonRec
   delete sanitized.ollamaCloudUsageCookie;
   delete sanitized.ollamaCloudCookie;
   delete sanitized.usageCookie;
+  // Qwen/Alibaba Token Plan console session — a browser credential for the operator's
+  // cloud-console account, same class as the ollama/opencode cookies above. The edit
+  // modal initializes these fields empty and the PUT merge preserves unsent keys, so
+  // stripping them here cannot clobber the stored values.
+  delete sanitized.qwenCloudCookie;
+  delete sanitized.qwenCloudSecToken;
+  delete sanitized.alibabaConsoleCookie;
+  delete sanitized.alibabaConsoleSecToken;
+  delete sanitized.runtimeKey;
+  delete sanitized.validationId;
+  delete sanitized.volcConsoleCookie;
+  delete sanitized.volcCsrfToken;
+  // System-managed Codex fingerprint seed: never exposed through the API
+  // (mirrors sub2api stripping `codex_fingerprint_seed`); the server-side
+  // partial-update merge keeps it alive without the client round-tripping it.
+  delete sanitized.codexFingerprintSeed;
+  // Runtime-only Codex identity carriers (in-memory per request, never
+  // persisted) — strip defensively if they ever leak into a response payload.
+  delete sanitized.codexClientIdentity;
+  delete sanitized.codexOriginalIdentityHeaders;
+  delete sanitized.codexTurnStateEcho;
+  if (sanitized.browserCdpEndpoint) sanitized.browserCdpEndpoint = "configured";
   return sanitized;
 }
 

@@ -78,11 +78,11 @@ export function buildImproveChatBody(req: ImprovePromptRequest): {
  * Retorna ambos quando ambos foram enviados; senão retorna só o presente.
  *
  * Edge cases:
- * - If raw does not contain <<SYSTEM>> or <<PROMPT>> markers:
- *   - If hadSystem and !hadPrompt → treat all content as improvedSystem
- *   - If !hadSystem and hadPrompt → treat all content as improvedPrompt
- *   - If hadSystem and hadPrompt → treat all content as improvedPrompt (fallback)
- * - Whitespace is trimmed before returning
+ * - Se raw não contém marcadores <<SYSTEM>> ou <<PROMPT>>:
+ *   - Se hadSystem e !hadPrompt → trata todo o conteúdo como improvedSystem
+ *   - Se !hadSystem e hadPrompt → trata todo o conteúdo como improvedPrompt
+ *   - Se hadSystem e hadPrompt → trata todo o conteúdo como improvedPrompt (fallback)
+ * - Whitespace é trimado antes de retornar
  */
 export function parseImprovedContent(
   raw: string,

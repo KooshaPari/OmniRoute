@@ -190,10 +190,7 @@ export function buildSocksFamilySocketOptions(family: 4 | 6 | null): Record<stri
 }
 ```
 
-`createProxyDispatcher` wybiera connector w zależności od tego, czy rodzina jest przypięta:
-
-- `family === null` (czyli `auto` nad hostname) → stockowe `socksDispatcher` z `fetch-socks`.
-- `family === 4 | 6` → `createSocksDispatcherWithFamily`, które przekazuje `socket_options` do `SocksClient.createConnection`, żeby Happy Eyeballs nie wybrał IPv4 przy polityce egress tylko-IPv6.
+Wszystkie dispatchery SOCKS5 przechodzą przez `createSocksDispatcherWithFamily` niezależnie od `family` (również `null` / `auto` nad hostname): `buildSocksFamilySocketOptions(null)` daje `{}`, a ta sama ścieżka `SocksClient.createConnection` + TLS `buildConnector` jest używana z przypięciem `socket_options`, żeby Happy Eyeballs nie wybrał IPv4 przy polityce egress tylko-IPv6.
 
 Sam support SOCKS5 jest domyślnie włączony (opt-out przez `ENABLE_SOCKS5_PROXY=false`); zob. [PROXY_GUIDE.md → Environment Variables](../ops/PROXY_GUIDE.md#environment-variables).
 

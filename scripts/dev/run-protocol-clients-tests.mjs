@@ -57,10 +57,24 @@ async function main() {
           OMNIROUTE_BASE_URL: baseUrl,
         }),
     OMNIROUTE_E2E_BOOTSTRAP_MODE: process.env.OMNIROUTE_E2E_BOOTSTRAP_MODE || "open",
+    // Pin the custom server's bind address to loopback (#11535): under the
+    // programmatic next() entry the middleware's nextUrl.hostname mirrors the
+    // configured HOST (default "0.0.0.0"), and apiAuth.isLoopbackRequest() reads
+    // nextUrl.hostname FIRST — an unpinned boot makes every request look remote,
+    // so the anonymous open-bootstrap allow never fires (401 green-shallow).
+    HOST: process.env.HOST || "127.0.0.1",
   };
 
   if (!(await isServerReady())) {
-    serverProcess = spawn(process.execPath, ["scripts/dev/run-next-playwright.mjs", "dev"], {
+    // Boot the REAL custom server (run-next.mjs), not the bare `next dev` CLI.
+    // Only the custom Node server stamps the trusted PEER_IP_HEADER from the TCP
+    // socket; without that stamp the authz middleware fails closed on locality and
+    // every LOCAL_ONLY route (e.g. /api/mcp/audit) answers 403 even from loopback
+    // (#11535). run-next.mjs honors OMNIROUTE_E2E_BOOTSTRAP_MODE=open by clearing
+    // bootstrap credentials after its env merge, keeping the audit assertions live
+    // (200) instead of masking them behind a 401. The Playwright webServer runner is
+    // intentionally left untouched — it serves the whole blocking test-e2e suite.
+    serverProcess = spawn(process.execPath, ["scripts/dev/run-next.mjs", "dev"], {
       stdio: "inherit",
       env: testEnv,
     });
@@ -73,8 +87,11 @@ async function main() {
     [
       "./node_modules/vitest/vitest.mjs",
       "run",
-      "--environment",
-      "node",
+      // Without --config, Vitest loads vitest.config.ts, whose exclude list drops
+      // this file — the run then dies with "No test files found". The config also
+      // sets environment: node, so the flag is no longer needed here.
+      "--config",
+      "vitest.e2e-live.config.ts",
       "tests/e2e/protocol-clients.test.ts",
     ],
     {

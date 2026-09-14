@@ -17,9 +17,8 @@ const {
   handlePoolWarm,
   handleBrowserPoolStatus,
 } = await import("../../open-sse/mcp-server/tools/poolTools.ts");
-const { MCP_TOOL_SCOPES, MCP_SCOPE_LIST } = await import(
-  "../../src/shared/constants/mcpScopes.ts"
-);
+const mcpScopesModule = await import("../../src/shared/constants/mcpScopes.ts");
+const { MCP_TOOL_SCOPES, MCP_SCOPE_LIST } = mcpScopesModule;
 
 const POOL_TOOL_NAMES = [
   "omniroute_pool_status",
@@ -161,9 +160,8 @@ test("handlePoolReset reports reset:false for an unknown provider", async () => 
 // ── #3368 PR7 — browser pool observability ────────────────────────────────
 
 test("handleBrowserPoolStatus returns status + cumulative metrics shape", async () => {
-  const { __resetBrowserPoolMetricsForTest } = await import(
-    "../../open-sse/services/browserPool.ts"
-  );
+  const { __resetBrowserPoolMetricsForTest } =
+    await import("../../open-sse/services/browserPool.ts");
   __resetBrowserPoolMetricsForTest();
 
   const result = (await handleBrowserPoolStatus()) as {
@@ -190,9 +188,8 @@ test("handleBrowserPoolStatus returns status + cumulative metrics shape", async 
 });
 
 test("shutdownPool increments the shutdowns counter and records the reason", async () => {
-  const { shutdownPool, getBrowserPoolMetrics, __resetBrowserPoolMetricsForTest } = await import(
-    "../../open-sse/services/browserPool.ts"
-  );
+  const { shutdownPool, getBrowserPoolMetrics, __resetBrowserPoolMetricsForTest } =
+    await import("../../open-sse/services/browserPool.ts");
   __resetBrowserPoolMetricsForTest();
 
   await shutdownPool("unit-test-reason");

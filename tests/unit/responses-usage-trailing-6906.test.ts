@@ -127,7 +127,13 @@ test("BUG #6906: legacy transformer — response.completed carries usage when th
   const payload = JSON.parse(dataLine.replace(/^data:\s*/, ""));
   assert.deepEqual(
     payload.response.usage,
-    { prompt_tokens: 55, completion_tokens: 11, total_tokens: 66 },
+    {
+      input_tokens: 55,
+      input_tokens_details: { cached_tokens: 0 },
+      output_tokens: 11,
+      output_tokens_details: { reasoning_tokens: 0 },
+      total_tokens: 66,
+    },
     "legacy transformer response.completed must carry usage even when the usage-only chunk trails finish_reason"
   );
 });

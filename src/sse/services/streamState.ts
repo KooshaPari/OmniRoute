@@ -9,10 +9,6 @@
  * @module sse/services/streamState
  */
 
-import { createLogger } from "@/shared/utils/logger";
-
-const log = createLogger("sse:stream-state");
-
 export const STREAM_STATES = {
   INITIALIZED: "initialized",
   CONNECTING: "connecting",
@@ -94,9 +90,8 @@ export class StreamTracker {
   transition(newState, transitionMeta = {}) {
     const allowed = VALID_TRANSITIONS[this.state] || [];
     if (!allowed.includes(newState)) {
-      log.warn(
-        { from: this.state, to: newState, requestId: this.requestId },
-        "stream-state: invalid transition"
+      console.warn(
+        `[StreamTracker] Invalid transition: ${this.state} → ${newState} (request: ${this.requestId})`
       );
       return false;
     }

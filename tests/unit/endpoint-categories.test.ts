@@ -44,6 +44,10 @@ test("resolveEndpointCategory: maps /v1/embeddings to 'embeddings'", () => {
   assert.equal(resolveEndpointCategory("/v1/embeddings"), "embeddings");
 });
 
+test("resolveEndpointCategory: maps /v1/multimodal-embeddings to 'embeddings'", () => {
+  assert.equal(resolveEndpointCategory("/v1/multimodal-embeddings"), "embeddings");
+});
+
 test("resolveEndpointCategory: maps /v1/images/generations to 'images'", () => {
   assert.equal(resolveEndpointCategory("/v1/images/generations"), "images");
 });
@@ -98,6 +102,18 @@ test("resolveEndpointCategory: maps /v1/web/fetch to 'web-fetch'", () => {
 
 test("resolveEndpointCategory: maps /v1/agents/tasks to 'agents'", () => {
   assert.equal(resolveEndpointCategory("/v1/agents/tasks"), "agents");
+});
+
+test("resolveEndpointCategory: maps /v1/speech-to-text to 'elevenlabs'", () => {
+  assert.equal(resolveEndpointCategory("/v1/speech-to-text"), "elevenlabs");
+});
+
+test("resolveEndpointCategory: maps /v1/text-to-speech/voice_123 to 'elevenlabs'", () => {
+  assert.equal(resolveEndpointCategory("/v1/text-to-speech/voice_123"), "elevenlabs");
+});
+
+test("resolveEndpointCategory: maps /v1/voices to 'elevenlabs'", () => {
+  assert.equal(resolveEndpointCategory("/v1/voices"), "elevenlabs");
 });
 
 test("resolveEndpointCategory: returns null for unknown path", () => {

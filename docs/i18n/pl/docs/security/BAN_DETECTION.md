@@ -87,7 +87,7 @@ do scraperów OAuth/subskrypcyjnych. Wynikowy stan terminalny dotyczy **połącz
 nie providera.
 
 Przy tym wbudowane _łańcuchy_ są zorientowane na providery subskrypcyjne/OAuth
-z realnym ryzykiem bana (ChatGPT Web, Claude Web, Codex, Muse Spark, Antigravity).
+z realnym ryzykiem bana (ChatGPT Web Codex, Claude Web, Codex, Muse Spark, Antigravity).
 Provider z kluczem API odpali detektor tylko wtedy, gdy ciało błędu dosłownie
 zawiera jeden z podciągów.
 

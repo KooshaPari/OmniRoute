@@ -2,7 +2,9 @@ import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "
 import { join } from "node:path";
 import { resolveDataDir } from "../data-dir.mjs";
 
-const SERVICES = ["server", "mitm", "tunnel/cloudflared", "tunnel/tailscale"];
+// #9455: "supervisor" must be tracked so killAllSubprocesses() can stop the
+// supervisor process, not just the child server it spawned (and respawns).
+const SERVICES = ["server", "supervisor", "mitm", "tunnel/cloudflared", "tunnel/tailscale"];
 
 function getServicePidPath(service) {
   return join(resolveDataDir(), service, ".pid");
@@ -98,31 +100,66 @@ export async function waitForServer(port, timeout = 60000) {
 // - "hanging": the request timed out waiting for any response — the
 //   process accepted the TCP connection but never answered (#6800).
 // - "not-listening": nothing is accepting connections on the port at all.
+// #11766: probe both IPv4 and IPv6 loopback to handle servers listening on
+// either family (or both).
 async function pollHealthOnce(port) {
-  try {
-    const res = await fetch(`http://localhost:${port}/api/monitoring/health`, {
-      signal: AbortSignal.timeout(2000),
-    });
-    return res.ok ? "ready" : "fast-reject";
-  } catch (err) {
-    if (err?.name === "TimeoutError") return "hanging";
-    const listening = await isPortListening(port).catch(() => false);
-    return listening ? "fast-reject" : "not-listening";
-  }
+  const hosts = ["127.0.0.1", "::1"];
+  const outcomes = [];
+
+  // Probe both loopback families concurrently
+  const results = await Promise.all(
+    hosts.map(async (host) => {
+      try {
+        const res = await fetch(`http://${host}:${port}/api/monitoring/health`, {
+          signal: AbortSignal.timeout(2000),
+        });
+        return { host, outcome: res.ok ? "ready" : "fast-reject" };
+      } catch (err) {
+        const outcome = err?.name === "TimeoutError" ? "hanging" : "error";
+        return { host, outcome };
+      }
+    })
+  );
+
+  outcomes.push(...results.map((r) => r.outcome));
+
+  // If either family is ready, the server is ready
+  if (outcomes.includes("ready")) return "ready";
+
+  // If either family is fast-reject, treat as fast-reject
+  // (TCP is listening and rejecting, just route not ready yet)
+  if (outcomes.includes("fast-reject")) return "fast-reject";
+
+  // If either family is hanging, server accepted TCP but not answering
+  // (still booting, must not report as ready per #6800)
+  if (outcomes.includes("hanging")) return "hanging";
+
+  // Both families failed — check if either port is actually listening
+  // If listening, then errors above are route-level (fast-reject case)
+  const listening = await isPortListening(port).catch(() => false);
+  return listening ? "fast-reject" : "not-listening";
 }
 
 async function isPortListening(port) {
   const net = await import("node:net");
-  return new Promise((resolve) => {
-    const socket = net.connect({ host: "127.0.0.1", port, timeout: 1000 });
-    const finish = (ok) => {
-      try {
-        socket.destroy();
-      } catch {}
-      resolve(ok);
-    };
-    socket.once("connect", () => finish(true));
-    socket.once("error", () => finish(false));
-    socket.once("timeout", () => finish(false));
-  });
+  // #11766: check both IPv4 and IPv6 loopback. Return true if either is listening.
+  const hosts = ["127.0.0.1", "::1"];
+  const results = await Promise.all(
+    hosts.map(
+      (host) =>
+        new Promise((resolve) => {
+          const socket = net.connect({ host, port, timeout: 1000 });
+          const finish = (ok) => {
+            try {
+              socket.destroy();
+            } catch {}
+            resolve(ok);
+          };
+          socket.once("connect", () => finish(true));
+          socket.once("error", () => finish(false));
+          socket.once("timeout", () => finish(false));
+        })
+    )
+  );
+  return results.some((ok) => ok);
 }

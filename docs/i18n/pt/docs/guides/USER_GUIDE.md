@@ -1,6 +1,6 @@
 # User Guide (Português (Portugal))
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/USER_GUIDE.md) · 🇸🇦 [ar](../../ar/docs/USER_GUIDE.md) · 🇧🇬 [bg](../../bg/docs/USER_GUIDE.md) · 🇧🇩 [bn](../../bn/docs/USER_GUIDE.md) · 🇨🇿 [cs](../../cs/docs/USER_GUIDE.md) · 🇩🇰 [da](../../da/docs/USER_GUIDE.md) · 🇩🇪 [de](../../de/docs/USER_GUIDE.md) · 🇪🇸 [es](../../es/docs/USER_GUIDE.md) · 🇮🇷 [fa](../../fa/docs/USER_GUIDE.md) · 🇫🇮 [fi](../../fi/docs/USER_GUIDE.md) · 🇫🇷 [fr](../../fr/docs/USER_GUIDE.md) · 🇮🇳 [gu](../../gu/docs/USER_GUIDE.md) · 🇮🇱 [he](../../he/docs/USER_GUIDE.md) · 🇮🇳 [hi](../../hi/docs/USER_GUIDE.md) · 🇭🇺 [hu](../../hu/docs/USER_GUIDE.md) · 🇮🇩 [id](../../id/docs/USER_GUIDE.md) · 🇮🇹 [it](../../it/docs/USER_GUIDE.md) · 🇯🇵 [ja](../../ja/docs/USER_GUIDE.md) · 🇰🇷 [ko](../../ko/docs/USER_GUIDE.md) · 🇮🇳 [mr](../../mr/docs/USER_GUIDE.md) · 🇲🇾 [ms](../../ms/docs/USER_GUIDE.md) · 🇳🇱 [nl](../../nl/docs/USER_GUIDE.md) · 🇳🇴 [no](../../no/docs/USER_GUIDE.md) · 🇵🇭 [phi](../../phi/docs/USER_GUIDE.md) · 🇵🇱 [pl](../../pl/docs/USER_GUIDE.md) · 🇵🇹 [pt](../../pt/docs/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/USER_GUIDE.md) · 🇷🇴 [ro](../../ro/docs/USER_GUIDE.md) · 🇷🇺 [ru](../../ru/docs/USER_GUIDE.md) · 🇸🇰 [sk](../../sk/docs/USER_GUIDE.md) · 🇸🇪 [sv](../../sv/docs/USER_GUIDE.md) · 🇰🇪 [sw](../../sw/docs/USER_GUIDE.md) · 🇮🇳 [ta](../../ta/docs/USER_GUIDE.md) · 🇮🇳 [te](../../te/docs/USER_GUIDE.md) · 🇹🇭 [th](../../th/docs/USER_GUIDE.md) · 🇹🇷 [tr](../../tr/docs/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/USER_GUIDE.md) · 🇵🇰 [ur](../../ur/docs/USER_GUIDE.md) · 🇻🇳 [vi](../../vi/docs/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/USER_GUIDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
@@ -22,28 +22,26 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 
 ## 💰 Pricing at a Glance
 
-| Tier                | Provider          | Cost        | Quota Reset      | Best For             |
-| ------------------- | ----------------- | ----------- | ---------------- | -------------------- |
-| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly      | Already subscribed   |
-|                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly      | OpenAI users         |
-|                     | GitHub Copilot    | $10-19/mo   | Monthly          | GitHub users         |
-| **🔑 API KEY**      | DeepSeek          | Pay per use | None             | Cheap reasoning      |
-|                     | Groq              | Pay per use | None             | Ultra-fast inference |
-|                     | xAI (Grok)        | Pay per use | None             | Grok 4 reasoning     |
-|                     | Mistral           | Pay per use | None             | EU-hosted models     |
-|                     | Perplexity        | Pay per use | None             | Search-augmented     |
-|                     | Together AI       | Pay per use | None             | Open-source models   |
-|                     | Fireworks AI      | Pay per use | None             | Fast FLUX images     |
-|                     | Cerebras          | Pay per use | None             | Wafer-scale speed    |
-|                     | Cohere            | Pay per use | None             | Command R+ RAG       |
-|                     | NVIDIA NIM        | Pay per use | None             | Enterprise models    |
-| **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM       | Budget backup        |
-|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling   | Cheapest option      |
-|                     | Kimi K2           | $9/mo flat  | 10M tokens/mo    | Predictable cost     |
-| **🆓 FREE**         | Qoder             | $0          | Unlimited        | 8 models free        |
-|                     | Qwen              | $0          | Unlimited        | 3 models free        |
-|                     | Kiro              | $0          | Unlimited        | Claude free          |
-
+| Tier                | Provider          | Cost        | Quota Reset           | Best For               |
+| ------------------- | ----------------- | ----------- | --------------------- | ---------------------- |
+| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly           | Already subscribed     |
+|                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly           | OpenAI users           |
+|                     | GitHub Copilot    | $10-19/mo   | Monthly               | GitHub users           |
+| **🔑 API KEY**      | DeepSeek          | Pay per use | None                  | Cheap reasoning        |
+|                     | Groq              | Pay per use | None                  | Ultra-fast inference   |
+|                     | xAI (Grok)        | Pay per use | None                  | Grok 4 reasoning       |
+|                     | Mistral           | Pay per use | None                  | EU-hosted models       |
+|                     | Perplexity        | Pay per use | None                  | Search-augmented       |
+|                     | Together AI       | Pay per use | None                  | Open-source models     |
+|                     | Fireworks AI      | Pay per use | None                  | Fast FLUX images       |
+|                     | Cerebras          | Pay per use | None                  | Wafer-scale speed      |
+|                     | Cohere            | Pay per use | None                  | Command R+ RAG         |
+|                     | NVIDIA NIM        | Pay per use | None                  | Enterprise models      |
+| **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM            | Budget backup          |
+|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling        | Cheapest option        |
+|                     | Kimi K2           | $9/mo flat  | 10M tokens/mo         | Predictable cost       |
+| **🆓 FREE**         | Qoder             | $0          | Provider limits apply | Verify current catalog |
+|                     | Kiro              | $0          | Provider limits apply | Claude free            |
 
 ---
 
@@ -68,12 +66,12 @@ vs. $20 + hitting limits = frustration
 **Problem:** Can't afford subscriptions, need reliable AI coding
 
 ```
-Combo: "free-forever"
-  1. if/kimi-k2-thinking       (unlimited free)
-  2. qw/qwen3-coder-plus       (unlimited free)
+Combo: "free-tier-fallback"
+  1. if/kimi-k2-thinking       (no published token cap; limits apply)
+  2. kr/qwen3-coder-next
 
 Monthly cost: $0
-Quality: Production-ready models
+Quality: verify the model, limits, privacy, and SLA for your workload
 ```
 
 ### Case 3: "I need 24/7 coding, no interruptions"
@@ -88,7 +86,7 @@ Combo: "always-on"
   4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
   5. if/kimi-k2-thinking       (free unlimited)
 
-Result: 5 layers of fallback = zero downtime
+Result: 5 fallback layers broaden resilience; upstream availability is not guaranteed
 Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
 ```
 
@@ -98,9 +96,9 @@ Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
 
 ```
 Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
+  1. if/glm-4.7                (no published token cap; limits apply)
+  2. if/minimax-m2.1           (no published token cap; limits apply)
+  3. if/kimi-k2-thinking       (no published token cap; limits apply)
 
 Monthly cost: $0
 Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
@@ -138,8 +136,6 @@ Models:
   cx/gpt-5.2-codex
   cx/gpt-5.1-codex-max
 ```
-
-
 
 #### GitHub Copilot
 
@@ -183,17 +179,9 @@ Models:
 #### Qoder (8 FREE models)
 
 ```bash
-Dashboard → Connect Qoder → OAuth login → Unlimited usage
+Dashboard → Connect Qoder → OAuth login → Access is subject to current provider limits
 
 Models: if/kimi-k2-thinking, if/qwen3-coder-plus, if/glm-4.7, if/minimax-m2, if/deepseek-r1
-```
-
-#### Qwen (3 FREE models)
-
-```bash
-Dashboard → Connect Qwen → Device code auth → Unlimited usage
-
-Models: qw/qwen3-coder-plus, qw/qwen3-coder-flash
 ```
 
 #### Kiro (Claude FREE)
@@ -229,10 +217,10 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  1. if/kimi-k2-thinking (unlimited)
-  2. qw/qwen3-coder-plus (unlimited)
+  1. if/kimi-k2-thinking (no published token cap; provider limits may apply)
+  2. kr/qwen3-coder-next
 
-Cost: $0 forever!
+Cost: currently listed as $0; terms and availability may change
 ```
 
 ---
@@ -542,7 +530,6 @@ For the full environment variable reference, see the [README](../README.md).
 
 **Codex (`cx/`)** — Plus/Pro: `cx/gpt-5.2-codex`, `cx/gpt-5.1-codex-max`
 
-
 **GitHub Copilot (`gh/`)**: `gh/gpt-5`, `gh/claude-4.5-sonnet`
 
 **GLM (`glm/`)** — $0.6/1M: `glm/glm-4.7`
@@ -550,8 +537,6 @@ For the full environment variable reference, see the [README](../README.md).
 **MiniMax (`minimax/`)** — $0.2/1M: `minimax/MiniMax-M2.1`
 
 **Qoder (`if/`)** — FREE: `if/kimi-k2-thinking`, `if/qwen3-coder-plus`, `if/deepseek-r1`
-
-**Qwen (`qw/`)** — FREE: `qw/qwen3-coder-plus`, `qw/qwen3-coder-flash`
 
 **Kiro (`kr/`)** — FREE: `kr/claude-sonnet-4.5`, `kr/claude-haiku-4.5`
 

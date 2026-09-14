@@ -7,14 +7,22 @@ import { APP_CONFIG } from "@/shared/constants/appConfig";
 import { shouldShowKimiSponsorBanner } from "./kimiSponsorBannerGate";
 
 // Official Kimi partnership tracking link — keep in sync with README.md's
-// Sponsors section and the aff links wired in the providers onboarding UI
-// (ProviderPageHeader.tsx).
-const KIMI_CODING_AFF_URL = "https://www.kimi.com/code?aff=omniroute";
+// Open Source Friends section and the aff links wired in the providers
+// onboarding UI (ProviderPageHeader.tsx). Retargeted 2026-08 from the coding
+// plan (kimi.com/code) to the API platform at Moonshot's request: coding plan
+// subscriptions are closed to most new users, so that traffic could not
+// convert.
+// Dedicated tracked link issued by Moonshot 2026-08 for the 15% first-top-up
+// bonus campaign (offer valid through 2026-09-30 — revisit the 15% copy in the
+// i18n `kimiSponsorBanner.description` strings after that date if not renewed).
+const KIMI_PLATFORM_AFF_URL =
+  "https://platform.kimi.ai?track_id=track-8197581fdd7d4139a0f562e4a03c3798&aff=omniroute";
 
-// Versioned dismissal key — bump the suffix (e.g. `-v2`) if the banner's
+// Versioned dismissal key — bump the suffix (e.g. `-v3`) if the banner's
 // offer/copy ever changes materially enough to warrant re-showing it to
-// users who already dismissed the previous version.
-const DISMISS_STORAGE_KEY = "omniroute-kimi-sponsor-banner-dismissed-v1";
+// users who already dismissed the previous version. `-v2` = the 2026-08 CTA
+// retarget to the API platform (new destination + new copy).
+const DISMISS_STORAGE_KEY = "omniroute-kimi-sponsor-banner-dismissed-v2";
 // Same-tab signal for the dismiss button, since writing localStorage doesn't
 // fire a "storage" event in the tab that wrote it.
 const DISMISS_EVENT = "omniroute:kimi-sponsor-banner-dismissed";
@@ -69,7 +77,7 @@ export default function KimiSponsorBanner() {
   return (
     <div
       role="complementary"
-      aria-label={t("title")}
+      aria-label={t("foundingFriendTitle")}
       className="mb-4 flex flex-col gap-3 rounded-lg border border-[#1783FF]/30 bg-[#1783FF]/5 px-4 py-3 dark:bg-[#1783FF]/10 sm:flex-row sm:items-center sm:justify-between"
     >
       <div className="flex min-w-0 items-start gap-3">
@@ -77,7 +85,7 @@ export default function KimiSponsorBanner() {
           <ProviderIcon providerId="moonshot" size={24} type="color" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-text-main">{t("title")}</p>
+          <p className="text-sm font-semibold text-text-main">{t("foundingFriendTitle")}</p>
           <p className="mt-0.5 text-xs text-text-muted">{t("description")}</p>
         </div>
       </div>
@@ -85,7 +93,7 @@ export default function KimiSponsorBanner() {
       <div className="flex shrink-0 items-center gap-3 self-end sm:self-auto">
         <div className="flex flex-col items-end gap-0.5">
           <a
-            href={KIMI_CODING_AFF_URL}
+            href={KIMI_PLATFORM_AFF_URL}
             target="_blank"
             rel="noopener noreferrer"
             title={t("partnerLinkNote")}

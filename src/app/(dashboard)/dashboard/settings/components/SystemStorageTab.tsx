@@ -1,9 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, Button, Badge, ConfirmModal } from "@/shared/components";
 import { useLocale, useTranslations } from "next-intl";
 import DatabaseBackupRetentionCard from "./DatabaseBackupRetentionCard";
+import {
+  fetchDatabaseSettingsData,
+  isAuthRequiredResponse,
+  AuthRequiredBanner,
+} from "./systemStorageAuth";
 
 // Whitelist mirrored from src/lib/db/cleanup.ts::RESET_USAGE_HISTORY_PERIODS.
 const RESET_USAGE_PERIOD_VALUES = [
@@ -17,6 +22,17 @@ const RESET_USAGE_PERIOD_VALUES = [
   "30d",
   "all",
 ] as const;
+
+async function fetchStorageHealthData() {
+  try {
+    const res = await fetch("/api/storage/health");
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.error("Failed to fetch storage health:", err);
+    return null;
+  }
+}
 
 export default function SystemStorageTab() {
   const [backups, setBackups] = useState([]);
@@ -87,6 +103,7 @@ export default function SystemStorageTab() {
   // Database settings state (tasks 23-26)
   const [dbSettings, setDbSettings] = useState<any>(null);
   const [dbSettingsLoading, setDbSettingsLoading] = useState(true);
+  const [dbSettingsAuthRequired, setDbSettingsAuthRequired] = useState(false);
   const [dbSettingsSaving, setDbSettingsSaving] = useState(false);
   const [dbStatsRefreshing, setDbStatsRefreshing] = useState(false);
 
@@ -103,34 +120,28 @@ export default function SystemStorageTab() {
     }
   };
 
+  const applyStorageHealth = useCallback((data) => {
+    if (!data) return;
+    setStorageHealth((prev) => ({ ...prev, ...data }));
+    setBackupCleanupOptions({
+      keepLatest: data.backupRetention?.maxFiles || 20,
+      retentionDays: data.backupRetention?.days || 0,
+    });
+  }, []);
+
   const loadStorageHealth = async () => {
-    try {
-      const res = await fetch("/api/storage/health");
-      if (!res.ok) return;
-      const data = await res.json();
-      setStorageHealth((prev) => ({ ...prev, ...data }));
-      setBackupCleanupOptions({
-        keepLatest: data.backupRetention?.maxFiles || 20,
-        retentionDays: data.backupRetention?.days || 0,
-      });
-    } catch (err) {
-      console.error("Failed to fetch storage health:", err);
-    }
+    applyStorageHealth(await fetchStorageHealthData());
   };
+
+  const applyDatabaseSettings = useCallback((result: { data: any; authRequired: boolean }) => {
+    if (result.data) setDbSettings(result.data);
+    setDbSettingsAuthRequired(result.authRequired);
+    setDbSettingsLoading(false);
+  }, []);
 
   const loadDatabaseSettings = async () => {
     setDbSettingsLoading(true);
-    try {
-      const res = await fetch("/api/settings/database");
-      if (res.ok) {
-        const data = await res.json();
-        setDbSettings(data);
-      }
-    } catch (err) {
-      console.error("Failed to load database settings:", err);
-    } finally {
-      setDbSettingsLoading(false);
-    }
+    applyDatabaseSettings(await fetchDatabaseSettingsData());
   };
 
   const saveDatabaseSettings = async () => {
@@ -236,12 +247,12 @@ export default function SystemStorageTab() {
       if (res.ok) {
         setClearCacheStatus({
           type: "success",
-          message: t("cacheCleared") || "Cache cleared successfully",
+          message: t("cacheCleared"),
         });
       } else {
         setClearCacheStatus({
           type: "error",
-          message: data?.error || t("clearCacheFailed") || "Failed to clear cache",
+          message: data?.error || t("clearCacheFailed"),
         });
       }
     } catch {
@@ -266,7 +277,7 @@ export default function SystemStorageTab() {
       } else {
         setPurgeLogsStatus({
           type: "error",
-          message: data?.error || t("purgeLogsFailed") || "Failed to purge logs",
+          message: data?.error || t("purgeLogsFailed"),
         });
       }
     } catch {
@@ -480,9 +491,19 @@ export default function SystemStorageTab() {
   };
 
   useEffect(() => {
-    loadStorageHealth();
-    loadDatabaseSettings();
-  }, []);
+    let cancelled = false;
+    void (async () => {
+      const data = await fetchStorageHealthData();
+      if (!cancelled) applyStorageHealth(data);
+    })();
+    void (async () => {
+      const data = await fetchDatabaseSettingsData();
+      if (!cancelled) applyDatabaseSettings(data);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [applyStorageHealth, applyDatabaseSettings]);
 
   /** Triggers a browser file download from an existing Blob. */
   const triggerDownload = (blob: Blob, filename: string) => {
@@ -565,6 +586,8 @@ export default function SystemStorageTab() {
           });
           await loadStorageHealth();
           if (backupsExpanded) await loadBackups();
+        } else if (isAuthRequiredResponse(res.status, data)) {
+          setImportStatus({ type: "error", message: t("jsonImportAuthRequired") });
         } else {
           setImportStatus({ type: "error", message: data.error || t("jsonImportFailed") });
         }
@@ -1266,6 +1289,7 @@ export default function SystemStorageTab() {
         </div>
       </div>
 
+      {dbSettingsAuthRequired && !dbSettingsLoading && <AuthRequiredBanner t={t} />}
       {renderDatabaseStatistics()}
 
       <div className="pt-3 border-t border-border/50 mb-4">
@@ -1391,7 +1415,7 @@ export default function SystemStorageTab() {
           <span className="material-symbols-outlined text-[18px] text-blue-500" aria-hidden="true">
             build
           </span>
-          <p className="font-medium">{t("maintenance") || "Maintenance"}</p>
+          <p className="font-medium">{t("maintenance")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button
@@ -1403,7 +1427,7 @@ export default function SystemStorageTab() {
             <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
               delete_sweep
             </span>
-            {t("clearCache") || "Clear Cache"}
+            {t("clearCache")}
           </Button>
           <Button
             variant="outline"
@@ -1414,7 +1438,7 @@ export default function SystemStorageTab() {
             <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
               auto_delete
             </span>
-            {t("purgeExpiredLogs") || "Purge Expired Logs"}
+            {t("purgeExpiredLogs")}
           </Button>
           <Button
             variant="outline"
@@ -1469,18 +1493,7 @@ export default function SystemStorageTab() {
             <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
               restart_alt
             </span>
-            {t("resetUsageData") || "Reset Usage Data"}
-          </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            loading={resetUsageLoading}
-            onClick={openResetUsageModal}
-          >
-            <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
-              restart_alt
-            </span>
-            {t("resetUsageData") || "Reset Usage Data"}
+            {t("resetUsageData")}
           </Button>
         </div>
         <div className="mt-4 border-t border-border/50 pt-3">
@@ -1554,12 +1567,12 @@ export default function SystemStorageTab() {
         isOpen={resetUsageModalOpen}
         onClose={() => !resetUsageLoading && setResetUsageModalOpen(false)}
         onConfirm={handleResetUsageHistory}
-        title={t("resetUsageData") || "Reset Usage Data"}
+        title={t("resetUsageData")}
         message={
           <div className="space-y-3">
             <p className="text-text-muted">
               {t("resetUsageDataDesc") ||
-                "Select how far back you want to delete usage data. This action cannot be undone."}
+                "Select how far back you want to delete usage, request logs, and analytics data. Provider configuration, connections, API keys, combos, and settings are preserved. This action cannot be undone."}
             </p>
             <select
               value={resetUsagePeriod}
@@ -1574,9 +1587,7 @@ export default function SystemStorageTab() {
             </select>
           </div>
         }
-        confirmText={
-          resetUsageLoading ? t("resetting") || "Resetting..." : t("reset") || "Reset"
-        }
+        confirmText={resetUsageLoading ? t("resetting") : t("reset")}
         variant="danger"
         loading={resetUsageLoading}
       />
