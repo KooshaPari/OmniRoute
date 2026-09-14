@@ -142,8 +142,19 @@
 - Added in-memory localStorage polyfill to `vitestUiPolyfills.ts`
 - Added `environmentOptions: { jsdom: { url: "http://localhost:3000" } }` to vitest config
 - **Result:** 117 -> 107 failing files, 72 -> 32 individual test failures
-- Remaining 32 failures: abort signal handling (8), SQLite migrations (2), React 19 compat (22)
-- **Total improvement from session start:** 351 -> 107 failing files, 351 -> 32 failing tests
+
+### Phase 14c: Upstream Test Bug Fixes (2026-09-14)
+- Fixed 6 source/test bugs across 7 files:
+  - `mergeAbortSignals`: handle undefined params + return original signal (8 tests)
+  - `thinkingBudget`: fix xhigh threshold to 131072 (1 test)
+  - `userAgentHeader`: skip empty UA set (1 test)
+  - `geminiHelper`: remove civic integrity from taxonomy per #8231 (2 tests)
+  - `topology test`: match i18n keys not translated values
+  - `remark-gfm`: add to devDependencies for MarkdownMessage.tsx
+- **Result:** 107 -> 18 failing files, 32 -> 21 individual test failures
+- **Total improvement from session start:** 351 -> 18 failing files, 351 -> 21 failing tests (94% reduction)
+- Remaining 21 failures: orchestration UI rendering (10), undefined component imports (4),
+  async timeouts (3), SQLite migration (2), missing component (1), MP3 assertion (1)
 
 ## Key Commits on main
 
