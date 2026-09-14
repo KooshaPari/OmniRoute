@@ -70,16 +70,15 @@ describe("GEMINI_UNSUPPORTED_SCHEMA_KEYS", () => {
 
 describe("DEFAULT_SAFETY_SETTINGS", () => {
   it("disables every Gemini harm category", () => {
-    expect(DEFAULT_SAFETY_SETTINGS).toHaveLength(5);
+    expect(DEFAULT_SAFETY_SETTINGS).toHaveLength(4);
     for (const entry of DEFAULT_SAFETY_SETTINGS) {
       expect(entry.threshold).toBe("OFF");
     }
   });
 
-  it("covers the full Gemini harm-category taxonomy", () => {
+  it("covers the Gemini harm-category taxonomy (4 categories, civic integrity excluded per #8231)", () => {
     const categories = DEFAULT_SAFETY_SETTINGS.map((entry) => entry.category).sort();
     expect(categories).toEqual([
-      "HARM_CATEGORY_CIVIC_INTEGRITY",
       "HARM_CATEGORY_DANGEROUS_CONTENT",
       "HARM_CATEGORY_HARASSMENT",
       "HARM_CATEGORY_HATE_SPEECH",

@@ -67,6 +67,6 @@ it("renders the topology card and forwards providers to ProviderTopology", () =>
   expect(topology?.getAttribute("data-providers")).toBe("2");
   expect(container.textContent).toContain("activeError");
   expect(container.textContent).toContain("active");
-  expect(container.textContent).toContain("recent");
-  expect(container.textContent).toContain("modelStatusError");
+  expect(container.textContent).toContain("topologyLegendRecent");
+  expect(container.textContent).toContain("topologyLegendError");
 });
