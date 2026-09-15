@@ -28,7 +28,8 @@ export interface ChatMessage {
 export interface ChatRequest {
   model: string;
   messages: ChatMessage[];
-  system?: string;
+  /** Anthropic-shaped bodies carry the system prompt here, as a string or text blocks (#13425). */
+  system?: string | Array<{ type: string; text?: string; [key: string]: unknown }>;
   temperature?: number;
   max_tokens?: number;
   stream?: boolean;
@@ -87,9 +88,7 @@ const BUILTIN_PROVIDERS_SYSTEM_MUST_BE_FIRST = new Set(["xiaomi-mimo", "mimo", "
  * Parses OMNIROUTE_STRICT_SYSTEM_PROVIDERS into a normalized id list.
  * Exported for tests; not expected to be called directly by other modules.
  */
-export function parseStrictSystemProvidersEnv(
-  env: NodeJS.ProcessEnv = process.env,
-): string[] {
+export function parseStrictSystemProvidersEnv(env: NodeJS.ProcessEnv = process.env): string[] {
   const raw = env.OMNIROUTE_STRICT_SYSTEM_PROVIDERS ?? "";
   return raw
     .split(",")
@@ -110,7 +109,7 @@ function resolveProvidersSystemMustBeFirst(env: NodeJS.ProcessEnv = process.env)
  */
 export function systemMessageMustBeFirst(
   provider: string | null | undefined,
-  env: NodeJS.ProcessEnv = process.env,
+  env: NodeJS.ProcessEnv = process.env
 ): boolean {
   if (!provider) return false;
   const normalized = provider.toLowerCase().trim();
