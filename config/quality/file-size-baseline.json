@@ -1,4 +1,5 @@
 {
+  "_rebaseline_2026_09_14_13547_noauth_model_lockout": "PR #13547 own growth: src/sse/services/auth.ts 3542->3556 (+14). The synthetic noauth connection short-circuited before the per-connection status pass, so a recorded model-only lockout was never enforced and the locked model was retried on every request. Irreducible at the early-return site. Covered by tests/unit/noauth-model-lockout.test.ts (carried from #13527).",
   "_rebaseline_2026_09_14_13404_healthcheck_backup_prune": "PR #13404 own growth: src/lib/db/core.ts 1745->1767 (+22). createManagedDbBackup (the health-check-repair snapshot path) never ran retention, so every restart of a healthy DB added a full-size copy to db_backups/; it now prunes with the same env-driven limits as backup.ts, importing backupRetention directly to avoid the backup.ts cycle. Covered by tests/unit/db-backup-healthcheck-prune-13308.test.ts.",
   "_rebaseline_2026_09_14_13349_virtualfactory_custom_models_guard": "PR #13349 own growth: open-sse/services/autoCombo/virtualFactory.ts 1219->1230 (+11). The customModels key_value blob is operator-writable raw JSON, so a null or non-object row null-derefed every read and no auto/* pool could materialize; the builder now filters rows the same way catalog.ts already does. Irreducible at the read site. Covered by tests/unit/combo-auto-pool-visible-only.test.ts.",
   "_rebaseline_2026_09_11_12732_catalog_timeout_pin": "+1 in tests/unit/models-catalog-route.test.ts (1652->1653) for a single line: process.env.CATALOG_BUILD_TIMEOUT_MS. #12627 bounds a cold catalog build at 8s; beforeEach resets the catalog cache so every case in this file pays a cold build, and a tsx runner needs 10-13s under load — the file returned catalog_build_timeout instead of rows and oscillated between 1 and 10 failures per run, reddening the whole PR queue (base-red #12732). The bound itself stays covered by tests/unit/12627-catalog-inflight-timeout.test.ts. The file is already at its frozen ceiling, so the pin cannot be absorbed; structural shrink tracked in #3501.",
@@ -477,7 +478,7 @@
     "src/shared/constants/providers/apikey/gateways.ts": 1502,
     "src/shared/services/cliRuntime.ts": 1296,
     "src/sse/handlers/chat.ts": 2462,
-    "src/sse/services/auth.ts": 3542,
+    "src/sse/services/auth.ts": 3556,
     "tests/unit/account-fallback-service.test.ts": 2453,
     "tests/unit/provider-validation-specialty.test.ts": 4656,
     "open-sse/services/autoCombo/virtualFactory.ts": 1230,
