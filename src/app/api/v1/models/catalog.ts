@@ -4,75 +4,28 @@ import { getCombos } from "@/lib/db/combos";
 import { getSettings } from "@/lib/db/settings";
 import { getUserDatabaseSettings } from "@/lib/db/databaseSettings";
 import { createLazyConnectionView } from "@/lib/db/providers/lazyConnectionView";
-import { extractAliasBackedModels } from "./aliasBackedModels";
-export { getCustomVisionCapabilityFields };
-import { buildSyncedCapabilities, mergeSyncedCapabilities } from "./syncedCapabilities";
-import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
-import {
-  getAllImageModels,
-  isRegisteredImageModel,
-} from "@omniroute/open-sse/config/imageRegistry";
-import { aiHordeImageCatalog } from "@omniroute/open-sse/services/aihordeImageCatalog";
-import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry";
-import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry";
-import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry";
-import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry";
-import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry";
-import {
-  getRegistryModelThinkingEfforts,
-  getRegistryThinkingEfforts,
-  providerUsesAuthoritativeLiveCatalog,
-  REGISTRY,
-} from "@omniroute/open-sse/config/providerRegistry";
-import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/model";
-
-import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
-import {
-  AUTO_TEMPLATE_VARIANTS,
-  AUTO_SUFFIX_VARIANTS,
-  AUTO_FAMILY_IDS,
-  createBuiltinAutoCombo,
-  prepareBuiltinAutoComboInputs,
-  isPaidTierAutoId,
-} from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
 import {
   getSyncedAvailableModelsByConnection,
   SYNCED_AVAILABLE_MODELS_MALFORMED,
   type SyncedAvailableModel,
-  getAllCustomModels,
-  getModelAliases,
   getHiddenModelsByProvider,
 } from "@/lib/db/models";
 import { getAllActiveSyncedModels } from "@/lib/db/models/activeSyncedCatalog";
 import {
-  getModelCatalogCacheVersion,
   getCachedRawProviderConnections,
   getCachedProviderNodes,
 } from "@/lib/db/readCache";
-import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
-import {
-  providerUsesCuratedModelsOnly,
-  providerUsesExclusiveSyncedListing,
-} from "@/lib/providers/modelListingCapability";
-import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
-import { mergeCustomModelMetadata } from "@/lib/providers/modelMetadataPrecedence";
+import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { getOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 import {
   INTERNAL_PROXY_ERROR,
-  getCanonicalModelMetadata,
   getCatalogDiagnosticsHeaders,
   type CatalogEnrichmentSnapshot,
 } from "@/lib/modelMetadataRegistry";
 import { createModelCapabilityResolutionSnapshot } from "@/lib/modelCapabilityResolutionSnapshot";
-import {
-  getModelsDevPricing,
-  getSyncedCapability,
-  upsertSyncedCapabilities,
-} from "@/lib/modelsDevSync";
+import { getModelsDevPricing, upsertSyncedCapabilities } from "@/lib/modelsDevSync";
 import type { ModelCapabilityEntry } from "@/lib/modelsDevSync";
-import { getModelSpec } from "@/shared/constants/modelSpecs";
-import { classifyModelSupportedEndpoints } from "@/shared/constants/modelSupportedEndpoints";
 import { getModelsCatalogPrefixMode } from "@/shared/utils/featureFlags";
 import {
   isProviderNodePrefixReserved,
@@ -82,18 +35,11 @@ import { applyCatalogPostFilters, finalizeCatalogResponse } from "./catalogRespo
 import {
   isNoAuthProviderBlocked,
   isNoAuthProviderKey,
-  isNoAuthRawProviderPrefix,
   normalizeBlockedProviderSet,
 } from "@/shared/utils/noAuthProviders";
-import { getSourcedTokenLimit, getTokenLimit } from "@omniroute/open-sse/services/contextManager";
+import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
 import { extractApiKey } from "@/sse/services/auth";
-import type { ComboModelStep } from "@/lib/combos/steps";
-import {
-  type CustomModelEntry,
-  type ComboCatalogTarget,
-  isPositiveFiniteNumber,
-  maybeOmitCatalogModelName,
-} from "./catalogHelpers";
+import type { ComboCatalogTarget } from "./catalogHelpers";
 import {
   qualifyOpenRouterModelId,
   normalizeOpenRouterModalities,
@@ -102,7 +48,7 @@ import {
   getOpenRouterDisplayName,
   openRouterCapabilityEntry,
 } from "./catalogOpenrouter";
-
+import { getCustomVisionCapabilityFields } from "./catalogVision";
 import {
   buildAliasMaps,
   resolveCanonicalProviderId as resolveCanonicalProviderIdFromMaps,
@@ -112,14 +58,9 @@ import {
   isCcDiscoveryModelCatalogClient,
 } from "./catalogRequest";
 import { incrementCcDiscoveryHitCount } from "@/lib/db/ccDiscoveryMetrics";
-import { isUnifiedChatSourceModelSelectable } from "./catalogModelPolicy";
 import { decideHidePaid } from "./catalogPaidFilter";
-export { isVisionModelId } from "@/shared/constants/visionModels";
-export { getCustomVisionCapabilityFields };
-import { getCustomVisionCapabilityFields } from "./catalogVision";
-import {
-  buildSyncedModelIdsByCanonicalProvider,
-} from "./catalogSyncedCoverage";
+import { isModelExposureAllowed } from "@/shared/utils/modelExposureList";
+import { buildSyncedModelIdsByCanonicalProvider } from "./catalogSyncedCoverage";
 import {
   buildComboCatalogMetadata,
   type ComboMetadataPick,
@@ -129,6 +70,9 @@ import { addStaticProviderModels } from "./catalogStaticModels";
 import { addSyncedModels } from "./catalogSyncedModels";
 import { addSpecialtyModels } from "./catalogSpecialtyModels";
 import { addCustomModels } from "./catalogCustomModels";
+import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
+import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
+
 
 // Public API of this module is preserved after the catalog helper extraction:
 // `isVisionModelId` (vision-detection-consistency.test.ts) and
@@ -364,10 +308,10 @@ async function buildUnifiedModelsResponseCore(
 
     // Get active provider connections
     let connections = [];
-    let totalConnectionCount = 0; // Track if DB has ANY connections (even disabled)
+    let _totalConnectionCount = 0; // Track if DB has ANY connections (even disabled)
     try {
       connections = (await getCachedRawProviderConnections()).map(createLazyConnectionView);
-      totalConnectionCount = connections.length;
+      _totalConnectionCount = connections.length;
       // Filter to only active connections
       connections = connections.filter((c) => c.isActive !== false);
     } catch (e) {
@@ -379,7 +323,7 @@ async function buildUnifiedModelsResponseCore(
     let providerNodes = [];
     try {
       providerNodes = await getCachedProviderNodes();
-    } catch (e) {
+    } catch (_e) {
       console.log("Could not fetch provider nodes");
     }
 
@@ -456,7 +400,7 @@ async function buildUnifiedModelsResponseCore(
     await yieldCatalogBuildTurn();
     try {
       combos = await getCombos();
-    } catch (e) {
+    } catch (_e) {
       console.log("Could not fetch combos");
     }
 
@@ -548,7 +492,7 @@ async function buildUnifiedModelsResponseCore(
     // prefixRoutesToProvider is imported directly from catalogProviderMaps.ts (no
     // map dependency — pure parseModel() probe), used both here and at the two
     // includeCanonical prefix-collision checks below.
-    const getProviderPrefixes = (providerId: string, rawProvider: string) =>
+    const _getProviderPrefixes = (providerId: string, rawProvider: string) =>
       getProviderPrefixesFromMaps(aliasMaps, providerId, rawProvider);
 
     const getComboTargetModelId = (target: ComboCatalogTarget) => {
@@ -710,7 +654,7 @@ async function buildUnifiedModelsResponseCore(
         );
       })
     );
-    const isRegisteredEffortVariant = (
+    const _isRegisteredEffortVariant = (
       providerModels: Array<{ id: string }>,
       modelId: string
     ): boolean => {

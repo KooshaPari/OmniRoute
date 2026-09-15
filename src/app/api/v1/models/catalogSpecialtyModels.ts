@@ -8,7 +8,6 @@ import { aiHordeImageCatalog } from "@omniroute/open-sse/services/aihordeImageCa
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
 import {
   getAllImageModels,
-  isRegisteredImageModel,
 } from "@omniroute/open-sse/config/imageRegistry";
 import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry";
 import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry";
@@ -111,11 +110,9 @@ export async function addSpecialtyModels(ctx: SpecialtyModelContext): Promise<vo
     providerIdToAlias,
     blockedProviders,
     activeAliases,
-    providerIdToPrefix,
     resolveCanonicalProviderId,
     providerSupportsModel,
     isModelHiddenBulk,
-    maybeYieldCatalogBuild,
   } = ctx;
 
   const checkProviderActive = (provider: string) =>

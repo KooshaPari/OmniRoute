@@ -53,7 +53,6 @@ export async function synthesizeAutoCombos(
     blockedProviders,
     listedIds,
     capabilityResolutionSnapshot,
-    providerIdToAlias,
   } = ctx;
 
   const comboMetadataCtx: ComboMetadataPick = {
