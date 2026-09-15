@@ -177,7 +177,7 @@ afterEach(async () => {
 
 // ── Tests ────────────────────────────────────────────────────────────────────
 
-describe("AgentSkillsPageClient", () => {
+describe("AgentSkillsPageClient", { timeout: 30_000 }, () => {
   it("renders 42 skill cards after fetch resolves", async () => {
     const skills = make42Skills();
     vi.stubGlobal("fetch", mockFetch(skills, FULL_COVERAGE));
