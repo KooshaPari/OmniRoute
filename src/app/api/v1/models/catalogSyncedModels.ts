@@ -11,7 +11,6 @@ import {
   providerUsesCuratedModelsOnly,
   providerUsesExclusiveSyncedListing,
 } from "@/lib/providers/modelListingCapability";
-import { providerUsesAuthoritativeLiveCatalog } from "@omniroute/open-sse/config/providerRegistry";
 import { buildSyncedCapabilities, mergeSyncedCapabilities } from "./syncedCapabilities";
 import { classifyModelSupportedEndpoints } from "@/shared/constants/modelSupportedEndpoints";
 import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";

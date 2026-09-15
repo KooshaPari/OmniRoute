@@ -13,7 +13,7 @@ export function normalizeOpenRouterModalities(value: unknown): string[] {
     : [];
 }
 
-export function getOpenRouterModelType(inputModalities: string[], outputModalities: string[]) {
+export function getOpenRouterModelType(_inputModalities: string[], outputModalities: string[]) {
   if (outputModalities.includes("image")) return "image";
   if (outputModalities.includes("audio")) return "audio";
   if (outputModalities.includes("video")) return "video";

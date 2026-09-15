@@ -4,7 +4,7 @@
  *
  * Extracted from catalog.ts to reduce file size.
  */
-import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
+import { PROVIDER_MODELS } from "@/shared/constants/models";
 import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/model";
 import { isModelSelectable } from "@omniroute/open-sse/services/modelLifecycle";
 import { providerUsesAuthoritativeLiveCatalog } from "@omniroute/open-sse/config/providerRegistry";
@@ -59,7 +59,6 @@ export async function addStaticProviderModels(ctx: StaticModelContext): Promise<
     syncedModelIdsByCanonicalProvider,
     aliasToProviderId,
     providerIdToAlias,
-    providerIdToPrefix,
     activeAliases,
     blockedProviders,
     includeAlias,

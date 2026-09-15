@@ -66,7 +66,7 @@ type CustomModelContext = {
 /**
  * Helper: check if a provider is active (by provider id or alias).
  */
-function isProviderActive(
+function _isProviderActive(
   provider: string,
   activeAliases: Set<string>,
   blockedProviders: Set<string>,
@@ -131,14 +131,12 @@ export async function addCustomModels(ctx: CustomModelContext): Promise<void> {
     providerIdToPrefix,
     providerIdToAlias,
     nodeIdToProviderType,
-    aliasToProviderId,
     activeAliases,
     blockedProviders,
     includeAlias,
     includeCanonical,
     resolveCanonicalProviderId,
     resolvePublicOwnerId,
-    providerSupportsModel,
     isModelHiddenBulk,
     isExcludedByProviderConnections,
     shouldHidePaid,
@@ -320,7 +318,7 @@ export async function addCustomModels(ctx: CustomModelContext): Promise<void> {
         await maybeYieldCatalogBuild();
       }
     }
-  } catch (e) {
+  } catch (_e) {
     console.log("Could not fetch custom models");
   }
 
@@ -406,7 +404,7 @@ export async function addCustomModels(ctx: CustomModelContext): Promise<void> {
         });
       }
     }
-  } catch (e) {
+  } catch (_e) {
     console.log("Could not fetch model aliases");
   }
 

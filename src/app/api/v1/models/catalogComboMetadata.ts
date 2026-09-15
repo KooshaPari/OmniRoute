@@ -19,7 +19,6 @@ import type { CatalogBuildContext } from "./catalogBuildTypes";
 import type {
   ComboCatalogTarget,
   ComboTargetCatalogMetadata,
-  ConnectionScopedReasoningCatalog,
 } from "./catalogHelpers";
 import {
   isPositiveFiniteNumber,
