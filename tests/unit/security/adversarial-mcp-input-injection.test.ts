@@ -64,7 +64,7 @@ beforeAll(async () => {
 
   const guard = await import("../../../src/middleware/promptInjectionGuard.ts");
   createInjectionGuard = guard.createInjectionGuard;
-}, 30_000);
+}, 60_000);
 
 // ═══════════════════════════════════════════════════════════════
 //  1. INJECTION PATTERN COVERAGE

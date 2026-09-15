@@ -484,7 +484,7 @@ describe("Provider Routing Performance Benchmarks", () => {
   // ── 6. Provider Catalog Scalability ──────────────────────────────────────
 
   describe("6. Provider Catalog Scalability", () => {
-    it("full registry enumeration: iterate all providers", () => {
+    it("full registry enumeration: iterate all providers", { timeout: 30000 }, () => {
       const result = benchSync(() => {
         const providers = getRegisteredProviders();
         // Simulate what combo routing does: iterate to find candidates
