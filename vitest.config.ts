@@ -13,6 +13,7 @@ export default defineConfig({
     maxWorkers: 20,
     fileParallelism: true,
     maxConcurrency: 20,
+    hookTimeout: 30000,
     retry: 2,
     include: [
       "src/app/**/dashboard/cache/__tests__/**/*.test.tsx",
@@ -24,7 +25,9 @@ export default defineConfig({
       "src/lib/memory/__tests__/**/*.test.ts",
       "src/lib/skills/__tests__/**/*.test.ts",
       "tests/unit/encryption.test.ts",
+      "tests/unit/**/*.test.ts",
       "tests/unit/**/*.test.tsx",
+      "tests/performance/**/*.test.ts",
       "open-sse/**/__tests__/**/*.test.ts",
       "open-sse/services/**/__tests__/**/*.test.ts",
     ],
