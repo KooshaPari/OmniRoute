@@ -13,7 +13,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { scoreToken, pruneByScore, STOPWORDS } from "../../open-sse/services/compression/ultraHeuristic.ts";
+import { scoreToken, pruneByScore } from "../../../open-sse/services/compression/ultraHeuristic.ts";
 
 test("scoreToken: polarity words score 1.0 (never prunable)", () => {
   // These words MUST survive compression — they carry instruction polarity
@@ -59,7 +59,10 @@ test("pruneByScore: polarity words survive pruning", () => {
 
   // All polarity words MUST survive
   assert.ok(result.includes("never") || result.includes("NEVER"), "MUST preserve 'never'/'NEVER'");
-  assert.ok(result.includes("always") || result.includes("Always"), "MUST preserve 'always'/'Always'");
+  assert.ok(
+    result.includes("always") || result.includes("Always"),
+    "MUST preserve 'always'/'Always'"
+  );
   assert.ok(result.includes("not") || result.includes("NOT"), "MUST preserve 'not'/'NOT'");
   assert.ok(result.includes("Do"), "MUST preserve 'Do'");
 });
@@ -99,16 +102,11 @@ test("pruneByScore: sample from #13454 issue preserves meaning", () => {
   const result = pruneByScore(block, 0.5, 0.3);
 
   // After the fix, NONE of these meaning-critical words should be pruned:
-  assert.ok(result.includes("NEVER") || result.includes("never"),
-    "NEVER must survive");
-  assert.ok(result.includes("Always") || result.includes("always"),
-    "Always must survive");
-  assert.ok(result.includes("not") || result.includes("NOT"),
-    "not/NOT must survive");
-  assert.ok(result.includes("Do") || result.includes("do"),
-    "Do/do must survive");
-  assert.ok(result.includes("must") || result.includes("MUST"),
-    "must/MUST must survive");
+  assert.ok(result.includes("NEVER") || result.includes("never"), "NEVER must survive");
+  assert.ok(result.includes("Always") || result.includes("always"), "Always must survive");
+  assert.ok(result.includes("not") || result.includes("NOT"), "not/NOT must survive");
+  assert.ok(result.includes("Do") || result.includes("do"), "Do/do must survive");
+  assert.ok(result.includes("must") || result.includes("MUST"), "must/MUST must survive");
 
   // The critical test: "must never" must NOT become "must" alone
   assert.ok(
