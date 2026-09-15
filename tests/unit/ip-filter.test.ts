@@ -132,9 +132,14 @@ test("addToBlacklist/removeFromBlacklist: dynamic updates", () => {
 test("addToWhitelist/removeFromWhitelist: dynamic updates", () => {
   configureIPFilter({ enabled: true, mode: "whitelist" });
   addToWhitelist("1.1.1.1");
+  addToWhitelist("2.2.2.2");
   assert.equal(checkIP("1.1.1.1").allowed, true);
   removeFromWhitelist("1.1.1.1");
   assert.equal(checkIP("1.1.1.1").allowed, false);
+  // #13534: removing the last entry leaves an empty whitelist, which no longer
+  // enforces (so an admin who has not populated the list yet is not locked out).
+  removeFromWhitelist("2.2.2.2");
+  assert.equal(checkIP("1.1.1.1").allowed, true);
 });
 
 // ─── IPv6 Normalization ─────────────────────────────────────────────────────
