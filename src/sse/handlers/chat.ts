@@ -35,7 +35,6 @@ import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.
 import { resolveCcDiscoveryAliasStrip } from "@/lib/ccDiscoveryAliasResolve";
 import {
   handleComboChat,
-  resolveComboTargets,
   shouldSkipConnDisable,
 } from "@omniroute/open-sse/services/combo.ts";
 import type { ComboLike, SingleModelTarget } from "@omniroute/open-sse/services/combo/types.ts";
@@ -44,7 +43,7 @@ import { resolveRequestAutoControls } from "@omniroute/open-sse/services/autoCom
 import { isVerifiedNativeCodexRequest } from "@omniroute/open-sse/config/codexIdentity.ts";
 import { resolveCompressionSettings } from "@omniroute/open-sse/handlers/chatCore/compressionSettings.ts";
 import type { CompressionExclusions } from "@omniroute/open-sse/services/compression/exclusions.ts";
-import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
+
 import { comboPinAllowlist } from "@/lib/combos/steps.ts";
 import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
 import {
@@ -70,7 +69,7 @@ import { isRuntimeProviderRetirementError } from "@/shared/constants/providerRet
 import { isCommonChatGptWebRetirementError } from "@/shared/constants/chatgptWebRetirement";
 import { isChatGptWebCodexModel } from "@/shared/constants/chatgptWebCodex";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
-import { getComboByName, updateCombo } from "@/lib/db/combos";
+import { getComboByName } from "@/lib/db/combos";
 import { isModelAllowedForKey } from "@/lib/db/apiKeys";
 import { promoteSuccessfulComboModel } from "@/lib/combos/autoPromote";
 import {
@@ -107,8 +106,7 @@ import {
   withConversationId,
 } from "./chatHelpers";
 import { buildModalityBridgeHeader } from "@/lib/guardrails/modalityBridge/bridgeStats";
-import type { VideoBridgeLogRedactionEntry } from "@/lib/guardrails/videoBridge";
-import { reanchorVideoBridgeRedaction } from "@/lib/guardrails/videoBridge";
+
 import { resolveConversationId } from "@omniroute/open-sse/services/conversationTracker.ts";
 import {
   classifyProviderBreakerResult,
@@ -131,6 +129,13 @@ import {
 } from "./reasoningRouting";
 import { createVirtualAutoCombo, resolveAutoRoutingState } from "./autoRouting";
 import { getComboFailureLogError } from "./comboFailureLogging";
+
+// Extracted sub-modules (from chat.ts decomposition)
+import { intersectAllowedConnectionIds } from "./chat/chatConnectionUtils";
+import { VideoBridgeLog, deriveVideoBridgeLog } from "./chat/chatVideoBridge";
+import { isManagedComboUnsupported, managedComboRejection, comboPromoteDeps } from "./chat/chatComboValidation";
+import { validateChatRequestBody } from "./chat/chatBodyValidation";
+import { registerAllQuotaFetchers } from "./chat/chatQuotaFetchers";
 
 // Pipeline integration — wired modules
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
@@ -172,21 +177,8 @@ import {
 } from "@omniroute/open-sse/services/emergencyFallback.ts";
 import {
   registerCodexConnection,
-  registerCodexQuotaFetcher,
 } from "@omniroute/open-sse/services/codexQuotaFetcher.ts";
-import { registerBailianCodingPlanQuotaFetcher } from "@omniroute/open-sse/services/bailianQuotaFetcher.ts";
-import { registerQwenTokenPlanQuotaFetcher } from "@omniroute/open-sse/services/qwenTokenPlanQuotaFetcher.ts";
-import { registerCrofUsageFetcher } from "@omniroute/open-sse/services/crofUsageFetcher.ts";
-import { registerDeepseekQuotaFetcher } from "@omniroute/open-sse/services/deepseekQuotaFetcher.ts";
-import {
-  registerMoonshotQuotaFetcher,
-  registerMoonshotFetchersForNodes,
-} from "@omniroute/open-sse/services/moonshotQuotaFetcher.ts";
-import { registerOpenrouterQuotaFetcher } from "@omniroute/open-sse/services/openrouterQuotaFetcher.ts";
-import { registerOpencodeQuotaFetcher } from "@omniroute/open-sse/services/opencodeQuotaFetcher.ts";
-import { registerGrokWebQuotaFetcher } from "@omniroute/open-sse/services/grokQuotaFetcher.ts";
-import { registerGenericQuotaFetchers } from "@omniroute/open-sse/services/genericQuotaFetcher.ts";
-import "@omniroute/open-sse/services/quotaTrackersBatch.ts";
+
 import {
   disableCooldownAwareRetry,
   getCooldownAwareRetryDecision,
@@ -210,60 +202,7 @@ import {
   type ManagedLeaseDispatchContext,
 } from "../services/leaseContext";
 
-registerCodexQuotaFetcher();
-
-// Register Bailian Coding Plan quota fetcher at module load (once per server start).
-// This hooks into the quotaPreflight + quotaMonitor systems so that combos
-// can proactively switch accounts before quota is exhausted.
-registerBailianCodingPlanQuotaFetcher();
-
-// Register the Qwen Cloud / Model Studio personal Token Plan fetcher (#9603).
-// Cookie-authenticated console gateway — 5-hour + weekly sliding windows.
-// Runs before registerGenericQuotaFetchers so the bespoke fetcher wins.
-registerQwenTokenPlanQuotaFetcher();
-
-// Register CrofAI usage fetcher (subscription requests + credits balance).
-// Surfaces usable_requests + credits in the monitor and only blocks (preflight
-// opt-in) when the active bucket reaches zero.
-registerCrofUsageFetcher();
-// Register DeepSeek balance quota fetcher.
-// Hooks into quotaPreflight + quotaMonitor so combos can switch accounts before balance is exhausted.
-registerDeepseekQuotaFetcher();
-registerMoonshotQuotaFetcher();
-void import("@/lib/db/providers")
-  .then(({ getProviderNodes }) => getProviderNodes())
-  .then((nodes) => {
-    registerMoonshotFetchersForNodes(
-      (Array.isArray(nodes) ? nodes : []).map((node) => ({
-        id: typeof node.id === "string" ? node.id : null,
-        prefix: typeof node.prefix === "string" ? node.prefix : null,
-        baseUrl: typeof node.baseUrl === "string" ? node.baseUrl : null,
-      }))
-    );
-  })
-  .catch((error) => {
-    console.warn("[STARTUP] Moonshot custom-node fetcher scan skipped:", error);
-  });
-registerOpenrouterQuotaFetcher();
-
-// Register OpenCode quota fetcher (opencode-go / opencode / opencode-zen).
-// Surfaces the $12/5h, $30/wk, $60/mo windows in the limits page and enables
-// quota-aware preflight switching between connections. (#2852)
-registerOpencodeQuotaFetcher();
-
-// Register Grok Web quota fetcher.
-// Reads account-level OIDC tokens from ~/.grok/auth.json (the local Grok CLI
-// login) to surface the weekly credit-usage percentage in the dashboard.
-// This runs before registerGenericQuotaFetchers so the bespoke fetcher takes
-// precedence over the generic path (which can't resolve grok OIDC auth from
-// cookie-based connections).
-registerGrokWebQuotaFetcher();
-
-// Register the generic quota fetcher for every other provider that has a
-// usage implementation in usage.ts but no bespoke preflight fetcher. This is
-// what lets the per-window cutoff modal in Dashboard › Limits actually
-// enforce thresholds for Claude / GLM / Cursor / etc., not just Codex.
-registerGenericQuotaFetchers();
+registerAllQuotaFetchers();
 let combosCachePromise: Promise<ComboLike[]> | null = null;
 let combosCacheTs = 0;
 let combosCacheVersionSnapshot = -1;
@@ -315,106 +254,6 @@ async function getCombosCachedForChat(): Promise<ComboLike[]> {
   return combosCachePromise;
 }
 
-function normalizeAllowedConnectionIds(value: unknown): string[] | null {
-  if (!Array.isArray(value)) return null;
-  const ids = value.filter(
-    (entry): entry is string => typeof entry === "string" && entry.trim().length > 0
-  );
-  return ids.length > 0 ? ids : null;
-}
-
-function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): string[] | null {
-  const first = normalizeAllowedConnectionIds(primary);
-  const second = normalizeAllowedConnectionIds(secondary);
-
-  if (first && second) {
-    return first.filter((id) => second.includes(id));
-  }
-
-  return first || second || null;
-}
-
-/** Shape of the videoBridgeLog param threaded to executeChatWithBreaker -> handleChatCore (#12150 P1b). */
-type VideoBridgeLog = { observed: boolean; redaction: VideoBridgeLogRedactionEntry[] };
-
-/**
- * #12150 P1b: derive the video-bridge log/Memory shadow from
- * preCallGuardrails.results. Returns undefined only when the video-bridge
- * guardrail did not run (disabled, no video parts, or the request was
- * blocked/failed before meta was set); a replaced ordinary video returns
- * `{ observed: false, redaction: [] }`. So every non-video request threads
- * `undefined` through the dispatch chain, byte-identical to before this param
- * existed.
- *
- * `finalBody` is the payload AFTER the whole pre-call chain
- * (`preCallGuardrails.payload`): #12150 P1 final-review fix re-anchors each
- * redaction entry's `fullText` from it so the log sink's content-match still
- * finds the part after the PII/credential maskers (priorities 10/95) rewrote
- * the description text in place.
- *
- * `results` is typed as a structural subset of GuardrailExecutionResult
- * (src/lib/guardrails/base.ts), the same "no type dependency on the
- * guardrail core" pattern already used by buildModalityBridgeHeader
- * (modalityBridge/bridgeStats.ts).
- */
-function deriveVideoBridgeLog(
-  results: Array<{ guardrail: string; meta?: Record<string, unknown> | null }>,
-  finalBody: unknown
-): VideoBridgeLog | undefined {
-  const entry = results.find((r) => r.guardrail === "video-bridge");
-  const meta = entry?.meta;
-  if (!meta || typeof meta.videoBridgeObserved !== "boolean") return undefined;
-  const rawRedaction = Array.isArray(meta.videoBridgeLogRedaction)
-    ? (meta.videoBridgeLogRedaction as VideoBridgeLogRedactionEntry[])
-    : [];
-  const redaction = reanchorVideoBridgeRedaction(rawRedaction, finalBody);
-  return { observed: meta.videoBridgeObserved, redaction };
-}
-
-function isManagedComboUnsupported(
-  combo: ComboLike,
-  settings: Record<string, unknown>,
-  allCombos: ComboLike[],
-  visited = new Set<string>()
-): boolean {
-  if (visited.has(combo.name)) return false;
-  visited.add(combo.name);
-  const strategy = combo.strategy ?? "priority";
-  const config = resolveComboConfig(combo, settings) as Record<string, unknown>;
-  const resolvedTargets = resolveComboTargets(combo, allCombos);
-  const pipeline =
-    strategy === "pipeline" ||
-    (strategy === "auto" && (config.pipeline_enabled === true || combo.name === "auto/smart"));
-  const nestedUnsafe = (combo.models as Array<{ kind?: string; comboName?: string }>).some(
-    (step) => {
-      if (step?.kind !== "combo-ref" || !step.comboName) return false;
-      const nested = allCombos.find((candidate) => candidate.name === step.comboName);
-      return Boolean(nested && isManagedComboUnsupported(nested, settings, allCombos, visited));
-    }
-  );
-  return (
-    strategy === "fusion" ||
-    strategy === "context-relay" ||
-    (config.chaos as { enabled?: boolean } | undefined)?.enabled === true ||
-    (config.shadowRouting as { enabled?: boolean } | undefined)?.enabled === true ||
-    (config.zeroLatencyOptimizationsEnabled === true && config.hedging === true) ||
-    (resolvedTargets.length > 1 &&
-      (pipeline || resolvedTargets.some((target) => Boolean(target.connectionId?.trim())))) ||
-    nestedUnsafe
-  );
-}
-
-const managedComboRejection = () =>
-  buildManagedLeaseErrorResponse(
-    new LeaseContextError(
-      409,
-      "LEASE_UNSUPPORTED_ROUTE",
-      "Managed leases do not support this route"
-    )
-  );
-
-const comboPromoteDeps = { updateCombo, info: log.info, warn: log.warn };
-
 export { shouldTripProviderBreakerForResult } from "./chatPredicates";
 
 async function handleChatImplementation(
@@ -457,86 +296,9 @@ async function handleChatImplementation(
 
   const sourceFormat = detectFormatFromUrl(body, request.url);
 
-  // Early guard: an invalid `messages` field is rejected here with a clear
-  // OmniRoute-level 400 before any routing or upstream call (#5110, #6402).
-  // Without this guard, schema-invalid bodies fell through to model resolution
-  // and surfaced as a misleading 404 `model_not_found` from chatHelpers.ts (#6402).
-  // Cases covered:
-  //   - present-but-non-array (null, number, string, object) → 400 (#6402)
-  //   - empty array → 400 ("at least one message is required") (#5110)
-  //   - missing entirely, when the Responses-API `input` discriminator is also
-  //     absent → 400 (#6402). Responses-API requests use `input` (not `messages`),
-  //     and Antigravity requests use a cloudcode `request` envelope.
-  const msgBody = body as { messages?: unknown; input?: unknown };
-  if ("messages" in msgBody && !Array.isArray(msgBody.messages)) {
-    log.warn("CHAT", "Rejecting request with non-array messages");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array");
-  }
-  if (Array.isArray(msgBody.messages) && msgBody.messages.length === 0) {
-    log.warn("CHAT", "Rejecting request with empty messages array");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
-  }
-  if (!("messages" in msgBody) && !("input" in msgBody) && sourceFormat !== "antigravity") {
-    log.warn("CHAT", "Rejecting request with missing messages");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array, received undefined");
-  }
-
-  // Reject non-string `model` before it reaches downstream code that calls
-  // `.toLowerCase()` / `.split()` / `.startsWith()` on it (crash-then-500 with an
-  // empty body, escaping the error sanitizer — #6407). An explicit `null`/`undefined`
-  // stays permitted here because the existing `Missing model` guard below returns a
-  // clean 400 for those; anything else that is not a string is a client type error.
-  const rawModel = (body as { model?: unknown }).model;
-  if (rawModel !== undefined && rawModel !== null && typeof rawModel !== "string") {
-    log.warn("CHAT", `Rejecting non-string model (typeof=${typeof rawModel})`);
-    return errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      `model: Expected string, received ${Array.isArray(rawModel) ? "array" : typeof rawModel}`
-    );
-  }
-
-  // Early schema validation for scalar params BEFORE provider/model resolution (#6412).
-  // Previously, a bad `temperature: "not-a-number"` on an unknown provider returned
-  // 404 "model_not_found" — hiding the real schema error. Validate the param shape
-  // first so the client gets a 400 with the field name. Kept narrow to widely-supported
-  // OpenAI-spec params (temperature 0..2, top_p 0..1, max_tokens int >=1) so we don't
-  // reject legitimate provider-specific fields.
-  {
-    const b = body as {
-      temperature?: unknown;
-      top_p?: unknown;
-      max_tokens?: unknown;
-      n?: unknown;
-    };
-    const badParam = (name: string, msg: string) =>
-      errorResponse(HTTP_STATUS.BAD_REQUEST, `${name}: ${msg}`);
-    if (b.temperature !== undefined) {
-      if (typeof b.temperature !== "number" || Number.isNaN(b.temperature)) {
-        return badParam("temperature", "must be a number");
-      }
-      if (b.temperature < 0 || b.temperature > 2) {
-        return badParam("temperature", "must be between 0 and 2");
-      }
-    }
-    if (b.top_p !== undefined) {
-      if (typeof b.top_p !== "number" || Number.isNaN(b.top_p)) {
-        return badParam("top_p", "must be a number");
-      }
-      if (b.top_p < 0 || b.top_p > 1) {
-        return badParam("top_p", "must be between 0 and 1");
-      }
-    }
-    if (b.max_tokens !== undefined) {
-      if (typeof b.max_tokens !== "number" || !Number.isInteger(b.max_tokens) || b.max_tokens < 1) {
-        return badParam("max_tokens", "must be a positive integer");
-      }
-    }
-    if (b.n !== undefined) {
-      if (typeof b.n !== "number" || !Number.isInteger(b.n) || b.n < 1) {
-        return badParam("n", "must be a positive integer");
-      }
-    }
-  }
+  // Early body validation — messages, model type, scalar params (#5110, #6402, #6407, #6412)
+  const bodyValidationResult = validateChatRequestBody(body, sourceFormat);
+  if (bodyValidationResult) return bodyValidationResult;
 
   const deferredClientRawBody = chatAdmission.captureDeferredClientRawBody(body);
 
