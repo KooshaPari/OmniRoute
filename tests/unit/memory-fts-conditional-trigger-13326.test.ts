@@ -40,7 +40,7 @@ function createTestDb(): Database.Database {
     );
   `);
 
-  // Create triggers matching 177_memory_fts_au_conditional.sql
+  // Create triggers matching 178_memory_fts_au_conditional.sql
   db.exec(`
     CREATE TRIGGER memory_fts_ai AFTER INSERT ON memories BEGIN
       INSERT INTO memory_fts(rowid, content, key)
@@ -74,9 +74,12 @@ test("#13326 — access_count update does NOT grow FTS data rows", serial, () =>
   const db = createTestDb();
   try {
     // Insert a memory
-    db.prepare(
-      "INSERT INTO memories (id, memory_id, content, key) VALUES (?, ?, ?, ?)"
-    ).run("m1", 1, "test content", "test-key");
+    db.prepare("INSERT INTO memories (id, memory_id, content, key) VALUES (?, ?, ?, ?)").run(
+      "m1",
+      1,
+      "test content",
+      "test-key"
+    );
 
     const baseline = countFtsDataRows(db);
     assert.ok(baseline > 0, "FTS should have data rows after insert");
@@ -103,17 +106,19 @@ test("#13326 — access_count update does NOT grow FTS data rows", serial, () =>
 test("#13326 — content update DOES reindex FTS", serial, () => {
   const db = createTestDb();
   try {
-    db.prepare(
-      "INSERT INTO memories (id, memory_id, content, key) VALUES (?, ?, ?, ?)"
-    ).run("m1", 1, "original content", "key1");
+    db.prepare("INSERT INTO memories (id, memory_id, content, key) VALUES (?, ?, ?, ?)").run(
+      "m1",
+      1,
+      "original content",
+      "key1"
+    );
 
     // Content update should trigger reindex
     db.prepare("UPDATE memories SET content = ? WHERE id = ?").run("updated content", "m1");
 
     // Verify the FTS index has the updated content
-    const ftsRow = db.prepare(
-      "SELECT content FROM memory_fts WHERE rowid = 1"
-    ).get() as { content: string } | undefined;
+    const ftsRow = db.prepare("SELECT content FROM memory_fts WHERE rowid = 1").get() as
+      { content: string } | undefined;
     assert.ok(ftsRow, "FTS row should exist after content update");
     assert.equal(ftsRow.content, "updated content", "FTS should reflect updated content");
   } finally {
@@ -126,9 +131,12 @@ test("#13326 — FTS optimize compacts tombstoned segments", serial, () => {
   try {
     // Insert and delete many memories to create tombstones
     for (let i = 0; i < 20; i++) {
-      db.prepare(
-        "INSERT INTO memories (id, memory_id, content, key) VALUES (?, ?, ?, ?)"
-      ).run(`m${i}`, i, `content ${i}`, `key${i}`);
+      db.prepare("INSERT INTO memories (id, memory_id, content, key) VALUES (?, ?, ?, ?)").run(
+        `m${i}`,
+        i,
+        `content ${i}`,
+        `key${i}`
+      );
     }
 
     const beforeOptimize = countFtsDataRows(db);

@@ -1,4 +1,4 @@
--- 177_memory_fts_au_conditional.sql
+-- 178_memory_fts_au_conditional.sql
 -- Fix: memory_fts_au trigger reindexes on every UPDATE, including access_count bumps.
 --
 -- The AFTER UPDATE trigger from 023_fix_memory_fts_uuid.sql fires unconditionally,
