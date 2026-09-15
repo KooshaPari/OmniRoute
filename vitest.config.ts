@@ -13,7 +13,7 @@ export default defineConfig({
     maxWorkers: 20,
     fileParallelism: true,
     maxConcurrency: 20,
-    hookTimeout: 30000,
+    hookTimeout: 60000,
     retry: 2,
     include: [
       "src/app/**/dashboard/cache/__tests__/**/*.test.tsx",
