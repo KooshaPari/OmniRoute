@@ -11,7 +11,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { extractPreservedBlocks } from "../../open-sse/services/compression/preservation.ts";
+import { extractPreservedBlocks } from "../../../open-sse/services/compression/preservation.ts";
 
 const INSTRUCTION_BLOCK = `<system-reminder>
 Project instructions (auto-injected by the coding agent CLI, role=user):
@@ -45,14 +45,8 @@ test("extractPreservedBlocks captures <system-reminder> blocks verbatim", () => 
     !tombstoned.includes("NEVER run"),
     "Original instruction text should be replaced with a placeholder"
   );
-  assert.ok(
-    tombstoned.includes("Here is my request"),
-    "Non-instruction text should remain"
-  );
-  assert.ok(
-    tombstoned.includes("Please deploy the fix"),
-    "Trailing text should remain"
-  );
+  assert.ok(tombstoned.includes("Here is my request"), "Non-instruction text should remain");
+  assert.ok(tombstoned.includes("Please deploy the fix"), "Trailing text should remain");
 
   // The preserved block should contain the full instruction text
   const instructionBlock = blocks.find((b) => b.kind === "system_instruction");
@@ -91,7 +85,7 @@ test("extractPreservedBlocks captures <instructions> blocks", () => {
 test("extractPreservedBlocks captures <project-instructions> blocks", () => {
   const text = `Before\n<project-instructions>\nNEVER delete the database.\n</project-instructions>\nAfter`;
 
-  const { text: tombstoned, blocks } = extractPreservedBlocks(text);
+  const { blocks } = extractPreservedBlocks(text);
 
   const instructionBlock = blocks.find((b) => b.kind === "system_instruction");
   assert.ok(instructionBlock, "Should find a preserved system_instruction block");
@@ -112,10 +106,7 @@ test("non-instruction text outside <system-reminder> is still compressible", () 
     tombstoned.includes("Normal prose that can be compressed"),
     "Non-instruction prose should remain in the tombstoned text"
   );
-  assert.ok(
-    tombstoned.includes("More normal prose"),
-    "Trailing prose should remain"
-  );
+  assert.ok(tombstoned.includes("More normal prose"), "Trailing prose should remain");
   assert.ok(
     !tombstoned.includes("Do NOT do X"),
     "Instruction text should be replaced with placeholder"
