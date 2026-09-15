@@ -35,10 +35,7 @@ import {
   writeCallArtifact,
   type CallLogArtifact,
 } from "../usage/callLogArtifacts";
-import { migrateLegacyEncryptedString } from "./encryption";
 import { invalidateDbCache } from "./readCache";
-import { rowToCamel } from "./caseMapping";
-import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 import { parseModelAccessMode } from "./apiKeys/modelAccessMode";
 import { getExistingDbInstance as getDb, setDbInstance as setDb } from "./singleton";
 import type { WalCheckpointMode } from "./walMaintenance";
@@ -60,6 +57,15 @@ import {
   quoteIdentifier,
   getTableColumns,
 } from "./schemaColumns";
+import {
+  shouldRunStartupDbHealthCheck,
+  createHealthCheckBackup,
+  autoMigrateLegacyEncryptedConnections,
+  clearDbHealthCheckScheduler,
+  startDbHealthCheckScheduler,
+  bindCoreDeps as bindHealthSchedulerDeps,
+  bindEnv as bindHealthSchedulerEnv,
+} from "./dbHealthScheduler";
 
 type SqliteDatabase = SqliteAdapter;
 type JsonRecord = Record<string, unknown>;
@@ -240,6 +246,15 @@ if (!isCloud && !fs.existsSync(DATA_DIR)) {
     );
   }
 }
+
+// Initialize health scheduler dependencies (circular-dep breaker)
+bindHealthSchedulerEnv({
+  isCloud,
+  isBuildPhase,
+  dataDir: DATA_DIR,
+  dbBackupsDir: DB_BACKUPS_DIR,
+});
+bindHealthSchedulerDeps(getDbInstance);
 
 // ──────────────── Schema ────────────────
 
@@ -860,145 +875,6 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Legacy call log compaction finished without VACUUM:", message);
   }
-}
-
-function shouldRunStartupDbHealthCheck(): boolean {
-  if (process.env.OMNIROUTE_FORCE_DB_HEALTHCHECK === "1") return true;
-  return !isAutomatedTestProcess();
-}
-
-function createManagedDbBackup(db: SqliteDatabase, reason: string): boolean {
-  const isTest = isAutomatedTestProcess();
-  if (isTest) return false;
-
-  try {
-    const backupDir = DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups");
-    if (!fs.existsSync(backupDir)) {
-      fs.mkdirSync(backupDir, { recursive: true });
-    }
-
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const backupPath = path.join(backupDir, `db_${timestamp}_${reason}.sqlite`);
-    const escapedBackupPath = backupPath.replace(/'/g, "''");
-
-    db.exec(`VACUUM INTO '${escapedBackupPath}'`);
-    console.log(`[DB] Backup created (${reason}): ${backupPath}`);
-    return true;
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.warn(`[DB] Failed to create ${reason} backup:`, message);
-    return false;
-  }
-}
-
-function createHealthCheckBackup(db: SqliteDatabase): boolean {
-  return createManagedDbBackup(db, "health-check-repair");
-}
-
-function autoMigrateLegacyEncryptedConnections(db: SqliteDatabase): number {
-  const rows = db.prepare("SELECT * FROM provider_connections").all() as JsonRecord[];
-  const updateStmt = db.prepare(
-    "UPDATE provider_connections SET api_key = @apiKey, id_token = @idToken, access_token = @accessToken, refresh_token = @refreshToken, updated_at = @updatedAt WHERE id = @id"
-  );
-  const encryptedFields = ["apiKey", "idToken", "accessToken", "refreshToken"] as const;
-  let migratedCount = 0;
-  let backupCreated = false;
-
-  for (const row of rows) {
-    const camelRow = rowToCamel(row);
-    if (!camelRow) continue;
-
-    let updatedRow = false;
-    for (const field of encryptedFields) {
-      if (typeof camelRow[field] !== "string") continue;
-
-      const { updated, value } = migrateLegacyEncryptedString(camelRow[field]);
-      if (updated) {
-        camelRow[field] = value;
-        updatedRow = true;
-      }
-    }
-
-    if (!updatedRow) continue;
-    if (!backupCreated) {
-      createManagedDbBackup(db, "legacy-encryption-migration");
-      backupCreated = true;
-    }
-
-    updateStmt.run({
-      id: camelRow.id,
-      apiKey: camelRow.apiKey ?? null,
-      idToken: camelRow.idToken ?? null,
-      accessToken: camelRow.accessToken ?? null,
-      refreshToken: camelRow.refreshToken ?? null,
-      updatedAt: new Date().toISOString(),
-    });
-    migratedCount++;
-  }
-
-  if (migratedCount > 0) {
-    invalidateDbCache("connections");
-    console.log(`[DB] Auto-migrated ${migratedCount} connection(s) to new static-salt encryption.`);
-  }
-
-  return migratedCount;
-}
-
-let dbHealthCheckTimer: NodeJS.Timeout | null = null;
-
-function getDbHealthCheckIntervalMs(): number {
-  const rawValue = process.env.OMNIROUTE_DB_HEALTHCHECK_INTERVAL_MS;
-  if (typeof rawValue === "string" && rawValue.trim().length > 0) {
-    const parsed = Number(rawValue);
-    if (Number.isFinite(parsed) && parsed >= 0) {
-      return parsed;
-    }
-  }
-  return 6 * 60 * 60 * 1000;
-}
-
-function clearDbHealthCheckScheduler() {
-  if (dbHealthCheckTimer) {
-    clearInterval(dbHealthCheckTimer);
-    dbHealthCheckTimer = null;
-  }
-}
-
-function startDbHealthCheckScheduler(db: SqliteDatabase) {
-  clearDbHealthCheckScheduler();
-  if (isCloud || isBuildPhase || isAutomatedTestProcess()) return;
-
-  const intervalMs = getDbHealthCheckIntervalMs();
-  if (intervalMs <= 0) return;
-
-  dbHealthCheckTimer = setInterval(() => {
-    try {
-      if (!db.open) return;
-      runDbHealthCheck(db, {
-        autoRepair: true,
-        skipIntegrityCheck: process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1",
-        expectedSchemaVersion: "1",
-        createBackupBeforeRepair: () => createHealthCheckBackup(db),
-      });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.warn("[DB] Periodic health-check failed:", message);
-    }
-  }, intervalMs);
-  dbHealthCheckTimer.unref?.();
-}
-
-// Auto-checkpoint moves WAL pages back into the main DB file but never shrinks the WAL
-// file itself; only wal_checkpoint(TRUNCATE) does, and a long-running server never closes its DB.
-// The scheduler lives in ./walMaintenance (periodic TRUNCATE + busy warn + PASSIVE retry).
-
-export function runManagedDbHealthCheck(options?: { autoRepair?: boolean }) {
-  const db = getDbInstance();
-  return runDbHealthCheck(db, {
-    autoRepair: options?.autoRepair === true,
-    expectedSchemaVersion: "1",
-    createBackupBeforeRepair: () => createHealthCheckBackup(db),
-  });
 }
 
 export function getDbInstance(): SqliteDatabase {
