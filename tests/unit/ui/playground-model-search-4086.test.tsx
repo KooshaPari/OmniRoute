@@ -35,12 +35,27 @@ vi.mock("@/app/(dashboard)/dashboard/translator/hooks/useProviderOptions", () =>
   }),
 }));
 
-const { default: StudioConfigPane } = await import(
-  "../../../src/app/(dashboard)/dashboard/playground/components/StudioConfigPane"
-);
-const { DEFAULT_PARAMS } = await import(
-  "../../../src/app/(dashboard)/dashboard/playground/components/ParamSliders"
-);
+vi.mock("@/app/(dashboard)/dashboard/playground/components/PresetPicker", () => ({
+  default: () => null,
+}));
+
+vi.mock("@/app/(dashboard)/dashboard/playground/components/ImprovePromptButton", () => ({
+  default: () => null,
+}));
+
+vi.mock("@/app/(dashboard)/dashboard/playground/components/ParamSliders", () => ({
+  default: () => null,
+  DEFAULT_PARAMS: { temperature: 0.7, topP: 1, maxTokens: 4096 },
+}));
+
+vi.mock("@/app/(dashboard)/dashboard/playground/components/ReasoningControls", () => ({
+  default: () => null,
+}));
+
+const { default: StudioConfigPane } =
+  await import("../../../src/app/(dashboard)/dashboard/playground/components/StudioConfigPane");
+const { DEFAULT_PARAMS } =
+  await import("../../../src/app/(dashboard)/dashboard/playground/components/ParamSliders");
 
 const containers: Array<{ root: ReturnType<typeof createRoot>; el: HTMLDivElement }> = [];
 
@@ -84,8 +99,9 @@ function setInputValue(input: HTMLInputElement, value: string) {
 
 describe("StudioConfigPane model search (#4086)", () => {
   beforeEach(() => {
-    (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean })
-      .IS_REACT_ACT_ENVIRONMENT = true;
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
   });
 
   afterEach(() => {

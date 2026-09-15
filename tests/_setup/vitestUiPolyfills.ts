@@ -4,15 +4,27 @@
 if (typeof window !== "undefined" && !window.localStorage) {
   const store = new Map<string, string>();
   window.localStorage = {
-    get length() { return store.size; },
-    clear() { store.clear(); },
-    getItem(key: string) { return store.get(key) ?? null; },
-    key(index: number) { return [...store.keys()][index] ?? null; },
-    removeItem(key: string) { store.delete(key); },
-    setItem(key: string, value: string) { store.set(key, String(value)); },
+    get length() {
+      return store.size;
+    },
+    clear() {
+      store.clear();
+    },
+    getItem(key: string) {
+      return store.get(key) ?? null;
+    },
+    key(index: number) {
+      return [...store.keys()][index] ?? null;
+    },
+    removeItem(key: string) {
+      store.delete(key);
+    },
+    setItem(key: string, value: string) {
+      store.set(key, String(value));
+    },
   } as Storage;
   // Expose on globalThis so bare `localStorage` references resolve
-  (globalThis as any).localStorage = window.localStorage;
+  (globalThis as unknown as Record<string, unknown>).localStorage = window.localStorage;
 }
 
 // jsdom (unlike real browsers) does not implement `window.matchMedia`. Several
@@ -39,7 +51,6 @@ if (typeof window !== "undefined" && typeof window.matchMedia !== "function") {
   };
 }
 
-// #7935 wired `useTranslations`/`useLocale` (next-intl) into ~180 dashboard/shared
 // components (Button, Modal, Select, EmptyState, ProviderIcon, ...). Any UI test that
 // mounts a component depending on one of those — directly or transitively — without its
 // own `vi.mock("next-intl", ...)` now crashes with "context from NextIntlClientProvider

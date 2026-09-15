@@ -1,6 +1,20 @@
 import "../../_setup/jsdomGlobal.ts";
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, expect } from "vitest";
+
+const assert = {
+  equal: (a: unknown, b: unknown) => expect(a).toEqual(b),
+  deepEqual: (a: unknown, b: unknown) => expect(a).toEqual(b),
+  ok: (v: unknown) => expect(v).toBeTruthy(),
+  rejects: async (fn: () => Promise<unknown>, pattern: RegExp) => {
+    try {
+      await fn();
+      throw new Error("Expected rejection");
+    } catch (e: any) {
+      expect(e.message).toMatch(pattern);
+    }
+  },
+};
+
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ComboSortSelect } from "@/app/(dashboard)/dashboard/combos/ComboSortSelect";
 

@@ -1,9 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import {
   generateRoutingHints,
   compareByCostEffectiveness,
   estimateRequestCost,
 } from "../manifestAdapter.ts";
+import { clearTierCache } from "../tierResolver.ts";
 import type { ResolvedComboTarget } from "../combo.ts";
 
 function makeTarget(provider: string, model: string): ResolvedComboTarget {
@@ -21,6 +22,10 @@ function makeTarget(provider: string, model: string): ResolvedComboTarget {
 }
 
 describe("ManifestAdapter", () => {
+  beforeEach(() => {
+    clearTierCache();
+  });
+
   describe("generateRoutingHints - trivial query", () => {
     it("returns prefer-free modifier for greeting", async () => {
       const hints = await generateRoutingHints([], {

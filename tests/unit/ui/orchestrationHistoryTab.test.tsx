@@ -52,8 +52,6 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const NOW = Date.parse("2026-09-01T12:00:00Z");
-const hoursAgo = (h: number) => new Date(NOW - h * 60 * 60 * 1000).toISOString();
 /** Relative to the REAL clock — for assertions that must hold inside the 1d window too
  * (the component derives its range from `Date.now()`, not from the fixed `NOW` above). */
 const realHoursAgo = (h: number) => new Date(Date.now() - h * 60 * 60 * 1000).toISOString();
@@ -93,9 +91,9 @@ function cloudAgentTask(overrides: Record<string, unknown> = {}) {
     source: { repoName: "r", repoUrl: "https://x" },
     options: {},
     activities: [],
-    createdAt: hoursAgo(45 / 60),
-    updatedAt: hoursAgo(20 / 60),
-    completedAt: hoursAgo(20 / 60),
+    createdAt: realHoursAgo(45 / 60),
+    updatedAt: realHoursAgo(20 / 60),
+    completedAt: realHoursAgo(20 / 60),
     ...overrides,
   };
 }
@@ -105,8 +103,8 @@ function a2aTask(overrides: Record<string, unknown> = {}) {
     id: "t1",
     state: "completed",
     skill: "smart-routing",
-    createdAt: hoursAgo(1),
-    completedAt: hoursAgo(0.5),
+    createdAt: realHoursAgo(1),
+    completedAt: realHoursAgo(0.5),
     ...overrides,
   };
 }
@@ -311,8 +309,8 @@ describe("HistoryTab", () => {
           a2aTask({
             id: "t3",
             skill: "eval-suite",
-            createdAt: hoursAgo(2),
-            completedAt: hoursAgo(1.5),
+            createdAt: realHoursAgo(2),
+            completedAt: realHoursAgo(1.5),
           }),
         ],
         cloudAgentTasks: [cloudAgentTask()],

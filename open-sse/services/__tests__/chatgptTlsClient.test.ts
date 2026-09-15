@@ -19,7 +19,11 @@
  * captures opts.proxyUrl is the right shape of regression.
  */
 
-import { describe, it, beforeEach, afterEach, expect } from "vitest";
+import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
+
+vi.mock("tls-client-node", () => ({
+  default: { request: vi.fn() },
+}));
 
 import { tlsFetchChatGpt, __setTlsFetchOverrideForTesting } from "../chatgptTlsClient.ts";
 

@@ -32,7 +32,7 @@
  *
  * The exported helpers in this file — `parseCodexQuotaHeaders`,
  * `getCodexResetTime`, `getCodexDualWindowCooldownMs`, `getCodexUpstreamModel`,
- * `isCodexFreePlan`, `stripStoredItemReferences`, `isCompactResponsesEndpoint`,
+ * `isCodexFreePlan`, `isCompactResponsesEndpoint`,
  * `normalizeCodexTools`, `isCodexResponsesWebSocketRequired`,
  * `encodeResponseSseEvent`, `filterNonstandardCodexSse`, and the test-only
  * `__setCodexWebSocketTransportForTesting` — are exercised directly so each
@@ -55,8 +55,12 @@
  * as PR-024 (claudeIdentity) and PR-026 (budget forecast). Do not modify
  * `codex.ts`; tests target the existing exported contract.
  */
-import { describe, it, before, after, beforeEach } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, afterEach, beforeEach } from "vitest";
+const assert = {
+  equal: (a: unknown, b: unknown) => expect(a).toEqual(b),
+  deepEqual: (a: unknown, b: unknown) => expect(a).toEqual(b),
+  ok: (v: unknown) => expect(v).toBeTruthy(),
+};
 
 // Polyfill structuredClone for older Node test runners that lack it.
 // `codex.ts` uses structuredClone() in transformRequest for the input body
@@ -70,8 +74,6 @@ if (typeof g.structuredClone !== "function") {
 import {
   CodexExecutor,
   __setCodexWebSocketTransportForTesting,
-  encodeResponseSseEvent,
-  filterNonstandardCodexSse,
   getCodexDualWindowCooldownMs,
   getCodexResetTime,
   getCodexUpstreamModel,
@@ -80,7 +82,6 @@ import {
   isCompactResponsesEndpoint,
   normalizeCodexTools,
   parseCodexQuotaHeaders,
-  stripStoredItemReferences,
   type CodexQuotaSnapshot,
 } from "../codex.ts";
 
@@ -88,7 +89,7 @@ import {
  * Helper — invoke `transformRequest` on a fresh CodexExecutor. transformRequest
  * is the equivalent of `buildCodexRequestPayload` for the Codex executor.
  */
-function buildPayload(
+function _buildPayload(
   body: unknown,
   options: { model?: string; stream?: boolean; credentials?: Record<string, unknown> } = {}
 ): Record<string, unknown> {
@@ -373,100 +374,7 @@ describe("isCodexFreePlan (workspacePlanType === 'free')", () => {
   });
 });
 
-// ============================================================================
-// §6. stripStoredItemReferences — server-generated ID stripper
-// ============================================================================
-
-describe("stripStoredItemReferences (rs_/fc_/resp_/msg_ ID + reasoning-blob strip)", () => {
-  it("injects a default user 'continue' turn when input is an empty array", () => {
-    const body: Record<string, unknown> = { input: [] };
-    stripStoredItemReferences(body);
-    const input = body.input as Array<Record<string, unknown>>;
-    assert.equal(input.length, 1);
-    assert.equal(input[0].type, "message");
-    assert.equal(input[0].role, "user");
-    const content = input[0].content as Array<Record<string, unknown>>;
-    assert.equal(content[0].type, "input_text");
-    assert.equal(content[0].text, "continue");
-  });
-
-  it("is a no-op when input is not an array", () => {
-    const body: Record<string, unknown> = { input: "not-an-array" };
-    stripStoredItemReferences(body);
-    assert.equal(body.input, "not-an-array");
-  });
-
-  it("is a no-op when body has no input key", () => {
-    const body: Record<string, unknown> = { model: "gpt-5" };
-    stripStoredItemReferences(body);
-    assert.equal(body.model, "gpt-5");
-    assert.equal("input" in body, false);
-  });
-
-  it("filters out bare string references like 'rs_abc'", () => {
-    const body: Record<string, unknown> = {
-      input: ["rs_abc", "msg_xyz", "fc_1", "resp_9", "plain-string"],
-    };
-    stripStoredItemReferences(body);
-    const input = body.input as string[];
-    assert.deepEqual(input, ["plain-string"]);
-  });
-
-  it("filters out object items with type=item_reference", () => {
-    const body: Record<string, unknown> = {
-      input: [
-        { type: "item_reference", id: "rs_abc" },
-        { type: "item_reference", id: "resp_xyz" },
-        { type: "message", role: "user", content: [{ type: "input_text", text: "hi" }] },
-      ],
-    };
-    stripStoredItemReferences(body);
-    const input = body.input as Array<Record<string, unknown>>;
-    assert.equal(input.length, 1);
-    assert.equal(input[0].role, "user");
-  });
-
-  it("strips the id field from object items whose id matches a server prefix (content preserved)", () => {
-    const body: Record<string, unknown> = {
-      input: [
-        {
-          id: "rs_abc",
-          type: "message",
-          role: "assistant",
-          content: [{ type: "output_text", text: "hello" }],
-        },
-        {
-          id: "fc_xyz",
-          type: "function_call",
-          call_id: "call_1",
-          arguments: "{}",
-        },
-      ],
-    };
-    stripStoredItemReferences(body);
-    const input = body.input as Array<Record<string, unknown>>;
-    assert.equal(input.length, 2);
-    assert.equal("id" in input[0], false);
-    assert.equal("id" in input[1], false);
-    // The other fields are kept.
-    assert.equal(input[0].type, "message");
-    assert.equal(input[1].type, "function_call");
-    assert.equal((input[1] as { call_id?: string }).call_id, "call_1");
-  });
-
-  it("filters out reasoning blobs (unusable with store=false)", () => {
-    const body: Record<string, unknown> = {
-      input: [
-        { type: "reasoning", summary: [{ type: "summary_text", text: "thinking" }] },
-        { type: "message", role: "user", content: [{ type: "input_text", text: "go" }] },
-      ],
-    };
-    stripStoredItemReferences(body);
-    const input = body.input as Array<Record<string, unknown>>;
-    assert.equal(input.length, 1);
-    assert.equal(input[0].type, "message");
-  });
-});
+// §6 removed — stripStoredItemReferences was deleted from codex.ts
 
 // ============================================================================
 // §7. isCompactResponsesEndpoint — /responses/compact detection
@@ -699,7 +607,7 @@ describe("isCodexResponsesWebSocketRequired (opt-in WS transport)", () => {
     __setCodexWebSocketTransportForTesting(null);
   });
 
-  after(() => {
+  afterEach(() => {
     __setCodexWebSocketTransportForTesting(originalOverride as never);
   });
 

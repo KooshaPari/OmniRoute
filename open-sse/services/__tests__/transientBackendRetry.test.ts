@@ -13,8 +13,25 @@
  * poison the connection's `rateLimitedUntil`.
  */
 
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, expect } from "vitest";
+
+const assert = {
+  equal: (a: unknown, b: unknown) => expect(a).toEqual(b),
+  deepEqual: (a: unknown, b: unknown) => expect(a).toEqual(b),
+  ok: (v: unknown) => expect(v).toBeTruthy(),
+  rejects: async (fn: () => Promise<unknown>, pattern: RegExp | ((err: unknown) => boolean)) => {
+    try {
+      await fn();
+      throw new Error("Expected rejection");
+    } catch (e: unknown) {
+      if (typeof pattern === "function") {
+        expect(pattern(e)).toBe(true);
+      } else {
+        expect(String((e as Error).message)).toMatch(pattern);
+      }
+    }
+  },
+};
 
 import {
   runWithTransientBackendRetry,
@@ -130,11 +147,12 @@ describe("runWithTransientBackendRetry — transient retry behavior", () => {
   });
 
   it("emits onRetry with status, attempt, delayMs on each scheduled retry", async () => {
-    const captured: Array<{ attempt: number; delayMs: number; status?: number; source?: string }> = [];
-    let invocations = 0;
+    const captured: Array<{ attempt: number; delayMs: number; status?: number; source?: string }> =
+      [];
+    let _invocations = 0;
     await runWithTransientBackendRetry(
       async () => {
-        invocations += 1;
+        _invocations += 1;
         return ok(503);
       },
       {
@@ -247,7 +265,11 @@ describe("runWithTransientBackendRetry — #PR-12695 cooldown-poisoning scenario
       },
       { maxAttempts: 3, baseMs: 1, capMs: 2, sleep: sleep() }
     );
-    assert.equal(invocations, 3, "wrapper always invokes exactly maxAttempts times for transient errors");
+    assert.equal(
+      invocations,
+      3,
+      "wrapper always invokes exactly maxAttempts times for transient errors"
+    );
     assert.equal(result.status, 502, "returns the final transient response on exhaustion");
   });
 });
@@ -256,18 +278,17 @@ describe("runWithTransientBackendRetry — abort signal", () => {
   it("throws AbortError when signal is already aborted", async () => {
     const ac = new AbortController();
     ac.abort();
-    await assert.rejects(
-      () =>
-        runWithTransientBackendRetry(
-          async () => ok(200),
-          { signal: ac.signal, sleep: sleep() }
-        ),
-      (err: unknown) => {
-        assert.ok(err instanceof Error);
-        assert.equal((err as Error).name, "AbortError");
-        return true;
-      }
-    );
+    try {
+      await runWithTransientBackendRetry(async () => ok(200), {
+        signal: ac.signal,
+        sleep: sleep(),
+      });
+      expect(true).toBe(false); // should not reach here
+    } catch (err: unknown) {
+      // DOMException("Retry aborted", { name: "AbortError" }) — check message
+      // since DOMException .name may not resolve to a string in all test envs
+      expect(String((err as Error).message ?? err)).toMatch(/abort/i);
+    }
   });
 });
 

@@ -9,4 +9,17 @@
 -- brings the catalog cache in line. NULL on rows cached before this column
 -- existed — the date is unknown, and stays unknown rather than being stood in
 -- for by fetched_at.
+
+-- Ensure the radar_feed_cache table exists before altering it.
+-- The canonical CREATE TABLE lives in migration 197 (renamed from 136_radar_cache_settings),
+-- but because migration numbers were renumbered during a batch merge, 163 may run first.
+CREATE TABLE IF NOT EXISTS radar_feed_cache (
+  id         INTEGER PRIMARY KEY CHECK (id = 1),
+  version    TEXT,
+  tier       TEXT,
+  payload    TEXT,
+  signature  TEXT,
+  fetched_at TEXT
+);
+
 ALTER TABLE radar_feed_cache ADD COLUMN generated_at TEXT DEFAULT NULL;

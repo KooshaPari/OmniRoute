@@ -19,8 +19,23 @@
  * stay under test as the leaves evolve.
  */
 
-import test from "node:test";
-import assert from "node:assert/strict";
+import { test, expect } from "vitest";
+
+const assert = {
+  equal: (a: unknown, b: unknown) => expect(a).toEqual(b),
+  deepEqual: (a: unknown, b: unknown) => expect(a).toEqual(b),
+  ok: (v: unknown) => expect(v).toBeTruthy(),
+  rejects: async (fn: () => Promise<unknown>, pattern: RegExp) => {
+    try {
+      await fn();
+      throw new Error("Expected rejection");
+    } catch (e: unknown) {
+      expect(e).toBeInstanceOf(Error);
+      const msg = (e as Error).message;
+      expect(msg).toMatch(pattern);
+    }
+  },
+};
 
 import {
   calculateBackoffCooldown,
@@ -188,7 +203,10 @@ test("parseRetryFromErrorText returns null for non-string input", () => {
 
 test("parseRetryFromErrorText parses 'reset after XhYmZs' combined format", () => {
   // 2h30m14s → 2*3600 + 30*60 + 14 seconds
-  assert.equal(parseRetryFromErrorText("Your quota will reset after 2h30m14s"), 2 * 3600_000 + 30 * 60_000 + 14_000);
+  assert.equal(
+    parseRetryFromErrorText("Your quota will reset after 2h30m14s"),
+    2 * 3600_000 + 30 * 60_000 + 14_000
+  );
 });
 
 test("parseRetryFromErrorText parses hours only", () => {
@@ -239,17 +257,11 @@ test("selectLockoutCooldownMs returns baseCooldownMs when backoff disabled and p
 // ── classifyError (re-exported reason helper used by retry paths) ───────────
 
 test("classifyError returns RATE_LIMIT_EXCEEDED for 429", () => {
-  assert.equal(
-    classifyError(429, "rate limit hit"),
-    RateLimitReason.RATE_LIMIT_EXCEEDED
-  );
+  assert.equal(classifyError(429, "rate limit hit"), RateLimitReason.RATE_LIMIT_EXCEEDED);
 });
 
 test("classifyError returns QUOTA_EXHAUSTED for 402 Payment Required", () => {
-  assert.equal(
-    classifyError(402, ""),
-    RateLimitReason.QUOTA_EXHAUSTED
-  );
+  assert.equal(classifyError(402, ""), RateLimitReason.QUOTA_EXHAUSTED);
 });
 
 test("classifyError returns SERVER_ERROR for 500/502 without body context", () => {

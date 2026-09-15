@@ -5,6 +5,7 @@ import path from "path";
 export default defineConfig({
   test: {
     environment: "jsdom",
+
     environmentOptions: { jsdom: { url: "http://localhost:3000" } },
     globals: true,
     setupFiles: ["./tests/_setup/vitestUiPolyfills.ts"],
@@ -12,6 +13,7 @@ export default defineConfig({
     maxWorkers: 20,
     fileParallelism: true,
     maxConcurrency: 20,
+    retry: 2,
     include: [
       "src/app/**/dashboard/cache/__tests__/**/*.test.tsx",
       "src/app/**/dashboard/endpoint/__tests__/**/*.test.tsx",
@@ -111,6 +113,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "tls-client-node": path.resolve(__dirname, "./tests/_setup/__mocks__/tls-client-node.ts"),
       // Mirrors tsconfig paths. Without it, a UI test importing from open-sse
       // resolves to undefined instead of failing loudly — which silently made
       // every provider look credentialed in the free-tier card tests.

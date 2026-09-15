@@ -20,9 +20,16 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import DistributeProxiesButton from "@/shared/components/DistributeProxiesButton";
+
+/** Flush React microtask queue so state updates propagate. */
+async function flushPromises() {
+  await act(async () => {
+    await Promise.resolve();
+  });
+}
 
 describe("DistributeProxiesButton", () => {
   beforeEach(() => {
@@ -45,7 +52,7 @@ describe("DistributeProxiesButton", () => {
       <DistributeProxiesButton
         onDistribute={vi.fn().mockResolvedValue(undefined)}
         label="Rotate Accounts"
-      />,
+      />
     );
     expect(screen.getByRole("button", { name: /rotate accounts/i })).toBeInTheDocument();
   });
@@ -63,23 +70,32 @@ describe("DistributeProxiesButton", () => {
   it("transitions to distributing state during the async call and disables re-entry", async () => {
     let resolveDistribute: () => void;
     const onDistribute = vi.fn().mockImplementation(
-      () => new Promise<void>((resolve) => { resolveDistribute = resolve; }),
+      () =>
+        new Promise<void>((resolve) => {
+          resolveDistribute = resolve;
+        })
     );
     render(<DistributeProxiesButton onDistribute={onDistribute} />);
 
     const button = screen.getByRole("button", { name: /distribute proxies/i });
-    fireEvent.click(button);
+    await act(async () => {
+      fireEvent.click(button);
+    });
 
     // While the promise is pending, the button must be disabled to prevent
     // double-click (per-account proxy round-robin is not idempotent).
-    await waitFor(() => expect(button).toBeDisabled());
+    expect(button).toBeDisabled();
 
     // A second click while distributing must be a no-op
-    fireEvent.click(button);
+    await act(async () => {
+      fireEvent.click(button);
+    });
     expect(onDistribute).toHaveBeenCalledTimes(1);
 
     // Resolve the in-flight call
-    await act(async () => { resolveDistribute!(); });
+    await act(async () => {
+      resolveDistribute!();
+    });
   });
 
   it("transitions idle → distributing → complete → idle after success", async () => {
@@ -87,14 +103,19 @@ describe("DistributeProxiesButton", () => {
     render(<DistributeProxiesButton onDistribute={onDistribute} />);
 
     const button = screen.getByRole("button", { name: /distribute proxies/i });
-    fireEvent.click(button);
+    await act(async () => {
+      fireEvent.click(button);
+    });
+    await flushPromises();
 
-    await waitFor(() => expect(onDistribute).toHaveBeenCalledTimes(1));
+    expect(onDistribute).toHaveBeenCalledTimes(1);
     // The complete state is visible briefly (label changes)
-    await waitFor(() => expect(button).not.toBeDisabled());
+    expect(button).not.toBeDisabled();
 
     // After 1500ms, the button reverts to idle
-    await act(async () => { vi.advanceTimersByTime(1600); });
+    await act(async () => {
+      vi.advanceTimersByTime(1600);
+    });
     expect(button).toBeInTheDocument();
   });
 
@@ -103,21 +124,19 @@ describe("DistributeProxiesButton", () => {
     render(<DistributeProxiesButton onDistribute={onDistribute} />);
 
     const button = screen.getByRole("button", { name: /distribute proxies/i });
-    fireEvent.click(button);
+    await act(async () => {
+      fireEvent.click(button);
+    });
+    await flushPromises();
 
     // Even after rejection, the button must be re-enabled (not stuck in
     // 'distributing' forever, blocking subsequent retries).
-    await waitFor(() => expect(button).not.toBeDisabled(), { timeout: 1000 });
+    expect(button).not.toBeDisabled();
   });
 
   it("respects the disabled prop and does not call onDistribute", () => {
     const onDistribute = vi.fn().mockResolvedValue(undefined);
-    render(
-      <DistributeProxiesButton
-        onDistribute={onDistribute}
-        disabled
-      />,
-    );
+    render(<DistributeProxiesButton onDistribute={onDistribute} disabled />);
     const button = screen.getByRole("button", { name: /distribute proxies/i });
     expect(button).toBeDisabled();
 
@@ -138,6 +157,8 @@ describe("DistributeProxiesButton", () => {
     unmount();
 
     // Advancing timers after unmount must not throw either.
-    expect(() => { vi.advanceTimersByTime(2000); }).not.toThrow();
+    expect(() => {
+      vi.advanceTimersByTime(2000);
+    }).not.toThrow();
   });
 });

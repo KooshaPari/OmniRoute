@@ -1,5 +1,20 @@
-import test from "node:test";
-import assert from "node:assert/strict";
+import { test, expect } from "vitest";
+
+const assert = {
+  equal: (a: unknown, b: unknown) => expect(a).toEqual(b),
+  deepEqual: (a: unknown, b: unknown) => expect(a).toEqual(b),
+  ok: (v: unknown) => expect(v).toBeTruthy(),
+  rejects: async (fn: () => Promise<unknown>, pattern: RegExp) => {
+    try {
+      await fn();
+      throw new Error("Expected rejection");
+    } catch (e: unknown) {
+      expect(e).toBeInstanceOf(Error);
+      const msg = (e as Error).message;
+      expect(msg).toMatch(pattern);
+    }
+  },
+};
 import { getUpstreamErrorIdentifier } from "../getUpstreamErrorIdentifier.ts";
 
 /**
@@ -143,6 +158,9 @@ test("getUpstreamErrorIdentifier: never returns null (only string or undefined)"
   ];
   for (const input of cases) {
     const out = getUpstreamErrorIdentifier(input);
-    assert.ok(out === undefined || typeof out === "string", `unexpected output for ${JSON.stringify(input)}: ${JSON.stringify(out)}`);
+    assert.ok(
+      out === undefined || typeof out === "string",
+      `unexpected output for ${JSON.stringify(input)}: ${JSON.stringify(out)}`
+    );
   }
 });

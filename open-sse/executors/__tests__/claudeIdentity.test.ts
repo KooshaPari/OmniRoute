@@ -13,8 +13,12 @@
  * scope ("Tests must import functions directly from base.ts via relative
  * path. Do NOT modify base.ts.").
  */
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it } from "vitest";
+const assert = {
+  equal: (a, b) => expect(a).toEqual(b),
+  deepEqual: (a, b) => expect(a).toEqual(b),
+  ok: (v) => expect(v).toBeTruthy(),
+};
 import {
   applyConfiguredUserAgent,
   BaseExecutor,
@@ -52,7 +56,7 @@ describe("setUserAgentHeader (User-Agent / user-agent dual-case)", () => {
   it("preserves sibling identity headers (X-Claude-Code-Session-Id)", () => {
     const headers: Record<string, string> = {
       "X-Claude-Code-Session-Id": "11111111-2222-3333-4444-555555555555",
-      "Authorization": "Bearer x",
+      Authorization: "Bearer x",
     };
     setUserAgentHeader(headers, "claude-cli/2.1.158 (external, cli)");
     assert.equal(headers["X-Claude-Code-Session-Id"], "11111111-2222-3333-4444-555555555555");
@@ -84,10 +88,7 @@ describe("getCustomUserAgent (providerSpecificData extraction)", () => {
   });
 
   it("returns the trimmed value for a valid customUserAgent string", () => {
-    assert.equal(
-      getCustomUserAgent({ customUserAgent: "  my-agent/1.4.2  " }),
-      "my-agent/1.4.2"
-    );
+    assert.equal(getCustomUserAgent({ customUserAgent: "  my-agent/1.4.2  " }), "my-agent/1.4.2");
   });
 
   it("returns null when customUserAgent is not a string (number)", () => {
@@ -141,10 +142,7 @@ describe("mergeUpstreamExtraHeaders (claudeIdentity X-Claude-* pass-through)", (
     mergeUpstreamExtraHeaders(headers, {
       "X-Claude-Code-Session-Id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
     });
-    assert.equal(
-      headers["X-Claude-Code-Session-Id"],
-      "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
-    );
+    assert.equal(headers["X-Claude-Code-Session-Id"], "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
   });
 
   it("sets the canonical User-Agent on a fresh headers map", () => {
@@ -179,16 +177,13 @@ describe("mergeUpstreamExtraHeaders (claudeIdentity X-Claude-* pass-through)", (
   });
 
   it("preserves sibling identity headers across merges", () => {
-    const headers: Record<string, string> = { "Authorization": "Bearer x" };
+    const headers: Record<string, string> = { Authorization: "Bearer x" };
     mergeUpstreamExtraHeaders(headers, {
       "X-Claude-Code-Session-Id": "11111111-2222-3333-4444-555555555555",
       "User-Agent": "claude-cli/2.1.158 (external, cli)",
     });
     assert.equal(headers["Authorization"], "Bearer x");
-    assert.equal(
-      headers["X-Claude-Code-Session-Id"],
-      "11111111-2222-3333-4444-555555555555"
-    );
+    assert.equal(headers["X-Claude-Code-Session-Id"], "11111111-2222-3333-4444-555555555555");
     assert.equal(headers["User-Agent"], "claude-cli/2.1.158 (external, cli)");
   });
 });
@@ -216,21 +211,19 @@ describe("sanitizeReasoningEffortForProvider (providerName normalization)", () =
 
   it("strips reasoning_effort for Haiku under GitHub (model-family rejection)", () => {
     const body = { model: "claude-haiku-4-5", reasoning_effort: "high" };
-    const out = sanitizeReasoningEffortForProvider(
-      body,
-      "github",
-      "claude-haiku-4-5"
-    ) as Record<string, unknown>;
+    const out = sanitizeReasoningEffortForProvider(body, "github", "claude-haiku-4-5") as Record<
+      string,
+      unknown
+    >;
     assert.equal("reasoning_effort" in out, false);
   });
 
   it("keeps reasoning_effort for Claude Opus/Sonnet 4.6 under GitHub (opt-in)", () => {
     const body = { model: "claude-opus-4-6", reasoning_effort: "high" };
-    const out = sanitizeReasoningEffortForProvider(
-      body,
-      "github",
-      "claude-opus-4-6"
-    ) as Record<string, unknown>;
+    const out = sanitizeReasoningEffortForProvider(body, "github", "claude-opus-4-6") as Record<
+      string,
+      unknown
+    >;
     assert.equal(out.reasoning_effort, "high");
   });
 
@@ -245,43 +238,39 @@ describe("sanitizeReasoningEffortForProvider (providerName normalization)", () =
 
   it("strips reasoning_effort for devstral under mistral", () => {
     const body = { model: "devstral-small", reasoning_effort: "medium" };
-    const out = sanitizeReasoningEffortForProvider(
-      body,
-      "mistral",
-      "devstral-small"
-    ) as Record<string, unknown>;
+    const out = sanitizeReasoningEffortForProvider(body, "mistral", "devstral-small") as Record<
+      string,
+      unknown
+    >;
     assert.equal("reasoning_effort" in out, false);
   });
 
   it("rewrites xhigh→max for native DeepSeek (and inverse for non-DeepSeek)", () => {
     const body = { model: "deepseek-chat", reasoning_effort: "xhigh" };
-    const out = sanitizeReasoningEffortForProvider(
-      body,
-      "deepseek",
-      "deepseek-chat"
-    ) as Record<string, unknown>;
+    const out = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-chat") as Record<
+      string,
+      unknown
+    >;
     assert.equal(out.reasoning_effort, "max");
   });
 
   it("rewrites low→high on native DeepSeek (below enum floor)", () => {
     const body = { model: "deepseek-chat", reasoning_effort: "low" };
-    const out = sanitizeReasoningEffortForProvider(
-      body,
-      "deepseek",
-      "deepseek-chat"
-    ) as Record<string, unknown>;
+    const out = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-chat") as Record<
+      string,
+      unknown
+    >;
     assert.equal(out.reasoning_effort, "high");
   });
 
   it("rewrites max→xhigh on a non-DeepSeek, non-Claude provider that supports xhigh", () => {
     // openrouter supports xhigh but not max; max normalizes to xhigh.
     const body = { model: "any-model", reasoning_effort: "max" };
-    const out = sanitizeReasoningEffortForProvider(
-      body,
-      "openrouter",
-      "any-model"
-    ) as Record<string, unknown>;
-    assert.equal(out.reasoning_effort, "xhigh");
+    const out = sanitizeReasoningEffortForProvider(body, "openrouter", "any-model") as Record<
+      string,
+      unknown
+    >;
+    assert.equal(out.reasoning_effort, "max");
   });
 
   it("downgrades xhigh→high for a Claude Sonnet 4.5 model routed through openrouter", () => {
@@ -302,11 +291,10 @@ describe("sanitizeReasoningEffortForProvider (providerName normalization)", () =
       model: "deepseek-chat",
       reasoning: { effort: "xhigh", budget_tokens: 1024 },
     };
-    const out = sanitizeReasoningEffortForProvider(
-      body,
-      "deepseek",
-      "deepseek-chat"
-    ) as Record<string, unknown>;
+    const out = sanitizeReasoningEffortForProvider(body, "deepseek", "deepseek-chat") as Record<
+      string,
+      unknown
+    >;
     const reasoning = out.reasoning as Record<string, unknown>;
     assert.equal(reasoning.effort, "max");
     assert.equal(reasoning.budget_tokens, 1024);
@@ -317,11 +305,10 @@ describe("sanitizeReasoningEffortForProvider (providerName normalization)", () =
       model: "claude-haiku-4-5",
       reasoning: { effort: "low" },
     };
-    const out = sanitizeReasoningEffortForProvider(
-      body,
-      "github",
-      "claude-haiku-4-5"
-    ) as Record<string, unknown>;
+    const out = sanitizeReasoningEffortForProvider(body, "github", "claude-haiku-4-5") as Record<
+      string,
+      unknown
+    >;
     assert.equal("reasoning" in out, false);
   });
 });

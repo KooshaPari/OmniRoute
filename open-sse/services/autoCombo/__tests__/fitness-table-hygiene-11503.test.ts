@@ -17,7 +17,7 @@
  * neutral for "no evidence", never a quality claim.
  */
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { describe, it, expect } from "vitest";
 import { getStaticFitnessTableScore } from "../taskFitness";
 import { REGISTRY } from "../../../config/providers/index.ts";
@@ -25,10 +25,7 @@ import { REGISTRY } from "../../../config/providers/index.ts";
 const TASK_TYPES = ["coding", "review", "planning", "analysis", "debugging", "documentation"];
 
 const lifecycle = JSON.parse(
-  readFileSync(
-    fileURLToPath(new URL("../../../../config/quality/model-lifecycle.json", import.meta.url)),
-    "utf8"
-  )
+  readFileSync(resolve(process.cwd(), "config/quality/model-lifecycle.json"), "utf8")
 ) as { retired: Record<string, { status: string }> };
 
 const retiredIds = new Set(

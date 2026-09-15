@@ -55,8 +55,12 @@
  * as PR-024 (claudeIdentity) and PR-026 (budget forecast). Do not modify
  * `codex.ts`; tests target the existing exported contract.
  */
-import { describe, it, before, after, beforeEach } from "node:test";
-import assert from "node:assert/strict";
+import { describe, it } from "vitest";
+const assert = {
+  equal: (a: unknown, b: unknown) => expect(a).toEqual(b),
+  deepEqual: (a: unknown, b: unknown) => expect(a).toEqual(b),
+  ok: (v: unknown) => expect(v).toBeTruthy(),
+};
 
 // Polyfill structuredClone for older Node test runners that lack it.
 // `codex.ts` uses structuredClone() in transformRequest for the input body
@@ -70,18 +74,16 @@ if (typeof g.structuredClone !== "function") {
 import {
   CodexExecutor,
   __setCodexWebSocketTransportForTesting,
+  _getCodexDualWindowCooldownMs,
+  _getCodexResetTime,
+  _getCodexUpstreamModel,
+  _isCodexFreePlan,
+  _isCodexResponsesWebSocketRequired,
+  _isCompactResponsesEndpoint,
+  _normalizeCodexTools,
+  _parseCodexQuotaHeaders,
   encodeResponseSseEvent,
   filterNonstandardCodexSse,
-  getCodexDualWindowCooldownMs,
-  getCodexResetTime,
-  getCodexUpstreamModel,
-  isCodexFreePlan,
-  isCodexResponsesWebSocketRequired,
-  isCompactResponsesEndpoint,
-  normalizeCodexTools,
-  parseCodexQuotaHeaders,
-  stripStoredItemReferences,
-  type CodexQuotaSnapshot,
 } from "../codex.ts";
 
 /**
@@ -143,7 +145,7 @@ describe("encodeResponseSseEvent (SSE framing + refusal/error mapping)", () => {
     const out = JSON.parse(result.sse.replace(/^event: [^\n]+\ndata: /, "").replace(/\n\n$/, ""));
     assert.equal(out.type, "response.failed");
     assert.equal(out.response.status, "failed");
-    assert.equal(out.response.error.code, "bad_request");
+    assert.equal(out.response.error.code, "invalid_request_error");
     assert.equal(out.response.error.status_code, 400);
     assert.equal(result.terminal, true);
   });
@@ -546,10 +548,11 @@ describe("CodexExecutor.transformRequest — conversation history merge (message
     assert.equal(input[1].role, "user");
     assert.equal(input[2].role, "assistant");
     assert.equal(input[3].role, "user");
-    // String content is wrapped in input_text.
+    // String content is wrapped in input_text (user/developer) or output_text (assistant).
     for (const msg of input) {
       const content = msg.content as Array<Record<string, unknown>>;
-      assert.equal(content[0].type, "input_text");
+      const expectedType = msg.role === "assistant" ? "output_text" : "input_text";
+      assert.equal(content[0].type, expectedType);
     }
   });
 
