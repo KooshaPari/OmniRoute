@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import {
   getProviderConnectionFamilyIds,
-  isClaudeCodeCompatibleProvider,
-  isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
   NOAUTH_PROVIDERS,
 } from "@/shared/constants/providers";
@@ -25,24 +23,10 @@ import {
   getProviderValidationGuard,
 } from "@/shared/network/outboundUrlGuardPolicy";
 import { errorResponse, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
-import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
+
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
 import { resolveZedModels } from "@omniroute/open-sse/shared/zedAuth.ts";
-import {
-  fetchGitHubCopilotModels,
-  fetchGheCopilotModels,
-} from "@omniroute/open-sse/services/githubCopilotModels.ts";
-import { fetchKiroAvailableModels } from "@omniroute/open-sse/services/kiroModels.ts";
-import {
-  buildGlmCodingHeaders,
-  buildGlmModelsUrl,
-} from "@omniroute/open-sse/config/glmProvider.ts";
-import { getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
-import { getVideoProvider } from "@omniroute/open-sse/config/videoRegistry.ts";
-import {
-  discoverBedrockNativeModels,
-  isBedrockNativeApiError,
-} from "@omniroute/open-sse/services/bedrock.ts";
+
 import {
   discoverPromptQlModels,
   PROMPTQL_FALLBACK_MODELS,
@@ -55,31 +39,7 @@ import {
   discoverMaxaiModels,
   MAXAI_REGISTRY_MODELS,
 } from "@omniroute/open-sse/services/maxaiModels.ts";
-import {
-  AZURE_AI_DEFAULT_BASE_URL,
-  buildAzureAiModelsUrl,
-} from "@omniroute/open-sse/config/azureAi.ts";
-import {
-  DATAROBOT_DEFAULT_BASE_URL,
-  buildDataRobotCatalogUrl,
-  isDataRobotDeploymentUrl,
-} from "@omniroute/open-sse/config/datarobot.ts";
-import { OCI_DEFAULT_BASE_URL, buildOciModelsUrl } from "@omniroute/open-sse/config/oci.ts";
-import {
-  SAP_DEFAULT_BASE_URL,
-  buildSapModelsUrl,
-  getSapResourceGroup,
-} from "@omniroute/open-sse/config/sap.ts";
-import {
-  WATSONX_DEFAULT_BASE_URL,
-  buildWatsonxModelsUrl,
-} from "@omniroute/open-sse/config/watsonx.ts";
-import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
-import { getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
-import {
-  getSpeechProvider,
-  getTranscriptionProvider,
-} from "@omniroute/open-sse/config/audioRegistry.ts";
+
 import {
   getCachedDiscoveredModels,
   isAutoFetchModelsEnabled,
@@ -87,20 +47,16 @@ import {
 } from "@/lib/providerModels/modelDiscovery";
 import { buildProviderModelsUrl, getDiscoveryClientVersionOptions } from "./discoveryClientVersion";
 import { getAdobeModels } from "./adobeFireflyDiscovery";
-import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
+
 import { getSyncedAvailableModels, getCustomModels, getModelIsHidden } from "@/lib/db/models";
 import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLeaseIsolation";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
 import { fetchCursorAvailableModels } from "@/lib/providerModels/cursorAvailableModels";
 import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
-import { resolveCopilotDiscoveryToken } from "@/lib/providerModels/copilotDiscoveryToken";
+
 import {
-  type JsonRecord,
   asRecord,
-  toNonEmptyString,
   getProviderBaseUrl,
-  normalizeAzureOpenAIBaseUrl,
-  getAzureOpenAIApiVersion,
   isLocalOpenAIStyleProvider,
   mergeLocalCatalogModels,
   mergeSpecialtyCatalogIntoLiveModels,
@@ -110,15 +66,11 @@ import {
 } from "./discovery/helpers";
 import {
   fetchAntigravityDiscoveryModelsCached,
-  normalizeDataRobotCatalogResponse,
   normalizeOpenAiLikeModelsResponse,
-  normalizeSapModelsResponse,
-  normalizeAzureModelsResponse,
 } from "./discovery/normalizers";
 import { isNamedOpenAIStyleProvider } from "./discovery/providerSets";
 import { buildStaleEncryptionKeyResponse } from "./staleEncryptionGuard";
 import {
-  type ProviderModelsConfigEntry,
   assembleProviderModelsHeaders,
   PROVIDER_MODELS_CONFIG,
 } from "./discovery/providerModelsConfig";
@@ -130,6 +82,23 @@ import {
 } from "./discovery/codex";
 import { maybeHandleConolModelDiscovery } from "./conolDiscovery";
 import { buildNoAuthModelsResponse, filterModelsForRoute } from "./modelRouteProjection";
+import {
+  handleBedrock,
+  handleDataRobot,
+  handleAzureAi,
+  handleAzureOpenAI,
+  handleGitHubCopilot,
+  handleGheCopilot,
+  handleGlm,
+  handleWatsonx,
+  handleOci,
+  handleSap,
+  handleKiro,
+  handleVertex,
+  handleOpenAICompatible,
+  type HandlerContext,
+  type HandlerHelpers,
+} from "./handlers";
 
 /**
  * GET /api/providers/[id]/models - Get models list from provider
@@ -469,6 +438,70 @@ export async function GET(
       });
     };
 
+    // ── Handler dispatch ────────────────────────────────────────────────────
+    // Build a HandlerContext + HandlerHelpers once, then delegate to extracted
+    // handler modules. Each handler returns null when the provider doesn't match.
+    const handlerCtx: HandlerContext = {
+      provider,
+      connectionId,
+      apiKey,
+      accessToken,
+      autoFetchModels,
+      refresh,
+      excludeHidden,
+      chatOnly,
+      usesCuratedModelsOnly: usesCuratedModelsOnly,
+      proxy,
+      connection: {
+        id: connectionId,
+        provider,
+        apiKey,
+        accessToken,
+        providerSpecificData: connection.providerSpecificData,
+        projectId: connection.projectId,
+      },
+      customModelsForProvider,
+      cachedDiscoveryModels,
+      providerSyncedModels,
+      registryCatalogModels,
+      specialtyCatalogModels,
+    };
+
+    const handlerHelpers: HandlerHelpers = {
+      buildResponse,
+      buildApiDiscoveryResponse,
+      buildCachedDiscoveryResponse,
+      buildLocalCatalogResponse,
+      buildDiscoveryFallbackResponse,
+      buildDiscoveryErrorFallbackResponse,
+      maybeReturnCachedDiscovery,
+      maybeReturnAutoFetchDisabled,
+      toLocalCatalogModels,
+      mergeCustomModels,
+    };
+
+    const providerHandlers = [
+      handleBedrock,
+      handleDataRobot,
+      handleAzureAi,
+      handleAzureOpenAI,
+      handleGitHubCopilot,
+      handleGheCopilot,
+      handleGlm,
+      handleWatsonx,
+      handleOci,
+      handleSap,
+      handleKiro,
+      handleVertex,
+      handleOpenAICompatible,
+    ];
+
+    for (const handler of providerHandlers) {
+      const result = await handler(handlerCtx, handlerHelpers);
+      if (result) return result;
+    }
+    // ── End handler dispatch ────────────────────────────────────────────────
+
     if (provider === "reka") {
       // reka has no remote model-discovery endpoint — the local catalog is the
       // intended source, not a degraded fallback (#5460).
@@ -664,88 +697,6 @@ export async function GET(
     });
     if (conolResponse) return conolResponse;
 
-    if (provider === "bedrock") {
-      const cachedResponse = maybeReturnCachedDiscovery();
-      if (cachedResponse) return cachedResponse;
-
-      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
-      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
-
-      const token = apiKey || accessToken;
-      if (!token) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: "No token configured — using cached catalog",
-          localWarning: "No token configured — using local catalog",
-        });
-        if (fallback) return fallback;
-        return NextResponse.json(
-          {
-            error:
-              "No API key configured for this provider. Please add an API key in the provider settings.",
-          },
-          { status: 400 }
-        );
-      }
-
-      try {
-        const discovery = await discoverBedrockNativeModels({
-          apiKey: token,
-          providerSpecificData: connection.providerSpecificData,
-          fetcher: (url, init) =>
-            safeOutboundFetch(url, {
-              ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-              guard: getProviderOutboundGuard(),
-              proxyConfig: proxy,
-              ...init,
-            }),
-        });
-        const models = discovery.models.map((model) => ({
-          id: model.id,
-          name: model.name || model.id,
-          owned_by: model.provider || "bedrock",
-          source: model.source,
-          ...(model.supportsStreaming !== undefined
-            ? { supportsStreaming: model.supportsStreaming }
-            : {}),
-          ...(model.supportsVision !== undefined ? { supportsVision: model.supportsVision } : {}),
-          ...(typeof model.inputTokenLimit === "number"
-            ? { inputTokenLimit: model.inputTokenLimit }
-            : {}),
-          ...(typeof model.outputTokenLimit === "number"
-            ? { outputTokenLimit: model.outputTokenLimit }
-            : {}),
-        }));
-        return buildApiDiscoveryResponse(models, discovery.warnings[0]);
-      } catch (error) {
-        const status = isBedrockNativeApiError(error)
-          ? error.status
-          : getSafeOutboundFetchErrorStatus(error);
-        if (status === 401 || status === 403) {
-          const fallback = buildDiscoveryFallbackResponse({
-            cacheWarning: `Auth failed (${status}) — using cached catalog`,
-            localWarning: `Auth failed (${status}) — using local catalog`,
-          });
-          if (fallback) return fallback;
-          return NextResponse.json({ error: `Auth failed: ${status}` }, { status });
-        }
-        if (status === 400) {
-          return NextResponse.json(
-            { error: "Invalid Bedrock region or models request" },
-            { status }
-          );
-        }
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: "Bedrock models API unavailable — using cached catalog",
-          localWarning: "Bedrock models API unavailable — using local catalog",
-        });
-        if (fallback) return fallback;
-        if (status) {
-          return NextResponse.json({ error: `Bedrock models API failed: ${status}` }, { status });
-        }
-        throw error;
-      }
-    }
-
     if (
       isOpenAICompatibleProvider(provider) ||
       isLocalOpenAIStyleProvider(provider) ||
@@ -896,447 +847,6 @@ export async function GET(
         });
       }
       return buildApiDiscoveryResponse(models);
-    }
-
-    if (provider === "datarobot") {
-      const cachedResponse = maybeReturnCachedDiscovery();
-      if (cachedResponse) return cachedResponse;
-
-      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
-      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
-
-      const token = accessToken || apiKey;
-      if (!token) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: "No token configured — using cached catalog",
-          localWarning: "No token configured — using local catalog",
-        });
-        if (fallback) return fallback;
-        return NextResponse.json(
-          {
-            error:
-              "No API key configured for this provider. Please add an API key in the provider settings.",
-          },
-          { status: 400 }
-        );
-      }
-
-      const configuredBaseUrl =
-        getProviderBaseUrl(connection.providerSpecificData) || DATAROBOT_DEFAULT_BASE_URL;
-
-      if (isDataRobotDeploymentUrl(configuredBaseUrl)) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: "Deployment URL does not expose catalog — using cached catalog",
-          localWarning: "Deployment URL does not expose catalog — using local catalog",
-        });
-        if (fallback) return fallback;
-        return buildResponse({
-          provider,
-          connectionId,
-          models: toLocalCatalogModels(),
-          source: "local_catalog",
-          warning: "Deployment URL does not expose catalog — using local catalog",
-        });
-      }
-
-      const catalogUrl = buildDataRobotCatalogUrl(configuredBaseUrl);
-      if (!catalogUrl) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: "Invalid DataRobot base URL — using cached catalog",
-          localWarning: "Invalid DataRobot base URL — using local catalog",
-        });
-        if (fallback) return fallback;
-        return NextResponse.json({ error: "Invalid DataRobot base URL" }, { status: 400 });
-      }
-
-      let response: Response;
-      try {
-        response = await safeOutboundFetch(catalogUrl, {
-          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-          guard: getProviderOutboundGuard(),
-          proxyConfig: proxy,
-          method: "GET",
-          headers: buildOptionalBearerHeaders(token),
-        });
-      } catch (error) {
-        const fallback = buildDiscoveryErrorFallbackResponse(error, {
-          cacheWarning: "DataRobot catalog unavailable — using cached catalog",
-          localWarning: "DataRobot catalog unavailable — using local catalog",
-        });
-        if (fallback) return fallback;
-        throw error;
-      }
-
-      if (!response.ok) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: `Catalog probe failed (${response.status}) — using cached catalog`,
-          localWarning: `Catalog probe failed (${response.status}) — using local catalog`,
-        });
-        if (fallback) return fallback;
-        return NextResponse.json(
-          { error: `Failed to fetch models: ${response.status}` },
-          { status: response.status }
-        );
-      }
-
-      const models = normalizeDataRobotCatalogResponse(await response.json());
-      return buildApiDiscoveryResponse(
-        models.map((model) => ({
-          ...model,
-          owned_by: "datarobot",
-        }))
-      );
-    }
-
-    if (provider === "azure-ai") {
-      const cachedResponse = maybeReturnCachedDiscovery();
-      if (cachedResponse) return cachedResponse;
-
-      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
-      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
-
-      const token = accessToken || apiKey;
-      if (!token) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: "No token configured — using cached catalog",
-          localWarning: "No token configured — using local catalog",
-        });
-        if (fallback) return fallback;
-        return NextResponse.json(
-          {
-            error:
-              "No API key configured for this provider. Please add an API key in the provider settings.",
-          },
-          { status: 400 }
-        );
-      }
-
-      const rawBaseUrl =
-        getProviderBaseUrl(connection.providerSpecificData) || AZURE_AI_DEFAULT_BASE_URL;
-      const baseUrl = normalizeAzureOpenAIBaseUrl(rawBaseUrl);
-      const apiVersion = encodeURIComponent(
-        getAzureOpenAIApiVersion(connection.providerSpecificData) || "2024-12-01-preview"
-      );
-
-      const discoveryUrls = [
-        buildAzureAiModelsUrl(rawBaseUrl),
-        `${baseUrl}/deployments`,
-        `${baseUrl}/openai/deployments?api-version=${apiVersion}`,
-        `${baseUrl}/openai/models?api-version=${apiVersion}`,
-      ];
-
-      let lastStatus = 0;
-      for (const modelsUrl of discoveryUrls) {
-        let response: Response;
-        try {
-          response = await safeOutboundFetch(modelsUrl, {
-            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-            guard: getProviderOutboundGuard(),
-            proxyConfig: proxy,
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "api-key": token,
-            },
-          });
-        } catch (error) {
-          const fallback = buildDiscoveryErrorFallbackResponse(error, {
-            cacheWarning: "Azure AI models API unavailable — using cached catalog",
-            localWarning: "Azure AI models API unavailable — using local catalog",
-          });
-          if (fallback) return fallback;
-          throw error;
-        }
-
-        if (response.ok) {
-          const normalized = normalizeAzureModelsResponse(await response.json(), "azure-ai");
-          if (normalized.length > 0) {
-            return buildApiDiscoveryResponse(normalized);
-          }
-        }
-
-        lastStatus = response.status;
-        if (response.status === 401 || response.status === 403) break;
-      }
-
-      const fallback = buildDiscoveryFallbackResponse({
-        cacheWarning: `Azure AI models probe failed (${lastStatus || "empty"}) — using cached catalog`,
-        localWarning: `Azure AI models probe failed (${lastStatus || "empty"}) — using local catalog`,
-      });
-      if (fallback) return fallback;
-      return NextResponse.json(
-        { error: `Failed to fetch models: ${lastStatus || "unknown"}` },
-        { status: lastStatus || 502 }
-      );
-    }
-
-    if (provider === "azure-openai") {
-      const cachedResponse = maybeReturnCachedDiscovery();
-      if (cachedResponse) return cachedResponse;
-
-      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
-      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
-
-      const token = accessToken || apiKey;
-      if (!token) {
-        return NextResponse.json(
-          {
-            error:
-              "No API key configured for this provider. Please add an API key in the provider settings.",
-          },
-          { status: 400 }
-        );
-      }
-
-      const rawBaseUrl = getProviderBaseUrl(connection.providerSpecificData);
-      if (!rawBaseUrl) {
-        return NextResponse.json(
-          { error: "No Azure OpenAI resource endpoint configured" },
-          { status: 400 }
-        );
-      }
-
-      const baseUrl = normalizeAzureOpenAIBaseUrl(rawBaseUrl);
-      const apiVersion = encodeURIComponent(
-        getAzureOpenAIApiVersion(connection.providerSpecificData)
-      );
-      const discoveryUrls = [
-        `${baseUrl}/openai/deployments?api-version=${apiVersion}`,
-        `${baseUrl}/openai/models?api-version=${apiVersion}`,
-      ];
-
-      let lastStatus = 0;
-      for (const modelsUrl of discoveryUrls) {
-        let response: Response;
-        try {
-          response = await safeOutboundFetch(modelsUrl, {
-            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-            guard: getProviderOutboundGuard(),
-            proxyConfig: proxy,
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "api-key": token,
-            },
-          });
-        } catch (error) {
-          const fallback = buildDiscoveryErrorFallbackResponse(error, {
-            cacheWarning: "Azure OpenAI models API unavailable — using cached catalog",
-            localWarning: "Azure OpenAI models API unavailable — using local catalog",
-          });
-          if (fallback) return fallback;
-          throw error;
-        }
-
-        if (response.ok) {
-          return buildApiDiscoveryResponse(
-            normalizeOpenAiLikeModelsResponse(await response.json(), "azure-openai")
-          );
-        }
-
-        lastStatus = response.status;
-        if (response.status === 401 || response.status === 403) break;
-      }
-
-      const fallback = buildDiscoveryFallbackResponse({
-        cacheWarning: `Azure OpenAI models probe failed (${lastStatus}) — using cached catalog`,
-        localWarning: `Azure OpenAI models probe failed (${lastStatus}) — using local catalog`,
-      });
-      if (fallback) return fallback;
-      return NextResponse.json(
-        { error: `Failed to fetch models: ${lastStatus || "unknown"}` },
-        { status: lastStatus || 502 }
-      );
-    }
-
-    if (provider === "watsonx") {
-      const cachedResponse = maybeReturnCachedDiscovery();
-      if (cachedResponse) return cachedResponse;
-
-      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
-      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
-
-      const token = accessToken || apiKey;
-      if (!token) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: "No token configured — using cached catalog",
-          localWarning: "No token configured — using local catalog",
-        });
-        if (fallback) return fallback;
-        return NextResponse.json(
-          {
-            error:
-              "No API key configured for this provider. Please add an API key in the provider settings.",
-          },
-          { status: 400 }
-        );
-      }
-
-      const baseUrl =
-        getProviderBaseUrl(connection.providerSpecificData) || WATSONX_DEFAULT_BASE_URL;
-
-      let response: Response;
-      try {
-        response = await safeOutboundFetch(buildWatsonxModelsUrl(baseUrl), {
-          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-          guard: getProviderOutboundGuard(),
-          proxyConfig: proxy,
-          method: "GET",
-          headers: buildOptionalBearerHeaders(token),
-        });
-      } catch (error) {
-        const fallback = buildDiscoveryErrorFallbackResponse(error, {
-          cacheWarning: "watsonx models API unavailable — using cached catalog",
-          localWarning: "watsonx models API unavailable — using local catalog",
-        });
-        if (fallback) return fallback;
-        throw error;
-      }
-
-      if (!response.ok) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: `Models probe failed (${response.status}) — using cached catalog`,
-          localWarning: `Models probe failed (${response.status}) — using local catalog`,
-        });
-        if (fallback) return fallback;
-        return NextResponse.json(
-          { error: `Failed to fetch models: ${response.status}` },
-          { status: response.status }
-        );
-      }
-
-      return buildApiDiscoveryResponse(
-        normalizeOpenAiLikeModelsResponse(await response.json(), "watsonx")
-      );
-    }
-
-    if (provider === "oci") {
-      const cachedResponse = maybeReturnCachedDiscovery();
-      if (cachedResponse) return cachedResponse;
-
-      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
-      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
-
-      const token = accessToken || apiKey;
-      if (!token) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: "No token configured — using cached catalog",
-          localWarning: "No token configured — using local catalog",
-        });
-        if (fallback) return fallback;
-        return NextResponse.json(
-          {
-            error:
-              "No API key configured for this provider. Please add an API key in the provider settings.",
-          },
-          { status: 400 }
-        );
-      }
-
-      const psd = asRecord(connection.providerSpecificData);
-      const baseUrl = getProviderBaseUrl(psd) || OCI_DEFAULT_BASE_URL;
-      const projectId =
-        connection.projectId || toNonEmptyString(psd.projectId) || toNonEmptyString(psd.project);
-
-      let response: Response;
-      try {
-        response = await safeOutboundFetch(buildOciModelsUrl(baseUrl), {
-          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-          guard: getProviderOutboundGuard(),
-          proxyConfig: proxy,
-          method: "GET",
-          headers: {
-            ...buildOptionalBearerHeaders(token),
-            ...(projectId ? { "OpenAI-Project": projectId } : {}),
-          },
-        });
-      } catch (error) {
-        const fallback = buildDiscoveryErrorFallbackResponse(error, {
-          cacheWarning: "OCI models API unavailable — using cached catalog",
-          localWarning: "OCI models API unavailable — using local catalog",
-        });
-        if (fallback) return fallback;
-        throw error;
-      }
-
-      if (!response.ok) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: `Models probe failed (${response.status}) — using cached catalog`,
-          localWarning: `Models probe failed (${response.status}) — using local catalog`,
-        });
-        if (fallback) return fallback;
-        return NextResponse.json(
-          { error: `Failed to fetch models: ${response.status}` },
-          { status: response.status }
-        );
-      }
-
-      return buildApiDiscoveryResponse(
-        normalizeOpenAiLikeModelsResponse(await response.json(), "oci")
-      );
-    }
-
-    if (provider === "sap") {
-      const cachedResponse = maybeReturnCachedDiscovery();
-      if (cachedResponse) return cachedResponse;
-
-      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
-      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
-
-      const token = accessToken || apiKey;
-      if (!token) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: "No token configured — using cached catalog",
-          localWarning: "No token configured — using local catalog",
-        });
-        if (fallback) return fallback;
-        return NextResponse.json(
-          {
-            error:
-              "No API key configured for this provider. Please add an API key in the provider settings.",
-          },
-          { status: 400 }
-        );
-      }
-
-      const psd = asRecord(connection.providerSpecificData);
-      const baseUrl = getProviderBaseUrl(psd) || SAP_DEFAULT_BASE_URL;
-      const resourceGroup = getSapResourceGroup(psd);
-
-      let response: Response;
-      try {
-        response = await safeOutboundFetch(buildSapModelsUrl(baseUrl), {
-          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-          guard: getProviderOutboundGuard(),
-          proxyConfig: proxy,
-          method: "GET",
-          headers: {
-            ...buildOptionalBearerHeaders(token),
-            "AI-Resource-Group": resourceGroup,
-          },
-        });
-      } catch (error) {
-        const fallback = buildDiscoveryErrorFallbackResponse(error, {
-          cacheWarning: "SAP models API unavailable — using cached catalog",
-          localWarning: "SAP models API unavailable — using local catalog",
-        });
-        if (fallback) return fallback;
-        throw error;
-      }
-
-      if (!response.ok) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: `Models probe failed (${response.status}) — using cached catalog`,
-          localWarning: `Models probe failed (${response.status}) — using local catalog`,
-        });
-        if (fallback) return fallback;
-        return NextResponse.json(
-          { error: `Failed to fetch models: ${response.status}` },
-          { status: response.status }
-        );
-      }
-
-      return buildApiDiscoveryResponse(normalizeSapModelsResponse(await response.json()));
     }
 
     if (provider === "cursor") {
@@ -1497,82 +1007,6 @@ export async function GET(
       }
     }
 
-    if (provider === "glm" || provider === "glm-cn" || provider === "glmt") {
-      const cachedResponse = maybeReturnCachedDiscovery();
-      if (cachedResponse) return cachedResponse;
-
-      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
-      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
-
-      const token = apiKey || accessToken;
-      const glmProviderSpecificData = {
-        ...asRecord(connection.providerSpecificData),
-        ...(provider === "glm-cn" ? { apiRegion: "china" } : {}),
-      };
-      const discoveredTargets = [
-        {
-          transport: "openai" as const,
-          url: buildGlmModelsUrl(glmProviderSpecificData, "openai"),
-        },
-        {
-          transport: "anthropic" as const,
-          url: buildGlmModelsUrl(glmProviderSpecificData, "anthropic"),
-        },
-      ];
-      const discoveryTargets = discoveredTargets.filter(
-        (target, index, all) => all.findIndex((other) => other.url === target.url) === index
-      );
-
-      let response: Response | null = null;
-      try {
-        for (const target of discoveryTargets) {
-          response = await safeOutboundFetch(target.url, {
-            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-            guard: getProviderOutboundGuard(),
-            proxyConfig: proxy,
-            method: "GET",
-            headers:
-              target.transport === "openai"
-                ? token
-                  ? buildGlmCodingHeaders(token, false)
-                  : { "Content-Type": "application/json", Accept: "application/json" }
-                : {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                    ...(token ? { "x-api-key": token } : {}),
-                    "anthropic-version": "2023-06-01",
-                  },
-          });
-          if (response.ok) break;
-          if (response.status === 401 || response.status === 403) break;
-        }
-      } catch (error) {
-        const fallback = buildDiscoveryErrorFallbackResponse(error);
-        if (fallback) return fallback;
-        throw error;
-      }
-
-      if (!response?.ok) {
-        if (response?.status === 401 || response?.status === 403) {
-          return NextResponse.json(
-            { error: `Failed to fetch models: ${response.status}` },
-            { status: response.status }
-          );
-        }
-        const fallback = buildDiscoveryFallbackResponse();
-        if (fallback) return fallback;
-        return NextResponse.json(
-          { error: `Failed to fetch models: ${response?.status || 502}` },
-          { status: response?.status || 502 }
-        );
-      }
-
-      const data = await response.json();
-      const models = data.data || data.models || [];
-
-      return buildApiDiscoveryResponse(models);
-    }
-
     if (provider === "antigravity" || provider === "agy") {
       const cachedResponse = maybeReturnCachedDiscovery();
       if (cachedResponse) return cachedResponse;
@@ -1620,414 +1054,6 @@ export async function GET(
       });
     }
 
-    if (provider === "github") {
-      // #3120/#3121 — GitHub Copilot's catalog is per-account and dynamic. The
-      // registry static list never refreshes and advertises non-entitled models
-      // (e.g. gemini previews) that fail upstream when tested. Discover the live
-      // catalog from api.githubcopilot.com/models with the Copilot bearer +
-      // Copilot chat headers; fall back to the static registry catalog when the
-      // live fetch is unavailable (offline/unauthed/error) so import never breaks.
-      const cachedResponse = maybeReturnCachedDiscovery();
-      if (cachedResponse) return cachedResponse;
-
-      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
-      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
-
-      const psd = asRecord(connection.providerSpecificData);
-      // Catalog discovery must present the RAW GitHub OAuth token (gho_...), not
-      // the exchanged short-lived Copilot token. The full entitled model catalog
-      // (incl. grok-4.x and mai-code) is only unlocked when the
-      // `copilot-integration-id: copilot-developer-cli` header rides on a raw
-      // GitHub Bearer; the exchanged copilot_internal/v2/token bearer is minted
-      // WITHOUT the developer-cli identity and unlocks only the narrower default
-      // set, so grok/mai silently vanish. api.githubcopilot.com accepts the raw
-      // token directly as Bearer. (Chat/inference in the executor may still use
-      // the exchanged token; only DISCOVERY needs the raw token.) This mirrors the
-      // Copilot CLI + Hermes "de-gate model discovery" fix. Exchanged token stays
-      // as a fallback for connections that only captured that.
-      const copilotToken = resolveCopilotDiscoveryToken({
-        accessToken,
-        copilotToken: psd.copilotToken,
-      });
-
-      const discovery = await fetchGitHubCopilotModels({
-        token: copilotToken,
-        fetchImpl: (url, init) =>
-          safeOutboundFetch(url as string, {
-            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-            guard: getProviderOutboundGuard(),
-            proxyConfig: proxy,
-            ...(init as Record<string, unknown>),
-          }),
-        fallbackModels: toLocalCatalogModels(),
-      });
-
-      if (discovery.source === "api") {
-        return buildApiDiscoveryResponse(discovery.models);
-      }
-
-      // Live discovery unavailable — preserve cached/static catalog behavior.
-      const fallback = buildDiscoveryFallbackResponse({
-        cacheWarning: "Copilot models API unavailable — using cached catalog",
-        localWarning: "Copilot models API unavailable — using local catalog",
-      });
-      if (fallback) return fallback;
-      return buildResponse({
-        provider,
-        connectionId,
-        models: discovery.models,
-        source: "local_catalog",
-        warning: "Copilot models API unavailable — using local catalog",
-      });
-    }
-
-    if (provider === "ghe-copilot") {
-      // GHE Copilot exposes a per-enterprise chat model catalog at
-      // <copilotApiUrl>/models (endpoints.api from the token endpoint) — NOT the
-      // proxy host, which only serves NES/autocomplete models. The IDs are
-      // enterprise-specific (no static allowlist applies), so discover them live
-      // from copilotApiUrl with the Copilot bearer token.
-      const cachedResponse = maybeReturnCachedDiscovery();
-      if (cachedResponse) return cachedResponse;
-
-      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
-      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
-
-      const psd = asRecord(connection.providerSpecificData);
-      const copilotToken = resolveCopilotDiscoveryToken({
-        accessToken,
-        copilotToken: psd.copilotToken,
-      });
-      // endpoints.api serves the real chat model catalog; endpoints.proxy only
-      // has NES/autocomplete models. Prefer the api host, fall back to proxy for
-      // legacy connections that predate copilotApiUrl capture.
-      const copilotApiUrl =
-        toNonEmptyString(psd.copilotApiUrl) || toNonEmptyString(psd.copilotProxyUrl) || null;
-
-      const models = await fetchGheCopilotModels({
-        apiUrl: copilotApiUrl,
-        token: copilotToken,
-        fetchImpl: (url, init) => fetch(url as string, init as RequestInit),
-      });
-
-      if (models.length > 0) {
-        return buildApiDiscoveryResponse(models);
-      }
-
-      const fallback = buildDiscoveryFallbackResponse({
-        cacheWarning: "GHE Copilot models API unavailable — using cached catalog",
-        localWarning: "GHE Copilot models API unavailable — using local catalog",
-      });
-      if (fallback) return fallback;
-      return buildResponse({
-        provider,
-        connectionId,
-        models: [],
-        source: "local_catalog",
-        warning: "GHE Copilot models API unavailable — using local catalog",
-      });
-    }
-
-    if (provider === "kiro") {
-      // Kiro's catalog is per-account / per-tier (free vs Pro vs Power) and, for
-      // IAM Identity Center orgs, an admin-curated approved list. The static
-      // registry catalog can't reflect that. Discover the live list from the
-      // CodeWhisperer ListAvailableModels API with the stored OAuth token
-      // (works for Builder ID / social AND IAM Identity Center accounts); fall
-      // back to the static registry catalog when the token is missing/expired or
-      // the upstream is unavailable so import never breaks.
-      const cachedResponse = maybeReturnCachedDiscovery();
-      if (cachedResponse) return cachedResponse;
-
-      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
-      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
-
-      if (!accessToken) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: "OAuth token unavailable — using cached catalog",
-          localWarning: "OAuth token unavailable — using local catalog",
-        });
-        if (fallback) return fallback;
-        return buildResponse({
-          provider,
-          connectionId,
-          models: toLocalCatalogModels(),
-          source: "local_catalog",
-          warning: "OAuth token unavailable — using local catalog",
-        });
-      }
-
-      const discovery = await fetchKiroAvailableModels({
-        accessToken,
-        providerSpecificData: connection.providerSpecificData,
-        fetchImpl: (url, init) =>
-          safeOutboundFetch(url as string, {
-            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-            guard: getProviderOutboundGuard(),
-            proxyConfig: proxy,
-            ...(init as Record<string, unknown>),
-          }),
-        fallbackModels: toLocalCatalogModels(),
-      });
-
-      if (discovery.source === "api" && discovery.models.length > 0) {
-        return buildApiDiscoveryResponse(discovery.models);
-      }
-
-      const fallback = buildDiscoveryFallbackResponse({
-        cacheWarning: "Kiro models API unavailable — using cached catalog",
-        localWarning: "Kiro models API unavailable — using local catalog",
-      });
-      if (fallback) return fallback;
-      return buildResponse({
-        provider,
-        connectionId,
-        models: discovery.models,
-        source: "local_catalog",
-        warning: "Kiro models API unavailable — using local catalog",
-      });
-    }
-
-    if (provider === "vertex" || provider === "vertex-partner") {
-      const cachedResponse = maybeReturnCachedDiscovery();
-      if (cachedResponse) return cachedResponse;
-
-      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
-      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
-
-      // Vertex AI lists models from the Generative Language `v1beta/models` endpoint, which both
-      // Express-mode API keys (via ?key=) and Service Account JSON (via a minted OAuth Bearer
-      // token) can reach. This surfaces the live catalog, including gemini-*-image models
-      // absent from the static registry list.
-      const credential = (apiKey || "").trim();
-      let queryKey: string | null = null;
-      let bearerToken: string | null = null;
-      try {
-        const { parseSAFromApiKey, getAccessToken } =
-          await import("@omniroute/open-sse/executors/vertex.ts");
-        if (accessToken) {
-          bearerToken = accessToken;
-        } else if (credential) {
-          // A Service Account credential is a JSON object; a Vertex AI Express-mode API key is an
-          // opaque (non-JSON) string. Detect locally so this branch has no dependency on optional
-          // executor helpers.
-          let isServiceAccountJson = false;
-          try {
-            const parsed = JSON.parse(credential);
-            isServiceAccountJson = !!parsed && typeof parsed === "object" && !Array.isArray(parsed);
-          } catch {
-            isServiceAccountJson = false;
-          }
-
-          if (isServiceAccountJson) {
-            bearerToken = await getAccessToken(parseSAFromApiKey(credential));
-          } else {
-            queryKey = credential;
-          }
-        }
-      } catch (error) {
-        // Couldn't resolve a usable credential (e.g. malformed Service Account JSON).
-        const fallback = buildDiscoveryErrorFallbackResponse(error, {
-          cacheWarning: "Vertex credential unavailable — using cached catalog",
-          localWarning: "Vertex credential unavailable — using local catalog",
-        });
-        if (fallback) return fallback;
-      }
-
-      if (!queryKey && !bearerToken) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: "No usable Vertex credential — using cached catalog",
-          localWarning: "No usable Vertex credential — using local catalog",
-        });
-        if (fallback) return fallback;
-        return NextResponse.json(
-          { error: "No usable Vertex AI credential configured for model discovery." },
-          { status: 400 }
-        );
-      }
-
-      const baseUrl = "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000";
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (bearerToken) headers["Authorization"] = `Bearer ${bearerToken}`;
-
-      const allModels: any[] = [];
-      let pageUrl = queryKey ? `${baseUrl}&key=${encodeURIComponent(queryKey)}` : baseUrl;
-      let pageCount = 0;
-      const MAX_PAGES = 20;
-      const seenTokens = new Set<string>();
-
-      try {
-        while (pageUrl && pageCount < MAX_PAGES) {
-          pageCount++;
-          const response = await safeOutboundFetch(pageUrl, {
-            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsPagination,
-            guard: getProviderOutboundGuard(),
-            proxyConfig: proxy,
-            method: "GET",
-            headers,
-          });
-
-          if (!response.ok) {
-            // Avoid logging the raw upstream body (may contain sensitive data); status is enough.
-            console.log("[models] Vertex model discovery failed", {
-              provider,
-              status: response.status,
-            });
-            const fallback = buildDiscoveryFallbackResponse();
-            if (fallback) return fallback;
-            return NextResponse.json(
-              { error: `Failed to fetch Vertex models: ${response.status}` },
-              { status: response.status }
-            );
-          }
-
-          const data = await response.json();
-          allModels.push(...parseGeminiModelsList(data));
-
-          const nextPageToken = data.nextPageToken;
-          if (!nextPageToken || seenTokens.has(nextPageToken)) break;
-          seenTokens.add(nextPageToken);
-          pageUrl = `${baseUrl}&pageToken=${encodeURIComponent(nextPageToken)}`;
-          if (queryKey) pageUrl += `&key=${encodeURIComponent(queryKey)}`;
-        }
-      } catch (error) {
-        const fallback = buildDiscoveryErrorFallbackResponse(error);
-        if (fallback) return fallback;
-        throw error;
-      }
-
-      // Anthropic partner models via Model Garden publisher endpoint (Bearer only).
-      //
-      // Model Garden's publisher-model LIST is served by the v1beta1 API — the v1
-      // API does not support list operations (every /v1/.../publishers/anthropic/models
-      // path 404s at the Google Front End). The list is also global: it returns the
-      // full Anthropic Claude catalog regardless of the connection's project or
-      // region, so no project/region scoping is applied here (execution region is
-      // handled separately by the vertex executor at request time).
-      if (bearerToken) {
-        const anthropicModelsUrl =
-          "https://aiplatform.googleapis.com/v1beta1/publishers/anthropic/models";
-
-        try {
-          const anthropicResponse = await safeOutboundFetch(anthropicModelsUrl, {
-            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-            guard: getProviderOutboundGuard(),
-            proxyConfig: proxy,
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${bearerToken}`,
-            },
-          });
-          if (anthropicResponse.ok) {
-            const anthropicData = await anthropicResponse.json();
-            const { parseVertexAnthropicModels } =
-              await import("@/lib/providerModels/vertexAnthropicModelsParser");
-            allModels.push(...parseVertexAnthropicModels(anthropicData));
-          } else {
-            console.log("[models] Vertex Anthropic partner discovery failed", {
-              provider,
-              status: anthropicResponse.status,
-            });
-          }
-        } catch (err) {
-          console.log("[models] Vertex Anthropic partner discovery error", {
-            provider,
-            error: err instanceof Error ? err.message : String(err),
-          });
-        }
-      }
-
-      if (allModels.length > 0) {
-        return buildApiDiscoveryResponse(allModels);
-      }
-
-      const fallback = buildDiscoveryFallbackResponse();
-      if (fallback) return fallback;
-      return buildResponse({
-        provider,
-        connectionId,
-        models: [],
-        source: "api",
-      });
-    }
-
-    if (isAnthropicCompatibleProvider(provider)) {
-      // CC providers never support models listing — this check must precede
-      // the cached-discovery / auto-fetch fallbacks, which would otherwise
-      // return a misleading 200 "no models" for a CC node (#10828 ordering).
-      if (isClaudeCodeCompatibleProvider(provider)) {
-        return NextResponse.json(
-          { error: `Provider ${provider} does not support models listing` },
-          { status: 400 }
-        );
-      }
-
-      const cachedResponse = maybeReturnCachedDiscovery();
-      if (cachedResponse) return cachedResponse;
-
-      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
-      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
-
-      let baseUrl = getProviderBaseUrl(connection.providerSpecificData);
-      if (!baseUrl) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: "Base URL unavailable — using cached catalog",
-          localWarning: "Base URL unavailable — using local catalog",
-        });
-        if (fallback) return fallback;
-        return NextResponse.json(
-          { error: "No base URL configured for Anthropic compatible provider" },
-          { status: 400 }
-        );
-      }
-
-      baseUrl = baseUrl.replace(/\/$/, "");
-      if (baseUrl.endsWith("/messages")) {
-        baseUrl = baseUrl.slice(0, -9);
-      }
-
-      // Use modelsPath from provider node if available, otherwise default to /models
-      const psd = asRecord(connection.providerSpecificData);
-      const modelsPath = toNonEmptyString(psd.modelsPath) || "/models";
-      const url = `${baseUrl}${modelsPath}`;
-      const token = accessToken || apiKey;
-      let response: Response;
-      try {
-        response = await safeOutboundFetch(url, {
-          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-          guard: getProviderOutboundGuard(),
-          proxyConfig: proxy,
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(apiKey ? { "x-api-key": apiKey } : {}),
-            "anthropic-version": "2023-06-01",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        });
-      } catch (error) {
-        const fallback = buildDiscoveryErrorFallbackResponse(error);
-        if (fallback) return fallback;
-        throw error;
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.log("Error fetching models from provider", { provider, errorText });
-        const fallback = buildDiscoveryFallbackResponse();
-        if (fallback) return fallback;
-        return NextResponse.json(
-          { error: `Failed to fetch models: ${response.status}` },
-          { status: response.status }
-        );
-      }
-
-      const data = await response.json();
-      const models = data.data || data.models || [];
-
-      return buildApiDiscoveryResponse(models);
-    }
 
     // Zed Hosted needs a two-step auth the generic discovery path cannot express:
     // `cloud.zed.dev/models` rejects the account access token and requires an LLM
