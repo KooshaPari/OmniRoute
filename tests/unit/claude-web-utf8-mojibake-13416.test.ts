@@ -77,7 +77,8 @@ describe("Claude Web UTF-8 text preservation (#13416)", () => {
           if (data === "[DONE]") continue;
           try {
             const parsed = JSON.parse(data) as Record<string, unknown>;
-            const choices = parsed.choices as Array<{ delta?: Record<string, unknown> }> | undefined;
+            const choices = parsed.choices as
+              Array<{ delta?: Record<string, unknown> }> | undefined;
             const content = choices?.[0]?.delta?.content;
             if (typeof content === "string") accumulated += content;
           } catch {
@@ -154,5 +155,79 @@ describe("Claude Web UTF-8 text preservation (#13416)", () => {
       }
     }
     assert.equal(accumulated, text, "chunk boundary split should not produce mojibake");
+  });
+
+  it("byte-level repro: naive per-chunk decode (no TextDecoder stream state) IS the actual mojibake mechanism, and OmniRoute's real pipeline already avoids it independent of the Content-Type header", async () => {
+    // Isolate the real root cause behind #13416: a multi-byte UTF-8 sequence split
+    // across a network chunk boundary. Every Persian/Arabic letter is 2 bytes in UTF-8
+    // (0xD8/0xD9 lead byte + 0x80-0xBF continuation byte), so splitting 1 byte into the
+    // first character of the delta text guarantees the cut lands mid-sequence.
+    const text = "سلام";
+    const events = persianTextEvents(text);
+    const source = frames(events);
+    const bytes = new TextEncoder().encode(source);
+    const prefixLen = source.indexOf(text); // everything before the text is plain ASCII
+    const splitPoint = prefixLen + 1; // 1 byte into the first 2-byte Arabic character
+    const chunk1 = bytes.slice(0, splitPoint);
+    const chunk2 = bytes.slice(splitPoint);
+
+    // (a) Reproduce the garbling mechanism directly: decoding each chunk independently,
+    // WITHOUT { stream: true }, is what actually corrupts a split multi-byte sequence —
+    // this is the byte-level mechanism a "charset=utf-8" header can never fix or cause.
+    const naiveDecoded = new TextDecoder().decode(chunk1) + new TextDecoder().decode(chunk2);
+    assert.notEqual(
+      naiveDecoded,
+      source,
+      "sanity check: naive decode-without-stream-state must actually corrupt the split character"
+    );
+    assert.match(
+      naiveDecoded,
+      /�/,
+      "naive per-chunk decode should surface U+FFFD at the split multi-byte sequence"
+    );
+
+    // (b) Feed the exact same byte split through OmniRoute's real claude-web pipeline
+    // (decodeSseData's TextDecoder is constructed once and called with { stream: true }
+    // across reads — see open-sse/executors/claude-web/stream.ts). This must reconstruct
+    // the original text losslessly regardless of the Content-Type header on the response.
+    const splitSource = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(chunk1);
+        controller.enqueue(chunk2);
+        controller.close();
+      },
+    });
+    const response = await createClaudeWebResponse(splitSource, {
+      model: "claude-sonnet-5",
+      stream: true,
+      responseMetadata: {},
+      onComplete() {},
+      onFailure() {},
+    });
+    const output = await response.text();
+    let accumulated = "";
+    for (const frame of output.split(/\r?\n\r?\n/)) {
+      const dataLines = frame
+        .split(/\r?\n/)
+        .filter((l) => l.startsWith("data:"))
+        .map((l) => l.slice(5).trimStart());
+      for (const data of dataLines) {
+        if (data === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(data) as Record<string, unknown>;
+          const choices = parsed.choices as Array<{ delta?: Record<string, unknown> }> | undefined;
+          const content = choices?.[0]?.delta?.content;
+          if (typeof content === "string") accumulated += content;
+        } catch {
+          // skip non-JSON frames (e.g. this minimal event stream never emits message_stop)
+        }
+      }
+    }
+    assert.equal(
+      accumulated,
+      text,
+      "OmniRoute's own stream:true decode must reconstruct the split character correctly, " +
+        "proving the reported mojibake is not caused by OmniRoute's chunk-boundary handling"
+    );
   });
 });
