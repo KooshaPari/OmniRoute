@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 /**
  * tests/integration/combo-live/cost-and-fusion.live.test.ts
  *

@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Unit tests: agentBridgeHook — source and agent field assignment
  *

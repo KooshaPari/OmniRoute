@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 // Port of upstream decolua/9router@45240c19.
 // Anthropic-compatible Claude-shape providers (MiniMax and friends) reject
 // tools that carry a `type` field with error code 2013 ("invalid tool type").

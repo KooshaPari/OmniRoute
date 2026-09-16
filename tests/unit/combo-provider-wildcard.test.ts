@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 /**
  * Unit tests for provider-wildcard combo expansion (#2562).
  *

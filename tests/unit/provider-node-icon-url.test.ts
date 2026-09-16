@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 // #2166 — custom remote icon URL for OpenAI-/Anthropic-compatible provider nodes.
 // Mirrors the structure of tests/unit/custom-headers-provider-nodes.test.ts.
 import test from "node:test";

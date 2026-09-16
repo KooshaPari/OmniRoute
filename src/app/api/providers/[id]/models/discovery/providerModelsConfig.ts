@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import {
   GROK_BUILD_DEFAULT_CONTEXT_WINDOW,
@@ -130,11 +131,9 @@ export type ProviderModelsConfigEntry = {
 export function assembleProviderModelsHeaders(
   config: ProviderModelsConfigEntry,
   token: string,
-  context?: ProviderModelsHeaderContext,
+  context?: ProviderModelsHeaderContext
 ): Record<string, string> {
-  const headers = config.buildHeaders
-    ? config.buildHeaders(token, context)
-    : { ...config.headers };
+  const headers = config.buildHeaders ? config.buildHeaders(token, context) : { ...config.headers };
   if (!config.buildHeaders && config.authHeader && !config.authQuery) {
     headers[config.authHeader] = (config.authPrefix || "") + token;
   }

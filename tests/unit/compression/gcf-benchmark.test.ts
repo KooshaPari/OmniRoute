@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * GCF (Graph Compact Format) vs legacy omni-tabular benchmark.
  *

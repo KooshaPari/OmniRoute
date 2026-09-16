@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { setTimeout as sleep } from "node:timers/promises";
@@ -294,20 +295,24 @@ describe("SessionPool", () => {
     assert.equal(details[0].inflight, 0);
   });
 
-  it("acquireBlocking eventually returns a session after cooldown expires", { timeout: 5000 }, async () => {
-    await pool.warmUp(1);
-    const s = pool.acquire()!;
+  it(
+    "acquireBlocking eventually returns a session after cooldown expires",
+    { timeout: 5000 },
+    async () => {
+      await pool.warmUp(1);
+      const s = pool.acquire()!;
 
-    // Put it into cooldown
-    pool.reportCooldown(s);
-    s.release();
+      // Put it into cooldown
+      pool.reportCooldown(s);
+      s.release();
 
-    // Now the only session is in cooldown, but should recover quickly (50ms base)
-    const acquired = await pool.acquireBlocking(3000);
-    assert.notEqual(acquired, null);
-    assert.equal(acquired.isAvailable, true);
-    acquired.release();
-  });
+      // Now the only session is in cooldown, but should recover quickly (50ms base)
+      const acquired = await pool.acquireBlocking(3000);
+      assert.notEqual(acquired, null);
+      assert.equal(acquired.isAvailable, true);
+      acquired.release();
+    }
+  );
 
   it("executeWithSession runs a function with a session", { timeout: 5000 }, async () => {
     await pool.warmUp(2);

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Opt-in REAL smoke harness for upstream CLIs launched through `omniroute run`.
  *

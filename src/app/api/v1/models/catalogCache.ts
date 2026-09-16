@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Response cache for `GET /v1/models`, extracted from catalog.ts.
  *

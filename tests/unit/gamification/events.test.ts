@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { emitGamificationEvent } from "../../../src/lib/gamification/events";

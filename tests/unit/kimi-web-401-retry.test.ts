@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import * as mod from "../../open-sse/executors/kimi-web.ts";
@@ -39,7 +40,10 @@ describe("Kimi Web Executor 401 Retry", () => {
         signal: null,
       } as never);
 
-      assert.ok(callCount >= 2, `Expected retry to occur after 401, but callCount was ${callCount}`);
+      assert.ok(
+        callCount >= 2,
+        `Expected retry to occur after 401, but callCount was ${callCount}`
+      );
     } finally {
       globalThis.fetch = originalFetch;
     }

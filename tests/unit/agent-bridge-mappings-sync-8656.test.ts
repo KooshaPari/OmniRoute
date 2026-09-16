@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Regression test for issue #8656 follow-up: model mappings saved via the UI
  * are invisible to the MITM proxy because the proxy reads from key_value

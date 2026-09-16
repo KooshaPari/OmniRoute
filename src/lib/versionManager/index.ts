@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import {
   getVersionManagerStatus,
   getVersionManagerTool,

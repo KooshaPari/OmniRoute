@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { test, expect } from "@playwright/test";
 import { gotoDashboardRoute } from "./helpers/dashboardAuth";
 
@@ -96,13 +97,13 @@ test.describe("Search Tools Studio", () => {
 
     // The concept card should be visible and contain a modalities guide
     // It may be rendered as a collapsible section
-    const conceptCard = page.locator("[data-testid='search-concept-card'], .search-concept-card").first();
+    const conceptCard = page
+      .locator("[data-testid='search-concept-card'], .search-concept-card")
+      .first();
 
     // Alternative: look for the guide text since it's always visible
     // The card has a "Modalities guide" or similar label
-    const guideText = page
-      .getByText(/modalities guide|guia de modalidades/i)
-      .first();
+    const guideText = page.getByText(/modalities guide|guia de modalidades/i).first();
     await expect(guideText).toBeVisible({ timeout: 15000 });
   });
 
@@ -117,7 +118,11 @@ test.describe("Search Tools Studio", () => {
     await scrapeTab.click();
 
     // The Scrape tab should have a URL input
-    const urlInput = page.locator('input[type="url"], input[placeholder*="http"], input[placeholder*="URL"], input[placeholder*="url"]').first();
+    const urlInput = page
+      .locator(
+        'input[type="url"], input[placeholder*="http"], input[placeholder*="URL"], input[placeholder*="url"]'
+      )
+      .first();
     await expect(urlInput).toBeVisible({ timeout: 10000 });
   });
 

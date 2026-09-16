@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // @vitest-environment jsdom
 //
 // #5598 — Selecting the "fusion" routing strategy on the Global Routing defaults
@@ -14,9 +15,8 @@ vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }));
 
-const { default: ComboDefaultsTab } = await import(
-  "../../../src/app/(dashboard)/dashboard/settings/components/ComboDefaultsTab"
-);
+const { default: ComboDefaultsTab } =
+  await import("../../../src/app/(dashboard)/dashboard/settings/components/ComboDefaultsTab");
 
 function okJson(data: unknown) {
   return Promise.resolve({ ok: true, json: () => Promise.resolve(data) } as Response);

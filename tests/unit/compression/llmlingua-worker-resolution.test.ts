@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Regression guard for B-SLM: the LLMLingua worker must resolve its deps + worker
  * file WITHOUT relying on `import.meta.url`.

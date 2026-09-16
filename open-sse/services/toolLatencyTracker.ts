@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Tracks per-provider tool call latency metrics.
  * Resets on server restart.

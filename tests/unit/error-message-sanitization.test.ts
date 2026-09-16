@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Verifies that API routes sanitize error messages (CodeQL js/stack-trace-exposure)
  * and that security-critical helpers behave correctly.

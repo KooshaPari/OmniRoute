@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * T43: Gemini tool call parts must NOT inject fake thoughtSignature.
  *

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync } from "node:fs";

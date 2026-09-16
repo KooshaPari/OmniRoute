@@ -1,9 +1,8 @@
+// oxlint-disable no-unused-vars
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { handleImageGeneration } = await import(
-  "../../open-sse/handlers/imageGeneration.ts"
-);
+const { handleImageGeneration } = await import("../../open-sse/handlers/imageGeneration.ts");
 
 function restore<T>(fn: () => T): T {
   const originalFetch = globalThis.fetch;

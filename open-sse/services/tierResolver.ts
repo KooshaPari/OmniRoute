@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import type { TierAssignment, TierConfig, ProviderTier } from "./tierTypes";
 import { PROVIDER_TIER } from "./tierTypes";
 import { getModelPricing } from "./providerCostData";

@@ -1,0 +1,13 @@
+{
+  "kind": "evidence",
+  "schema_version": "1.0.0",
+  "id": "E-004",
+  "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec",
+  "path": "raw/E-004.json",
+  "observed_at": "2026-09-15T06:17:10Z",
+  "sensitivity": "PUBLIC",
+  "role": "OBSERVATION",
+  "origin": "LOCAL_OBSERVATION",
+  "summary": "Architecture layer map: Directory structure analysis: src/app -> src/services -> src/infrastructure",
+  "digest": "sha256:9f7eac4768db6dff688f77f991cc4c1b44a56f86c32d2f1fba570fd73399382c"
+}

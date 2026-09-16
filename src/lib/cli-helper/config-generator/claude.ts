@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import path from "node:path";
 import os from "node:os";
 

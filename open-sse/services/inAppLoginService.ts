@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * InAppLoginService — Playwright-based web login for cookie providers
  *

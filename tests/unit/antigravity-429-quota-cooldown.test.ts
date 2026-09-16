@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * TDD regression tests for #3707:
  * 1. `decide429("quota_exhausted")` → `full_quota_exhausted` verdict (engine contract)

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { CORS_HEADERS } from "./cors.ts";
 import { detectFormat } from "../services/provider.ts";
 import { SKIP_PATTERNS } from "../config/constants.ts";

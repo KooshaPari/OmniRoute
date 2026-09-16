@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * MCP HTTP Transport Layer — session-aware handlers for SSE and Streamable HTTP.
  *

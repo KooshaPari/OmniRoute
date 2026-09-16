@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Telegram WebApp initData verification.
  *

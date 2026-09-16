@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Tests for provider thinking compatibility fixes ported from decolua/9router#2043.
  *

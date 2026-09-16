@@ -1,0 +1,11 @@
+{
+  "kind": "subject",
+  "schema_version": "1.0.0",
+  "id": "wt-omniroute-batch2",
+  "source_type": "git_repository",
+  "source_revision": "1815d74cdee2fe02e74f10720a40cb6222862797",
+  "ts_files": 11080,
+  "ts_lines": 224357,
+  "description": "OmniRoute multi-provider LLM API gateway/proxy",
+  "source_digest": "62e59a03cdcbe7bc0becfb74437f35f8789c5c28921db475022adc7760b9df8b"
+}

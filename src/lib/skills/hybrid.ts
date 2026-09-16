@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 export type ExecutionMode = "direct" | "sandbox" | "hybrid";
 
 export interface HybridConfig {

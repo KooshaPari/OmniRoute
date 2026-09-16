@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import test from "node:test";
 import assert from "node:assert/strict";
 import { relevanceEngine } from "../../../open-sse/services/compression/engines/relevance/index.ts";
@@ -57,9 +58,7 @@ test("no-op when there is no user message in messages", () => {
 
 test("no-op when last user message has only one sentence", () => {
   const body = {
-    messages: [
-      { role: "user", content: "Just one sentence here." },
-    ],
+    messages: [{ role: "user", content: "Just one sentence here." }],
   };
   const result = relevanceEngine.apply(body, {
     stepConfig: { enabled: true, budgetPercent: 0.5 },
@@ -181,9 +180,7 @@ test("array content (multimodal) is handled without crash", () => {
     messages: [
       {
         role: "user",
-        content: [
-          { type: "text", text: "What is the database host?" },
-        ],
+        content: [{ type: "text", text: "What is the database host?" }],
       },
     ],
   };
@@ -355,7 +352,14 @@ test("the last/only user message is NOT special-cased / skipped (eligible for co
   const result = relevanceEngine.apply(body, {
     stepConfig: { enabled: true, budgetPercent: 0.3, overlapThreshold: 0.0 },
   });
-  assert.equal(result.compressed, true, "the last/only user message must be eligible for compression");
+  assert.equal(
+    result.compressed,
+    true,
+    "the last/only user message must be eligible for compression"
+  );
   const out = (result.body.messages as Array<{ content: string }>)[0].content;
-  assert.ok(out.length < Array(8).fill(sentence).join(" ").length, "tight budget trims the message");
+  assert.ok(
+    out.length < Array(8).fill(sentence).join(" ").length,
+    "tight budget trims the message"
+  );
 });

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { getDbInstance } from "./core";
 
 export interface CacheStatsEntry {
@@ -56,15 +57,13 @@ export function getCacheStatsSummary(since?: Date): CacheStatsSummary {
           `SELECT COUNT(*) as totalRequests, AVG(net_savings) as avgNetSavings, SUM(estimated_cache_hit) * 1.0 / COUNT(*) as cacheHitRate FROM compression_cache_stats WHERE created_at >= ?`
         )
         .get(since.toISOString()) as
-        | { totalRequests: number; avgNetSavings: number; cacheHitRate: number }
-        | undefined)
+        { totalRequests: number; avgNetSavings: number; cacheHitRate: number } | undefined)
     : (db
         .prepare(
           `SELECT COUNT(*) as totalRequests, AVG(net_savings) as avgNetSavings, SUM(estimated_cache_hit) * 1.0 / COUNT(*) as cacheHitRate FROM compression_cache_stats`
         )
         .get() as
-        | { totalRequests: number; avgNetSavings: number; cacheHitRate: number }
-        | undefined);
+        { totalRequests: number; avgNetSavings: number; cacheHitRate: number } | undefined);
 
   if (!globalRow || globalRow.totalRequests === 0) {
     return { totalRequests: 0, avgNetSavings: 0, cacheHitRate: 0, byProvider: {} };

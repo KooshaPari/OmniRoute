@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { getDbInstance, rowToCamel, objToSnake } from "./core";
 import { v4 as uuidv4 } from "uuid";
 import { DEFAULT_BATCH_EXPIRATION_SECONDS } from "@/shared/constants/batch";

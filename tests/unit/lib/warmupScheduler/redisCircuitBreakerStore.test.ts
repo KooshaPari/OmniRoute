@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Tests for RedisCircuitBreakerStore using a lightweight in-memory mock that
  * implements the RedisLike surface (hgetall/hset/hget/expire/persist).

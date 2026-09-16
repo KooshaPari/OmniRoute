@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -30,7 +31,7 @@ import {
   repairRelayResponseSchema,
 } from "./proxyRegistryData";
 
- export default function ProxyRegistryManager({
+export default function ProxyRegistryManager({
   onRedeployRelay,
   showVercelRelay = false,
   showDenoRelay = false,

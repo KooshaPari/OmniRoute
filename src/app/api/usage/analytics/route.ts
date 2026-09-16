@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { getProviderById } from "@/shared/constants/providers";

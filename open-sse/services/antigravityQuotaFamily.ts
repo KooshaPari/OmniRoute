@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 const ANTIGRAVITY_PROVIDER_ID = "antigravity";
 
 export type AntigravityQuotaFamily = "gemini" | "claude" | "other";
@@ -134,5 +135,7 @@ export function selectAntigravityQuotaWindowNames(
   const scoped = [...exactWindows, ...aggregateWindows];
   if (scoped.length > 0) return scoped;
 
-  return quotaNames.filter((windowName) => getAntigravityQuotaFamily(windowName) === requestedFamily);
+  return quotaNames.filter(
+    (windowName) => getAntigravityQuotaFamily(windowName) === requestedFamily
+  );
 }

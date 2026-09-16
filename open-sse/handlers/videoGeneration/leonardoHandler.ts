@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Leonardo AI (Phoenix) video generation: submit → poll → fetch output.
  *

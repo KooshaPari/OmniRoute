@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Auto-Combo Engine — The `auto` combo type that self-manages provider selection.
  *

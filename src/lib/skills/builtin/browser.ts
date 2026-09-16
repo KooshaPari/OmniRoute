@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { SkillHandler } from "../types";
 
 export const browserSkill: SkillHandler = async (input, context) => {

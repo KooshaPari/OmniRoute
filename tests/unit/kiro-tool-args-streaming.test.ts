@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Regression test for Kiro/CodeWhisperer streaming tool_calls.arguments deltas.
  *

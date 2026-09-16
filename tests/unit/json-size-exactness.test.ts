@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // jsonLength() must equal JSON.stringify().length exactly (#7847).
 //
 // Every consumer feeds a threshold — an adaptive readiness timeout, a compression trigger, a

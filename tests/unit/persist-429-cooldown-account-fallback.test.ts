@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * TDD regression tests for the per-connection 429 cascade DB persistence.
  *

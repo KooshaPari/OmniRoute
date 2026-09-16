@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * MCP Gamification Tools — leaderboard, badges, levels, sharing.
  *

@@ -1,0 +1,13 @@
+{
+  "kind": "evidence",
+  "schema_version": "1.0.0",
+  "id": "E-Q7-01",
+  "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec",
+  "path": "raw/E-Q7-01.json",
+  "digest": "sha256:7f85a40938af03a7177f337bfbf66ab6aebf190f96d0fda484e6fb5c71ac1243",
+  "observed_at": "2026-09-15T06:17:10Z",
+  "sensitivity": "PUBLIC",
+  "role": "QUALIFICATION",
+  "origin": "LOCAL_OBSERVATION",
+  "summary": "Security posture validated: env-based secrets, auth layer, trust boundaries confirmed."
+}

@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Regression test: API-key-only connections must not be falsely expired.
  *

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { normalizeComboStep } from "@/lib/combos/steps";
 
 import type { SqliteAdapter } from "./adapters/types";

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // #9654: Per-connection virtual admission lanes on AdaptiveAdmissionController
 // Tests with virtualLanes config option enabled.
 import { describe, it, beforeEach, afterEach } from "node:test";
@@ -135,7 +136,11 @@ describe("Per-connection virtual lanes #9654", () => {
 
     const snap = c.snapshot();
     assert.equal(snap.laneCount, 2, `expected exactly 2 lanes, got ${snap.laneCount}`);
-    assert.equal(snap.laneQueuedCount, 3, `expected exactly 3 lane-queued, got ${snap.laneQueuedCount}`);
+    assert.equal(
+      snap.laneQueuedCount,
+      3,
+      `expected exactly 3 lane-queued, got ${snap.laneQueuedCount}`
+    );
 
     held.release("success");
     if (a1.status === "queued") (await a1.promise).lease.release("success");

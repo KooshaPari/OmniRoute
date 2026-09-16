@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Web-Session Pool Health — Unit Tests (PR4 of issue #3368)
  *
@@ -38,14 +39,16 @@ type MockBreakerState = {
   retryAfterMs: number;
 } | null;
 
-function createMockDeps(overrides: {
-  providers?: string[];
-  stats?: Record<string, MockPoolStats>;
-  sessionDetails?: Record<string, MockSessionDetail[]>;
-  breakerCooldown?: Record<string, boolean>;
-  breakerRemaining?: Record<string, number | null>;
-  breakerStates?: Record<string, MockBreakerState>;
-} = {}): WebSessionPoolHealthDeps {
+function createMockDeps(
+  overrides: {
+    providers?: string[];
+    stats?: Record<string, MockPoolStats>;
+    sessionDetails?: Record<string, MockSessionDetail[]>;
+    breakerCooldown?: Record<string, boolean>;
+    breakerRemaining?: Record<string, number | null>;
+    breakerStates?: Record<string, MockBreakerState>;
+  } = {}
+): WebSessionPoolHealthDeps {
   const providers = overrides.providers ?? [];
   const stats = overrides.stats ?? {};
   const sessionDetails = overrides.sessionDetails ?? {};
@@ -258,7 +261,12 @@ describe("getWebSessionPoolHealth", () => {
       },
       sessionDetails: { pollinations: [] },
       breakerStates: {
-        pollinations: { state: "CLOSED", failureCount: 2, lastFailureTime: Date.now() - 60000, retryAfterMs: 0 },
+        pollinations: {
+          state: "CLOSED",
+          failureCount: 2,
+          lastFailureTime: Date.now() - 60000,
+          retryAfterMs: 0,
+        },
       },
     });
 
@@ -283,13 +291,22 @@ describe("getWebSessionPoolHealth", () => {
       },
       sessionDetails: { pollinations: [] },
       breakerStates: {
-        pollinations: { state: "CLOSED", failureCount: 1, lastFailureTime: Date.now() - 120000, retryAfterMs: 0 },
+        pollinations: {
+          state: "CLOSED",
+          failureCount: 1,
+          lastFailureTime: Date.now() - 120000,
+          retryAfterMs: 0,
+        },
       },
     });
 
     const report = getWebSessionPoolHealth("pollinations", deps);
     assert.equal(report.providers[0].health, "degraded");
-    assert.ok(report.providers[0].issues.some((i: string) => i.includes("sessions") && i.includes("cooldown")));
+    assert.ok(
+      report.providers[0].issues.some(
+        (i: string) => i.includes("sessions") && i.includes("cooldown")
+      )
+    );
   });
 
   it('computes health: "healthy" when all metrics good', () => {

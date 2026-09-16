@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
@@ -32,7 +33,10 @@ test("csvToJsonl: header only (no data rows) → rowsParsed=0, error reported", 
   assert.equal(result.rowsParsed, 0);
   assert.equal(result.rowsSkipped, 0);
   assert.ok(result.errors.length > 0, "should have at least one error");
-  assert.ok(result.errors[0].reason.toLowerCase().includes("no data"), "error should mention no data rows");
+  assert.ok(
+    result.errors[0].reason.toLowerCase().includes("no data"),
+    "error should mention no data rows"
+  );
 });
 
 test("csvToJsonl: 1 valid row → 1 JSONL line", () => {
@@ -109,7 +113,7 @@ test("csvToJsonl: row with no content field in output → row skipped, error rec
   // We use body.input as the content target (satisfies schema), but the CSV only has
   // a "note" column mapped to body.system (non-content). The content column is missing.
   // Instead: map a content column but have it empty → row skipped.
-  const csv = "id,prompt\nr1,";  // empty prompt cell
+  const csv = "id,prompt\nr1,"; // empty prompt cell
   const mapping = { id: "custom_id", prompt: "body.messages[0].content" };
   const result = csvToJsonl({ csv, mapping, defaults: DEFAULT_DEFAULTS });
   // An empty content string is still "content" — the row will be parsed.
@@ -117,7 +121,7 @@ test("csvToJsonl: row with no content field in output → row skipped, error rec
   // Let's verify: empty string IS still written as content, so rowsParsed=1.
   // The point of this test is that rows with truly missing content/custom_id are skipped.
   // Use a case where custom_id is missing:
-  const csv2 = "id,prompt\n,hello world";  // empty custom_id
+  const csv2 = "id,prompt\n,hello world"; // empty custom_id
   const result2 = csvToJsonl({ csv: csv2, mapping, defaults: DEFAULT_DEFAULTS });
   assert.equal(result2.rowsParsed, 0, "row with empty custom_id should be skipped");
   assert.ok(result2.rowsSkipped > 0 || result2.errors.some((e) => e.reason.includes("custom_id")));
@@ -139,7 +143,11 @@ test("csvToJsonl: explicit role override via mapping → not auto-filled", () =>
   const result = csvToJsonl({ csv, mapping, defaults: DEFAULT_DEFAULTS });
   assert.equal(result.rowsParsed, 1);
   const parsed = parseLines(result.jsonl);
-  assert.equal(parsed[0].body.messages[0].role, "assistant", "explicit role should not be overridden");
+  assert.equal(
+    parsed[0].body.messages[0].role,
+    "assistant",
+    "explicit role should not be overridden"
+  );
 });
 
 // ── Numeric coercion ──────────────────────────────────────────────────────────
@@ -163,7 +171,11 @@ test("csvToJsonl: max_tokens and temperature coerced to numbers", () => {
 
 test("csvToJsonl: non-numeric string in max_tokens stays as string", () => {
   const csv = "id,prompt,max_tokens\nr1,hello,auto";
-  const mapping = { id: "custom_id", prompt: "body.messages[0].content", max_tokens: "body.max_tokens" };
+  const mapping = {
+    id: "custom_id",
+    prompt: "body.messages[0].content",
+    max_tokens: "body.max_tokens",
+  };
   const result = csvToJsonl({ csv, mapping, defaults: DEFAULT_DEFAULTS });
   const parsed = parseLines(result.jsonl);
   assert.equal(parsed[0].body.max_tokens, "auto");
@@ -218,7 +230,12 @@ test("csvToJsonl: mapping without custom_id → Zod throws ZodError", () => {
       }),
     (err: unknown) => {
       assert.ok(err instanceof Error, "should throw an Error");
-      assert.ok(err.message.toLowerCase().includes("custom_id") || err.message.toLowerCase().includes("zod") || err.constructor.name.includes("Zod"), "error should be Zod-related");
+      assert.ok(
+        err.message.toLowerCase().includes("custom_id") ||
+          err.message.toLowerCase().includes("zod") ||
+          err.constructor.name.includes("Zod"),
+        "error should be Zod-related"
+      );
       return true;
     }
   );

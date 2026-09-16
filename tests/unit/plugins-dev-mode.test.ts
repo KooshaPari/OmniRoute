@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { describe, it, afterEach } from "node:test";
 import assert from "node:assert";
 import { mkdirSync, writeFileSync, rmSync } from "fs";

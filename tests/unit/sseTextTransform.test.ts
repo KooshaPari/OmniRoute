@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createSseTextTransform } from "../../src/lib/sseTextTransform.ts";

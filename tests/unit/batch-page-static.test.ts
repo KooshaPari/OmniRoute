@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -5,10 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const pagePath = path.join(
-  repoRoot,
-  "src/app/(dashboard)/dashboard/batch/page.tsx"
-);
+const pagePath = path.join(repoRoot, "src/app/(dashboard)/dashboard/batch/page.tsx");
 const enPath = path.join(repoRoot, "src/i18n/messages/en.json");
 
 function readBatchPage() {
@@ -53,12 +51,9 @@ test("batch page stable header does not contain hardcoded English", () => {
 });
 
 test("new i18n keys exist in en.json common namespace", () => {
-  const enKeys = JSON.parse(
-    fs.readFileSync(
-      path.join(repoRoot, "src/i18n/messages/en.json"),
-      "utf8"
-    )
-  ).common || {};
+  const enKeys =
+    JSON.parse(fs.readFileSync(path.join(repoRoot, "src/i18n/messages/en.json"), "utf8")).common ||
+    {};
   const requiredKeys = [
     "batchHeaderSubtitle",
     "batchStep1",

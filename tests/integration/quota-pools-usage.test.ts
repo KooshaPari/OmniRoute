@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Integration tests: GET /api/quota/pools/[id]/usage
  *

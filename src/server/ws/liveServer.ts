@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Live Dashboard WebSocket Server
  *

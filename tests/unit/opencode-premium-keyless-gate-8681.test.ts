@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 
@@ -42,7 +43,10 @@ describe("OpencodeExecutor — premium model keyless gate (#8681)", () => {
     it("returns false for known free models on opencode-zen", () => {
       // Free models from the opencode (noauth) registry
       assert.equal(OpencodeExecutor.isPremiumModel("big-pickle", "opencode-zen"), false);
-      assert.equal(OpencodeExecutor.isPremiumModel("deepseek-v4-flash-free", "opencode-zen"), false);
+      assert.equal(
+        OpencodeExecutor.isPremiumModel("deepseek-v4-flash-free", "opencode-zen"),
+        false
+      );
     });
 
     it("returns false for models ending in -free on opencode-zen", () => {
@@ -92,7 +96,7 @@ describe("OpencodeExecutor — premium model keyless gate (#8681)", () => {
     it("returns 402 for premium model gpt-5 with keyless credentials", async () => {
       const result = await zenExecutor.execute(createInput("gpt-5", true, null));
       const response = result instanceof Response ? result : result.response;
-      const body = await response.json() as { error: { message: string } };
+      const body = (await response.json()) as { error: { message: string } };
       assert.equal(response.status, 402);
       assert.ok(
         body.error.message.includes("API key"),

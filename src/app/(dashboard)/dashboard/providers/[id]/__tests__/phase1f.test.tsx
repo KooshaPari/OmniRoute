@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // @vitest-environment jsdom
 //
 // Phase 1f smoke tests for Issue #3501 (strangler-fig decomposition).

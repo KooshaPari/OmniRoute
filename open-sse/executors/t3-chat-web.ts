@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * T3ChatWebExecutor — t3.chat Session Provider
  *

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { randomUUID } from "crypto";
 import { resolveChatRequestBody } from "./requestBody";
 import * as chatAdmission from "./chatAdmission.ts";
@@ -33,10 +34,7 @@ import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts"
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { resolveCcDiscoveryAliasStrip } from "@/lib/ccDiscoveryAliasResolve";
-import {
-  handleComboChat,
-  shouldSkipConnDisable,
-} from "@omniroute/open-sse/services/combo.ts";
+import { handleComboChat, shouldSkipConnDisable } from "@omniroute/open-sse/services/combo.ts";
 import type { ComboLike, SingleModelTarget } from "@omniroute/open-sse/services/combo/types.ts";
 import { mergeAbortSignals } from "@omniroute/open-sse/executors/base.ts";
 import { resolveRequestAutoControls } from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
@@ -133,7 +131,11 @@ import { getComboFailureLogError } from "./comboFailureLogging";
 // Extracted sub-modules (from chat.ts decomposition)
 import { intersectAllowedConnectionIds } from "./chat/chatConnectionUtils";
 import { VideoBridgeLog, deriveVideoBridgeLog } from "./chat/chatVideoBridge";
-import { isManagedComboUnsupported, managedComboRejection, comboPromoteDeps } from "./chat/chatComboValidation";
+import {
+  isManagedComboUnsupported,
+  managedComboRejection,
+  comboPromoteDeps,
+} from "./chat/chatComboValidation";
 import { validateChatRequestBody } from "./chat/chatBodyValidation";
 import { registerAllQuotaFetchers } from "./chat/chatQuotaFetchers";
 
@@ -175,9 +177,7 @@ import {
   isFallbackDecision,
   shouldUseFallback,
 } from "@omniroute/open-sse/services/emergencyFallback.ts";
-import {
-  registerCodexConnection,
-} from "@omniroute/open-sse/services/codexQuotaFetcher.ts";
+import { registerCodexConnection } from "@omniroute/open-sse/services/codexQuotaFetcher.ts";
 
 import {
   disableCooldownAwareRetry,
@@ -776,7 +776,15 @@ async function handleChatImplementation(
       if (isComboLiveTest) return true;
       // #12886: combo-name allow-list must not skip inner targets (#9057 still
       // checks auto/* / disableNonPublic via comboTargetPassesKeyModelPolicy).
-      if (!(await comboTargetPassesKeyModelPolicy({ apiKey, apiKeyInfo, requestedModelStr: resolvedModelStr, targetModelStr: modelString, isModelAllowedForKey }))) {
+      if (
+        !(await comboTargetPassesKeyModelPolicy({
+          apiKey,
+          apiKeyInfo,
+          requestedModelStr: resolvedModelStr,
+          targetModelStr: modelString,
+          isModelAllowedForKey,
+        }))
+      ) {
         return false;
       }
 

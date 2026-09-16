@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * grokQuotaFetcher.ts — Grok Web Weekly Quota Fetcher
  *

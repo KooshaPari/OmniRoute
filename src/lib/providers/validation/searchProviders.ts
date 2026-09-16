@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // Web-search provider key validators + their per-provider request configs (serper, tavily, jina-reader,
 // …). Extracted from validation.ts (god-file decomposition) — top-level functions/data with no
 // dispatcher-state captures; behavior is byte-identical to the original inline defs.

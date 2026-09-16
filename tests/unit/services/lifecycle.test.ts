@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * T-04 lifecycle endpoint tests.
  *

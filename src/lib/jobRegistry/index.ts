@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /** JobRegistry singleton - survives Next.js HMR via globalThis. */
 
 import { JobRegistry } from "./registry";

@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * E2E Test Suite — OmniRoute Ecosystem
  *

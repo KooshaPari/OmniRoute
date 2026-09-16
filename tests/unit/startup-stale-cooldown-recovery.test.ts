@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * TDD regression guard for issue #3625 (Part A) and future quota cooldown preservation.
  *

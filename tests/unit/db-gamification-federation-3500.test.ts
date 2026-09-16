@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * tests/unit/db-gamification-federation-3500.test.ts
  *

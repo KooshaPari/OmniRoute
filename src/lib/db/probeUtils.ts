@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Probe-retry utilities for the SQLite corruption-probe path in getDbInstance().
  *

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // @vitest-environment jsdom
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
@@ -86,17 +87,14 @@ afterEach(() => {
 
 // ── Component import ──────────────────────────────────────────────────────────
 
-const { default: NewBatchWizard } = await import(
-  "../../../../../src/app/(dashboard)/dashboard/batch/components/NewBatchWizard"
-);
+const { default: NewBatchWizard } =
+  await import("../../../../../src/app/(dashboard)/dashboard/batch/components/NewBatchWizard");
 
 // ── Render helpers ────────────────────────────────────────────────────────────
 
 const containers: Array<{ root: ReturnType<typeof createRoot>; el: HTMLDivElement }> = [];
 
-const DEFAULT_PROVIDERS = [
-  { id: "openai", name: "OpenAI", models: ["gpt-4o-mini", "gpt-4o"] },
-];
+const DEFAULT_PROVIDERS = [{ id: "openai", name: "OpenAI", models: ["gpt-4o-mini", "gpt-4o"] }];
 
 function renderWizard(props?: {
   onClose?: () => void;
@@ -435,7 +433,10 @@ describe("NewBatchWizard", () => {
     expect(onClose).toHaveBeenCalled();
 
     // Assert fetch shapes
-    expect(mockFetch).toHaveBeenCalledWith("/api/v1/files", expect.objectContaining({ method: "POST" }));
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/v1/files",
+      expect.objectContaining({ method: "POST" })
+    );
     const batchCall = mockFetch.mock.calls.find((c) => c[0] === "/api/v1/batches");
     expect(batchCall).toBeDefined();
     const body = JSON.parse(batchCall![1].body as string) as Record<string, unknown>;
@@ -452,7 +453,9 @@ describe("NewBatchWizard", () => {
           ok: false,
           status: 500,
           json: async () => ({
-            error: { message: "Internal error at /home/user/server/files.ts:42 — stack at line 42" },
+            error: {
+              message: "Internal error at /home/user/server/files.ts:42 — stack at line 42",
+            },
           }),
         };
       }

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // @vitest-environment jsdom
 import React, { useState, useEffect } from "react";
 import { act } from "react";

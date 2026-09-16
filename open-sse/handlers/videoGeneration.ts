@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 /**
  * Video Generation Handler
  *

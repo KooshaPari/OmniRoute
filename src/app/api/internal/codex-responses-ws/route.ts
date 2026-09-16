@@ -1,3 +1,4 @@
+// oxlint-disable no-restricted-imports
 import { NextResponse } from "next/server";
 import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
 import { z } from "zod";

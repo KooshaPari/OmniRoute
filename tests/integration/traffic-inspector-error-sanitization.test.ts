@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Integration tests: Traffic Inspector error sanitization
  *

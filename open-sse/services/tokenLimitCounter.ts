@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Token Limit Counter — in-memory write-through accelerator.
  *

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * G-12: End-to-end shape consistency tests for embedded service routes.
  *

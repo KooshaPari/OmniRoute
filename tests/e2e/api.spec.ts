@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import { test, expect } from "@playwright/test";
 
 test.describe("API Health Checks", () => {

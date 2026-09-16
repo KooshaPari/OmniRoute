@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import { deriveDefaultPlan, type DerivedPlan } from "./deriveDefaultPlan.ts";
 
 export interface ResolveCtx {

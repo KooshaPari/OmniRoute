@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * tests/unit/memory-retrieve-preview.test.ts
  *

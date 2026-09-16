@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import { GenericMemoryBackend, createGenericMemoryBackend } from "../genericBackend";
 import type { Memory } from "../types";

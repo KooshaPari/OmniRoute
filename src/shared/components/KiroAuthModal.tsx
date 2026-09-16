@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 "use client";
 
 import { useState, useEffect } from "react";

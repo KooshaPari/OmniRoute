@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Security tests — filesystem path-safety for plugin manager and loader.
  *

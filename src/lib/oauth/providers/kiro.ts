@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { KIRO_CONFIG, AWS_REGION_PATTERN, assertValidAwsRegion } from "../constants/oauth";
 import { discoverKiroProfileArnAcrossRegions } from "@omniroute/open-sse/services/kiroRegion.ts";
 

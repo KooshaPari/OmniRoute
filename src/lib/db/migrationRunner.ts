@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Migration Runner — Versioned SQL Migrations for SQLite
  *

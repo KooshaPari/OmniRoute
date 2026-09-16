@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Regression tests for claudeTlsClient.ts
  *

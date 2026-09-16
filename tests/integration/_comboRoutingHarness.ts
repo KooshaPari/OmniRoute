@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 // tests/integration/_comboRoutingHarness.ts
 // Recording-fetch helper for combo routing-decision tests.
 // Wraps the chat pipeline harness so each strategy test can assert WHICH

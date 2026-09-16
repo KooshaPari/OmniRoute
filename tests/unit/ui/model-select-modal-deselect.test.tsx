@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // @vitest-environment jsdom
 //
 // Port of decolua/9router PR #889 (Fajar Hidayat <fajarhide@gmail.com>):

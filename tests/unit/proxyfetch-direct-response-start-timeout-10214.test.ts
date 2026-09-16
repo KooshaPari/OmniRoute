@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // ENVIRONMENT NOTE (node:test runner cancellation, not a code defect):
 // The subtests below exercise real-timer / AbortSignal.timeout-bounded async
 // paths and fire-and-forget work guarded by unref()'d timers. In this sandbox

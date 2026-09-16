@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Tests for callVisionModel helper function.
  */

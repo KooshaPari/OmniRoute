@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * githubCollector.ts — GitHub agent skill discovery, scoring, and import.
  *

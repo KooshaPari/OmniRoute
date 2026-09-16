@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { getDbInstance } from "../db/core";
 import { Memory, MemoryConfig } from "./types";
 import { MemoryConfigSchema } from "./schemas";

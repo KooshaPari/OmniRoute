@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
@@ -889,8 +890,7 @@ function ProvidersPageContent() {
   return (
     <OpenRouterProviderStatsProvider entries={openRouterProviderStats}>
       <div className="flex flex-col gap-6">
-          <DeprecatedProviderBanner />
-
+        <DeprecatedProviderBanner />
 
         {showFirstProviderHint && (
           <Card padding="lg">

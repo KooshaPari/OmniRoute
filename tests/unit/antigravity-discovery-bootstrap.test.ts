@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Tests: antigravity loadCodeAssist bootstrap before :models discovery.
  *

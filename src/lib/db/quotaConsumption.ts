@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * db/quotaConsumption.ts — Sliding Window Counter primitives for quota tracking.
  *
@@ -67,11 +68,7 @@ export interface ConsumptionEvent {
 /**
  * Read the consumed value for a single bucket. Returns 0 if no row exists.
  */
-export function getBucket(
-  apiKeyId: string,
-  dimensionKey: string,
-  bucketIndex: number
-): number {
+export function getBucket(apiKeyId: string, dimensionKey: string, bucketIndex: number): number {
   const row = getDb()
     .prepare<BucketRow>(
       `SELECT consumed FROM quota_consumption

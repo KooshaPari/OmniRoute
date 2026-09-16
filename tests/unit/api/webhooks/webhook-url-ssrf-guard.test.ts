@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Tests for SSRF guard on the webhook URL surface:
  *

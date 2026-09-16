@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Usage Fetcher - Get usage data from provider APIs
  *

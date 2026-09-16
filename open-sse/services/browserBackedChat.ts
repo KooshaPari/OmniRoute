@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * browserBackedChat.ts — Provider-agnostic browser-backed chat helper.
  *

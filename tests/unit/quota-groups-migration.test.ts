@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * tests/unit/quota-groups-migration.test.ts
  *

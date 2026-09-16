@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * modelsDevSync.ts — Fetch model specs, pricing, and capabilities from models.dev
  *

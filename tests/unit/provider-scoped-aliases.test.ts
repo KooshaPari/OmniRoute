@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { describe, it } from "node:test";
 import { ok, equal } from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -27,9 +28,8 @@ describe("Provider-scoped aliases (#9068)", () => {
   });
 
   it("setProviderAlias with multiple aliases works", async () => {
-    const { setProviderAlias, getProviderAliases, removeProviderAlias } = await import(
-      "@/lib/db/models/aliases"
-    );
+    const { setProviderAlias, getProviderAliases, removeProviderAlias } =
+      await import("@/lib/db/models/aliases");
     setProviderAlias(providerId, "fast", "gpt-4o-mini");
     setProviderAlias(providerId, "best", "gpt-4o");
     setProviderAlias(providerId, "cheap", "gpt-4o-mini");

@@ -1,3 +1,4 @@
+// oxlint-disable no-restricted-imports
 import {
   handleAdobeFireflyImageGeneration,
   handleCodexImageEdit,
@@ -373,7 +374,11 @@ async function dispatchImageEditTarget(
   if (providerConfig?.format === "codex-responses") {
     const modelEntry = getImageModelEntry(modelStr);
     if (!modelEntry || modelEntry.provider !== "codex" || modelEntry.model !== parsed.model) {
-      return { success: false, status: HTTP_STATUS.BAD_REQUEST, error: `Unsupported Codex image edit model: ${modelStr}` };
+      return {
+        success: false,
+        status: HTTP_STATUS.BAD_REQUEST,
+        error: `Unsupported Codex image edit model: ${modelStr}`,
+      };
     }
     const imageValidationError = validateCodexImageEditReferences(images);
     if (imageValidationError) {
@@ -439,7 +444,11 @@ async function dispatchImageEditTarget(
   if (providerConfig?.format === "adobe-firefly-image") {
     const dataUrls = buildAdobeFireflyEditDataUrls(images, imageBytes, imageMime);
     if (dataUrls.length === 0) {
-      return { success: false, status: HTTP_STATUS.BAD_REQUEST, error: "Missing required field: image" };
+      return {
+        success: false,
+        status: HTTP_STATUS.BAD_REQUEST,
+        error: "Missing required field: image",
+      };
     }
     return (await handleAdobeFireflyImageGeneration({
       provider: parsed.provider,

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /** JobRegistry runtime tests . Uses real timers + isolated temp DB. */
 
 // Access private internals (avoids `as any`).

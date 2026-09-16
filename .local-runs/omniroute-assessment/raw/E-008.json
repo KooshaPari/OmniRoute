@@ -1,0 +1,6 @@
+{
+  "scan": "grep",
+  "pattern": "@mcp.tool",
+  "count": 64,
+  "detail": "tool functions found"
+}

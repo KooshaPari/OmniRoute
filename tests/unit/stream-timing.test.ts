@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * tests/unit/stream-timing.test.ts
  *
@@ -127,7 +128,10 @@ test("forward wall-clock jump does not inflate TTFT (monotonic clock)", () => {
     t.markForward();
     const ttft = t.ttftMs();
     // Real elapsed is sub-millisecond; a Date.now-based seam would report ~5000.
-    assert.ok(ttft !== null && ttft >= 0 && ttft < 1_000, `ttft must ignore +5s wall jump, got ${ttft}`);
+    assert.ok(
+      ttft !== null && ttft >= 0 && ttft < 1_000,
+      `ttft must ignore +5s wall jump, got ${ttft}`
+    );
   });
 });
 
@@ -140,7 +144,10 @@ test("backward wall-clock jump does not yield negative TTFT (monotonic clock)", 
     const ttft = t.ttftMs();
     // A Date.now-based seam would report ~-2000, silently discarded downstream
     // by the `ttft >= 0` guard (invisible data loss).
-    assert.ok(ttft !== null && ttft >= 0 && ttft < 1_000, `ttft must never go negative, got ${ttft}`);
+    assert.ok(
+      ttft !== null && ttft >= 0 && ttft < 1_000,
+      `ttft must never go negative, got ${ttft}`
+    );
   });
 });
 

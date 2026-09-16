@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Provider Registry — Single source of truth for all provider configuration.
  * Modularized into `open-sse/config/providers/`

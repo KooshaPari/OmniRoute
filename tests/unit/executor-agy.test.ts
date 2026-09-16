@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -66,7 +67,9 @@ test("processAntigravitySSEPayload accumulates top-level markdown into textConte
 test("processAntigravitySSEPayload uses candidate parts text when no markdown is present", () => {
   const collected = emptyCollected();
   processAntigravitySSEPayload(
-    JSON.stringify({ response: { candidates: [{ content: { parts: [{ text: "from parts" }] } }] } }),
+    JSON.stringify({
+      response: { candidates: [{ content: { parts: [{ text: "from parts" }] } }] },
+    }),
     collected
   );
   assert.equal(collected.textContent, "from parts");
@@ -148,7 +151,7 @@ test("processAntigravitySSEPayload still parses textual [Tool call:] when presen
             content: {
               parts: [
                 {
-                  text: "[Tool call: get_weather]\nArguments: {\"city\":\"Paris\"}",
+                  text: '[Tool call: get_weather]\nArguments: {"city":"Paris"}',
                 },
               ],
             },

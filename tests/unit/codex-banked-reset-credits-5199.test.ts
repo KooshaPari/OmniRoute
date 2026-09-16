@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Regression test for Codex "banked reset credits" (issue #5199).
  *

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Shared browser-impersonating HTTP transport for five web-cookie provider wrappers.
  *

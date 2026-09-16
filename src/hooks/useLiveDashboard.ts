@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * useLiveDashboard — React hooks for real-time dashboard WebSocket
  *

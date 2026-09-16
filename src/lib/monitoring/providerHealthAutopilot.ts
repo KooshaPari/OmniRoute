@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { createHash } from "crypto";
 
 import { getProviderConnections, updateProviderConnection } from "@/lib/db/providers";

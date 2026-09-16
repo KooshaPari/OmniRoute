@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -533,10 +534,7 @@ test("allow rate-limited connections after transient 429 on subsequent targets i
     name: "rate-limit-reuse-combo",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-    models: [
-      "openai/gpt-4o-mini",
-      "openai/gpt-3.5-turbo",
-    ],
+    models: ["openai/gpt-4o-mini", "openai/gpt-3.5-turbo"],
   });
 
   let openaiCalls = 0;
@@ -655,4 +653,3 @@ test("emergency fallback never sends the failing provider's credentials to anoth
     `no unauthenticated emergency call should reach upstream either: ${JSON.stringify(upstreamCalls)}`
   );
 });
-

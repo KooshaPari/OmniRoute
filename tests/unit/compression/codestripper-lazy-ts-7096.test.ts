@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Regression for #7096 — the RTK code stripper imported the `typescript`
  * package eagerly at module top level (`import ts from "typescript"`), but
@@ -39,8 +40,9 @@ describe("RTK codeStripper — lazy TypeScript loading (#7096)", () => {
     // is what broke every compression page after `npm prune --omit=dev`.
     // Type-only imports (`import type ... from "typescript"`) are erased at
     // build time and are fine.
-    const eagerValueImport =
-      /^\s*import\s+(?!type\b)[^;\n]*\bfrom\s+["']typescript["']/m.test(source);
+    const eagerValueImport = /^\s*import\s+(?!type\b)[^;\n]*\bfrom\s+["']typescript["']/m.test(
+      source
+    );
     assert.equal(
       eagerValueImport,
       false,
@@ -49,11 +51,7 @@ describe("RTK codeStripper — lazy TypeScript loading (#7096)", () => {
   });
 
   it("still strips comments when `typescript` is available (opt-in)", () => {
-    const code = [
-      "const x = 1; // inline note",
-      "// full line comment",
-      "const y = 2;",
-    ].join("\n");
+    const code = ["const x = 1; // inline note", "// full line comment", "const y = 2;"].join("\n");
     const out = codeStripper.stripCode(code, "typescript", { removeComments: true });
     assert.ok(!out.text.includes("inline note"), "line comment should be removed");
     assert.ok(!out.text.includes("full line comment"), "full-line comment should be removed");

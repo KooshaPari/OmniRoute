@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Tests for Electron main process (electron/main.js)
  *

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 "use client";
 
 import { Button, DistributeProxiesButton, Toggle } from "@/shared/components";

@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 // tests/unit/build/check-licenses.test.ts
 // TDD unit tests for scripts/check/check-licenses.mjs — Task 7.20 license compliance.
 //

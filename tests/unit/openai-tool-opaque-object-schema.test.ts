@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -21,10 +22,7 @@ test("OpenAI sanitizer keeps generic MCP wrapper args open-world", () => {
     },
   }) as any;
 
-  assert.equal(
-    sanitized.function.parameters.properties.args.additionalProperties,
-    true
-  );
+  assert.equal(sanitized.function.parameters.properties.args.additionalProperties, true);
   assert.deepEqual(sanitized.function.parameters.properties.args.properties, {});
 });
 
@@ -91,8 +89,5 @@ test("explicitly closed object schemas stay closed", () => {
     },
   }) as any;
 
-  assert.equal(
-    sanitized.function.parameters.properties.payload.additionalProperties,
-    false
-  );
+  assert.equal(sanitized.function.parameters.properties.payload.additionalProperties, false);
 });

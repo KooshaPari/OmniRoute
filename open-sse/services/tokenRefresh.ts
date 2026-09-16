@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // @ts-nocheck
 //
 // Per-provider refresh implementations live in ./tokenRefresh/providers/ (one

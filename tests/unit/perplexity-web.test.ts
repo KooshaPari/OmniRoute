@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // @ts-nocheck
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -1269,9 +1270,8 @@ test("Schematized API: dual ask_text tracks do not double-count", async () => {
 
 // Unit: extractAnswerFromFinalText pure helper
 test("extractAnswerFromFinalText: double-encoded FINAL step blob", async () => {
-  const { extractAnswerFromFinalText } = await import(
-    "../../open-sse/executors/perplexity-web/protocol.ts"
-  );
+  const { extractAnswerFromFinalText } =
+    await import("../../open-sse/executors/perplexity-web/protocol.ts");
   const text = JSON.stringify([
     { step_type: "INITIAL_QUERY", content: { query: "hello" } },
     {

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * GenericMemoryBackend - Generic HTTP connector for any memory backend
  * Connects to external memory backends via REST API
@@ -40,12 +41,14 @@ function ipv4ToLong(host: string): number | null {
 function isIpv4Blocked(ip: string): boolean {
   const n = ipv4ToLong(ip);
   if (n === null) return false;
-  return BLOCKED_IPV4.some(([base, mask]) => ((n & mask) >>> 0) === (base >>> 0));
+  return BLOCKED_IPV4.some(([base, mask]) => (n & mask) >>> 0 === base >>> 0);
 }
 
 function isIpv6Blocked(ip: string): boolean {
   const h = ip.toLowerCase();
-  return h === "::1" || h === "::" || h.startsWith("fe80") || h.startsWith("fc") || h.startsWith("fd");
+  return (
+    h === "::1" || h === "::" || h.startsWith("fe80") || h.startsWith("fc") || h.startsWith("fd")
+  );
 }
 
 function isIpLiteral(host: string): boolean {

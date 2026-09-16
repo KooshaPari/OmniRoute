@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * TDD repro for #9237: Arena SSE stream emits string chunks (not Uint8Array),
  * which causes TextDecoder.decode in the shared pipeline to throw
@@ -48,19 +49,14 @@ async function collectArenaStream(
 
 describe("Arena SSE stream — string vs Uint8Array contract (#9237)", () => {
   it("should emit Uint8Array chunks that survive TextDecoder.decode without throwing", async () => {
-    const reader = fakeReader([
-      'data: a0:{"text":"Hello"}',
-      'data: ad:{}',
-    ]);
+    const reader = fakeReader(['data: a0:{"text":"Hello"}', "data: ad:{}"]);
     const arenaStream = createOpenAIArenaStream({
       reader,
       model: "test-model",
     });
 
     // verify the stream type is Uint8Array, not string
-    const collected = await collectArenaStream(
-      arenaStream.getReader()
-    );
+    const collected = await collectArenaStream(arenaStream.getReader());
 
     // Should contain the content text and the [DONE] marker
     ok(

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * tests/unit/radar-api-routes.test.ts
  *

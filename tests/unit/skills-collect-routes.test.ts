@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Unit tests for the skill-collector CLI-detection REST surface (PR #6294 review):
  *

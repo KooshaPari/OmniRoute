@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Unit tests for modelsDevSync.ts
  *

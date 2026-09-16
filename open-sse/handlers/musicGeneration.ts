@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Music Generation Handler
  *

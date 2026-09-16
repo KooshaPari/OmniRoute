@@ -1,6 +1,11 @@
+// oxlint-disable no-unused-vars
 import { createMemory, updateMemory, deleteMemory, getMemory } from "@/lib/memory/store";
 import { retrieveMemories } from "@/lib/memory/retrieval";
-import { getMemorySettings, DEFAULT_MEMORY_SETTINGS, toMemoryRetrievalConfig } from "@/lib/memory/settings";
+import {
+  getMemorySettings,
+  DEFAULT_MEMORY_SETTINGS,
+  toMemoryRetrievalConfig,
+} from "@/lib/memory/settings";
 import { MemoryType } from "@/lib/memory/types";
 import { logger } from "../../../open-sse/utils/logger.ts";
 
@@ -52,7 +57,10 @@ function memoryToPlain(memory: Awaited<ReturnType<typeof createMemory>>) {
   };
 }
 
-async function handleMemorySave(input: Record<string, unknown>, context: { apiKeyId: string; sessionId: string }) {
+async function handleMemorySave(
+  input: Record<string, unknown>,
+  context: { apiKeyId: string; sessionId: string }
+) {
   const { type, key, content, metadata } = input as {
     type?: string;
     key: string;
@@ -191,17 +199,25 @@ const MEMORY_DELETE_DESCRIPTION = [
 const MEMORY_TYPE_SCHEMA = {
   type: "string",
   enum: [...MEMORY_TYPES],
-  description: "Memory category: factual (facts/preferences), episodic (events), procedural (how-to), semantic (knowledge).",
+  description:
+    "Memory category: factual (facts/preferences), episodic (events), procedural (how-to), semantic (knowledge).",
 };
 
 const memorySaveParameters = {
   type: "object",
   additionalProperties: false,
   properties: {
-    key: { type: "string", description: "Unique key for the memory entry (e.g. 'preference:coffee'). Reusing a key updates the existing entry." },
+    key: {
+      type: "string",
+      description:
+        "Unique key for the memory entry (e.g. 'preference:coffee'). Reusing a key updates the existing entry.",
+    },
     content: { type: "string", description: "The memory content to store." },
     type: MEMORY_TYPE_SCHEMA,
-    metadata: { type: "object", description: "Optional structured metadata attached to the entry." },
+    metadata: {
+      type: "object",
+      description: "Optional structured metadata attached to the entry.",
+    },
   },
   required: ["key", "content"],
 };
@@ -210,7 +226,10 @@ const memoryUpdateParameters = {
   type: "object",
   additionalProperties: false,
   properties: {
-    id: { type: "string", description: "Memory entry id returned by memory_save or memory_search." },
+    id: {
+      type: "string",
+      description: "Memory entry id returned by memory_save or memory_search.",
+    },
     type: MEMORY_TYPE_SCHEMA,
     key: { type: "string", description: "New key for the entry." },
     content: { type: "string", description: "New content for the entry." },
@@ -223,10 +242,23 @@ const memorySearchParameters = {
   type: "object",
   additionalProperties: false,
   properties: {
-    query: { type: "string", description: "Search query text. When omitted, returns recent memories." },
+    query: {
+      type: "string",
+      description: "Search query text. When omitted, returns recent memories.",
+    },
     type: MEMORY_TYPE_SCHEMA,
-    limit: { type: "integer", minimum: 1, maximum: 50, description: "Maximum number of results (default 10)." },
-    maxTokens: { type: "integer", minimum: 1, maximum: 8000, description: "Token budget for the results." },
+    limit: {
+      type: "integer",
+      minimum: 1,
+      maximum: 50,
+      description: "Maximum number of results (default 10).",
+    },
+    maxTokens: {
+      type: "integer",
+      minimum: 1,
+      maximum: 8000,
+      description: "Token budget for the results.",
+    },
   },
 };
 
@@ -234,7 +266,10 @@ const memoryDeleteParameters = {
   type: "object",
   additionalProperties: false,
   properties: {
-    id: { type: "string", description: "Memory entry id returned by memory_save or memory_search." },
+    id: {
+      type: "string",
+      description: "Memory entry id returned by memory_save or memory_search.",
+    },
   },
   required: ["id"],
 };

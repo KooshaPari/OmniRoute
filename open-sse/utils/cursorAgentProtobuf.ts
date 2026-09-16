@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Hand-rolled protobuf encoder/decoder for Cursor's `agent.v1.AgentService/Run`
  * RPC, the endpoint cursor-agent uses for everything (chat + composer + auto).

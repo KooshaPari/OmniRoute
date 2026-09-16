@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -14,12 +15,8 @@ const {
   seedConnection,
   settingsDb,
 } = harness;
-const { preScreenTargets } = await import(
-  "../../open-sse/services/combo.ts"
-);
-const { getCircuitBreaker } = await import(
-  "../../src/shared/utils/circuitBreaker.ts"
-);
+const { preScreenTargets } = await import("../../open-sse/services/combo.ts");
+const { getCircuitBreaker } = await import("../../src/shared/utils/circuitBreaker.ts");
 
 test.beforeEach(async () => {
   await resetStorage();

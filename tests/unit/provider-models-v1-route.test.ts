@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Tests for GET /api/v1/providers/[provider]/models
  * Covers the connection-ID fallback path added in PR #3402.

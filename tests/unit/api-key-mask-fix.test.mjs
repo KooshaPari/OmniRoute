@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Unit tests for the masked API key fix (#523).
  *

@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import { translateRequest } from "../../open-sse/translator/index.ts";
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -412,11 +413,17 @@ test("Responses->Chat: string tool_choice passes through when tools present, str
     tools: [{ type: "function", name: "f", parameters: {} }],
     tool_choice: "auto",
   };
-  const resWith = openaiResponsesToOpenAIRequest(null, withTools, null, null) as Record<string, unknown>;
+  const resWith = openaiResponsesToOpenAIRequest(null, withTools, null, null) as Record<
+    string,
+    unknown
+  >;
   assert.equal(resWith.tool_choice, "auto");
 
   const noTools = { model: "gpt-4", input: "hello", tool_choice: "auto" };
-  const resWithout = openaiResponsesToOpenAIRequest(null, noTools, null, null) as Record<string, unknown>;
+  const resWithout = openaiResponsesToOpenAIRequest(null, noTools, null, null) as Record<
+    string,
+    unknown
+  >;
   assert.equal(resWithout.tool_choice, undefined);
 });
 

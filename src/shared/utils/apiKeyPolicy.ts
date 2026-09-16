@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * API Key Policy Enforcement — Shared middleware for all /v1/* endpoints.
  *

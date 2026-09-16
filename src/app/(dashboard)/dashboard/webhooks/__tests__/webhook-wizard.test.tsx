@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // @vitest-environment jsdom
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
@@ -67,8 +68,7 @@ function t(key: string): string {
 function getButton(text: string): HTMLButtonElement | null {
   return (
     (Array.from(document.querySelectorAll("button")).find((b) => b.textContent?.includes(text)) as
-      | HTMLButtonElement
-      | undefined) ?? null
+      HTMLButtonElement | undefined) ?? null
   );
 }
 

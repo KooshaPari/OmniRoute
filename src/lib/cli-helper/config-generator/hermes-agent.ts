@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Hermes Agent — Rich multi-role config generator & saver
  *

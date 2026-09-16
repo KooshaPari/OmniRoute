@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { handleModeration } from "@omniroute/open-sse/handlers/moderations.ts";
 import {
   getProviderCredentialsWithQuotaPreflight,

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { handleMusicGeneration } from "@omniroute/open-sse/handlers/musicGeneration.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import {

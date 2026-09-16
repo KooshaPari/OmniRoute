@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Tests for #1701: GLM providers rejecting system role from memory injection.
  *

@@ -1,0 +1,18 @@
+{
+  "kind": "finding",
+  "schema_version": "1.0.0",
+  "id": "F-01",
+  "record_status": "OPERATIONAL",
+  "created_at": "2026-09-15T07:04:42Z",
+  "subject_ref": "subject.json",
+  "instance_refs": ["I-09"],
+  "class": "IMPLEMENTATION_GAP",
+  "severity": "MEDIUM",
+  "claim": "8 files exceed 500-line limit; chatCore.ts is 6145 lines.",
+  "evidence_refs": ["E-008"],
+  "counterevidence_refs": [],
+  "owner_ref": "engineering-team",
+  "next_action_kind": "IMPLEMENT",
+  "status": "ACCEPTED",
+  "wakeup_condition": "File decomposition completed"
+}

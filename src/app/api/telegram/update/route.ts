@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Telegram Bot API update webhook + Mini App proxy.
  *

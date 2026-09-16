@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { randomUUID } from "node:crypto";
 import type { KeyHealth } from "../services/apiKeyRotator.ts";
 

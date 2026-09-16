@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Tests for Electron preload script (electron/preload.js)
  *

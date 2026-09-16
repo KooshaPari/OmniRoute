@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import { describe, it, beforeEach, afterEach, after } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * @file alibabaFreeTierQuotaFetcher.ts
  * @description Fetch Alibaba Model Studio free-tier quota from the Bailian console API.
@@ -52,7 +53,10 @@ export type {
   AlibabaFreeTierQuotaClassification,
   AlibabaFreeTierQuotaSnapshot,
 } from "./alibabaFreeTierQuotaTypes.ts";
-export { getAlibabaFreeTierQuotaLastSyncAt, isAlibabaLiveQuotaSyncAt } from "./alibabaFreeTierQuotaTypes.ts";
+export {
+  getAlibabaFreeTierQuotaLastSyncAt,
+  isAlibabaLiveQuotaSyncAt,
+} from "./alibabaFreeTierQuotaTypes.ts";
 export {
   isAlibabaQuotaValidityExpired,
   parseAlibabaFreeTierQuotaEntries,

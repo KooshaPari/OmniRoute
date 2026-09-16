@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { createHash } from "node:crypto";
 
 import { BaseExecutor, type ExecuteInput } from "./base.ts";

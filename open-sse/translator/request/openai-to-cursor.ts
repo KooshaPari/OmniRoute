@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * OpenAI to Cursor Request Translator
  * Converts OpenAI messages to Cursor ask/agent format.

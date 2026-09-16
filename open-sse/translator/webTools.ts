@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // Tool-call translation for web-cookie providers (DeepSeek Web, Perplexity Web, etc.).
 //
 // The web UIs accept only a single plain prompt string and have no native function

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // Unit tests for #6928: expose an editable base-URL field on the ComfyUI
 // provider connection + wire the per-connection override through the shared
 // resolveComfyUiBaseUrl helper (used by image/video/music generation handlers).
@@ -156,17 +157,11 @@ test("resolveComfyUiBaseUrl returns the fallback when providerSpecificData is ab
 });
 
 test("resolveComfyUiBaseUrl returns the fallback when providerSpecificData is null", () => {
-  assert.equal(
-    resolveComfyUiBaseUrl({ providerSpecificData: null }, FALLBACK),
-    FALLBACK
-  );
+  assert.equal(resolveComfyUiBaseUrl({ providerSpecificData: null }, FALLBACK), FALLBACK);
 });
 
 test("resolveComfyUiBaseUrl returns the fallback when baseUrl is absent", () => {
-  assert.equal(
-    resolveComfyUiBaseUrl({ providerSpecificData: {} }, FALLBACK),
-    FALLBACK
-  );
+  assert.equal(resolveComfyUiBaseUrl({ providerSpecificData: {} }, FALLBACK), FALLBACK);
 });
 
 test("resolveComfyUiBaseUrl returns the fallback when baseUrl is not a string", () => {

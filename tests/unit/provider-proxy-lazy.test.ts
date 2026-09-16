@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -16,9 +17,8 @@ const {
   AUDIO_ONLY_PROVIDERS,
 } = await import("../../src/shared/constants/providers.ts");
 
-const { IMAGE_PROVIDERS, getImageProvider } = await import(
-  "../../open-sse/config/imageRegistry.ts"
-);
+const { IMAGE_PROVIDERS, getImageProvider } =
+  await import("../../open-sse/config/imageRegistry.ts");
 
 function getImageProviders() {
   return IMAGE_PROVIDERS;

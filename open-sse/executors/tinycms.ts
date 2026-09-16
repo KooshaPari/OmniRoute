@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import { randomUUID } from "node:crypto";
 
 import { BaseExecutor, type ExecuteInput, type ExecutorExecuteResult } from "./base.ts";

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Regression test for #9034 — /v1/models alias-backed emission block (catalog.ts ~:1298)
  * leaked the raw provider-node UUID as the published model `id` for alias-backed models

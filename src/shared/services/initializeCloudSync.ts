@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { getCloudSyncScheduler } from "@/shared/services/cloudSyncScheduler";
 import { isCloudEnabled } from "@/lib/db/settings";
 import { cleanupProviderConnections } from "@/lib/db/providers";

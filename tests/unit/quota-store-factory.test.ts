@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * tests/unit/quota-store-factory.test.ts
  *

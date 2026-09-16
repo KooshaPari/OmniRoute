@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 // Tests for optional modelId fallback on /api/provider-nodes/validate.
 // Ports decolua/9router#315 (Doan Minh Tu).
 import test from "node:test";

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import {
   DEFAULT_ANTIGRAVITY_CLIENT_PROFILE,
   normalizeAntigravityClientProfile,

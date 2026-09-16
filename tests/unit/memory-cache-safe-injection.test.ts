@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Tests for #3890: prompt-cache misses when memory injection is enabled.
  *
@@ -160,9 +161,14 @@ describe("injectMemory cache-safe positioning — Claude-family server-tool-resu
   });
 
   it("applies the same fallback to a Claude-Code-compatible passthrough provider id", () => {
-    const out = injectMemory(multiTurn(), [mem("dark mode")], "anthropic-compatible-cc-github-copilot", {
-      cacheSafe: true,
-    });
+    const out = injectMemory(
+      multiTurn(),
+      [mem("dark mode")],
+      "anthropic-compatible-cc-github-copilot",
+      {
+        cacheSafe: true,
+      }
+    );
 
     assert.equal(out.messages.length, 4);
     assert.equal(out.messages[0].role, "system");

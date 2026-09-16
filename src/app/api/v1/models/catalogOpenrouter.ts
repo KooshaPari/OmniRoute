@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // OpenRouter-specific catalog normalization helpers. Extracted verbatim from
 // ./catalog.ts as a cohesive leaf — id qualification, modality normalization,
 // model-type inference, and the free-model / display-name heuristics that shape

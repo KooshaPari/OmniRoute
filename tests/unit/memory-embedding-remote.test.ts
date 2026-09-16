@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { describe, it, beforeEach, mock } from "node:test";
 import assert from "node:assert/strict";
 
@@ -19,10 +20,9 @@ describe("memory-embedding-remote", () => {
     // Mock global fetch via createEmbeddingResponse by monkey-patching
     const origFetch = globalThis.fetch;
     globalThis.fetch = async () => {
-      return new Response(
-        JSON.stringify({ data: [{ embedding: mockEmbedding }] }),
-        { status: 200 }
-      );
+      return new Response(JSON.stringify({ data: [{ embedding: mockEmbedding }] }), {
+        status: 200,
+      });
     };
 
     try {
@@ -71,13 +71,13 @@ describe("memory-embedding-remote error paths (with stubs)", () => {
 
   it("401 response maps to no_key reason", () => {
     const status = 401;
-    const reason = (status === 401 || status === 403) ? "no_key" : "request_failed";
+    const reason = status === 401 || status === 403 ? "no_key" : "request_failed";
     assert.strictEqual(reason, "no_key");
   });
 
   it("403 response maps to no_key reason", () => {
     const status = 403;
-    const reason = (status === 401 || status === 403) ? "no_key" : "request_failed";
+    const reason = status === 401 || status === 403 ? "no_key" : "request_failed";
     assert.strictEqual(reason, "no_key");
   });
 
@@ -89,9 +89,12 @@ describe("memory-embedding-remote error paths (with stubs)", () => {
 
   it("500 response maps to request_failed reason", () => {
     const status = 500;
-    const reason = (status === 401 || status === 403) ? "no_key"
-      : status === 429 ? "rate_limited"
-      : "request_failed";
+    const reason =
+      status === 401 || status === 403
+        ? "no_key"
+        : status === 429
+          ? "rate_limited"
+          : "request_failed";
     assert.strictEqual(reason, "request_failed");
   });
 

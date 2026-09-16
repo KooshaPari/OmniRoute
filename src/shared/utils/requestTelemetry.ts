@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Request Telemetry — FASE-09 E2E Hardening (T-45)
  *

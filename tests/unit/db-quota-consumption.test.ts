@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * tests/unit/db-quota-consumption.test.ts
  *

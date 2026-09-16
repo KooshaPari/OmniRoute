@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { Buffer } from "node:buffer";
 import { generateKeyPairSync, randomUUID } from "node:crypto";
 import vm from "node:vm";

@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * LMArena Split Supabase SSR Cookie — Regression Tests (issue #4271)
  *

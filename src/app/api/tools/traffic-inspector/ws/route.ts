@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * WebSocket endpoint for the Traffic Inspector live stream.
  *

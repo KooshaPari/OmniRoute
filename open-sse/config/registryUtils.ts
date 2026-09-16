@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { randomUUID } from "crypto";
 /**
  * Shared Registry Utilities

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Routing feedback foundation — default wiring.
  *

@@ -1,0 +1,14 @@
+{
+  "kind": "qualification",
+  "schema_version": "1.0.0",
+  "id": "Q-006",
+  "evaluator_id": "jcode-agent",
+  "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d",
+  "status": "QUALIFIED",
+  "scope_instance_ids": ["I-15", "I-16"],
+  "positive_control_passed": true,
+  "negative_control_passed": true,
+  "evidence_ids": ["E-Q6-01"],
+  "observed_at": "2026-09-15T06:17:10Z",
+  "limitations": ["Screen mode assessment only"]
+}

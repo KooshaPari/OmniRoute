@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Integration tests for Agent Skills content integrity.
  *

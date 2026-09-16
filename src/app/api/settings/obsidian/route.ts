@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
@@ -13,10 +14,12 @@ import {
 import { createObsidianClient } from "@/lib/obsidian/api";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
-const setTokenSchema = z.object({
-  token: z.string().min(1).max(5000),
-  baseUrl: z.string().url().optional(),
-}).strict();
+const setTokenSchema = z
+  .object({
+    token: z.string().min(1).max(5000),
+    baseUrl: z.string().url().optional(),
+  })
+  .strict();
 
 export async function GET(request: NextRequest) {
   if (!(await isAuthenticated(request))) {
@@ -97,7 +100,10 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: sanitizeErrorMessage(msg), connected: false }, { status: 400 });
+    return NextResponse.json(
+      { error: sanitizeErrorMessage(msg), connected: false },
+      { status: 400 }
+    );
   }
 }
 

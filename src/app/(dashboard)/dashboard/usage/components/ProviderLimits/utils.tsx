@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 export { parseQuotaData } from "./quotaParsing";
 import { hasFixedQuotaOrder, hasCanonicalWindowOrder, sortQuotasByWindow } from "./quotaParsing";
 

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Credential Loader — Reads provider credentials from an external JSON file.
  *

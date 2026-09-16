@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { describe, it, before, after, mock } from "node:test";
 import assert from "node:assert/strict";
 

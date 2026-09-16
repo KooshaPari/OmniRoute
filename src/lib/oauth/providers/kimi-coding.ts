@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { randomUUID } from "crypto";
 import fs from "fs";
 import { hostname, release } from "os";

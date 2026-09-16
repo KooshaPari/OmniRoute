@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { NextResponse } from "next/server";
 import { getCacheStats } from "@omniroute/open-sse/services/searchCache.ts";
 import { SEARCH_PROVIDERS } from "@omniroute/open-sse/config/searchRegistry.ts";

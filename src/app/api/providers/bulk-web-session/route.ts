@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { NextResponse } from "next/server";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
 import {

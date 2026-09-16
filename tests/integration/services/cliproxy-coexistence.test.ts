@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * G-07: Integration tests for version-manager ↔ ServiceSupervisor coexistence.
  *

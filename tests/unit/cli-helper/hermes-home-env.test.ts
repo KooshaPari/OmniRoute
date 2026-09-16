@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Regression test for #3628: Hermes Agent config must honour the HERMES_HOME env var.
  *
@@ -29,9 +30,8 @@ describe("getHermesHome (#3628 — HERMES_HOME env var)", () => {
   it("falls back to ~/.hermes when HERMES_HOME is not set", async () => {
     delete process.env.HERMES_HOME;
 
-    const { getHermesHome } = await import(
-      "../../../src/lib/cli-helper/config-generator/hermesHome.ts"
-    );
+    const { getHermesHome } =
+      await import("../../../src/lib/cli-helper/config-generator/hermesHome.ts");
 
     const result = getHermesHome();
     assert.strictEqual(result, path.join(os.homedir(), ".hermes"));
@@ -40,9 +40,8 @@ describe("getHermesHome (#3628 — HERMES_HOME env var)", () => {
   it("returns HERMES_HOME when the env var is set", async () => {
     process.env.HERMES_HOME = "/custom/hermes";
 
-    const { getHermesHome } = await import(
-      "../../../src/lib/cli-helper/config-generator/hermesHome.ts"
-    );
+    const { getHermesHome } =
+      await import("../../../src/lib/cli-helper/config-generator/hermesHome.ts");
 
     const result = getHermesHome();
     assert.ok(
@@ -54,9 +53,8 @@ describe("getHermesHome (#3628 — HERMES_HOME env var)", () => {
   it("hermes-agent CONFIG_PATH uses HERMES_HOME when set", async () => {
     process.env.HERMES_HOME = "/custom/hermes";
 
-    const { getHermesConfigPath } = await import(
-      "../../../src/lib/cli-helper/config-generator/hermesHome.ts"
-    );
+    const { getHermesConfigPath } =
+      await import("../../../src/lib/cli-helper/config-generator/hermesHome.ts");
 
     const configPath = getHermesConfigPath();
     assert.ok(
@@ -75,9 +73,8 @@ describe("getHermesHome (#3628 — HERMES_HOME env var)", () => {
     // Force a fresh dynamic import of index.ts to test lazy evaluation.
     // Because Node caches ESM modules by URL, we test the helper which is
     // what index.ts should delegate to.
-    const { getHermesConfigPath } = await import(
-      "../../../src/lib/cli-helper/config-generator/hermesHome.ts"
-    );
+    const { getHermesConfigPath } =
+      await import("../../../src/lib/cli-helper/config-generator/hermesHome.ts");
 
     // The path returned by the generator index must equal what getHermesConfigPath() returns.
     const expected = getHermesConfigPath();
@@ -90,9 +87,7 @@ describe("getHermesHome (#3628 — HERMES_HOME env var)", () => {
   it("getCliConfigPaths('hermes-agent') uses HERMES_HOME (cliRuntime integration)", async () => {
     process.env.HERMES_HOME = "/custom/hermes";
 
-    const { getCliConfigPaths } = await import(
-      "../../../src/shared/services/cliRuntime.ts"
-    );
+    const { getCliConfigPaths } = await import("../../../src/shared/services/cliRuntime.ts");
 
     const paths = getCliConfigPaths("hermes-agent");
     assert.ok(paths !== null, "getCliConfigPaths('hermes-agent') returned null");

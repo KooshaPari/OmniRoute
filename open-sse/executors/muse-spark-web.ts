@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { createHash, randomUUID } from "node:crypto";
 import { Buffer } from "node:buffer";
 import WebSocket from "ws";

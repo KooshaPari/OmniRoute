@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * db/usageAnalytics/sources.ts — Pure SQL source-string builders for usage analytics.
  *

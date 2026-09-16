@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Batch B — Final Tasks Tests
  *

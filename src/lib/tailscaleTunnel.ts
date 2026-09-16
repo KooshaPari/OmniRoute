@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { execFile, spawn } from "child_process";
 import fs from "fs";
 import fsPromises from "fs/promises";

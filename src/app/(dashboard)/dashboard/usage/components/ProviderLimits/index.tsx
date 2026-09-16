@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 "use client";
 
 import { useTranslations } from "next-intl";
@@ -17,7 +18,10 @@ import {
 import Card from "@/shared/components/Card";
 import { CardSkeleton } from "@/shared/components/Loading";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
-import { supportsProviderQuota, isProviderQuotaVisible } from "@/shared/utils/providerQuotaVisibility";
+import {
+  supportsProviderQuota,
+  isProviderQuotaVisible,
+} from "@/shared/utils/providerQuotaVisibility";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
 

@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 // Regression tests for granular reasoning_effort handling on GitHub Copilot
 // Claude models (upstream port: decolua/9router#791 by @baslr).
 //

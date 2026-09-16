@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * tests/integration/gemini-tool-call-escaping.test.ts
  *

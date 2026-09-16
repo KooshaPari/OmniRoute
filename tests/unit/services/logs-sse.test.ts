@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 /**
  * T-09 — SSE logs endpoint tests.
  *

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import fs from "fs/promises";
 import path from "path";
 import { resolveDataDir } from "@/lib/dataPaths";

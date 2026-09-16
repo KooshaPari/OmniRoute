@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { CLINE_CONFIG } from "../constants/oauth";
 
 export const cline = {

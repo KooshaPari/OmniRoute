@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * GCF generic-profile encoder (encodeGeneric).
  * Vendored from gcf-typescript — generic profile only. Current with GCF spec v3.2
@@ -113,7 +114,12 @@ function inlineSchemaFields(arr: unknown[], fieldName: string): string[] | null 
   let canonicalKeys: string[] | null = null;
   for (const item of arr) {
     const obj = item as Record<string, unknown>;
-    if (!Object.prototype.hasOwnProperty.call(obj, fieldName) || obj[fieldName] === null || obj[fieldName] === undefined) continue;
+    if (
+      !Object.prototype.hasOwnProperty.call(obj, fieldName) ||
+      obj[fieldName] === null ||
+      obj[fieldName] === undefined
+    )
+      continue;
     const v = obj[fieldName];
     if (typeof v !== "object" || Array.isArray(v)) return null;
     const keys = Object.keys(v as Record<string, unknown>);
@@ -145,7 +151,12 @@ function sharedArraySchema(arr: unknown[], fieldName: string): string[] | null {
   let canonicalFields: string[] | null = null;
   for (const item of arr) {
     const obj = item as Record<string, unknown>;
-    if (!Object.prototype.hasOwnProperty.call(obj, fieldName) || obj[fieldName] === null || obj[fieldName] === undefined) continue;
+    if (
+      !Object.prototype.hasOwnProperty.call(obj, fieldName) ||
+      obj[fieldName] === null ||
+      obj[fieldName] === undefined
+    )
+      continue;
     const v = obj[fieldName];
     if (!Array.isArray(v)) return null;
     const fields = tabularFields(v);
@@ -193,7 +204,8 @@ function analyzeFlattenable(
 
   for (const item of arr) {
     const obj = item as Record<string, unknown>;
-    if (!Object.prototype.hasOwnProperty.call(obj, fieldName) || obj[fieldName] === undefined) continue;
+    if (!Object.prototype.hasOwnProperty.call(obj, fieldName) || obj[fieldName] === undefined)
+      continue;
     if (obj[fieldName] === null) {
       // A nested (non-top-level) null cannot be flattened losslessly: its leaves would
       // encode as absent ("~") and unflatten back to a missing key, not null. Bail to
@@ -252,7 +264,11 @@ function analyzeFlattenable(
     } else {
       const subArr = arr.map((item) => {
         const obj = item as Record<string, unknown>;
-        if (!Object.prototype.hasOwnProperty.call(obj, fieldName) || obj[fieldName] === null || obj[fieldName] === undefined)
+        if (
+          !Object.prototype.hasOwnProperty.call(obj, fieldName) ||
+          obj[fieldName] === null ||
+          obj[fieldName] === undefined
+        )
           return {};
         return obj[fieldName];
       });
@@ -266,7 +282,12 @@ function analyzeFlattenable(
   if (leaves.length > 0) {
     for (const item of arr) {
       const obj = item as Record<string, unknown>;
-      if (!Object.prototype.hasOwnProperty.call(obj, fieldName) || obj[fieldName] === null || obj[fieldName] === undefined) continue;
+      if (
+        !Object.prototype.hasOwnProperty.call(obj, fieldName) ||
+        obj[fieldName] === null ||
+        obj[fieldName] === undefined
+      )
+        continue;
       const allNull = leaves.every((leaf) => {
         const val = resolveKeyChain(item, leaf.keys);
         return val.exists && val.value === null;
@@ -282,13 +303,15 @@ function resolveKeyChain(item: unknown, keys: string[]): { value: unknown; exist
   if (keys.length === 0) return { value: undefined, exists: false };
   const obj = item as Record<string, unknown>;
   if (typeof obj !== "object" || obj === null) return { value: undefined, exists: false };
-  if (!Object.prototype.hasOwnProperty.call(obj, keys[0])) return { value: undefined, exists: false };
+  if (!Object.prototype.hasOwnProperty.call(obj, keys[0]))
+    return { value: undefined, exists: false };
   let current: unknown = obj[keys[0]];
   if (current === null || current === undefined) return { value: current, exists: true };
   for (let i = 1; i < keys.length; i++) {
     if (typeof current !== "object" || current === null) return { value: undefined, exists: false };
     const c = current as Record<string, unknown>;
-    if (!Object.prototype.hasOwnProperty.call(c, keys[i])) return { value: undefined, exists: false };
+    if (!Object.prototype.hasOwnProperty.call(c, keys[i]))
+      return { value: undefined, exists: false };
     current = c[keys[i]];
   }
   return { value: current, exists: true };

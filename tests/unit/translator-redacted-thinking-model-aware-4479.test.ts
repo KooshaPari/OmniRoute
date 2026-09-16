@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Regression for #4479 (port: model-aware supportsRedactedThinking for mixed-format providers).
  *
@@ -16,9 +17,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { prepareClaudeRequest } = await import("../../open-sse/translator/helpers/claudeHelper.ts");
-const { DEFAULT_THINKING_CLAUDE_SIGNATURE } = await import(
-  "../../open-sse/config/defaultThinkingSignature.ts"
-);
+const { DEFAULT_THINKING_CLAUDE_SIGNATURE } =
+  await import("../../open-sse/config/defaultThinkingSignature.ts");
 
 // Assistant turn with only a tool_use → prepareClaudeRequest injects a thinking block before
 // it. Anthropic-format upstreams get redacted_thinking{data}; everyone else gets plain
@@ -48,7 +48,11 @@ test("opencode-go + claude-format model (minimax-m3) → redacted_thinking with 
     "minimax-m3"
   );
   const content = (result as any).messages[1].content;
-  assert.equal(content[0].type, "redacted_thinking", "claude-targetFormat model needs redacted_thinking");
+  assert.equal(
+    content[0].type,
+    "redacted_thinking",
+    "claude-targetFormat model needs redacted_thinking"
+  );
   assert.equal(content[0].data, DEFAULT_THINKING_CLAUDE_SIGNATURE);
   assert.equal(content[0].thinking, undefined);
 });

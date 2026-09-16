@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * tests/integration/combo-live/_liveHarness.ts
  *

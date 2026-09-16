@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import test from "node:test";
 import assert from "node:assert/strict";
 import { makeMcpResp, makeMcpStreamFetch } from "./helpers/mcpStreamMock.ts";
@@ -48,7 +49,9 @@ test("compression status chama omniroute_compression_status via mcp", async () =
   await captureStdout(() => runCompressionStatus({}, makeCmd() as any));
 
   globalThis.fetch = origFetch;
-  const body = JSON.parse(calls.find((x) => String(x.init?.body || "").includes("tools/call"))?.init?.body || "{}");
+  const body = JSON.parse(
+    calls.find((x) => String(x.init?.body || "").includes("tools/call"))?.init?.body || "{}"
+  );
   assert.equal(body.method, "tools/call");
   assert.equal(body.params.name, "omniroute_compression_status");
 });
@@ -69,7 +72,9 @@ test("compression configure envia configuração via mcp", async () => {
   );
 
   globalThis.fetch = origFetch;
-  const body = JSON.parse(calls.find((x) => String(x.init?.body || "").includes("tools/call"))?.init?.body || "{}");
+  const body = JSON.parse(
+    calls.find((x) => String(x.init?.body || "").includes("tools/call"))?.init?.body || "{}"
+  );
   assert.equal(body.method, "tools/call");
   assert.equal(body.params.name, "omniroute_compression_configure");
   // #6571: the configure command now sends the canonical `strategy` field
@@ -93,7 +98,9 @@ test("compression engine set chama omniroute_set_compression_engine", async () =
   });
 
   globalThis.fetch = origFetch;
-  const body = JSON.parse(calls.find((x) => String(x.init?.body || "").includes("tools/call"))?.init?.body || "{}");
+  const body = JSON.parse(
+    calls.find((x) => String(x.init?.body || "").includes("tools/call"))?.init?.body || "{}"
+  );
   assert.equal(body.method, "tools/call");
   assert.equal(body.params.name, "omniroute_set_compression_engine");
   assert.equal(body.params.arguments.engine, "rtk");
@@ -135,7 +142,9 @@ test("compression engine set normaliza hybrid → stacked alias", async () => {
   });
 
   globalThis.fetch = origFetch;
-  const body = JSON.parse(calls.find((x) => String(x.init?.body || "").includes("tools/call"))?.init?.body || "{}");
+  const body = JSON.parse(
+    calls.find((x) => String(x.init?.body || "").includes("tools/call"))?.init?.body || "{}"
+  );
   assert.equal(body.params.arguments.engine, "stacked");
 });
 
@@ -208,7 +217,9 @@ test("compression status falls back to /api/settings/compression on MCP 404", as
     if (url.includes("/api/mcp/stream")) {
       const body = opts?.body ? JSON.parse(opts.body) : {};
       if (body.method === "initialize") {
-        return Promise.resolve(makeMcpResp({ jsonrpc: "2.0", id: body.id, result: {} }, 200, { "mcp-session-id": "s" }));
+        return Promise.resolve(
+          makeMcpResp({ jsonrpc: "2.0", id: body.id, result: {} }, 200, { "mcp-session-id": "s" })
+        );
       }
       return Promise.resolve(makeMcpResp({ error: "not mounted" }, 404));
     }
@@ -230,9 +241,18 @@ test("compression status falls back to /api/settings/compression on MCP 404", as
   globalThis.fetch = origFetch;
   const first = callOrder[0] ?? "";
   assert.ok(first.includes("/api/mcp/stream"), "should attempt MCP first");
-  assert.ok(callOrder.some((u) => u.includes("/api/settings/compression")), "should fall back to REST");
-  assert.ok(callOrder.some((u) => u.includes("/api/context/combos")), "should fetch combos");
-  assert.ok(callOrder.some((u) => u.includes("/api/context/analytics")), "should fetch analytics");
+  assert.ok(
+    callOrder.some((u) => u.includes("/api/settings/compression")),
+    "should fall back to REST"
+  );
+  assert.ok(
+    callOrder.some((u) => u.includes("/api/context/combos")),
+    "should fetch combos"
+  );
+  assert.ok(
+    callOrder.some((u) => u.includes("/api/context/analytics")),
+    "should fetch analytics"
+  );
 });
 
 test("compression engine set falls back to PUT /api/settings/compression on MCP 404", async () => {
@@ -247,7 +267,9 @@ test("compression engine set falls back to PUT /api/settings/compression on MCP 
     if (url.includes("/api/mcp/stream")) {
       const body = opts?.body ? JSON.parse(opts.body) : {};
       if (body.method === "initialize") {
-        return Promise.resolve(makeMcpResp({ jsonrpc: "2.0", id: body.id, result: {} }, 200, { "mcp-session-id": "s" }));
+        return Promise.resolve(
+          makeMcpResp({ jsonrpc: "2.0", id: body.id, result: {} }, 200, { "mcp-session-id": "s" })
+        );
       }
       return Promise.resolve(makeMcpResp({ error: "not mounted" }, 404));
     }

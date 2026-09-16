@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { FORMATS } from "../translator/formats.ts";
 import {
   buildGeminiThoughtSignatureKey,

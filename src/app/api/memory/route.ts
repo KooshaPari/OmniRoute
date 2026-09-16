@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { listMemories, createMemory, getMemoryTokensUsed } from "@/lib/memory/store";

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 "use client";
 /**
  * PassthroughModelsSection — Issue #3501 Phase 1e

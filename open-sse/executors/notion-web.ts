@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * NotionWebExecutor — Notion AI Web Session Provider (Unofficial/Experimental)
  *

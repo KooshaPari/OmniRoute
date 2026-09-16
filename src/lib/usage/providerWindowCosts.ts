@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * @file providerWindowCosts.ts
  * @description Provider weekly USD cost breakdown for the dashboard modal.

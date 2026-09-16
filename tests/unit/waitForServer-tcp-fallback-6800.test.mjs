@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // Regression test for issue #6800 item 1: waitForServer() must NOT declare the
 // server "ready" based on a raw-TCP-accept fallback when the HTTP layer never
 // answers a single request. This reproduces exactly the reported symptom: port

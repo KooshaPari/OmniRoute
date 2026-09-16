@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import { BaseExecutor } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { DEFAULT_POOL_CONFIG } from "../services/sessionPool/types.ts";

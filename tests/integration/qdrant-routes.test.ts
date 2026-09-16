@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Integration tests — Qdrant settings routes:
  *   GET/PUT /api/settings/qdrant

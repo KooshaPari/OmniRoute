@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 /**
  * E2E test for the plugin system using the welcome-banner PoC plugin.
  *

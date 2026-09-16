@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * sqliteQuotaStore.ts — SQLite-backed QuotaStore implementation.
  *

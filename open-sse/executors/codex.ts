@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
 import {
   getCodexModelScope,

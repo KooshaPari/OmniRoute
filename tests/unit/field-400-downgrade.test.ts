@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { BaseExecutor } from "../../open-sse/executors/base.ts";
@@ -122,13 +123,10 @@ test("BaseExecutor.execute strips at most once per field per execute() call (str
 
     // Both calls return 400 naming the same field — but only the first should
     // trigger a strip (strippedFields.has(offending) will be true on the 2nd).
-    return new Response(
-      JSON.stringify({ error: "reasoning_budget not supported" }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: "reasoning_budget not supported" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   };
 
   try {
@@ -141,7 +139,11 @@ test("BaseExecutor.execute strips at most once per field per execute() call (str
 
     // Exactly 2 fetches: original (with field) + 1 retry (without field).
     // No third fetch because strippedFields guards against re-stripping the same field.
-    assert.equal(capturedBodies.length, 2, "should be exactly 2 fetches (original + 1 strip retry)");
+    assert.equal(
+      capturedBodies.length,
+      2,
+      "should be exactly 2 fetches (original + 1 strip retry)"
+    );
 
     // First had the field; second did not.
     assert.equal(capturedBodies[0].reasoning_budget, 1000);

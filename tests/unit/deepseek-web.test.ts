@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // @ts-nocheck
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -24,7 +25,7 @@ test("getExecutor returns DeepSeekWebWithAutoRefreshExecutor", async () => {
 });
 
 test("alias ds-web resolves same executor", async () => {
-  assert.ok(await getExecutor("ds-web") instanceof DeepSeekWebWithAutoRefreshExecutor);
+  assert.ok((await getExecutor("ds-web")) instanceof DeepSeekWebWithAutoRefreshExecutor);
 });
 
 test("provider name is deepseek-web", () => {

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // @vitest-environment jsdom
 //
 // #4611: the auto-refresh countdown label on ProviderQuotaWidget's refresh

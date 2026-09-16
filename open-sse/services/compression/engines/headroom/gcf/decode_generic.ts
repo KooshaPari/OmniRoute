@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 /**
  * GCF generic-profile decoder (decodeGeneric).
  * Vendored from gcf-typescript — generic profile only. Current with GCF spec v3.2

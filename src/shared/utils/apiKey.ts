@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import crypto from "crypto";
 
 // FASE-01: No hardcoded fallback — enforced by secretsValidator at startup

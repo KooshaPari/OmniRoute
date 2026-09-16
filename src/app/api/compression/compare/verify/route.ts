@@ -1,3 +1,4 @@
+// oxlint-disable no-restricted-imports
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";

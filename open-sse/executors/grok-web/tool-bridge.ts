@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // OpenAI <-> Grok tool-call translation (pure). Extracted verbatim from grok-web.ts.
 import type { GrokStreamResponse } from "./types.ts";
 

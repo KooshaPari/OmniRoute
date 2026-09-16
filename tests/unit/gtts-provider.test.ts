@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // gTTS (Google Translate TTS) audio-tts provider (#6667).
 //
 // The originally-proposed `/translate_tts` GET endpoint is deprecated;
@@ -71,7 +72,9 @@ test("buildGttsRpcBody wraps text/lang under the jQ1olc RPC id, urlencoded", () 
 
   const encoded = body.slice("f.req=".length, -1);
   const envelope = JSON.parse(decodeURIComponent(encoded));
-  assert.deepEqual(envelope, [[["jQ1olc", JSON.stringify(["hello", "en", true, "null"]), null, "generic"]]]);
+  assert.deepEqual(envelope, [
+    [["jQ1olc", JSON.stringify(["hello", "en", true, "null"]), null, "generic"]],
+  ]);
 });
 
 // ─── parseBatchExecuteResponse ──────────────────────────────────────────
@@ -113,8 +116,7 @@ test("synthesizeGtts concatenates decoded audio across multiple chunks", async (
 });
 
 test("synthesizeGtts throws GttsUpstreamError with the upstream status on a non-ok response", async () => {
-  const fetchImpl = async () =>
-    new Response("rate limited", { status: 429 });
+  const fetchImpl = async () => new Response("rate limited", { status: 429 });
 
   await assert.rejects(
     () => synthesizeGtts({ text: "hi", lang: "en" }, fetchImpl),

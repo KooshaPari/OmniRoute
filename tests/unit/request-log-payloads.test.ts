@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import { protectPipelinePayloads } from "../../src/lib/usage/callLogs/format.ts";
 import test from "node:test";
 import assert from "node:assert/strict";

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * SQLiteBackend - Thin wrapper around existing store.ts functions
  * Implements MemoryBackend interface by delegating to store.ts

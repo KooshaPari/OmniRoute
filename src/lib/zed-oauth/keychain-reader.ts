@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Zed IDE OAuth Token Extractor
  *

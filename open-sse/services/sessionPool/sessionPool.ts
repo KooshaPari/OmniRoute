@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * SessionPool — Pool manager for anonymous web sessions
  *
@@ -60,11 +61,7 @@ export class SessionPool {
   private startTime: number = Date.now();
   private lastLog = 0;
 
-  constructor(
-    provider: string,
-    config?: Partial<PoolConfig>,
-    factory?: SessionFactory,
-  ) {
+  constructor(provider: string, config?: Partial<PoolConfig>, factory?: SessionFactory) {
     this.provider = provider;
     this.poolId = `pool-${provider}-${Date.now().toString(36)}`;
     this.createdAt = Date.now();
@@ -232,13 +229,10 @@ export class SessionPool {
       totalRequests: s.totalRequests,
       successfulRequests: s.successfulRequests,
       successRate:
-        s.totalRequests > 0
-          ? ((s.successfulRequests / s.totalRequests) * 100).toFixed(1)
-          : "100.0",
+        s.totalRequests > 0 ? ((s.successfulRequests / s.totalRequests) * 100).toFixed(1) : "100.0",
       inflight: s.inflight,
-      cooldownRemaining: s.cooldownRemaining > 0
-        ? `${(s.cooldownRemaining / 1000).toFixed(1)}s`
-        : "0s",
+      cooldownRemaining:
+        s.cooldownRemaining > 0 ? `${(s.cooldownRemaining / 1000).toFixed(1)}s` : "0s",
       age: `${(s.age / 1000).toFixed(0)}s`,
     }));
   }
@@ -261,14 +255,14 @@ export class SessionPool {
     }
 
     throw new Error(
-      `[SessionPool:${this.provider}] No session available after ${timeoutMs}ms timeout`,
+      `[SessionPool:${this.provider}] No session available after ${timeoutMs}ms timeout`
     );
   }
 
   /** As acquireBlocking(), but accepts arbitrary function to wrap */
   async executeWithSession<T>(
     fn: (session: Session) => Promise<T>,
-    timeoutMs = 10_000,
+    timeoutMs = 10_000
   ): Promise<T> {
     const session = await this.acquireBlocking(timeoutMs);
     try {

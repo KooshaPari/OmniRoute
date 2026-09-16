@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * tests/unit/db-quota-migrations-idempotency.test.ts
  *

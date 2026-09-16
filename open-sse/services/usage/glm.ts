@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * usage/glm.ts — GLM (Zhipu) usage fetcher + quota helpers.
  *

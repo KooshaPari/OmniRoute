@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * LEDGER-3 (#3821-review) — the Antigravity local-usage fallback (#3604) replaces a
  * stale full `fetchAvailableModels` bucket (used=0) with real consumption summed from
