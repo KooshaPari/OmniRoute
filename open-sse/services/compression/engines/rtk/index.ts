@@ -130,8 +130,7 @@ function mergeRtkConfig(base?: Partial<RtkConfig>, override?: Record<string, unk
         ? Math.max(1, Math.floor(merged.rawOutputMaxFiles))
         : DEFAULT_RTK_CONFIG.rawOutputMaxFiles,
     rawOutputMaxAgeDays:
-      typeof merged.rawOutputMaxAgeDays === "number" &&
-      Number.isFinite(merged.rawOutputMaxAgeDays)
+      typeof merged.rawOutputMaxAgeDays === "number" && Number.isFinite(merged.rawOutputMaxAgeDays)
         ? Math.max(1, Math.floor(merged.rawOutputMaxAgeDays))
         : DEFAULT_RTK_CONFIG.rawOutputMaxAgeDays,
   };
@@ -260,7 +259,10 @@ export function processRtkText(
       if (config.enabledFilters.length === 0 || config.enabledFilters.includes(filter.id)) {
         const filtered = applyLineFilter(result, {
           ...filter,
-          maxLines: effectiveMaxLines(filter.maxLines || config.maxLinesPerResult, config.intensity),
+          maxLines: effectiveMaxLines(
+            filter.maxLines || config.maxLinesPerResult,
+            config.intensity
+          ),
         });
         result = filtered.text;
         if (filtered.appliedRules.length > 0) {
@@ -342,10 +344,13 @@ export function processRtkText(
       return [];
     }
   });
-  // #4559/#13388: skip the generic line/char hard-cap for document/file reads and
-  // non-shell tool results so the middle of a code/prose read is not dropped.
-  const shouldSkipTruncation = options.skipFilters || isDocumentLikeRead;
-  const truncated = shouldSkipTruncation
+  // #4559: skip the generic line/char hard-cap for document/file reads (see
+  // isDocumentLikeRead above) so the middle of a code/prose read is not dropped.
+  // Non-shell results that are NOT document-like (grep/glob/search output) still
+  // get the generic cap — #13388 only exempted dedup, which is what corrupts
+  // structured JSON; unlimited truncation-skip would reopen the problem #4559 fixed
+  // for a different class of tools.
+  const truncated = isDocumentLikeRead
     ? { text: result, truncated: false, droppedLines: 0 }
     : smartTruncate(result, {
         maxLines: effectiveMaxLines(config.maxLinesPerResult, config.intensity),

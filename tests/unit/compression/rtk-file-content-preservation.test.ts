@@ -2,15 +2,22 @@
  * Tests for #13388: RTK should not collapse file-content tool results.
  *
  * When a non-shell tool (read, grep, glob, edit, write) returns file content,
- * RTK's line deduplication and truncation should NOT collapse structurally
- * meaningful repeated lines (e.g. `},`, `"models": [`, `]` in JSON files).
+ * RTK's line deduplication should NOT collapse structurally meaningful repeated
+ * lines (e.g. `},`, `"models": [`, `]` in JSON files) — that is what corrupts
+ * structured content.
  *
- * Before the fix, RTK applied dedup + truncation to all tool results including
- * non-shell tool outputs, silently corrupting file content.
+ * The generic line/char truncation cap (#4559) is a separate concern: it stays
+ * in effect for non-shell results that are not document-like reads (e.g. large
+ * grep/glob output), so those outputs can still be bounded. Only document-like
+ * reads (see `isDocumentLikeRead`) are exempt from truncation, same as before
+ * #13388.
+ *
+ * Before the fix, RTK applied dedup to all tool results including non-shell
+ * tool outputs, silently corrupting file content.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { applyRtkCompression } from "../../open-sse/services/compression/engines/rtk/index.ts";
+import { applyRtkCompression } from "../../../open-sse/services/compression/engines/rtk/index.ts";
 
 // A JSON file with structurally meaningful repeated lines that should NOT
 // be collapsed by deduplication.
@@ -123,9 +130,33 @@ test("RTK should NOT dedup file content from a non-shell 'read' tool", () => {
   }
 });
 
-test("RTK should NOT truncate file content from a non-shell 'read' tool", () => {
+// Prose/source-like content that is genuinely "document-like" per `isDocumentLikeRead`
+// (no command detected, not classified as a known log/JSON/error type). A pure JSON
+// blob does NOT qualify — it matches the `json-output` detector — so this fixture
+// intentionally avoids a bare `{...}`/`[...]` shape.
+const DOCUMENT_LIKE_SOURCE_CONTENT = `import { registerHandler } from "./registry";
+
+export function handler1() {
+  registerHandler("one", () => ({ status: "ok" }));
+}
+
+export function handler2() {
+  registerHandler("two", () => ({ status: "ok" }));
+}
+
+export function handler3() {
+  registerHandler("three", () => ({ status: "ok" }));
+}
+
+// FINAL_HANDLER_MARKER
+export function finalHandler() {
+  registerHandler("final", () => ({ status: "ok" }));
+}
+`;
+
+test("RTK should NOT truncate document-like file content from a non-shell 'read' tool", () => {
   // Build a large file content that would exceed maxCharsPerResult
-  const largeContent = JSONC_FILE_CONTENT.repeat(20);
+  const largeContent = DOCUMENT_LIKE_SOURCE_CONTENT.repeat(20);
 
   const body = {
     model: "codex/gpt-5",
@@ -136,7 +167,7 @@ test("RTK should NOT truncate file content from a non-shell 'read' tool", () => 
           {
             id: "call_read_2",
             type: "function",
-            function: { name: "read", arguments: '{"path": "models.json"}' },
+            function: { name: "read", arguments: '{"path": "handlers.ts"}' },
           },
         ],
       },
@@ -161,14 +192,61 @@ test("RTK should NOT truncate file content from a non-shell 'read' tool", () => 
   if (result.stats) {
     const output = JSON.stringify(result.body);
     assert.ok(
-      output.includes('"id": "llama-3.1-405b"'),
-      "RTK should NOT truncate file content — the last model entry must survive"
+      output.includes("FINAL_HANDLER_MARKER"),
+      "RTK should NOT truncate file content — the tail of the file must survive"
     );
     assert.ok(
       !output.includes("[rtk:dropped"),
       "RTK should NOT drop lines from file content of a non-shell tool"
     );
   }
+});
+
+test("RTK SHOULD still truncate large non-shell grep output (not a document-like read)", () => {
+  // #13388 only exempts dedup for non-shell tools; the generic truncation cap
+  // must still apply to non-document-like output such as grep results, or a
+  // large enough match list could blow the context budget unbounded.
+  const grepOutput = Array.from(
+    { length: 500 },
+    (_, i) => `src/file${i}.ts:${i}: match line ${i}`
+  ).join("\n");
+
+  const body = {
+    model: "codex/gpt-5",
+    messages: [
+      {
+        role: "assistant",
+        tool_calls: [
+          {
+            id: "call_grep_1",
+            type: "function",
+            function: { name: "grep", arguments: '{"pattern": "match"}' },
+          },
+        ],
+      },
+      {
+        role: "tool",
+        tool_call_id: "call_grep_1",
+        content: grepOutput,
+      },
+    ],
+  };
+
+  const result = applyRtkCompression(body, {
+    config: {
+      enabled: true,
+      applyToToolResults: true,
+      maxCharsPerResult: 1000,
+      maxLinesPerResult: 20,
+    },
+  });
+
+  assert.equal(result.compressed, true, "RTK should still truncate large grep output");
+  const output = JSON.stringify(result.body);
+  assert.ok(
+    !output.includes("src/file250.ts:250:"),
+    "A middle grep match should be dropped by the generic truncation cap"
+  );
 });
 
 test("RTK SHOULD still dedup and truncate shell command output", () => {
@@ -209,9 +287,5 @@ test("RTK SHOULD still dedup and truncate shell command output", () => {
   });
 
   // Shell output SHOULD be deduped
-  assert.equal(
-    result.compressed,
-    true,
-    "RTK should still compress shell command output via dedup"
-  );
+  assert.equal(result.compressed, true, "RTK should still compress shell command output via dedup");
 });
