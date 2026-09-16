@@ -13,8 +13,8 @@
  *   5. omniroute_create_combo   — name + description (stored injection)
  */
 
-import { test } from "node:test";
-import assert from "node:assert/strict";
+import { describe, test, expect } from "vitest";
+
 
 import {
   routeRequestInput,
@@ -84,10 +84,7 @@ test("route_request: rejects messages with injection in content", () => {
 
     // The schema should either accept it (trusting downstream sanitization)
     // or reject it. Either way, it must NOT throw uncaught.
-    assert.ok(
-      result.success || !result.success,
-      `route_request parse should not throw for payload: ${content.slice(0, 50)}...`,
-    );
+    expect(result.success || !result.success).toBeTruthy();
   }
 });
 
@@ -97,14 +94,14 @@ test("route_request: rejects empty messages array", () => {
     messages: [],
   });
   // Zod arrays allow empty by default, but the tool should handle this
-  assert.ok(!result.success || result.data.messages.length === 0);
+  expect(!result.success || result.data.messages.length === 0).toBeTruthy();
 });
 
 test("route_request: rejects missing model field", () => {
   const result = routeRequestInput.safeParse({
     messages: [{ role: "user", content: "hello" }],
   });
-  assert.equal(result.success, false, "Missing model should fail parse");
+  expect(result.success).toBe(false); // "Missing model should fail parse"
 });
 
 test("route_request: rejects messages with unexpected role values", () => {
@@ -114,7 +111,7 @@ test("route_request: rejects messages with unexpected role values", () => {
   });
   // role is z.string() so it accepts any string — but downstream should
   // validate that only known roles are used
-  assert.ok(result.success !== undefined);
+  expect(result.success !== undefined).toBeTruthy();
 });
 
 // ---------------------------------------------------------------------------
@@ -129,24 +126,24 @@ test("web_search: injection payloads pass schema (defense is backend-layer)", ()
     const result = webSearchInput.safeParse({ query });
     // Short payloads are accepted — this documents that schema alone
     // is NOT sufficient injection defense for this field.
-    assert.ok(result.success !== undefined);
+    expect(result.success !== undefined).toBeTruthy();
   }
 });
 
 test("web_search: rejects query over 500 chars (DoS + payload truncation)", () => {
   const result = webSearchInput.safeParse({ query: "x".repeat(501) });
-  assert.equal(result.success, false, "query.max(500) must reject");
+  expect(result.success).toBe(false); // "query.max(500) must reject"
 });
 
 test("web_search: rejects empty query", () => {
   const result = webSearchInput.safeParse({ query: "" });
-  assert.equal(result.success, false, "Empty query should fail .min(1)");
+  expect(result.success).toBe(false); // "Empty query should fail .min(1)"
 });
 
 test("web_search: rejects null byte in query", () => {
   const result = webSearchInput.safeParse({ query: "test\x00injection" });
   // Zod string accepts null bytes — but downstream should strip them
-  assert.ok(result.success !== undefined);
+  expect(result.success !== undefined).toBeTruthy();
 });
 
 test("web_search: rejects SSRF-like queries", () => {
@@ -159,7 +156,7 @@ test("web_search: rejects SSRF-like queries", () => {
     const result = webSearchInput.safeParse({ query });
     // These are valid search queries — the schema accepts them.
     // The defense must be at the provider/backend level.
-    assert.ok(result.success !== undefined);
+    expect(result.success !== undefined).toBeTruthy();
   }
 });
 
@@ -177,7 +174,7 @@ test("web_fetch: rejects non-URL strings in url field", () => {
   for (const url of badUrls) {
     const result = webFetchInput.safeParse({ url });
     if (url === "") {
-      assert.equal(result.success, false, "Empty URL should fail .min(1)");
+      expect(result.success).toBe(false); // "Empty URL should fail .min(1)"
     }
     // javascript: and data: URIs — schema doesn't enforce scheme,
     // but the backend MUST reject non-http(s) schemes
@@ -195,7 +192,7 @@ test("web_fetch: accepts SSRF-like URLs (backend defense required)", () => {
   for (const url of ssrfUrls) {
     const result = webFetchInput.safeParse({ url });
     // Schema accepts these — defense must be in the fetch handler
-    assert.ok(result.success !== undefined, `Should not throw for: ${url}`);
+    expect(result.success !== undefined, `Should not throw for: ${url}`).toBeTruthy();
   }
 });
 
@@ -207,7 +204,7 @@ test("web_fetch: accepts valid URLs", () => {
   ];
   for (const url of validUrls) {
     const result = webFetchInput.safeParse({ url });
-    assert.equal(result.success, true, `Should accept: ${url}`);
+    expect(result.success).toBe(true); // `Should accept: ${url}`
   }
 });
 
@@ -224,7 +221,7 @@ test("test_combo: injection payloads pass schema (defense is backend-layer)", ()
       comboId: "test-combo",
       testPrompt,
     });
-    assert.ok(result.success !== undefined);
+    expect(result.success !== undefined).toBeTruthy();
   }
 });
 
@@ -233,7 +230,7 @@ test("test_combo: rejects testPrompt over 500 chars (DoS)", () => {
     comboId: "test-combo",
     testPrompt: "x".repeat(501),
   });
-  assert.equal(result.success, false, "testPrompt.max(500) must reject");
+  expect(result.success).toBe(false); // "testPrompt.max(500) must reject"
 });
 
 test("test_combo: accepts valid input", () => {
@@ -241,14 +238,14 @@ test("test_combo: accepts valid input", () => {
     comboId: "my-combo",
     testPrompt: "What is 2+2?",
   });
-  assert.equal(result.success, true);
+  expect(result.success).toBe(true);
 });
 
 test("test_combo: rejects missing comboId", () => {
   const result = testComboInput.safeParse({
     testPrompt: "What is 2+2?",
   });
-  assert.equal(result.success, false, "Missing comboId should fail");
+  expect(result.success).toBe(false); // "Missing comboId should fail"
 });
 
 // ---------------------------------------------------------------------------
@@ -270,11 +267,7 @@ test("create_combo: rejects injection in name field", () => {
       models: [{ provider: "claude", model: "claude-sonnet-4" }],
     });
     if (name.length > 100) {
-      assert.equal(
-        result.success,
-        false,
-        `create_combo should reject name over 100 chars`,
-      );
+      expect(result.success).toBe(false);
     }
   }
 });
@@ -284,7 +277,7 @@ test("create_combo: rejects empty name", () => {
     name: "",
     models: [{ provider: "claude", model: "claude-sonnet-4" }],
   });
-  assert.equal(result.success, false, "Empty name should fail .min(1)");
+  expect(result.success).toBe(false); // "Empty name should fail .min(1)"
 });
 
 test("create_combo: rejects description over 2000 chars", () => {
@@ -293,7 +286,7 @@ test("create_combo: rejects description over 2000 chars", () => {
     description: "D".repeat(2001),
     models: [{ provider: "claude", model: "claude-sonnet-4" }],
   });
-  assert.equal(result.success, false, "Description over 2000 should fail");
+  expect(result.success).toBe(false); // "Description over 2000 should fail"
 });
 
 test("create_combo: rejects empty models array", () => {
@@ -301,7 +294,7 @@ test("create_combo: rejects empty models array", () => {
     name: "test-combo",
     models: [],
   });
-  assert.equal(result.success, false, "Empty models should fail .min(1)");
+  expect(result.success).toBe(false); // "Empty models should fail .min(1)"
 });
 
 test("create_combo: accepts valid input", () => {
@@ -314,7 +307,7 @@ test("create_combo: accepts valid input", () => {
       { provider: "openai", model: "gpt-4o" },
     ],
   });
-  assert.equal(result.success, true);
+  expect(result.success).toBe(true);
 });
 
 // ---------------------------------------------------------------------------
@@ -329,12 +322,12 @@ test("all string fields enforce max length for DoS prevention", () => {
     messages: [{ role: "user", content: "test" }],
   });
   // No max on model field — document this as a finding
-  assert.ok(routeResult.success !== undefined);
+  expect(routeResult.success !== undefined).toBeTruthy();
 
   // webSearchInput: query has .max(500)
   const longQuery = "x".repeat(501);
   const searchResult = webSearchInput.safeParse({ query: longQuery });
-  assert.equal(searchResult.success, false, "query.max(500) must reject");
+  expect(searchResult.success).toBe(false); // "query.max(500) must reject"
 
   // testComboInput: testPrompt has .max(500)
   const longPrompt = "x".repeat(501);
@@ -342,7 +335,7 @@ test("all string fields enforce max length for DoS prevention", () => {
     comboId: "x",
     testPrompt: longPrompt,
   });
-  assert.equal(testResult.success, false, "testPrompt.max(500) must reject");
+  expect(testResult.success).toBe(false); // "testPrompt.max(500) must reject"
 
   // createComboInput: name has .max(100)
   const longName = "x".repeat(101);
@@ -350,7 +343,7 @@ test("all string fields enforce max length for DoS prevention", () => {
     name: longName,
     models: [{ provider: "x", model: "x" }],
   });
-  assert.equal(createResult.success, false, "name.max(100) must reject");
+  expect(createResult.success).toBe(false); // "name.max(100) must reject"
 
   // createComboInput: description has .max(2000)
   const longDesc = "x".repeat(2001);
@@ -359,7 +352,7 @@ test("all string fields enforce max length for DoS prevention", () => {
     description: longDesc,
     models: [{ provider: "x", model: "x" }],
   });
-  assert.equal(descResult.success, false, "description.max(2000) must reject");
+  expect(descResult.success).toBe(false); // "description.max(2000) must reject"
 });
 
 // ---------------------------------------------------------------------------
@@ -374,9 +367,5 @@ test("web_search: blocked provider filter cannot be bypassed", () => {
     query: "test",
     provider: "serper",
   });
-  assert.equal(
-    result.success,
-    false,
-    "Blocked provider 'serper' should be rejected by schema",
-  );
+  expect(result.success).toBe(false);
 });
