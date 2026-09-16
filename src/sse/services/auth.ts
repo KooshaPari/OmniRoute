@@ -42,13 +42,10 @@ import {
   type ProviderConnectionView,
 } from "@/lib/db/providers/lazyConnectionView";
 import {
-  DEFAULT_QUOTA_THRESHOLD_PERCENT,
   getQuotaCache,
-  getQuotaWindowStatus,
   hydrateCodexQuotaCacheForRequest,
   isQuotaExhaustedForRequest,
 } from "@/domain/quotaCache";
-import { isClaudeExtraUsageAllowed } from "@/lib/providers/claudeExtraUsage";
 import {
   getQuotaScopeLabelForProvider,
   isAntigravityQuotaProvider,
@@ -113,11 +110,8 @@ import {
 
 import {
   getCodexModelScope,
-  getCodexQuotaWindowFilterForModel,
   toCodexBaseQuotaWindowName,
-  toCodexScopedQuotaWindowName,
 } from "@omniroute/open-sse/config/codexQuotaScopes.ts";
-import { formatQuotaUsageReason } from "@omniroute/open-sse/services/quotaWindowLabel.ts";
 import {
   getCodexChildCooldown,
   isCodexChildUnavailable,
@@ -140,7 +134,6 @@ import {
   SYNCED_AVAILABLE_MODELS_MALFORMED,
   type SyncedAvailableModelsByConnection,
 } from "@/lib/db/models";
-import { isFreeModel } from "@/shared/utils/freeModels";
 import {
   applySessionAffinityPin,
   formatSessionKeyForLog,
@@ -223,399 +216,11 @@ interface CooldownInspectionState {
   codexScopeCooldownMs: number | null;
   retryableModelCooldownMs: number | null;
 }
-const MIN_QUOTA_THRESHOLD_PERCENT = 1;
-const MAX_QUOTA_THRESHOLD_PERCENT = 100;
-const NON_RETRYABLE_MODEL_LOCKOUT_REASONS = new Set(["not_found", "not_found_local"]);
+
 // Antigravity Gemini family 429 with no parseable upstream hint: seed the backoff at
-// this base. Real upstream Retry-After hints still win — they flow through
+// this base. Real upstream Retry-After hints still win - they flow through
 // `exactCooldownMs` (usedUpstreamRetryHint), not this base. (#5222)
 const ANTIGRAVITY_FAMILY_INFERRED_BASE_COOLDOWN_MS = 30_000;
-function asRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-function toStringOrNull(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
-function toBooleanOrDefault(value: unknown, fallback: boolean): boolean {
-  return typeof value === "boolean" ? value : fallback;
-}
-function getCodexLimitPolicy(providerSpecificData: JsonRecord): {
-  use5h: boolean;
-  useWeekly: boolean;
-} {
-  const policy = asRecord(providerSpecificData.codexLimitPolicy);
-  return {
-    use5h: toBooleanOrDefault(policy.use5h, true),
-    useWeekly: toBooleanOrDefault(policy.useWeekly, true),
-  };
-}
-interface QuotaLimitPolicy {
-  enabled: boolean;
-  thresholdPercent: number;
-  windows: string[];
-}
-interface QuotaCacheView {
-  quotas?: Record<
-    string,
-    {
-      remainingPercentage?: number;
-      resetAt?: string | null;
-    }
-  >;
-}
-function normalizeQuotaThreshold(
-  value: unknown,
-  fallback = DEFAULT_QUOTA_THRESHOLD_PERCENT
-): number {
-  const parsed = toNumber(value, fallback);
-  return Math.min(MAX_QUOTA_THRESHOLD_PERCENT, Math.max(MIN_QUOTA_THRESHOLD_PERCENT, parsed));
-}
-function normalizeWindowName(windowName: unknown): string | null {
-  if (typeof windowName !== "string") return null;
-  const normalized = windowName.trim().toLowerCase();
-  return normalized.length > 0 ? normalized : null;
-}
-function uniqueWindows(windows: string[]): string[] {
-  return [...new Set(windows)];
-}
-function normalizeCodexWindowName(windowName: unknown): string | null {
-  if (typeof windowName !== "string") return null;
-  const normalized = windowName.trim().toLowerCase();
-  if (normalized === "session (5h)" || normalized === "5h" || normalized === "five_hour") {
-    return "session";
-  }
-  if (normalized === "weekly (7d)" || normalized === "7d" || normalized === "seven_day") {
-    return "weekly";
-  }
-  return toCodexBaseQuotaWindowName(normalized);
-}
-function applyCodexWindowPolicy(rawWindows: string[], providerSpecificData: JsonRecord): string[] {
-  const codexPolicy = getCodexLimitPolicy(providerSpecificData);
-  const normalizedRaw = rawWindows.map(normalizeCodexWindowName).filter(Boolean) as string[];
-
-  // Preserve explicitly configured custom windows, but enforce canonical Codex windows
-  // from toggles so weekly exhaustion is never skipped when useWeekly=true.
-  let windows = [...normalizedRaw];
-  windows = windows.filter((windowName) => {
-    if (windowName === "session") return codexPolicy.use5h;
-    if (windowName === "weekly") return codexPolicy.useWeekly;
-    return true;
-  });
-  if (codexPolicy.use5h) windows.push("session");
-  if (codexPolicy.useWeekly) windows.push("weekly");
-
-  return uniqueWindows(windows);
-}
-function normalizeStatus(value: string | null): string {
-  return (value || "").trim().toLowerCase();
-}
-function isTerminalConnectionStatus(connection: ProviderConnectionView): boolean {
-  const status = normalizeStatus(connection.testStatus);
-  return status === "credits_exhausted" || status === "banned" || status === "expired";
-}
-
-// OpenRouter's paid balance and its `:free`-suffixed models are billed
-// separately — a 402 from a paid model call correctly locks the whole
-// connection as credits_exhausted (see openrouter-quota-6842.test.ts), but
-// that lock must not also block :free model requests on the same
-// connection, or combo failover to the user's configured free models never
-// fires. Scoped to provider === "openrouter" + status === credits_exhausted
-// only; every other terminal status (banned, expired) and every other
-// provider keep the unconditional exclusion.
-function isTerminalConnectionStatusForModel(
-  connection: ProviderConnectionView,
-  provider: string,
-  requestedModel: string | null
-): boolean {
-  if (!isTerminalConnectionStatus(connection)) return false;
-  if (
-    provider === "openrouter" &&
-    normalizeStatus(connection.testStatus) === "credits_exhausted" &&
-    requestedModel &&
-    isFreeModel("openrouter", { id: requestedModel })
-  ) {
-    return false;
-  }
-  return true;
-}
-
-export function resolveQuotaLimitPolicy(
-  provider: string,
-  providerSpecificData: JsonRecord
-): QuotaLimitPolicy {
-  const rawPolicy = asRecord(providerSpecificData.limitPolicy);
-  const rawWindows = Array.isArray(rawPolicy.windows) ? rawPolicy.windows : [];
-  const windows = rawWindows.map(normalizeWindowName).filter(Boolean) as string[];
-
-  if (provider === "codex") {
-    const defaultWindows = applyCodexWindowPolicy(windows, providerSpecificData);
-    const enabled = toBooleanOrDefault(rawPolicy.enabled, defaultWindows.length > 0);
-
-    return {
-      enabled,
-      thresholdPercent: normalizeQuotaThreshold(rawPolicy.thresholdPercent),
-      windows: defaultWindows,
-    };
-  }
-
-  return {
-    enabled: toBooleanOrDefault(rawPolicy.enabled, false),
-    thresholdPercent: normalizeQuotaThreshold(rawPolicy.thresholdPercent),
-    windows,
-  };
-}
-export function evaluateQuotaLimitPolicy(
-  provider: string,
-  connection: ProviderConnectionView,
-  requestedModel: string | null = null
-): { blocked: boolean; reasons: string[]; resetAt: string | null } {
-  // Extra-usage switch is opt-in billing, not a pre-dispatch skip. When the
-  // operator allows extra usage, 5h/weekly bars must not hide the account.
-  if (isClaudeExtraUsageAllowed(provider, connection.providerSpecificData)) {
-    return { blocked: false, reasons: [], resetAt: null };
-  }
-  const policy = resolveQuotaLimitPolicy(provider, connection.providerSpecificData);
-  if (!policy.enabled || policy.windows.length === 0) {
-    return { blocked: false, reasons: [], resetAt: null };
-  }
-
-  const reasons: string[] = [];
-  const resetCandidates: Array<string | null> = [];
-
-  for (const windowName of policy.windows) {
-    const effectiveWindowName =
-      provider === "codex" ? toCodexScopedQuotaWindowName(windowName, requestedModel) : windowName;
-    const status = getQuotaWindowStatus(
-      connection.id,
-      effectiveWindowName,
-      policy.thresholdPercent
-    );
-    if (!status?.reachedThreshold) continue;
-    reasons.push(
-      formatQuotaUsageReason(
-        {
-          key: effectiveWindowName,
-          displayName: status.displayName,
-          windowSeconds: status.windowSeconds,
-        },
-        status.usedPercentage
-      )
-    );
-    resetCandidates.push(status.resetAt);
-  }
-
-  return {
-    blocked: reasons.length > 0,
-    reasons,
-    resetAt: getEarliestFutureDate(resetCandidates),
-  };
-}
-function parseFutureDateMs(value: string | null): number | null {
-  if (!value) return null;
-  // Tolerate numeric-epoch strings (e.g. "1781696905131.0") as well as ISO
-  // strings — the rate_limited_until TEXT column can hold either (#3954).
-  const ms = cooldownUntilMs(value);
-  if (!Number.isFinite(ms) || ms <= Date.now()) return null;
-  return ms;
-}
-function getEarliestFutureDate(candidates: Array<string | null>): string | null {
-  return (
-    candidates
-      .map((candidate) => ({
-        raw: candidate,
-        ms: parseFutureDateMs(candidate),
-      }))
-      .filter((entry) => entry.ms !== null)
-      .sort((a, b) => (a.ms as number) - (b.ms as number))[0]?.raw || null
-  );
-}
-function getCachedQuotaResetAt(connectionId: string): string | null {
-  const entry = getQuotaCache(connectionId);
-  if (!entry?.quotas) return null;
-  return getEarliestFutureDate(Object.values(entry.quotas).map((quota) => quota.resetAt));
-}
-function isRetryableModelLockoutReason(reason: unknown): boolean {
-  return typeof reason === "string" && reason.length > 0
-    ? !NON_RETRYABLE_MODEL_LOCKOUT_REASONS.has(reason)
-    : false;
-}
-function pushClampedPercentage(percentages: number[], value: number): void {
-  if (Number.isFinite(value)) {
-    percentages.push(Math.max(0, Math.min(100, value)));
-  }
-}
-function isResetAtInPast(resetAt: string | null): boolean {
-  if (!resetAt) return false;
-  const resetMs = new Date(resetAt).getTime();
-  return Number.isFinite(resetMs) && resetMs <= Date.now();
-}
-function collectPolicyQuotaHeadroomPercentages(
-  provider: string,
-  connection: ProviderConnectionView,
-  policy: QuotaLimitPolicy,
-  requestedModel: string | null
-): number[] {
-  const percentages: number[] = [];
-  const seenWindows = new Set<string>();
-
-  for (const windowName of policy.windows) {
-    const scopedWindow =
-      provider === "codex" ? toCodexScopedQuotaWindowName(windowName, requestedModel) : windowName;
-    const normalizedWindow = normalizeWindowName(scopedWindow);
-    if (!normalizedWindow || seenWindows.has(normalizedWindow)) continue;
-    seenWindows.add(normalizedWindow);
-
-    const status = getQuotaWindowStatus(connection.id, normalizedWindow, policy.thresholdPercent);
-    if (status) pushClampedPercentage(percentages, status.remainingPercentage);
-  }
-
-  return percentages;
-}
-function collectCachedQuotaHeadroomPercentages(
-  provider: string,
-  connection: ProviderConnectionView,
-  requestedModel: string | null
-): number[] {
-  const quotaEntry = getQuotaCache(connection.id) as QuotaCacheView | null;
-  const rawQuotas = quotaEntry?.quotas || {};
-  const codexWindowFilter =
-    provider === "codex" ? getCodexQuotaWindowFilterForModel(requestedModel) : undefined;
-  const percentages: number[] = [];
-
-  for (const [quotaName, quota] of Object.entries(rawQuotas)) {
-    if (codexWindowFilter && !codexWindowFilter(quotaName)) continue;
-    if (!quota || isResetAtInPast(toStringOrNull(quota.resetAt))) continue;
-    pushClampedPercentage(percentages, toNumber(quota.remainingPercentage, Number.NaN));
-  }
-
-  return percentages;
-}
-function getConnectionQuotaHeadroomPercent(
-  provider: string,
-  connection: ProviderConnectionView,
-  requestedModel: string | null = null
-): number | null {
-  const policy = resolveQuotaLimitPolicy(provider, connection.providerSpecificData);
-  const policyPercentages = collectPolicyQuotaHeadroomPercentages(
-    provider,
-    connection,
-    policy,
-    requestedModel
-  );
-  const percentages =
-    policyPercentages.length > 0
-      ? policyPercentages
-      : collectCachedQuotaHeadroomPercentages(provider, connection, requestedModel);
-
-  return percentages.length > 0 ? Math.min(...percentages) : null;
-}
-function getConnectionErrorPenalty(connection: ProviderConnectionView): number {
-  const errorType = normalizeStatus(connection.lastErrorType);
-  const errorSource = normalizeStatus(connection.lastErrorSource);
-  const numericErrorCode = toNumber(connection.errorCode, 0);
-
-  let penalty = 0;
-  if (connection.lastError) penalty += 6;
-
-  if (
-    errorType === "rate_limited" ||
-    errorType === "quota_exhausted" ||
-    errorType === "quota" ||
-    numericErrorCode === 429
-  ) {
-    penalty += 24;
-  } else if (numericErrorCode === 401 || numericErrorCode === 403 || errorSource === "oauth") {
-    penalty += 18;
-  } else if (numericErrorCode >= 500) {
-    penalty += 10;
-  }
-
-  return penalty;
-}
-function getConnectionRecencyPenalty(connection: ProviderConnectionView): number {
-  if (!connection.lastUsedAt) return 0;
-  const ageMs = Date.now() - new Date(connection.lastUsedAt).getTime();
-  if (!Number.isFinite(ageMs)) return 0;
-  if (ageMs < 15_000) return 3;
-  if (ageMs < 60_000) return 2;
-  if (ageMs < 5 * 60_000) return 1;
-  return 0;
-}
-function getP2CConnectionScore(
-  provider: string,
-  connection: ProviderConnectionView,
-  requestedModel: string | null = null,
-  quotaResults?: Map<string, { blocked: boolean; exhausted: boolean }>
-): { score: number; quotaHeadroomPercent: number | null } {
-  let quotaBlocked: boolean;
-  let quotaExhausted: boolean;
-
-  if (connection.id && quotaResults?.has(connection.id)) {
-    const cached = quotaResults.get(connection.id)!;
-    quotaBlocked = cached.blocked;
-    quotaExhausted = cached.exhausted;
-  } else {
-    quotaBlocked = evaluateQuotaLimitPolicy(provider, connection, requestedModel).blocked;
-    quotaExhausted = isQuotaExhaustedForRequest(
-      connection.id,
-      provider,
-      requestedModel,
-      connection.providerSpecificData
-    );
-  }
-
-  const quotaHeadroomPercent = getConnectionQuotaHeadroomPercent(
-    provider,
-    connection,
-    requestedModel
-  );
-
-  let quotaPenalty = 0;
-  if (quotaHeadroomPercent !== null) {
-    quotaPenalty += Math.round((100 - quotaHeadroomPercent) / 8);
-    if (quotaHeadroomPercent <= 10) quotaPenalty += 10;
-    else if (quotaHeadroomPercent <= 25) quotaPenalty += 4;
-  } else if (!quotaBlocked && !quotaExhausted) {
-    quotaPenalty += 4;
-  }
-
-  const score =
-    (quotaExhausted ? 200 : 0) +
-    (quotaBlocked ? 80 : 0) +
-    getConnectionErrorPenalty(connection) +
-    Math.min(40, (connection.backoffLevel || 0) * 8) +
-    quotaPenalty +
-    Math.min(12, (connection.consecutiveUseCount || 0) * 2) +
-    getConnectionRecencyPenalty(connection) +
-    Math.min(6, Math.max(0, connection.priority || 0) - 1);
-
-  return { score, quotaHeadroomPercent };
-}
-function compareP2CConnections(
-  provider: string,
-  a: ProviderConnectionView,
-  b: ProviderConnectionView,
-  requestedModel: string | null = null,
-  quotaResults?: Map<string, { blocked: boolean; exhausted: boolean }>
-): number {
-  const aScore = getP2CConnectionScore(provider, a, requestedModel, quotaResults);
-  const bScore = getP2CConnectionScore(provider, b, requestedModel, quotaResults);
-  if (aScore.score !== bScore.score) {
-    return aScore.score - bScore.score;
-  }
-
-  const aHeadroom = aScore.quotaHeadroomPercent ?? -1;
-  const bHeadroom = bScore.quotaHeadroomPercent ?? -1;
-  if (aHeadroom !== bHeadroom) {
-    return bHeadroom - aHeadroom;
-  }
-
-  if ((a.priority || 999) !== (b.priority || 999)) {
-    return (a.priority || 999) - (b.priority || 999);
-  }
-
-  return a.id.localeCompare(b.id);
-}
 
 /**
  * Sentinel connection id used for the synthetic credentials of no-auth /
@@ -907,6 +512,24 @@ export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
 // backwards compat with existing imports (e.g. googApiKeyAuth.ts).
 export { readHeaderValue, type AuthRequestHeaders } from "./headerReader.ts";
 export { extractSessionAffinityKey } from "./sessionAffinityPin";
+// Re-export quota helpers from authQuota.ts (F-01 decomposition).
+export {
+  resolveQuotaLimitPolicy,
+  evaluateQuotaLimitPolicy,
+  isTerminalConnectionStatus,
+  isTerminalConnectionStatusForModel,
+  getConnectionQuotaHeadroomPercent,
+  getConnectionErrorPenalty,
+  getConnectionRecencyPenalty,
+  getP2CConnectionScore,
+  compareP2CConnections,
+  getEarliestFutureDate,
+  getCachedQuotaResetAt,
+  isRetryableModelLockoutReason,
+  asRecord,
+  uniqueWindows,
+  parseFutureDateMs,
+} from "./authQuota.ts";
 const PROVIDER_SEARCH_PAIRS: string[][] = [
   ["nvidia", "nvidia_nim"],
   ["kimi-coding", "kimi-coding-apikey"],
