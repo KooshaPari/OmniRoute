@@ -18,7 +18,12 @@ import {
   retryHintBypassesMaxCooldownMs,
   selectLockoutCooldownMs,
 } from "../accountFallback.ts";
-import { errorResponse, errorResponseWithComboDiagnostics } from "../../utils/error.ts";
+import {
+  errorResponse,
+  errorResponseWithComboDiagnostics,
+  logRetryHintUnreadable,
+  readProseRetryAfter,
+} from "../../utils/error.ts";
 import { recordComboFailure, clearComboFailureTracking } from "./failureTracker.ts";
 import { buildRecoveryHint } from "./pinRecovery.ts";
 import { formatExhaustedConnectionKey } from "./comboDiagFormat.ts";
@@ -82,6 +87,8 @@ import { markAccountExhaustedFromCredits } from "../../../src/domain/quotaCache.
 import { classifyComboOutcome, redactConnectionLabel } from "./comboErrorAggregation.ts";
 import { readConnectionForCooldownGate } from "./executeTargetGates.ts";
 import {
+  handlePreContentStreamRetry,
+  qualityValidationFailure,
   remainderIsHomogeneous,
   shouldAbortOnInputBoundFailure,
   shouldSurfaceBodySpecific400,
@@ -91,6 +98,9 @@ import type { AttemptLoopDeps, AttemptLoopState, ExecuteTargetResult } from "./a
 import type { ComboDiagnostics } from "../../utils/error.ts";
 import type { ComboErrorBody, ComboRetryAfter, ResolvedComboTarget } from "./types.ts";
 import type { ResponseValidationConfig } from "./responseValidation.ts";
+import { resolveComboDailyReset } from "./comboDailyResetClock.ts";
+import { protectedPriorityStopStatus } from "./protectedPriorityStopStatus.ts";
+import type { ProtectedPriorityStopCause } from "./protectedPriorityStopStatus.ts";
 
 export async function executeTargetAttempt(opts: {
   index: number;
@@ -114,11 +124,11 @@ export async function executeTargetAttempt(opts: {
   const fallbackDelayMs = resolveDelayMs(deps.config.fallbackDelayMs, 0);
   const universalHandoffConfig = deps.universalHandoffConfig ?? DEFAULT_UNIVERSAL_HANDOFF_CONFIG;
 
-  const stopProtectedPriorityTarget = (message: string) => {
+  const stopProtectedPriorityTarget = (message: string, cause?: ProtectedPriorityStopCause) => {
     state.observeFailure(false, target.executionKey);
     deps.clearStaleLKGP(deps.combo.name, target.executionKey, deps.combo.id, deps.log, "COMBO");
     return protectedPriorityTarget
-      ? { ok: false as const, response: errorResponse(503, message) }
+      ? { ok: false as const, response: errorResponse(protectedPriorityStopStatus(cause), message) }
       : null;
   };
 
@@ -194,7 +204,10 @@ export async function executeTargetAttempt(opts: {
             decision: "skipped_before_dispatch",
             reason: "predictive_ttft",
           });
-          return stopProtectedPriorityTarget(`Predictive latency check rejected ${modelStr}`);
+          return stopProtectedPriorityTarget(
+            `Predictive latency check rejected ${modelStr}`,
+            "predictive_ttft"
+          );
         }
       }
     }
@@ -443,12 +456,8 @@ export async function executeTargetAttempt(opts: {
           latencyMs: Date.now() - deps.startTime,
         });
         state.observeFailure(false, target.executionKey);
-        return protectedPriorityTarget
-          ? {
-              ok: false,
-              response: errorResponse(502, "Upstream response failed quality validation"),
-            }
-          : null;
+        if (handlePreContentStreamRetry(quality, retry, deps, modelStr)) continue;
+        return protectedPriorityTarget ? qualityValidationFailure() : null;
       }
 
       if (Boolean(deps.clientManagedResponsesContext) && effectiveConnectionId) {
@@ -667,10 +676,12 @@ export async function executeTargetAttempt(opts: {
     let errorText = result.statusText || "";
     let errorBody: ComboErrorBody = null;
     let retryAfter: ComboRetryAfter | null = null;
+    let bodyText = "";
     try {
       const cloned = result.clone();
       try {
         const text = await cloned.text();
+        bodyText = text;
         if (text) {
           errorText = text.substring(0, 500);
           errorBody = JSON.parse(text);
@@ -702,11 +713,12 @@ export async function executeTargetAttempt(opts: {
               : null);
         }
       } catch {
-        /* Clone parse failed */
+        logRetryHintUnreadable(deps.log, "COMBO", modelStr, result.status, "unparseable body");
       }
     } catch {
-      /* Clone failed */
+      logRetryHintUnreadable(deps.log, "COMBO", modelStr, result.status, "clone failed");
     }
+    retryAfter ||= readProseRetryAfter(bodyText); // #13672 opt-in prose retry hints
 
     // Track earliest retryAfter
     if (
@@ -835,7 +847,9 @@ export async function executeTargetAttempt(opts: {
       provider,
       result.headers,
       profile,
-      structuredError
+      structuredError,
+      null,
+      await resolveComboDailyReset(provider)
     );
     const { cooldownMs } = fallbackResult;
     // #6863: a parsed upstream quota reset (e.g. Antigravity "Resets in 92h27m28s")

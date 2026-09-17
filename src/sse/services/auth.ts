@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { nodeTypeFromId } from "@/lib/db/providerNodeSelect";
+import { hydrateConnectionProviderSpecificData } from "./compatibleNodeBaseUrl.ts"; // #13452
 import { extractGoogApiKeyHeader } from "./googApiKeyAuth.ts";
 import { describeUpstreamFailure } from "@/shared/utils/upstreamError";
 import { buildAllExpiredCredentials } from "./authExpiredCredentials.ts";
@@ -1039,33 +1040,6 @@ function planLastUsedCommit(
   };
 }
 
-/**
- * Resolve Proxy Pool references on a real connection row at the same boundary
- * where credentials become request-ready. The synthetic no-auth fallback above
- * already performs this hydration, but a persisted connection (for example the
- * OpenCode card's `opencode` row selected through the `opencode-zen` alias)
- * bypasses that fallback. Keep inline/legacy entries untouched and only incur a
- * registry lookup when at least one by-id reference is present.
- */
-async function hydrateAccountProxyReferences(
-  providerSpecificData: JsonRecord
-): Promise<JsonRecord> {
-  const entries = providerSpecificData.accountProxies;
-  if (!Array.isArray(entries)) return providerSpecificData;
-
-  const containsProxyReference = entries.some((entry) => {
-    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return false;
-    const proxyId = (entry as Record<string, unknown>).proxyId;
-    return typeof proxyId === "string" && proxyId.trim().length > 0;
-  });
-  if (!containsProxyReference) return providerSpecificData;
-
-  return {
-    ...providerSpecificData,
-    accountProxies: await resolveAccountProxiesFromRegistry(entries),
-  };
-}
-
 async function materializeConnection(
   connection: ProviderConnectionView,
   options: CredentialSelectionOptions,
@@ -1074,7 +1048,7 @@ async function materializeConnection(
     reactivatedFromInactive?: boolean;
   } = {}
 ) {
-  const providerSpecificData = await hydrateAccountProxyReferences(connection.providerSpecificData);
+  const providerSpecificData = await hydrateConnectionProviderSpecificData(connection);
   const apiKeyHealth = providerSpecificData.apiKeyHealth as Record<string, KeyHealth> | undefined;
   if (apiKeyHealth) syncHealthFromDB(connection.id, apiKeyHealth);
   const releaseOAuthSession =
@@ -1225,6 +1199,20 @@ export async function getProviderCredentials(
       // respected (the no-auth provider will be rejected if it has no real connections
       // matching the allowlist, or a real connection row will be selected if present).
       if (!allowedConnections || allowedConnections.length === 0) {
+        // #13483: check model-only lockout before handing back the synthetic
+        // connection. Without this, a locked model (e.g. 400 model_capacity)
+        // is retried on every request because the noauth path short-circuits
+        // before the per-connection status pass that classifies modelLocked.
+        const modelLockout = requestedModel
+          ? getModelLockoutInfo(resolvedId, SYNTHETIC_NOAUTH_CONNECTION_ID, requestedModel)
+          : null;
+        if (modelLockout && modelLockout.remainingMs > 0) {
+          log.debug(
+            "AUTH",
+            `${resolvedId} | noauth model-only lockout for ${requestedModel} — ${modelLockout.remainingMs}ms remaining, returning null`
+          );
+          return null;
+        }
         return await maybeSyntheticNoAuthFallback(resolvedId, excludedForNoAuth);
       }
     }
@@ -1401,9 +1389,16 @@ export async function getProviderCredentials(
       let allConnections = (allConnectionsResults.filter(Array.isArray).flat() as unknown[])
         .map(toProviderConnection)
         .filter((conn) => conn.id.length > 0);
+      // #13832: remember how many connections the provider really has BEFORE the
+      // key-policy filter, so an empty pool can say which gate emptied it. Without
+      // this the caller only ever saw "No active credentials for provider: X",
+      // identical to "never configured" — while /test and /sync-models kept working,
+      // because they address a connection by id and never consult the key's scope.
+      const connectionsBeforeKeyPolicy = allConnections.length;
       if (allowedConnections && allowedConnections.length > 0) {
         allConnections = allConnections.filter((conn) => allowedConnections.includes(conn.id));
       }
+      const blockedByKeyPolicyCount = connectionsBeforeKeyPolicy - allConnections.length;
       if (forcedConnectionId) {
         allConnections = allConnections.filter((conn) => conn.id === forcedConnectionId);
       }
@@ -1473,6 +1468,16 @@ export async function getProviderCredentials(
         return geminiEnvCredentials;
       }
       invalidateManagedLease(options, "CONNECTION_INELIGIBLE");
+      if (blockedByKeyPolicyCount > 0) {
+        // #13832: the pool is empty only because the calling key's allowlist /
+        // quota scope removed every connection. Say so instead of returning the
+        // bare null that becomes "No active credentials for provider: X".
+        log.warn(
+          "AUTH",
+          `${provider} | ${blockedByKeyPolicyCount} connection(s) hidden by the API key's allowed_connections/quota scope`
+        );
+        return { blockedByKeyPolicy: true, blockedCount: blockedByKeyPolicyCount };
+      }
       log.debug("AUTH", `No credentials for ${provider}`);
       return null;
     }
@@ -3143,11 +3148,12 @@ export async function markAccountUnavailable(
 
     let terminalStatus = resolveTerminalConnectionStatus(
       status,
-      result as { permanent?: boolean; creditsExhausted?: boolean },
+      result as { permanent?: boolean; creditsExhausted?: boolean; ambiguousAuth?: boolean },
       providerErrorType,
       provider,
       isPerModelQuotaProvider,
-      errorText
+      errorText,
+      connectionId
     );
     // A still-valid access token after a successful refresh is not "expired".
     // A follow-up 401 (timeout, hop, race) must cooldown, not park the account.

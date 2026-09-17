@@ -593,6 +593,11 @@ function isSchemaAlreadyApplied(
         hasColumn(db, "provider_nodes", "daily_quota_reset_timezone") &&
         hasColumn(db, "provider_nodes", "daily_quota_reset_hour")
       );
+    case "179":
+      // proxy_logs.upstream_status may already exist if ensureProxyLogsColumns ran first;
+      // a bare ADD COLUMN would then throw. Renumbering the migration means renaming this case
+      // (keyed by version only: a stale "177" here would skip 177_provider_connection_synced_models_at).
+      return hasColumn(db, "proxy_logs", "upstream_status");
     default:
       return false;
   }

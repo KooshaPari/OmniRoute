@@ -411,7 +411,13 @@ async function invokeChatCore({
       modelInfo: { provider, model, extendedContext: false },
       credentials: credentials || {
         apiKey: "sk-test",
-        providerSpecificData: {},
+        // #13452/#13798: buildUrl() refuses an `*-compatible-*` node with no baseUrl
+        // rather than defaulting to the real OpenAI/Anthropic API, so the default
+        // fixture has to hydrate the connection the way a configured one is. Real
+        // providers keep the empty bag — their URL comes from the registry.
+        providerSpecificData: /-compatible-/.test(provider)
+          ? { baseUrl: "https://compatible.example/v1" }
+          : {},
       },
       log: noopLog(),
       clientRawRequest: {

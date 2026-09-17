@@ -117,6 +117,23 @@ test("search-only key blocks /v1/chat/completions", async () => {
   assert.ok(msg.includes("chat"), `Error message should mention 'chat', got: ${msg}`);
 });
 
+test("search-only key blocks /api/v1/chat/completions too — the App Router path shape must not fail open", async () => {
+  // A client may call the App Router path directly (no `/v1/:path*` rewrite
+  // fires), and the handler then sees `/api/v1/…` in `request.url`. The
+  // category prefixes are `/v1/…`, so without normalization the allowlist
+  // silently failed open for that shape (omni-code-sec LEDGER-9/16).
+  const policy = await loadPolicy("search-blocks-api-chat");
+  const key = await createKeyWithEndpoints(["search"]);
+
+  const request = makeRequest("http://localhost/api/v1/chat/completions", key.key);
+  const result = await policy.enforceApiKeyPolicy(request, "gpt-4");
+
+  assert.ok(result.rejection, "Should reject the /api/v1 shape as well");
+  assert.equal(result.rejection.status, 403);
+  const msg = await readErrorMessage(result.rejection);
+  assert.ok(msg.includes("chat"), `Error message should mention 'chat', got: ${msg}`);
+});
+
 test("chat+embeddings key allows /v1/embeddings", async () => {
   const policy = await loadPolicy("chat-emb-allowed");
   const key = await createKeyWithEndpoints(["chat", "embeddings"]);

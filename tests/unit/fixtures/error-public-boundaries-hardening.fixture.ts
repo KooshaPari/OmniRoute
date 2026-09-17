@@ -398,10 +398,23 @@ test("chatCore provider-failure writes use the projected persistent message", ()
   const failureEnd = source.indexOf("// Non-streaming response", failureStart);
   assert.ok(failureStart >= 0 && failureEnd > failureStart, "providerFailure block must exist");
   const failureBlock = source.slice(failureStart, failureEnd);
+  const classifierStart = source.indexOf("const applyProviderFailureClassification = async");
+  const classifierEnd = source.indexOf("\n  };\n", classifierStart);
+  assert.ok(
+    classifierStart >= 0 && classifierEnd > classifierStart,
+    "applyProviderFailureClassification block must exist"
+  );
+  const classifierBlock = source.slice(classifierStart, classifierEnd);
 
   assert.doesNotMatch(failureBlock, /lastError:\s*message\b/);
+  assert.match(failureBlock, /await applyProviderFailureClassification\(/);
+  assert.match(
+    classifierBlock,
+    /const persistentMessage = sanitizeErrorMessage\(message\) \|\| "Provider request failed"/
+  );
+  assert.doesNotMatch(classifierBlock, /lastError:\s*message\b/);
   assert.ok(
-    (failureBlock.match(/lastError:\s*persistentMessage\b/g) || []).length >= 11,
+    (classifierBlock.match(/lastError:\s*persistentMessage\b/g) || []).length >= 11,
     "every providerFailure persistence branch must use persistentMessage"
   );
 });

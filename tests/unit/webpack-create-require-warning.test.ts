@@ -79,6 +79,7 @@ async function compileRuntimeRequireModules(): Promise<string[]> {
         // has no repo tree, so treat the sibling as external instead of
         // erroring "Can't resolve './obscura.ts'".
         "./obscura.ts",
+        "./tlsFirstByteWatchdog.ts",
       ],
       externalsPresets: { node: true },
       mode: "development",

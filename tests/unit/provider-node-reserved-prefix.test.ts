@@ -180,7 +180,12 @@ test("shared set size includes live REGISTRY and retired Designer + Felo + Qwen 
   // 2026-09-02: a keyless provider was removed at its operator's request, taking its id and
   // alias out of the REGISTRY walk (408 → 406).
   // #11786: SeekAi adds id "seekai" + alias "ska" (406 → 408).
-  assert.equal(RESERVED_PREFIX_COUNT, 408);
+  // #13024 (2b9e7fb3e) GreenPT and #13025 (22473dee5) EURouter each add one REGISTRY member (id ==
+  // alias); #13277 (02128f334) registers Arcee AI, adding id "arcee-ai" + alias "arcee" (408 → 412).
+  // #13399 (cdcde97c7) registers Agnes AI (China): id "agnes-cn" + alias "agnescn" — the only
+  // two provider-level members added since; everything else in that range is model ids
+  // (412 -> 414). Same entry that moved the apikey/regional count to 241 in #13905.
+  assert.equal(RESERVED_PREFIX_COUNT, 414);
 });
 
 test("isReservedProviderPrefix rejects non-string input", () => {

@@ -14,6 +14,7 @@ import {
   proxyUrlForLogs,
 } from "./proxyDispatcher.ts";
 import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.ts";
+import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
 import {
   isControlPlaneProxyDirectFallbackEnabled,
@@ -188,7 +189,7 @@ type TlsFingerprintStore = {
  * the egress logger read the innermost applied proxy (the last writer wins, which
  * is the executor's per-account proxy).
  */
-export type AppliedProxySink = { proxy: unknown };
+export type AppliedProxySink = { proxy: unknown; upstreamStatus?: number };
 const appliedProxyContext = new AsyncLocalStorage<AppliedProxySink>();
 
 /**
@@ -753,7 +754,7 @@ export async function runWithProxyContextOrDirect(proxyConfig, fn) {
   return runWithProxyContext(proxyConfig, fn, { directFallbackOnUnreachable: true });
 }
 
-async function patchedFetch(
+async function patchedFetchUnrecorded(
   input: RequestInfo | URL,
   options: FetchWithDispatcherOptions = {},
   deps: ProxyFetchDeps = {}
@@ -847,7 +848,8 @@ async function patchedFetch(
     const _nativeFallback =
       (deps.nativeFetch as FetchWithDispatcher | undefined) ?? originalFetchWithDispatcher;
     let lastDispatcherError: unknown = null;
-    const directHeadersTimeoutMs = resolveDirectHeadersTimeoutMs();
+    const directBodyForTimeout = typeof options.body === "string" ? options.body : null;
+    const directHeadersTimeoutMs = resolveDirectHeadersTimeoutMs(undefined, directBodyForTimeout);
     let targetHostForLogs = "";
     try {
       targetHostForLogs = new URL(targetUrl).host;
@@ -1178,6 +1180,9 @@ async function patchedFetch(
   }
   throw lastProxyError;
 }
+
+const getAppliedProxySink = () => appliedProxyContext.getStore();
+const patchedFetch = withUpstreamStatusCapture(patchedFetchUnrecorded, getAppliedProxySink);
 
 /**
  * Named export for proxyFetch — identical to the patched globalThis.fetch but

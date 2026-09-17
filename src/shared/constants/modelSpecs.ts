@@ -48,7 +48,17 @@ export interface ModelSpec {
   // operator strip-by-default a thinks-by-default model (measured: gemini-flash-lite
   // burns ~277 reasoning tokens on a plain request; `reasoning_effort:"none"` → 0)
   // without patching every client. See open-sse/services/defaultReasoningEffort.ts.
-  defaultReasoningEffort?: "none" | "low" | "medium" | "high";
+  //
+  // `"auto"` (#13448) is the per-model opt-in into adaptive reasoning effort: the
+  // literal value is injected here exactly like any other level, then
+  // chatCore/adaptiveEffortWiring.ts's wireAdaptiveEffort() recognizes it as an
+  // opt-in marker (never forwarded upstream verbatim) and resolves it to a
+  // concrete low/medium/high from the turn's request-shape signals. Without
+  // "auto" in this union, no operator could configure the per-model opt-in
+  // through the typed catalog at all -- open-sse/services/adaptiveEffort.ts's
+  // priority #3 and the wiring's modelDefaultAuto branch were unreachable
+  // except by a test constructing the body literal directly.
+  defaultReasoningEffort?: "none" | "low" | "medium" | "high" | "auto";
 }
 
 const BEDROCK_CLAUDE_ALIASES = (...modelIds: string[]) => [

@@ -3999,12 +3999,14 @@ paths:
     get:
       tags: [CLI Tools]
       summary: Get Claude CLI settings
+      x-loopback-only: true
       responses:
         "200":
           description: Claude CLI configuration
     post:
       tags: [CLI Tools]
       summary: Apply Claude CLI settings
+      x-loopback-only: true
       requestBody:
         required: true
         content:
@@ -4017,6 +4019,7 @@ paths:
     delete:
       tags: [CLI Tools]
       summary: Reset Claude CLI settings
+      x-loopback-only: true
       responses:
         "200":
           description: Claude CLI settings reset
@@ -4025,12 +4028,14 @@ paths:
     get:
       tags: [CLI Tools]
       summary: Get Cline CLI settings
+      x-loopback-only: true
       responses:
         "200":
           description: Cline CLI configuration
     post:
       tags: [CLI Tools]
       summary: Apply Cline CLI settings
+      x-loopback-only: true
       requestBody:
         required: true
         content:
@@ -4043,6 +4048,7 @@ paths:
     delete:
       tags: [CLI Tools]
       summary: Reset Cline CLI settings
+      x-loopback-only: true
       responses:
         "200":
           description: Cline CLI settings reset
@@ -4093,12 +4099,14 @@ paths:
     get:
       tags: [CLI Tools]
       summary: Get Codex CLI settings
+      x-loopback-only: true
       responses:
         "200":
           description: Codex CLI configuration
     post:
       tags: [CLI Tools]
       summary: Apply Codex CLI settings
+      x-loopback-only: true
       requestBody:
         required: true
         content:
@@ -4111,6 +4119,7 @@ paths:
     delete:
       tags: [CLI Tools]
       summary: Reset Codex CLI settings
+      x-loopback-only: true
       responses:
         "200":
           description: Codex CLI settings reset
@@ -4119,12 +4128,14 @@ paths:
     get:
       tags: [CLI Tools]
       summary: Get Droid CLI settings
+      x-loopback-only: true
       responses:
         "200":
           description: Droid CLI configuration
     post:
       tags: [CLI Tools]
       summary: Apply Droid CLI settings
+      x-loopback-only: true
       requestBody:
         required: true
         content:
@@ -4137,6 +4148,7 @@ paths:
     delete:
       tags: [CLI Tools]
       summary: Reset Droid CLI settings
+      x-loopback-only: true
       responses:
         "200":
           description: Droid CLI settings reset
@@ -4145,12 +4157,14 @@ paths:
     get:
       tags: [CLI Tools]
       summary: Get Kilo CLI settings
+      x-loopback-only: true
       responses:
         "200":
           description: Kilo CLI configuration
     post:
       tags: [CLI Tools]
       summary: Apply Kilo CLI settings
+      x-loopback-only: true
       requestBody:
         required: true
         content:
@@ -4163,6 +4177,7 @@ paths:
     delete:
       tags: [CLI Tools]
       summary: Reset Kilo CLI settings
+      x-loopback-only: true
       responses:
         "200":
           description: Kilo CLI settings reset
@@ -4171,12 +4186,14 @@ paths:
     get:
       tags: [CLI Tools]
       summary: Get OpenClaw CLI settings
+      x-loopback-only: true
       responses:
         "200":
           description: OpenClaw CLI configuration
     post:
       tags: [CLI Tools]
       summary: Apply OpenClaw CLI settings
+      x-loopback-only: true
       requestBody:
         required: true
         content:
@@ -4189,6 +4206,7 @@ paths:
     delete:
       tags: [CLI Tools]
       summary: Reset OpenClaw CLI settings
+      x-loopback-only: true
       responses:
         "200":
           description: OpenClaw CLI settings reset
@@ -8256,6 +8274,7 @@ paths:
       tags:
         - CLI Tools
       summary: Read Crush CLI OmniRoute config
+      x-loopback-only: true
       description: Local-only. Reads the OmniRoute provider block in Crush's config.
       x-internal: true
       responses:
@@ -8265,6 +8284,7 @@ paths:
       tags:
         - CLI Tools
       summary: Write Crush CLI OmniRoute config
+      x-loopback-only: true
       description: Local-only. Registers OmniRoute as an `openai-compat` provider in Crush's config.
       x-internal: true
       responses:
@@ -8274,6 +8294,7 @@ paths:
       tags:
         - CLI Tools
       summary: Remove OmniRoute from Crush CLI config
+      x-loopback-only: true
       description: Local-only. Removes the OmniRoute provider block from Crush's config.
       x-internal: true
       responses:
@@ -8284,6 +8305,7 @@ paths:
       tags:
         - CLI Tools
       summary: Read CodeWhale CLI OmniRoute config
+      x-loopback-only: true
       description: >-
         Local-only. Reads the OmniRoute config block from
         `~/.codewhale/config.toml` (with `~/.deepseek/config.toml` legacy
@@ -8296,6 +8318,7 @@ paths:
       tags:
         - CLI Tools
       summary: Write CodeWhale CLI OmniRoute config
+      x-loopback-only: true
       description: Local-only. Writes the OmniRoute config block in CodeWhale TOML format.
       x-internal: true
       responses:
@@ -8305,6 +8328,7 @@ paths:
       tags:
         - CLI Tools
       summary: Remove OmniRoute from CodeWhale CLI config
+      x-loopback-only: true
       description: Local-only. Removes the OmniRoute config block from CodeWhale's config.
       x-internal: true
       responses:
@@ -8566,6 +8590,7 @@ paths:
       tags:
         - Cli tools
       summary: "GET cli tools › all statuses"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -8597,6 +8622,7 @@ paths:
       tags:
         - Cli tools
       summary: "DELETE cli tools › deepseek tui settings"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -8604,6 +8630,7 @@ paths:
       tags:
         - Cli tools
       summary: "GET cli tools › deepseek tui settings"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -8611,6 +8638,7 @@ paths:
       tags:
         - Cli tools
       summary: "POST cli tools › deepseek tui settings"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -8619,6 +8647,7 @@ paths:
       tags:
         - Cli tools
       summary: "GET cli tools › detect"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -8791,6 +8820,7 @@ paths:
       tags:
         - Cli tools
       summary: "DELETE cli tools › pi settings"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -8798,6 +8828,7 @@ paths:
       tags:
         - Cli tools
       summary: "GET cli tools › pi settings"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -8805,6 +8836,7 @@ paths:
       tags:
         - Cli tools
       summary: "POST cli tools › pi settings"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -8838,6 +8870,7 @@ paths:
       tags:
         - Cli tools
       summary: "DELETE cli tools › smelt settings"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -8845,6 +8878,7 @@ paths:
       tags:
         - Cli tools
       summary: "GET cli tools › smelt settings"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -8852,6 +8886,7 @@ paths:
       tags:
         - Cli tools
       summary: "POST cli tools › smelt settings"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -8860,6 +8895,7 @@ paths:
       tags:
         - Cli tools
       summary: "GET cli tools › status"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -11280,6 +11316,7 @@ paths:
       tags:
         - Settings
       summary: "DELETE settings › obsidian"
+      x-always-protected: true
       responses:
         "200":
           description: OK
@@ -11287,6 +11324,7 @@ paths:
       tags:
         - Settings
       summary: "GET settings › obsidian"
+      x-always-protected: true
       responses:
         "200":
           description: OK
@@ -11294,6 +11332,7 @@ paths:
       tags:
         - Settings
       summary: "POST settings › obsidian"
+      x-always-protected: true
       responses:
         "200":
           description: OK
@@ -11302,6 +11341,7 @@ paths:
       tags:
         - Settings
       summary: "DELETE settings › obsidian › webdav"
+      x-always-protected: true
       responses:
         "200":
           description: OK
@@ -11309,6 +11349,7 @@ paths:
       tags:
         - Settings
       summary: "GET settings › obsidian › webdav"
+      x-always-protected: true
       responses:
         "200":
           description: OK
@@ -11316,6 +11357,7 @@ paths:
       tags:
         - Settings
       summary: "POST settings › obsidian › webdav"
+      x-always-protected: true
       responses:
         "200":
           description: OK
@@ -11501,6 +11543,73 @@ paths:
       responses:
         "200":
           description: OK
+  /api/settings/proxies/pool/egress-observation:
+    get:
+      tags:
+        - Settings
+      summary: "GET settings › proxies › pool › egress observation"
+      description: >-
+        Read-only observation of how many distinct egress IPs actually served the members of a
+        proxy pool over the last 24 h, read from the proxy log (numbers only, never used for
+        routing). Opt-in through the PROXY_POOL_EGRESS_OBSERVATION feature flag: while it is
+        off, or when the read fails, the body is JSON null. Results are cached for 30 seconds
+        per normalized scope (key is read as account, global as the stored global pool).
+      security:
+        - ManagementSessionAuth: []
+      parameters:
+        - name: scope
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - global
+              - provider
+              - account
+              - combo
+              - key
+        - name: scopeId
+          in: query
+          required: false
+          description: Required for every scope except global; ignored for global.
+          schema:
+            type: string
+            maxLength: 256
+      responses:
+        "200":
+          description: The observation, or null when the feature flag is off or the read failed.
+          content:
+            application/json:
+              schema:
+                type: object
+                nullable: true
+                required:
+                  - connections
+                  - distinctExits
+                  - maxConnectionsOnOneExit
+                  - windowHours
+                properties:
+                  connections:
+                    type: integer
+                    minimum: 0
+                    description: Distinct OmniRoute connections logged through the pool members.
+                  distinctExits:
+                    type: integer
+                    minimum: 0
+                    description: Distinct egress IPs observed for those members.
+                  maxConnectionsOnOneExit:
+                    type: integer
+                    minimum: 0
+                    description: Most connections seen behind one egress IP over the window.
+                  windowHours:
+                    type: integer
+                    example: 24
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/settings/proxy/cloudflare-deploy:
     post:
       tags:
@@ -11709,6 +11818,7 @@ paths:
       tags:
         - Skills
       summary: "GET skills › executions"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -11716,6 +11826,7 @@ paths:
       tags:
         - Skills
       summary: "POST skills › executions"
+      x-loopback-only: true
       responses:
         "200":
           description: OK
@@ -11724,6 +11835,7 @@ paths:
       tags:
         - Skills
       summary: "POST skills › install"
+      x-loopback-only: true
       responses:
         "200":
           description: OK

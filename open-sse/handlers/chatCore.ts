@@ -123,8 +123,14 @@ import { resolveChatCoreTargetFormat } from "./chatCore/targetFormat.ts";
 import { resolveOmniGlyphTransport } from "../services/compression/imageTransportPolicy.ts";
 import { stripStore, usesClaudeBridge } from "./chatCore/agentRouterProtocol.ts";
 import { normalizeClaudeToolsForDispatch } from "./chatCore/claudeToolDefaults.ts";
-import { injectSystemPrompt, injectCustomSystemPrompt } from "../services/systemPrompt.ts";
+import {
+  injectCustomSystemPrompt,
+  injectSystemPromptPostTranslation,
+  injectSystemPromptPreTranslation,
+} from "../services/systemPrompt.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
+import { applyReasoningRuleDirective } from "@/lib/reasoningRouting/policy";
+import { withReasoningRuleContext } from "../utils/reasoningRuleContext.ts";
 import { FORMATS } from "../translator/formats.ts";
 import { collectCustomToolNamesForSourceFormat } from "../translator/request/openai-responses/additionalTools.ts";
 import { sanitizeKiroTools } from "../utils/kiroSanitizer.ts";
@@ -170,6 +176,7 @@ import {
 import { shouldUseMidConversationSystem } from "../executors/claudeIdentity.ts";
 import { normalizeClaudeHaikuConstraints } from "../services/claudeHaikuConstraints.ts";
 import { applyDefaultReasoningEffort } from "../services/defaultReasoningEffort.ts";
+import { wireAdaptiveEffort } from "./chatCore/adaptiveEffortWiring.ts";
 import { echoModelInObject } from "../services/responseModelEcho.ts";
 import {
   stripGpt5SamplingWhenReasoning,
@@ -229,6 +236,7 @@ import {
 } from "../config/constants.ts";
 import { applyStatusRestatement } from "../config/upstreamStatusRestatement.ts";
 import { createRecoverableStream, makeContinuationBody } from "../services/streamRecovery.ts";
+import { buildContinuationLogHooks } from "./chatCore/recoveryTraceLogging.ts";
 import {
   resolveResilienceSettings,
   isStreamRecoveryExplicitlyConfigured,
@@ -497,6 +505,9 @@ export async function handleChatCore({
   fallbackAttempts = undefined,
 }) {
   let { provider, model, extendedContext } = modelInfo;
+  // Keep the selected rule across format conversion, retries and refreshed credentials.
+  // Each combo leg gets its own execution context; nothing is written to shared accounts.
+  const reasoningRuleDirective = body?._omnirouteReasoningRule;
   // #12150 P1b: true iff the video-bridge guardrail rendered >=1 transcript
   // cue into a replaced part of this request. Gates both request- and
   // response-derived Memory extraction
@@ -588,7 +599,6 @@ export async function handleChatCore({
     };
   };
   let tokensCompressed: number | null = null;
-  body = injectSystemPrompt(body);
   // ── Per-endpoint custom system prompt (port of upstream #2063) ──
   // Reads from cachedSettings if available (passed in from combo/chat layer)
   // to avoid an extra DB read on the hot path. Falls through to getCachedSettings()
@@ -1212,6 +1222,22 @@ export async function handleChatCore({
 
   log?.debug?.("FORMAT", `${sourceFormat} → ${targetFormat} | stream=${stream}`);
 
+  if (reasoningRuleDirective) {
+    // Cache identity must use the effective effort, not the overridden client value.
+    // Retain the directive for the translation step, where general thinking defaults run.
+    body = {
+      ...(applyReasoningRuleDirective(
+        body,
+        sourceFormat === FORMATS.OPENAI_RESPONSES
+          ? "openai-responses"
+          : sourceFormat === FORMATS.CLAUDE
+            ? "claude"
+            : undefined
+      ) as Record<string, unknown>),
+      _omnirouteReasoningRule: reasoningRuleDirective,
+    };
+  }
+
   // Preserve original body for cache signature — the body variable is mutated
   // multiple times below (sanitization, memory/skills injection) before the
   // cache store path runs at Phase 9.1 (non-streaming) / Phase 9.2 (streaming).
@@ -1229,7 +1255,7 @@ export async function handleChatCore({
     stream: !!stream,
     reqLogger,
     effectiveServiceTier,
-    connectionId,
+    pendingScope,
     startTime,
     log,
     persistAttemptLogs,
@@ -2265,7 +2291,7 @@ export async function handleChatCore({
   try {
     if (nativeResponsesPassthrough) {
       translatedBody = stampNativeResponsesPassthroughBody(
-        body,
+        applyReasoningRuleDirective(body, "openai-responses") as Record<string, unknown>,
         nativeCodexPassthrough
           ? "codex"
           : nativeXaiResponsesPassthrough
@@ -2286,6 +2312,10 @@ export async function handleChatCore({
       // Claude Code-compatible providers expect Anthropic Messages-shaped payloads,
       // but we extract only role/text/max_tokens/effort from an OpenAI-like view first.
       if (sourceFormat === FORMATS.CLAUDE && isClaudeCodeSemanticPassthrough) {
+        normalizedForCc = applyReasoningRuleDirective(
+          normalizedForCc,
+          "claude"
+        ) as typeof normalizedForCc;
         log?.debug?.("FORMAT", "claude-code semantic passthrough enabled for compatible bridge");
       } else if (sourceFormat !== FORMATS.OPENAI) {
         const normalizeToolCallId = getModelNormalizeToolCallId(
@@ -2321,6 +2351,10 @@ export async function handleChatCore({
       const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
         credentials?.providerSpecificData
       );
+      // OpenAI-shaped bridge requests skip translateRequest too.
+      if (sourceFormat === FORMATS.OPENAI) {
+        normalizedForCc = applyReasoningRuleDirective(normalizedForCc) as typeof normalizedForCc;
+      }
       translatedBody = buildClaudeCodeCompatibleRequest({
         sourceBody: body,
         normalizedBody: normalizedForCc,
@@ -2350,7 +2384,7 @@ export async function handleChatCore({
       // payloads at high context (150+ msgs, 100+ tools). Fix: #1359.
       // Claude Code sends well-formed Messages API payloads — trust them
       // regardless of combo strategy or cache_control settings.
-      translatedBody = { ...body };
+      translatedBody = applyReasoningRuleDirective({ ...body }, "claude");
       translatedBody._disableToolPrefix = true;
 
       // Sanitize historical thinking-block signatures for Anthropic-native Claude OAuth.
@@ -2474,6 +2508,12 @@ export async function handleChatCore({
         model || "",
         sourceFormat
       );
+      // Carrier-less targets (kiro / antigravity) have no post-translation
+      // system carrier for the single pass at ~3068 to write into — inject
+      // into the client body BEFORE translation so their user-merge /
+      // relocation paths carry the global prompt (baseline coverage of the
+      // removed pre-translation pass). The gate writes ONE carrier only.
+      translatedBody = injectSystemPromptPreTranslation(translatedBody, { targetFormat });
       translatedBody = translateRequest(
         sourceFormat,
         targetFormat,
@@ -2717,6 +2757,11 @@ export async function handleChatCore({
         (modelInfo as { defaultThinkingEffort?: string })?.defaultThinkingEffort
       );
     }
+    translatedBody = wireAdaptiveEffort(translatedBody, {
+      rawBody: body,
+      clientRawRequest,
+      targetFormat,
+    });
   }
 
   // Xiaomi MiMo controls reasoning ONLY via `thinking:{type:"enabled"|"disabled"}` and
@@ -2989,15 +3034,18 @@ export async function handleChatCore({
   // Get executor for this provider (with optional upstream proxy routing)
   const executor = await resolveExecutorWithProxy(provider);
   const getExecutionCredentials = () =>
-    resolveExecutionCredentialsFor({
-      credentials,
-      nativeCodexPassthrough: nativeResponsesPassthrough,
-      endpointPath,
-      targetFormat,
-      provider,
-      ccSessionId,
-      modelInfo,
-    });
+    withReasoningRuleContext(
+      resolveExecutionCredentialsFor({
+        credentials,
+        nativeCodexPassthrough: nativeResponsesPassthrough,
+        endpointPath,
+        targetFormat,
+        provider,
+        ccSessionId,
+        modelInfo,
+      }),
+      reasoningRuleDirective
+    );
 
   let onPipelineStreamError: streamFailure.PipelineStreamErrorHandler | null = null;
   let onClientDisconnectFinalize:
@@ -3057,6 +3105,19 @@ export async function handleChatCore({
         bypassDefaultToolLimit: isOpencodeClient,
         isOpencodeClient,
       });
+
+      // Global System Prompt — SINGLE injection point (post-translation) for
+      // carrier-ful targets. The old unconditional pre-translation pass
+      // (former chatCore injectSystemPrompt call) was removed: it chained
+      // with this pass to inject prefix/suffix 2-3x and dual-wrote
+      // body.system + messages[] on the claude path, which strict upstreams
+      // (HCP-Vision vLLM: "System message must be at the beginning") reject
+      // with 400. Format-aware via targetFormat: messages[] (openai/codex —
+      // prefix FIRST system, suffix LAST), claude `system` field, gemini
+      // `systemInstruction`, responses `instructions`. Carrier-less targets
+      // (kiro user-fold, antigravity Cloud Code envelope) are covered by the
+      // gated PRE-translation pass before translateRequest instead.
+      bodyToSend = injectSystemPromptPostTranslation(bodyToSend, { targetFormat });
 
       updatePendingScope(pendingScope, {
         providerRequest: bodyToSend,
@@ -3404,11 +3465,7 @@ export async function handleChatCore({
                           }`
                         ),
                       continueStream,
-                      onContinue: (attempt) =>
-                        log?.warn?.(
-                          "STREAM_RECOVERY",
-                          `mid-stream continuation attempt ${attempt}/${STREAM_RECOVERY.EARLY_RETRY_MAX}`
-                        ),
+                      ...buildContinuationLogHooks(log),
                       throughputWatchdog,
                       onWatchdogAbort: () =>
                         log?.warn?.(
@@ -5393,7 +5450,7 @@ export async function handleChatCore({
       // this check runs after translation + sanitization + tool-call execution to catch
       // cases where a provider returns a structurally valid raw body that translates into
       // choices:[] or output:[] with no usable content (Responses API shape included).
-      const malformedTranslatedReason = detectMalformedNonStream(translatedResponse);
+      const malformedTranslatedReason = detectMalformedNonStream(translatedResponse, provider);
       if (malformedTranslatedReason) {
         const totalLatency = Date.now() - startTime;
         const rawBytes = (() => {

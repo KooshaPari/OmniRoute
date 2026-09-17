@@ -18,7 +18,9 @@ import fs from "fs";
 import { resolveWritableDataDir, getLegacyDotDataDir } from "../dataPaths";
 import { isNextBuildPhase } from "../buildPhase";
 import { runMigrations } from "./migrationRunner";
-import { runDbHealthCheck } from "./healthCheck";
+import { runDbHealthCheck, getPagerCorruption } from "./healthCheck";
+import { createManagedDbBackup as writeManagedDbBackup } from "./managedBackup";
+import { createDbHealthCoordinator, runDbHealthInChild } from "./healthCheckRunner";
 import { resetAllDbModuleState } from "./stateReset";
 import { parseStoredPayload } from "../logPayloads";
 import { DEFAULT_DATABASE_SETTINGS, type DatabaseSettings } from "@/types/databaseSettings";
@@ -39,6 +41,7 @@ import { migrateLegacyEncryptedString } from "./encryption";
 import { invalidateDbCache } from "./readCache";
 import { rowToCamel } from "./caseMapping";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
+import { isDbHealthcheckStartupDeferredEnabled } from "@/shared/utils/featureFlags";
 import { parseModelAccessMode } from "./apiKeys/modelAccessMode";
 import { getExistingDbInstance as getDb, setDbInstance as setDb } from "./singleton";
 import type { WalCheckpointMode } from "./walMaintenance";
@@ -408,7 +411,12 @@ const SCHEMA_SQL = `
   CREATE INDEX IF NOT EXISTS idx_cl_timestamp ON call_logs(timestamp);
   CREATE INDEX IF NOT EXISTS idx_cl_status ON call_logs(status);
   CREATE INDEX IF NOT EXISTS idx_cl_provider_timestamp ON call_logs(provider, timestamp);
-  CREATE INDEX IF NOT EXISTS idx_cl_request_provider ON call_logs(request_type, provider);
+  -- idx_cl_request_provider is NOT declared here: SCHEMA_SQL runs before
+  -- ensureCallLogsColumns() heals a legacy call_logs table, and a lineage that
+  -- predates the request_type column has none yet — the CREATE INDEX would abort
+  -- the whole schema exec with "no such column: request_type" and the server would
+  -- never boot. It is created next to the other request_type/combo indexes in
+  -- ensureCallLogsColumns() (db/schemaColumns.ts), after the columns exist.
 
   CREATE TABLE IF NOT EXISTS proxy_logs (
     id TEXT PRIMARY KEY,
@@ -868,31 +876,12 @@ function shouldRunStartupDbHealthCheck(): boolean {
 }
 
 function createManagedDbBackup(db: SqliteDatabase, reason: string): boolean {
-  const isTest = isAutomatedTestProcess();
-  if (isTest) return false;
-
-  try {
-    const backupDir = DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups");
-    if (!fs.existsSync(backupDir)) {
-      fs.mkdirSync(backupDir, { recursive: true });
-    }
-
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const backupPath = path.join(backupDir, `db_${timestamp}_${reason}.sqlite`);
-    const escapedBackupPath = backupPath.replace(/'/g, "''");
-
-    db.exec(`VACUUM INTO '${escapedBackupPath}'`);
-    console.log(`[DB] Backup created (${reason}): ${backupPath}`);
-    return true;
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.warn(`[DB] Failed to create ${reason} backup:`, message);
-    return false;
-  }
-}
-
-function createHealthCheckBackup(db: SqliteDatabase): boolean {
-  return createManagedDbBackup(db, "health-check-repair");
+  // The inline VACUUM-INTO + pruning implementation this replaced (kept by the
+  // release tip's #13404, which added the post-backup pruning) now lives in
+  // ./managedBackup.ts (writeManagedDbBackup), including that same pruning —
+  // carried over verbatim, see tests/unit/db-backup-healthcheck-prune-13308.test.ts.
+  if (isAutomatedTestProcess()) return false;
+  return writeManagedDbBackup(db, reason, DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups"));
 }
 
 function autoMigrateLegacyEncryptedConnections(db: SqliteDatabase): number {
@@ -972,18 +961,10 @@ function startDbHealthCheckScheduler(db: SqliteDatabase) {
   if (intervalMs <= 0) return;
 
   dbHealthCheckTimer = setInterval(() => {
-    try {
-      if (!db.open) return;
-      runDbHealthCheck(db, {
-        autoRepair: true,
-        skipIntegrityCheck: process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1",
-        expectedSchemaVersion: "1",
-        createBackupBeforeRepair: () => createHealthCheckBackup(db),
-      });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.warn("[DB] Periodic health-check failed:", message);
-    }
+    if (!db.open) return;
+    void runManagedDbHealthCheck({ autoRepair: true }).catch(() => {
+      console.warn("[DB] Periodic health-check failed");
+    });
   }, intervalMs);
   dbHealthCheckTimer.unref?.();
 }
@@ -992,13 +973,37 @@ function startDbHealthCheckScheduler(db: SqliteDatabase) {
 // file itself; only wal_checkpoint(TRUNCATE) does, and a long-running server never closes its DB.
 // The scheduler lives in ./walMaintenance (periodic TRUNCATE + busy warn + PASSIVE retry).
 
-export function runManagedDbHealthCheck(options?: { autoRepair?: boolean }) {
+const healthShutdown = new AbortController();
+const managedHealth = createDbHealthCoordinator(async (autoRepair) => {
   const db = getDbInstance();
-  return runDbHealthCheck(db, {
-    autoRepair: options?.autoRepair === true,
-    expectedSchemaVersion: "1",
-    createBackupBeforeRepair: () => createHealthCheckBackup(db),
-  });
+  const skipIntegrityCheck = process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1";
+  const backupDir = DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups");
+  const result =
+    db.driver === "sql.js" || db.name === ":memory:" || !db.name
+      ? runDbHealthCheck(db, {
+          autoRepair,
+          skipIntegrityCheck,
+          expectedSchemaVersion: "1",
+          createBackupBeforeRepair: () =>
+            writeManagedDbBackup(db, "health-check-repair", backupDir),
+        })
+      : await runDbHealthInChild(
+          {
+            filePath: db.name,
+            autoRepair,
+            skipIntegrityCheck,
+            backupDir,
+            pagerCorruption: getPagerCorruption(),
+          },
+          { signal: healthShutdown.signal }
+        );
+  if (result.repairedCount > 0) invalidateDbCache();
+  return result;
+});
+
+export function runManagedDbHealthCheck(options?: { autoRepair?: boolean }) {
+  if (getPagerCorruption()) managedHealth.invalidate();
+  return managedHealth.run(options?.autoRepair === true);
 }
 
 export function getDbInstance(): SqliteDatabase {
@@ -1356,20 +1361,56 @@ export function getDbInstance(): SqliteDatabase {
     "INSERT OR REPLACE INTO db_meta (key, value) VALUES ('schema_version', '1')"
   );
   versionStmt.run();
-  if (shouldRunStartupDbHealthCheck()) {
-    const skipIntegrityCheck = process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1";
-    if (skipIntegrityCheck) {
-      console.log("[DB] Health check skipped (OMNIROUTE_SKIP_DB_HEALTHCHECK=1)");
-    }
-    runDbHealthCheck(db, {
-      autoRepair: true,
-      expectedSchemaVersion: "1",
-      skipIntegrityCheck,
-      createBackupBeforeRepair: () => createHealthCheckBackup(db),
-    });
-  }
 
+  // Register the singleton BEFORE the health-check gate below: the flag read
+  // (isDbHealthcheckStartupDeferredEnabled, like any DB-backed feature-flag
+  // override) itself calls getDbInstance(), and with the singleton still
+  // unset at this point that call would see no existing instance and open a
+  // second, independent connection — which hits the very same unset-singleton
+  // gate on its own way through, recursing without end (each recursion opens
+  // its own real DB connection and re-runs migrations-check, so this is a
+  // real resource-exhaustion loop, not just a deep call stack). #13717 rework.
   setDb(db);
+
+  if (shouldRunStartupDbHealthCheck()) {
+    if (isDbHealthcheckStartupDeferredEnabled()) {
+      // Opt-in (#13717): defer the check past startup via the bounded/paged,
+      // child-process-isolated managed health check. Off by default — see the
+      // synchronous branch below, which preserves the pre-#13717 behavior of
+      // blocking startup until the check completes.
+      setImmediate(() => {
+        if (!db.open || getDb() !== db) return;
+        void runManagedDbHealthCheck({ autoRepair: true }).catch(() => {
+          console.warn("[DB] Startup health-check failed");
+        });
+      });
+    } else {
+      const skipIntegrityCheck = process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1";
+      if (skipIntegrityCheck) {
+        console.log("[DB] Health check skipped (OMNIROUTE_SKIP_DB_HEALTHCHECK=1)");
+      }
+      try {
+        runDbHealthCheck(db, {
+          autoRepair: true,
+          expectedSchemaVersion: "1",
+          skipIntegrityCheck,
+          createBackupBeforeRepair: () => createManagedDbBackup(db, "health-check-repair"),
+        });
+      } catch (error: unknown) {
+        // #13717 gates repair on a successful backup (ensureBackupBeforeRepair
+        // now throws "backup creation failed" instead of proceeding without
+        // one). On the pre-#13717 tip this callback never threw, so this call
+        // was never wrapped — leaving it unwrapped here would turn "backup
+        // unavailable" (disk full, unwritable DB_BACKUPS_DIR, or simply
+        // running under a test harness where createManagedDbBackup always
+        // returns false) into an uncaught exception that crashes the entire
+        // DB singleton initialization. Match the deferred branch's failure
+        // handling: log and keep serving with the pre-existing data intact.
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`[DB] Startup health-check failed: ${message}`);
+      }
+    }
+  }
 
   // Re-encrypt any tokens using the legacy dynamic salt to canonical static salt
   try {
@@ -1406,7 +1447,15 @@ export function pingDb(): boolean {
   }
 }
 
+export async function shutdownDbInstance(): Promise<boolean> {
+  clearDbHealthCheckScheduler();
+  await managedHealth.stop(() => healthShutdown.abort());
+  return closeDbInstance();
+}
+
 export function closeDbInstance(options?: { checkpointMode?: WalCheckpointMode | null }): boolean {
+  if (managedHealth.busy) throw new Error("Database health check already in progress");
+  managedHealth.invalidate();
   clearDbHealthCheckScheduler();
   const streakBefore = getWalMaintenanceState().busyStreak;
   stopWalMaintenance();

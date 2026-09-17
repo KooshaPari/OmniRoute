@@ -37,8 +37,9 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/app/api/v1/classify/route.ts": 1,
     // v3.8.51 #11754: the second resolveImageRouteModel() call (a duplicate
     // of the retirement-check one hoisted before enforceApiKeyPolicy) was
-    // removed as dead redundant code, 6->5.
-    "src/app/api/v1/images/edits/route.ts": 5,
+    // removed as dead redundant code, 6->5. #12653 added combo target
+    // resolution with the same shape as imageCombo, 5->6.
+    "src/app/api/v1/images/edits/route.ts": 6,
     "src/app/api/v1/images/generations/route.ts": 3,
     "src/app/api/v1/images/upscale/route.ts": 1,
     "src/app/api/v1/messages/count_tokens/route.ts": 1,
@@ -86,7 +87,7 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
   },
   connection: {
     "open-sse/handlers/autoComboCandidates.ts": 1,
-    "open-sse/handlers/chatCore.ts": 2,
+    "open-sse/handlers/chatCore.ts": 3,
     "open-sse/handlers/cursorCliProxy.ts": 1,
     "open-sse/services/alibabaFreeTier.ts": 1,
     "open-sse/services/alibabaFreeTierQuotaFetcher.ts": 1,
@@ -161,7 +162,7 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/lib/db/providers.ts": 3,
     "src/lib/db/readCache.ts": 2,
     "src/lib/freeProviderRankings.ts": 1,
-    "src/lib/guardrails/visionBridgeCredentials.ts": 1,
+    "src/lib/guardrails/visionBridgeCredentials.ts": 2,
     "src/lib/kimi/tokenRefresh.ts": 1,
     "src/lib/monitoring/providerHealthAutopilot.ts": 1,
     "src/lib/monitoring/providerHealthMatrix.ts": 1,

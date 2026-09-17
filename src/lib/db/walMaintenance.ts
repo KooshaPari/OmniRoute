@@ -41,6 +41,9 @@ const DEFAULT_WAL_PASSIVE_INTERVAL_MS = 5 * 60 * 1000;
 const DEFAULT_WAL_GUARD_MAX_BYTES = 256 * 1024 * 1024;
 const RETRY_DELAY_MS = 60_000;
 
+export const WAL_BUSY_NAMESPACE = "walMaintenance";
+export const WAL_BUSY_KEY = "busyTotal";
+
 let walTimer: NodeJS.Timeout | null = null;
 let walPassiveTimer: NodeJS.Timeout | null = null;
 let retryTimer: NodeJS.Timeout | null = null;
@@ -49,11 +52,42 @@ let busyStreak = 0;
 let busyTotal = 0;
 let lastBusyAt: string | null = null;
 let lastOkAt: string | null = null;
+// Busy events counted in memory but not yet added to the persisted counter.
+let pendingBusyDelta = 0;
+// The handle the running scheduler was started with; used for the shutdown flush.
+let activeDb: SqliteAdapter | null = null;
 
+/**
+ * Count one busy checkpoint. Memory only, on purpose: a busy checkpoint means the
+ * database is contended RIGHT NOW, and a write here would wait up to `busy_timeout`
+ * (2s) on the event loop. The increment is persisted later by flushBusyTotal() from
+ * a non-busy scheduler tick or at shutdown.
+ */
 function recordBusy(): void {
   busyStreak++;
   busyTotal++;
+  pendingBusyDelta++;
   lastBusyAt = new Date().toISOString();
+}
+
+/**
+ * Add the pending busy events to the persisted counter. Best-effort and single-shot:
+ * any failure (locked, closed, missing table) keeps the delta pending for the next
+ * non-busy tick — there is no retry loop. The additive UPSERT stays correct when
+ * several processes share the database file.
+ */
+export function flushBusyTotal(db: SqliteAdapter | null): boolean {
+  if (pendingBusyDelta === 0 || !db || !db.open) return false;
+  try {
+    db.prepare(
+      "INSERT INTO key_value(namespace, key, value) VALUES(?, ?, ?) " +
+        "ON CONFLICT(namespace, key) DO UPDATE SET value = CAST(value AS INTEGER) + excluded.value"
+    ).run(WAL_BUSY_NAMESPACE, WAL_BUSY_KEY, pendingBusyDelta);
+    pendingBusyDelta = 0;
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function recordOk(): void {
@@ -207,6 +241,7 @@ function schedulePassiveRetry(db: SqliteAdapter): void {
         logCheckpointOutcome(outcome, "PASSIVE", busyStreak);
       } else if (outcome.ok) {
         recordOk();
+        flushBusyTotal(db);
       } else {
         logCheckpointOutcome(outcome, "PASSIVE", busyStreak);
       }
@@ -239,6 +274,7 @@ function startWalPassiveScheduler(
         isBuildPhase: isNextBuildPhase(),
       });
       if (stats.skipped) return;
+      if (!stats.busy && stats.ok) flushBusyTotal(db);
       if (stats.busy || (stats.checkpointedFrames ?? 0) > 0) {
         console.log(
           `[DB] WAL passive checkpoint (busy=${stats.busy ? 1 : 0} logFrames=${stats.logFrames} ` +
@@ -273,8 +309,13 @@ export function startWalMaintenance(
   sqliteFile: string | null,
   env: NodeJS.ProcessEnv = process.env
 ): void {
+  // stopWalMaintenance() flushes what it can and zeroes session state, so capture the
+  // in-memory total first; the gate stays before any DB touch.
+  const priorBusyTotal = busyTotal;
   stopWalMaintenance();
   if (sqliteFile === null || isCloud || isNextBuildPhase() || isAutomatedTestProcess()) return;
+  activeDb = db;
+  busyTotal = mergeBusyTotal(priorBusyTotal, loadPersistedBusyTotal(db));
   const intervalMs = getWalMaintenanceIntervalMs(env);
   if (intervalMs <= 0) {
     startWalPassiveScheduler(db, sqliteFile, env);
@@ -294,6 +335,7 @@ export function startWalMaintenance(
         schedulePassiveRetry(db);
       } else if (outcome.ok) {
         recordOk();
+        flushBusyTotal(db);
         console.log(
           `[DB] Periodic SQLite WAL checkpoint completed (TRUNCATE) in ${Date.now() - startedAtMs}ms ` +
             `(walMbBefore=${formatWalMb(walBeforeBytes)} walMbAfter=${formatWalMb(getWalFileSizeBytes(sqliteFile))} ` +
@@ -311,6 +353,10 @@ export function startWalMaintenance(
 }
 
 export function stopWalMaintenance(): void {
+  // Shutdown / restart: best-effort persist of busy events not flushed by a tick.
+  flushBusyTotal(activeDb);
+  activeDb = null;
+  pendingBusyDelta = 0;
   if (walTimer) {
     clearInterval(walTimer);
     walTimer = null;
@@ -332,6 +378,27 @@ export function stopWalMaintenance(): void {
 
 export function getWalMaintenanceState(): WalMaintenanceState {
   return { ticks, busyStreak, busyTotal, lastBusyAt, lastOkAt };
+}
+
+export function loadPersistedBusyTotal(db: SqliteAdapter): number {
+  try {
+    const row = db
+      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+      .get(WAL_BUSY_NAMESPACE, WAL_BUSY_KEY) as { value: unknown } | undefined;
+    const n = Number(row?.value);
+    return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0;
+  } catch (error) {
+    // Boot read-path, not the hot scheduler path: never fail silently.
+    console.warn(`[DB] WAL busy counter unreadable, starting from 0: ${String(error)}`);
+    return 0;
+  }
+}
+
+export function mergeBusyTotal(prior: number, loaded: number): number {
+  // Both inputs floored, non-finite or negative → 0 (matches load fallback).
+  const p = Number.isFinite(prior) && prior > 0 ? Math.floor(prior) : 0;
+  const l = Number.isFinite(loaded) && loaded > 0 ? Math.floor(loaded) : 0;
+  return Math.max(p, l);
 }
 
 export function __resetForTests(): void {

@@ -47,12 +47,15 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "open-sse/services/compression/engines/llmlingua/onnxWorker.js",
   "open-sse/services/compression/compressionWorker.js",
   "src/lib/usage/callLogArtifactWorker.js",
+  "src/lib/db/healthCheckWorker.js",
   "package.json",
   "peer-stamp.mjs",
   "main-server-timeouts.mjs",
   // server-ws.mjs import (sd_notify helper) — enforced by the closure test
   // tests/unit/pack-artifact-server-ws-closure.test.ts.
   "systemd-notify.mjs",
+  // server-ws.mjs import (process crash guard, #13636) — same closure test.
+  "httpClientAbortGuard.mjs",
   "responses-ws-proxy.mjs",
   "bin/chatgpt-web-codex-mcp.mjs",
   "scripts/dev/sync-env.mjs",
@@ -169,6 +172,9 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
 
 export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
   "@omniroute/opencode-plugin/",
+  // #12870 shipped the v2 plugin beside its v1 sibling but never widened this
+  // allowlist, so every packed file under it read as an unexpected artifact.
+  "@omniroute/opencode-plugin-v2/",
   "@omniroute/opencode-provider/",
   "bin/cli/",
   // Broad open-sse + src source dirs added to package.json "files" in v3.8.21
@@ -187,6 +193,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
 export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/open-sse/services/compression/engines/rtk/filters/generic-output.json",
   "dist/src/lib/usage/callLogArtifactWorker.js",
+  "dist/src/lib/db/healthCheckWorker.js",
   "dist/open-sse/vendor/codex-chatgpt-web/adapters/chatgpt-web/mcp-server.js",
   "dist/open-sse/services/compression/rules/en/filler.json",
   "dist/server.js",
@@ -196,6 +203,7 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/main-server-timeouts.mjs",
   // server-ws.mjs import (sd_notify helper) — enforced by the closure test.
   "dist/systemd-notify.mjs",
+  "dist/httpClientAbortGuard.mjs",
   "dist/http-method-guard.cjs",
   // #5452: regression guard — make check:pack-artifact fail loudly if the TLS
   // opt-in sidecar (imported by dist/server-ws.mjs) ever vanishes from the tarball.

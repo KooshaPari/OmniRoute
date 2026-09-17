@@ -1,4 +1,6 @@
 import {
+  ACCOUNT_DEACTIVATED_SIGNALS,
+  CREDITS_EXHAUSTED_SIGNALS,
   isAccountDeactivated,
   isCreditsExhausted,
   isDailyQuotaExhausted,
@@ -88,7 +90,20 @@ export const PROVIDER_ERROR_TYPES = {
   // Google account must Bring Its Own GCP Project. Account-specific and
   // fixable by entering a Project ID — never a model lockout and never a ban.
   GCP_PROJECT_REQUIRED: "gcp_project_required",
-};
+} as const;
+
+export type ProviderErrorType = (typeof PROVIDER_ERROR_TYPES)[keyof typeof PROVIDER_ERROR_TYPES];
+
+// Versioned vocabulary persisted in `call_logs.error_type`: every provider error
+// family plus the explicit `unknown` for a failure the classifier could not place.
+// Derived from PROVIDER_ERROR_TYPES so the two cannot drift. Bump the version when
+// a value is removed or renamed (adding a family is backwards compatible).
+export type ErrorTypeContract = ProviderErrorType | "unknown";
+export const ERROR_TYPE_CONTRACT: readonly ErrorTypeContract[] = Object.freeze([
+  ...Object.values(PROVIDER_ERROR_TYPES),
+  "unknown",
+]);
+export const ERROR_TYPE_CONTRACT_VERSION = 1;
 
 export const CONTEXT_OVERFLOW_SIGNALS = [
   "context overflow",
@@ -248,7 +263,7 @@ export function classifyProviderError(
   statusCode: number,
   responseBody: unknown,
   provider?: string | null
-): string | null {
+): ProviderErrorType | null {
   const bodyStr = responseBodyToString(responseBody);
   const creditsExhausted = isCreditsExhausted(bodyStr);
   const subscriptionQuotaExhausted = isSubscriptionQuotaText(bodyStr.toLowerCase());
@@ -256,7 +271,10 @@ export function classifyProviderError(
   const oauthInvalid = isOAuthInvalidToken(bodyStr);
   const preserveQuota429 = shouldPreserveQuotaSignalsFor429(provider);
 
-  if ((creditsExhausted || subscriptionQuotaExhausted) && [400, 401, 402, 403].includes(statusCode)) {
+  if (
+    (creditsExhausted || subscriptionQuotaExhausted) &&
+    [400, 401, 402, 403].includes(statusCode)
+  ) {
     return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
   }
 
@@ -427,5 +445,85 @@ export function classifyProviderError(
     }
   }
 
+  return null;
+}
+
+// ── "Fake success" 2xx body classifier (#13461) ─────────────────────────────
+//
+// Some free/web-session providers (reported: Pollinations, Perplexity web via
+// cookie session) answer a genuine failure — expired session, exhausted
+// free-tier credits — with HTTP 200 and a structurally normal completion
+// whose assistant message is just the provider's own error prose. Neither
+// classifyProviderError above (gated on 400/401/402/403/429 before it ever
+// looks at the body — deliberately NOT changed by this fix, see below) nor
+// detectMalformedNonStream (open-sse/utils/diagnostics.ts, structural
+// emptiness only) catch this, so the error text is translated and forwarded
+// to the client as if the model had genuinely answered with that sentence.
+//
+// Deliberately narrow, by owner decision (2026-09-15):
+//   - allowlist-only, starting with the two providers actually reported —
+//     never applied globally. classifyProviderError()'s status-code gate is
+//     intentionally left untouched; this lives in a separate sibling
+//     function instead of loosening that gate.
+//   - reuses the EXISTING, already-curated CREDITS_EXHAUSTED_SIGNALS /
+//     ACCOUNT_DEACTIVATED_SIGNALS phrase lists (open-sse/services/
+//     accountFallback.ts) rather than inventing new fuzzy matching.
+//   - only trips on SHORT content whose matched signal covers a large
+//     fraction of it — a multi-paragraph answer that merely *mentions* the
+//     topic is long and/or the phrase is a small fraction of it, so it is
+//     never misclassified.
+const FAKE_SUCCESS_BODY_ALLOWLIST = new Set(["pollinations", "perplexity-web"]);
+
+/** Exported for tests; not meant as a general-purpose provider predicate. */
+export function isFakeSuccessBodyAllowlistedProvider(provider?: string | null): boolean {
+  if (!provider) return false;
+  return FAKE_SUCCESS_BODY_ALLOWLIST.has(provider.toLowerCase());
+}
+
+// A real prose answer runs to paragraphs; a disguised upstream error is one
+// short sentence. Generous headroom above every known signal phrase while
+// still excluding genuine longer completions that merely mention the topic.
+const FAKE_SUCCESS_MAX_CONTENT_LENGTH = 400;
+
+// The matched signal alone must make up a meaningful share of the message —
+// keeps a legitimate answer that references the phrase in passing (as part
+// of a much larger sentence/paragraph) from tripping this classifier.
+const FAKE_SUCCESS_MIN_SIGNAL_COVERAGE = 0.12;
+
+function matchedSignalCoverage(lowerText: string, signals: readonly string[]): number {
+  let best = 0;
+  for (const signal of signals) {
+    if (lowerText.includes(signal) && signal.length > best) best = signal.length;
+  }
+  return lowerText.length > 0 ? best / lowerText.length : 0;
+}
+
+/**
+ * Classify a *successful* (2xx) response's assistant-message text as a
+ * disguised upstream failure. Returns the matching ProviderErrorType, or
+ * null when the provider is not on the allowlist, the content is too long
+ * to be a bare error sentence, or no known signal phrase dominates it.
+ *
+ * Only ever meaningful for the narrow provider allowlist above — see
+ * isFakeSuccessBodyAllowlistedProvider and #13461.
+ */
+export function classifyFakeSuccessBody(
+  content: string,
+  provider?: string | null
+): ProviderErrorType | null {
+  if (!isFakeSuccessBodyAllowlistedProvider(provider)) return null;
+
+  const text = String(content || "").trim();
+  if (!text || text.length > FAKE_SUCCESS_MAX_CONTENT_LENGTH) return null;
+
+  const lower = text.toLowerCase();
+  if (matchedSignalCoverage(lower, CREDITS_EXHAUSTED_SIGNALS) >= FAKE_SUCCESS_MIN_SIGNAL_COVERAGE) {
+    return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
+  }
+  if (
+    matchedSignalCoverage(lower, ACCOUNT_DEACTIVATED_SIGNALS) >= FAKE_SUCCESS_MIN_SIGNAL_COVERAGE
+  ) {
+    return PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED;
+  }
   return null;
 }

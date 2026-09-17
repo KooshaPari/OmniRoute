@@ -68,6 +68,14 @@ export const QWEN_STAINLESS_LANG = "js";
 
 export const QODER_DEFAULT_USER_AGENT = "Qoder-Cli";
 
+// CODEBUDDY_CN_USER_AGENT is the single source of truth for the CLI/CodeBuddy version
+// string. It MUST stay identical across OAuth (src/lib/oauth/constants/oauth.ts), chat
+// completions (open-sse/config/providers/registry/codebuddy-cn/index.ts) and usage/quota
+// (open-sse/services/usage/codebuddy-cn.ts) — a mismatched version string across a
+// single account's auth vs. chat calls is exactly the kind of internally-inconsistent
+// client fingerprint Tencent's WAF flags as anomalous (#12702).
+export const CODEBUDDY_CN_USER_AGENT = "CLI/2.108.1 CodeBuddy/2.108.1";
+
 export const KIRO_SDK_USER_AGENT = "AWS-SDK-JS/3.0.0 kiro-ide/1.0.0";
 export const KIRO_AMZ_USER_AGENT = "aws-sdk-js/3.0.0 kiro-ide/1.0.0";
 export const KIRO_STREAMING_TARGET =

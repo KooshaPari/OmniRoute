@@ -41,6 +41,8 @@ interface ProxyLogEntry {
   comboId: string | null;
   account: string | null;
   tlsFingerprint: boolean;
+  /** HTTP status the provider actually returned; null when no response was received. */
+  upstreamStatus: number | null;
 }
 
 type ProxyLogInput = Partial<ProxyLogEntry> & {
@@ -93,6 +95,7 @@ function loadFromDb() {
         comboId: row.combo_id || null,
         account: row.account || null,
         tlsFingerprint: row.tls_fingerprint === 1,
+        upstreamStatus: typeof row.upstream_status === "number" ? row.upstream_status : null,
       });
     }
 
@@ -174,6 +177,7 @@ export function logProxyEvent(entry: ProxyLogInput) {
     comboId: entry.comboId || null,
     account: entry.account || null,
     tlsFingerprint: entry.tlsFingerprint || false,
+    upstreamStatus: entry.upstreamStatus ?? null,
   };
 
   // Structured egress line so the operator can confirm, in the proxy logs, which
@@ -263,10 +267,10 @@ export function flushProxyLogsSync() {
     const insertStmt = db.prepare(
       `INSERT INTO proxy_logs (id, timestamp, status, proxy_type, proxy_host, proxy_port,
         level, level_id, provider, target_url, public_ip, egress_ip, latency_ms, error,
-        connection_id, combo_id, account, tls_fingerprint)
+        connection_id, combo_id, account, tls_fingerprint, upstream_status)
       VALUES (@id, @timestamp, @status, @proxyType, @proxyHost, @proxyPort,
         @level, @levelId, @provider, @targetUrl, @clientIp, @egressIp, @latencyMs, @error,
-        @connectionId, @comboId, @account, @tlsFingerprint)`
+        @connectionId, @comboId, @account, @tlsFingerprint, @upstreamStatus)`
     );
 
     const transaction = db.transaction((entries: ProxyLogEntry[]) => {
@@ -290,6 +294,7 @@ export function flushProxyLogsSync() {
           comboId: item.comboId,
           account: item.account,
           tlsFingerprint: item.tlsFingerprint ? 1 : 0,
+          upstreamStatus: item.upstreamStatus,
         });
       }
     });

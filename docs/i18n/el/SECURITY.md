@@ -1,6 +1,6 @@
 # Security Policy (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇪🇹 [am](../am/SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇳🇬 [ha](../ha/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇦🇲 [hy](../hy/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇳🇬 [ig](../ig/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇬🇪 [ka](../ka/SECURITY.md) · 🇰🇭 [km](../km/SECURITY.md) · 🇮🇳 [kn](../kn/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [ml](../ml/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇲🇲 [my](../my/SECURITY.md) · 🇳🇵 [ne](../ne/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇮🇳 [or](../or/SECURITY.md) · 🇮🇳 [pa](../pa/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇱🇰 [si](../si/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇺🇿 [uz](../uz/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇳🇬 [yo](../yo/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -220,28 +220,24 @@ docker run -d \
 10. **Τιμές χρόνου εκτέλεσης `exec()` / `spawn()` μέσω της επιλογής `env`** — ποτέ μην παρεμβάλλετε εξωτερικά μονοπάτια ή μη αξιόπιστες τιμές σε σενάρια που περνούν από το shell. Αναφορά: `src/mitm/cert/install.ts::updateNssDatabases`.
 11. **Προτιμάτε βιβλιοθήκες με ασφαλείς προεπιλογές** — βλ. [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Καταφεύγετε σε αυτές πριν υλοποιήσετε τη δική σας λύση.
 
-## Ευρήματα σαρωτή αλυσίδας εφοδιασμού (Socket.dev / Snyk / παρόμοια)
+## Ευρήματα σαρωτή εφοδιαστικής αλυσίδας (Socket.dev / Snyk / παρόμοια εργαλεία)
 
-Το δημοσιευμένο artifact npm `omniroute` περιλαμβάνει το build του Next.js με `output: "standalone"`,
-που σημαίνει ότι κάθε χειριστής διαδρομής — συμπεριλαμβανομένων των τεκμηριωμένων προνομιακών
-λειτουργιών (MITM, εισαγωγή Zed, Cloud Sync, ενσωματωμένος επόπτης υπηρεσιών) — καταλήγει
-σε ελαχιστοποιημένα τμήματα `.next/server/*.js`. Οι ευρετικοί σαρωτές αλυσίδας εφοδιασμού
-αντιστοιχίζουν συχνά αυτά τα τμήματα με υπογραφές κακόβουλου λογισμικού.
+Το δημοσιευμένο npm artifact `omniroute` περιλαμβάνει το build του Next.js με `output: "standalone"`, πράγμα που σημαίνει ότι κάθε route handler — συμπεριλαμβανομένων των τεκμηριωμένων προνομιακών λειτουργιών (MITM, εισαγωγή Zed, Cloud Sync, ενσωματωμένος επόπτης υπηρεσιών) — καταλήγει σε ελαχιστοποιημένα chunks `.next/server/*.js`. Οι ευρετικοί σαρωτές εφοδιαστικής αλυσίδας συχνά αντιστοιχίζουν τα μοτίβα αυτών των chunks με υπογραφές κακόβουλου λογισμικού.
 
-Για κάθε κατηγορία εύρεσης διατηρούμε μια επιμέρους επαλήθευση συντηρητή ανά εύρημα:
+Η διαμόρφωση του σαρωτή που χρησιμοποιούμε βρίσκεται στο [`socket.yml`](socket.yml) στη ρίζα του αποθετηρίου (μορφή v2 του Socket.dev GitHub App — βλ.
+<https://docs.socket.dev/docs/socket-yml>). Εξαιρεί ρητά καταλόγους που δεν αποστέλλονται (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/` κ.λπ.), ώστε ο σαρωτής να αναφέρει μόνο διαδρομές κώδικα που φτάνουν πράγματι στους χρήστες της δημοσιευμένης έκδοσης — η ίδια η σάρωση εκτελείται από το Socket GitHub App, το οποίο διαβάζει αυτό το αρχείο, και όχι από κάποιο workflow σε αυτό το αποθετήριο.
+
+Για κάθε κατηγορία ευρημάτων διατηρούμε μια βεβαίωση από τους συντηρητές ανά εύρημα:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  χάρτης ανά εύρημα: αρχείο πηγής ↔ επισημασμένο τμήμα ↔ συμπεριφορά ↔ μέτρο μετριασμού
-  που εφαρμόστηκε στην v3.8.6.
-- Μπλοκ `SECURITY-AUDITOR-NOTE:` εντός πηγαίου κώδικα σε κάθε επισημασμένο σημείο συνάρτησης
-  παραπέμπουν στο ίδιο έγγραφο.
+  αντιστοίχιση ανά εύρημα: αρχείο προέλευσης ↔ επισημασμένο chunk ↔ συμπεριφορά ↔ μέτρο περιορισμού που εφαρμόστηκε στην v3.8.6.
+- Μπλοκ `SECURITY-AUDITOR-NOTE:` μέσα στον πηγαίο κώδικα, σε κάθε επισημασμένο σημείο συνάρτησης, παραπέμπουν στο ίδιο έγγραφο.
 
-Για χρήστες των οποίων η διοχέτευση δεν μπορεί να χαλαρώσει την ειδοποίηση: κάντε build με
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Αυτό αντικαθιστά τις τέσσερις
-ευαίσθητες μονάδες με stubs που επιστρέφουν HTTP 503 `feature-disabled` κατά την
-εκτέλεση, ώστε τα προνομιακά μονοπάτια κώδικα να απουσιάζουν φυσικά από το bundle.
-Δείτε το [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-για τη συνταγή δημοσίευσης.
+Για χρήστες των οποίων το pipeline δεν επιτρέπει τη χαλάρωση της ειδοποίησης: εκτελέστε build με
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Αυτό αντικαθιστά τα τέσσερα ευαίσθητα modules με stubs που επιστρέφουν HTTP 503 `feature-disabled` κατά την εκτέλεση, ώστε οι προνομιακές διαδρομές κώδικα να απουσιάζουν φυσικά από το bundle.
+Ανατρέξτε στο [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+για τη διαδικασία δημοσίευσης.
 
 ## Αναφορές
 

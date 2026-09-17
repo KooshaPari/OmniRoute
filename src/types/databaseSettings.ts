@@ -47,6 +47,7 @@ export interface DatabaseSettings {
     configAudit: number;
     a2aEvents: number;
     callLogs: number;
+    conversationTurnNodes: number;
     usageHistory: number;
     memoryEntries: number;
     domainCostHistory: number;
@@ -81,6 +82,14 @@ export interface DatabaseSettings {
     lastVacuumAt: string | null;
     lastOptimizationAt: string | null;
     integrityCheck: "ok" | "error" | null;
+    /**
+     * #13432 — non-null while the configured `optimization.autoVacuumMode`
+     * has not yet been applied to the live SQLite file. Cleared once the
+     * vacuum scheduler's next scheduled run reconciles it.
+     */
+    autoVacuumDrift: { configured: string; live: string } | null;
+    /** Pages freed by the most recent bounded `PRAGMA incremental_vacuum` batch, or null. */
+    lastReclaimedPages: number | null;
   };
 }
 
@@ -118,6 +127,10 @@ export const DEFAULT_DATABASE_SETTINGS: Omit<DatabaseSettings, "location" | "sta
     configAudit: 30,
     a2aEvents: 30,
     callLogs: 30,
+    // Default matches callLogs (30) so merging this knob changes no behavior for
+    // existing installs — operators can lower it independently if they want a
+    // shorter reconnect-anchor window than their call-log retention (#12453).
+    conversationTurnNodes: 30,
     usageHistory: 30,
     memoryEntries: 30,
     domainCostHistory: 30,

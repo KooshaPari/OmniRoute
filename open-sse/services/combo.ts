@@ -20,11 +20,7 @@ import {
 
 import { getHiddenModelsByProvider } from "@/models";
 
-import {
-  evaluateQuotaCutoff,
-  getQuotaFetcher,
-  type QuotaInfo,
-} from "./quotaPreflight.ts";
+import { evaluateQuotaCutoff, getQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
 import { resolveProviderId } from "../../src/shared/constants/providers.ts";
 import { getQuotaFetchScope } from "./antigravityQuotaFamily.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
@@ -37,10 +33,7 @@ import { projectAccountTier, type ProviderCandidate } from "./autoCombo/scoring.
 
 import { getSessionConnection } from "./sessionManager.ts";
 import { getOAuthSessionAvailability } from "./oauthSessionOccupancy.ts";
-import {
-  clearStickyBinding,
-  peekStickyConnectionId,
-} from "./combo/sessionStickiness.ts";
+import { clearStickyBinding, peekStickyConnectionId } from "./combo/sessionStickiness.ts";
 
 import { lookupPositiveCap } from "./combo/concurrencyCaps.ts";
 import { acquireQuotaShareConcurrencySlot } from "./combo/quotaShareConcurrency.ts";
@@ -107,20 +100,13 @@ import {
   tryPipelineDispatch,
   tryRuntimeUnitDispatch,
 } from "./combo/dispatchPrelude.ts";
-import {
-  resolveShadowTargets,
-  scheduleShadowRouting,
-} from "./combo/shadowRouting.ts";
+import { resolveShadowTargets, scheduleShadowRouting } from "./combo/shadowRouting.ts";
 import {
   filterTargetsByRequestCompatibility,
   resolveComboRuntimeUnits,
   resolveComboTargets,
 } from "./combo/comboStructure.ts";
-import {
-  createInvocationId,
-  getComboTrace,
-  startComboTrace,
-} from "./combo/decisionTrace.ts";
+import { createInvocationId, getComboTrace, startComboTrace } from "./combo/decisionTrace.ts";
 import {
   QUOTA_SOFT_DEPRIORITIZE_FACTOR,
   setCandidateQuotaSoftPenalty,
@@ -135,20 +121,15 @@ import {
   calculateResetWindowAffinity,
   type ResetWindowConfig,
 } from "./combo/quotaScoring.ts";
-import {
-  fetchResetAwareQuotaWithCache,
-  preScreenTargets,
-} from "./combo/quotaStrategies.ts";
+import { fetchResetAwareQuotaWithCache, preScreenTargets } from "./combo/quotaStrategies.ts";
 import { buildAutoQuotaThresholds } from "./combo/quotaExhaustionCutoff.ts";
 import { expandTargetsByFingerprints } from "./combo/fingerprintExpansion.ts";
 import { resolveComboTargetPipeline } from "./combo/targetResolution.ts";
 import { dispatchWithCooldownRetry } from "./combo/comboAttemptLoop.ts";
 import { evaluateExecuteTargetGates } from "./combo/executeTargetGates.ts";
 import { executeTargetAttempt } from "./combo/executeTargetAttempt.ts";
-import type {
-  AttemptLoopDeps,
-  AttemptLoopState,
-} from "./combo/attemptLoopTypes.ts";
+import type { AttemptLoopDeps, AttemptLoopState } from "./combo/attemptLoopTypes.ts";
+import { clearStaleLKGP } from "./combo/staleLkgpClear.ts";
 
 export { RESET_WINDOW_NAMES, QUOTA_SOFT_DEPRIORITIZE_FACTOR, setCandidateQuotaSoftPenalty };
 export { scoreAutoTargets, expandAutoComboCandidatePool };
@@ -195,32 +176,8 @@ export function releaseStickyPinOnFailure(
   clearStickyBinding(messageHash);
 }
 
-/**
- * Clear persisted LKGP pins when a target fails or is skipped due to
- * exhaustion, cooldown, or unavailability (#11911 #919).
- */
-export function clearStaleLKGP(
-  comboName: string,
-  executionKey?: string | null,
-  comboId?: string | null,
-  log?: { warn?: (tag: string, msg: string, data?: unknown) => void } | null,
-  tag: string = "COMBO"
-): void {
-  void (async () => {
-    try {
-      const { clearLKGP } = await import("@/lib/db/settings");
-      const promises: Promise<void>[] = [clearLKGP(comboName, comboId || comboName)];
-      if (executionKey) {
-        promises.push(clearLKGP(comboName, executionKey));
-      }
-      await Promise.all(promises);
-    } catch (err) {
-      log?.warn?.(tag, "Failed to clear Last Known Good Provider. This is non-fatal.", {
-        err,
-      });
-    }
-  })();
-}
+// #11911 #919: non-blocking stale-pin clear whose failures log with combo context.
+export { clearStaleLKGP };
 
 const DEFAULT_MODEL_P95_MS: Record<string, number> = {
   "grok-4-fast-non-reasoning": 1143,
@@ -850,7 +807,10 @@ async function handleComboChatInner({
     });
   }
 
-  const maxRetries = activeNativeTurnPin ? 0 : (config.maxRetries ?? 1);
+  // Native Codex turns must stay on their pinned target, but a pre-content
+  // stream failure is safe to retry because no output reached the client.
+  // Keep set retries disabled while preserving same-target retries.
+  const maxRetries = config.maxRetries ?? 1;
   const maxSetRetries = activeNativeTurnPin ? 0 : (config.maxSetRetries ?? 0);
   const setRetryDelayMs = resolveDelayMs(config.setRetryDelayMs, 2000);
 
@@ -1081,4 +1041,3 @@ async function handleComboChatInner({
     _unregisterExecutionCandidates(_registeredExecutionKeys);
   }
 }
-

@@ -531,7 +531,10 @@ export function attachReasoningRuleDirective(
   return body;
 }
 
-export function applyReasoningRuleDirective(bodyInput: unknown): unknown {
+export function applyReasoningRuleDirective(
+  bodyInput: unknown,
+  targetFormat?: "openai-responses" | "claude"
+): unknown {
   const source = asRecord(bodyInput);
   const directive = asRecord(source._omnirouteReasoningRule);
   if (!directive.id) return bodyInput;
@@ -542,9 +545,11 @@ export function applyReasoningRuleDirective(bodyInput: unknown): unknown {
   if (effortMode === "force" && targetEffort === "none") clearReasoning(body);
   else if ((effortMode === "force" || effortMode === "default") && targetEffort) {
     if (effortMode === "force") clearDiscreteReasoning(body);
-    body.reasoning_effort = targetEffort;
-    body.reasoning = { ...asRecord(body.reasoning), effort: targetEffort };
-    body.output_config = { ...asRecord(body.output_config), effort: targetEffort };
+    if (!targetFormat) body.reasoning_effort = targetEffort;
+    if (targetFormat !== "claude")
+      body.reasoning = { ...asRecord(body.reasoning), effort: targetEffort };
+    if (targetFormat !== "openai-responses")
+      body.output_config = { ...asRecord(body.output_config), effort: targetEffort };
   }
   applyBudget(
     body,

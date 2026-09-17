@@ -19,6 +19,7 @@
  *     protocol translation + node selection). Without it, those nodes are
  *     reported but not routed.
  */
+import { decodeUserinfo } from "@/shared/utils/decodeUserinfo";
 import { randomUUID } from "crypto";
 import { getDbInstance } from "../db/core";
 import { backupDbFile } from "../db/backup";
@@ -26,6 +27,7 @@ import {
   addProxiesToScopePool,
   bumpProxyRegistryGeneration,
   deleteProxyById,
+  updateProxy,
   upsertProxy,
 } from "../db/proxies";
 import { bumpProxyConfigGeneration } from "../db/settings";
@@ -49,9 +51,7 @@ export type ProxySubscriptionStatus = "ok" | "error" | "empty";
  * column (as JSON) so the dashboard can localize them via i18n instead of
  * showing server-side strings. */
 export type ProxySubscriptionErrorCode =
-  | "LOCAL_CORE_ENDPOINT_INVALID"
-  | "NEEDS_CORE_NOT_CONFIGURED"
-  | "NO_USABLE_NODES";
+  "LOCAL_CORE_ENDPOINT_INVALID" | "NEEDS_CORE_NOT_CONFIGURED" | "NO_USABLE_NODES";
 
 /** Encode a user-facing error as `{ code, detail? }` for i18n on the client. */
 export function subscriptionErrorCode(code: ProxySubscriptionErrorCode, detail?: string): string {
@@ -204,14 +204,18 @@ export async function updateSubscription(
   const name = payload.name ?? existing.name;
   const url = payload.url ?? existing.url;
   const mode = payload.mode ?? existing.mode;
-  const ruleProviders = payload.ruleProviders !== undefined ? payload.ruleProviders : existing.ruleProviders;
+  const ruleProviders =
+    payload.ruleProviders !== undefined ? payload.ruleProviders : existing.ruleProviders;
   const localCoreEndpoint =
-    payload.localCoreEndpoint !== undefined ? payload.localCoreEndpoint : existing.localCoreEndpoint;
+    payload.localCoreEndpoint !== undefined
+      ? payload.localCoreEndpoint
+      : existing.localCoreEndpoint;
   const updateIntervalMinutes = payload.updateIntervalMinutes ?? existing.updateIntervalMinutes;
   const now = new Date().toISOString();
 
   const enabledChanged = payload.enabled !== undefined && payload.enabled !== existing.enabled;
-  const enabled = payload.enabled !== undefined ? (payload.enabled ? 1 : 0) : existing.enabled ? 1 : 0;
+  const enabled =
+    payload.enabled !== undefined ? (payload.enabled ? 1 : 0) : existing.enabled ? 1 : 0;
 
   db.prepare(
     `UPDATE proxy_subscriptions
@@ -254,7 +258,10 @@ export async function updateSubscription(
   return getSubscriptionById(id);
 }
 
-export async function setSubscriptionEnabled(id: string, enabled: boolean): Promise<ProxySubscriptionRecord | null> {
+export async function setSubscriptionEnabled(
+  id: string,
+  enabled: boolean
+): Promise<ProxySubscriptionRecord | null> {
   return updateSubscription(id, { enabled });
 }
 
@@ -384,11 +391,36 @@ async function fetchSubscriptionContent(url: string): Promise<string> {
   });
 }
 
+/**
+ * Keep a synced node only when this subscription owns its registry row. A row created
+ * by hand, or owned by another subscription, comes back as "skipped" and stays out of
+ * this pool. An owned row that pool validation flagged `error` is healed, since the feed
+ * just listed it again; `inactive` and `dead` are operator or health decisions and stay.
+ */
+async function keepOwnedSyncedRow(
+  upserted: Awaited<ReturnType<typeof upsertProxy>>,
+  keptIds: string[]
+): Promise<void> {
+  if (upserted.action === "skipped" || !upserted.proxy?.id) return;
+  keptIds.push(upserted.proxy.id);
+  if (upserted.proxy.status === "error") {
+    await updateProxy(upserted.proxy.id, { status: "active" });
+  }
+}
+
 /** Fetch + parse + sync nodes into proxy_registry, then (if enabled) (re)bind. */
 async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
   const sub = await getSubscriptionById(id);
   if (!sub) {
-    return { subscriptionId: id, nodes: 0, needsCore: 0, boundProxies: 0, status: "error", error: "not found", applied: false };
+    return {
+      subscriptionId: id,
+      nodes: 0,
+      needsCore: 0,
+      boundProxies: 0,
+      status: "error",
+      error: "not found",
+      applied: false,
+    };
   }
 
   let body: string;
@@ -397,8 +429,23 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     const fetchConsec = (sub.consecutiveFailures || 0) + 1;
-    await updateSubscriptionStatus(id, "error", `Fetch failed: ${msg}`, null, new Date().toISOString(), fetchConsec);
-    return { subscriptionId: id, nodes: 0, needsCore: 0, boundProxies: 0, status: "error", error: msg, applied: false };
+    await updateSubscriptionStatus(
+      id,
+      "error",
+      `Fetch failed: ${msg}`,
+      null,
+      new Date().toISOString(),
+      fetchConsec
+    );
+    return {
+      subscriptionId: id,
+      nodes: 0,
+      needsCore: 0,
+      boundProxies: 0,
+      status: "error",
+      error: msg,
+      applied: false,
+    };
   }
 
   const parsed: ParsedSubscription = parseSubscription(body);
@@ -414,81 +461,108 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
   // better-sqlite3, so instead we guard against an unexpected DB error so a
   // half-completed sync can never be left flagged "ok".
   try {
-  // Directly-usable nodes → upsert into the registry as a pool.
-  for (const node of parsed.nodes) {
-    const upserted = await upsertProxy({
-      name: node.name || `${sub.name} (${node.host}:${node.port})`,
-      type: node.type,
-      host: node.host,
-      port: node.port,
-      username: node.username,
-      password: node.password,
-      source: "subscription",
-      subscriptionId: id,
-      status: "active",
-    });
-    if (upserted.proxy?.id) keptIds.push(upserted.proxy.id);
-  }
-
-  // needsCore nodes → bind the operator-supplied local core endpoint (single).
-  if (parsed.needsCore.length > 0) {
-    if (sub.localCoreEndpoint && isLocalCoreEndpointAllowed(sub.localCoreEndpoint)) {
-      try {
-        const coreUrl = new URL(sub.localCoreEndpoint);
-        const coreType = coreUrl.protocol === "https:" ? "https" : coreUrl.protocol === "socks5:" ? "socks5" : "http";
-        const upserted = await upsertProxy({
-          name: `${sub.name} (local core)`,
-          type: coreType,
-          host: coreUrl.hostname,
-          port: Number(coreUrl.port) || (coreType === "https" ? 443 : 8080),
-          username: coreUrl.username ? decodeURIComponent(coreUrl.username) : undefined,
-          password: coreUrl.password ? decodeURIComponent(coreUrl.password) : undefined,
+    // Directly-usable nodes → upsert into the registry as a pool.
+    for (const node of parsed.nodes) {
+      // No status: a refresh must not revive a node the operator or auto-disable turned off.
+      const upserted = await upsertProxy(
+        {
+          name: node.name || `${sub.name} (${node.host}:${node.port})`,
+          type: node.type,
+          host: node.host,
+          port: node.port,
+          username: node.username,
+          password: node.password,
           source: "subscription",
           subscriptionId: id,
-          status: "active",
-        });
-        if (upserted.proxy?.id) keptIds.push(upserted.proxy.id);
-      } catch {
-        warning = subscriptionErrorCode("LOCAL_CORE_ENDPOINT_INVALID");
+        },
+        { claimOwnership: false }
+      );
+      await keepOwnedSyncedRow(upserted, keptIds);
+    }
+
+    // needsCore nodes → bind the operator-supplied local core endpoint (single).
+    if (parsed.needsCore.length > 0) {
+      if (sub.localCoreEndpoint && isLocalCoreEndpointAllowed(sub.localCoreEndpoint)) {
+        try {
+          const coreUrl = new URL(sub.localCoreEndpoint);
+          const coreType =
+            coreUrl.protocol === "https:"
+              ? "https"
+              : coreUrl.protocol === "socks5:"
+                ? "socks5"
+                : "http";
+          const upserted = await upsertProxy(
+            {
+              name: `${sub.name} (local core)`,
+              type: coreType,
+              host: coreUrl.hostname,
+              port: Number(coreUrl.port) || (coreType === "https" ? 443 : 8080),
+              username: coreUrl.username ? decodeUserinfo(coreUrl.username) : undefined,
+              password: coreUrl.password ? decodeUserinfo(coreUrl.password) : undefined,
+              source: "subscription",
+              subscriptionId: id,
+            },
+            { claimOwnership: false }
+          );
+          await keepOwnedSyncedRow(upserted, keptIds);
+        } catch {
+          warning = subscriptionErrorCode("LOCAL_CORE_ENDPOINT_INVALID");
+        }
+      } else {
+        const nodes = parsed.needsCore
+          .map((n) => `${n.rawProtocol}://${n.host ?? ""}${n.port ? ":" + n.port : ""}`)
+          .join(", ");
+        warning = subscriptionErrorCode("NEEDS_CORE_NOT_CONFIGURED", nodes);
+      }
+    }
+
+    // Remove stale subscription nodes no longer present in the fetched set.
+    if (keptIds.length > 0) {
+      const placeholders = keptIds.map(() => "?").join(",");
+      const stale = db
+        .prepare(
+          `SELECT id FROM proxy_registry WHERE subscription_id = ? AND id NOT IN (${placeholders})`
+        )
+        .all(id, ...keptIds) as Array<{ id: string }>;
+      for (const r of stale) {
+        try {
+          await deleteProxyById(r.id, { force: true });
+        } catch {
+          // ignore
+        }
       }
     } else {
-      const nodes = parsed.needsCore
-        .map((n) => `${n.rawProtocol}://${n.host ?? ""}${n.port ? ":" + n.port : ""}`)
-        .join(", ");
-      warning = subscriptionErrorCode("NEEDS_CORE_NOT_CONFIGURED", nodes);
-    }
-  }
-
-  // Remove stale subscription nodes no longer present in the fetched set.
-  if (keptIds.length > 0) {
-    const placeholders = keptIds.map(() => "?").join(",");
-    const stale = db
-      .prepare(`SELECT id FROM proxy_registry WHERE subscription_id = ? AND id NOT IN (${placeholders})`)
-      .all(id, ...keptIds) as Array<{ id: string }>;
-    for (const r of stale) {
-      try {
-        await deleteProxyById(r.id, { force: true });
-      } catch {
-        // ignore
+      const stale = db
+        .prepare("SELECT id FROM proxy_registry WHERE subscription_id = ?")
+        .all(id) as Array<{ id: string }>;
+      for (const r of stale) {
+        try {
+          await deleteProxyById(r.id, { force: true });
+        } catch {
+          // ignore
+        }
       }
     }
-  } else {
-    const stale = db
-      .prepare("SELECT id FROM proxy_registry WHERE subscription_id = ?")
-      .all(id) as Array<{ id: string }>;
-    for (const r of stale) {
-      try {
-        await deleteProxyById(r.id, { force: true });
-      } catch {
-        // ignore
-      }
-    }
-  }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     const writeConsec = (sub.consecutiveFailures || 0) + 1;
-    await updateSubscriptionStatus(id, "error", `Sync write failed: ${msg}`, null, new Date().toISOString(), writeConsec);
-    return { subscriptionId: id, nodes: 0, needsCore: 0, boundProxies: 0, status: "error", error: msg, applied: false };
+    await updateSubscriptionStatus(
+      id,
+      "error",
+      `Sync write failed: ${msg}`,
+      null,
+      new Date().toISOString(),
+      writeConsec
+    );
+    return {
+      subscriptionId: id,
+      nodes: 0,
+      needsCore: 0,
+      boundProxies: 0,
+      status: "error",
+      error: msg,
+      applied: false,
+    };
   }
 
   const lastNodes = redactedNodeSummary(parsed);
@@ -687,11 +761,15 @@ export function startSubscriptionScheduler(): void {
         try {
           await syncSubscription(s.id);
         } catch (e) {
-          console.warn(`[ProxySubscription] refresh failed for ${s.id}: ${e instanceof Error ? e.message : e}`);
+          console.warn(
+            `[ProxySubscription] refresh failed for ${s.id}: ${e instanceof Error ? e.message : e}`
+          );
         }
       }
     } catch (e) {
-      console.warn(`[ProxySubscription] scheduler tick error: ${e instanceof Error ? e.message : e}`);
+      console.warn(
+        `[ProxySubscription] scheduler tick error: ${e instanceof Error ? e.message : e}`
+      );
     }
   };
 
