@@ -1,8 +1,11 @@
-import { sveltekit } from '@sveltejs/kit/vite';
-import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'vite';
+import { sveltekit } from "@sveltejs/kit/vite";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [tailwindcss(), sveltekit()],
-  server: { port: 4321 }
+  server: { port: 4321 },
+  optimizeDeps: {
+    exclude: ["@xyflow/svelte"],
+  },
 });

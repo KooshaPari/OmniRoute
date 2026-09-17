@@ -20,9 +20,10 @@
     "i18n:compile": "paraglide-js compile --project ./project.inlang --outdir ./src/lib/i18n"
   },
   "dependencies": {
-    "@inlang/paraglide-js": "^2.0.0",
     "@argismonitor/api-contracts": "file:../../packages/api-contracts",
+    "@inlang/paraglide-js": "^2.0.0",
     "@sveltejs/adapter-node": "^5.0.0",
+    "@sveltejs/adapter-static": "^3.0.10",
     "@sveltejs/kit": "^2.0.0",
     "@trpc/client": "^11.0.0",
     "@trpc/server": "^11.0.0",

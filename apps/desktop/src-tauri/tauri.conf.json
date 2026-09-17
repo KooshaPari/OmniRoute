@@ -6,8 +6,8 @@
   "build": {
     "beforeDevCommand": "bun --cwd ../web dev",
     "devUrl": "http://localhost:4321",
-    "beforeBuildCommand": "bun --cwd ../web run build",
-    "frontendDist": "../../apps/web/build"
+    "beforeBuildCommand": "cd ../web && TAURI_BUILD=1 bun run build",
+    "frontendDist": "../../web/build"
   },
   "app": {
     "windows": [
