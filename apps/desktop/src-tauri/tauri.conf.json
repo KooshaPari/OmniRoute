@@ -4,9 +4,9 @@
   "version": "3.8.38",
   "identifier": "online.omniroute.desktop",
   "build": {
-    "beforeDevCommand": "bun --cwd ../web dev",
+    "beforeDevCommand": "cd ../web && bun install && bun run dev",
     "devUrl": "http://localhost:4321",
-    "beforeBuildCommand": "cd ../web && TAURI_BUILD=1 bun run build",
+    "beforeBuildCommand": "cd ../web && bun install && TAURI_BUILD=1 bun run build",
     "frontendDist": "../../web/build"
   },
   "app": {
