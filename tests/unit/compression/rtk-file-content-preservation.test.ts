@@ -27,59 +27,17 @@ const JSONC_FILE_CONTENT = `{
       "id": "gpt-4o",
       "name": "GPT-4o",
       "contextLength": 128000
-    },
-    {
-      "id": "gpt-4o-mini",
-      "name": "GPT-4o Mini",
-      "contextLength": 128000
-    },
-    {
-      "id": "claude-3.5-sonnet",
-      "name": "Claude 3.5 Sonnet",
-      "contextLength": 200000
-    },
-    {
-      "id": "gemini-2.0-pro",
-      "name": "Gemini 2.0 Pro",
-      "contextLength": 1000000
-    },
-    {
-      "id": "deepseek-r1",
-      "name": "DeepSeek R1",
-      "contextLength": 128000
-    },
-    {
-      "id": "llama-3.1-405b",
-      "name": "Llama 3.1 405B",
-      "contextLength": 128000
     }
   ],
-  "providers": [
-    {
-      "id": "openai",
-      "name": "OpenAI",
-      "models": ["gpt-4o", "gpt-4o-mini"]
-    },
-    {
-      "id": "anthropic",
-      "name": "Anthropic",
-      "models": ["claude-3.5-sonnet"]
-    },
-    {
-      "id": "google",
-      "name": "Google",
-      "models": ["gemini-2.0-pro"]
-    },
-    {
-      "id": "deepseek",
-      "name": "DeepSeek",
-      "models": ["deepseek-r1"]
-    },
-    {
-      "id": "meta",
-      "name": "Meta",
-      "models": ["llama-3.1-405b"]
-    }
+  // Consecutive identical lines whose collapse silently CORRUPTS the data:
+  // dropping rows changes the matrix, it does not just change formatting.
+  "embeddingSeed": [
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0]
   ]
 }`;
 
@@ -115,8 +73,11 @@ test("RTK should NOT dedup file content from a non-shell 'read' tool", () => {
     },
   });
 
-  // The content should NOT be compressed (or at least not have dedup markers)
-  if (result.stats) {
+  // The content must NOT carry dedup markers. This assertion runs
+  // unconditionally: guarding it behind `if (result.stats)` made the whole
+  // check vanish whenever the engine reported no stats, which is exactly the
+  // case this test has to catch.
+  {
     // Verify no dedup markers appear in the output
     const output = JSON.stringify(result.body);
     assert.ok(
@@ -188,8 +149,9 @@ test("RTK should NOT truncate document-like file content from a non-shell 'read'
     },
   });
 
-  // Even if stats says something was compressed, verify the full content is preserved
-  if (result.stats) {
+  // Runs unconditionally on purpose: a `if (result.stats)` guard here silently
+  // skipped the whole check whenever the engine reported no stats.
+  {
     const output = JSON.stringify(result.body);
     assert.ok(
       output.includes("FINAL_HANDLER_MARKER"),
