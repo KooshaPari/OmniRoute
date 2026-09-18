@@ -30,7 +30,7 @@ function isTrueValue(raw: unknown): boolean {
 export function arePrivateProviderUrlsAllowed() {
   // 1) DB override takes precedence — it represents an explicit user toggle in
   //    the dashboard ("Allow Private Provider URLs"). This is critical for the
-  //    Electron build (#2575) where the server is spawned with the env value
+  //    packaged desktop build (#2575) where the server is spawned with the env value
   //    captured at boot, so subsequent UI toggles only land in the DB and the
   //    env-first ordering would otherwise mask them.
   try {

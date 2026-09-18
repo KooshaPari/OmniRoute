@@ -30,8 +30,6 @@
 
 /* OpenClaw × ClawHub Color Palette */
 :root {
-  --desktop-safe-top: 0px;
-  --desktop-safe-bottom: 0px;
   color-scheme: light;
 
   /* Primary - Coral Red (OpenClaw) */
@@ -287,11 +285,6 @@ body::before {
     linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   background-size: var(--grid-size) var(--grid-size);
-}
-
-body.electron-macos {
-  --desktop-safe-top: 30px;
-  --desktop-safe-bottom: 8px;
 }
 
 /* Selection — with fallback for browsers that don't support color-mix() */

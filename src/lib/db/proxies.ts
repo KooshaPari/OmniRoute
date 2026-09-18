@@ -472,7 +472,7 @@ export async function getProxyAssignments(filters?: { proxyId?: string; scope?: 
       .map(mapAssignmentRow);
   } catch (error: unknown) {
     // Fix #1706: Gracefully handle missing proxy_assignments table on fresh
-    // Electron installs where migration 004 hasn't run yet.
+    // installs where migration 004 hasn't run yet.
     const msg = error instanceof Error ? error.message : String(error);
     if (msg.includes("no such table")) return [];
     throw error;

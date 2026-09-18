@@ -800,7 +800,7 @@ export const getLookupEnv = () => {
   const extraPaths = getExtraPaths();
   const basePath = env.PATH || env.Path || "";
 
-  // #3321: on macOS GUI/Electron the inherited PATH is truncated (no Homebrew/nvm/volta),
+  // #3321: on macOS GUI apps the inherited PATH is truncated (no Homebrew/nvm/volta),
   // so CLI detection and CLI spawns can't find tools the user actually has installed.
   // Enrich with the login-shell PATH (cached, darwin-only, fail-safe → null elsewhere).
   const loginShellPath = getCachedLoginShellPath();
