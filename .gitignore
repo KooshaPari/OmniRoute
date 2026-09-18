@@ -297,3 +297,7 @@ docker-compose.yml.bak
 # check:install-upgrade work trees (~12 GB, disposable)
 /.install-upgrade/
 native-clients/macos-tray/.build/debug
+
+# Scratch files from agent sessions
+extract_*.py
+mcheck.txt
